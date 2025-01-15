@@ -8,17 +8,17 @@
 
 #pragma once
 
-#include "gpu_py_buffer.hh"
+#include "gpu_py_buffer.hh"  // IWYU pragma: export
 
-#include "gpu_py_batch.hh"
-#include "gpu_py_compute.hh"
-#include "gpu_py_element.hh"
-#include "gpu_py_framebuffer.hh"
-#include "gpu_py_offscreen.hh"
-#include "gpu_py_shader.hh"
-#include "gpu_py_texture.hh"
-#include "gpu_py_uniformbuffer.hh"
-#include "gpu_py_vertex_buffer.hh"
-#include "gpu_py_vertex_format.hh"
+#include "gpu_py_batch.hh"          // IWYU pragma: export
+#include "gpu_py_compute.hh"        // IWYU pragma: export
+#include "gpu_py_element.hh"        // IWYU pragma: export
+#include "gpu_py_framebuffer.hh"    // IWYU pragma: export
+#include "gpu_py_offscreen.hh"      // IWYU pragma: export
+#include "gpu_py_shader.hh"         // IWYU pragma: export
+#include "gpu_py_texture.hh"        // IWYU pragma: export
+#include "gpu_py_uniformbuffer.hh"  // IWYU pragma: export
+#include "gpu_py_vertex_buffer.hh"  // IWYU pragma: export
+#include "gpu_py_vertex_format.hh"  // IWYU pragma: export
 
 PyObject *bpygpu_types_init();

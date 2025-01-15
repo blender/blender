@@ -8,7 +8,7 @@
  * Basic mirror, optionally with UVs's.
  */
 
-#include "MEM_guardedalloc.h"
+#include "BLI_math_base.h"
 
 #include "BKE_customdata.hh"
 

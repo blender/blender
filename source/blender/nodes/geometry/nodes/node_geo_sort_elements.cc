@@ -295,8 +295,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SORT_ELEMENTS, "Sort Elements", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSortElements", GEO_NODE_SORT_ELEMENTS);
+  ntype.ui_name = "Sort Elements";
+  ntype.ui_description = "Rearrange geometry elements, changing their indices";
   ntype.enum_name_legacy = "SORT_ELEMENTS";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;

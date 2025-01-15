@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 #include "kernel/sample/mapping.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* Light Sample Result */
 
-typedef struct LightSample {
+struct LightSample {
   float3 P;            /* position on light, or direction for distant light */
   packed_float3 Ng;    /* normal on light */
   float t;             /* distance to light (FLT_MAX for distant light) */
@@ -26,36 +28,38 @@ typedef struct LightSample {
   int group;           /* lightgroup */
   LightType type;      /* type of light */
   int emitter_id;      /* index in the emitter array */
-} LightSample;
+};
 
 /* Utilities */
 
-ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float2 rand)
+ccl_device_inline float3 ellipse_sample(const float3 ru, const float3 rv, const float2 rand)
 {
   const float2 uv = sample_uniform_disk(rand);
   return ru * uv.x + rv * uv.y;
 }
 
-ccl_device_inline float3 rectangle_sample(float3 ru, float3 rv, float2 rand)
+ccl_device_inline float3 rectangle_sample(const float3 ru, const float3 rv, const float2 rand)
 {
   return ru * (2.0f * rand.x - 1.0f) + rv * (2.0f * rand.y - 1.0f);
 }
 
-ccl_device float3 disk_light_sample(float3 n, float2 rand)
+ccl_device float3 disk_light_sample(const float3 n, const float2 rand)
 {
-  float3 ru, rv;
+  float3 ru;
+  float3 rv;
 
   make_orthonormals(n, &ru, &rv);
 
   return ellipse_sample(ru, rv, rand);
 }
 
-ccl_device float light_pdf_area_to_solid_angle(const float3 Ng, const float3 I, float t)
+ccl_device float light_pdf_area_to_solid_angle(const float3 Ng, const float3 I, const float t)
 {
-  float cos_pi = dot(Ng, I);
+  const float cos_pi = dot(Ng, I);
 
-  if (cos_pi <= 0.0f)
+  if (cos_pi <= 0.0f) {
     return 0.0f;
+  }
 
   return t * t / cos_pi;
 }

@@ -14,6 +14,8 @@
 
 #include "DNA_image_types.h"
 
+#include "RE_pipeline.h"
+
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
@@ -57,7 +59,7 @@ class CachedImage : public CachedResource {
 
  private:
   /* Populates the meta data of the image. */
-  void populate_meta_data(const Image *image, const ImageUser &image_user);
+  void populate_meta_data(const RenderResult *render_result, const ImageUser &image_user);
 };
 
 /* ------------------------------------------------------------------------------------------------

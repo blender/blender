@@ -8,6 +8,7 @@
 #include "BLI_math_color.h"
 /* get_image */
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "DNA_node_types.h"
 #include "ED_uvedit.hh"
 /* get_image */
@@ -71,7 +72,7 @@ MaterialTexture::MaterialTexture(Object *ob, int material_index)
     return;
   }
 
-  switch (node->type) {
+  switch (node->type_legacy) {
     case SH_NODE_TEX_IMAGE: {
       const NodeTexImage *storage = static_cast<NodeTexImage *>(node->storage);
       const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);

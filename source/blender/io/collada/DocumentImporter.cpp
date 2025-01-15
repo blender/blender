@@ -47,7 +47,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_light.h"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_scene.hh"
 
 #include "BLI_path_utils.hh"

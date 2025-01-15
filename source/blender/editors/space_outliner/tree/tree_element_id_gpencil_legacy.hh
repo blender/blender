@@ -10,6 +10,8 @@
 
 #include "tree_element_id.hh"
 
+struct bGPdata;
+
 namespace blender::ed::outliner {
 
 class TreeElementIDGPLegacy final : public TreeElementID {

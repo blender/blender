@@ -7,12 +7,6 @@
 #include "util/math.h"
 #include "util/types.h"
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
-
-#include "kernel/types.h"
-
-#include "kernel/camera/camera.h"
 #include "kernel/camera/projection.h"
 
 CCL_NAMESPACE_BEGIN
@@ -57,7 +51,7 @@ TEST(KernelCamera, FisheyeLensPolynomialRoundtrip)
     for (const float k2 : {0.0f, -1e-4f, 1e-4f, -2e-4f, 2e-4f}) {
       for (float4 k : parameters) {
         k.y = k2;
-        for (std::pair<float, float> const &pt : points) {
+        for (const std::pair<float, float> &pt : points) {
           const float x = pt.first;
           const float y = pt.second;
           const float3 direction = fisheye_lens_polynomial_to_direction(
@@ -117,7 +111,7 @@ TEST(KernelCamera, FisheyeLensPolynomialToDirectionSymmetry)
       {0.75f, 0.75f},
   };
 
-  for (float2 const &offset : offsets) {
+  for (const float2 &offset : offsets) {
     const float2 point = center + offset;
     const float3 direction = fisheye_lens_polynomial_to_direction(
         point.x, point.y, k0, k_equidistant, fov, width, height);
@@ -190,7 +184,7 @@ TEST(KernelCamera, FisheyeLensPolynomialToDirection)
 
   for (auto [offset, direction] : tests) {
     const float2 sensor = offset + make_float2(0.5f, 0.5f);
-    for (float const scale : {1.0f, 0.5f, 2.0f, 0.25f, 4.0f, 0.125f, 8.0f, 0.0625f, 16.0f}) {
+    for (const float scale : {1.0f, 0.5f, 2.0f, 0.25f, 4.0f, 0.125f, 8.0f, 0.0625f, 16.0f}) {
       const float width = 1.0f / scale;
       const float height = 1.0f / scale;
       /* Trivial case: The coefficients create a perfect equidistant fisheye */
@@ -245,109 +239,109 @@ struct CommonValues {
 };
 
 struct Spherical : public CommonValues {
-  static float2 direction_to_sensor(float3 const &dir,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float2 direction_to_sensor(const float3 &dir,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return direction_to_spherical(dir);
   }
-  static float3 sensor_to_direction(float2 const &sensor,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float3 sensor_to_direction(const float2 &sensor,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return spherical_to_direction(sensor.x, sensor.y);
   }
 };
 
 struct Equirectangular : public CommonValues {
-  static float2 direction_to_sensor(float3 const &dir,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float2 direction_to_sensor(const float3 &dir,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return direction_to_equirectangular(dir);
   }
-  static float3 sensor_to_direction(float2 const &sensor,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float3 sensor_to_direction(const float2 &sensor,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return equirectangular_to_direction(sensor.x, sensor.y);
   }
 };
 
 struct FisheyeEquidistant : public CommonValues {
-  static float2 direction_to_sensor(float3 const &dir,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float2 direction_to_sensor(const float3 &dir,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return direction_to_fisheye_equidistant(dir, fov);
   }
-  static float3 sensor_to_direction(float2 const &sensor,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float3 sensor_to_direction(const float2 &sensor,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return fisheye_equidistant_to_direction(sensor.x, sensor.y, fov);
   }
 };
 
 struct FisheyeEquisolid : public CommonValues {
-  bool skip_invalid() const
+  bool skip_invalid() const override
   {
     return true;
   }
 
   static constexpr float lens = 15.0f;
 
-  static float2 direction_to_sensor(float3 const &dir,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float2 direction_to_sensor(const float3 &dir,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return direction_to_fisheye_equisolid(dir, lens, width, height);
   }
-  static float3 sensor_to_direction(float2 const &sensor,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float3 sensor_to_direction(const float2 &sensor,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return fisheye_equisolid_to_direction(sensor.x, sensor.y, lens, fov, width, height);
   }
 };
 
 struct MirrorBall : public CommonValues {
-  static float2 direction_to_sensor(float3 const &dir,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float2 direction_to_sensor(const float3 &dir,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return direction_to_mirrorball(dir);
   }
-  static float3 sensor_to_direction(float2 const &sensor,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float3 sensor_to_direction(const float2 &sensor,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return mirrorball_to_direction(sensor.x, sensor.y);
   }
 };
 
 struct EquiangularCubemapFace : public CommonValues {
-  static float2 direction_to_sensor(float3 const &dir,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float2 direction_to_sensor(const float3 &dir,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return direction_to_equiangular_cubemap_face(dir);
   }
-  static float3 sensor_to_direction(float2 const &sensor,
-                                    float const fov,
-                                    float const width,
-                                    float const height)
+  static float3 sensor_to_direction(const float2 &sensor,
+                                    const float fov,
+                                    const float width,
+                                    const float height)
   {
     return equiangular_cubemap_face_to_direction(sensor.x, sensor.y);
   }
@@ -371,7 +365,7 @@ TYPED_TEST_SUITE(PanoramaProjection, MyTypes);
 TYPED_TEST(PanoramaProjection, round_trip)
 {
 
-  TypeParam test;
+  const TypeParam test;
 
   const float2 sensors[]{{0.5f, 0.5f},
                          {0.4f, 0.4f},
@@ -384,9 +378,9 @@ TYPED_TEST(PanoramaProjection, round_trip)
                          {0.1f, 0.5f},
                          {0.9f, 0.5f}};
 
-  for (float const size : {36.0f, 24.0f, 6.0f * M_PI_F}) {
-    float const width = size;
-    float const height = size;
+  for (const float size : {36.0f, 24.0f, 6.0f * M_PI_F}) {
+    const float width = size;
+    const float height = size;
     for (const float fov : {2.0f * M_PI_F, M_PI_F, M_PI_2_F, M_PI_4_F, 1.0f, 2.0f}) {
       size_t test_count = 0;
       for (const float2 &sensor : sensors) {

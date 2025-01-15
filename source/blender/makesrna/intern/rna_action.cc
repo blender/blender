@@ -12,10 +12,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_utildefines.h"
-
 #include "BLT_translation.hh"
 
 #include "BKE_action.hh"
@@ -28,7 +24,6 @@
 #include "rna_internal.hh"
 
 #include "ANIM_action.hh"
-#include "ANIM_action_legacy.hh"
 
 #include "WM_types.hh"
 
@@ -1987,7 +1982,7 @@ static void rna_def_action_slot(BlenderRNA *brna)
   prop = RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_ActionSlot_identifier_set");
-  RNA_def_property_string_maxlength(prop, sizeof(ActionSlot::identifier) - 2);
+  RNA_def_property_string_maxlength(prop, sizeof(ActionSlot::identifier));
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_ActionSlot_identifier_update");
   RNA_def_property_ui_text(
       prop,

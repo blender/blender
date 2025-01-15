@@ -1830,6 +1830,13 @@ void UI_but_func_drawextra_set(uiBlock *block,
 
 void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
 
+/**
+ * When a button displays a menu, hovering another button that can display one will switch to that
+ * menu instead. In some cases that's unexpected, so the feature can be disabled here (as in, this
+ * button will not spawn its menu on hover and the previously spawned menu will remain open).
+ */
+void UI_but_menu_disable_hover_open(uiBut *but);
+
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg);
 /**
  * Enable a custom quick tooltip label. That is, a short tooltip that appears faster than the full
@@ -2064,6 +2071,8 @@ void UI_panel_category_clear_all(ARegion *region);
  * Draw vertical tabs on the left side of the region, one tab per category.
  */
 void UI_panel_category_draw_all(ARegion *region, const char *category_id_active);
+
+void UI_panel_stop_animation(const bContext *C, Panel *panel);
 
 /* Panel custom data. */
 PointerRNA *UI_panel_custom_data_get(const Panel *panel);
@@ -2410,6 +2419,13 @@ uiLayout *uiLayoutPanelProp(const bContext *C,
                             const char *open_prop_name,
                             const char *label);
 
+uiLayout *uiLayoutPanelPropWithBoolHeader(const bContext *C,
+                                          uiLayout *layout,
+                                          PointerRNA *open_prop_owner,
+                                          const blender::StringRefNull open_prop_name,
+                                          const blender::StringRefNull bool_prop_name,
+                                          const std::optional<blender::StringRefNull> label);
+
 /**
  * Variant of #uiLayoutPanelProp that automatically stores the open-close-state in the root
  * panel. When a dynamic number of panels is required, it's recommended to use #uiLayoutPanelProp
@@ -2660,8 +2676,8 @@ void uiTemplateCryptoPicker(uiLayout *layout,
                             blender::StringRefNull propname,
                             int icon);
 /**
- * \todo for now, grouping of layers is determined by dividing up the length of
- * the array of layer bitflags
+ * TODO: for now, grouping of layers is determined by dividing up the length of
+ * the array of layer bit-flags.
  */
 void uiTemplateLayers(uiLayout *layout,
                       PointerRNA *ptr,

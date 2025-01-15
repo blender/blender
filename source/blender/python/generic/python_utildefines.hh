@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 #define PyTuple_SET_ITEMS(op_arg, ...) \
   { \
     PyTupleObject *op = (PyTupleObject *)op_arg; \

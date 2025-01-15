@@ -8,6 +8,7 @@
 
 #pragma once
 
+struct ARegion;
 struct ARegionType;
 struct bContext;
 

@@ -8,6 +8,8 @@
  * \ingroup bli
  */
 
+#include <stddef.h>
+
 #include "BLI_compiler_attrs.h"
 
 #ifdef __cplusplus

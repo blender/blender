@@ -182,35 +182,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bmesh_class.hh"
+#include "bmesh_class.hh"  // IWYU pragma: export
 
 /* include the rest of the API */
-#include "intern/bmesh_error.hh"
-#include "intern/bmesh_operator_api.hh"
+#include "intern/bmesh_error.hh"         // IWYU pragma: export
+#include "intern/bmesh_operator_api.hh"  // IWYU pragma: export
 
-#include "intern/bmesh_callback_generic.hh"
-#include "intern/bmesh_construct.hh"
-#include "intern/bmesh_core.hh"
-#include "intern/bmesh_delete.hh"
-#include "intern/bmesh_edgeloop.hh"
-#include "intern/bmesh_interp.hh"
-#include "intern/bmesh_iterators.hh"
-#include "intern/bmesh_log.hh"
-#include "intern/bmesh_marking.hh"
-#include "intern/bmesh_mesh.hh"
-#include "intern/bmesh_mesh_convert.hh"
-#include "intern/bmesh_mesh_debug.hh"
-#include "intern/bmesh_mesh_duplicate.hh"
-#include "intern/bmesh_mesh_normals.hh"
-#include "intern/bmesh_mesh_partial_update.hh"
-#include "intern/bmesh_mesh_tessellate.hh"
-#include "intern/bmesh_mesh_validate.hh"
-#include "intern/bmesh_mods.hh"
-#include "intern/bmesh_operators.hh"
-#include "intern/bmesh_polygon.hh"
-#include "intern/bmesh_polygon_edgenet.hh"
-#include "intern/bmesh_query.hh"
-#include "intern/bmesh_query_uv.hh"
-#include "intern/bmesh_walkers.hh"
+#include "intern/bmesh_callback_generic.hh"     // IWYU pragma: export
+#include "intern/bmesh_construct.hh"            // IWYU pragma: export
+#include "intern/bmesh_core.hh"                 // IWYU pragma: export
+#include "intern/bmesh_delete.hh"               // IWYU pragma: export
+#include "intern/bmesh_edgeloop.hh"             // IWYU pragma: export
+#include "intern/bmesh_interp.hh"               // IWYU pragma: export
+#include "intern/bmesh_iterators.hh"            // IWYU pragma: export
+#include "intern/bmesh_log.hh"                  // IWYU pragma: export
+#include "intern/bmesh_marking.hh"              // IWYU pragma: export
+#include "intern/bmesh_mesh.hh"                 // IWYU pragma: export
+#include "intern/bmesh_mesh_convert.hh"         // IWYU pragma: export
+#include "intern/bmesh_mesh_debug.hh"           // IWYU pragma: export
+#include "intern/bmesh_mesh_duplicate.hh"       // IWYU pragma: export
+#include "intern/bmesh_mesh_normals.hh"         // IWYU pragma: export
+#include "intern/bmesh_mesh_partial_update.hh"  // IWYU pragma: export
+#include "intern/bmesh_mesh_tessellate.hh"      // IWYU pragma: export
+#include "intern/bmesh_mesh_validate.hh"        // IWYU pragma: export
+#include "intern/bmesh_mods.hh"                 // IWYU pragma: export
+#include "intern/bmesh_operators.hh"            // IWYU pragma: export
+#include "intern/bmesh_polygon.hh"              // IWYU pragma: export
+#include "intern/bmesh_polygon_edgenet.hh"      // IWYU pragma: export
+#include "intern/bmesh_query.hh"                // IWYU pragma: export
+#include "intern/bmesh_query_uv.hh"             // IWYU pragma: export
+#include "intern/bmesh_walkers.hh"              // IWYU pragma: export
 
-#include "intern/bmesh_inline.hh"
+#include "intern/bmesh_inline.hh"  // IWYU pragma: export

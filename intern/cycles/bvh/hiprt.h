@@ -10,7 +10,7 @@
 #  include "bvh/params.h"
 
 #  ifdef WITH_HIP_DYNLOAD
-#    include "hiprtew.h"
+#    include <hiprtew.h>
 #  else
 #    include <hiprt/hiprt_types.h>
 #  endif
@@ -41,14 +41,12 @@ class BVHHIPRT : public BVH {
   device_vector<int> triangle_index;
   device_vector<float> vertex_data;
 
- protected:
-  friend class BVH;
   BVHHIPRT(const BVHParams &params,
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects,
            Device *in_device);
 
-  virtual ~BVHHIPRT();
+  ~BVHHIPRT() override;
 
  private:
   Device *device;

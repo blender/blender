@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "graph/node_type.h"
-#include "util/foreach.h"
+
 #include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
@@ -99,23 +99,23 @@ void *SocketType::zero_default_value()
 
 ustring SocketType::type_name(Type type)
 {
-  static ustring names[] = {ustring("undefined"),
+  static const ustring names[] = {ustring("undefined"),
 
-                            ustring("boolean"),       ustring("float"),
-                            ustring("int"),           ustring("uint"),
-                            ustring("uint64"),        ustring("color"),
-                            ustring("vector"),        ustring("point"),
-                            ustring("normal"),        ustring("point2"),
-                            ustring("closure"),       ustring("string"),
-                            ustring("enum"),          ustring("transform"),
-                            ustring("node"),
+                                  ustring("boolean"),       ustring("float"),
+                                  ustring("int"),           ustring("uint"),
+                                  ustring("uint64"),        ustring("color"),
+                                  ustring("vector"),        ustring("point"),
+                                  ustring("normal"),        ustring("point2"),
+                                  ustring("closure"),       ustring("string"),
+                                  ustring("enum"),          ustring("transform"),
+                                  ustring("node"),
 
-                            ustring("array_boolean"), ustring("array_float"),
-                            ustring("array_int"),     ustring("array_color"),
-                            ustring("array_vector"),  ustring("array_point"),
-                            ustring("array_normal"),  ustring("array_point2"),
-                            ustring("array_string"),  ustring("array_transform"),
-                            ustring("array_node")};
+                                  ustring("array_boolean"), ustring("array_float"),
+                                  ustring("array_int"),     ustring("array_color"),
+                                  ustring("array_vector"),  ustring("array_point"),
+                                  ustring("array_normal"),  ustring("array_point2"),
+                                  ustring("array_string"),  ustring("array_transform"),
+                                  ustring("array_node")};
 
   constexpr size_t num_names = sizeof(names) / sizeof(*names);
   static_assert(num_names == NUM_TYPES);
@@ -139,17 +139,17 @@ NodeType::NodeType(Type type, const NodeType *base) : type(type), base(base)
   }
 }
 
-NodeType::~NodeType() {}
+NodeType::~NodeType() = default;
 
 void NodeType::register_input(ustring name,
                               ustring ui_name,
                               SocketType::Type type,
-                              int struct_offset,
+                              const int struct_offset,
                               const void *default_value,
                               const NodeEnum *enum_values,
                               const NodeType *node_type,
-                              int flags,
-                              int extra_flags)
+                              const int flags,
+                              const int extra_flags)
 {
   SocketType socket;
   socket.name = name;
@@ -172,33 +172,33 @@ void NodeType::register_output(ustring name, ustring ui_name, SocketType::Type t
   socket.ui_name = ui_name;
   socket.type = type;
   socket.struct_offset = 0;
-  socket.default_value = NULL;
-  socket.enum_values = NULL;
-  socket.node_type = NULL;
+  socket.default_value = nullptr;
+  socket.enum_values = nullptr;
+  socket.node_type = nullptr;
   socket.flags = SocketType::LINKABLE;
   outputs.push_back(socket);
 }
 
 const SocketType *NodeType::find_input(ustring name) const
 {
-  foreach (const SocketType &socket, inputs) {
+  for (const SocketType &socket : inputs) {
     if (socket.name == name) {
       return &socket;
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 const SocketType *NodeType::find_output(ustring name) const
 {
-  foreach (const SocketType &socket, outputs) {
+  for (const SocketType &socket : outputs) {
     if (socket.name == name) {
       return &socket;
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* Node Type Registry */
@@ -211,12 +211,12 @@ unordered_map<ustring, NodeType> &NodeType::types()
 
 NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const NodeType *base_)
 {
-  ustring name(name_);
+  const ustring name(name_);
 
   if (types().find(name) != types().end()) {
     fprintf(stderr, "Node type %s registered twice!\n", name_);
     assert(0);
-    return NULL;
+    return nullptr;
   }
 
   types()[name] = NodeType(type_, base_);
@@ -229,8 +229,8 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
 
 const NodeType *NodeType::find(ustring name)
 {
-  unordered_map<ustring, NodeType>::iterator it = types().find(name);
-  return (it == types().end()) ? NULL : &it->second;
+  const unordered_map<ustring, NodeType>::iterator it = types().find(name);
+  return (it == types().end()) ? nullptr : &it->second;
 }
 
 CCL_NAMESPACE_END

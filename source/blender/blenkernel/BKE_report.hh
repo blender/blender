@@ -11,7 +11,6 @@
 #include <stdio.h>
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
 #include "DNA_windowmanager_types.h"
 
 /**

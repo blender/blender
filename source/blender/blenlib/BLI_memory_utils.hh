@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <new>
 #include <type_traits>
 
 #include "BLI_utildefines.h"

@@ -15,6 +15,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "RNA_access.hh"
 
@@ -373,7 +374,7 @@ void remove_selected_points_in_active_layer(Span<PointsRange> ranges_selected,
     mask_content.extend(range_content);
   }
 
-  /* remove_points requires the the indices in the mask to be sorted */
+  /* remove_points requires the indices in the mask to be sorted */
   std::sort(mask_content.begin(), mask_content.end());
   IndexMask mask = IndexMask::from_indices(mask_content.as_span(), memory);
 
@@ -484,6 +485,17 @@ int grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
   }
 
   append_strokes_from(std::move(tmp_curves), dst_curves);
+
+  bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+      dst_curves, selection_domain, CD_PROP_BOOL);
+
+  if (selection_domain == bke::AttrDomain::Curve) {
+    ed::curves::fill_selection_true(selection.span.take_back(tmp_curves.curves_num()));
+  }
+  else {
+    ed::curves::fill_selection_true(selection.span.take_back(tmp_curves.points_num()));
+  }
+  selection.finish();
 
   dst_curves.update_curve_types();
   dst_curves.tag_topology_changed();

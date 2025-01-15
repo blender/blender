@@ -96,8 +96,11 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
 {
   Vector<StringRefNull> missing_capabilities;
   /* Check device features. */
-  VkPhysicalDeviceFeatures2 features = {};
-  features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  VkPhysicalDeviceVulkan12Features features_12 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+  VkPhysicalDeviceFeatures2 features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                                        &features_12};
+
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 
 #ifndef __APPLE__
@@ -128,6 +131,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
+  }
+  if (features_12.timelineSemaphore == VK_FALSE) {
+    missing_capabilities.append("timeline semaphores");
   }
 
   /* Check device extensions. */
@@ -350,6 +356,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.vertex_formats.r8g8b8 = true;
     workarounds.fragment_shader_barycentric = true;
     workarounds.dynamic_rendering = true;
+    workarounds.dynamic_rendering_local_read = true;
     workarounds.dynamic_rendering_unused_attachments = true;
 
     GCaps.render_pass_workaround = true;
@@ -366,6 +373,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
   workarounds.dynamic_rendering = !device.supports_extension(
       VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  workarounds.dynamic_rendering_local_read = !device.supports_extension(
+      VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
   workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   workarounds.logic_ops = !device.physical_device_features_get().logicOp;
@@ -375,6 +384,22 @@ void VKBackend::detect_workarounds(VKDevice &device)
       GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY))
   {
     workarounds.not_aligned_pixel_formats = true;
+  }
+
+  /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel
+   * performance is better when disabled (20%). On Qualcomm devices the improvement can be
+   * substantial (16% on shader_balls.blend).
+   *
+   * `--debug-gpu-vulkan-local-read` can be used to use dynamic rendering local read on any
+   * supported platform.
+   *
+   * TODO: Check if bottleneck is during command building. If so we could fine-tune this after the
+   * device command building landed (T132682).
+   */
+  if ((G.debug & G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ) == 0 &&
+      !GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY))
+  {
+    workarounds.dynamic_rendering_local_read = true;
   }
 
   VkFormatProperties format_properties = {};

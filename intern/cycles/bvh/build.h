@@ -5,16 +5,16 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_BUILD_H__
-#define __BVH_BUILD_H__
+#pragma once
 
-#include <float.h>
+#include <cfloat>
 
 #include "bvh/params.h"
 #include "bvh/unaligned.h"
 
 #include "util/array.h"
 #include "util/task.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -46,7 +46,7 @@ class BVHBuild {
            Progress &progress);
   ~BVHBuild();
 
-  BVHNode *run();
+  unique_ptr<BVHNode> run();
 
  protected:
   friend class BVHMixedSplit;
@@ -57,30 +57,42 @@ class BVHBuild {
   friend class BVHObjectBinning;
 
   /* Adding references. */
-  void add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *mesh, int i);
-  void add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int i);
-  void add_reference_points(BoundBox &root, BoundBox &center, PointCloud *pointcloud, int i);
-  void add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int i);
-  void add_reference_object(BoundBox &root, BoundBox &center, Object *ob, int i);
+  void add_reference_triangles(BoundBox &root,
+                               BoundBox &center,
+                               Mesh *mesh,
+                               const int object_index);
+  void add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, const int object_index);
+  void add_reference_points(BoundBox &root, BoundBox &center, PointCloud *pointcloud, const int i);
+  void add_reference_geometry(BoundBox &root,
+                              BoundBox &center,
+                              Geometry *geom,
+                              const int object_index);
+  void add_reference_object(BoundBox &root, BoundBox &center, Object *ob, const int i);
   void add_references(BVHRange &root);
 
   /* Building. */
-  BVHNode *build_node(const BVHRange &range,
-                      vector<BVHReference> &references,
-                      int level,
-                      BVHSpatialStorage *storage);
-  BVHNode *build_node(const BVHObjectBinning &range, int level);
-  BVHNode *create_leaf_node(const BVHRange &range, const vector<BVHReference> &references);
-  BVHNode *create_object_leaf_nodes(const BVHReference *ref, int start, int num);
+  unique_ptr<BVHNode> build_node(const BVHRange &range,
+                                 vector<BVHReference> &references,
+                                 const int level,
+                                 BVHSpatialStorage *storage);
+  unique_ptr<BVHNode> build_node(const BVHObjectBinning &range, const int level);
+  unique_ptr<BVHNode> create_leaf_node(const BVHRange &range,
+                                       const vector<BVHReference> &references);
+  unique_ptr<BVHNode> create_object_leaf_nodes(const BVHReference *ref,
+                                               const int start,
+                                               const int num);
 
   bool range_within_max_leaf_size(const BVHRange &range,
                                   const vector<BVHReference> &references) const;
 
   /* Threads. */
   enum { THREAD_TASK_SIZE = 4096 };
-  void thread_build_node(InnerNode *node, int child, const BVHObjectBinning &range, int level);
-  void thread_build_spatial_split_node(InnerNode *node,
-                                       int child,
+  void thread_build_node(InnerNode *inner,
+                         const int child,
+                         const BVHObjectBinning &range,
+                         const int level);
+  void thread_build_spatial_split_node(InnerNode *inner,
+                                       const int child,
                                        const BVHRange &range,
                                        vector<BVHReference> &references,
                                        int level);
@@ -90,8 +102,8 @@ class BVHBuild {
   void progress_update();
 
   /* Tree rotations. */
-  void rotate(BVHNode *node, int max_depth);
-  void rotate(BVHNode *node, int max_depth, int iterations);
+  void rotate(BVHNode *node, const int max_depth);
+  void rotate(BVHNode *node, const int max_depth, const int iterations);
 
   /* Objects and primitive references. */
   vector<Object *> objects;
@@ -130,5 +142,3 @@ class BVHBuild {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_BUILD_H__ */

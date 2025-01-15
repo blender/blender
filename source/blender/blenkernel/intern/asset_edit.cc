@@ -149,71 +149,6 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
   return "";
 }
 
-static void asset_main_create_expander(void * /*handle*/, Main * /*bmain*/, void *vid)
-{
-  ID *id = static_cast<ID *>(vid);
-
-  if (id && (id->tag & ID_TAG_DOIT) == 0) {
-    id->tag |= ID_TAG_NEED_EXPAND | ID_TAG_DOIT;
-  }
-}
-
-static Main *asset_main_create_from_ID(Main &bmain_src, ID &id_asset, ID **id_asset_new)
-{
-  /* Tag asset ID and its dependencies. */
-  ID *id_src;
-  FOREACH_MAIN_ID_BEGIN (&bmain_src, id_src) {
-    id_src->tag &= ~(ID_TAG_NEED_EXPAND | ID_TAG_DOIT);
-  }
-  FOREACH_MAIN_ID_END;
-
-  id_asset.tag |= ID_TAG_NEED_EXPAND | ID_TAG_DOIT;
-
-  BLO_expand_main(nullptr, &bmain_src, asset_main_create_expander);
-
-  /* Create main and copy all tagged datablocks. */
-  Main *bmain_dst = BKE_main_new();
-  STRNCPY(bmain_dst->filepath, bmain_src.filepath);
-  bmain_dst->is_asset_edit_file = true;
-
-  blender::bke::id::IDRemapper id_remapper;
-
-  FOREACH_MAIN_ID_BEGIN (&bmain_src, id_src) {
-    if (id_src->tag & ID_TAG_DOIT) {
-      /* Note that this will not copy Library datablocks, and all copied
-       * datablocks will become local as a result. */
-      ID *id_dst = BKE_id_copy_ex(bmain_dst,
-                                  id_src,
-                                  nullptr,
-                                  LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG |
-                                      ((id_src == &id_asset) ? LIB_ID_COPY_ASSET_METADATA : 0));
-      id_remapper.add(id_src, id_dst);
-      if (id_src == &id_asset) {
-        *id_asset_new = id_dst;
-      }
-    }
-    else {
-      id_remapper.add(id_src, nullptr);
-    }
-
-    id_src->tag &= ~(ID_TAG_NEED_EXPAND | ID_TAG_DOIT);
-  }
-  FOREACH_MAIN_ID_END;
-
-  /* Remap datablock pointers. */
-  BKE_libblock_remap_multiple_raw(bmain_dst, id_remapper, ID_REMAP_SKIP_USER_CLEAR);
-
-  /* Compute reference counts. */
-  ID *id_dst;
-  FOREACH_MAIN_ID_BEGIN (bmain_dst, id_dst) {
-    id_dst->tag &= ~ID_TAG_NO_USER_REFCOUNT;
-  }
-  FOREACH_MAIN_ID_END;
-  BKE_main_id_refcount_recompute(bmain_dst, false);
-
-  return bmain_dst;
-}
-
 static bool asset_write_in_library(Main &bmain,
                                    const ID &id_const,
                                    const StringRef name,
@@ -221,30 +156,30 @@ static bool asset_write_in_library(Main &bmain,
                                    std::string &final_full_file_path,
                                    ReportList &reports)
 {
+  using namespace blender::bke::blendfile;
+
   ID &id = const_cast<ID &>(id_const);
 
-  ID *new_id = nullptr;
-  Main *new_main = asset_main_create_from_ID(bmain, id, &new_id);
+  PartialWriteContext lib_write_ctx{BKE_main_blendfile_path(&bmain)};
+  ID *new_id = lib_write_ctx.id_add(&id,
+                                    {(PartialWriteContext::IDAddOperations::MAKE_LOCAL |
+                                      PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                                      PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)});
 
   std::string new_name = name;
-  BKE_libblock_rename(*new_main, *new_id, new_name);
-  id_fake_user_set(new_id);
+  BKE_libblock_rename(lib_write_ctx.bmain, *new_id, new_name);
 
-  BlendFileWriteParams blend_file_write_params{};
-  blend_file_write_params.remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
-
-  BKE_packedfile_pack_all(new_main, nullptr, false);
+  BKE_packedfile_pack_all(&lib_write_ctx.bmain, nullptr, false);
+  lib_write_ctx.bmain.is_asset_edit_file = true;
 
   const int write_flags = G_FILE_COMPRESS | G_FILE_ASSET_EDIT_FILE;
-  const bool success = BLO_write_file(
-      new_main, filepath.c_str(), write_flags, &blend_file_write_params, &reports);
+  const int remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
+  const bool success = lib_write_ctx.write(filepath.c_str(), write_flags, remap_mode, reports);
 
   if (success) {
     const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(&id);
     final_full_file_path = std::string(filepath) + SEP + std::string(idtype->name) + SEP + name;
   }
-
-  BKE_main_free(new_main);
 
   return success;
 }

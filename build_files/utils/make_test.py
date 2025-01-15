@@ -7,6 +7,10 @@
 "make test" for all platforms, running automated tests.
 """
 
+__all__ = (
+    "main",
+)
+
 import argparse
 import os
 import sys

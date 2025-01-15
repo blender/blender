@@ -195,16 +195,16 @@ if(ILMBASE_CUSTOM)
   set(IlmBase_Libraries ${ILMBASE_CUSTOM_LIBRARIES})
   separate_arguments(IlmBase_Libraries)
 else()
-# elseif(${ILMBASE_VERSION} VERSION_LESS "2.1")
+  # elseif(${ILMBASE_VERSION} VERSION_LESS "2.1")
   set(IlmBase_Libraries Half Iex Imath IlmThread)
-# else()
-  # string(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _ilmbase_libs_ver ${ILMBASE_VERSION})
-  # set(IlmBase_Libraries
-  #   Half
-  #   Iex-${_ilmbase_libs_ver}
-  #   Imath-${_ilmbase_libs_ver}
-  #   IlmThread-${_ilmbase_libs_ver}
-  # )
+  # else()
+  #   string(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _ilmbase_libs_ver ${ILMBASE_VERSION})
+  #   set(IlmBase_Libraries
+  #     Half
+  #     Iex-${_ilmbase_libs_ver}
+  #     Imath-${_ilmbase_libs_ver}
+  #     IlmThread-${_ilmbase_libs_ver}
+  #   )
 endif()
 
 
@@ -252,7 +252,7 @@ if(ILMBASE_FOUND)
     FIND_PACKAGE_MESSAGE(ILMBASE
       "Found IlmBase: ${ILMBASE_LIBRARIES}"
       "[${ILMBASE_INCLUDE_DIR}][${ILMBASE_LIBRARIES}][${ILMBASE_CURRENT_STATE}]"
-      )
+    )
   endif()
 endif()
 

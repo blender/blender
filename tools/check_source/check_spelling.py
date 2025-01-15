@@ -13,6 +13,9 @@ Script for checking source code spelling.
 
 Currently only python source is checked.
 """
+__all__ = (
+    "main",
+)
 
 import os
 import argparse
@@ -590,7 +593,6 @@ def spell_check_file_recursive(
         extract_type: str = 'COMMENTS',
         cache_data: CacheData | None = None,
 ) -> None:
-    import os
     from os.path import join
 
     def source_list(
@@ -710,9 +712,10 @@ def spell_check_file_with_cache_support(
 
 def argparse_create() -> argparse.ArgumentParser:
 
-    # When --help or no args are given, print this help
-    description = __doc__
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
 
     parser.add_argument(
         "--match",
@@ -748,10 +751,10 @@ def argparse_create() -> argparse.ArgumentParser:
         required=False,
         metavar='CHECK_TYPE',
         help=(
-            'Text to extract for checking.\n'
+            'The check to perform.\n'
             '\n'
-            '- ``COMMENTS`` extracts comments from source code.\n'
-            '- ``STRINGS`` extracts text.'
+            '- ``SPELLING`` check spelling.\n'
+            '- ``DUPLICATES`` report repeated words.'
         ),
     )
 
@@ -776,8 +779,6 @@ def argparse_create() -> argparse.ArgumentParser:
 
 def main() -> int:
     global _suggest_map
-
-    import os
 
     args = argparse_create().parse_args()
 

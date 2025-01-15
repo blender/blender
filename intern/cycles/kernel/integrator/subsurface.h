@@ -4,14 +4,9 @@
 
 #pragma once
 
-#include "kernel/camera/projection.h"
-
-#include "kernel/bvh/bvh.h"
-
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_diffuse.h"
 #include "kernel/closure/bssrdf.h"
-#include "kernel/closure/volume.h"
 
 #include "kernel/integrator/intersect_volume_stack.h"
 #include "kernel/integrator/path_state.h"
@@ -24,7 +19,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef __SUBSURFACE__
 
 ccl_device_inline bool subsurface_entry_bounce(KernelGlobals kg,
-                                               ccl_private const Bssrdf *bssrdf,
+                                               const ccl_private Bssrdf *bssrdf,
                                                ccl_private ShaderData *sd,
                                                ccl_private RNGState *rng_state,
                                                ccl_private float3 *wo)
@@ -48,7 +43,9 @@ ccl_device_inline bool subsurface_entry_bounce(KernelGlobals kg,
     return false;
   }
 
-  float3 X, Y, Z = bssrdf->N;
+  float3 X;
+  float3 Y;
+  const float3 Z = bssrdf->N;
   make_orthonormals(Z, &X, &Y);
 
   const float alpha = bssrdf->alpha;
@@ -80,14 +77,14 @@ ccl_device_inline bool subsurface_entry_bounce(KernelGlobals kg,
 ccl_device int subsurface_bounce(KernelGlobals kg,
                                  IntegratorState state,
                                  ccl_private ShaderData *sd,
-                                 ccl_private const ShaderClosure *sc)
+                                 const ccl_private ShaderClosure *sc)
 {
   /* We should never have two consecutive BSSRDF bounces, the second one should
    * be converted to a diffuse BSDF to avoid this. */
   kernel_assert(!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_DIFFUSE_ANCESTOR));
 
   /* Setup path state for intersect_subsurface kernel. */
-  ccl_private const Bssrdf *bssrdf = (ccl_private const Bssrdf *)sc;
+  const ccl_private Bssrdf *bssrdf = (const ccl_private Bssrdf *)sc;
 
   /* Setup ray into surface. */
   INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
@@ -100,7 +97,7 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
 
   /* Compute weight, optionally including Fresnel from entry point. */
-  Spectrum weight = surface_shader_bssrdf_sample_weight(sd, sc);
+  const Spectrum weight = surface_shader_bssrdf_sample_weight(sd, sc);
   INTEGRATOR_STATE_WRITE(state, path, throughput) *= weight;
 
   uint32_t path_flag = (INTEGRATOR_STATE(state, path, flag) & ~PATH_RAY_CAMERA);
@@ -200,7 +197,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
     const int object_flag = kernel_data_fetch(object_flag, object);
 
     if (object_flag & SD_OBJECT_INTERSECTS_VOLUME) {
-      float3 P = INTEGRATOR_STATE(state, ray, P);
+      const float3 P = INTEGRATOR_STATE(state, ray, P);
 
       integrator_volume_stack_update_for_subsurface(kg, state, P, ray.P);
     }

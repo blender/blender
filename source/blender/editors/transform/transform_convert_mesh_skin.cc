@@ -168,7 +168,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
       }
     }
 
-    /* Detect CrazySpace [tm]. */
+    /* Detect CrazySpace [TM]. */
     transform_convert_mesh_crazyspace_detect(t, tc, em, &crazyspace_data);
 
     /* Create TransData. */

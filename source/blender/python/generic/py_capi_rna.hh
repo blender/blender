@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
+#include <Python.h>
 
 struct EnumPropertyItem;
 

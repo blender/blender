@@ -114,6 +114,12 @@ const char *BLI_dir_home()
 #ifdef WIN32
   home_dir = BLI_getenv("userprofile");
 #else
+  /* Return the users home directory with a fallback when the environment variable isn't set.
+   * Failure to access `$HOME` is rare but possible, see: #2931.
+   *
+   * Any errors accessing home is likely caused by a broken/unsupported configuration,
+   * nevertheless, failing to null check would crash which makes the error difficult
+   * for users troubleshoot. */
   home_dir = BLI_getenv("HOME");
   if (home_dir == nullptr) {
     if (const passwd *pwuser = getpwuid(getuid())) {

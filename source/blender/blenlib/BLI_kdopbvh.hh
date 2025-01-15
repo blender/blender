@@ -9,7 +9,7 @@
  */
 
 #include "BLI_function_ref.hh"
-#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
 struct BVHTree;
@@ -169,7 +169,7 @@ int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
 
 /**
  * Collision/overlap: check two trees if they overlap,
- * alloc's *overlap with length of the int return value.
+ * allocates `*overlap` with length of the int return value.
  *
  * \param callback: optional, to test the overlap before adding (must be thread-safe!).
  */

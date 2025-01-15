@@ -3,11 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "BLI_map.hh"
-#include "BLI_vector.hh"
-
-#include "RNA_types.hh"
-
 #include <pxr/usd/usd/common.h>
 #include <pxr/usd/usdShade/material.h>
 
@@ -19,7 +14,7 @@ namespace blender::io::usd {
 
 struct USDExportParams;
 struct USDImportParams;
-using ImportedPrimMap = Map<std::string, Vector<PointerRNA>>;
+class USDStageReader;
 
 /** Ensure classes and type converters necessary for invoking import and export hooks
  * are registered. */
@@ -36,9 +31,7 @@ void call_material_export_hooks(pxr::UsdStageRefPtr stage,
                                 ReportList *reports);
 
 /** Call the 'on_import' chaser function defined in the registered USDHook classes. */
-void call_import_hooks(pxr::UsdStageRefPtr stage,
-                       const ImportedPrimMap &imported_id_links,
-                       ReportList *reports);
+void call_import_hooks(USDStageReader *archive, ReportList *reports);
 
 /** Returns true if there is a registered #USDHook class that can convert the given material. */
 bool have_material_import_hook(pxr::UsdStageRefPtr stage,

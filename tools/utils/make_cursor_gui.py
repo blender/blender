@@ -6,6 +6,10 @@
 # Created by Robert Wenzlaff (Det. Thorn).
 # Oct. 30, 2003
 
+__all__ = (
+    "main",
+)
+
 import sys
 from tkinter import (
     Button,

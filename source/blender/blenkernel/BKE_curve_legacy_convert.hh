@@ -8,8 +8,7 @@
  * \ingroup bke
  */
 
-#include "BKE_curves.hh"
-
+struct ListBase;
 struct Curve;
 struct Curves;
 

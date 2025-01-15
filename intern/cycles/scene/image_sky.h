@@ -15,12 +15,12 @@ class SkyLoader : public ImageLoader {
   float ozone_density;
 
  public:
-  SkyLoader(float sun_elevation,
-            float altitude,
-            float air_density,
-            float dust_density,
+  SkyLoader(const float sun_elevation,
+            const float altitude,
+            const float air_density,
+            const float dust_density,
             float ozone_density);
-  ~SkyLoader();
+  ~SkyLoader() override;
 
   bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
 

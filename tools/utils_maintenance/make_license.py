@@ -3,6 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring
 
+__all__ = (
+    "main",
+)
+
 import datetime
 import itertools
 import json

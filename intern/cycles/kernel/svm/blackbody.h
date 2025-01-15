@@ -7,7 +7,12 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/svm/math_util.h"
+#include "kernel/svm/util.h"
+
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -16,11 +21,11 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_blackbody(KernelGlobals kg,
                                             ccl_private ShaderData *sd,
                                             ccl_private float *stack,
-                                            uint temperature_offset,
-                                            uint col_offset)
+                                            const uint temperature_offset,
+                                            const uint col_offset)
 {
   /* Input */
-  float temperature = stack_load_float(stack, temperature_offset);
+  const float temperature = stack_load_float(stack, temperature_offset);
 
   float3 color_rgb = rec709_to_rgb(kg, svm_math_blackbody_color_rec709(temperature));
   color_rgb = max(color_rgb, zero_float3());

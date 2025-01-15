@@ -350,7 +350,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
+  else if (RNA_struct_is_a(ptr->type, &RNA_Strip)) {
     /* Sequencer strip */
     node_identifier.type = NodeType::SEQUENCER;
     return node_identifier;

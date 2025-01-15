@@ -8,14 +8,15 @@
  * \ingroup sequencer
  */
 
+struct Editing;
 struct ListBase;
 struct Main;
 struct Scene;
-struct Sequence;
+struct Strip;
 
 bool SEQ_edit_sequence_swap(Scene *scene,
-                            Sequence *seq_a,
-                            Sequence *seq_b,
+                            Strip *strip_a,
+                            Strip *strip_b,
                             const char **r_error_str);
 /**
  * Move sequence to seqbase.
@@ -27,7 +28,7 @@ bool SEQ_edit_sequence_swap(Scene *scene,
  */
 bool SEQ_edit_move_strip_to_seqbase(Scene *scene,
                                     ListBase *seqbase,
-                                    Sequence *seq,
+                                    Strip *strip,
                                     ListBase *dst_seqbase);
 /**
  * Move sequence to meta sequence.
@@ -38,13 +39,13 @@ bool SEQ_edit_move_strip_to_seqbase(Scene *scene,
  * \param r_error_str: Error message
  */
 bool SEQ_edit_move_strip_to_meta(Scene *scene,
-                                 Sequence *src_seq,
-                                 Sequence *dst_seqm,
+                                 Strip *src_seq,
+                                 Strip *dst_seqm,
                                  const char **r_error_str);
 /**
  * Flag seq and its users (effects) for removal.
  */
-void SEQ_edit_flag_for_removal(Scene *scene, ListBase *seqbase, Sequence *seq);
+void SEQ_edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip);
 /**
  * Remove all flagged sequences, return true if sequence is removed.
  */
@@ -67,13 +68,13 @@ enum eSeqSplitMethod {
  * \param method: affects type of offset to be applied to resize Sequence
  * \return The newly created sequence strip. This is always Sequence on right side.
  */
-Sequence *SEQ_edit_strip_split(Main *bmain,
-                               Scene *scene,
-                               ListBase *seqbase,
-                               Sequence *seq,
-                               int timeline_frame,
-                               eSeqSplitMethod method,
-                               const char **r_error);
+Strip *SEQ_edit_strip_split(Main *bmain,
+                            Scene *scene,
+                            ListBase *seqbase,
+                            Strip *strip,
+                            int timeline_frame,
+                            eSeqSplitMethod method,
+                            const char **r_error);
 /**
  * Find gap after initial_frame and move strips on right side to close the gap
  *
@@ -87,4 +88,4 @@ bool SEQ_edit_remove_gaps(Scene *scene,
                           ListBase *seqbase,
                           int initial_frame,
                           bool remove_all_gaps);
-void SEQ_edit_sequence_name_set(Scene *scene, Sequence *seq, const char *new_name);
+void SEQ_edit_sequence_name_set(Scene *scene, Strip *strip, const char *new_name);

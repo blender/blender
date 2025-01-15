@@ -4,8 +4,6 @@
 
 set(INC
   PUBLIC .
-  ..
-  ../../blenkernel
 )
 
 set(INC_SYS
@@ -13,8 +11,8 @@ set(INC_SYS
 
 set(SRC
   MOV_enums.hh
-  MOV_util.hh
   MOV_read.hh
+  MOV_util.hh
   MOV_write.hh
 
   intern/ffmpeg_compat.h
@@ -25,12 +23,14 @@ set(SRC
   intern/movie_util.cc
   intern/movie_util.hh
   intern/movie_write.cc
+  intern/movie_write.hh
+  intern/movie_write_audio.cc
 )
 
 set(LIB
-  PRIVATE bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf_imbuf
+  PUBLIC  bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 
@@ -62,7 +62,7 @@ if(WITH_AUDASPACE)
 endif()
 
 blender_add_lib(bf_imbuf_movie "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-add_library(bf::imbuf_movie ALIAS bf_imbuf_movie)
+add_library(bf::imbuf::movie ALIAS bf_imbuf_movie)
 
 if(WITH_GTESTS AND WITH_CODEC_FFMPEG)
   set(TEST_SRC

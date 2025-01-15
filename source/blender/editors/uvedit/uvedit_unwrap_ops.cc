@@ -127,6 +127,22 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Shared Properties
+ * \{ */
+
+static void uv_map_operator_property_correct_aspect(wmOperatorType *ot)
+{
+  RNA_def_boolean(
+      ot->srna,
+      "correct_aspect",
+      true,
+      "Correct Aspect",
+      "Map UVs taking aspect ratio of the image associated with the material into account");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name UDIM Access
  * \{ */
 
@@ -2532,11 +2548,7 @@ static void correct_uv_aspect_per_face(Object *ob, BMEditMesh *em)
 
 static void uv_map_clip_correct_properties_ex(wmOperatorType *ot, bool clip_to_bounds)
 {
-  RNA_def_boolean(ot->srna,
-                  "correct_aspect",
-                  true,
-                  "Correct Aspect",
-                  "Map UVs taking image aspect ratio into account");
+  uv_map_operator_property_correct_aspect(ot);
   /* Optional, since not all unwrapping types need to be clipped. */
   if (clip_to_bounds) {
     RNA_def_boolean(ot->srna,
@@ -2947,11 +2959,9 @@ void UV_OT_unwrap(wmOperatorType *ot)
                   "Fill Holes",
                   "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
-  RNA_def_boolean(ot->srna,
-                  "correct_aspect",
-                  !(tool_settings_default->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT),
-                  "Correct Aspect",
-                  "Map UVs taking image aspect ratio into account");
+
+  uv_map_operator_property_correct_aspect(ot);
+
   RNA_def_boolean(
       ot->srna,
       "use_subsurf_data",

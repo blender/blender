@@ -8,6 +8,8 @@
 #include "BLI_timeit.hh"
 #include "BLI_utility_mixins.hh"
 
+#include "DNA_node_types.h"
+
 struct Depsgraph;
 
 namespace blender::bke {

@@ -76,7 +76,7 @@ foreach(COMPONENT ${_opencollada_FIND_INCLUDES})
       include/${COMPONENT}
     HINTS
       ${_opencollada_SEARCH_DIRS}
-    )
+  )
   mark_as_advanced(OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR)
   list(APPEND _opencollada_INCLUDES "${OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR}")
 endforeach()
@@ -95,7 +95,7 @@ foreach(COMPONENT ${_opencollada_FIND_COMPONENTS})
       lib64 lib
       # Ubuntu ppa needs this.
       lib64/opencollada lib/opencollada
-    )
+  )
   mark_as_advanced(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
   list(APPEND _opencollada_LIBRARIES "${OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY}")
 endforeach()
@@ -112,7 +112,7 @@ foreach(COMPONENT ${_opencollada_FIND_STATIC_COMPONENTS})
       lib64 lib
       # Ubuntu ppa needs this.
       lib64/opencollada lib/opencollada
-    )
+  )
   mark_as_advanced(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
   if(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
     list(APPEND _opencollada_LIBRARIES "${OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY}")
@@ -124,7 +124,7 @@ endforeach()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenCOLLADA  DEFAULT_MSG
-    _opencollada_LIBRARIES _opencollada_INCLUDES)
+  _opencollada_LIBRARIES _opencollada_INCLUDES)
 
 
 if(OPENCOLLADA_FOUND)

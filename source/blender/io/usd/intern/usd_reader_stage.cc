@@ -21,7 +21,6 @@
 #include "usd_reader_xform.hh"
 #include "usd_utils.hh"
 
-#include <pxr/pxr.h>
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdGeom/camera.h>
 #include <pxr/usd/usdGeom/capsule.h>
@@ -29,11 +28,13 @@
 #include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 #include <pxr/usd/usdGeom/pointInstancer.h>
 #include <pxr/usd/usdGeom/points.h>
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/sphere.h>
+#include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdLux/boundableLightBase.h>
 #include <pxr/usd/usdLux/nonboundableLightBase.h>
@@ -41,6 +42,8 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_sort.hh"
 #include "BLI_string.h"
 
@@ -54,7 +57,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 
-#include <fmt/format.h>
+#include <fmt/core.h>
 
 static CLG_LogRef LOG = {"io.usd"};
 
@@ -110,11 +113,83 @@ static void set_instance_collection(
   }
 }
 
+/* Update the given import settings with the global rotation matrix to orient
+ * imported objects with Z-up, if necessary */
+static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings &settings)
+{
+  if (!stage || pxr::UsdGeomGetStageUpAxis(stage) == pxr::UsdGeomTokens->z) {
+    return;
+  }
+
+  settings.do_convert_mat = true;
+
+  /* Rotate 90 degrees about the X-axis. */
+  float rmat[3][3];
+  float axis[3] = {1.0f, 0.0f, 0.0f};
+  axis_angle_normalized_to_mat3(rmat, axis, M_PI_2);
+
+  unit_m4(settings.conversion_mat);
+  copy_m4_m3(settings.conversion_mat, rmat);
+}
+
+/**
+ * Find the lowest level of Blender generated roots
+ * so that round tripping an export can be more invisible
+ */
+static void find_prefix_to_skip(pxr::UsdStageRefPtr stage, ImportSettings &settings)
+{
+  if (!stage) {
+    return;
+  }
+
+  pxr::TfToken generated_key("Blender:generated");
+  pxr::SdfPath path("/");
+  auto prim = stage->GetPseudoRoot();
+  while (true) {
+
+    uint32_t child_count = 0;
+    for (auto child : prim.GetChildren()) {
+      if (child_count == 0) {
+        prim = child.GetPrim();
+      }
+      ++child_count;
+    }
+
+    if (child_count != 1) {
+      /* Our blender write out only supports a single root chain,
+       * so whenever we encounter more than one child, we should
+       * early exit */
+      break;
+    }
+
+    /* We only care about prims that have the key and the value doesn't matter */
+    if (!prim.HasCustomDataKey(generated_key)) {
+      break;
+    }
+    path = path.AppendChild(prim.GetName());
+  }
+
+  /* Treat the root as empty */
+  if (path == pxr::SdfPath("/")) {
+    path = pxr::SdfPath();
+  }
+
+  settings.skip_prefix = path;
+}
+
 USDStageReader::USDStageReader(pxr::UsdStageRefPtr stage,
                                const USDImportParams &params,
-                               const ImportSettings &settings)
-    : stage_(stage), params_(params), settings_(settings)
+                               const std::function<CacheFile *()> &get_cache_file_fn)
+    : stage_(stage), params_(params)
 {
+  convert_to_z_up(stage_, settings_);
+  find_prefix_to_skip(stage_, settings_);
+  settings_.get_cache_file = get_cache_file_fn;
+  settings_.stage_meters_per_unit = pxr::UsdGeomGetStageMetersPerUnit(stage);
+  settings_.scene_scale = params.scale;
+  if (params.apply_unit_conversion_scale) {
+    settings_.scene_scale *= settings_.stage_meters_per_unit;
+  }
 }
 
 USDStageReader::~USDStageReader()
@@ -149,7 +224,7 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
     return new USDCameraReader(prim, params_, settings_);
   }
   if (params_.import_curves && prim.IsA<pxr::UsdGeomBasisCurves>()) {
-    return new USDCurvesReader(prim, params_, settings_);
+    return new USDBasisCurvesReader(prim, params_, settings_);
   }
   if (params_.import_curves && prim.IsA<pxr::UsdGeomNurbsCurves>()) {
     return new USDNurbsReader(prim, params_, settings_);
@@ -194,7 +269,7 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
     return new USDCameraReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomBasisCurves>()) {
-    return new USDCurvesReader(prim, params_, settings_);
+    return new USDBasisCurvesReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomNurbsCurves>()) {
     return new USDNurbsReader(prim, params_, settings_);
@@ -532,7 +607,7 @@ void USDStageReader::import_all_materials(Main *bmain)
     }
 
     if (blender::io::usd::find_existing_material(
-            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat_name))
+            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat))
     {
       /* The material already exists. */
       continue;
@@ -550,11 +625,10 @@ void USDStageReader::import_all_materials(Main *bmain)
     settings_.mat_name_to_mat.lookup_or_add_default(mtl_name) = new_mtl;
 
     if (params_.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
-      /* Record the unique name of the Blender material we created for the USD material
-       * with the given path, so we don't import the material again when assigning
-       * materials to objects elsewhere in the code. */
-      settings_.usd_path_to_mat_name.lookup_or_add_default(
-          prim.GetPath().GetAsString()) = mtl_name;
+      /* Record the Blender material we created for the USD material with the given path.
+       * This is to prevent importing the material again when assigning materials to objects
+       * elsewhere in the code. */
+      settings_.usd_path_to_mat.lookup_or_add_default(prim.GetPath().GetAsString()) = new_mtl;
     }
 
     if (have_import_hook) {
@@ -569,12 +643,7 @@ void USDStageReader::fake_users_for_unused_materials()
 {
   /* Iterate over the imported materials and set a fake user for any unused
    * materials. */
-  for (const auto path_mat_pair : settings_.usd_path_to_mat_name.items()) {
-    Material *mat = settings_.mat_name_to_mat.lookup_default(path_mat_pair.value, nullptr);
-    if (mat == nullptr) {
-      continue;
-    }
-
+  for (Material *mat : settings_.usd_path_to_mat.values()) {
     if (mat->id.us == 0) {
       id_fake_user_set(&mat->id);
     }

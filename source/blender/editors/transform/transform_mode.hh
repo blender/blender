@@ -9,6 +9,10 @@
 
 #pragma once
 
+#include "ED_transform.hh"
+
+#include "transform.hh"
+
 struct BMVert;
 struct LinkNode;
 struct TransData;

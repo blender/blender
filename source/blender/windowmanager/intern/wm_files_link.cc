@@ -12,27 +12,17 @@
 #include <cerrno>
 #include <cfloat>
 #include <cstddef>
-#include <cstdio>
 #include <cstring>
 
 #include "CLG_log.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_ID.h"
-#include "DNA_collection_types.h"
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
-#include "BLI_linklist.h"
 #include "BLI_map.hh"
-#include "BLI_memarena.h"
-#include "BLI_utildefines.h"
 
 #include "BLO_readfile.hh"
 
@@ -48,7 +38,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"

@@ -38,6 +38,7 @@
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
+#include "COM_utilities_type_conversion.hh"
 
 namespace blender::compositor {
 
@@ -57,11 +58,15 @@ static const CPPType &get_cpp_type(ResultType type)
   switch (type) {
     case ResultType::Float:
       return CPPType::get<float>();
+    case ResultType::Int:
+      return CPPType::get<int>();
     case ResultType::Vector:
     case ResultType::Color:
       return CPPType::get<float4>();
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       break;
   }
 
@@ -75,16 +80,21 @@ static void add_single_value_parameter(mf::ParamsBuilder &parameter_builder, con
   BLI_assert(input.is_single_value());
   switch (input.type()) {
     case ResultType::Float:
-      parameter_builder.add_readonly_single_input_value(input.get_float_value());
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<float>());
+      return;
+    case ResultType::Int:
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<int>());
       return;
     case ResultType::Color:
-      parameter_builder.add_readonly_single_input_value(input.get_color_value());
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
       return;
     case ResultType::Vector:
-      parameter_builder.add_readonly_single_input_value(input.get_vector_value());
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
       return;
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       BLI_assert_unreachable();
       break;
   }
@@ -106,14 +116,14 @@ void MultiFunctionProcedureOperation::execute()
         add_single_value_parameter(parameter_builder, input);
       }
       else {
-        const GSpan span{get_cpp_type(input.type()), input.float_texture(), size};
+        const GSpan span{get_cpp_type(input.type()), input.data(), size};
         parameter_builder.add_readonly_single_input(span);
       }
     }
     else {
       Result &result = get_result(parameter_identifiers_[i]);
       result.allocate_texture(domain);
-      const GMutableSpan span{get_cpp_type(result.type()), result.float_texture(), size};
+      const GMutableSpan span{get_cpp_type(result.type()), result.data(), size};
       parameter_builder.add_uninitialized_single_output(span);
     }
   }
@@ -177,27 +187,27 @@ Vector<mf::Variable *> MultiFunctionProcedureOperation::get_input_variables(DNod
     const DSocket origin = get_input_origin_socket(input);
     if (origin->is_input()) {
       input_variables.append(this->get_constant_input_variable(DInputSocket(origin)));
-      continue;
-    }
-
-    /* Otherwise, the origin socket is an output, which means it is linked. */
-    const DOutputSocket output = DOutputSocket(origin);
-
-    /* If the origin node is part of the multi-function procedure operation, then the output has an
-     * existing variable for it. */
-    if (compile_unit_.contains(output.node())) {
-      input_variables.append(output_to_variable_map_.lookup(output));
     }
     else {
-      /* Otherwise, the origin node is not part of the multi-function procedure operation, and a
-       * variable that represents an input to the multi-function procedure operation is used. */
-      input_variables.append(this->get_multi_function_input_variable(input, output));
+      /* Otherwise, the origin socket is an output, which means it is linked. */
+      const DOutputSocket output = DOutputSocket(origin);
+
+      /* If the origin node is part of the multi-function procedure operation, then the output has
+       * an existing variable for it. */
+      if (compile_unit_.contains(output.node())) {
+        input_variables.append(output_to_variable_map_.lookup(output));
+      }
+      else {
+        /* Otherwise, the origin node is not part of the multi-function procedure operation, and a
+         * variable that represents an input to the multi-function procedure operation is used. */
+        input_variables.append(this->get_multi_function_input_variable(input, output));
+      }
     }
 
     /* Implicitly convert the variable type if needed by adding a call to an implicit conversion
      * function. */
     input_variables.last() = this->do_variable_implicit_conversion(
-        input, output, input_variables.last());
+        input, origin, input_variables.last());
   }
 
   return input_variables;
@@ -210,6 +220,11 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(DInpu
     case SOCK_FLOAT: {
       const float value = input->default_value_typed<bNodeSocketValueFloat>()->value;
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<float>>(value);
+      break;
+    }
+    case SOCK_INT: {
+      const int value = input->default_value_typed<bNodeSocketValueInt>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int>>(value);
       break;
     }
     case SOCK_VECTOR: {
@@ -290,54 +305,112 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
 static mf::MultiFunction *get_conversion_function(const ResultType variable_type,
                                                   const ResultType expected_type)
 {
-  /* No conversion needed. */
-  if (expected_type == variable_type) {
-    return nullptr;
-  }
+  static auto float_to_int_function = mf::build::SI1_SO<float, int>(
+      "Float To Int", float_to_int, mf::build::exec_presets::AllSpanOrSingle());
+  static auto float_to_vector_function = mf::build::SI1_SO<float, float4>(
+      "Float To Vector", float_to_vector, mf::build::exec_presets::AllSpanOrSingle());
+  static auto float_to_color_function = mf::build::SI1_SO<float, float4>(
+      "Float To Color", float_to_color, mf::build::exec_presets::AllSpanOrSingle());
 
-  if (variable_type == ResultType::Float && expected_type == ResultType::Vector) {
-    static auto float_to_vector_function = mf::build::SI1_SO<float, float4>(
-        "Float To Vector",
-        [](const float &input) -> float4 { return float4(float3(input), 1.0f); },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &float_to_vector_function;
-  }
+  static auto int_to_float_function = mf::build::SI1_SO<int, float>(
+      "Int To Float", int_to_float, mf::build::exec_presets::AllSpanOrSingle());
+  static auto int_to_vector_function = mf::build::SI1_SO<int, float4>(
+      "Int To Vector", int_to_vector, mf::build::exec_presets::AllSpanOrSingle());
+  static auto int_to_color_function = mf::build::SI1_SO<int, float4>(
+      "Int To Color", int_to_color, mf::build::exec_presets::AllSpanOrSingle());
 
-  if (variable_type == ResultType::Float && expected_type == ResultType::Color) {
-    static auto float_to_color_function = mf::build::SI1_SO<float, float4>(
-        "Float To Color",
-        [](const float &input) -> float4 { return float4(float3(input), 1.0f); },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &float_to_color_function;
-  }
+  static auto vector_to_float_function = mf::build::SI1_SO<float4, float>(
+      "Vector To Float", vector_to_float, mf::build::exec_presets::AllSpanOrSingle());
+  static auto vector_to_int_function = mf::build::SI1_SO<float4, int>(
+      "Vector To Int", vector_to_int, mf::build::exec_presets::AllSpanOrSingle());
+  static auto vector_to_color_function = mf::build::SI1_SO<float4, float4>(
+      "Vector To Color", vector_to_color, mf::build::exec_presets::AllSpanOrSingle());
 
-  if (variable_type == ResultType::Vector && expected_type == ResultType::Float) {
-    static auto vector_to_float_function = mf::build::SI1_SO<float4, float>(
-        "Vector To Float",
-        [](const float4 &input) -> float { return (input.x + input.y + input.z) / 3.0f; },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &vector_to_float_function;
-  }
+  static auto color_to_float_function = mf::build::SI1_SO<float4, float>(
+      "Color To Float", color_to_float, mf::build::exec_presets::AllSpanOrSingle());
+  static auto color_to_int_function = mf::build::SI1_SO<float4, int>(
+      "Color To Int", color_to_int, mf::build::exec_presets::AllSpanOrSingle());
+  static auto color_to_vector_function = mf::build::SI1_SO<float4, float4>(
+      "Color To Vector", color_to_vector, mf::build::exec_presets::AllSpanOrSingle());
 
-  if (variable_type == ResultType::Vector && expected_type == ResultType::Color) {
-    static auto vector_to_color_function = mf::build::SI1_SO<float4, float4>(
-        "Vector To Color",
-        [](const float4 &input) -> float4 { return float4(input.xyz(), 1.0f); },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &vector_to_color_function;
-  }
-
-  if (variable_type == ResultType::Color && expected_type == ResultType::Float) {
-    static auto color_to_float_function = mf::build::SI1_SO<float4, float>(
-        "Color To Float",
-        [](const float4 &input) -> float { return (input.x + input.y + input.z) / 3.0f; },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &color_to_float_function;
-  }
-
-  if (variable_type == ResultType::Color && expected_type == ResultType::Vector) {
-    /* No conversion needed. */
-    return nullptr;
+  switch (variable_type) {
+    case ResultType::Float:
+      switch (expected_type) {
+        case ResultType::Int:
+          return &float_to_int_function;
+        case ResultType::Vector:
+          return &float_to_vector_function;
+        case ResultType::Color:
+          return &float_to_color_function;
+        case ResultType::Float:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Int:
+      switch (expected_type) {
+        case ResultType::Float:
+          return &int_to_float_function;
+        case ResultType::Vector:
+          return &int_to_vector_function;
+        case ResultType::Color:
+          return &int_to_color_function;
+        case ResultType::Int:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Vector:
+      switch (expected_type) {
+        case ResultType::Float:
+          return &vector_to_float_function;
+        case ResultType::Int:
+          return &vector_to_int_function;
+        case ResultType::Color:
+          return &vector_to_color_function;
+        case ResultType::Vector:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Color:
+      switch (expected_type) {
+        case ResultType::Float:
+          return &color_to_float_function;
+        case ResultType::Int:
+          return &color_to_int_function;
+        case ResultType::Vector:
+          return &color_to_vector_function;
+        case ResultType::Color:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Types are not user facing, so we needn't implement them. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -345,10 +418,10 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
 }
 
 mf::Variable *MultiFunctionProcedureOperation::do_variable_implicit_conversion(
-    DInputSocket input_socket, DOutputSocket output_socket, mf::Variable *variable)
+    DInputSocket input_socket, DSocket origin_socket, mf::Variable *variable)
 {
   const ResultType expected_type = get_node_socket_result_type(input_socket.bsocket());
-  const ResultType variable_type = get_node_socket_result_type(output_socket.bsocket());
+  const ResultType variable_type = get_node_socket_result_type(origin_socket.bsocket());
 
   const mf::MultiFunction *function = get_conversion_function(variable_type, expected_type);
   if (!function) {

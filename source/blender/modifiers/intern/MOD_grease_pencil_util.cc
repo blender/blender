@@ -20,7 +20,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLT_translation.hh"
 

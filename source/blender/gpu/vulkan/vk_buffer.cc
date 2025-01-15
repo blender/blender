@@ -40,24 +40,11 @@ static VmaAllocationCreateFlags vma_allocation_flags(GPUUsageType usage)
   return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 }
 
-static VkMemoryPropertyFlags vma_preferred_flags(const bool is_host_visible)
-{
-  /* When is_host_visible is true, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT is set in
-   * `vma_required_flags`. We set the reverse to support ReBAR. */
-  return is_host_visible ?
-             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
-             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-}
-
-static VkMemoryPropertyFlags vma_required_flags(const bool is_host_visible)
-{
-  return is_host_visible ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0;
-}
-
 bool VKBuffer::create(size_t size_in_bytes,
                       GPUUsageType usage,
                       VkBufferUsageFlags buffer_usage,
-                      const bool is_host_visible)
+                      VkMemoryPropertyFlags required_flags,
+                      VkMemoryPropertyFlags preferred_flags)
 {
   BLI_assert(!is_allocated());
   BLI_assert(vk_buffer_ == VK_NULL_HANDLE);
@@ -86,8 +73,8 @@ bool VKBuffer::create(size_t size_in_bytes,
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = vma_allocation_flags(usage);
   vma_create_info.priority = 1.0f;
-  vma_create_info.requiredFlags = vma_required_flags(is_host_visible);
-  vma_create_info.preferredFlags = vma_preferred_flags(is_host_visible);
+  vma_create_info.requiredFlags = required_flags;
+  vma_create_info.preferredFlags = preferred_flags;
   vma_create_info.usage = VMA_MEMORY_USAGE_AUTO;
 
   VkResult result = vmaCreateBuffer(
@@ -143,7 +130,7 @@ void VKBuffer::read(VKContext &context, void *data) const
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
   context.rendering_end();
   context.descriptor_set_get().upload_descriptor_sets();
-  context.render_graph.submit_buffer_for_read(vk_buffer_);
+  context.render_graph.submit_for_read();
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
 

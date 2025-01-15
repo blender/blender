@@ -11,8 +11,9 @@
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.hh"
 
@@ -542,7 +543,7 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
 
   blender::bke::node_set_active(ntree, output);
 
-  BKE_ntree_update_main_tree(bmain_, ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*bmain_, *ntree);
 
   /* Optionally, set the material blend mode. */
   if (params_.set_material_blend) {
@@ -1261,7 +1262,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
                                        bNode *tex_image,
                                        const ExtraLinkInfo &extra) const
 {
-  if (!(usd_shader && tex_image && tex_image->type == SH_NODE_TEX_IMAGE)) {
+  if (!(usd_shader && tex_image && tex_image->type_legacy == SH_NODE_TEX_IMAGE)) {
     return;
   }
 
@@ -1495,22 +1496,14 @@ void build_material_map(const Main *bmain, blender::Map<std::string, Material *>
   }
 }
 
-Material *find_existing_material(
-    const pxr::SdfPath &usd_mat_path,
-    const USDImportParams &params,
-    const blender::Map<std::string, Material *> &mat_map,
-    const blender::Map<std::string, std::string> &usd_path_to_mat_name)
+Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
+                                 const USDImportParams &params,
+                                 const blender::Map<std::string, Material *> &mat_map,
+                                 const blender::Map<std::string, Material *> &usd_path_to_mat)
 {
   if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
     /* Check if we've already created the Blender material with a modified name. */
-    const std::string *mat_name = usd_path_to_mat_name.lookup_ptr(usd_mat_path.GetAsString());
-    if (mat_name == nullptr) {
-      return nullptr;
-    }
-
-    Material *mat = mat_map.lookup_default(*mat_name, nullptr);
-    BLI_assert_msg(mat != nullptr, "Previously created material cannot be found any more");
-    return mat;
+    return usd_path_to_mat.lookup_default(usd_mat_path.GetAsString(), nullptr);
   }
 
   return mat_map.lookup_default(usd_mat_path.GetName(), nullptr);

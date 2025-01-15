@@ -8,6 +8,10 @@
  * \ingroup bli
  */
 
+#include "DNA_listBase.h"
+
+#include <stdbool.h>
+
 struct ScanFillVert;
 
 #ifdef __cplusplus

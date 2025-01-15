@@ -11,7 +11,6 @@
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_math_bits.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
@@ -27,7 +26,6 @@
 
 #include "GPU_framebuffer.hh"
 #include "GPU_matrix.hh"
-#include "GPU_platform.hh"
 #include "GPU_select.hh"
 #include "GPU_state.hh"
 #include "GPU_viewport.hh"
@@ -967,7 +965,6 @@ void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler)
     if (area == nullptr) {
       /* When changing screen layouts with running modal handlers (like render display),
        * this is not an error to print. */
-      printf("internal error: modal gizmo-map handler has invalid area\n");
     }
     else {
       ARegion *region;

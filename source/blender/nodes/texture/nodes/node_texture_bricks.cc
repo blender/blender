@@ -6,7 +6,7 @@
  * \ingroup texnodes
  */
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BLI_math_vector.h"
 #include "DNA_material_types.h"
 #include "node_texture_util.hh"
@@ -107,8 +107,10 @@ void register_node_type_tex_bricks()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_BRICKS, "Bricks", NODE_CLASS_PATTERN);
+  tex_node_type_base(&ntype, "TextureNodeBricks", TEX_NODE_BRICKS);
+  ntype.ui_name = "Bricks";
   ntype.enum_name_legacy = "BRICKS";
+  ntype.nclass = NODE_CLASS_PATTERN;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;

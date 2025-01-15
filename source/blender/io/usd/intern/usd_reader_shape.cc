@@ -187,18 +187,9 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
   pxr::TfToken active_color_name;
 
   for (const pxr::UsdGeomPrimvar &pv : primvars) {
-    if (!pv.HasValue()) {
-      BKE_reportf(reports(),
-                  RPT_WARNING,
-                  "Skipping primvar %s, mesh %s -- no value",
-                  pv.GetName().GetText(),
-                  &mesh->id.name[2]);
-      continue;
-    }
-
-    if (!pv.GetAttr().GetTypeName().IsArray()) {
-      /* Non-array attributes are technically improper USD. */
-      continue;
+    const pxr::SdfValueTypeName pv_type = pv.GetTypeName();
+    if (!pv_type.IsArray()) {
+      continue; /* Skip non-array primvar attributes. */
     }
 
     const pxr::TfToken name = pxr::UsdGeomPrimvar::StripPrimvarsName(pv.GetPrimvarName());
@@ -208,9 +199,7 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
       continue;
     }
 
-    const pxr::SdfValueTypeName sdf_type = pv.GetTypeName();
-
-    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(sdf_type);
+    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
     if (type == CD_PROP_COLOR) {
       /* Set the active color name to 'displayColor', if a color primvar
        * with this name exists.  Otherwise, use the name of the first

@@ -4,7 +4,10 @@
 
 import bpy
 from bpy.types import Menu, UIList, Operator
-from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+)
 
 
 # XXX: To be replaced with active tools
@@ -56,7 +59,7 @@ class GreasePencilSculptAdvancedPanel:
         if tool in {'SMOOTH', 'RANDOMIZE'}:
             col = layout.column(heading="Affect", align=True)
             col.prop(gp_settings, "use_edit_position", text="Position")
-            col.prop(gp_settings, "use_edit_strength", text="Strength")
+            col.prop(gp_settings, "use_edit_strength", text="Strength", text_ctxt=i18n_contexts.id_gpencil)
             col.prop(gp_settings, "use_edit_thickness", text="Thickness")
             col.prop(gp_settings, "use_edit_uv", text="UV")
 
@@ -455,7 +458,8 @@ class GreasePencilMaterialsPanel:
                 sub.operator(
                     "grease_pencil.material_isolate",
                     icon='RESTRICT_VIEW_ON',
-                    text="").affect_visibility = True
+                    text="",
+                ).affect_visibility = True
                 sub.operator("grease_pencil.material_isolate", icon='LOCKED', text="").affect_visibility = False
 
             if show_full_ui:

@@ -9,11 +9,9 @@
 
 #include "BLI_color.hh"
 #include "BLI_string.h"
-#include "BLI_system.h"
 #include "BLI_threads.h"
 
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -22,14 +20,15 @@
 #include "BKE_curve.hh"
 #include "BKE_image.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
-#include "BLF_api.hh"
 #include "BLT_translation.hh"
 
 #include "BIF_glutil.hh"
@@ -39,7 +38,6 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
-#include "GPU_platform.hh"
 #include "GPU_shader_shared.hh"
 #include "GPU_state.hh"
 #include "GPU_uniform_buffer.hh"
@@ -67,9 +65,7 @@
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_partial_eval.hh"
-#include "NOD_shader.h"
 #include "NOD_socket.hh"
-#include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
 namespace blender::ed::space_node {
@@ -202,8 +198,9 @@ static void node_buts_texture(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  short multi = (node->id && ((Tex *)node->id)->use_nodes && (node->type != CMP_NODE_TEXTURE) &&
-                 (node->type != TEX_NODE_TEXTURE));
+  short multi = (node->id && ((Tex *)node->id)->use_nodes &&
+                 (node->type_legacy != CMP_NODE_TEXTURE) &&
+                 (node->type_legacy != TEX_NODE_TEXTURE));
 
   uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
@@ -231,7 +228,7 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 {
   const float size = NODE_RESIZE_MARGIN * math::max(snode.runtime->aspect, 1.0f);
 
-  if (node->type == NODE_FRAME) {
+  if (node->type_legacy == NODE_FRAME) {
     NodeFrame *data = (NodeFrame *)node->storage;
 
     /* shrinking frame size is determined by child nodes */
@@ -298,7 +295,7 @@ static void node_buts_frame_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *p
 
 static void node_common_set_butfunc(blender::bke::bNodeType *ntype)
 {
-  switch (ntype->type) {
+  switch (ntype->type_legacy) {
     case NODE_GROUP:
       ntype->draw_buttons = node_draw_buttons_group;
       break;
@@ -460,7 +457,7 @@ static void node_shader_buts_scatter(uiLayout *layout, bContext * /*C*/, Pointer
 /* only once called */
 static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
 {
-  switch (ntype->type) {
+  switch (ntype->type_legacy) {
     case SH_NODE_NORMAL:
       ntype->draw_buttons = node_buts_normal;
       break;
@@ -755,7 +752,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
 /* only once called */
 static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
 {
-  switch (ntype->type) {
+  switch (ntype->type_legacy) {
     case CMP_NODE_IMAGE:
       ntype->draw_buttons = node_composit_buts_image;
       ntype->draw_buttons_ex = node_composit_buts_image_ex;
@@ -960,11 +957,11 @@ static void node_texture_buts_combsep_color(uiLayout *layout, bContext * /*C*/, 
 /* only once called */
 static void node_texture_set_butfunc(blender::bke::bNodeType *ntype)
 {
-  if (ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX) {
+  if (ntype->type_legacy >= TEX_NODE_PROC && ntype->type_legacy < TEX_NODE_PROC_MAX) {
     ntype->draw_buttons = node_texture_buts_proc;
   }
   else {
-    switch (ntype->type) {
+    switch (ntype->type_legacy) {
 
       case TEX_NODE_MATH:
         ntype->draw_buttons = node_buts_math;
@@ -1022,7 +1019,7 @@ static void node_property_update_default(Main *bmain, Scene * /*scene*/, Pointer
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
   BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(nullptr, bmain, ntree);
+  BKE_main_ensure_invariants(*bmain);
 }
 
 static void node_socket_template_properties_update(blender::bke::bNodeType *ntype,
@@ -1113,7 +1110,7 @@ void ED_node_init_butfuncs()
   NodeSocketTypeUndefined.interface_draw = node_socket_undefined_interface_draw;
 
   /* node type ui functions */
-  NODE_TYPES_BEGIN (ntype) {
+  for (blender::bke::bNodeType *ntype : blender::bke::node_types_get()) {
     node_common_set_butfunc(ntype);
 
     node_composit_set_butfunc(ntype);
@@ -1123,7 +1120,6 @@ void ED_node_init_butfuncs()
     /* define update callbacks for socket properties */
     node_template_properties_update(ntype);
   }
-  NODE_TYPES_END;
 }
 
 void ED_init_custom_node_type(blender::bke::bNodeType * /*ntype*/) {}
@@ -1299,7 +1295,7 @@ static void std_node_socket_draw(
   // int subtype = sock->typeinfo->subtype;
 
   /* XXX not nice, eventually give this node its own socket type ... */
-  if (node->type == CMP_NODE_OUTPUT_FILE) {
+  if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
     node_file_output_socket_draw(C, layout, ptr, node_ptr);
     return;
   }
@@ -1310,7 +1306,7 @@ static void std_node_socket_draw(
                              false;
 
   if (has_gizmo) {
-    if (sock->in_out == SOCK_OUT && ELEM(node->type,
+    if (sock->in_out == SOCK_OUT && ELEM(node->type_legacy,
                                          SH_NODE_VALUE,
                                          FN_NODE_INPUT_VECTOR,
                                          FN_NODE_INPUT_INT,
@@ -1342,8 +1338,7 @@ static void std_node_socket_draw(
     }
   }
 
-  if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) ||
-      (sock->is_directly_linked() && !all_links_muted(*sock)))
+  if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) || sock->is_logically_linked())
   {
     draw_node_socket_without_value(layout, sock, text);
     return;
@@ -2386,8 +2381,8 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
                           (field_link ? 0.7f : 1.0f);
   draw_config.has_back_link = gizmo_link;
   draw_config.highlighted = link.flag & NODE_LINK_TEMP_HIGHLIGHT;
-  draw_config.drawarrow = ((link.tonode && (link.tonode->type == NODE_REROUTE)) &&
-                           (link.fromnode && (link.fromnode->type == NODE_REROUTE)));
+  draw_config.drawarrow = ((link.tonode && (link.tonode->type_legacy == NODE_REROUTE)) &&
+                           (link.fromnode && (link.fromnode->type_legacy == NODE_REROUTE)));
   draw_config.drawmuted = (link.flag & NODE_LINK_MUTED);
 
   UI_GetThemeColor4fv(th_col3, draw_config.outline_color);

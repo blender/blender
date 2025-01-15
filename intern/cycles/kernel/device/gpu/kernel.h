@@ -59,7 +59,7 @@
  */
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
-    ccl_gpu_kernel_signature(integrator_reset, int num_states)
+    ccl_gpu_kernel_signature(integrator_reset, const int num_states)
 {
   const int state = ccl_gpu_global_id_x();
 
@@ -86,7 +86,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const int tile_index = work_index / max_tile_work_size;
   const int tile_work_index = work_index - tile_index * max_tile_work_size;
 
-  ccl_global const KernelWorkTile *tile = &tiles[tile_index];
+  const ccl_global KernelWorkTile *tile = &tiles[tile_index];
 
   if (tile_work_index >= tile->work_size) {
     return;
@@ -118,7 +118,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const int tile_index = work_index / max_tile_work_size;
   const int tile_work_index = work_index - tile_index * max_tile_work_size;
 
-  ccl_global const KernelWorkTile *tile = &tiles[tile_index];
+  const ccl_global KernelWorkTile *tile = &tiles[tile_index];
 
   if (tile_work_index >= tile->work_size) {
     return;
@@ -144,7 +144,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_intersect_closest,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -152,42 +152,42 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_intersect_closest(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_intersect_closest(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_intersect_shadow,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              const int work_size)
 {
   const int global_index = ccl_gpu_global_id_x();
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_intersect_shadow(NULL, state));
+    ccl_gpu_kernel_call(integrator_intersect_shadow(nullptr, state));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_intersect_subsurface,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              const int work_size)
 {
   const int global_index = ccl_gpu_global_id_x();
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_intersect_subsurface(NULL, state));
+    ccl_gpu_kernel_call(integrator_intersect_subsurface(nullptr, state));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_intersect_volume_stack,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              const int work_size)
 {
 #  ifdef __VOLUME__
@@ -195,7 +195,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_intersect_volume_stack(NULL, state));
+    ccl_gpu_kernel_call(integrator_intersect_volume_stack(nullptr, state));
   }
 #  endif
 }
@@ -203,14 +203,14 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_intersect_dedicated_light,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              const int work_size)
 {
   const int global_index = ccl_gpu_global_id_x();
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_intersect_dedicated_light(NULL, state));
+    ccl_gpu_kernel_call(integrator_intersect_dedicated_light(nullptr, state));
   }
 }
 ccl_gpu_kernel_postfix
@@ -223,7 +223,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_background,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -231,14 +231,14 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_background(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_background(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_light,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -246,14 +246,14 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_light(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_light(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_shadow,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -261,14 +261,14 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_shadow(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_shadow(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_surface,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -276,7 +276,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_surface(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_surface(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
@@ -295,7 +295,7 @@ constant int __dummy_constant [[function_constant(Kernel_DummyConstant)]];
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_surface_raytrace,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -305,13 +305,13 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
 
 #  if defined(__KERNEL_METAL_APPLE__) && defined(__METALRT__)
-    KernelGlobals kg = NULL;
+    KernelGlobals kg = nullptr;
     /* Workaround Ambient Occlusion and Bevel nodes not working with Metal.
      * Dummy offset should not affect result, but somehow fixes bug! */
     kg += __dummy_constant;
     ccl_gpu_kernel_call(integrator_shade_surface_raytrace(kg, state, render_buffer));
 #  else
-    ccl_gpu_kernel_call(integrator_shade_surface_raytrace(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_surface_raytrace(nullptr, state, render_buffer));
 #  endif
   }
 }
@@ -319,7 +319,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_surface_mnee,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -327,7 +327,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_surface_mnee(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_surface_mnee(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
@@ -340,7 +340,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_volume,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -348,14 +348,14 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_volume(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_volume(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_dedicated_light,
-                             ccl_global const int *path_index_array,
+                             const ccl_global int *path_index_array,
                              ccl_global float *render_buffer,
                              const int work_size)
 {
@@ -363,17 +363,17 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_dedicated_light(NULL, state, render_buffer));
+    ccl_gpu_kernel_call(integrator_shade_dedicated_light(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_queued_paths_array,
-                             int num_states,
+                             const int num_states,
                              ccl_global int *indices,
                              ccl_global int *num_indices,
-                             int kernel_index)
+                             const int kernel_index)
 {
   ccl_gpu_kernel_lambda(INTEGRATOR_STATE(state, path, queued_kernel) == kernel_index,
                         int kernel_index);
@@ -385,10 +385,10 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_queued_shadow_paths_array,
-                             int num_states,
+                             const int num_states,
                              ccl_global int *indices,
                              ccl_global int *num_indices,
-                             int kernel_index)
+                             const int kernel_index)
 {
   ccl_gpu_kernel_lambda(INTEGRATOR_STATE(state, shadow_path, queued_kernel) == kernel_index,
                         int kernel_index);
@@ -400,7 +400,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_active_paths_array,
-                             int num_states,
+                             const int num_states,
                              ccl_global int *indices,
                              ccl_global int *num_indices)
 {
@@ -412,10 +412,10 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_terminated_paths_array,
-                             int num_states,
+                             const int num_states,
                              ccl_global int *indices,
                              ccl_global int *num_indices,
-                             int indices_offset)
+                             const int indices_offset)
 {
   ccl_gpu_kernel_lambda(INTEGRATOR_STATE(state, path, queued_kernel) == 0);
 
@@ -426,10 +426,10 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_terminated_shadow_paths_array,
-                             int num_states,
+                             const int num_states,
                              ccl_global int *indices,
                              ccl_global int *num_indices,
-                             int indices_offset)
+                             const int indices_offset)
 {
   ccl_gpu_kernel_lambda(INTEGRATOR_STATE(state, shadow_path, queued_kernel) == 0);
 
@@ -440,13 +440,13 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sorted_paths_array,
-                             int num_states,
-                             int num_states_limit,
+                             const int num_states,
+                             const int num_states_limit,
                              ccl_global int *indices,
                              ccl_global int *num_indices,
                              ccl_global int *key_counter,
                              ccl_global int *key_prefix_sum,
-                             int kernel_index)
+                             const int kernel_index)
 {
   ccl_gpu_kernel_lambda((INTEGRATOR_STATE(state, path, queued_kernel) == kernel_index) ?
                             INTEGRATOR_STATE(state, path, shader_sort_key) :
@@ -470,20 +470,20 @@ ccl_gpu_kernel_postfix
 #ifdef __KERNEL_ONEAPI__
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_bucket_pass,
-                             int num_states,
-                             int partition_size,
-                             int num_states_limit,
+                             const int num_states,
+                             const int partition_size,
+                             const int num_states_limit,
                              ccl_global int *indices,
-                             int kernel_index,
+                             const int kernel_index,
                              sycl::local_accessor<int> &local_mem)
 #else
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_bucket_pass,
-                             int num_states,
-                             int partition_size,
-                             int num_states_limit,
+                             const int num_states,
+                             const int partition_size,
+                             const int num_states_limit,
                              ccl_global int *indices,
-                             int kernel_index)
+                             const int kernel_index)
 #endif
 {
 #if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
@@ -530,20 +530,20 @@ ccl_gpu_kernel_postfix
 #ifdef __KERNEL_ONEAPI__
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_write_pass,
-                             int num_states,
-                             int partition_size,
-                             int num_states_limit,
+                             const int num_states,
+                             const int partition_size,
+                             const int num_states_limit,
                              ccl_global int *indices,
-                             int kernel_index,
+                             const int kernel_index,
                              sycl::local_accessor<int> &local_mem)
 #else
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_write_pass,
-                             int num_states,
-                             int partition_size,
-                             int num_states_limit,
+                             const int num_states,
+                             const int partition_size,
+                             const int num_states_limit,
                              ccl_global int *indices,
-                             int kernel_index)
+                             const int kernel_index)
 #endif
 
 {
@@ -591,10 +591,10 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_compact_paths_array,
-                             int num_states,
+                             const int num_states,
                              ccl_global int *indices,
                              ccl_global int *num_indices,
-                             int num_active_paths)
+                             const int num_active_paths)
 {
   ccl_gpu_kernel_lambda((state >= num_active_paths) &&
                             (INTEGRATOR_STATE(state, path, queued_kernel) != 0),
@@ -607,7 +607,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_compact_states,
-                             ccl_global const int *active_terminated_states,
+                             const ccl_global int *active_terminated_states,
                              const int active_states_offset,
                              const int terminated_states_offset,
                              const int work_size)
@@ -618,17 +618,17 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
     const int from_state = active_terminated_states[active_states_offset + global_index];
     const int to_state = active_terminated_states[terminated_states_offset + global_index];
 
-    ccl_gpu_kernel_call(integrator_state_move(NULL, to_state, from_state));
+    ccl_gpu_kernel_call(integrator_state_move(nullptr, to_state, from_state));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_compact_shadow_paths_array,
-                             int num_states,
+                             const int num_states,
                              ccl_global int *indices,
                              ccl_global int *num_indices,
-                             int num_active_paths)
+                             const int num_active_paths)
 {
   ccl_gpu_kernel_lambda((state >= num_active_paths) &&
                             (INTEGRATOR_STATE(state, shadow_path, queued_kernel) != 0),
@@ -641,7 +641,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_compact_shadow_states,
-                             ccl_global const int *active_terminated_states,
+                             const ccl_global int *active_terminated_states,
                              const int active_states_offset,
                              const int terminated_states_offset,
                              const int work_size)
@@ -652,13 +652,13 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
     const int from_state = active_terminated_states[active_states_offset + global_index];
     const int to_state = active_terminated_states[terminated_states_offset + global_index];
 
-    ccl_gpu_kernel_call(integrator_shadow_state_move(NULL, to_state, from_state));
+    ccl_gpu_kernel_call(integrator_shadow_state_move(nullptr, to_state, from_state));
   }
 }
 ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE) ccl_gpu_kernel_signature(
-    prefix_sum, ccl_global int *counter, ccl_global int *prefix_sum, int num_values)
+    prefix_sum, ccl_global int *counter, ccl_global int *prefix_sum, const int num_values)
 {
   gpu_parallel_prefix_sum(ccl_gpu_global_id_x(), counter, prefix_sum, num_values);
 }
@@ -671,14 +671,14 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(adaptive_sampling_convergence_check,
                              ccl_global float *render_buffer,
-                             int sx,
-                             int sy,
-                             int sw,
-                             int sh,
-                             float threshold,
-                             int reset,
-                             int offset,
-                             int stride,
+                             const int sx,
+                             const int sy,
+                             const int sw,
+                             const int sh,
+                             const float threshold,
+                             const int reset,
+                             const int offset,
+                             const int stride,
                              ccl_global uint *num_active_pixels)
 {
   const int work_index = ccl_gpu_global_id_x();
@@ -704,18 +704,18 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(adaptive_sampling_filter_x,
                              ccl_global float *render_buffer,
-                             int sx,
-                             int sy,
-                             int sw,
-                             int sh,
-                             int offset,
-                             int stride)
+                             const int sx,
+                             const int sy,
+                             const int sw,
+                             const int sh,
+                             const int offset,
+                             const int stride)
 {
   const int y = ccl_gpu_global_id_x();
 
   if (y < sh) {
     ccl_gpu_kernel_call(
-        film_adaptive_sampling_filter_x(NULL, render_buffer, sy + y, sx, sw, offset, stride));
+        film_adaptive_sampling_filter_x(nullptr, render_buffer, sy + y, sx, sw, offset, stride));
   }
 }
 ccl_gpu_kernel_postfix
@@ -723,18 +723,18 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(adaptive_sampling_filter_y,
                              ccl_global float *render_buffer,
-                             int sx,
-                             int sy,
-                             int sw,
-                             int sh,
-                             int offset,
-                             int stride)
+                             const int sx,
+                             const int sy,
+                             const int sw,
+                             const int sh,
+                             const int offset,
+                             const int stride)
 {
   const int x = ccl_gpu_global_id_x();
 
   if (x < sw) {
     ccl_gpu_kernel_call(
-        film_adaptive_sampling_filter_y(NULL, render_buffer, sx + x, sy, sh, offset, stride));
+        film_adaptive_sampling_filter_y(nullptr, render_buffer, sx + x, sy, sh, offset, stride));
   }
 }
 ccl_gpu_kernel_postfix
@@ -746,7 +746,7 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(cryptomatte_postprocess,
                              ccl_global float *render_buffer,
-                             int num_pixels)
+                             const int num_pixels)
 {
   const int pixel_index = ccl_gpu_global_id_x();
 
@@ -917,7 +917,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   int i = ccl_gpu_global_id_x();
   if (i < work_size) {
-    ccl_gpu_kernel_call(kernel_displace_evaluate(NULL, input, output, offset + i));
+    ccl_gpu_kernel_call(kernel_displace_evaluate(nullptr, input, output, offset + i));
   }
 }
 ccl_gpu_kernel_postfix
@@ -933,7 +933,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   int i = ccl_gpu_global_id_x();
   if (i < work_size) {
-    ccl_gpu_kernel_call(kernel_background_evaluate(NULL, input, output, offset + i));
+    ccl_gpu_kernel_call(kernel_background_evaluate(nullptr, input, output, offset + i));
   }
 }
 ccl_gpu_kernel_postfix
@@ -950,7 +950,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   int i = ccl_gpu_global_id_x();
   if (i < work_size) {
     ccl_gpu_kernel_call(
-        kernel_curve_shadow_transparency_evaluate(NULL, input, output, offset + i));
+        kernel_curve_shadow_transparency_evaluate(nullptr, input, output, offset + i));
   }
 }
 ccl_gpu_kernel_postfix
@@ -962,14 +962,14 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(filter_color_preprocess,
                              ccl_global float *render_buffer,
-                             int full_x,
-                             int full_y,
-                             int width,
-                             int height,
-                             int offset,
-                             int stride,
-                             int pass_stride,
-                             int pass_denoised)
+                             const int full_x,
+                             const int full_y,
+                             const int width,
+                             const int height,
+                             const int offset,
+                             const int stride,
+                             const int pass_stride,
+                             const int pass_denoised)
 {
   const int work_index = ccl_gpu_global_id_x();
   const int y = work_index / width;
@@ -992,23 +992,23 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(filter_guiding_preprocess,
                              ccl_global float *guiding_buffer,
-                             int guiding_pass_stride,
-                             int guiding_pass_albedo,
-                             int guiding_pass_normal,
-                             int guiding_pass_flow,
-                             ccl_global const float *render_buffer,
-                             int render_offset,
-                             int render_stride,
-                             int render_pass_stride,
-                             int render_pass_sample_count,
-                             int render_pass_denoising_albedo,
-                             int render_pass_denoising_normal,
-                             int render_pass_motion,
-                             int full_x,
-                             int full_y,
-                             int width,
-                             int height,
-                             int num_samples)
+                             const int guiding_pass_stride,
+                             const int guiding_pass_albedo,
+                             const int guiding_pass_normal,
+                             const int guiding_pass_flow,
+                             const ccl_global float *render_buffer,
+                             const int render_offset,
+                             const int render_stride,
+                             const int render_pass_stride,
+                             const int render_pass_sample_count,
+                             const int render_pass_denoising_albedo,
+                             const int render_pass_denoising_normal,
+                             const int render_pass_motion,
+                             const int full_x,
+                             const int full_y,
+                             const int width,
+                             const int height,
+                             const int num_samples)
 {
   const int work_index = ccl_gpu_global_id_x();
   const int y = work_index / width;
@@ -1022,7 +1022,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   ccl_global float *guiding_pixel = guiding_buffer + guiding_pixel_index * guiding_pass_stride;
 
   const uint64_t render_pixel_index = render_offset + (x + full_x) + (y + full_y) * render_stride;
-  ccl_global const float *buffer = render_buffer + render_pixel_index * render_pass_stride;
+  const ccl_global float *buffer = render_buffer + render_pixel_index * render_pass_stride;
 
   float pixel_scale;
   if (render_pass_sample_count == PASS_UNUSED) {
@@ -1036,7 +1036,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   if (guiding_pass_albedo != PASS_UNUSED) {
     kernel_assert(render_pass_denoising_albedo != PASS_UNUSED);
 
-    ccl_global const float *aledo_in = buffer + render_pass_denoising_albedo;
+    const ccl_global float *aledo_in = buffer + render_pass_denoising_albedo;
     ccl_global float *albedo_out = guiding_pixel + guiding_pass_albedo;
 
     albedo_out[0] = aledo_in[0] * pixel_scale;
@@ -1048,7 +1048,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   if (guiding_pass_normal != PASS_UNUSED) {
     kernel_assert(render_pass_denoising_normal != PASS_UNUSED);
 
-    ccl_global const float *normal_in = buffer + render_pass_denoising_normal;
+    const ccl_global float *normal_in = buffer + render_pass_denoising_normal;
     ccl_global float *normal_out = guiding_pixel + guiding_pass_normal;
 
     normal_out[0] = normal_in[0] * pixel_scale;
@@ -1060,7 +1060,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   if (guiding_pass_flow != PASS_UNUSED) {
     kernel_assert(render_pass_motion != PASS_UNUSED);
 
-    ccl_global const float *motion_in = buffer + render_pass_motion;
+    const ccl_global float *motion_in = buffer + render_pass_motion;
     ccl_global float *flow_out = guiding_pixel + guiding_pass_flow;
 
     flow_out[0] = -motion_in[0] * pixel_scale;
@@ -1072,10 +1072,10 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(filter_guiding_set_fake_albedo,
                              ccl_global float *guiding_buffer,
-                             int guiding_pass_stride,
-                             int guiding_pass_albedo,
-                             int width,
-                             int height)
+                             const int guiding_pass_stride,
+                             const int guiding_pass_albedo,
+                             const int width,
+                             const int height)
 {
   kernel_assert(guiding_pass_albedo != PASS_UNUSED);
 
@@ -1101,19 +1101,19 @@ ccl_gpu_kernel_postfix
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(filter_color_postprocess,
                              ccl_global float *render_buffer,
-                             int full_x,
-                             int full_y,
-                             int width,
-                             int height,
-                             int offset,
-                             int stride,
-                             int pass_stride,
-                             int num_samples,
-                             int pass_noisy,
-                             int pass_denoised,
-                             int pass_sample_count,
-                             int num_components,
-                             int use_compositing)
+                             const int full_x,
+                             const int full_y,
+                             const int width,
+                             const int height,
+                             const int offset,
+                             const int stride,
+                             const int pass_stride,
+                             const int num_samples,
+                             const int pass_noisy,
+                             const int pass_denoised,
+                             const int pass_sample_count,
+                             const int num_components,
+                             const int use_compositing)
 {
   const int work_index = ccl_gpu_global_id_x();
   const int y = work_index / width;
@@ -1147,7 +1147,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     /* Currently compositing passes are either 3-component (derived by dividing light passes)
      * or do not have transparency (shadow catcher). Implicitly rely on this logic, as it
      * simplifies logic and avoids extra memory allocation. */
-    ccl_global const float *noisy_pixel = buffer + pass_noisy;
+    const ccl_global float *noisy_pixel = buffer + pass_noisy;
     denoised_pixel[3] = noisy_pixel[3];
   }
   else {
@@ -1164,7 +1164,7 @@ ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shadow_catcher_count_possible_splits,
-                             int num_states,
+                             const int num_states,
                              ccl_global uint *num_possible_splits)
 {
   const int state = ccl_gpu_global_id_x();

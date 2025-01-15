@@ -42,8 +42,6 @@
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 
-#include "DNA_ID.h"
-
 #include "UI_interface_icons.hh"
 
 #include "MEM_guardedalloc.h"
@@ -57,7 +55,6 @@
 #include "../generic/py_capi_rna.hh"
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh"
-#include "../generic/python_utildefines.hh"
 
 #ifdef BUILD_DATE
 extern "C" char build_date[];

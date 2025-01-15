@@ -68,7 +68,8 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
             volume_output.inputs["Volume"],
             world_output,
             world_output.inputs["Volume"],
-            links_to_add)
+            links_to_add,
+        )
         self._sync_links(volume_tree, links_to_add)
 
         # Add transparent volume for other render engines

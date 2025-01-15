@@ -8,6 +8,14 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/geom/curve_intersect.h"
+#include "kernel/geom/motion_triangle_shader.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/point_intersect.h"
+#include "kernel/geom/triangle_intersect.h"
+
 #include "kernel/util/differential.h"
 
 CCL_NAMESPACE_BEGIN
@@ -16,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void shader_setup_object_transforms(KernelGlobals kg,
                                                ccl_private ShaderData *ccl_restrict sd,
-                                               float time)
+                                               const float time)
 {
 #ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {
@@ -30,8 +38,8 @@ ccl_device void shader_setup_object_transforms(KernelGlobals kg,
  * global memory as we write it to shader-data. */
 ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
                                              ccl_private ShaderData *ccl_restrict sd,
-                                             ccl_private const Ray *ccl_restrict ray,
-                                             ccl_private const Intersection *ccl_restrict isect)
+                                             const ccl_private Ray *ccl_restrict ray,
+                                             const ccl_private Intersection *ccl_restrict isect)
 {
   /* Read intersection data into shader globals.
    *
@@ -97,7 +105,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
 
   /* backfacing test */
-  bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
+  const bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
 
   if (backfacing) {
     sd->flag |= SD_BACKFACING;
@@ -124,15 +132,15 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
                                                 const float3 P,
                                                 const float3 Ng,
                                                 const float3 I,
-                                                int shader,
-                                                int object,
-                                                int prim,
-                                                float u,
-                                                float v,
-                                                float t,
-                                                float time,
+                                                const int shader,
+                                                const int object,
+                                                const int prim,
+                                                const float u,
+                                                const float v,
+                                                const float t,
+                                                const float time,
                                                 bool object_space,
-                                                int lamp)
+                                                const int lamp)
 {
   /* vectors */
   sd->P = P;
@@ -216,7 +224,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
   /* backfacing test */
   if (sd->prim != PRIM_NONE) {
-    bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
+    const bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
 
     if (backfacing) {
       sd->flag |= SD_BACKFACING;
@@ -242,12 +250,14 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
 ccl_device void shader_setup_from_displace(KernelGlobals kg,
                                            ccl_private ShaderData *ccl_restrict sd,
-                                           int object,
-                                           int prim,
-                                           float u,
-                                           float v)
+                                           const int object,
+                                           const int prim,
+                                           const float u,
+                                           const float v)
 {
-  float3 P, Ng, I = zero_float3();
+  float3 P;
+  float3 Ng;
+  const float3 I = zero_float3();
   int shader;
 
   triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
@@ -276,10 +286,10 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
 #ifdef __HAIR__
 ccl_device void shader_setup_from_curve(KernelGlobals kg,
                                         ccl_private ShaderData *ccl_restrict sd,
-                                        int object,
-                                        int prim,
-                                        int segment,
-                                        float u)
+                                        const int object,
+                                        const int prim,
+                                        const int segment,
+                                        const float u)
 {
   /* Primitive */
   sd->type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE_THICK, segment);
@@ -302,12 +312,12 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 #  endif
 
   /* Get control points. */
-  KernelCurve kcurve = kernel_data_fetch(curves, prim);
+  const KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
-  int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
-  int k1 = k0 + 1;
-  int ka = max(k0 - 1, kcurve.first_key);
-  int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
+  const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+  const int k1 = k0 + 1;
+  const int ka = max(k0 - 1, kcurve.first_key);
+  const int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
 
   float4 P_curve[4];
 
@@ -397,7 +407,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
 #ifdef __VOLUME__
 ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
                                                 ccl_private ShaderData *ccl_restrict sd,
-                                                ccl_private const Ray *ccl_restrict ray,
+                                                const ccl_private Ray *ccl_restrict ray,
                                                 const int object)
 {
 

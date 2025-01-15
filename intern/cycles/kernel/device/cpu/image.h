@@ -4,9 +4,14 @@
 
 #pragma once
 
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #ifdef WITH_NANOVDB
 #  include "kernel/util/nanovdb.h"
 #endif
+
+#include "util/half.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -23,7 +28,7 @@ namespace {
   } \
   (void)0
 
-ccl_device_inline float frac(float x, int *ix)
+ccl_device_inline float frac(const float x, int *ix)
 {
   int i = float_to_int(x) - ((x < 0.0f) ? 1 : 0);
   *ix = i;
@@ -34,7 +39,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 
   static ccl_always_inline OutT zero()
   {
-    if constexpr (std::is_same<OutT, float4>::value) {
+    if constexpr (std::is_same_v<OutT, float4>) {
       return zero_float4();
     }
     else {
@@ -42,23 +47,23 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     }
   }
 
-  static ccl_always_inline float4 read(float4 r)
+  static ccl_always_inline float4 read(const float4 r)
   {
     return r;
   }
 
-  static ccl_always_inline float4 read(uchar4 r)
+  static ccl_always_inline float4 read(const uchar4 r)
   {
     const float f = 1.0f / 255.0f;
     return make_float4(r.x * f, r.y * f, r.z * f, r.w * f);
   }
 
-  static ccl_always_inline float read(uchar r)
+  static ccl_always_inline float read(const uchar r)
   {
     return r * (1.0f / 255.0f);
   }
 
-  static ccl_always_inline float read(float r)
+  static ccl_always_inline float read(const float r)
   {
     return r;
   }
@@ -73,7 +78,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     return half_to_float_image(r);
   }
 
-  static ccl_always_inline float read(uint16_t r)
+  static ccl_always_inline float read(const uint16_t r)
   {
     return r * (1.0f / 65535.0f);
   }
@@ -86,14 +91,16 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 
   /* Read 2D Texture Data
    * Does not check if data request is in bounds. */
-  static ccl_always_inline OutT read(const TexT *data, int x, int y, int width, int height)
+  static ccl_always_inline OutT
+  read(const TexT *data, const int x, int y, const int width, const int height)
   {
     return read(data[y * width + x]);
   }
 
   /* Read 2D Texture Data Clip
    * Returns transparent black if data request is out of bounds. */
-  static ccl_always_inline OutT read_clip(const TexT *data, int x, int y, int width, int height)
+  static ccl_always_inline OutT
+  read_clip(const TexT *data, const int x, int y, const int width, const int height)
   {
     if (x < 0 || x >= width || y < 0 || y >= height) {
       return zero();
@@ -103,16 +110,26 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 
   /* Read 3D Texture Data
    * Does not check if data request is in bounds. */
-  static ccl_always_inline OutT
-  read(const TexT *data, int x, int y, int z, int width, int height, int depth)
+  static ccl_always_inline OutT read(const TexT *data,
+                                     const int x,
+                                     int y,
+                                     const int z,
+                                     int width,
+                                     const int height,
+                                     const int depth)
   {
     return read(data[x + y * width + z * width * height]);
   }
 
   /* Read 3D Texture Data Clip
    * Returns transparent black if data request is out of bounds. */
-  static ccl_always_inline OutT
-  read_clip(const TexT *data, int x, int y, int z, int width, int height, int depth)
+  static ccl_always_inline OutT read_clip(const TexT *data,
+                                          const int x,
+                                          int y,
+                                          const int z,
+                                          int width,
+                                          const int height,
+                                          const int depth)
   {
     if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth) {
       return zero();
@@ -123,18 +140,18 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   /* Trilinear Interpolation */
   static ccl_always_inline OutT
   trilinear_lookup(const TexT *data,
-                   float tx,
-                   float ty,
-                   float tz,
-                   int ix,
-                   int iy,
-                   int iz,
-                   int nix,
-                   int niy,
-                   int niz,
-                   int width,
-                   int height,
-                   int depth,
+                   const float tx,
+                   const float ty,
+                   const float tz,
+                   const int ix,
+                   const int iy,
+                   const int iz,
+                   const int nix,
+                   const int niy,
+                   const int niz,
+                   const int width,
+                   const int height,
+                   const int depth,
                    OutT read(const TexT *, int, int, int, int, int, int))
   {
     OutT r = (1.0f - tz) * (1.0f - ty) * (1.0f - tx) *
@@ -153,15 +170,15 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   /** Tricubic Interpolation */
   static ccl_always_inline OutT
   tricubic_lookup(const TexT *data,
-                  float tx,
-                  float ty,
-                  float tz,
+                  const float tx,
+                  const float ty,
+                  const float tz,
                   const int xc[4],
                   const int yc[4],
                   const int zc[4],
-                  int width,
-                  int height,
-                  int depth,
+                  const int width,
+                  const int height,
+                  const int depth,
                   OutT read(const TexT *, int, int, int, int, int, int))
   {
     float u[4], v[4], w[4];
@@ -187,7 +204,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 #undef DATA
   }
 
-  static ccl_always_inline int wrap_periodic(int x, int width)
+  static ccl_always_inline int wrap_periodic(int x, const int width)
   {
     x %= width;
     if (x < 0) {
@@ -196,22 +213,23 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     return x;
   }
 
-  static ccl_always_inline int wrap_clamp(int x, int width)
+  static ccl_always_inline int wrap_clamp(const int x, const int width)
   {
     return clamp(x, 0, width - 1);
   }
 
-  static ccl_always_inline int wrap_mirror(int x, int width)
+  static ccl_always_inline int wrap_mirror(const int x, const int width)
   {
     const int m = abs(x + (x < 0)) % (2 * width);
-    if (m >= width)
+    if (m >= width) {
       return 2 * width - m - 1;
+    }
     return m;
   }
 
   /* ********  2D interpolation ******** */
 
-  static ccl_always_inline OutT interp_closest(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp_closest(const TextureInfo &info, const float x, float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -243,10 +261,10 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     }
 
     const TexT *data = (const TexT *)info.data;
-    return read((const TexT *)data, ix, iy, width, height);
+    return read(data, ix, iy, width, height);
   }
 
-  static ccl_always_inline OutT interp_linear(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp_linear(const TextureInfo &info, const float x, float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -300,7 +318,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
            ty * tx * read(data, nix, niy, width, height);
   }
 
-  static ccl_always_inline OutT interp_cubic(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp_cubic(const TextureInfo &info, const float x, float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -389,7 +407,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 #undef DATA
   }
 
-  static ccl_always_inline OutT interp(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp(const TextureInfo &info, const float x, float y)
   {
     switch (info.interpolation) {
       case INTERPOLATION_CLOSEST:
@@ -404,9 +422,9 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   /* ********  3D interpolation ******** */
 
   static ccl_always_inline OutT interp_3d_closest(const TextureInfo &info,
-                                                  float x,
-                                                  float y,
-                                                  float z)
+                                                  const float x,
+                                                  const float y,
+                                                  const float z)
   {
     const int width = info.width;
     const int height = info.height;
@@ -449,9 +467,9 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   }
 
   static ccl_always_inline OutT interp_3d_linear(const TextureInfo &info,
-                                                 float x,
-                                                 float y,
-                                                 float z)
+                                                 const float x,
+                                                 const float y,
+                                                 const float z)
   {
     const int width = info.width;
     const int height = info.height;
@@ -561,7 +579,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   static ccl_never_inline
 #endif
       OutT
-      interp_3d_cubic(const TextureInfo &info, float x, float y, float z)
+      interp_3d_cubic(const TextureInfo &info, const float x, float y, const float z)
   {
     int width = info.width;
     int height = info.height;
@@ -668,8 +686,8 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     return tricubic_lookup(data, tx, ty, tz, xc, yc, zc, width, height, depth, read);
   }
 
-  static ccl_always_inline OutT
-  interp_3d(const TextureInfo &info, float x, float y, float z, InterpolationType interp)
+  static ccl_always_inline OutT interp_3d(
+      const TextureInfo &info, const float x, float y, const float z, InterpolationType interp)
   {
     switch ((interp == INTERPOLATION_NONE) ? info.interpolation : interp) {
       case INTERPOLATION_CLOSEST:
@@ -685,7 +703,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 #ifdef WITH_NANOVDB
 template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 
-  static ccl_always_inline float read(float r)
+  static ccl_always_inline float read(const float r)
   {
     return r;
   }
@@ -696,14 +714,16 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
   }
 
   template<typename Acc>
-  static ccl_always_inline OutT interp_3d_closest(const Acc &acc, float x, float y, float z)
+  static ccl_always_inline OutT
+  interp_3d_closest(const Acc &acc, const float x, float y, const float z)
   {
     const nanovdb::Coord coord((int32_t)floorf(x), (int32_t)floorf(y), (int32_t)floorf(z));
     return read(acc.getValue(coord));
   }
 
   template<typename Acc>
-  static ccl_always_inline OutT interp_3d_linear(const Acc &acc, float x, float y, float z)
+  static ccl_always_inline OutT
+  interp_3d_linear(const Acc &acc, const float x, float y, const float z)
   {
     int ix, iy, iz;
     const float tx = frac(x - 0.5f, &ix);
@@ -735,7 +755,7 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
   static ccl_never_inline
 #  endif
       OutT
-      interp_3d_cubic(const Acc &acc, float x, float y, float z)
+      interp_3d_cubic(const Acc &acc, const float x, float y, const float z)
   {
     int ix, iy, iz;
     int nix, niy, niz;
@@ -784,8 +804,8 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 #  undef DATA
   }
 
-  static ccl_always_inline OutT
-  interp_3d(const TextureInfo &info, float x, float y, float z, InterpolationType interp)
+  static ccl_always_inline OutT interp_3d(
+      const TextureInfo &info, const float x, float y, const float z, InterpolationType interp)
   {
     using namespace nanovdb;
 
@@ -811,7 +831,7 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 
 #undef SET_CUBIC_SPLINE_WEIGHTS
 
-ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
+ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, const int id, const float x, float y)
 {
   const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
@@ -852,7 +872,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
 }
 
 ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
-                                             int id,
+                                             const int id,
                                              float3 P,
                                              InterpolationType interp)
 {

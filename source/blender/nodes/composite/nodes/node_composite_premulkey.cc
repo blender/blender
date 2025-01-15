@@ -78,7 +78,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   static auto unpremultiply_function = mf::build::SI1_SO<float4, float4>(
       "Alpha Convert Unpremultiply",
       [](const float4 &color) -> float4 {
-        if (color.w == 0.0f || color.w == 1.0f) {
+        if (ELEM(color.w, 0.0f, 1.0f)) {
           return color;
         }
         return float4(color.xyz() / color.w, color.w);
@@ -103,8 +103,11 @@ void register_node_type_cmp_premulkey()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodePremulKey", CMP_NODE_PREMULKEY);
+  ntype.ui_name = "Alpha Convert";
+  ntype.ui_description = "Convert to and from premultiplied (associated) alpha";
   ntype.enum_name_legacy = "PREMULKEY";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_premulkey_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_premulkey;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

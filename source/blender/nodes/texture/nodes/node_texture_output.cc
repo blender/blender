@@ -63,7 +63,7 @@ static void unique_name(bNode *node)
     i = i->prev;
   }
   for (; i; i = i->next) {
-    if (i == node || i->type != TEX_NODE_OUTPUT ||
+    if (i == node || i->type_legacy != TEX_NODE_OUTPUT ||
         !STREQ(name, ((TexNodeOutput *)(i->storage))->name))
     {
       continue;
@@ -106,7 +106,7 @@ static void assign_index(bNode *node)
 
 check_index:
   for (; tnode; tnode = tnode->next) {
-    if (tnode->type == TEX_NODE_OUTPUT && tnode != node) {
+    if (tnode->type_legacy == TEX_NODE_OUTPUT && tnode != node) {
       if (tnode->custom1 == index) {
         index++;
         goto check_index;
@@ -138,8 +138,10 @@ void register_node_type_tex_output()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT);
+  tex_node_type_base(&ntype, "TextureNodeOutput", TEX_NODE_OUTPUT);
+  ntype.ui_name = "Output";
   ntype.enum_name_legacy = "OUTPUT";
+  ntype.nclass = NODE_CLASS_OUTPUT;
   blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;

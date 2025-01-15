@@ -6,6 +6,8 @@
  * \ingroup edasset
  */
 
+#include "AS_asset_library.hh"
+
 #include "asset_shelf.hh"
 
 #include "BKE_screen.hh"
@@ -55,7 +57,7 @@ void type_popup_unlink(const AssetShelfType &shelf_type)
   }
 }
 
-static AssetShelf *get_shelf_for_popup(const bContext &C, AssetShelfType &shelf_type)
+static AssetShelf *lookup_shelf_for_popup(const bContext &C, const AssetShelfType &shelf_type)
 {
   Vector<AssetShelf *> &popup_shelves = StaticPopupShelves::shelves();
 
@@ -68,6 +70,17 @@ static AssetShelf *get_shelf_for_popup(const bContext &C, AssetShelfType &shelf_
     }
   }
 
+  return nullptr;
+}
+
+static AssetShelf *get_shelf_for_popup(const bContext &C, AssetShelfType &shelf_type)
+{
+  Vector<AssetShelf *> &popup_shelves = StaticPopupShelves::shelves();
+
+  if (AssetShelf *shelf = lookup_shelf_for_popup(C, shelf_type)) {
+    return shelf;
+  }
+
   if (type_poll_for_popup(C, &shelf_type)) {
     AssetShelf *new_shelf = create_shelf_from_type(shelf_type);
     new_shelf->settings.display_flag |= ASSETSHELF_SHOW_NAMES;
@@ -78,6 +91,17 @@ static AssetShelf *get_shelf_for_popup(const bContext &C, AssetShelfType &shelf_
   }
 
   return nullptr;
+}
+
+void ensure_asset_library_fetched(const bContext &C, const AssetShelfType &shelf_type)
+{
+  if (AssetShelf *shelf = lookup_shelf_for_popup(C, shelf_type)) {
+    list::storage_fetch(&shelf->settings.asset_library_reference, &C);
+  }
+  else {
+    AssetLibraryReference library_ref = asset_system::all_library_reference();
+    list::storage_fetch(&library_ref, &C);
+  }
 }
 
 class AssetCatalogTreeView : public ui::AbstractTreeView {

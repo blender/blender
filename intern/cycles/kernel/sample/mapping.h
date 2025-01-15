@@ -7,20 +7,25 @@
 
 #pragma once
 
+#include "util/math.h"
+#include "util/projection.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Distribute 2D uniform random samples on [0, 1] over unit disk [-1, 1], with concentric mapping
  * to better preserve stratification for some RNG sequences. */
 ccl_device float2 sample_uniform_disk(const float2 rand)
 {
-  float phi, r;
-  float a = 2.0f * rand.x - 1.0f;
-  float b = 2.0f * rand.y - 1.0f;
+  float phi;
+  float r;
+  const float a = 2.0f * rand.x - 1.0f;
+  const float b = 2.0f * rand.y - 1.0f;
 
   if (a == 0.0f && b == 0.0f) {
     return zero_float2();
   }
-  else if (a * a > b * b) {
+
+  if (a * a > b * b) {
     r = a;
     phi = M_PI_4_F * (b / a);
   }
@@ -60,14 +65,15 @@ ccl_device void make_orthonormals_safe_tangent(const float3 N,
 
 /* sample direction with cosine weighted distributed in hemisphere */
 ccl_device_inline void sample_cos_hemisphere(const float3 N,
-                                             float2 rand_in,
+                                             const float2 rand_in,
                                              ccl_private float3 *wo,
                                              ccl_private float *pdf)
 {
-  float2 rand = sample_uniform_disk(rand_in);
-  float costheta = safe_sqrtf(1.0f - len_squared(rand));
+  const float2 rand = sample_uniform_disk(rand_in);
+  const float costheta = safe_sqrtf(1.0f - len_squared(rand));
 
-  float3 T, B;
+  float3 T;
+  float3 B;
   make_orthonormals(N, &T, &B);
   *wo = rand.x * T + rand.y * B + costheta * N;
   *pdf = costheta * M_1_PI_F;
@@ -86,20 +92,21 @@ ccl_device_inline void sample_uniform_hemisphere(const float3 N,
                                                  ccl_private float *pdf)
 {
   float2 xy = sample_uniform_disk(rand);
-  float z = 1.0f - len_squared(xy);
+  const float z = 1.0f - len_squared(xy);
 
   xy *= safe_sqrtf(z + 1.0f);
 
-  float3 T, B;
+  float3 T;
+  float3 B;
   make_orthonormals(N, &T, &B);
 
   *wo = xy.x * T + xy.y * B + z * N;
   *pdf = M_1_2PI_F;
 }
 
-ccl_device_inline float pdf_uniform_cone(const float3 N, float3 D, float angle)
+ccl_device_inline float pdf_uniform_cone(const float3 N, const float3 D, const float angle)
 {
-  float z = precise_angle(N, D);
+  const float z = precise_angle(N, D);
   if (z < angle) {
     return M_1_2PI_F / one_minus_cos(angle);
   }
@@ -151,7 +158,8 @@ ccl_device_inline float3 sample_uniform_cone(const float3 N,
 
     *pdf = M_1_2PI_F / one_minus_cos_angle;
 
-    float3 T, B;
+    float3 T;
+    float3 B;
     make_orthonormals(N, &T, &B);
     return xy.x * T + xy.y * B + *cos_theta * N;
   }
@@ -165,20 +173,21 @@ ccl_device_inline float3 sample_uniform_cone(const float3 N,
 /* sample uniform point on the surface of a sphere */
 ccl_device float3 sample_uniform_sphere(const float2 rand)
 {
-  float z = 1.0f - 2.0f * rand.x;
-  float r = sin_from_cos(z);
-  float phi = M_2PI_F * rand.y;
+  const float z = 1.0f - 2.0f * rand.x;
+  const float r = sin_from_cos(z);
+  const float phi = M_2PI_F * rand.y;
 
   return make_float3(polar_to_cartesian(r, phi), z);
 }
 
 /* sample point in unit polygon with given number of corners and rotation */
-ccl_device float2 regular_polygon_sample(float corners, float rotation, const float2 rand)
+ccl_device float2 regular_polygon_sample(const float corners, float rotation, const float2 rand)
 {
-  float u = rand.x, v = rand.y;
+  float u = rand.x;
+  float v = rand.y;
 
   /* sample corner number and reuse u */
-  float corner = floorf(u * corners);
+  const float corner = floorf(u * corners);
   u = u * corners - corner;
 
   /* uniform sampled triangle weights */
@@ -187,14 +196,14 @@ ccl_device float2 regular_polygon_sample(float corners, float rotation, const fl
   u = 1.0f - u;
 
   /* point in triangle */
-  float angle = M_PI_F / corners;
-  float2 p = make_float2((u + v) * cosf(angle), (u - v) * sinf(angle));
+  const float angle = M_PI_F / corners;
+  const float2 p = make_float2((u + v) * cosf(angle), (u - v) * sinf(angle));
 
   /* rotate */
   rotation += corner * 2.0f * angle;
 
-  float cr = cosf(rotation);
-  float sr = sinf(rotation);
+  const float cr = cosf(rotation);
+  const float sr = sinf(rotation);
 
   return make_float2(cr * p.x - sr * p.y, sr * p.x + cr * p.y);
 }

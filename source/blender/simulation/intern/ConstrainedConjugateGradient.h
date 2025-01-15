@@ -9,6 +9,7 @@
  */
 
 #include <Eigen/Core>
+#include <Eigen/Sparse>
 
 namespace Eigen {
 

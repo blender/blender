@@ -14,7 +14,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "BLI_math_base.h"
+#include "BLI_assert.h"
+#include "BLI_math_constants.h"
+#include "BLI_math_inline.h"
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {

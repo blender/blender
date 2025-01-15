@@ -13,8 +13,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_legacy_types.h"
-#include "DNA_linestyle_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -26,7 +24,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 

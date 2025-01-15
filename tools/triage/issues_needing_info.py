@@ -12,6 +12,9 @@ Example usage:
 
     python ./issues_needing_info.py --username mano-wii
 """
+__all__ = (
+    "main",
+)
 
 import argparse
 import datetime

@@ -10,9 +10,7 @@
 
 #pragma once
 
-#include <cstdint>
-
-#include "BLI_vector.hh"
+#include "BLI_function_ref.hh"
 #include "DNA_action_types.h"
 
 struct FCurve;

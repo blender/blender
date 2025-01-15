@@ -2757,11 +2757,11 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 
 #define BPY_PROPDEF_POINTER_TYPE_DOC \
   "   :arg type: A subclass of a property group or ID types.\n" \
-  "   :type type: :class:`bpy.types.PropertyGroup` | :class:`bpy.types.ID`\n"
+  "   :type type: type[:class:`bpy.types.PropertyGroup` | :class:`bpy.types.ID`]\n"
 
 #define BPY_PROPDEF_COLLECTION_TYPE_DOC \
   "   :arg type: A subclass of a property group.\n" \
-  "   :type type: :class:`bpy.types.PropertyGroup`\n"
+  "   :type type: type[:class:`bpy.types.PropertyGroup`]\n"
 
 #define BPY_PROPDEF_TAGS_DOC \
   "   :arg tags: Enumerator of tags that are defined by parent class.\n" \
@@ -4406,7 +4406,12 @@ PyDoc_STRVAR(
     "   Returns a new pointer property definition.\n"
     "\n" BPY_PROPDEF_POINTER_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
         BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-            BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_POLL_DOC BPY_PROPDEF_UPDATE_DOC);
+            BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_POLL_DOC BPY_PROPDEF_UPDATE_DOC
+    "\n"
+    ".. note:: Pointer properties do not support storing references to embedded IDs "
+    "(e.g. `bpy.types.Scene.collection`, `bpy.types.Material.node_tree`).\n"
+    "   These should exclusively be referenced and accessed through their owner ID "
+    "(e.g. the scene or material).\n");
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;

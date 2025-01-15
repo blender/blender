@@ -8,6 +8,9 @@ rna values in fcurves and drivers.
 
 Currently unused, but might become useful later again.
 """
+__all__ = (
+    "update_data_paths",
+)
 
 import sys
 import bpy

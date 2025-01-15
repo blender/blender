@@ -18,56 +18,56 @@
 
 namespace blender::ed::outliner {
 
-TreeElementSequence::TreeElementSequence(TreeElement &legacy_te, Sequence &sequence)
-    : AbstractTreeElement(legacy_te), sequence_(sequence)
+TreeElementStrip::TreeElementStrip(TreeElement &legacy_te, Strip &strip)
+    : AbstractTreeElement(legacy_te), strip_(strip)
 {
-  BLI_assert(legacy_te.store_elem->type == TSE_SEQUENCE);
-  legacy_te.name = sequence_.name + 2;
+  BLI_assert(legacy_te.store_elem->type == TSE_STRIP);
+  legacy_te.name = strip_.name + 2;
 }
 
-bool TreeElementSequence::expand_poll(const SpaceOutliner & /*space_outliner*/) const
+bool TreeElementStrip::expand_poll(const SpaceOutliner & /*space_outliner*/) const
 {
-  return !(sequence_.type & SEQ_TYPE_EFFECT);
+  return !(strip_.type & STRIP_TYPE_EFFECT);
 }
 
-void TreeElementSequence::expand(SpaceOutliner & /*space_outliner*/) const
+void TreeElementStrip::expand(SpaceOutliner & /*space_outliner*/) const
 {
   /*
-   * This work like the sequence.
-   * If the sequence have a name (not default name)
+   * This work like the strip.
+   * If the strip have a name (not default name)
    * show it, in other case put the filename.
    */
 
-  if (sequence_.type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence *, child, &sequence_.seqbase) {
-      add_element(&legacy_te_.subtree, nullptr, child, &legacy_te_, TSE_SEQUENCE, 0);
+  if (strip_.type == STRIP_TYPE_META) {
+    LISTBASE_FOREACH (Strip *, child, &strip_.seqbase) {
+      add_element(&legacy_te_.subtree, nullptr, child, &legacy_te_, TSE_STRIP, 0);
     }
   }
   else {
-    add_element(&legacy_te_.subtree, nullptr, sequence_.strip, &legacy_te_, TSE_SEQ_STRIP, 0);
+    add_element(&legacy_te_.subtree, nullptr, strip_.data, &legacy_te_, TSE_STRIP_DATA, 0);
   }
 }
 
-Sequence &TreeElementSequence::get_sequence() const
+Strip &TreeElementStrip::get_strip() const
 {
-  return sequence_;
+  return strip_;
 }
 
-SequenceType TreeElementSequence::get_sequence_type() const
+StripType TreeElementStrip::get_strip_type() const
 {
-  return SequenceType(sequence_.type);
+  return StripType(strip_.type);
 }
 
 /* -------------------------------------------------------------------- */
 /* Strip */
 
-TreeElementSequenceStrip::TreeElementSequenceStrip(TreeElement &legacy_te, Strip &strip)
+TreeElementStripData::TreeElementStripData(TreeElement &legacy_te, StripData &data)
     : AbstractTreeElement(legacy_te)
 {
-  BLI_assert(legacy_te.store_elem->type == TSE_SEQ_STRIP);
+  BLI_assert(legacy_te.store_elem->type == TSE_STRIP_DATA);
 
-  if (strip.dirpath[0] != '\0') {
-    legacy_te_.name = strip.dirpath;
+  if (data.dirpath[0] != '\0') {
+    legacy_te_.name = data.dirpath;
   }
   else {
     legacy_te_.name = IFACE_("Strip None");
@@ -77,17 +77,16 @@ TreeElementSequenceStrip::TreeElementSequenceStrip(TreeElement &legacy_te, Strip
 /* -------------------------------------------------------------------- */
 /* Strip Duplicate */
 
-TreeElementSequenceStripDuplicate::TreeElementSequenceStripDuplicate(TreeElement &legacy_te,
-                                                                     Sequence &sequence)
-    : AbstractTreeElement(legacy_te), sequence_(sequence)
+TreeElementStripDuplicate::TreeElementStripDuplicate(TreeElement &legacy_te, Strip &strip)
+    : AbstractTreeElement(legacy_te), strip_(strip)
 {
-  BLI_assert(legacy_te.store_elem->type == TSE_SEQUENCE_DUP);
-  legacy_te_.name = sequence.strip->stripdata->filename;
+  BLI_assert(legacy_te.store_elem->type == TSE_STRIP_DUP);
+  legacy_te_.name = strip.data->stripdata->filename;
 }
 
-Sequence &TreeElementSequenceStripDuplicate::get_sequence() const
+Strip &TreeElementStripDuplicate::get_strip() const
 {
-  return sequence_;
+  return strip_;
 }
 
 }  // namespace blender::ed::outliner

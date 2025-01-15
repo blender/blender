@@ -7,6 +7,7 @@
  */
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_tree_update.hh"
 #include "DNA_node_types.h"
 #include "NOD_shader.h"
@@ -31,7 +32,8 @@ bNodeTree *BKE_npr_tree_add(Main *bmain, const char *name)
                               output,
                               blender::bke::node_find_socket(output, SOCK_IN, "Color"));
 
-  BKE_ntree_update_main_tree(bmain, ntree, nullptr);
+  // BKE_ntree_update_main_tree(bmain, ntree, nullptr);
+  blender::bke::node_set_active(ntree, output);
 
   return ntree;
 }

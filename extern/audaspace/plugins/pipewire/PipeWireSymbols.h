@@ -38,3 +38,4 @@ PIPEWIRE_SYMBOL(pw_thread_loop_new);
 PIPEWIRE_SYMBOL(pw_thread_loop_start);
 PIPEWIRE_SYMBOL(pw_thread_loop_stop);
 
+PIPEWIRE_SYMBOL(pw_check_library_version);

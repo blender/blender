@@ -31,15 +31,16 @@ static std::string cache_image_file(
   std::string file_path;
   ImageSaveOptions opts;
   if (BKE_image_save_options_init(&opts, bmain, scene, image, iuser, false, false)) {
-    char file_name[32];
-    const char *r_ext = BLI_path_extension_or_end(image->id.name);
+    const char *file_ext[BKE_IMAGE_PATH_EXT_MAX];
+    file_ext[0] = BLI_path_extension_or_end(image->id.name);
     if (!pxr::HioImageRegistry::GetInstance().IsSupportedImageFile(image->id.name)) {
-      BKE_image_path_ext_from_imformat(&scene->r.im_format, &r_ext);
+      BKE_image_path_ext_from_imformat(&scene->r.im_format, file_ext);
       BKE_image_format_free(&opts.im_format);
       BKE_image_format_copy(&opts.im_format, &scene->r.im_format);
     }
 
-    SNPRINTF(file_name, "img_%p%s", image, r_ext);
+    char file_name[FILE_MAX];
+    SNPRINTF(file_name, "img_%p%s", image, file_ext[0]);
 
     file_path = blender::io::usd::get_image_cache_file(file_name);
     if (check_exist && BLI_exists(file_path.c_str())) {

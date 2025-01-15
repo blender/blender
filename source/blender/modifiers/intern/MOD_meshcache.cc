@@ -215,13 +215,13 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
     if (mcmd->flip_axis) {
       float tmat[3][3];
       unit_m3(tmat);
-      if (mcmd->flip_axis & (1 << 0)) {
+      if (mcmd->flip_axis & MOD_MESHCACHE_FLIP_AXIS_X) {
         tmat[0][0] = -1.0f;
       }
-      if (mcmd->flip_axis & (1 << 1)) {
+      if (mcmd->flip_axis & MOD_MESHCACHE_FLIP_AXIS_Y) {
         tmat[1][1] = -1.0f;
       }
-      if (mcmd->flip_axis & (1 << 2)) {
+      if (mcmd->flip_axis & MOD_MESHCACHE_FLIP_AXIS_Z) {
         tmat[2][2] = -1.0f;
       }
       mul_m3_m3m3(mat, tmat, mat);
@@ -353,7 +353,12 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "flip_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "flip_axis");
+  uiLayout *row = uiLayoutRowWithHeading(col, true, IFACE_("Flip Axis"));
+  uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
+  uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
+  uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

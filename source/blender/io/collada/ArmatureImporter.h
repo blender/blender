@@ -16,7 +16,6 @@
 #include "BKE_key.hh"
 
 #include "DNA_armature_types.h"
-#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 

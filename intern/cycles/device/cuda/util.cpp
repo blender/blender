@@ -16,7 +16,7 @@ CUDAContextScope::CUDAContextScope(CUDADevice *device) : device(device)
 
 CUDAContextScope::~CUDAContextScope()
 {
-  cuda_device_assert(device, cuCtxPopCurrent(NULL));
+  cuda_device_assert(device, cuCtxPopCurrent(nullptr));
 }
 
 #  ifndef WITH_CUDA_DYNLOAD

@@ -138,8 +138,10 @@ find_package_wrapper(Epoxy REQUIRED)
 # find_package_wrapper(TIFF REQUIRED)
 find_package(TIFF)
 # CMake 3.28.1 defines this, it doesn't seem to be used, hide by default in the UI.
-if(DEFINED tiff_DIR)
-  mark_as_advanced(tiff_DIR)
+# NOTE(@ideasman42): this doesn't seem to be important,
+# on my system it's not-found even when the TIFF library is.
+if(DEFINED Tiff_DIR)
+  mark_as_advanced(Tiff_DIR)
 endif()
 
 if(WITH_VULKAN_BACKEND)
@@ -347,7 +349,7 @@ if(WITH_OPENCOLLADA)
         set(PCRE_LIBRARIES ${LIBDIR}/opencollada/lib/libpcre.a)
       else()
         # Quiet warnings.
-        set(PCRE_LIBRARIES)
+        set(PCRE_LIBRARIES "")
       endif()
     else()
       find_package_wrapper(PCRE)
@@ -469,18 +471,9 @@ if(WITH_BOOST)
       set(Boost_USE_STATIC_LIBS OFF)
     endif()
     set(Boost_USE_MULTITHREADED ON)
-    set(__boost_packages filesystem regex thread date_time)
-    if(WITH_CYCLES AND WITH_CYCLES_OSL)
-      if(NOT (${OSL_LIBRARY_VERSION_MAJOR} EQUAL "1" AND ${OSL_LIBRARY_VERSION_MINOR} LESS "6"))
-        list(APPEND __boost_packages wave)
-      else()
-      endif()
-    endif()
+    set(__boost_packages)
     if(WITH_INTERNATIONAL)
       list(APPEND __boost_packages locale)
-    endif()
-    if(WITH_OPENVDB)
-      list(APPEND __boost_packages iostreams)
     endif()
     if(WITH_USD AND USD_PYTHON_SUPPORT)
       list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
@@ -722,7 +715,7 @@ endif()
 # PipeWire is intended to use the system library.
 if(WITH_PIPEWIRE)
   find_package(PkgConfig)
-  pkg_check_modules(PIPEWIRE libpipewire-0.3)
+  pkg_check_modules(PIPEWIRE libpipewire-0.3>=1.1.0)
   set_and_warn_library_found("PipeWire" PIPEWIRE_FOUND WITH_PIPEWIRE)
 endif()
 
@@ -1017,7 +1010,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
     unset(LD_VERSION)
   endif()
 
-# CLang is the same as GCC for now.
+  # CLang is the same as GCC for now.
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
@@ -1063,7 +1056,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     unset(LLD_BIN)
   endif()
 
-# Intel C++ Compiler
+  # Intel C++ Compiler
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
   # think these next two are broken
   find_program(XIAR xiar)

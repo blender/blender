@@ -102,6 +102,9 @@ void VKDevice::init(void *ghost_context)
   debug::object_label(vk_handle(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
   init_glsl_patch();
+
+  resources.use_dynamic_rendering = !workarounds_.dynamic_rendering;
+  resources.use_dynamic_rendering_local_read = !workarounds_.dynamic_rendering_local_read;
 }
 
 void VKDevice::init_functions()
@@ -197,7 +200,8 @@ void VKDevice::init_dummy_buffer()
   dummy_buffer.create(sizeof(float4x4),
                       GPU_USAGE_DEVICE_ONLY,
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                      true);
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   debug::object_label(dummy_buffer.vk_handle(), "DummyBuffer");
   /* Default dummy buffer. Set the 4th element to 1 to fix missing orcos. */
   float data[16] = {

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_generic_virtual_array.hh"
+#include "BLI_math_quaternion.hh"
+#include "BLI_virtual_array.hh"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_deform.hh"
 #include "BKE_mesh.hh"

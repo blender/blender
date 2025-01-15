@@ -15,6 +15,7 @@
 #include "BKE_idprop.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_type_conversions.hh"
@@ -505,7 +506,7 @@ static bool set_socket_value(bContext &C,
 static bool set_value_node_value(bContext &C, bNode &node, const SocketValueVariant &value_variant)
 {
   bNodeTree &tree = node.owner_tree();
-  switch (node.type) {
+  switch (node.type_legacy) {
     case SH_NODE_VALUE: {
       const float value = value_variant.get<float>();
       const std::string rna_path = fmt::format("nodes[\"{}\"].outputs[0].default_value",

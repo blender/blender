@@ -217,7 +217,12 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   row = uiLayoutRow(layout, true);
   uiItemR(row, ptr, "use_edit_position", UI_ITEM_R_TOGGLE, IFACE_("Position"), ICON_NONE);
-  uiItemR(row, ptr, "use_edit_strength", UI_ITEM_R_TOGGLE, IFACE_("Strength"), ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "use_edit_strength",
+          UI_ITEM_R_TOGGLE,
+          CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Strength"),
+          ICON_NONE);
   uiItemR(row, ptr, "use_edit_thickness", UI_ITEM_R_TOGGLE, IFACE_("Thickness"), ICON_NONE);
 
   uiItemR(row, ptr, "use_edit_uv", UI_ITEM_R_TOGGLE, IFACE_("UV"), ICON_NONE);

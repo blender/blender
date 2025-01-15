@@ -5,7 +5,7 @@
 /**
  * Extrude shadow casters along their silhouette edge.
  * Manifold meshes only generate one quad per silhouette edge.
- * Non-Manifold meshes generate one quad on their non manifold edges (border edges) and and two
+ * Non-Manifold meshes generate one quad on their non manifold edges (border edges) and two
  * quad on their silhouette edge (non-border edges) which we consider "manifold".
  *
  * This shader uses line adjacency primitive to know the geometric normals of neighbor faces.

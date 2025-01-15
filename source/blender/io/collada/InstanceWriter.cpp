@@ -12,7 +12,7 @@
 #include "COLLADASWInstanceMaterial.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "DNA_mesh_types.h"
 

@@ -18,12 +18,10 @@
 #include "RNA_types.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 
 #include "../generic/py_capi_rna.hh"
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh"
-#include "../generic/python_utildefines.hh"
 
 #include "BPY_extern.hh"
 #include "bpy_capi_utils.hh"
@@ -39,8 +37,6 @@
 #include "WM_types.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_ghash.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

@@ -28,66 +28,59 @@ const std::unordered_map<TfToken, PassType, TfToken::HashFunctor> kAovToPass = {
 }  // namespace
 
 SceneLock::SceneLock(const HdRenderParam *renderParam)
-    : scene(static_cast<const HdCyclesSession *>(renderParam)->session->scene),
+    : scene(static_cast<const HdCyclesSession *>(renderParam)->session->scene.get()),
       sceneLock(scene->mutex)
 {
 }
 
-SceneLock::~SceneLock() {}
+SceneLock::~SceneLock() = default;
 
 HdCyclesSession::HdCyclesSession(Session *session_, const bool keep_nodes)
-    : session(session_), keep_nodes(true), _ownCyclesSession(false)
+    : session(session_), keep_nodes(keep_nodes), _ownCyclesSession(false)
 {
 }
 
 HdCyclesSession::HdCyclesSession(const SessionParams &params)
     : session(new Session(params, SceneParams())), keep_nodes(false), _ownCyclesSession(true)
 {
-  Scene *const scene = session->scene;
+  Scene *const scene = session->scene.get();
 
   // Create background with ambient light
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     BackgroundNode *bgNode = graph->create_node<BackgroundNode>();
     bgNode->set_color(one_float3());
-    graph->add(bgNode);
 
     graph->connect(bgNode->output("Background"), graph->output()->input("Surface"));
 
-    scene->default_background->set_graph(graph);
+    scene->default_background->set_graph(std::move(graph));
     scene->default_background->tag_update(scene);
   }
 
   // Wire up object color in default surface material
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     ObjectInfoNode *objectNode = graph->create_node<ObjectInfoNode>();
-    graph->add(objectNode);
 
     DiffuseBsdfNode *diffuseNode = graph->create_node<DiffuseBsdfNode>();
-    graph->add(diffuseNode);
 
     graph->connect(objectNode->output("Color"), diffuseNode->input("Color"));
     graph->connect(diffuseNode->output("BSDF"), graph->output()->input("Surface"));
 
-#if 1
     // Create the instanceId AOV output
     const ustring instanceId(HdAovTokens->instanceId.GetString());
 
     OutputAOVNode *aovNode = graph->create_node<OutputAOVNode>();
     aovNode->set_name(instanceId);
-    graph->add(aovNode);
 
     AttributeNode *instanceIdNode = graph->create_node<AttributeNode>();
     instanceIdNode->set_attribute(instanceId);
-    graph->add(instanceIdNode);
 
     graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
-#endif
 
-    scene->default_surface->set_graph(graph);
+    scene->default_surface->set_graph(std::move(graph));
     scene->default_surface->tag_update(scene);
   }
 }
@@ -101,7 +94,7 @@ HdCyclesSession::~HdCyclesSession()
 
 void HdCyclesSession::UpdateScene()
 {
-  Scene *const scene = session->scene;
+  Scene *const scene = session->scene.get();
 
   // Update background depending on presence of a background light
   if (scene->light_manager->need_update()) {
@@ -122,7 +115,7 @@ void HdCyclesSession::UpdateScene()
       for (ShaderNode *node : scene->default_background->graph->nodes) {
         if (node->is_a(BackgroundNode::get_node_type())) {
           BackgroundNode *bgNode = static_cast<BackgroundNode *>(node);
-          bgNode->set_color((scene->lights.size() == 0) ? make_float3(0.5f) : zero_float3());
+          bgNode->set_color((scene->lights.empty()) ? make_float3(0.5f) : zero_float3());
         }
       }
     }
@@ -137,10 +130,11 @@ void HdCyclesSession::UpdateScene()
 
 void HdCyclesSession::SyncAovBindings(const HdRenderPassAovBindingVector &aovBindings)
 {
-  Scene *const scene = session->scene;
+  Scene *const scene = session->scene.get();
 
   // Delete all existing passes
-  scene->delete_nodes(set<Pass *>(scene->passes.begin(), scene->passes.end()));
+  const vector<Pass *> &scene_passes = scene->passes;
+  scene->delete_nodes(set<Pass *>(scene_passes.begin(), scene_passes.end()));
 
   // Update passes with requested AOV bindings
   _aovBindings = aovBindings;

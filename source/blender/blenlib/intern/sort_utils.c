@@ -77,31 +77,3 @@ int BLI_sortutil_cmp_int_reverse(const void *a_, const void *b_)
 
   return 0;
 }
-
-int BLI_sortutil_cmp_ptr(const void *a_, const void *b_)
-{
-  const struct SortAnyByPtr *a = a_;
-  const struct SortAnyByPtr *b = b_;
-  if (a->sort_value > b->sort_value) {
-    return 1;
-  }
-  if (a->sort_value < b->sort_value) {
-    return -1;
-  }
-
-  return 0;
-}
-
-int BLI_sortutil_cmp_ptr_reverse(const void *a_, const void *b_)
-{
-  const struct SortAnyByPtr *a = a_;
-  const struct SortAnyByPtr *b = b_;
-  if (a->sort_value < b->sort_value) {
-    return 1;
-  }
-  if (a->sort_value > b->sort_value) {
-    return -1;
-  }
-
-  return 0;
-}

@@ -30,6 +30,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
@@ -572,7 +573,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
     LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
-      if (node->type == CMP_NODE_R_LAYERS && node->id == nullptr) {
+      if (node->type_legacy == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
           STRNCPY(node->name, view_layer->name);
         }
@@ -1418,10 +1419,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
   /* Always set a valid active collection. */
   LayerCollection *active = view_layer->active_collection;
-  if (active && layer_collection_hidden(view_layer, active)) {
-    BKE_layer_collection_activate_parent(view_layer, active);
-  }
-  else if (active == nullptr) {
+  if (active == nullptr) {
     view_layer->active_collection = static_cast<LayerCollection *>(
         view_layer->layer_collections.first);
   }

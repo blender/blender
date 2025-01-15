@@ -4,9 +4,9 @@
 
 #pragma once
 
-#ifndef __UTIL_TYPES_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/types_base.h"
+#include "util/types_float2.h"
+#include "util/types_int4.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -37,41 +37,115 @@ struct ccl_try_align(16) float3
 
 #  ifdef __KERNEL_SSE__
   /* Convenient constructors and operators for SIMD, otherwise default is enough. */
-  __forceinline float3();
-  __forceinline float3(const float3 &a);
-  __forceinline explicit float3(const __m128 &a);
+  __forceinline float3() = default;
+  __forceinline float3(const float3 &a) = default;
+  __forceinline explicit float3(const __m128 &a) : m128(a) {}
 
-  __forceinline operator const __m128 &() const;
-  __forceinline operator __m128 &();
+  __forceinline operator const __m128 &() const
+  {
+    return m128;
+  }
+  __forceinline operator __m128 &()
+  {
+    return m128;
+  }
 
-  __forceinline float3 &operator=(const float3 &a);
+  __forceinline float3 &operator=(const float3 &a)
+  {
+    m128 = a.m128;
+    return *this;
+  }
 #  endif
 
 #  ifndef __KERNEL_GPU__
-  __forceinline float operator[](int i) const;
-  __forceinline float &operator[](int i);
+  __forceinline float operator[](int i) const
+  {
+    util_assert(i >= 0);
+    util_assert(i < 3);
+    return *(&x + i);
+  }
+  __forceinline float &operator[](int i)
+  {
+    util_assert(i >= 0);
+    util_assert(i < 3);
+    return *(&x + i);
+  }
 #  endif
 };
 
-ccl_device_inline float3 make_float3(float x, float y, float z);
+ccl_device_inline float3 make_float3(const float x, const float y, float z)
+{
+#  if defined(__KERNEL_GPU__)
+  return {x, y, z};
+#  elif defined(__KERNEL_SSE__)
+  return float3(_mm_set_ps(0.0f, z, y, x));
+#  else
+  return {x, y, z, 0.0f};
+#  endif
+}
+
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
-ccl_device_inline float3 make_float3(float f);
-ccl_device_inline float3 make_float3(float4 a);
-ccl_device_inline float3 make_float3(float2 a);
-ccl_device_inline float3 make_float3(float2 a, float b);
-ccl_device_inline void print_float3(ccl_private const char *label, const float3 a);
+ccl_device_inline float3 make_float3(const float f)
+{
+#if defined(__KERNEL_GPU__)
+  return make_float3(f, f, f);
+#elif defined(__KERNEL_SSE__)
+  return float3(_mm_set1_ps(f));
+#else
+  return {f, f, f, f};
+#endif
+}
 
-/* Smaller float3 for storage. For math operations this must be converted to float3, so that on the
+ccl_device_inline float3 make_float3(const float2 a)
+{
+  return make_float3(a.x, a.y, 0.0f);
+}
+
+ccl_device_inline float3 make_float3(const float2 a, const float b)
+{
+  return make_float3(a.x, a.y, b);
+}
+
+ccl_device_inline void print_float3(const ccl_private char *label, const float3 a)
+{
+#ifdef __KERNEL_PRINTF__
+  printf("%s: %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z);
+#else
+  (void)label;
+  (void)a;
+#endif
+}
+
+ccl_device_inline float2 make_float2(const float3 a)
+{
+  return make_float2(a.x, a.y);
+}
+
+ccl_device_inline int4 make_int4(const float3 f)
+{
+#if defined(__KERNEL_GPU__)
+  return make_int4((int)f.x, (int)f.y, (int)f.z, 0);
+#elif defined(__KERNEL_SSE__)
+  return int4(_mm_cvtps_epi32(f.m128));
+#else
+  return make_int4((int)f.x, (int)f.y, (int)f.z, (int)f.w);
+#endif
+}
+
+/* Packed float3
+ *
+ * Smaller float3 for storage. For math operations this must be converted to float3, so that on the
  * CPU SIMD instructions can be used. */
+
 #if defined(__KERNEL_METAL__)
 /* Metal has native packed_float3. */
 #elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__) || defined(__KERNEL_ONEAPI__)
 /* CUDA, HIP and oneAPI float3 are already packed. */
-typedef float3 packed_float3;
+using packed_float3 = float3;
 #else
 struct packed_float3 {
-  ccl_device_inline_method packed_float3(){};
+  ccl_device_inline_method packed_float3() = default;
 
   ccl_device_inline_method packed_float3(const float3 &a) : x(a.x), y(a.y), z(a.z) {}
 

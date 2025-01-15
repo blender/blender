@@ -8,9 +8,12 @@
 #include "usd.hh"
 #include "usd_reader_geom.hh"
 
+#include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/basisCurves.h>
 
 struct Curves;
+struct Main;
+
 namespace blender::bke {
 struct GeometrySet;
 class CurvesGeometry;
@@ -19,14 +22,36 @@ class CurvesGeometry;
 namespace blender::io::usd {
 
 class USDCurvesReader : public USDGeomReader {
- protected:
-  pxr::UsdGeomBasisCurves curve_prim_;
-
  public:
   USDCurvesReader(const pxr::UsdPrim &prim,
                   const USDImportParams &import_params,
                   const ImportSettings &settings)
-      : USDGeomReader(prim, import_params, settings), curve_prim_(prim)
+      : USDGeomReader(prim, import_params, settings)
+  {
+  }
+
+  void create_object(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, double motionSampleTime) override;
+
+  void read_geometry(bke::GeometrySet &geometry_set,
+                     USDMeshReadParams params,
+                     const char **r_err_str) override;
+
+  void read_custom_data(bke::CurvesGeometry &curves, const double motionSampleTime) const;
+
+  virtual void read_curve_sample(Curves *curves_id, double motionSampleTime) = 0;
+  virtual bool is_animated() const = 0;
+};
+
+class USDBasisCurvesReader : public USDCurvesReader {
+ private:
+  pxr::UsdGeomBasisCurves curve_prim_;
+
+ public:
+  USDBasisCurvesReader(const pxr::UsdPrim &prim,
+                       const USDImportParams &import_params,
+                       const ImportSettings &settings)
+      : USDCurvesReader(prim, import_params, settings), curve_prim_(prim)
   {
   }
 
@@ -35,16 +60,8 @@ class USDCurvesReader : public USDGeomReader {
     return bool(curve_prim_);
   }
 
-  void create_object(Main *bmain, double motionSampleTime) override;
-  void read_object_data(Main *bmain, double motionSampleTime) override;
-
-  void read_curve_sample(Curves *curves_id, double motionSampleTime);
-
-  void read_geometry(bke::GeometrySet &geometry_set,
-                     USDMeshReadParams params,
-                     const char **r_err_str) override;
-
-  void read_custom_data(bke::CurvesGeometry &curves, const double motionSampleTime) const;
+  void read_curve_sample(Curves *curves_id, double motionSampleTime) override;
+  bool is_animated() const override;
 };
 
 }  // namespace blender::io::usd

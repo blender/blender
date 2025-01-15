@@ -2685,7 +2685,7 @@ static void space_text_screen_skip(SpaceText *st, ARegion *region, int lines)
   space_text_screen_clamp(st, region);
 }
 
-/* quick enum for tsc->zone (scroller handles) */
+/** Enum for #TextScroll::zone (scroll-bar handles). */
 enum eScrollZone {
   SCROLLHANDLE_INVALID_OUTSIDE = -1,
   SCROLLHANDLE_BAR,

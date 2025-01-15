@@ -20,8 +20,6 @@
 
 #include "../mathutils/mathutils.hh"
 
-#include "../generic/py_capi_utils.hh"
-
 #define USE_GPU_PY_MATRIX_API
 #include "GPU_matrix.hh"
 #undef USE_GPU_PY_MATRIX_API

@@ -54,7 +54,7 @@ float (*point_normals_array_create(const Curves *curves_id))[3];
 Span<StringRef> get_curves_selection_attribute_names(const bke::CurvesGeometry &curves);
 
 /**
- * Get get writable positions per selection attribute for given curve.
+ * Get writable positions per selection attribute for given curve.
  */
 Vector<MutableSpan<float3>> get_curves_positions_for_write(bke::CurvesGeometry &curves);
 

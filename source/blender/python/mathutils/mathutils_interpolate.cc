@@ -12,7 +12,6 @@
 #include "mathutils_interpolate.hh"
 
 #include "BLI_math_geom.h"
-#include "BLI_utildefines.h"
 
 #ifndef MATH_STANDALONE /* define when building outside blender */
 #  include "MEM_guardedalloc.h"

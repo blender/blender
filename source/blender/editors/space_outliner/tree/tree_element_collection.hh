@@ -10,6 +10,8 @@
 
 #include "tree_element.hh"
 
+struct Scene;
+
 namespace blender::ed::outliner {
 
 class TreeElementCollectionBase final : public AbstractTreeElement {

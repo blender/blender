@@ -37,7 +37,7 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
 
   /* If numeric input is active, use results from that, otherwise apply snapping to result. */
   if (hasNumInput(&t->num)) {
-    outputNumInput(&(t->num), tvec, &t->scene->unit);
+    outputNumInput(&(t->num), tvec, t->scene->unit);
   }
   else {
     eSnapMode snap_mode = t->tsnap.mode;

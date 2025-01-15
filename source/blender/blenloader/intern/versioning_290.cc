@@ -61,6 +61,7 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "IMB_imbuf.hh"
 #include "MEM_guardedalloc.h"
@@ -99,21 +100,22 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
   return render_size;
 }
 
-static bool can_use_proxy(const Sequence *seq, int psize)
+static bool can_use_proxy(const Strip *strip, int psize)
 {
-  if (seq->strip->proxy == nullptr) {
+  if (strip->data->proxy == nullptr) {
     return false;
   }
-  short size_flags = seq->strip->proxy->build_size_flags;
-  return (seq->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE && (size_flags & psize) != 0;
+  short size_flags = strip->data->proxy->build_size_flags;
+  return (strip->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE &&
+         (size_flags & psize) != 0;
 }
 
 /* image_size is width or height depending what RNA property is converted - X or Y. */
-static void seq_convert_transform_animation(const Sequence *seq,
-                                            const Scene *scene,
-                                            const char *path,
-                                            const int image_size,
-                                            const int scene_size)
+static void strip_convert_transform_animation(const Strip *strip,
+                                              const Scene *scene,
+                                              const char *path,
+                                              const int image_size,
+                                              const int scene_size)
 {
   if (scene->adt == nullptr || scene->adt->action == nullptr) {
     return;
@@ -124,7 +126,7 @@ static void seq_convert_transform_animation(const Sequence *seq,
   const uint32_t use_crop_flag = (1 << 17);
 
   /* Convert offset animation, but only if crop is not used. */
-  if ((seq->flag & use_transform_flag) != 0 && (seq->flag & use_crop_flag) == 0) {
+  if ((strip->flag & use_transform_flag) != 0 && (strip->flag & use_crop_flag) == 0) {
     FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
     if (fcu != nullptr && !BKE_fcurve_is_empty(fcu)) {
       BezTriple *bezt = fcu->bezt;
@@ -143,19 +145,19 @@ static void seq_convert_transform_animation(const Sequence *seq,
   }
 }
 
-static void seq_convert_transform_crop(const Scene *scene,
-                                       Sequence *seq,
-                                       const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop(const Scene *scene,
+                                         Strip *strip,
+                                         const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  if (seq->strip->transform == nullptr) {
-    seq->strip->transform = MEM_cnew<StripTransform>(__func__);
+  if (strip->data->transform == nullptr) {
+    strip->data->transform = MEM_cnew<StripTransform>(__func__);
   }
-  if (seq->strip->crop == nullptr) {
-    seq->strip->crop = MEM_cnew<StripCrop>(__func__);
+  if (strip->data->crop == nullptr) {
+    strip->data->crop = MEM_cnew<StripCrop>(__func__);
   }
 
-  StripCrop *c = seq->strip->crop;
-  StripTransform *t = seq->strip->transform;
+  StripCrop *c = strip->data->crop;
+  StripTransform *t = strip->data->transform;
   int old_image_center_x = scene->r.xsch / 2;
   int old_image_center_y = scene->r.ysch / 2;
   int image_size_x = scene->r.xsch;
@@ -165,12 +167,12 @@ static void seq_convert_transform_crop(const Scene *scene,
   const uint32_t use_transform_flag = (1 << 16);
   const uint32_t use_crop_flag = (1 << 17);
 
-  const StripElem *s_elem = seq->strip->stripdata;
+  const StripElem *s_elem = strip->data->stripdata;
   if (s_elem != nullptr) {
     image_size_x = s_elem->orig_width;
     image_size_y = s_elem->orig_height;
 
-    if (can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+    if (can_use_proxy(strip, SEQ_rendersize_to_proxysize(render_size))) {
       image_size_x /= SEQ_rendersize_to_scale_factor(render_size);
       image_size_y /= SEQ_rendersize_to_scale_factor(render_size);
     }
@@ -183,11 +185,11 @@ static void seq_convert_transform_crop(const Scene *scene,
   }
 
   /* Clear crop if it was unused. This must happen before converting values. */
-  if ((seq->flag & use_crop_flag) == 0) {
+  if ((strip->flag & use_crop_flag) == 0) {
     c->bottom = c->top = c->left = c->right = 0;
   }
 
-  if ((seq->flag & use_transform_flag) == 0) {
+  if ((strip->flag & use_transform_flag) == 0) {
     t->xofs = t->yofs = 0;
 
     /* Reverse scale to fit for strips not using offset. */
@@ -201,7 +203,7 @@ static void seq_convert_transform_crop(const Scene *scene,
     }
   }
 
-  if ((seq->flag & use_crop_flag) != 0 && (seq->flag & use_transform_flag) == 0) {
+  if ((strip->flag & use_crop_flag) != 0 && (strip->flag & use_transform_flag) == 0) {
     /* Calculate image offset. */
     float s_x = scene->r.xsch / image_size_x;
     float s_y = scene->r.ysch / image_size_y;
@@ -216,7 +218,7 @@ static void seq_convert_transform_crop(const Scene *scene,
     t->scale_y *= float(image_size_y) / float(cropped_image_size_y);
   }
 
-  if ((seq->flag & use_transform_flag) != 0) {
+  if ((strip->flag & use_transform_flag) != 0) {
     /* Convert image offset. */
     old_image_center_x = image_size_x / 2 - c->left + t->xofs;
     old_image_center_y = image_size_y / 2 - c->bottom + t->yofs;
@@ -226,7 +228,7 @@ static void seq_convert_transform_crop(const Scene *scene,
                                        float(image_size_y) / float(scene->r.ysch));
 
     /* Convert crop. */
-    if ((seq->flag & use_crop_flag) != 0) {
+    if ((strip->flag & use_crop_flag) != 0) {
       c->top /= t->scale_x;
       c->bottom /= t->scale_x;
       c->left /= t->scale_x;
@@ -237,38 +239,38 @@ static void seq_convert_transform_crop(const Scene *scene,
   t->xofs = old_image_center_x - scene->r.xsch / 2;
   t->yofs = old_image_center_y - scene->r.ysch / 2;
 
-  char name_esc[(sizeof(seq->name) - 2) * 2], *path;
-  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char name_esc[(sizeof(strip->name) - 2) * 2], *path;
+  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
 
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
-  seq_convert_transform_animation(seq, scene, path, image_size_x, scene->r.xsch);
+  strip_convert_transform_animation(strip, scene, path, image_size_x, scene->r.xsch);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
-  seq_convert_transform_animation(seq, scene, path, image_size_y, scene->r.ysch);
+  strip_convert_transform_animation(strip, scene, path, image_size_y, scene->r.ysch);
   MEM_freeN(path);
 
-  seq->flag &= ~use_transform_flag;
-  seq->flag &= ~use_crop_flag;
+  strip->flag &= ~use_transform_flag;
+  strip->flag &= ~use_crop_flag;
 }
 
-static void seq_convert_transform_crop_lb(const Scene *scene,
-                                          const ListBase *lb,
-                                          const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop_lb(const Scene *scene,
+                                            const ListBase *lb,
+                                            const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
-  LISTBASE_FOREACH (Sequence *, seq, lb) {
-    if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
-      seq_convert_transform_crop(scene, seq, render_size);
+  LISTBASE_FOREACH (Strip *, seq, lb) {
+    if (!ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
+      strip_convert_transform_crop(scene, seq, render_size);
     }
-    if (seq->type == SEQ_TYPE_META) {
-      seq_convert_transform_crop_lb(scene, &seq->seqbase, render_size);
+    if (seq->type == STRIP_TYPE_META) {
+      strip_convert_transform_crop_lb(scene, &seq->seqbase, render_size);
     }
   }
 }
 
-static void seq_convert_transform_animation_2(const Scene *scene,
-                                              const char *path,
-                                              const float scale_to_fit_factor)
+static void strip_convert_transform_animation_2(const Scene *scene,
+                                                const char *path,
+                                                const float scale_to_fit_factor)
 {
   if (scene->adt == nullptr || scene->adt->action == nullptr) {
     return;
@@ -286,21 +288,21 @@ static void seq_convert_transform_animation_2(const Scene *scene,
   }
 }
 
-static void seq_convert_transform_crop_2(const Scene *scene,
-                                         Sequence *seq,
-                                         const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop_2(const Scene *scene,
+                                           Strip *strip,
+                                           const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  const StripElem *s_elem = seq->strip->stripdata;
+  const StripElem *s_elem = strip->data->stripdata;
   if (s_elem == nullptr) {
     return;
   }
 
-  StripCrop *c = seq->strip->crop;
-  StripTransform *t = seq->strip->transform;
+  StripCrop *c = strip->data->crop;
+  StripTransform *t = strip->data->transform;
   int image_size_x = s_elem->orig_width;
   int image_size_y = s_elem->orig_height;
 
-  if (can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+  if (can_use_proxy(strip, SEQ_rendersize_to_proxysize(render_size))) {
     image_size_x /= SEQ_rendersize_to_scale_factor(render_size);
     image_size_y /= SEQ_rendersize_to_scale_factor(render_size);
   }
@@ -315,39 +317,39 @@ static void seq_convert_transform_crop_2(const Scene *scene,
   c->left /= scale_to_fit_factor;
   c->right /= scale_to_fit_factor;
 
-  char name_esc[(sizeof(seq->name) - 2) * 2], *path;
-  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char name_esc[(sizeof(strip->name) - 2) * 2], *path;
+  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_y", name_esc);
-  seq_convert_transform_animation_2(scene, path, scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_y", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
 }
 
-static void seq_convert_transform_crop_lb_2(const Scene *scene,
-                                            const ListBase *lb,
-                                            const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop_lb_2(const Scene *scene,
+                                              const ListBase *lb,
+                                              const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
-  LISTBASE_FOREACH (Sequence *, seq, lb) {
-    if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
-      seq_convert_transform_crop_2(scene, seq, render_size);
+  LISTBASE_FOREACH (Strip *, seq, lb) {
+    if (!ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
+      strip_convert_transform_crop_2(scene, seq, render_size);
     }
-    if (seq->type == SEQ_TYPE_META) {
-      seq_convert_transform_crop_lb_2(scene, &seq->seqbase, render_size);
+    if (seq->type == STRIP_TYPE_META) {
+      strip_convert_transform_crop_lb_2(scene, &seq->seqbase, render_size);
     }
   }
 }
@@ -372,7 +374,7 @@ static void seq_update_meta_disp_range(Scene *scene)
     SEQ_time_right_handle_frame_set(scene, ms->parseq, ms->disp_range[1]);
 
     /* Recalculate effects using meta strip. */
-    LISTBASE_FOREACH (Sequence *, seq, ms->oldbasep) {
+    LISTBASE_FOREACH (Strip *, seq, ms->oldbasep) {
       if (seq->seq2) {
         seq->start = seq->startdisp = max_ii(seq->seq1->startdisp, seq->seq2->startdisp);
         seq->enddisp = min_ii(seq->seq1->enddisp, seq->seq2->enddisp);
@@ -392,7 +394,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
 {
   /* Duplicate a link going into the original socket. */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    if (link->tonode->type == node_type) {
+    if (link->tonode->type_legacy == node_type) {
       bNode *node = link->tonode;
       bNodeSocket *dest_socket = blender::bke::node_find_socket(node, SOCK_IN, new_name);
       BLI_assert(dest_socket);
@@ -404,7 +406,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
 
   /* Duplicate the default value from the old socket and assign it to the new socket. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       bNodeSocket *source_socket = blender::bke::node_find_socket(node, SOCK_IN, old_name);
       bNodeSocket *dest_socket = blender::bke::node_find_socket(node, SOCK_IN, new_name);
       BLI_assert(source_socket && dest_socket);
@@ -622,7 +624,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        seq_convert_transform_crop_lb(scene, &scene->ed->seqbase, render_size);
+        strip_convert_transform_crop_lb(scene, &scene->ed->seqbase, render_size);
       }
     }
   }
@@ -646,7 +648,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
     eSpaceSeq_Proxy_RenderSize render_size = get_sequencer_render_size(bmain);
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        seq_convert_transform_crop_lb_2(scene, &scene->ed->seqbase, render_size);
+        strip_convert_transform_crop_lb_2(scene, &scene->ed->seqbase, render_size);
       }
     }
   }
@@ -782,9 +784,9 @@ static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
 
 static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     seq->cache_flag = 0;
-    if (seq->type == SEQ_TYPE_META) {
+    if (seq->type == STRIP_TYPE_META) {
       do_versions_strip_cache_settings_recursive(&seq->seqbase);
     }
   }
@@ -793,12 +795,14 @@ static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
 static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    if (link->tonode->type == GEO_NODE_JOIN_GEOMETRY && !(link->tosock->flag & SOCK_MULTI_INPUT)) {
+    if (link->tonode->type_legacy == GEO_NODE_JOIN_GEOMETRY &&
+        !(link->tosock->flag & SOCK_MULTI_INPUT))
+    {
       link->tosock = static_cast<bNodeSocket *>(link->tonode->inputs.first);
     }
   }
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == GEO_NODE_JOIN_GEOMETRY) {
+    if (node->type_legacy == GEO_NODE_JOIN_GEOMETRY) {
       bNodeSocket *socket = static_cast<bNodeSocket *>(node->inputs.first);
       socket->flag |= SOCK_MULTI_INPUT;
       socket->limit = 4095;
@@ -906,7 +910,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == SH_NODE_TEX_SKY && node->storage) {
+            if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
               NodeTexSky *tex = (NodeTexSky *)node->storage;
               tex->sun_disc = true;
               tex->sun_size = DEG2RADF(0.545);
@@ -1096,7 +1100,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == SH_NODE_TEX_SKY && node->storage) {
+            if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
               NodeTexSky *tex = (NodeTexSky *)node->storage;
               tex->sun_intensity = 1.0f;
               tex->altitude *= 0.001f;
@@ -1531,7 +1535,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Rename Render-layer Socket `VolumeScatterCol` to `VolumeDir`. */
       if (scene->nodetree) {
         LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
-          if (node->type == CMP_NODE_R_LAYERS) {
+          if (node->type_legacy == CMP_NODE_R_LAYERS) {
             LISTBASE_FOREACH (bNodeSocket *, output_socket, &node->outputs) {
               const char *volume_scatter = "VolumeScatterCol";
               if (STREQLEN(output_socket->name, volume_scatter, MAX_NAME)) {
@@ -1548,7 +1552,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         if (scene->nodetree) {
           LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
-            if (node->type == CMP_NODE_CRYPTOMATTE_LEGACY) {
+            if (node->type_legacy == CMP_NODE_CRYPTOMATTE_LEGACY) {
               NodeCryptomatte *storage = (NodeCryptomatte *)node->storage;
               char *matte_id = storage->matte_id;
               if (matte_id == nullptr || strlen(storage->matte_id) == 0) {
@@ -1626,7 +1630,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           continue;
         }
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type != CMP_NODE_SETALPHA) {
+          if (node->type_legacy != CMP_NODE_SETALPHA) {
             continue;
           }
           NodeSetAlpha *storage = MEM_cnew<NodeSetAlpha>("NodeSetAlpha");
@@ -1653,7 +1657,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_OUTPUT_FILE) {
+          if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
             LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
               NodeImageMultiFileSocket *simf = static_cast<NodeImageMultiFileSocket *>(
                   sock->storage);
@@ -1699,7 +1703,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_OBJECT_INFO && node->storage == nullptr) {
+        if (node->type_legacy == GEO_NODE_OBJECT_INFO && node->storage == nullptr) {
           NodeGeometryObjectInfo *data = (NodeGeometryObjectInfo *)MEM_callocN(
               sizeof(NodeGeometryObjectInfo), __func__);
           data->transform_space = GEO_NODE_TRANSFORM_SPACE_RELATIVE;
@@ -1736,7 +1740,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == SH_NODE_TEX_SKY && node->storage) {
+          if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
             NodeTexSky *tex = (NodeTexSky *)node->storage;
             tex->altitude *= 1000.0f;
           }

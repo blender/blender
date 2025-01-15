@@ -802,7 +802,7 @@ bool IMB_scale(ImBuf *ibuf, uint newx, uint newy, IMBScaleFilter filter, bool th
 }
 
 ImBuf *IMB_scale_into_new(
-    const ImBuf *ibuf, unsigned int newx, unsigned int newy, IMBScaleFilter filter, bool threaded)
+    const ImBuf *ibuf, uint newx, uint newy, IMBScaleFilter filter, bool threaded)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
   if (ibuf == nullptr) {
@@ -879,6 +879,7 @@ ImBuf *IMB_scale_into_new(
 
   /* Create result image. */
   ImBuf *dst = IMB_allocImBuf(newx, newy, ibuf->planes, IB_uninitialized_pixels);
+  dst->channels = ibuf->channels;
   IMB_metadata_copy(dst, ibuf);
   dst->colormanage_flag = ibuf->colormanage_flag;
   if (dst_byte != nullptr) {

@@ -109,8 +109,7 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create_array(StringRef prop_name,
                                                             Span<PrimitiveType> values,
                                                             const eIDPropertyFlag flags)
 {
-  static_assert(std::is_same_v<PrimitiveType, int32_t> || std::is_same_v<PrimitiveType, float> ||
-                    std::is_same_v<PrimitiveType, double>,
+  static_assert(is_same_any_v<PrimitiveType, int32_t, float, double>,
                 "Allowed values for PrimitiveType are int32_t, float and double.");
   static_assert(!std::is_same_v<PrimitiveType, int32_t> || id_property_subtype == IDP_INT,
                 "PrimitiveType and id_property_type do not match (int32_t).");

@@ -138,15 +138,14 @@ static bool geometry_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /
 
 void register_node_tree_type_geo()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Geometry =
-      static_cast<blender::bke::bNodeTreeType *>(
-          MEM_callocN(sizeof(blender::bke::bNodeTreeType), "geometry node tree type"));
+  blender::bke::bNodeTreeType *tt = ntreeType_Geometry = MEM_new<blender::bke::bNodeTreeType>(
+      __func__);
   tt->type = NTREE_GEOMETRY;
-  STRNCPY(tt->idname, "GeometryNodeTree");
-  STRNCPY(tt->group_idname, "GeometryNodeGroup");
-  STRNCPY(tt->ui_name, N_("Geometry Node Editor"));
+  tt->idname = "GeometryNodeTree";
+  tt->group_idname = "GeometryNodeGroup";
+  tt->ui_name = N_("Geometry Node Editor");
   tt->ui_icon = ICON_GEOMETRY_NODES;
-  STRNCPY(tt->ui_description, N_("Geometry nodes"));
+  tt->ui_description = N_("Geometry nodes");
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;

@@ -8,4 +8,6 @@
 
 #pragma once
 
+#include <Python.h>
+
 PyObject *BPyInit_bmesh_geometry();

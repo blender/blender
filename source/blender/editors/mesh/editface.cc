@@ -236,7 +236,7 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
 
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
-      ".uv_seam", bke::AttrDomain::Edge, false);
+      "uv_seam", bke::AttrDomain::Edge, false);
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", bke::AttrDomain::Face, false);
 
@@ -286,7 +286,7 @@ static void paintface_select_linked_faces(Mesh &mesh,
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
-      ".uv_seam", bke::AttrDomain::Edge, false);
+      "uv_seam", bke::AttrDomain::Edge, false);
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", bke::AttrDomain::Face);
 
@@ -363,7 +363,7 @@ static int find_closest_edge_in_poly(ARegion *region,
                                      const int mval[2])
 {
   using namespace blender;
-  int closest_edge_index;
+  int closest_edge_index = -1;
 
   const float2 mval_f = {float(mval[0]), float(mval[1])};
   float min_distance = FLT_MAX;
@@ -485,6 +485,9 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   const IndexRange face = faces[poly_pick_index];
   const int closest_edge_index = find_closest_edge_in_poly(
       region, edges, corner_edges.slice(face), verts, mval);
+  if (closest_edge_index == -1) {
+    return;
+  }
 
   Array<int> edge_to_face_offsets;
   Array<int> edge_to_face_indices;

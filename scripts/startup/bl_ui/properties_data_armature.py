@@ -382,7 +382,7 @@ class POSE_UL_selection_set(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         row = layout.row()
         row.prop(item, "name", text="", emboss=False)
-        if self.layout_type in ('DEFAULT', 'COMPACT'):
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row.prop(item, "is_selected", text="")
 
 
@@ -391,8 +391,7 @@ class POSE_MT_selection_set_create(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("pose.selection_set_add_and_assign",
-                        text="New Selection Set")
+        layout.operator("pose.selection_set_add_and_assign", text="New Selection Set")
 
 
 class POSE_MT_selection_sets_select(Menu):

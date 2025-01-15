@@ -8,10 +8,11 @@
  * \ingroup pymathutils
  */
 
+#include <Python.h>
+
 /* Can cast different mathutils types to this, use for generic functions. */
 
 #include "BLI_array.hh"
-#include "BLI_compiler_attrs.h"
 #include "BLI_vector.hh"
 
 struct DynStr;
@@ -61,11 +62,11 @@ struct BaseMathObject {
 };
 
 /* types */
-#include "mathutils_Color.hh"
-#include "mathutils_Euler.hh"
-#include "mathutils_Matrix.hh"
-#include "mathutils_Quaternion.hh"
-#include "mathutils_Vector.hh"
+#include "mathutils_Color.hh"       // IWYU pragma: export
+#include "mathutils_Euler.hh"       // IWYU pragma: export
+#include "mathutils_Matrix.hh"      // IWYU pragma: export
+#include "mathutils_Quaternion.hh"  // IWYU pragma: export
+#include "mathutils_Vector.hh"      // IWYU pragma: export
 
 /* avoid checking all types */
 #define BaseMathObject_CheckExact(v) (Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)

@@ -85,12 +85,12 @@ class ViewerOperation : public NodeOperation {
     const Result &image = get_input("Image");
     const Result &alpha = get_input("Alpha");
 
-    float4 color = image.get_color_value();
+    float4 color = image.get_single_value<float4>();
     if (ignore_alpha()) {
       color.w = 1.0f;
     }
     else if (node().input_by_identifier("Alpha")->is_logically_linked()) {
-      color.w = alpha.get_float_value();
+      color.w = alpha.get_single_value<float>();
     }
 
     const Domain domain = compute_domain();
@@ -324,8 +324,12 @@ void register_node_type_cmp_viewer()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeViewer", CMP_NODE_VIEWER);
+  ntype.ui_name = "Viewer";
+  ntype.ui_description =
+      "Visualize data from inside a node graph, in the image editor or as a backdrop";
   ntype.enum_name_legacy = "VIEWER";
+  ntype.nclass = NODE_CLASS_OUTPUT;
   ntype.declare = file_ns::cmp_node_viewer_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_viewer;
   ntype.initfunc = file_ns::node_composit_init_viewer;

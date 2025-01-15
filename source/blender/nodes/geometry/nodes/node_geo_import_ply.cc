@@ -33,7 +33,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  PLYImportParams import_params{};
+  PLYImportParams import_params;
   STRNCPY(import_params.filepath, path.c_str());
   import_params.import_attributes = true;
 
@@ -42,7 +42,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); })
   import_params.reports = &reports;
 
-  Mesh *mesh = PLY_import_mesh(&import_params);
+  Mesh *mesh = PLY_import_mesh(import_params);
 
   LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
     NodeWarningType type;
@@ -70,8 +70,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMPORT_PLY, "Import PLY", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeImportPLY", GEO_NODE_IMPORT_PLY);
+  ntype.ui_name = "Import PLY";
+  ntype.ui_description = "Import a point cloud from a PLY file";
   ntype.enum_name_legacy = "IMPORT_PLY";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_import_node;

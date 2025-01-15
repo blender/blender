@@ -10,6 +10,8 @@
 
 #include "bmesh_operator_api.hh"
 
+#include "bmesh_class.hh"
+
 /*----------- BMOP error system ----------*/
 
 /**

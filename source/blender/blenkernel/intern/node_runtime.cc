@@ -178,7 +178,7 @@ static void find_logical_origins_for_socket_recursive(
       /* Non available sockets are ignored. */
       continue;
     }
-    if (origin_node.type == NODE_REROUTE) {
+    if (origin_node.type_legacy == NODE_REROUTE) {
       bNodeSocket &reroute_input = *origin_node.runtime->inputs[0];
       bNodeSocket &reroute_output = *origin_node.runtime->outputs[0];
       r_skipped_origins.append(&reroute_input);
@@ -285,8 +285,8 @@ struct ToposortNodeState {
 static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, bNode &node)
 {
   Vector<const bNode *> origin_nodes;
-  if (all_zone_output_node_types().contains(node.type)) {
-    const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type);
+  if (all_zone_output_node_types().contains(node.type_legacy)) {
+    const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type_legacy);
     /* Can't use #zone_type.get_corresponding_input because that expects the topology cache to be
      * build already, but we are still building it here. */
     for (const bNode *input_node :
@@ -303,8 +303,8 @@ static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, b
 static Vector<const bNode *> get_implicit_target_nodes(const bNodeTree &ntree, bNode &node)
 {
   Vector<const bNode *> target_nodes;
-  if (all_zone_input_node_types().contains(node.type)) {
-    const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type);
+  if (all_zone_input_node_types().contains(node.type_legacy)) {
+    const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type_legacy);
     if (const bNode *output_node = zone_type.get_corresponding_output(ntree, node)) {
       target_nodes.append(output_node);
     }

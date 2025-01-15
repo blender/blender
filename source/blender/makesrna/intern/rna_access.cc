@@ -10,7 +10,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <new>
 #include <sstream>
 
 #include <fmt/format.h>
@@ -19,19 +18,15 @@
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_alloca.h"
-#include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.hh"
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
@@ -3874,8 +3869,17 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 int RNA_property_enum_get_default(PointerRNA * /*ptr*/, PropertyRNA *prop)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
-
   BLI_assert(RNA_property_type(prop) == PROP_ENUM);
+
+  if (prop->magic != RNA_MAGIC) {
+    const IDProperty *idprop = reinterpret_cast<const IDProperty *>(prop);
+    if (idprop->ui_data) {
+      BLI_assert(idprop->type == IDP_INT);
+      const IDPropertyUIDataInt *ui_data = reinterpret_cast<const IDPropertyUIDataInt *>(
+          idprop->ui_data);
+      return ui_data->default_value;
+    }
+  }
 
   return eprop->defaultvalue;
 }

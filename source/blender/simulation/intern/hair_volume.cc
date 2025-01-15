@@ -6,17 +6,10 @@
  * \ingroup sim
  */
 
-#include <algorithm>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
-
-#include "DNA_texture_types.h"
-
-#include "BKE_effect.h"
 
 #include "eigen_utils.h"
 #include "implicit.h"

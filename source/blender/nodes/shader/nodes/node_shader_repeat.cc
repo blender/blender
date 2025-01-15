@@ -143,8 +143,10 @@ static int node_shader_fn(GPUMaterial *mat,
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  sh_node_type_base(&ntype, SH_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
+  sh_node_type_base(&ntype, "ShaderNodeRepeatInput", SH_NODE_REPEAT_INPUT);
   ntype.enum_name_legacy = "REPEAT_INPUT";
+  ntype.ui_name = "Repeat Input";
+  ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
@@ -242,8 +244,10 @@ static int node_shader_fn(GPUMaterial *mat,
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  sh_node_type_base(&ntype, SH_NODE_REPEAT_OUTPUT, "Repeat Output", NODE_CLASS_INTERFACE);
+  sh_node_type_base(&ntype, "ShaderNodeRepeatOutput", SH_NODE_REPEAT_OUTPUT);
   ntype.enum_name_legacy = "REPEAT_OUTPUT";
+  ntype.ui_name = "Repeat Output";
+  ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = repeat_input_node::node_label;

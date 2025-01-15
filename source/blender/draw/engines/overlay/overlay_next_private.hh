@@ -64,7 +64,7 @@ struct BoneInstanceData {
     mat44[0] = ob_mat[0] * radius;
     mat44[1] = ob_mat[1] * radius;
     mat44[2] = ob_mat[2] * radius;
-    mat44[3] = float4(blender::math::transform_point(ob_mat, pos));
+    mat44[3] = float4(blender::math::transform_point(ob_mat, pos), 0.0f);
     set_color(color);
   }
 
@@ -143,6 +143,8 @@ struct State {
   bool hide_overlays = false;
   bool xray_enabled = false;
   bool xray_enabled_and_not_wire = false;
+  /* Can be true even if Xray Alpha is 1.0. */
+  bool xray_flag_enabled = false;
   /* Brings the active pose armature in front of all objects. */
   bool do_pose_xray = false;
   /* Add a veil on top of all surfaces to make the active pose armature pop out. */
@@ -156,6 +158,7 @@ struct State {
   int clipping_plane_count = 0;
 
   /* Active Image properties. Only valid image space only. */
+  bool is_image_valid = false;
   int2 image_size = int2(0);
   float2 image_uv_aspect = float2(0.0f);
   float2 image_aspect = float2(0.0f);
@@ -439,6 +442,7 @@ class ShaderModule {
   ShaderPtr armature_shape_outline = shader_selectable("overlay_armature_shape_outline");
   ShaderPtr armature_shape_fill = shader_selectable("overlay_armature_shape_solid");
   ShaderPtr armature_shape_wire = shader_selectable("overlay_armature_shape_wire");
+  ShaderPtr armature_shape_wire_strip = shader_selectable("overlay_armature_shape_wire_strip");
   ShaderPtr armature_sphere_outline = shader_selectable("overlay_armature_sphere_outline");
   ShaderPtr armature_sphere_fill = shader_selectable("overlay_armature_sphere_solid");
   ShaderPtr armature_stick = shader_selectable("overlay_armature_stick");

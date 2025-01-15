@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "util/defines.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_forceinline bool projection_inverse_impl(ccl_private float R[4][4],
@@ -55,7 +57,7 @@ ccl_device_forceinline bool projection_inverse_impl(ccl_private float R[4][4],
     }
 
     for (int j = i + 1; j < 4; j++) {
-      float f = M[j][i] / M[i][i];
+      const float f = M[j][i] / M[i][i];
 
       for (int k = 0; k < 4; k++) {
         M[j][k] -= f * M[i][k];
@@ -66,9 +68,9 @@ ccl_device_forceinline bool projection_inverse_impl(ccl_private float R[4][4],
 
   /* backward substitution */
   for (int i = 3; i >= 0; --i) {
-    float f;
+    float f = M[i][i];
 
-    if (UNLIKELY((f = M[i][i]) == 0.0f)) {
+    if (UNLIKELY(f == 0.0f)) {
       return false;
     }
 

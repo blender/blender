@@ -27,7 +27,7 @@
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 
 #include "UI_interface.hh"

@@ -6,7 +6,6 @@
 #include "app/opengl/shader.h"
 
 #include "util/log.h"
-#include "util/string.h"
 
 #include <SDL.h>
 #include <epoxy/gl.h>
@@ -17,13 +16,13 @@ CCL_NAMESPACE_BEGIN
  * OpenGLDisplayDriver.
  */
 
-OpenGLDisplayDriver::OpenGLDisplayDriver(const function<bool()> &gl_context_enable,
-                                         const function<void()> &gl_context_disable)
+OpenGLDisplayDriver::OpenGLDisplayDriver(const std::function<bool()> &gl_context_enable,
+                                         const std::function<void()> &gl_context_disable)
     : gl_context_enable_(gl_context_enable), gl_context_disable_(gl_context_disable)
 {
 }
 
-OpenGLDisplayDriver::~OpenGLDisplayDriver() {}
+OpenGLDisplayDriver::~OpenGLDisplayDriver() = default;
 
 /* --------------------------------------------------------------------
  * Update procedure.
@@ -34,7 +33,9 @@ void OpenGLDisplayDriver::next_tile_begin()
   /* Assuming no tiles used in interactive display. */
 }
 
-bool OpenGLDisplayDriver::update_begin(const Params &params, int texture_width, int texture_height)
+bool OpenGLDisplayDriver::update_begin(const Params &params,
+                                       const int texture_width,
+                                       const int texture_height)
 {
   /* Note that it's the responsibility of OpenGLDisplayDriver to ensure updating and drawing
    * the texture does not happen at the same time. This is achieved indirectly.
@@ -61,8 +62,15 @@ bool OpenGLDisplayDriver::update_begin(const Params &params, int texture_width, 
   if (texture_.width != texture_width || texture_.height != texture_height) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_.gl_id);
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGBA16F, texture_width, texture_height, 0, GL_RGBA, GL_HALF_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA16F,
+                 texture_width,
+                 texture_height,
+                 0,
+                 GL_RGBA,
+                 GL_HALF_FLOAT,
+                 nullptr);
     texture_.width = texture_width;
     texture_.height = texture_height;
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -84,7 +92,7 @@ bool OpenGLDisplayDriver::update_begin(const Params &params, int texture_width, 
   if (texture_.buffer_width != buffer_width || texture_.buffer_height != buffer_height) {
     const size_t size_in_bytes = sizeof(half4) * buffer_width * buffer_height;
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, size_in_bytes, 0, GL_DYNAMIC_DRAW);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, size_in_bytes, nullptr, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     texture_.buffer_width = buffer_width;
@@ -225,7 +233,7 @@ void OpenGLDisplayDriver::draw(const Params &params)
   glEnableVertexAttribArray(position_attribute);
 
   glVertexAttribPointer(
-      texcoord_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)0);
+      texcoord_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)nullptr);
   glVertexAttribPointer(position_attribute,
                         2,
                         GL_FLOAT,
@@ -341,7 +349,7 @@ void OpenGLDisplayDriver::texture_update_if_needed()
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
   glTexSubImage2D(
-      GL_TEXTURE_2D, 0, 0, 0, texture_.width, texture_.height, GL_RGBA, GL_HALF_FLOAT, 0);
+      GL_TEXTURE_2D, 0, 0, 0, texture_.width, texture_.height, GL_RGBA, GL_HALF_FLOAT, nullptr);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
   texture_.need_update = false;
@@ -351,7 +359,7 @@ void OpenGLDisplayDriver::vertex_buffer_update(const Params &params)
 {
   /* Invalidate old contents - avoids stalling if the buffer is still waiting in queue to be
    * rendered. */
-  glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), nullptr, GL_STREAM_DRAW);
 
   float *vpointer = reinterpret_cast<float *>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
   if (!vpointer) {

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "bmesh_class.hh"
+
 void BM_mesh_triangulate(BMesh *bm,
                          int quad_method,
                          int ngon_method,

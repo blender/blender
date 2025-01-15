@@ -9,17 +9,13 @@
  * \brief A BVH for high poly meshes.
  */
 
-#include <optional>
-#include <string>
 #include <variant>
 
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds_types.hh"
-#include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
-#include "BLI_generic_span.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -28,6 +24,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 struct BMFace;
 struct BMLog;
@@ -566,14 +563,14 @@ Span<float3> vert_positions_eval_from_eval(const Object &object_eval);
 
 /**
  * Retrieve write access to the evaluated deform positions, or the original object positions if
- * there are no deformation modifiers. Writing the the evaluated positions is necessary because
+ * there are no deformation modifiers. Writing the evaluated positions is necessary because
  * they are used for drawing and we don't run a full dependency graph update whenever they are
  * changed.
  */
 MutableSpan<float3> vert_positions_eval_for_write(const Depsgraph &depsgraph, Object &object_orig);
 
 /**
- * Return the vertex normals corresponding the the positions from #vert_positions_eval. This may be
+ * Return the vertex normals corresponding the positions from #vert_positions_eval. This may be
  * a reference to the normals cache on the original mesh.
  */
 Span<float3> vert_normals_eval(const Depsgraph &depsgraph, const Object &object_orig);

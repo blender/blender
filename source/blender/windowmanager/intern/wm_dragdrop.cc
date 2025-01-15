@@ -21,7 +21,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 
@@ -39,13 +38,11 @@
 
 #include "BLO_readfile.hh"
 
-#include "ED_asset.hh"
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
-#include "GPU_viewport.hh"
 
 #include "IMB_imbuf_types.hh"
 
@@ -325,7 +322,7 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
     WM_cursor_modal_restore(win);
   }
 
-  /* Active area should always redraw, even if cancelled. */
+  /* Active area should always redraw, even if canceled. */
   int event_xy_target[2];
   wmWindow *target_win = WM_window_find_under_cursor(win, win->eventstate->xy, event_xy_target);
   if (target_win) {

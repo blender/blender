@@ -62,7 +62,7 @@ foreach(COMPONENT ${_osl_FIND_COMPONENTS})
       ${_osl_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
-    )
+  )
 endforeach()
 
 # Note linking order matters, and oslnoise existence depends on version.

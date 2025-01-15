@@ -8,7 +8,6 @@
  * \ingroup bli
  */
 
-#include <cmath>
 #include <type_traits>
 
 #include "BLI_math_base.hh"

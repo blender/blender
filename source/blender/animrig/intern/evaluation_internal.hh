@@ -4,6 +4,13 @@
 
 #pragma once
 
+#include "ANIM_evaluation.hh"
+
+struct AnimationEvalContext;
+struct PointerRNA;
+struct Action;
+struct Layer;
+
 namespace blender::animrig::internal {
 
 /**

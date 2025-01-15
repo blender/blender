@@ -8,8 +8,7 @@
  * Removes isolated geometry regions without creating holes in the mesh.
  */
 
-#include "MEM_guardedalloc.h"
-
+#include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_stack.h"
 #include "BLI_vector.hh"

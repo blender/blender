@@ -40,6 +40,8 @@
 #include "BKE_effect.h"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -48,10 +50,6 @@
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.hh"
-#ifdef WITH_BULLET
-#  include "BKE_lib_id.hh"
-#  include "BKE_lib_query.hh"
-#endif
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -233,105 +231,6 @@ bool BKE_rigidbody_is_affected_by_simulation(Object *ob)
 }
 
 #ifdef WITH_BULLET
-
-/* Copying Methods --------------------- */
-
-/* These just copy the data, clearing out references to physics objects.
- * Anything that uses them MUST verify that the copied object will
- * be added to relevant groups later...
- */
-
-static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
-{
-  RigidBodyOb *rboN = nullptr;
-
-  if (ob->rigidbody_object) {
-    const bool is_orig = (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0;
-
-    /* just duplicate the whole struct first (to catch all the settings) */
-    rboN = static_cast<RigidBodyOb *>(MEM_dupallocN(ob->rigidbody_object));
-
-    if (is_orig) {
-      /* This is a regular copy, and not an evaluated copy for depsgraph evaluation */
-      rboN->shared = static_cast<RigidBodyOb_Shared *>(
-          MEM_callocN(sizeof(*rboN->shared), "RigidBodyOb_Shared"));
-    }
-
-    /* tag object as needing to be verified */
-    rboN->flag |= RBO_FLAG_NEEDS_VALIDATE;
-  }
-
-  /* return new copy of settings */
-  return rboN;
-}
-
-static RigidBodyCon *rigidbody_copy_constraint(const Object *ob, const int /*flag*/)
-{
-  RigidBodyCon *rbcN = nullptr;
-
-  if (ob->rigidbody_constraint) {
-    /* Just duplicate the whole struct first (to catch all the settings). */
-    rbcN = static_cast<RigidBodyCon *>(MEM_dupallocN(ob->rigidbody_constraint));
-
-    /* Tag object as needing to be verified. */
-    rbcN->flag |= RBC_FLAG_NEEDS_VALIDATE;
-
-    /* Clear out all the fields which need to be re-validated later. */
-    rbcN->physics_constraint = nullptr;
-  }
-
-  /* return new copy of settings */
-  return rbcN;
-}
-
-void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
-{
-  ob_dst->rigidbody_object = rigidbody_copy_object(ob_src, flag);
-  ob_dst->rigidbody_constraint = rigidbody_copy_constraint(ob_src, flag);
-
-  if ((flag & (LIB_ID_CREATE_NO_MAIN | LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING)) != 0) {
-    return;
-  }
-
-  /* We have to ensure that duplicated object ends up in relevant rigidbody collections...
-   * Otherwise duplicating the RB data itself is meaningless. */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    RigidBodyWorld *rigidbody_world = scene->rigidbody_world;
-
-    if (rigidbody_world != nullptr) {
-      bool need_objects_update = false;
-      bool need_constraints_update = false;
-
-      if (ob_dst->rigidbody_object) {
-        if (BKE_collection_has_object(rigidbody_world->group, ob_src)) {
-          BKE_collection_object_add(bmain, rigidbody_world->group, ob_dst);
-          need_objects_update = true;
-        }
-      }
-      if (ob_dst->rigidbody_constraint) {
-        if (BKE_collection_has_object(rigidbody_world->constraints, ob_src)) {
-          BKE_collection_object_add(bmain, rigidbody_world->constraints, ob_dst);
-          need_constraints_update = true;
-        }
-      }
-
-      if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 &&
-          (need_objects_update || need_constraints_update))
-      {
-        BKE_rigidbody_cache_reset(rigidbody_world);
-
-        DEG_relations_tag_update(bmain);
-        if (need_objects_update) {
-          DEG_id_tag_update(&rigidbody_world->group->id, ID_RECALC_SYNC_TO_EVAL);
-        }
-        if (need_constraints_update) {
-          DEG_id_tag_update(&rigidbody_world->constraints->id, ID_RECALC_SYNC_TO_EVAL);
-        }
-        DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM);
-      }
-    }
-  }
-}
 
 /* ************************************** */
 /* Setup Utilities - Validate Sim Instances */
@@ -1279,20 +1178,6 @@ void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw)
   ID_NEW_REMAP(rbw->group);
   ID_NEW_REMAP(rbw->constraints);
   ID_NEW_REMAP(rbw->effector_weights->group);
-}
-
-void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
-{
-  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_USER);
-  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_USER);
-  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_USER);
-
-  if (rbw->objects) {
-    int i;
-    for (i = 0; i < rbw->numbodies; i++) {
-      func(rbw, (ID **)&rbw->objects[i], userdata, IDWALK_CB_NOP);
-    }
-  }
 }
 
 RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
@@ -2392,9 +2277,6 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 #    pragma warning(disable : 4100)
 #  endif
 
-void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
-{
-}
 void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild) {}
 
 void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
@@ -2416,7 +2298,6 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
   return nullptr;
 }
 void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw) {}
-void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata) {}
 RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 {
   return nullptr;
@@ -2496,4 +2377,117 @@ void BKE_rigidbody_object_sync_transforms(Depsgraph *depsgraph, Scene *scene, Ob
   DEG_debug_print_eval_time(depsgraph, __func__, ob->id.name, ob, ctime);
   /* read values pushed into RBO from sim/cache... */
   BKE_rigidbody_sync_transforms(rbw, ob, ctime);
+}
+
+void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
+{
+  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_USER);
+
+  if (rbw->objects) {
+    int i;
+    for (i = 0; i < rbw->numbodies; i++) {
+      func(rbw, (ID **)&rbw->objects[i], userdata, IDWALK_CB_NOP);
+    }
+  }
+}
+
+/* Copying Methods --------------------- */
+
+/* These just copy the data, clearing out references to physics objects.
+ * Anything that uses them MUST verify that the copied object will
+ * be added to relevant groups later...
+ */
+
+static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
+{
+  RigidBodyOb *rboN = nullptr;
+
+  if (ob->rigidbody_object) {
+    const bool is_orig = (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0;
+
+    /* just duplicate the whole struct first (to catch all the settings) */
+    rboN = static_cast<RigidBodyOb *>(MEM_dupallocN(ob->rigidbody_object));
+
+    if (is_orig) {
+      /* This is a regular copy, and not an evaluated copy for depsgraph evaluation */
+      rboN->shared = static_cast<RigidBodyOb_Shared *>(
+          MEM_callocN(sizeof(*rboN->shared), "RigidBodyOb_Shared"));
+    }
+
+    /* tag object as needing to be verified */
+    rboN->flag |= RBO_FLAG_NEEDS_VALIDATE;
+  }
+
+  /* return new copy of settings */
+  return rboN;
+}
+
+static RigidBodyCon *rigidbody_copy_constraint(const Object *ob, const int /*flag*/)
+{
+  RigidBodyCon *rbcN = nullptr;
+
+  if (ob->rigidbody_constraint) {
+    /* Just duplicate the whole struct first (to catch all the settings). */
+    rbcN = static_cast<RigidBodyCon *>(MEM_dupallocN(ob->rigidbody_constraint));
+
+    /* Tag object as needing to be verified. */
+    rbcN->flag |= RBC_FLAG_NEEDS_VALIDATE;
+
+    /* Clear out all the fields which need to be re-validated later. */
+    rbcN->physics_constraint = nullptr;
+  }
+
+  /* return new copy of settings */
+  return rbcN;
+}
+
+void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
+{
+  ob_dst->rigidbody_object = rigidbody_copy_object(ob_src, flag);
+  ob_dst->rigidbody_constraint = rigidbody_copy_constraint(ob_src, flag);
+
+  if ((flag & (LIB_ID_CREATE_NO_MAIN | LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING)) != 0) {
+    return;
+  }
+
+  /* We have to ensure that duplicated object ends up in relevant rigidbody collections...
+   * Otherwise duplicating the RB data itself is meaningless. */
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    RigidBodyWorld *rigidbody_world = scene->rigidbody_world;
+
+    if (rigidbody_world != nullptr) {
+      bool need_objects_update = false;
+      bool need_constraints_update = false;
+
+      if (ob_dst->rigidbody_object) {
+        if (BKE_collection_has_object(rigidbody_world->group, ob_src)) {
+          BKE_collection_object_add(bmain, rigidbody_world->group, ob_dst);
+          need_objects_update = true;
+        }
+      }
+      if (ob_dst->rigidbody_constraint) {
+        if (BKE_collection_has_object(rigidbody_world->constraints, ob_src)) {
+          BKE_collection_object_add(bmain, rigidbody_world->constraints, ob_dst);
+          need_constraints_update = true;
+        }
+      }
+
+      if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 &&
+          (need_objects_update || need_constraints_update))
+      {
+        BKE_rigidbody_cache_reset(rigidbody_world);
+
+        DEG_relations_tag_update(bmain);
+        if (need_objects_update) {
+          DEG_id_tag_update(&rigidbody_world->group->id, ID_RECALC_SYNC_TO_EVAL);
+        }
+        if (need_constraints_update) {
+          DEG_id_tag_update(&rigidbody_world->constraints->id, ID_RECALC_SYNC_TO_EVAL);
+        }
+        DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM);
+      }
+    }
+  }
 }

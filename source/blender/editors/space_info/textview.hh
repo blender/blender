@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
+#include "DNA_vec_types.h"
+
 #define TVC_TAB_COLUMNS 4
 
 enum eTextViewContext_LineFlag {
@@ -27,7 +31,7 @@ struct TextViewContext {
 
   int row_vpadding;
 
-  /** Area to draw text: (0, 0, winx, winy) with a margin applied and scroll-bar subtracted. */
+  /** Area to draw text: `(0, 0, winx, winy)` with a margin applied and scroll-bar subtracted. */
   rcti draw_rect;
   /** Area to draw text background colors (extending beyond text in some cases). */
   rcti draw_rect_outer;

@@ -6,8 +6,6 @@
  * \ingroup sim
  */
 
-#include <algorithm>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_cloth_types.h"

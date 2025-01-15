@@ -50,7 +50,7 @@ void ED_mball_editmball_free(Object *obedit);
 void ED_mball_editmball_make(Object *obedit);
 /**
  * This function is called, when MetaBall Object switched from edit mode to object mode.
- * List of MetaElements is copied from object->data->edit_elems to object->data->elems.
+ * List of MetaElements is copied from `object->data->edit_elems` to `object->data->elems`.
  */
 void ED_mball_editmball_load(Object *obedit);
 

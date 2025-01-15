@@ -72,6 +72,7 @@
 #include "ANIM_action_legacy.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_bonecolor.hh"
+#include "ANIM_versioning.hh"
 
 #include "CLG_log.h"
 
@@ -680,11 +681,14 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   read_layers(reader, action);
   read_slots(reader, action);
 
-  if (action.is_action_layered()) {
+  if (animrig::versioning::action_is_layered(action)) {
     /* Clear the forward-compatible storage (see action_blend_write_data()). */
-    BLI_listbase_clear(&action.chanbase);
     BLI_listbase_clear(&action.curves);
     BLI_listbase_clear(&action.groups);
+
+    /* Should never be stored as part of the forward-compatible data in a
+     * layered action, and thus should always be empty here. */
+    BLI_assert(BLI_listbase_is_empty(&action.chanbase));
   }
   else {
     /* Read legacy data. */

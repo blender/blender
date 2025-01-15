@@ -28,12 +28,12 @@ ccl_device_forceinline bool film_need_sample_pixel(KernelGlobals kg,
 
 ccl_device bool film_adaptive_sampling_convergence_check(KernelGlobals kg,
                                                          ccl_global float *render_buffer,
-                                                         int x,
-                                                         int y,
-                                                         float threshold,
-                                                         int reset,
-                                                         int offset,
-                                                         int stride)
+                                                         const int x,
+                                                         const int y,
+                                                         const float threshold,
+                                                         const int reset,
+                                                         const int offset,
+                                                         const int stride)
 {
   kernel_assert(kernel_data.film.pass_adaptive_aux_buffer != PASS_UNUSED);
   kernel_assert(kernel_data.film.pass_sample_count != PASS_UNUSED);
@@ -94,11 +94,11 @@ ccl_device bool film_adaptive_sampling_convergence_check(KernelGlobals kg,
 
 ccl_device void film_adaptive_sampling_filter_x(KernelGlobals kg,
                                                 ccl_global float *render_buffer,
-                                                int y,
-                                                int start_x,
-                                                int width,
-                                                int offset,
-                                                int stride)
+                                                const int y,
+                                                const int start_x,
+                                                const int width,
+                                                const int offset,
+                                                const int stride)
 {
   kernel_assert(kernel_data.film.pass_adaptive_aux_buffer != PASS_UNUSED);
 
@@ -127,11 +127,11 @@ ccl_device void film_adaptive_sampling_filter_x(KernelGlobals kg,
 
 ccl_device void film_adaptive_sampling_filter_y(KernelGlobals kg,
                                                 ccl_global float *render_buffer,
-                                                int x,
-                                                int start_y,
-                                                int height,
-                                                int offset,
-                                                int stride)
+                                                const int x,
+                                                const int start_y,
+                                                const int height,
+                                                const int offset,
+                                                const int stride)
 {
   kernel_assert(kernel_data.film.pass_adaptive_aux_buffer != PASS_UNUSED);
 

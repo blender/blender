@@ -11,7 +11,6 @@
 #include <cstring>
 #include <fmt/format.h>
 
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -22,7 +21,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.hh"
@@ -1163,7 +1161,8 @@ const char *WM_key_event_string(const short type, const bool compact)
       case EVT_RETKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Enter"), BLI_STR_UTF8_RETURN_SYMBOL);
       case EVT_SPACEKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Space"), BLI_STR_UTF8_OPEN_BOX);
+        return key_event_glyph_or_text(
+            font_id, CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, "Space"), BLI_STR_UTF8_OPEN_BOX);
       case EVT_LEFTARROWKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Left"), BLI_STR_UTF8_LEFTWARDS_ARROW);
       case EVT_UPARROWKEY:

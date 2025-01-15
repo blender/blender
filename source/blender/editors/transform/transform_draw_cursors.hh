@@ -8,6 +8,8 @@
 
 #pragma once
 
+struct bContext;
+
 /* Callbacks for #WM_paint_cursor_activate. */
 
 /**

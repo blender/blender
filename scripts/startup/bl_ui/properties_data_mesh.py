@@ -123,10 +123,11 @@ class MESH_UL_shape_keys(UIList):
         # key = data
         key_block = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            split = layout.split(factor=0.66, align=False)
+            split = layout.split(factor=0.5, align=True)
             split.prop(key_block, "name", text="", emboss=False, icon_value=icon)
             row = split.row(align=True)
             row.emboss = 'NONE_OR_STATUS'
+            row.alignment = 'RIGHT'
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
                 split.active = False
             if not item.id_data.use_relative:
@@ -510,7 +511,8 @@ class MESH_UL_attributes(UIList):
         # Filtering by name
         if self.filter_name:
             flags = bpy.types.UI_UL_list.filter_items_by_name(
-                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert,
+            )
         if not flags:
             flags = [self.bitflag_filter_item] * len(attributes)
 
@@ -605,8 +607,7 @@ def draw_attribute_warnings(context, layout):
     if not colliding_names:
         return
 
-    layout.label(text=rpt_("Name collisions: ") + ", ".join(set(colliding_names)),
-                 icon='ERROR', translate=False)
+    layout.label(text=rpt_("Name collisions: ") + ", ".join(set(colliding_names)), icon='ERROR', translate=False)
 
 
 class ColorAttributesListBase():
@@ -625,7 +626,8 @@ class ColorAttributesListBase():
         # Filtering by name
         if self.filter_name:
             flags = bpy.types.UI_UL_list.filter_items_by_name(
-                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert,
+            )
         if not flags:
             flags = [self.bitflag_filter_item] * len(attributes)
 

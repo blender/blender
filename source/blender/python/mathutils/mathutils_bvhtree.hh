@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 PyMODINIT_FUNC PyInit_mathutils_bvhtree();
 
 extern PyTypeObject PyBVHTree_Type;

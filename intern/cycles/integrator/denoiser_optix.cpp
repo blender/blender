@@ -89,12 +89,12 @@ static OptixResult optixUtilDenoiserInvokeTiled(OptixDenoiser denoiser,
                                                 CUstream stream,
                                                 const OptixDenoiserParams *params,
                                                 CUdeviceptr denoiserState,
-                                                size_t denoiserStateSizeInBytes,
+                                                const size_t denoiserStateSizeInBytes,
                                                 const OptixDenoiserGuideLayer *guideLayer,
                                                 const OptixDenoiserLayer *layers,
                                                 unsigned int numLayers,
                                                 CUdeviceptr scratch,
-                                                size_t scratchSizeInBytes,
+                                                const size_t scratchSizeInBytes,
                                                 unsigned int overlapWindowSizeInPixels,
                                                 unsigned int tileWidth,
                                                 unsigned int tileHeight)
@@ -256,7 +256,7 @@ bool OptiXDenoiser::denoise_create_if_needed(DenoiseContext &context)
   denoiser_options.guideAlbedo = context.use_pass_albedo;
   denoiser_options.guideNormal = context.use_pass_normal;
 
-  OptixDenoiserModelKind model = OPTIX_DENOISER_MODEL_KIND_HDR;
+  OptixDenoiserModelKind model = OPTIX_DENOISER_MODEL_KIND_AOV;
   if (context.use_pass_motion) {
     model = OPTIX_DENOISER_MODEL_KIND_TEMPORAL;
   }

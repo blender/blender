@@ -3,12 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_INT8_H__
-#define __UTIL_MATH_INT8_H__
+#pragma once
 
-#ifndef __UTIL_MATH_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/math_base.h"
+#include "util/types_float8.h"
+#include "util/types_int8.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,7 +42,7 @@ ccl_device_inline vint8 operator-=(vint8 &a, const vint8 b)
   return a = a - b;
 }
 
-ccl_device_inline vint8 operator>>(const vint8 a, int i)
+ccl_device_inline vint8 operator>>(const vint8 a, const int i)
 {
 #  ifdef __KERNEL_AVX__
   return vint8(_mm256_srai_epi32(a.m256, i));
@@ -53,7 +52,7 @@ ccl_device_inline vint8 operator>>(const vint8 a, int i)
 #  endif
 }
 
-ccl_device_inline vint8 operator<<(const vint8 a, int i)
+ccl_device_inline vint8 operator<<(const vint8 a, const int i)
 {
 #  ifdef __KERNEL_AVX__
   return vint8(_mm256_slli_epi32(a.m256, i));
@@ -218,7 +217,7 @@ ccl_device_inline vint8 &operator>>=(vint8 &a, const int32_t b)
 }
 
 #  ifdef __KERNEL_AVX__
-ccl_device_forceinline const vint8 srl(const vint8 a, const int32_t b)
+const ccl_device_forceinline vint8 srl(const vint8 a, const int32_t b)
 {
   return vint8(_mm256_srli_epi32(a.m256, b));
 }
@@ -305,32 +304,32 @@ ccl_device_inline vfloat8 cast(const vint8 a)
 }
 
 #ifdef __KERNEL_AVX__
-template<size_t i> ccl_device_forceinline const vint8 shuffle(const vint8 a)
+template<size_t i> const ccl_device_forceinline vint8 shuffle(const vint8 a)
 {
   return vint8(
       _mm256_castps_si256(_mm256_permute_ps(_mm256_castsi256_ps(a), _MM_SHUFFLE(i, i, i, i))));
 }
 
-template<size_t i0, size_t i1> ccl_device_forceinline const vint8 shuffle(const vint8 a)
+template<size_t i0, const size_t i1> const ccl_device_forceinline vint8 shuffle(const vint8 a)
 {
   return vint8(_mm256_permute2f128_si256(a, a, (i1 << 4) | (i0 << 0)));
 }
 
-template<size_t i0, size_t i1>
-ccl_device_forceinline const vint8 shuffle(const vint8 a, const vint8 b)
+template<size_t i0, const size_t i1>
+const ccl_device_forceinline vint8 shuffle(const vint8 a, const vint8 b)
 {
   return vint8(_mm256_permute2f128_si256(a, b, (i1 << 4) | (i0 << 0)));
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3>
-ccl_device_forceinline const vint8 shuffle(const vint8 a)
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
+const ccl_device_forceinline vint8 shuffle(const vint8 a)
 {
   return vint8(
       _mm256_castps_si256(_mm256_permute_ps(_mm256_castsi256_ps(a), _MM_SHUFFLE(i3, i2, i1, i0))));
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3>
-ccl_device_forceinline const vint8 shuffle(const vint8 a, const vint8 b)
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
+const ccl_device_forceinline vint8 shuffle(const vint8 a, const vint8 b)
 {
   return vint8(_mm256_castps_si256(_mm256_shuffle_ps(
       _mm256_castsi256_ps(a), _mm256_castsi256_ps(b), _MM_SHUFFLE(i3, i2, i1, i0))));
@@ -352,5 +351,3 @@ template<> __forceinline const vint8 shuffle<0, 1, 0, 1>(const vint8 b)
 #endif
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_INT8_H__ */

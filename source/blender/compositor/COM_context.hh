@@ -54,6 +54,10 @@ class Context {
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
 
+  /* Get the OIDN denoiser quality which should be used if the user doesn't explicitly set
+   * denoising quality on a node. */
+  virtual eCompositorDenoiseQaulity get_denoise_quality() const = 0;
+
   /* True if the compositor should write file outputs, false otherwise. */
   virtual bool use_file_output() const = 0;
 

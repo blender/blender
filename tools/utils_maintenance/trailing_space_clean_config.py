@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "PATHS",
+    "SOURCE_DIR",
+)
+
+
 import os
 PATHS = (
     "build_files/build_environment/cmake",

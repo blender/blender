@@ -16,7 +16,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <iostream>
 #include <sstream>
 
 #include <fmt/format.h>
@@ -42,10 +41,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utils.hh"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -60,12 +57,11 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh" /* #BKE_ST_MAXNAME. */
-#include "BKE_unit.hh"
 
 #include "BKE_idtype.hh"
 
@@ -513,7 +509,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
     const ID_Type ptr_id_type = GS(ptr->owner_id->name);
     switch (ptr_id_type) {
       case ID_SCE: {
-        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_sequence_strip", RNA_Sequence, ptr);
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_sequence_strip", RNA_Strip, ptr);
 
         CTX_TEST_PTR_ID(C, "scene", ptr->owner_id);
         break;
@@ -2543,7 +2539,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 
   if (hasNumInput(&rc->num_input)) {
     char num_str[NUM_STR_REP_LEN];
-    outputNumInput(&rc->num_input, num_str, &scene->unit);
+    outputNumInput(&rc->num_input, num_str, scene->unit);
     SNPRINTF(msg, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
   }
   else {
@@ -3590,7 +3586,9 @@ static void redraw_timer_step(bContext *C,
                               ScrArea *area,
                               ARegion *region,
                               const int type,
-                              const int cfra)
+                              const int cfra,
+                              const int steps_done,
+                              const int steps_total)
 {
   if (type == eRTDrawRegion) {
     if (region) {
@@ -3636,8 +3634,13 @@ static void redraw_timer_step(bContext *C,
   else if (type == eRTAnimationPlay) {
     /* Play anim, return on same frame as started with. */
     int tot = (scene->r.efra - scene->r.sfra) + 1;
+    const int frames_total = tot * steps_total;
+    int frames_done = tot * steps_done;
 
     while (tot--) {
+      WM_progress_set(win, float(frames_done) / float(frames_total));
+      frames_done++;
+
       /* TODO: ability to escape! */
       scene->r.cfra++;
       if (scene->r.cfra > scene->r.efra) {
@@ -3684,6 +3687,8 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
    */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
+  RNA_enum_description(redraw_timer_type_items, type, &infostr);
+
   WM_cursor_wait(true);
 
   double time_start = BLI_time_now_seconds();
@@ -3692,7 +3697,13 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   int iter_steps = 0;
   for (int a = 0; a < iter; a++) {
-    redraw_timer_step(C, scene, depsgraph, win, area, region, type, cfra);
+
+    if (type == eRTAnimationPlay) {
+      WorkspaceStatus status(C);
+      status.item(fmt::format("{} / {} {}", a + 1, iter, infostr), ICON_INFO);
+    }
+
+    redraw_timer_step(C, scene, depsgraph, win, area, region, type, cfra, a, iter);
     iter_steps += 1;
 
     if (time_limit != 0.0) {
@@ -3705,7 +3716,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   double time_delta = (BLI_time_now_seconds() - time_start) * 1000;
 
-  RNA_enum_description(redraw_timer_type_items, type, &infostr);
+  if (type == eRTAnimationPlay) {
+    ED_workspace_status_text(C, nullptr);
+    WM_progress_clear(win);
+  }
 
   WM_cursor_wait(false);
 

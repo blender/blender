@@ -888,58 +888,31 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(int32_t x, int32_t y)
 
 GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
 {
-  /* NOTE: There are known issues/limitations at the moment:
-   *
-   * - User needs to allow screen capture permission for Blender.
-   * - Blender has no control of the cursor outside its window, so the eyedropper cursor won't be
-   *   available
-   * - GHOST does not report click events from outside the window, so the user needs to press Enter
-   *   instead.
-   *
-   * Ref #111303.
-   */
-
   @autoreleasepool {
-    /* Check for screen capture access permission early to prevent issues.
-     * Without permission, macOS may capture only the Blender window, wallpaper, and taskbar.
-     * This behavior could confuse users, especially when trying to pick a color from another app,
-     * potentially capturing the wallpaper under that app window.
-     */
-    if (!CGPreflightScreenCaptureAccess()) {
-      CGRequestScreenCaptureAccess();
-      return GHOST_kFailure;
-    }
+    NSColorSampler *sampler = [[NSColorSampler alloc] init];
+    __block BOOL selectCompleted = NO;
 
-    const CGEventRef event = CGEventCreate(nil);
-    if (!event) {
-      return GHOST_kFailure;
-    }
-    const CGPoint mouseLocation = CGEventGetLocation(event);
-    CFRelease(event);
+    [sampler showSamplerWithSelectionHandler:^(NSColor *selectedColor) {
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
+                     dispatch_get_main_queue(),
+                     ^{
+                       if (selectedColor != nil) {
+                         NSColor *rgbColor = [selectedColor
+                             colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]];
+                         if (rgbColor) {
+                           r_color[0] = [rgbColor redComponent];
+                           r_color[1] = [rgbColor greenComponent];
+                           r_color[2] = [rgbColor blueComponent];
+                         }
+                       }
+                       selectCompleted = YES;
+                     });
+    }];
 
-    const CGRect rect = CGRectMake(mouseLocation.x, mouseLocation.y, 1, 1);
-    const CGImageRef image = CGWindowListCreateImage(
-        rect, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
-    if (!image) {
-      return GHOST_kFailure;
+    while (!selectCompleted) {
+      [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                               beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
     }
-    NSBitmapImageRep *bitmap = [[[NSBitmapImageRep alloc] initWithCGImage:image] autorelease];
-    CGImageRelease(image);
-
-    NSColor *color = [bitmap colorAtX:0 y:0];
-    if (!color) {
-      return GHOST_kFailure;
-    }
-    NSColor *srgbColor = [color colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
-    if (!srgbColor) {
-      return GHOST_kFailure;
-    }
-
-    CGFloat red = 0.0, green = 0.0, blue = 0.0;
-    [color getRed:&red green:&green blue:&blue alpha:nil];
-    r_color[0] = red;
-    r_color[1] = green;
-    r_color[2] = blue;
   }
   return GHOST_kSuccess;
 }

@@ -40,7 +40,7 @@
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
@@ -4564,6 +4564,7 @@ void MESH_OT_fill(wmOperatorType *ot)
   ot->name = "Fill";
   ot->idname = "MESH_OT_fill";
   ot->description = "Fill a selected edge loop with faces";
+  ot->translation_context = BLT_I18NCONTEXT_ID_MESH;
 
   /* api callbacks */
   ot->exec = edbm_fill_exec;

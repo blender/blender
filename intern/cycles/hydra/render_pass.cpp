@@ -25,7 +25,7 @@
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 HdCyclesRenderPass::HdCyclesRenderPass(HdRenderIndex *index,
-                                       HdRprimCollection const &collection,
+                                       const HdRprimCollection &collection,
                                        HdCyclesSession *renderParam)
     : HdRenderPass(index, collection), _renderParam(renderParam)
 {
@@ -35,7 +35,7 @@ HdCyclesRenderPass::HdCyclesRenderPass(HdRenderIndex *index,
 
   session->set_output_driver(make_unique<HdCyclesOutputDriver>(renderParam));
 
-  const auto renderDelegate = static_cast<const HdCyclesDelegate *>(
+  const auto *const renderDelegate = static_cast<const HdCyclesDelegate *>(
       GetRenderIndex()->GetRenderDelegate());
   if (renderDelegate->IsDisplaySupported()) {
 #ifdef WITH_HYDRA_DISPLAY_DRIVER
@@ -65,16 +65,16 @@ bool HdCyclesRenderPass::IsConverged() const
 void HdCyclesRenderPass::ResetConverged()
 {
   for (const HdRenderPassAovBinding &aovBinding : _renderParam->GetAovBindings()) {
-    if (const auto renderBuffer = static_cast<HdCyclesRenderBuffer *>(aovBinding.renderBuffer)) {
+    if (auto *const renderBuffer = static_cast<HdCyclesRenderBuffer *>(aovBinding.renderBuffer)) {
       renderBuffer->SetConverged(false);
     }
   }
 }
 
 void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassState,
-                                  const TfTokenVector &renderTags)
+                                  const TfTokenVector & /*renderTags*/)
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
   Session *const session = _renderParam->session;
 
   if (session->progress.get_cancel()) {
@@ -82,7 +82,7 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
   }
 
   if (scene->mutex.try_lock()) {
-    const auto renderDelegate = static_cast<HdCyclesDelegate *>(
+    auto *const renderDelegate = static_cast<HdCyclesDelegate *>(
         GetRenderIndex()->GetRenderDelegate());
 
     const unsigned int settingsVersion = renderDelegate->GetRenderSettingsVersion();
@@ -97,8 +97,9 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
 
       if (renderDelegate->IsDisplaySupported()) {
         // Update display pass to the first requested color AOV
-        HdRenderPassAovBinding displayAovBinding = !aovBindings.empty() ? aovBindings.front() :
-                                                                          HdRenderPassAovBinding();
+        const HdRenderPassAovBinding displayAovBinding = !aovBindings.empty() ?
+                                                             aovBindings.front() :
+                                                             HdRenderPassAovBinding();
         if (displayAovBinding.aovName == HdAovTokens->color && displayAovBinding.renderBuffer) {
           _renderParam->SetDisplayAovBinding(displayAovBinding);
         }
@@ -124,7 +125,9 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
     scene->camera->set_full_height(int(vp[3]));
 #endif
 
-    if (const auto camera = static_cast<const HdCyclesCamera *>(renderPassState->GetCamera())) {
+    if (const auto *const camera = static_cast<const HdCyclesCamera *>(
+            renderPassState->GetCamera()))
+    {
       camera->ApplyCameraSettings(_renderParam, scene->camera);
     }
     else {

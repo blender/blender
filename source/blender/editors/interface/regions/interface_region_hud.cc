@@ -217,11 +217,26 @@ static void hud_region_draw(const bContext *C, ARegion *region)
   }
 }
 
+static void hud_region_listener(const wmRegionListenerParams *params)
+{
+  ARegion *region = params->region;
+  const wmNotifier *wmn = params->notifier;
+
+  switch (wmn->category) {
+    case NC_WM:
+      if (wmn->data == ND_HISTORY) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+  }
+}
+
 ARegionType *ED_area_type_hud(int space_type)
 {
   ARegionType *art = MEM_cnew<ARegionType>(__func__);
   art->regionid = RGN_TYPE_HUD;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+  art->listener = hud_region_listener;
   art->layout = hud_region_layout;
   art->draw = hud_region_draw;
   art->init = hud_region_init;

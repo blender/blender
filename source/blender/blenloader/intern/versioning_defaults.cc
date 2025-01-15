@@ -55,8 +55,9 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
@@ -644,7 +645,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
     if (ma->nodetree) {
       for (bNode *node : ma->nodetree->all_nodes()) {
-        if (node->type == SH_NODE_BSDF_PRINCIPLED) {
+        if (node->type_legacy == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = blender::bke::node_find_socket(
               node, SOCK_IN, "Roughness");
           *version_cycles_node_socket_float_value(roughness_socket) = 0.5f;
@@ -658,7 +659,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
           BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }
-        else if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
+        else if (node->type_legacy == SH_NODE_SUBSURFACE_SCATTERING) {
           node->custom1 = SHD_SUBSURFACE_RANDOM_WALK;
           BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }

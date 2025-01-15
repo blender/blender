@@ -22,6 +22,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"
 #include "BKE_node_tree_update.hh"
@@ -170,7 +171,7 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
 
   /* The rest of the socket types only allow an internal link if both the input and output socket
    * have the same type. If the sockets are custom, we check the idname instead. */
-  if (to->type == from->type && (to->type != SOCK_CUSTOM || STREQ(to->idname, from->idname))) {
+  if (to->type == from->type && (to->type != SOCK_CUSTOM || to->idname == from->idname)) {
     return 1;
   }
 
@@ -302,13 +303,13 @@ struct TreeUpdateResult {
 class NodeTreeMainUpdater {
  private:
   Main *bmain_;
-  NodeTreeUpdateExtraParams *params_;
+  const NodeTreeUpdateExtraParams &params_;
   Map<bNodeTree *, TreeUpdateResult> update_result_by_tree_;
   NodeTreeRelations relations_;
   bool needs_relations_update_ = false;
 
  public:
-  NodeTreeMainUpdater(Main *bmain, NodeTreeUpdateExtraParams *params)
+  NodeTreeMainUpdater(Main *bmain, const NodeTreeUpdateExtraParams &params)
       : bmain_(bmain), params_(params), relations_(bmain)
   {
   }
@@ -394,15 +395,13 @@ class NodeTreeMainUpdater {
         ntree->runtime->geometry_nodes_lazy_function_graph_info.reset();
       }
 
-      if (params_) {
-        relations_.ensure_owner_ids();
-        ID &owner_id = relations_.get_owner_id(ntree);
-        if (params_->tree_changed_fn) {
-          params_->tree_changed_fn(*ntree, owner_id);
-        }
-        if (params_->tree_output_changed_fn && result.output_changed) {
-          params_->tree_output_changed_fn(*ntree, owner_id);
-        }
+      relations_.ensure_owner_ids();
+      ID &owner_id = relations_.get_owner_id(ntree);
+      if (params_.tree_changed_fn) {
+        params_.tree_changed_fn(*ntree, owner_id);
+      }
+      if (params_.tree_output_changed_fn && result.output_changed) {
+        params_.tree_output_changed_fn(*ntree, owner_id);
       }
     }
 
@@ -620,13 +619,13 @@ class NodeTreeMainUpdater {
       return true;
     }
     if (ntree.tree_interface.is_changed()) {
-      if (ELEM(node.type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+      if (node.is_group_input() || node.is_group_output()) {
         return true;
       }
     }
     /* Check paired simulation zone nodes. */
-    if (all_zone_input_node_types().contains(node.type)) {
-      const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type);
+    if (all_zone_input_node_types().contains(node.type_legacy)) {
+      const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type_legacy);
       if (const bNode *output_node = zone_type.get_corresponding_output(ntree, node)) {
         if (output_node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
           return true;
@@ -718,11 +717,11 @@ class NodeTreeMainUpdater {
     int selected_priority = -1;
     bool selected_is_linked = false;
     const bNode &node = output_socket->owner_node();
-    if (node.type == GEO_NODE_BAKE) {
+    if (node.is_type("GeometryNodeBake")) {
       /* Internal links should always map corresponding input and output sockets. */
       return &node.input_by_identifier(output_socket->identifier);
     }
-    if (node.type == GEO_NODE_CAPTURE_ATTRIBUTE) {
+    if (node.is_type("GeometryNodeCaptureAttribute")) {
       return &node.input_socket(output_socket->index());
     }
     for (const bNodeSocket *input_socket : node.input_sockets()) {
@@ -791,7 +790,7 @@ class NodeTreeMainUpdater {
   {
     ntree.runtime->previews_refresh_state++;
     for (bNode *node : ntree.all_nodes()) {
-      if (node->type != NODE_GROUP) {
+      if (!node->is_group()) {
         continue;
       }
       if (bNodeTree *nested_tree = reinterpret_cast<bNodeTree *>(node->id)) {
@@ -907,7 +906,7 @@ class NodeTreeMainUpdater {
     for (bNode *node : ntree.toposort_right_to_left()) {
       const bool node_updated = this->should_update_individual_node(ntree, *node);
 
-      if (node->typeinfo->type == GEO_NODE_MENU_SWITCH) {
+      if (node->is_type("GeometryNodeMenuSwitch")) {
         /* Generate new enum items when the node has changed, otherwise keep existing items. */
         if (node_updated) {
           const NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node->storage);
@@ -970,7 +969,7 @@ class NodeTreeMainUpdater {
           }
         }
       }
-      else if (node->type == GEO_NODE_MENU_SWITCH) {
+      else if (node->is_type("GeometryNodeMenuSwitch")) {
         /* First input is always the node's own menu, propagate only to the enum case inputs. */
         const bNodeSocket *output = node->output_sockets().first();
         for (bNodeSocket *input : node->input_sockets().drop_front(1)) {
@@ -981,7 +980,7 @@ class NodeTreeMainUpdater {
           }
         }
       }
-      else if (node->type == GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT) {
+      else if (node->is_type("GeometryNodeForeachGeometryElementInput")) {
         /* Propagate menu from element inputs to field inputs. */
         BLI_assert(node->input_sockets().size() == node->output_sockets().size());
         /* Inputs Geometry, Selection and outputs Index, Element are ignored. */
@@ -1231,8 +1230,8 @@ class NodeTreeMainUpdater {
               NodeLinkError{fmt::format("{}: {} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
                                         " {}",
                                         TIP_("Conversion is not supported"),
-                                        TIP_(link->fromsock->typeinfo->label),
-                                        TIP_(link->tosock->typeinfo->label))});
+                                        TIP_(link->fromsock->typeinfo->label.c_str()),
+                                        TIP_(link->tosock->typeinfo->label.c_str()))});
           continue;
         }
       }
@@ -1320,17 +1319,17 @@ class NodeTreeMainUpdater {
     if (node.typeinfo->nclass == NODE_CLASS_OUTPUT) {
       return true;
     }
-    if (node.type == NODE_GROUP_OUTPUT) {
+    if (node.is_group_output()) {
       return true;
     }
-    if (node.type == GEO_NODE_WARNING) {
+    if (node.is_type("GeometryNodeWarning")) {
       return true;
     }
     if (nodes::gizmos::is_builtin_gizmo_node(node)) {
       return true;
     }
     /* Assume node groups without output sockets are outputs. */
-    if (node.type == NODE_GROUP) {
+    if (node.is_group()) {
       const bNodeTree *node_group = reinterpret_cast<const bNodeTree *>(node.id);
       if (node_group != nullptr &&
           node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT)
@@ -1434,7 +1433,7 @@ class NodeTreeMainUpdater {
         if (!all_available_inputs_computed) {
           continue;
         }
-        if (node.type == NODE_REROUTE) {
+        if (node.is_reroute()) {
           socket_hash = *hash_by_socket_id[node.input_socket(0).index_in_tree()];
         }
         else if (node.is_muted()) {
@@ -1462,7 +1461,7 @@ class NodeTreeMainUpdater {
 
           /* The Image Texture node has a special case. The behavior of the color output changes
            * depending on whether the Alpha output is linked. */
-          if (node.type == SH_NODE_TEX_IMAGE && socket.index() == 0) {
+          if (node.is_type("ShaderNodeTexImage") && socket.index() == 0) {
             BLI_assert(STREQ(socket.name, "Color"));
             const bNodeSocket &alpha_socket = node.output_socket(1);
             BLI_assert(STREQ(alpha_socket.name, "Alpha"));
@@ -1536,7 +1535,7 @@ class NodeTreeMainUpdater {
         }
         /* Zones may propagate changes from the input node to the output node even though there is
          * no explicit link. */
-        switch (node.type) {
+        switch (node.type_legacy) {
           case GEO_NODE_REPEAT_OUTPUT:
           case GEO_NODE_SIMULATION_OUTPUT:
           case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT:
@@ -1564,7 +1563,7 @@ class NodeTreeMainUpdater {
         }
         /* The Normal node has a special case, because the value stored in the first output
          * socket is used as input in the node. */
-        if (node.type == SH_NODE_NORMAL && socket.index() == 1) {
+        if (node.is_type("ShaderNodeNormal") && socket.index() == 1) {
           BLI_assert(STREQ(socket.name, "Dot"));
           const bNodeSocket &normal_output = node.output_socket(0);
           BLI_assert(STREQ(normal_output.name, "Normal"));
@@ -1839,31 +1838,40 @@ bool operator==(const bNestedNodePath &a, const bNestedNodePath &b)
  */
 static bool is_updating = false;
 
-void BKE_ntree_update_main(Main *bmain, NodeTreeUpdateExtraParams *params)
+void BKE_ntree_update(Main &bmain,
+                      const std::optional<blender::Span<bNodeTree *>> modified_trees,
+                      const NodeTreeUpdateExtraParams &params)
 {
   if (is_updating) {
     return;
   }
 
   is_updating = true;
-  blender::bke::NodeTreeMainUpdater updater{bmain, params};
-  updater.update();
+  blender::bke::NodeTreeMainUpdater updater{&bmain, params};
+  if (modified_trees.has_value()) {
+    updater.update_rooted(*modified_trees);
+  }
+  else {
+    updater.update();
+  }
   is_updating = false;
 }
 
-void BKE_ntree_update_main_tree(Main *bmain, bNodeTree *ntree, NodeTreeUpdateExtraParams *params)
+void BKE_ntree_update_after_single_tree_change(Main &bmain,
+                                               bNodeTree &modified_tree,
+                                               const NodeTreeUpdateExtraParams &params)
 {
-  if (ntree == nullptr) {
-    BKE_ntree_update_main(bmain, params);
-    return;
-  }
+  BKE_ntree_update(bmain, blender::Span{&modified_tree}, params);
+}
 
+void BKE_ntree_update_without_main(bNodeTree &tree)
+{
   if (is_updating) {
     return;
   }
-
   is_updating = true;
-  blender::bke::NodeTreeMainUpdater updater{bmain, params};
-  updater.update_rooted({ntree});
+  NodeTreeUpdateExtraParams params;
+  blender::bke::NodeTreeMainUpdater updater{nullptr, params};
+  updater.update_rooted({&tree});
   is_updating = false;
 }

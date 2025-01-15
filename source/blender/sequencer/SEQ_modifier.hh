@@ -13,7 +13,7 @@ struct BlendWriter;
 struct ImBuf;
 struct ListBase;
 struct SeqRenderData;
-struct Sequence;
+struct Strip;
 struct SequenceModifierData;
 struct StripScreenQuad;
 
@@ -45,18 +45,18 @@ struct SequenceModifierTypeInfo {
 };
 
 const SequenceModifierTypeInfo *SEQ_modifier_type_info_get(int type);
-SequenceModifierData *SEQ_modifier_new(Sequence *seq, const char *name, int type);
-bool SEQ_modifier_remove(Sequence *seq, SequenceModifierData *smd);
-void SEQ_modifier_clear(Sequence *seq);
+SequenceModifierData *SEQ_modifier_new(Strip *strip, const char *name, int type);
+bool SEQ_modifier_remove(Strip *strip, SequenceModifierData *smd);
+void SEQ_modifier_clear(Strip *strip);
 void SEQ_modifier_free(SequenceModifierData *smd);
-void SEQ_modifier_unique_name(Sequence *seq, SequenceModifierData *smd);
-SequenceModifierData *SEQ_modifier_find_by_name(Sequence *seq, const char *name);
+void SEQ_modifier_unique_name(Strip *strip, SequenceModifierData *smd);
+SequenceModifierData *SEQ_modifier_find_by_name(Strip *strip, const char *name);
 void SEQ_modifier_apply_stack(const SeqRenderData *context,
-                              const Sequence *seq,
+                              const Strip *strip,
                               ImBuf *ibuf,
                               int timeline_frame);
-void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq);
-int SEQ_sequence_supports_modifiers(Sequence *seq);
+void SEQ_modifier_list_copy(Strip *seqn, Strip *strip);
+int SEQ_sequence_supports_modifiers(Strip *strip);
 
 void SEQ_modifier_blend_write(BlendWriter *writer, ListBase *modbase);
 void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb);

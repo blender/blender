@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
 #include "WM_types.hh"
 
 struct Main;
@@ -89,6 +88,14 @@ void ED_slider_status_string_get(const tSlider *slider,
 
 float ED_slider_factor_get(const tSlider *slider);
 void ED_slider_factor_set(tSlider *slider, float factor);
+
+/**
+ * By default the increment step is 0.1, which depending on the factor bounds might not be desired.
+ * Only has an effect if increment is allowed and enabled.
+ * See `ED_slider_allow_increments_set`.
+ * \param increment_step cannot be 0.
+ */
+void ED_slider_increment_step_set(tSlider *slider, float increment_step);
 
 /** One bool value for each side of the slider. Allows to enable overshoot only on one side. */
 void ED_slider_allow_overshoot_set(tSlider *slider, bool lower, bool upper);

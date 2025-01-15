@@ -193,13 +193,13 @@ static void ruler_item_remove(bContext *C, wmGizmoGroup *gzgroup, RulerItem *rul
 }
 
 static void ruler_item_as_string(
-    RulerItem *ruler_item, UnitSettings *unit, char *numstr, size_t numstr_size, int prec)
+    RulerItem *ruler_item, const UnitSettings &unit, char *numstr, size_t numstr_size, int prec)
 {
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
     const float ruler_angle = angle_v3v3v3(
         ruler_item->co[0], ruler_item->co[1], ruler_item->co[2]);
 
-    if (unit->system == USER_UNIT_NONE) {
+    if (unit.system == USER_UNIT_NONE) {
       BLI_snprintf(
           numstr, numstr_size, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, prec, RAD2DEGF(ruler_angle));
     }
@@ -211,17 +211,11 @@ static void ruler_item_as_string(
   else {
     const float ruler_len = len_v3v3(ruler_item->co[0], ruler_item->co[2]);
 
-    if (unit->system == USER_UNIT_NONE) {
+    if (unit.system == USER_UNIT_NONE) {
       BLI_snprintf(numstr, numstr_size, "%.*f", prec, ruler_len);
     }
     else {
-      BKE_unit_value_as_string(numstr,
-                               numstr_size,
-                               double(ruler_len * unit->scale_length),
-                               prec,
-                               B_UNIT_LENGTH,
-                               unit,
-                               false);
+      BKE_unit_value_as_string(numstr, numstr_size, ruler_len, prec, B_UNIT_LENGTH, unit, false);
     }
   }
 }
@@ -645,7 +639,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
 static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 {
   Scene *scene = CTX_data_scene(C);
-  UnitSettings *unit = &scene->unit;
+  const UnitSettings &unit = scene->unit;
   RulerInfo *ruler_info = static_cast<RulerInfo *>(gz->parent_gzgroup->customdata);
   RulerItem *ruler_item = (RulerItem *)gz;
   ARegion *region = ruler_info->region;

@@ -10,7 +10,6 @@
  */
 
 #include "BLI_bounds_types.hh"
-#include "BLI_generic_virtual_array.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
@@ -36,6 +35,9 @@ struct AttributeAccessorFunctions;
 }  // namespace blender::bke
 namespace blender::bke::bake {
 struct BakeMaterialsList;
+}
+namespace blender {
+class GVArray;
 }
 
 namespace blender::bke {
@@ -213,6 +215,9 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   Span<float3> positions() const;
   MutableSpan<float3> positions_for_write();
+
+  VArray<float> radius() const;
+  MutableSpan<float> radius_for_write();
 
   /** Whether the curve loops around to connect to itself, on the curve domain. */
   VArray<bool> cyclic() const;

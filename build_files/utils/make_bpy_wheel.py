@@ -27,6 +27,9 @@ NOTE:
 Some type annotations are quoted to avoid errors in Python 3.9.
 These can be unquoted eventually.
 """
+__all__ = (
+    "main",
+)
 
 import argparse
 import make_utils
@@ -37,7 +40,9 @@ import string
 import setuptools
 import sys
 
-from collections.abc import (
+from typing import (
+    Tuple,
+    # Proxies for `collections.abc`
     Iterator,
     Sequence,
 )
@@ -47,7 +52,7 @@ from collections.abc import (
 
 long_description = """# Blender
 
-[Blender](https://www.blender.org) is the free and open source 3D creation suite. It supports the entirety of the 3D pipeline—modeling, rigging, animation, simulation, rendering, compositing and motion tracking, even video editing.
+[Blender](https://www.blender.org) is the free and open source 3D creation suite. It supports the entirety of the 3D pipeline: modeling, rigging, animation, simulation, rendering, compositing and motion tracking, even video editing.
 
 This package provides Blender as a Python module for use in studio pipelines, web services, scientific research, and more.
 
@@ -95,7 +100,7 @@ def find_dominating_file(
 # ------------------------------------------------------------------------------
 # CMake Cache Access
 
-def cmake_cache_var_iter(filepath_cmake_cache: str) -> Iterator[tuple[str, str, str]]:
+def cmake_cache_var_iter(filepath_cmake_cache: str) -> Iterator[Tuple[str, str, str]]:
     re_cache = re.compile(r"([A-Za-z0-9_\-]+)?:?([A-Za-z0-9_\-]+)?=(.*)$")
     with open(filepath_cmake_cache, "r", encoding="utf-8") as cache_file:
         for l in cache_file:

@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "util/string.h"
-#include "util/vector.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -14,9 +13,9 @@ class DeviceInfo;
 class Profiler;
 class Stats;
 
-Device *device_dummy_create(const DeviceInfo &info,
-                            Stats &stats,
-                            Profiler &profiler,
-                            bool headless);
+unique_ptr<Device> device_dummy_create(const DeviceInfo &info,
+                                       Stats &stats,
+                                       Profiler &profiler,
+                                       bool headless);
 
 CCL_NAMESPACE_END

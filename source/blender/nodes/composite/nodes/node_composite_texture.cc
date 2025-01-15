@@ -58,8 +58,8 @@ class TextureOperation : public NodeOperation {
         texture,
         true,
         domain.size,
-        get_input("Offset").get_vector_value_default(float4(0.0f)).xyz(),
-        get_input("Scale").get_vector_value_default(float4(1.0f)).xyz());
+        get_input("Offset").get_single_value_default(float4(0.0f)).xyz(),
+        get_input("Scale").get_single_value_default(float4(1.0f)).xyz());
 
     Result &color_result = get_result("Color");
     if (color_result.should_compute()) {
@@ -109,8 +109,11 @@ void register_node_type_cmp_texture()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeTexture", CMP_NODE_TEXTURE);
+  ntype.ui_name = "Texture";
+  ntype.ui_description = "Generate texture pattern from texture datablock";
   ntype.enum_name_legacy = "TEXTURE";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_texture_declare;
   ntype.compositor_unsupported_message = N_(
       "Texture nodes not supported in the Viewport compositor");

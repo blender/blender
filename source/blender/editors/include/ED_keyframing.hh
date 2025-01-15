@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_vector.hh"
 #include "DNA_anim_types.h"
 #include "RNA_types.hh"
 

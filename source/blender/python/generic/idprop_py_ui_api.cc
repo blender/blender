@@ -29,8 +29,6 @@
 #endif
 #include "py_capi_rna.hh"
 
-#include "python_utildefines.hh"
-
 /* -------------------------------------------------------------------- */
 /** \name UI Data Update
  * \{ */

@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include <fcntl.h>
 #ifndef WIN32
@@ -27,6 +26,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 

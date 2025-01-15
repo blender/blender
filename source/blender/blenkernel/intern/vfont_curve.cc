@@ -510,7 +510,7 @@ static float vfont_char_width(Curve *cu, VChar *che, const CharInfo *info)
 
 static char32_t vfont_char_apply_smallcaps(char32_t charcode, const CharInfo *info)
 {
-  if (UNLIKELY((info->flag & CU_CHINFO_SMALLCAPS_CHECK))) {
+  if (UNLIKELY(info->flag & CU_CHINFO_SMALLCAPS_CHECK)) {
     return toupper(charcode);
   }
   return charcode;

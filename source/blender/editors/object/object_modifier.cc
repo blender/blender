@@ -58,7 +58,8 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_main_invariants.hh"
+#include "BKE_material.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
@@ -696,19 +697,7 @@ bool convert_psys_to_mesh(ReportList * /*reports*/,
     return false;
   }
 
-  /* add new mesh */
-  Object *obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, nullptr);
-  Mesh *mesh = static_cast<Mesh *>(obn->data);
-
-  mesh->verts_num = verts_num;
-  mesh->edges_num = edges_num;
-
-  CustomData_add_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, verts_num, "position");
-  CustomData_add_layer_named(
-      &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->edges_num, ".edge_verts");
-  CustomData_add_layer(&mesh->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, 0);
-
+  Mesh *mesh = BKE_mesh_new_nomain(verts_num, edges_num, 0, 0);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
 
@@ -755,6 +744,9 @@ bool convert_psys_to_mesh(ReportList * /*reports*/,
   }
 
   select_vert.finish();
+
+  Object *obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, nullptr);
+  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obn->data), obn);
 
   DEG_relations_tag_update(bmain);
 
@@ -2394,13 +2386,13 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
                          false,
                          "Make Data Single User",
                          "Make the object's data single user if needed");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "all_keyframes",
                          false,
                          "Apply to all keyframes",
                          "For Grease Pencil objects, apply the modifier to all the keyframes");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   modifier_register_use_selected_objects_prop(ot);
 }
 
@@ -3811,7 +3803,7 @@ static int geometry_node_tree_copy_assign_exec(bContext *C, wmOperator * /*op*/)
   nmd->node_group = new_tree;
   id_us_min(&tree->id);
 
-  ED_node_tree_propagate_change(C, bmain, new_tree);
+  BKE_main_ensure_invariants(*bmain);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

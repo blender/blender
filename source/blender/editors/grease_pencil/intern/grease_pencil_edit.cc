@@ -44,7 +44,7 @@
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -389,7 +389,7 @@ static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
   ot->description = "Simplify selected strokes";
 
   ot->exec = grease_pencil_stroke_simplify_exec;
-  ot->poll = editable_grease_pencil_point_selection_poll;
+  ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -2894,19 +2894,15 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   selection.span.copy_from(dst_selected.as_span());
   selection.finish();
 
-  /* Cyclic attribute : newly created curves cannot be cyclic.
-   * NOTE: if the cyclic attribute is single and false, it can be kept this way.
-   */
-  if (src_cyclic.get_if_single().value_or(true)) {
-    dst.cyclic_for_write().drop_front(old_curves_num).fill(false);
-  }
-
   bke::gather_attributes(src_attributes,
                          bke::AttrDomain::Curve,
                          bke::AttrDomain::Curve,
-                         bke::attribute_filter_from_skip_ref({"cyclic"}),
+                         {},
                          dst_to_src_curves,
                          dst_attributes);
+
+  /* Cyclic attribute : newly created curves cannot be cyclic. */
+  dst.cyclic_for_write().drop_front(old_curves_num).fill(false);
 
   bke::gather_attributes(src_attributes,
                          bke::AttrDomain::Point,
@@ -4001,13 +3997,19 @@ static void copy_layer_group_content(GreasePencil &grease_pencil_dst,
 {
   using namespace blender::bke::greasepencil;
 
-  for (const bke::greasepencil::TreeNode *node : group_src.nodes()) {
-    if (node->is_group()) {
-      copy_layer_group_recursive(grease_pencil_dst, group_dst, node->as_group(), layer_name_map);
-    }
-    if (node->is_layer()) {
-      Layer &layer_dst = copy_layer(grease_pencil_dst, group_dst, node->as_layer());
-      layer_name_map.add_new(node->as_layer().name(), layer_dst.name());
+  LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child, &group_src.children) {
+    switch (child->type) {
+      case GP_LAYER_TREE_LEAF: {
+        Layer &layer_src = reinterpret_cast<GreasePencilLayer *>(child)->wrap();
+        Layer &layer_dst = copy_layer(grease_pencil_dst, group_dst, layer_src);
+        layer_name_map.add_new(layer_src.name(), layer_dst.name());
+        break;
+      }
+      case GP_LAYER_TREE_GROUP: {
+        LayerGroup &group_src = reinterpret_cast<GreasePencilLayerTreeGroup *>(child)->wrap();
+        copy_layer_group_recursive(grease_pencil_dst, group_dst, group_src, layer_name_map);
+        break;
+      }
     }
   }
 }

@@ -139,6 +139,9 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_AMOUNT "Amount"
 #define BLT_I18NCONTEXT_COLOR "Color"
 #define BLT_I18NCONTEXT_CONSTRAINT "Constraint"
+#define BLT_I18NCONTEXT_MODIFIER "Modifier"
+#define BLT_I18NCONTEXT_NAVIGATION "Navigation"
+#define BLT_I18NCONTEXT_RENDER_LAYER "Render Layer"
 #define BLT_I18NCONTEXT_TIME "Time"
 #define BLT_I18NCONTEXT_UNIT "Unit"
 
@@ -211,6 +214,9 @@ struct BLT_i18n_contexts_descriptor {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_AMOUNT, "amount"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COLOR, "color"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_CONSTRAINT, "constraint"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_MODIFIER, "modifier"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_NAVIGATION, "navigation"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_RENDER_LAYER, "render_layer"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_TIME, "time"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_UNIT, "unit"), \
     { \

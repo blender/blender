@@ -14,6 +14,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "transform.hh"
+
 bool peelObjectsTransform(TransInfo *t,
                           const float mval[2],
                           bool use_peel_object,

@@ -524,6 +524,8 @@ class SCENE_OT_gltf2_animation_apply(bpy.types.Operator):
         # remove all actions from objects
         for obj in bpy.context.scene.objects:
             if obj.animation_data:
+                if obj.animation_data.action is not None:
+                    obj.animation_data.action_slot = None
                 obj.animation_data.action = None
                 obj.matrix_world = obj.gltf2_animation_rest
 
@@ -532,6 +534,8 @@ class SCENE_OT_gltf2_animation_apply(bpy.types.Operator):
                     obj.animation_data.action = track.strips[0].action
 
             if obj.type == "MESH" and obj.data and obj.data.shape_keys and obj.data.shape_keys.animation_data:
+                if obj.data.shape_keys.animation_data.action is not None:
+                    obj.data.shape_keys.animation_data.action_slot = None
                 obj.data.shape_keys.animation_data.action = None
                 for idx, data in enumerate(obj.gltf2_animation_weight_rest):
                     obj.data.shape_keys.key_blocks[idx + 1].value = data.val
@@ -539,21 +543,28 @@ class SCENE_OT_gltf2_animation_apply(bpy.types.Operator):
                 for track in [track for track in obj.data.shape_keys.animation_data.nla_tracks if track.name ==
                               track_name and len(track.strips) > 0 and track.strips[0].action is not None]:
                     obj.data.shape_keys.animation_data.action = track.strips[0].action
+                    obj.data.shape_keys.animation_data.action_slot = track.strips[0].action_slot
 
             if obj.type in ["LIGHT", "CAMERA"] and obj.data and obj.data.animation_data:
+                if obj.data.animation_data.action is not None:
+                    obj.data.animation_data.action_slot = None
                 obj.data.animation_data.action = None
                 for track in [track for track in obj.data.animation_data.nla_tracks if track.name ==
                               track_name and len(track.strips) > 0 and track.strips[0].action is not None]:
                     obj.data.animation_data.action = track.strips[0].action
+                    obj.data.animation_data.action_slot = track.strips[0].action_slot
 
         for mat in bpy.data.materials:
             if not mat.node_tree:
                 continue
             if mat.node_tree.animation_data:
+                if mat.node_tree.animation_data.action is not None:
+                    mat.node_tree.animation_data.action_slot = None
                 mat.node_tree.animation_data.action = None
                 for track in [track for track in mat.node_tree.animation_data.nla_tracks if track.name ==
                               track_name and len(track.strips) > 0 and track.strips[0].action is not None]:
                     mat.node_tree.animation_data.action = track.strips[0].action
+                    mat.node_tree.animation_data.action_slot = track.strips[0].action_slot
 
         bpy.data.scenes[0].gltf2_animation_applied = self.index
         return {'FINISHED'}

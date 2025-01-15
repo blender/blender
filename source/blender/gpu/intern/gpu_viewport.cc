@@ -11,6 +11,7 @@
 #include <cstring>
 
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
 #include "BKE_colortools.hh"
@@ -50,7 +51,7 @@ static struct {
 } g_viewport = {{0}};
 
 struct GPUViewport {
-  int size[2];
+  blender::int2 size;
   int flag;
 
   /* Set the active view (for stereoscopic viewport rendering). */
@@ -190,14 +191,14 @@ static void gpu_viewport_textures_free(GPUViewport *viewport)
 
 void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
 {
-  int rect_size[2];
+  blender::int2 rect_size;
   /* add one pixel because of scissor test */
   rect_size[0] = BLI_rcti_size_x(rect) + 1;
   rect_size[1] = BLI_rcti_size_y(rect) + 1;
 
   DRW_gpu_context_enable();
 
-  if (!equals_v2v2_int(viewport->size, rect_size)) {
+  if (viewport->size != rect_size) {
     copy_v2_v2_int(viewport->size, rect_size);
     gpu_viewport_textures_free(viewport);
     gpu_viewport_textures_create(viewport);

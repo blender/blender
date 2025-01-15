@@ -52,8 +52,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_INPUT_INSTANCE_ROTATION, "Instance Rotation", NODE_CLASS_INPUT);
+      &ntype, "GeometryNodeInputInstanceRotation", GEO_NODE_INPUT_INSTANCE_ROTATION);
+  ntype.ui_name = "Instance Rotation";
+  ntype.ui_description = "Retrieve the rotation of each instance in the geometry";
   ntype.enum_name_legacy = "INPUT_INSTANCE_ROTATION";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

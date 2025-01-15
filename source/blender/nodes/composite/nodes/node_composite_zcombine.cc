@@ -80,10 +80,10 @@ class ZCombineOperation : public NodeOperation {
 
   void execute_single_value()
   {
-    const float4 first_color = get_input("Image").get_color_value();
-    const float4 second_color = get_input("Image_001").get_color_value();
-    const float first_z_value = get_input("Z").get_float_value();
-    const float second_z_value = get_input("Z_001").get_float_value();
+    const float4 first_color = get_input("Image").get_single_value<float4>();
+    const float4 second_color = get_input("Image_001").get_single_value<float4>();
+    const float first_z_value = get_input("Z").get_single_value<float>();
+    const float second_z_value = get_input("Z_001").get_single_value<float>();
 
     /* Mix between the first and second images using a mask such that the image with the object
      * closer to the camera is returned. The mask value is then 1, and thus returns the first image
@@ -101,14 +101,14 @@ class ZCombineOperation : public NodeOperation {
       combined_color.w = use_alpha() ? math::max(second_color.w, first_color.w) : combined_color.w;
 
       combined.allocate_single_value();
-      combined.set_color_value(combined_color);
+      combined.set_single_value(combined_color);
     }
 
     Result &combined_z = get_result("Z");
     if (combined_z.should_compute()) {
       const float combined_z_value = math::interpolate(second_z_value, first_z_value, mix_factor);
       combined_z.allocate_single_value();
-      combined_z.set_float_value(combined_z_value);
+      combined_z.set_single_value(combined_z_value);
     }
   }
 
@@ -380,8 +380,11 @@ void register_node_type_cmp_zcombine()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeZcombine", CMP_NODE_ZCOMBINE);
+  ntype.ui_name = "Z Combine";
+  ntype.ui_description = "Combine two images using depth maps";
   ntype.enum_name_legacy = "ZCOMBINE";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_zcombine_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_zcombine;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

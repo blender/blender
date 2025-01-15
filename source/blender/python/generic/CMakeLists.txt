@@ -4,8 +4,6 @@
 
 set(INC
   .
-  ../../blenkernel
-  ../../gpu
   ../../makesrna
 )
 
@@ -24,7 +22,7 @@ set(SRC
   py_capi_rna.cc
   py_capi_utils.cc
 
-  bgl.h
+  bgl.hh
   bl_math_py_api.hh
   blf_py_api.hh
   idprop_py_api.hh
@@ -41,8 +39,10 @@ set(SRC
 set(LIB
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

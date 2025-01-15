@@ -10,6 +10,15 @@
 # and https://pypi.org/project/blender-asset-tracer/
 # -----------------------------------------------------------------------------
 
+__all__ = (
+    "open_blend",
+
+    # Expose for `wrapper_type` argument to `open_blend`.
+    "BlendFile",
+    "BlendFileRaw",
+)
+
+
 import gzip
 import logging
 import os
@@ -212,7 +221,7 @@ class BlendFile:
             fields_len = d[1]
             dna_offset = 0
 
-            for field_index in range(fields_len):
+            for _field_index in range(fields_len):
                 d2 = shortstruct2.unpack_from(data, offset)
                 field_type_index = d2[0]
                 field_name_index = d2[1]

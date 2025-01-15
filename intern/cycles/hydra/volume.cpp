@@ -31,7 +31,7 @@ HdCyclesVolume::HdCyclesVolume(const SdfPath &rprimId
 {
 }
 
-HdCyclesVolume::~HdCyclesVolume() {}
+HdCyclesVolume::~HdCyclesVolume() = default;
 
 HdDirtyBits HdCyclesVolume::GetInitialDirtyBitsMask() const
 {
@@ -47,7 +47,7 @@ void HdCyclesVolume::Populate(HdSceneDelegate *sceneDelegate, HdDirtyBits dirtyB
   if (dirtyBits & HdChangeTracker::DirtyVolumeField) {
     for (const HdVolumeFieldDescriptor &field : sceneDelegate->GetVolumeFieldDescriptors(GetId()))
     {
-      if (const auto openvdbAsset = static_cast<HdCyclesField *>(
+      if (auto *const openvdbAsset = static_cast<HdCyclesField *>(
               sceneDelegate->GetRenderIndex().GetBprim(_tokens->openvdbAsset, field.fieldId)))
       {
         const ustring name(field.fieldName.GetString());

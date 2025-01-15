@@ -8,6 +8,12 @@
 
 #pragma once
 
+struct ARegion;
+struct ImBuf;
+struct Image;
+struct ImageUser;
+struct Main;
+
 namespace blender::image_engine {
 
 struct ShaderParameters;

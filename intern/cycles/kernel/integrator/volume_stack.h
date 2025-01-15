@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 template<typename StackReadOp, typename StackWriteOp>
 ccl_device void volume_stack_enter_exit(KernelGlobals kg,
-                                        ccl_private const ShaderData *sd,
+                                        const ccl_private ShaderData *sd,
                                         StackReadOp stack_read,
                                         StackWriteOp stack_write)
 {
@@ -84,7 +84,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
 
 ccl_device void volume_stack_enter_exit(KernelGlobals kg,
                                         IntegratorState state,
-                                        ccl_private const ShaderData *sd)
+                                        const ccl_private ShaderData *sd)
 {
   VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
   VOLUME_WRITE_LAMBDA(integrator_state_write_volume_stack(state, i, entry))
@@ -93,7 +93,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
 
 ccl_device void shadow_volume_stack_enter_exit(KernelGlobals kg,
                                                IntegratorShadowState state,
-                                               ccl_private const ShaderData *sd)
+                                               const ccl_private ShaderData *sd)
 {
   VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i))
   VOLUME_WRITE_LAMBDA(integrator_state_write_shadow_volume_stack(state, i, entry))
@@ -128,7 +128,7 @@ ccl_device_inline void volume_stack_clean(KernelGlobals kg, IntegratorState stat
 /* Check if the volume is homogeneous by checking if the shader flag is set or if volume attributes
  * are needed. */
 ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
-                                             ccl_private const VolumeStack &entry)
+                                             const ccl_private VolumeStack &entry)
 {
   const int shader_flag = kernel_data_fetch(shaders, (entry.shader & SHADER_MASK)).flags;
 
@@ -174,12 +174,12 @@ ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read
   return step_size;
 }
 
-typedef enum VolumeSampleMethod {
+enum VolumeSampleMethod {
   VOLUME_SAMPLE_NONE = 0,
   VOLUME_SAMPLE_DISTANCE = (1 << 0),
   VOLUME_SAMPLE_EQUIANGULAR = (1 << 1),
   VOLUME_SAMPLE_MIS = (VOLUME_SAMPLE_DISTANCE | VOLUME_SAMPLE_EQUIANGULAR),
-} VolumeSampleMethod;
+};
 
 ccl_device VolumeSampleMethod volume_stack_sample_method(KernelGlobals kg, IntegratorState state)
 {

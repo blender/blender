@@ -20,7 +20,6 @@
 #include "../generic/python_compat.hh"
 
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
 #include "BKE_main.hh"

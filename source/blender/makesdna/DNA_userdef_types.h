@@ -540,7 +540,7 @@ typedef struct bTheme {
   /* See COLLECTION_COLOR_TOT for the number of collection colors. */
   ThemeCollectionColor collection_color[8];
 
-  /* See SEQUENCE_COLOR_TOT for the total number of strip colors. */
+  /* See STRIP_COLOR_TOT for the total number of strip colors. */
   ThemeStripColor strip_color[9];
 
   int active_theme_area;

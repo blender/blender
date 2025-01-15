@@ -12,10 +12,11 @@
 #include <string>
 // #include <vector>
 
-#include "COLLADASWInputList.h"
-#include "COLLADASWLibraryControllers.h"
-#include "COLLADASWNode.h"
-#include "COLLADASWStreamWriter.h"
+#include <COLLADASWInputList.h>
+#include <COLLADASWInstanceController.h>
+#include <COLLADASWLibraryControllers.h>
+#include <COLLADASWNode.h>
+#include <COLLADASWStreamWriter.h>
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"

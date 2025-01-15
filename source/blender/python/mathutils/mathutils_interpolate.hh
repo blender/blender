@@ -8,4 +8,6 @@
  * \ingroup pymathutils
  */
 
+#include <Python.h>
+
 PyMODINIT_FUNC PyInit_mathutils_interpolate();

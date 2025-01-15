@@ -1078,7 +1078,7 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
 }
 
 static BezTriple *rna_FKeyframe_points_insert(
-    ID *id, FCurve *fcu, Main *bmain, float frame, float value, int keyframe_type, int flag)
+    ID *id, FCurve *fcu, Main *bmain, float frame, float value, int flag, int keyframe_type)
 {
   using namespace blender::animrig;
   KeyframeSettings settings = get_keyframe_settings(false);
@@ -1666,6 +1666,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
       prop,
       "Strength",
       "Amplitude of the noise - the amount that it modifies the underlying curve");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_update");
 
   prop = RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);
@@ -2297,6 +2298,7 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "hide");
   RNA_def_property_enum_items(prop, rna_enum_beztriple_keyframe_type_items);
   RNA_def_property_ui_text(prop, "Type", "Type of keyframe (for visual purposes only)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, "rna_Keyframe_update");
 
   prop = RNA_def_property(srna, "easing", PROP_ENUM, PROP_NONE);

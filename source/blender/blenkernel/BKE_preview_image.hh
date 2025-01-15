@@ -8,8 +8,6 @@
 #include <memory>
 #include <optional>
 
-#include "BLI_sys_types.h"
-
 #include "DNA_ID_enums.h"
 
 struct BlendDataReader;

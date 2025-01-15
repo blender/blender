@@ -25,7 +25,7 @@ HdCyclesPlugin::HdCyclesPlugin()
 {
   const PlugPluginPtr plugin = PLUG_THIS_PLUGIN;
   // Initialize Cycles paths relative to the plugin resource path
-  std::string rootPath = PXR_NS::ArchAbsPath(plugin->GetResourcePath());
+  const std::string rootPath = PXR_NS::ArchAbsPath(plugin->GetResourcePath());
   CCL_NS::path_init(std::move(rootPath));
 
 #ifdef WITH_CYCLES_LOGGING
@@ -44,7 +44,7 @@ bool HdCyclesPlugin::IsSupported() const
   return true;
 }
 #else
-bool HdCyclesPlugin::IsSupported(bool gpuEnabled) const
+bool HdCyclesPlugin::IsSupported(bool /*gpuEnabled*/) const
 {
   return true;
 }

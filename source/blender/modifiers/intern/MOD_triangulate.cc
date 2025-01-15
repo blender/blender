@@ -36,6 +36,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
                               const int min_vertices,
                               const int flag)
 {
+  using namespace blender;
   Mesh *result;
   BMesh *bm;
   CustomData_MeshMasks cd_mask_extra{};
@@ -67,9 +68,11 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   BM_mesh_free(bm);
 
   if (keep_clnors) {
-    float(*corner_normals)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
-    BKE_mesh_set_custom_normals_normalized(result, corner_normals);
+    bke::mesh_set_custom_normals_normalized(
+        *result,
+        {static_cast<float3 *>(
+             CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num)),
+         result->corners_num});
     CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
   }
 

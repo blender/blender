@@ -524,6 +524,21 @@ class Map {
   }
 
   /**
+   * Returns a copy of the value that corresponds to the given key, or std::nullopt if the key is
+   * not in the map. In some cases, one may not want a copy but an actual reference to the value.
+   * In that case it's better to use #lookup_ptr instead.
+   */
+  std::optional<Value> lookup_try(const Key &key) const
+  {
+    return this->lookup_try_as(key);
+  }
+  template<typename ForwardKey> std::optional<Value> lookup_try_as(const ForwardKey &key) const
+  {
+    const Slot *slot = this->lookup_slot_ptr(key, hash_(key));
+    return (slot != nullptr) ? std::optional<Value>(*slot->value()) : std::nullopt;
+  }
+
+  /**
    * Returns a reference to the value that corresponds to the given key. This invokes undefined
    * behavior when the key is not in the map.
    */

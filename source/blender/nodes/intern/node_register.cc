@@ -9,6 +9,7 @@
 #include "NOD_socket.hh"
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "BLT_translation.hh"
 
@@ -30,15 +31,15 @@ static void register_undefined_types()
    */
 
   blender::bke::NodeTreeTypeUndefined.type = NTREE_UNDEFINED;
-  STRNCPY(blender::bke::NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
-  STRNCPY(blender::bke::NodeTreeTypeUndefined.ui_name, N_("Undefined"));
-  STRNCPY(blender::bke::NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
+  blender::bke::NodeTreeTypeUndefined.idname = "NodeTreeUndefined";
+  blender::bke::NodeTreeTypeUndefined.ui_name = N_("Undefined");
+  blender::bke::NodeTreeTypeUndefined.ui_description = N_("Undefined Node Tree Type");
 
   blender::bke::node_type_base_custom(
       &blender::bke::NodeTypeUndefined, "NodeUndefined", "Undefined", "UNDEFINED", 0);
   blender::bke::NodeTypeUndefined.poll = node_undefined_poll;
 
-  STRNCPY(blender::bke::NodeSocketTypeUndefined.idname, "NodeSocketUndefined");
+  blender::bke::NodeSocketTypeUndefined.idname = "NodeSocketUndefined";
   /* extra type info for standard socket types */
   blender::bke::NodeSocketTypeUndefined.type = SOCK_CUSTOM;
   blender::bke::NodeSocketTypeUndefined.subtype = PROP_NONE;
@@ -61,7 +62,7 @@ class SimulationZoneType : public blender::bke::bNodeZoneType {
 
   const int &get_corresponding_output_id(const bNode &input_bnode) const override
   {
-    BLI_assert(input_bnode.type == this->input_type);
+    BLI_assert(input_bnode.type_legacy == this->input_type);
     return static_cast<NodeGeometrySimulationInput *>(input_bnode.storage)->output_node_id;
   }
 };
@@ -79,7 +80,7 @@ class RepeatZoneType : public blender::bke::bNodeZoneType {
 
   const int &get_corresponding_output_id(const bNode &input_bnode) const override
   {
-    BLI_assert(input_bnode.type == this->input_type);
+    BLI_assert(input_bnode.type_legacy == this->input_type);
     return static_cast<NodeGeometryRepeatInput *>(input_bnode.storage)->output_node_id;
   }
 };
@@ -97,7 +98,7 @@ class ForeachGeometryElementZoneType : public blender::bke::bNodeZoneType {
 
   const int &get_corresponding_output_id(const bNode &input_bnode) const override
   {
-    BLI_assert(input_bnode.type == this->input_type);
+    BLI_assert(input_bnode.type_legacy == this->input_type);
     return static_cast<NodeGeometryForeachGeometryElementInput *>(input_bnode.storage)
         ->output_node_id;
   }
@@ -116,7 +117,7 @@ class ShaderRepeatZoneType : public blender::bke::bNodeZoneType {
 
   const int &get_corresponding_output_id(const bNode &input_bnode) const override
   {
-    BLI_assert(input_bnode.type == this->input_type);
+    BLI_assert(input_bnode.type_legacy == this->input_type);
     return static_cast<NodeShaderRepeatInput *>(input_bnode.storage)->output_node_id;
   }
 };
@@ -135,7 +136,7 @@ class ShaderForeachLightZoneType : public blender::bke::bNodeZoneType {
 
   const int &get_corresponding_output_id(const bNode &input_bnode) const override
   {
-    BLI_assert(input_bnode.type == this->input_type);
+    BLI_assert(input_bnode.type_legacy == this->input_type);
     return static_cast<NodeShaderForeachLightInput *>(input_bnode.storage)->output_node_id;
   }
 };

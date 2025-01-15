@@ -33,7 +33,7 @@
 #include "util/types.h"
 
 #ifdef __PATH_GUIDING__
-#  include "util/guiding.h"
+#  include "util/guiding.h"  // IWYU pragma: keep
 #endif
 
 #pragma once
@@ -45,7 +45,7 @@ CCL_NAMESPACE_BEGIN
 /* Integrator State
  *
  * CPU rendering path state with AoS layout. */
-typedef struct IntegratorShadowStateCPU {
+struct IntegratorShadowStateCPU {
 #define KERNEL_STRUCT_BEGIN(name) struct {
 #define KERNEL_STRUCT_BEGIN_PACKED(parent_struct, feature) struct {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) type name;
@@ -66,9 +66,9 @@ typedef struct IntegratorShadowStateCPU {
 #undef KERNEL_STRUCT_ARRAY_MEMBER
 #undef KERNEL_STRUCT_END
 #undef KERNEL_STRUCT_END_ARRAY
-} IntegratorShadowStateCPU;
+};
 
-typedef struct IntegratorStateCPU {
+struct IntegratorStateCPU {
 #define KERNEL_STRUCT_BEGIN(name) struct {
 #define KERNEL_STRUCT_BEGIN_PACKED(parent_struct, feature) struct {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) type name;
@@ -93,15 +93,15 @@ typedef struct IntegratorStateCPU {
 
   IntegratorShadowStateCPU shadow;
   IntegratorShadowStateCPU ao;
-} IntegratorStateCPU;
+};
 
 /* Path Queue
  *
  * Keep track of which kernels are queued to be executed next in the path
  * for GPU rendering. */
-typedef struct IntegratorQueueCounter {
+struct IntegratorQueueCounter {
   int num_queued[DEVICE_KERNEL_INTEGRATOR_NUM];
-} IntegratorQueueCounter;
+};
 
 #if defined(__INTEGRATOR_GPU_PACKED_STATE__) && defined(__KERNEL_GPU__)
 
@@ -138,7 +138,7 @@ typedef struct IntegratorQueueCounter {
 /* Integrator State GPU
  *
  * GPU rendering path state with SoA layout. */
-typedef struct IntegratorStateGPU {
+struct IntegratorStateGPU {
 #define KERNEL_STRUCT_BEGIN(name) struct {
 
 #ifdef __INTEGRATOR_GPU_PACKED_STATE__
@@ -211,7 +211,7 @@ typedef struct IntegratorStateGPU {
 
   /* Divisor used to partition active indices by locality when sorting by material. */
   uint sort_partition_divisor;
-} IntegratorStateGPU;
+};
 
 /* Abstraction
  *
@@ -225,10 +225,10 @@ typedef struct IntegratorStateGPU {
 
 /* Scalar access on CPU. */
 
-typedef IntegratorStateCPU *ccl_restrict IntegratorState;
-typedef const IntegratorStateCPU *ccl_restrict ConstIntegratorState;
-typedef IntegratorShadowStateCPU *ccl_restrict IntegratorShadowState;
-typedef const IntegratorShadowStateCPU *ccl_restrict ConstIntegratorShadowState;
+using IntegratorState = IntegratorStateCPU *;
+using ConstIntegratorState = const IntegratorStateCPU *;
+using IntegratorShadowState = IntegratorShadowStateCPU *;
+using ConstIntegratorShadowState = const IntegratorShadowStateCPU *;
 
 #  define INTEGRATOR_STATE_NULL nullptr
 
@@ -244,10 +244,10 @@ typedef const IntegratorShadowStateCPU *ccl_restrict ConstIntegratorShadowState;
 
 /* Array access on GPU with Structure-of-Arrays. */
 
-typedef int IntegratorState;
-typedef int ConstIntegratorState;
-typedef int IntegratorShadowState;
-typedef int ConstIntegratorShadowState;
+using IntegratorState = int;
+using ConstIntegratorState = int;
+using IntegratorShadowState = int;
+using ConstIntegratorShadowState = int;
 
 #  define INTEGRATOR_STATE_NULL -1
 

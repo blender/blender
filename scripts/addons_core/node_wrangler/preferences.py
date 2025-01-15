@@ -329,7 +329,7 @@ kmi_defs = (
     # Delete unused
     (operators.NWDeleteUnused.bl_idname, 'X', 'PRESS', False, False, True, None, "Delete unused nodes"),
     # Frame Selected
-    (operators.NWFrameSelected.bl_idname, 'P', 'PRESS', False, True, False, None, "Frame selected nodes"),
+    ('node.join', 'P', 'PRESS', False, True, False, None, "Frame selected nodes"),
     # Swap Links
     (operators.NWSwapLinks.bl_idname, 'S', 'PRESS', False, False, True, None, "Swap Links"),
     # Reload Images

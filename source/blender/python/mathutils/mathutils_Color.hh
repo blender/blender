@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "mathutils.hh"
+
 extern PyTypeObject color_Type;
 #define ColorObject_Check(v) PyObject_TypeCheck((v), &color_Type)
 #define ColorObject_CheckExact(v) (Py_TYPE(v) == &color_Type)

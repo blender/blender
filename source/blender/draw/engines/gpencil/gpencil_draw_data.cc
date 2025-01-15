@@ -81,7 +81,7 @@ static void gpencil_shade_color(float color[3])
   else {
     add_v3_fl(color, 0.15f);
   }
-  CLAMP3(color, 0.0f, 1.0f);
+  clamp_v3(color, 0.0f, 1.0f);
 }
 
 /* Apply all overrides from the solid viewport mode to the GPencil material. */

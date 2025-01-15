@@ -8,8 +8,8 @@
  * \ingroup sequencer
  */
 
-struct ListBase;
 struct Scene;
+struct Strip;
 
-bool sequencer_seq_generates_image(Sequence *seq);
-void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile);
+bool sequencer_seq_generates_image(Strip *strip);
+void strip_open_anim_file(Scene *scene, Strip *strip, bool openfile);

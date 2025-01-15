@@ -17,7 +17,7 @@ struct Main;
 struct Scene;
 struct SeqCacheKey;
 struct SeqDiskCache;
-struct Sequence;
+struct Strip;
 
 SeqDiskCache *seq_disk_cache_create(Main *bmain, Scene *scene);
 void seq_disk_cache_free(SeqDiskCache *disk_cache);
@@ -27,6 +27,6 @@ bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key, ImBuf
 bool seq_disk_cache_enforce_limits(SeqDiskCache *disk_cache);
 void seq_disk_cache_invalidate(SeqDiskCache *disk_cache,
                                Scene *scene,
-                               Sequence *seq,
-                               Sequence *seq_changed,
+                               Strip *strip,
+                               Strip *strip_changed,
                                int invalidate_types);

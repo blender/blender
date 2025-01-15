@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 #include "BLI_sys_types.h"
 
 extern PyTypeObject BPyGPU_BufferType;

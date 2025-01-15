@@ -14,7 +14,7 @@
 
 #include "RE_compositor.hh"
 
-static constexpr float COM_PREVIEW_SIZE = 140.f;
+static constexpr float COM_PREVIEW_SIZE = 140.0f;
 
 static struct {
   bool is_initialized = false;

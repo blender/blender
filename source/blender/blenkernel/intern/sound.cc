@@ -14,6 +14,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_iterator.h"
+#include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 #include "BLI_threads.h"
 
@@ -703,7 +704,7 @@ void BKE_sound_update_scene_listener(Scene *scene)
 }
 
 void *BKE_sound_scene_add_scene_sound(
-    Scene *scene, Sequence *sequence, int startframe, int endframe, int frameskip)
+    Scene *scene, Strip *sequence, int startframe, int endframe, int frameskip)
 {
   sound_verify_evaluated_id(&scene->id);
   if (sequence->scene && scene != sequence->scene) {
@@ -717,7 +718,7 @@ void *BKE_sound_scene_add_scene_sound(
   return nullptr;
 }
 
-void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
+void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *sequence)
 {
   return BKE_sound_scene_add_scene_sound(scene,
                                          sequence,
@@ -727,7 +728,7 @@ void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
 }
 
 void *BKE_sound_add_scene_sound(
-    Scene *scene, Sequence *sequence, int startframe, int endframe, int frameskip)
+    Scene *scene, Strip *sequence, int startframe, int endframe, int frameskip)
 {
   sound_verify_evaluated_id(&scene->id);
   /* Happens when sequence's sound data-block was removed. */
@@ -752,7 +753,7 @@ void *BKE_sound_add_scene_sound(
                           -offset_time);
 }
 
-void *BKE_sound_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
+void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *sequence)
 {
   return BKE_sound_add_scene_sound(scene,
                                    sequence,
@@ -789,7 +790,7 @@ void BKE_sound_move_scene_sound(const Scene *scene,
   }
 }
 
-void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
+void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *sequence)
 {
   sound_verify_evaluated_id(&scene->id);
   if (sequence->scene_sound) {
@@ -1339,26 +1340,26 @@ void BKE_sound_unlock() {}
 void BKE_sound_reset_scene_specs(Scene * /*scene*/) {}
 void BKE_sound_mute_scene(Scene * /*scene*/, int /*muted*/) {}
 void *BKE_sound_scene_add_scene_sound(Scene * /*scene*/,
-                                      Sequence * /*sequence*/,
+                                      Strip * /*sequence*/,
                                       int /*startframe*/,
                                       int /*endframe*/,
                                       int /*frameskip*/)
 {
   return nullptr;
 }
-void *BKE_sound_scene_add_scene_sound_defaults(Scene * /*scene*/, Sequence * /*sequence*/)
+void *BKE_sound_scene_add_scene_sound_defaults(Scene * /*scene*/, Strip * /*sequence*/)
 {
   return nullptr;
 }
 void *BKE_sound_add_scene_sound(Scene * /*scene*/,
-                                Sequence * /*sequence*/,
+                                Strip * /*sequence*/,
                                 int /*startframe*/,
                                 int /*endframe*/,
                                 int /*frameskip*/)
 {
   return nullptr;
 }
-void *BKE_sound_add_scene_sound_defaults(Scene * /*scene*/, Sequence * /*sequence*/)
+void *BKE_sound_add_scene_sound_defaults(Scene * /*scene*/, Strip * /*sequence*/)
 {
   return nullptr;
 }
@@ -1372,7 +1373,7 @@ void BKE_sound_move_scene_sound(const Scene * /*scene*/,
                                 double /*audio_offset*/)
 {
 }
-void BKE_sound_move_scene_sound_defaults(Scene * /*scene*/, Sequence * /*sequence*/) {}
+void BKE_sound_move_scene_sound_defaults(Scene * /*scene*/, Strip * /*sequence*/) {}
 void BKE_sound_play_scene(Scene * /*scene*/) {}
 void BKE_sound_stop_scene(Scene * /*scene*/) {}
 void BKE_sound_seek_scene(Main * /*bmain*/, Scene * /*scene*/) {}

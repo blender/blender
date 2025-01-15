@@ -12,7 +12,9 @@
 
 using blender::Span;
 
+struct SpaceText;
 struct Text;
+struct TextLine;
 
 /* *** Flatten String *** */
 struct FlattenString {

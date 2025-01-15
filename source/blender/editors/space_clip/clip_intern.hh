@@ -14,6 +14,7 @@
 #include "DNA_tracking_types.h"
 
 struct ARegion;
+struct ARegionType;
 struct MovieClip;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;

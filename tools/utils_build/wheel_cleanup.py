@@ -21,6 +21,10 @@ Usage:
   wheel_cleanup.py <path/to/installed/bpy/directory>
 """
 
+__all__ = (
+    "main",
+)
+
 import argparse
 import re
 import shutil

@@ -4,7 +4,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BLI_color.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_offset_indices.hh"

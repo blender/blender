@@ -2,19 +2,18 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __DEVICE_H__
-#define __DEVICE_H__
+#pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <functional>
 
 #include "bvh/params.h"
 
 #include "device/denoise.h"
 #include "device/memory.h"
 
-#include "util/function.h"
-#include "util/list.h"
 #include "util/log.h"
+#include "util/profiling.h"
 #include "util/stats.h"
 #include "util/string.h"
 #include "util/texture.h"
@@ -29,8 +28,10 @@ class BVH;
 class DeviceQueue;
 class Progress;
 class CPUKernels;
-class CPUKernelThreadGlobals;
 class Scene;
+
+struct OSLGlobals;
+struct ThreadKernelGlobalsCPU;
 
 /* Device Types */
 
@@ -174,7 +175,7 @@ class Device {
     fprintf(stderr, "%s\n", error.c_str());
     fflush(stderr);
   }
-  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const = 0;
+  virtual BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const = 0;
 
   /* statistics */
   Stats &stats;
@@ -182,7 +183,7 @@ class Device {
   bool headless = true;
 
   /* constant memory */
-  virtual void const_copy_to(const char *name, void *host, size_t size) = 0;
+  virtual void const_copy_to(const char *name, void *host, const size_t size) = 0;
 
   /* load/compile kernels, must be called before adding tasks */
   virtual bool load_kernels(uint /*kernel_features*/)
@@ -217,9 +218,9 @@ class Device {
   static const CPUKernels &get_cpu_kernels();
   /* Get kernel globals to pass to kernels. */
   virtual void get_cpu_kernel_thread_globals(
-      vector<CPUKernelThreadGlobals> & /*kernel_thread_globals*/);
+      vector<ThreadKernelGlobalsCPU> & /*kernel_thread_globals*/);
   /* Get OpenShadingLanguage memory buffer. */
-  virtual void *get_cpu_osl_memory();
+  virtual OSLGlobals *get_cpu_osl_memory();
 
   /* Acceleration structure building. */
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit);
@@ -280,22 +281,25 @@ class Device {
   /* Run given callback for every individual device which will be handling rendering.
    * For the single device the callback is called for the device itself. For the multi-device the
    * callback is only called for the sub-devices. */
-  virtual void foreach_device(const function<void(Device *)> &callback)
+  virtual void foreach_device(const std::function<void(Device *)> &callback)
   {
     callback(this);
   }
 
   /* static */
-  static Device *create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
+  static unique_ptr<Device> create(const DeviceInfo &info,
+                                   Stats &stats,
+                                   Profiler &profiler,
+                                   bool headless);
 
   static DeviceType type_from_string(const char *name);
   static string string_from_type(DeviceType type);
   static vector<DeviceType> available_types();
-  static vector<DeviceInfo> available_devices(uint device_type_mask = DEVICE_MASK_ALL);
+  static vector<DeviceInfo> available_devices(const uint device_type_mask = DEVICE_MASK_ALL);
   static DeviceInfo dummy_device(const string &error_msg = "");
-  static string device_capabilities(uint device_type_mask = DEVICE_MASK_ALL);
+  static string device_capabilities(const uint device_type_mask = DEVICE_MASK_ALL);
   static DeviceInfo get_multi_device(const vector<DeviceInfo> &subdevices,
-                                     int threads,
+                                     const int threads,
                                      bool background);
 
   /* Tag devices lists for update. */
@@ -311,7 +315,8 @@ class Device {
 
   virtual void mem_alloc(device_memory &mem) = 0;
   virtual void mem_copy_to(device_memory &mem) = 0;
-  virtual void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) = 0;
+  virtual void mem_copy_from(
+      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) = 0;
   virtual void mem_zero(device_memory &mem) = 0;
   virtual void mem_free(device_memory &mem) = 0;
 
@@ -334,25 +339,19 @@ class GPUDevice : public Device {
   GPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_)
       : Device(info_, stats_, profiler_, headless_),
         texture_info(this, "texture_info", MEM_GLOBAL),
-        need_texture_info(false),
-        can_map_host(false),
-        map_host_used(0),
-        map_host_limit(0),
-        device_texture_headroom(0),
-        device_working_headroom(0),
+
         device_mem_map(),
-        device_mem_map_mutex(),
-        move_texture_to_host(false),
-        device_mem_in_use(0)
+        device_mem_map_mutex()
+
   {
   }
 
  public:
-  virtual ~GPUDevice() noexcept(false);
+  ~GPUDevice() noexcept(false) override;
 
   /* For GPUs that can use bindless textures in some way or another. */
   device_vector<TextureInfo> texture_info;
-  bool need_texture_info;
+  bool need_texture_info = false;
   /* Returns true if the texture info was copied to the device (meaning, some more
    * re-initialization might be needed). */
   virtual bool load_texture_info();
@@ -361,47 +360,47 @@ class GPUDevice : public Device {
   /* Memory allocation, only accessed through device_memory. */
   friend class device_memory;
 
-  bool can_map_host;
-  size_t map_host_used;
-  size_t map_host_limit;
-  size_t device_texture_headroom;
-  size_t device_working_headroom;
-  typedef unsigned long long texMemObject;
-  typedef unsigned long long arrayMemObject;
+  bool can_map_host = false;
+  size_t map_host_used = 0;
+  size_t map_host_limit = 0;
+  size_t device_texture_headroom = 0;
+  size_t device_working_headroom = 0;
+  using texMemObject = unsigned long long;
+  using arrayMemObject = unsigned long long;
   struct Mem {
-    Mem() : texobject(0), array(0), use_mapped_host(false) {}
+    Mem() = default;
 
-    texMemObject texobject;
-    arrayMemObject array;
+    texMemObject texobject = 0;
+    arrayMemObject array = 0;
 
     /* If true, a mapped host memory in shared_pointer is being used. */
-    bool use_mapped_host;
+    bool use_mapped_host = false;
   };
-  typedef map<device_memory *, Mem> MemMap;
+  using MemMap = map<device_memory *, Mem>;
   MemMap device_mem_map;
   thread_mutex device_mem_map_mutex;
-  bool move_texture_to_host;
+  bool move_texture_to_host = false;
   /* Simple counter which will try to track amount of used device memory */
-  size_t device_mem_in_use;
+  size_t device_mem_in_use = 0;
 
-  virtual void init_host_memory(size_t preferred_texture_headroom = 0,
+  virtual void init_host_memory(const size_t preferred_texture_headroom = 0,
                                 size_t preferred_working_headroom = 0);
-  virtual void move_textures_to_host(size_t size, bool for_texture);
+  virtual void move_textures_to_host(const size_t size, bool for_texture);
 
   /* Allocation, deallocation and copy functions, with corresponding
    * support of device/host allocations. */
-  virtual GPUDevice::Mem *generic_alloc(device_memory &mem, size_t pitch_padding = 0);
+  virtual GPUDevice::Mem *generic_alloc(device_memory &mem, const size_t pitch_padding = 0);
   virtual void generic_free(device_memory &mem);
   virtual void generic_copy_to(device_memory &mem);
 
   /* total - amount of device memory, free - amount of available device memory */
   virtual void get_device_memory_info(size_t &total, size_t &free) = 0;
 
-  virtual bool alloc_device(void *&device_pointer, size_t size) = 0;
+  virtual bool alloc_device(void *&device_pointer, const size_t size) = 0;
 
   virtual void free_device(void *device_pointer) = 0;
 
-  virtual bool alloc_host(void *&shared_pointer, size_t size) = 0;
+  virtual bool alloc_host(void *&shared_pointer, const size_t size) = 0;
 
   virtual void free_host(void *shared_pointer) = 0;
 
@@ -410,9 +409,9 @@ class GPUDevice : public Device {
    * address transformation is possible and `false` otherwise. */
   virtual void transform_host_pointer(void *&device_pointer, void *&shared_pointer) = 0;
 
-  virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) = 0;
+  virtual void copy_host_to_device(void *device_pointer,
+                                   void *host_pointer,
+                                   const size_t size) = 0;
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __DEVICE_H__ */

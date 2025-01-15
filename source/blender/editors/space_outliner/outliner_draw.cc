@@ -506,7 +506,7 @@ void outliner_collection_isolate_flag(Scene *scene,
                                       const bool value)
 {
   PointerRNA ptr;
-  const bool is_hide = strstr(propname, "hide_") || (strcmp(propname, "exclude") == 0);
+  const bool is_hide = strstr(propname, "hide_") || STREQ(propname, "exclude");
 
   LayerCollection *top_layer_collection = layer_collection ?
                                               static_cast<LayerCollection *>(
@@ -1950,7 +1950,7 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
                                     ptr,
                                     prop,
                                     -1,
-                                    (prop_type == PROP_ENUM) ? nullptr : "",
+                                    (prop_type == PROP_ENUM) ? std::nullopt : std::optional(""),
                                     ICON_NONE,
                                     x + pad_x,
                                     te->ys + pad_y,
@@ -2777,54 +2777,54 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_BONE_COLLECTION:
         data.icon = ICON_GROUP_BONE;
         break;
-      case TSE_SEQUENCE: {
-        const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-        switch (te_seq->get_sequence_type()) {
-          case SEQ_TYPE_SCENE:
+      case TSE_STRIP: {
+        const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+        switch (te_strip->get_strip_type()) {
+          case STRIP_TYPE_SCENE:
             data.icon = ICON_SCENE_DATA;
             break;
-          case SEQ_TYPE_MOVIECLIP:
+          case STRIP_TYPE_MOVIECLIP:
             data.icon = ICON_TRACKER;
             break;
-          case SEQ_TYPE_MASK:
+          case STRIP_TYPE_MASK:
             data.icon = ICON_MOD_MASK;
             break;
-          case SEQ_TYPE_MOVIE:
+          case STRIP_TYPE_MOVIE:
             data.icon = ICON_FILE_MOVIE;
             break;
-          case SEQ_TYPE_SOUND_RAM:
+          case STRIP_TYPE_SOUND_RAM:
             data.icon = ICON_SOUND;
             break;
-          case SEQ_TYPE_IMAGE:
+          case STRIP_TYPE_IMAGE:
             data.icon = ICON_FILE_IMAGE;
             break;
-          case SEQ_TYPE_COLOR:
-          case SEQ_TYPE_ADJUSTMENT:
+          case STRIP_TYPE_COLOR:
+          case STRIP_TYPE_ADJUSTMENT:
             data.icon = ICON_COLOR;
             break;
-          case SEQ_TYPE_TEXT:
+          case STRIP_TYPE_TEXT:
             data.icon = ICON_FONT_DATA;
             break;
-          case SEQ_TYPE_ADD:
-          case SEQ_TYPE_SUB:
-          case SEQ_TYPE_MUL:
-          case SEQ_TYPE_OVERDROP:
-          case SEQ_TYPE_ALPHAOVER:
-          case SEQ_TYPE_ALPHAUNDER:
-          case SEQ_TYPE_COLORMIX:
-          case SEQ_TYPE_MULTICAM:
-          case SEQ_TYPE_TRANSFORM:
-          case SEQ_TYPE_SPEED:
-          case SEQ_TYPE_GLOW:
-          case SEQ_TYPE_GAUSSIAN_BLUR:
+          case STRIP_TYPE_ADD:
+          case STRIP_TYPE_SUB:
+          case STRIP_TYPE_MUL:
+          case STRIP_TYPE_OVERDROP:
+          case STRIP_TYPE_ALPHAOVER:
+          case STRIP_TYPE_ALPHAUNDER:
+          case STRIP_TYPE_COLORMIX:
+          case STRIP_TYPE_MULTICAM:
+          case STRIP_TYPE_TRANSFORM:
+          case STRIP_TYPE_SPEED:
+          case STRIP_TYPE_GLOW:
+          case STRIP_TYPE_GAUSSIAN_BLUR:
             data.icon = ICON_SHADERFX;
             break;
-          case SEQ_TYPE_CROSS:
-          case SEQ_TYPE_GAMCROSS:
-          case SEQ_TYPE_WIPE:
+          case STRIP_TYPE_CROSS:
+          case STRIP_TYPE_GAMCROSS:
+          case STRIP_TYPE_WIPE:
             data.icon = ICON_ARROW_LEFTRIGHT;
             break;
-          case SEQ_TYPE_META:
+          case STRIP_TYPE_META:
             data.icon = ICON_SEQ_STRIP_META;
             break;
           default:
@@ -2833,10 +2833,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         }
         break;
       }
-      case TSE_SEQ_STRIP:
+      case TSE_STRIP_DATA:
         data.icon = ICON_LIBRARY_DATA_DIRECT;
         break;
-      case TSE_SEQUENCE_DUP:
+      case TSE_STRIP_DUP:
         data.icon = ICON_SEQ_STRIP_DUPLICATE;
         break;
       case TSE_RNA_STRUCT: {
@@ -3821,11 +3821,13 @@ static void outliner_draw_tree(uiBlock *block,
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
+  short columns_offset = use_mode_column ? UI_UNIT_X : 0;
+
   /* Move the tree a unit left in view layer mode */
-  short columns_offset = (use_mode_column && (space_outliner->outlinevis == SO_SCENES)) ?
-                             UI_UNIT_X :
-                             0;
-  if (!use_mode_column && (space_outliner->outlinevis == SO_VIEW_LAYER)) {
+  if ((space_outliner->outlinevis == SO_VIEW_LAYER) &&
+      !(space_outliner->filter & SO_FILTER_NO_COLLECTION) &&
+      (space_outliner->filter & SO_FILTER_NO_VIEW_LAYERS))
+  {
     columns_offset -= UI_UNIT_X;
   }
 

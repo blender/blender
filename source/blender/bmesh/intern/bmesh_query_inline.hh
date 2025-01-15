@@ -8,6 +8,12 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_utildefines.h"
+
+#include "bmesh_class.hh"
+
 /**
  * Returns whether or not a given vertex is
  * is part of a given edge.

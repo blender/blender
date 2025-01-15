@@ -16,6 +16,7 @@
 #include "BLI_utildefines.h" /* for BLI_assert */
 
 #include "CCGSubSurf.h"
+#include "CCGSubSurf_inline.h"
 #include "CCGSubSurf_intern.h"
 
 /**

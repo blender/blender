@@ -1232,7 +1232,9 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                        ((start_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
       s_vert.point_id = verts_range[idx];
       s_vert.stroke_id = verts_range.first();
-      s_vert.mat = materials[curve_i] % GPENCIL_MATERIAL_BUFFER_LEN;
+      /* The material index is allowed to be negative as it's stored as a generic attribute. To
+       * ensure the material used by the shader is valid this needs to be clamped to zero. */
+      s_vert.mat = std::max(materials[curve_i], 0) % GPENCIL_MATERIAL_BUFFER_LEN;
 
       s_vert.packed_asp_hard_rot = pack_rotation_aspect_hardness(
           rotations[point_i], stroke_point_aspect_ratios[curve_i], stroke_softness[curve_i]);

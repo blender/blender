@@ -3,13 +3,19 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "main",
+)
+
 import unittest
 
-from check_utils import (sliceCommandLineArguments,
-                         SceiptUnitTesting)
+from check_utils import (
+    ScriptUnitTesting,
+    sliceCommandLineArguments,
+)
 
 
-class UnitTesting(SceiptUnitTesting):
+class UnitTesting(ScriptUnitTesting):
     def test_requestsImports(self):
         self.checkScript("requests_import")
 

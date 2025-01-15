@@ -15,6 +15,8 @@
 #include "BLI_linklist.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_crazyspace.hh"

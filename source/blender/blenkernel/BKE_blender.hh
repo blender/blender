@@ -8,8 +8,6 @@
  * \brief Blender util stuff
  */
 
-#include "BLI_compiler_attrs.h"
-
 struct Main;
 struct UserDef;
 

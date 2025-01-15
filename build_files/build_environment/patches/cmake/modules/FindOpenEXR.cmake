@@ -191,11 +191,11 @@ if(OPENEXR_CUSTOM)
   endif()
   set(OpenEXR_Library ${OPENEXR_CUSTOM_LIBRARY})
 else()
-# elseif(${OPENEXR_VERSION} VERSION_LESS "2.1")
+  # elseif(${OPENEXR_VERSION} VERSION_LESS "2.1")
   set(OpenEXR_Library IlmImf)
-# else()
-#   string(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _openexr_libs_ver ${OPENEXR_VERSION})
-#   set(OpenEXR_Library IlmImf-${_openexr_libs_ver})
+  # else()
+  #   string(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _openexr_libs_ver ${OPENEXR_VERSION})
+  #   set(OpenEXR_Library IlmImf-${_openexr_libs_ver})
 endif()
 
 # Locate the OpenEXR library
@@ -230,7 +230,7 @@ if(OPENEXR_FOUND)
     FIND_PACKAGE_MESSAGE(OPENEXR
       "Found OpenEXR: ${OPENEXR_LIBRARIES}"
       "[${OPENEXR_INCLUDE_DIR}][${OPENEXR_LIBRARIES}][${OPENEXR_CURRENT_STATE}]"
-      )
+    )
   endif()
 endif()
 

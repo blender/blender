@@ -460,7 +460,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
     char buf[UI_MAX_DRAW_STR];
     char str_rep[NUM_STR_REP_LEN * 2];
     if (hasNumInput(&lcd->num)) {
-      outputNumInput(&lcd->num, str_rep, &scene->unit);
+      outputNumInput(&lcd->num, str_rep, scene->unit);
     }
     else {
       BLI_snprintf(str_rep, NUM_STR_REP_LEN, "%d", int(lcd->cuts));
@@ -692,7 +692,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
     char buf[UI_MAX_DRAW_STR];
     char str_rep[NUM_STR_REP_LEN * 2];
     if (hasNumInput(&lcd->num)) {
-      outputNumInput(&lcd->num, str_rep, &sce->unit);
+      outputNumInput(&lcd->num, str_rep, sce->unit);
     }
     else {
       BLI_snprintf(str_rep, NUM_STR_REP_LEN, "%d", int(lcd->cuts));

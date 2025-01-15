@@ -11,6 +11,7 @@
 #include "BLI_map.hh"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::compositor {
 

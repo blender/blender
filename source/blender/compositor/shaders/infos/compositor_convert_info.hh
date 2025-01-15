@@ -6,76 +6,126 @@
 
 GPU_SHADER_CREATE_INFO(compositor_convert_shared)
 LOCAL_GROUP_SIZE(16, 16)
-SAMPLER(0, FLOAT_2D, input_tx)
 TYPEDEF_SOURCE("gpu_shader_compositor_type_conversion.glsl")
 COMPUTE_SOURCE("compositor_convert.glsl")
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(compositor_convert_float_to_float)
+GPU_SHADER_CREATE_INFO(compositor_convert_float_shared)
 ADDITIONAL_INFO(compositor_convert_shared)
-IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "value")
+SAMPLER(0, FLOAT_2D, input_tx)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_convert_int_shared)
+ADDITIONAL_INFO(compositor_convert_shared)
+SAMPLER(0, INT_2D, input_tx)
+GPU_SHADER_CREATE_END()
+
+/* --------------------------------------------------------------------
+ * Float to other.
+ */
+
+GPU_SHADER_CREATE_INFO(compositor_convert_float_to_int)
+ADDITIONAL_INFO(compositor_convert_float_shared)
+IMAGE(0, GPU_R16I, WRITE, INT_2D, output_img)
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "ivec4(float_to_int(value.x), ivec3(0))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_convert_float_to_vector)
-ADDITIONAL_INFO(compositor_convert_shared)
+ADDITIONAL_INFO(compositor_convert_float_shared)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(vec3_from_float(value.x), 1.0)")
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(float_to_vector(value.x))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_convert_float_to_color)
-ADDITIONAL_INFO(compositor_convert_shared)
+ADDITIONAL_INFO(compositor_convert_float_shared)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4_from_float(value.x)")
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(float_to_color(value.x))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(compositor_convert_color_to_float)
-ADDITIONAL_INFO(compositor_convert_shared)
+/* --------------------------------------------------------------------
+ * Int to other.
+ */
+
+GPU_SHADER_CREATE_INFO(compositor_convert_int_to_float)
+ADDITIONAL_INFO(compositor_convert_int_shared)
 IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(float_from_vec4(value), vec3(0.0))")
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(int_to_float(value.x), vec3(0.0))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(compositor_convert_color_to_vector)
-ADDITIONAL_INFO(compositor_convert_shared)
+GPU_SHADER_CREATE_INFO(compositor_convert_int_to_vector)
+ADDITIONAL_INFO(compositor_convert_int_shared)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "value")
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(int_to_vector(value.x))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(compositor_convert_color_to_color)
-ADDITIONAL_INFO(compositor_convert_shared)
+GPU_SHADER_CREATE_INFO(compositor_convert_int_to_color)
+ADDITIONAL_INFO(compositor_convert_int_shared)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "value")
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(int_to_color(value.x))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
+
+/* --------------------------------------------------------------------
+ * Vector to other.
+ */
 
 GPU_SHADER_CREATE_INFO(compositor_convert_vector_to_float)
-ADDITIONAL_INFO(compositor_convert_shared)
+ADDITIONAL_INFO(compositor_convert_float_shared)
 IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
 DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(float_from_vec3(value.xyz), vec3(0.0))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(compositor_convert_vector_to_vector)
-ADDITIONAL_INFO(compositor_convert_shared)
-IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "value")
+GPU_SHADER_CREATE_INFO(compositor_convert_vector_to_int)
+ADDITIONAL_INFO(compositor_convert_float_shared)
+IMAGE(0, GPU_R16I, WRITE, INT_2D, output_img)
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "ivec4(vector_to_int(value), ivec3(0.0))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_convert_vector_to_color)
-ADDITIONAL_INFO(compositor_convert_shared)
+ADDITIONAL_INFO(compositor_convert_float_shared)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
-DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4_from_vec3(value.xyz)")
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(vector_to_color(value))")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
+/* --------------------------------------------------------------------
+ * Color to other.
+ */
+
+GPU_SHADER_CREATE_INFO(compositor_convert_color_to_float)
+ADDITIONAL_INFO(compositor_convert_float_shared)
+IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(color_to_float(value), vec3(0.0))")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_convert_color_to_int)
+ADDITIONAL_INFO(compositor_convert_float_shared)
+IMAGE(0, GPU_R16I, WRITE, INT_2D, output_img)
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "ivec4(color_to_int(value), ivec3(0))")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_convert_color_to_vector)
+ADDITIONAL_INFO(compositor_convert_float_shared)
+IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
+DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(color_to_vector(value))")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+/* --------------------------------------------------------------------
+ * Color to channel.
+ */
+
 GPU_SHADER_CREATE_INFO(compositor_convert_color_to_alpha)
-ADDITIONAL_INFO(compositor_convert_shared)
+ADDITIONAL_INFO(compositor_convert_float_shared)
 IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
 DEFINE_VALUE("CONVERT_EXPRESSION(value)", "vec4(value.a)")
 DO_STATIC_COMPILATION()

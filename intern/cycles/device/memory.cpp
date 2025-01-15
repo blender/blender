@@ -21,12 +21,12 @@ device_memory::device_memory(Device *device, const char *_name, MemoryType type)
       name_storage(_name),
       device(device),
       device_pointer(0),
-      host_pointer(0),
-      shared_pointer(0),
+      host_pointer(nullptr),
+      shared_pointer(nullptr),
       shared_counter(0),
       original_device_ptr(0),
       original_device_size(0),
-      original_device(0),
+      original_device(nullptr),
       need_realloc_(false),
       modified(false)
 {
@@ -35,14 +35,14 @@ device_memory::device_memory(Device *device, const char *_name, MemoryType type)
 
 device_memory::~device_memory()
 {
-  assert(shared_pointer == 0);
+  assert(shared_pointer == nullptr);
   assert(shared_counter == 0);
 }
 
-void *device_memory::host_alloc(size_t size)
+void *device_memory::host_alloc(const size_t size)
 {
   if (!size) {
-    return 0;
+    return nullptr;
   }
 
   void *ptr = util_aligned_malloc(size, MIN_ALIGNMENT_CPU_DATA_TYPES);
@@ -61,8 +61,8 @@ void device_memory::host_free()
 {
   if (host_pointer) {
     util_guarded_mem_free(memory_size());
-    util_aligned_free((void *)host_pointer);
-    host_pointer = 0;
+    util_aligned_free(host_pointer);
+    host_pointer = nullptr;
   }
 }
 
@@ -86,7 +86,7 @@ void device_memory::device_copy_to()
   }
 }
 
-void device_memory::device_copy_from(size_t y, size_t w, size_t h, size_t elem)
+void device_memory::device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem)
 {
   assert(type != MEM_TEXTURE && type != MEM_READ_ONLY && type != MEM_GLOBAL);
   device->mem_copy_from(*this, y, w, h, elem);
@@ -105,7 +105,7 @@ bool device_memory::device_is_cpu()
 }
 
 void device_memory::swap_device(Device *new_device,
-                                size_t new_device_size,
+                                const size_t new_device_size,
                                 device_ptr new_device_ptr)
 {
   original_device = device;
@@ -131,7 +131,8 @@ bool device_memory::is_resident(Device *sub_device) const
 
 /* Device Sub `ptr`. */
 
-device_sub_ptr::device_sub_ptr(device_memory &mem, size_t offset, size_t size) : device(mem.device)
+device_sub_ptr::device_sub_ptr(device_memory &mem, const size_t offset, const size_t size)
+    : device(mem.device)
 {
   ptr = device->mem_alloc_sub_ptr(mem, offset, size);
 }
@@ -193,7 +194,6 @@ device_texture::device_texture(Device *device,
       return;
   }
 
-  memset(&info, 0, sizeof(info));
   info.data_type = image_data_type;
   info.interpolation = interpolation;
   info.extension = extension;

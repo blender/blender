@@ -9,7 +9,7 @@
 #include "DNA_brush_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 
 #include "DNA_brush_enums.h"

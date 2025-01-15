@@ -67,13 +67,13 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
                                             const Span<float3> start_positions_cu,
                                             const Mesh &surface,
                                             const bke::CurvesSurfaceTransforms &transforms,
-                                            MutableSpan<float3> positions_cu)
+                                            MutableSpan<float3> positions_cu,
+                                            const float surface_collision_distance)
 {
   solve_length_constraints(points_by_curve, curve_selection, segment_lengths_cu, positions_cu);
 
   blender::bke::BVHTreeFromMesh surface_bvh = surface.bvh_corner_tris();
 
-  const float radius = 0.005f;
   const int max_collisions = 5;
 
   curve_selection.foreach_segment(GrainSize(64), [&](const IndexMaskSegment segment) {
@@ -108,11 +108,11 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
                                                                          max_ray_length_su);
           BVHTreeRayHit hit;
           hit.index = -1;
-          hit.dist = max_ray_length_su + radius;
+          hit.dist = max_ray_length_su + surface_collision_distance;
           BLI_bvhtree_ray_cast(surface_bvh.tree,
                                start_pos_su,
                                ray_direction_su,
-                               radius,
+                               surface_collision_distance,
                                &hit,
                                surface_bvh.raycast_callback,
                                &surface_bvh);
@@ -135,7 +135,7 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
               math::transform_direction(transforms.surface_to_curves_normal, hit_normal_su));
 
           /* Slide on a plane that is slightly above the surface. */
-          const float3 plane_pos_cu = hit_pos_cu + hit_normal_cu * radius;
+          const float3 plane_pos_cu = hit_pos_cu + hit_normal_cu * surface_collision_distance;
           const float3 plane_normal_cu = hit_normal_cu;
 
           /* Decompose the current segment into the part normal and tangent to the collision

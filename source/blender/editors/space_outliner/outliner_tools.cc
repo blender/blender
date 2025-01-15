@@ -53,6 +53,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -2149,27 +2150,27 @@ static void ebone_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, voi
 
 static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void *scene_ptr)
 {
-  TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  Sequence *seq = &te_seq->get_sequence();
+  TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+  Strip *strip = &te_strip->get_strip();
   Scene *scene = (Scene *)scene_ptr;
   Editing *ed = SEQ_editing_get(scene);
-  if (BLI_findindex(ed->seqbasep, seq) != -1) {
+  if (BLI_findindex(ed->seqbasep, strip) != -1) {
     if (event == OL_DOP_SELECT) {
-      ED_sequencer_select_sequence_single(scene, seq, true);
+      ED_sequencer_select_sequence_single(scene, strip, true);
     }
     else if (event == OL_DOP_DESELECT) {
-      seq->flag &= ~SELECT;
+      strip->flag &= ~SELECT;
     }
     else if (event == OL_DOP_HIDE) {
-      if (!(seq->flag & SEQ_MUTE)) {
-        seq->flag |= SEQ_MUTE;
-        SEQ_relations_invalidate_dependent(scene, seq);
+      if (!(strip->flag & SEQ_MUTE)) {
+        strip->flag |= SEQ_MUTE;
+        SEQ_relations_invalidate_dependent(scene, strip);
       }
     }
     else if (event == OL_DOP_UNHIDE) {
-      if (seq->flag & SEQ_MUTE) {
-        seq->flag &= ~SEQ_MUTE;
-        SEQ_relations_invalidate_dependent(scene, seq);
+      if (strip->flag & SEQ_MUTE) {
+        strip->flag &= ~SEQ_MUTE;
+        SEQ_relations_invalidate_dependent(scene, strip);
       }
     }
   }
@@ -2722,7 +2723,7 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 
-  ED_node_tree_propagate_change(C, bmain, nullptr);
+  BKE_main_ensure_invariants(*bmain);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -3021,7 +3022,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  ED_node_tree_propagate_change(C, bmain, nullptr);
+  BKE_main_ensure_invariants(*bmain);
 
   /* wrong notifier still... */
   WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);
@@ -3112,7 +3113,7 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  ED_node_tree_propagate_change(C, bmain, nullptr);
+  BKE_main_ensure_invariants(*bmain);
 
   /* wrong notifier still... */
   WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);
@@ -3485,13 +3486,8 @@ static bool outliner_data_operation_poll(bContext *C)
 
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
-  return ELEM(datalevel,
-              TSE_POSE_CHANNEL,
-              TSE_BONE,
-              TSE_EBONE,
-              TSE_SEQUENCE,
-              TSE_GP_LAYER,
-              TSE_RNA_STRUCT);
+  return ELEM(
+      datalevel, TSE_POSE_CHANNEL, TSE_BONE, TSE_EBONE, TSE_STRIP, TSE_GP_LAYER, TSE_RNA_STRUCT);
 }
 
 static int outliner_data_operation_exec(bContext *C, wmOperator *op)
@@ -3524,7 +3520,7 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 
       break;
     }
-    case TSE_SEQUENCE: {
+    case TSE_STRIP: {
       Scene *scene = CTX_data_scene(C);
       outliner_do_data_operation(space_outliner, datalevel, event, sequence_fn, scene);
       WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);

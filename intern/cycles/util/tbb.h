@@ -2,12 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TBB_H__
-#define __UTIL_TBB_H__
+#pragma once
 
 /* TBB includes <windows.h>, do it ourselves first so we are sure
  * WIN32_LEAN_AND_MEAN and similar are defined beforehand. */
-#include "util/windows.h"
+#ifdef _WIN32
+#  include "util/windows.h"
+#endif
 
 #include <tbb/enumerable_thread_specific.h>
 #include <tbb/parallel_for.h>
@@ -55,5 +56,3 @@ static inline void parallel_for_cancel()
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TBB_H__ */

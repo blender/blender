@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_IES_H__
-#define __UTIL_IES_H__
+#pragma once
 
 #include "util/string.h"
 #include "util/vector.h"
@@ -12,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 class IESFile {
  public:
-  IESFile() {}
+  IESFile() = default;
   ~IESFile();
 
   int packed_size();
@@ -42,5 +41,3 @@ class IESFile {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_IES_H__ */

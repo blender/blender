@@ -113,10 +113,10 @@ class IDMaskOperation : public NodeOperation {
 
   void execute_single_value()
   {
-    const float input_mask_value = get_input("ID value").get_float_value();
+    const float input_mask_value = get_input("ID value").get_single_value<float>();
     const float mask = int(round(input_mask_value)) == get_index() ? 1.0f : 0.0f;
     get_result("Alpha").allocate_single_value();
-    get_result("Alpha").set_float_value(mask);
+    get_result("Alpha").set_single_value(mask);
   }
 
   int get_index()
@@ -143,8 +143,11 @@ void register_node_type_cmp_idmask()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ID_MASK, "ID Mask", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeIDMask", CMP_NODE_ID_MASK);
+  ntype.ui_name = "ID Mask";
+  ntype.ui_description = "Create a matte from an object or material index pass";
   ntype.enum_name_legacy = "ID_MASK";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_idmask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_id_mask;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

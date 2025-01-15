@@ -5,6 +5,7 @@
 #include "Materials.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
@@ -100,7 +101,7 @@ bNodeTree *MaterialNode::prepare_material_nodetree()
 
 void MaterialNode::update_material_nodetree()
 {
-  BKE_ntree_update_main_tree(CTX_data_main(mContext), ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*CTX_data_main(mContext), *ntree);
 }
 
 bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string label)
@@ -275,7 +276,7 @@ Image *MaterialNode::get_diffuse_image()
     return nullptr;
   }
 
-  if (texture->type != SH_NODE_TEX_IMAGE) {
+  if (texture->type_legacy != SH_NODE_TEX_IMAGE) {
     return nullptr;
   }
 

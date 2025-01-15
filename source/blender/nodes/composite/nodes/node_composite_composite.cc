@@ -70,12 +70,12 @@ class CompositeOperation : public NodeOperation {
     const Result &image = get_input("Image");
     const Result &alpha = get_input("Alpha");
 
-    float4 color = image.get_color_value();
+    float4 color = image.get_single_value<float4>();
     if (ignore_alpha()) {
       color.w = 1.0f;
     }
     else if (node().input_by_identifier("Alpha")->is_logically_linked()) {
-      color.w = alpha.get_float_value();
+      color.w = alpha.get_single_value<float>();
     }
 
     const Domain domain = compute_domain();
@@ -288,8 +288,11 @@ void register_node_type_cmp_composite()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeComposite", CMP_NODE_COMPOSITE);
+  ntype.ui_name = "Composite";
+  ntype.ui_description = "Final render output";
   ntype.enum_name_legacy = "COMPOSITE";
+  ntype.nclass = NODE_CLASS_OUTPUT;
   ntype.declare = file_ns::cmp_node_composite_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_composite;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

@@ -4,11 +4,7 @@
 
 set(INC
   ../include
-  ../../blenkernel
-  ../../blenloader
-  ../../gpu
   ../../makesrna
-  ../../windowmanager
 
 )
 
@@ -25,10 +21,13 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)

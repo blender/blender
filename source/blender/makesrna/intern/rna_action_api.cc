@@ -6,16 +6,11 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
-#include "BLI_utildefines.h"
-
 #include "RNA_define.hh"
-
-#include "DNA_action_types.h"
 
 #include "rna_internal.hh" /* own include */
 

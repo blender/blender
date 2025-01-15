@@ -173,8 +173,8 @@ class TEXT_PT_find(Panel):
         col = layout.column(heading="Search")
         if not st.text:
             col.active = False
-        col.prop(st, "use_match_case", text="Match Case", text_ctxt=i18n_contexts.id_text)
-        col.prop(st, "use_find_wrap", text="Wrap Around", text_ctxt=i18n_contexts.id_text)
+        col.prop(st, "use_match_case", text="Match Case")
+        col.prop(st, "use_find_wrap", text="Wrap Around")
         col.prop(st, "use_find_all", text="All Data-Blocks")
 
 

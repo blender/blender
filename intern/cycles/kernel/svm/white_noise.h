@@ -4,21 +4,27 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+#include "util/hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_tex_white_noise(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
-                                                  uint dimensions,
-                                                  uint inputs_stack_offsets,
-                                                  uint outputs_stack_offsets)
+                                                  const uint dimensions,
+                                                  const uint inputs_stack_offsets,
+                                                  const uint outputs_stack_offsets)
 {
-  uint vector_stack_offset, w_stack_offset, value_stack_offset, color_stack_offset;
+  uint vector_stack_offset;
+  uint w_stack_offset;
+  uint value_stack_offset;
+  uint color_stack_offset;
   svm_unpack_node_uchar2(inputs_stack_offsets, &vector_stack_offset, &w_stack_offset);
   svm_unpack_node_uchar2(outputs_stack_offsets, &value_stack_offset, &color_stack_offset);
 
-  float3 vector = stack_load_float3(stack, vector_stack_offset);
-  float w = stack_load_float(stack, w_stack_offset);
+  const float3 vector = stack_load_float3(stack, vector_stack_offset);
+  const float w = stack_load_float(stack, w_stack_offset);
 
   if (stack_valid(color_stack_offset)) {
     float3 color;

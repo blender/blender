@@ -859,7 +859,7 @@ static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
 
   ot->prop = prop = RNA_def_enum(
       ot->srna, "domain", rna_enum_attribute_curves_domain_items, 0, "Domain", "");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static bool has_anything_selected(const Span<Curves *> curves_ids)
@@ -1264,7 +1264,7 @@ static void CURVES_OT_delete(wmOperatorType *ot)
 
 namespace curves_duplicate {
 
-static int delete_exec(bContext *C, wmOperator * /*op*/)
+static int duplicate_exec(bContext *C, wmOperator * /*op*/)
 {
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
@@ -1294,7 +1294,7 @@ static void CURVES_OT_duplicate(wmOperatorType *ot)
   ot->idname = __func__;
   ot->description = "Copy selected points or curves";
 
-  ot->exec = curves_duplicate::delete_exec;
+  ot->exec = curves_duplicate::duplicate_exec;
   ot->poll = editable_curves_in_edit_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

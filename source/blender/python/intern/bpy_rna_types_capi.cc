@@ -17,8 +17,6 @@
 #include <Python.h>
 #include <descrobject.h>
 
-#include "RNA_types.hh"
-
 #include "BLI_utildefines.h"
 
 #include "bpy_library.hh"
@@ -281,19 +279,20 @@ void BPY_rna_types_extend_capi()
                   BPY_rna_id_collection_batch_remove_method_def,
                   BPY_rna_id_collection_orphans_purge_method_def,
                   BPY_rna_data_context_method_def);
-  BLI_assert(ARRAY_SIZE(pyrna_blenddata_methods) == 5);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_blenddata_methods) == 5, "Unexpected number of methods")
   pyrna_struct_type_extend_capi(&RNA_BlendData, pyrna_blenddata_methods, nullptr);
 
   /* BlendDataLibraries */
   ARRAY_SET_ITEMS(
       pyrna_blenddatalibraries_methods, BPY_library_load_method_def, BPY_library_write_method_def);
-  BLI_assert(ARRAY_SIZE(pyrna_blenddatalibraries_methods) == 3);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_blenddatalibraries_methods) == 3,
+                    "Unexpected number of methods")
   pyrna_struct_type_extend_capi(
       &RNA_BlendDataLibraries, pyrna_blenddatalibraries_methods, nullptr);
 
   /* uiLayout */
   ARRAY_SET_ITEMS(pyrna_uilayout_methods, BPY_rna_uilayout_introspect_method_def);
-  BLI_assert(ARRAY_SIZE(pyrna_uilayout_methods) == 2);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_uilayout_methods) == 2, "Unexpected number of methods")
   pyrna_struct_type_extend_capi(&RNA_UILayout, pyrna_uilayout_methods, nullptr);
 
   /* Space */
@@ -303,12 +302,12 @@ void BPY_rna_types_extend_capi()
   ARRAY_SET_ITEMS(pyrna_text_methods,
                   BPY_rna_region_as_string_method_def,
                   BPY_rna_region_from_string_method_def);
-  BLI_assert(ARRAY_SIZE(pyrna_text_methods) == 3);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_text_methods) == 3, "Unexpected number of methods")
   pyrna_struct_type_extend_capi(&RNA_Text, pyrna_text_methods, nullptr);
 
   /* wmOperator */
   ARRAY_SET_ITEMS(pyrna_operator_methods, BPY_rna_operator_poll_message_set_method_def);
-  BLI_assert(ARRAY_SIZE(pyrna_operator_methods) == 2);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_operator_methods) == 2, "Unexpected number of methods")
   pyrna_struct_type_extend_capi(&RNA_Operator, pyrna_operator_methods, nullptr);
 
   /* WindowManager */

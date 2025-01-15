@@ -973,8 +973,46 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
 
   ss << "\n/* Sub-pass Inputs. */\n";
   const VKShaderInterface &interface = interface_get();
+  const bool use_local_read = !workarounds.dynamic_rendering_local_read;
   const bool use_dynamic_rendering = !workarounds.dynamic_rendering;
-  if (use_dynamic_rendering) {
+
+  if (use_local_read) {
+    uint32_t subpass_input_binding_index = 0;
+    for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+      std::string input_attachment_name = "gpu_input_attachment_";
+      input_attachment_name += std::to_string(input.index);
+
+      /* Declare global for input. */
+      ss << to_string(input.type) << " " << input.name << ";\n";
+
+      Type component_type = to_component_type(input.type);
+      char typePrefix;
+      switch (component_type) {
+        case Type::INT:
+          typePrefix = 'i';
+          break;
+        case Type::UINT:
+          typePrefix = 'u';
+          break;
+        default:
+          typePrefix = ' ';
+          break;
+      }
+      ss << "layout(input_attachment_index = " << (input.index)
+         << ", binding = " << (subpass_input_binding_index++) << ") uniform " << typePrefix
+         << "subpassInput " << input_attachment_name << "; \n";
+
+      std::stringstream ss_pre;
+      static const std::string swizzle = "xyzw";
+      /* Populate the global before main using subpassLoad. */
+      ss_pre << "  " << input.name << " = " << input.type << "( subpassLoad("
+             << input_attachment_name << ")." << swizzle.substr(0, to_component_count(input.type))
+             << " ); \n";
+
+      pre_main += ss_pre.str();
+    }
+  }
+  else if (use_dynamic_rendering) {
     for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
       std::string image_name = "gpu_subpass_img_";
       image_name += std::to_string(input.index);

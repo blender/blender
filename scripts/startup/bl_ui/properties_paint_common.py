@@ -4,6 +4,10 @@
 
 import bpy
 from bpy.types import Menu, Panel
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+)
 
 
 class BrushAssetShelf:
@@ -769,10 +773,10 @@ def brush_settings(layout, context, brush, popover=False):
 
         # crease_pinch_factor
         if capabilities.has_pinch_factor:
-            text = "Pinch"
+            text = iface_("Pinch")
             if sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
-                text = "Magnify"
-            layout.prop(brush, "crease_pinch_factor", slider=True, text=text)
+                text = iface_("Magnify")
+            layout.prop(brush, "crease_pinch_factor", slider=True, text=text, translate=False)
 
         # rake_factor
         if capabilities.has_rake_factor:
@@ -1076,9 +1080,9 @@ def brush_shared_settings(layout, context, brush, popover=False):
     if mode == 'SCULPT_CURVES':
         tool = brush.curves_sculpt_tool
         size = True
-        strength = True
+        strength = tool not in {'ADD', 'DELETE'}
         direction = tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
-        strength_pressure = tool not in {'SLIDE'}
+        strength_pressure = tool not in {'SLIDE', 'ADD', 'DELETE'}
 
     # Grease Pencil #
     if mode == 'PAINT_GREASE_PENCIL':
@@ -1259,7 +1263,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         col = layout.column(heading="Affect", align=True)
         col.prop(gp_settings, "use_edit_position", text="Position")
-        col.prop(gp_settings, "use_edit_strength", text="Strength")
+        col.prop(gp_settings, "use_edit_strength", text="Strength", text_ctxt=i18n_contexts.id_gpencil)
         col.prop(gp_settings, "use_edit_thickness", text="Thickness")
         col.prop(gp_settings, "use_edit_uv", text="UV")
 
@@ -1482,7 +1486,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         UnifiedPaintPanel.prop_unified_color(row, context, brush, "color", text="")
         UnifiedPaintPanel.prop_unified_color(row, context, brush, "secondary_color", text="")
         row.separator()
-        layout.prop(brush, "blend", text="" if compact else "Blend")
+        layout.prop(brush, "blend", text="" if compact else iface_("Blend"), translate=False)
 
     UnifiedPaintPanel.prop_unified(
         layout,
@@ -1531,6 +1535,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
     sub.popover(
         panel="TOPBAR_PT_grease_pencil_materials",
         text=txt_ma,
+        translate=False,
         icon_value=icon_id,
     )
 

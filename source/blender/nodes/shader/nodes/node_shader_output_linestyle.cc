@@ -44,8 +44,10 @@ void register_node_type_sh_output_linestyle()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OUTPUT_LINESTYLE, "Line Style Output", NODE_CLASS_OUTPUT);
+  sh_node_type_base(&ntype, "ShaderNodeOutputLineStyle", SH_NODE_OUTPUT_LINESTYLE);
+  ntype.ui_name = "Line Style Output";
   ntype.enum_name_legacy = "OUTPUT_LINESTYLE";
+  ntype.nclass = NODE_CLASS_OUTPUT;
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = line_style_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_buts_output_linestyle;

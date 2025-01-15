@@ -8,6 +8,7 @@
 
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_world.h"
 #include "BLI_math_rotation.h"
 #include "DEG_depsgraph_query.hh"

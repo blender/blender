@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -18,6 +17,7 @@
 #include "BKE_ccg.hh"
 #include "BKE_subsurf.hh"
 #include "CCGSubSurf.h"
+#include "CCGSubSurf_inline.h"
 #include "CCGSubSurf_intern.h"
 
 /***/

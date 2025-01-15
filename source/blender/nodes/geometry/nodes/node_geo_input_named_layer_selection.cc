@@ -34,8 +34,11 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_INPUT_NAMED_LAYER_SELECTION, "Named Layer Selection", NODE_CLASS_INPUT);
+      &ntype, "GeometryNodeInputNamedLayerSelection", GEO_NODE_INPUT_NAMED_LAYER_SELECTION);
+  ntype.ui_name = "Named Layer Selection";
+  ntype.ui_description = "Output a selection of a Grease Pencil layer";
   ntype.enum_name_legacy = "INPUT_NAMED_LAYER_SELECTION";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_vector.h"
@@ -610,8 +610,11 @@ void register_node_type_sh_mix()
   namespace file_ns = blender::nodes::node_sh_mix_cc;
 
   static blender::bke::bNodeType ntype;
-  sh_fn_node_type_base(&ntype, SH_NODE_MIX, "Mix", NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeMix", SH_NODE_MIX);
+  ntype.ui_name = "Mix";
+  ntype.ui_description = "Mix values by a factor";
   ntype.enum_name_legacy = "MIX";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_mix_declare;
   ntype.ui_class = file_ns::sh_node_mix_ui_class;
   ntype.gpu_fn = file_ns::gpu_shader_mix;

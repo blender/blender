@@ -216,89 +216,6 @@ static void GREASE_PENCIL_OT_layer_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static const EnumPropertyItem prop_layer_reorder_location[] = {
-    {LAYER_REORDER_ABOVE, "ABOVE", 0, "Above", ""},
-    {LAYER_REORDER_BELOW, "BELOW", 0, "Below", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
-{
-  using namespace blender::bke::greasepencil;
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-
-  if (!grease_pencil.has_active_layer()) {
-    return OPERATOR_CANCELLED;
-  }
-
-  int target_layer_name_length;
-  char *target_layer_name = RNA_string_get_alloc(
-      op->ptr, "target_layer_name", nullptr, 0, &target_layer_name_length);
-  const int reorder_location = RNA_enum_get(op->ptr, "location");
-
-  TreeNode *target_node = grease_pencil.find_node_by_name(target_layer_name);
-  if (!target_node || !target_node->is_layer()) {
-    MEM_SAFE_FREE(target_layer_name);
-    return OPERATOR_CANCELLED;
-  }
-
-  Layer &active_layer = *grease_pencil.get_active_layer();
-  switch (reorder_location) {
-    case LAYER_REORDER_ABOVE: {
-      /* NOTE: The layers are stored from bottom to top, so inserting above (visually), means
-       * inserting the link after the target. */
-      grease_pencil.move_node_after(active_layer.as_node(), *target_node);
-      break;
-    }
-    case LAYER_REORDER_BELOW: {
-      /* NOTE: The layers are stored from bottom to top, so inserting below (visually), means
-       * inserting the link before the target. */
-      grease_pencil.move_node_before(active_layer.as_node(), *target_node);
-      break;
-    }
-    default:
-      BLI_assert_unreachable();
-  }
-
-  MEM_SAFE_FREE(target_layer_name);
-
-  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
-
-  WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
-  WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layer_groups);
-
-  return OPERATOR_FINISHED;
-}
-
-static void GREASE_PENCIL_OT_layer_reorder(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Reorder Layer";
-  ot->idname = "GREASE_PENCIL_OT_layer_reorder";
-  ot->description = "Reorder the active Grease Pencil layer";
-
-  /* callbacks */
-  ot->exec = grease_pencil_layer_reorder_exec;
-  ot->poll = grease_pencil_context_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  PropertyRNA *prop = RNA_def_string(ot->srna,
-                                     "target_layer_name",
-                                     "Layer",
-                                     INT16_MAX,
-                                     "Target Name",
-                                     "Name of the target layer");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-  RNA_def_enum(
-      ot->srna, "location", prop_layer_reorder_location, LAYER_REORDER_ABOVE, "Location", "");
-}
-
 enum class LayerMoveDirection : int8_t { Up = -1, Down = 1 };
 
 static const EnumPropertyItem enum_layer_move_direction[] = {
@@ -1237,7 +1154,6 @@ void ED_operatortypes_grease_pencil_layers()
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_layer_add);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_remove);
-  WM_operatortype_append(GREASE_PENCIL_OT_layer_reorder);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_move);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_active);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_hide);

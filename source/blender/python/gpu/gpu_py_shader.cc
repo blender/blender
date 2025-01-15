@@ -13,6 +13,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "GPU_capabilities.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
@@ -685,7 +686,20 @@ PyDoc_STRVAR(
 static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject * /*arg*/)
 {
   BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(nullptr);
-  GPU_vertformat_from_shader(&ret->fmt, self->shader);
+  if (bpygpu_shader_is_polyline(self->shader)) {
+    GPU_vertformat_clear(&ret->fmt);
+
+    /* WORKAROUND: Special case for POLYLINE shader. */
+    if (GPU_shader_get_ssbo_binding(self->shader, "pos") >= 0) {
+      GPU_vertformat_attr_add(&ret->fmt, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    }
+    if (GPU_shader_get_ssbo_binding(self->shader, "color") >= 0) {
+      GPU_vertformat_attr_add(&ret->fmt, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    }
+  }
+  else {
+    GPU_vertformat_from_shader(&ret->fmt, self->shader);
+  }
   return (PyObject *)ret;
 }
 
@@ -1024,6 +1038,11 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
   GPUShader *shader = GPU_shader_get_builtin_shader_with_config(
       eGPUBuiltinShader(pygpu_bultinshader.value_found),
       eGPUShaderConfig(pygpu_config.value_found));
+
+  if (shader == nullptr) {
+    PyErr_Format(PyExc_ValueError, "Builtin shader doesn't exist in the requested config");
+    return nullptr;
+  }
 
   return BPyGPUShader_CreatePyObject(shader, true);
 }

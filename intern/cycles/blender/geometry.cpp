@@ -12,7 +12,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "util/foreach.h"
 #include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
@@ -74,12 +73,12 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
                                      TaskPool *task_pool)
 {
   /* Test if we can instance or if the object is modified. */
-  Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
-  BL::ID b_key_id = (b_ob_info.is_real_object_data() &&
-                     BKE_object_is_modified(b_ob_info.real_object)) ?
-                        b_ob_info.real_object :
-                        b_ob_info.object_data;
-  GeometryKey key(b_key_id.ptr.data, geom_type);
+  const Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
+  BL::ID const b_key_id = (b_ob_info.is_real_object_data() &&
+                           BKE_object_is_modified(b_ob_info.real_object)) ?
+                              b_ob_info.real_object :
+                              b_ob_info.object_data;
+  const GeometryKey key(b_key_id.ptr.data, geom_type);
 
   /* Find shader indices. */
   array<Node *> used_shaders = find_used_shaders(b_ob_info.iter_object);
@@ -94,7 +93,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   /* Test if we need to sync. */
   bool sync = true;
-  if (geom == NULL) {
+  if (geom == nullptr) {
     /* Add new geometry if it did not exist yet. */
     if (geom_type == Geometry::HAIR) {
       geom = scene->create_node<Hair>();
@@ -130,7 +129,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
        * because the shader needs different geometry attributes. */
       bool attribute_recalc = false;
 
-      foreach (Node *node, geom->get_used_shaders()) {
+      for (Node *node : geom->get_used_shaders()) {
         Shader *shader = static_cast<Shader *>(node);
         if (shader->need_update_geometry()) {
           attribute_recalc = true;
@@ -189,7 +188,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                                        BObjectInfo &b_ob_info,
                                        Object *object,
-                                       float motion_time,
+                                       const float motion_time,
                                        bool use_particle_hair,
                                        TaskPool *task_pool)
 {
@@ -211,7 +210,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   }
 
   /* Find time matching motion step required by geometry. */
-  int motion_step = geom->motion_step(motion_time);
+  const int motion_step = geom->motion_step(motion_time);
   if (motion_step < 0) {
     return;
   }

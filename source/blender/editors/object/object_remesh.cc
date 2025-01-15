@@ -319,14 +319,9 @@ static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *
   char str[VOXEL_SIZE_EDIT_MAX_STR_LEN];
   short strdrawlen = 0;
   Scene *scene = CTX_data_scene(C);
-  const UnitSettings *unit = &scene->unit;
-  BKE_unit_value_as_string(str,
-                           VOXEL_SIZE_EDIT_MAX_STR_LEN,
-                           double(cd->voxel_size * unit->scale_length),
-                           -3,
-                           B_UNIT_LENGTH,
-                           unit,
-                           true);
+  const UnitSettings &unit = scene->unit;
+
+  BKE_unit_value_as_string_scaled(str, sizeof(str), cd->voxel_size, -3, B_UNIT_LENGTH, unit, true);
   strdrawlen = BLI_strlen_utf8(str);
 
   immUnbindProgram();

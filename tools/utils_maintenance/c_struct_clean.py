@@ -11,6 +11,10 @@ There may be times this is needed, however they can typically be removed
 and any errors caused can be added to the headers which require the forward declarations.
 """
 
+__all__ = (
+    "main",
+)
+
 import os
 import sys
 import re

@@ -2,16 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <mutex>
-
-#include "BLI_index_mask.hh"
-#include "BLI_map.hh"
-#include "BLI_math_matrix_types.hh"
-#include "BLI_set.hh"
-#include "BLI_span.hh"
-#include "BLI_task.hh"
-#include "BLI_vector.hh"
-
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 

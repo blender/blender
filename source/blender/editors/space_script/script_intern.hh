@@ -10,6 +10,9 @@
 
 /* internal exports only */
 
+struct wmKeyConfig;
+struct wmOperatorType;
+
 /* `script_ops.cc` */
 
 void script_operatortypes();

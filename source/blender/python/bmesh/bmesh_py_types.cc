@@ -10,7 +10,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_sort.h"
-#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
@@ -20,8 +19,9 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"

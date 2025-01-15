@@ -10,6 +10,7 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 #include "COM_context.hh"
@@ -33,7 +34,7 @@ static bool add_viewer_nodes_in_context(const DTreeContext *context, Stack<DNode
   }
 
   /* The active Composite node was already added, no need to add it again, see the next block. */
-  if (!node_stack.is_empty() && node_stack.peek()->type == CMP_NODE_COMPOSITE) {
+  if (!node_stack.is_empty() && node_stack.peek()->type_legacy == CMP_NODE_COMPOSITE) {
     return false;
   }
 

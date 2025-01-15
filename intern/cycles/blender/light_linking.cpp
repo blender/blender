@@ -4,9 +4,9 @@
 
 #include "blender/light_linking.h"
 
-#include "scene/object.h"
-
 #include "DNA_object_types.h"
+
+#include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -14,6 +14,7 @@ def gather_object_sampled_keyframes(
         obj_uuid: str,
         channel: str,
         action_name: str,
+        slot_handle: int,
         node_channel_is_animated: bool,
         export_settings
 ):
@@ -36,6 +37,7 @@ def gather_object_sampled_keyframes(
             action_name,
             frame,
             step,
+            slot_handle,
             export_settings)
 
         trans, rot, sca = mat.decompose()

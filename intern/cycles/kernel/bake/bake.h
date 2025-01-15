@@ -4,18 +4,21 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/camera/projection.h"
 #include "kernel/integrator/displacement_shader.h"
 #include "kernel/integrator/surface_shader.h"
 
-#include "kernel/geom/geom.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/shader_data.h"
 
-#include "kernel/util/color.h"
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_displace_evaluate(KernelGlobals kg,
-                                         ccl_global const KernelShaderEvalInput *input,
+                                         const ccl_global KernelShaderEvalInput *input,
                                          ccl_global float *output,
                                          const int offset)
 {
@@ -49,7 +52,7 @@ ccl_device void kernel_displace_evaluate(KernelGlobals kg,
 }
 
 ccl_device void kernel_background_evaluate(KernelGlobals kg,
-                                           ccl_global const KernelShaderEvalInput *input,
+                                           const ccl_global KernelShaderEvalInput *input,
                                            ccl_global float *output,
                                            const int offset)
 {
@@ -69,7 +72,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   const uint32_t path_flag = PATH_RAY_EMISSION | PATH_RAY_IMPORTANCE_BAKE;
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
-      kg, INTEGRATOR_STATE_NULL, &sd, NULL, path_flag);
+      kg, INTEGRATOR_STATE_NULL, &sd, nullptr, path_flag);
   Spectrum color = surface_shader_background(&sd);
 
 #ifdef __KERNEL_DEBUG_NAN__
@@ -81,7 +84,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   /* Ensure finite color, avoiding possible numerical instabilities in the path tracing kernels. */
   color = ensure_finite(color);
 
-  float3 color_rgb = spectrum_to_rgb(color);
+  const float3 color_rgb = spectrum_to_rgb(color);
 
   /* Write output. */
   output[offset * 3 + 0] += color_rgb.x;
@@ -91,7 +94,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
 
 ccl_device void kernel_curve_shadow_transparency_evaluate(
     KernelGlobals kg,
-    ccl_global const KernelShaderEvalInput *input,
+    const ccl_global KernelShaderEvalInput *input,
     ccl_global float *output,
     const int offset)
 {
@@ -105,7 +108,7 @@ ccl_device void kernel_curve_shadow_transparency_evaluate(
   /* Evaluate transparency. */
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
-      kg, INTEGRATOR_STATE_NULL, &sd, NULL, PATH_RAY_SHADOW);
+      kg, INTEGRATOR_STATE_NULL, &sd, nullptr, PATH_RAY_SHADOW);
 
   /* Write output. */
   output[offset] = clamp(average(surface_shader_transparency(kg, &sd)), 0.0f, 1.0f);

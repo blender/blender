@@ -48,7 +48,7 @@ NodeItem NodeParser::compute_full()
               1,
               "%s [%d] => %s",
               node_->name,
-              node_->typeinfo->type,
+              node_->typeinfo->type_legacy,
               NodeItem::type(to_type_).c_str());
 
     res = compute();
@@ -281,7 +281,7 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
     CLOG_WARN(LOG_MATERIALX_SHADER,
               "Unsupported node: %s [%d]",
               from_node->name,
-              from_node->typeinfo->type);
+              from_node->typeinfo->type_legacy);
     return empty();
   }
 

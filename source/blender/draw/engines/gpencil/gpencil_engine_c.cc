@@ -698,9 +698,9 @@ void GPENCIL_Instance::acquire_resources(GPENCIL_PrivateData *pd)
     this->mask_color_tx.acquire(size, GPU_R8);
     this->mask_tx.acquire(size, mask_format);
 
-    this->mask_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_tx),
-                         GPU_ATTACHMENT_TEXTURE(this->color_object_tx),
-                         GPU_ATTACHMENT_TEXTURE(this->reveal_object_tx));
+    this->mask_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->mask_depth_tx),
+                         GPU_ATTACHMENT_TEXTURE(this->mask_color_tx),
+                         GPU_ATTACHMENT_TEXTURE(this->mask_tx));
   }
 }
 

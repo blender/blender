@@ -8,10 +8,13 @@
 
 #pragma once
 
+struct ARegion;
+struct Scene;
+struct ScrArea;
 struct bContext;
 struct bDopeSheet;
-struct wmEvent;
 struct rcti;
+struct wmEvent;
 struct wmWindow;
 
 void ED_time_scrub_draw_current_frame(const ARegion *region,

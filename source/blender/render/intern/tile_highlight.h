@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "BLI_rect.h"
+#include "DNA_vec_types.h"
+
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 

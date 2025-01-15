@@ -17,9 +17,9 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_index_mask.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_ccg.hh"
 #include "BKE_editmesh.hh"

@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline bool intersection_ray_valid(ccl_private const Ray *ray)
+ccl_device_inline bool intersection_ray_valid(const ccl_private Ray *ray)
 {
   /* NOTE: Due to some vectorization code  non-finite origin point might
    * cause lots of false-positive intersections which will overflow traversal
@@ -85,12 +88,13 @@ ccl_device int intersections_compare(const void *a, const void *b)
   const Intersection *isect_a = (const Intersection *)a;
   const Intersection *isect_b = (const Intersection *)b;
 
-  if (isect_a->t < isect_b->t)
+  if (isect_a->t < isect_b->t) {
     return -1;
-  else if (isect_a->t > isect_b->t)
+  }
+  if (isect_a->t > isect_b->t) {
     return 1;
-  else
-    return 0;
+  }
+  return 0;
 }
 #endif
 
@@ -167,13 +171,13 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals
 }
 
 ccl_device_forceinline int intersection_get_shader(
-    KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
+    KernelGlobals kg, const ccl_private Intersection *ccl_restrict isect)
 {
   return intersection_get_shader_from_isect_prim(kg, isect->prim, isect->type);
 }
 
 ccl_device_forceinline int intersection_get_object_flags(
-    KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
+    KernelGlobals kg, const ccl_private Intersection *ccl_restrict isect)
 {
   return kernel_data_fetch(object_flag, isect->object);
 }
@@ -192,10 +196,8 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
       if (UNLIKELY(attr_map.element == 0)) {
         return (int)ATTR_STD_NOT_FOUND;
       }
-      else {
-        /* Chain jump to a different part of the table. */
-        attr_offset = attr_map.offset;
-      }
+      /* Chain jump to a different part of the table. */
+      attr_offset = attr_map.offset;
     }
     else {
       attr_offset += ATTR_PRIM_TYPES;
@@ -204,7 +206,7 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
   }
 
   /* return result */
-  return (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.offset;
+  return (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : attr_map.offset;
 }
 
 /* Transparent Shadows */
@@ -233,14 +235,14 @@ ccl_device_inline float intersection_curve_shadow_transparency(
   return (1.0f - u) * f0 + u * f1;
 }
 
-ccl_device_inline bool intersection_skip_self(ccl_ray_data const RaySelfPrimitives &self,
+ccl_device_inline bool intersection_skip_self(const ccl_ray_data RaySelfPrimitives &self,
                                               const int object,
                                               const int prim)
 {
   return (self.prim == prim) && (self.object == object);
 }
 
-ccl_device_inline bool intersection_skip_self_shadow(ccl_ray_data const RaySelfPrimitives &self,
+ccl_device_inline bool intersection_skip_self_shadow(const ccl_ray_data RaySelfPrimitives &self,
                                                      const int object,
                                                      const int prim)
 {
@@ -248,7 +250,7 @@ ccl_device_inline bool intersection_skip_self_shadow(ccl_ray_data const RaySelfP
          ((self.light_prim == prim) && (self.light_object == object));
 }
 
-ccl_device_inline bool intersection_skip_self_local(ccl_ray_data const RaySelfPrimitives &self,
+ccl_device_inline bool intersection_skip_self_local(const ccl_ray_data RaySelfPrimitives &self,
                                                     const int prim)
 {
   return (self.prim == prim);
@@ -256,7 +258,7 @@ ccl_device_inline bool intersection_skip_self_local(ccl_ray_data const RaySelfPr
 
 #ifdef __SHADOW_LINKING__
 ccl_device_inline uint64_t
-ray_get_shadow_set_membership(KernelGlobals kg, ccl_ray_data const RaySelfPrimitives &self)
+ray_get_shadow_set_membership(KernelGlobals kg, const ccl_ray_data RaySelfPrimitives &self)
 {
   if (self.light != LAMP_NONE) {
     return kernel_data_fetch(lights, self.light).shadow_set_membership;
@@ -271,7 +273,7 @@ ray_get_shadow_set_membership(KernelGlobals kg, ccl_ray_data const RaySelfPrimit
 #endif
 
 ccl_device_inline bool intersection_skip_shadow_link(KernelGlobals kg,
-                                                     ccl_ray_data const RaySelfPrimitives &self,
+                                                     const ccl_ray_data RaySelfPrimitives &self,
                                                      const int isect_object)
 {
 #ifdef __SHADOW_LINKING__

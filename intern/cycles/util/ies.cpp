@@ -4,7 +4,6 @@
 
 #include <algorithm>
 
-#include "util/foreach.h"
 #include "util/ies.h"
 #include "util/math.h"
 #include "util/string.h"
@@ -37,7 +36,7 @@ void IESFile::clear()
 
 int IESFile::packed_size()
 {
-  if (v_angles.size() && h_angles.size() > 0) {
+  if (!v_angles.empty() && !h_angles.empty()) {
     return 2 + h_angles.size() + v_angles.size() + h_angles.size() * v_angles.size();
   }
   return 0;
@@ -45,17 +44,17 @@ int IESFile::packed_size()
 
 void IESFile::pack(float *data)
 {
-  if (v_angles.size() && h_angles.size()) {
+  if (!v_angles.empty() && !h_angles.empty()) {
     *(data++) = __int_as_float(h_angles.size());
     *(data++) = __int_as_float(v_angles.size());
 
-    memcpy(data, &h_angles[0], h_angles.size() * sizeof(float));
+    memcpy(data, h_angles.data(), h_angles.size() * sizeof(float));
     data += h_angles.size();
-    memcpy(data, &v_angles[0], v_angles.size() * sizeof(float));
+    memcpy(data, v_angles.data(), v_angles.size() * sizeof(float));
     data += v_angles.size();
 
     for (int h = 0; h < intensity.size(); h++) {
-      memcpy(data, &intensity[h][0], v_angles.size() * sizeof(float));
+      memcpy(data, intensity[h].data(), v_angles.size() * sizeof(float));
       data += v_angles.size();
     }
   }
@@ -65,17 +64,17 @@ class IESTextParser {
  public:
   string text;
   char *data;
-  bool error;
+  bool error = false;
 
-  IESTextParser(const string &str) : text(str), error(false)
+  IESTextParser(const string &str) : text(str)
   {
     std::replace(text.begin(), text.end(), ',', ' ');
-    data = strstr(&text[0], "\nTILT=");
+    data = strstr(text.data(), "\nTILT=");
   }
 
   bool eof()
   {
-    return (data == NULL) || (data[0] == '\0');
+    return (data == nullptr) || (data[0] == '\0');
   }
 
   bool has_error()
@@ -90,9 +89,9 @@ class IESTextParser {
       return 0.0;
     }
     char *old_data = data;
-    double val = strtod(data, &data);
+    const double val = strtod(data, &data);
     if (data == old_data) {
-      data = NULL;
+      data = nullptr;
       error = true;
       return 0.0;
     }
@@ -106,9 +105,9 @@ class IESTextParser {
       return 0;
     }
     char *old_data = data;
-    long val = strtol(data, &data, 10);
+    const long val = strtol(data, &data, 10);
     if (data == old_data) {
-      data = NULL;
+      data = nullptr;
       error = true;
       return 0;
     }
@@ -130,8 +129,8 @@ bool IESFile::parse(const string &ies)
   /* Handle the tilt data block. */
   if (strncmp(parser.data, "\nTILT=INCLUDE", 13) == 0) {
     parser.data += 13;
-    parser.get_double();              /* Lamp to Luminaire geometry */
-    int num_tilt = parser.get_long(); /* Amount of tilt angles and factors */
+    parser.get_double();                    /* Lamp to Luminaire geometry */
+    const int num_tilt = parser.get_long(); /* Amount of tilt angles and factors */
     /* Skip over angles and factors. */
     for (int i = 0; i < 2 * num_tilt; i++) {
       parser.get_double();
@@ -147,12 +146,12 @@ bool IESFile::parse(const string &ies)
   }
   parser.data++;
 
-  parser.get_long();                    /* Number of lamps */
-  parser.get_double();                  /* Lumens per lamp */
-  double factor = parser.get_double();  /* Candela multiplier */
-  int v_angles_num = parser.get_long(); /* Number of vertical angles */
-  int h_angles_num = parser.get_long(); /* Number of horizontal angles */
-  type = (IESType)parser.get_long();    /* Photometric type */
+  parser.get_long();                          /* Number of lamps */
+  parser.get_double();                        /* Lumens per lamp */
+  double factor = parser.get_double();        /* Candela multiplier */
+  const int v_angles_num = parser.get_long(); /* Number of vertical angles */
+  const int h_angles_num = parser.get_long(); /* Number of horizontal angles */
+  type = (IESType)parser.get_long();          /* Photometric type */
 
   if (type != TYPE_A && type != TYPE_B && type != TYPE_C) {
     return false;
@@ -201,7 +200,7 @@ bool IESFile::parse(const string &ies)
   return !parser.has_error();
 }
 
-static bool angle_close(float a, float b)
+static bool angle_close(const float a, const float b)
 {
   return fabsf(a - b) < 1e-4f;
 }
@@ -236,7 +235,7 @@ void IESFile::process_type_b()
     /* File angles cover 0°-90°. Mirror that to -90°-90°, and shift to 0°-180° to match Cycles. */
     vector<float> new_h_angles;
     vector<vector<float>> new_intensity;
-    int hnum = h_angles.size();
+    const int hnum = h_angles.size();
     new_h_angles.reserve(2 * hnum - 1);
     new_intensity.reserve(2 * hnum - 1);
     for (int i = hnum - 1; i > 0; i--) {
@@ -260,8 +259,8 @@ void IESFile::process_type_b()
   if (angle_close(v_angles[0], 0.0f)) {
     /* File angles cover 0°-90°. Mirror that to -90°-90°, and shift to 0°-180° to match Cycles. */
     vector<float> new_v_angles;
-    int hnum = h_angles.size();
-    int vnum = v_angles.size();
+    const int hnum = h_angles.size();
+    const int vnum = v_angles.size();
     new_v_angles.reserve(2 * vnum - 1);
     for (int i = vnum - 1; i > 0; i--) {
       new_v_angles.push_back(90.0f - v_angles[i]);
@@ -342,7 +341,7 @@ void IESFile::process_type_c()
      * Since the two->four mirroring step might also be required if we get an input of two
      * quadrants, we only do the first mirror here and later do the second mirror in either case.
      */
-    int hnum = h_angles.size();
+    const int hnum = h_angles.size();
     for (int i = hnum - 2; i >= 0; i--) {
       h_angles.push_back(180.0f - h_angles[i]);
       intensity.push_back(intensity[i]);
@@ -351,7 +350,7 @@ void IESFile::process_type_c()
 
   if (angle_close(h_angles[h_angles.size() - 1], 180.0f)) {
     /* Mirror half to the full range. */
-    int hnum = h_angles.size();
+    const int hnum = h_angles.size();
     for (int i = hnum - 2; i >= 0; i--) {
       h_angles.push_back(360.0f - h_angles[i]);
       intensity.push_back(intensity[i]);
@@ -361,10 +360,10 @@ void IESFile::process_type_c()
   /* Some files skip the 360° entry (contrary to standard) because it's supposed to be identical to
    * the 0° entry. If the file has a discernible order in its spacing, just fix this. */
   if (angle_close(h_angles[0], 0.0f) && !angle_close(h_angles[h_angles.size() - 1], 360.0f)) {
-    int hnum = h_angles.size();
-    float last_step = h_angles[hnum - 1] - h_angles[hnum - 2];
-    float first_step = h_angles[1] - h_angles[0];
-    float gap_step = 360.0f - h_angles[hnum - 1];
+    const int hnum = h_angles.size();
+    const float last_step = h_angles[hnum - 1] - h_angles[hnum - 2];
+    const float first_step = h_angles[1] - h_angles[0];
+    const float gap_step = 360.0f - h_angles[hnum - 1];
     if (angle_close(last_step, gap_step) || angle_close(first_step, gap_step)) {
       h_angles.push_back(360.0f);
       intensity.push_back(intensity[0]);
@@ -374,7 +373,7 @@ void IESFile::process_type_c()
 
 bool IESFile::process()
 {
-  if (h_angles.size() == 0 || v_angles.size() == 0) {
+  if (h_angles.empty() || v_angles.empty()) {
     return false;
   }
 

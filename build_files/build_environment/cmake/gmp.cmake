@@ -150,9 +150,9 @@ if(WIN32)
   )
 
   ExternalProject_Add_Step(external_gmpxx after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/gmpxx/
-        ${HARVEST_TARGET}/gmp
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/gmpxx/
+      ${HARVEST_TARGET}/gmp
 
     DEPENDEES install
   )

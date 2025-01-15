@@ -7,19 +7,26 @@
 
 #pragma once
 
+#include "util/defines.h"
+#include "util/types_base.h"
+
+#ifndef __KERNEL_GPU__
+#  include <climits>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 #define NANOVDB_USE_SINGLE_ROOT_KEY
-#define NANOVDB_DATA_ALIGNMENT 32
+#define NANOVDB_DATA_ALIGNMENT 32  // NOLINT
 
 namespace nanovdb {
 
 /* Utilities */
 
 template<typename DstT, typename SrcT>
-ccl_device ccl_global const DstT *PtrAdd(ccl_global const SrcT *p, int64_t offset)
+const ccl_device ccl_global DstT *PtrAdd(const ccl_global SrcT *p, int64_t offset)
 {
-  return reinterpret_cast<ccl_global const DstT *>(reinterpret_cast<ccl_global const char *>(p) +
+  return reinterpret_cast<const ccl_global DstT *>(reinterpret_cast<const ccl_global char *>(p) +
                                                    offset);
 }
 
@@ -44,7 +51,7 @@ template<uint32_t LOG2DIM> struct Mask {
   ccl_static_constexpr uint32_t WORD_COUNT = SIZE >> 6;
   uint64_t mWords[WORD_COUNT];
 
-  ccl_device_inline_method bool isOff(uint32_t n) const ccl_global
+  ccl_device_inline_method bool isOff(const uint32_t n) const ccl_global
   {
     return 0 == (mWords[n >> 6] & (uint64_t(1) << (n & 63)));
   }
@@ -72,9 +79,9 @@ template<typename TreeT> struct alignas(NANOVDB_DATA_ALIGNMENT) Grid {
 
   using BuildType = typename TreeT::BuildType;
 
-  ccl_device_inline_method ccl_global const TreeT &tree() const ccl_global
+  const ccl_device_inline_method ccl_global TreeT &tree() const ccl_global
   {
-    return *reinterpret_cast<ccl_global const TreeT *>(this + 1);
+    return *reinterpret_cast<const ccl_global TreeT *>(this + 1);
   }
 };
 
@@ -89,9 +96,9 @@ template<typename RootT> struct alignas(NANOVDB_DATA_ALIGNMENT) Tree {
   using ValueType = typename RootT::ValueType;
   using BuildType = typename RootT::BuildType;
 
-  ccl_device_inline_method ccl_global const RootT &root() const ccl_global
+  const ccl_device_inline_method ccl_global RootT &root() const ccl_global
   {
-    return *reinterpret_cast<ccl_global const RootT *>(
+    return *reinterpret_cast<const ccl_global RootT *>(
         mNodeOffset[3] ? PtrAdd<uint8_t>(this, mNodeOffset[3]) : nullptr);
   }
 };
@@ -104,7 +111,7 @@ template<typename ChildT> struct alignas(NANOVDB_DATA_ALIGNMENT) RootNode {
 
 #ifdef NANOVDB_USE_SINGLE_ROOT_KEY
   using KeyT = uint64_t;
-  ccl_device_inline_method static uint64_t CoordToKey(const Coord ijk)
+  static ccl_device_inline_method uint64_t CoordToKey(const Coord ijk)
   {
     return (uint64_t(uint32_t(ijk.z) >> ChildT::TOTAL)) |
            (uint64_t(uint32_t(ijk.y) >> ChildT::TOTAL) << 21) |
@@ -112,7 +119,7 @@ template<typename ChildT> struct alignas(NANOVDB_DATA_ALIGNMENT) RootNode {
   }
 #else
   using KeyT = Coord;
-  ccl_device_inline_method static Coord CoordToKey(const CoordT ijk)
+  static ccl_device_inline_method Coord CoordToKey(const CoordT ijk)
   {
     return ijk & ~ChildT::MASK;
   }
@@ -133,11 +140,11 @@ template<typename ChildT> struct alignas(NANOVDB_DATA_ALIGNMENT) RootNode {
     ValueType value;
   };
 
-  ccl_device_inline_method ccl_global const Tile *probeTile(const Coord ijk) const ccl_global
+  const ccl_device_inline_method ccl_global Tile *probeTile(const Coord ijk) const ccl_global
   {
     const auto key = CoordToKey(ijk);
-    ccl_global const Tile *p = reinterpret_cast<ccl_global const Tile *>(this + 1);
-    ccl_global const Tile *q = p + mTableSize;
+    const ccl_global Tile *p = reinterpret_cast<const ccl_global Tile *>(this + 1);
+    const ccl_global Tile *q = p + mTableSize;
     for (; p < q; ++p) {
       if (p->key == key) {
         return p;
@@ -146,7 +153,7 @@ template<typename ChildT> struct alignas(NANOVDB_DATA_ALIGNMENT) RootNode {
     return nullptr;
   }
 
-  ccl_device_inline_method ccl_global const ChildT *getChild(ccl_global const Tile *tile) const
+  const ccl_device_inline_method ccl_global ChildT *getChild(const ccl_global Tile *tile) const
       ccl_global
   {
     return PtrAdd<ChildT>(this, tile->child);
@@ -157,7 +164,7 @@ template<typename ChildT> struct alignas(NANOVDB_DATA_ALIGNMENT) RootNode {
 
 /* InternalNode */
 
-template<typename ChildT, uint32_t Log2Dim = ChildT::LOG2DIM + 1>
+template<typename ChildT, const uint32_t Log2Dim = ChildT::LOG2DIM + 1>
 struct alignas(NANOVDB_DATA_ALIGNMENT) InternalNode {
   using ValueType = typename ChildT::ValueType;
   using BuildType = typename ChildT::BuildType;
@@ -179,7 +186,7 @@ struct alignas(NANOVDB_DATA_ALIGNMENT) InternalNode {
 
   alignas(32) Tile mTable[1u << (3 * Log2Dim)];
 
-  ccl_device_inline_method ccl_global const ChildT *getChild(uint32_t n) const ccl_global
+  const ccl_device_inline_method ccl_global ChildT *getChild(const uint32_t n) const ccl_global
   {
     return PtrAdd<ChildT>(this, mTable[n].child);
   }
@@ -191,7 +198,7 @@ struct alignas(NANOVDB_DATA_ALIGNMENT) InternalNode {
   ccl_static_constexpr uint32_t MASK = (1u << TOTAL) - 1u;
   ccl_static_constexpr uint32_t LEVEL = 1 + ChildT::LEVEL;
 
-  ccl_device_inline_method static uint32_t CoordToOffset(const Coord ijk)
+  static ccl_device_inline_method uint32_t CoordToOffset(const Coord ijk)
   {
     return (((ijk.x & MASK) >> ChildT::TOTAL) << (2 * LOG2DIM)) |
            (((ijk.y & MASK) >> ChildT::TOTAL) << (LOG2DIM)) | ((ijk.z & MASK) >> ChildT::TOTAL);
@@ -200,7 +207,7 @@ struct alignas(NANOVDB_DATA_ALIGNMENT) InternalNode {
 
 /* LeafData */
 
-template<typename ValueT, uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData {
+template<typename ValueT, const uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData {
   using ValueType = ValueT;
   using BuildType = ValueT;
 
@@ -215,7 +222,7 @@ template<typename ValueT, uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMEN
   float mStdDevi;
   alignas(32) ValueType mValues[1u << 3 * LOG2DIM];
 
-  ccl_device_inline_method ValueType getValue(uint32_t i) const ccl_global
+  ccl_device_inline_method ValueType getValue(const uint32_t i) const ccl_global
   {
     return mValues[i];
   }
@@ -245,7 +252,7 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<Fp16,
   LeafFnBase<LOG2DIM> base;
   alignas(32) uint16_t mCode[1u << 3 * LOG2DIM];
 
-  ccl_device_inline_method float getValue(uint32_t i) const ccl_global
+  ccl_device_inline_method float getValue(const uint32_t i) const ccl_global
   {
     return mCode[i] * base.mQuantum + base.mMinimum;
   }
@@ -261,10 +268,10 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<FpN, 
 
   LeafFnBase<LOG2DIM> base;
 
-  ccl_device_inline_method float getValue(uint32_t i) const ccl_global
+  ccl_device_inline_method float getValue(const uint32_t i) const ccl_global
   {
     const int b = base.mFlags >> 5;
-    uint32_t code = reinterpret_cast<ccl_global const uint32_t *>(this + 1)[i >> (5 - b)];
+    uint32_t code = reinterpret_cast<const ccl_global uint32_t *>(this + 1)[i >> (5 - b)];
     code >>= (i & ((32 >> b) - 1)) << b;
     code &= (1 << (1 << b)) - 1;
     return float(code) * base.mQuantum + base.mMinimum;
@@ -273,7 +280,8 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<FpN, 
 
 /* LeafNode */
 
-template<typename BuildT, uint32_t Log2Dim = 3> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafNode {
+template<typename BuildT, const uint32_t Log2Dim = 3>
+struct alignas(NANOVDB_DATA_ALIGNMENT) LeafNode {
   using DataType = LeafData<BuildT, Log2Dim>;
   using ValueType = typename DataType::ValueType;
   using BuildType = typename DataType::BuildType;
@@ -287,12 +295,12 @@ template<typename BuildT, uint32_t Log2Dim = 3> struct alignas(NANOVDB_DATA_ALIG
   ccl_static_constexpr uint32_t MASK = (1u << LOG2DIM) - 1u;
   ccl_static_constexpr uint32_t LEVEL = 0;
 
-  ccl_device_inline_method static uint32_t CoordToOffset(const Coord ijk)
+  static ccl_device_inline_method uint32_t CoordToOffset(const Coord ijk)
   {
     return ((ijk.x & MASK) << (2 * LOG2DIM)) | ((ijk.y & MASK) << LOG2DIM) | (ijk.z & MASK);
   }
 
-  ccl_device_inline_method ValueType getValue(uint32_t offset) const ccl_global
+  ccl_device_inline_method ValueType getValue(const uint32_t offset) const ccl_global
   {
     return data.getValue(offset);
   }
@@ -318,16 +326,16 @@ template<typename BuildT> class ReadAccessor {
   using RootT = NanoRoot<BuildT>;
   using LeafT = NanoLeaf<BuildT>;
 
-  mutable ccl_global const RootT *mRoot;
+  mutable const ccl_global RootT *mRoot;
 
  public:
   using ValueType = typename RootT::ValueType;
 
-  ccl_device_inline_method ReadAccessor(ccl_global const RootT &root) : mRoot(&root) {}
+  ccl_device_inline_method ReadAccessor(const ccl_global RootT &root) : mRoot(&root) {}
 
   ccl_device_inline_method ValueType getValue(const Coord ijk) const
   {
-    ccl_global const auto *tile = mRoot->probeTile(ijk);
+    const ccl_global auto *tile = mRoot->probeTile(ijk);
     if (tile == nullptr) {
       return mRoot->mBackground;
     }
@@ -335,19 +343,19 @@ template<typename BuildT> class ReadAccessor {
       return tile->value;
     }
 
-    ccl_global const auto *upper = mRoot->getChild(tile);
+    const ccl_global auto *upper = mRoot->getChild(tile);
     const uint32_t upper_n = upper->CoordToOffset(ijk);
     if (upper->mChildMask.isOff(upper_n)) {
       return upper->mTable[upper_n].value;
     }
 
-    ccl_global const auto *lower = upper->getChild(upper_n);
+    const ccl_global auto *lower = upper->getChild(upper_n);
     const uint32_t lower_n = lower->CoordToOffset(ijk);
     if (lower->mChildMask.isOff(lower_n)) {
       return lower->mTable[lower_n].value;
     }
 
-    ccl_global const LeafT *leaf = lower->getChild(lower_n);
+    const ccl_global LeafT *leaf = lower->getChild(lower_n);
     return leaf->getValue(ijk);
   }
 };
@@ -358,19 +366,14 @@ template<typename BuildT> class CachedReadAccessor {
   using LowerT = NanoLower<BuildT>;
   using LeafT = NanoLeaf<BuildT>;
 
-  mutable Coord mKeys[3];
-  mutable ccl_global const RootT *mRoot;
-  mutable ccl_global const void *mNode[3];
+  mutable Coord mKeys[3] = {Coord(INT_MAX), Coord(INT_MAX), Coord(INT_MAX)};
+  mutable const ccl_global RootT *mRoot = nullptr;
+  mutable const ccl_global void *mNode[3] = {nullptr, nullptr, nullptr};
 
  public:
   using ValueType = typename RootT::ValueType;
 
-  ccl_device_inline_method CachedReadAccessor(ccl_global const RootT &root)
-      : mKeys{Coord(INT_MAX), Coord(INT_MAX), Coord(INT_MAX)},
-        mRoot(&root),
-        mNode{nullptr, nullptr, nullptr}
-  {
-  }
+  ccl_device_inline_method CachedReadAccessor(const ccl_global RootT &root) : mRoot(&root) {}
 
   template<typename NodeT> ccl_device_inline_method bool isCached(const Coord ijk) const
   {
@@ -379,12 +382,12 @@ template<typename BuildT> class CachedReadAccessor {
            (ijk.z & int32_t(~NodeT::MASK)) == mKeys[NodeT::LEVEL].z;
   }
 
-  ccl_device_inline_method ValueType getValueAndCache(ccl_global const RootT &node,
+  ccl_device_inline_method ValueType getValueAndCache(const ccl_global RootT &node,
                                                       const Coord ijk) const
   {
-    if (ccl_global const auto *tile = node.probeTile(ijk)) {
+    if (const ccl_global auto *tile = node.probeTile(ijk)) {
       if (tile->child != 0) {
-        ccl_global const auto *child = node.getChild(tile);
+        const ccl_global auto *child = node.getChild(tile);
         insert(ijk, child);
         return getValueAndCache(*child, ijk);
       }
@@ -393,21 +396,21 @@ template<typename BuildT> class CachedReadAccessor {
     return node.mBackground;
   }
 
-  ccl_device_inline_method ValueType getValueAndCache(ccl_global const LeafT &node,
+  ccl_device_inline_method ValueType getValueAndCache(const ccl_global LeafT &node,
                                                       const Coord ijk) const
   {
     return node.getValue(ijk);
   }
 
   template<typename NodeT>
-  ccl_device_inline_method ValueType getValueAndCache(ccl_global const NodeT &node,
+  ccl_device_inline_method ValueType getValueAndCache(const ccl_global NodeT &node,
                                                       const Coord ijk) const
   {
     const uint32_t n = node.CoordToOffset(ijk);
     if (node.mChildMask.isOff(n)) {
       return node.mTable[n].value;
     }
-    ccl_global const auto *child = node.getChild(n);
+    const ccl_global auto *child = node.getChild(n);
     insert(ijk, child);
     return getValueAndCache(*child, ijk);
   }
@@ -415,19 +418,19 @@ template<typename BuildT> class CachedReadAccessor {
   ccl_device_inline_method ValueType getValue(const Coord ijk) const
   {
     if (isCached<LeafT>(ijk)) {
-      return getValueAndCache(*((ccl_global const LeafT *)mNode[0]), ijk);
+      return getValueAndCache(*((const ccl_global LeafT *)mNode[0]), ijk);
     }
-    else if (isCached<LowerT>(ijk)) {
-      return getValueAndCache(*((ccl_global const LowerT *)mNode[1]), ijk);
+    if (isCached<LowerT>(ijk)) {
+      return getValueAndCache(*((const ccl_global LowerT *)mNode[1]), ijk);
     }
-    else if (isCached<UpperT>(ijk)) {
-      return getValueAndCache(*((ccl_global const UpperT *)mNode[2]), ijk);
+    if (isCached<UpperT>(ijk)) {
+      return getValueAndCache(*((const ccl_global UpperT *)mNode[2]), ijk);
     }
     return getValueAndCache(*mRoot, ijk);
   }
 
   template<typename NodeT>
-  ccl_device_inline_method void insert(const Coord ijk, ccl_global const NodeT *node) const
+  ccl_device_inline_method void insert(const Coord ijk, const ccl_global NodeT *node) const
   {
     mKeys[NodeT::LEVEL] = ijk & ~NodeT::MASK;
     mNode[NodeT::LEVEL] = node;

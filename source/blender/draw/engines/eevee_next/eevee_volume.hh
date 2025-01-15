@@ -36,7 +36,11 @@
 #pragma once
 
 #include "BLI_set.hh"
+
+#include "DRW_gpu_wrapper.hh"
+
 #include "eevee_shader_shared.hh"
+#include "eevee_sync.hh"
 
 namespace blender::eevee {
 

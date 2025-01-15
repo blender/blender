@@ -1,8 +1,12 @@
-/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2010-2022 Blender Foundation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
+
+#include "kernel/globals.h"
+
+#include "kernel/integrator/state.h"
 
 #include "kernel/light/area.h"
 #include "kernel/light/background.h"
@@ -12,13 +16,13 @@
 #include "kernel/light/triangle.h"
 #include "kernel/sample/lcg.h"
 
-#include "kernel/sample/mapping.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Light info. */
 
-ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg, int index, int bounce)
+ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg,
+                                                        const int index,
+                                                        const int bounce)
 {
   return (bounce > kernel_data_fetch(lights, index).max_bounces);
 }
@@ -115,7 +119,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     }
   }
 
-  LightType type = (LightType)klight->type;
+  const LightType type = (LightType)klight->type;
   ls->type = type;
   ls->shader = klight->shader_id;
   ls->object = PRIM_NONE;
@@ -145,7 +149,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   }
   else if (type == LIGHT_BACKGROUND) {
     /* infinite area light (e.g. light dome or env light) */
-    float3 D = -background_light_sample(kg, P, rand, &ls->pdf);
+    const float3 D = -background_light_sample(kg, P, rand, &ls->pdf);
 
     ls->P = D;
     ls->Ng = D;
@@ -195,7 +199,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   MeshLight mesh_light;
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
-    ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
+    const ccl_global KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                            ls->emitter_id);
     prim = kemitter->light.id;
     mesh_light.shader_flag = kemitter->mesh_light.shader_flag;
@@ -204,7 +208,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   else
 #endif
   {
-    ccl_global const KernelLightDistribution *kdistribution = &kernel_data_fetch(
+    const ccl_global KernelLightDistribution *kdistribution = &kernel_data_fetch(
         light_distribution, ls->emitter_id);
     prim = kdistribution->prim;
     mesh_light = kdistribution->mesh_light;
@@ -257,7 +261,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
  */
 template<bool is_main_path>
 ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
-                                                 ccl_private const Ray *ccl_restrict ray,
+                                                 const ccl_private Ray *ccl_restrict ray,
                                                  ccl_private Intersection *ccl_restrict isect,
                                                  const int last_prim,
                                                  const int last_object,
@@ -326,8 +330,10 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
     }
 #endif
 
-    LightType type = (LightType)klight->type;
-    float t = 0.0f, u = 0.0f, v = 0.0f;
+    const LightType type = (LightType)klight->type;
+    float t = 0.0f;
+    float u = 0.0f;
+    float v = 0.0f;
 
     if (type == LIGHT_SPOT) {
       if (!spot_light_intersect(klight, ray, &t)) {
@@ -395,7 +401,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
  * Intersects spot, point, and area lights. */
 ccl_device bool lights_intersect(KernelGlobals kg,
                                  IntegratorState state,
-                                 ccl_private const Ray *ccl_restrict ray,
+                                 const ccl_private Ray *ccl_restrict ray,
                                  ccl_private Intersection *ccl_restrict isect,
                                  const int last_prim,
                                  const int last_object,
@@ -426,7 +432,7 @@ ccl_device bool lights_intersect(KernelGlobals kg,
  * Returns the total number of hits (the input num_hits plus the number of the new intersections).
  */
 ccl_device int lights_intersect_shadow_linked(KernelGlobals kg,
-                                              ccl_private const Ray *ccl_restrict ray,
+                                              const ccl_private Ray *ccl_restrict ray,
                                               ccl_private Intersection *ccl_restrict isect,
                                               const int last_prim,
                                               const int last_object,
@@ -452,7 +458,7 @@ ccl_device int lights_intersect_shadow_linked(KernelGlobals kg,
 /* Setup light sample from intersection. */
 
 ccl_device bool light_sample_from_intersection(KernelGlobals kg,
-                                               ccl_private const Intersection *ccl_restrict isect,
+                                               const ccl_private Intersection *ccl_restrict isect,
                                                const float3 ray_P,
                                                const float3 ray_D,
                                                const float3 N,
@@ -460,8 +466,8 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
                                                ccl_private LightSample *ccl_restrict ls)
 {
   const int lamp = isect->prim;
-  ccl_global const KernelLight *klight = &kernel_data_fetch(lights, lamp);
-  LightType type = (LightType)klight->type;
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
+  const LightType type = (LightType)klight->type;
   ls->type = type;
   ls->shader = klight->shader_id;
   ls->object = isect->object;

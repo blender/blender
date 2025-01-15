@@ -5,19 +5,19 @@
 #include "GEO_join_geometries.hh"
 #include "GEO_realize_instances.hh"
 
-#include "DNA_collection_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
+#include "BLI_listbase.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_noise.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
-#include "BKE_geometry_set_instances.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_type_conversions.hh"
@@ -1524,7 +1524,9 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_attribute_writers);
 }
 
-static void copy_vertex_group_names(Mesh &dst_mesh, const Span<const Mesh *> src_meshes)
+static void copy_vertex_group_names(Mesh &dst_mesh,
+                                    const OrderedAttributes &ordered_attributes,
+                                    const Span<const Mesh *> src_meshes)
 {
   Set<StringRef> existing_names;
   LISTBASE_FOREACH (const bDeformGroup *, defgroup, &dst_mesh.vertex_group_names) {
@@ -1533,6 +1535,12 @@ static void copy_vertex_group_names(Mesh &dst_mesh, const Span<const Mesh *> src
   for (const Mesh *mesh : src_meshes) {
     LISTBASE_FOREACH (const bDeformGroup *, src, &mesh->vertex_group_names) {
       const StringRef src_name = src->name;
+      const int attribute_index = ordered_attributes.ids.index_of(src_name);
+      const bke::AttributeDomainAndType kind = ordered_attributes.kinds[attribute_index];
+      if (kind.domain != bke::AttrDomain::Point || kind.data_type != CD_PROP_FLOAT) {
+        /* Prefer using the highest priority domain and type from all input meshes. */
+        continue;
+      }
       if (existing_names.contains(src_name)) {
         continue;
       }
@@ -1590,7 +1598,8 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
 
   BLI_assert(BLI_listbase_count(&dst_mesh->vertex_group_names) ==
              BLI_listbase_count(&first_mesh.vertex_group_names));
-  copy_vertex_group_names(*dst_mesh, all_meshes_info.order.as_span().drop_front(1));
+  copy_vertex_group_names(
+      *dst_mesh, ordered_attributes, all_meshes_info.order.as_span().drop_front(1));
   dst_mesh->vertex_group_active_index = first_mesh.vertex_group_active_index;
 
   /* Add materials. */
@@ -2356,7 +2365,7 @@ bke::GeometrySet realize_instances(bke::GeometrySet geometry_set,
                           new_geometry_set);
 
   const int64_t total_points_num = get_final_points_num(gather_info.r_tasks);
-  /* This doesn't have to be exact at all, it's just a rough estimate ot make decisions about
+  /* This doesn't have to be exact at all, it's just a rough estimate to make decisions about
    * multi-threading (overhead). */
   const int64_t approximate_used_bytes_num = total_points_num * 32;
   threading::memory_bandwidth_bound_task(approximate_used_bytes_num, [&]() {

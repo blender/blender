@@ -47,9 +47,7 @@
  *       as it is and stick with using BMesh and CDDM.
  */
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_span.hh"
 
 #include "DNA_customdata_types.h"
 

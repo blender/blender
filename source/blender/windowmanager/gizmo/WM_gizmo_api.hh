@@ -14,24 +14,31 @@
 #pragma once
 
 struct ARegion;
+struct bContext;
 struct GHashIterator;
 struct IDProperty;
+struct ListBase;
 struct Main;
+struct PointerRNA;
 struct PropertyRNA;
 struct ScrArea;
 struct bToolRef;
 struct wmGizmo;
 struct wmGizmoGroup;
 struct wmGizmoGroupType;
+struct wmGizmoGroupTypeRef;
 struct wmGizmoMap;
 struct wmGizmoMapType;
 struct wmGizmoMapType_Params;
+struct wmGizmoOpElem;
 struct wmGizmoProperty;
 struct wmGizmoPropertyType;
 struct wmGizmoType;
 struct wmKeyConfig;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
+struct wmOperatorType;
+struct wmWindow;
 struct wmWindowManager;
 
 #include "wm_gizmo_fn.hh"

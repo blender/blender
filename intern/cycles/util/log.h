@@ -2,12 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_LOGGING_H__
-#define __UTIL_LOGGING_H__
+#pragma once
 
 #if defined(WITH_CYCLES_LOGGING) && !defined(__KERNEL_GPU__)
-#  include <gflags/gflags.h>
-#  include <glog/logging.h>
+#  include <gflags/gflags.h>  // IWYU pragma: export
+#  include <glog/logging.h>   // IWYU pragma: export
 #endif
 
 #include <iosfwd>
@@ -86,11 +85,9 @@ struct float3;
 
 void util_logging_init(const char *argv0);
 void util_logging_start();
-void util_logging_verbosity_set(int verbosity);
+void util_logging_verbosity_set(const int verbosity);
 
 std::ostream &operator<<(std::ostream &os, const int2 &value);
 std::ostream &operator<<(std::ostream &os, const float3 &value);
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_LOGGING_H__ */

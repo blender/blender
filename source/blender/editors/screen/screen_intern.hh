@@ -17,9 +17,12 @@ struct bContextDataResult;
 struct bScreen;
 struct Main;
 struct rcti;
+struct ScrArea;
 struct ScrAreaMap;
 struct ScrEdge;
 struct ScrVert;
+struct WorkSpaceLayout;
+struct wmOperatorType;
 struct wmWindow;
 
 /* internal exports only */

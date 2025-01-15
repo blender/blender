@@ -11,6 +11,7 @@
 #include "tree_element.hh"
 
 struct bConstraint;
+struct Object;
 
 namespace blender::ed::outliner {
 

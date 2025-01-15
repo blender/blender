@@ -2,11 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_CDF_H__
-#define __UTIL_MATH_CDF_H__
+#pragma once
 
-#include "util/algorithm.h"
-#include "util/math.h"
+#include "util/math_base.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -27,7 +25,7 @@ void util_cdf_evaluate(
     cdf[i + 1] = cdf[i] + fabsf(y);
   }
   /* Normalize the CDF. */
-  float fac = (cdf[resolution] == 0.0f) ? 0.0f : 1.0f / cdf[resolution];
+  const float fac = (cdf[resolution] == 0.0f) ? 0.0f : 1.0f / cdf[resolution];
   for (int i = 0; i <= resolution; i++) {
     cdf[i] *= fac;
   }
@@ -61,5 +59,3 @@ void util_cdf_inverted(const int resolution,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_H_CDF__ */

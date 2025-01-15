@@ -25,6 +25,7 @@ struct BMeshNormalsUpdate_Params;
 struct Base;
 struct Depsgraph;
 struct KeyBlock;
+struct Main;
 struct MDeformVert;
 struct Mesh;
 struct Object;

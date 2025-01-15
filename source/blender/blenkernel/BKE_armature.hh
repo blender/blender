@@ -8,9 +8,10 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
@@ -175,8 +176,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Objec
 void BKE_pchan_minmax(const Object *ob,
                       const bPoseChannel *pchan,
                       const bool use_empty_drawtype,
-                      float r_min[3],
-                      float r_max[3]);
+                      blender::float3 &r_min,
+                      blender::float3 &r_max);
 /**
  * Calculate the axis aligned bounds of the pose of `ob` in world-space.
  *

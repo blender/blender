@@ -58,6 +58,7 @@
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
@@ -66,6 +67,7 @@
 
 #include "NOD_composite.hh"
 
+#include "COM_compositor.hh"
 #include "COM_render_context.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1187,10 +1189,10 @@ static Scene *get_scene_referenced_by_node(const bNode *node)
     return nullptr;
   }
 
-  if (node->type == CMP_NODE_R_LAYERS) {
+  if (node->type_legacy == CMP_NODE_R_LAYERS) {
     return reinterpret_cast<Scene *>(node->id);
   }
-  else if (node->type == CMP_NODE_CRYPTOMATTE &&
+  else if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
            node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
   {
     return reinterpret_cast<Scene *>(node->id);
@@ -1237,10 +1239,10 @@ static bool node_tree_has_composite_output(const bNodeTree *node_tree)
     if (node->flag & NODE_MUTED) {
       continue;
     }
-    if (node->type == CMP_NODE_COMPOSITE && node->flag & NODE_DO_OUTPUT) {
+    if (node->type_legacy == CMP_NODE_COMPOSITE && node->flag & NODE_DO_OUTPUT) {
       return true;
     }
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
+    if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
       if (node_tree_has_composite_output(reinterpret_cast<const bNodeTree *>(node->id))) {
         return true;
       }
@@ -1372,13 +1374,13 @@ static void do_render_compositor(Render *re)
 
         blender::compositor::RenderContext compositor_render_context;
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
-          ntreeCompositExecTree(re,
-                                re->pipeline_scene_eval,
-                                ntree,
-                                &re->r,
-                                rv->name,
-                                &compositor_render_context,
-                                nullptr);
+          COM_execute(re,
+                      &re->r,
+                      re->pipeline_scene_eval,
+                      ntree,
+                      rv->name,
+                      &compositor_render_context,
+                      nullptr);
         }
         compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
 
@@ -1445,8 +1447,8 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
     return false;
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
-    if (seq->type != SEQ_TYPE_SOUND_RAM && !SEQ_render_is_muted(&ed->channels, seq)) {
+  LISTBASE_FOREACH (Strip *, seq, &ed->seqbase) {
+    if (seq->type != STRIP_TYPE_SOUND_RAM && !SEQ_render_is_muted(&ed->channels, seq)) {
       return true;
     }
   }
@@ -1626,7 +1628,7 @@ static bool check_valid_compositing_camera(Scene *scene,
 {
   if (scene->r.scemode & R_DOCOMP && scene->use_nodes) {
     for (bNode *node : scene->nodetree->all_nodes()) {
-      if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
+      if (node->type_legacy == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
         Scene *sce = node->id ? (Scene *)node->id : scene;
         if (sce->camera == nullptr) {
           sce->camera = BKE_view_layer_camera_find(sce, BKE_view_layer_default_render(sce));
@@ -1704,8 +1706,8 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 
   if (RE_seq_render_active(scene, &scene->r)) {
     if (scene->ed) {
-      LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
-        if ((seq->type == SEQ_TYPE_SCENE) && ((seq->flag & SEQ_SCENE_STRIPS) == 0) &&
+      LISTBASE_FOREACH (Strip *, seq, &scene->ed->seqbase) {
+        if ((seq->type == STRIP_TYPE_SCENE) && ((seq->flag & SEQ_SCENE_STRIPS) == 0) &&
             (seq->scene != nullptr))
         {
           if (!seq->scene_camera) {
@@ -1737,10 +1739,10 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 static bool node_tree_has_any_compositor_output(const bNodeTree *ntree)
 {
   for (const bNode *node : ntree->all_nodes()) {
-    if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
+    if (ELEM(node->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
       return true;
     }
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+    if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       if (node->id) {
         if (node_tree_has_any_compositor_output((const bNodeTree *)node->id)) {
           return true;

@@ -37,7 +37,7 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
   bool is_constant;
   float transform_from_usd[4][4];
 
-  read_matrix(transform_from_usd, motionSampleTime, import_params_.scale, &is_constant);
+  read_matrix(transform_from_usd, motionSampleTime, settings_->scene_scale, &is_constant);
 
   if (!is_constant && settings_->get_cache_file) {
     bConstraint *con = BKE_constraint_add_for_object(

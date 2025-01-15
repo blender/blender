@@ -14,18 +14,18 @@
 /* Barely anything here. Just general editor level functions. Actual asset level code is in
  * dedicated headers. */
 
-#include "../asset/ED_asset_catalog.hh"
-#include "../asset/ED_asset_handle.hh"
-#include "../asset/ED_asset_library.hh"
-#include "../asset/ED_asset_list.hh"
-#include "../asset/ED_asset_mark_clear.hh"
-#include "../asset/ED_asset_temp_id_consumer.hh"
-#include "../asset/ED_asset_type.hh"
+#include "../asset/ED_asset_catalog.hh"           // IWYU pragma: export
+#include "../asset/ED_asset_handle.hh"            // IWYU pragma: export
+#include "../asset/ED_asset_library.hh"           // IWYU pragma: export
+#include "../asset/ED_asset_list.hh"              // IWYU pragma: export
+#include "../asset/ED_asset_mark_clear.hh"        // IWYU pragma: export
+#include "../asset/ED_asset_temp_id_consumer.hh"  // IWYU pragma: export
+#include "../asset/ED_asset_type.hh"              // IWYU pragma: export
 
-#include "../asset/ED_asset_catalog.hh"
-#include "../asset/ED_asset_filter.hh"
-#include "../asset/ED_asset_import.hh"
-#include "../asset/ED_asset_list.hh"
+#include "../asset/ED_asset_catalog.hh"  // IWYU pragma: export
+#include "../asset/ED_asset_filter.hh"   // IWYU pragma: export
+#include "../asset/ED_asset_import.hh"   // IWYU pragma: export
+#include "../asset/ED_asset_list.hh"     // IWYU pragma: export
 
 namespace blender::ed::asset {
 

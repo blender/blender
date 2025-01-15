@@ -81,6 +81,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
@@ -614,15 +615,15 @@ static void do_version_constraints_copy_rotation_mix_mode(ListBase *lb)
 
 static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
-      if (seq->strip->transform == nullptr) {
-        seq->strip->transform = static_cast<StripTransform *>(
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
+    if (ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD) == 0) {
+      if (seq->data->transform == nullptr) {
+        seq->data->transform = static_cast<StripTransform *>(
             MEM_callocN(sizeof(StripTransform), "StripTransform"));
       }
 
-      if (seq->strip->crop == nullptr) {
-        seq->strip->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
+      if (seq->data->crop == nullptr) {
+        seq->data->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
       }
 
       if (seq->seqbase.first != nullptr) {
@@ -648,7 +649,8 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
     bNode *tonode = link->tonode;
     bNodeSocket *tosock = link->tosock;
 
-    if (!(tonode->type == SH_NODE_OUTPUT_MATERIAL && STREQ(tosock->identifier, "Surface"))) {
+    if (!(tonode->type_legacy == SH_NODE_OUTPUT_MATERIAL && STREQ(tosock->identifier, "Surface")))
+    {
       continue;
     }
 
@@ -767,7 +769,7 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
     }
 
     if (scene->ed != nullptr) {
-      LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
+      LISTBASE_FOREACH (Strip *, seq, &scene->ed->seqbase) {
         LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
           const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
@@ -813,7 +815,7 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
 
   FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
     LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-      if (ELEM(node->type,
+      if (ELEM(node->type_legacy,
                SH_NODE_CURVE_VEC,
                SH_NODE_CURVE_RGB,
                CMP_NODE_CURVE_VEC,
@@ -1008,7 +1010,8 @@ static void displacement_node_insert(bNodeTree *ntree)
     bNode *tonode = link->tonode;
     bNodeSocket *tosock = link->tosock;
 
-    if (!(tonode->type == SH_NODE_OUTPUT_MATERIAL && fromnode->type != SH_NODE_DISPLACEMENT &&
+    if (!(tonode->type_legacy == SH_NODE_OUTPUT_MATERIAL &&
+          fromnode->type_legacy != SH_NODE_DISPLACEMENT &&
           STREQ(tosock->identifier, "Displacement")))
     {
       continue;
@@ -1046,12 +1049,12 @@ static void displacement_node_insert(bNodeTree *ntree)
 
 static void displacement_principled_nodes(bNode *node)
 {
-  if (node->type == SH_NODE_DISPLACEMENT) {
+  if (node->type_legacy == SH_NODE_DISPLACEMENT) {
     if (node->custom1 != SHD_SPACE_WORLD) {
       node->custom1 = SHD_SPACE_OBJECT;
     }
   }
-  else if (node->type == SH_NODE_BSDF_PRINCIPLED) {
+  else if (node->type_legacy == SH_NODE_BSDF_PRINCIPLED) {
     if (node->custom2 != SHD_SUBSURFACE_RANDOM_WALK_SKIN) {
       node->custom2 = SHD_SUBSURFACE_BURLEY;
     }
@@ -1061,7 +1064,7 @@ static void displacement_principled_nodes(bNode *node)
 static void square_roughness_node_insert(bNodeTree *ntree)
 {
   auto check_node = [](const bNode *node) {
-    return ELEM(node->type,
+    return ELEM(node->type_legacy,
                 SH_NODE_BSDF_GLASS,
                 SH_NODE_BSDF_GLOSSY_LEGACY,
                 SH_NODE_BSDF_GLOSSY,
@@ -1095,7 +1098,7 @@ static void square_roughness_node_insert(bNodeTree *ntree)
 static void mapping_node_order_flip(bNode *node)
 {
   /* Flip euler order of mapping shader node */
-  if (node->type == SH_NODE_MAPPING && node->storage) {
+  if (node->type_legacy == SH_NODE_MAPPING && node->storage) {
     TexMapping *texmap = static_cast<TexMapping *>(node->storage);
 
     float quat[4];
@@ -1107,7 +1110,7 @@ static void mapping_node_order_flip(bNode *node)
 static void vector_curve_node_remap(bNode *node)
 {
   /* Remap values of vector curve node from normalized to absolute values */
-  if (node->type == SH_NODE_CURVE_VEC && node->storage) {
+  if (node->type_legacy == SH_NODE_CURVE_VEC && node->storage) {
     CurveMapping *mapping = static_cast<CurveMapping *>(node->storage);
     mapping->flag &= ~CUMA_DO_CLIP;
 
@@ -1131,7 +1134,7 @@ static void ambient_occlusion_node_relink(bNodeTree *ntree)
 
   /* Set default values. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_AMBIENT_OCCLUSION) {
+    if (node->type_legacy == SH_NODE_AMBIENT_OCCLUSION) {
       node->custom1 = 1; /* samples */
       node->custom2 &= ~SHD_AO_LOCAL;
 
@@ -1147,7 +1150,7 @@ static void ambient_occlusion_node_relink(bNodeTree *ntree)
     bNode *tonode = link->tonode;
     bNodeSocket *tosock = link->tosock;
 
-    if (!(fromnode->type == SH_NODE_AMBIENT_OCCLUSION)) {
+    if (!(fromnode->type_legacy == SH_NODE_AMBIENT_OCCLUSION)) {
       continue;
     }
 
@@ -1171,11 +1174,11 @@ static void image_node_colorspace(bNode *node)
   }
 
   int color_space;
-  if (node->type == SH_NODE_TEX_IMAGE && node->storage) {
+  if (node->type_legacy == SH_NODE_TEX_IMAGE && node->storage) {
     NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
     color_space = tex->color_space;
   }
-  else if (node->type == SH_NODE_TEX_ENVIRONMENT && node->storage) {
+  else if (node->type_legacy == SH_NODE_TEX_ENVIRONMENT && node->storage) {
     NodeTexEnvironment *tex = static_cast<NodeTexEnvironment *>(node->storage);
     color_space = tex->color_space;
   }
@@ -1210,7 +1213,7 @@ static void light_emission_node_to_energy(Light *light, float *energy, float col
 
   bNode *emission_node = nullptr;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->tonode == output_node && link->fromnode->type == SH_NODE_EMISSION) {
+    if (link->tonode == output_node && link->fromnode->type_legacy == SH_NODE_EMISSION) {
       emission_node = link->fromnode;
       break;
     }
@@ -1283,7 +1286,7 @@ static void update_math_node_single_operand_operators(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_MATH) {
+    if (node->type_legacy == SH_NODE_MATH) {
       if (ELEM(node->custom1,
                NODE_MATH_SQRT,
                NODE_MATH_CEIL,
@@ -1334,7 +1337,7 @@ static void update_vector_math_node_add_and_subtract_operators(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_VECTOR_MATH) {
+    if (node->type_legacy == SH_NODE_VECTOR_MATH) {
       bNodeSocket *sockOutValue = blender::bke::node_find_socket(node, SOCK_OUT, "Value");
       if (version_node_socket_is_used(sockOutValue) &&
           ELEM(node->custom1, NODE_VECTOR_MATH_ADD, NODE_VECTOR_MATH_SUBTRACT))
@@ -1389,7 +1392,7 @@ static void update_vector_math_node_dot_product_operator(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_VECTOR_MATH) {
+    if (node->type_legacy == SH_NODE_VECTOR_MATH) {
       bNodeSocket *sockOutVector = blender::bke::node_find_socket(node, SOCK_OUT, "Vector");
       if (version_node_socket_is_used(sockOutVector) &&
           node->custom1 == NODE_VECTOR_MATH_DOT_PRODUCT)
@@ -1430,7 +1433,7 @@ static void update_vector_math_node_cross_product_operator(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_VECTOR_MATH) {
+    if (node->type_legacy == SH_NODE_VECTOR_MATH) {
       if (node->custom1 == NODE_VECTOR_MATH_CROSS_PRODUCT) {
         bNodeSocket *sockOutVector = blender::bke::node_find_socket(node, SOCK_OUT, "Vector");
         if (version_node_socket_is_used(sockOutVector)) {
@@ -1504,7 +1507,7 @@ static void update_vector_math_node_normalize_operator(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_VECTOR_MATH) {
+    if (node->type_legacy == SH_NODE_VECTOR_MATH) {
       bNodeSocket *sockOutValue = blender::bke::node_find_socket(node, SOCK_OUT, "Value");
       if (node->custom1 == NODE_VECTOR_MATH_NORMALIZE && version_node_socket_is_used(sockOutValue))
       {
@@ -1568,7 +1571,7 @@ static void update_vector_math_node_normalize_operator(bNodeTree *ntree)
 static void update_vector_math_node_operators_enum_mapping(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_VECTOR_MATH) {
+    if (node->type_legacy == SH_NODE_VECTOR_MATH) {
       switch (node->custom1) {
         case 2:
           node->custom1 = -1;
@@ -1595,7 +1598,7 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_VECTOR_MATH) {
+    if (node->type_legacy == SH_NODE_VECTOR_MATH) {
       /* See update_vector_math_node_operators_enum_mapping. */
       if (node->custom1 == -1) {
         node->custom1 = NODE_VECTOR_MATH_ADD;
@@ -1666,7 +1669,7 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
 static void update_noise_node_dimensions(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_NOISE && node->storage) {
+    if (node->type_legacy == SH_NODE_TEX_NOISE && node->storage) {
       NodeTexNoise *tex = (NodeTexNoise *)node->storage;
       tex->dimensions = 3;
     }
@@ -1750,7 +1753,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
     /* If `node->storage` is null, then conversion has already taken place.
      * This can happen if a file with the new mapping node [saved from (2, 81, 8) or newer]
      * is opened in a blender version prior to (2, 81, 8) and saved from there again. */
-    if (node->type == SH_NODE_MAPPING && node->storage) {
+    if (node->type_legacy == SH_NODE_MAPPING && node->storage) {
       TexMapping *mapping = (TexMapping *)node->storage;
       node->custom1 = mapping->type;
       node->width = 140.0f;
@@ -1857,7 +1860,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
 static void update_musgrave_node_dimensions(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_MUSGRAVE_DEPRECATED && node->storage) {
+    if (node->type_legacy == SH_NODE_TEX_MUSGRAVE_DEPRECATED && node->storage) {
       NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
       tex->dimensions = 3;
     }
@@ -1871,7 +1874,7 @@ static void update_musgrave_node_dimensions(bNodeTree *ntree)
 static void update_musgrave_node_color_output(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->fromnode && link->fromnode->type == SH_NODE_TEX_MUSGRAVE_DEPRECATED) {
+    if (link->fromnode && link->fromnode->type_legacy == SH_NODE_TEX_MUSGRAVE_DEPRECATED) {
       if (link->fromsock->type == SOCK_RGBA) {
         link->fromsock = link->fromsock->next;
       }
@@ -1885,7 +1888,7 @@ static void update_musgrave_node_color_output(bNodeTree *ntree)
 static void update_voronoi_node_dimensions(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
+    if (node->type_legacy == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       tex->dimensions = 3;
     }
@@ -1900,7 +1903,7 @@ static void update_voronoi_node_dimensions(bNodeTree *ntree)
 static void update_voronoi_node_f3_and_f4(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
+    if (node->type_legacy == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       if (ELEM(tex->feature, 2, 3)) {
         tex->feature = SHD_VORONOI_F2;
@@ -1918,7 +1921,7 @@ static void update_voronoi_node_f3_and_f4(bNodeTree *ntree)
 static void update_voronoi_node_fac_output(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_VORONOI) {
+    if (node->type_legacy == SH_NODE_TEX_VORONOI) {
       bNodeSocket *facOutput = static_cast<bNodeSocket *>(BLI_findlink(&node->outputs, 1));
       STRNCPY(facOutput->identifier, "Distance");
       STRNCPY(facOutput->name, "Distance");
@@ -1947,7 +1950,7 @@ static void update_voronoi_node_crackle(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
+    if (node->type_legacy == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       bNodeSocket *sockDistance = blender::bke::node_find_socket(node, SOCK_OUT, "Distance");
       bNodeSocket *sockColor = blender::bke::node_find_socket(node, SOCK_OUT, "Color");
@@ -2051,7 +2054,7 @@ static void update_voronoi_node_coloring(bNodeTree *ntree)
 
   LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
     bNode *node = link->fromnode;
-    if (node && node->type == SH_NODE_TEX_VORONOI && node->storage) {
+    if (node && node->type_legacy == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       if (tex->coloring == 0) {
         bNodeSocket *sockColor = blender::bke::node_find_socket(node, SOCK_OUT, "Color");
@@ -2088,7 +2091,7 @@ static void update_voronoi_node_square_distance(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
+    if (node->type_legacy == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       bNodeSocket *sockDistance = blender::bke::node_find_socket(node, SOCK_OUT, "Distance");
       if (tex->distance == SHD_VORONOI_EUCLIDEAN &&
@@ -2137,7 +2140,7 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
   bool need_update = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (ELEM(node->type, SH_NODE_TEX_NOISE, SH_NODE_TEX_WAVE)) {
+    if (ELEM(node->type_legacy, SH_NODE_TEX_NOISE, SH_NODE_TEX_WAVE)) {
 
       bNodeSocket *sockDistortion = blender::bke::node_find_socket(node, SOCK_IN, "Distortion");
       float *distortion = version_cycles_node_socket_float_value(sockDistortion);
@@ -2187,7 +2190,7 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
 static void update_wave_node_directions_and_offset(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_WAVE) {
+    if (node->type_legacy == SH_NODE_TEX_WAVE) {
       NodeTexWave *tex = (NodeTexWave *)node->storage;
       tex->bands_direction = SHD_WAVE_BANDS_DIRECTION_DIAGONAL;
       tex->rings_direction = SHD_WAVE_RINGS_DIRECTION_SPHERICAL;
@@ -2995,7 +2998,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
  * (see #55668, involving Meta strips). */
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, seqbasep) {
     SEQ_sequence_base_unique_name_recursive(sce, &sce->ed->seqbase, seq);
     if (seq->seqbase.first != nullptr) {
       do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
@@ -3009,11 +3012,11 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
   ed->recycle_max_cost = 10.0f;
 }
 
-static bool seq_update_flags_cb(Sequence *seq, void * /*user_data*/)
+static bool strip_update_flags_cb(Strip *strip, void * /*user_data*/)
 {
-  seq->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
-  if (seq->type == SEQ_TYPE_SPEED) {
-    SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
+  strip->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
+  if (strip->type == STRIP_TYPE_SPEED) {
+    SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
     s->flags &= ~(SEQ_SPEED_UNUSED_1);
   }
   return true;
@@ -3083,31 +3086,31 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
+          if (node->type_legacy == 194 /* SH_NODE_EEVEE_METALLIC */ &&
               STREQ(node->idname, "ShaderNodeOutputMetallic"))
           {
             STRNCPY(node->idname, "ShaderNodeEeveeMetallic");
             error |= eNTreeDoVersionErrors::NTREE_DOVERSION_NEED_OUTPUT;
           }
 
-          else if (node->type == SH_NODE_EEVEE_SPECULAR &&
+          else if (node->type_legacy == SH_NODE_EEVEE_SPECULAR &&
                    STREQ(node->idname, "ShaderNodeOutputSpecular"))
           {
             STRNCPY(node->idname, "ShaderNodeEeveeSpecular");
             error |= eNTreeDoVersionErrors::NTREE_DOVERSION_NEED_OUTPUT;
           }
 
-          else if (node->type == 196 /* SH_NODE_OUTPUT_EEVEE_MATERIAL */ &&
+          else if (node->type_legacy == 196 /* SH_NODE_OUTPUT_EEVEE_MATERIAL */ &&
                    STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
           {
-            node->type = SH_NODE_OUTPUT_MATERIAL;
+            node->type_legacy = SH_NODE_OUTPUT_MATERIAL;
             STRNCPY(node->idname, "ShaderNodeOutputMaterial");
           }
 
-          else if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
+          else if (node->type_legacy == 194 /* SH_NODE_EEVEE_METALLIC */ &&
                    STREQ(node->idname, "ShaderNodeEeveeMetallic"))
           {
-            node->type = SH_NODE_BSDF_PRINCIPLED;
+            node->type_legacy = SH_NODE_BSDF_PRINCIPLED;
             STRNCPY(node->idname, "ShaderNodeBsdfPrincipled");
             node->custom1 = SHD_GLOSSY_MULTI_GGX;
             error |= eNTreeDoVersionErrors::NTREE_DOVERSION_TRANSPARENCY_EMISSION;
@@ -4647,7 +4650,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
 
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_update_flags_cb, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_update_flags_cb, nullptr);
       }
     }
 
@@ -4910,7 +4913,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           if (STREQ(node->idname, "ShaderNodeOutputLamp")) {
             STRNCPY(node->idname, "ShaderNodeOutputLight");
           }
-          if (node->type == SH_NODE_BSDF_PRINCIPLED && node->custom2 == 0) {
+          if (node->type_legacy == SH_NODE_BSDF_PRINCIPLED && node->custom2 == 0) {
             node->custom2 = SHD_SUBSURFACE_BURLEY;
           }
         }

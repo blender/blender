@@ -89,7 +89,7 @@ class Meshes : Overlay {
     }
 
     offset_data_ = state.offset_data_get();
-    xray_enabled_ = state.xray_enabled;
+    xray_enabled_ = state.xray_flag_enabled;
 
     ToolSettings *tsettings = state.scene->toolsettings;
     select_edge_ = (tsettings->selectmode & SCE_SELECT_EDGE);
@@ -100,7 +100,7 @@ class Meshes : Overlay {
     show_retopology_ = (edit_flag & V3D_OVERLAY_EDIT_RETOPOLOGY) && !state.xray_enabled;
     show_mesh_analysis_ = (edit_flag & V3D_OVERLAY_EDIT_STATVIS);
     show_face_ = (edit_flag & V3D_OVERLAY_EDIT_FACES);
-    show_face_dots_ = ((edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) || state.xray_enabled) &
+    show_face_dots_ = ((edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) || state.xray_flag_enabled) &
                       select_face_;
     show_weight_ = (edit_flag & V3D_OVERLAY_EDIT_WEIGHT);
 
@@ -113,14 +113,14 @@ class Meshes : Overlay {
 
     uint4 data_mask = data_mask_get(edit_flag);
 
-    float backwire_opacity = (state.xray_enabled) ? 0.5f : 1.0f;
+    float backwire_opacity = (state.xray_flag_enabled) ? 0.5f : 1.0f;
     float face_alpha = (show_face_) ? 1.0f : 0.0f;
     float retopology_offset = RETOPOLOGY_OFFSET(state.v3d);
     /* Cull back-faces for retopology face pass. This makes it so back-faces are not drawn.
      * Doing so lets us distinguish back-faces from front-faces. */
     DRWState face_culling = (show_retopology_) ? DRW_STATE_CULL_BACK : DRWState(0);
 
-    GPUTexture **depth_tex = (state.xray_enabled) ? &res.depth_tx : &res.dummy_depth_tx;
+    GPUTexture **depth_tex = (state.xray_flag_enabled) ? &res.depth_tx : &res.dummy_depth_tx;
 
     {
       auto &pass = edit_mesh_prepass_ps_;
@@ -138,7 +138,7 @@ class Meshes : Overlay {
 
       DRWState pass_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR |
                             DRW_STATE_DEPTH_LESS_EQUAL;
-      if (state.xray_enabled) {
+      if (state.xray_flag_enabled) {
         pass_state |= DRW_STATE_BLEND_ALPHA;
       }
 
@@ -290,7 +290,7 @@ class Meshes : Overlay {
     /* WORKAROUND: GPU subdiv uses a different normal format. Remove this once GPU subdiv is
      * refactored. */
     const bool use_gpu_subdiv = BKE_subsurf_modifier_has_gpu_subdiv(static_cast<Mesh *>(ob->data));
-    const bool draw_as_solid = (ob->dt > OB_WIRE);
+    const bool draw_as_solid = (ob->dt > OB_WIRE) && !state.xray_enabled;
 
     if (show_retopology_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
@@ -349,7 +349,7 @@ class Meshes : Overlay {
       edit_mesh_skin_roots_ps_.draw_expand(geom, GPU_PRIM_LINES, 32, 1, res_handle);
     }
     if (state.show_text && (state.overlay.edit_flag & overlay_edit_text)) {
-      DRW_text_edit_mesh_measure_stats(state.region, state.v3d, ob, &state.scene->unit, state.dt);
+      DRW_text_edit_mesh_measure_stats(state.region, state.v3d, ob, state.scene->unit, state.dt);
     }
   }
 
@@ -365,6 +365,7 @@ class Meshes : Overlay {
     manager.submit(edit_mesh_prepass_ps_, view);
     manager.submit(edit_mesh_analysis_ps_, view);
     manager.submit(edit_mesh_weight_ps_, view);
+    manager.submit(edit_mesh_faces_ps_, view);
 
     if (xray_enabled_) {
       GPU_debug_group_end();
@@ -376,7 +377,6 @@ class Meshes : Overlay {
     view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
 
     manager.submit(edit_mesh_normals_ps_, view);
-    manager.submit(edit_mesh_faces_ps_, view);
     manager.submit(edit_mesh_cages_ps_, view_edit_cage_);
     manager.submit(edit_mesh_edges_ps_, view_edit_edge_);
     manager.submit(edit_mesh_verts_ps_, view_edit_vert_);
@@ -404,7 +404,6 @@ class Meshes : Overlay {
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_normals_ps_, view);
-    manager.submit(edit_mesh_faces_ps_, view);
     manager.submit(edit_mesh_cages_ps_, view_edit_cage_);
     manager.submit(edit_mesh_edges_ps_, view_edit_edge_);
     manager.submit(edit_mesh_verts_ps_, view_edit_vert_);

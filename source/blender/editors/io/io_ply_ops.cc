@@ -38,13 +38,13 @@
 #  include "io_utils.hh"
 
 static const EnumPropertyItem ply_vertex_colors_mode[] = {
-    {PLY_VERTEX_COLOR_NONE, "NONE", 0, "None", "Do not import/export color attributes"},
-    {PLY_VERTEX_COLOR_SRGB,
+    {int(ePLYVertexColorMode::None), "NONE", 0, "None", "Do not import/export color attributes"},
+    {int(ePLYVertexColorMode::sRGB),
      "SRGB",
      0,
      "sRGB",
      "Vertex colors in the file are in sRGB color space"},
-    {PLY_VERTEX_COLOR_LINEAR,
+    {int(ePLYVertexColorMode::Linear),
      "LINEAR",
      0,
      "Linear",
@@ -65,7 +65,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
-  PLYExportParams export_params{};
+  PLYExportParams export_params;
   export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
@@ -87,7 +87,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
 
   export_params.reports = op->reports;
 
-  PLY_export(C, &export_params);
+  PLY_export(C, export_params);
 
   return BKE_reports_contain(op->reports, RPT_ERROR) ? OPERATOR_CANCELLED : OPERATOR_FINISHED;
 }
@@ -219,7 +219,7 @@ void WM_OT_ply_export(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "export_colors",
                ply_vertex_colors_mode,
-               PLY_VERTEX_COLOR_SRGB,
+               int(ePLYVertexColorMode::sRGB),
                "Export Vertex Colors",
                "Export vertex color attributes");
   RNA_def_boolean(ot->srna,
@@ -247,7 +247,7 @@ void WM_OT_ply_export(wmOperatorType *ot)
 
 static int wm_ply_import_exec(bContext *C, wmOperator *op)
 {
-  PLYImportParams params{};
+  PLYImportParams params;
   params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
   params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
@@ -266,7 +266,7 @@ static int wm_ply_import_exec(bContext *C, wmOperator *op)
   }
   for (const auto &path : paths) {
     STRNCPY(params.filepath, path.c_str());
-    PLY_import(C, &params);
+    PLY_import(C, params);
   };
 
   Scene *scene = CTX_data_scene(C);
@@ -340,7 +340,7 @@ void WM_OT_ply_import(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "import_colors",
                ply_vertex_colors_mode,
-               PLY_VERTEX_COLOR_SRGB,
+               int(ePLYVertexColorMode::sRGB),
                "Vertex Colors",
                "Import vertex color attributes");
   RNA_def_boolean(

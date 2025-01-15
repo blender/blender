@@ -251,7 +251,7 @@ Layer &Action::layer_add(const std::optional<StringRefNull> name)
     STRNCPY_UTF8(new_layer.name, name.value().c_str());
   }
   else {
-    STRNCPY_UTF8(new_layer.name, layer_default_name);
+    STRNCPY_UTF8(new_layer.name, DATA_(layer_default_name));
   }
 
   grow_array_and_append<::ActionLayer *>(&this->layer_array, &this->layer_array_num, &new_layer);

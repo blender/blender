@@ -14,6 +14,8 @@
 
 #include "bmesh_class.hh"
 
+#include "intern/bmesh_operator_api.hh"
+
 struct BMAllocTemplate;
 
 void BM_mesh_elem_toolflags_ensure(BMesh *bm);

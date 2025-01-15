@@ -267,12 +267,12 @@ typedef struct Ipo {
 
 /* ******** Sequence (ID_SEQ) ********** */
 
-#define SEQ_TOTIPO 1
-#define SEQ_TOTNAM 1
+#define STRIP_TOTIPO 1
+#define STRIP_TOTNAM 1
 
-#define SEQ_FAC1 1
-#define SEQ_FAC_SPEED 2
-#define SEQ_FAC_OPACITY 3
+#define STRIP_FAC1 1
+#define STRIP_FAC_SPEED 2
+#define STRIP_FAC_OPACITY 3
 
 /* ********* Curve (ID_CU_LEGACY) *********** */
 

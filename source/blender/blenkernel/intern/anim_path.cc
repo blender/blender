@@ -184,7 +184,16 @@ static bool binary_search_anim_path(const float *accum_len_arr,
   int cur_idx = 0, cur_base = 0;
   int cur_step = seg_size - 1;
 
+  /* Special case, for a single segment accessing the `right_len`
+   * would be an invalid index, see: #132976. */
+  if (UNLIKELY(seg_size == 1)) {
+    *r_idx = 0;
+    *r_frac = goal_len / accum_len_arr[0];
+    return true;
+  }
+
   while (true) {
+    BLI_assert(cur_idx + 1 < seg_size);
     cur_idx = cur_base + cur_step / 2;
     left_len = accum_len_arr[cur_idx];
     right_len = accum_len_arr[cur_idx + 1];

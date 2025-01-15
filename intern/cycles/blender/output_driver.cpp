@@ -8,7 +8,7 @@ CCL_NAMESPACE_BEGIN
 
 BlenderOutputDriver::BlenderOutputDriver(BL::RenderEngine &b_engine) : b_engine_(b_engine) {}
 
-BlenderOutputDriver::~BlenderOutputDriver() {}
+BlenderOutputDriver::~BlenderOutputDriver() = default;
 
 bool BlenderOutputDriver::read_render_tile(const Tile &tile)
 {
@@ -21,7 +21,7 @@ bool BlenderOutputDriver::read_render_tile(const Tile &tile)
                                                  tile.view.c_str());
 
   /* Can happen if the intersected rectangle gives 0 width or height. */
-  if (b_rr.ptr.data == NULL) {
+  if (b_rr.ptr.data == nullptr) {
     return false;
   }
 
@@ -77,7 +77,7 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
                                                  tile.view.c_str());
 
   /* Can happen if the intersected rectangle gives 0 width or height. */
-  if (b_rr.ptr.data == NULL) {
+  if (b_rr.ptr.data == nullptr) {
     return;
   }
 
@@ -95,11 +95,11 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
 
   /* Copy each pass. */
   for (BL::RenderPass &b_pass : b_rlay.passes) {
-    if (!tile.get_pass_pixels(b_pass.name(), b_pass.channels(), &pixels[0])) {
-      memset(&pixels[0], 0, pixels.size() * sizeof(float));
+    if (!tile.get_pass_pixels(b_pass.name(), b_pass.channels(), pixels.data())) {
+      memset(pixels.data(), 0, pixels.size() * sizeof(float));
     }
 
-    b_pass.rect(&pixels[0]);
+    b_pass.rect(pixels.data());
   }
 
   b_engine_.end_result(b_rr, false, false, true);

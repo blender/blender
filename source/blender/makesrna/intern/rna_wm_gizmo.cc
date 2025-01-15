@@ -885,7 +885,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
 
     dummy_wgt.idname = strings_table[0]; /* allocated string stored here */
     dummy_wgt.name = strings_table[1];
-    BLI_assert(ARRAY_SIZE(strings) == 2);
+    BLI_STATIC_ASSERT(ARRAY_SIZE(strings) == 2, "Unexpected number of strings")
   }
 
   /* create a new gizmogroup type */

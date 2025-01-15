@@ -173,13 +173,13 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
           STRNCPY(opts->filepath, G.filepath_last_image);
         }
         else {
-          BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", DATA_("untitled"));
+          BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", DATA_("Untitled"));
           BLI_path_abs(opts->filepath, BKE_main_blendfile_path(bmain));
         }
       }
       else {
         BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", ima->id.name + 2);
-        BLI_path_make_safe(opts->filepath);
+        BLI_path_make_safe_filename(opts->filepath + 2);
         BLI_path_abs(opts->filepath,
                      is_prev_save ? G.filepath_last_image : BKE_main_blendfile_path(bmain));
       }

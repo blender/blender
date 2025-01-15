@@ -218,58 +218,41 @@ DeltaProjectionFunc get_screen_projection_fn(const GreasePencilStrokeParams &par
     return world_delta;
   };
 
+  float3 world_normal;
   switch (params.toolsettings.gp_sculpt.lock_axis) {
     case GP_LOCKAXIS_VIEW: {
-      const float3 world_normal = view_to_world.z_axis();
-      return [=](const float3 &position, const float2 &screen_delta) {
-        const float3 world_pos = math::transform_point(layer_to_world, position);
-        const float3 world_delta = screen_to_world(world_pos, screen_delta);
-        const float3 layer_delta = math::transform_direction(
-            world_to_layer, world_delta - world_normal * math::dot(world_delta, world_normal));
-        return position + layer_delta;
-      };
+      world_normal = view_to_world.z_axis();
+      break;
     }
     case GP_LOCKAXIS_X: {
-      return [=](const float3 &position, const float2 &screen_delta) {
-        const float3 world_pos = math::transform_point(layer_to_world, position);
-        const float3 world_delta = screen_to_world(world_pos, screen_delta);
-        const float3 layer_delta = math::transform_direction(
-            world_to_layer, float3(0.0f, world_delta.y, world_delta.z));
-        return position + layer_delta;
-      };
+      world_normal = layer_to_world.x_axis();
+      break;
     }
     case GP_LOCKAXIS_Y: {
-      return [=](const float3 &position, const float2 &screen_delta) {
-        const float3 world_pos = math::transform_point(layer_to_world, position);
-        const float3 world_delta = screen_to_world(world_pos, screen_delta);
-        const float3 layer_delta = math::transform_direction(
-            world_to_layer, float3(world_delta.x, 0.0f, world_delta.z));
-        return position + layer_delta;
-      };
+      world_normal = layer_to_world.y_axis();
+      break;
     }
     case GP_LOCKAXIS_Z: {
-      return [=](const float3 &position, const float2 &screen_delta) {
-        const float3 world_pos = math::transform_point(layer_to_world, position);
-        const float3 world_delta = screen_to_world(world_pos, screen_delta);
-        const float3 layer_delta = math::transform_direction(
-            world_to_layer, float3(world_delta.x, world_delta.y, 0.0f));
-        return position + layer_delta;
-      };
+      world_normal = layer_to_world.z_axis();
+      break;
     }
     case GP_LOCKAXIS_CURSOR: {
-      const float3 world_normal = params.scene.cursor.matrix<float3x3>().z_axis();
-      return [=](const float3 &position, const float2 &screen_delta) {
-        const float3 world_pos = math::transform_point(layer_to_world, position);
-        const float3 world_delta = screen_to_world(world_pos, screen_delta);
-        const float3 layer_delta = math::transform_direction(
-            world_to_layer, world_delta - world_normal * math::dot(world_delta, world_normal));
-        return position + layer_delta;
-      };
+      world_normal = params.scene.cursor.matrix<float3x3>().z_axis();
+      break;
+    }
+    default: {
+      BLI_assert_unreachable();
+      return [](const float3 &, const float2 &) { return float3(); };
     }
   }
 
-  BLI_assert_unreachable();
-  return [](const float3 &, const float2 &) { return float3(); };
+  return [=](const float3 &position, const float2 &screen_delta) {
+    const float3 world_pos = math::transform_point(layer_to_world, position);
+    const float3 world_delta = screen_to_world(world_pos, screen_delta);
+    const float3 layer_delta = math::transform_direction(
+        world_to_layer, world_delta - world_normal * math::dot(world_delta, world_normal));
+    return position + layer_delta;
+  };
 }
 
 float3 compute_orig_delta(const DeltaProjectionFunc &projection_fn,

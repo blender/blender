@@ -201,7 +201,8 @@ static double4 compute_non_causal_feedforward_coefficients(
   return double4(n1, n2, n3, n4);
 }
 
-/* The IIR filter difference equation relies on previous outputs to compute new outputs, those
+/**
+ * The IIR filter difference equation relies on previous outputs to compute new outputs, those
  * previous outputs are not really defined at the start of the filter. To do Neumann boundary
  * condition, we initialize the previous output with a special value that is a function of the
  * boundary value. This special value is computed by multiply the boundary value with a coefficient
@@ -214,21 +215,28 @@ static double4 compute_non_causal_feedforward_coefficients(
  * Start by the difference equation where b_i are the feedforward coefficients and a_i are the
  * feedback coefficients:
  *
- *   y[n] = \sum_{i = 0}^3 b_i x[n - i] - \sum_{i = 0}^3 a_i y[n - i]
+ * \code{.tex}
+ * y[n] = \sum_{i = 0}^3 b_i x[n - i] - \sum_{i = 0}^3 a_i y[n - i]
+ * \endcode
  *
  * Assume all outputs are y and all inputs are x, which is the boundary value:
  *
- *   y = \sum_{i = 0}^3 b_i x - \sum_{i = 0}^3 a_i y
+ * \code{.tex}
+ * y = \sum_{i = 0}^3 b_i x - \sum_{i = 0}^3 a_i y
+ * \endcode
  *
  * Now rearrange to compute y:
  *
- *   y = x \sum_{i = 0}^3 b_i - y \sum_{i = 0}^3 a_i
- *   y + y \sum_{i = 0}^3 a_i = x \sum_{i = 0}^3 b_i
- *   y (1 + \sum_{i = 0}^3 a_i) = x \sum_{i = 0}^3 b_i
- *   y = x \cdot \frac{\sum_{i = 0}^3 b_i}{1 + \sum_{i = 0}^3 a_i}
+ * \code{.tex}
+ * y = x \sum_{i = 0}^3 b_i - y \sum_{i = 0}^3 a_i
+ * y + y \sum_{i = 0}^3 a_i = x \sum_{i = 0}^3 b_i
+ * y (1 + \sum_{i = 0}^3 a_i) = x \sum_{i = 0}^3 b_i
+ * y = x \cdot \frac{\sum_{i = 0}^3 b_i}{1 + \sum_{i = 0}^3 a_i}
+ * \endcode
  *
  * So our coefficient is the value that is multiplied by the boundary value x. Had x been zero,
- * that is, we are doing Dirichlet boundary condition, the equations still hold. */
+ * that is, we are doing Dirichlet boundary condition, the equations still hold.
+ */
 static double compute_boundary_coefficient(const double4 &feedforward_coefficients,
                                            const double4 &feedback_coefficients)
 {

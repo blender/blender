@@ -2,11 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_SUBPATCH_H__
-#define __SUBD_SUBPATCH_H__
+#pragma once
 
 #include "util/map.h"
-#include "util/types.h"
+#include "util/math_float2.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,7 +25,7 @@ class Subpatch {
 
     struct Edge *edge;
 
-    int get_vert_along_edge(int n) const;
+    int get_vert_along_edge(const int n) const;
   };
 
   /*
@@ -63,42 +62,42 @@ class Subpatch {
   {
   }
 
-  Subpatch(Patch *patch, float2 c00, float2 c01, float2 c11, float2 c10)
+  Subpatch(Patch *patch, const float2 c00, const float2 c01, const float2 c11, const float2 c10)
       : patch(patch), c00(c00), c01(c01), c11(c11), c10(c10)
   {
   }
 
   int calc_num_inner_verts() const
   {
-    int Mu = max(edge_u0.T, edge_u1.T);
-    int Mv = max(edge_v0.T, edge_v1.T);
-    Mu = max(Mu, 2);
-    Mv = max(Mv, 2);
+    int Mu = fmax(edge_u0.T, edge_u1.T);
+    int Mv = fmax(edge_v0.T, edge_v1.T);
+    Mu = fmax(Mu, 2);
+    Mv = fmax(Mv, 2);
     return (Mu - 1) * (Mv - 1);
   }
 
   int calc_num_triangles() const
   {
-    int Mu = max(edge_u0.T, edge_u1.T);
-    int Mv = max(edge_v0.T, edge_v1.T);
-    Mu = max(Mu, 2);
-    Mv = max(Mv, 2);
+    int Mu = fmax(edge_u0.T, edge_u1.T);
+    int Mv = fmax(edge_v0.T, edge_v1.T);
+    Mu = fmax(Mu, 2);
+    Mv = fmax(Mv, 2);
 
-    int inner_triangles = (Mu - 2) * (Mv - 2) * 2;
-    int edge_triangles = edge_u0.T + edge_u1.T + edge_v0.T + edge_v1.T + (Mu - 2) * 2 +
-                         (Mv - 2) * 2;
+    const int inner_triangles = (Mu - 2) * (Mv - 2) * 2;
+    const int edge_triangles = edge_u0.T + edge_u1.T + edge_v0.T + edge_v1.T + (Mu - 2) * 2 +
+                               (Mv - 2) * 2;
 
     return inner_triangles + edge_triangles;
   }
 
-  int get_vert_along_edge(int e, int n) const;
+  int get_vert_along_edge(const int e, const int n) const;
 
-  int get_vert_along_grid_edge(int edge, int n) const
+  int get_vert_along_grid_edge(const int edge, const int n) const
   {
-    int Mu = max(edge_u0.T, edge_u1.T);
-    int Mv = max(edge_v0.T, edge_v1.T);
-    Mu = max(Mu, 2);
-    Mv = max(Mv, 2);
+    int Mu = fmax(edge_u0.T, edge_u1.T);
+    int Mv = fmax(edge_v0.T, edge_v1.T);
+    Mu = fmax(Mu, 2);
+    Mv = fmax(Mv, 2);
 
     switch (edge) {
       case 0:
@@ -109,6 +108,9 @@ class Subpatch {
         return inner_grid_vert_offset + ((Mu - 1) * (Mv - 1) - 1) - n * (Mu - 1);
       case 3:
         return inner_grid_vert_offset + (Mu - 2) - n;
+      default:
+        assert(0);
+        break;
     }
 
     return -1;
@@ -117,59 +119,44 @@ class Subpatch {
 
 struct Edge {
   /* Number of segments the edge will be diced into, see DiagSplit paper. */
-  int T;
+  int T = 0;
 
   /* top is edge adjacent to start, bottom is adjacent to end. */
-  Edge *top, *bottom;
+  Edge *top = nullptr, *bottom = nullptr;
 
-  int top_offset, bottom_offset;
-  bool top_indices_decrease, bottom_indices_decrease;
+  int top_offset = -1, bottom_offset = -1;
+  bool top_indices_decrease = false, bottom_indices_decrease = false;
 
-  int start_vert_index;
-  int end_vert_index;
+  int start_vert_index = -1;
+  int end_vert_index = -1;
 
   /* Index of the second vert from this edges corner along the edge towards the next corner. */
-  int second_vert_index;
+  int second_vert_index = -1;
 
   /* Vertices on edge are to be stitched. */
-  bool is_stitch_edge;
+  bool is_stitch_edge = false;
 
   /* Key to match this edge with others to be stitched with.
    * The ints in the pair are ordered stitching indices */
   pair<int, int> stitch_edge_key;
 
   /* Full T along edge (may be larger than T for edges split from ngon edges) */
-  int stitch_edge_T;
-  int stitch_offset;
+  int stitch_edge_T = 0;
+  int stitch_offset = 0;
   int stitch_top_offset;
   int stitch_start_vert_index;
   int stitch_end_vert_index;
 
-  Edge()
-      : T(0),
-        top(nullptr),
-        bottom(nullptr),
-        top_offset(-1),
-        bottom_offset(-1),
-        top_indices_decrease(false),
-        bottom_indices_decrease(false),
-        start_vert_index(-1),
-        end_vert_index(-1),
-        second_vert_index(-1),
-        is_stitch_edge(false),
-        stitch_edge_T(0),
-        stitch_offset(0)
-  {
-  }
+  Edge() = default;
 
-  int get_vert_along_edge(int n) const
+  int get_vert_along_edge(const int n) const
   {
     assert(n >= 0 && n <= T);
 
     if (n == 0) {
       return start_vert_index;
     }
-    else if (n == T) {
+    if (n == T) {
       return end_vert_index;
     }
 
@@ -177,9 +164,11 @@ struct Edge {
   }
 };
 
-inline int Subpatch::edge_t::get_vert_along_edge(int n) const
+inline int Subpatch::edge_t::get_vert_along_edge(const int n_relative) const
 {
-  assert(n >= 0 && n <= T);
+  assert(n_relative >= 0 && n_relative <= T);
+
+  int n = n_relative;
 
   if (!indices_decrease_along_edge && !sub_edges_created_in_reverse_order) {
     n = offset + n;
@@ -197,11 +186,9 @@ inline int Subpatch::edge_t::get_vert_along_edge(int n) const
   return edge->get_vert_along_edge(n);
 }
 
-inline int Subpatch::get_vert_along_edge(int edge, int n) const
+inline int Subpatch::get_vert_along_edge(const int edge, const int n) const
 {
   return edges[edge].get_vert_along_edge(n);
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_SUBPATCH_H__ */

@@ -128,7 +128,7 @@ class MovieClipOperation : public NodeOperation {
     Result &result = get_result("Alpha");
     if (!movie_clip_buffer) {
       result.allocate_single_value();
-      result.set_float_value(1.0f);
+      result.set_single_value(1.0f);
       return;
     }
 
@@ -159,22 +159,22 @@ class MovieClipOperation : public NodeOperation {
       if (should_compute_output("Offset X")) {
         Result &result = get_result("Offset X");
         result.allocate_single_value();
-        result.set_float_value(0.0f);
+        result.set_single_value(0.0f);
       }
       if (should_compute_output("Offset Y")) {
         Result &result = get_result("Offset Y");
         result.allocate_single_value();
-        result.set_float_value(0.0f);
+        result.set_single_value(0.0f);
       }
       if (should_compute_output("Scale")) {
         Result &result = get_result("Scale");
         result.allocate_single_value();
-        result.set_float_value(1.0f);
+        result.set_single_value(1.0f);
       }
       if (should_compute_output("Angle")) {
         Result &result = get_result("Angle");
         result.allocate_single_value();
-        result.set_float_value(0.0f);
+        result.set_single_value(0.0f);
       }
       return;
     }
@@ -195,22 +195,22 @@ class MovieClipOperation : public NodeOperation {
     if (should_compute_output("Offset X")) {
       Result &result = get_result("Offset X");
       result.allocate_single_value();
-      result.set_float_value(offset.x);
+      result.set_single_value(offset.x);
     }
     if (should_compute_output("Offset Y")) {
       Result &result = get_result("Offset Y");
       result.allocate_single_value();
-      result.set_float_value(offset.y);
+      result.set_single_value(offset.y);
     }
     if (should_compute_output("Scale")) {
       Result &result = get_result("Scale");
       result.allocate_single_value();
-      result.set_float_value(scale);
+      result.set_single_value(scale);
     }
     if (should_compute_output("Angle")) {
       Result &result = get_result("Angle");
       result.allocate_single_value();
-      result.set_float_value(angle);
+      result.set_single_value(angle);
     }
   }
 
@@ -268,8 +268,12 @@ void register_node_type_cmp_movieclip()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, "Movie Clip", NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeMovieClip", CMP_NODE_MOVIECLIP);
+  ntype.ui_name = "Movie Clip";
+  ntype.ui_description =
+      "Input image or movie from a movie clip datablock, typically used for motion tracking";
   ntype.enum_name_legacy = "MOVIECLIP";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_movieclip_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_movieclip;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_movieclip_ex;

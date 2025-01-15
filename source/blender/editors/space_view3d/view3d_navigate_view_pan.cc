@@ -6,8 +6,6 @@
  * \ingroup spview3d
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "WM_api.hh"
 
 #include "RNA_access.hh"

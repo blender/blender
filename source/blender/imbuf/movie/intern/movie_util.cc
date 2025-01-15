@@ -133,7 +133,7 @@ static int isffmpeg(const char *filepath)
 }
 
 /* -------------------------------------------------------------------- */
-/* AVFrame deinterlacing. Code for this was originally based on ffmpeg 2.6.4 (LGPL). */
+/* AVFrame de-interlacing. Code for this was originally based on FFMPEG 2.6.4 (LGPL). */
 
 #  define MAX_NEG_CROP 1024
 
@@ -217,9 +217,10 @@ FFMPEG_INLINE void deinterlace_line_inplace(
   }
 }
 
-/* deinterlacing : 2 temporal taps, 3 spatial taps linear filter. The
- * top field is copied as is, but the bottom field is deinterlaced
- * against the top field. */
+/**
+ * De-interlacing: 2 temporal taps, 3 spatial taps linear filter.
+ * The top field is copied as is, but the bottom field is de-interlaced against the top field.
+ */
 FFMPEG_INLINE void deinterlace_bottom_field(
     uint8_t *dst, int dst_wrap, const uint8_t *src1, int src_wrap, int width, int height)
 {
@@ -283,10 +284,14 @@ int ffmpeg_deinterlace(
 {
   int i, ret;
 
-  if (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P &&
-      pix_fmt != AV_PIX_FMT_YUV422P && pix_fmt != AV_PIX_FMT_YUVJ422P &&
-      pix_fmt != AV_PIX_FMT_YUV444P && pix_fmt != AV_PIX_FMT_YUV411P &&
-      pix_fmt != AV_PIX_FMT_GRAY8)
+  if (!ELEM(pix_fmt,
+            AV_PIX_FMT_YUV420P,
+            AV_PIX_FMT_YUVJ420P,
+            AV_PIX_FMT_YUV422P,
+            AV_PIX_FMT_YUVJ422P,
+            AV_PIX_FMT_YUV444P,
+            AV_PIX_FMT_YUV411P,
+            AV_PIX_FMT_GRAY8))
   {
     return -1;
   }

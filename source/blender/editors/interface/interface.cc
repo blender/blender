@@ -1164,6 +1164,9 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
                 UI_BTYPE_MENU,
                 UI_BTYPE_BLOCK,
                 UI_BTYPE_PULLDOWN,
+                UI_BTYPE_ICON_TOGGLE,
+                UI_BTYPE_ICON_TOGGLE_N,
+
                 /* For PIE-menus. */
                 UI_BTYPE_ROW) ||
           (but->flag & UI_HIDDEN))
@@ -1420,6 +1423,12 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
           prop_enum_value >>= 16;
           prop = RNA_struct_find_property(ptr, prop_id);
           prop_index = -1;
+
+          if (prop_enum_value == -1) {
+            /* Get the current value for Editor menu. #100652 */
+            prop_enum_value = RNA_property_enum_get(ptr, prop);
+            prop_enum_value_ok = (prop_enum_value != -1);
+          }
 
           opnames = ctx_enum_opnames_for_Area_ui_type;
           opnames_len = ARRAY_SIZE(ctx_enum_opnames_for_Area_ui_type);
@@ -2826,12 +2835,12 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
   const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
 
-  /* Time unit is a bit special, not handled by BKE_scene_unit_scale() for now. */
+  /* Time unit is a bit special, not handled by #BKE_unit_value_scale() for now. */
   if (unit_type == PROP_UNIT_TIME) { /* WARNING: using evil_C :| */
     Scene *scene = CTX_data_scene(static_cast<const bContext *>(but->block->evil_C));
     return FRA2TIME(value);
   }
-  return BKE_scene_unit_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
+  return BKE_unit_value_scale(*unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
 }
 
 void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy)
@@ -2884,7 +2893,7 @@ static void ui_get_but_string_unit(
                            ui_get_but_scale_unit(but, value),
                            precision,
                            RNA_SUBTYPE_UNIT_VALUE(unit_type),
-                           unit,
+                           *unit,
                            pad);
 }
 
@@ -3122,7 +3131,7 @@ static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
 {
   char *error = nullptr;
-  const bool ok = user_string_to_number(C, str, unit, unit_type, r_value, true, &error);
+  const bool ok = user_string_to_number(C, str, *unit, unit_type, r_value, true, &error);
   if (error) {
     ReportList *reports = CTX_wm_reports(C);
     BKE_reportf(reports, RPT_ERROR, "%s: %s", UI_NUMBER_EVAL_ERROR_PREFIX, error);
@@ -4469,9 +4478,10 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   int rows = 0;
 
   const wmWindow *win = CTX_wm_window(C);
-  const int row_height = int(float(UI_UNIT_Y) / but->block->aspect);
+  const float row_height = float(UI_UNIT_Y) / but->block->aspect;
   /* Calculate max_rows from how many rows can fit in this window. */
-  const int max_rows = (win->sizey - (4 * row_height)) / row_height;
+  const float vertical_space = (float(WM_window_native_pixel_y(win)) / 2.0f) - (UI_UNIT_Y * 3.0f);
+  const int max_rows = int(vertical_space / row_height) - 1;
   float text_width = 0.0f;
 
   BLF_size(BLF_default(), UI_style_get()->widget.points * UI_SCALE_FAC);
@@ -4505,10 +4515,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
 
   /* Wrap long single-column lists. */
   if (categories == 0) {
-    columns = std::max((totitems + 20) / 20, 1);
-    if (columns > 8) {
-      columns = (totitems + 25) / 25;
-    }
+    columns = std::max((totitems + col_rows) / max_rows, 1);
     rows = std::max(totitems / columns, 1);
     while (rows * columns < totitems) {
       rows++;
@@ -6188,6 +6195,11 @@ void UI_but_func_complete_set(uiBut *but, uiButCompleteFunc func, void *arg)
 void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func)
 {
   but->menu_step_func = func;
+}
+
+void UI_but_menu_disable_hover_open(uiBut *but)
+{
+  but->menu_no_hover_open = true;
 }
 
 void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func)

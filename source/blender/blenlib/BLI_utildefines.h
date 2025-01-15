@@ -13,7 +13,7 @@
 /* avoid many includes for now */
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
-#include "BLI_utildefines_variadic.h"
+#include "BLI_utildefines_variadic.h"  // IWYU prama: export
 
 /* We could remove in future. */
 #include "BLI_assert.h"
@@ -232,31 +232,6 @@ inline constexpr int64_t power_of_2_max(const int64_t x)
     if ((a) < (b)) { \
       (a) = (b); \
     } \
-  } \
-  (void)0
-
-#define CLAMP3(vec, b, c) \
-  { \
-    CLAMP((vec)[0], b, c); \
-    CLAMP((vec)[1], b, c); \
-    CLAMP((vec)[2], b, c); \
-  } \
-  (void)0
-
-#define CLAMP3_MIN(vec, b) \
-  { \
-    CLAMP_MIN((vec)[0], b); \
-    CLAMP_MIN((vec)[1], b); \
-    CLAMP_MIN((vec)[2], b); \
-  } \
-  (void)0
-
-#define CLAMP4_MIN(vec, b) \
-  { \
-    CLAMP_MIN((vec)[0], b); \
-    CLAMP_MIN((vec)[1], b); \
-    CLAMP_MIN((vec)[2], b); \
-    CLAMP_MIN((vec)[3], b); \
   } \
   (void)0
 

@@ -11,7 +11,6 @@
 #include "DNA_node_types.h"
 
 #include "BLI_any.hh"
-#include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
 
 namespace blender::bke {
@@ -125,6 +124,11 @@ class SocketValueVariant {
    * The stored value is a volume grid.
    */
   bool is_volume_grid() const;
+
+  /**
+   * The stored value is a single value.
+   */
+  bool is_single() const;
 
   /**
    * Convert the stored value into a single value. For simple value access, this is not necessary,

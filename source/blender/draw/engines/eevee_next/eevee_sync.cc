@@ -106,12 +106,12 @@ void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef 
 
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
 
-  gpu::Batch **mat_geom = DRW_cache_object_surface_material_get(
-      ob, material_array.gpu_materials.data(), material_array.gpu_materials.size());
-  gpu::Batch **mat_geom_npr = DRW_cache_object_surface_material_get(
-      ob, material_array.gpu_materials_npr.data(), material_array.gpu_materials_npr.size());
+  Span<gpu::Batch *> mat_geom = DRW_cache_object_surface_material_get(
+      ob, material_array.gpu_materials);
+  Span<gpu::Batch *> mat_geom_npr = DRW_cache_object_surface_material_get(
+      ob, material_array.gpu_materials_npr);
 
-  if (mat_geom == nullptr) {
+  if (mat_geom.is_empty()) {
     return;
   }
 

@@ -12,10 +12,10 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
@@ -29,12 +29,11 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_object_deform.h"
 #include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 
-#include "data_transfer_intern.h"
+#include "data_transfer_intern.hh"
 
 void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
                                                 CustomData_MeshMasks *r_data_masks)
@@ -966,9 +965,9 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SEAM) {
-      if (!CustomData_has_layer_named(&me_dst->edge_data, CD_PROP_BOOL, ".uv_seam")) {
+      if (!CustomData_has_layer_named(&me_dst->edge_data, CD_PROP_BOOL, "uv_seam")) {
         CustomData_add_layer_named(
-            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->edges_num, ".uv_seam");
+            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->edges_num, "uv_seam");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -976,9 +975,9 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_mode,
           mix_factor,
           mix_weights,
-          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, ".uv_seam"),
+          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, "uv_seam"),
           CustomData_get_layer_named_for_write(
-              &me_dst->edge_data, CD_PROP_BOOL, ".uv_seam", me_dst->edges_num),
+              &me_dst->edge_data, CD_PROP_BOOL, "uv_seam", me_dst->edges_num),
           interp,
           interp_data);
       return true;

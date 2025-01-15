@@ -4,6 +4,11 @@
 
 #ifdef WITH_METAL
 
+#  include <algorithm>
+#  include <chrono>
+#  include <thread>
+#  include <vector>
+
 #  include "scene/hair.h"
 #  include "scene/mesh.h"
 #  include "scene/object.h"
@@ -50,7 +55,7 @@ struct BVHMetalBuildThrottler {
   }
 
   /* Block until we're safely able to wire the requested resources. */
-  void acquire(size_t bytes_to_be_wired)
+  void acquire(const size_t bytes_to_be_wired)
   {
     bool throttled = false;
     while (true) {
@@ -84,7 +89,7 @@ struct BVHMetalBuildThrottler {
   }
 
   /* Notify of resources that have stopped being wired. */
-  void release(size_t bytes_just_unwired)
+  void release(const size_t bytes_just_unwired)
   {
     thread_scoped_lock lock(mutex);
     wired_memory -= bytes_just_unwired;
@@ -207,7 +212,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
         if (step != center_step) {
           verts = motion_keys->data_float3() + (step > center_step ? step - 1 : step) * num_verts;
         }
-        memcpy(dest_data + num_verts * step, verts, num_verts * sizeof(float3));
+        std::copy_n(verts, num_verts, dest_data + num_verts * step);
       }
       if (storage_mode == MTLResourceStorageModeManaged) {
         [posBuf didModifyRange:NSMakeRange(0, posBuf.length)];
@@ -786,13 +791,6 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       [aabbBuf didModifyRange:NSMakeRange(0, aabbBuf.length)];
     }
 
-#  if 0
-    for (size_t i=0; i<num_aabbs && i < 400; i++) {
-      MTLAxisAlignedBoundingBox& bb = aabb_data[i];
-      printf("  %d:   %.1f,%.1f,%.1f -- %.1f,%.1f,%.1f\n", int(i), bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z);
-    }
-#  endif
-
     MTLAccelerationStructureGeometryDescriptor *geomDesc;
     if (motion_blur) {
       std::vector<MTLMotionKeyframeData *> aabb_ptrs;
@@ -1050,22 +1048,20 @@ bool BVHMetal::build_TLAS(Progress &progress,
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC);
 
     NSMutableArray *all_blas = [NSMutableArray array];
-    unordered_map<BVHMetal const *, int> instance_mapping;
+    unordered_map<const BVHMetal *, int> instance_mapping;
 
     /* Lambda function to build/retrieve the BLAS index mapping */
-    auto get_blas_index = [&](BVHMetal const *blas) {
+    auto get_blas_index = [&](const BVHMetal *blas) {
       auto it = instance_mapping.find(blas);
       if (it != instance_mapping.end()) {
         return it->second;
       }
-      else {
-        int blas_index = (int)[all_blas count];
-        instance_mapping[blas] = blas_index;
-        if (@available(macos 12.0, *)) {
-          [all_blas addObject:(blas ? blas->accel_struct : null_BLAS)];
-        }
-        return blas_index;
+      int blas_index = (int)[all_blas count];
+      instance_mapping[blas] = blas_index;
+      if (@available(macos 12.0, *)) {
+        [all_blas addObject:(blas ? blas->accel_struct : null_BLAS)];
       }
+      return blas_index;
     };
 
     MTLResourceOptions storage_mode;
@@ -1104,8 +1100,8 @@ bool BVHMetal::build_TLAS(Progress &progress,
 
     for (Object *ob : objects) {
       /* Skip non-traceable objects */
-      Geometry const *geom = ob->get_geometry();
-      BVHMetal const *blas = static_cast<BVHMetal const *>(geom->bvh);
+      const Geometry *geom = ob->get_geometry();
+      const BVHMetal *blas = static_cast<const BVHMetal *>(geom->bvh.get());
       if (!blas || !blas->accel_struct || !ob->is_traceable()) {
         /* Place a degenerate instance, to ensure [[instance_id]] equals ob->get_device_index()
          * in our intersection functions */
@@ -1180,7 +1176,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
           for (int i = 0; i < key_count; i++) {
             float *t = (float *)&motion_transforms[motion_transform_index++];
             /* Transpose transform */
-            auto src = (float const *)&keys[i];
+            const auto *src = (const float *)&keys[i];
             for (int i = 0; i < 12; i++) {
               t[i] = src[(i / 3) + 4 * (i % 3)];
             }
@@ -1192,7 +1188,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
           float *t = (float *)&motion_transforms[motion_transform_index++];
           if (ob->get_geometry()->is_instanced()) {
             /* Transpose transform */
-            auto src = (float const *)&ob->get_tfm();
+            const auto *src = (const float *)&ob->get_tfm();
             for (int i = 0; i < 12; i++) {
               t[i] = src[(i / 3) + 4 * (i % 3)];
             }
@@ -1217,7 +1213,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
         float *t = (float *)&desc.transformationMatrix;
         if (ob->get_geometry()->is_instanced()) {
           /* Transpose transform */
-          auto src = (float const *)&ob->get_tfm();
+          const auto *src = (const float *)&ob->get_tfm();
           for (int i = 0; i < 12; i++) {
             t[i] = src[(i / 3) + 4 * (i % 3)];
           }
@@ -1328,9 +1324,7 @@ bool BVHMetal::build(Progress &progress,
     if (!params.top_level) {
       return build_BLAS(progress, mtl_device, queue, refit);
     }
-    else {
-      return build_TLAS(progress, mtl_device, queue, refit);
-    }
+    return build_TLAS(progress, mtl_device, queue, refit);
   }
 }
 

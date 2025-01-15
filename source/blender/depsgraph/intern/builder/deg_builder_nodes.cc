@@ -76,7 +76,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_light.h"
 #include "BKE_mask.h"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -418,8 +418,8 @@ void DepsgraphNodeBuilder::begin_build()
   graph_->entry_tags.clear();
 }
 
-/* Util callbacks for `BKE_library_foreach_ID_link`, used to detect when an evaluated ID is using
- * ID pointers that are either:
+/* Utility callbacks for `BKE_library_foreach_ID_link`, used to detect when an evaluated ID is
+ * using ID pointers that are either:
  *  - evaluated ID pointers that do not exist anymore in current depsgraph.
  *  - Orig ID pointers that do have now an evaluated version in current depsgraph.
  * In both cases, it means the evaluated ID user needs to be flushed, to ensure its pointers are
@@ -2001,7 +2001,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
     else if (id_type == ID_VF) {
       build_vfont((VFont *)id);
     }
-    else if (ELEM(bnode->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+    else if (ELEM(bnode->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       bNodeTree *group_ntree = (bNodeTree *)id;
       build_nodetree(group_ntree);
     }
@@ -2236,22 +2236,22 @@ void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
       &vfont->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
 }
 
-static bool seq_node_build_cb(Sequence *seq, void *user_data)
+static bool strip_node_build_cb(Strip *strip, void *user_data)
 {
   DepsgraphNodeBuilder *nb = (DepsgraphNodeBuilder *)user_data;
-  nb->build_idproperties(seq->prop);
-  if (seq->sound != nullptr) {
-    nb->build_sound(seq->sound);
+  nb->build_idproperties(strip->prop);
+  if (strip->sound != nullptr) {
+    nb->build_sound(strip->sound);
   }
-  if (seq->scene != nullptr) {
-    nb->build_scene_parameters(seq->scene);
+  if (strip->scene != nullptr) {
+    nb->build_scene_parameters(strip->scene);
   }
-  if (seq->type == SEQ_TYPE_SCENE && seq->scene != nullptr) {
-    if (seq->flag & SEQ_SCENE_STRIPS) {
-      nb->build_scene_sequencer(seq->scene);
+  if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr) {
+    if (strip->flag & SEQ_SCENE_STRIPS) {
+      nb->build_scene_sequencer(strip->scene);
     }
-    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(seq->scene);
-    nb->build_scene_speakers(seq->scene, sequence_view_layer);
+    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(strip->scene);
+    nb->build_scene_speakers(strip->scene, sequence_view_layer);
   }
   /* TODO(sergey): Movie clip, scene, camera, mask. */
   return true;
@@ -2274,7 +2274,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
                        SEQ_eval_sequences(depsgraph, scene_cow, &scene_cow->ed->seqbase);
                      });
   /* Make sure data for sequences is in the graph. */
-  SEQ_for_each_callback(&scene->ed->seqbase, seq_node_build_cb, this);
+  SEQ_for_each_callback(&scene->ed->seqbase, strip_node_build_cb, this);
 }
 
 void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)

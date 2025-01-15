@@ -20,8 +20,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_listbase.h"
-#include "BLI_range.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -269,7 +269,7 @@ const ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, const float
 }
 
 const ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
-                                                const Range2f frame_range)
+                                                const Bounds<float> frame_range)
 {
   BLI_assert_msg(keylist->is_runtime_initialized,
                  "ED_keylist_prepare_for_direct_access needs to be called before searching.");
@@ -329,7 +329,7 @@ static void keylist_first_last(const AnimKeylist *keylist,
   }
 }
 
-bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range)
+bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Bounds<float> *r_frame_range)
 {
   BLI_assert(r_frame_range);
 
@@ -346,7 +346,7 @@ bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Range2f *r_fram
   return true;
 }
 
-bool ED_keylist_selected_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range)
+bool ED_keylist_selected_keys_frame_range(const AnimKeylist *keylist, Bounds<float> *r_frame_range)
 {
   BLI_assert(r_frame_range);
 

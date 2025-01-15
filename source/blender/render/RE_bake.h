@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_scene_types.h"
+
 #include "RE_pipeline.h"
 
 struct Depsgraph;

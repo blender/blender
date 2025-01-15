@@ -7,7 +7,7 @@
 #include "NOD_geometry.hh"
 #include "NOD_node_declaration.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "node_common.h"
 #include "node_geometry_util.hh"
 
@@ -21,7 +21,7 @@ static void register_node_type_geo_group()
 
   bke::node_type_base_custom(&ntype, "GeometryNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.enum_name_legacy = "GROUP";
-  ntype.type = NODE_GROUP;
+  ntype.type_legacy = NODE_GROUP;
   ntype.poll = geo_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;

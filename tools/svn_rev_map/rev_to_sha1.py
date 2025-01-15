@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "data",
+)
+
 data = {
 2: "12315f4d0e0ae993805f141f64cb8c73c5297311",
 16: "599dc60f6dc97d3ef8efdd294ca2e89fbf498f54",

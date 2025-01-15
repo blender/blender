@@ -4,8 +4,6 @@
 
 #include "BLI_index_mask.hh"
 
-#include "BKE_mesh.hh"
-
 #include "GEO_mesh_selection.hh"
 
 namespace blender::geometry {

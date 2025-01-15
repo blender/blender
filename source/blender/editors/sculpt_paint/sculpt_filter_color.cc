@@ -279,11 +279,11 @@ static void color_filter_task(const Depsgraph &depsgraph,
         bool copy_alpha = colors[i][3] == average_colors[i][3];
 
         if (factors[i] < 0.0f) {
-          float delta_color[4];
+          float4 delta_color;
 
           /* Unsharp mask. */
           copy_v4_v4(delta_color, ss.filter_cache->pre_smoothed_color[vert]);
-          sub_v4_v4(delta_color, average_colors[i]);
+          delta_color -= average_colors[i];
 
           copy_v4_v4(new_colors[i], colors[i]);
           madd_v4_v4fl(new_colors[i], delta_color, factors[i]);
@@ -455,7 +455,6 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
   View3D *v3d = CTX_wm_view3d(C);
 
   const Base *base = CTX_data_active_base(C);
@@ -478,15 +477,18 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   }
 
   /* Disable for multires and dyntopo for now */
-  if (!bke::object::pbvh_get(ob) || !color_supported_check(scene, ob, op->reports)) {
+  if (!color_supported_check(scene, ob, op->reports)) {
     return OPERATOR_CANCELLED;
   }
+
+  /* Ensure that we have a PBVH to be able to push changes on only visible nodes. */
+  bke::object::pbvh_ensure(*CTX_data_ensure_evaluated_depsgraph(C), ob);
 
   undo::push_begin(scene, ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
 
-  /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
-   * earlier steps modifying the data. */
+  /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the potential
+   * creation of color layer data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, true);
 
@@ -497,6 +499,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
                      mval_fl,
                      RNA_float_get(op->ptr, "area_normal_radius"),
                      RNA_float_get(op->ptr, "strength"));
+  const SculptSession &ss = *ob.sculpt;
   filter::Cache *filter_cache = ss.filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = auto_mask::cache_init(*depsgraph, sd, ob);

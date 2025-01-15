@@ -45,27 +45,28 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->type == SEQ_TYPE_META) {
-      if (sequencer_refresh_sound_length_recursive(bmain, scene, &seq->seqbase)) {
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    if (strip->type == STRIP_TYPE_META) {
+      if (sequencer_refresh_sound_length_recursive(bmain, scene, &strip->seqbase)) {
         changed = true;
       }
     }
-    else if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound) {
+    else if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound) {
       SoundInfo info;
-      if (!BKE_sound_info_get(bmain, seq->sound, &info)) {
+      if (!BKE_sound_info_get(bmain, strip->sound, &info)) {
         continue;
       }
 
-      int old = seq->len;
+      int old = strip->len;
       float fac;
 
-      seq->len = std::max(1, int(round((info.length - seq->sound->offset_time) * FPS)));
-      fac = float(seq->len) / float(old);
-      old = seq->startofs;
-      seq->startofs *= fac;
-      seq->endofs *= fac;
-      seq->start += (old - seq->startofs); /* So that visual/"real" start frame does not change! */
+      strip->len = std::max(1, int(round((info.length - strip->sound->offset_time) * FPS)));
+      fac = float(strip->len) / float(old);
+      old = strip->startofs;
+      strip->startofs *= fac;
+      strip->endofs *= fac;
+      strip->start += (old -
+                       strip->startofs); /* So that visual/"real" start frame does not change! */
 
       changed = true;
     }
@@ -90,47 +91,47 @@ void SEQ_sound_update_bounds_all(Scene *scene)
   Editing *ed = scene->ed;
 
   if (ed) {
-    LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
-      if (seq->type == SEQ_TYPE_META) {
-        seq_update_sound_bounds_recursive(scene, seq);
+    LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
+      if (strip->type == STRIP_TYPE_META) {
+        strip_update_sound_bounds_recursive(scene, strip);
       }
-      else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
-        SEQ_sound_update_bounds(scene, seq);
+      else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
+        SEQ_sound_update_bounds(scene, strip);
       }
     }
   }
 }
 
-void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
+void SEQ_sound_update_bounds(Scene *scene, Strip *strip)
 {
-  if (seq->type == SEQ_TYPE_SCENE) {
-    if (seq->scene && seq->scene_sound) {
+  if (strip->type == STRIP_TYPE_SCENE) {
+    if (strip->scene && strip->scene_sound) {
       /* We have to take into account start frame of the sequence's scene! */
-      int startofs = seq->startofs + seq->anim_startofs + seq->scene->r.sfra;
+      int startofs = strip->startofs + strip->anim_startofs + strip->scene->r.sfra;
 
       BKE_sound_move_scene_sound(scene,
-                                 seq->scene_sound,
-                                 SEQ_time_left_handle_frame_get(scene, seq),
-                                 SEQ_time_right_handle_frame_get(scene, seq),
+                                 strip->scene_sound,
+                                 SEQ_time_left_handle_frame_get(scene, strip),
+                                 SEQ_time_right_handle_frame_get(scene, strip),
                                  startofs,
                                  0.0);
     }
   }
   else {
-    BKE_sound_move_scene_sound_defaults(scene, seq);
+    BKE_sound_move_scene_sound_defaults(scene, strip);
   }
-  /* mute is set in seq_update_muting_recursive */
+  /* mute is set in strip_update_muting_recursive */
 }
 
-static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
+static void strip_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
-    if (seq->type == SEQ_TYPE_META) {
-      seq_update_sound_recursive(scene, &seq->seqbase, sound);
+  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
+    if (strip->type == STRIP_TYPE_META) {
+      strip_update_sound_recursive(scene, &strip->seqbase, sound);
     }
-    else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-      if (seq->scene_sound && sound == seq->sound) {
-        BKE_sound_update_scene_sound(seq->scene_sound, sound);
+    else if (strip->type == STRIP_TYPE_SOUND_RAM) {
+      if (strip->scene_sound && sound == strip->sound) {
+        BKE_sound_update_scene_sound(strip->scene_sound, sound);
       }
     }
   }
@@ -139,17 +140,17 @@ static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound 
 void SEQ_sound_update(Scene *scene, bSound *sound)
 {
   if (scene->ed) {
-    seq_update_sound_recursive(scene, &scene->ed->seqbase, sound);
+    strip_update_sound_recursive(scene, &scene->ed->seqbase, sound);
   }
 }
 
-float SEQ_sound_pitch_get(const Scene *scene, const Sequence *seq)
+float SEQ_sound_pitch_get(const Scene *scene, const Strip *strip)
 {
-  const Sequence *meta_parent = seq_sequence_lookup_meta_by_seq(scene, seq);
+  const Strip *meta_parent = SEQ_lookup_meta_by_strip(scene, strip);
   if (meta_parent != nullptr) {
-    return seq->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
+    return strip->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
   }
-  return seq->speed_factor;
+  return strip->speed_factor;
 }
 
 EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *semd,
@@ -265,10 +266,10 @@ void SEQ_sound_equalizermodifier_copy_data(SequenceModifierData *target, Sequenc
   }
 }
 
-void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound)
+void *SEQ_sound_equalizermodifier_recreator(Strip *strip, SequenceModifierData *smd, void *sound)
 {
 #ifdef WITH_CONVOLUTION
-  UNUSED_VARS(seq);
+  UNUSED_VARS(strip);
 
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
 
@@ -321,7 +322,7 @@ void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData 
 
   return equ;
 #else
-  UNUSED_VARS(seq, smd, sound);
+  UNUSED_VARS(strip, smd, sound);
   return nullptr;
 #endif
 }
@@ -336,12 +337,12 @@ const SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type)
   return nullptr;
 }
 
-void *SEQ_sound_modifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound)
+void *SEQ_sound_modifier_recreator(Strip *strip, SequenceModifierData *smd, void *sound)
 {
 
   if (!(smd->flag & SEQUENCE_MODIFIER_MUTE)) {
     const SoundModifierWorkerInfo *smwi = SEQ_sound_modifier_worker_info_get(smd->type);
-    return smwi->recreator(seq, smd, sound);
+    return smwi->recreator(strip, smd, sound);
   }
   return sound;
 }

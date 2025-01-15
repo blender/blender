@@ -5,8 +5,14 @@
 #pragma once
 
 #include "kernel/bvh/bvh.h"
-#include "kernel/sample/mapping.h"
-#include "kernel/sample/pattern.h"
+
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/triangle.h"
+#include "kernel/geom/triangle_intersect.h"
+
+#include "kernel/integrator/path_state.h"
+
+#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -19,7 +25,7 @@ CCL_NAMESPACE_BEGIN
  * far as I can tell has no closed form solution. So we get an iterative solution
  * instead with newton-raphson. */
 
-ccl_device float svm_bevel_cubic_eval(const float radius, float r)
+ccl_device float svm_bevel_cubic_eval(const float radius, const float r)
 {
   const float Rm = radius;
 
@@ -35,13 +41,13 @@ ccl_device float svm_bevel_cubic_eval(const float radius, float r)
   return (10.0f * num) / (Rm5 * M_PI_F);
 }
 
-ccl_device float svm_bevel_cubic_pdf(const float radius, float r)
+ccl_device float svm_bevel_cubic_pdf(const float radius, const float r)
 {
   return svm_bevel_cubic_eval(radius, r);
 }
 
 /* solve 10x^2 - 20x^3 + 15x^4 - 4x^5 - xi == 0 */
-ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
+ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(const float xi)
 {
   /* newton-raphson iteration, usually succeeds in 2-4 iterations, except
    * outside 0.02 ... 0.98 where it can go up to 10, so overall performance
@@ -52,12 +58,12 @@ ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
   int i;
 
   for (i = 0; i < max_iteration_count; i++) {
-    float x2 = x * x;
-    float x3 = x2 * x;
-    float nx = (1.0f - x);
+    const float x2 = x * x;
+    const float x3 = x2 * x;
+    const float nx = (1.0f - x);
 
-    float f = 10.0f * x2 - 20.0f * x3 + 15.0f * x2 * x2 - 4.0f * x2 * x3 - xi;
-    float f_ = 20.0f * (x * nx) * (nx * nx);
+    const float f = 10.0f * x2 - 20.0f * x3 + 15.0f * x2 * x2 - 4.0f * x2 * x3 - xi;
+    const float f_ = 20.0f * (x * nx) * (nx * nx);
 
     if (fabsf(f) < tolerance || f_ == 0.0f) {
       break;
@@ -70,11 +76,11 @@ ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
 }
 
 ccl_device void svm_bevel_cubic_sample(const float radius,
-                                       float xi,
+                                       const float xi,
                                        ccl_private float *r,
                                        ccl_private float *h)
 {
-  float Rm = radius;
+  const float Rm = radius;
   float r_ = svm_bevel_cubic_quintic_root_find(xi);
 
   r_ *= Rm;
@@ -98,8 +104,8 @@ ccl_device float3 svm_bevel(
     KernelGlobals kg,
     ConstIntegratorState state,
     ccl_private ShaderData *sd,
-    float radius,
-    int num_samples)
+    const float radius,
+    const int num_samples)
 {
   /* Early out if no sampling needed. */
   if (radius <= 0.0f || num_samples < 1 || sd->object == OBJECT_NONE) {
@@ -135,13 +141,17 @@ ccl_device float3 svm_bevel(
         kg, &rng_state, sample, num_samples, PRNG_SURFACE_BEVEL);
 
     /* Pick random axis in local frame and point on disk. */
-    float3 disk_N, disk_T, disk_B;
-    float pick_pdf_N, pick_pdf_T, pick_pdf_B;
+    float3 disk_N;
+    float3 disk_T;
+    float3 disk_B;
+    float pick_pdf_N;
+    float pick_pdf_T;
+    float pick_pdf_B;
 
     disk_N = sd->Ng;
     make_orthonormals(disk_N, &disk_T, &disk_B);
 
-    float axisu = rand_disk.x;
+    const float axisu = rand_disk.x;
 
     if (axisu < 0.5f) {
       pick_pdf_N = 0.5f;
@@ -150,7 +160,7 @@ ccl_device float3 svm_bevel(
       rand_disk.x *= 2.0f;
     }
     else if (axisu < 0.75f) {
-      float3 tmp = disk_N;
+      const float3 tmp = disk_N;
       disk_N = disk_T;
       disk_T = tmp;
       pick_pdf_N = 0.25f;
@@ -159,7 +169,7 @@ ccl_device float3 svm_bevel(
       rand_disk.x = (rand_disk.x - 0.5f) * 4.0f;
     }
     else {
-      float3 tmp = disk_N;
+      const float3 tmp = disk_N;
       disk_N = disk_B;
       disk_B = tmp;
       pick_pdf_N = 0.25f;
@@ -169,14 +179,14 @@ ccl_device float3 svm_bevel(
     }
 
     /* Sample point on disk. */
-    float phi = M_2PI_F * rand_disk.x;
+    const float phi = M_2PI_F * rand_disk.x;
     float disk_r = rand_disk.y;
     float disk_height;
 
     /* Perhaps find something better than Cubic BSSRDF, but happens to work well. */
     svm_bevel_cubic_sample(radius, disk_r, &disk_r, &disk_height);
 
-    float3 disk_P = to_global(polar_to_cartesian(disk_r, phi), disk_T, disk_B);
+    const float3 disk_P = to_global(polar_to_cartesian(disk_r, phi), disk_T, disk_B);
 
     /* Create ray. */
     Ray ray ccl_optional_struct_init;
@@ -197,7 +207,7 @@ ccl_device float3 svm_bevel(
      * will use at most LOCAL_MAX_HITS hits, a random subset of all hits. */
     scene_intersect_local(kg, &ray, &isect, sd->object, &lcg_state, LOCAL_MAX_HITS);
 
-    int num_eval_hits = min(isect.num_hits, LOCAL_MAX_HITS);
+    const int num_eval_hits = min(isect.num_hits, LOCAL_MAX_HITS);
 
     for (int hit = 0; hit < num_eval_hits; hit++) {
       /* Quickly retrieve P and Ng without setting up ShaderData. */
@@ -216,20 +226,20 @@ ccl_device float3 svm_bevel(
 
       /* Get geometric normal. */
       float3 hit_Ng = isect.Ng[hit];
-      int object = isect.hits[hit].object;
-      int object_flag = kernel_data_fetch(object_flag, object);
+      const int object = isect.hits[hit].object;
+      const int object_flag = kernel_data_fetch(object_flag, object);
       if (object_negative_scale_applied(object_flag)) {
         hit_Ng = -hit_Ng;
       }
 
       /* Compute smooth normal. */
       float3 N = hit_Ng;
-      int prim = isect.hits[hit].prim;
-      int shader = kernel_data_fetch(tri_shader, prim);
+      const int prim = isect.hits[hit].prim;
+      const int shader = kernel_data_fetch(tri_shader, prim);
 
       if (shader & SHADER_SMOOTH_NORMAL) {
-        float u = isect.hits[hit].u;
-        float v = isect.hits[hit].v;
+        const float u = isect.hits[hit].u;
+        const float v = isect.hits[hit].v;
 
         if (sd->type == PRIMITIVE_TRIANGLE) {
           N = triangle_smooth_normal(kg, N, prim, u, v);
@@ -248,9 +258,9 @@ ccl_device float3 svm_bevel(
       }
 
       /* Probability densities for local frame axes. */
-      float pdf_N = pick_pdf_N * fabsf(dot(disk_N, hit_Ng));
-      float pdf_T = pick_pdf_T * fabsf(dot(disk_T, hit_Ng));
-      float pdf_B = pick_pdf_B * fabsf(dot(disk_B, hit_Ng));
+      const float pdf_N = pick_pdf_N * fabsf(dot(disk_N, hit_Ng));
+      const float pdf_T = pick_pdf_T * fabsf(dot(disk_T, hit_Ng));
+      const float pdf_B = pick_pdf_B * fabsf(dot(disk_B, hit_Ng));
 
       /* Multiple importance sample between 3 axes, power heuristic
        * found to be slightly better than balance heuristic. pdf_N
@@ -261,11 +271,11 @@ ccl_device float3 svm_bevel(
       }
 
       /* Real distance to sampled point. */
-      float r = len(hit_P - sd->P);
+      const float r = len(hit_P - sd->P);
 
       /* Compute weight. */
-      float pdf = svm_bevel_cubic_pdf(radius, r);
-      float disk_pdf = svm_bevel_cubic_pdf(radius, disk_r);
+      const float pdf = svm_bevel_cubic_pdf(radius, r);
+      const float disk_pdf = svm_bevel_cubic_pdf(radius, disk_r);
 
       w *= pdf / disk_pdf;
 
@@ -275,7 +285,7 @@ ccl_device float3 svm_bevel(
   }
 
   /* Normalize. */
-  float3 N = safe_normalize(sum_N);
+  const float3 N = safe_normalize(sum_N);
   return is_zero(N) ? sd->N : (sd->flag & SD_BACKFACING) ? -N : N;
 }
 
@@ -290,9 +300,12 @@ ccl_device_noinline
                    ConstIntegratorGenericState state,
                    ccl_private ShaderData *sd,
                    ccl_private float *stack,
-                   uint4 node)
+                   const uint4 node)
 {
-  uint num_samples, radius_offset, normal_offset, out_offset;
+  uint num_samples;
+  uint radius_offset;
+  uint normal_offset;
+  uint out_offset;
   svm_unpack_node_uchar4(node.y, &num_samples, &radius_offset, &normal_offset, &out_offset);
 
   float3 bevel_N = sd->N;
@@ -309,7 +322,7 @@ ccl_device_noinline
 
     if (stack_valid(normal_offset)) {
       /* Preserve input normal. */
-      float3 ref_N = stack_load_float3(stack, normal_offset);
+      const float3 ref_N = stack_load_float3(stack, normal_offset);
       bevel_N = normalize(ref_N + (bevel_N - sd->N));
     }
   }

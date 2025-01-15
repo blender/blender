@@ -48,6 +48,7 @@ void main()
     ivec2 texel = ivec2(gl_GlobalInvocationID.x, y);
     vec4 horizontal = texture_load(horizontal_tx, texel);
     vec4 vertical = imageLoad(vertical_img, texel);
-    imageStore(vertical_img, texel, horizontal + vertical);
+    vec4 combined = horizontal + vertical;
+    imageStore(vertical_img, texel, vec4(combined.rgb, 1.0));
   }
 }

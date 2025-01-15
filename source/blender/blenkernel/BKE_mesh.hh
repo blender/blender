@@ -12,8 +12,8 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_string_ref.hh"
 
-#include "BKE_mesh.h"
-#include "BKE_mesh_types.hh"
+#include "BKE_mesh.h"         // IWYU pragma: export
+#include "BKE_mesh_types.hh"  // IWYU pragma: export
 
 namespace blender::bke {
 
@@ -247,11 +247,35 @@ void edges_sharp_from_angle_set(OffsetIndices<int> faces,
                                 const float split_angle,
                                 MutableSpan<bool> sharp_edges);
 
+}  // namespace mesh
+
+/**
+ * Higher level functions hiding most of the code needed around call to
+ * #normals_corner_custom_set().
+ *
+ * \param corner_normals: Is mutable because zero vectors are replaced with automatically
+ * computed normals.
+ */
+void mesh_set_custom_normals(Mesh &mesh, MutableSpan<float3> corner_normals);
+void mesh_set_custom_normals_normalized(Mesh &mesh, MutableSpan<float3> corner_normals);
+
+/**
+ * Higher level functions hiding most of the code needed around call to
+ * #normals_corner_custom_set_from_verts().
+ *
+ * \param vert_normals: Is mutable because zero vectors are replaced with automatically
+ * computed normals.
+ */
+void mesh_set_custom_normals_from_verts(Mesh &mesh, MutableSpan<float3> vert_normals);
+void mesh_set_custom_normals_from_verts_normalized(Mesh &mesh, MutableSpan<float3> vert_normals);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Topology Queries
  * \{ */
+
+namespace mesh {
 
 /**
  * Find the index of the previous corner in the face, looping to the end if necessary.

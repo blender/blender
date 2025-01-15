@@ -13,9 +13,9 @@
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
@@ -29,6 +29,7 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.hh"
@@ -37,7 +38,6 @@
 
 #include "DEG_depsgraph_build.hh"
 
-#include "ED_node.hh" /* own include */
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
 #include "ED_render.hh"
@@ -53,7 +53,7 @@
 
 #include "UI_resources.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_shader.h"
@@ -105,13 +105,13 @@ static bool node_group_operator_editable(bContext *C)
   return false;
 }
 
-static const char *group_ntree_idname(bContext *C)
+static StringRef group_ntree_idname(bContext *C)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   return snode->tree_idname;
 }
 
-const char *node_group_idname(bContext *C)
+StringRef node_group_idname(bContext *C)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -131,12 +131,12 @@ const char *node_group_idname(bContext *C)
   return "";
 }
 
-static bNode *node_group_get_active(bContext *C, const char *node_idname)
+static bNode *node_group_get_active(bContext *C, const StringRef node_idname)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node = bke::node_get_active(snode->edittree);
 
-  if (node && STREQ(node->idname, node_idname)) {
+  if (node && node->idname == node_idname) {
     return node;
   }
   return nullptr;
@@ -148,8 +148,8 @@ static void remap_pairing(bNodeTree &dst_tree,
                           const Map<int32_t, int32_t> &identifier_map)
 {
   for (bNode *dst_node : nodes) {
-    if (bke::all_zone_input_node_types().contains(dst_node->type)) {
-      const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(dst_node->type);
+    if (bke::all_zone_input_node_types().contains(dst_node->type_legacy)) {
+      const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(dst_node->type_legacy);
       int &output_node_id = zone_type.get_corresponding_output_id(*dst_node);
       if (output_node_id == 0) {
         continue;
@@ -171,7 +171,7 @@ static void remap_pairing(bNodeTree &dst_tree,
 static int node_group_edit_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  const char *node_idname = node_group_idname(C);
+  const StringRef node_idname = node_group_idname(C);
   const bool exit = RNA_boolean_get(op->ptr, "exit");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -290,7 +290,7 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
      */
-    if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+    if (ELEM(node->type_legacy, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
       /* We must delay removal since sockets will reference this node. see: #52092 */
       nodes_delayed_free.append(node);
     }
@@ -377,7 +377,7 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   /* input links */
   if (glinks_first != nullptr) {
     for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
-      if (link->fromnode->type == NODE_GROUP_INPUT) {
+      if (link->fromnode->type_legacy == NODE_GROUP_INPUT) {
         const char *identifier = link->fromsock->identifier;
         int num_external_links = 0;
 
@@ -423,7 +423,9 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
              tlink = tlink->next)
         {
           /* only use active output node */
-          if (tlink->tonode->type == NODE_GROUP_OUTPUT && (tlink->tonode->flag & NODE_DO_OUTPUT)) {
+          if (tlink->tonode->type_legacy == NODE_GROUP_OUTPUT &&
+              (tlink->tonode->flag & NODE_DO_OUTPUT))
+          {
             if (STREQ(tlink->tosock->identifier, identifier)) {
               bke::node_add_link(
                   ntree, tlink->fromnode, tlink->fromsock, link->tonode, link->tosock);
@@ -461,14 +463,14 @@ static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
-  const char *node_idname = node_group_idname(C);
+  const StringRef node_idname = node_group_idname(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   blender::Vector<bNode *> nodes_to_ungroup;
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & NODE_SELECT) {
-      if (STREQ(node->idname, node_idname)) {
+      if (node->idname == node_idname) {
         if (node->id != nullptr) {
           nodes_to_ungroup.append(node);
         }
@@ -481,7 +483,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
   for (bNode *node : nodes_to_ungroup) {
     node_group_ungroup(bmain, snode->edittree, node);
   }
-  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
+  BKE_main_ensure_invariants(*CTX_data_main(C));
   return OPERATOR_FINISHED;
 }
 
@@ -666,7 +668,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   /* switch to parent tree */
   ED_node_tree_pop(snode);
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
+  BKE_main_ensure_invariants(*CTX_data_main(C));
 
   return OPERATOR_FINISHED;
 }
@@ -721,7 +723,7 @@ static VectorSet<bNode *> get_nodes_to_group(bNodeTree &node_tree, bNode *group_
 
 static bool node_group_make_test_selected(bNodeTree &ntree,
                                           const VectorSet<bNode *> &nodes_to_group,
-                                          const char *ntree_idname,
+                                          const StringRef ntree_idname,
                                           ReportList &reports)
 {
   if (nodes_to_group.is_empty()) {
@@ -1142,8 +1144,7 @@ static void node_group_make_insert_selected(const bContext &C,
   /* Handle links to the new group inputs. */
   for (const auto item : input_links.items()) {
     const StringRefNull interface_identifier = item.value.interface_socket->identifier;
-    bNodeSocket *input_socket = node_group_input_find_socket(input_node,
-                                                             interface_identifier.c_str());
+    bNodeSocket *input_socket = node_group_input_find_socket(input_node, interface_identifier);
 
     for (bNodeLink *link : item.value.links) {
       /* Move the link into the new group, connected from the input node to the original socket. */
@@ -1160,7 +1161,7 @@ static void node_group_make_insert_selected(const bContext &C,
   for (const OutputLinkInfo &info : output_links) {
     /* Create a new link inside of the group. */
     const StringRefNull io_identifier = info.interface_socket->identifier;
-    bNodeSocket *output_sock = node_group_output_find_socket(output_node, io_identifier.c_str());
+    bNodeSocket *output_sock = node_group_output_find_socket(output_node, io_identifier);
     bke::node_add_link(&group, info.link->fromnode, info.link->fromsock, output_node, output_sock);
   }
 
@@ -1168,12 +1169,11 @@ static void node_group_make_insert_selected(const bContext &C,
   for (const NewInternalLinkInfo &info : new_internal_links) {
     const StringRefNull io_identifier = info.interface_socket->identifier;
     if (info.socket->in_out == SOCK_IN) {
-      bNodeSocket *input_socket = node_group_input_find_socket(input_node, io_identifier.c_str());
+      bNodeSocket *input_socket = node_group_input_find_socket(input_node, io_identifier);
       bke::node_add_link(&group, input_node, input_socket, info.node, info.socket);
     }
     else {
-      bNodeSocket *output_socket = node_group_output_find_socket(output_node,
-                                                                 io_identifier.c_str());
+      bNodeSocket *output_socket = node_group_output_find_socket(output_node, io_identifier);
       bke::node_add_link(&group, info.node, info.socket, output_node, output_socket);
     }
   }
@@ -1188,8 +1188,7 @@ static void node_group_make_insert_selected(const bContext &C,
   /* Add new links to inputs outside of the group. */
   for (const auto item : input_links.items()) {
     const StringRefNull interface_identifier = item.value.interface_socket->identifier;
-    bNodeSocket *group_node_socket = node_group_find_input_socket(gnode,
-                                                                  interface_identifier.c_str());
+    bNodeSocket *group_node_socket = node_group_find_input_socket(gnode, interface_identifier);
     bke::node_add_link(&ntree, item.value.from_node, item.key, gnode, group_node_socket);
   }
 
@@ -1202,14 +1201,14 @@ static void node_group_make_insert_selected(const bContext &C,
 
   update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
 
-  ED_node_tree_propagate_change(&C, bmain, nullptr);
+  BKE_main_ensure_invariants(*bmain);
 }
 
 static bNode *node_group_make_from_nodes(const bContext &C,
                                          bNodeTree &ntree,
                                          const VectorSet<bNode *> &nodes_to_group,
-                                         const char *ntype,
-                                         const char *ntreetype)
+                                         const StringRef ntype,
+                                         const StringRef ntreetype)
 {
   Main *bmain = CTX_data_main(&C);
 
@@ -1237,8 +1236,8 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
-  const char *ntree_idname = group_ntree_idname(C);
-  const char *node_idname = node_group_idname(C);
+  const StringRef ntree_idname = group_ntree_idname(C);
+  const StringRef node_idname = node_group_idname(C);
   Main *bmain = CTX_data_main(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -1292,7 +1291,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
-  const char *node_idname = node_group_idname(C);
+  const StringRef node_idname = node_group_idname(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 

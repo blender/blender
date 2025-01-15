@@ -48,7 +48,7 @@ find_library(ICU_LIBRARY_DATA
     ${_icu_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(ICU_LIBRARY_I18N
   NAMES
@@ -57,7 +57,7 @@ find_library(ICU_LIBRARY_I18N
     ${_icu_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(ICU_LIBRARY_IO
   NAMES
@@ -66,7 +66,7 @@ find_library(ICU_LIBRARY_IO
     ${_icu_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(ICU_LIBRARY_LE
   NAMES
@@ -75,7 +75,7 @@ find_library(ICU_LIBRARY_LE
     ${_icu_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(ICU_LIBRARY_LX
   NAMES
@@ -84,7 +84,7 @@ find_library(ICU_LIBRARY_LX
     ${_icu_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(ICU_LIBRARY_TU
   NAMES
@@ -93,7 +93,7 @@ find_library(ICU_LIBRARY_TU
     ${_icu_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(ICU_LIBRARY_UC
   NAMES
@@ -102,7 +102,7 @@ find_library(ICU_LIBRARY_UC
     ${_icu_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # Restore the original find library ordering
 if(Boost_USE_STATIC_LIBS)
@@ -113,13 +113,13 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Icu DEFAULT_MSG
-    ICU_LIBRARY_DATA
-    ICU_LIBRARY_I18N
-    ICU_LIBRARY_IO
-    ICU_LIBRARY_LE
-    ICU_LIBRARY_LX
-    ICU_LIBRARY_TU
-    ICU_LIBRARY_UC
+  ICU_LIBRARY_DATA
+  ICU_LIBRARY_I18N
+  ICU_LIBRARY_IO
+  ICU_LIBRARY_LE
+  ICU_LIBRARY_LX
+  ICU_LIBRARY_TU
+  ICU_LIBRARY_UC
 )
 
 if(ICU_FOUND)

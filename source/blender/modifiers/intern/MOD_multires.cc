@@ -180,6 +180,7 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+  using namespace blender;
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -236,9 +237,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
 
     if (use_clnors) {
-      float(*corner_normals)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
-      BKE_mesh_set_custom_normals_normalized(result, corner_normals);
+      bke::mesh_set_custom_normals_normalized(
+          *result,
+          {static_cast<float3 *>(CustomData_get_layer_for_write(
+               &result->corner_data, CD_NORMAL, result->corners_num)),
+           result->corners_num});
       CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
     }
     // blender::bke::subdiv::stats_print(&subdiv->stats);

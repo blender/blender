@@ -8,7 +8,13 @@
 
 #pragma once
 
+#include "BLI_assert.h"
+#include "BLI_compiler_compat.h"
+
+#include "CCGSubSurf_intern.h"
+
 #include <math.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

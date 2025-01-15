@@ -115,8 +115,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_curves()) {
       const Curves &curves = *geometry_set.get_curves();
       Mesh *mesh = curve_to_mesh(curves.geometry.wrap(), profile_set, fill_caps, attribute_filter);
-      mesh->mat = static_cast<Material **>(MEM_dupallocN(curves.mat));
-      mesh->totcol = curves.totcol;
+      if (mesh != nullptr) {
+        mesh->mat = static_cast<Material **>(MEM_dupallocN(curves.mat));
+        mesh->totcol = curves.totcol;
+      }
       geometry_set.replace_mesh(mesh);
     }
     if (geometry_set.has_grease_pencil()) {
@@ -132,8 +134,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeCurveToMesh", GEO_NODE_CURVE_TO_MESH);
+  ntype.ui_name = "Curve to Mesh";
+  ntype.ui_description =
+      "Convert curves into a mesh, optionally with a custom profile shape defined by curves";
   ntype.enum_name_legacy = "CURVE_TO_MESH";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

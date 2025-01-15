@@ -9,6 +9,8 @@
  * \brief external `writefile.cc` function prototypes.
  */
 
+#include "BLI_sys_types.h"
+
 struct BlendThumbnail;
 struct Main;
 struct MemFile;

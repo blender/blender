@@ -16,6 +16,10 @@ eg:
 
     ./tools/utils/blender_theme_as_c.py $(find ~/.config/blender -name "userpref.blend" | sort | tail -1)
 """
+__all__ = (
+    "main",
+)
+
 
 C_SOURCE_HEADER = r'''/* SPDX-FileCopyrightText: 2018 Blender Authors
  *

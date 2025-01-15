@@ -57,13 +57,10 @@ class RotateOperation : public NodeOperation {
     Result &input = get_input("Image");
     Result &output = get_result("Image");
 
-    const math::AngleRadian rotation = get_input("Degr").get_float_value_default(0.0f);
+    const math::AngleRadian rotation = get_input("Degr").get_single_value_default(0.0f);
     const float3x3 transformation = math::from_rotation<float3x3>(rotation);
 
-    RealizationOptions realization_options = input.get_realization_options();
-    realization_options.interpolation = get_interpolation();
-
-    transform(context(), input, output, transformation, realization_options);
+    transform(this->context(), input, output, transformation, this->get_interpolation());
   }
 
   Interpolation get_interpolation()
@@ -95,8 +92,11 @@ void register_node_type_cmp_rotate()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeRotate", CMP_NODE_ROTATE);
+  ntype.ui_name = "Rotate";
+  ntype.ui_description = "Rotate image by specified angle";
   ntype.enum_name_legacy = "ROTATE";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_rotate_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_rotate;
   ntype.initfunc = file_ns::node_composit_init_rotate;

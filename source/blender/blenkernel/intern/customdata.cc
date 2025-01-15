@@ -20,11 +20,8 @@
 
 #include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
-#include "BLI_color.hh"
-#include "BLI_endian_switch.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_color_blend.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_memory_counter.hh"
@@ -50,7 +47,6 @@
 #include "BKE_customdata_file.h"
 #include "BKE_deform.hh"
 #include "BKE_main.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
 #include "BKE_multires.hh"
 #include "BKE_subsurf.hh"
@@ -62,7 +58,7 @@
 #include "CLG_log.h"
 
 /* only for customdata_data_transfer_interp_normal_normals */
-#include "data_transfer_intern.h"
+#include "data_transfer_intern.hh"
 
 using blender::Array;
 using blender::BitVector;

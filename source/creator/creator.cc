@@ -44,7 +44,7 @@
 #include "BKE_cpp_types.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_particle.h"

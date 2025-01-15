@@ -10,7 +10,6 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_main.hh"
 #include "BKE_screen.hh"

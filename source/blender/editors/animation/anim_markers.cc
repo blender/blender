@@ -260,7 +260,7 @@ static TimeMarker *region_position_is_over_marker(const View2D *v2d,
 
 /* --------------------------------- */
 
-/* Adds a marker to list of cfra elems */
+/** Adds a marker to list of `cfra` elements. */
 static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, const bool only_selected)
 {
   CfraElem *ce, *cen;
@@ -857,7 +857,7 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
   }
 
   if (hasNumInput(&mm->num)) {
-    outputNumInput(&mm->num, str_ofs, &scene->unit);
+    outputNumInput(&mm->num, str_ofs, scene->unit);
   }
   else if (use_time) {
     SNPRINTF(str_ofs, "%.2f", FRA2TIME(ofs));

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string.h>
 
 #include "BLI_math_vector.hh"
@@ -14,6 +15,7 @@
 #include "DNA_node_types.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 
 #include "NOD_multi_function.hh"
 #include "NOD_register.hh"
@@ -25,4 +27,6 @@
 
 #include "RNA_access.hh"
 
-void fn_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass);
+void fn_node_type_base(blender::bke::bNodeType *ntype,
+                       std::string idname,
+                       std::optional<int16_t> legacy_type = std::nullopt);

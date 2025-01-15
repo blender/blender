@@ -10,6 +10,8 @@
 
 #include "tree_element_id.hh"
 
+struct Scene;
+
 namespace blender::ed::outliner {
 
 class TreeElementIDScene final : public TreeElementID {

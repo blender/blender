@@ -146,6 +146,14 @@ GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_VARIATIONS(overlay_armature_shape_wire)
 
+GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire_strip)
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_armature_shape_wire)
+DEFINE("FROM_LINE_STRIP")
+GPU_SHADER_CREATE_END()
+
+OVERLAY_INFO_VARIATIONS(overlay_armature_shape_wire_strip)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

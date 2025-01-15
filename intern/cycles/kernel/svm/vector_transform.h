@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "kernel/geom/object.h"
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Vector Transform */
@@ -11,24 +14,27 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
-                                                   uint4 node)
+                                                   const uint4 node)
 {
-  uint itype, ifrom, ito;
-  uint vector_in, vector_out;
+  uint itype;
+  uint ifrom;
+  uint ito;
+  uint vector_in;
+  uint vector_out;
 
   svm_unpack_node_uchar3(node.y, &itype, &ifrom, &ito);
   svm_unpack_node_uchar2(node.z, &vector_in, &vector_out);
 
   float3 in = stack_load_float3(stack, vector_in);
 
-  NodeVectorTransformType type = (NodeVectorTransformType)itype;
-  NodeVectorTransformConvertSpace from = (NodeVectorTransformConvertSpace)ifrom;
-  NodeVectorTransformConvertSpace to = (NodeVectorTransformConvertSpace)ito;
+  const NodeVectorTransformType type = (NodeVectorTransformType)itype;
+  const NodeVectorTransformConvertSpace from = (NodeVectorTransformConvertSpace)ifrom;
+  const NodeVectorTransformConvertSpace to = (NodeVectorTransformConvertSpace)ito;
 
   Transform tfm;
-  bool is_object = (sd->object != OBJECT_NONE) || (sd->type == PRIMITIVE_LAMP);
-  bool is_normal = (type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
-  bool is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
+  const bool is_object = (sd->object != OBJECT_NONE) || (sd->type == PRIMITIVE_LAMP);
+  const bool is_normal = (type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
+  const bool is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
 
   /* From world */
   if (from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD) {

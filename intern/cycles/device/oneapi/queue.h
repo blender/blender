@@ -6,12 +6,12 @@
 
 #ifdef WITH_ONEAPI
 
-#  include "device/kernel.h"
 #  include "device/memory.h"
 #  include "device/queue.h"
 
-#  include "device/oneapi/device.h"
 #  include "kernel/device/oneapi/kernel.h"
+
+#  include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -22,34 +22,33 @@ class device_memory;
 class OneapiDeviceQueue : public DeviceQueue {
  public:
   explicit OneapiDeviceQueue(OneapiDevice *device);
-  ~OneapiDeviceQueue();
 
-  virtual int num_concurrent_states(const size_t state_size) const override;
+  int num_concurrent_states(const size_t state_size) const override;
 
-  virtual int num_concurrent_busy_states(const size_t state_size) const override;
+  int num_concurrent_busy_states(const size_t state_size) const override;
 
-  virtual int num_sort_partition_elements() const override;
+  int num_sort_partition_elements() const override;
 
-  virtual void init_execution() override;
+  void init_execution() override;
 
-  virtual bool enqueue(DeviceKernel kernel,
-                       const int kernel_work_size,
-                       DeviceKernelArguments const &args) override;
+  bool enqueue(DeviceKernel kernel,
+               const int kernel_work_size,
+               const DeviceKernelArguments &args) override;
 
-  virtual bool synchronize() override;
+  bool synchronize() override;
 
-  virtual void zero_to_device(device_memory &mem) override;
-  virtual void copy_to_device(device_memory &mem) override;
-  virtual void copy_from_device(device_memory &mem) override;
+  void zero_to_device(device_memory &mem) override;
+  void copy_to_device(device_memory &mem) override;
+  void copy_from_device(device_memory &mem) override;
 
-  virtual bool supports_local_atomic_sort() const override
+  bool supports_local_atomic_sort() const override
   {
     return true;
   }
 
  protected:
   OneapiDevice *oneapi_device_;
-  KernelContext *kernel_context_;
+  unique_ptr<KernelContext> kernel_context_;
 };
 
 CCL_NAMESPACE_END

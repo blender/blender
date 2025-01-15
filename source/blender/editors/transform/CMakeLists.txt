@@ -4,15 +4,8 @@
 
 set(INC
   ../include
-  ../../blenkernel
-  ../../blentranslation
-  ../../bmesh
-  ../../gpu
   ../../ikplugin
   ../../makesrna
-  ../../render
-  ../../sequencer
-  ../../windowmanager
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -114,15 +107,19 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
+  PRIVATE bf::blentranslation
   PRIVATE bf::extern::fmtlib
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
-  bf_bmesh
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mask
-  bf_gpu
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::render
+  PRIVATE bf::sequencer
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_editor_transform "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

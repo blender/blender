@@ -353,8 +353,16 @@ static void outliner_header_region_listener(const wmRegionListenerParams *params
   /* context changes */
   switch (wmn->category) {
     case NC_SCENE:
-      if (wmn->data == ND_KEYINGSET) {
-        ED_region_tag_redraw(region);
+      switch (wmn->data) {
+        case ND_KEYINGSET:
+          ED_region_tag_redraw(region);
+          break;
+        case ND_LAYER:
+          /* Not needed by blender itself, but requested by Addon devs. #109995 */
+          if ((wmn->subtype == NS_LAYER_COLLECTION) && (wmn->action == NA_ACTIVATED)) {
+            ED_region_tag_redraw(region);
+          }
+          break;
       }
       break;
     case NC_SPACE:

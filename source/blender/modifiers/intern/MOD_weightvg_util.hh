@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include "DNA_object_types.h"
+
+struct bContext;
 struct CurveMapping;
 struct MDeformVert;
 struct MDeformWeight;

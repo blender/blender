@@ -156,14 +156,14 @@ class ConvertColorSpaceOperation : public NodeOperation {
                                                                                          target);
 
     Result &input_image = get_input("Image");
-    float4 color = input_image.get_color_value();
+    float4 color = input_image.get_single_value<float4>();
 
     IMB_colormanagement_processor_apply_pixel(color_processor, color, 3);
     IMB_colormanagement_processor_free(color_processor);
 
     Result &output_image = get_result("Image");
     output_image.allocate_single_value();
-    output_image.set_color_value(color);
+    output_image.set_single_value(color);
   }
 
   bool is_identity()
@@ -196,9 +196,11 @@ void register_node_type_cmp_convert_color_space()
   namespace file_ns = blender::nodes::node_composite_convert_color_space_cc;
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, CMP_NODE_CONVERT_COLOR_SPACE, "Convert Colorspace", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeConvertColorSpace", CMP_NODE_CONVERT_COLOR_SPACE);
+  ntype.ui_name = "Convert Colorspace";
+  ntype.ui_description = "Convert between color spaces";
   ntype.enum_name_legacy = "CONVERT_COLORSPACE";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

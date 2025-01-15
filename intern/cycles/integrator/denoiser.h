@@ -7,9 +7,10 @@
 /* TODO(sergey): The integrator folder might not be the best. Is easy to move files around if the
  * better place is figured out. */
 
+#include <functional>
+
 #include "device/denoise.h"
 #include "device/device.h"
-#include "util/function.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -44,7 +45,7 @@ class Denoiser {
    * - The device might be MultiDevice.
    * - If Denoiser from params is not supported by provided denoise device, then Blender will
    *   fallback on the OIDN CPU denoising and use provided cpu_fallback_device. */
-  static unique_ptr<Denoiser> create(Device *denoise_device,
+  static unique_ptr<Denoiser> create(Device *denoiser_device,
                                      Device *cpu_fallback_device,
                                      const DenoiseParams &params);
 
@@ -101,7 +102,7 @@ class Denoiser {
    *   and access to this device happen. */
   Device *get_denoiser_device() const;
 
-  function<bool(void)> is_cancelled_cb;
+  std::function<bool(void)> is_cancelled_cb;
 
   bool is_cancelled() const
   {

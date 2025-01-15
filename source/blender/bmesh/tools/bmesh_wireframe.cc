@@ -14,6 +14,7 @@
 
 #include "bmesh.hh"
 
+#include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 

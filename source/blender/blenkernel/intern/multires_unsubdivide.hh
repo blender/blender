@@ -8,10 +8,11 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
+#include "BLI_span.hh"
 
 struct BMesh;
 struct Mesh;
+struct MDisps;
 struct MultiresModifierData;
 
 struct MultiresUnsubdivideGrid {

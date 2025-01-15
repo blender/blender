@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 #include "NOD_geometry.hh"
@@ -43,17 +44,17 @@ static InputSocketFieldType get_interface_input_field_type(const bNode &node,
   if (!is_field_socket_type(socket)) {
     return InputSocketFieldType::None;
   }
-  if (node.type == NODE_REROUTE) {
+  if (node.type_legacy == NODE_REROUTE) {
     return InputSocketFieldType::IsSupported;
   }
-  if (node.type == NODE_GROUP_OUTPUT) {
+  if (node.type_legacy == NODE_GROUP_OUTPUT) {
     /* Outputs always support fields when the data type is correct. */
     return InputSocketFieldType::IsSupported;
   }
   if (node.typeinfo == &blender::bke::NodeTypeUndefined) {
     return InputSocketFieldType::None;
   }
-  if (node.type == NODE_CUSTOM) {
+  if (node.type_legacy == NODE_CUSTOM) {
     return InputSocketFieldType::None;
   }
 
@@ -76,18 +77,18 @@ static OutputFieldDependency get_interface_output_field_dependency(const bNode &
     /* Non-field sockets always output data. */
     return OutputFieldDependency::ForDataSource();
   }
-  if (node.type == NODE_REROUTE) {
+  if (node.type_legacy == NODE_REROUTE) {
     /* The reroute just forwards what is passed in. */
     return OutputFieldDependency::ForDependentField();
   }
-  if (node.type == NODE_GROUP_INPUT) {
+  if (node.type_legacy == NODE_GROUP_INPUT) {
     /* Input nodes get special treatment in #determine_group_input_states. */
     return OutputFieldDependency::ForDependentField();
   }
   if (node.typeinfo == &blender::bke::NodeTypeUndefined) {
     return OutputFieldDependency::ForDataSource();
   }
-  if (node.type == NODE_CUSTOM) {
+  if (node.type_legacy == NODE_CUSTOM) {
     return OutputFieldDependency::ForDataSource();
   }
 
@@ -233,7 +234,7 @@ static OutputFieldDependency find_group_output_dependencies(
           field_state_by_socket_id[origin_socket->index_in_tree()];
 
       if (origin_state.is_field_source) {
-        if (origin_node.type == NODE_GROUP_INPUT) {
+        if (origin_node.type_legacy == NODE_GROUP_INPUT) {
           /* Found a group input that the group output depends on. */
           linked_input_indices.append_non_duplicates(origin_socket->index());
         }
@@ -354,7 +355,7 @@ static bool propagate_special_data_requirements(
   bool need_update = false;
 
   /* Sync field state between zone nodes and schedule another pass if necessary. */
-  switch (node.type) {
+  switch (node.type_legacy) {
     case GEO_NODE_SIMULATION_INPUT: {
       const NodeGeometrySimulationInput &data = *static_cast<const NodeGeometrySimulationInput *>(
           node.storage);
@@ -576,7 +577,7 @@ static void propagate_field_status_from_left_to_right(
     bool need_update = false;
 
     for (const bNode *node : toposort_result) {
-      if (node->type == NODE_GROUP_INPUT) {
+      if (node->type_legacy == NODE_GROUP_INPUT) {
         continue;
       }
 

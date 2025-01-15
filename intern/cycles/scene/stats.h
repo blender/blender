@@ -2,12 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __RENDER_STATS_H__
-#define __RENDER_STATS_H__
+#pragma once
 
 #include "scene/scene.h"
 
-#include "util/stats.h"
 #include "util/string.h"
 #include "util/vector.h"
 
@@ -23,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 class NamedSizeEntry {
  public:
   NamedSizeEntry();
-  NamedSizeEntry(const string &name, size_t size);
+  NamedSizeEntry(const string &name, const size_t size);
 
   string name;
   size_t size;
@@ -32,7 +30,7 @@ class NamedSizeEntry {
 class NamedTimeEntry {
  public:
   NamedTimeEntry();
-  NamedTimeEntry(const string &name, double time);
+  NamedTimeEntry(const string &name, const double time);
 
   string name;
   double time;
@@ -50,7 +48,7 @@ class NamedSizeStats {
   void add_entry(const NamedSizeEntry &entry);
 
   /* Generate full human-readable report. */
-  string full_report(int indent_level = 0);
+  string full_report(const int indent_level = 0);
 
   /* Total size of all entries. */
   size_t total_size;
@@ -73,7 +71,7 @@ class NamedTimeStats {
   }
 
   /* Generate full human-readable report. */
-  string full_report(int indent_level = 0);
+  string full_report(const int indent_level = 0);
 
   /* Total time of all entries. */
   double total_time;
@@ -93,14 +91,14 @@ class NamedTimeStats {
 class NamedNestedSampleStats {
  public:
   NamedNestedSampleStats();
-  NamedNestedSampleStats(const string &name, uint64_t samples);
+  NamedNestedSampleStats(const string &name, const uint64_t samples);
 
-  NamedNestedSampleStats &add_entry(const string &name, uint64_t samples);
+  NamedNestedSampleStats &add_entry(const string &name, const uint64_t samples);
 
   /* Updates sum_samples recursively. */
   void update_sum();
 
-  string full_report(int indent_level = 0, uint64_t total_samples = 0);
+  string full_report(const int indent_level = 0, const uint64_t total_samples = 0);
 
   string name;
 
@@ -116,7 +114,7 @@ class NamedNestedSampleStats {
  * This allows to estimate the time spent per item. */
 class NamedSampleCountPair {
  public:
-  NamedSampleCountPair(const ustring &name, uint64_t samples, uint64_t hits);
+  NamedSampleCountPair(const ustring &name, const uint64_t samples, const uint64_t hits);
 
   ustring name;
   uint64_t samples;
@@ -128,10 +126,10 @@ class NamedSampleCountStats {
  public:
   NamedSampleCountStats();
 
-  string full_report(int indent_level = 0);
-  void add(const ustring &name, uint64_t samples, uint64_t hits);
+  string full_report(const int indent_level = 0);
+  void add(const ustring &name, const uint64_t samples, const uint64_t hits);
 
-  typedef unordered_map<ustring, NamedSampleCountPair> entry_map;
+  using entry_map = unordered_map<ustring, NamedSampleCountPair>;
   entry_map entries;
 };
 
@@ -141,7 +139,7 @@ class MeshStats {
   MeshStats();
 
   /* Generate full human-readable report. */
-  string full_report(int indent_level = 0);
+  string full_report(const int indent_level = 0);
 
   /* Input geometry statistics, this is what is coming as an input to render
    * from. say, Blender. This does not include runtime or engine specific
@@ -156,7 +154,7 @@ class ImageStats {
   ImageStats();
 
   /* Generate full human-readable report. */
-  string full_report(int indent_level = 0);
+  string full_report(const int indent_level = 0);
 
   NamedSizeStats textures;
 };
@@ -184,7 +182,7 @@ class RenderStats {
 class UpdateTimeStats {
  public:
   /* Generate full human-readable report. */
-  string full_report(int indent_level = 0);
+  string full_report(const int indent_level = 0);
 
   NamedTimeStats times;
 };
@@ -215,5 +213,3 @@ class SceneUpdateStats {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __RENDER_STATS_H__ */

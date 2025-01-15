@@ -2,12 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_FLOAT2_H__
-#define __UTIL_MATH_FLOAT2_H__
+#pragma once
 
-#ifndef __UTIL_MATH_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/math_base.h"
+#include "util/types_float2.h"
+#include "util/types_float4.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -32,7 +31,7 @@ ccl_device_inline float2 operator*(const float2 a, const float2 b)
   return make_float2(a.x * b.x, a.y * b.y);
 }
 
-ccl_device_inline float2 operator*(const float2 a, float f)
+ccl_device_inline float2 operator*(const float2 a, const float f)
 {
   return make_float2(a.x * f, a.y * f);
 }
@@ -47,9 +46,9 @@ ccl_device_inline float2 operator/(float f, const float2 a)
   return make_float2(f / a.x, f / a.y);
 }
 
-ccl_device_inline float2 operator/(const float2 a, float f)
+ccl_device_inline float2 operator/(const float2 a, const float f)
 {
-  float invf = 1.0f / f;
+  const float invf = 1.0f / f;
   return make_float2(a.x * invf, a.y * invf);
 }
 
@@ -88,7 +87,7 @@ ccl_device_inline float2 operator*=(float2 &a, const float2 b)
   return a = a * b;
 }
 
-ccl_device_inline float2 operator*=(float2 &a, float f)
+ccl_device_inline float2 operator*=(float2 &a, const float f)
 {
   return a = a * f;
 }
@@ -98,9 +97,9 @@ ccl_device_inline float2 operator/=(float2 &a, const float2 b)
   return a = a / b;
 }
 
-ccl_device_inline float2 operator/=(float2 &a, float f)
+ccl_device_inline float2 operator/=(float2 &a, const float f)
 {
-  float invf = 1.0f / f;
+  const float invf = 1.0f / f;
   return a = a * invf;
 }
 
@@ -166,7 +165,7 @@ ccl_device_inline float len_squared(const float2 a)
 
 ccl_device_inline float2 safe_normalize(const float2 a)
 {
-  float t = len(a);
+  const float t = len(a);
   return (t != 0.0f) ? a / t : a;
 }
 
@@ -222,12 +221,12 @@ ccl_device_inline float2 as_float2(const float4 &a)
   return make_float2(a.x, a.y);
 }
 
-ccl_device_inline float2 interp(const float2 a, const float2 b, float t)
+ccl_device_inline float2 interp(const float2 a, const float2 b, const float t)
 {
   return a + t * (b - a);
 }
 
-ccl_device_inline float2 mix(const float2 a, const float2 b, float t)
+ccl_device_inline float2 mix(const float2 a, const float2 b, const float t)
 {
   return a + t * (b - a);
 }
@@ -240,7 +239,7 @@ ccl_device_inline float2 floor(const float2 a)
 #endif /* !__KERNEL_METAL__ */
 
 /* Consistent name for this would be pow, but HIP compiler crashes in name mangling. */
-ccl_device_inline float2 power(float2 v, float e)
+ccl_device_inline float2 power(const float2 v, const float e)
 {
   return make_float2(powf(v.x, e), powf(v.y, e));
 }
@@ -251,5 +250,3 @@ ccl_device_inline float2 safe_divide_float2_float(const float2 a, const float b)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_FLOAT2_H__ */

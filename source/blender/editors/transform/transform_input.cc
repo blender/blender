@@ -295,12 +295,12 @@ static void calcSpringFactor(MouseInput *mi)
   }
 }
 
-static int transform_seq_slide_strip_cursor_get(const Sequence *seq)
+static int transform_seq_slide_strip_cursor_get(const Strip *strip)
 {
-  if ((seq->flag & SEQ_LEFTSEL) != 0) {
+  if ((strip->flag & SEQ_LEFTSEL) != 0) {
     return WM_CURSOR_LEFT_HANDLE;
   }
-  if ((seq->flag & SEQ_RIGHTSEL) != 0) {
+  if ((strip->flag & SEQ_RIGHTSEL) != 0) {
     return WM_CURSOR_RIGHT_HANDLE;
   }
   return WM_CURSOR_NSEW_SCROLL;
@@ -313,18 +313,18 @@ static int transform_seq_slide_cursor_get(TransInfo *t)
   }
 
   const Scene *scene = t->scene;
-  blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(t->context);
+  blender::VectorSet<Strip *> strips = ED_sequencer_selected_strips_from_context(t->context);
 
   if (strips.size() == 1) {
     return transform_seq_slide_strip_cursor_get(strips[0]);
   }
   if (strips.size() == 2) {
-    Sequence *seq1 = strips[0];
-    Sequence *seq2 = strips[1];
+    Strip *seq1 = strips[0];
+    Strip *seq2 = strips[1];
 
     if (SEQ_time_left_handle_frame_get(scene, seq1) > SEQ_time_left_handle_frame_get(scene, seq2))
     {
-      SWAP(Sequence *, seq1, seq2);
+      SWAP(Strip *, seq1, seq2);
     }
 
     if (seq1->machine != seq2->machine) {
@@ -536,12 +536,12 @@ void transform_input_update(TransInfo *t, const float fac)
 
   if (mi->use_virtual_mval) {
     /* Update accumulator. */
-    double mval_delta[2];
+    double2 mval_delta;
     sub_v2_v2v2_db(mval_delta, mi->virtual_mval.accum, mi->virtual_mval.prev);
     mval_delta[0] *= fac;
     mval_delta[1] *= fac;
     copy_v2_v2_db(mi->virtual_mval.accum, mi->virtual_mval.prev);
-    add_v2_v2_db(mi->virtual_mval.accum, mval_delta);
+    mi->virtual_mval.accum += mval_delta;
   }
 
   if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {

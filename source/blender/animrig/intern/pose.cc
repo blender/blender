@@ -32,8 +32,10 @@ void pose_apply_restore_fcurves(bAction *action)
   }
 }
 
-void pose_apply_disable_fcurves_for_unselected_bones(
-    bAction *action, const blender::bke::BoneNameSet &selected_bone_names)
+static void pose_apply_disable_fcurves_for_unselected_bones(
+    bAction *action,
+    const slot_handle_t slot_handle,
+    const blender::bke::BoneNameSet &selected_bone_names)
 {
   auto disable_unselected_fcurve = [&](FCurve *fcu, const char *bone_name) {
     const bool is_bone_selected = selected_bone_names.contains(bone_name);
@@ -41,7 +43,7 @@ void pose_apply_disable_fcurves_for_unselected_bones(
       fcu->flag |= FCURVE_DISABLED;
     }
   };
-  blender::bke::BKE_action_find_fcurves_with_bones(action, disable_unselected_fcurve);
+  blender::bke::BKE_action_find_fcurves_with_bones(action, slot_handle, disable_unselected_fcurve);
 }
 
 void pose_apply(Object *ob,
@@ -55,6 +57,10 @@ void pose_apply(Object *ob,
     return;
   }
 
+  if (action->wrap().slot_array_num == 0) {
+    return;
+  }
+
   const bArmature *armature = (bArmature *)ob->data;
   const blender::bke::BoneNameSet selected_bone_names =
       blender::bke::BKE_armature_find_selected_bone_names(armature);
@@ -63,7 +69,7 @@ void pose_apply(Object *ob,
   if (limit_to_selected_bones) {
     /* Mute all FCurves that are not associated with selected bones. This separates the concept of
      * bone selection from the FCurve evaluation code. */
-    pose_apply_disable_fcurves_for_unselected_bones(action, selected_bone_names);
+    pose_apply_disable_fcurves_for_unselected_bones(action, slot_handle, selected_bone_names);
   }
 
   /* Apply the Action. */
@@ -116,6 +122,19 @@ void pose_apply_action_blend(Object *ob,
   };
 
   pose_apply(ob, action, slot_handle, anim_eval_context, evaluate_and_blend);
+}
+
+Slot &get_best_pose_slot_for_id(const ID &id, Action &pose_data)
+{
+  BLI_assert_msg(pose_data.slot_array_num > 0,
+                 "Actions without slots have no data. This should have been caught earlier.");
+
+  Slot *slot = generic_slot_for_autoassign(id, pose_data, "");
+  if (slot == nullptr) {
+    slot = pose_data.slot(0);
+  }
+
+  return *slot;
 }
 
 }  // namespace blender::animrig

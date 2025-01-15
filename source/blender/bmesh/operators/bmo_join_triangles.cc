@@ -14,6 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
+#include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -585,7 +586,7 @@ static void rotate_to_plane(const JoinEdgesState &s,
 #endif
 
   for (int i = 0; i < 4; i++) {
-    if (quad_verts[i] == l_shared->v || quad_verts[i] == l_shared->next->v) {
+    if (ELEM(quad_verts[i], l_shared->v, l_shared->next->v)) {
       /* Two coordinates of the quad match the vector that defines the axis of rotation, so they
        * don't change. */
       copy_v3_v3(r_quad_coordinates[i], quad_verts[i]->co);
@@ -619,7 +620,7 @@ static void rotate_to_plane(const JoinEdgesState &s,
  * the four vertices of quad_a. Instead, They are four unit vectors, aligned
  * parallel to the respective edge loop of quad_a.
  * \param quad_b_verts: an array of four vertices, giving the four corners of `quad_b`.
- * \param l_shared: a loop known to be one of the the common manifold loops that is
+ * \param l_shared: a loop known to be one of the common manifold loops that is
  * shared between the two quads. This is used as a 'hinge' to flatten the two
  * quads into the same plane as much as possible.
  * \param plane_normal: The normal vector of quad_a.
@@ -669,7 +670,7 @@ static float compute_alignment(const JoinEdgesState &s,
   normalize_v3(quad_b_vecs[2]);
   normalize_v3(quad_b_vecs[3]);
 
-  /* Given that we're not certain of how the the first loop of the quad and the first loop
+  /* Given that we're not certain of how the first loop of the quad and the first loop
    * of the proposed merge quad relate to each other, there are four possible combinations
    * to check, to test that the neighbor face and the merged face have good alignment.
    *
@@ -680,7 +681,7 @@ static float compute_alignment(const JoinEdgesState &s,
    *
    * Instead, this code does the math twice, then it just flips each component by 180 degrees to
    * pick up the other two cases. Four extra angle tests aren't that much worse than optimal.
-   * Brute forcing the math and ending up with with clear and understandable code is better. */
+   * Brute forcing the math and ending up with clear and understandable code is better. */
 
   float error[4] = {0.0f};
   for (int i = 0; i < ARRAY_SIZE(error); i++) {
@@ -732,7 +733,7 @@ static float compute_alignment(const JoinEdgesState &s,
  * even though there might be an alternate quad with lower numerical error.
  *
  * This algorithm reduces the error of a given edge based on three factors:
- * - The error of the neighboring quad. The the better the neighbor quad, the more the impact.
+ * - The error of the neighboring quad. The better the neighbor quad, the more the impact.
  * - The alignment of the proposed new quad the existing quad.
  *   Grids of rectangles or trapezoids improve well. Trapezoids and diamonds are left alone.
  * - topology_influence. The higher the operator parameter is set, the more the impact.
@@ -1024,7 +1025,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* Go through all the the faces of the input slot, this time to find quads.
+  /* Go through all the faces of the input slot, this time to find quads.
    * Improve the candidates around any preexisting quads in the mesh.
    *
    * NOTE: This unfortunately misses any quads which are not selected, but
@@ -1045,7 +1046,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
          * allow them to have an especially strong influence on the resulting mesh.
          * At a topology influence of 200%, they're considered to be *almost perfect* quads
          * regardless of their actual error. Either way, the multiplier is never completely
-         * allowed to reach reach zero. Instead, 1% of the original error is preserved...
+         * allowed to reach zero. Instead, 1% of the original error is preserved...
          * which is enough to maintain the relative priority sorting between existing quads. */
         f_error *= (2.0f - (s.topo_influnce * maximum_improvement));
 

@@ -5,6 +5,10 @@
 
 # Checks for defines which aren't used anywhere.
 
+__all__ = (
+    "main",
+)
+
 import os
 import sys
 

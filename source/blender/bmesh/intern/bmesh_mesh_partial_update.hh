@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+#include "bmesh_class.hh"
+
 /**
  * Parameters used to determine which kinds of data needs to be generated.
  */

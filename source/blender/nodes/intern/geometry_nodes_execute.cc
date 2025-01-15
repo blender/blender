@@ -219,6 +219,7 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       auto property = bke::idprop::create(identifier, value->value);
       IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
       id_property_int_update_enum_items(value, ui_data);
+      ui_data->default_value = value->value;
       return property;
     }
     case SOCK_OBJECT: {

@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "mathutils.hh"
+
 extern PyTypeObject matrix_Type;
 extern PyTypeObject matrix_access_Type;
 

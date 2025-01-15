@@ -11,7 +11,6 @@
  *   for every fresh Blender run.
  */
 
-#include "BLI_utildefines.h"
 #include "DNA_listBase.h"
 
 struct Main;
@@ -260,17 +259,18 @@ enum {
                                              * assigned to ID datablocks */
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UID),
-  G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */
-  G_DEBUG_GPU = (1 << 16),                   /* gpu debug */
-  G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...). */
-  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18), /* force gpu workarounds bypassing detections. */
-  G_DEBUG_GPU_COMPILE_SHADERS = (1 << 19),   /* Compile all statically defined shaders. . */
-  G_DEBUG_GPU_RENDERDOC = (1 << 20),         /* Enable RenderDoc integration. */
-  G_DEBUG_XR = (1 << 21),                    /* XR/OpenXR messages */
-  G_DEBUG_XR_TIME = (1 << 22),               /* XR/OpenXR timing messages */
+  G_DEBUG_SIMDATA = (1 << 15),                     /* sim debug data display */
+  G_DEBUG_GPU = (1 << 16),                         /* gpu debug */
+  G_DEBUG_IO = (1 << 17),                          /* IO Debugging (for Collada, ...). */
+  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18),       /* Force GPU workarounds bypassing detection. */
+  G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ = (1 << 19), /* Force GPU dynamic rendering local read. */
+  G_DEBUG_GPU_COMPILE_SHADERS = (1 << 20),         /* Compile all statically defined shaders. . */
+  G_DEBUG_GPU_RENDERDOC = (1 << 21),               /* Enable RenderDoc integration. */
+  G_DEBUG_XR = (1 << 22),                          /* XR/OpenXR messages */
+  G_DEBUG_XR_TIME = (1 << 23),                     /* XR/OpenXR timing messages */
 
-  G_DEBUG_GHOST = (1 << 23),  /* Debug GHOST module. */
-  G_DEBUG_WINTAB = (1 << 24), /* Debug Wintab. */
+  G_DEBUG_GHOST = (1 << 24),  /* Debug GHOST module. */
+  G_DEBUG_WINTAB = (1 << 25), /* Debug Wintab. */
 };
 
 #define G_DEBUG_ALL \
@@ -283,17 +283,17 @@ enum {
   G_FILE_COMPRESS = (1 << 1),
 
   /**
-   * When in background mode, do not automatically build a depsgraph when loading a blendfile.
+   * When in background mode, do not automatically build a depsgraph when loading a blend-file.
    * Typically set by the `--disable-depsgraph-on-file-load` command-line argument.
    *
    * NOTE: This is a temporary option, it is intended to be removed in blender 5.0.
    * The default behavior will then be changed to never automatically generate a depsgraph on
-   * fileload when in background mode.
+   * file-load when in background mode.
    */
   G_BACKGROUND_NO_DEPSGRAPH = 1 << 2,
 
   /**
-   * Do not perform automatic resync of library overrides on blendfile load.
+   * Do not perform automatic resync of library overrides on blend-file load.
    *
    * NOTE: runtime version of #UserDef_Experimental.no_override_auto_resync, both values are OR'ed
    * together.

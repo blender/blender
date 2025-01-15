@@ -13,8 +13,9 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
 #include "BLI_vector.hh"
+
+#include "DNA_vec_types.h"
 
 #include "RNA_types.hh"
 

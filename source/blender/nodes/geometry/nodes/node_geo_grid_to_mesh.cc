@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.h"
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
@@ -47,8 +47,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_GRID_TO_MESH, "Grid to Mesh", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeGridToMesh", GEO_NODE_GRID_TO_MESH);
+  ntype.ui_name = "Grid to Mesh";
+  ntype.ui_description = "Generate a mesh on the \"surface\" of a volume grid";
   ntype.enum_name_legacy = "GRID_TO_MESH";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;

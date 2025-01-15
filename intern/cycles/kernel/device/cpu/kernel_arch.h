@@ -9,33 +9,24 @@
  */
 
 #define KERNEL_INTEGRATOR_FUNCTION(name) \
-  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *ccl_restrict kg, \
-                                                    IntegratorStateCPU *state)
+  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)( \
+      const ThreadKernelGlobalsCPU *ccl_restrict kg, IntegratorStateCPU *state)
 
 #define KERNEL_INTEGRATOR_SHADE_FUNCTION(name) \
-  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *ccl_restrict kg, \
-                                                    IntegratorStateCPU *state, \
-                                                    ccl_global float *render_buffer)
+  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)( \
+      const ThreadKernelGlobalsCPU *ccl_restrict kg, \
+      IntegratorStateCPU *state, \
+      ccl_global float *render_buffer)
 
 #define KERNEL_INTEGRATOR_INIT_FUNCTION(name) \
-  bool KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *ccl_restrict kg, \
-                                                    IntegratorStateCPU *state, \
-                                                    KernelWorkTile *tile, \
-                                                    ccl_global float *render_buffer)
+  bool KERNEL_FUNCTION_FULL_NAME(integrator_##name)( \
+      const ThreadKernelGlobalsCPU *ccl_restrict kg, \
+      IntegratorStateCPU *state, \
+      KernelWorkTile *tile, \
+      ccl_global float *render_buffer)
 
 KERNEL_INTEGRATOR_INIT_FUNCTION(init_from_camera);
 KERNEL_INTEGRATOR_INIT_FUNCTION(init_from_bake);
-KERNEL_INTEGRATOR_SHADE_FUNCTION(intersect_closest);
-KERNEL_INTEGRATOR_FUNCTION(intersect_shadow);
-KERNEL_INTEGRATOR_FUNCTION(intersect_subsurface);
-KERNEL_INTEGRATOR_FUNCTION(intersect_volume_stack);
-KERNEL_INTEGRATOR_FUNCTION(intersect_dedicated_light);
-KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_background);
-KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_light);
-KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_shadow);
-KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_surface);
-KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_volume);
-KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_dedicated_light);
 KERNEL_INTEGRATOR_SHADE_FUNCTION(megakernel);
 
 #undef KERNEL_INTEGRATOR_FUNCTION
@@ -77,16 +68,16 @@ KERNEL_FILM_CONVERT_FUNCTION(float4)
  * Shader evaluation.
  */
 
-void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const ThreadKernelGlobalsCPU *kg,
                                                        const KernelShaderEvalInput *input,
                                                        float *output,
                                                        const int offset);
-void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const ThreadKernelGlobalsCPU *kg,
                                                      const KernelShaderEvalInput *input,
                                                      float *output,
                                                      const int offset);
 void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
-    const KernelGlobalsCPU *kg,
+    const ThreadKernelGlobalsCPU *kg,
     const KernelShaderEvalInput *input,
     float *output,
     const int offset);
@@ -96,35 +87,35 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
  */
 
 bool KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_convergence_check)(
-    const KernelGlobalsCPU *kg,
+    const ThreadKernelGlobalsCPU *kg,
     ccl_global float *render_buffer,
-    int x,
-    int y,
-    float threshold,
-    int reset,
-    int offset,
+    const int x,
+    const int y,
+    const float threshold,
+    const int reset,
+    const int offset,
     int stride);
 
-void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const ThreadKernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
-                                                           int y,
-                                                           int start_x,
-                                                           int width,
-                                                           int offset,
+                                                           const int y,
+                                                           const int start_x,
+                                                           const int width,
+                                                           const int offset,
                                                            int stride);
-void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const ThreadKernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
-                                                           int x,
-                                                           int start_y,
-                                                           int height,
-                                                           int offset,
+                                                           const int x,
+                                                           const int start_y,
+                                                           const int height,
+                                                           const int offset,
                                                            int stride);
 
 /* --------------------------------------------------------------------
  * Cryptomatte.
  */
 
-void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const ThreadKernelGlobalsCPU *kg,
                                                         ccl_global float *render_buffer,
                                                         int pixel_index);
 

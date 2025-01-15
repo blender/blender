@@ -9,6 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_span.hh"
 
 #include "DNA_defaults.h"

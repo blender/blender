@@ -56,7 +56,7 @@ foreach(COMPONENT ${_webp_FIND_COMPONENTS})
       ${_webp_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib lib/static
-    )
+  )
   if(WEBP_${UPPERCOMPONENT}_LIBRARY)
     list(APPEND _webp_LIBRARIES "${WEBP_${UPPERCOMPONENT}_LIBRARY}")
   endif()

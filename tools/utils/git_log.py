@@ -4,6 +4,13 @@
 
 # Simple module for inspecting git commits
 
+__all__ = (
+    "GitCommit",
+    "GitCommitIter",
+    "GitRepo",
+)
+
+
 import os
 import subprocess
 import datetime

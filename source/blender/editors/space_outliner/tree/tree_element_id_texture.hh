@@ -10,6 +10,8 @@
 
 #include "tree_element_id.hh"
 
+struct Tex;
+
 namespace blender::ed::outliner {
 
 class TreeElementIDTexture final : public TreeElementID {

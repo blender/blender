@@ -63,11 +63,13 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_main_invariants.hh"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
@@ -6776,7 +6778,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
     }
 
-    ED_node_tree_propagate_change(C, bmain, ntree);
+    BKE_main_ensure_invariants(*bmain);
     /* In case we added more than one node, position them too. */
     blender::bke::node_position_propagate(out_node);
 

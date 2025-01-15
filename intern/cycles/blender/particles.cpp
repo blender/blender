@@ -9,8 +9,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "util/foreach.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Utilities */
@@ -40,11 +38,12 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   }
 
   /* find particle system */
-  ParticleSystemKey key(b_ob, persistent_id);
+  const ParticleSystemKey key(b_ob, persistent_id);
   ParticleSystem *psys;
 
-  bool first_use = !particle_system_map.is_used(key);
-  bool need_update = particle_system_map.add_or_update(&psys, b_ob, b_instance.object(), key);
+  const bool first_use = !particle_system_map.is_used(key);
+  const bool need_update = particle_system_map.add_or_update(
+      &psys, b_ob, b_instance.object(), key);
 
   /* no update needed? */
   if (!need_update && !object->get_geometry()->is_modified() &&

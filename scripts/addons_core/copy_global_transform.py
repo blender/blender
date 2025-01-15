@@ -28,6 +28,7 @@ import contextlib
 from typing import Iterable, Optional, Union, Any, TypeAlias, Iterator
 
 import bpy
+from bpy.app.translations import contexts as i18n_contexts
 from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, Camera
 from mathutils import Matrix
 
@@ -909,7 +910,7 @@ class VIEW3D_PT_copy_global_transform_fix_to_camera(PanelMixin, Panel):
 
         # Fix to Scene Camera:
         layout.use_property_split = True
-        props_box = layout.column(heading="Fix", align=True)
+        props_box = layout.column(heading="Fix", heading_ctxt=i18n_contexts.id_camera, align=True)
         props_box.prop(scene, "addon_copy_global_transform_fix_cam_use_loc", text="Location")
         props_box.prop(scene, "addon_copy_global_transform_fix_cam_use_rot", text="Rotation")
         props_box.prop(scene, "addon_copy_global_transform_fix_cam_use_scale", text="Scale")

@@ -2,11 +2,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+/* Constant Globals */
+
 #pragma once
 
-#include "kernel/integrator/state.h"
 #include "kernel/types.h"
-#include "kernel/util/profiling.h"
+
+#include "kernel/integrator/state.h"
+#include "kernel/util/profiler.h"
+
+#include "util/color.h"
+#include "util/texture.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -17,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 struct IntegratorStateGPU;
 struct IntegratorQueueCounter;
 
-typedef struct KernelGlobalsGPU {
+struct KernelGlobalsGPU {
 
 #define KERNEL_DATA_ARRAY(type, name) const type *__##name = nullptr;
 #include "kernel/data_arrays.h"
@@ -35,9 +41,9 @@ typedef struct KernelGlobalsGPU {
 #else
   sycl::kernel_handler kernel_handler;
 #endif
-} KernelGlobalsGPU;
+};
 
-typedef ccl_global KernelGlobalsGPU *ccl_restrict KernelGlobals;
+using KernelGlobals = ccl_global KernelGlobalsGPU *ccl_restrict;
 
 #define kernel_data (*(__data))
 #define kernel_integrator_state (*(integrator_state))

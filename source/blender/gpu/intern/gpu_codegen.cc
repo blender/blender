@@ -25,7 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cryptomatte.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_context.hh"

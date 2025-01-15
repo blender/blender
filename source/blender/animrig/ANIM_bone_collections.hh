@@ -17,7 +17,6 @@
 #include <stdbool.h>
 
 #include "BLI_map.hh"
-#include "BLI_math_bits.h"
 
 #include "BKE_armature.hh"
 

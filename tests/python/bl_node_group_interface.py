@@ -446,7 +446,7 @@ class CompositorNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroup
         self.do_test_socket_type("NodeSocketFloat")
         self.do_test_invalid_socket_type("NodeSocketGeometry")
         self.do_test_invalid_socket_type("NodeSocketImage")
-        self.do_test_invalid_socket_type("NodeSocketInt")
+        self.do_test_socket_type("NodeSocketInt")
         self.do_test_invalid_socket_type("NodeSocketMaterial")
         self.do_test_invalid_socket_type("NodeSocketObject")
         self.do_test_invalid_socket_type("NodeSocketRotation")

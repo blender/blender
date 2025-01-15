@@ -34,7 +34,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 #include "BKE_object.hh"
@@ -204,6 +204,7 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
                       BRUSH_STROKE_NORMAL,
                       "Stroke Mode",
                       "Action taken when a paint stroke is made");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
 
   /* TODO: Pen flip logic should likely be combined into the stroke mode logic instead of being

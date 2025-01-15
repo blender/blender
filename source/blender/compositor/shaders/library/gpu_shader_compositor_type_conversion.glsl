@@ -2,6 +2,88 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/* --------------------------------------------------------------------
+ * Float to other.
+ */
+
+int float_to_int(float value)
+{
+  return int(value);
+}
+
+vec4 float_to_vector(float value)
+{
+  return vec4(vec3(value), 1.0);
+}
+
+vec4 float_to_color(float value)
+{
+  return vec4(vec3(value), 1.0);
+}
+
+/* --------------------------------------------------------------------
+ * Int to other.
+ */
+
+float int_to_float(int value)
+{
+  return float(value);
+}
+
+vec4 int_to_vector(int value)
+{
+  return float_to_vector(int_to_float(value));
+}
+
+vec4 int_to_color(int value)
+{
+  return float_to_color(int_to_float(value));
+}
+
+/* --------------------------------------------------------------------
+ * Vector to other.
+ */
+
+float vector_to_float(vec4 value)
+{
+  return dot(value.xyz, vec3(1.0)) / 3.0;
+}
+
+int vector_to_int(vec4 value)
+{
+  return float_to_int(vector_to_float(value));
+}
+
+vec4 vector_to_color(vec4 value)
+{
+  return vec4(value.xyz, 1.0);
+}
+
+/* --------------------------------------------------------------------
+ * Color to other.
+ */
+
+float color_to_float(vec4 value)
+{
+  return dot(value.rgb, vec3(1.0)) / 3.0;
+}
+
+int color_to_int(vec4 value)
+{
+  return float_to_int(color_to_float(value));
+}
+
+vec4 color_to_vector(vec4 value)
+{
+  return value;
+}
+
+/* --------------------------------------------------------------------
+ * GPUMatrial-specific implicit conversion functions.
+ *
+ * Those should have the same interface and names as the macros in gpu_shader_codegen_lib.glsl
+ * since the GPUMaterial compiler inserts those hard coded names. */
+
 float float_from_vec4(vec4 vector)
 {
   return dot(vector.rgb, vec3(1.0)) / 3.0;

@@ -22,7 +22,8 @@ class HdCyclesPlugin final : public PXR_NS::HdRendererPlugin {
 #endif
 
   PXR_NS::HdRenderDelegate *CreateRenderDelegate() override;
-  PXR_NS::HdRenderDelegate *CreateRenderDelegate(const PXR_NS::HdRenderSettingsMap &) override;
+  PXR_NS::HdRenderDelegate *CreateRenderDelegate(
+      const PXR_NS::HdRenderSettingsMap & /*settingsMap*/) override;
 
   void DeleteRenderDelegate(PXR_NS::HdRenderDelegate *) override;
 };

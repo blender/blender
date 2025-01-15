@@ -36,9 +36,10 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh" /* free_libblock */
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
@@ -220,7 +221,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
 
     // find the active Output Line Style node
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
+      if (node->type_legacy == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
         output_linestyle = node;
         break;
       }
@@ -387,7 +388,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     }
 
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == SH_NODE_UVALONGSTROKE) {
+      if (node->type_legacy == SH_NODE_UVALONGSTROKE) {
         // UV output of the UV Along Stroke node
         bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->outputs, 0);
 
@@ -416,7 +417,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   }
 
   blender::bke::node_set_active(ntree, output_material);
-  BKE_ntree_update_main_tree(bmain, ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
 
   return ma;
 }

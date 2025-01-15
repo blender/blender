@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
+#include "kernel/geom/object.h"
 
 #include "kernel/light/common.h"
+
+#include "util/math_fast.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -84,7 +86,7 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
                                                        const int lamp,
                                                        ccl_private LightSample *ccl_restrict ls)
 {
-  ccl_global const KernelLight *klight = &kernel_data_fetch(lights, lamp);
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
   const int shader = klight->shader_id;
   const LightType type = (LightType)klight->type;
 

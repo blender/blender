@@ -64,7 +64,7 @@ class ExportHelper:
         if not self.filepath:
             blend_filepath = context.blend_data.filepath
             if not blend_filepath:
-                blend_filepath = data_("untitled")
+                blend_filepath = data_("Untitled")
             else:
                 blend_filepath = os.path.splitext(blend_filepath)[0]
 

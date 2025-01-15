@@ -65,12 +65,12 @@ bool BlenderObjectCulling::test(Scene *scene, BL::Object &b_ob, Transform &tfm)
   float3 bb[8];
   BL::Array<float, 24> boundbox = b_ob.bound_box();
   for (int i = 0; i < 8; ++i) {
-    float3 p = make_float3(boundbox[3 * i + 0], boundbox[3 * i + 1], boundbox[3 * i + 2]);
+    const float3 p = make_float3(boundbox[3 * i + 0], boundbox[3 * i + 1], boundbox[3 * i + 2]);
     bb[i] = transform_point(&tfm, p);
   }
 
-  bool camera_culled = use_camera_cull_ && test_camera(scene, bb);
-  bool distance_culled = use_distance_cull_ && test_distance(scene, bb);
+  const bool camera_culled = use_camera_cull_ && test_camera(scene, bb);
+  const bool distance_culled = use_distance_cull_ && test_distance(scene, bb);
 
   return ((camera_culled && distance_culled) || (camera_culled && !use_distance_cull_) ||
           (distance_culled && !use_camera_cull_));
@@ -79,17 +79,17 @@ bool BlenderObjectCulling::test(Scene *scene, BL::Object &b_ob, Transform &tfm)
 /* TODO(sergey): Not really optimal, consider approaches based on k-DOP in order
  * to reduce number of objects which are wrongly considered visible.
  */
-bool BlenderObjectCulling::test_camera(Scene *scene, float3 bb[8])
+bool BlenderObjectCulling::test_camera(Scene *scene, const float3 bb[8])
 {
   Camera *cam = scene->camera;
   const ProjectionTransform &worldtondc = cam->worldtondc;
-  float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX),
-         bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+  float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX);
+  float3 bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
   bool all_behind = true;
   for (int i = 0; i < 8; ++i) {
     float3 p = bb[i];
-    float4 b = make_float4(p, 1.0f);
-    float4 c = make_float4(
+    const float4 b = make_float4(p, 1.0f);
+    const float4 c = make_float4(
         dot(worldtondc.x, b), dot(worldtondc.y, b), dot(worldtondc.z, b), dot(worldtondc.w, b));
     p = make_float3(c / c.w);
     if (c.z < 0.0f) {
@@ -109,20 +109,20 @@ bool BlenderObjectCulling::test_camera(Scene *scene, float3 bb[8])
           bb_max.x <= -camera_cull_margin_ || bb_max.y <= -camera_cull_margin_);
 }
 
-bool BlenderObjectCulling::test_distance(Scene *scene, float3 bb[8])
+bool BlenderObjectCulling::test_distance(Scene *scene, const float3 bb[8])
 {
-  float3 camera_position = transform_get_column(&scene->camera->get_matrix(), 3);
-  float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX),
-         bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+  const float3 camera_position = transform_get_column(&scene->camera->get_matrix(), 3);
+  float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX);
+  float3 bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
   /* Find min & max points for x & y & z on bounding box */
   for (int i = 0; i < 8; ++i) {
-    float3 p = bb[i];
+    const float3 p = bb[i];
     bb_min = min(bb_min, p);
     bb_max = max(bb_max, p);
   }
 
-  float3 closest_point = max(min(bb_max, camera_position), bb_min);
+  const float3 closest_point = max(min(bb_max, camera_position), bb_min);
   return (len_squared(camera_position - closest_point) >
           distance_cull_margin_ * distance_cull_margin_);
 }

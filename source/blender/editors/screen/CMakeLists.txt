@@ -5,16 +5,7 @@
 set(INC
   ../asset
   ../include
-  ../../asset_system
-  ../../blenkernel
-  ../../blenloader
-  ../../blentranslation
-  ../../bmesh
-  ../../gpu
-  ../../imbuf
   ../../makesrna
-  ../../sequencer
-  ../../windowmanager
   ../../../../extern/fmtlib/include
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -44,14 +35,23 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
+  PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_datafiles
   bf_editor_space_sequencer
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::sequencer
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_HEADLESS)

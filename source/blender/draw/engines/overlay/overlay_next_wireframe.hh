@@ -12,6 +12,7 @@
 #include "DNA_volume_types.h"
 
 #include "draw_common.hh"
+#include "draw_sculpt.hh"
 
 #include "overlay_next_base.hh"
 #include "overlay_next_mesh.hh"

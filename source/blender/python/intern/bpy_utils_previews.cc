@@ -14,8 +14,6 @@
 #include <Python.h>
 #include <structmember.h>
 
-#include "BLI_utildefines.h"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -23,8 +21,6 @@
 #include "bpy_utils_previews.hh"
 
 #include "../generic/py_capi_utils.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "IMB_thumbs.hh"
 

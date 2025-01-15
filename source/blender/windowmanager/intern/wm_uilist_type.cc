@@ -12,7 +12,6 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
-#include "BLI_sys_types.h"
 
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"

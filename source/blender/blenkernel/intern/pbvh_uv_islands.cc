@@ -7,6 +7,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_ordered_edge.hh"
+#include "BLI_rect.h"
 
 #include "pbvh_uv_islands.hh"
 

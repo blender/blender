@@ -11,8 +11,6 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
-
 #include "../mathutils/mathutils.hh"
 
 #include "bmesh.hh"

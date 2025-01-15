@@ -71,15 +71,15 @@ Scene *ED_scene_sequencer_add(Main *bmain,
                               eSceneCopyMethod method,
                               const bool assign_strip)
 {
-  Sequence *seq = nullptr;
+  Strip *strip = nullptr;
   Scene *scene_active = CTX_data_scene(C);
   Scene *scene_strip = nullptr;
   /* Sequencer need to use as base the scene defined in the strip, not the main scene. */
   Editing *ed = scene_active->ed;
   if (ed) {
-    seq = ed->act_seq;
-    if (seq && seq->scene) {
-      scene_strip = seq->scene;
+    strip = ed->act_seq;
+    if (strip && strip->scene) {
+      scene_strip = strip->scene;
     }
   }
 
@@ -98,10 +98,10 @@ Scene *ED_scene_sequencer_add(Main *bmain,
   /* As the scene is created in sequencer, do not set the new scene as active.
    * This is useful for story-boarding where we want to keep actual scene active.
    * The new scene is linked to the active strip and the viewport updated. */
-  if (scene_new && seq) {
-    seq->scene = scene_new;
+  if (scene_new && strip) {
+    strip->scene = scene_new;
     /* Do a refresh of the sequencer data. */
-    SEQ_relations_invalidate_cache_raw(scene_active, seq);
+    SEQ_relations_invalidate_cache_raw(scene_active, strip);
     DEG_id_tag_update(&scene_active->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
     DEG_relations_tag_update(bmain);
   }
@@ -311,8 +311,8 @@ static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
 static bool scene_new_sequencer_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  const Sequence *seq = SEQ_select_active_get(scene);
-  return (seq && (seq->type == SEQ_TYPE_SCENE));
+  const Strip *strip = SEQ_select_active_get(scene);
+  return (strip && (strip->type == STRIP_TYPE_SCENE));
 }
 
 static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
@@ -334,8 +334,8 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
   }
   else {
     Scene *scene = CTX_data_scene(C);
-    Sequence *seq = SEQ_select_active_get(scene);
-    if (seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != nullptr)) {
+    Strip *strip = SEQ_select_active_get(scene);
+    if (strip && (strip->type == STRIP_TYPE_SCENE) && (strip->scene != nullptr)) {
       has_scene_or_no_context = true;
     }
   }

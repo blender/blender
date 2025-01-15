@@ -5,7 +5,6 @@
 #pragma once
 
 #include "BLI_cpp_type.hh"
-#include "BLI_vector.hh"
 
 namespace blender {
 

@@ -2,15 +2,18 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""
+blender -b --factory-startup --python tests/python/bl_animation_drivers.py -- --testdir /path/to/tests/data/animation
+"""
+__all__ = (
+    "main",
+)
+
 import unittest
 import bpy
 import pathlib
 import sys
 from rna_prop_ui import rna_idprop_quote_path
-
-"""
-blender -b --factory-startup --python tests/python/bl_animation_drivers.py -- --testdir /path/to/tests/data/animation
-"""
 
 
 class AbstractEmptyDriverTest:

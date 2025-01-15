@@ -75,6 +75,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_packedFile.hh"
@@ -1123,7 +1124,7 @@ Image *BKE_image_load_exists_in_lib(Main *bmain,
       if (BLI_path_cmp(filepath_test, filepath_abs) != 0) {
         continue;
       }
-      if ((BKE_image_has_anim(ima)) && (ima->id.us != 0)) {
+      if (BKE_image_has_anim(ima) && (ima->id.us != 0)) {
         /* TODO explain why animated images with already one or more users are skipped? */
         continue;
       }
@@ -1865,10 +1866,10 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_SEQSTRIP) {
-    const Sequence *seq = SEQ_get_topmost_sequence(scene, scene->r.cfra);
+    const Strip *strip = SEQ_get_topmost_sequence(scene, scene->r.cfra);
 
-    if (seq) {
-      STRNCPY(text, seq->name + 2);
+    if (strip) {
+      STRNCPY(text, strip->name + 2);
     }
     else {
       STRNCPY(text, "<none>");
@@ -2813,33 +2814,58 @@ static void image_viewer_create_views(const RenderData *rd, Image *ima)
   }
 }
 
+/* Returns true if the views of the given image match the actives views in the given render data.
+ * Returns false otherwise to indicate that the image views should be recreated to make them match
+ * the render data. */
+static bool image_views_match_render_views(const Image *image, const RenderData *render_data)
+{
+  /* The number of views in the image do not match the number of active views in the render
+   * data. */
+  const int number_of_active_views = BKE_scene_multiview_num_views_get(render_data);
+  if (BLI_listbase_count(&image->views) != number_of_active_views) {
+    return false;
+  }
+
+  /* If the render data is not multi-view, then a single unnamed view should exist in the image,
+   * otherwise, the views don't match. We don't have to check that a single view exist, since this
+   * is handled by the check above for the number of views. */
+  if (!(render_data->scemode & R_MULTIVIEW)) {
+    const ImageView *image_view = static_cast<ImageView *>(image->views.first);
+    /* If the view is unnamed, the views match, otherwise, they don't. */
+    return image_view->name[0] == '\0';
+  }
+
+  /* The render data is multi-view, so we need to check that for every view in the image, a
+   * corresponding active render view with the same name exists, noting that they may not
+   * necessarily be in the same order. */
+  LISTBASE_FOREACH (ImageView *, image_view, &image->views) {
+    SceneRenderView *scene_render_view = static_cast<SceneRenderView *>(
+        BLI_findstring(&render_data->views, image_view->name, offsetof(SceneRenderView, name)));
+    /* A render view doesn't exist for that image view with the same name, so the views don't
+     * match. */
+    if (!scene_render_view) {
+      return false;
+    }
+
+    /* A render view exists for that image view with the same name, but it is disabled, so the
+     * views don't match. */
+    if (!BKE_scene_multiview_is_render_view_active(render_data, scene_render_view)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *iuser)
 {
-  bool do_reset;
-  const bool is_multiview = (rd->scemode & R_MULTIVIEW) != 0;
-
   BLI_thread_lock(LOCK_DRAW_IMAGE);
 
   if (!BKE_scene_multiview_is_stereo3d(rd)) {
     iuser->flag &= ~IMA_SHOW_STEREO;
   }
 
-  /* see if all scene render views are in the image view list */
-  do_reset = (BKE_scene_multiview_num_views_get(rd) != BLI_listbase_count(&ima->views));
-
-  /* multiview also needs to be sure all the views are synced */
-  if (is_multiview && !do_reset) {
-    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
-      SceneRenderView *srv = static_cast<SceneRenderView *>(
-          BLI_findstring(&rd->views, iv->name, offsetof(SceneRenderView, name)));
-      if ((srv == nullptr) || (BKE_scene_multiview_is_render_view_active(rd, srv) == false)) {
-        do_reset = true;
-        break;
-      }
-    }
-  }
-
-  if (do_reset) {
+  if (!image_views_match_render_views(ima, rd)) {
     BLI_mutex_lock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
 
     image_free_cached_frames(ima);
@@ -2864,12 +2890,12 @@ static void image_walk_ntree_all_users(
     case NTREE_SHADER:
       for (bNode *node : ntree->all_nodes()) {
         if (node->id) {
-          if (node->type == SH_NODE_TEX_IMAGE) {
+          if (node->type_legacy == SH_NODE_TEX_IMAGE) {
             NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
             Image *ima = (Image *)node->id;
             callback(ima, id, &tex->iuser, customdata);
           }
-          if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+          if (node->type_legacy == SH_NODE_TEX_ENVIRONMENT) {
             NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
             Image *ima = (Image *)node->id;
             callback(ima, id, &tex->iuser, customdata);
@@ -2879,7 +2905,7 @@ static void image_walk_ntree_all_users(
       break;
     case NTREE_TEXTURE:
       for (bNode *node : ntree->all_nodes()) {
-        if (node->id && node->type == TEX_NODE_IMAGE) {
+        if (node->id && node->type_legacy == TEX_NODE_IMAGE) {
           Image *ima = (Image *)node->id;
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
@@ -2888,10 +2914,18 @@ static void image_walk_ntree_all_users(
       break;
     case NTREE_COMPOSIT:
       for (bNode *node : ntree->all_nodes()) {
-        if (node->id && node->type == CMP_NODE_IMAGE) {
+        if (node->id && node->type_legacy == CMP_NODE_IMAGE) {
           Image *ima = (Image *)node->id;
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
+        }
+        if (node->type_legacy == CMP_NODE_CRYPTOMATTE) {
+          CMPNodeCryptomatteSource source = static_cast<CMPNodeCryptomatteSource>(node->custom1);
+          if (source == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+            Image *image = (Image *)node->id;
+            ImageUser *image_user = &static_cast<NodeCryptomatte *>(node->storage)->iuser;
+            callback(image, id, image_user, customdata);
+          }
         }
       }
       break;
@@ -3353,7 +3387,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
   BLI_mutex_unlock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
 
   BKE_ntree_update_tag_id_changed(bmain, &ima->id);
-  BKE_ntree_update_main(bmain, nullptr);
+  BKE_ntree_update(*bmain);
 }
 
 /**

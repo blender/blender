@@ -107,7 +107,7 @@ static Result compute_max_tile_velocity_cpu(Context &context, const Result &velo
   if (velocity_image.is_single_value()) {
     Result output = context.create_result(ResultType::Vector);
     output.allocate_single_value();
-    output.set_vector_value(velocity_image.get_single_value<float4>());
+    output.set_single_value(velocity_image.get_single_value<float4>());
     return output;
   }
 
@@ -199,7 +199,7 @@ static Result dilate_max_velocity_cpu(Context &context,
   if (max_tile_velocity.is_single_value()) {
     Result output = context.create_result(ResultType::Vector);
     output.allocate_single_value();
-    output.set_vector_value(max_tile_velocity.get_single_value<float4>());
+    output.set_single_value(max_tile_velocity.get_single_value<float4>());
     return output;
   }
 
@@ -677,8 +677,11 @@ void register_node_type_cmp_vecblur()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VECBLUR, "Vector Blur", NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeVecBlur", CMP_NODE_VECBLUR);
+  ntype.ui_name = "Vector Blur";
+  ntype.ui_description = "Uses the vector speed render pass to blur the image pixels in 2D";
   ntype.enum_name_legacy = "VECBLUR";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_vec_blur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_vecblur;
   ntype.initfunc = file_ns::node_composit_init_vecblur;

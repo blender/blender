@@ -5,6 +5,7 @@
 #pragma once
 
 #include "kernel/svm/fractal_noise.h"
+#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -16,25 +17,25 @@ CCL_NAMESPACE_BEGIN
  * OSL only support float hashes.
  */
 
-ccl_device_inline float random_float_offset(float seed)
+ccl_device_inline float random_float_offset(const float seed)
 {
   return 100.0f + hash_float_to_float(seed) * 100.0f;
 }
 
-ccl_device_inline float2 random_float2_offset(float seed)
+ccl_device_inline float2 random_float2_offset(const float seed)
 {
   return make_float2(100.0f + hash_float2_to_float(make_float2(seed, 0.0f)) * 100.0f,
                      100.0f + hash_float2_to_float(make_float2(seed, 1.0f)) * 100.0f);
 }
 
-ccl_device_inline float3 random_float3_offset(float seed)
+ccl_device_inline float3 random_float3_offset(const float seed)
 {
   return make_float3(100.0f + hash_float2_to_float(make_float2(seed, 0.0f)) * 100.0f,
                      100.0f + hash_float2_to_float(make_float2(seed, 1.0f)) * 100.0f,
                      100.0f + hash_float2_to_float(make_float2(seed, 2.0f)) * 100.0f);
 }
 
-ccl_device_inline float4 random_float4_offset(float seed)
+ccl_device_inline float4 random_float4_offset(const float seed)
 {
   return make_float4(100.0f + hash_float2_to_float(make_float2(seed, 0.0f)) * 100.0f,
                      100.0f + hash_float2_to_float(make_float2(seed, 1.0f)) * 100.0f,
@@ -44,12 +45,12 @@ ccl_device_inline float4 random_float4_offset(float seed)
 
 template<typename T>
 ccl_device float noise_select(T p,
-                              float detail,
-                              float roughness,
-                              float lacunarity,
-                              float offset,
-                              float gain,
-                              int type,
+                              const float detail,
+                              const float roughness,
+                              const float lacunarity,
+                              const float offset,
+                              const float gain,
+                              const int type,
                               bool normalize)
 {
   switch ((NodeNoiseType)type) {
@@ -75,14 +76,14 @@ ccl_device float noise_select(T p,
   }
 }
 
-ccl_device void noise_texture_1d(float co,
-                                 float detail,
-                                 float roughness,
-                                 float lacunarity,
-                                 float offset,
-                                 float gain,
-                                 float distortion,
-                                 int type,
+ccl_device void noise_texture_1d(const float co,
+                                 const float detail,
+                                 const float roughness,
+                                 const float lacunarity,
+                                 const float offset,
+                                 const float gain,
+                                 const float distortion,
+                                 const int type,
                                  bool normalize,
                                  bool color_is_needed,
                                  ccl_private float *value,
@@ -115,16 +116,16 @@ ccl_device void noise_texture_1d(float co,
   }
 }
 
-ccl_device void noise_texture_2d(float2 co,
-                                 float detail,
-                                 float roughness,
-                                 float lacunarity,
-                                 float offset,
-                                 float gain,
-                                 float distortion,
-                                 int type,
-                                 bool normalize,
-                                 bool color_is_needed,
+ccl_device void noise_texture_2d(const float2 co,
+                                 const float detail,
+                                 const float roughness,
+                                 const float lacunarity,
+                                 const float offset,
+                                 const float gain,
+                                 const float distortion,
+                                 const int type,
+                                 const bool normalize,
+                                 const bool color_is_needed,
                                  ccl_private float *value,
                                  ccl_private float3 *color)
 {
@@ -156,16 +157,16 @@ ccl_device void noise_texture_2d(float2 co,
   }
 }
 
-ccl_device void noise_texture_3d(float3 co,
-                                 float detail,
-                                 float roughness,
-                                 float lacunarity,
-                                 float offset,
-                                 float gain,
-                                 float distortion,
-                                 int type,
-                                 bool normalize,
-                                 bool color_is_needed,
+ccl_device void noise_texture_3d(const float3 co,
+                                 const float detail,
+                                 const float roughness,
+                                 const float lacunarity,
+                                 const float offset,
+                                 const float gain,
+                                 const float distortion,
+                                 const int type,
+                                 const bool normalize,
+                                 const bool color_is_needed,
                                  ccl_private float *value,
                                  ccl_private float3 *color)
 {
@@ -198,16 +199,16 @@ ccl_device void noise_texture_3d(float3 co,
   }
 }
 
-ccl_device void noise_texture_4d(float4 co,
-                                 float detail,
-                                 float roughness,
-                                 float lacunarity,
-                                 float offset,
-                                 float gain,
-                                 float distortion,
-                                 int type,
-                                 bool normalize,
-                                 bool color_is_needed,
+ccl_device void noise_texture_4d(const float4 co,
+                                 const float detail,
+                                 const float roughness,
+                                 const float lacunarity,
+                                 const float offset,
+                                 const float gain,
+                                 const float distortion,
+                                 const int type,
+                                 const bool normalize,
+                                 const bool color_is_needed,
                                  ccl_private float *value,
                                  ccl_private float3 *color)
 {
@@ -244,14 +245,22 @@ ccl_device void noise_texture_4d(float4 co,
 ccl_device_noinline int svm_node_tex_noise(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
-                                           uint offsets1,
-                                           uint offsets2,
-                                           uint offsets3,
+                                           const uint offsets1,
+                                           const uint offsets2,
+                                           const uint offsets3,
                                            int node_offset)
 {
-  uint vector_stack_offset, w_stack_offset, scale_stack_offset, detail_stack_offset;
-  uint roughness_stack_offset, lacunarity_stack_offset, offset_stack_offset, gain_stack_offset;
-  uint distortion_stack_offset, value_stack_offset, color_stack_offset;
+  uint vector_stack_offset;
+  uint w_stack_offset;
+  uint scale_stack_offset;
+  uint detail_stack_offset;
+  uint roughness_stack_offset;
+  uint lacunarity_stack_offset;
+  uint offset_stack_offset;
+  uint gain_stack_offset;
+  uint distortion_stack_offset;
+  uint value_stack_offset;
+  uint color_stack_offset;
 
   svm_unpack_node_uchar4(
       offsets1, &vector_stack_offset, &w_stack_offset, &scale_stack_offset, &detail_stack_offset);
@@ -263,23 +272,23 @@ ccl_device_noinline int svm_node_tex_noise(KernelGlobals kg,
   svm_unpack_node_uchar3(
       offsets3, &distortion_stack_offset, &value_stack_offset, &color_stack_offset);
 
-  uint4 defaults1 = read_node(kg, &node_offset);
-  uint4 defaults2 = read_node(kg, &node_offset);
-  uint4 properties = read_node(kg, &node_offset);
+  const uint4 defaults1 = read_node(kg, &node_offset);
+  const uint4 defaults2 = read_node(kg, &node_offset);
+  const uint4 properties = read_node(kg, &node_offset);
 
-  uint dimensions = properties.x;
-  uint type = properties.y;
-  uint normalize = properties.z;
+  const uint dimensions = properties.x;
+  const uint type = properties.y;
+  const uint normalize = properties.z;
 
   float3 vector = stack_load_float3(stack, vector_stack_offset);
   float w = stack_load_float_default(stack, w_stack_offset, defaults1.x);
-  float scale = stack_load_float_default(stack, scale_stack_offset, defaults1.y);
+  const float scale = stack_load_float_default(stack, scale_stack_offset, defaults1.y);
   float detail = stack_load_float_default(stack, detail_stack_offset, defaults1.z);
   float roughness = stack_load_float_default(stack, roughness_stack_offset, defaults1.w);
-  float lacunarity = stack_load_float_default(stack, lacunarity_stack_offset, defaults2.x);
-  float offset = stack_load_float_default(stack, offset_stack_offset, defaults2.y);
-  float gain = stack_load_float_default(stack, gain_stack_offset, defaults2.z);
-  float distortion = stack_load_float_default(stack, distortion_stack_offset, defaults2.w);
+  const float lacunarity = stack_load_float_default(stack, lacunarity_stack_offset, defaults2.x);
+  const float offset = stack_load_float_default(stack, offset_stack_offset, defaults2.y);
+  const float gain = stack_load_float_default(stack, gain_stack_offset, defaults2.z);
+  const float distortion = stack_load_float_default(stack, distortion_stack_offset, defaults2.w);
 
   detail = clamp(detail, 0.0f, 15.0f);
   roughness = fmaxf(roughness, 0.0f);

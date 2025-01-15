@@ -55,10 +55,10 @@ set(X265_10_EXTRA_ARGS
 
 # 8 bit build flags
 set(X265_EXTRA_ARGS
- -DENABLE_SHARED=OFF
- -DEXTRA_LIB=${LIBDIR}/x265_12/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}^^${LIBDIR}/x265_10/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
- -DLINKED_10BIT=ON
- -DLINKED_12BIT=ON
+  -DENABLE_SHARED=OFF
+  -DEXTRA_LIB=${LIBDIR}/x265_12/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}^^${LIBDIR}/x265_10/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
+  -DLINKED_10BIT=ON
+  -DLINKED_12BIT=ON
 )
 
 if(UNIX)
@@ -155,8 +155,8 @@ set(ARG_AR_INPUT $\{CMAKE_ARGV$\{INDEX_AR_INPUT\}\})
 execute_process(
   COMMAND $\{ARG_AR\} -M
   INPUT_FILE $\{ARG_AR_INPUT\}
-)
-")
+)"
+    )
 
     ExternalProject_Add_Step(external_x265 after_install
       COMMAND ${CMAKE_COMMAND} -P ${_ar_cmake} -- ${CMAKE_AR} ${_ar_stdin}

@@ -20,9 +20,8 @@
 #include "scene/svm.h"
 #include "scene/tables.h"
 
-#include "util/foreach.h"
+#include "util/log.h"
 #include "util/murmurhash.h"
-#include "util/task.h"
 #include "util/transform.h"
 
 #ifdef WITH_OCIO
@@ -91,7 +90,7 @@ Shader::Shader() : Node(get_node_type())
 {
   pass_id = 0;
 
-  graph = NULL;
+  graph = nullptr;
 
   has_surface = false;
   has_surface_transparent = false;
@@ -120,11 +119,6 @@ Shader::Shader() : Node(get_node_type())
   need_update_displacement = true;
 }
 
-Shader::~Shader()
-{
-  delete graph;
-}
-
 static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
 {
   /* Only supports a few nodes for now, not arbitrary shader graphs. */
@@ -133,9 +127,9 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
   if (node == nullptr) {
     return zero_float3();
   }
-  else if (node->type == EmissionNode::get_node_type() ||
-           node->type == BackgroundNode::get_node_type() ||
-           node->type == PrincipledBsdfNode::get_node_type())
+  if (node->type == EmissionNode::get_node_type() ||
+      node->type == BackgroundNode::get_node_type() ||
+      node->type == PrincipledBsdfNode::get_node_type())
   {
     const bool is_principled = (node->type == PrincipledBsdfNode::get_node_type());
     /* Emission and Background node. */
@@ -176,8 +170,8 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
 
     return estimate;
   }
-  else if (node->type == LightFalloffNode::get_node_type() ||
-           node->type == IESLightNode::get_node_type())
+  if (node->type == LightFalloffNode::get_node_type() ||
+      node->type == IESLightNode::get_node_type())
   {
     /* Get strength from Light Falloff and IES texture node. */
     ShaderInput *strength_in = node->input("Strength");
@@ -186,7 +180,7 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
     return (strength_in->link) ? output_estimate_emission(strength_in->link, is_constant) :
                                  make_float3(node->get_float(strength_in->socket_type));
   }
-  else if (node->type == AddClosureNode::get_node_type()) {
+  if (node->type == AddClosureNode::get_node_type()) {
     /* Add Closure. */
     ShaderInput *closure1_in = node->input("Closure1");
     ShaderInput *closure2_in = node->input("Closure2");
@@ -200,7 +194,7 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
 
     return estimate1 + estimate2;
   }
-  else if (node->type == MixClosureNode::get_node_type()) {
+  if (node->type == MixClosureNode::get_node_type()) {
     /* Mix Closure. */
     ShaderInput *fac_in = node->input("Fac");
     ShaderInput *closure1_in = node->input("Closure1");
@@ -217,39 +211,37 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
       is_constant = false;
       return estimate1 + estimate2;
     }
-    else {
-      const float fac = node->get_float(fac_in->socket_type);
-      return (1.0f - fac) * estimate1 + fac * estimate2;
-    }
+
+    const float fac = node->get_float(fac_in->socket_type);
+    return (1.0f - fac) * estimate1 + fac * estimate2;
   }
-  else {
-    /* Other nodes, potentially OSL nodes with arbitrary code for which all we can
-     * determine is if it has emission or not. */
-    const bool has_emission = node->has_surface_emission();
-    float3 estimate;
 
-    if (output->type() == SocketType::CLOSURE) {
-      if (has_emission) {
-        estimate = one_float3();
-        is_constant = false;
-      }
-      else {
-        estimate = zero_float3();
-      }
+  /* Other nodes, potentially OSL nodes with arbitrary code for which all we can
+   * determine is if it has emission or not. */
+  const bool has_emission = node->has_surface_emission();
+  float3 estimate;
 
-      foreach (const ShaderInput *in, node->inputs) {
-        if (in->type() == SocketType::CLOSURE && in->link) {
-          estimate += output_estimate_emission(in->link, is_constant);
-        }
-      }
-    }
-    else {
+  if (output->type() == SocketType::CLOSURE) {
+    if (has_emission) {
       estimate = one_float3();
       is_constant = false;
     }
+    else {
+      estimate = zero_float3();
+    }
 
-    return estimate;
+    for (const ShaderInput *in : node->inputs) {
+      if (in->type() == SocketType::CLOSURE && in->link) {
+        estimate += output_estimate_emission(in->link, is_constant);
+      }
+    }
   }
+  else {
+    estimate = one_float3();
+    is_constant = false;
+  }
+
+  return estimate;
 }
 
 void Shader::estimate_emission()
@@ -257,7 +249,7 @@ void Shader::estimate_emission()
   /* If the shader has AOVs, they need to be evaluated, so we can't skip the shader. */
   emission_is_constant = true;
 
-  foreach (ShaderNode *node, graph->nodes) {
+  for (ShaderNode *node : graph->nodes) {
     if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
       emission_is_constant = false;
     }
@@ -283,7 +275,7 @@ void Shader::estimate_emission()
   }
 }
 
-void Shader::set_graph(ShaderGraph *graph_)
+void Shader::set_graph(unique_ptr<ShaderGraph> &&graph_)
 {
   /* do this here already so that we can detect if mesh or object attributes
    * are needed, since the node attribute callbacks check if their sockets
@@ -307,12 +299,11 @@ void Shader::set_graph(ShaderGraph *graph_)
   }
 
   /* assign graph */
-  delete graph;
-  graph = graph_;
+  graph = std::move(graph_);
 
   /* Store info here before graph optimization to make sure that
    * nodes that get optimized away still count. */
-  has_volume_connected = (graph->output()->input("Volume")->link != NULL);
+  has_volume_connected = (graph->output()->input("Volume")->link != nullptr);
 }
 
 void Shader::tag_update(Scene *scene)
@@ -344,7 +335,7 @@ void Shader::tag_update(Scene *scene)
    * e.g. surface attributes when there is only a volume shader. this could
    * be more fine grained but it's better than nothing */
   OutputNode *output = graph->output();
-  bool prev_has_volume = has_volume;
+  const bool prev_has_volume = has_volume;
   has_surface = has_surface || output->input("Surface")->link;
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
@@ -352,12 +343,11 @@ void Shader::tag_update(Scene *scene)
   if (!has_surface && !has_volume) {
     /* If we need to output surface AOVs, add a Transparent BSDF so that the
      * surface shader runs. */
-    foreach (ShaderNode *node, graph->nodes) {
+    for (ShaderNode *node : graph->nodes) {
       if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
-        foreach (const ShaderInput *in, node->inputs) {
+        for (const ShaderInput *in : node->inputs) {
           if (in->link) {
             TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
-            graph->add(transparent);
             graph->connect(transparent->output("BSDF"), output->input("Surface"));
             has_surface = true;
             break;
@@ -375,10 +365,10 @@ void Shader::tag_update(Scene *scene)
    * and may not be so great for interactive rendering where you temporarily
    * disconnect a node */
 
-  AttributeRequestSet prev_attributes = attributes;
+  const AttributeRequestSet prev_attributes = attributes;
 
   attributes.clear();
-  foreach (ShaderNode *node, graph->nodes) {
+  for (ShaderNode *node : graph->nodes) {
     node->attributes(this, &attributes);
   }
 
@@ -433,23 +423,23 @@ ShaderManager::ShaderManager()
   init_xyz_transforms();
 }
 
-ShaderManager::~ShaderManager() {}
+ShaderManager::~ShaderManager() = default;
 
-ShaderManager *ShaderManager::create(int shadingsystem, Device *device)
+unique_ptr<ShaderManager> ShaderManager::create(const int shadingsystem, Device *device)
 {
-  ShaderManager *manager;
+  unique_ptr<ShaderManager> manager;
 
   (void)shadingsystem; /* Ignored when built without OSL. */
   (void)device;
 
 #ifdef WITH_OSL
   if (shadingsystem == SHADINGSYSTEM_OSL) {
-    manager = new OSLShaderManager(device);
+    manager = make_unique<OSLShaderManager>(device);
   }
   else
 #endif
   {
-    manager = new SVMShaderManager();
+    manager = make_unique<SVMShaderManager>();
   }
 
   return manager;
@@ -457,16 +447,16 @@ ShaderManager *ShaderManager::create(int shadingsystem, Device *device)
 
 uint64_t ShaderManager::get_attribute_id(ustring name)
 {
-  thread_scoped_spin_lock lock(attribute_lock_);
+  const thread_scoped_spin_lock lock(attribute_lock_);
 
   /* get a unique id for each name, for SVM attribute lookup */
-  AttributeIDMap::iterator it = unique_attribute_id.find(name);
+  const AttributeIDMap::iterator it = unique_attribute_id.find(name);
 
   if (it != unique_attribute_id.end()) {
     return it->second;
   }
 
-  uint64_t id = ATTR_STD_NUM + unique_attribute_id.size();
+  const uint64_t id = ATTR_STD_NUM + unique_attribute_id.size();
   unique_attribute_id[name] = id;
   return id;
 }
@@ -502,7 +492,7 @@ void ShaderManager::device_update(Device *device,
   }
 
   uint id = 0;
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     shader->id = id++;
   }
 
@@ -523,7 +513,7 @@ void ShaderManager::device_update_common(Device * /*device*/,
 {
   dscene->shaders.free();
 
-  if (scene->shaders.size() == 0) {
+  if (scene->shaders.empty()) {
     return;
   }
 
@@ -531,7 +521,7 @@ void ShaderManager::device_update_common(Device * /*device*/,
   bool has_volumes = false;
   bool has_transparent_shadow = false;
 
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     uint flag = 0;
 
     if (shader->emission_sampling == EMISSION_SAMPLING_FRONT) {
@@ -601,7 +591,8 @@ void ShaderManager::device_update_common(Device * /*device*/,
       flag |= SD_HAS_CONSTANT_EMISSION;
     }
 
-    uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
+    const uint32_t cryptomatte_id = util_murmur_hash3(
+        shader->name.c_str(), shader->name.length(), 0);
 
     /* regular shader */
     kshader->flags = flag;
@@ -663,17 +654,16 @@ void ShaderManager::add_default(Scene *scene)
 {
   /* default surface */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
     diffuse->set_color(make_float3(0.8f, 0.8f, 0.8f));
-    graph->add(diffuse);
 
     graph->connect(diffuse->output("BSDF"), graph->output()->input("Surface"));
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_surface";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_surface = shader;
     shader->tag_update(scene);
@@ -681,16 +671,15 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default volume */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     PrincipledVolumeNode *principled = graph->create_node<PrincipledVolumeNode>();
-    graph->add(principled);
 
     graph->connect(principled->output("Volume"), graph->output()->input("Volume"));
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_volume";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     scene->default_volume = shader;
     shader->tag_update(scene);
     /* No default reference for the volume to avoid compiling volume kernels if there are no
@@ -699,18 +688,17 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default light */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     EmissionNode *emission = graph->create_node<EmissionNode>();
     emission->set_color(make_float3(0.8f, 0.8f, 0.8f));
     emission->set_strength(0.0f);
-    graph->add(emission);
 
     graph->connect(emission->output("Emission"), graph->output()->input("Surface"));
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_light";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_light = shader;
     shader->tag_update(scene);
@@ -718,11 +706,11 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default background */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_background";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_background = shader;
     shader->tag_update(scene);
@@ -730,11 +718,11 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default empty */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_empty";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_empty = shader;
     shader->tag_update(scene);
@@ -745,7 +733,7 @@ uint ShaderManager::get_graph_kernel_features(ShaderGraph *graph)
 {
   uint kernel_features = 0;
 
-  foreach (ShaderNode *node, graph->nodes) {
+  for (ShaderNode *node : graph->nodes) {
     kernel_features |= node->get_feature();
     if (node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
       BsdfBaseNode *bsdf_node = static_cast<BsdfBaseNode *>(node);
@@ -774,9 +762,9 @@ uint ShaderManager::get_kernel_features(Scene *scene)
     }
 
     /* Gather requested features from all the nodes from the graph nodes. */
-    kernel_features |= get_graph_kernel_features(shader->graph);
+    kernel_features |= get_graph_kernel_features(shader->graph.get());
     ShaderNode *output_node = shader->graph->output();
-    if (output_node->input("Displacement")->link != NULL) {
+    if (output_node->input("Displacement")->link != nullptr) {
       kernel_features |= KERNEL_FEATURE_NODE_BUMP;
       if (shader->get_displacement_method() == DISPLACE_BOTH) {
         kernel_features |= KERNEL_FEATURE_NODE_BUMP_STATE;
@@ -806,12 +794,12 @@ void ShaderManager::free_memory()
   ColorSpaceManager::free_memory();
 }
 
-float ShaderManager::linear_rgb_to_gray(float3 c)
+float ShaderManager::linear_rgb_to_gray(const float3 c)
 {
   return dot(c, rgb_to_y);
 }
 
-float3 ShaderManager::rec709_to_scene_linear(float3 c)
+float3 ShaderManager::rec709_to_scene_linear(const float3 c)
 {
   return to_local(c, rec709_to_r, rec709_to_g, rec709_to_b);
 }
@@ -820,12 +808,13 @@ string ShaderManager::get_cryptomatte_materials(Scene *scene)
 {
   string manifest = "{";
   unordered_set<ustring> materials;
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     if (materials.count(shader->name)) {
       continue;
     }
     materials.insert(shader->name);
-    uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
+    const uint32_t cryptomatte_id = util_murmur_hash3(
+        shader->name.c_str(), shader->name.length(), 0);
     manifest += string_printf("\"%s\":\"%08x\",", shader->name.c_str(), cryptomatte_id);
   }
   manifest[manifest.size() - 1] = '}';
@@ -860,7 +849,7 @@ static bool to_scene_linear_transform(OCIO::ConstConfigRcPtr &config,
     return false;
   }
 
-  OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+  const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
   if (!device_processor) {
     return false;
   }
@@ -904,7 +893,15 @@ void ShaderManager::init_xyz_transforms()
 
 #ifdef WITH_OCIO
   /* Get from OpenColorO config if it has the required roles. */
-  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+  OCIO::ConstConfigRcPtr config = nullptr;
+  try {
+    config = OCIO::GetCurrentConfig();
+  }
+  catch (OCIO::Exception &exception) {
+    VLOG_WARNING << "OCIO config error: " << exception.what();
+    return;
+  }
+
   if (!(config && config->hasRole("scene_linear"))) {
     return;
   }
@@ -965,7 +962,7 @@ void ShaderManager::init_xyz_transforms()
 size_t ShaderManager::ensure_bsdf_table_impl(DeviceScene *dscene,
                                              Scene *scene,
                                              const float *table,
-                                             size_t n)
+                                             const size_t n)
 {
   /* Since the BSDF tables are static arrays, we can use their address to identify them. */
   if (!(bsdf_tables.count(table))) {

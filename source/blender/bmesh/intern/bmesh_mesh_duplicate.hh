@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 /**
  * Geometry must be completely isolated.
  */

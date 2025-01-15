@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OSL_SERVICES_H__
-#define __OSL_SERVICES_H__
+#pragma once
 
 /* OSL Render Services
  *
@@ -17,19 +16,17 @@
 #include <OSL/oslexec.h>
 #include <OSL/rendererservices.h>
 
+#include <OpenImageIO/unordered_map_concurrent.h>
+
 #include "scene/image.h"
 
 #include "kernel/osl/compat.h"
-
-#ifdef WITH_PTEX
-class PtexCache;
-#endif
 
 CCL_NAMESPACE_BEGIN
 
 class Scene;
 struct ShaderData;
-struct KernelGlobalsCPU;
+struct ThreadKernelGlobalsCPU;
 
 /* OSL Texture Handle
  *
@@ -46,37 +43,29 @@ struct KernelGlobalsCPU;
  * NOTE: The svm_slots array contains a compressed mapping of tile to svm_slot pairs
  * stored as follows: x:tile_a, y:svm_slot_a, z:tile_b, w:svm_slot_b etc. */
 
-struct OSLTextureHandle : public OIIO::RefCnt {
+struct OSLTextureHandle {
   enum Type { OIIO, SVM, IES, BEVEL, AO };
 
-  OSLTextureHandle(Type type, const vector<int4> &svm_slots)
-      : type(type), svm_slots(svm_slots), oiio_handle(NULL), processor(NULL)
-  {
-  }
+  OSLTextureHandle(Type type, const vector<int4> &svm_slots) : type(type), svm_slots(svm_slots) {}
 
-  OSLTextureHandle(Type type = OIIO, int svm_slot = -1)
+  OSLTextureHandle(Type type = OIIO, const int svm_slot = -1)
       : OSLTextureHandle(type, {make_int4(0, svm_slot, -1, -1)})
   {
   }
 
   OSLTextureHandle(const ImageHandle &handle)
-      : type(SVM),
-        svm_slots(handle.get_svm_slots()),
-        oiio_handle(nullptr),
-        processor(nullptr),
-        handle(handle)
+      : type(SVM), svm_slots(handle.get_svm_slots()), handle(handle)
   {
   }
 
   Type type;
   vector<int4> svm_slots;
-  OSL::TextureSystem::TextureHandle *oiio_handle;
-  ColorSpaceProcessor *processor;
+  OSL::TextureSystem::TextureHandle *oiio_handle = nullptr;
+  ColorSpaceProcessor *processor = nullptr;
   ImageHandle handle;
 };
 
-typedef OIIO::intrusive_ptr<OSLTextureHandle> OSLTextureHandleRef;
-typedef OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandleRef> OSLTextureHandleMap;
+using OSLTextureHandleMap = OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandle>;
 
 /* OSL Render Services
  *
@@ -84,8 +73,8 @@ typedef OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandleRef> OSLT
 
 class OSLRenderServices : public OSL::RendererServices {
  public:
-  OSLRenderServices(OSL::TextureSystem *texture_system, int device_type);
-  ~OSLRenderServices();
+  OSLRenderServices(OSL::TextureSystem *texture_system, const int device_type);
+  ~OSLRenderServices() override;
 
   static void register_closures(OSL::ShadingSystem *ss);
 
@@ -119,56 +108,65 @@ class OSLRenderServices : public OSL::RendererServices {
   bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSLUStringHash from) override;
   bool get_inverse_matrix(OSL::ShaderGlobals *sg,
                           OSL::Matrix44 &result,
-                          OSLUStringHash from) override;
+                          OSLUStringHash to) override;
 
   bool get_array_attribute(OSL::ShaderGlobals *sg,
                            bool derivatives,
                            OSLUStringHash object,
-                           TypeDesc type,
+                           const TypeDesc type,
                            OSLUStringHash name,
-                           int index,
+                           const int index,
                            void *val) override;
   bool get_attribute(OSL::ShaderGlobals *sg,
                      bool derivatives,
                      OSLUStringHash object,
-                     TypeDesc type,
+                     const TypeDesc type,
                      OSLUStringHash name,
                      void *val) override;
   bool get_attribute(ShaderData *sd,
                      bool derivatives,
                      OSLUStringHash object_name,
-                     TypeDesc type,
+                     const TypeDesc type,
                      OSLUStringHash name,
                      void *val);
 
   bool get_userdata(bool derivatives,
                     OSLUStringHash name,
-                    TypeDesc type,
+                    const TypeDesc type,
                     OSL::ShaderGlobals *sg,
                     void *val) override;
 
   int pointcloud_search(OSL::ShaderGlobals *sg,
                         OSLUStringHash filename,
                         const OSL::Vec3 &center,
-                        float radius,
-                        int max_points,
+                        const float radius,
+                        const int max_points,
                         bool sort,
+#if OSL_LIBRARY_VERSION_CODE >= 11400
+                        int *out_indices,
+#else
                         size_t *out_indices,
+#endif
                         float *out_distances,
                         int derivs_offset) override;
 
   int pointcloud_get(OSL::ShaderGlobals *sg,
                      OSLUStringHash filename,
+#if OSL_LIBRARY_VERSION_CODE >= 11400
+                     const int *indices,
+#else
                      size_t *indices,
-                     int count,
+#endif
+
+                     const int count,
                      OSLUStringHash attr_name,
-                     TypeDesc attr_type,
+                     const TypeDesc attr_type,
                      void *out_data) override;
 
   bool pointcloud_write(OSL::ShaderGlobals *sg,
                         OSLUStringHash filename,
                         const OSL::Vec3 &pos,
-                        int nattribs,
+                        const int nattribs,
                         const OSLUStringRep *names,
                         const TypeDesc *types,
                         const void **data) override;
@@ -185,38 +183,38 @@ class OSLRenderServices : public OSL::RendererServices {
   bool getmessage(OSL::ShaderGlobals *sg,
                   OSLUStringHash source,
                   OSLUStringHash name,
-                  TypeDesc type,
+                  const TypeDesc type,
                   void *val,
                   bool derivatives) override;
 
 #if OSL_LIBRARY_VERSION_CODE >= 11304
-  TextureSystem::TextureHandle *get_texture_handle(OSL::ustring filename,
-                                                   OSL::ShadingContext *context,
-                                                   const TextureOpt *options) override;
-  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
-                                                   OSL::ShadingContext *context,
-                                                   const TextureOpt *options) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSL::ustring filename,
+                                                        OSL::ShadingContext *context,
+                                                        const OSL::TextureOpt *options) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
+                                                        OSL::ShadingContext *context,
+                                                        const OSL::TextureOpt *options) override;
 #elif OSL_LIBRARY_VERSION_CODE >= 11100
-  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
-                                                   OSL::ShadingContext *context) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
+                                                        OSL::ShadingContext *context) override;
 #else
-  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename) override;
 #endif
 
-  bool good(TextureSystem::TextureHandle *texture_handle) override;
+  bool good(OSL::TextureSystem::TextureHandle *texture_handle) override;
 
   bool texture(OSLUStringHash filename,
-               TextureSystem::TextureHandle *texture_handle,
+               OSL::TextureSystem::TextureHandle *texture_handle,
                TexturePerthread *texture_thread_info,
-               TextureOpt &options,
+               OSL::TextureOpt &options,
                OSL::ShaderGlobals *sg,
-               float s,
-               float t,
-               float dsdx,
-               float dtdx,
-               float dsdy,
-               float dtdy,
-               int nchannels,
+               const float s,
+               const float t,
+               const float dsdx,
+               const float dtdx,
+               const float dsdy,
+               const float dtdy,
+               const int nchannels,
                float *result,
                float *dresultds,
                float *dresultdt,
@@ -225,13 +223,13 @@ class OSLRenderServices : public OSL::RendererServices {
   bool texture3d(OSLUStringHash filename,
                  TextureHandle *texture_handle,
                  TexturePerthread *texture_thread_info,
-                 TextureOpt &options,
+                 OSL::TextureOpt &options,
                  OSL::ShaderGlobals *sg,
                  const OSL::Vec3 &P,
                  const OSL::Vec3 &dPdx,
                  const OSL::Vec3 &dPdy,
                  const OSL::Vec3 &dPdz,
-                 int nchannels,
+                 const int nchannels,
                  float *result,
                  float *dresultds,
                  float *dresultdt,
@@ -241,12 +239,12 @@ class OSLRenderServices : public OSL::RendererServices {
   bool environment(OSLUStringHash filename,
                    TextureHandle *texture_handle,
                    TexturePerthread *texture_thread_info,
-                   TextureOpt &options,
+                   OSL::TextureOpt &options,
                    OSL::ShaderGlobals *sg,
                    const OSL::Vec3 &R,
                    const OSL::Vec3 &dRdx,
                    const OSL::Vec3 &dRdy,
-                   int nchannels,
+                   const int nchannels,
                    float *result,
                    float *dresultds,
                    float *dresultdt,
@@ -257,9 +255,9 @@ class OSLRenderServices : public OSL::RendererServices {
                         TextureHandle *texture_handle,
                         TexturePerthread *texture_thread_info,
                         OSL::ShaderGlobals *sg,
-                        int subimage,
+                        const int subimage,
                         OSLUStringHash dataname,
-                        TypeDesc datatype,
+                        const TypeDesc datatype,
                         void *data,
                         OSLUStringHash *errormessage) override;
 #elif OSL_LIBRARY_VERSION_CODE >= 11100
@@ -267,31 +265,31 @@ class OSLRenderServices : public OSL::RendererServices {
                         TextureHandle *texture_handle,
                         TexturePerthread *texture_thread_info,
                         OSL::ShadingContext *shading_context,
-                        int subimage,
+                        const int subimage,
                         OSLUStringHash dataname,
-                        TypeDesc datatype,
+                        const TypeDesc datatype,
                         void *data,
                         OSLUStringHash *errormessage) override;
 #else
   bool get_texture_info(OSL::ShaderGlobals *sg,
                         OSLUStringHash filename,
                         TextureHandle *texture_handle,
-                        int subimage,
+                        const int subimage,
                         OSLUStringHash dataname,
-                        TypeDesc datatype,
+                        const TypeDesc datatype,
                         void *data) override;
 #endif
 
-  static bool get_background_attribute(const KernelGlobalsCPU *kg,
+  static bool get_background_attribute(const ThreadKernelGlobalsCPU *kg,
                                        ShaderData *sd,
                                        OSLUStringHash name,
-                                       TypeDesc type,
+                                       const TypeDesc type,
                                        bool derivatives,
                                        void *val);
-  static bool get_object_standard_attribute(const KernelGlobalsCPU *kg,
+  static bool get_object_standard_attribute(const ThreadKernelGlobalsCPU *kg,
                                             ShaderData *sd,
                                             OSLUStringHash name,
-                                            TypeDesc type,
+                                            const TypeDesc type,
                                             bool derivatives,
                                             void *val);
 
@@ -368,5 +366,3 @@ class OSLRenderServices : public OSL::RendererServices {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __OSL_SERVICES_H__ */

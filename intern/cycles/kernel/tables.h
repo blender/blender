@@ -4,6 +4,10 @@
 
 /* clang-format off */
 
+#pragma once
+
+#include "util/defines.h"
+
 ccl_inline_constant float blackbody_table_r[][3] = {
  {1.61919106e+03f, -2.05010916e-03f, 5.02995757e+00f},
  {2.48845471e+03f, -1.11330907e-03f, 3.22621544e+00f},

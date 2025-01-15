@@ -61,8 +61,13 @@ struct MetalRTIntersectionShadowAllPayload {
 };
 
 #ifdef __HAIR__
-ccl_device_forceinline bool curve_ribbon_accept(
-    KernelGlobals kg, float u, float t, ccl_private const Ray *ray, int object, int prim, int type)
+ccl_device_forceinline bool curve_ribbon_accept(KernelGlobals kg,
+                                                const float u,
+                                                float t,
+                                                const ccl_private Ray *ray,
+                                                const int object,
+                                                const int prim,
+                                                const int type)
 {
   KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
@@ -86,9 +91,9 @@ ccl_device_forceinline bool curve_ribbon_accept(
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
 #  if defined(__METALRT_MOTION__)
-    bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_motion_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  else
-    bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  endif
   }
 
@@ -97,8 +102,13 @@ ccl_device_forceinline bool curve_ribbon_accept(
   return t * len(ray_D) > avoidance_factor * r;
 }
 
-ccl_device_forceinline float curve_ribbon_v(
-    KernelGlobals kg, float u, float t, ccl_private const Ray *ray, int object, int prim, int type)
+ccl_device_forceinline float curve_ribbon_v(KernelGlobals kg,
+                                            const float u,
+                                            float t,
+                                            const ccl_private Ray *ray,
+                                            const int object,
+                                            const int prim,
+                                            const int type)
 {
 #  if defined(__METALRT_MOTION__)
   float time = ray->time;
@@ -131,9 +141,9 @@ ccl_device_forceinline float curve_ribbon_v(
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
 #  if defined(__METALRT_MOTION__)
-    bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_motion_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  else
-    bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  endif
   }
 
@@ -157,7 +167,7 @@ ccl_device_forceinline float curve_ribbon_v(
 /* Scene intersection. */
 
 ccl_device_intersect bool scene_intersect(KernelGlobals kg,
-                                          ccl_private const Ray *ray,
+                                          const ccl_private Ray *ray,
                                           const uint visibility,
                                           ccl_private Intersection *isect)
 {
@@ -235,14 +245,14 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
       float3 idir;
 #  if defined(__METALRT_MOTION__)
-      bvh_instance_motion_push(NULL, object, ray, &r.origin, &r.direction, &idir);
+      bvh_instance_motion_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
 #  else
-      bvh_instance_push(NULL, object, ray, &r.origin, &r.direction, &idir);
+      bvh_instance_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
 #  endif
     }
 
     if (prim_type & PRIMITIVE_POINT) {
-      if (!point_intersect(NULL,
+      if (!point_intersect(nullptr,
                            isect,
                            r.origin,
                            r.direction,
@@ -268,7 +278,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 }
 
 ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  const uint visibility)
 {
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
@@ -305,11 +315,11 @@ ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
 #ifdef __BVH_LOCAL__
 template<bool single_hit = false>
 ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
-                                                ccl_private const Ray *ray,
+                                                const ccl_private Ray *ray,
                                                 ccl_private LocalIntersection *local_isect,
-                                                int local_object,
+                                                const int local_object,
                                                 ccl_private uint *lcg_state,
-                                                int max_hits)
+                                                const int max_hits)
 {
   uint primitive_id_offset = kernel_data_fetch(object_prim_offset, local_object);
 
@@ -454,9 +464,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #ifdef __SHADOW_RECORD_ALL__
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
-                                                     ccl_private const Ray *ray,
-                                                     uint visibility,
-                                                     uint max_hits,
+                                                     const ccl_private Ray *ray,
+                                                     const uint visibility,
+                                                     const uint max_hits,
                                                      ccl_private uint *num_recorded_hits,
                                                      ccl_private float *throughput)
 {
@@ -502,7 +512,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 
 #ifdef __VOLUME__
 ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  ccl_private Intersection *isect,
                                                  const uint visibility)
 {

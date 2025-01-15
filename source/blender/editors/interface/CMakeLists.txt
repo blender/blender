@@ -6,22 +6,9 @@ set(INC
   .
   ../asset
   ../include
-  ../../asset_system
-  ../../blenkernel
-  ../../blenloader
-  ../../blentranslation
-  ../../draw
-  ../../functions
-  ../../gpu
-  ../../imbuf
-  ../../imbuf/movie
   ../../makesrna
-  ../../nodes
   ../../python
-  ../../render
-  ../../windowmanager
   ../../../../intern/ghost
-  ../../bmesh
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -71,23 +58,45 @@ set(SRC
   templates/interface_template_asset_view.cc
   templates/interface_template_attribute_search.cc
   templates/interface_template_bone_collection_tree.cc
+  templates/interface_template_cache_file.cc
+  templates/interface_template_color_management.cc
+  templates/interface_template_color_picker.cc
+  templates/interface_template_color_ramp.cc
+  templates/interface_template_component_menu.cc
+  templates/interface_template_constraint.cc
+  templates/interface_template_curve_mapping.cc
+  templates/interface_template_curve_profile.cc
+  templates/interface_template_event.cc
   templates/interface_template_grease_pencil_layer_tree.cc
+  templates/interface_template_icon.cc
+  templates/interface_template_id.cc
+  templates/interface_template_keymap.cc
+  templates/interface_template_layers.cc
   templates/interface_template_light_linking.cc
   templates/interface_template_list.cc
+  templates/interface_template_modifiers.cc
   templates/interface_template_node_inputs.cc
   templates/interface_template_node_tree_interface.cc
+  templates/interface_template_operator_property.cc
+  templates/interface_template_preview.cc
+  templates/interface_template_recent_files.cc
+  templates/interface_template_running_jobs.cc
+  templates/interface_template_scopes.cc
+  templates/interface_template_search.cc
   templates/interface_template_search_menu.cc
   templates/interface_template_search_operator.cc
+  templates/interface_template_shader_fx.cc
+  templates/interface_template_status.cc
   templates/interface_templates.cc
   interface_undo.cc
   interface_utils.cc
   interface_widgets.cc
   resources.cc
-  view2d.cc
-  view2d_draw.cc
-  view2d_edge_pan.cc
-  view2d_gizmo_navigate.cc
-  view2d_ops.cc
+  view2d/view2d.cc
+  view2d/view2d_draw.cc
+  view2d/view2d_edge_pan.cc
+  view2d/view2d_gizmo_navigate.cc
+  view2d/view2d_ops.cc
   views/abstract_view.cc
   views/abstract_view_item.cc
   views/grid_view.cc
@@ -95,22 +104,35 @@ set(SRC
   views/tree_view.cc
 
   eyedroppers/eyedropper_intern.hh
+  templates/interface_templates_intern.hh
   interface_intern.hh
   regions/interface_regions_intern.hh
-  view2d_intern.hh
+  view2d/view2d_intern.hh
 )
 
 set(LIB
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
+  PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   bf_editor_datafiles
   bf_editor_id_management
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::functions
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
+  PRIVATE bf::nodes
+  PRIVATE bf::render
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_INTERNATIONAL)

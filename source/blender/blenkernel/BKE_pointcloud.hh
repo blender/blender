@@ -9,8 +9,6 @@
  * \brief General operations for point clouds.
  */
 
-#include <mutex>
-
 #include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"

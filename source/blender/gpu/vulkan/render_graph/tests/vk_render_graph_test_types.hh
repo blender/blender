@@ -30,7 +30,14 @@ class CommandBufferLog : public VKCommandBufferInterface {
   bool is_cpu_synchronizing_ = false;
 
  public:
-  CommandBufferLog(Vector<std::string> &log) : log_(log) {}
+  CommandBufferLog(Vector<std::string> &log,
+                   bool use_dynamic_rendering_ = true,
+                   bool use_dynamic_rendering_local_read_ = true)
+      : log_(log)
+  {
+    use_dynamic_rendering = use_dynamic_rendering_;
+    use_dynamic_rendering_local_read = use_dynamic_rendering_local_read_;
+  }
   virtual ~CommandBufferLog() {}
 
   void begin_recording() override
@@ -466,6 +473,59 @@ class CommandBufferLog : public VKCommandBufferInterface {
   }
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT * /*vk_debug_utils_label*/) override {}
   void end_debug_utils_label() override {}
+};
+
+class VKRenderGraphTest : public ::testing::Test {
+ public:
+  VKRenderGraphTest()
+  {
+    resources.use_dynamic_rendering = use_dynamic_rendering;
+    resources.use_dynamic_rendering_local_read = use_dynamic_rendering_local_read;
+    render_graph = std::make_unique<VKRenderGraph>(
+        std::make_unique<CommandBufferLog>(
+            log, use_dynamic_rendering, use_dynamic_rendering_local_read),
+        resources);
+  }
+
+ protected:
+  Vector<std::string> log;
+  VKResourceStateTracker resources;
+  std::unique_ptr<VKRenderGraph> render_graph;
+  bool use_dynamic_rendering = true;
+  bool use_dynamic_rendering_local_read = true;
+};
+
+class VKRenderGraphTest_P : public ::testing::TestWithParam<std::tuple<bool, bool>> {
+ public:
+  VKRenderGraphTest_P()
+  {
+    use_dynamic_rendering = std::get<0>(GetParam());
+    use_dynamic_rendering_local_read = std::get<1>(GetParam());
+    resources.use_dynamic_rendering = use_dynamic_rendering;
+    resources.use_dynamic_rendering_local_read = use_dynamic_rendering_local_read;
+    render_graph = std::make_unique<VKRenderGraph>(
+        std::make_unique<CommandBufferLog>(
+            log, use_dynamic_rendering, use_dynamic_rendering_local_read),
+        resources);
+  }
+
+ protected:
+  VkImageLayout color_attachment_layout() const
+  {
+    return use_dynamic_rendering_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  }
+  std::string color_attachment_layout_str() const
+  {
+    return use_dynamic_rendering_local_read ? "VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR" :
+                                              "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL";
+  }
+
+  Vector<std::string> log;
+  VKResourceStateTracker resources;
+  std::unique_ptr<VKRenderGraph> render_graph;
+  bool use_dynamic_rendering = true;
+  bool use_dynamic_rendering_local_read = true;
 };
 
 /**

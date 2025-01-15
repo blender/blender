@@ -4,6 +4,15 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/bvh/bvh.h"
+
+#include "kernel/integrator/state.h"
+#include "kernel/integrator/state_flow.h"
+#include "kernel/integrator/state_util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Visibility for the shadow ray. */
@@ -22,7 +31,7 @@ ccl_device_forceinline uint integrate_intersect_shadow_visibility(KernelGlobals 
 
 ccl_device bool integrate_intersect_shadow_opaque(KernelGlobals kg,
                                                   IntegratorShadowState state,
-                                                  ccl_private const Ray *ray,
+                                                  const ccl_private Ray *ray,
                                                   const uint visibility)
 {
   /* Mask which will pick only opaque visibility bits from the `visibility`.
@@ -60,12 +69,13 @@ ccl_device int shadow_intersections_compare(const void *a, const void *b)
   const Intersection *isect_a = (const Intersection *)a;
   const Intersection *isect_b = (const Intersection *)b;
 
-  if (isect_a->t < isect_b->t)
+  if (isect_a->t < isect_b->t) {
     return -1;
-  else if (isect_a->t > isect_b->t)
+  }
+  if (isect_a->t > isect_b->t) {
     return 1;
-  else
-    return 0;
+  }
+  return 0;
 }
 #  endif
 
@@ -101,7 +111,7 @@ ccl_device_inline void sort_shadow_intersections(IntegratorShadowState state, ui
 
 ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
                                                        IntegratorShadowState state,
-                                                       ccl_private const Ray *ray,
+                                                       const ccl_private Ray *ray,
                                                        const uint visibility)
 {
   /* Limit the number hits to the max transparent bounces allowed and the size that we
@@ -124,7 +134,8 @@ ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
   }
 
   if (!opaque_hit) {
-    const uint num_recorded_hits = min(num_hits, min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE));
+    const uint num_recorded_hits = min(num_hits,
+                                       min(max_hits, (uint)INTEGRATOR_SHADOW_ISECT_SIZE));
 
     if (num_recorded_hits > 0) {
       sort_shadow_intersections(state, num_recorded_hits);
@@ -166,18 +177,14 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
     integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
-  else {
-    /* Hit nothing or transparent surfaces, continue to shadow kernel
-     * for shading and render buffer output.
-     *
-     * TODO: could also write to render buffer directly if no transparent shadows?
-     * Could save a kernel execution for the common case. */
-    integrator_shadow_path_next(kg,
-                                state,
-                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW,
-                                DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
-    return;
-  }
+
+  /* Hit nothing or transparent surfaces, continue to shadow kernel
+   * for shading and render buffer output.
+   *
+   * TODO: could also write to render buffer directly if no transparent shadows?
+   * Could save a kernel execution for the common case. */
+  integrator_shadow_path_next(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
 }
 
 CCL_NAMESPACE_END

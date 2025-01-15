@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_particle.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

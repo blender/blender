@@ -225,7 +225,7 @@ static void Bend(TransInfo *t)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN * 2];
 
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
 
     SNPRINTF(str,
              IFACE_("Bend Angle: %s, Radius: %s, Alt: Clamp %s"),

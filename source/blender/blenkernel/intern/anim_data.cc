@@ -381,14 +381,14 @@ AnimData *BKE_animdata_copy_in_lib(Main *bmain,
         BKE_id_copy_in_lib(bmain,
                            owner_library,
                            reinterpret_cast<ID *>(dadt->action),
-                           nullptr,
+                           std::nullopt,
                            nullptr,
                            id_copy_flag));
     dadt->tmpact = reinterpret_cast<bAction *>(
         BKE_id_copy_in_lib(bmain,
                            owner_library,
                            reinterpret_cast<ID *>(dadt->tmpact),
-                           nullptr,
+                           std::nullopt,
                            nullptr,
                            id_copy_flag));
   }

@@ -4,23 +4,14 @@
 
 
 set(INC
-  .
+  PUBLIC .
   intern
-  ../blenkernel
-  ../blentranslation
   ../compositor
   ../compositor/cached_resources
-  ../draw
   ../draw/intern
-  ../gpu
   ../gpu/intern
-  ../imbuf
-  ../imbuf/movie
   ../makesrna
-  ../nodes
-  ../sequencer
   ../simulation
-  ../windowmanager
   ../../../intern/mikktspace
   ../../../intern/mantaflow/extern
 )
@@ -61,13 +52,22 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::intern::atomic
+  PRIVATE bf::nodes
+  PRIVATE bf::sequencer
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)
@@ -99,3 +99,4 @@ if(WITH_HYDRA)
 endif()
 
 blender_add_lib_nolist(bf_render "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::render ALIAS bf_render)

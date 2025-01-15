@@ -8,12 +8,10 @@
  */
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
-
-#include "BLI_rect.h"
 
 #include <optional>
 
+struct rcti;
 struct Depsgraph;
 struct GPUTexture;
 struct ID;

@@ -8,7 +8,6 @@
 
 #include <array>
 #include <cstdlib>
-#include <iostream>
 
 #include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
@@ -24,6 +23,7 @@
 #include "BKE_context.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_workspace.hh"
@@ -46,8 +46,6 @@
 #include "UI_view2d.hh"
 
 #include "DEG_depsgraph.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "node_intern.hh" /* own include */
 
@@ -129,7 +127,7 @@ static bool node_frame_select_isect_mouse(const SpaceNode &snode,
 static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse)
 {
   for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
-    switch (node->type) {
+    switch (node->type_legacy) {
       case NODE_FRAME: {
         if (node_frame_select_isect_mouse(snode, *node, mouse)) {
           return node;
@@ -328,7 +326,7 @@ static bool node_select_grouped_type(bNodeTree &node_tree, bNode &node_act)
   bool changed = false;
   for (bNode *node : node_tree.all_nodes()) {
     if ((node->flag & SELECT) == 0) {
-      if (node->type == node_act.type) {
+      if (node->type_legacy == node_act.type_legacy) {
         bke::node_set_selected(node, true);
         changed = true;
       }
@@ -654,10 +652,11 @@ static bool node_mouse_select(bContext *C,
   bool active_texture_changed = false;
   bool viewer_node_changed = false;
   if ((node != nullptr) && (node_was_selected == false || params->select_passthrough == false)) {
-    viewer_node_changed = (node->flag & NODE_DO_OUTPUT) == 0 && node->type == GEO_NODE_VIEWER;
+    viewer_node_changed = (node->flag & NODE_DO_OUTPUT) == 0 &&
+                          node->type_legacy == GEO_NODE_VIEWER;
     ED_node_set_active(&bmain, &snode, snode.edittree, node, &active_texture_changed);
   }
-  else if (node != nullptr && node->type == GEO_NODE_VIEWER) {
+  else if (node != nullptr && node->type_legacy == GEO_NODE_VIEWER) {
     viewer_path::activate_geometry_node(bmain, snode, *node);
   }
   ED_node_set_active_viewer_key(&snode);
@@ -769,7 +768,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
   for (bNode *node : node_tree.all_nodes()) {
     bool is_inside = false;
 
-    switch (node->type) {
+    switch (node->type_legacy) {
       case NODE_FRAME: {
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
          * nodes - would prevent selection of other nodes inside that frame. */
@@ -873,7 +872,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
   UI_view2d_region_to_view(&region->v2d, x, y, &offset.x, &offset.y);
 
   for (bNode *node : node_tree.all_nodes()) {
-    switch (node->type) {
+    switch (node->type_legacy) {
       case NODE_FRAME: {
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
          * nodes - would prevent selection of _only_ other nodes inside that frame. */
@@ -964,7 +963,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
       continue;
     }
 
-    switch (node->type) {
+    switch (node->type_legacy) {
       case NODE_FRAME: {
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
          * nodes - would prevent selection of other nodes inside that frame. */
@@ -1230,7 +1229,7 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 
 static bool nodes_are_same_type_for_select(const bNode &a, const bNode &b)
 {
-  return a.type == b.type;
+  return a.type_legacy == b.type_legacy;
 }
 
 static int node_select_same_type_step_exec(bContext *C, wmOperator *op)

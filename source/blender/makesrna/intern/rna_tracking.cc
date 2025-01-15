@@ -507,7 +507,7 @@ static void rna_tracking_flushUpdate(Main *bmain, Scene * /*scene*/, PointerRNA 
   MovieClip *clip = (MovieClip *)ptr->owner_id;
 
   BKE_ntree_update_tag_id_changed(bmain, &clip->id);
-  BKE_ntree_update_main(bmain, nullptr);
+  BKE_ntree_update(*bmain);
 
   WM_main_add_notifier(NC_SCENE | ND_NODES, nullptr);
   WM_main_add_notifier(NC_SCENE, nullptr);

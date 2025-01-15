@@ -5,8 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_PARAMS_H__
-#define __BVH_PARAMS_H__
+#pragma once
 
 #include "util/boundbox.h"
 #include "util/vector.h"
@@ -20,7 +19,7 @@ CCL_NAMESPACE_BEGIN
  * For example, how wide BVH tree is, in terms of number of children
  * per node.
  */
-typedef KernelBVHLayout BVHLayout;
+using BVHLayout = KernelBVHLayout;
 
 /* Type of BVH, in terms whether it is supported dynamic updates of meshes
  * or whether modifying geometry requires full BVH rebuild.
@@ -48,7 +47,7 @@ enum BVHType {
  *
  * Bit-flags are the BVH_LAYOUT_* values.
  */
-typedef int BVHLayoutMask;
+using BVHLayoutMask = int;
 
 /* Get human readable name of BVH layout. */
 const char *bvh_layout_name(BVHLayout layout);
@@ -146,22 +145,22 @@ class BVHParams {
   }
 
   /* SAH costs */
-  __forceinline float cost(int num_nodes, int num_primitives) const
+  __forceinline float cost(const int num_nodes, const int num_primitives) const
   {
     return node_cost(num_nodes) + primitive_cost(num_primitives);
   }
 
-  __forceinline float primitive_cost(int n) const
+  __forceinline float primitive_cost(const int n) const
   {
     return n * sah_primitive_cost;
   }
 
-  __forceinline float node_cost(int n) const
+  __forceinline float node_cost(const int n) const
   {
     return n * sah_node_cost;
   }
 
-  __forceinline bool small_enough_for_leaf(int size, int level)
+  __forceinline bool small_enough_for_leaf(const int size, const int level)
   {
     return (size <= min_leaf_size || level >= MAX_DEPTH);
   }
@@ -187,12 +186,12 @@ class BVHParams {
 
 class BVHReference {
  public:
-  __forceinline BVHReference() {}
+  __forceinline BVHReference() = default;
 
   __forceinline BVHReference(const BoundBox &bounds_,
-                             int prim_index_,
-                             int prim_object_,
-                             int prim_type,
+                             const int prim_index_,
+                             const int prim_object_,
+                             const int prim_type,
                              float time_from = 0.0f,
                              float time_to = 1.0f)
       : rbounds(bounds_), time_from_(time_from), time_to_(time_to)
@@ -227,16 +226,7 @@ class BVHReference {
     return time_to_;
   }
 
-  BVHReference &operator=(const BVHReference &arg)
-  {
-    if (&arg != this) {
-      /* TODO(sergey): Check if it is still faster to memcpy() with
-       * modern compilers.
-       */
-      memcpy((void *)this, &arg, sizeof(BVHReference));
-    }
-    return *this;
-  }
+  BVHReference &operator=(const BVHReference &arg) = default;
 
  protected:
   BoundBox rbounds;
@@ -271,7 +261,7 @@ class BVHRange {
     rbounds.max.w = __int_as_float(size_);
   }
 
-  __forceinline void set_start(int start_)
+  __forceinline void set_start(const int start_)
   {
     rbounds.min.w = __int_as_float(start_);
   }
@@ -309,7 +299,7 @@ struct BVHSpatialBin {
   int enter;
   int exit;
 
-  __forceinline BVHSpatialBin() {}
+  __forceinline BVHSpatialBin() = default;
 };
 
 /* BVH Spatial Storage
@@ -333,5 +323,3 @@ struct BVHSpatialStorage {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_PARAMS_H__ */

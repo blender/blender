@@ -2036,9 +2036,10 @@ class _defs_weight_paint:
         if context is None:
             return VIEW3D_PT_tools_active._tools_select
         ob = context.active_object
-        if (ob and ob.type == 'MESH' and
-            (ob.data.use_paint_mask or
-             ob.data.use_paint_mask_vertex)):
+        if (
+                ob and ob.type == 'MESH' and
+                (ob.data.use_paint_mask or ob.data.use_paint_mask_vertex)
+        ):
             return VIEW3D_PT_tools_active._tools_select
         elif context.pose_object:
             return VIEW3D_PT_tools_active._tools_select

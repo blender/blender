@@ -19,7 +19,7 @@ namespace blender::io::usd {
  *
  * See: https://openusd.org/23.05/api/class_usd_skel_root.html#details
  *
- * This function attempts to ensure that skinned prims and skeletons are encapsulated
+ * This function attempts to ensure that skinned primitives and skeletons are encapsulated
  * under SkelRoots, converting existing Xform primitives to SkelRoots to achieve this,
  * if possible.  In the case where no common ancestor which can be converted to a SkelRoot
  * is found, this function issues a warning.  One way to address such a case is by setting a

@@ -2,19 +2,16 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_SESSION_H__
-#define __BLENDER_SESSION_H__
-
-#include "MEM_guardedalloc.h"
+#pragma once
 
 #include "RNA_blender_cpp.hh"
 
 #include "device/device.h"
 
-#include "scene/bake.h"
 #include "scene/scene.h"
 #include "session/session.h"
 
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -37,7 +34,7 @@ class BlenderSession {
                  BL::BlendData &b_data,
                  BL::SpaceView3D &b_v3d,
                  BL::RegionView3D &b_rv3d,
-                 int width,
+                 const int width,
                  int height);
 
   ~BlenderSession();
@@ -53,10 +50,10 @@ class BlenderSession {
 
   void render_frame_finish();
 
-  void bake(BL::Depsgraph &b_depsgrah,
+  void bake(BL::Depsgraph &b_depsgraph_,
             BL::Object &b_object,
-            const string &pass_type,
-            const int custom_flag,
+            const string &bake_type,
+            const int bake_filter,
             const int bake_width,
             const int bake_height);
 
@@ -66,7 +63,7 @@ class BlenderSession {
 
   /* drawing */
   void draw(BL::SpaceImageEditor &space_image);
-  void view_draw(int w, int h);
+  void view_draw(const int w, const int h);
   void tag_redraw();
   void tag_update();
   void get_status(string &status, string &substatus);
@@ -76,9 +73,9 @@ class BlenderSession {
   void update_bake_progress();
 
   bool background;
-  Session *session;
+  unique_ptr<Session> session;
   Scene *scene;
-  BlenderSync *sync;
+  unique_ptr<BlenderSync> sync;
   double last_redraw_time;
 
   BL::RenderEngine b_engine;
@@ -152,5 +149,3 @@ class BlenderSession {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_SESSION_H__ */

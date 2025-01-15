@@ -1656,7 +1656,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
   /* #Object.id.name to select (dynamic enum). */
   prop = RNA_def_enum(ot->srna, "name", rna_enum_dummy_NULL_items, 0, "Object Name", "");
   RNA_def_enum_funcs(prop, object_select_menu_enum_itemf);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
 
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "");
@@ -1870,7 +1870,7 @@ void VIEW3D_OT_bone_select_menu(wmOperatorType *ot)
   /* #Object.id.name to select (dynamic enum). */
   prop = RNA_def_enum(ot->srna, "name", rna_enum_dummy_NULL_items, 0, "Bone Name", "");
   RNA_def_enum_funcs(prop, object_select_menu_enum_itemf);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
 
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "");

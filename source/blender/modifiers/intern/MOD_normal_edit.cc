@@ -15,6 +15,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "BLT_translation.hh"
 
@@ -45,7 +46,7 @@ static void generate_vert_coordinates(Mesh *mesh,
                                       const float offset[3],
                                       const int verts_num,
                                       float (*r_cos)[3],
-                                      float r_size[3])
+                                      blender::float3 *r_size)
 {
   using namespace blender;
   float min_co[3], max_co[3];
@@ -71,21 +72,21 @@ static void generate_vert_coordinates(Mesh *mesh,
 
       /* Not we are not interested in signs here - they are even troublesome actually,
        * due to security clamping! */
-      abs_v3_v3(r_size, ob_center->scale);
+      *r_size = blender::math::abs(blender::float3(ob_center->scale));
     }
     else {
       /* Set size. */
-      sub_v3_v3v3(r_size, max_co, min_co);
+      sub_v3_v3v3(*r_size, max_co, min_co);
     }
 
     /* Error checks - we do not want one or more of our sizes to be null! */
-    if (is_zero_v3(r_size)) {
-      r_size[0] = r_size[1] = r_size[2] = 1.0f;
+    if (is_zero_v3(*r_size)) {
+      *r_size = float3(1.0f);
     }
     else {
-      CLAMP_MIN(r_size[0], FLT_EPSILON);
-      CLAMP_MIN(r_size[1], FLT_EPSILON);
-      CLAMP_MIN(r_size[2], FLT_EPSILON);
+      CLAMP_MIN((*r_size)[0], FLT_EPSILON);
+      CLAMP_MIN((*r_size)[1], FLT_EPSILON);
+      CLAMP_MIN((*r_size)[2], FLT_EPSILON);
     }
   }
 
@@ -236,11 +237,11 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   float(*cos)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(size_t(vert_positions.size()), sizeof(*cos), __func__));
   blender::Array<blender::float3> nos(corner_verts.size());
-  float size[3];
+  float3 size;
 
   BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(vert_positions.size()), __func__);
 
-  generate_vert_coordinates(mesh, ob, ob_target, enmd->offset, vert_positions.size(), cos, size);
+  generate_vert_coordinates(mesh, ob, ob_target, enmd->offset, vert_positions.size(), cos, &size);
 
   /**
    * size gives us our spheroid coefficients `(A, B, C)`.

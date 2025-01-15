@@ -8,6 +8,10 @@
 
 #pragma once
 
+struct Mesh;
+struct ModifierData;
+struct ModifierEvalContext;
+
 /* MOD_solidify_extrude.cc */
 
 Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md,

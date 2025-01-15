@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
-#include <iostream>
 #include <random>
 
 #include "GEO_randomize.hh"
@@ -12,8 +11,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"

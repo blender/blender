@@ -8,6 +8,8 @@
 
 #pragma once
 
+struct wmOperatorType;
+
 /* `editlattice_select.cc` */
 
 void LATTICE_OT_select_all(wmOperatorType *ot);

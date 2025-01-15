@@ -153,16 +153,29 @@ class Relations : Overlay {
             for (bConstraintTarget *target : ListBaseWrapper<bConstraintTarget>(targets)) {
               /* Calculate target's position. */
               float3 target_pos = float3(0.0f);
+              bool has_target = false;
               if (target->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
                 target_pos = cob->space_obj_world_matrix[3];
+                has_target = true;
               }
-              else if (cti->get_target_matrix) {
-                cti->get_target_matrix(
-                    state.depsgraph, constraint, cob, target, DEG_get_ctime(state.depsgraph));
+              else if (cti->get_target_matrix &&
+                       cti->get_target_matrix(state.depsgraph,
+                                              constraint,
+                                              cob,
+                                              target,
+                                              DEG_get_ctime(state.depsgraph)))
+              {
+                has_target = true;
                 target_pos = target->matrix[3];
               }
-              relations_buf_.append(
-                  target_pos, ob->object_to_world().location(), constraint_color);
+
+              if (has_target) {
+                /* Only draw this relationship line when there is actually a target. Otherwise it
+                 * would always draw to the world origin, which is visually rather noisy and not
+                 * that useful. */
+                relations_buf_.append(
+                    target_pos, ob->object_to_world().location(), constraint_color);
+              }
             }
 
             BKE_constraint_targets_flush(constraint, &targets, true);

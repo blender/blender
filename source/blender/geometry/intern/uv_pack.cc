@@ -14,7 +14,6 @@
 #include "BLI_bounds.hh"
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
-#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -23,9 +22,6 @@
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
-
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 

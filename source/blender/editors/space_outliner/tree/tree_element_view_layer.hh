@@ -10,6 +10,9 @@
 
 #include "tree_element.hh"
 
+struct Scene;
+struct ViewLayer;
+
 namespace blender::ed::outliner {
 
 class TreeElementViewLayerBase final : public AbstractTreeElement {

@@ -376,19 +376,12 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                                    const ModifierEvalContext *ctx,
                                    Mesh *mesh)
 {
+  /* NOTE(@ideasman4): the `mesh` may be empty, the following code must account for this,
+   * merging start/end caps into the empty mesh. Avoid an early return here as it can cause
+   * problems if the expected custom-data layers don't exist in the resulting mesh,
+   * see: #107353, #132991. */
+
   using namespace blender;
-  if (mesh->verts_num == 0) {
-    /* Output just the start cap even if the mesh is empty. */
-    Object *start_cap_ob = amd->start_cap;
-    if (start_cap_ob && start_cap_ob != ctx->object) {
-      Mesh *start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
-      if (start_cap_mesh) {
-        BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
-        return BKE_mesh_copy_for_eval(*start_cap_mesh);
-      }
-    }
-    return mesh;
-  }
 
   int2 *edge;
   int i, j, c, count;
@@ -609,39 +602,46 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
         &mesh->corner_data, &result->corner_data, 0, c * chunk_nloops, chunk_nloops);
     CustomData_copy_data(&mesh->face_data, &result->face_data, 0, c * chunk_nfaces, chunk_nfaces);
 
-    const int vert_offset = c * chunk_nverts;
-
     /* recalculate cumulative offset here */
     mul_m4_m4m4(current_offset, current_offset, offset);
 
-    /* apply offset to all new verts */
-    for (i = 0; i < chunk_nverts; i++) {
-      const int i_dst = vert_offset + i;
-      mul_m4_v3(current_offset, result_positions[i_dst]);
+    if (chunk_nverts) {
+      /* Apply offset to all new verts. */
+      const int vert_offset = c * chunk_nverts;
+      for (i = 0; i < chunk_nverts; i++) {
+        const int i_dst = vert_offset + i;
+        mul_m4_v3(current_offset, result_positions[i_dst]);
 
-      /* We have to correct normals too, if we do not tag them as dirty! */
-      if (!dst_vert_normals.is_empty()) {
-        copy_v3_v3(dst_vert_normals[i_dst], src_vert_normals[i]);
-        mul_mat3_m4_v3(current_offset, dst_vert_normals[i_dst]);
-        normalize_v3(dst_vert_normals[i_dst]);
+        /* We have to correct normals too, if we do not tag them as dirty! */
+        if (!dst_vert_normals.is_empty()) {
+          copy_v3_v3(dst_vert_normals[i_dst], src_vert_normals[i]);
+          mul_mat3_m4_v3(current_offset, dst_vert_normals[i_dst]);
+          normalize_v3(dst_vert_normals[i_dst]);
+        }
       }
     }
 
-    /* adjust edge vertex indices */
-    edge = &result_edges[c * chunk_nedges];
-    for (i = 0; i < chunk_nedges; i++, edge++) {
-      (*edge) += c * chunk_nverts;
+    if (chunk_nedges) {
+      /* Adjust edge vertex indices. */
+      edge = &result_edges[c * chunk_nedges];
+      for (i = 0; i < chunk_nedges; i++, edge++) {
+        (*edge) += c * chunk_nverts;
+      }
     }
 
-    for (i = 0; i < chunk_nfaces; i++) {
-      result_face_offsets[c * chunk_nfaces + i] = result_face_offsets[i] + c * chunk_nloops;
+    if (chunk_nfaces) {
+      for (i = 0; i < chunk_nfaces; i++) {
+        result_face_offsets[c * chunk_nfaces + i] = result_face_offsets[i] + c * chunk_nloops;
+      }
     }
 
-    /* adjust loop vertex and edge indices */
-    const int chunk_corner_start = c * chunk_nloops;
-    for (i = 0; i < chunk_nloops; i++) {
-      result_corner_verts[chunk_corner_start + i] += c * chunk_nverts;
-      result_corner_edges[chunk_corner_start + i] += c * chunk_nedges;
+    if (chunk_nloops) {
+      /* Adjust loop vertex and edge indices. */
+      const int chunk_corner_start = c * chunk_nloops;
+      for (i = 0; i < chunk_nloops; i++) {
+        result_corner_verts[chunk_corner_start + i] += c * chunk_nverts;
+        result_corner_edges[chunk_corner_start + i] += c * chunk_nedges;
+      }
     }
 
     /* Handle merge between chunk n and n-1 */

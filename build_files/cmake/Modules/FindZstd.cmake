@@ -44,13 +44,13 @@ find_library(ZSTD_LIBRARY
     ${_zstd_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set ZSTD_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Zstd DEFAULT_MSG
-    ZSTD_LIBRARY ZSTD_INCLUDE_DIR)
+  ZSTD_LIBRARY ZSTD_INCLUDE_DIR)
 
 if(ZSTD_FOUND)
   set(ZSTD_LIBRARIES ${ZSTD_LIBRARY})

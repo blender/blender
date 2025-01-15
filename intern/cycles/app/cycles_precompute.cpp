@@ -2,29 +2,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "util/math.h"
+#include <map>
+
 #include "util/string.h"
-#include "util/system.h"
 
 #include "util/array.h"
 #include "util/hash.h"
-#include "util/task.h"
-
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
-
-#include "kernel/sample/lcg.h"
-#include "kernel/sample/mapping.h"
-
-#include "kernel/util/color.h"
+#include "util/tbb.h"
 
 #include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/sample/sobol_burley.h"
 
 #include <iostream>
 
 CCL_NAMESPACE_BEGIN
 
-static float precompute_ggx_E(float rough, float mu, float3 rand)
+static float precompute_ggx_E(const float rough, const float mu, const float3 rand)
 {
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
@@ -38,9 +31,11 @@ static float precompute_ggx_E(float rough, float mu, float3 rand)
 
   float3 omega_in;
   Spectrum eval;
-  float pdf = 0.0f, sampled_eta;
+  float pdf = 0.0f;
+  float sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
+  bsdf_microfacet_ggx_sample(nullptr,
+                             (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,
@@ -55,7 +50,10 @@ static float precompute_ggx_E(float rough, float mu, float3 rand)
   return 0.0f;
 }
 
-static float precompute_ggx_glass_E(float rough, float mu, float eta, float3 rand)
+static float precompute_ggx_glass_E(const float rough,
+                                    const float mu,
+                                    const float eta,
+                                    const float3 rand)
 {
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
@@ -69,9 +67,11 @@ static float precompute_ggx_glass_E(float rough, float mu, float eta, float3 ran
 
   float3 omega_in;
   Spectrum eval;
-  float pdf = 0.0f, sampled_eta;
+  float pdf = 0.0f;
+  float sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
+  bsdf_microfacet_ggx_sample(nullptr,
+                             (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,
@@ -87,7 +87,7 @@ static float precompute_ggx_glass_E(float rough, float mu, float eta, float3 ran
 }
 
 static float precompute_ggx_gen_schlick_s(
-    float rough, float mu, float eta, float exponent, float3 rand)
+    const float rough, const float mu, const float eta, const float exponent, const float3 rand)
 {
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
@@ -111,9 +111,11 @@ static float precompute_ggx_gen_schlick_s(
 
   float3 omega_in;
   Spectrum eval;
-  float pdf = 0.0f, sampled_eta;
+  float pdf = 0.0f;
+  float sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
+  bsdf_microfacet_ggx_sample(nullptr,
+                             (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,
@@ -130,7 +132,7 @@ static float precompute_ggx_gen_schlick_s(
   return 0.0f;
 }
 
-inline float ior_parametrization(float z)
+inline float ior_parametrization(const float z)
 {
   /* This parametrization ensures that the entire [1..inf] range of IORs is covered
    * and that most precision is allocated to the common areas (1-2). */
@@ -147,57 +149,74 @@ static bool cycles_precompute(std::string name)
 {
   std::map<string, PrecomputeTerm> precompute_terms;
   /* Overall albedo of the GGX microfacet BRDF, depending on cosI and roughness. */
-  precompute_terms["ggx_E"] = {1 << 23, 32, 32, 1, [](float rough, float mu, float, float3 rand) {
-                                 return precompute_ggx_E(rough, mu, rand);
-                               }};
+  precompute_terms["ggx_E"] = {
+      1 << 23, 32, 32, 1, [](const float rough, const float mu, float, const float3 rand) {
+        return precompute_ggx_E(rough, mu, rand);
+      }};
   /* Overall albedo of the GGX microfacet BRDF, averaged over cosI */
   precompute_terms["ggx_Eavg"] = {
-      1 << 26, 32, 1, 1, [](float rough, float mu, float, float3 rand) {
+      1 << 26, 32, 1, 1, [](const float rough, const float mu, float, const float3 rand) {
         return 2.0f * mu * precompute_ggx_E(rough, mu, rand);
       }};
   /* Overall albedo of the GGX microfacet BSDF with dielectric Fresnel,
    * depending on cosI and roughness, for IOR>1. */
   precompute_terms["ggx_glass_E"] = {
-      1 << 23, 16, 16, 16, [](float rough, float mu, float z, float3 rand) {
-        float ior = ior_parametrization(z);
+      1 << 23,
+      16,
+      16,
+      16,
+      [](const float rough, const float mu, const float z, const float3 rand) {
+        const float ior = ior_parametrization(z);
         return precompute_ggx_glass_E(rough, mu, ior, rand);
       }};
   /* Overall albedo of the GGX microfacet BSDF with dielectric Fresnel,
    * averaged over cosI, for IOR>1. */
   precompute_terms["ggx_glass_Eavg"] = {
-      1 << 26, 16, 1, 16, [](float rough, float mu, float z, float3 rand) {
-        float ior = ior_parametrization(z);
+      1 << 26, 16, 1, 16, [](const float rough, const float mu, const float z, const float3 rand) {
+        const float ior = ior_parametrization(z);
         return 2.0f * mu * precompute_ggx_glass_E(rough, mu, ior, rand);
       }};
   /* Overall albedo of the GGX microfacet BSDF with dielectric Fresnel,
    * depending on cosI and roughness, for IOR<1. */
   precompute_terms["ggx_glass_inv_E"] = {
-      1 << 23, 16, 16, 16, [](float rough, float mu, float z, float3 rand) {
-        float ior = ior_parametrization(z);
+      1 << 23,
+      16,
+      16,
+      16,
+      [](const float rough, const float mu, const float z, const float3 rand) {
+        const float ior = ior_parametrization(z);
         return precompute_ggx_glass_E(rough, mu, 1.0f / ior, rand);
       }};
   /* Overall albedo of the GGX microfacet BSDF with dielectric Fresnel,
    * averaged over cosI, for IOR<1. */
   precompute_terms["ggx_glass_inv_Eavg"] = {
-      1 << 26, 16, 1, 16, [](float rough, float mu, float z, float3 rand) {
-        float ior = ior_parametrization(z);
+      1 << 26, 16, 1, 16, [](const float rough, const float mu, const float z, const float3 rand) {
+        const float ior = ior_parametrization(z);
         return 2.0f * mu * precompute_ggx_glass_E(rough, mu, 1.0f / ior, rand);
       }};
 
   /* Interpolation factor between F0 and F90 for the generalized Schlick Fresnel,
    * depending on cosI and roughness, for IOR>1, using dielectric Fresnel mode. */
   precompute_terms["ggx_gen_schlick_ior_s"] = {
-      1 << 20, 16, 16, 16, [](float rough, float mu, float z, float3 rand) {
-        float ior = ior_parametrization(z);
+      1 << 20,
+      16,
+      16,
+      16,
+      [](const float rough, const float mu, const float z, const float3 rand) {
+        const float ior = ior_parametrization(z);
         return precompute_ggx_gen_schlick_s(rough, mu, ior, -1.0f, rand);
       }};
 
   /* Interpolation factor between F0 and F90 for the generalized Schlick Fresnel,
    * depending on cosI and roughness, for IOR>1. */
   precompute_terms["ggx_gen_schlick_s"] = {
-      1 << 20, 16, 16, 16, [](float rough, float mu, float z, float3 rand) {
+      1 << 20,
+      16,
+      16,
+      16,
+      [](const float rough, const float mu, const float z, const float3 rand) {
         /* Remap 0..1 to 0..inf, with 0.5 mapping to 5 (the default value). */
-        float exponent = 5.0f * ((1.0f - z) / z);
+        const float exponent = 5.0f * ((1.0f - z) / z);
         return precompute_ggx_gen_schlick_s(rough, mu, 1.0f, exponent, rand);
       }};
 
@@ -208,21 +227,24 @@ static bool cycles_precompute(std::string name)
   const PrecomputeTerm &term = precompute_terms[name];
 
   const int samples = term.samples;
-  const int nz = term.nz, ny = term.ny, nx = term.nx;
+  const int nz = term.nz;
+  const int ny = term.ny;
+  const int nx = term.nx;
 
   std::cout << "static const float table_" << name << "[" << nz * ny * nx << "] = {" << std::endl;
   for (int z = 0; z < nz; z++) {
     array<float> data(nx * ny);
     parallel_for(0, nx * ny, [&](int64_t i) {
-      int y = i / nx, x = i % nx;
-      uint seed = hash_uint2(x, y);
+      const int y = i / nx;
+      const int x = i % nx;
+      const uint seed = hash_uint2(x, y);
       double sum = 0.0;
       for (int sample = 0; sample < samples; sample++) {
-        float4 rand = sobol_burley_sample_4D(sample, 0, seed, 0xffffffff);
+        const float4 rand = sobol_burley_sample_4D(sample, 0, seed, 0xffffffff);
 
-        float rough = (nx == 1) ? 0.0f : clamp(float(x) / float(nx - 1), 1e-4f, 1.0f);
-        float mu = (ny == 1) ? rand.w : clamp(float(y) / float(ny - 1), 1e-4f, 1.0f);
-        float ior = (nz == 1) ? 0.0f : clamp(float(z) / float(nz - 1), 1e-4f, 0.99f);
+        const float rough = (nx == 1) ? 0.0f : clamp(float(x) / float(nx - 1), 1e-4f, 1.0f);
+        const float mu = (ny == 1) ? rand.w : clamp(float(y) / float(ny - 1), 1e-4f, 1.0f);
+        const float ior = (nz == 1) ? 0.0f : clamp(float(z) / float(nz - 1), 1e-4f, 0.99f);
 
         float value = term.evaluation(rough, mu, ior, make_float3(rand));
         if (isnan(value)) {
@@ -265,7 +287,7 @@ static bool cycles_precompute(std::string name)
 
 CCL_NAMESPACE_END
 
-int main(int argc, const char **argv)
+int main(const int argc, const char **argv)
 {
   if (argc < 2) {
     return 1;

@@ -17,7 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
 
@@ -28,7 +28,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_material_types.h"
@@ -39,7 +39,7 @@
 #include "ED_view3d.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_string.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"

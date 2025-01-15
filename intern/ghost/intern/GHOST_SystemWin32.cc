@@ -1258,6 +1258,19 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   GHOST_TKey key = system->hardKey(raw, &key_down);
   GHOST_EventKey *event;
 
+  /* Scan code (device-dependent identifier for the key on the keyboard) for the Alt key.
+   * https://learn.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input#scan-codes */
+  constexpr USHORT ALTGR_MAKE_CODE = 0x38;
+
+  /* If the keyboard layout includes AltGr and the virtual key is Control, yet the
+   * scan-code is actually for Right Alt (ALTGR_MAKE_CODE scan code with E0 prefix).
+   * Ignore these, so treating AltGR as regular Alt. #68256 */
+  if (system->m_hasAltGr && vk == VK_CONTROL && raw.data.keyboard.MakeCode == ALTGR_MAKE_CODE &&
+      (raw.data.keyboard.Flags & RI_KEY_E0))
+  {
+    return nullptr;
+  }
+
   /* NOTE(@ideasman42): key repeat in WIN32 also applies to modifier-keys.
    * Check for this case and filter out modifier-repeat.
    * Typically keyboard events are *not* filtered as part of GHOST's event handling.
@@ -1283,12 +1296,16 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     const BOOL has_state = GetKeyboardState((PBYTE)state);
     const bool ctrl_pressed = has_state && state[VK_CONTROL] & 0x80;
     const bool alt_pressed = has_state && state[VK_MENU] & 0x80;
+    const bool win_pressed = has_state && (state[VK_LWIN] | state[VK_RWIN]) & 0x80;
 
     /* We can be here with !key_down if processing dead keys (diacritics). See #103119. */
 
     /* No text with control key pressed (Alt can be used to insert special characters though!). */
     if (ctrl_pressed && !alt_pressed) {
       /* Pass. */
+    }
+    else if (win_pressed) {
+      /* Pass. No text if either Win key is pressed. #79702. */
     }
     /* Don't call #ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
      * composition. XXX: we are not checking return of MapVirtualKeyW for high bit set, which is

@@ -38,7 +38,7 @@ find_library(LIBHARFBUZZ_LIBRARY
     ${_harfbuzz_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set HARFBUZZ_FOUND to TRUE if
 # all listed variables are TRUE

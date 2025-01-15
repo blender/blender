@@ -33,6 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_screen.hh"
@@ -373,7 +374,7 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
     const Vector<const blender::bke::bNodeTreeZone *> zone_stack =
         tree_zones->get_zone_stack_for_node(group_node->identifier);
     for (const blender::bke::bNodeTreeZone *zone : zone_stack) {
-      switch (zone->output_node->type) {
+      switch (zone->output_node->type_legacy) {
         case GEO_NODE_SIMULATION_OUTPUT: {
           compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone->output_node);
           break;
@@ -403,7 +404,7 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
 
 static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
-  SpaceNode *snode = MEM_cnew<SpaceNode>("initnode");
+  SpaceNode *snode = MEM_cnew<SpaceNode>(__func__);
   snode->spacetype = SPACE_NODE;
 
   snode->flag = SNODE_SHOW_GPENCIL | SNODE_USE_ALPHA;
@@ -414,11 +415,10 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   snode->zoom = 1.0f;
 
   /* select the first tree type for valid type */
-  NODE_TREE_TYPES_BEGIN (treetype) {
-    STRNCPY(snode->tree_idname, treetype->idname);
+  for (const bke::bNodeTreeType *treetype : bke::node_tree_types_get()) {
+    STRNCPY(snode->tree_idname, treetype->idname.c_str());
     break;
   }
-  NODE_TREE_TYPES_END;
 
   /* header */
   ARegion *region = BKE_area_region_new();

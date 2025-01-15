@@ -34,8 +34,10 @@ void register_node_type_sh_npr_refraction()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_NPR_REFRACTION, "NPR Refraction", NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeNPR_Refraction", SH_NODE_NPR_REFRACTION);
   ntype.enum_name_legacy = "NPR_REFRACTION";
+  ntype.ui_name = "NPR Refraction";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = npr_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_fn;

@@ -47,47 +47,48 @@ struct SeqThumbInfo {
   bool is_muted;
 };
 
-static float thumb_calc_first_timeline_frame(const Sequence *seq,
+static float thumb_calc_first_timeline_frame(const Strip *strip,
                                              float left_handle,
                                              float frame_step,
                                              const rctf *view_area)
 {
-  int first_drawable_frame = max_iii(left_handle, seq->start, view_area->xmin);
+  int first_drawable_frame = max_iii(left_handle, strip->start, view_area->xmin);
 
   /* First frame should correspond to handle position. */
   if (first_drawable_frame == left_handle) {
     return left_handle;
   }
 
-  float aligned_frame_offset = int((first_drawable_frame - seq->start) / frame_step) * frame_step;
-  return seq->start + aligned_frame_offset;
+  float aligned_frame_offset = int((first_drawable_frame - strip->start) / frame_step) *
+                               frame_step;
+  return strip->start + aligned_frame_offset;
 }
 
-static float thumb_calc_next_timeline_frame(const Sequence *seq,
+static float thumb_calc_next_timeline_frame(const Strip *strip,
                                             float left_handle,
                                             float last_frame,
                                             float frame_step)
 {
   float next_frame = last_frame + frame_step;
 
-  /* If handle position was displayed, align next frame with `seq->start`. */
+  /* If handle position was displayed, align next frame with `strip->start`. */
   if (last_frame == left_handle) {
-    next_frame = seq->start + (int((last_frame - seq->start) / frame_step) + 1) * frame_step;
+    next_frame = strip->start + (int((last_frame - strip->start) / frame_step) + 1) * frame_step;
   }
 
   return next_frame;
 }
 
-static void seq_get_thumb_image_dimensions(const Sequence *seq,
-                                           float pixelx,
-                                           float pixely,
-                                           float *r_thumb_width,
-                                           float thumb_height,
-                                           float *r_image_width,
-                                           float *r_image_height)
+static void strip_get_thumb_image_dimensions(const Strip *strip,
+                                             float pixelx,
+                                             float pixely,
+                                             float *r_thumb_width,
+                                             float thumb_height,
+                                             float *r_image_width,
+                                             float *r_image_height)
 {
-  float image_width = seq->strip->stripdata->orig_width;
-  float image_height = seq->strip->stripdata->orig_height;
+  float image_width = strip->data->stripdata->orig_width;
+  float image_height = strip->data->stripdata->orig_height;
 
   /* Fix the dimensions to be max SEQ_THUMB_SIZE for x or y. */
   float aspect_ratio = image_width / image_height;
@@ -119,7 +120,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
                                      bool is_muted,
                                      Vector<SeqThumbInfo> &r_thumbs)
 {
-  if (!seq::strip_can_have_thumbnail(scene, strip.seq)) {
+  if (!seq::strip_can_have_thumbnail(scene, strip.strip)) {
     return;
   }
 
@@ -130,18 +131,18 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
   }
 
   float thumb_width, image_width, image_height;
-  seq_get_thumb_image_dimensions(
-      strip.seq, pixelx, pixely, &thumb_width, thumb_height, &image_width, &image_height);
+  strip_get_thumb_image_dimensions(
+      strip.strip, pixelx, pixely, &thumb_width, thumb_height, &image_width, &image_height);
 
   const float crop_x_multiplier = 1.0f / pixelx / (thumb_height / image_height / pixely);
 
   float upper_thumb_bound = min_ff(strip.right_handle, strip.content_end);
-  if (strip.seq->type == SEQ_TYPE_IMAGE) {
+  if (strip.strip->type == STRIP_TYPE_IMAGE) {
     upper_thumb_bound = strip.right_handle;
   }
 
   float timeline_frame = thumb_calc_first_timeline_frame(
-      strip.seq, strip.left_handle, thumb_width, &v2d->cur);
+      strip.strip, strip.left_handle, thumb_width, &v2d->cur);
 
   /* Start going over the strip length. */
   while (timeline_frame < upper_thumb_bound) {
@@ -173,7 +174,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     }
 
     /* Get the thumbnail image. */
-    ImBuf *ibuf = seq::thumbnail_cache_get(C, scene, strip.seq, timeline_frame);
+    ImBuf *ibuf = seq::thumbnail_cache_get(C, scene, strip.strip, timeline_frame);
     if (ibuf == nullptr) {
       break;
     }
@@ -198,7 +199,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     r_thumbs.append(thumb);
 
     timeline_frame = thumb_calc_next_timeline_frame(
-        strip.seq, strip.left_handle, timeline_frame, thumb_width);
+        strip.strip, strip.left_handle, timeline_frame, thumb_width);
   }
 }
 

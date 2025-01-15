@@ -63,7 +63,7 @@ struct GeometryNodesEvalDependencies {
   void add_object(Object *object, const ObjectDependencyInfo &object_deps = all_object_deps);
 
   /**
-   * Add all the given given dependencies to this one.
+   * Add all the given dependencies to this one.
    */
   void merge(const GeometryNodesEvalDependencies &other);
 

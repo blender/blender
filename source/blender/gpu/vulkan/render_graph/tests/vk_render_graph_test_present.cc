@@ -8,17 +8,16 @@
 
 namespace blender::gpu::render_graph {
 
-TEST(vk_render_graph, transfer_and_present)
+class VKRenderGraphTestPresent : public VKRenderGraphTest {};
+
+TEST_F(VKRenderGraphTestPresent, transfer_and_present)
 {
   VkHandle<VkImage> back_buffer(1u);
 
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(
       back_buffer, 1, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ResourceOwner::SWAP_CHAIN);
 
-  render_graph.submit_for_present(back_buffer);
+  render_graph->submit_for_present(back_buffer);
 
   EXPECT_EQ(1, log.size());
   EXPECT_EQ(
@@ -35,20 +34,17 @@ TEST(vk_render_graph, transfer_and_present)
       log[0]);
 }
 
-TEST(vk_render_graph, clear_and_present)
+TEST_F(VKRenderGraphTestPresent, clear_and_present)
 {
   VkHandle<VkImage> back_buffer(1u);
 
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(back_buffer, 1, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
 
   VKClearColorImageNode::CreateInfo clear_color_image = {};
   clear_color_image.vk_image = back_buffer;
-  render_graph.add_node(clear_color_image);
+  render_graph->add_node(clear_color_image);
 
-  render_graph.submit_for_present(back_buffer);
+  render_graph->submit_for_present(back_buffer);
 
   EXPECT_EQ(3, log.size());
 

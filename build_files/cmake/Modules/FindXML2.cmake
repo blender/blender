@@ -42,13 +42,13 @@ find_library(XML2_LIBRARY
     ${_xml2_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set XML2_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(XML2 DEFAULT_MSG
-    XML2_LIBRARY XML2_INCLUDE_DIR)
+  XML2_LIBRARY XML2_INCLUDE_DIR)
 
 if(XML2_FOUND)
   set(XML2_LIBRARIES ${XML2_LIBRARY})

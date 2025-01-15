@@ -4,7 +4,7 @@
 
 #include "BLI_array_utils.hh"
 
-#include "BKE_mesh.hh"
+#include "DNA_mesh_types.h"
 
 #include "node_geometry_util.hh"
 
@@ -62,8 +62,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS, "Edge Neighbors", NODE_CLASS_INPUT);
+      &ntype, "GeometryNodeInputMeshEdgeNeighbors", GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS);
+  ntype.ui_name = "Edge Neighbors";
+  ntype.ui_description = "Retrieve the number of faces that use each edge as one of their sides";
   ntype.enum_name_legacy = "MESH_EDGE_NEIGHBORS";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

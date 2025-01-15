@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <stddef.h>
+
 struct BlendDataReader;
 struct BlendWriter;
 struct ID;

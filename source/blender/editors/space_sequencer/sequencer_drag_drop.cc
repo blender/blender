@@ -224,7 +224,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   else {
     /* Check if there is a strip that would intersect with the new strip(s). */
     coords->is_intersecting = false;
-    Sequence dummy_seq{};
+    Strip dummy_seq{};
     dummy_seq.machine = coords->channel;
     dummy_seq.start = coords->start_frame;
     dummy_seq.len = coords->strip_len;
@@ -279,8 +279,8 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 
     /* Get the top most strip channel that is in view. */
     int max_channel = -1;
-    for (Sequence *seq : strips) {
-      max_channel = max_ii(seq->machine, max_channel);
+    for (Strip *strip : strips) {
+      max_channel = max_ii(strip->machine, max_channel);
     }
 
     if (max_channel != -1) {
@@ -406,8 +406,8 @@ static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, cons
   StripsDrawBatch batch(&region->v2d);
 
   for (int i = 0; i < coords->channel_len; i++) {
-    float y1 = floorf(coords->channel) + i + SEQ_STRIP_OFSBOTTOM;
-    float y2 = floorf(coords->channel) + i + SEQ_STRIP_OFSTOP;
+    float y1 = floorf(coords->channel) + i + STRIP_OFSBOTTOM;
+    float y2 = floorf(coords->channel) + i + STRIP_OFSTOP;
 
     if (coords->type == TH_SEQ_MOVIE && i == 0 && coords->channel_len > 1) {
       /* Assume only video strips occupies two channels.

@@ -16,8 +16,6 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
-
 #include "WM_types.hh"
 
 #include "RNA_access.hh"

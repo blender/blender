@@ -253,6 +253,7 @@ class GHOST_DeviceVK {
     vulkan_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     vulkan_12_features.shaderOutputLayer = features_12.shaderOutputLayer;
     vulkan_12_features.shaderOutputViewportIndex = features_12.shaderOutputViewportIndex;
+    vulkan_12_features.timelineSemaphore = VK_TRUE;
     vulkan_12_features.pNext = device_create_info_p_next;
     device_create_info_p_next = &vulkan_12_features;
 
@@ -281,6 +282,15 @@ class GHOST_DeviceVK {
     if (has_extensions({VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME})) {
       dynamic_rendering_unused_attachments.pNext = device_create_info_p_next;
       device_create_info_p_next = &dynamic_rendering_unused_attachments;
+    }
+
+    VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR dynamic_rendering_local_read = {};
+    dynamic_rendering_local_read.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR;
+    dynamic_rendering_local_read.dynamicRenderingLocalRead = VK_TRUE;
+    if (has_extensions({VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME})) {
+      dynamic_rendering_local_read.pNext = device_create_info_p_next;
+      device_create_info_p_next = &dynamic_rendering_local_read;
     }
 
     /* Query for Mainenance4 (core in Vulkan 1.3). */
@@ -1021,6 +1031,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   required_device_extensions.push_back(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 #endif
   optional_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);

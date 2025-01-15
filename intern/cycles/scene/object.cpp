@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/object.h"
+
 #include "device/device.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
@@ -16,13 +17,12 @@
 #include "scene/stats.h"
 #include "scene/volume.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/map.h"
 #include "util/murmurhash.h"
 #include "util/progress.h"
 #include "util/set.h"
-#include "util/task.h"
+#include "util/tbb.h"
 #include "util/vector.h"
 
 #include "subd/patch_table.h"
@@ -95,6 +95,8 @@ NODE_DEFINE(Object)
   SOCKET_BOOLEAN(is_caustics_caster, "Cast Shadow Caustics", false);
   SOCKET_BOOLEAN(is_caustics_receiver, "Receive Shadow Caustics", false);
 
+  SOCKET_BOOLEAN(is_bake_target, "Bake Target", false);
+
   SOCKET_NODE(particle_system, "Particle System", ParticleSystem::get_node_type());
   SOCKET_INT(particle_index, "Particle Index", 0);
 
@@ -111,14 +113,14 @@ NODE_DEFINE(Object)
 
 Object::Object() : Node(get_node_type())
 {
-  particle_system = NULL;
+  particle_system = nullptr;
   particle_index = 0;
   attr_map_offset = 0;
   bounds = BoundBox::empty;
   intersects_volume = false;
 }
 
-Object::~Object() {}
+Object::~Object() = default;
 
 void Object::update_motion()
 {
@@ -139,10 +141,8 @@ void Object::update_motion()
         motion.clear();
         return;
       }
-      else {
-        /* Otherwise just copy center motion. */
-        motion[i] = tfm;
-      }
+      /* Otherwise just copy center motion. */
+      motion[i] = tfm;
     }
 
     /* Test if any of the transforms are actually different. */
@@ -157,7 +157,7 @@ void Object::update_motion()
 
 void Object::compute_bounds(bool motion_blur)
 {
-  BoundBox mbounds = geometry->bounds;
+  const BoundBox mbounds = geometry->bounds;
 
   if (motion_blur && use_motion()) {
     array<DecomposedTransform> decomp(motion.size());
@@ -235,7 +235,7 @@ void Object::tag_update(Scene *scene)
       flag |= ObjectManager::VISIBILITY_MODIFIED;
     }
 
-    foreach (Node *node, geometry->get_used_shaders()) {
+    for (Node *node : geometry->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
         scene->light_manager->tag_update(scene, LightManager::EMISSIVE_MESH_MODIFIED);
@@ -252,12 +252,12 @@ bool Object::use_motion() const
   return (motion.size() > 1);
 }
 
-float Object::motion_time(int step) const
+float Object::motion_time(const int step) const
 {
   return (use_motion()) ? 2.0f * step / (motion.size() - 1) - 1.0f : 0.0f;
 }
 
-int Object::motion_step(float time) const
+int Object::motion_step(const float time) const
 {
   if (use_motion()) {
     for (size_t step = 0; step < motion.size(); step++) {
@@ -300,7 +300,7 @@ float Object::compute_volume_step_size() const
   /* Compute step rate from shaders. */
   float step_rate = FLT_MAX;
 
-  foreach (Node *node, mesh->get_used_shaders()) {
+  for (Node *node : mesh->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_volume) {
       if ((shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying) ||
@@ -321,7 +321,7 @@ float Object::compute_volume_step_size() const
   if (geometry->is_volume()) {
     Volume *volume = static_cast<Volume *>(geometry);
 
-    foreach (Attribute &attr, volume->attributes.attributes) {
+    for (Attribute &attr : volume->attributes.attributes) {
       if (attr.element == ATTR_ELEMENT_VOXEL) {
         ImageHandle &handle = attr.data_voxel();
         const ImageMetaData &metadata = handle.metadata();
@@ -342,7 +342,9 @@ float Object::compute_volume_step_size() const
               metadata.type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
               metadata.type != IMAGE_DATA_TYPE_NANOVDB_FP16)
 #endif
+          {
             size /= make_float3(metadata.width, metadata.height, metadata.depth);
+          }
 
           /* Step size is transformed from voxel to world space. */
           Transform voxel_tfm = tfm;
@@ -353,7 +355,7 @@ float Object::compute_volume_step_size() const
         }
         else if (volume->get_object_space()) {
           /* User specified step size in object space. */
-          float3 size = make_float3(voxel_step_size, voxel_step_size, voxel_step_size);
+          const float3 size = make_float3(voxel_step_size, voxel_step_size, voxel_step_size);
           voxel_step_size = reduce_min(fabs(transform_direction(&tfm, size)));
         }
 
@@ -401,7 +403,7 @@ bool Object::usable_as_light() const
    * iterate all geometry shaders twice (when counting and when calculating
    * triangle area.
    */
-  foreach (Node *node, geom->get_used_shaders()) {
+  for (Node *node : geom->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
       return true;
@@ -444,7 +446,7 @@ ObjectManager::ObjectManager()
   need_flags_update = true;
 }
 
-ObjectManager::~ObjectManager() {}
+ObjectManager::~ObjectManager() = default;
 
 static float object_volume_density(const Transform &tfm, Geometry *geom)
 {
@@ -471,15 +473,15 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   uint flag = 0;
 
   /* Compute transformations. */
-  Transform tfm = ob->tfm;
-  Transform itfm = transform_inverse(tfm);
+  const Transform tfm = ob->tfm;
+  const Transform itfm = transform_inverse(tfm);
 
-  float3 color = ob->color;
-  float pass_id = ob->pass_id;
-  float random_number = (float)ob->random_id * (1.0f / (float)0xFFFFFFFF);
-  int particle_index = (ob->particle_system) ?
-                           ob->particle_index + state->particle_offset[ob->particle_system] :
-                           0;
+  const float3 color = ob->color;
+  const float pass_id = ob->pass_id;
+  const float random_number = (float)ob->random_id * (1.0f / (float)0xFFFFFFFF);
+  const int particle_index = (ob->particle_system) ?
+                                 ob->particle_index + state->particle_offset[ob->particle_system] :
+                                 0;
 
   kobject.tfm = tfm;
   kobject.itfm = itfm;
@@ -512,8 +514,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
   if (geom->is_mesh() || geom->is_pointcloud()) {
     /* TODO: why only mesh? */
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    if (mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+    if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
     }
   }
@@ -531,7 +532,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     ob->update_motion();
 
     /* Compute motion transforms. */
-    Transform tfm_pre, tfm_post;
+    Transform tfm_pre;
+    Transform tfm_post;
     if (ob->use_motion()) {
       tfm_pre = ob->motion[0];
       tfm_post = ob->motion[ob->motion.size() - 1];
@@ -549,7 +551,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
       tfm_post = tfm_post * itfm;
     }
 
-    int motion_pass_offset = ob->index * OBJECT_MOTION_PASS_SIZE;
+    const int motion_pass_offset = ob->index * OBJECT_MOTION_PASS_SIZE;
     object_motion_pass[motion_pass_offset + 0] = tfm_pre;
     object_motion_pass[motion_pass_offset + 1] = tfm_post;
   }
@@ -574,7 +576,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.dupli_generated[2] = ob->dupli_generated[2];
   kobject.dupli_uv[0] = ob->dupli_uv[0];
   kobject.dupli_uv[1] = ob->dupli_uv[1];
-  int totalsteps = geom->get_motion_steps();
+  const int totalsteps = geom->get_motion_steps();
   kobject.numsteps = (totalsteps - 1) / 2;
   kobject.numverts = (geom->is_mesh() || geom->is_volume()) ?
                          static_cast<Mesh *>(geom)->get_verts().size() :
@@ -585,8 +587,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.attribute_map_offset = 0;
 
   if (ob->asset_name_is_modified() || update_all) {
-    uint32_t hash_name = util_murmur_hash3(ob->name.c_str(), ob->name.length(), 0);
-    uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
+    const uint32_t hash_name = util_murmur_hash3(ob->name.c_str(), ob->name.length(), 0);
+    const uint32_t hash_asset = util_murmur_hash3(
+        ob->asset_name.c_str(), ob->asset_name.length(), 0);
     kobject.cryptomatte_object = util_hash_to_float(hash_name);
     kobject.cryptomatte_asset = util_hash_to_float(hash_asset);
   }
@@ -637,7 +640,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
 {
   if (!scene->integrator->get_use_light_tree()) {
-    BVHLayoutMask layout_mask = device->get_bvh_layout_mask(dscene->data.kernel_features);
+    const BVHLayoutMask layout_mask = device->get_bvh_layout_mask(dscene->data.kernel_features);
     if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
         layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE && layout_mask != BVH_LAYOUT_HIPRT &&
         layout_mask != BVH_LAYOUT_MULTI_HIPRT && layout_mask != BVH_LAYOUT_MULTI_HIPRT_EMBREE)
@@ -649,7 +652,7 @@ void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dsce
   /* On MetalRT, primitive / curve segment offsets can't be baked at BVH build time. Intersection
    * handlers need to apply the offset manually. */
   uint *object_prim_offset = dscene->object_prim_offset.alloc(scene->objects.size());
-  foreach (Object *ob, scene->objects) {
+  for (Object *ob : scene->objects) {
     uint32_t prim_offset = 0;
     if (Geometry *const geom = ob->geometry) {
       if (geom->is_hair()) {
@@ -659,7 +662,7 @@ void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dsce
         prim_offset = geom->prim_offset;
       }
     }
-    uint obj_index = ob->get_device_index();
+    const uint obj_index = ob->get_device_index();
     object_prim_offset[obj_index] = prim_offset;
   }
 
@@ -681,8 +684,8 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
   state.objects = dscene->objects.alloc(scene->objects.size());
   state.object_flag = dscene->object_flag.alloc(scene->objects.size());
   state.object_volume_step = dscene->object_volume_step.alloc(scene->objects.size());
-  state.object_motion = NULL;
-  state.object_motion_pass = NULL;
+  state.object_motion = nullptr;
+  state.object_motion_pass = nullptr;
 
   if (state.need_motion == Scene::MOTION_PASS) {
     state.object_motion_pass = dscene->object_motion_pass.alloc(OBJECT_MOTION_PASS_SIZE *
@@ -693,7 +696,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
     uint *motion_offsets = state.motion_offset.resize(scene->objects.size());
     uint motion_offset = 0;
 
-    foreach (Object *ob, scene->objects) {
+    for (Object *ob : scene->objects) {
       *motion_offsets = motion_offset;
       motion_offsets++;
 
@@ -709,7 +712,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
    * 0 is dummy particle, index starts at 1.
    */
   int numparticles = 1;
-  foreach (ParticleSystem *psys, scene->particle_systems) {
+  for (ParticleSystem *psys : scene->particle_systems) {
     state.particle_offset[psys] = numparticles;
     numparticles += psys->particles.size();
   }
@@ -779,20 +782,20 @@ void ObjectManager::device_update(Device *device,
 
   device_free(device, dscene, false);
 
-  if (scene->objects.size() == 0) {
+  if (scene->objects.empty()) {
     return;
   }
 
   {
     /* Assign object IDs. */
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->object.times.add_entry({"device_update (assign index)", time});
       }
     });
 
     int index = 0;
-    foreach (Object *object, scene->objects) {
+    for (Object *object : scene->objects) {
       object->index = index++;
 
       /* this is a bit too broad, however a bigger refactor might be needed to properly separate
@@ -809,7 +812,7 @@ void ObjectManager::device_update(Device *device,
 
   {
     /* set object transform matrices, before applying static transforms */
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->object.times.add_entry(
             {"device_update (copy objects to device)", time});
@@ -827,7 +830,7 @@ void ObjectManager::device_update(Device *device,
   /* prepare for static BVH building */
   /* todo: do before to support getting object level coords? */
   if (scene->params.bvh_type == BVH_TYPE_STATIC) {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->object.times.add_entry(
             {"device_update (apply static transforms)", time});
@@ -838,19 +841,22 @@ void ObjectManager::device_update(Device *device,
     apply_static_transforms(dscene, scene, progress);
   }
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     object->clear_modified();
   }
 }
 
-void ObjectManager::device_update_flags(
-    Device *, DeviceScene *dscene, Scene *scene, Progress & /*progress*/, bool bounds_valid)
+void ObjectManager::device_update_flags(Device * /*unused*/,
+                                        DeviceScene *dscene,
+                                        Scene *scene,
+                                        Progress & /*progress*/,
+                                        bool bounds_valid)
 {
   if (!need_update() && !need_flags_update) {
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->object.times.add_entry({"device_update_flags", time});
     }
@@ -866,7 +872,7 @@ void ObjectManager::device_update_flags(
     need_flags_update = false;
   }
 
-  if (scene->objects.size() == 0) {
+  if (scene->objects.empty()) {
     return;
   }
 
@@ -877,7 +883,7 @@ void ObjectManager::device_update_flags(
   /* Object volume intersection. */
   vector<Object *> volume_objects;
   bool has_volume_objects = false;
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (object->geometry->has_volume) {
       /* If the bounds are not valid it is not always possible to calculate the volume step, and
        * the step size is not needed for the displacement. So, delay calculation of the volume
@@ -896,12 +902,12 @@ void ObjectManager::device_update_flags(
     }
   }
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (object->geometry->has_volume) {
       object_flag[object->index] |= SD_OBJECT_HAS_VOLUME;
       object_flag[object->index] &= ~SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
 
-      foreach (Attribute &attr, object->geometry->attributes.attributes) {
+      for (const Attribute &attr : object->geometry->attributes.attributes) {
         if (attr.element == ATTR_ELEMENT_VOXEL) {
           object_flag[object->index] |= SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
         }
@@ -920,7 +926,7 @@ void ObjectManager::device_update_flags(
 
     if (bounds_valid) {
       object->intersects_volume = false;
-      foreach (Object *volume_object, volume_objects) {
+      for (Object *volume_object : volume_objects) {
         if (object == volume_object) {
           continue;
         }
@@ -947,7 +953,9 @@ void ObjectManager::device_update_flags(
   dscene->object_volume_step.clear_modified();
 }
 
-void ObjectManager::device_update_geom_offsets(Device *, DeviceScene *dscene, Scene *scene)
+void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
+                                               DeviceScene *dscene,
+                                               Scene *scene)
 {
   if (dscene->objects.size() == 0) {
     return;
@@ -957,15 +965,16 @@ void ObjectManager::device_update_geom_offsets(Device *, DeviceScene *dscene, Sc
 
   bool update = false;
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     Geometry *geom = object->geometry;
 
     if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
       if (mesh->patch_table) {
-        uint patch_map_offset = 2 * (mesh->patch_table_offset + mesh->patch_table->total_size() -
-                                     mesh->patch_table->num_nodes * PATCH_NODE_SIZE) -
-                                mesh->patch_offset;
+        const uint patch_map_offset = 2 * (mesh->patch_table_offset +
+                                           mesh->patch_table->total_size() -
+                                           mesh->patch_table->num_nodes * PATCH_NODE_SIZE) -
+                                      mesh->patch_offset;
 
         if (kobjects[object->index].patch_map_offset != patch_map_offset) {
           kobjects[object->index].patch_map_offset = patch_map_offset;
@@ -992,7 +1001,7 @@ void ObjectManager::device_update_geom_offsets(Device *, DeviceScene *dscene, Sc
   }
 }
 
-void ObjectManager::device_free(Device *, DeviceScene *dscene, bool force_free)
+void ObjectManager::device_free(Device * /*unused*/, DeviceScene *dscene, bool force_free)
 {
   dscene->objects.free_if_need_realloc(force_free);
   dscene->object_motion_pass.free_if_need_realloc(force_free);
@@ -1009,13 +1018,13 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
 
   /* counter geometry users */
   map<Geometry *, int> geometry_users;
-  Scene::MotionType need_motion = scene->need_motion();
-  bool motion_blur = need_motion == Scene::MOTION_BLUR;
-  bool apply_to_motion = need_motion != Scene::MOTION_PASS;
+  const Scene::MotionType need_motion = scene->need_motion();
+  const bool motion_blur = need_motion == Scene::MOTION_BLUR;
+  const bool apply_to_motion = need_motion != Scene::MOTION_PASS;
   int i = 0;
 
-  foreach (Object *object, scene->objects) {
-    map<Geometry *, int>::iterator it = geometry_users.find(object->geometry);
+  for (Object *object : scene->objects) {
+    const map<Geometry *, int>::iterator it = geometry_users.find(object->geometry);
 
     if (it == geometry_users.end()) {
       geometry_users[object->geometry] = 1;
@@ -1032,7 +1041,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
   uint *object_flag = dscene->object_flag.data();
 
   /* apply transforms for objects with single user geometry */
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     /* Annoying feedback loop here: we can't use is_instanced() because
      * it'll use uninitialized transform_applied flag.
      *
@@ -1046,9 +1055,9 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
       Mesh *mesh = static_cast<Mesh *>(geom);
       apply = apply && mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE;
     }
-    else if (geom->is_hair()) {
-      /* Can't apply non-uniform scale to curves, this can't be represented by
-       * control points and radius alone. */
+    else if (geom->is_hair() || geom->is_pointcloud()) {
+      /* Can't apply non-uniform scale to curves and points, this can't be
+       * represented by control points and radius alone. */
       float scale;
       apply = apply && transform_uniform_scale(object->tfm, scale);
     }
@@ -1072,7 +1081,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
   }
 }
 
-void ObjectManager::tag_update(Scene *scene, uint32_t flag)
+void ObjectManager::tag_update(Scene *scene, const uint32_t flag)
 {
   update_flags |= flag;
 
@@ -1115,12 +1124,12 @@ string ObjectManager::get_cryptomatte_objects(Scene *scene)
   string manifest = "{";
 
   unordered_set<ustring> objects;
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (objects.count(object->name)) {
       continue;
     }
     objects.insert(object->name);
-    uint32_t hash_name = util_murmur_hash3(object->name.c_str(), object->name.length(), 0);
+    const uint32_t hash_name = util_murmur_hash3(object->name.c_str(), object->name.length(), 0);
     manifest += string_printf("\"%s\":\"%08x\",", object->name.c_str(), hash_name);
   }
   manifest[manifest.size() - 1] = '}';
@@ -1131,12 +1140,13 @@ string ObjectManager::get_cryptomatte_assets(Scene *scene)
 {
   string manifest = "{";
   unordered_set<ustring> assets;
-  foreach (Object *ob, scene->objects) {
+  for (Object *ob : scene->objects) {
     if (assets.count(ob->asset_name)) {
       continue;
     }
     assets.insert(ob->asset_name);
-    uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
+    const uint32_t hash_asset = util_murmur_hash3(
+        ob->asset_name.c_str(), ob->asset_name.length(), 0);
     manifest += string_printf("\"%s\":\"%08x\",", ob->asset_name.c_str(), hash_asset);
   }
   manifest[manifest.size() - 1] = '}';

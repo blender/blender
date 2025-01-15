@@ -14,7 +14,7 @@
 #include "COLLADASWLibraryMaterials.h"
 #include "COLLADASWStreamWriter.h"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"

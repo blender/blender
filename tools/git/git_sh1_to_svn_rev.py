@@ -5,6 +5,10 @@
 
 # generate svn rev-sha1 mapping
 
+__all__ = (
+    "main",
+)
+
 import os
 import sys
 

@@ -12,6 +12,8 @@
  * parts of the bmesh internals.
  */
 
+#include "bmesh_class.hh"
+
 /* returns positive nonzero on error */
 
 #ifdef NDEBUG

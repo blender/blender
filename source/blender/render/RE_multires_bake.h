@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
+struct Image;
+struct DerivedMesh;
 struct MultiresBakeRender;
 struct Scene;
 

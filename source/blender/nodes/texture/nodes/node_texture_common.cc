@@ -14,7 +14,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "node_common.h"
 #include "node_exec.hh"
 #include "node_texture_util.hh"
@@ -68,7 +68,7 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
   int a;
 
   LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-    if (node->type == NODE_GROUP_INPUT) {
+    if (node->type_legacy == NODE_GROUP_INPUT) {
       for (sock = static_cast<bNodeSocket *>(node->outputs.first), a = 0; sock;
            sock = sock->next, a++)
       {
@@ -149,7 +149,7 @@ void register_node_type_tex_group()
   blender::bke::node_type_base_custom(
       &ntype, "TextureNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.enum_name_legacy = "GROUP";
-  ntype.type = NODE_GROUP;
+  ntype.type_legacy = NODE_GROUP;
   ntype.poll = tex_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;

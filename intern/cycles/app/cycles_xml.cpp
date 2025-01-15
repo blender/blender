@@ -2,11 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <algorithm>
-#include <iterator>
-#include <sstream>
 
 #include "graph/node_xml.h"
 
@@ -24,10 +22,6 @@
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
 
-#include "subd/patch.h"
-#include "subd/split.h"
-
-#include "util/foreach.h"
 #include "util/path.h"
 #include "util/projection.h"
 #include "util/transform.h"
@@ -40,15 +34,15 @@ CCL_NAMESPACE_BEGIN
 /* XML reading state */
 
 struct XMLReadState : public XMLReader {
-  Scene *scene;      /* Scene pointer. */
-  Transform tfm;     /* Current transform state. */
-  bool smooth;       /* Smooth normal state. */
-  Shader *shader;    /* Current shader. */
-  string base;       /* Base path to current file. */
-  float dicing_rate; /* Current dicing rate. */
-  Object *object;    /* Current object. */
+  Scene *scene = nullptr;   /* Scene pointer. */
+  Transform tfm;            /* Current transform state. */
+  bool smooth = false;      /* Smooth normal state. */
+  Shader *shader = nullptr; /* Current shader. */
+  string base;              /* Base path to current file. */
+  float dicing_rate = 1.0f; /* Current dicing rate. */
+  Object *object = nullptr; /* Current object. */
 
-  XMLReadState() : scene(NULL), smooth(false), shader(NULL), dicing_rate(1.0f), object(NULL)
+  XMLReadState()
   {
     tfm = transform_identity();
   }
@@ -56,9 +50,9 @@ struct XMLReadState : public XMLReader {
 
 /* Attribute Reading */
 
-static bool xml_read_int(int *value, xml_node node, const char *name)
+static bool xml_read_int(int *value, const xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     *value = atoi(attr.value());
@@ -68,16 +62,17 @@ static bool xml_read_int(int *value, xml_node node, const char *name)
   return false;
 }
 
-static bool xml_read_int_array(vector<int> &value, xml_node node, const char *name)
+static bool xml_read_int_array(vector<int> &value, const xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     vector<string> tokens;
     string_split(tokens, attr.value());
 
-    foreach (const string &token, tokens)
+    for (const string &token : tokens) {
       value.push_back(atoi(token.c_str()));
+    }
 
     return true;
   }
@@ -85,9 +80,9 @@ static bool xml_read_int_array(vector<int> &value, xml_node node, const char *na
   return false;
 }
 
-static bool xml_read_float(float *value, xml_node node, const char *name)
+static bool xml_read_float(float *value, const xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     *value = (float)atof(attr.value());
@@ -97,16 +92,17 @@ static bool xml_read_float(float *value, xml_node node, const char *name)
   return false;
 }
 
-static bool xml_read_float_array(vector<float> &value, xml_node node, const char *name)
+static bool xml_read_float_array(vector<float> &value, const xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     vector<string> tokens;
     string_split(tokens, attr.value());
 
-    foreach (const string &token, tokens)
+    for (const string &token : tokens) {
       value.push_back((float)atof(token.c_str()));
+    }
 
     return true;
   }
@@ -114,7 +110,7 @@ static bool xml_read_float_array(vector<float> &value, xml_node node, const char
   return false;
 }
 
-static bool xml_read_float3(float3 *value, xml_node node, const char *name)
+static bool xml_read_float3(float3 *value, const xml_node node, const char *name)
 {
   vector<float> array;
 
@@ -126,7 +122,7 @@ static bool xml_read_float3(float3 *value, xml_node node, const char *name)
   return false;
 }
 
-static bool xml_read_float3_array(vector<float3> &value, xml_node node, const char *name)
+static bool xml_read_float3_array(vector<float3> &value, const xml_node node, const char *name)
 {
   vector<float> array;
 
@@ -141,7 +137,7 @@ static bool xml_read_float3_array(vector<float3> &value, xml_node node, const ch
   return false;
 }
 
-static bool xml_read_float4(float4 *value, xml_node node, const char *name)
+static bool xml_read_float4(float4 *value, const xml_node node, const char *name)
 {
   vector<float> array;
 
@@ -153,9 +149,9 @@ static bool xml_read_float4(float4 *value, xml_node node, const char *name)
   return false;
 }
 
-static bool xml_read_string(string *str, xml_node node, const char *name)
+static bool xml_read_string(string *str, const xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     *str = attr.value();
@@ -165,9 +161,9 @@ static bool xml_read_string(string *str, xml_node node, const char *name)
   return false;
 }
 
-static bool xml_equal_string(xml_node node, const char *name, const char *value)
+static bool xml_equal_string(const xml_node node, const char *name, const char *value)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     return string_iequals(attr.value(), value);
@@ -178,11 +174,12 @@ static bool xml_equal_string(xml_node node, const char *name, const char *value)
 
 /* Camera */
 
-static void xml_read_camera(XMLReadState &state, xml_node node)
+static void xml_read_camera(XMLReadState &state, const xml_node node)
 {
   Camera *cam = state.scene->camera;
 
-  int width = -1, height = -1;
+  int width = -1;
+  int height = -1;
   xml_read_int(&width, node, "width");
   xml_read_int(&height, node, "height");
 
@@ -200,7 +197,7 @@ static void xml_read_camera(XMLReadState &state, xml_node node)
 /* Alembic */
 
 #ifdef WITH_ALEMBIC
-static void xml_read_alembic(XMLReadState &state, xml_node graph_node)
+static void xml_read_alembic(XMLReadState &state, const xml_node graph_node)
 {
   AlembicProcedural *proc = state.scene->create_node<AlembicProcedural>();
   xml_read_node(state, proc, graph_node);
@@ -209,9 +206,8 @@ static void xml_read_alembic(XMLReadState &state, xml_node graph_node)
     if (string_iequals(node.name(), "object")) {
       string path;
       if (xml_read_string(&path, node, "path")) {
-        ustring object_path(path, 0);
-        AlembicObject *object = static_cast<AlembicObject *>(
-            proc->get_or_create_object(object_path));
+        const ustring object_path(path, 0);
+        AlembicObject *object = proc->get_or_create_object(object_path);
 
         array<Node *> used_shaders = object->get_used_shaders();
         used_shaders.push_back_slow(state.shader);
@@ -224,11 +220,11 @@ static void xml_read_alembic(XMLReadState &state, xml_node graph_node)
 
 /* Shader */
 
-static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node graph_node)
+static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml_node graph_node)
 {
   xml_read_node(state, shader, graph_node);
 
-  ShaderGraph *graph = new ShaderGraph();
+  unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
   /* local state, shader nodes can't link to nodes outside the shader graph */
   XMLReader graph_reader;
@@ -239,28 +235,30 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
 
     if (node_name == "connect") {
       /* connect nodes */
-      vector<string> from_tokens, to_tokens;
+      vector<string> from_tokens;
+      vector<string> to_tokens;
 
       string_split(from_tokens, node.attribute("from").value());
       string_split(to_tokens, node.attribute("to").value());
 
       if (from_tokens.size() == 2 && to_tokens.size() == 2) {
-        ustring from_node_name(from_tokens[0]);
-        ustring from_socket_name(from_tokens[1]);
-        ustring to_node_name(to_tokens[0]);
-        ustring to_socket_name(to_tokens[1]);
+        const ustring from_node_name(from_tokens[0]);
+        const ustring from_socket_name(from_tokens[1]);
+        const ustring to_node_name(to_tokens[0]);
+        const ustring to_socket_name(to_tokens[1]);
 
         /* find nodes and sockets */
-        ShaderOutput *output = NULL;
-        ShaderInput *input = NULL;
+        ShaderOutput *output = nullptr;
+        ShaderInput *input = nullptr;
 
         if (graph_reader.node_map.find(from_node_name) != graph_reader.node_map.end()) {
           ShaderNode *fromnode = (ShaderNode *)graph_reader.node_map[from_node_name];
 
-          foreach (ShaderOutput *out, fromnode->outputs)
+          for (ShaderOutput *out : fromnode->outputs) {
             if (string_iequals(out->socket_type.name.string(), from_socket_name.string())) {
               output = out;
             }
+          }
 
           if (!output) {
             fprintf(stderr,
@@ -276,10 +274,11 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         if (graph_reader.node_map.find(to_node_name) != graph_reader.node_map.end()) {
           ShaderNode *tonode = (ShaderNode *)graph_reader.node_map[to_node_name];
 
-          foreach (ShaderInput *in, tonode->inputs)
+          for (ShaderInput *in : tonode->inputs) {
             if (string_iequals(in->socket_type.name.string(), to_socket_name.string())) {
               input = in;
             }
+          }
 
           if (!input) {
             fprintf(stderr,
@@ -304,11 +303,11 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
       continue;
     }
 
-    ShaderNode *snode = NULL;
+    ShaderNode *snode = nullptr;
 
 #ifdef WITH_OSL
     if (node_name == "osl_shader") {
-      ShaderManager *manager = state.scene->shader_manager;
+      ShaderManager *manager = state.scene->shader_manager.get();
 
       if (manager->use_osl()) {
         std::string filepath;
@@ -318,7 +317,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
             filepath = path_join(state.base, filepath);
           }
 
-          snode = OSLShaderManager::osl_node(graph, manager, filepath, "");
+          snode = OSLShaderManager::osl_node(graph.get(), manager, filepath, "");
 
           if (!snode) {
             fprintf(stderr, "Failed to create OSL node from \"%s\".\n", filepath.c_str());
@@ -349,52 +348,45 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         fprintf(stderr, "Unknown shader node \"%s\".\n", node.name());
         continue;
       }
-      else if (node_type->type != NodeType::SHADER) {
+      if (node_type->type != NodeType::SHADER) {
         fprintf(stderr, "Node type \"%s\" is not a shader node.\n", node_type->name.c_str());
         continue;
       }
-      else if (node_type->create == NULL) {
+      if (node_type->create == nullptr) {
         fprintf(stderr, "Can't create abstract node type \"%s\".\n", node_type->name.c_str());
         continue;
       }
 
-      snode = (ShaderNode *)node_type->create(node_type);
-      snode->set_owner(graph);
+      snode = graph->create_node(node_type);
     }
 
     xml_read_node(graph_reader, snode, node);
 
     if (node_name == "image_texture") {
       ImageTextureNode *img = (ImageTextureNode *)snode;
-      ustring filename(path_join(state.base, img->get_filename().string()));
+      const ustring filename(path_join(state.base, img->get_filename().string()));
       img->set_filename(filename);
     }
     else if (node_name == "environment_texture") {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)snode;
-      ustring filename(path_join(state.base, env->get_filename().string()));
+      const ustring filename(path_join(state.base, env->get_filename().string()));
       env->set_filename(filename);
-    }
-
-    if (snode) {
-      /* add to graph */
-      graph->add(snode);
     }
   }
 
-  shader->set_graph(graph);
+  shader->set_graph(std::move(graph));
   shader->tag_update(state.scene);
 }
 
-static void xml_read_shader(XMLReadState &state, xml_node node)
+static void xml_read_shader(XMLReadState &state, const xml_node node)
 {
-  Shader *shader = new Shader();
+  Shader *shader = state.scene->create_node<Shader>();
   xml_read_shader_graph(state, shader, node);
-  state.scene->shaders.push_back(shader);
 }
 
 /* Background */
 
-static void xml_read_background(XMLReadState &state, xml_node node)
+static void xml_read_background(XMLReadState &state, const xml_node node)
 {
   /* Background Settings */
   xml_read_node(state, state.scene->background, node);
@@ -414,22 +406,19 @@ static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm, Object *object)
     Geometry *geometry = object->get_geometry();
     return static_cast<Mesh *>(geometry);
   }
-  else {
-    /* Create mesh */
-    Mesh *mesh = new Mesh();
-    scene->geometry.push_back(mesh);
 
-    /* Create object. */
-    Object *object = new Object();
-    object->set_geometry(mesh);
-    object->set_tfm(tfm);
-    scene->objects.push_back(object);
+  /* Create mesh */
+  Mesh *mesh = scene->create_node<Mesh>();
 
-    return mesh;
-  }
+  /* Create object. */
+  object = scene->create_node<Object>();
+  object->set_geometry(mesh);
+  object->set_tfm(tfm);
+
+  return mesh;
 }
 
-static void xml_read_mesh(const XMLReadState &state, xml_node node)
+static void xml_read_mesh(const XMLReadState &state, const xml_node node)
 {
   /* add mesh */
   Mesh *mesh = xml_add_mesh(state.scene, state.tfm, state.object);
@@ -438,8 +427,8 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
   mesh->set_used_shaders(used_shaders);
 
   /* read state */
-  int shader = 0;
-  bool smooth = state.smooth;
+  const int shader = 0;
+  const bool smooth = state.smooth;
 
   /* read vertices and polygons */
   vector<float3> P;
@@ -447,7 +436,8 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
   vector<float> UV;
   vector<float> T;  /* UV tangents */
   vector<float> TS; /* UV tangent signs */
-  vector<int> verts, nverts;
+  vector<int> verts;
+  vector<int> nverts;
 
   xml_read_float3_array(P, node, "P");
   xml_read_int_array(verts, node, "verts");
@@ -479,9 +469,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
 
     for (size_t i = 0; i < nverts.size(); i++) {
       for (int j = 0; j < nverts[i] - 2; j++) {
-        int v0 = verts[index_offset];
-        int v1 = verts[index_offset + j + 1];
-        int v2 = verts[index_offset + j + 2];
+        const int v0 = verts[index_offset];
+        const int v1 = verts[index_offset + j + 1];
+        const int v2 = verts[index_offset + j + 2];
 
         assert(v0 < (int)P.size());
         assert(v1 < (int)P.size());
@@ -516,9 +506,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
-          int v0 = index_offset;
-          int v1 = index_offset + j + 1;
-          int v2 = index_offset + j + 2;
+          const int v0 = index_offset;
+          const int v1 = index_offset + j + 1;
+          const int v2 = index_offset + j + 2;
 
           assert(v0 * 2 + 1 < (int)UV.size());
           assert(v1 * 2 + 1 < (int)UV.size());
@@ -543,9 +533,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
-          int v0 = index_offset;
-          int v1 = index_offset + j + 1;
-          int v2 = index_offset + j + 2;
+          const int v0 = index_offset;
+          const int v1 = index_offset + j + 1;
+          const int v2 = index_offset + j + 2;
 
           assert(v0 * 3 + 2 < (int)T.size());
           assert(v1 * 3 + 2 < (int)T.size());
@@ -569,9 +559,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
-          int v0 = index_offset;
-          int v1 = index_offset + j + 1;
-          int v2 = index_offset + j + 2;
+          const int v0 = index_offset;
+          const int v1 = index_offset + j + 1;
+          const int v2 = index_offset + j + 2;
 
           assert(v0 < (int)TS.size());
           assert(v1 < (int)TS.size());
@@ -613,6 +603,8 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV);
       float3 *fdata = attr->data_float3();
 
+      /* TODO: Implement various face-varying interpolation modes and make it
+       * a property of Mesh. */
 #if 0
       if (subdivide_uvs) {
         attr->flags |= ATTR_SUBDIVIDED;
@@ -640,31 +632,28 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
    * coordinates as generated coordinates if requested */
   if (mesh->need_attribute(state.scene, ATTR_STD_GENERATED)) {
     Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-    memcpy(
-        attr->data_float3(), mesh->get_verts().data(), sizeof(float3) * mesh->get_verts().size());
+    std::copy_n(mesh->get_verts().data(), mesh->get_verts().size(), attr->data_float3());
   }
 }
 
 /* Light */
 
-static void xml_read_light(XMLReadState &state, xml_node node)
+static void xml_read_light(XMLReadState &state, const xml_node node)
 {
-  Light *light = new Light();
+  Light *light = state.scene->create_node<Light>();
 
   light->set_shader(state.shader);
   xml_read_node(state, light, node);
-
-  state.scene->lights.push_back(light);
 }
 
 /* Transform */
 
-static void xml_read_transform(xml_node node, Transform &tfm)
+static void xml_read_transform(const xml_node node, Transform &tfm)
 {
   if (node.attribute("matrix")) {
     vector<float> matrix;
     if (xml_read_float_array(matrix, node, "matrix") && matrix.size() == 16) {
-      ProjectionTransform projection = *(ProjectionTransform *)&matrix[0];
+      const ProjectionTransform projection = *(ProjectionTransform *)matrix.data();
       tfm = tfm * projection_to_transform(projection_transpose(projection));
     }
   }
@@ -690,7 +679,7 @@ static void xml_read_transform(xml_node node, Transform &tfm)
 
 /* State */
 
-static void xml_read_state(XMLReadState &state, xml_node node)
+static void xml_read_state(XMLReadState &state, const xml_node node)
 {
   /* Read shader */
   string shadername;
@@ -698,7 +687,7 @@ static void xml_read_state(XMLReadState &state, xml_node node)
   if (xml_read_string(&shadername, node, "shader")) {
     bool found = false;
 
-    foreach (Shader *shader, state.scene->shaders) {
+    for (Shader *shader : state.scene->shaders) {
       if (shader->name == shadername) {
         state.shader = shader;
         found = true;
@@ -717,7 +706,7 @@ static void xml_read_state(XMLReadState &state, xml_node node)
   if (xml_read_string(&objectname, node, "object")) {
     bool found = false;
 
-    foreach (Object *object, state.scene->objects) {
+    for (Object *object : state.scene->objects) {
       if (object->name == objectname) {
         state.object = object;
         found = true;
@@ -743,29 +732,26 @@ static void xml_read_state(XMLReadState &state, xml_node node)
 
 /* Object */
 
-static void xml_read_object(XMLReadState &state, xml_node node)
+static void xml_read_object(XMLReadState &state, const xml_node node)
 {
   Scene *scene = state.scene;
 
   /* create mesh */
-  Mesh *mesh = new Mesh();
-  scene->geometry.push_back(mesh);
+  Mesh *mesh = scene->create_node<Mesh>();
 
   /* create object */
-  Object *object = new Object();
+  Object *object = scene->create_node<Object>();
   object->set_geometry(mesh);
   object->set_tfm(state.tfm);
 
   xml_read_node(state, object, node);
-
-  scene->objects.push_back(object);
 }
 
 /* Scene */
 
 static void xml_read_include(XMLReadState &state, const string &src);
 
-static void xml_read_scene(XMLReadState &state, xml_node scene_node)
+static void xml_read_scene(XMLReadState &state, const xml_node scene_node)
 {
   for (xml_node node = scene_node.first_child(); node; node = node.next_sibling()) {
     if (string_iequals(node.name(), "film")) {
@@ -833,14 +819,14 @@ static void xml_read_include(XMLReadState &state, const string &src)
   xml_document doc;
   xml_parse_result parse_result;
 
-  string path = path_join(state.base, src);
+  const string path = path_join(state.base, src);
   parse_result = doc.load_file(path.c_str());
 
   if (parse_result) {
     XMLReadState substate = state;
     substate.base = path_dirname(path);
 
-    xml_node cycles = doc.child("cycles");
+    const xml_node cycles = doc.child("cycles");
     xml_read_scene(substate, cycles);
   }
   else {

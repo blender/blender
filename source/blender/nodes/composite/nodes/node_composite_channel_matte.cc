@@ -6,6 +6,7 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_node.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vector_types.hh"
@@ -165,7 +166,7 @@ class ChannelMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float color_space = static_cast<int>(get_color_space(bnode()));
+    const float color_space = int(get_color_space(bnode()));
     const float matte_channel = get_matte_channel(bnode());
     const float2 limit_channels = float2(get_limit_channels(bnode()));
     const float max_limit = get_max_limit(bnode());
@@ -297,8 +298,11 @@ void register_node_type_cmp_channel_matte()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, "CompositorNodeChannelMatte", CMP_NODE_CHANNEL_MATTE);
+  ntype.ui_name = "Channel Key";
+  ntype.ui_description = "Create matte based on differences in color channels";
   ntype.enum_name_legacy = "CHANNEL_MATTE";
+  ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_channel_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_channel_matte;
   ntype.flag |= NODE_PREVIEW;

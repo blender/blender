@@ -1226,6 +1226,8 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo)
    * when we need to re-read the ID into its original address, this is currently cleared in
    * #direct_link_id_common in `readfile.cc` anyway. */
   temp_id->py_instance = nullptr;
+  /* Clear runtime data struct. */
+  memset(&temp_id->runtime, 0, sizeof(temp_id->runtime));
 
   DrawDataList *drawdata = DRW_drawdatalist_from_id(temp_id);
   if (drawdata) {
@@ -1873,6 +1875,11 @@ void BLO_write_char_array(BlendWriter *writer, const int64_t num, const char *da
 void BLO_write_int8_array(BlendWriter *writer, const int64_t num, const int8_t *data_ptr)
 {
   BLO_write_raw(writer, sizeof(int8_t) * size_t(num), data_ptr);
+}
+
+void BLO_write_int16_array(BlendWriter *writer, const int64_t num, const int16_t *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(int16_t) * size_t(num), data_ptr);
 }
 
 void BLO_write_uint8_array(BlendWriter *writer, const int64_t num, const uint8_t *data_ptr)

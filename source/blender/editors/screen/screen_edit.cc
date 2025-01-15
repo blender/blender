@@ -861,6 +861,11 @@ void ED_region_exit(bContext *C, ARegion *region)
   WM_event_remove_handlers(C, &region->runtime->handlers);
   WM_event_modal_handler_region_replace(win, region, nullptr);
 
+  /* Stop panel animation in this region if there are any. */
+  LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+    UI_panel_stop_animation(C, panel);
+  }
+
   if (region->regiontype == RGN_TYPE_TEMPORARY) {
     /* This may be a popup region such as a popover or splash screen.
      * In the case of popups which spawn popups it's possible for

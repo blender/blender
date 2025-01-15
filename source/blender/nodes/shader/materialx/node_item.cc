@@ -828,11 +828,7 @@ void NodeItem::set_input(const std::string &in_name, const NodeItem &item)
 
       auto output = graph_->getOutput(output_name);
       if (!output) {
-        auto output_type = MaterialX::DEFAULT_TYPE_STRING;
-        if (item.node->getType() == "BSDF") {
-          output_type = "BSDF";
-        }
-        output = graph_->addOutput(output_name, output_type);
+        output = graph_->addOutput(output_name, item.node->getType());
       }
 
       output->setConnectedNode(item.node);

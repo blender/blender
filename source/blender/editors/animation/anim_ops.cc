@@ -118,11 +118,13 @@ static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_fr
 
   int best_frame = 0;
   int best_distance = MAXFRAME;
-  for (Sequence *seq : SEQ_query_all_strips(seqbase)) {
+  for (Strip *strip : SEQ_query_all_strips(seqbase)) {
     seq_frame_snap_update_best(
-        SEQ_time_left_handle_frame_get(scene, seq), timeline_frame, &best_frame, &best_distance);
-    seq_frame_snap_update_best(
-        SEQ_time_right_handle_frame_get(scene, seq), timeline_frame, &best_frame, &best_distance);
+        SEQ_time_left_handle_frame_get(scene, strip), timeline_frame, &best_frame, &best_distance);
+    seq_frame_snap_update_best(SEQ_time_right_handle_frame_get(scene, strip),
+                               timeline_frame,
+                               &best_frame,
+                               &best_distance);
   }
 
   if (best_distance < seq_snap_threshold_get_frame_distance(C)) {
@@ -254,12 +256,12 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
 /* Modal Operator init */
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *region = CTX_wm_region(C);
   bScreen *screen = CTX_wm_screen(C);
-  if (CTX_wm_space_seq(C) != nullptr && region->regiontype == RGN_TYPE_PREVIEW) {
-    return OPERATOR_CANCELLED;
-  }
-  if (sequencer_skip_for_handle_tweak(C, event)) {
+
+  /* This check is done in case scrubbing and strip tweaking in the sequencer are bound to the same
+   * event (e.g. RCS keymap where both are activated on left mouse press). Tweaking should take
+   * precedence. */
+  if (CTX_wm_space_seq(C) && sequencer_skip_for_handle_tweak(C, event)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 

@@ -36,19 +36,11 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
 
   SnapData nearest2d(sctx, obmat);
 
-  const bool is_editmode = arm->edbo != nullptr;
-
-  if (is_editmode == false) {
-    const std::optional<blender::Bounds<blender::float3>> bounds = BKE_armature_min_max(ob_eval);
-    if (bounds && !nearest2d.snap_boundbox(bounds->min, bounds->max)) {
-      return retval;
-    }
-  }
-
   nearest2d.clip_planes_enable(sctx, ob_eval);
 
   const float *head_vec = nullptr, *tail_vec = nullptr;
 
+  const bool is_editmode = arm->edbo != nullptr;
   const bool is_posemode = is_object_active && (ob_eval->mode & OB_MODE_POSE);
   const bool skip_selected = (is_editmode || is_posemode) &&
                              (sctx->runtime.params.snap_target_select &

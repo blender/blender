@@ -2,13 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "kernel/device/cpu/globals.h"
+
 #include "integrator/shader_eval.h"
 
 #include "device/device.h"
 #include "device/queue.h"
 
 #include "device/cpu/kernel.h"
-#include "device/cpu/kernel_thread_globals.h"
 
 #include "util/log.h"
 #include "util/progress.h"
@@ -24,8 +25,8 @@ ShaderEval::ShaderEval(Device *device, Progress &progress) : device_(device), pr
 bool ShaderEval::eval(const ShaderEvalType type,
                       const int max_num_inputs,
                       const int num_channels,
-                      const function<int(device_vector<KernelShaderEvalInput> &)> &fill_input,
-                      const function<void(device_vector<float> &)> &read_output)
+                      const std::function<int(device_vector<KernelShaderEvalInput> &)> &fill_input,
+                      const std::function<void(device_vector<float> &)> &read_output)
 {
   bool first_device = true;
   bool success = true;
@@ -47,7 +48,7 @@ bool ShaderEval::eval(const ShaderEvalType type,
     DCHECK_LE(output.size(), input.size());
 
     input.alloc(max_num_inputs);
-    int num_points = fill_input(input);
+    int const num_points = fill_input(input);
     if (num_points == 0) {
       return;
     }
@@ -80,7 +81,7 @@ bool ShaderEval::eval_cpu(Device *device,
                           device_vector<float> &output,
                           const int64_t work_size)
 {
-  vector<CPUKernelThreadGlobals> kernel_thread_globals;
+  vector<ThreadKernelGlobalsCPU> kernel_thread_globals;
   device->get_cpu_kernel_thread_globals(kernel_thread_globals);
 
   /* Find required kernel function. */
@@ -101,7 +102,7 @@ bool ShaderEval::eval_cpu(Device *device,
       }
 
       const int thread_index = tbb::this_task_arena::current_thread_index();
-      const KernelGlobalsCPU *kg = &kernel_thread_globals[thread_index];
+      const ThreadKernelGlobalsCPU *kg = &kernel_thread_globals[thread_index];
 
       switch (type) {
         case SHADER_EVAL_DISPLACE:
@@ -148,14 +149,14 @@ bool ShaderEval::eval_gpu(Device *device,
    * TODO: query appropriate size from device. */
   const int32_t chunk_size = 65536;
 
-  device_ptr d_input = input.device_pointer;
+  const device_ptr d_input = input.device_pointer;
   device_ptr d_output = output.device_pointer;
 
   assert(work_size <= 0x7fffffff);
   for (int32_t d_offset = 0; d_offset < int32_t(work_size); d_offset += chunk_size) {
     int32_t d_work_size = std::min(chunk_size, int32_t(work_size) - d_offset);
 
-    DeviceKernelArguments args(&d_input, &d_output, &d_offset, &d_work_size);
+    const DeviceKernelArguments args(&d_input, &d_output, &d_offset, &d_work_size);
 
     queue->enqueue(kernel, d_work_size, args);
     queue->synchronize();

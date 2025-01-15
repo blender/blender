@@ -10,6 +10,8 @@
 
 #include "DNA_asset_types.h"
 
+struct EnumPropertyItem;
+
 namespace blender::ed::asset {
 
 /**

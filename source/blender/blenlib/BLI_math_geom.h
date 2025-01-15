@@ -1392,7 +1392,7 @@ float geodesic_distance_propagate_across_triangle(
  * \{ */
 
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_geom_inline.c"
+#  include "intern/math_geom_inline.c"  // IWYU pragma: export
 #endif
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA

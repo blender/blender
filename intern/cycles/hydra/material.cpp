@@ -58,7 +58,7 @@ class UsdToCyclesMapping {
 
   virtual std::string parameterName(const TfToken &name,
                                     const ShaderInput *inputConnection,
-                                    VtValue *value = nullptr) const
+                                    VtValue * /*value*/ = nullptr) const
   {
     // UsdNode.name -> Node.input
     // These all follow a simple pattern that we can just remap
@@ -115,7 +115,7 @@ class UsdToCyclesTexture : public UsdToCyclesMapping {
     if (value) {
       // Remap UsdUVTexture.wrapS and UsdUVTexture.wrapT to cycles_image_texture.extension
       if (name == CyclesMaterialTokens->wrapS || name == CyclesMaterialTokens->wrapT) {
-        std::string valueString = VtValue::Cast<std::string>(*value).Get<std::string>();
+        const std::string valueString = VtValue::Cast<std::string>(*value).Get<std::string>();
 
         // A value of 'repeat' in USD is equivalent to 'periodic' in Cycles
         if (valueString == "repeat") {
@@ -177,7 +177,7 @@ class UsdToCycles {
 
     return nullptr;
   }
-  const UsdToCyclesMapping *findCycles(const ustring &cyclesNodeType)
+  const UsdToCyclesMapping *findCycles(const ustring & /*cyclesNodeType*/)
   {
     return nullptr;
   }
@@ -188,7 +188,7 @@ TfStaticData<UsdToCycles> sUsdToCyles;
 
 HdCyclesMaterial::HdCyclesMaterial(const SdfPath &sprimId) : HdMaterial(sprimId) {}
 
-HdCyclesMaterial::~HdCyclesMaterial() {}
+HdCyclesMaterial::~HdCyclesMaterial() = default;
 
 HdDirtyBits HdCyclesMaterial::GetInitialDirtyBitsMask() const
 {
@@ -216,7 +216,6 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
   if (dirtyResource || dirtyParams) {
     value = sceneDelegate->GetMaterialResource(id);
 
-#if 1
     const HdMaterialNetwork2 *network = nullptr;
     std::unique_ptr<HdMaterialNetwork2> networkConverted;
     if (value.IsHolding<HdMaterialNetwork2>()) {
@@ -234,11 +233,11 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
       }
       else {
         networkConverted = std::make_unique<HdMaterialNetwork2>();
-#  if PXR_VERSION >= 2205
+#if PXR_VERSION >= 2205
         *networkConverted = HdConvertToHdMaterialNetwork2(networkOld);
-#  else
+#else
         HdMaterialNetwork2ConvertFromHdMaterialNetworkMap(networkOld, networkConverted.get());
-#  endif
+#endif
         network = networkConverted.get();
       }
     }
@@ -255,7 +254,6 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
         PopulateShaderGraph(*network);
       }
     }
-#endif
   }
 
   if (_shader->is_modified()) {
@@ -417,7 +415,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 {
   _nodes.clear();
 
-  auto graph = new ShaderGraph();
+  unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
   // Iterate all the nodes first and build a complete but unconnected graph with parameters set
   for (const auto &nodeEntry : networkMap.nodes) {
@@ -449,11 +447,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 
       // If it's a native Cycles' node-type, just do the lookup now.
       if (const NodeType *nodeType = NodeType::find(cyclesType)) {
-        nodeDesc.node = static_cast<ShaderNode *>(nodeType->create(nodeType));
-        nodeDesc.node->set_owner(graph);
-
-        graph->add(nodeDesc.node);
-
+        nodeDesc.node = graph->create_node(nodeType);
         _nodes.emplace(nodePath, nodeDesc);
       }
       else {
@@ -476,7 +470,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
       continue;
     }
 
-    UpdateConnections(nodeIt->second, nodeEntry.second, nodePath, graph);
+    UpdateConnections(nodeIt->second, nodeEntry.second, nodePath, graph.get());
   }
 
   // Finally connect the terminals to the graph output (Surface, Volume, Displacement)
@@ -549,16 +543,14 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 
     OutputAOVNode *aovNode = graph->create_node<OutputAOVNode>();
     aovNode->set_name(instanceId);
-    graph->add(aovNode);
 
     AttributeNode *instanceIdNode = graph->create_node<AttributeNode>();
     instanceIdNode->set_attribute(instanceId);
-    graph->add(instanceIdNode);
 
     graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
   }
 
-  _shader->set_graph(graph);
+  _shader->set_graph(std::move(graph));
 }
 
 void HdCyclesMaterial::Finalize(HdRenderParam *renderParam)

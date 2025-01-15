@@ -19,6 +19,9 @@ namespace blender::io::usd {
 
 struct USDMeshData;
 
+/* Mapping from material slot number to array of face indices with that material. */
+using MaterialFaceGroups = Map<short, pxr::VtArray<int>>;
+
 /* Writer for USD geometry. Does not assume the object is a mesh object. */
 class USDGenericMeshWriter : public USDAbstractWriter {
  public:
@@ -32,9 +35,6 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   virtual void free_export_mesh(Mesh *mesh);
 
  private:
-  /* Mapping from material slot number to array of face indices with that material. */
-  using MaterialFaceGroups = Map<short, pxr::VtIntArray>;
-
   void write_mesh(HierarchyContext &context, Mesh *mesh, const SubsurfModifierData *subsurfData);
   pxr::TfToken get_subdiv_scheme(const SubsurfModifierData *subsurfData);
   void write_subdiv(const pxr::TfToken &subdiv_scheme,

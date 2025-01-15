@@ -30,7 +30,7 @@ class ImagePrepass : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_image() && !res.is_selection();
+    enabled_ = state.is_space_image() && state.is_image_valid && !res.is_selection();
 
     if (!enabled_) {
       return;
@@ -72,7 +72,7 @@ class Prepass : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_v3d();
+    enabled_ = state.is_space_v3d() && (!state.xray_enabled || res.is_selection());
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -169,10 +169,19 @@ class Prepass : Overlay {
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
     ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
-    select::ID select_id = res.select_id(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
-      mesh_ps_->draw(batch.batch, handle, select_id.get());
+      select::ID select_id = use_material_slot_selection_ ?
+                                 res.select_id(ob_ref, (batch.material_slot + 1) << 16) :
+                                 res.select_id(ob_ref);
+
+      if (res.is_selection()) {
+        /* Conservative shader needs expanded draw-call. */
+        mesh_ps_->draw_expand(batch.batch, GPU_PRIM_TRIS, 1, 1, handle, select_id.get());
+      }
+      else {
+        mesh_ps_->draw(batch.batch, handle, select_id.get());
+      }
     }
   }
 
@@ -181,7 +190,7 @@ class Prepass : Overlay {
                    Resources &res,
                    const State &state) final
   {
-    if (!enabled_) {
+    if (!enabled_ || ob_ref.object->dt < OB_SOLID) {
       return;
     }
 
@@ -204,13 +213,8 @@ class Prepass : Overlay {
         if (use_material_slot_selection_) {
           /* TODO(fclem): Improve the API. */
           const int materials_len = DRW_cache_object_material_count_get(ob_ref.object);
-          Array<GPUMaterial *> materials(materials_len);
-          materials.fill(nullptr);
-
-          gpu::Batch **geom_per_mat = DRW_cache_mesh_surface_shaded_get(
-              ob_ref.object, materials.data(), materials_len);
-
-          geom_list = {geom_per_mat, materials_len};
+          Array<GPUMaterial *> materials(materials_len, nullptr);
+          geom_list = DRW_cache_mesh_surface_shaded_get(ob_ref.object, materials);
         }
         else {
           geom_single = DRW_cache_mesh_surface_get(ob_ref.object);

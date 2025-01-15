@@ -7,6 +7,12 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/util/colorspace.h"
+
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Compute fresnel reflectance for perpendicular (aka S-) and parallel (aka P-) polarized light.
@@ -14,7 +20,7 @@ CCL_NAMESPACE_BEGIN
  * Also returns the dot product of the refracted ray and the normal as `cos_theta_t`, as it is
  * used when computing the direction of the refracted ray. */
 ccl_device float2 fresnel_dielectric_polarized(float cos_theta_i,
-                                               float eta,
+                                               const float eta,
                                                ccl_private float *r_cos_theta_t,
                                                ccl_private float2 *r_phi)
 {
@@ -60,8 +66,8 @@ ccl_device float2 fresnel_dielectric_polarized(float cos_theta_i,
 }
 
 /* Compute fresnel reflectance for unpolarized light. */
-ccl_device_forceinline float fresnel_dielectric(float cos_theta_i,
-                                                float eta,
+ccl_device_forceinline float fresnel_dielectric(const float cos_theta_i,
+                                                const float eta,
                                                 ccl_private float *r_cos_theta_t)
 {
   return average(fresnel_dielectric_polarized(cos_theta_i, eta, r_cos_theta_t, nullptr));
@@ -77,54 +83,55 @@ ccl_device_inline float3 refract_angle(const float3 incident,
   return (inv_eta * dot(normal, incident) + cos_theta_t) * normal - inv_eta * incident;
 }
 
-ccl_device float fresnel_dielectric_cos(float cosi, float eta)
+ccl_device float fresnel_dielectric_cos(const float cosi, const float eta)
 {
   // compute fresnel reflectance without explicitly computing
   // the refracted direction
-  float c = fabsf(cosi);
+  const float c = fabsf(cosi);
   float g = eta * eta - 1 + c * c;
   if (g > 0) {
     g = sqrtf(g);
-    float A = (g - c) / (g + c);
-    float B = (c * (g + c) - 1) / (c * (g - c) + 1);
+    const float A = (g - c) / (g + c);
+    const float B = (c * (g + c) - 1) / (c * (g - c) + 1);
     return 0.5f * A * A * (1 + B * B);
   }
   return 1.0f;  // TIR(no refracted component)
 }
 
-ccl_device Spectrum fresnel_conductor(float cosi, const Spectrum eta, const Spectrum k)
+ccl_device Spectrum fresnel_conductor(const float cosi, const Spectrum eta, const Spectrum k)
 {
-  Spectrum cosi2 = make_spectrum(cosi * cosi);
-  Spectrum one = make_spectrum(1.0f);
-  Spectrum tmp_f = eta * eta + k * k;
-  Spectrum tmp = tmp_f * cosi2;
-  Spectrum Rparl2 = (tmp - (2.0f * eta * cosi) + one) / (tmp + (2.0f * eta * cosi) + one);
-  Spectrum Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi2) / (tmp_f + (2.0f * eta * cosi) + cosi2);
+  const Spectrum cosi2 = make_spectrum(cosi * cosi);
+  const Spectrum one = make_spectrum(1.0f);
+  const Spectrum tmp_f = eta * eta + k * k;
+  const Spectrum tmp = tmp_f * cosi2;
+  const Spectrum Rparl2 = (tmp - (2.0f * eta * cosi) + one) / (tmp + (2.0f * eta * cosi) + one);
+  const Spectrum Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi2) /
+                          (tmp_f + (2.0f * eta * cosi) + cosi2);
   return (Rparl2 + Rperp2) * 0.5f;
 }
 
-ccl_device float ior_from_F0(float f0)
+ccl_device float ior_from_F0(const float f0)
 {
   const float sqrt_f0 = sqrtf(clamp(f0, 0.0f, 0.99f));
   return (1.0f + sqrt_f0) / (1.0f - sqrt_f0);
 }
 
-ccl_device float F0_from_ior(float ior)
+ccl_device float F0_from_ior(const float ior)
 {
   return sqr((ior - 1.0f) / (ior + 1.0f));
 }
 
-ccl_device float schlick_fresnel(float u)
+ccl_device float schlick_fresnel(const float u)
 {
-  float m = clamp(1.0f - u, 0.0f, 1.0f);
-  float m2 = m * m;
+  const float m = clamp(1.0f - u, 0.0f, 1.0f);
+  const float m2 = m * m;
   return m2 * m2 * m;  // pow(m, 5)
 }
 
 /* Calculate the fresnel color, which is a blend between white and the F0 color */
-ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
-                                                          float3 H,
-                                                          float ior,
+ccl_device_forceinline Spectrum interpolate_fresnel_color(const float3 L,
+                                                          const float3 H,
+                                                          const float ior,
                                                           Spectrum F0)
 {
   /* Compute the real Fresnel term and remap it from real_F0..1 to F0..1.
@@ -132,8 +139,8 @@ ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
    * Schlick approximation mix(F0, 1.0, (1.0-cosLH)^5) is that for cases
    * with similar IORs (e.g. ice in water), the relative IOR can be close
    * enough to 1.0 that the Schlick approximation becomes inaccurate. */
-  float real_F = fresnel_dielectric_cos(dot(L, H), ior);
-  float real_F0 = fresnel_dielectric_cos(1.0f, ior);
+  const float real_F = fresnel_dielectric_cos(dot(L, H), ior);
+  const float real_F0 = fresnel_dielectric_cos(1.0f, ior);
 
   return mix(F0, one_spectrum(), inverse_lerp(real_F0, 1.0f, real_F));
 }
@@ -141,7 +148,7 @@ ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
 /* If the shading normal results in specular reflection in the lower hemisphere, raise the shading
  * normal towards the geometry normal so that the specular reflection is just above the surface.
  * Only used for glossy materials. */
-ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N)
+ccl_device float3 ensure_valid_specular_reflection(const float3 Ng, const float3 I, float3 N)
 {
   const float3 R = 2 * dot(N, I) * N - I;
 
@@ -218,7 +225,8 @@ ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N
 
 /* Do not call #ensure_valid_specular_reflection if the primitive type is curve or if the geometry
  * normal and the shading normal is the same. */
-ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd, float3 N)
+ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd,
+                                                         const float3 N)
 {
   if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
     return N;
@@ -281,29 +289,29 @@ ccl_device_inline Spectrum closure_layering_weight(const Spectrum layer_albedo,
  * transform and store them as a LUT that gets looked up here.
  * In practice, using the XYZ fit and converting the result from XYZ to RGB is easier.
  */
-ccl_device_inline Spectrum iridescence_lookup_sensitivity(float OPD, float shift)
+ccl_device_inline Spectrum iridescence_lookup_sensitivity(const float OPD, const float shift)
 {
-  float phase = M_2PI_F * OPD * 1e-9f;
-  float3 val = make_float3(5.4856e-13f, 4.4201e-13f, 5.2481e-13f);
-  float3 pos = make_float3(1.6810e+06f, 1.7953e+06f, 2.2084e+06f);
-  float3 var = make_float3(4.3278e+09f, 9.3046e+09f, 6.6121e+09f);
+  const float phase = M_2PI_F * OPD * 1e-9f;
+  const float3 val = make_float3(5.4856e-13f, 4.4201e-13f, 5.2481e-13f);
+  const float3 pos = make_float3(1.6810e+06f, 1.7953e+06f, 2.2084e+06f);
+  const float3 var = make_float3(4.3278e+09f, 9.3046e+09f, 6.6121e+09f);
 
   float3 xyz = val * sqrt(M_2PI_F * var) * cos(pos * phase + shift) * exp(-sqr(phase) * var);
   xyz.x += 1.64408e-8f * cosf(2.2399e+06f * phase + shift) * expf(-4.5282e+09f * sqr(phase));
   return xyz / 1.0685e-7f;
 }
 
-ccl_device_inline float3
-iridescence_airy_summation(float T121, float R12, float R23, float OPD, float phi)
+ccl_device_inline float3 iridescence_airy_summation(
+    const float T121, const float R12, const float R23, const float OPD, const float phi)
 {
   if (R23 == 1.0f) {
     /* Shortcut for TIR on the bottom interface. */
     return one_float3();
   }
 
-  float R123 = R12 * R23;
-  float r123 = sqrtf(R123);
-  float Rs = sqr(T121) * R23 / (1.0f - R123);
+  const float R123 = R12 * R23;
+  const float r123 = sqrtf(R123);
+  const float Rs = sqr(T121) * R23 / (1.0f - R123);
 
   /* Perform summation over path order differences (equation 10). */
   float3 R = make_float3(R12 + Rs); /* C0 */
@@ -321,7 +329,7 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
                                         float eta2,
                                         float eta3,
                                         float cos_theta_1,
-                                        float thickness,
+                                        const float thickness,
                                         ccl_private float *r_cos_theta_3)
 {
   /* For films below 30nm, the wave-optic-based Airy summation approach no longer applies,
@@ -331,20 +339,22 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
   }
 
   float cos_theta_2;
-  float2 phi12, phi23;
+  float2 phi12;
+  float2 phi23;
 
   /* Compute reflection at the top interface (ambient to film). */
-  float2 R12 = fresnel_dielectric_polarized(cos_theta_1, eta2 / eta1, &cos_theta_2, &phi12);
+  const float2 R12 = fresnel_dielectric_polarized(cos_theta_1, eta2 / eta1, &cos_theta_2, &phi12);
   if (isequal(R12, one_float2())) {
     /* TIR at the top interface. */
     return one_spectrum();
   }
 
   /* Compute optical path difference inside the thin film. */
-  float OPD = -2.0f * eta2 * thickness * cos_theta_2;
+  const float OPD = -2.0f * eta2 * thickness * cos_theta_2;
 
   /* Compute reflection at the bottom interface (film to medium). */
-  float2 R23 = fresnel_dielectric_polarized(-cos_theta_2, eta3 / eta2, r_cos_theta_3, &phi23);
+  const float2 R23 = fresnel_dielectric_polarized(
+      -cos_theta_2, eta3 / eta2, r_cos_theta_3, &phi23);
   if (isequal(R23, one_float2())) {
     /* TIR at the bottom interface.
      * All the Airy summation math still simplifies to 1.0 in this case. */
@@ -352,8 +362,8 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
   }
 
   /* Compute helper parameters. */
-  float2 T121 = one_float2() - R12;
-  float2 phi = make_float2(M_PI_F, M_PI_F) - phi12 + phi23;
+  const float2 T121 = one_float2() - R12;
+  const float2 phi = make_float2(M_PI_F, M_PI_F) - phi12 + phi23;
 
   /* Perform Airy summation and average the polarizations. */
   float3 R = mix(iridescence_airy_summation(T121.x, R12.x, R23.x, OPD, phi.x),

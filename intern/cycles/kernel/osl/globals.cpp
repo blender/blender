@@ -4,58 +4,55 @@
 
 #include <OSL/oslexec.h>
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
-
-#include "kernel/types.h"
-
 #include "kernel/osl/globals.h"
-#include "kernel/osl/services.h"
 
 CCL_NAMESPACE_BEGIN
 
-void OSLGlobals::thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals, const int thread_index)
+OSLThreadData::OSLThreadData(OSLGlobals *osl_globals, const int thread_index)
+    : globals(osl_globals), thread_index(thread_index)
 {
-  /* no osl used? */
-  if (!osl_globals->use) {
-    kg->osl = NULL;
+  if (globals == nullptr || globals->use == false) {
     return;
   }
 
-  /* Per thread kernel data init. */
-  kg->osl = osl_globals;
+  ss = globals->ss;
 
-  OSL::ShadingSystem *ss = kg->osl->ss;
-  OSLThreadData *tdata = new OSLThreadData();
+  memset((void *)&shader_globals, 0, sizeof(shader_globals));
+  shader_globals.tracedata = &tracedata;
 
-  memset((void *)&tdata->globals, 0, sizeof(OSL::ShaderGlobals));
-  tdata->globals.tracedata = &tdata->tracedata;
-  tdata->osl_thread_info = ss->create_thread_info();
-  tdata->context = ss->get_context(tdata->osl_thread_info);
-
-  tdata->oiio_thread_info = osl_globals->ts->get_perthread_info();
-
-  kg->osl_ss = (OSLShadingSystem *)ss;
-  kg->osl_tdata = tdata;
-  kg->osl_thread_index = thread_index;
+  osl_thread_info = ss->create_thread_info();
+  context = ss->get_context(osl_thread_info);
+  oiio_thread_info = globals->ts->get_perthread_info();
 }
 
-void OSLGlobals::thread_free(KernelGlobalsCPU *kg)
+OSLThreadData::~OSLThreadData()
 {
-  if (!kg->osl)
-    return;
+  if (context) {
+    ss->release_context(context);
+  }
+  if (osl_thread_info) {
+    ss->destroy_thread_info(osl_thread_info);
+  }
+}
 
-  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
-  OSLThreadData *tdata = kg->osl_tdata;
-  ss->release_context(tdata->context);
+OSLThreadData::OSLThreadData(OSLThreadData &&other) noexcept
+    : globals(other.globals),
+      ss(other.ss),
+      thread_index(other.thread_index),
+      shader_globals(other.shader_globals),
+      tracedata(other.tracedata),
+      osl_thread_info(other.osl_thread_info),
+      context(other.context),
+      oiio_thread_info(other.oiio_thread_info)
+{
+  shader_globals.tracedata = &tracedata;
 
-  ss->destroy_thread_info(tdata->osl_thread_info);
-
-  delete tdata;
-
-  kg->osl = NULL;
-  kg->osl_ss = NULL;
-  kg->osl_tdata = NULL;
+  memset((void *)&other.shader_globals, 0, sizeof(other.shader_globals));
+  memset((void *)&other.tracedata, 0, sizeof(other.tracedata));
+  other.thread_index = -1;
+  other.context = nullptr;
+  other.osl_thread_info = nullptr;
+  other.oiio_thread_info = nullptr;
 }
 
 CCL_NAMESPACE_END

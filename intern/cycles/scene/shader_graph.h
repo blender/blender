@@ -2,19 +2,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __GRAPH_H__
-#define __GRAPH_H__
+#pragma once
 
 #include "graph/node.h"
 #include "graph/node_type.h"
 
 #include "kernel/types.h"
 
-#include "util/list.h"
 #include "util/map.h"
 #include "util/param.h"
 #include "util/set.h"
+#include "util/string.h"
 #include "util/types.h"
+#include "util/unique_ptr_vector.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -67,11 +67,8 @@ enum ShaderNodeSpecialType {
 class ShaderInput {
  public:
   ShaderInput(const SocketType &socket_type_, ShaderNode *parent_)
-      : socket_type(socket_type_),
-        parent(parent_),
-        link(NULL),
-        stack_offset(SVM_STACK_INVALID),
-        constant_folded_in(false)
+      : socket_type(socket_type_), parent(parent_)
+
   {
   }
 
@@ -88,15 +85,15 @@ class ShaderInput {
     return socket_type.type;
   }
 
-  void set(float f)
+  void set(const float f)
   {
     ((Node *)parent)->set(socket_type, f);
   }
-  void set(float3 f)
+  void set(const float3 f)
   {
     ((Node *)parent)->set(socket_type, f);
   }
-  void set(int f)
+  void set(const int f)
   {
     ((Node *)parent)->set(socket_type, f);
   }
@@ -105,12 +102,12 @@ class ShaderInput {
 
   const SocketType &socket_type;
   ShaderNode *parent;
-  ShaderOutput *link;
-  int stack_offset; /* for SVM compiler */
+  ShaderOutput *link = nullptr;
+  int stack_offset = SVM_STACK_INVALID; /* for SVM compiler */
 
   /* Keeps track of whether a constant was folded in this socket, to avoid over-optimizing when the
    * link is null. */
-  bool constant_folded_in;
+  bool constant_folded_in = false;
 };
 
 /* Output
@@ -120,7 +117,7 @@ class ShaderInput {
 class ShaderOutput {
  public:
   ShaderOutput(const SocketType &socket_type_, ShaderNode *parent_)
-      : socket_type(socket_type_), parent(parent_), stack_offset(SVM_STACK_INVALID)
+      : socket_type(socket_type_), parent(parent_)
   {
   }
 
@@ -138,7 +135,7 @@ class ShaderOutput {
   const SocketType &socket_type;
   ShaderNode *parent;
   vector<ShaderInput *> links;
-  int stack_offset; /* for SVM compiler */
+  int stack_offset = SVM_STACK_INVALID; /* for SVM compiler */
 };
 
 /* Node
@@ -149,7 +146,7 @@ class ShaderOutput {
 class ShaderNode : public Node {
  public:
   explicit ShaderNode(const NodeType *type);
-  virtual ~ShaderNode();
+  ShaderNode(const ShaderNode &other);
 
   void create_inputs_outputs(const NodeType *type);
   void remove_input(ShaderInput *input);
@@ -208,13 +205,15 @@ class ShaderNode : public Node {
   {
     return false;
   }
-  vector<ShaderInput *> inputs;
-  vector<ShaderOutput *> outputs;
+  unique_ptr_vector<ShaderInput> inputs;
+  unique_ptr_vector<ShaderOutput> outputs;
 
-  int id;          /* index in graph node array */
-  ShaderBump bump; /* for bump mapping utility */
-
-  ShaderNodeSpecialType special_type; /* special node type */
+  /* index in graph node array */
+  int id = -1;
+  /* for bump mapping utility */
+  ShaderBump bump = SHADER_BUMP_NONE;
+  /* special node type */
+  ShaderNodeSpecialType special_type = SHADER_SPECIAL_TYPE_NONE;
 
   /* ** Selective nodes compilation ** */
 
@@ -254,26 +253,26 @@ class ShaderNode : public Node {
 #define SHADER_NODE_CLASS(type) \
   NODE_DECLARE \
   type(); \
-  virtual ShaderNode *clone(ShaderGraph *graph) const \
+  ShaderNode *clone(ShaderGraph *graph) const override \
   { \
     return graph->create_node<type>(*this); \
   } \
-  virtual void compile(SVMCompiler &compiler); \
-  virtual void compile(OSLCompiler &compiler);
+  void compile(SVMCompiler &compiler) override; \
+  void compile(OSLCompiler &compiler) override;
 
 #define SHADER_NODE_NO_CLONE_CLASS(type) \
   NODE_DECLARE \
   type(); \
-  virtual void compile(SVMCompiler &compiler); \
-  virtual void compile(OSLCompiler &compiler);
+  void compile(SVMCompiler &compiler) override; \
+  void compile(OSLCompiler &compiler) override;
 
 #define SHADER_NODE_BASE_CLASS(type) \
-  virtual ShaderNode *clone(ShaderGraph *graph) const \
+  ShaderNode *clone(ShaderGraph *graph) const override \
   { \
     return graph->create_node<type>(*this); \
   } \
-  virtual void compile(SVMCompiler &compiler); \
-  virtual void compile(OSLCompiler &compiler);
+  void compile(SVMCompiler &compiler) override; \
+  void compile(OSLCompiler &compiler) override;
 
 class ShaderNodeIDComparator {
  public:
@@ -283,8 +282,8 @@ class ShaderNodeIDComparator {
   }
 };
 
-typedef set<ShaderNode *, ShaderNodeIDComparator> ShaderNodeSet;
-typedef map<ShaderNode *, ShaderNode *, ShaderNodeIDComparator> ShaderNodeMap;
+using ShaderNodeSet = set<ShaderNode *, ShaderNodeIDComparator>;
+using ShaderNodeMap = map<ShaderNode *, ShaderNode *, ShaderNodeIDComparator>;
 
 /* Graph
  *
@@ -293,16 +292,15 @@ typedef map<ShaderNode *, ShaderNode *, ShaderNodeIDComparator> ShaderNodeMap;
 
 class ShaderGraph : public NodeOwner {
  public:
-  list<ShaderNode *> nodes;
+  unique_ptr_vector<ShaderNode> nodes;
   size_t num_node_ids;
   bool finalized;
   bool simplified;
   string displacement_hash;
 
   ShaderGraph();
-  ~ShaderGraph();
+  ~ShaderGraph() override;
 
-  ShaderNode *add(ShaderNode *node);
   OutputNode *output();
 
   void connect(ShaderOutput *from, ShaderInput *to);
@@ -321,26 +319,38 @@ class ShaderGraph : public NodeOwner {
 
   void dump_graph(const char *filename);
 
-  /* This function is used to create a node of a specified type instead of
-   * calling 'new', and sets the graph as the owner of the node.
-   */
+  /* Create node from class and add it to the shader graph. */
   template<typename T, typename... Args> T *create_node(Args &&...args)
   {
-    T *node = new T(args...);
-    node->set_owner(this);
-    return node;
+    unique_ptr<T> node = make_unique<T>(args...);
+    T *node_ptr = node.get();
+    this->add_node(std::move(node));
+    return node_ptr;
   }
 
-  /* This function is used to delete a node created and owned by the graph.
-   */
-  template<typename T> void delete_node(T *node)
+  /* Create OSL node from class and add it to the shader graph. */
+  template<typename T, typename... Args> T *create_osl_node(void *node_memory, Args &&...args)
   {
-    assert(node->get_owner() == this);
-    delete node;
+    T *node_ptr = new (node_memory) T(args...);
+    unique_ptr<T> node(node_ptr);
+    this->add_node(std::move(node));
+    return node_ptr;
+  }
+
+  /* Create node from node type and add it to the shader graph. */
+  ShaderNode *create_node(const NodeType *node_type)
+  {
+    unique_ptr<Node> node = node_type->create(node_type);
+    unique_ptr<ShaderNode> shader_node(static_cast<ShaderNode *>(node.release()));
+    ShaderNode *shader_node_ptr = shader_node.get();
+    this->add_node(std::move(shader_node));
+    return shader_node_ptr;
   }
 
  protected:
-  typedef pair<ShaderNode *const, ShaderNode *> NodePair;
+  using NodePair = pair<ShaderNode *const, ShaderNode *>;
+
+  void add_node(unique_ptr<ShaderNode> &&node);
 
   void find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input);
   void clear_nodes();
@@ -362,5 +372,3 @@ class ShaderGraph : public NodeOwner {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __GRAPH_H__ */

@@ -10,26 +10,20 @@
 #include "scene/stats.h"
 #include "session/buffers.h"
 
-#include "util/foreach.h"
-
 CCL_NAMESPACE_BEGIN
-
-BakeManager::BakeManager()
-{
-  need_update_ = true;
-  use_camera_ = false;
-}
-
-BakeManager::~BakeManager() {}
 
 bool BakeManager::get_baking() const
 {
-  return !object_name.empty();
+  return use_baking_;
 }
 
-void BakeManager::set(Scene *scene, const std::string &object_name_)
+void BakeManager::set_baking(Scene *scene, const bool use)
 {
-  object_name = object_name_;
+  if (use_baking_ == use) {
+    return;
+  }
+
+  use_baking_ = use;
 
   /* create device and update scene */
   scene->film->tag_modified();
@@ -70,8 +64,8 @@ void BakeManager::device_update(Device * /*device*/,
 
   kbake->use_camera = use_camera_;
 
-  if (!object_name.empty()) {
-    scoped_callback_timer timer([scene](double time) {
+  if (use_baking_) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->bake.times.add_entry({"device_update", time});
       }
@@ -80,9 +74,9 @@ void BakeManager::device_update(Device * /*device*/,
     kbake->use = true;
 
     int object_index = 0;
-    foreach (Object *object, scene->objects) {
+    for (Object *object : scene->objects) {
       const Geometry *geom = object->get_geometry();
-      if (object->name == object_name && geom->is_mesh()) {
+      if (object->get_is_bake_target() && geom->is_mesh()) {
         kbake->object_index = object_index;
         kbake->tri_offset = geom->prim_offset;
         break;

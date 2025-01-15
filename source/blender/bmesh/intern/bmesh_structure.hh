@@ -15,6 +15,11 @@
  * descriptive comments.  but seriously, don't use this stuff.
  */
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
+#include "bmesh_class.hh"
+
 /* LOOP CYCLE MANAGEMENT */
 /*****loop cycle functions, e.g. loops surrounding a face**** */
 bool bmesh_loop_validate(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

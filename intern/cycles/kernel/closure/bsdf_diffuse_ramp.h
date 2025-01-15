@@ -7,32 +7,36 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 #include "kernel/sample/mapping.h"
-#include "kernel/util/color.h"
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 
 #ifdef __OSL__
 
-typedef struct DiffuseRampBsdf {
+struct DiffuseRampBsdf {
   SHADER_CLOSURE_BASE;
 
   ccl_private float3 *colors;
-} DiffuseRampBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(DiffuseRampBsdf), "DiffuseRampBsdf is too large!");
 
 ccl_device float3 bsdf_diffuse_ramp_get_color(const float3 colors[8], float pos)
 {
-  int MAXCOLORS = 8;
+  const int MAXCOLORS = 8;
 
-  float npos = pos * (float)(MAXCOLORS - 1);
-  int ipos = float_to_int(npos);
-  if (ipos < 0)
+  const float npos = pos * (float)(MAXCOLORS - 1);
+  const int ipos = float_to_int(npos);
+  if (ipos < 0) {
     return colors[0];
-  if (ipos >= (MAXCOLORS - 1))
+  }
+  if (ipos >= (MAXCOLORS - 1)) {
     return colors[MAXCOLORS - 1];
-  float offset = npos - (float)ipos;
+  }
+  const float offset = npos - (float)ipos;
   return colors[ipos] * (1.0f - offset) + colors[ipos + 1] * offset;
 }
 
@@ -42,37 +46,35 @@ ccl_device int bsdf_diffuse_ramp_setup(DiffuseRampBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure *sc, float roughness) {}
+ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure *sc, const float roughness) {}
 
-ccl_device Spectrum bsdf_diffuse_ramp_eval(ccl_private const ShaderClosure *sc,
+ccl_device Spectrum bsdf_diffuse_ramp_eval(const ccl_private ShaderClosure *sc,
                                            const float3 wi,
                                            const float3 wo,
                                            ccl_private float *pdf)
 {
   const DiffuseRampBsdf *bsdf = (const DiffuseRampBsdf *)sc;
-  float3 N = bsdf->N;
+  const float3 N = bsdf->N;
 
-  float cosNO = fmaxf(dot(N, wo), 0.0f);
+  const float cosNO = fmaxf(dot(N, wo), 0.0f);
   if (cosNO >= 0.0f) {
     *pdf = cosNO * M_1_PI_F;
     return rgb_to_spectrum(bsdf_diffuse_ramp_get_color(bsdf->colors, cosNO) * M_1_PI_F);
   }
-  else {
-    *pdf = 0.0f;
-    return zero_spectrum();
-  }
+  *pdf = 0.0f;
+  return zero_spectrum();
 }
 
-ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
-                                        float3 Ng,
-                                        float3 wi,
-                                        float2 rand,
+ccl_device int bsdf_diffuse_ramp_sample(const ccl_private ShaderClosure *sc,
+                                        const float3 Ng,
+                                        const float3 wi,
+                                        const float2 rand,
                                         ccl_private Spectrum *eval,
                                         ccl_private float3 *wo,
                                         ccl_private float *pdf)
 {
   const DiffuseRampBsdf *bsdf = (const DiffuseRampBsdf *)sc;
-  float3 N = bsdf->N;
+  const float3 N = bsdf->N;
 
   // distribution over the hemisphere
   sample_cos_hemisphere(N, rand, wo, pdf);

@@ -9,6 +9,8 @@
 #include "kernel/integrator/surface_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
+#include "kernel/geom/shader_data.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool shadow_intersections_has_remaining(const uint num_hits)
@@ -43,7 +45,7 @@ ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg
   /* Evaluate shader. */
   if (!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
-        kg, state, shadow_sd, NULL, PATH_RAY_SHADOW);
+        kg, state, shadow_sd, nullptr, PATH_RAY_SHADOW);
   }
 
 #  ifdef __VOLUME__
@@ -102,7 +104,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
                                                     const uint num_hits)
 {
   /* Accumulate shadow for transparent surfaces. */
-  const uint num_recorded_hits = min(num_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+  const uint num_recorded_hits = min(num_hits, (uint)INTEGRATOR_SHADOW_ISECT_SIZE);
 
   /* Plus one to account for world volume, which has no boundary to hit but casts shadows. */
   for (uint hit = 0; hit < num_recorded_hits + 1; hit++) {
@@ -174,12 +176,10 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
                                 DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
-  else {
-    guiding_record_direct_light(kg, state);
-    film_write_direct_light(kg, state, render_buffer);
-    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
-    return;
-  }
+
+  guiding_record_direct_light(kg, state);
+  film_write_direct_light(kg, state, render_buffer);
+  integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
 }
 
 CCL_NAMESPACE_END

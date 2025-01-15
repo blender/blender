@@ -58,7 +58,7 @@ if(EMBREE_INCLUDE_DIR)
 endif()
 
 if(EMBREE_STATIC_LIB)
-  if(NOT (("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64") OR (APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))))
+  if((CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64") OR (APPLE AND (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")))
     set(_embree_SIMD_COMPONENTS
       embree_sse42
       embree_avx
@@ -104,7 +104,7 @@ foreach(COMPONENT ${_embree_FIND_COMPONENTS})
       ${_embree_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
-    )
+  )
   list(APPEND _embree_LIBRARIES "${EMBREE_${UPPERCOMPONENT}_LIBRARY}")
 endforeach()
 
@@ -112,7 +112,7 @@ endforeach()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Embree DEFAULT_MSG
-    _embree_LIBRARIES EMBREE_INCLUDE_DIR)
+  _embree_LIBRARIES EMBREE_INCLUDE_DIR)
 
 if(EMBREE_FOUND)
   set(EMBREE_LIBRARIES ${_embree_LIBRARIES})

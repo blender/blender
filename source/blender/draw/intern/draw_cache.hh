@@ -67,9 +67,8 @@ blender::gpu::Batch *DRW_cache_object_all_edges_get(Object *ob);
 blender::gpu::Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold);
 blender::gpu::Batch *DRW_cache_object_surface_get(Object *ob);
 blender::gpu::Batch *DRW_cache_object_loose_edges_get(Object *ob);
-blender::gpu::Batch **DRW_cache_object_surface_material_get(Object *ob,
-                                                            GPUMaterial **gpumat_array,
-                                                            uint gpumat_array_len);
+blender::Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
+    Object *ob, blender::Span<const GPUMaterial *> materials);
 blender::gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob);
 int DRW_cache_object_material_count_get(const Object *ob);
 
@@ -162,13 +161,12 @@ blender::gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob);
 /**
  * Return list of batches with length equal to `max(1, totcol)`.
  */
-blender::gpu::Batch **DRW_cache_mesh_surface_shaded_get(Object *ob,
-                                                        GPUMaterial **gpumat_array,
-                                                        uint gpumat_array_len);
+blender::Span<blender::gpu::Batch *> DRW_cache_mesh_surface_shaded_get(
+    Object *ob, blender::Span<const GPUMaterial *> materials);
 /**
  * Return list of batches with length equal to `max(1, totcol)`.
  */
-blender::gpu::Batch **DRW_cache_mesh_surface_texpaint_get(Object *ob);
+blender::Span<blender::gpu::Batch *> DRW_cache_mesh_surface_texpaint_get(Object *ob);
 blender::gpu::Batch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob);
 blender::gpu::Batch *DRW_cache_mesh_surface_vertpaint_get(Object *ob);
 blender::gpu::Batch *DRW_cache_mesh_surface_sculptcolors_get(Object *ob);
@@ -219,15 +217,6 @@ blender::gpu::Batch *DRW_cache_particles_get_edit_tip_points(Object *object,
                                                              ParticleSystem *psys,
                                                              PTCacheEdit *edit);
 blender::gpu::Batch *DRW_cache_particles_get_prim(int type);
-
-/* Curves */
-
-blender::gpu::Batch *DRW_cache_curves_surface_get(Object *ob);
-blender::gpu::Batch **DRW_cache_curves_surface_shaded_get(Object *ob,
-                                                          GPUMaterial **gpumat_array,
-                                                          uint gpumat_array_len);
-blender::gpu::Batch *DRW_cache_curves_face_wireframe_get(Object *ob);
-blender::gpu::Batch *DRW_cache_curves_edge_detection_get(Object *ob, bool *r_is_manifold);
 
 /* Volume */
 

@@ -1186,7 +1186,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_angle_signed_doc,
-    ".. function:: angle_signed(other, fallback)\n"
+    ".. function:: angle_signed(other, fallback=None)\n"
     "\n"
     "   Return the signed angle between two 2D vectors (clockwise is positive).\n"
     "\n"

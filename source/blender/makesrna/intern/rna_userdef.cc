@@ -4403,12 +4403,14 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "path_keyframe_before", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Path Before", "Color of path before current frame");
+  RNA_def_property_ui_text(
+      prop, "Path Keyframe Before", "Color of keyframes on a path before current frame");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "path_keyframe_after", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Path After", "Color of path after current frame");
+  RNA_def_property_ui_text(
+      prop, "Path Keyframe After", "Color of keyframes on a path after current frame");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -4942,6 +4944,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Smooth", "Smooth the lighting from this light");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
   prop = RNA_def_property(srna, "direction", PROP_FLOAT, PROP_DIRECTION);
@@ -5143,7 +5146,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "ui_scale", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "UI Scale", "Changes the size of the fonts and widgets in the interface");
-  RNA_def_property_range(prop, 0.25f, 6.0f);
+  RNA_def_property_range(prop, 0.5f, 6.0f);
   RNA_def_property_ui_range(prop, 0.5f, 3.0f, 1, 2);
   RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
@@ -5741,6 +5744,10 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Default Key Channels",
                            "Which channels to insert keys at when no keying set is active");
+  RNA_def_property_enum_default(prop,
+                                USER_ANIM_KEY_CHANNEL_LOCATION | USER_ANIM_KEY_CHANNEL_ROTATION |
+                                    USER_ANIM_KEY_CHANNEL_SCALE |
+                                    USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES);
 
   prop = RNA_def_property(srna, "use_auto_keyframe_insert_needed", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", AUTOKEY_FLAG_INSERTNEEDED);
@@ -5771,7 +5778,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_anim_channel_group_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "animation_flag", USER_ANIM_SHOW_CHANNEL_GROUP_COLORS);
-  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(
       prop,
       "Channel Group Colors",
@@ -6308,7 +6314,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   prop = RNA_def_property(srna, "anisotropic_filter", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "anisotropic_filter");
   RNA_def_property_enum_items(prop, anisotropic_items);
-  RNA_def_property_enum_default(prop, 1);
   RNA_def_property_ui_text(prop, "Anisotropic Filtering", "Quality of anisotropic filtering");
   RNA_def_property_update(prop, 0, "rna_userdef_anisotropic_update");
 

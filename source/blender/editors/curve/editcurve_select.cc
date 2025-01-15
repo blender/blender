@@ -811,7 +811,9 @@ void CURVE_OT_select_row(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Select Control Point Row";
   ot->idname = "CURVE_OT_select_row";
-  ot->description = "Select a row of control points including active one";
+  ot->description =
+      "Select a row of control points including active one. "
+      "Successive use on the same point switches between U/V directions";
 
   /* api callbacks */
   ot->exec = select_row_exec;

@@ -136,6 +136,11 @@ class Context {
       std::cerr << msg << std::endl;
     }
   }
+
+ protected:
+  /* Derived classes should call this from the destructor, as freeing framebuffers may need the
+   * derived context to be valid. */
+  void free_framebuffers();
 };
 
 /* Syntactic sugar. */

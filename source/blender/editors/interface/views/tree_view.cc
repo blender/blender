@@ -198,11 +198,14 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
     const int descendant_count = count_visible_descendants(*item);
 
     const int first_descendant_index = item_index + 1;
-    const int last_descendant_index = first_descendant_index + descendant_count;
+    const int last_descendant_index = item_index + descendant_count;
 
     {
       const bool line_ends_above_visible = last_descendant_index < scroll_ofs;
       if (line_ends_above_visible) {
+        /* We won't recurse into the child items even though they are present (just scrolled out of
+         * view). Still update the index to be the first following item. */
+        visible_item_index = last_descendant_index + 1;
         continue;
       }
 
@@ -217,9 +220,10 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
     const int x = ((first_descendant->indent_width() + uiLayoutListItemPaddingWidth() -
                     (0.5f * UI_ICON_SIZE) + U.pixelsize + UI_SCALE_FAC) /
                    aspect);
-    const int ymax = std::max(0, first_descendant_index - scroll_ofs) * padded_item_height();
-    const int ymin = std::min(max_visible_row_count, last_descendant_index - scroll_ofs) *
-                     padded_item_height();
+    const int ymax = std::max(0, first_descendant_index - scroll_ofs) * padded_item_height() /
+                     aspect;
+    const int ymin = std::min(max_visible_row_count, last_descendant_index + 1 - scroll_ofs) *
+                     padded_item_height() / aspect;
     lines.append(std::make_pair(int2(x, ymax), int2(x, ymin)));
 
     this->get_hierarchy_lines(region, *item, aspect, lines, visible_item_index);

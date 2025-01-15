@@ -7,9 +7,6 @@
 #  include "device/oneapi/queue.h"
 #  include "device/oneapi/device_impl.h"
 #  include "util/log.h"
-#  include "util/time.h"
-#  include <iomanip>
-#  include <vector>
 
 #  include "kernel/device/oneapi/kernel.h"
 
@@ -23,13 +20,8 @@ struct KernelExecutionInfo {
 /* OneapiDeviceQueue */
 
 OneapiDeviceQueue::OneapiDeviceQueue(OneapiDevice *device)
-    : DeviceQueue(device), oneapi_device_(device), kernel_context_(nullptr)
+    : DeviceQueue(device), oneapi_device_(device)
 {
-}
-
-OneapiDeviceQueue::~OneapiDeviceQueue()
-{
-  delete kernel_context_;
 }
 
 int OneapiDeviceQueue::num_concurrent_states(const size_t state_size) const
@@ -60,17 +52,19 @@ void OneapiDeviceQueue::init_execution()
   oneapi_device_->load_texture_info();
 
   SyclQueue *device_queue = oneapi_device_->sycl_queue();
-  void *kg_dptr = (void *)oneapi_device_->kernel_globals_device_pointer();
+  void *kg_dptr = oneapi_device_->kernel_globals_device_pointer();
   assert(device_queue);
   assert(kg_dptr);
-  kernel_context_ = new KernelContext{device_queue, kg_dptr, 0};
+  kernel_context_ = make_unique<KernelContext>();
+  kernel_context_->queue = device_queue;
+  kernel_context_->kernel_globals = kg_dptr;
 
   debug_init_execution();
 }
 
 bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
                                 const int signed_kernel_work_size,
-                                DeviceKernelArguments const &_args)
+                                const DeviceKernelArguments &_args)
 {
   if (oneapi_device_->have_error()) {
     return false;
@@ -91,7 +85,7 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
 
   /* Call the oneAPI kernel DLL to launch the requested kernel. */
   bool is_finished_ok = oneapi_device_->enqueue_kernel(
-      kernel_context_, kernel, kernel_global_size, kernel_local_size, args);
+      kernel_context_.get(), kernel, kernel_global_size, kernel_local_size, args);
 
   if (is_finished_ok == false) {
     oneapi_device_->set_error("oneAPI kernel \"" + std::string(device_kernel_as_string(kernel)) +
@@ -111,9 +105,10 @@ bool OneapiDeviceQueue::synchronize()
   }
 
   bool is_finished_ok = oneapi_device_->queue_synchronize(oneapi_device_->sycl_queue());
-  if (is_finished_ok == false)
+  if (is_finished_ok == false) {
     oneapi_device_->set_error("oneAPI unknown kernel execution error: got runtime exception \"" +
                               oneapi_device_->oneapi_error_message() + "\"");
+  }
 
   debug_synchronize();
 

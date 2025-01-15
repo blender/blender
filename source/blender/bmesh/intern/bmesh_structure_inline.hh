@@ -10,6 +10,12 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
+#include "bmesh_class.hh"
+#include "intern/bmesh_query.hh"
+
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
     BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(const BMEdge *e, const BMVert *v)
 {

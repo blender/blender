@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "PATHS",
+    "PATHS_EXCLUDE",
+    "SOURCE_DIR",
+)
+
 import os
 from typing import (
     Any,
@@ -43,9 +49,6 @@ PATHS_EXCLUDE = set(
     os.path.join(SOURCE_DIR, p.replace("/", os.sep))
     for p in
     (
-        "tools/check_source/clang_array_check.py",
-        "tools/utils_ide/cmake_netbeans_project.py",
-        "tools/utils_ide/cmake_qtcreator_project.py",
         "release/datafiles/blender_icons_geom.py",  # Uses `bpy` too much.
         "tests/utils/bl_run_operators.py",  # Uses `bpy` too much.
         "tests/utils/bl_run_operators_event_simulate.py",  # Uses `bpy` too much.
@@ -59,6 +62,7 @@ PATHS_EXCLUDE = set(
         "tools/check_blender_release/scripts/requests_basic_access.py",
         "tools/check_blender_release/scripts/requests_import.py",
         "tools/check_source/check_descriptions.py",
+        "tools/check_source/clang_array_check.py",
         "tools/utils/blend2json.py",
         "tools/utils/blender_keyconfig_export_permutations.py",
         "tools/utils/blender_merge_format_changes.py",

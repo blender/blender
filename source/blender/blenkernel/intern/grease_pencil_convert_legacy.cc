@@ -14,7 +14,6 @@
 #include "BKE_anim_data.hh"
 #include "BKE_attribute.hh"
 #include "BKE_blendfile_link_append.hh"
-#include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
@@ -26,7 +25,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"
@@ -40,6 +39,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -62,7 +62,6 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
-#include "ANIM_action_legacy.hh"
 
 namespace blender::bke::greasepencil::convert {
 
@@ -916,7 +915,7 @@ static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gp
 
     stroke_cyclic.span[stroke_i] = (gps->flag & GP_STROKE_CYCLIC) != 0;
     /* Truncating time in ms to uint32 then we don't lose precision in lower bits. */
-    const uint32_t clamped_init_time = static_cast<uint32_t>(
+    const uint32_t clamped_init_time = uint32_t(
         std::clamp(gps->inittime * 1e3, 0.0, double(std::numeric_limits<uint32_t>::max())));
     stroke_init_times.span[stroke_i] = float(clamped_init_time) / float(1e3);
     stroke_start_caps.span[stroke_i] = int8_t(gps->caps[0]);
@@ -1477,7 +1476,7 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
         /* Remove the default user. The count is tracked manually when assigning to modifiers. */
         id_us_min(&new_ntree->id);
         conversion_data.offset_radius_ntree_by_library.add_new(owner_library, new_ntree);
-        BKE_ntree_update_main_tree(&conversion_data.bmain, new_ntree, nullptr);
+        BKE_ntree_update_after_single_tree_change(conversion_data.bmain, *new_ntree);
         return new_ntree;
       };
       bNodeTree *offset_radius_node_tree = offset_radius_ntree_ensure(dst_object.id.lib);
@@ -2948,8 +2947,12 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
     /* Legacy GP data also used by objects. Create the duplicate of legacy GPv2 data for
      * annotations, if not yet done. */
     if (!new_annotation_gpd) {
-      new_annotation_gpd = reinterpret_cast<bGPdata *>(BKE_id_copy_in_lib(
-          &bmain, legacy_gpd->id.lib, &legacy_gpd->id, nullptr, nullptr, LIB_ID_COPY_DEFAULT));
+      new_annotation_gpd = reinterpret_cast<bGPdata *>(BKE_id_copy_in_lib(&bmain,
+                                                                          legacy_gpd->id.lib,
+                                                                          &legacy_gpd->id,
+                                                                          std::nullopt,
+                                                                          nullptr,
+                                                                          LIB_ID_COPY_DEFAULT));
       new_annotation_gpd->flag |= GP_DATA_ANNOTATIONS;
       id_us_min(&new_annotation_gpd->id);
       annotations_gpv2.add_overwrite(legacy_gpd, new_annotation_gpd);

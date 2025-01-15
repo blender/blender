@@ -54,7 +54,7 @@ find_library(GMP_LIBRARY
     ${_gmp_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(GMPXX_LIBRARY
   NAMES
@@ -63,7 +63,7 @@ find_library(GMPXX_LIBRARY
     ${_gmp_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 if(GMP_INCLUDE_DIR)
   set(_version_regex "^#define[ \t]+__GNU_MP_VERSION[ \t]+\"([^\"]+)\".*")
@@ -78,7 +78,7 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GMP DEFAULT_MSG
-    GMP_LIBRARY GMPXX_LIBRARY GMP_INCLUDE_DIR GMPXX_INCLUDE_DIR)
+  GMP_LIBRARY GMPXX_LIBRARY GMP_INCLUDE_DIR GMPXX_INCLUDE_DIR)
 
 if(GMP_FOUND)
   set(GMP_LIBRARIES ${GMPXX_LIBRARY} ${GMP_LIBRARY})

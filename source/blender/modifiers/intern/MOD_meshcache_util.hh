@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <cstdio>
+
 /* `MOD_meshcache_mdd.cc` */
 
 bool MOD_meshcache_read_mdd_index(FILE *fp,

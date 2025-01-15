@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_bake_items.hh"
-#include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
@@ -12,8 +11,8 @@
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 
-#include "BLI_math_matrix_types.hh"
 #include "BLI_memory_counter.hh"
+#include "BLI_serialize.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_volume_types.h"

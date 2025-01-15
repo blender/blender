@@ -3,6 +3,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "main",
+)
+
 import project_source_info
 import subprocess
 import sys

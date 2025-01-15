@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#include "BKE_customdata.hh"
+
+#include "bmesh_class.hh"
+
 /**
  * When copying between different BMesh objects,
  * `copy_verts` & `copy_edges` should always be true.

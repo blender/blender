@@ -10,7 +10,7 @@
 #include "BKE_camera.h"
 #include "BKE_curves.hh"
 #include "BKE_image.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLI_math_vector.hh"
 #include "DNA_gpencil_legacy_types.h"
@@ -43,7 +43,10 @@ constexpr const bool enable_debug_gpu_capture = true;
 
 RegionViewData region_init(ARegion &region, const int2 &win_size)
 {
-  const RegionViewData data = {int2{region.winx, region.winy}, region.winrct};
+  RegionView3D &rv3d = *static_cast<RegionView3D *>(region.regiondata);
+
+  const RegionViewData data = {
+      int2{region.winx, region.winy}, region.winrct, ED_view3d_mats_rv3d_backup(&rv3d)};
 
   /* Resize region. */
   region.winrct.xmin = 0;
@@ -58,9 +61,14 @@ RegionViewData region_init(ARegion &region, const int2 &win_size)
 
 void region_reset(ARegion &region, const RegionViewData &data)
 {
-  region.winx = data.region_winsize.x;
-  region.winy = data.region_winsize.y;
-  region.winrct = data.region_winrct;
+  RegionView3D &rv3d = *static_cast<RegionView3D *>(region.regiondata);
+
+  region.winx = data.winsize.x;
+  region.winy = data.winsize.y;
+  region.winrct = data.winrct;
+
+  ED_view3d_mats_rv3d_restore(&rv3d, data.rv3d_store);
+  MEM_freeN(data.rv3d_store);
 }
 
 GPUOffScreen *image_render_begin(const int2 &win_size)

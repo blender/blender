@@ -19,7 +19,6 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh"
 
-#include "gpu_py.hh"
 #include "gpu_py_shader.hh" /* own include */
 #include "gpu_py_texture.hh"
 

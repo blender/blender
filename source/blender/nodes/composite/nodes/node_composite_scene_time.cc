@@ -33,14 +33,14 @@ class SceneTimeOperation : public NodeOperation {
   {
     Result &result = get_result("Seconds");
     result.allocate_single_value();
-    result.set_float_value(context().get_time());
+    result.set_single_value(context().get_time());
   }
 
   void execute_frame()
   {
     Result &result = get_result("Frame");
     result.allocate_single_value();
-    result.set_float_value(float(context().get_frame_number()));
+    result.set_single_value(float(context().get_frame_number()));
   }
 };
 
@@ -55,8 +55,11 @@ void register_node_type_cmp_scene_time()
 {
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SCENE_TIME, "Scene Time", NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeSceneTime", CMP_NODE_SCENE_TIME);
+  ntype.ui_name = "Scene Time";
+  ntype.ui_description = "Input the current scene time in seconds or frames";
   ntype.enum_name_legacy = "SCENE_TIME";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = blender::nodes::cmp_node_scene_time_declare;
   ntype.get_compositor_operation = blender::nodes::get_compositor_operation;
 

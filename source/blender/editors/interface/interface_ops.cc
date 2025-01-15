@@ -33,7 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_remap.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
@@ -1171,7 +1171,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
 
     *r_lb = list_of_things;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
+  else if (RNA_struct_is_a(ptr->type, &RNA_Strip)) {
     /* Special case when we do this for 'Sequence.lock'.
      * (if the sequence is locked, it won't be in "selected_editable_sequences"). */
     const char *prop_id = RNA_property_identifier(prop);
@@ -1240,7 +1240,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
       lb = CTX_data_collection_get(C, "selected_nodes");
       lb.remove_if([&](const PointerRNA &link) {
         bNode *node_data = static_cast<bNode *>(link.data);
-        if (node_data->type != node->type) {
+        if (node_data->type_legacy != node->type_legacy) {
           return true;
         }
         return false;
@@ -1298,9 +1298,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
     }
     else if (GS(id->name) == ID_SCE) {
       /* Sequencer's ID is scene :/ */
-      /* Try to recursively find an RNA_Sequence ancestor,
+      /* Try to recursively find an RNA_Strip ancestor,
        * to handle situations like #41062... */
-      *r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence);
+      *r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Strip);
       if (r_path->has_value()) {
         /* Special case when we do this for 'Sequence.lock'.
          * (if the sequence is locked, it won't be in "selected_editable_sequences"). */

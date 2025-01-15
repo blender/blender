@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_listbase.h"
 #include "BLI_span.hh"
 
 struct Base;

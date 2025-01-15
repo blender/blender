@@ -16,6 +16,7 @@
 #include "BLI_span.hh"
 
 struct Depsgraph;
+struct Mesh;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 struct GAttributeReader;

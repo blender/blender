@@ -10,6 +10,7 @@
 
 struct bContext;
 struct Depsgraph;
+struct Main;
 struct Object;
 struct ReportList;
 struct Scene;

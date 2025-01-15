@@ -231,7 +231,7 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
                                            int *r_edge_index)
 {
   /* Calculate 3 directions, return the shortest angle. */
-  float dir_test[3][2];
+  blender::float2 dir_test[3];
   const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
   const float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l->prev, cd_loop_uv_offset);
   const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l->next, cd_loop_uv_offset);
@@ -253,7 +253,7 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
   dir_test[1][1] *= -1.0f;
 
   if (BM_face_uv_calc_cross(l->f, cd_loop_uv_offset) > 0.0f) {
-    negate_v2(dir_test[1]);
+    dir_test[1] *= -1.0f;
   }
 
   const float angles[3] = {

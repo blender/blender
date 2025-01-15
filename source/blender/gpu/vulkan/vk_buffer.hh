@@ -38,16 +38,12 @@ class VKBuffer : public NonCopyable {
 
   /**
    * Allocate the buffer.
-   *
-   * When `is_host_visible` is set to true it will allocate from a host visible memory heap. When
-   * `is_host_visible` is false it will try to allocate from a host visible memory heap. When not
-   * available it will allocate from a not host visible memory heap. This is also known as
-   * Resizable BAR or ReBAR.
    */
   bool create(size_t size,
               GPUUsageType usage,
               VkBufferUsageFlags buffer_usage,
-              bool is_host_visible);
+              VkMemoryPropertyFlags required_flags,
+              VkMemoryPropertyFlags preferred_flags);
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;
 

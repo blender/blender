@@ -9,7 +9,6 @@
 #include <cstdio>
 
 #include "BLI_ghash.h"
-#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 

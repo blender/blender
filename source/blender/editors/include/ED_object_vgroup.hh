@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
-
-struct bDeformGroup;
 struct EnumPropertyItem;
 struct ID;
 struct MDeformVert;
 struct Object;
 struct PointerRNA;
 struct PropertyRNA;
+struct SpaceNode;
+struct bContext;
+struct bDeformGroup;
 
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2

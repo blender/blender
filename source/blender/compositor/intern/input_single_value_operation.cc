@@ -37,17 +37,22 @@ void InputSingleValueOperation::execute()
   /* Set the value of the result to the default value of the input socket. */
   switch (result.type()) {
     case ResultType::Float:
-      result.set_float_value(bsocket->default_value_typed<bNodeSocketValueFloat>()->value);
+      result.set_single_value(bsocket->default_value_typed<bNodeSocketValueFloat>()->value);
+      break;
+    case ResultType::Int:
+      result.set_single_value(bsocket->default_value_typed<bNodeSocketValueInt>()->value);
       break;
     case ResultType::Vector:
-      result.set_vector_value(
+      result.set_single_value(
           float4(float3(bsocket->default_value_typed<bNodeSocketValueVector>()->value), 0.0f));
       break;
     case ResultType::Color:
-      result.set_color_value(float4(bsocket->default_value_typed<bNodeSocketValueRGBA>()->value));
+      result.set_single_value(float4(bsocket->default_value_typed<bNodeSocketValueRGBA>()->value));
       break;
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       BLI_assert_unreachable();
       break;
   }

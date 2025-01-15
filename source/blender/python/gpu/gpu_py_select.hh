@@ -8,4 +8,6 @@
 
 #pragma once
 
+#include <Python.h>
+
 PyObject *bpygpu_select_init();

@@ -13,6 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_utildefines.h"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -32,6 +33,7 @@ enum class ResultType : uint8_t {
    * can encode two 2D vectors, one 3D vector with the last component ignored, or other dimensional
    * data. */
   Float,
+  Int,
   Vector,
   Color,
 
@@ -141,6 +143,7 @@ class Result {
     float4 color_value_ = float4(0.0f);
     float2 float2_value_;
     float3 float3_value_;
+    int int_value_;
     int2 int2_value_;
   };
   /* The domain of the result. This only matters if the result was a texture. See the discussion in
@@ -203,7 +206,7 @@ class Result {
    * the size of the given domain, and set the domain of the result to the given domain.
    *
    * If from_pool is true, the texture will be allocated from the texture pool of the context,
-   * otherwise, a new texture will be allocated. Pooling should not be be used for persistent
+   * otherwise, a new texture will be allocated. Pooling should not be used for persistent
    * results that might span more than one evaluation, like cached resources. While pooling should
    * be used for most other cases where the result will be allocated then later released in the
    * same evaluation.
@@ -300,32 +303,6 @@ class Result {
    * for more information. */
   RealizationOptions &get_realization_options();
 
-  /* Returns the single value of the result. */
-  float get_float_value() const;
-  float4 get_vector_value() const;
-  float4 get_color_value() const;
-  float2 get_float2_value() const;
-  float3 get_float3_value() const;
-  int2 get_int2_value() const;
-
-  /* Returns the single value of the result, but returns a default value if the result is not a
-   * single value result. */
-  float get_float_value_default(float default_value) const;
-  float4 get_vector_value_default(const float4 &default_value) const;
-  float4 get_color_value_default(const float4 &default_value) const;
-  float2 get_float2_value_default(const float2 &default_value) const;
-  float3 get_float3_value_default(const float3 &default_value) const;
-  int2 get_int2_value_default(const int2 &default_value) const;
-
-  /* Set the single value of the result to the given value, which also involves setting the single
-   * pixel in the texture to that value. See the class description for more information. */
-  void set_float_value(float value);
-  void set_vector_value(const float4 &value);
-  void set_color_value(const float4 &value);
-  void set_float2_value(const float2 &value);
-  void set_float3_value(const float3 &value);
-  void set_int2_value(const int2 &value);
-
   /* Set the value of initial_reference_count_, see that member for more details. This should be
    * called after constructing the result to declare the number of operations that needs it. */
   void set_initial_reference_count(int count);
@@ -389,9 +366,23 @@ class Result {
   /* Returns a reference to the allocate integer data. */
   int *integer_texture() const;
 
+  /* Returns a reference to the allocated CPU data. The returned data is untyped, use the
+   * float_texture() or the integer_texture() methods for typed data. */
+  void *data() const;
+
   /* Gets the single value stored in the result. Assumes the result stores a value of the given
    * template type. */
   template<typename T> T get_single_value() const;
+
+  /* Gets the single value stored in the result, if the result is not a single value, the given
+   * default value is returned. Assumes the result stores a value of the same type as the template
+   * type. */
+  template<typename T> T get_single_value_default(const T &default_value) const;
+
+  /* Sets the single value of the result to the given value, which also involves setting the single
+   * pixel in the texture to that value. See the class description for more information. Assumes
+   * the result stores a value of the given template type. */
+  template<typename T> void set_single_value(const T &value);
 
   /* Loads the pixel at the given texel coordinates. Assumes the result stores a value of the given
    * template type. If the CouldBeSingleValue template argument is true and the result is a single
@@ -516,6 +507,7 @@ inline int64_t Result::channels_count() const
 {
   switch (type_) {
     case ResultType::Float:
+    case ResultType::Int:
       return 1;
     case ResultType::Float2:
     case ResultType::Int2:
@@ -541,28 +533,133 @@ inline int *Result::integer_texture() const
   return integer_texture_;
 }
 
+inline void *Result::data() const
+{
+  switch (storage_type_) {
+    case ResultStorageType::FloatCPU:
+      return this->float_texture();
+    case ResultStorageType::IntegerCPU:
+      return this->integer_texture();
+    case ResultStorageType::GPU:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
 template<typename T> inline T Result::get_single_value() const
 {
   BLI_assert(this->is_single_value());
   static_assert(Result::is_supported_type<T>());
 
   if constexpr (std::is_same_v<T, float>) {
+    BLI_assert(type_ == ResultType::Float);
     return float_value_;
   }
+  else if constexpr (std::is_same_v<T, int>) {
+    BLI_assert(type_ == ResultType::Int);
+    return int_value_;
+  }
   else if constexpr (std::is_same_v<T, float2>) {
+    BLI_assert(type_ == ResultType::Float2);
     return float2_value_;
   }
   else if constexpr (std::is_same_v<T, float3>) {
+    BLI_assert(type_ == ResultType::Float3);
     return float3_value_;
   }
   else if constexpr (std::is_same_v<T, float4>) {
+    BLI_assert(ELEM(type_, ResultType::Color, ResultType::Vector));
     return color_value_;
   }
   else if constexpr (std::is_same_v<T, int2>) {
+    BLI_assert(type_ == ResultType::Int2);
     return int2_value_;
   }
   else {
     return T(0);
+  }
+}
+
+template<typename T> inline T Result::get_single_value_default(const T &default_value) const
+{
+  if (this->is_single_value()) {
+    return this->get_single_value<T>();
+  }
+  return default_value;
+}
+
+template<typename T> inline void Result::set_single_value(const T &value)
+{
+  BLI_assert(this->is_allocated());
+  BLI_assert(this->is_single_value());
+  static_assert(Result::is_supported_type<T>());
+
+  if constexpr (std::is_same_v<T, float>) {
+    BLI_assert(type_ == ResultType::Float);
+    float_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, int>) {
+    BLI_assert(type_ == ResultType::Int);
+    int_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, float2>) {
+    BLI_assert(type_ == ResultType::Float2);
+    float2_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, float3>) {
+    BLI_assert(type_ == ResultType::Float3);
+    float3_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, float4>) {
+    BLI_assert(ELEM(type_, ResultType::Color, ResultType::Vector));
+    color_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, int2>) {
+    BLI_assert(type_ == ResultType::Int2);
+    int2_value_ = value;
+  }
+
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      if constexpr (Result::is_int_type<T>()) {
+        if constexpr (std::is_scalar_v<T>) {
+          GPU_texture_update(gpu_texture_, GPU_DATA_INT, &value);
+        }
+        else {
+          GPU_texture_update(gpu_texture_, GPU_DATA_INT, value);
+        }
+      }
+      else {
+        if constexpr (std::is_scalar_v<T>) {
+          GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, &value);
+        }
+        else {
+          GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
+        }
+      }
+      break;
+    case ResultStorageType::FloatCPU:
+    case ResultStorageType::IntegerCPU:
+      if constexpr (Result::is_int_type<T>()) {
+        if constexpr (std::is_scalar_v<T>) {
+          Result::copy_pixel(
+              this->integer_texture(), &value, Result::get_type_channels_count<T>());
+        }
+        else {
+          Result::copy_pixel(this->integer_texture(), value, Result::get_type_channels_count<T>());
+        }
+      }
+      else {
+        if constexpr (std::is_scalar_v<T>) {
+          Result::copy_pixel(this->float_texture(), &value, Result::get_type_channels_count<T>());
+        }
+        else {
+          Result::copy_pixel(this->float_texture(), value, Result::get_type_channels_count<T>());
+        }
+      }
+      break;
   }
 }
 
@@ -920,8 +1017,7 @@ template<typename T> constexpr int Result::get_type_channels_count()
 
 template<typename T> constexpr bool Result::is_supported_type()
 {
-  return std::is_same_v<T, float> || std::is_same_v<T, float2> || std::is_same_v<T, float3> ||
-         std::is_same_v<T, float4> || std::is_same_v<T, int2>;
+  return is_same_any_v<T, float, int, float2, float3, float4, int2>;
 }
 
 template<typename T> inline int64_t Result::get_pixel_index(const int2 &texel) const
@@ -993,6 +1089,9 @@ inline void Result::copy_pixel(float *target, const float *source, const int cha
 inline void Result::copy_pixel(int *target, const int *source, const int channels_count)
 {
   switch (channels_count) {
+    case 1:
+      *target = *source;
+      break;
     case 2:
       copy_v2_v2_int(target, source);
       break;
@@ -1018,6 +1117,7 @@ inline void Result::copy_pixel(float *target, const float *source) const
     case ResultType::Color:
       copy_v4_v4(target, source);
       break;
+    case ResultType::Int:
     case ResultType::Int2:
       BLI_assert_unreachable();
       break;

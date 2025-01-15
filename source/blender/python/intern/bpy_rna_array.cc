@@ -989,7 +989,7 @@ PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop)
 
   ret = pyrna_math_object_from_array(ptr, prop);
 
-  /* is this a maths object? */
+  /* Is this a math object? */
   if (ret) {
     return ret;
   }

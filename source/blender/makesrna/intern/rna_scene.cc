@@ -40,10 +40,12 @@
 #include "BKE_armature.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_idtype.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_paint.hh"
 #include "BKE_volume.hh"
 
 #include "ED_gpencil_legacy.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_object.hh"
 #include "ED_uvedit.hh"
 
@@ -740,6 +742,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_node.hh"
+#  include "BKE_node_legacy_types.hh"
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.hh"
 #  include "BKE_screen.hh"
@@ -790,52 +793,82 @@ static void rna_ToolSettings_snap_uv_mode_set(PointerRNA *ptr, int value)
   }
 }
 
-static void rna_Gpencil_mask_point_update(bContext * /*C*/, PointerRNA *ptr)
+static void rna_Gpencil_mask_point_update(bContext *C, PointerRNA *ptr)
 {
   ToolSettings *ts = (ToolSettings *)ptr->data;
 
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_STROKE;
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_SEGMENT;
+
+  Object *ob = CTX_data_active_object(C);
+  if (ob && ob->type == OB_GREASE_PENCIL) {
+    blender::ed::greasepencil::ensure_selection_domain(ts, ob);
+  }
 }
 
-static void rna_Gpencil_mask_stroke_update(bContext * /*C*/, PointerRNA *ptr)
+static void rna_Gpencil_mask_stroke_update(bContext *C, PointerRNA *ptr)
 {
   ToolSettings *ts = (ToolSettings *)ptr->data;
 
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_SEGMENT;
+
+  Object *ob = CTX_data_active_object(C);
+  if (ob && ob->type == OB_GREASE_PENCIL) {
+    blender::ed::greasepencil::ensure_selection_domain(ts, ob);
+  }
 }
 
-static void rna_Gpencil_mask_segment_update(bContext * /*C*/, PointerRNA *ptr)
+static void rna_Gpencil_mask_segment_update(bContext *C, PointerRNA *ptr)
 {
   ToolSettings *ts = (ToolSettings *)ptr->data;
 
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_sculpt &= ~GP_SCULPT_MASK_SELECTMODE_STROKE;
+
+  Object *ob = CTX_data_active_object(C);
+  if (ob && ob->type == OB_GREASE_PENCIL) {
+    blender::ed::greasepencil::ensure_selection_domain(ts, ob);
+  }
 }
 
-static void rna_Gpencil_vertex_mask_point_update(bContext * /*C*/, PointerRNA *ptr)
+static void rna_Gpencil_vertex_mask_point_update(bContext *C, PointerRNA *ptr)
 {
   ToolSettings *ts = (ToolSettings *)ptr->data;
 
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_STROKE;
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_SEGMENT;
+
+  Object *ob = CTX_data_active_object(C);
+  if (ob && ob->type == OB_GREASE_PENCIL) {
+    blender::ed::greasepencil::ensure_selection_domain(ts, ob);
+  }
 }
 
-static void rna_Gpencil_vertex_mask_stroke_update(bContext * /*C*/, PointerRNA *ptr)
+static void rna_Gpencil_vertex_mask_stroke_update(bContext *C, PointerRNA *ptr)
 {
   ToolSettings *ts = (ToolSettings *)ptr->data;
 
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_SEGMENT;
+
+  Object *ob = CTX_data_active_object(C);
+  if (ob && ob->type == OB_GREASE_PENCIL) {
+    blender::ed::greasepencil::ensure_selection_domain(ts, ob);
+  }
 }
 
-static void rna_Gpencil_vertex_mask_segment_update(bContext * /*C*/, PointerRNA *ptr)
+static void rna_Gpencil_vertex_mask_segment_update(bContext *C, PointerRNA *ptr)
 {
   ToolSettings *ts = (ToolSettings *)ptr->data;
 
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_POINT;
   ts->gpencil_selectmode_vertex &= ~GP_VERTEX_MASK_SELECTMODE_STROKE;
+
+  Object *ob = CTX_data_active_object(C);
+  if (ob && ob->type == OB_GREASE_PENCIL) {
+    blender::ed::greasepencil::ensure_selection_domain(ts, ob);
+  }
 }
 
 static void rna_active_grease_pencil_update(bContext *C, PointerRNA * /*ptr*/)
@@ -1236,7 +1269,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(const PointerRNA 
       bNode *node;
 
       for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
-        if (node->type == CMP_NODE_OUTPUT_FILE) {
+        if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
           if (&((NodeImageMultiFile *)node->storage)->format == imf) {
             char node_name_esc[sizeof(node->name) * 2];
             BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
@@ -1812,7 +1845,7 @@ void rna_Scene_compositor_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(scene->nodetree);
     WM_main_add_notifier(NC_NODE | NA_EDITED, &ntree->id);
     WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
-    ED_node_tree_propagate_change(nullptr, bmain, ntree);
+    BKE_main_ensure_invariants(*bmain, ntree->id);
   }
 }
 
@@ -4043,6 +4076,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_beztriple_keyframe_type_items);
   RNA_def_property_ui_text(
       prop, "New Keyframe Type", "Type of keyframes to create when inserting keyframes");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
 
   /* UV */
   prop = RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
@@ -4078,9 +4112,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
 
   /* Mesh */
   prop = RNA_def_property(srna, "mesh_select_mode", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "selectmode", 1);
+  RNA_def_property_boolean_bitset_array_sdna(prop, nullptr, "selectmode", 1 << 0, 3);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_array(prop, 3);
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_Scene_editmesh_select_mode_set");
   RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Which mesh elements selection works on");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
@@ -6785,6 +6818,17 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem compositor_denoise_quality_items[] = {
+      {SCE_COMPOSITOR_DENOISE_HIGH, "HIGH", 0, "High", "High quality"},
+      {SCE_COMPOSITOR_DENOISE_BALANCED,
+       "BALANCED",
+       0,
+       "Balanced",
+       "Balanced between performance and quality"},
+      {SCE_COMPOSITOR_DENOISE_FAST, "FAST", 0, "Fast", "High perfomance"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   rna_def_scene_ffmpeg_settings(brna);
 
   srna = RNA_def_struct(brna, "RenderSettings", nullptr);
@@ -7524,6 +7568,26 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, compositor_precision_items);
   RNA_def_property_ui_text(
       prop, "Compositor Precision", "The precision of compositor intermediate result");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "compositor_denoise_preview_quality", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "compositor_denoise_preview_quality");
+  RNA_def_property_enum_items(prop, compositor_denoise_quality_items);
+  RNA_def_property_enum_default(prop, SCE_COMPOSITOR_DENOISE_BALANCED);
+  RNA_def_property_ui_text(prop,
+                           "Compositor Preview Denoise Quality",
+                           "The quality used by denoise nodes during viewport and interactive "
+                           "compositing if the nodes' quality option is set to Follow Scene");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "compositor_denoise_final_quality", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "compositor_denoise_final_quality");
+  RNA_def_property_enum_items(prop, compositor_denoise_quality_items);
+  RNA_def_property_enum_default(prop, SCE_COMPOSITOR_DENOISE_HIGH);
+  RNA_def_property_ui_text(prop,
+                           "Compositor Final Denoise Quality",
+                           "The quality used by denoise nodes during the compositing of final "
+                           "renders if the nodes' quality option is set to Follow Scene");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
 
   /* Nestled Data. */

@@ -509,18 +509,13 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
   /* Calculate distance and convert to string. */
   const float cut_len = len_v3v3(kcd->prev.cage, kcd->curr.cage);
 
-  const UnitSettings *unit = &kcd->scene->unit;
-  if (unit->system == USER_UNIT_NONE) {
+  const UnitSettings &unit = kcd->scene->unit;
+  if (unit.system == USER_UNIT_NONE) {
     SNPRINTF(numstr, "%.*f", distance_precision, cut_len);
   }
   else {
-    BKE_unit_value_as_string(numstr,
-                             sizeof(numstr),
-                             double(cut_len * unit->scale_length),
-                             distance_precision,
-                             B_UNIT_LENGTH,
-                             unit,
-                             false);
+    BKE_unit_value_as_string_scaled(
+        numstr, sizeof(numstr), cut_len, distance_precision, B_UNIT_LENGTH, unit, false);
   }
 
   BLF_enable(blf_mono_font, BLF_ROTATION);
@@ -645,8 +640,8 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
   float numstr_size[2];
   float posit[2];
 
-  const UnitSettings *unit = &kcd->scene->unit;
-  if (unit->system == USER_UNIT_NONE) {
+  const UnitSettings &unit = kcd->scene->unit;
+  if (unit.system == USER_UNIT_NONE) {
     SNPRINTF(numstr, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, angle_precision, RAD2DEGF(angle));
   }
   else {

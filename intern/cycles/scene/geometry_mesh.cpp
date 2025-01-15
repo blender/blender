@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "bvh/bvh.h"
-#include "bvh/bvh2.h"
 
 #include "device/device.h"
 
@@ -19,24 +18,15 @@
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
-#include "scene/stats.h"
-#include "scene/volume.h"
 
 #include "subd/patch_table.h"
 #include "subd/split.h"
 
-#ifdef WITH_OSL
-#  include "kernel/osl/globals.h"
-#endif
-
-#include "util/foreach.h"
-#include "util/log.h"
 #include "util/progress.h"
-#include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
 
-void GeometryManager::device_update_mesh(Device *,
+void GeometryManager::device_update_mesh(Device * /*unused*/,
                                          DeviceScene *dscene,
                                          Scene *scene,
                                          Progress &progress)
@@ -53,7 +43,7 @@ void GeometryManager::device_update_mesh(Device *,
 
   size_t patch_size = 0;
 
-  foreach (Geometry *geom, scene->geometry) {
+  for (Geometry *geom : scene->geometry) {
     if (geom->is_mesh() || geom->is_volume()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
@@ -61,7 +51,7 @@ void GeometryManager::device_update_mesh(Device *,
       tri_size += mesh->num_triangles();
 
       if (mesh->get_num_subd_faces()) {
-        Mesh::SubdFace last = mesh->get_subd_face(mesh->get_num_subd_faces() - 1);
+        const Mesh::SubdFace last = mesh->get_subd_face(mesh->get_num_subd_faces() - 1);
         patch_size += (last.ptex_offset + last.num_ptex_faces()) * 8;
 
         /* patch tables are stored in same array so include them in patch_size */
@@ -102,7 +92,7 @@ void GeometryManager::device_update_mesh(Device *,
                                dscene->tri_patch.need_realloc() ||
                                dscene->tri_patch_uv.need_realloc();
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
 
@@ -153,14 +143,14 @@ void GeometryManager::device_update_mesh(Device *,
                                dscene->curves.need_realloc() ||
                                dscene->curve_segments.need_realloc();
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
 
-        bool curve_keys_co_modified = hair->curve_radius_is_modified() ||
-                                      hair->curve_keys_is_modified();
-        bool curve_data_modified = hair->curve_shader_is_modified() ||
-                                   hair->curve_first_key_is_modified();
+        const bool curve_keys_co_modified = hair->curve_radius_is_modified() ||
+                                            hair->curve_keys_is_modified();
+        const bool curve_data_modified = hair->curve_shader_is_modified() ||
+                                         hair->curve_first_key_is_modified();
 
         if (!curve_keys_co_modified && !curve_data_modified && !copy_all_data) {
           continue;
@@ -187,7 +177,7 @@ void GeometryManager::device_update_mesh(Device *,
     float4 *points = dscene->points.alloc(point_size);
     uint *points_shader = dscene->points_shader.alloc(point_size);
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_pointcloud()) {
         PointCloud *pointcloud = static_cast<PointCloud *>(geom);
         pointcloud->pack(
@@ -207,7 +197,7 @@ void GeometryManager::device_update_mesh(Device *,
 
     uint *patch_data = dscene->patches.alloc(patch_size);
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         mesh->pack_patches(&patch_data[mesh->patch_offset]);

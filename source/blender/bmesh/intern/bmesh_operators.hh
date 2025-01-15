@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "intern/bmesh_operator_api.hh"
+
 /* See comments in `intern/bmesh_opdefines.cc` for documentation of specific operators. */
 
 /*--------defines/enumerations for specific operators-------*/

@@ -5679,7 +5679,7 @@ def km_edit_curve_legacy(params):
         ("curve.handle_type_set", {"type": 'V', "value": 'PRESS'}, None),
         ("curve.vertex_add", {"type": params.action_mouse, "value": 'CLICK', "ctrl": True}, None),
         *_template_items_select_actions(params, "curve.select_all"),
-        ("curve.select_row", {"type": 'R', "value": 'PRESS', "shift": True}, None),
+        ("curve.select_row", {"type": 'R', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("curve.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("curve.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("curve.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
@@ -6451,7 +6451,29 @@ def km_node_link_modal_map(_params):
     return keymap
 
 
+def km_node_resize_modal_map(_params):
+    items = []
+    keymap = (
+        "Node Resize Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("BEGIN", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("SNAP_INVERT_ON", {"type": 'RIGHT_CTRL', "value": 'PRESS', "any": True}, None),
+        ("SNAP_INVERT_OFF", {"type": 'RIGHT_CTRL', "value": 'RELEASE', "any": True}, None),
+        ("SNAP_INVERT_ON", {"type": 'LEFT_CTRL', "value": 'PRESS', "any": True}, None),
+        ("SNAP_INVERT_OFF", {"type": 'LEFT_CTRL', "value": 'RELEASE', "any": True}, None),
+    ])
+
+    return keymap
+
 # Fallback for gizmos that don't have custom a custom key-map.
+
+
 def km_generic_gizmo(_params):
     keymap = (
         "Generic Gizmo",
@@ -8321,6 +8343,7 @@ def generate_keymaps(params=None):
         km_sculpt_mesh_filter_modal_map(params),
         km_curve_pen_modal_map(params),
         km_node_link_modal_map(params),
+        km_node_resize_modal_map(params),
         km_grease_pencil_primitive_tool_modal_map(params),
         km_grease_pencil_fill_tool_modal_map(params),
         km_grease_pencil_interpolate_tool_modal_map(params),

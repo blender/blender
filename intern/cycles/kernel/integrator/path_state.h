@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/integrator/state.h"
+
 #include "kernel/sample/pattern.h"
 
 CCL_NAMESPACE_BEGIN
@@ -23,7 +25,7 @@ ccl_device_inline void path_state_init_queues(IntegratorState state)
 /* Minimalistic initialization of the path state, which is needed for early outputs in the
  * integrator initialization to work. */
 ccl_device_inline void path_state_init(IntegratorState state,
-                                       ccl_global const KernelWorkTile *ccl_restrict tile,
+                                       const ccl_global KernelWorkTile *ccl_restrict tile,
                                        const int x,
                                        const int y)
 {
@@ -75,6 +77,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
 
   INTEGRATOR_STATE_WRITE(state, isect, object) = OBJECT_NONE;
   INTEGRATOR_STATE_WRITE(state, isect, prim) = PRIM_NONE;
+  INTEGRATOR_STATE_WRITE(state, isect, type) = PRIMITIVE_NONE;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_VOLUME) {
     INTEGRATOR_STATE_ARRAY_WRITE(state, volume_stack, 0, object) = OBJECT_NONE;
@@ -108,7 +111,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
   /* ray through transparent keeps same flags from previous ray and is
    * not counted as a regular bounce, transparent has separate max */
   if (label & (LABEL_TRANSPARENT | LABEL_RAY_PORTAL)) {
-    uint32_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
+    const uint32_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
 
     flag |= PATH_RAY_TRANSPARENT;
     if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
@@ -126,7 +129,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
     return;
   }
 
-  uint32_t bounce = INTEGRATOR_STATE(state, path, bounce) + 1;
+  const uint32_t bounce = INTEGRATOR_STATE(state, path, bounce) + 1;
   if (bounce >= kernel_data.integrator.max_bounce) {
     flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
   }
@@ -222,7 +225,7 @@ ccl_device_inline bool path_state_volume_next(IntegratorState state)
 {
   /* For volume bounding meshes we pass through without counting transparent
    * bounces, only sanity check in case self intersection gets us stuck. */
-  uint32_t volume_bounds_bounce = INTEGRATOR_STATE(state, path, volume_bounds_bounce) + 1;
+  const uint32_t volume_bounds_bounce = INTEGRATOR_STATE(state, path, volume_bounds_bounce) + 1;
   INTEGRATOR_STATE_WRITE(state, path, volume_bounds_bounce) = volume_bounds_bounce;
   if (volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
     return false;
@@ -306,11 +309,11 @@ ccl_device_inline bool path_state_ao_bounce(KernelGlobals kg, ConstIntegratorSta
  */
 
 /* RNG State loaded onto stack. */
-typedef struct RNGState {
+struct RNGState {
   uint rng_pixel;
   uint rng_offset;
   int sample;
-} RNGState;
+};
 
 ccl_device_inline void path_state_rng_load(ConstIntegratorState state,
                                            ccl_private RNGState *rng_state)
@@ -337,7 +340,7 @@ ccl_device_inline void path_state_rng_scramble(ccl_private RNGState *rng_state, 
 }
 
 ccl_device_inline float path_state_rng_1D(KernelGlobals kg,
-                                          ccl_private const RNGState *rng_state,
+                                          const ccl_private RNGState *rng_state,
                                           const int dimension)
 {
   return path_rng_1D(
@@ -345,7 +348,7 @@ ccl_device_inline float path_state_rng_1D(KernelGlobals kg,
 }
 
 ccl_device_inline float2 path_state_rng_2D(KernelGlobals kg,
-                                           ccl_private const RNGState *rng_state,
+                                           const ccl_private RNGState *rng_state,
                                            const int dimension)
 {
   return path_rng_2D(
@@ -353,7 +356,7 @@ ccl_device_inline float2 path_state_rng_2D(KernelGlobals kg,
 }
 
 ccl_device_inline float3 path_state_rng_3D(KernelGlobals kg,
-                                           ccl_private const RNGState *rng_state,
+                                           const ccl_private RNGState *rng_state,
                                            const int dimension)
 {
   return path_rng_3D(
@@ -361,7 +364,7 @@ ccl_device_inline float3 path_state_rng_3D(KernelGlobals kg,
 }
 
 ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
-                                             ccl_private const RNGState *rng_state,
+                                             const ccl_private RNGState *rng_state,
                                              const int branch,
                                              const int num_branches,
                                              const int dimension)
@@ -373,7 +376,7 @@ ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
 }
 
 ccl_device_inline float2 path_branched_rng_2D(KernelGlobals kg,
-                                              ccl_private const RNGState *rng_state,
+                                              const ccl_private RNGState *rng_state,
                                               const int branch,
                                               const int num_branches,
                                               const int dimension)
@@ -385,7 +388,7 @@ ccl_device_inline float2 path_branched_rng_2D(KernelGlobals kg,
 }
 
 ccl_device_inline float3 path_branched_rng_3D(KernelGlobals kg,
-                                              ccl_private const RNGState *rng_state,
+                                              const ccl_private RNGState *rng_state,
                                               const int branch,
                                               const int num_branches,
                                               const int dimension)
@@ -400,7 +403,7 @@ ccl_device_inline float3 path_branched_rng_3D(KernelGlobals kg,
  * since it might not be needed in many cases.
  */
 ccl_device_inline float path_state_rng_light_termination(KernelGlobals kg,
-                                                         ccl_private const RNGState *state)
+                                                         const ccl_private RNGState *state)
 {
   if (kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
     return path_state_rng_1D(kg, state, PRNG_LIGHT_TERMINATE);

@@ -290,7 +290,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
  * \{ */
 
 static void seq_view_collection_rect_preview(Scene *scene,
-                                             blender::Span<Sequence *> strips,
+                                             blender::Span<Strip *> strips,
                                              rctf *rect)
 {
   float min[2], max[2];
@@ -313,7 +313,7 @@ static void seq_view_collection_rect_preview(Scene *scene,
 }
 
 static void seq_view_collection_rect_timeline(const bContext *C,
-                                              blender::Span<Sequence *> strips,
+                                              blender::Span<Strip *> strips,
                                               rctf *rect)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -323,13 +323,13 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   int ymax = 0;
   int xmargin = FPS;
 
-  for (Sequence *seq : strips) {
-    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, seq));
-    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, seq));
+  for (Strip *strip : strips) {
+    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, strip));
+    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, strip));
 
-    ymin = min_ii(ymin, seq->machine);
+    ymin = min_ii(ymin, strip->machine);
     /* "+1" because each channel has a thickness of 1. */
-    ymax = max_ii(ymax, seq->machine + 1);
+    ymax = max_ii(ymax, strip->machine + 1);
   }
 
   xmax += xmargin;

@@ -14,6 +14,11 @@
 #include "DNA_world_types.h"
 
 #include "eevee_lookdev.hh"
+#include "eevee_sync.hh"
+
+struct bNodeTree;
+struct bNodeSocketValueRGBA;
+struct UniformBuffer;
 
 namespace blender::eevee {
 

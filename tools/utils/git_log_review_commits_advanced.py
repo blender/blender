@@ -29,6 +29,10 @@ To exclude all commits from some given files, by sha1 or by commit message (from
 
 """
 
+__all__ = (
+    "main",
+)
+
 import os
 import sys
 import io
@@ -74,10 +78,9 @@ class _GetchUnix:
 
     def __init__(self):
         import tty
-        import sys
+        del tty
 
     def __call__(self):
-        import sys
         import tty
         import termios
         fd = sys.stdin.fileno()
@@ -94,6 +97,7 @@ class _GetchWindows:
 
     def __init__(self):
         import msvcrt
+        del msvcrt
 
     def __call__(self):
         import msvcrt

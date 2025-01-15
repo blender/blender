@@ -11,17 +11,23 @@
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
+#include "COM_utilities_type_conversion.hh"
 
 namespace blender::compositor {
 
-/* --------------------------------------------------------------------
- * Conversion Operation
- */
+ConversionOperation::ConversionOperation(Context &context,
+                                         const ResultType input_type,
+                                         const ResultType expected_type)
+    : SimpleOperation(context)
+{
+  this->declare_input_descriptor(InputDescriptor{input_type});
+  this->populate_result(context.create_result(expected_type));
+}
 
 void ConversionOperation::execute()
 {
-  Result &result = get_result();
-  const Result &input = get_input();
+  Result &result = this->get_result();
+  const Result &input = this->get_input();
 
   if (input.is_single_value()) {
     result.allocate_single_value();
@@ -30,8 +36,8 @@ void ConversionOperation::execute()
   }
 
   result.allocate_texture(input.domain());
-  if (context().use_gpu()) {
-    GPUShader *shader = get_conversion_shader();
+  if (this->context().use_gpu()) {
+    GPUShader *shader = this->context().get_shader(this->get_conversion_shader_name());
     GPU_shader_bind(shader);
 
     input.bind_as_texture(shader, "input_tx");
@@ -52,222 +58,316 @@ SimpleOperation *ConversionOperation::construct_if_needed(Context &context,
                                                           const Result &input_result,
                                                           const InputDescriptor &input_descriptor)
 {
-  ResultType result_type = input_result.type();
-  ResultType expected_type = input_descriptor.type;
-
-  /* If the result type differs from the expected type, return an instance of an appropriate
-   * conversion operation. Otherwise, return a null pointer. */
-
-  if (result_type == ResultType::Float && expected_type == ResultType::Vector) {
-    return new ConvertFloatToVectorOperation(context);
+  const ResultType result_type = input_result.type();
+  const ResultType expected_type = input_descriptor.type;
+  if (result_type != expected_type) {
+    return new ConversionOperation(context, result_type, expected_type);
   }
-
-  if (result_type == ResultType::Float && expected_type == ResultType::Color) {
-    return new ConvertFloatToColorOperation(context);
-  }
-
-  if (result_type == ResultType::Color && expected_type == ResultType::Float) {
-    return new ConvertColorToFloatOperation(context);
-  }
-
-  if (result_type == ResultType::Color && expected_type == ResultType::Vector) {
-    return new ConvertColorToVectorOperation(context);
-  }
-
-  if (result_type == ResultType::Vector && expected_type == ResultType::Float) {
-    return new ConvertVectorToFloatOperation(context);
-  }
-
-  if (result_type == ResultType::Vector && expected_type == ResultType::Color) {
-    return new ConvertVectorToColorOperation(context);
-  }
-
   return nullptr;
 }
 
-/* --------------------------------------------------------------------
- * Convert Float to Vector Operation
- */
-
-ConvertFloatToVectorOperation::ConvertFloatToVectorOperation(Context &context)
-    : ConversionOperation(context)
+const char *ConversionOperation::get_conversion_shader_name()
 {
-  InputDescriptor input_descriptor;
-  input_descriptor.type = ResultType::Float;
-  declare_input_descriptor(input_descriptor);
-  populate_result(context.create_result(ResultType::Vector));
+  switch (this->get_input().type()) {
+    case ResultType::Float:
+      switch (this->get_result().type()) {
+        case ResultType::Int:
+          return "compositor_convert_float_to_int";
+        case ResultType::Vector:
+          return "compositor_convert_float_to_vector";
+        case ResultType::Color:
+          return "compositor_convert_float_to_color";
+        case ResultType::Float:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Int:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          return "compositor_convert_int_to_float";
+        case ResultType::Vector:
+          return "compositor_convert_int_to_vector";
+        case ResultType::Color:
+          return "compositor_convert_int_to_color";
+        case ResultType::Int:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Vector:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          return "compositor_convert_vector_to_float";
+        case ResultType::Int:
+          return "compositor_convert_vector_to_int";
+        case ResultType::Color:
+          return "compositor_convert_vector_to_color";
+        case ResultType::Vector:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Color:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          return "compositor_convert_color_to_float";
+        case ResultType::Int:
+          return "compositor_convert_color_to_int";
+        case ResultType::Vector:
+          return "compositor_convert_color_to_vector";
+        case ResultType::Color:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Types are not user facing, so we needn't implement them. */
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
-void ConvertFloatToVectorOperation::execute_single(const Result &input, Result &output)
+void ConversionOperation::execute_single(const Result &input, Result &output)
 {
-  output.set_vector_value(float4(float3(input.get_float_value()), 1.0f));
+  switch (this->get_input().type()) {
+    case ResultType::Float:
+      switch (this->get_result().type()) {
+        case ResultType::Int:
+          output.set_single_value(float_to_int(input.get_single_value<float>()));
+          return;
+        case ResultType::Vector:
+          output.set_single_value(float_to_vector(input.get_single_value<float>()));
+          return;
+        case ResultType::Color:
+          output.set_single_value(float_to_color(input.get_single_value<float>()));
+          return;
+        case ResultType::Float:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Int:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          output.set_single_value(int_to_float(input.get_single_value<int>()));
+          return;
+        case ResultType::Vector:
+          output.set_single_value(int_to_vector(input.get_single_value<int>()));
+          return;
+        case ResultType::Color:
+          output.set_single_value(int_to_color(input.get_single_value<int>()));
+          return;
+        case ResultType::Int:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Vector:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          output.set_single_value(vector_to_float(input.get_single_value<float4>()));
+          return;
+        case ResultType::Int:
+          output.set_single_value(vector_to_int(input.get_single_value<float4>()));
+          return;
+        case ResultType::Color:
+          output.set_single_value(vector_to_color(input.get_single_value<float4>()));
+          return;
+        case ResultType::Vector:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Color:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          output.set_single_value(color_to_float(input.get_single_value<float4>()));
+          return;
+        case ResultType::Int:
+          output.set_single_value(color_to_int(input.get_single_value<float4>()));
+          return;
+        case ResultType::Vector:
+          output.set_single_value(color_to_vector(input.get_single_value<float4>()));
+          return;
+        case ResultType::Color:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Types are not user facing, so we needn't implement them. */
+      break;
+  }
+
+  BLI_assert_unreachable();
 }
 
-void ConvertFloatToVectorOperation::execute_cpu(const Result &input, Result &output)
+void ConversionOperation::execute_cpu(const Result &input, Result &output)
 {
-  parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, float4(float3(input.load_pixel<float>(texel)), 1.0f));
-  });
-}
+  switch (this->get_input().type()) {
+    case ResultType::Float:
+      switch (this->get_result().type()) {
+        case ResultType::Int:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, float_to_int(input.load_pixel<float>(texel)));
+          });
+          return;
+        case ResultType::Vector:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, float_to_vector(input.load_pixel<float>(texel)));
+          });
+          return;
+        case ResultType::Color:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, float_to_color(input.load_pixel<float>(texel)));
+          });
+          return;
+        case ResultType::Float:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Int:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, int_to_float(input.load_pixel<int>(texel)));
+          });
+          return;
+        case ResultType::Vector:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, int_to_vector(input.load_pixel<int>(texel)));
+          });
+          return;
+        case ResultType::Color:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, int_to_color(input.load_pixel<int>(texel)));
+          });
+          return;
+        case ResultType::Int:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Vector:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, vector_to_float(input.load_pixel<float4>(texel)));
+          });
+          return;
+        case ResultType::Int:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, vector_to_int(input.load_pixel<float4>(texel)));
+          });
+          return;
+        case ResultType::Color:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, vector_to_color(input.load_pixel<float4>(texel)));
+          });
+          return;
+        case ResultType::Vector:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Color:
+      switch (this->get_result().type()) {
+        case ResultType::Float:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, color_to_float(input.load_pixel<float4>(texel)));
+          });
+          return;
+        case ResultType::Int:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, color_to_int(input.load_pixel<float4>(texel)));
+          });
+          return;
+        case ResultType::Vector:
+          parallel_for(input.domain().size, [&](const int2 texel) {
+            output.store_pixel(texel, color_to_vector(input.load_pixel<float4>(texel)));
+          });
+          return;
+        case ResultType::Color:
+          /* Same type, no conversion needed. */
+          break;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Types are not user facing, so we needn't implement them. */
+      break;
+  }
 
-GPUShader *ConvertFloatToVectorOperation::get_conversion_shader() const
-{
-  return context().get_shader("compositor_convert_float_to_vector");
-}
-
-/* --------------------------------------------------------------------
- * Convert Float to Color Operation
- */
-
-ConvertFloatToColorOperation::ConvertFloatToColorOperation(Context &context)
-    : ConversionOperation(context)
-{
-  InputDescriptor input_descriptor;
-  input_descriptor.type = ResultType::Float;
-  declare_input_descriptor(input_descriptor);
-  populate_result(context.create_result(ResultType::Color));
-}
-
-void ConvertFloatToColorOperation::execute_single(const Result &input, Result &output)
-{
-  output.set_color_value(float4(float3(input.get_float_value()), 1.0f));
-}
-
-void ConvertFloatToColorOperation::execute_cpu(const Result &input, Result &output)
-{
-  parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, float4(float3(input.load_pixel<float>(texel)), 1.0f));
-  });
-}
-
-GPUShader *ConvertFloatToColorOperation::get_conversion_shader() const
-{
-  return context().get_shader("compositor_convert_float_to_color");
-}
-
-/* --------------------------------------------------------------------
- * Convert Color to Float Operation
- */
-
-ConvertColorToFloatOperation::ConvertColorToFloatOperation(Context &context)
-    : ConversionOperation(context)
-{
-  InputDescriptor input_descriptor;
-  input_descriptor.type = ResultType::Color;
-  declare_input_descriptor(input_descriptor);
-  populate_result(context.create_result(ResultType::Float));
-}
-
-void ConvertColorToFloatOperation::execute_single(const Result &input, Result &output)
-{
-  float4 color = input.get_color_value();
-  output.set_float_value((color.x + color.y + color.z) / 3.0f);
-}
-
-void ConvertColorToFloatOperation::execute_cpu(const Result &input, Result &output)
-{
-  parallel_for(input.domain().size, [&](const int2 texel) {
-    const float4 color = input.load_pixel<float4>(texel);
-    output.store_pixel(texel, (color.x + color.y + color.z) / 3.0f);
-  });
-}
-
-GPUShader *ConvertColorToFloatOperation::get_conversion_shader() const
-{
-  return context().get_shader("compositor_convert_color_to_float");
-}
-
-/* --------------------------------------------------------------------
- * Convert Color to Vector Operation
- */
-
-ConvertColorToVectorOperation::ConvertColorToVectorOperation(Context &context)
-    : ConversionOperation(context)
-{
-  InputDescriptor input_descriptor;
-  input_descriptor.type = ResultType::Color;
-  declare_input_descriptor(input_descriptor);
-  populate_result(context.create_result(ResultType::Vector));
-}
-
-void ConvertColorToVectorOperation::execute_single(const Result &input, Result &output)
-{
-  float4 color = input.get_color_value();
-  output.set_vector_value(color);
-}
-
-void ConvertColorToVectorOperation::execute_cpu(const Result &input, Result &output)
-{
-  parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, input.load_pixel<float4>(texel));
-  });
-}
-
-GPUShader *ConvertColorToVectorOperation::get_conversion_shader() const
-{
-  return context().get_shader("compositor_convert_color_to_vector");
-}
-
-/* --------------------------------------------------------------------
- * Convert Vector to Float Operation
- */
-
-ConvertVectorToFloatOperation::ConvertVectorToFloatOperation(Context &context)
-    : ConversionOperation(context)
-{
-  InputDescriptor input_descriptor;
-  input_descriptor.type = ResultType::Vector;
-  declare_input_descriptor(input_descriptor);
-  populate_result(context.create_result(ResultType::Float));
-}
-
-void ConvertVectorToFloatOperation::execute_single(const Result &input, Result &output)
-{
-  float4 vector = input.get_vector_value();
-  output.set_float_value((vector[0] + vector[1] + vector[2]) / 3.0f);
-}
-
-void ConvertVectorToFloatOperation::execute_cpu(const Result &input, Result &output)
-{
-  parallel_for(input.domain().size, [&](const int2 texel) {
-    const float4 vector = input.load_pixel<float4>(texel);
-    output.store_pixel(texel, (vector.x + vector.y + vector.z) / 3.0f);
-  });
-}
-
-GPUShader *ConvertVectorToFloatOperation::get_conversion_shader() const
-{
-  return context().get_shader("compositor_convert_vector_to_float");
-}
-
-/* --------------------------------------------------------------------
- * Convert Vector to Color Operation
- */
-
-ConvertVectorToColorOperation::ConvertVectorToColorOperation(Context &context)
-    : ConversionOperation(context)
-{
-  InputDescriptor input_descriptor;
-  input_descriptor.type = ResultType::Vector;
-  declare_input_descriptor(input_descriptor);
-  populate_result(context.create_result(ResultType::Color));
-}
-
-void ConvertVectorToColorOperation::execute_single(const Result &input, Result &output)
-{
-  output.set_color_value(float4(float3(input.get_vector_value()), 1.0f));
-}
-
-void ConvertVectorToColorOperation::execute_cpu(const Result &input, Result &output)
-{
-  parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, float4(input.load_pixel<float4>(texel).xyz(), 1.0f));
-  });
-}
-
-GPUShader *ConvertVectorToColorOperation::get_conversion_shader() const
-{
-  return context().get_shader("compositor_convert_vector_to_color");
+  BLI_assert_unreachable();
 }
 
 }  // namespace blender::compositor

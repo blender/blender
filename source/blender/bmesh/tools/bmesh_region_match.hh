@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#include "BLI_sys_types.h"
+
+#include "bmesh_class.hh"
+
 /**
  * Take a face-region and return a list of matching face-regions.
  *

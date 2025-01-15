@@ -8,6 +8,10 @@
 #               --enable-event-simulate \
 #               --python tools/utils_maintenance/blender_menu_search_coverage.py
 
+__all__ = (
+    "main",
+)
+
 import bpy
 
 # Menu-ID -> class.

@@ -2,15 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_vector_types.hh"
-#include "BLI_vector.hh"
-
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
-
-#include "BKE_image_wrappers.hh"
 #include "BKE_paint_bvh.hh"
-#include "BKE_paint_bvh_pixels.hh"
 
 #include "pbvh_uv_islands.hh"
 

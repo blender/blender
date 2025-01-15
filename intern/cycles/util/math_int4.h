@@ -3,12 +3,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_INT4_H__
-#define __UTIL_MATH_INT4_H__
+#pragma once
 
-#ifndef __UTIL_MATH_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/types_float4.h"
+#include "util/types_int4.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -41,7 +39,7 @@ ccl_device_inline int4 operator-=(int4 &a, const int4 b)
   return a = a - b;
 }
 
-ccl_device_inline int4 operator>>(const int4 a, int i)
+ccl_device_inline int4 operator>>(const int4 a, const int i)
 {
 #  ifdef __KERNEL_SSE__
   return int4(_mm_srai_epi32(a.m128, i));
@@ -50,7 +48,7 @@ ccl_device_inline int4 operator>>(const int4 a, int i)
 #  endif
 }
 
-ccl_device_inline int4 operator<<(const int4 a, int i)
+ccl_device_inline int4 operator<<(const int4 a, const int i)
 {
 #  ifdef __KERNEL_SSE__
   return int4(_mm_slli_epi32(a.m128, i));
@@ -195,13 +193,13 @@ ccl_device_inline int4 &operator>>=(int4 &a, const int32_t b)
 }
 
 #  ifdef __KERNEL_SSE__
-ccl_device_forceinline const int4 srl(const int4 a, const int32_t b)
+ccl_device_forceinline int4 srl(const int4 a, const int32_t b)
 {
   return int4(_mm_srli_epi32(a.m128, b));
 }
 #  endif
 
-ccl_device_inline int4 min(int4 a, int4 b)
+ccl_device_inline int4 min(const int4 a, const int4 b)
 {
 #  if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE42__)
   return int4(_mm_min_epi32(a.m128, b.m128));
@@ -210,7 +208,7 @@ ccl_device_inline int4 min(int4 a, int4 b)
 #  endif
 }
 
-ccl_device_inline int4 max(int4 a, int4 b)
+ccl_device_inline int4 max(const int4 a, const int4 b)
 {
 #  if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE42__)
   return int4(_mm_max_epi32(a.m128, b.m128));
@@ -260,7 +258,7 @@ ccl_device_forceinline int4 andnot(const int4 a, const int4 b)
   return int4(_mm_andnot_si128(a.m128, b.m128));
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3>
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
 ccl_device_forceinline int4 shuffle(const int4 a)
 {
 #  ifdef __KERNEL_NEON__
@@ -271,7 +269,7 @@ ccl_device_forceinline int4 shuffle(const int4 a)
 #  endif
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3>
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
 ccl_device_forceinline int4 shuffle(const int4 a, const int4 b)
 {
 #  ifdef __KERNEL_NEON__
@@ -291,5 +289,3 @@ template<size_t i0> ccl_device_forceinline int4 shuffle(const int4 b)
 #endif
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_INT4_H__ */

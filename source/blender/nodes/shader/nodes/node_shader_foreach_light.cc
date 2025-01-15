@@ -153,9 +153,10 @@ static int node_shader_fn(GPUMaterial *mat,
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  sh_node_type_base(
-      &ntype, SH_NODE_FOREACH_LIGHT_INPUT, "For Each Light Input", NODE_CLASS_INTERFACE);
+  sh_node_type_base(&ntype, "ShaderNodeForeachLightInput", SH_NODE_FOREACH_LIGHT_INPUT);
   ntype.enum_name_legacy = "FOREACH_LIGHT_INPUT";
+  ntype.ui_name = "For Each Light Output";
+  ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
@@ -255,9 +256,10 @@ static int node_shader_fn(GPUMaterial *mat,
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  sh_node_type_base(
-      &ntype, SH_NODE_FOREACH_LIGHT_OUTPUT, "For Each Light Output", NODE_CLASS_INTERFACE);
+  sh_node_type_base(&ntype, "ShaderNodeForeachLightOutput", SH_NODE_FOREACH_LIGHT_OUTPUT);
   ntype.enum_name_legacy = "FOREACH_LIGHT_OUTPUT";
+  ntype.ui_name = "For Each Light Output";
+  ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = foreach_light_input_node::node_label;

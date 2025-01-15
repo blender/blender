@@ -17,15 +17,10 @@
 #  include "pylifecycle.h" /* For `Py_Version`. */
 #endif
 
-#include "MEM_guardedalloc.h"
-
 #include "CLG_log.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -39,7 +34,6 @@
 #include "bpy_path.hh"
 #include "bpy_props.hh"
 #include "bpy_rna.hh"
-#include "bpy_traceback.hh"
 
 #include "bpy_app_translations.hh"
 
@@ -63,7 +57,7 @@
 
 /* `inittab` initialization functions. */
 #include "../bmesh/bmesh_py_api.hh"
-#include "../generic/bgl.h"
+#include "../generic/bgl.hh"
 #include "../generic/bl_math_py_api.hh"
 #include "../generic/blf_py_api.hh"
 #include "../generic/idprop_py_api.hh"
@@ -250,12 +244,12 @@ void BPY_context_set(bContext *C)
 
 #ifdef WITH_FLUID
 /* Defined in `manta` module. */
-extern "C" PyObject *Manta_initPython(void);
+extern "C" PyObject *Manta_initPython();
 #endif
 
 #ifdef WITH_AUDASPACE_PY
 /* Defined in `AUD_C-API.cpp`. */
-extern "C" PyObject *AUD_initPython(void);
+extern "C" PyObject *AUD_initPython();
 #endif
 
 #ifdef WITH_CYCLES

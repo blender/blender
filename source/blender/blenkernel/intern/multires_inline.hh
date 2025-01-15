@@ -10,7 +10,6 @@
 
 #include "BKE_multires.hh"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3],
                                                       const float dPdu[3],

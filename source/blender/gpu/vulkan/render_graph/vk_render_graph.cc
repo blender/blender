@@ -53,7 +53,7 @@ void VKRenderGraph::submit_for_present(VkImage vk_swapchain_image)
   add_node<VKSynchronizationNode>(synchronization);
 
   std::scoped_lock lock(resources_.mutex);
-  Span<NodeHandle> node_handles = scheduler_.select_nodes_for_image(*this, vk_swapchain_image);
+  Span<NodeHandle> node_handles = scheduler_.select_nodes(*this);
   command_builder_.build_nodes(*this, *command_buffer_, node_handles);
   /* TODO: To improve performance it could be better to return a semaphore. This semaphore can be
    * passed in the swapchain to ensure GPU synchronization. This also require a second semaphore to
@@ -66,10 +66,10 @@ void VKRenderGraph::submit_for_present(VkImage vk_swapchain_image)
   command_buffer_->wait_for_cpu_synchronization();
 }
 
-void VKRenderGraph::submit_buffer_for_read(VkBuffer vk_buffer)
+void VKRenderGraph::submit_for_read()
 {
   std::scoped_lock lock(resources_.mutex);
-  Span<NodeHandle> node_handles = scheduler_.select_nodes_for_buffer(*this, vk_buffer);
+  Span<NodeHandle> node_handles = scheduler_.select_nodes(*this);
   command_builder_.build_nodes(*this, *command_buffer_, node_handles);
   command_buffer_->submit_with_cpu_synchronization();
   submission_id.next();

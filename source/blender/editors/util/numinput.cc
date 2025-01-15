@@ -85,7 +85,7 @@ void initNumInput(NumInput *n)
   n->str_cur = 0;
 }
 
-void outputNumInput(NumInput *n, char *str, const UnitSettings *unit_settings)
+void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
 {
   short j;
   const int ln = NUM_STR_REP_LEN;
@@ -98,7 +98,7 @@ void outputNumInput(NumInput *n, char *str, const UnitSettings *unit_settings)
                         j;
 
     /* Use scale_length if needed! */
-    const float fac = float(BKE_scene_unit_scale(unit_settings, n->unit_type[j], 1.0));
+    const float fac = float(BKE_unit_value_scale(unit_settings, n->unit_type[j], 1.0));
 
     if (n->val_flag[i] & NUM_EDITED) {
       /* Get the best precision, allows us to draw '10.0001' as '10' instead! */
@@ -265,7 +265,7 @@ static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf
 
 bool user_string_to_number(bContext *C,
                            const char *str,
-                           const UnitSettings *unit,
+                           const UnitSettings &unit,
                            int type,
                            double *r_value,
                            const bool use_single_line_error,
@@ -276,12 +276,12 @@ bool user_string_to_number(bContext *C,
   err_info.use_single_line_error = use_single_line_error;
   err_info.r_string = r_error;
 
-  double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
+  const double unit_scale = BKE_unit_value_scale(unit, type, 1.0);
   if (BKE_unit_string_contains_unit(str, type)) {
     char str_unit_convert[256];
     STRNCPY(str_unit_convert, str);
     BKE_unit_replace_string(
-        str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit->system, type);
+        str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit.system, type);
 
     return BPY_run_string_as_number(C, nullptr, str_unit_convert, &err_info, r_value);
   }
@@ -583,7 +583,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 
     double val;
     int success = user_string_to_number(
-        C, n->str, &sce->unit, n->unit_type[idx], &val, false, &error);
+        C, n->str, sce->unit, n->unit_type[idx], &val, false, &error);
 
     if (error) {
       ReportList *reports = CTX_wm_reports(C);

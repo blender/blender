@@ -14,8 +14,6 @@
 
 #include "BKE_context.hh"
 
-#include "../generic/python_utildefines.hh"
-
 #include "BPY_extern.hh"
 #include "bpy_capi_utils.hh"
 

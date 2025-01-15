@@ -630,7 +630,7 @@ typedef struct SequencerTimelineOverlay {
 typedef enum eSpaceSeq_SequencerTimelineOverlay_Flag {
   SEQ_TIMELINE_SHOW_STRIP_OFFSETS = (1 << 1),
   SEQ_TIMELINE_SHOW_THUMBNAILS = (1 << 2),
-  /** Use #Sequence::color_tag */
+  /** Use #Strip::color_tag */
   SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG = (1 << 3),
   SEQ_TIMELINE_SHOW_STRIP_RETIMING = (1 << 4),
   SEQ_TIMELINE_SHOW_FCURVES = (1 << 5),

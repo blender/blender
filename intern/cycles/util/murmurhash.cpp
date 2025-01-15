@@ -8,8 +8,8 @@
  * domain. The author hereby disclaims copyright to this source code.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "util/math.h"
 #include "util/murmurhash.h"
@@ -19,7 +19,7 @@
 #  define ROTL64(x, y) _rotl64(x, y)
 #  define BIG_CONSTANT(x) (x)
 #else
-ccl_device_inline uint32_t rotl32(uint32_t x, int8_t r)
+ccl_device_inline uint32_t rotl32(const uint32_t x, int8_t r)
 {
   return (x << r) | (x >> (32 - r));
 }
@@ -31,7 +31,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Block read - if your platform needs to do endian-swapping or can only
  * handle aligned reads, do the conversion here. */
-ccl_device_inline uint32_t mm_hash_getblock32(const uint32_t *p, int i)
+ccl_device_inline uint32_t mm_hash_getblock32(const uint32_t *p, const int i)
 {
   return p[i];
 }
@@ -47,7 +47,7 @@ ccl_device_inline uint32_t mm_hash_fmix32(uint32_t h)
   return h;
 }
 
-uint32_t util_murmur_hash3(const void *key, int len, uint32_t seed)
+uint32_t util_murmur_hash3(const void *key, const int len, const uint32_t seed)
 {
   const uint8_t *data = (const uint8_t *)key;
   const int nblocks = len / 4;
@@ -88,6 +88,9 @@ uint32_t util_murmur_hash3(const void *key, int len, uint32_t seed)
       k1 = ROTL32(k1, 15);
       k1 *= c2;
       h1 ^= k1;
+      ATTR_FALLTHROUGH;
+    default:
+      break;
   }
 
   h1 ^= len;
@@ -96,9 +99,9 @@ uint32_t util_murmur_hash3(const void *key, int len, uint32_t seed)
 }
 
 /* This is taken from the cryptomatte specification 1.0 */
-float util_hash_to_float(uint32_t hash)
+float util_hash_to_float(const uint32_t hash)
 {
-  uint32_t mantissa = hash & ((1 << 23) - 1);
+  const uint32_t mantissa = hash & ((1 << 23) - 1);
   uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
   exponent = max(exponent, (uint32_t)1);
   exponent = min(exponent, (uint32_t)254);

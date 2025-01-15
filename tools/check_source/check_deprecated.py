@@ -8,6 +8,10 @@ noted by the date which must be included with the *DEPRECATED* comment.
 
 Once this date is past, the code should be removed.
 """
+__all__ = (
+    "main",
+)
+
 
 import os
 import datetime

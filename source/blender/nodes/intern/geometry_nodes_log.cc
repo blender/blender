@@ -8,6 +8,7 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_type_conversions.hh"
@@ -319,7 +320,7 @@ void GeoTreeLog::ensure_node_warnings(const bNodeTree *tree)
         if (node->is_group() && node->id) {
           child_tree = reinterpret_cast<const bNodeTree *>(node->id);
         }
-        else if (bke::all_zone_output_node_types().contains(node->type)) {
+        else if (bke::all_zone_output_node_types().contains(node->type_legacy)) {
           child_tree = tree;
         }
       }
@@ -632,7 +633,7 @@ static void find_tree_zone_hash_recursive(
     ComputeContextBuilder &compute_context_builder,
     Map<const bNodeTreeZone *, ComputeContextHash> &r_hash_by_zone)
 {
-  switch (zone.output_node->type) {
+  switch (zone.output_node->type_legacy) {
     case GEO_NODE_SIMULATION_OUTPUT: {
       compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone.output_node);
       break;

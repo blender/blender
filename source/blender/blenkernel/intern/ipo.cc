@@ -57,6 +57,7 @@
 #include "BKE_nla.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_versioning.hh"
 
 #include "CLG_log.h"
 
@@ -1028,7 +1029,7 @@ static char *get_rna_access(ID *id,
                             int adrcode,
                             const char actname[],
                             const char constname[],
-                            Sequence *seq,
+                            Strip *strip,
                             int *r_array_index)
 {
   DynStr *path = BLI_dynstr_new();
@@ -1097,15 +1098,15 @@ static char *get_rna_access(ID *id,
 
     /* XXX problematic block-types. */
     case ID_SEQ: /* sequencer strip */
-      /* SEQ_FAC1: */
+      /* STRIP_FAC1: */
       switch (adrcode) {
-        case SEQ_FAC1:
+        case STRIP_FAC1:
           propname = "effect_fader";
           break;
-        case SEQ_FAC_SPEED:
+        case STRIP_FAC_SPEED:
           propname = "speed_fader";
           break;
-        case SEQ_FAC_OPACITY:
+        case STRIP_FAC_OPACITY:
           propname = "blend_alpha";
           break;
       }
@@ -1177,11 +1178,11 @@ static char *get_rna_access(ID *id,
     BLI_str_escape(constname_esc, constname, sizeof(constname_esc));
     SNPRINTF(buf, "constraints[\"%s\"]", constname_esc);
   }
-  else if (seq) {
-    /* Sequence names in Scene */
-    char seq_name_esc[(sizeof(seq->name) - 2) * 2];
-    BLI_str_escape(seq_name_esc, seq->name + 2, sizeof(seq_name_esc));
-    SNPRINTF(buf, "sequence_editor.sequences_all[\"%s\"]", seq_name_esc);
+  else if (strip) {
+    /* Strip names in Scene */
+    char strip_name_esc[(sizeof(strip->name) - 2) * 2];
+    BLI_str_escape(strip_name_esc, strip->name + 2, sizeof(strip_name_esc));
+    SNPRINTF(buf, "sequence_editor.sequences_all[\"%s\"]", strip_name_esc);
   }
   else {
     buf[0] = '\0'; /* empty string */
@@ -1268,7 +1269,7 @@ static ChannelDriver *idriver_to_cdriver(IpoDriver *idriver)
     /* this should be ok for all types here... */
     cdriver->type = DRIVER_TYPE_AVERAGE;
 
-    /* what to store depends on the 'blocktype' - object or posechannel */
+    /* What to store depends on the `blocktype` - object or pose-channel. */
     if (idriver->blocktype == ID_AR) { /* PoseChannel */
       if (idriver->adrcode == OB_ROT_DIFF) {
         /* Rotational Difference requires a special type of variable */
@@ -1394,6 +1395,9 @@ static void fcurve_add_to_list(
  * Convert IPO-Curve to F-Curve (including Driver data), and free any of the old data that
  * is not relevant, BUT do not free the IPO-Curve itself...
  *
+ * \param `id`: data-block that the IPO-Curve is attached to and/or which the new
+ * data-paths will start from. May be null, which may impact the data-paths of the
+ * created F-Curves in some cases.
  * \param actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to.
  * \param constname: name of Constraint-Channel (if applicable)
  * that IPO-Curve's IPO-block belonged to \a seq.
@@ -1405,7 +1409,7 @@ static void icu_to_fcurves(ID *id,
                            IpoCurve *icu,
                            char *actname,
                            char *constname,
-                           Sequence *seq,
+                           Strip *strip,
                            int muteipo)
 {
   AdrBit2Path *abp;
@@ -1565,7 +1569,7 @@ static void icu_to_fcurves(ID *id,
      * - we will need to set the 'disabled' flag if no path is able to be made (for now)
      */
     fcu->rna_path = get_rna_access(
-        id, icu->blocktype, icu->adrcode, actname, constname, seq, &fcu->array_index);
+        id, icu->blocktype, icu->adrcode, actname, constname, strip, &fcu->array_index);
     if (fcu->rna_path == nullptr) {
       fcu->flag |= FCURVE_DISABLED;
     }
@@ -1655,9 +1659,9 @@ static void icu_to_fcurves(ID *id,
         }
 
         /* correct values for sequencer curves, that were not locked to frame */
-        if (seq && (seq->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
-          const float mul = (seq->enddisp - seq->startdisp) / 100.0f;
-          const float offset = seq->startdisp;
+        if (strip && (strip->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
+          const float mul = (strip->enddisp - strip->startdisp) / 100.0f;
+          const float offset = strip->startdisp;
 
           dst->vec[0][0] *= mul;
           dst->vec[0][0] += offset;
@@ -1684,18 +1688,32 @@ static void icu_to_fcurves(ID *id,
 
 /* ------------------------- */
 
-/* Convert IPO-block (i.e. all its IpoCurves) to the new system.
+/**
+ * Convert an IPO block to listbases of Animato data.
+ *
  * This does not assume that any ID or AnimData uses it, but does assume that
  * it is given two lists, which it will perform driver/animation-data separation.
+ *
+ * \param `id`: Data-block that the IPO-Curve is attached to and/or which the
+ * new data-paths will start from. May be null, which may impact the data-paths of
+ * the created F-Curves in some cases.
+ * \param `actname`: Contrary to what you might think, this is not the name of
+ * an action. I (Nathan) don't know what it *is*, but I'm leaving this note here
+ * so people in the future are not misled by the awful parameter name.
+ * \param `animgroups`: List of channel groups that the converted data will be
+ * added to.
+ * \param `anim`: List of FCurves that the converted animation data will be
+ * added to.
+ * \param `drivers`: List of FCurves that converted drivers will be added to.
  */
 static void ipo_to_animato(ID *id,
                            Ipo *ipo,
                            char actname[],
                            char constname[],
-                           Sequence *seq,
-                           ListBase *animgroups,
-                           ListBase *anim,
-                           ListBase *drivers)
+                           Strip *strip,
+                           ListBase /* bActionGroup */ *animgroups,
+                           ListBase /* FCurve */ *anim,
+                           ListBase /* FCurve */ *drivers)
 {
   IpoCurve *icu;
 
@@ -1732,7 +1750,7 @@ static void ipo_to_animato(ID *id,
       /* Blender 2.4x allowed empty drivers,
        * but we don't now, since they cause more trouble than they're worth. */
       if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON)) {
-        icu_to_fcurves(id, nullptr, drivers, icu, actname, constname, seq, ipo->muteipo);
+        icu_to_fcurves(id, nullptr, drivers, icu, actname, constname, strip, ipo->muteipo);
       }
       else {
         MEM_freeN(icu->driver);
@@ -1740,7 +1758,7 @@ static void ipo_to_animato(ID *id,
       }
     }
     else {
-      icu_to_fcurves(id, animgroups, anim, icu, actname, constname, seq, ipo->muteipo);
+      icu_to_fcurves(id, animgroups, anim, icu, actname, constname, strip, ipo->muteipo);
     }
   }
 
@@ -1771,23 +1789,27 @@ static void ipo_to_animato(ID *id,
   }
 }
 
-/* Convert Action-block to new system, separating animation and drivers
+/**
+ * Convert a pre-Animato Action to an Animato Action and drivers.
+ *
  * New curves may not be converted directly into the given Action (i.e. for Actions linked
  * to Objects, where ob->ipo and ob->action need to be combined).
- * NOTE: we need to be careful here, as same data-structs are used for new system too!
+ *
+ * Pre-Animato Actions can contain drivers, which are added to `drivers`.
+ *
+ * Note: this was refactored from older code. In general `groups` and `curves`
+ * should just be from `act`, and `drivers` should be from the adt of `id`.
+ * However, this is not always the case for `drivers`, and diving into the
+ * spaghetti of where this is called it wasn't clear to me (Nathan) if that's
+ * actually *always* the case for `groups` and `curves` either, so I (Nathan)
+ * left them as separate parameters to be on the safe side.
  */
-static void action_to_animato(
+static void convert_pre_animato_action_to_animato_action_in_place(
     ID *id, bAction *act, ListBase *groups, ListBase *curves, ListBase *drivers)
 {
-  bActionChannel *achan, *achann;
-  bConstraintChannel *conchan, *conchann;
-
-  BLI_assert_msg(
-      act->wrap().is_action_legacy(),
-      "Conversion from pre-2.5 animation data should happen before conversion to layered Actions");
-
-  /* only continue if there are Action Channels (indicating unconverted data) */
-  if (BLI_listbase_is_empty(&act->chanbase)) {
+  const bool is_pre_animato_action = !BLI_listbase_is_empty(&act->chanbase);
+  BLI_assert_msg(is_pre_animato_action, "Action is not pre-Animato.");
+  if (!is_pre_animato_action) {
     return;
   }
 
@@ -1798,10 +1820,7 @@ static void action_to_animato(
   }
 
   /* loop through Action-Channels, converting data, freeing as we go */
-  for (achan = static_cast<bActionChannel *>(act->chanbase.first); achan; achan = achann) {
-    /* get pointer to next Action Channel */
-    achann = achan->next;
-
+  LISTBASE_FOREACH_MUTABLE (bActionChannel *, achan, &act->chanbase) {
     /* convert Action Channel's IPO data */
     if (achan->ipo) {
       ipo_to_animato(id, achan->ipo, achan->name, nullptr, nullptr, groups, curves, drivers);
@@ -1810,12 +1829,7 @@ static void action_to_animato(
     }
 
     /* convert constraint channel IPO-data */
-    for (conchan = static_cast<bConstraintChannel *>(achan->constraintChannels.first); conchan;
-         conchan = conchann)
-    {
-      /* get pointer to next Constraint Channel */
-      conchann = conchan->next;
-
+    LISTBASE_FOREACH_MUTABLE (bConstraintChannel *, conchan, &achan->constraintChannels) {
       /* convert Constraint Channel's IPO data */
       if (conchan->ipo) {
         ipo_to_animato(
@@ -1833,6 +1847,45 @@ static void action_to_animato(
   }
 }
 
+/**
+ * Ensure that the action is a modern layered action, upgrading if necessary.
+ *
+ * This deals with both Animato and pre-Animato actions, ensuring that they are
+ * fully upgraded. In the case of a pre-Animato action, it may contain drivers
+ * as well, which are converted and added to `drivers`.
+ *
+ * Much of the behavior of this function, and the reason for most of the
+ * parameters, is due to
+ * `convert_pre_animato_action_to_animato_action_in_place()`. See its
+ * documentation for more details.
+ *
+ * \see convert_pre_animato_action_to_animato_action_in_place()
+ */
+static void ensure_action_is_layered(
+    ID *id, bAction *act, ListBase *groups, ListBase *curves, ListBase *drivers)
+{
+  /* Already converted to the most modern kind of action, so no need to
+   * convert. */
+  if (blender::animrig::versioning::action_is_layered(*act)) {
+    return;
+  }
+
+  /* If there are Action Channels, indicating a pre-Animato action, then convert
+   * to Animato data. Note that pre-Animato actions may include drivers! */
+  const bool is_pre_animato_action = !BLI_listbase_is_empty(&act->chanbase);
+  if (is_pre_animato_action) {
+    convert_pre_animato_action_to_animato_action_in_place(id, act, groups, curves, drivers);
+  }
+
+  /* If there is an animated ID, tag it so that its Action usage also will get converted. */
+  if (id) {
+    blender::animrig::versioning::tag_action_user_for_slotted_actions_conversion(*id);
+  }
+
+  /* Convert to layered action. */
+  blender::animrig::versioning::convert_legacy_animato_action(*act);
+}
+
 /* ------------------------- */
 
 /* Convert IPO-block (i.e. all its IpoCurves) for some ID to the new system
@@ -1840,7 +1893,7 @@ static void action_to_animato(
  * from animation data is accomplished here too...
  */
 static void ipo_to_animdata(
-    Main *bmain, ID *id, Ipo *ipo, char actname[], char constname[], Sequence *seq)
+    Main *bmain, ID *id, Ipo *ipo, char actname[], char constname[], Strip *strip)
 {
   AnimData *adt = BKE_animdata_from_id(id);
   ListBase anim = {nullptr, nullptr};
@@ -1856,12 +1909,12 @@ static void ipo_to_animdata(
   }
 
   if (G.debug & G_DEBUG) {
-    printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s seqname:%s  curves:%d\n",
+    printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s stripname:%s  curves:%d\n",
            id->name + 2,
            ipo->id.name + 2,
            (actname) ? actname : "<None>",
            (constname) ? constname : "<None>",
-           (seq) ? (seq->name + 2) : "<None>",
+           (strip) ? (strip->name + 2) : "<None>",
            BLI_listbase_count(&ipo->curve));
   }
 
@@ -1869,7 +1922,7 @@ static void ipo_to_animdata(
    * (separated into separate lists of F-Curves for animation and drivers),
    * and the try to put these lists in the right places, but do not free the lists here. */
   /* XXX there shouldn't be any need for the groups, so don't supply pointer for that now... */
-  ipo_to_animato(id, ipo, actname, constname, seq, nullptr, &anim, &drivers);
+  ipo_to_animato(id, ipo, actname, constname, strip, nullptr, &anim, &drivers);
 
   /* deal with animation first */
   if (anim.first) {
@@ -1893,8 +1946,12 @@ static void ipo_to_animdata(
       }
     }
 
-    /* add F-Curves to action */
+    /* Add F-Curves to action, creating an Animato action. */
     BLI_movelisttolist(&adt->action->curves, &anim);
+
+    /* Upgrade Animato action to a layered action. */
+    blender::animrig::versioning::tag_action_user_for_slotted_actions_conversion(*id);
+    blender::animrig::versioning::convert_legacy_animato_action(*adt->action);
   }
 
   /* deal with drivers */
@@ -1931,7 +1988,7 @@ static void action_to_animdata(ID *id, bAction *act)
   }
 
   /* convert Action data */
-  action_to_animato(id, act, &adt->action->groups, &adt->action->curves, &adt->drivers);
+  ensure_action_is_layered(id, act, &adt->action->groups, &adt->action->curves, &adt->drivers);
 }
 
 /* ------------------------- */
@@ -1955,7 +2012,7 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
     /* this old strip is only worth something if it had an action... */
     if (as->act) {
       /* convert Action data (if not yet converted), storing the results in the same Action */
-      action_to_animato(id, as->act, &as->act->groups, &as->act->curves, &adt->drivers);
+      ensure_action_is_layered(id, as->act, &as->act->groups, &as->act->curves, &adt->drivers);
 
       /* Create a new-style NLA-strip which references this Action,
        * then copy over relevant settings. */
@@ -2042,31 +2099,31 @@ struct Seq_callback_data {
   AnimData *adt;
 };
 
-static bool seq_convert_callback(Sequence *seq, void *userdata)
+static bool strip_convert_callback(Strip *strip, void *userdata)
 {
-  IpoCurve *icu = static_cast<IpoCurve *>((seq->ipo) ? seq->ipo->curve.first : nullptr);
-  short adrcode = SEQ_FAC1;
+  IpoCurve *icu = static_cast<IpoCurve *>((strip->ipo) ? strip->ipo->curve.first : nullptr);
+  short adrcode = STRIP_FAC1;
 
   if (G.debug & G_DEBUG) {
-    printf("\tconverting sequence strip %s\n", seq->name + 2);
+    printf("\tconverting sequence strip %s\n", strip->name + 2);
   }
 
-  if (ELEM(nullptr, seq->ipo, icu)) {
-    seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
+  if (ELEM(nullptr, strip->ipo, icu)) {
+    strip->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
     return true;
   }
 
   /* Patch `adrcode`, so that we can map to different DNA variables later (semi-hack (tm)). */
-  switch (seq->type) {
-    case SEQ_TYPE_IMAGE:
-    case SEQ_TYPE_META:
-    case SEQ_TYPE_SCENE:
-    case SEQ_TYPE_MOVIE:
-    case SEQ_TYPE_COLOR:
-      adrcode = SEQ_FAC_OPACITY;
+  switch (strip->type) {
+    case STRIP_TYPE_IMAGE:
+    case STRIP_TYPE_META:
+    case STRIP_TYPE_SCENE:
+    case STRIP_TYPE_MOVIE:
+    case STRIP_TYPE_COLOR:
+      adrcode = STRIP_FAC_OPACITY;
       break;
-    case SEQ_TYPE_SPEED:
-      adrcode = SEQ_FAC_SPEED;
+    case STRIP_TYPE_SPEED:
+      adrcode = STRIP_FAC_SPEED;
       break;
   }
   icu->adrcode = adrcode;
@@ -2074,22 +2131,24 @@ static bool seq_convert_callback(Sequence *seq, void *userdata)
   Seq_callback_data *cd = (Seq_callback_data *)userdata;
 
   /* convert IPO */
-  ipo_to_animdata(cd->bmain, (ID *)cd->scene, seq->ipo, nullptr, nullptr, seq);
+  ipo_to_animdata(cd->bmain, (ID *)cd->scene, strip->ipo, nullptr, nullptr, strip);
 
-  if (cd->adt->action) {
+  if (cd->adt->action && !blender::animrig::versioning::action_is_layered(*cd->adt->action)) {
     cd->adt->action->idroot = ID_SCE; /* scene-rooted */
   }
 
-  id_us_min(&seq->ipo->id);
-  seq->ipo = nullptr;
+  id_us_min(&strip->ipo->id);
+  strip->ipo = nullptr;
   return true;
 }
 
 /* *************************************************** */
 /* External API - Only Called from do_versions() */
 
-void do_versions_ipos_to_animato(Main *bmain)
+void do_versions_ipos_to_layered_actions(Main *bmain)
 {
+  using blender::animrig::versioning::action_is_layered;
+
   ListBase drivers = {nullptr, nullptr};
   ID *id;
 
@@ -2098,13 +2157,47 @@ void do_versions_ipos_to_animato(Main *bmain)
     return;
   }
 
-  /* only convert if version is right */
+  /* Only convert if the bmain version is old enough.
+   *
+   * Note that the mixing of pre-2.50 and post-2.50 animation data is not supported, and so there
+   * is no need to check for the version of library blend files.
+   *
+   * See the check in #BKE_blendfile_link(), that actively warns users that their animation data
+   * will not be converted when linking to a pre-2.50 blend file.
+   *
+   * But even when the main file is newer, it could still link in pre-2.50 Actions, and those need
+   * to be converted in this function as well.
+   */
   if (bmain->versionfile >= 250) {
-    CLOG_WARN(&LOG, "Animation data too new to convert (Version %d)", bmain->versionfile);
+    bool shown_info = false;
+
+    LISTBASE_FOREACH (ID *, id, &bmain->actions) {
+      bAction *action = reinterpret_cast<bAction *>(id);
+
+      const bool is_pre_animato_action = !BLI_listbase_is_empty(&action->chanbase);
+      if (!is_pre_animato_action) {
+        continue;
+      }
+
+      if (G.debug & G_DEBUG) {
+        if (!shown_info) {
+          printf("INFO: Converting IPO Action to modern animation data types...\n");
+          shown_info = true;
+        }
+
+        printf("\tconverting action %s\n", id->name + 2);
+      }
+
+      /* This Action will be object-only. */
+      action->idroot = ID_OB;
+
+      ensure_action_is_layered(nullptr, action, &action->groups, &action->curves, &drivers);
+    }
     return;
   }
+
   if (G.debug & G_DEBUG) {
-    printf("INFO: Converting to Animato...\n");
+    printf("INFO: Converting IPO to modern animation data types...\n");
   }
 
   /* ----------- Animation Attached to Data -------------- */
@@ -2229,7 +2322,7 @@ void do_versions_ipos_to_animato(Main *bmain)
     /* object's action will always be object-rooted */
     {
       AnimData *adt = BKE_animdata_from_id(id);
-      if (adt && adt->action) {
+      if (adt && adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = ID_OB;
       }
     }
@@ -2254,7 +2347,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Convert Shape-key data... */
       ipo_to_animdata(bmain, id, key->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = key->ipo->blocktype;
       }
 
@@ -2279,7 +2372,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Convert Material data... */
       ipo_to_animdata(bmain, id, ma->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = ma->ipo->blocktype;
       }
 
@@ -2304,7 +2397,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Convert World data... */
       ipo_to_animdata(bmain, id, wo->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = wo->ipo->blocktype;
       }
 
@@ -2319,7 +2412,7 @@ void do_versions_ipos_to_animato(Main *bmain)
     Editing *ed = scene->ed;
     if (ed && ed->seqbasep) {
       Seq_callback_data cb_data = {bmain, scene, BKE_animdata_ensure_id(id)};
-      SEQ_for_each_callback(&ed->seqbase, seq_convert_callback, &cb_data);
+      SEQ_for_each_callback(&ed->seqbase, strip_convert_callback, &cb_data);
     }
   }
 
@@ -2339,7 +2432,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Convert Texture data... */
       ipo_to_animdata(bmain, id, te->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = te->ipo->blocktype;
       }
 
@@ -2364,7 +2457,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Convert Camera data... */
       ipo_to_animdata(bmain, id, ca->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = ca->ipo->blocktype;
       }
 
@@ -2389,7 +2482,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Convert Light data... */
       ipo_to_animdata(bmain, id, la->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = la->ipo->blocktype;
       }
 
@@ -2414,7 +2507,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Convert Curve data... */
       ipo_to_animdata(bmain, id, cu->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = cu->ipo->blocktype;
       }
 
@@ -2448,7 +2541,7 @@ void do_versions_ipos_to_animato(Main *bmain)
     }
 
     /* be careful! some of the actions we encounter will be converted ones... */
-    action_to_animato(nullptr, act, &act->groups, &act->curves, &drivers);
+    ensure_action_is_layered(nullptr, act, &act->groups, &act->curves, &drivers);
   }
 
   /* ipo's */
@@ -2467,6 +2560,10 @@ void do_versions_ipos_to_animato(Main *bmain)
       new_act = BKE_action_add(bmain, id->name + 2);
       ipo_to_animato(nullptr, ipo, nullptr, nullptr, nullptr, nullptr, &new_act->curves, &drivers);
       new_act->idroot = ipo->blocktype;
+
+      /* Upgrade the resulting Animato action to a layered action. */
+      blender::animrig::versioning::tag_action_user_for_slotted_actions_conversion(*id);
+      blender::animrig::versioning::convert_legacy_animato_action(*new_act);
     }
 
     /* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */

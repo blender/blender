@@ -21,6 +21,11 @@ Some type annotations are quoted to avoid errors in older Python versions.
 These can be unquoted eventually.
 """
 
+__all__ = (
+    "main",
+)
+
+
 import argparse
 import os
 import platform

@@ -2,12 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_IMAGE_IMPL_H__
-#define __UTIL_IMAGE_IMPL_H__
+#pragma once
 
-#include "util/algorithm.h"
-#include "util/half.h"
 #include "util/image.h"
+#include "util/math_base.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -40,14 +38,18 @@ void util_image_downscale_sample(const vector<T> &pixels,
                                  T *result)
 {
   assert(components <= 4);
-  const size_t ix = (size_t)x, iy = (size_t)y, iz = (size_t)z;
+  const size_t ix = (size_t)x;
+  const size_t iy = (size_t)y;
+  const size_t iz = (size_t)z;
   /* TODO(sergey): Support something smarter than box filer. */
   float accum[4] = {0};
   size_t count = 0;
   for (size_t dz = 0; dz < kernel_size; ++dz) {
     for (size_t dy = 0; dy < kernel_size; ++dy) {
       for (size_t dx = 0; dx < kernel_size; ++dx) {
-        const size_t nx = ix + dx, ny = iy + dy, nz = iz + dz;
+        const size_t nx = ix + dx;
+        const size_t ny = iy + dy;
+        const size_t nz = iz + dz;
         if (nx >= width || ny >= height || nz >= depth) {
           continue;
         }
@@ -88,8 +90,9 @@ void util_image_downscale_pixels(const vector<T> &input_pixels,
   for (size_t z = 0; z < output_depth; ++z) {
     for (size_t y = 0; y < output_height; ++y) {
       for (size_t x = 0; x < output_width; ++x) {
-        const float input_x = (float)x * inv_scale_factor, input_y = (float)y * inv_scale_factor,
-                    input_z = (float)z * inv_scale_factor;
+        const float input_x = (float)x * inv_scale_factor;
+        const float input_y = (float)y * inv_scale_factor;
+        const float input_z = (float)z * inv_scale_factor;
         const size_t output_index = (z * output_width * output_height + y * output_width + x) *
                                     components;
         util_image_downscale_sample(input_pixels,
@@ -159,5 +162,3 @@ void util_image_resize_pixels(const vector<T> &input_pixels,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_IMAGE_IMPL_H__ */

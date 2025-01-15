@@ -6,8 +6,6 @@
  * \ingroup wm
  */
 
-#include <new>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"

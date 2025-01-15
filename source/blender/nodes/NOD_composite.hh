@@ -37,14 +37,6 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 
 void register_node_type_cmp_custom_group(blender::bke::bNodeType *ntype);
 
-void ntreeCompositExecTree(Render *render,
-                           Scene *scene,
-                           bNodeTree *ntree,
-                           RenderData *rd,
-                           const char *view_name,
-                           blender::compositor::RenderContext *render_context,
-                           blender::compositor::Profiler *profiler);
-
 /**
  * Called from render pipeline, to tag render input and output.
  * need to do all scenes, to prevent errors when you re-render 1 scene.

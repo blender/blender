@@ -22,7 +22,7 @@ const char *device_kernel_as_string(DeviceKernel kernel);
 #ifndef __KERNEL_ONEAPI__
 std::ostream &operator<<(std::ostream &os, DeviceKernel kernel);
 
-typedef uint64_t DeviceKernelMask;
+using DeviceKernelMask = uint64_t;
 string device_kernel_mask_as_string(DeviceKernelMask mask);
 #endif
 

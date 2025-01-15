@@ -540,9 +540,9 @@ static bool brush_asset_edit_metadata_poll(bContext *C)
     return false;
   }
   const asset_system::AssetRepresentation *asset = asset::find_asset_from_weak_ref(
-      *C, *brush_weak_ref, nullptr);
+      *C, *brush_weak_ref, CTX_wm_reports(C));
   if (!asset) {
-    BLI_assert_unreachable();
+    /* May happen if library loading hasn't finished. */
     return false;
   }
   const std::optional<AssetLibraryReference> library_ref = library_to_library_ref(

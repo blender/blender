@@ -1181,6 +1181,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
 {
   uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
+  const bool is_editable = ID_IS_EDITABLE(&ob->id);
 
   if (block) {
     BLI_assert(C == nullptr);
@@ -1225,6 +1226,9 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
       UI_but_number_step_size_set(but, 10);
       UI_but_number_precision_set(but, 3);
       UI_but_unit_type_set(but, PROP_UNIT_LENGTH);
+      if (!is_editable) {
+        UI_but_disable(but, "Can't edit this property from a linked data-block");
+      }
     }
     UI_block_align_end(block);
   }

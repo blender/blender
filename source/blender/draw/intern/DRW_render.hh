@@ -16,7 +16,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_scene.hh"
 
 #include "BLT_translation.hh"

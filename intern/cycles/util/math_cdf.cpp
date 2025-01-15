@@ -4,8 +4,9 @@
 
 #include "util/math_cdf.h"
 
+#include <cassert>
+
 #include "util/algorithm.h"
-#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,7 +27,7 @@ void util_cdf_invert(const int resolution,
   if (make_symmetric) {
     const int half_size = (resolution - 1) / 2;
     for (int i = 0; i <= half_size; i++) {
-      float x = i / (float)half_size;
+      const float x = i / (float)half_size;
       int index = upper_bound(cdf.begin(), cdf.end(), x) - cdf.begin();
       float t;
       if (index < cdf_size - 1) {
@@ -36,14 +37,14 @@ void util_cdf_invert(const int resolution,
         t = 0.0f;
         index = cdf_size - 1;
       }
-      float y = ((index + t) / (resolution - 1)) * (2.0f * range);
+      const float y = ((index + t) / (resolution - 1)) * (2.0f * range);
       inv_cdf[half_size + i] = 0.5f * (1.0f + y);
       inv_cdf[half_size - i] = 0.5f * (1.0f - y);
     }
   }
   else {
     for (int i = 0; i < resolution; i++) {
-      float x = (i + 0.5f) * inv_resolution;
+      const float x = (i + 0.5f) * inv_resolution;
       int index = upper_bound(cdf.begin(), cdf.end(), x) - cdf.begin() - 1;
       float t;
       if (index < cdf_size - 1) {

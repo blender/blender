@@ -9,8 +9,10 @@
 #include "DNA_material_types.h"
 
 #include "BKE_lib_id.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
+
 #include "NOD_shader.h"
 
 #include "eevee_instance.hh"

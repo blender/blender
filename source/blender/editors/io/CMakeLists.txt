@@ -4,9 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
-  ../../blentranslation
-  ../../bmesh
   ../../io/alembic
   ../../io/collada
   ../../io/common
@@ -16,7 +13,6 @@ set(INC
   ../../io/usd
   ../../io/wavefront_obj
   ../../makesrna
-  ../../windowmanager
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
@@ -51,13 +47,16 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_OPENCOLLADA)

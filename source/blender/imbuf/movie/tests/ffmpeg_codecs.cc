@@ -26,7 +26,7 @@ bool test_vcodec(const AVCodec *codec, AVPixelFormat pixelformat)
       ctx->pix_fmt = pixelformat;
       ctx->width = 720;
       ctx->height = 576;
-      int open = avcodec_open2(ctx, codec, NULL);
+      int open = avcodec_open2(ctx, codec, nullptr);
       if (open >= 0) {
         avcodec_free_context(&ctx);
         result = true;
@@ -50,7 +50,7 @@ bool test_acodec(const AVCodec *codec, AVSampleFormat fmt)
       av_channel_layout_from_mask(&ctx->ch_layout, AV_CH_LAYOUT_MONO);
 #endif
       ctx->bit_rate = 128000;
-      int open = avcodec_open2(ctx, codec, NULL);
+      int open = avcodec_open2(ctx, codec, nullptr);
       if (open >= 0) {
         avcodec_free_context(&ctx);
         result = true;
@@ -165,7 +165,7 @@ FFMPEG_TEST_VCODEC_NAME(libtheora, AV_PIX_FMT_YUV420P)
 FFMPEG_TEST_VCODEC_NAME(libx264, AV_PIX_FMT_YUV420P)
 FFMPEG_TEST_VCODEC_NAME(libvpx, AV_PIX_FMT_YUV420P)
 FFMPEG_TEST_VCODEC_NAME(libopenjpeg, AV_PIX_FMT_YUV420P)
-/* aom's AV1 encoder is "libaom-av1". FFMPEG_TEST_VCODEC_NAME(libaom-av1, ...)
+/* AOM's AV1 encoder is `libaom-av1`. `FFMPEG_TEST_VCODEC_NAME(libaom-av1, ...)`
  * will not work because the dash will not work with the test macro. */
 TEST(ffmpeg, libaom_av1_AV_PIX_FMT_YUV420P)
 {

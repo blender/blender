@@ -2,13 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_DEVICE_H__
-#define __BLENDER_DEVICE_H__
+#pragma once
 
-#include "MEM_guardedalloc.h"
-#include "RNA_access.hh"
 #include "RNA_blender_cpp.hh"
-#include "RNA_types.hh"
 
 #include "device/device.h"
 
@@ -27,5 +23,3 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
                                DeviceInfo &preferences_device);
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_DEVICE_H__ */

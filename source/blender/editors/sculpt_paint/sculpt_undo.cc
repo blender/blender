@@ -228,14 +228,10 @@ struct StepData {
   float3 pivot_pos;
   float4 pivot_rot;
 
-  /* Geometry modification operations.
-   *
-   * Original geometry is stored before some modification is run and is used to restore state of
-   * the object when undoing the operation
-   *
-   * Modified geometry is stored after the modification and is used to redo the modification. */
-  bool geometry_clear_pbvh;
+  /* Geometry modification operations. */
+  /* Original geometry is stored before the modification and is restored from when undoing. */
   NodeGeometry geometry_original;
+  /* Modified geometry is stored after the modification and is restored from when redoing. */
   NodeGeometry geometry_modified;
 
   bool applied;
@@ -359,7 +355,7 @@ static void restore_position_mesh(Object &object,
       const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
 
       if (unode.orig_position.is_empty()) {
-        /* When original positions aren't written separately in the the undo step, there are no
+        /* When original positions aren't written separately in the undo step, there are no
          * deform modifiers. Therefore the original and evaluated deform positions will be the
          * same, and modifying the positions from the original mesh is enough. */
         swap_indexed_data(
@@ -722,10 +718,8 @@ static void geometry_free_data(NodeGeometry *geometry)
 
 static void restore_geometry(StepData &step_data, Object &object)
 {
-  if (step_data.geometry_clear_pbvh) {
-    BKE_sculptsession_free_pbvh(object);
-    DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
-  }
+  BKE_sculptsession_free_pbvh(object);
+  DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
 
   Mesh *mesh = static_cast<Mesh *>(object.data);
 
@@ -1290,7 +1284,6 @@ static void geometry_push(const Object &object)
   step_data->type = Type::Geometry;
 
   step_data->applied = false;
-  step_data->geometry_clear_pbvh = true;
 
   NodeGeometry *geometry = geometry_get(*step_data);
   store_geometry_data(geometry, object);
@@ -2101,25 +2094,23 @@ void register_type(UndoType *ut)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Undo for changes happening on a base mesh for multires sculpting.
+/** \name Multires + Base Mesh Undo
  *
- * Use this for multires operators which changes base mesh and which are to be
- * possible. Example of such operators is Apply Base.
+ * Example of a relevant operator is Apply Base.
  *
  * Usage:
  *
  *   static int operator_exec((bContext *C, wmOperator *op) {
  *
- *      ED_sculpt_undo_push_mixed_begin(C, op->type->name);
+ *      ed::sculpt_paint::undo::push_multires_mesh_begin(C, op->type->name);
  *      // Modify base mesh.
- *      ED_sculpt_undo_push_mixed_end(C, op->type->name);
+ *      ed::sculpt_paint::undo::push_multires_mesh_end(C, op->type->name);
  *
  *      return OPERATOR_FINISHED;
  *   }
  *
- * If object is not in sculpt mode or sculpt does not happen on multires then
- * regular ED_undo_push() is used.
- * *
+ * If object is not in Sculpt mode or there is no active multires object, ED_undo_push is used
+ * instead.
  * \{ */
 
 static bool use_multires_mesh(bContext *C)
@@ -2134,26 +2125,6 @@ static bool use_multires_mesh(bContext *C)
   return sculpt_session->multires.active;
 }
 
-static void push_all_grids(const Depsgraph &depsgraph, Object *object)
-{
-  /* It is possible that undo push is done from an object state where there is no tree. This
-   * happens, for example, when an operation which tagged for geometry update was performed prior
-   * to the current operation without making any stroke in between.
-   *
-   * Skip pushing nodes based on the following logic: on redo Type::Position will
-   * ensure pbvh::Tree for the new base geometry, which will have same coordinates as if we create
-   * pbvh::Tree here.
-   */
-  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*object);
-  if (pbvh == nullptr) {
-    return;
-  }
-
-  IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
-  push_nodes(depsgraph, *object, node_mask, Type::Position);
-}
-
 void push_multires_mesh_begin(bContext *C, const char *str)
 {
   if (!use_multires_mesh(C)) {
@@ -2161,15 +2132,13 @@ void push_multires_mesh_begin(bContext *C, const char *str)
   }
 
   const Scene &scene = *CTX_data_scene(C);
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object *object = CTX_data_active_object(C);
+
+  multires_flush_sculpt_updates(object);
 
   push_begin_ex(scene, *object, str);
 
   geometry_push(*object);
-  get_step_data()->geometry_clear_pbvh = false;
-
-  push_all_grids(depsgraph, object);
 }
 
 void push_multires_mesh_end(bContext *C, const char *str)
@@ -2182,7 +2151,6 @@ void push_multires_mesh_end(bContext *C, const char *str)
   Object *object = CTX_data_active_object(C);
 
   geometry_push(*object);
-  get_step_data()->geometry_clear_pbvh = false;
 
   push_end(*object);
 }

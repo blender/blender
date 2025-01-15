@@ -32,6 +32,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
@@ -617,14 +618,14 @@ static Vector<NodeBakeRequest> collect_simulations_to_bake(Main &bmain,
       for (const bNestedNodeRef &nested_node_ref : nmd->node_group->nested_node_refs_span()) {
         const int id = nested_node_ref.id;
         const bNode *node = nmd->node_group->find_nested_node(id);
-        if (node->type != GEO_NODE_SIMULATION_OUTPUT) {
+        if (node->type_legacy != GEO_NODE_SIMULATION_OUTPUT) {
           continue;
         }
         NodeBakeRequest request;
         request.object = object;
         request.nmd = nmd;
         request.bake_id = id;
-        request.node_type = node->type;
+        request.node_type = node->type_legacy;
         request.blob_sharing = std::make_unique<bake::BlobWriteSharing>();
         if (bake::get_node_bake_target(*object, *nmd, id) == NODES_MODIFIER_BAKE_TARGET_DISK) {
           request.path = bake::get_node_bake_path(bmain, *object, *nmd, id);
@@ -940,7 +941,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   if (node == nullptr) {
     return {};
   }
-  if (!ELEM(node->type, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_BAKE)) {
+  if (!ELEM(node->type_legacy, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_BAKE)) {
     return {};
   }
 
@@ -948,7 +949,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   request.object = object;
   request.nmd = &nmd;
   request.bake_id = bake_id;
-  request.node_type = node->type;
+  request.node_type = node->type_legacy;
   request.blob_sharing = std::make_unique<bake::BlobWriteSharing>();
 
   const NodesModifierBake *bake = nmd.find_bake(bake_id);
@@ -964,7 +965,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
     }
   }
 
-  if (node->type == GEO_NODE_BAKE && bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
+  if (node->type_legacy == GEO_NODE_BAKE && bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
     const int current_frame = scene->r.cfra;
     request.frame_start = current_frame;
     request.frame_end = current_frame;

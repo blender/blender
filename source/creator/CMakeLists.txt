@@ -3,25 +3,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  ../blender/blenkernel
   ../blender/editors/include
-  ../blender/gpu
-  ../blender/imbuf
-  ../blender/imbuf/movie
   ../blender/io/usd
-  ../blender/bmesh
   ../blender/makesrna
-  ../blender/render
-  ../blender/windowmanager
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::render
+  PRIVATE bf::windowmanager
 )
 
 if(HAVE_FEENABLEEXCEPT)
@@ -272,7 +271,7 @@ if(WITH_BUILDINFO)
       -DBUILD_DATE=${BUILDINFO_OVERRIDE_DATE}
       -DBUILD_TIME=${BUILDINFO_OVERRIDE_TIME}
       -P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake
-    )
+  )
 
   # `buildinfo.h` is a generated file.
   set_source_files_properties(
@@ -548,17 +547,19 @@ endif()
 if(WIN32)
   if(EXISTS ${LIBDIR}/osl/bin/oslquery.dll) # 4.1+
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/osl/bin/oslquery.dll
-            ${LIBDIR}/osl/bin/oslcomp.dll
-            ${LIBDIR}/osl/bin/oslexec.dll
-            ${LIBDIR}/osl/bin/oslnoise.dll
+      FILES
+        ${LIBDIR}/osl/bin/oslquery.dll
+        ${LIBDIR}/osl/bin/oslcomp.dll
+        ${LIBDIR}/osl/bin/oslexec.dll
+        ${LIBDIR}/osl/bin/oslnoise.dll
       RELEASE
     )
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/osl/bin/oslquery_d.dll
-            ${LIBDIR}/osl/bin/oslcomp_d.dll
-            ${LIBDIR}/osl/bin/oslexec_d.dll
-            ${LIBDIR}/osl/bin/oslnoise_d.dll
+      FILES
+        ${LIBDIR}/osl/bin/oslquery_d.dll
+        ${LIBDIR}/osl/bin/oslcomp_d.dll
+        ${LIBDIR}/osl/bin/oslexec_d.dll
+        ${LIBDIR}/osl/bin/oslnoise_d.dll
       DEBUG
     )
   endif()
@@ -1693,7 +1694,7 @@ if(DEFINED TARGETDIR_TEXT)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/release/license
     DESTINATION "${TARGETDIR_TEXT}"
-)
+  )
 endif()
 
 # Create a system extensions directory (users or administrators may populate this).
@@ -1892,7 +1893,7 @@ if(WIN32)
   endif()
 endif()
 
-# `vcpkg` substitutes our libraries with theirs, which will cause issues when you you run
+# `vcpkg` substitutes our libraries with theirs, which will cause issues when you run
 # these builds on other systems due to missing DLL's. So we opt out the use of `vcpkg`.
 if(WIN32)
   set_target_properties(blender PROPERTIES VS_GLOBAL_VcpkgEnabled "false")

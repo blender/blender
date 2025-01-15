@@ -56,8 +56,10 @@ class UIListPanelExample(bpy.types.Panel):
         # The second one can usually be left as an empty string.
         # It's an additional ID used to distinguish lists in case you
         # use the same list several times in a given area.
-        layout.template_list("MATERIAL_UL_matslots_example", "compact", obj, "material_slots",
-                             obj, "active_material_index", type='COMPACT')
+        layout.template_list(
+            "MATERIAL_UL_matslots_example", "compact", obj, "material_slots",
+            obj, "active_material_index", type='COMPACT',
+        )
 
 
 def register():

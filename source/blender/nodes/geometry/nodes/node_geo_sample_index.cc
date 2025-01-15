@@ -13,10 +13,6 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
-
-}  // namespace blender::nodes
-
 namespace blender::nodes::node_geo_sample_index_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometrySampleIndex);
@@ -248,8 +244,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_INDEX, "Sample Index", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSampleIndex", GEO_NODE_SAMPLE_INDEX);
+  ntype.ui_name = "Sample Index";
+  ntype.ui_description = "Retrieve values from specific geometry elements";
   ntype.enum_name_legacy = "SAMPLE_INDEX";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   blender::bke::node_type_storage(

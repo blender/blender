@@ -8,8 +8,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#define KERNEL_FUNCTIONS(name) \
-  KERNEL_NAME_EVAL(cpu, name), KERNEL_NAME_EVAL(cpu_sse42, name), KERNEL_NAME_EVAL(cpu_avx2, name)
+#define KERNEL_FUNCTIONS(name) KERNEL_NAME_EVAL(cpu, name), KERNEL_NAME_EVAL(cpu_avx2, name)
 
 #define REGISTER_KERNEL(name) name(KERNEL_FUNCTIONS(name))
 #define REGISTER_KERNEL_FILM_CONVERT(name) \
@@ -20,17 +19,6 @@ CPUKernels::CPUKernels()
     : /* Integrator. */
       REGISTER_KERNEL(integrator_init_from_camera),
       REGISTER_KERNEL(integrator_init_from_bake),
-      REGISTER_KERNEL(integrator_intersect_closest),
-      REGISTER_KERNEL(integrator_intersect_shadow),
-      REGISTER_KERNEL(integrator_intersect_subsurface),
-      REGISTER_KERNEL(integrator_intersect_volume_stack),
-      REGISTER_KERNEL(integrator_intersect_dedicated_light),
-      REGISTER_KERNEL(integrator_shade_background),
-      REGISTER_KERNEL(integrator_shade_light),
-      REGISTER_KERNEL(integrator_shade_shadow),
-      REGISTER_KERNEL(integrator_shade_surface),
-      REGISTER_KERNEL(integrator_shade_volume),
-      REGISTER_KERNEL(integrator_shade_dedicated_light),
       REGISTER_KERNEL(integrator_megakernel),
       /* Shader evaluation. */
       REGISTER_KERNEL(shader_eval_displace),

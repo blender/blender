@@ -107,8 +107,11 @@ static bAction *poselib_action_to_blend(PoseBlendData *pbd)
 /* Makes a copy of the current pose for restoration purposes - doesn't do constraints currently */
 static void poselib_backup_posecopy(PoseBlendData *pbd)
 {
-  const bAction *action = poselib_action_to_blend(pbd);
-  pbd->pose_backup = BKE_pose_backup_create_selected_bones(pbd->ob, action);
+  bAction *action = poselib_action_to_blend(pbd);
+  blender::animrig::Action &pose_data = action->wrap();
+  blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(pbd->ob->id,
+                                                                             pose_data);
+  pbd->pose_backup = BKE_pose_backup_create_selected_bones(pbd->ob, action, slot.handle);
 
   if (pbd->state == POSE_BLEND_INIT) {
     /* Ready for blending now. */
@@ -196,11 +199,11 @@ static void poselib_blend_apply(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph, 0.0f);
   bAction *to_blend = poselib_action_to_blend(pbd);
-  blender::animrig::slot_handle_t to_blend_slot_handle = blender::animrig::first_slot_handle(
-      *to_blend);
+  blender::animrig::Slot &to_blend_slot = blender::animrig::get_best_pose_slot_for_id(
+      pbd->ob->id, to_blend->wrap());
 
   blender::animrig::pose_apply_action_blend(
-      pbd->ob, to_blend, to_blend_slot_handle, &anim_eval_context, pbd->blend_factor);
+      pbd->ob, to_blend, to_blend_slot.handle, &anim_eval_context, pbd->blend_factor);
 }
 
 /* ---------------------------- */

@@ -56,7 +56,10 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   if (request_face_normals) {
     mesh_render_data_update_face_normals(mr);
   }
-  if ((request_corner_normals && !mr.use_simplify_normals) || force_corner_normals) {
+  if ((request_corner_normals && mr.normals_domain == bke::MeshNormalDomain::Corner &&
+       !mr.use_simplify_normals) ||
+      force_corner_normals)
+  {
     mesh_render_data_update_corner_normals(mr);
   }
 

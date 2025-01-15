@@ -12,12 +12,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.hh"
-#include "BKE_object.hh"
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
 

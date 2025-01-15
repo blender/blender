@@ -7,6 +7,12 @@
 
 #pragma once
 
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/triangle.h"
+#include "kernel/svm/util.h"
+#include "kernel/util/differential.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Wireframe Node */
@@ -14,8 +20,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline float wireframe(KernelGlobals kg,
                                   ccl_private ShaderData *sd,
                                   const differential3 dP,
-                                  float size,
-                                  int pixel_size,
+                                  const float size,
+                                  const int pixel_size,
                                   ccl_private float3 *P)
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
@@ -28,7 +34,7 @@ ccl_device_inline float wireframe(KernelGlobals kg,
     float pixelwidth = 1.0f;
 
     /* Triangles */
-    int np = 3;
+    const int np = 3;
 
     if (sd->type & PRIMITIVE_MOTION) {
       motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, Co);
@@ -46,8 +52,8 @@ ccl_device_inline float wireframe(KernelGlobals kg,
     if (pixel_size) {
       // Project the derivatives of P to the viewing plane defined
       // by I so we have a measure of how big is a pixel at this point
-      float pixelwidth_x = len(dP.dx - dot(dP.dx, sd->wi) * sd->wi);
-      float pixelwidth_y = len(dP.dy - dot(dP.dy, sd->wi) * sd->wi);
+      const float pixelwidth_x = len(dP.dx - dot(dP.dx, sd->wi) * sd->wi);
+      const float pixelwidth_y = len(dP.dy - dot(dP.dy, sd->wi) * sd->wi);
       // Take the average of both axis' length
       pixelwidth = (pixelwidth_x + pixelwidth_y) * 0.5f;
     }
@@ -57,10 +63,10 @@ ccl_device_inline float wireframe(KernelGlobals kg,
     pixelwidth *= 0.5f * size;
     pixelwidth *= pixelwidth;
     for (int i = 0; i < np; i++) {
-      int i2 = i ? i - 1 : np - 1;
-      float3 dir = *P - Co[i];
-      float3 edge = Co[i] - Co[i2];
-      float3 crs = cross(edge, dir);
+      const int i2 = i ? i - 1 : np - 1;
+      const float3 dir = *P - Co[i];
+      const float3 edge = Co[i] - Co[i2];
+      const float3 crs = cross(edge, dir);
       // At this point dot(crs, crs) / dot(edge, edge) is
       // the square of area / length(edge) == square of the
       // distance to the edge.
@@ -75,16 +81,17 @@ ccl_device_inline float wireframe(KernelGlobals kg,
 ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
                                             ccl_private ShaderData *sd,
                                             ccl_private float *stack,
-                                            uint4 node)
+                                            const uint4 node)
 {
-  uint in_size = node.y;
-  uint out_fac = node.z;
-  uint use_pixel_size, bump_offset;
+  const uint in_size = node.y;
+  const uint out_fac = node.z;
+  uint use_pixel_size;
+  uint bump_offset;
   svm_unpack_node_uchar2(node.w, &use_pixel_size, &bump_offset);
 
   /* Input Data */
-  float size = stack_load_float(stack, in_size);
-  int pixel_size = (int)use_pixel_size;
+  const float size = stack_load_float(stack, in_size);
+  const int pixel_size = (int)use_pixel_size;
 
   /* Calculate wireframe */
   const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
@@ -100,8 +107,9 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
     f += (f - wireframe(kg, sd, dP, size, pixel_size, &Py)) / len(dP.dy);
   }
 
-  if (stack_valid(out_fac))
+  if (stack_valid(out_fac)) {
     stack_store_float(stack, out_fac, f);
+  }
 }
 
 CCL_NAMESPACE_END

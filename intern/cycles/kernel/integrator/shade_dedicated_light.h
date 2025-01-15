@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "kernel/integrator/path_state.h"
-
 #include "kernel/light/distant.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
@@ -18,8 +16,8 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool shadow_linking_light_sample_from_intersection(
     KernelGlobals kg,
-    ccl_private const Intersection &ccl_restrict isect,
-    ccl_private const Ray &ccl_restrict ray,
+    const ccl_private Intersection &ccl_restrict isect,
+    const ccl_private Ray &ccl_restrict ray,
     const float3 N,
     const uint32_t path_flag,
     ccl_private LightSample *ccl_restrict ls)
@@ -55,7 +53,7 @@ ccl_device_inline float shadow_linking_light_sample_mis_weight(KernelGlobals kg,
 ccl_device void shadow_linking_setup_ray_from_intersection(
     IntegratorState state,
     ccl_private Ray *ccl_restrict ray,
-    ccl_private const Intersection *ccl_restrict isect)
+    const ccl_private Intersection *ccl_restrict isect)
 {
   /* The ray->tmin follows the value configured at the surface bounce.
    * it is the same for the continued main path and for this shadow ray. There is no need to push

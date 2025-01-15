@@ -4,15 +4,19 @@
 
 #pragma once
 
+#include "util/math.h"
+#include "util/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* NOTE: svm_ramp.h, svm_ramp_util.h and node_ramp_util.h must stay consistent */
 
-ccl_device_inline float3
-rgb_ramp_lookup(const float3 *ramp, float f, bool interpolate, bool extrapolate, int table_size)
+ccl_device_inline float3 rgb_ramp_lookup(
+    const float3 *ramp, float f, bool interpolate, bool extrapolate, const int table_size)
 {
   if ((f < 0.0f || f > 1.0f) && extrapolate) {
-    float3 t0, dy;
+    float3 t0;
+    float3 dy;
     if (f < 0.0f) {
       t0 = ramp[0];
       dy = t0 - ramp[1], f = -f;
@@ -28,8 +32,8 @@ rgb_ramp_lookup(const float3 *ramp, float f, bool interpolate, bool extrapolate,
   f = clamp(f, 0.0f, 1.0f) * (table_size - 1);
 
   /* clamp int as well in case of NaN */
-  int i = clamp(float_to_int(f), 0, table_size - 1);
-  float t = f - (float)i;
+  const int i = clamp(float_to_int(f), 0, table_size - 1);
+  const float t = f - (float)i;
 
   float3 result = ramp[i];
 
@@ -41,10 +45,11 @@ rgb_ramp_lookup(const float3 *ramp, float f, bool interpolate, bool extrapolate,
 }
 
 ccl_device float float_ramp_lookup(
-    const float *ramp, float f, bool interpolate, bool extrapolate, int table_size)
+    const float *ramp, float f, bool interpolate, bool extrapolate, const int table_size)
 {
   if ((f < 0.0f || f > 1.0f) && extrapolate) {
-    float t0, dy;
+    float t0;
+    float dy;
     if (f < 0.0f) {
       t0 = ramp[0];
       dy = t0 - ramp[1], f = -f;
@@ -60,8 +65,8 @@ ccl_device float float_ramp_lookup(
   f = clamp(f, 0.0f, 1.0f) * (table_size - 1);
 
   /* clamp int as well in case of NaN */
-  int i = clamp(float_to_int(f), 0, table_size - 1);
-  float t = f - (float)i;
+  const int i = clamp(float_to_int(f), 0, table_size - 1);
+  const float t = f - (float)i;
 
   float result = ramp[i];
 

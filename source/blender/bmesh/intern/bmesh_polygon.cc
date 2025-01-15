@@ -1179,7 +1179,7 @@ void BM_face_triangulate(BMesh *bm,
 
 void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
-  float out[2] = {-FLT_MAX, -FLT_MAX};
+  blender::float2 out = {-FLT_MAX, -FLT_MAX};
   float center[2] = {0.0f, 0.0f};
   float axis_mat[3][3];
   float(*projverts)[2] = BLI_array_alloca(projverts, f->len);
@@ -1215,7 +1215,7 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
   bm->elem_index_dirty |= BM_LOOP;
 
   /* ensure we are well outside the face bounds (value is arbitrary) */
-  add_v2_fl(out, 1.0f);
+  out += 1.0f;
 
   for (i = 0; i < len; i++) {
     edgeverts[i][0] = projverts[BM_elem_index_get(loops[i][0])];

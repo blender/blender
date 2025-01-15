@@ -4,9 +4,7 @@
 
 #include "integrator/work_balancer.h"
 
-#include "util/math.h"
-
-#include "util/log.h"
+#include "util/math_base.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -18,7 +16,7 @@ void work_balance_do_initial(vector<WorkBalanceInfo> &work_balance_infos)
     work_balance_infos[0].weight = 1.0;
     return;
   }
-  else if (num_infos == 0) {
+  if (num_infos == 0) {
     return;
   }
 

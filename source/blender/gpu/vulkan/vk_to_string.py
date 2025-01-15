@@ -23,7 +23,13 @@ readable format. `vk.xml` is also part of the vulkan library in blender librarie
 
 The generated source code will be printed to the console.
 """
+__all__ = (
+    "main",
+)
+
 import argparse
+import sys
+
 import xml.etree.ElementTree as ET
 
 
@@ -390,8 +396,7 @@ def generate_to_string(vk_xml, header):
     print(vk_to_string)
 
 
-if __name__ == "__main__":
-
+def main() -> int:
     parser = argparse.ArgumentParser(
         prog="vk_to_string.py",
         description="Generator for vk_to_string.cc/hh",
@@ -400,3 +405,9 @@ if __name__ == "__main__":
     parser.add_argument("--header", action='store_true', help="generate parts that belong to `vk_to_string.hh`")
     args = parser.parse_args()
     generate_to_string(**dict(args._get_kwargs()))
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -42,6 +42,7 @@ VKCommandBufferWrapper::VKCommandBufferWrapper(const VKWorkarounds &workarounds)
   vk_submit_info_.pSignalSemaphores = nullptr;
 
   use_dynamic_rendering = !workarounds.dynamic_rendering;
+  use_dynamic_rendering_local_read = !workarounds.dynamic_rendering_local_read;
 }
 
 VKCommandBufferWrapper::~VKCommandBufferWrapper()

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 struct IDProperty;
 
 extern PyTypeObject BPy_IDPropertyUIManager_Type;

@@ -16,8 +16,9 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
-#  include <BLI_vector.hh>
 #  include <string>
+
+#  include "BLI_vector.hh"
 
 namespace blender {
 template<typename T> class Span;
@@ -187,7 +188,7 @@ typedef struct bNodeSocket {
   /* XXX deprecated, only used for restoring old group node links */
   int to_index DNA_DEPRECATED;
 
-  /** A link pointer, set in #BKE_ntree_update_main. */
+  /** A link pointer, set in #BKE_ntree_update. */
   struct bNodeLink *link;
 
   /* XXX deprecated, socket input values are stored in default_value now.
@@ -384,11 +385,25 @@ typedef struct bNode {
   bNodeTypeHandle *typeinfo;
 
   /**
-   * Integer type used for builtin nodes, allowing cheaper lookup and changing ID names with
-   * versioning code. Avoid using directly if possible, since may not match runtime node type if it
-   * wasn't found.
+   * Legacy integer type for nodes. It does not uniquely identify a node type, only the `idname`
+   * does that. For example, all custom nodes use #NODE_CUSTOM but do have different idnames.
+   * This is mainly kept for compatibility reasons.
+   *
+   * Currently, this type is also used in many parts of Blender, but that should slowly be phased
+   * out by either relying on idnames, accessor methods like `node.is_reroute()`.
+   *
+   * Older node types have a stable legacy-type (defined in `BKE_node_legacy_types.hh`). However,
+   * the legacy type of newer types is generated at runtime and is not guaranteed to be stable over
+   * time.
+   *
+   * A main benefit of this integer type over using idnames currently is that integer comparison is
+   * much cheaper than string comparison, especially if many idnames have the same prefix (e.g.
+   * "GeometryNode"). Eventually, we could introduce cheap-to-compare runtime identifier for node
+   * types. That could mean e.g. using `ustring` for idnames (where string comparison is just
+   * pointer comparison), or using a run-time generated integer that is automatically assigned when
+   * node types are registered.
    */
-  int16_t type;
+  int16_t type_legacy;
 
   /**
    * Depth of the node in the node editor, used to keep recently selected nodes at the front, and
@@ -457,6 +472,16 @@ typedef struct bNode {
   bool is_group() const;
   bool is_group_input() const;
   bool is_group_output() const;
+
+  /**
+   * Check if the node has the given idname.
+   *
+   * Note: This function assumes that the given idname is a valid registered idname. This is done
+   * to catch typos earlier. One can compare with `bNodeType::idname` directly if the idname might
+   * not be registered.
+   */
+  bool is_type(blender::StringRef query_idname) const;
+
   const blender::nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
   blender::Span<bNodeLink> internal_links() const;
@@ -475,9 +500,11 @@ typedef struct bNode {
   /** A span containing all input sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> input_sockets();
   blender::Span<const bNodeSocket *> input_sockets() const;
+  blender::IndexRange input_socket_indices_in_tree() const;
   /** A span containing all output sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> output_sockets();
   blender::Span<const bNodeSocket *> output_sockets() const;
+  blender::IndexRange output_socket_indices_in_tree() const;
   /** Utility to get an input socket by its index. */
   bNodeSocket &input_socket(int index);
   const bNodeSocket &input_socket(int index) const;
@@ -849,6 +876,10 @@ typedef struct bNodeTree {
   blender::Span<const bNodeTreeInterfaceSocket *> interface_outputs() const;
   blender::Span<bNodeTreeInterfaceItem *> interface_items();
   blender::Span<const bNodeTreeInterfaceItem *> interface_items() const;
+
+  int interface_input_index(const bNodeTreeInterfaceSocket &io_socket) const;
+  int interface_output_index(const bNodeTreeInterfaceSocket &io_socket) const;
+  int interface_item_index(const bNodeTreeInterfaceItem &io_item) const;
 #endif
 } bNodeTree;
 
@@ -1231,12 +1262,19 @@ typedef struct NodeScriptDict {
 
 /** glare node. */
 typedef struct NodeGlare {
-  char quality, type, iter;
-  /* XXX angle is only kept for backward/forward compatibility,
-   * was used for two different things, see #50736. */
-  char angle DNA_DEPRECATED, _pad0, size, star_45, streaks;
-  float colmod, mix, threshold, fade;
-  float angle_ofs;
+  char type;
+  char quality;
+  char iter DNA_DEPRECATED;
+  char angle DNA_DEPRECATED;
+  char _pad0;
+  char size DNA_DEPRECATED;
+  char star_45;
+  char streaks DNA_DEPRECATED;
+  float colmod DNA_DEPRECATED;
+  float mix DNA_DEPRECATED;
+  float threshold DNA_DEPRECATED;
+  float fade DNA_DEPRECATED;
+  float angle_ofs DNA_DEPRECATED;
   char _pad1[4];
 } NodeGlare;
 
@@ -1579,6 +1617,8 @@ typedef struct NodeCryptomatte {
 typedef struct NodeDenoise {
   char hdr;
   char prefilter;
+  char quality;
+  char _pad[1];
 } NodeDenoise;
 
 typedef struct NodeMapRange {
@@ -2876,6 +2916,14 @@ typedef enum CMPNodeDenoisePrefilter {
   CMP_NODE_DENOISE_PREFILTER_NONE = 1,
   CMP_NODE_DENOISE_PREFILTER_ACCURATE = 2
 } CMPNodeDenoisePrefilter;
+
+/** #NodeDenoise.quality */
+typedef enum CMPNodeDenoiseQuality {
+  CMP_NODE_DENOISE_QUALITY_SCENE = 0,
+  CMP_NODE_DENOISE_QUALITY_HIGH = 1,
+  CMP_NODE_DENOISE_QUALITY_BALANCED = 2,
+  CMP_NODE_DENOISE_QUALITY_FAST = 3,
+} CMPNodeDenoiseQuality;
 
 /* Color combine/separate modes */
 

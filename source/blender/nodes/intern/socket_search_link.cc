@@ -25,7 +25,7 @@ void GatherLinkSearchOpParams::add_item(std::string socket_name,
 {
 
   std::string name = fmt::format("{}{} " UI_MENU_ARROW_SEP " {}",
-                                 IFACE_(node_type_.ui_name),
+                                 IFACE_(node_type_.ui_name.c_str()),
                                  node_type_.deprecation_notice ? IFACE_(" (Deprecated)") : "",
                                  socket_name);
 

@@ -19,7 +19,10 @@ class BlenderAnimation():
     @staticmethod
     def anim(gltf, anim_idx):
         """Create actions/tracks for one animation."""
-        # Caches the action for each object (keyed by object name)
+        # Caches the action/slot for each object, keyed by:
+        #   - anim_idx
+        #   - obj_name
+        #   - id_root
         gltf.action_cache = {}
         # Things we need to stash when we're done.
         gltf.needs_stash = []
@@ -121,8 +124,8 @@ class BlenderAnimation():
 
         # Push all actions onto NLA tracks with this animation's name
         track_name = gltf.data.animations[anim_idx].track_name
-        for (obj, action) in gltf.needs_stash:
-            simulate_stash(obj, track_name, action)
+        for (obj, action, slot) in gltf.needs_stash:
+            simulate_stash(obj, track_name, action, slot)
 
         import_user_extensions('gather_import_animation_after_hook', gltf, anim_idx, track_name)
 

@@ -2,21 +2,20 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TASK_H__
-#define __UTIL_TASK_H__
+#pragma once
 
 #include "util/list.h"
 #include "util/string.h"
 #include "util/tbb.h"
 #include "util/thread.h"
-#include "util/vector.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
 class TaskPool;
 class TaskScheduler;
 
-typedef function<void(void)> TaskRunFunction;
+using TaskRunFunction = std::function<void()>;
 
 /* Task Pool
  *
@@ -46,7 +45,7 @@ class TaskPool {
 
   void push(TaskRunFunction &&task);
 
-  void wait_work(Summary *stats = NULL); /* work and wait until all tasks are done */
+  void wait_work(Summary *stats = nullptr); /* work and wait until all tasks are done */
   void cancel(); /* cancel all tasks and wait until they are no longer executing */
 
   static bool canceled(); /* For worker threads, test if current task pool canceled. */
@@ -71,7 +70,7 @@ class TaskPool {
  */
 class TaskScheduler {
  public:
-  static void init(int num_threads = 0);
+  static void init(const int num_threads = 0);
   static void exit();
   static void free_memory();
 
@@ -85,7 +84,7 @@ class TaskScheduler {
   static int active_num_threads;
 
 #ifdef WITH_TBB_GLOBAL_CONTROL
-  static tbb::global_control *global_control;
+  static unique_ptr<tbb::global_control> global_control;
 #endif
 };
 
@@ -93,8 +92,7 @@ class TaskScheduler {
  *
  * Like a TaskPool, but will launch one dedicated thread to execute all tasks.
  *
- * The run callback that actually executes the task may be created like this:
- * function_bind(&MyClass::task_execute, this, _1, _2) */
+ * The run callback can be a lambda without arguments. */
 
 class DedicatedTaskPool {
  public:
@@ -109,7 +107,7 @@ class DedicatedTaskPool {
   bool canceled(); /* for worker thread, test if canceled */
 
  protected:
-  void num_decrease(int done);
+  void num_decrease(const int done);
   void num_increase();
 
   void thread_run();
@@ -128,9 +126,7 @@ class DedicatedTaskPool {
   bool do_cancel;
   bool do_exit;
 
-  thread *worker_thread;
+  unique_ptr<thread> worker_thread;
 };
 
 CCL_NAMESPACE_END
-
-#endif

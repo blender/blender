@@ -17,8 +17,6 @@
 #include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "DNA_customdata_types.h"
-
 #include "bmesh.hh"
 
 struct BMLoop;
@@ -99,7 +97,7 @@ BMEditMesh *BKE_editmesh_from_object(Object *ob);
 /**
  * Return whether the evaluated mesh is a "descendant" of the original mesh: whether it is a
  * version of the original mesh propagated during evaluation. This will be false if the mesh was
- * taken from from an different object during evaluation, with the object info node for example.
+ * taken from an different object during evaluation, with the object info node for example.
  */
 bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mesh_orig);
 

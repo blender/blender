@@ -10,7 +10,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
@@ -18,7 +18,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_sort.hh"
@@ -26,7 +25,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"

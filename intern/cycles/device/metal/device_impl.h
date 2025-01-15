@@ -36,7 +36,7 @@ class MetalDevice : public Device {
 
   bool capture_enabled = false;
 
-  KernelParamsMetal launch_params = {0};
+  KernelParamsMetal launch_params = {nullptr};
 
   /* MetalRT members ----------------------------------*/
   bool use_metalrt = false;
@@ -72,7 +72,7 @@ class MetalDevice : public Device {
     void *hostPtr = nullptr;
     bool use_UMA = false; /* If true, UMA memory in shared_pointer is being used. */
   };
-  typedef map<device_memory *, unique_ptr<MetalMem>> MetalMemMap;
+  using MetalMemMap = map<device_memory *, unique_ptr<MetalMem>>;
   MetalMemMap metal_mem_map;
   std::vector<id<MTLResource>> delayed_free_list;
   std::recursive_mutex metal_mem_map_mutex;
@@ -95,22 +95,22 @@ class MetalDevice : public Device {
   static thread_mutex existing_devices_mutex;
   static std::map<int, MetalDevice *> active_device_ids;
 
-  static bool is_device_cancelled(int device_id);
+  static bool is_device_cancelled(const int device_id);
 
-  static MetalDevice *get_device_by_ID(int device_idID,
+  static MetalDevice *get_device_by_ID(const int device_idID,
                                        thread_scoped_lock &existing_devices_mutex_lock);
 
-  virtual bool is_ready(string &status) const override;
+  bool is_ready(string &status) const override;
 
-  virtual void cancel() override;
+  void cancel() override;
 
-  virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
+  BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   void set_error(const string &error) override;
 
   MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
-  virtual ~MetalDevice();
+  ~MetalDevice() override;
 
   bool support_device(const uint /*kernel_features*/);
 
@@ -128,28 +128,28 @@ class MetalDevice : public Device {
 
   void make_source(MetalPipelineType pso_type, const uint kernel_features);
 
-  virtual bool load_kernels(const uint kernel_features) override;
+  bool load_kernels(const uint kernel_features) override;
 
   void load_texture_info();
 
   void erase_allocation(device_memory &mem);
 
-  virtual bool should_use_graphics_interop() override;
+  bool should_use_graphics_interop() override;
 
-  virtual void *get_native_buffer(device_ptr ptr) override;
+  void *get_native_buffer(device_ptr ptr) override;
 
-  virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
+  unique_ptr<DeviceQueue> gpu_queue_create() override;
 
-  virtual void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
+  void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
-  virtual void optimize_for_scene(Scene *scene) override;
+  void optimize_for_scene(Scene *scene) override;
 
-  static void compile_and_load(int device_id, MetalPipelineType pso_type);
+  static void compile_and_load(const int device_id, MetalPipelineType pso_type);
 
   /* ------------------------------------------------------------------ */
   /* low-level memory management */
 
-  bool max_working_set_exceeded(size_t safety_margin = 8 * 1024 * 1024) const;
+  bool max_working_set_exceeded(const size_t safety_margin = 8 * 1024 * 1024) const;
 
   MetalMem *generic_alloc(device_memory &mem);
 
@@ -165,15 +165,16 @@ class MetalDevice : public Device {
   {
     mem_copy_from(mem, -1, -1, -1, -1);
   }
-  void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override;
+  void mem_copy_from(
+      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override;
 
   void mem_zero(device_memory &mem) override;
 
   void mem_free(device_memory &mem) override;
 
-  device_ptr mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/) override;
+  device_ptr mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/) override;
 
-  virtual void const_copy_to(const char *name, void *host, size_t size) override;
+  void const_copy_to(const char *name, void *host, const size_t size) override;
 
   void global_alloc(device_memory &mem);
 

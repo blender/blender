@@ -8,13 +8,14 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 namespace blender::nodes::partial_eval {
 
 bool is_supported_value_node(const bNode &node)
 {
-  return ELEM(node.type,
+  return ELEM(node.type_legacy,
               SH_NODE_VALUE,
               FN_NODE_INPUT_VECTOR,
               FN_NODE_INPUT_BOOL,

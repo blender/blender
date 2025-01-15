@@ -47,7 +47,7 @@ find_library(OPENIMAGEIO_LIBRARY
     ${_openimageio_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 set(_openimageio_LIBRARIES ${OPENIMAGEIO_LIBRARY})
 
@@ -83,7 +83,7 @@ if(_openimageio_util_define)
       ${_openimageio_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
-    )
+  )
 
   list(APPEND _openimageio_LIBRARIES ${OPENIMAGEIO_UTIL_LIBRARY})
 endif()
@@ -97,7 +97,7 @@ unset(_openimageio_util_define)
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenImageIO DEFAULT_MSG
-    _openimageio_LIBRARIES OPENIMAGEIO_INCLUDE_DIR)
+  _openimageio_LIBRARIES OPENIMAGEIO_INCLUDE_DIR)
 
 if(OPENIMAGEIO_FOUND)
   set(OPENIMAGEIO_LIBRARIES ${_openimageio_LIBRARIES})

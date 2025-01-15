@@ -69,6 +69,11 @@ struct VKWorkarounds {
   bool dynamic_rendering = false;
 
   /**
+   * Is the workarounds for devices that don't support VK_KHR_dynamic_rendering_local_read enabled.
+   */
+  bool dynamic_rendering_local_read = false;
+
+  /**
    * Is the workarounds for devices that don't support VK_EXT_dynamic_rendering_unused_attachments
    * enabled.
    */

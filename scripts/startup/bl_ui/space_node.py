@@ -856,7 +856,8 @@ class NODE_PT_quality(bpy.types.Panel):
 
         col = layout.column()
         col.prop(rd, "compositor_device", text="Device")
-        col.prop(rd, "compositor_precision", text="Precision")
+        if rd.compositor_device == "GPU":
+            col.prop(rd, "compositor_precision", text="Precision")
 
         col = layout.column()
         col.prop(tree, "use_viewer_border")
@@ -1042,10 +1043,6 @@ class NODE_PT_annotation(AnnotationDataPanel, Panel):
     def poll(cls, context):
         snode = context.space_data
         return snode is not None and snode.node_tree is not None
-
-
-def node_draw_tree_view(_layout, _context):
-    pass
 
 
 # Adapt properties editor panel to display in node editor. We have to

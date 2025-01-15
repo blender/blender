@@ -22,7 +22,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 

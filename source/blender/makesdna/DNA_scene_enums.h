@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 /** #ToolSettings.vgroupsubset */
 typedef enum eVGroupSelect {
   WT_VGROUP_ALL = 0,

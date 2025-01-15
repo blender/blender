@@ -5,7 +5,8 @@
 #pragma once
 
 #include "integrator/tile.h"
-#include "util/types.h"
+
+#include "util/types_int2.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -20,19 +21,19 @@ class WorkTileScheduler {
   WorkTileScheduler();
 
   /* To indicate if there is accelerated RT support. */
-  void set_accelerated_rt(bool state);
+  void set_accelerated_rt(bool accelerated_rt);
 
   /* MAximum path states which are allowed to be used by a single scheduled work tile.
    *
    * Affects the scheduled work size: the work size will be as big as possible, but will not exceed
    * this number of states. */
-  void set_max_num_path_states(int max_num_path_states);
+  void set_max_num_path_states(const int max_num_path_states);
 
   /* Scheduling will happen for pixels within a big tile denotes by its parameters. */
   void reset(const BufferParams &buffer_params,
-             int sample_start,
-             int samples_num,
-             int sample_offset,
+             const int sample_start,
+             const int samples_num,
+             const int sample_offset,
              float scrambling_distance);
 
   /* Get work for a device.

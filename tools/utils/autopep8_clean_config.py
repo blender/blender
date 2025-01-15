@@ -2,12 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import os
-
-from collections.abc import (
-    Callable,
-    Iterator,
+__all__ = (
+    "PATHS",
+    "PATHS_EXCLUDE",
+    "SOURCE_DIR",
 )
+
+import os
 
 PATHS: tuple[str, ...] = (
     "build_files",
@@ -42,13 +43,3 @@ PATHS_EXCLUDE: set[str] = set(
         "scripts/modules/rna_manual_reference.py",
     )
 )
-
-
-def files(path: str, test_fn: Callable[[str], bool]) -> Iterator[str]:
-    for dirpath, dirnames, filenames in os.walk(path):
-        # skip '.git'
-        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
-        for filename in filenames:
-            if test_fn(filename):
-                filepath = os.path.join(dirpath, filename)
-                yield filepath

@@ -53,6 +53,13 @@ void set_approximate_size_limit(int64_t limit_in_bytes);
  */
 void clear();
 
+/**
+ * Remove elements from the cache for which the predicate returns true. Note that this does not
+ * guarantee that there are no elements for which the predicate is true after the function
+ * returned. This is because another thread may have added a new element right after the removal.
+ */
+void remove_if(FunctionRef<bool(const GenericKey &)> predicate);
+
 /* -------------------------------------------------------------------- */
 /** \name Inline Functions
  * \{ */

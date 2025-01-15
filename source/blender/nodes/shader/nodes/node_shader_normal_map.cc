@@ -23,7 +23,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .min(0.0f)
       .max(10.0f)
-      .description("Strength of the normal mapping effect");
+      .description("Strength of the normal mapping effect")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
   b.add_input<decl::Color>("Color")
       .default_value({0.5f, 0.5f, 1.0f, 1.0f})
       .description("Color that encodes the normal map in the specified space");
@@ -171,8 +172,13 @@ void register_node_type_sh_normal_map()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR);
+  sh_node_type_base(&ntype, "ShaderNodeNormalMap", SH_NODE_NORMAL_MAP);
+  ntype.ui_name = "Normal Map";
+  ntype.ui_description =
+      "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly "
+      "detailed surfaces";
   ntype.enum_name_legacy = "NORMAL_MAP";
+  ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_normal_map;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

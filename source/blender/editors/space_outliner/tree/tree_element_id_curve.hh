@@ -10,6 +10,8 @@
 
 #include "tree_element_id.hh"
 
+struct Curve;
+
 namespace blender::ed::outliner {
 
 class TreeElementIDCurve final : public TreeElementID {

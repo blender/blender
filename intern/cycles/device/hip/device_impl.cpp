@@ -5,24 +5,24 @@
 #ifdef WITH_HIP
 
 #  include <climits>
-#  include <limits.h>
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <string.h>
+#  include <cstdio>
+#  include <cstdlib>
+#  include <cstring>
 
 #  include "device/hip/device_impl.h"
 
 #  include "util/debug.h"
-#  include "util/foreach.h"
 #  include "util/log.h"
-#  include "util/map.h"
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/string.h"
 #  include "util/system.h"
 #  include "util/time.h"
 #  include "util/types.h"
-#  include "util/windows.h"
+
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 
 #  include "kernel/device/hip/globals.h"
 
@@ -64,9 +64,9 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, b
 
   hipDevId = info.num;
   hipDevice = 0;
-  hipContext = 0;
+  hipContext = nullptr;
 
-  hipModule = 0;
+  hipModule = nullptr;
 
   need_texture_info = false;
 
@@ -120,7 +120,7 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, b
   hip_assert(hipRuntimeGetVersion(&hipRuntimeVersion));
 
   /* Pop context set by hipCtxCreate. */
-  hipCtxPopCurrent(NULL);
+  hipCtxPopCurrent(nullptr);
 }
 
 HIPDevice::~HIPDevice()
@@ -137,15 +137,13 @@ bool HIPDevice::support_device(const uint /*kernel_features*/)
   if (hipSupportsDevice(hipDevId)) {
     return true;
   }
-  else {
-    /* We only support Navi and above. */
-    hipDeviceProp_t props;
-    hipGetDeviceProperties(&props, hipDevId);
+  /* We only support Navi and above. */
+  hipDeviceProp_t props;
+  hipGetDeviceProperties(&props, hipDevId);
 
-    set_error(string_printf("HIP backend requires AMD RDNA graphics card or up, but found %s.",
-                            props.name));
-    return false;
-  }
+  set_error(string_printf("HIP backend requires AMD RDNA graphics card or up, but found %s.",
+                          props.name));
+  return false;
 }
 
 bool HIPDevice::check_peer_access(Device *peer_device)
@@ -272,7 +270,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
     /* Reduce optimization level on VEGA GPUs to avoid some rendering artifacts */
     options.append(" -O1");
   }
-  options.append(" --offload-arch=").append(arch.c_str());
+  options.append(" --offload-arch=").append(arch);
 
   const string include_path = source_path;
   const string fatbin_file = string_printf(
@@ -306,7 +304,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
 
   /* Compile. */
   const char *const hipcc = hipewCompilerPath();
-  if (hipcc == NULL) {
+  if (hipcc == nullptr) {
     set_error(
         "HIP hipcc compiler not found. "
         "Install HIP toolkit in default location.");
@@ -382,8 +380,9 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   }
 
   /* check if hip init succeeded */
-  if (hipContext == 0)
+  if (hipContext == nullptr) {
     return false;
+  }
 
   /* check if GPU is supported */
   if (!support_device(kernel_features)) {
@@ -393,8 +392,9 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   /* get kernel */
   const char *kernel_name = "kernel";
   string fatbin = compile_kernel(kernel_features, kernel_name);
-  if (fatbin.empty())
+  if (fatbin.empty()) {
     return false;
+  }
 
   /* open module */
   HIPContextScope scope(this);
@@ -402,14 +402,17 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   string fatbin_data;
   hipError_t result;
 
-  if (path_read_compressed_text(fatbin, fatbin_data))
+  if (path_read_compressed_text(fatbin, fatbin_data)) {
     result = hipModuleLoadData(&hipModule, fatbin_data.c_str());
-  else
+  }
+  else {
     result = hipErrorFileNotFound;
+  }
 
-  if (result != hipSuccess)
+  if (result != hipSuccess) {
     set_error(string_printf(
         "Failed to load HIP kernel from '%s' (%s)", fatbin.c_str(), hipewErrorString(result)));
+  }
 
   if (result == hipSuccess) {
     kernels.load(this);
@@ -481,7 +484,7 @@ void HIPDevice::get_device_memory_info(size_t &total, size_t &free)
   hipMemGetInfo(&free, &total);
 }
 
-bool HIPDevice::alloc_device(void *&device_pointer, size_t size)
+bool HIPDevice::alloc_device(void *&device_pointer, const size_t size)
 {
   HIPContextScope scope(this);
 
@@ -496,7 +499,7 @@ void HIPDevice::free_device(void *device_pointer)
   hip_assert(hipFree((hipDeviceptr_t)device_pointer));
 }
 
-bool HIPDevice::alloc_host(void *&shared_pointer, size_t size)
+bool HIPDevice::alloc_host(void *&shared_pointer, const size_t size)
 {
   HIPContextScope scope(this);
 
@@ -520,7 +523,7 @@ void HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_poin
   hip_assert(hipHostGetDevicePointer((hipDeviceptr_t *)&device_pointer, shared_pointer, 0));
 }
 
-void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
+void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
 {
   const HIPContextScope scope(this);
 
@@ -558,7 +561,8 @@ void HIPDevice::mem_copy_to(device_memory &mem)
   }
 }
 
-void HIPDevice::mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem)
+void HIPDevice::mem_copy_from(
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
   if (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) {
     assert(!"mem_copy_from not supported for textures.");
@@ -612,12 +616,12 @@ void HIPDevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr HIPDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr HIPDevice::mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/)
 {
   return (device_ptr)(((char *)mem.device_pointer) + mem.memory_elements_size(offset));
 }
 
-void HIPDevice::const_copy_to(const char *name, void *host, size_t size)
+void HIPDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   HIPContextScope scope(this);
   hipDeviceptr_t mem;
@@ -715,8 +719,8 @@ void HIPDevice::tex_alloc(device_texture &mem)
       return;
   }
 
-  Mem *cmem = NULL;
-  hArray array_3d = NULL;
+  Mem *cmem = nullptr;
+  hArray array_3d = nullptr;
   size_t src_pitch = mem.data_width * dsize * mem.data_elements;
   size_t dst_pitch = src_pitch;
 
@@ -863,7 +867,7 @@ void HIPDevice::tex_alloc(device_texture &mem)
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
 
-    if (hipTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL) != hipSuccess) {
+    if (hipTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, nullptr) != hipSuccess) {
       set_error(
           "Failed to create texture. Maximum GPU texture size or available GPU memory was likely "
           "exceeded.");
@@ -970,7 +974,8 @@ bool HIPDevice::get_device_attribute(hipDeviceAttribute_t attribute, int *value)
   return hipDeviceGetAttribute(value, attribute, hipDevice) == hipSuccess;
 }
 
-int HIPDevice::get_device_default_attribute(hipDeviceAttribute_t attribute, int default_value)
+int HIPDevice::get_device_default_attribute(hipDeviceAttribute_t attribute,
+                                            const int default_value)
 {
   int value = 0;
   if (!get_device_attribute(attribute, &value)) {

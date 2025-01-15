@@ -4,9 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "hydra/field.h"
-#include "hydra/session.h"
-#include "scene/image_vdb.h"
-#include "scene/scene.h"
+
+#ifdef WITH_OPENVDB
+#  include "hydra/session.h"
+#  include "scene/image_vdb.h"
+#  include "scene/scene.h"
+#endif
 
 #include <pxr/imaging/hd/sceneDelegate.h>
 #include <pxr/usd/sdf/assetPath.h>
@@ -31,7 +34,9 @@ class HdCyclesVolumeLoader : public VDBImageLoader {
     const bool delay_load = false;
     try {
       openvdb::io::File file(filePath);
+#  ifdef OPENVDB_USE_DELAYED_LOADING
       file.setCopyMaxBytes(0);
+#  endif
       if (file.open(delay_load)) {
         grid = file.readGrid(gridName);
       }
@@ -46,9 +51,11 @@ class HdCyclesVolumeLoader : public VDBImageLoader {
 };
 #endif
 
-HdCyclesField::HdCyclesField(const SdfPath &bprimId, const TfToken &typeId) : HdField(bprimId) {}
+HdCyclesField::HdCyclesField(const SdfPath &bprimId, const TfToken & /*typeId*/) : HdField(bprimId)
+{
+}
 
-HdCyclesField::~HdCyclesField() {}
+HdCyclesField::~HdCyclesField() = default;
 
 HdDirtyBits HdCyclesField::GetInitialDirtyBitsMask() const
 {
@@ -77,7 +84,7 @@ void HdCyclesField::Sync(HdSceneDelegate *sceneDelegate,
       value = sceneDelegate->Get(id, _tokens->fieldName);
 #  endif
       if (value.IsHolding<TfToken>()) {
-        ImageLoader *const loader = new HdCyclesVolumeLoader(
+        unique_ptr<ImageLoader> loader = make_unique<HdCyclesVolumeLoader>(
             filename, value.UncheckedGet<TfToken>().GetString());
 
         const SceneLock lock(renderParam);
@@ -85,10 +92,13 @@ void HdCyclesField::Sync(HdSceneDelegate *sceneDelegate,
         ImageParams params;
         params.frame = 0.0f;
 
-        _handle = lock.scene->image_manager->add_image(loader, params, false);
+        _handle = lock.scene->image_manager->add_image(std::move(loader), params, false);
       }
     }
   }
+#else
+  (void)sceneDelegate;
+  (void)renderParam;
 #endif
 
   *dirtyBits = DirtyBits::Clean;

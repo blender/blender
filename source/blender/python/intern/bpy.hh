@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 struct bContext;
 
 /** Creates the `bpy` module and adds it to `sys.modules` for importing. */

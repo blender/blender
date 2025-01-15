@@ -27,8 +27,8 @@ CCL_NAMESPACE_BEGIN
 struct NumChannelsOp {
   int num_channels = 0;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
-  bool operator()(const openvdb::GridBase::ConstPtr &)
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
+  bool operator()(const openvdb::GridBase::ConstPtr & /*unused*/)
   {
     num_channels = channels;
     return true;
@@ -39,7 +39,7 @@ struct ToDenseOp {
   openvdb::CoordBBox bbox;
   void *pixels;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     openvdb::tools::Dense<FloatDataType, openvdb::tools::LayoutXYZ> dense(bbox,
@@ -54,7 +54,7 @@ struct ToNanoOp {
   nanovdb::GridHandle<> nanogrid;
   int precision;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     if constexpr (!std::is_same_v<GridType, openvdb::MaskGrid>) {
@@ -73,7 +73,7 @@ struct ToNanoOp {
 #      endif
 
         if constexpr (std::is_same_v<FloatGridType, openvdb::FloatGrid>) {
-          openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          const openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
           if (precision == 0) {
             nanogrid = createNanoGrid<openvdb::FloatGrid, nanovdb::FpN>(floatgrid);
           }
@@ -85,7 +85,7 @@ struct ToNanoOp {
           }
         }
         else if constexpr (std::is_same_v<FloatGridType, openvdb::Vec3fGrid>) {
-          openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          const openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
           nanogrid = createNanoGrid<openvdb::Vec3fGrid, nanovdb::Vec3f>(floatgrid,
                                                                         StatsMode::Disable);
         }
@@ -136,7 +136,7 @@ VDBImageLoader::VDBImageLoader(openvdb::GridBase::ConstPtr grid_, const string &
 
 VDBImageLoader::VDBImageLoader(const string &grid_name) : grid_name(grid_name) {}
 
-VDBImageLoader::~VDBImageLoader() {}
+VDBImageLoader::~VDBImageLoader() = default;
 
 bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata)
 {
@@ -247,7 +247,10 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
 #endif
 }
 
-bool VDBImageLoader::load_pixels(const ImageMetaData &, void *pixels, const size_t, const bool)
+bool VDBImageLoader::load_pixels(const ImageMetaData & /*metadata*/,
+                                 void *pixels,
+                                 const size_t /*pixels_size*/,
+                                 const bool /*associate_alpha*/)
 {
 #ifdef WITH_OPENVDB
 #  ifdef WITH_NANOVDB

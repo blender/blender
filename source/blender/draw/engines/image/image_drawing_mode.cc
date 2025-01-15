@@ -379,27 +379,13 @@ void ScreenSpaceDrawingMode::draw_finish() const
 void ScreenSpaceDrawingMode::draw_viewport() const
 {
   float clear_depth = instance_.state.flags.do_tile_drawing ? 0.75 : 1.0f;
-  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
-    /* OpenGL doesn't support clearing depth stencil via load store actions as the data types
-     * should match. */
-    GPU_framebuffer_bind(instance_.state.depth_fb);
-    instance_.state.depth_fb.clear_depth(clear_depth);
-  }
-  else {
-    GPU_framebuffer_bind_ex(instance_.state.depth_fb,
-                            {
-                                {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {clear_depth}},
-                            });
-  }
+  GPU_framebuffer_bind(instance_.state.depth_fb);
+  instance_.state.depth_fb.clear_depth(clear_depth);
   instance_.manager->submit(instance_.state.depth_ps, instance_.state.view);
 
-  GPU_framebuffer_bind_ex(
-      instance_.state.color_fb,
-      {
-          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE, {0.0f}},
-          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f, 0.0f, 0.0f, 0.0f}},
-
-      });
+  GPU_framebuffer_bind(instance_.state.color_fb);
+  float4 clear_color = float4(0.0);
+  GPU_framebuffer_clear_color(instance_.state.color_fb, clear_color);
   instance_.manager->submit(instance_.state.image_ps, instance_.state.view);
 }
 

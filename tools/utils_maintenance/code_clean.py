@@ -11,6 +11,10 @@ Note: currently this is limited to paths in "source/" and "intern/",
 we could change this if it's needed.
 """
 
+__all__ = (
+    "main",
+)
+
 import argparse
 import re
 import subprocess

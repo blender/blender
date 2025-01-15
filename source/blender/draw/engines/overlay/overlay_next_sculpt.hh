@@ -19,6 +19,7 @@
 #include "bmesh.hh"
 
 #include "draw_cache_impl.hh"
+#include "draw_sculpt.hh"
 
 #include "overlay_next_base.hh"
 
@@ -50,6 +51,7 @@ class Sculpts : Overlay {
     show_mask_ = state.show_sculpt_mask();
 
     enabled_ = state.is_space_v3d() && !state.xray_enabled && !res.is_selection() &&
+               !state.is_depth_only_drawing &&
                ELEM(state.object_mode, OB_MODE_SCULPT_CURVES, OB_MODE_SCULPT) &&
                (show_curves_cage_ || show_face_set_ || show_mask_);
 
@@ -186,9 +188,7 @@ class Sculpts : Overlay {
       case blender::bke::pbvh::Type::Grids: {
         const SubdivCCG &subdiv_ccg = *sculpt_session->subdiv_ccg;
         const Mesh &base_mesh = *static_cast<const Mesh *>(object_orig->data);
-        if (!BKE_subdiv_ccg_key_top_level(subdiv_ccg).has_mask &&
-            !base_mesh.attributes().contains(".sculpt_face_set"))
-        {
+        if (subdiv_ccg.masks.is_empty() && !base_mesh.attributes().contains(".sculpt_face_set")) {
           return;
         }
         break;

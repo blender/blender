@@ -15,10 +15,9 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
-
 #include "BLI_rect.h"
 
+#include "BKE_image.hh"
 #include "BKE_image_wrappers.hh"
 
 #include "DNA_image_types.h"

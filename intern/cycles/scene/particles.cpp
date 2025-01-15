@@ -7,12 +7,8 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/foreach.h"
-#include "util/hash.h"
 #include "util/log.h"
-#include "util/map.h"
 #include "util/progress.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,7 +22,7 @@ NODE_DEFINE(ParticleSystem)
 
 ParticleSystem::ParticleSystem() : Node(get_node_type()) {}
 
-ParticleSystem::~ParticleSystem() {}
+ParticleSystem::~ParticleSystem() = default;
 
 void ParticleSystem::tag_update(Scene *scene)
 {
@@ -40,9 +36,9 @@ ParticleSystemManager::ParticleSystemManager()
   need_update_ = true;
 }
 
-ParticleSystemManager::~ParticleSystemManager() {}
+ParticleSystemManager::~ParticleSystemManager() = default;
 
-void ParticleSystemManager::device_update_particles(Device *,
+void ParticleSystemManager::device_update_particles(Device * /*unused*/,
                                                     DeviceScene *dscene,
                                                     Scene *scene,
                                                     Progress &progress)
@@ -58,7 +54,7 @@ void ParticleSystemManager::device_update_particles(Device *,
   KernelParticle *kparticles = dscene->particles.alloc(num_particles);
 
   /* dummy particle */
-  memset(kparticles, 0, sizeof(KernelParticle));
+  *kparticles = KernelParticle{};
 
   int i = 1;
   for (size_t j = 0; j < scene->particle_systems.size(); j++) {
@@ -66,7 +62,7 @@ void ParticleSystemManager::device_update_particles(Device *,
 
     for (size_t k = 0; k < psys->particles.size(); k++) {
       /* pack in texture */
-      Particle &pa = psys->particles[k];
+      const Particle &pa = psys->particles[k];
 
       kparticles[i].index = pa.index;
       kparticles[i].age = pa.age;
@@ -97,7 +93,7 @@ void ParticleSystemManager::device_update(Device *device,
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->particles.times.add_entry({"device_update", time});
     }
@@ -117,7 +113,7 @@ void ParticleSystemManager::device_update(Device *device,
   need_update_ = false;
 }
 
-void ParticleSystemManager::device_free(Device *, DeviceScene *dscene)
+void ParticleSystemManager::device_free(Device * /*unused*/, DeviceScene *dscene)
 {
   dscene->particles.free();
 }

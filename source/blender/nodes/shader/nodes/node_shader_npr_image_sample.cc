@@ -49,8 +49,10 @@ void register_node_type_sh_npr_image_sample()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_NPR_IMAGE_SAMPLE, "Image Sample", NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeNPR_ImageSample", SH_NODE_NPR_IMAGE_SAMPLE);
   ntype.enum_name_legacy = "NPR_IMAGE_SAMPLE";
+  ntype.ui_name = "Image Sample";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts;
   ntype.add_ui_poll = npr_shader_nodes_poll;

@@ -51,6 +51,7 @@
 
 #  include "BLI_kdopbvh.hh"
 #  include "BLI_kdtree.h"
+#  include "BLI_math_vector.hh"
 #  include "BLI_threads.h"
 #  include "BLI_voxel.h"
 
@@ -893,14 +894,10 @@ static void update_velocities(FluidEffectorSettings *fes,
       mul_v3_fl(hit_vel, fes->vel_multi);
 
       /* Absolute representation of new object velocity. */
-      float abs_hit_vel[3];
-      copy_v3_v3(abs_hit_vel, hit_vel);
-      abs_v3(abs_hit_vel);
+      blender::float3 abs_hit_vel = blender::math::abs(blender::float3(hit_vel));
 
       /* Absolute representation of current object velocity. */
-      float abs_vel[3];
-      copy_v3_v3(abs_vel, &velocity_map[index * 3]);
-      abs_v3(abs_vel);
+      blender::float3 abs_vel = blender::math::abs(blender::float3(&velocity_map[index * 3]));
 
       switch (fes->guide_mode) {
         case FLUID_EFFECTOR_GUIDE_AVERAGED:
@@ -3162,8 +3159,8 @@ static void update_effectors_task_cb(void *__restrict userdata,
       mul_v3_fl(retvel, mag);
 
       /* Copy computed force to fluid solver forces. */
-      mul_v3_fl(retvel, 0.2f);     /* Factor from 0e6820cc5d62. */
-      CLAMP3(retvel, -1.0f, 1.0f); /* Restrict forces to +-1 interval. */
+      mul_v3_fl(retvel, 0.2f);       /* Factor from 0e6820cc5d62. */
+      clamp_v3(retvel, -1.0f, 1.0f); /* Restrict forces to +-1 interval. */
       data->force_x[index] = retvel[0];
       data->force_y[index] = retvel[1];
       data->force_z[index] = retvel[2];

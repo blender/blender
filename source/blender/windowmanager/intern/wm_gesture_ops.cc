@@ -17,14 +17,11 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_math_base.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
-
-#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 
@@ -1059,7 +1056,7 @@ static void wm_gesture_straightline_do_angle_snap(rcti *rect, float snap_angle)
   const float fract_90 = fractf(angle_snapped / DEG2RADF(90.0f));
   /* Check if it's a multiple of 45 but not 90 degrees. */
   if ((compare_ff(fract_45, 0.0f, 1e-6) || compare_ff(fabsf(fract_45), 1.0f, 1e-6)) &&
-      (!(compare_ff(fract_90, 0.0f, 1e-6) || compare_ff(fabsf(fract_90), 1.0f, 1e-6))))
+      !(compare_ff(fract_90, 0.0f, 1e-6) || compare_ff(fabsf(fract_90), 1.0f, 1e-6)))
   {
     int xlen = abs(rect->xmax - rect->xmin);
     int ylen = rect->ymax - rect->ymin;

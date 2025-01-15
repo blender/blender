@@ -128,7 +128,7 @@ void ShadingView::render()
 
   /* TODO(NPR): This is supposed to go after deferred,
    * but NPR needs to read the background color too. */
-  inst_.pipelines.background.render(render_view_);
+  inst_.pipelines.background.render(render_view_, combined_fb_);
 
   /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
   inst_.pipelines.deferred.render(main_view_,
@@ -213,8 +213,8 @@ void ShadingView::update_view()
   float4x4 winmat = main_view_.winmat();
 
   if (film.scaling_factor_get() > 1) {
-    /* This whole section ensures that the render target pixel grid will match the film pixel pixel
-     * grid. Otherwise the weight computation inside the film accumulation will be wrong. */
+    /* This whole section ensures that the render target pixel grid will match the film pixel grid.
+     * Otherwise the weight computation inside the film accumulation will be wrong. */
 
     float left, right, bottom, top, near, far;
     projmat_dimensions(winmat.ptr(), &left, &right, &bottom, &top, &near, &far);

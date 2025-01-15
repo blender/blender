@@ -379,7 +379,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       /* Find the difference matrix */
       mul_m4_m4m4(mat, oimat, ob_iter->object_to_world().ptr());
 
-      /* Copy bones and posechannels from the object to the edit armature */
+      /* Copy bones and pose-channels from the object to the edit armature. */
       for (pchan = static_cast<bPoseChannel *>(opose->chanbase.first); pchan; pchan = pchann) {
         pchann = pchan->next;
         curbone = ED_armature_ebone_find_name(curarm->edbo, pchan->name);

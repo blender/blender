@@ -422,7 +422,7 @@ class BlurOperation : public NodeOperation {
 
   float2 compute_blur_radius()
   {
-    const float size = math::clamp(get_input("Size").get_float_value_default(1.0f), 0.0f, 1.0f);
+    const float size = math::clamp(get_input("Size").get_single_value_default(1.0f), 0.0f, 1.0f);
 
     if (!node_storage(bnode()).relative) {
       return float2(node_storage(bnode()).sizex, node_storage(bnode()).sizey) * size;
@@ -523,8 +523,11 @@ void register_node_type_cmp_blur()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeBlur", CMP_NODE_BLUR);
+  ntype.ui_name = "Blur";
+  ntype.ui_description = "Blur an image, using several blur modes";
   ntype.enum_name_legacy = "BLUR";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_blur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_blur;
   ntype.flag |= NODE_PREVIEW;

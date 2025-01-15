@@ -129,15 +129,13 @@ void USDPointsReader::read_custom_data(PointCloud *point_cloud,
 
   std::vector<pxr::UsdGeomPrimvar> primvars = pv_api.GetPrimvarsWithValues();
   for (const pxr::UsdGeomPrimvar &pv : primvars) {
-    if (!pv.HasValue()) {
-      continue;
-    }
-
     const pxr::SdfValueTypeName pv_type = pv.GetTypeName();
+    if (!pv_type.IsArray()) {
+      continue; /* Skip non-array primvar attributes. */
+    }
 
     const bke::AttrDomain domain = bke::AttrDomain::Point;
     const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
-
     if (!type.has_value()) {
       return;
     }

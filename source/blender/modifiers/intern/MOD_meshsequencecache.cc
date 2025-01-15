@@ -215,10 +215,12 @@ static void modify_geometry_set(ModifierData *md,
 
   /* Time (in frames or seconds) between two velocity samples. Automatically computed to
    * scale the velocity vectors at render time for generating proper motion blur data. */
+#  ifdef WITH_ALEMBIC
   float velocity_scale = mcmd->velocity_scale;
   if (mcmd->cache_file->velocity_unit == CACHEFILE_VELOCITY_UNIT_FRAME) {
     velocity_scale *= FPS;
   }
+#  endif
 
   switch (cache_file->type) {
     case CACHEFILE_TYPE_ALEMBIC: {

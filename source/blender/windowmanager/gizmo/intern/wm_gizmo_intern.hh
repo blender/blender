@@ -8,9 +8,16 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+#include "WM_gizmo_types.hh"
+
 struct BLI_Buffer;
 struct wmGizmoMap;
+struct wmGizmoGroupType;
+struct wmGizmoMapType;
+struct wmGizmoType;
 struct wmKeyConfig;
+struct wmWindowManager;
 
 #include "wm_gizmo_fn.hh"
 

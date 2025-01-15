@@ -194,6 +194,7 @@ static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+  using namespace blender;
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -253,10 +254,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   if (use_clnors) {
-    BKE_mesh_set_custom_normals_normalized(
-        result,
-        static_cast<float(*)[3]>(
-            CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num)));
+    bke::mesh_set_custom_normals_normalized(
+        *result,
+        {static_cast<float3 *>(
+             CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num)),
+         result->corners_num});
     CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
   }
   // blender::bke::subdiv::stats_print(&subdiv->stats);

@@ -1587,8 +1587,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
       "Start Handle Scale",
       "Multiply B-Bone Scale In channels by the local scale values of the start handle. "
       "This is done after the Scale Easing option and isn't affected by it.");
-  RNA_def_property_boolean_sdna(prop, nullptr, "bbone_prev_flag", BBONE_HANDLE_SCALE_X);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_boolean_bitset_array_sdna(
+      prop, nullptr, "bbone_prev_flag", BBONE_HANDLE_SCALE_X, 3);
   RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "bbone_handle_use_ease_start", PROP_BOOLEAN, PROP_NONE);
@@ -1632,8 +1632,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
       "End Handle Scale",
       "Multiply B-Bone Scale Out channels by the local scale values of the end handle. "
       "This is done after the Scale Easing option and isn't affected by it.");
-  RNA_def_property_boolean_sdna(prop, nullptr, "bbone_next_flag", BBONE_HANDLE_SCALE_X);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_boolean_bitset_array_sdna(
+      prop, nullptr, "bbone_next_flag", BBONE_HANDLE_SCALE_X, 3);
   RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "bbone_handle_use_ease_end", PROP_BOOLEAN, PROP_NONE);

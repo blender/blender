@@ -2,13 +2,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+/* Constant Globals */
+
 #pragma once
 
 #include "kernel/types.h"
 
 #include "kernel/integrator/state.h"
+#include "kernel/util/profiler.h"  // IWYU pragma: export
 
-#include "kernel/util/profiling.h"
+#include "util/color.h"    // IWYU pragma: export
+#include "util/texture.h"  // IWYU pragma: export
 
 #define HIPRT_SHARED_STACK
 
@@ -37,7 +41,7 @@ struct KernelGlobalsGPU {
 #endif
 };
 
-typedef ccl_global KernelGlobalsGPU *ccl_restrict KernelGlobals;
+using KernelGlobals = ccl_global KernelGlobalsGPU *ccl_restrict;
 
 #if defined(HIPRT_SHARED_STACK)
 
@@ -52,7 +56,7 @@ typedef ccl_global KernelGlobalsGPU *ccl_restrict KernelGlobals;
     kg->global_stack_buffer = stack_buffer;
 #else
 #  define HIPRT_INIT_KERNEL_GLOBAL() \
-    KernelGlobals kg = NULL; \
+    KernelGlobals kg = nullptr; \
     kg->global_stack_buffer = stack_buffer;
 #endif
 

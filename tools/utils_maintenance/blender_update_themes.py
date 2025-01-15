@@ -6,6 +6,10 @@
 #
 #  ./blender.bin --background --python ./tools/utils_maintenance/blender_update_themes.py
 
+__all__ = (
+    "main",
+)
+
 import bpy
 import os
 

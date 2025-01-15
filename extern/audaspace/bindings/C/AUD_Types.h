@@ -73,7 +73,8 @@ typedef enum
 	AUD_CONTAINER_MP2,
 	AUD_CONTAINER_MP3,
 	AUD_CONTAINER_OGG,
-	AUD_CONTAINER_WAV
+	AUD_CONTAINER_WAV,
+	AUD_CONTAINER_AAC,
 } AUD_Container;
 
 /// Audio codecs for writers.

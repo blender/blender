@@ -2,13 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OSL_H__
-#define __OSL_H__
+#pragma once
 
 #include "util/array.h"
 #include "util/set.h"
 #include "util/string.h"
 #include "util/thread.h"
+#include "util/unique_ptr.h"
 
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
@@ -40,15 +40,12 @@ class ShaderOutput;
  * to auto detect closures in the shader for MIS and transparent shadows */
 
 struct OSLShaderInfo {
-  OSLShaderInfo()
-      : has_surface_emission(false), has_surface_transparent(false), has_surface_bssrdf(false)
-  {
-  }
+  OSLShaderInfo() = default;
 
   OSL::OSLQuery query;
-  bool has_surface_emission;
-  bool has_surface_transparent;
-  bool has_surface_bssrdf;
+  bool has_surface_emission = false;
+  bool has_surface_transparent = false;
+  bool has_surface_bssrdf = false;
 };
 
 /* Shader Manage */
@@ -56,7 +53,7 @@ struct OSLShaderInfo {
 class OSLShaderManager : public ShaderManager {
  public:
   OSLShaderManager(Device *device);
-  ~OSLShaderManager();
+  ~OSLShaderManager() override;
 
   static void free_memory();
 
@@ -106,12 +103,16 @@ class OSLShaderManager : public ShaderManager {
   Device *device_;
   map<string, OSLShaderInfo> loaded_shaders;
 
+#  if OIIO_VERSION_MAJOR >= 3
+  static std::shared_ptr<OSL::TextureSystem> ts_shared;
+#  else
   static OSL::TextureSystem *ts_shared;
+#  endif
   static thread_mutex ts_shared_mutex;
   static int ts_shared_users;
 
   static OSL::ErrorHandler errhandler;
-  static map<int, OSL::ShadingSystem *> ss_shared;
+  static map<int, unique_ptr<OSL::ShadingSystem>> ss_shared;
   static thread_mutex ss_shared_mutex;
   static thread_mutex ss_mutex;
   static int ss_shared_users;
@@ -124,7 +125,7 @@ class OSLShaderManager : public ShaderManager {
 class OSLCompiler {
  public:
 #ifdef WITH_OSL
-  OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *shadingsys, Scene *scene);
+  OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scene *scene);
 #endif
   void compile(Shader *shader);
 
@@ -132,12 +133,12 @@ class OSLCompiler {
 
   void parameter(ShaderNode *node, const char *name);
 
-  void parameter(const char *name, float f);
-  void parameter_color(const char *name, float3 f);
-  void parameter_vector(const char *name, float3 f);
-  void parameter_normal(const char *name, float3 f);
-  void parameter_point(const char *name, float3 f);
-  void parameter(const char *name, int f);
+  void parameter(const char *name, const float f);
+  void parameter_color(const char *name, const float3 f);
+  void parameter_vector(const char *name, const float3 f);
+  void parameter_normal(const char *name, const float3 f);
+  void parameter_point(const char *name, const float3 f);
+  void parameter(const char *name, const int f);
   void parameter(const char *name, const char *s);
   void parameter(const char *name, ustring str);
   void parameter(const char *name, const Transform &tfm);
@@ -149,7 +150,7 @@ class OSLCompiler {
 
   void parameter_texture(const char *name, ustring filename, ustring colorspace);
   void parameter_texture(const char *name, const ImageHandle &handle);
-  void parameter_texture_ies(const char *name, int svm_slot);
+  void parameter_texture_ies(const char *name, const int svm_slot);
 
   ShaderType output_type()
   {
@@ -183,5 +184,3 @@ class OSLCompiler {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __OSL_H__ */

@@ -12,7 +12,7 @@
 #include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
@@ -1059,7 +1059,7 @@ static void grease_pencil_fill_status_indicators(bContext &C,
       fmt::runtime(
           IFACE_("Fill: ESC/RMB cancel, LMB Fill, MMB Adjust Extension, S: "
                  "Switch Mode, D: Stroke Collision | Mode: {}, Collision {}, Length: {:.3f}")),
-      (is_extend) ? IFACE_("Extend") : IFACE_("Radius"),
+      (is_extend) ? CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Extend") : IFACE_("Radius"),
       (is_extend && op_data.extension_cut) ? IFACE_("ON") : IFACE_("OFF"),
       op_data.extension_length);
 

@@ -9,7 +9,6 @@
 #include "DNA_node_types.h"
 
 #include "BLI_rect.h"
-#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -93,7 +92,7 @@ bool space_node_view_flag(
         BLI_rctf_union(&cur_new, &node->runtime->draw_bounds);
         tot++;
 
-        if (node->type == NODE_FRAME) {
+        if (node->type_legacy == NODE_FRAME) {
           has_frame = true;
         }
       }

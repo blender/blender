@@ -124,8 +124,10 @@ static const char *builtin_shader_create_info_name_clipped(eGPUBuiltinShader sha
       return "gpu_shader_3D_line_dashed_uniform_color_clipped";
     case GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA:
       return "gpu_shader_3D_point_uniform_size_uniform_color_aa_clipped";
+    case GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR:
+      return "gpu_shader_3D_polyline_uniform_color_clipped";
     default:
-      BLI_assert_unreachable();
+      BLI_assert_msg(false, "Clipped shader configuration not available.");
       return "";
   }
 }
@@ -165,7 +167,10 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
     }
     else if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       /* In rare cases geometry shaders calculate clipping themselves. */
-      *sh_p = GPU_shader_create_from_info_name(builtin_shader_create_info_name_clipped(shader));
+      const char *info_name_clipped = builtin_shader_create_info_name_clipped(shader);
+      if (!blender::StringRefNull(info_name_clipped).is_empty()) {
+        *sh_p = GPU_shader_create_from_info_name(info_name_clipped);
+      }
     }
     else {
       BLI_assert(0);

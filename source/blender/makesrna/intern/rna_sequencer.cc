@@ -98,16 +98,16 @@ const EnumPropertyItem rna_enum_sequence_sound_modifier_type_items[] = {
 };
 
 const EnumPropertyItem rna_enum_strip_color_items[] = {
-    {SEQUENCE_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
-    {SEQUENCE_COLOR_01, "COLOR_01", ICON_SEQUENCE_COLOR_01, "Color 01", ""},
-    {SEQUENCE_COLOR_02, "COLOR_02", ICON_SEQUENCE_COLOR_02, "Color 02", ""},
-    {SEQUENCE_COLOR_03, "COLOR_03", ICON_SEQUENCE_COLOR_03, "Color 03", ""},
-    {SEQUENCE_COLOR_04, "COLOR_04", ICON_SEQUENCE_COLOR_04, "Color 04", ""},
-    {SEQUENCE_COLOR_05, "COLOR_05", ICON_SEQUENCE_COLOR_05, "Color 05", ""},
-    {SEQUENCE_COLOR_06, "COLOR_06", ICON_SEQUENCE_COLOR_06, "Color 06", ""},
-    {SEQUENCE_COLOR_07, "COLOR_07", ICON_SEQUENCE_COLOR_07, "Color 07", ""},
-    {SEQUENCE_COLOR_08, "COLOR_08", ICON_SEQUENCE_COLOR_08, "Color 08", ""},
-    {SEQUENCE_COLOR_09, "COLOR_09", ICON_SEQUENCE_COLOR_09, "Color 09", ""},
+    {STRIP_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
+    {STRIP_COLOR_01, "COLOR_01", ICON_STRIP_COLOR_01, "Color 01", ""},
+    {STRIP_COLOR_02, "COLOR_02", ICON_STRIP_COLOR_02, "Color 02", ""},
+    {STRIP_COLOR_03, "COLOR_03", ICON_STRIP_COLOR_03, "Color 03", ""},
+    {STRIP_COLOR_04, "COLOR_04", ICON_STRIP_COLOR_04, "Color 04", ""},
+    {STRIP_COLOR_05, "COLOR_05", ICON_STRIP_COLOR_05, "Color 05", ""},
+    {STRIP_COLOR_06, "COLOR_06", ICON_STRIP_COLOR_06, "Color 06", ""},
+    {STRIP_COLOR_07, "COLOR_07", ICON_STRIP_COLOR_07, "Color 07", ""},
+    {STRIP_COLOR_08, "COLOR_08", ICON_STRIP_COLOR_08, "Color 08", ""},
+    {STRIP_COLOR_09, "COLOR_09", ICON_STRIP_COLOR_09, "Color 09", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -134,7 +134,7 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 #  include "SEQ_edit.hh"
 
 struct SequenceSearchData {
-  Sequence *seq;
+  Strip *strip;
   void *data;
   SequenceModifierData *smd;
 };
@@ -146,12 +146,12 @@ static void rna_SequenceElement_update(Main * /*bmain*/, Scene * /*scene*/, Poin
 
   if (ed) {
     StripElem *se = (StripElem *)ptr->data;
-    Sequence *seq;
+    Strip *strip;
 
     /* slow but we can't avoid! */
-    seq = SEQ_sequence_from_strip_elem(&ed->seqbase, se);
-    if (seq) {
-      SEQ_relations_invalidate_cache_raw(scene, seq);
+    strip = SEQ_sequence_from_strip_elem(&ed->seqbase, se);
+    if (strip) {
+      SEQ_relations_invalidate_cache_raw(scene, strip);
     }
   }
 }
@@ -164,9 +164,9 @@ static void rna_Sequence_invalidate_raw_update(Main * /*bmain*/,
   Editing *ed = SEQ_editing_get(scene);
 
   if (ed) {
-    Sequence *seq = (Sequence *)ptr->data;
+    Strip *strip = (Strip *)ptr->data;
 
-    SEQ_relations_invalidate_cache_raw(scene, seq);
+    SEQ_relations_invalidate_cache_raw(scene, strip);
   }
 }
 
@@ -178,9 +178,9 @@ static void rna_Sequence_invalidate_preprocessed_update(Main * /*bmain*/,
   Editing *ed = SEQ_editing_get(scene);
 
   if (ed) {
-    Sequence *seq = (Sequence *)ptr->data;
+    Strip *strip = (Strip *)ptr->data;
 
-    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+    SEQ_relations_invalidate_cache_preprocessed(scene, strip);
   }
 }
 
@@ -192,9 +192,9 @@ static void UNUSED_FUNCTION(rna_Sequence_invalidate_composite_update)(Main * /*b
   Editing *ed = SEQ_editing_get(scene);
 
   if (ed) {
-    Sequence *seq = (Sequence *)ptr->data;
+    Strip *strip = (Strip *)ptr->data;
 
-    SEQ_relations_invalidate_cache_composite(scene, seq);
+    SEQ_relations_invalidate_cache_composite(scene, strip);
   }
 }
 
@@ -215,9 +215,9 @@ static void rna_Sequence_use_sequence(Main *bmain, Scene * /*scene*/, PointerRNA
    * the only way for this currently is to tag the ID for ID_RECALC_SYNC_TO_EVAL. */
   Editing *ed = SEQ_editing_get(scene);
   if (ed) {
-    Sequence *seq = (Sequence *)ptr->data;
-    if (seq->scene != nullptr) {
-      DEG_id_tag_update(&seq->scene->id, ID_RECALC_SYNC_TO_EVAL);
+    Strip *strip = (Strip *)ptr->data;
+    if (strip->scene != nullptr) {
+      DEG_id_tag_update(&strip->scene->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
   /* The sequencer scene is to be updated as well, including new relations from the nested
@@ -226,19 +226,19 @@ static void rna_Sequence_use_sequence(Main *bmain, Scene * /*scene*/, PointerRNA
   DEG_relations_tag_update(bmain);
 }
 
-static void add_strips_from_seqbase(const ListBase *seqbase, blender::Vector<Sequence *> &strips)
+static void add_strips_from_seqbase(const ListBase *seqbase, blender::Vector<Strip *> &strips)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    strips.append(seq);
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    strips.append(strip);
 
-    if (seq->type == SEQ_TYPE_META) {
-      add_strips_from_seqbase(&seq->seqbase, strips);
+    if (strip->type == STRIP_TYPE_META) {
+      add_strips_from_seqbase(&strip->seqbase, strips);
     }
   }
 }
 
 struct SequencesAllIterator {
-  blender::Vector<Sequence *> strips;
+  blender::Vector<Strip *> strips;
   int index;
 };
 
@@ -262,8 +262,8 @@ static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *i
   iter->internal.custom = bli_iter;
   bli_iter->data = seq_iter;
 
-  Sequence **seq_arr = seq_iter->strips.begin();
-  bli_iter->current = *seq_arr;
+  Strip **strip_arr = seq_iter->strips.begin();
+  bli_iter->current = *strip_arr;
   iter->valid = bli_iter->current != nullptr;
 }
 
@@ -273,16 +273,16 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
   SequencesAllIterator *seq_iter = static_cast<SequencesAllIterator *>(bli_iter->data);
 
   seq_iter->index++;
-  Sequence **seq_arr = seq_iter->strips.begin();
-  bli_iter->current = *(seq_arr + seq_iter->index);
+  Strip **strip_arr = seq_iter->strips.begin();
+  bli_iter->current = *(strip_arr + seq_iter->index);
 
   iter->valid = bli_iter->current != nullptr && seq_iter->index < seq_iter->strips.size();
 }
 
 static PointerRNA rna_SequenceEditor_sequences_all_get(CollectionPropertyIterator *iter)
 {
-  Sequence *seq = static_cast<Sequence *>(((BLI_Iterator *)iter->internal.custom)->current);
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, seq);
+  Strip *strip = static_cast<Strip *>(((BLI_Iterator *)iter->internal.custom)->current);
+  return rna_pointer_inherit_refine(&iter->parent, &RNA_Strip, strip);
 }
 
 static void rna_SequenceEditor_sequences_all_end(CollectionPropertyIterator *iter)
@@ -301,9 +301,9 @@ static bool rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
   ID *id = ptr->owner_id;
   Scene *scene = (Scene *)id;
 
-  Sequence *seq = SEQ_sequence_lookup_seq_by_name(scene, key);
-  if (seq) {
-    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Sequence, seq);
+  Strip *strip = SEQ_lookup_strip_by_name(scene, key);
+  if (strip) {
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Strip, strip);
     return true;
   }
   return false;
@@ -320,21 +320,21 @@ static void rna_SequenceEditor_update_cache(Main * /*bmain*/, Scene *scene, Poin
 /* internal use */
 static int rna_SequenceEditor_elements_length(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
 
   /* Hack? copied from `sequencer.cc`, #reload_sequence_new_file(). */
-  size_t olen = MEM_allocN_len(seq->strip->stripdata) / sizeof(StripElem);
+  size_t olen = MEM_allocN_len(strip->data->stripdata) / sizeof(StripElem);
 
-  /* The problem with `seq->strip->len` and `seq->len` is that it's discounted from the offset
+  /* The problem with `strip->data->len` and `strip->len` is that it's discounted from the offset
    * (hard cut trim). */
   return int(olen);
 }
 
 static void rna_Sequence_elements_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   rna_iterator_array_begin(iter,
-                           (void *)seq->strip->stripdata,
+                           (void *)strip->data->stripdata,
                            sizeof(StripElem),
                            rna_SequenceEditor_elements_length(ptr),
                            0,
@@ -343,33 +343,33 @@ static void rna_Sequence_elements_begin(CollectionPropertyIterator *iter, Pointe
 
 static int rna_Sequence_retiming_keys_length(PointerRNA *ptr)
 {
-  return SEQ_retiming_keys_count((Sequence *)ptr->data);
+  return SEQ_retiming_keys_count((Strip *)ptr->data);
 }
 
 static void rna_SequenceEditor_retiming_keys_begin(CollectionPropertyIterator *iter,
                                                    PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   rna_iterator_array_begin(iter,
-                           (void *)seq->retiming_keys,
+                           (void *)strip->retiming_keys,
                            sizeof(SeqRetimingKey),
-                           SEQ_retiming_keys_count(seq),
+                           SEQ_retiming_keys_count(strip),
                            0,
                            nullptr);
 }
 
-static Sequence *strip_by_key_find(Scene *scene, SeqRetimingKey *key)
+static Strip *strip_by_key_find(Scene *scene, SeqRetimingKey *key)
 {
   Editing *ed = SEQ_editing_get(scene);
   blender::VectorSet strips = SEQ_query_all_strips_recursive(&ed->seqbase);
 
-  for (Sequence *seq : strips) {
-    const int retiming_keys_count = SEQ_retiming_keys_count(seq);
-    SeqRetimingKey *first = seq->retiming_keys;
-    SeqRetimingKey *last = seq->retiming_keys + retiming_keys_count - 1;
+  for (Strip *strip : strips) {
+    const int retiming_keys_count = SEQ_retiming_keys_count(strip);
+    SeqRetimingKey *first = strip->retiming_keys;
+    SeqRetimingKey *last = strip->retiming_keys + retiming_keys_count - 1;
 
     if (key >= first && key <= last) {
-      return seq;
+      return strip;
     }
   }
 
@@ -379,15 +379,15 @@ static Sequence *strip_by_key_find(Scene *scene, SeqRetimingKey *key)
 static void rna_Sequence_retiming_key_remove(ID *id, SeqRetimingKey *key)
 {
   Scene *scene = (Scene *)id;
-  Sequence *seq = strip_by_key_find(scene, key);
+  Strip *strip = strip_by_key_find(scene, key);
 
-  if (seq == nullptr) {
+  if (strip == nullptr) {
     return;
   }
 
-  SEQ_retiming_remove_key(seq, key);
+  SEQ_retiming_remove_key(strip, key);
 
-  SEQ_relations_invalidate_cache_raw(scene, seq);
+  SEQ_relations_invalidate_cache_raw(scene, strip);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
 
@@ -395,27 +395,27 @@ static int rna_Sequence_retiming_key_frame_get(PointerRNA *ptr)
 {
   SeqRetimingKey *key = (SeqRetimingKey *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
-  Sequence *seq = strip_by_key_find(scene, key);
+  Strip *strip = strip_by_key_find(scene, key);
 
-  if (seq == nullptr) {
+  if (strip == nullptr) {
     return 0;
   }
 
-  return SEQ_time_start_frame_get(seq) + key->strip_frame_index;
+  return SEQ_time_start_frame_get(strip) + key->strip_frame_index;
 }
 
 static void rna_Sequence_retiming_key_frame_set(PointerRNA *ptr, int value)
 {
   SeqRetimingKey *key = (SeqRetimingKey *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
-  Sequence *seq = strip_by_key_find(scene, key);
+  Strip *strip = strip_by_key_find(scene, key);
 
-  if (seq == nullptr) {
+  if (strip == nullptr) {
     return;
   }
 
-  SEQ_retiming_key_timeline_frame_set(scene, seq, key, value);
-  SEQ_relations_invalidate_cache_raw(scene, seq);
+  SEQ_retiming_key_timeline_frame_set(scene, strip, key, value);
+  SEQ_relations_invalidate_cache_raw(scene, strip);
 }
 
 static bool rna_SequenceEditor_selected_retiming_key_get(PointerRNA *ptr)
@@ -429,15 +429,15 @@ static void rna_Sequence_views_format_update(Main *bmain, Scene *scene, PointerR
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 }
 
-static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
+static void do_sequence_frame_change_update(Scene *scene, Strip *strip)
 {
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seq);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, strip);
 
-  if (SEQ_transform_test_overlap(scene, seqbase, seq)) {
-    SEQ_transform_seqbase_shuffle(seqbase, seq, scene);
+  if (SEQ_transform_test_overlap(scene, seqbase, strip)) {
+    SEQ_transform_seqbase_shuffle(seqbase, strip, scene);
   }
 
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   }
 }
@@ -448,211 +448,213 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
 static void rna_Sequence_frame_change_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  do_sequence_frame_change_update(scene, (Sequence *)ptr->data);
+  do_sequence_frame_change_update(scene, (Strip *)ptr->data);
 }
 
 static int rna_Sequence_frame_final_start_get(PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  return SEQ_time_left_handle_frame_get(scene, (Sequence *)ptr->data);
+  return SEQ_time_left_handle_frame_get(scene, (Strip *)ptr->data);
 }
 
 static int rna_Sequence_frame_final_end_get(PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  return SEQ_time_right_handle_frame_get(scene, (Sequence *)ptr->data);
+  return SEQ_time_right_handle_frame_get(scene, (Strip *)ptr->data);
 }
 
 static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_time_left_handle_frame_set(scene, seq, value);
-  do_sequence_frame_change_update(scene, seq);
-  SEQ_relations_invalidate_cache_composite(scene, seq);
+  SEQ_time_left_handle_frame_set(scene, strip, value);
+  do_sequence_frame_change_update(scene, strip);
+  SEQ_relations_invalidate_cache_composite(scene, strip);
 }
 
 static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_time_right_handle_frame_set(scene, seq, value);
-  do_sequence_frame_change_update(scene, seq);
-  SEQ_relations_invalidate_cache_composite(scene, seq);
+  SEQ_time_right_handle_frame_set(scene, strip, value);
+  do_sequence_frame_change_update(scene, strip);
+  SEQ_relations_invalidate_cache_composite(scene, strip);
 }
 
 static void rna_Sequence_start_frame_set(PointerRNA *ptr, float value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_transform_translate_sequence(scene, seq, value - seq->start);
-  do_sequence_frame_change_update(scene, seq);
-  SEQ_relations_invalidate_cache_composite(scene, seq);
+  SEQ_transform_translate_sequence(scene, strip, value - strip->start);
+  do_sequence_frame_change_update(scene, strip);
+  SEQ_relations_invalidate_cache_composite(scene, strip);
 }
 
 static void rna_Sequence_frame_offset_start_set(PointerRNA *ptr, float value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_relations_invalidate_cache_composite(scene, seq);
-  seq->startofs = value;
+  SEQ_relations_invalidate_cache_composite(scene, strip);
+  strip->startofs = value;
 }
 
 static void rna_Sequence_frame_offset_end_set(PointerRNA *ptr, float value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_relations_invalidate_cache_composite(scene, seq);
-  seq->endofs = value;
+  SEQ_relations_invalidate_cache_composite(scene, strip);
+  strip->endofs = value;
 }
 
 static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  seq->anim_startofs = std::min(value, seq->len + seq->anim_startofs);
+  strip->anim_startofs = std::min(value, strip->len + strip->anim_startofs);
 
-  SEQ_add_reload_new_file(G.main, scene, seq, false);
-  do_sequence_frame_change_update(scene, seq);
+  SEQ_add_reload_new_file(G.main, scene, strip, false);
+  do_sequence_frame_change_update(scene, strip);
 }
 
 static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  seq->anim_endofs = std::min(value, seq->len + seq->anim_endofs);
+  strip->anim_endofs = std::min(value, strip->len + strip->anim_endofs);
 
-  SEQ_add_reload_new_file(G.main, scene, seq, false);
-  do_sequence_frame_change_update(scene, seq);
+  SEQ_add_reload_new_file(G.main, scene, strip, false);
+  do_sequence_frame_change_update(scene, strip);
 }
 
 static void rna_Sequence_anim_endofs_final_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
 
   *min = 0;
-  *max = seq->len + seq->anim_endofs - seq->startofs - seq->endofs - 1;
+  *max = strip->len + strip->anim_endofs - strip->startofs - strip->endofs - 1;
 }
 
 static void rna_Sequence_anim_startofs_final_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
 
   *min = 0;
-  *max = seq->len + seq->anim_startofs - seq->startofs - seq->endofs - 1;
+  *max = strip->len + strip->anim_startofs - strip->startofs - strip->endofs - 1;
 }
 
 static void rna_Sequence_frame_offset_start_range(
     PointerRNA *ptr, float *min, float *max, float * /*softmin*/, float * /*softmax*/)
 {
-  Sequence *seq = (Sequence *)ptr->data;
-  *min = (seq->type == SEQ_TYPE_SOUND_RAM) ? 0 : INT_MIN;
-  *max = seq->len - seq->endofs - 1;
+  Strip *strip = (Strip *)ptr->data;
+  *min = (strip->type == STRIP_TYPE_SOUND_RAM) ? 0 : INT_MIN;
+  *max = strip->len - strip->endofs - 1;
 }
 
 static void rna_Sequence_frame_offset_end_range(
     PointerRNA *ptr, float *min, float *max, float * /*softmin*/, float * /*softmax*/)
 {
-  Sequence *seq = (Sequence *)ptr->data;
-  *min = (seq->type == SEQ_TYPE_SOUND_RAM) ? 0 : INT_MIN;
-  *max = seq->len - seq->startofs - 1;
+  Strip *strip = (Strip *)ptr->data;
+  *min = (strip->type == STRIP_TYPE_SOUND_RAM) ? 0 : INT_MIN;
+  *max = strip->len - strip->startofs - 1;
 }
 
 static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_time_right_handle_frame_set(scene, seq, SEQ_time_left_handle_frame_get(scene, seq) + value);
-  do_sequence_frame_change_update(scene, seq);
-  SEQ_relations_invalidate_cache_composite(scene, seq);
+  SEQ_time_right_handle_frame_set(
+      scene, strip, SEQ_time_left_handle_frame_get(scene, strip) + value);
+  do_sequence_frame_change_update(scene, strip);
+  SEQ_relations_invalidate_cache_composite(scene, strip);
 }
 
 static int rna_Sequence_frame_length_get(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
-  return SEQ_time_right_handle_frame_get(scene, seq) - SEQ_time_left_handle_frame_get(scene, seq);
+  return SEQ_time_right_handle_frame_get(scene, strip) -
+         SEQ_time_left_handle_frame_get(scene, strip);
 }
 
 static int rna_Sequence_frame_duration_get(PointerRNA *ptr)
 {
-  Sequence *seq = static_cast<Sequence *>(ptr->data);
+  Strip *strip = static_cast<Strip *>(ptr->data);
   Scene *scene = reinterpret_cast<Scene *>(ptr->owner_id);
-  return SEQ_time_strip_length_get(scene, seq);
+  return SEQ_time_strip_length_get(scene, strip);
 }
 
 static int rna_Sequence_frame_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   /* Effect sequences' start frame and length must be readonly! */
-  return (SEQ_effect_get_num_inputs(seq->type)) ? PropertyFlag(0) : PROP_EDITABLE;
+  return (SEQ_effect_get_num_inputs(strip->type)) ? PropertyFlag(0) : PROP_EDITABLE;
 }
 
 static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seq);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, strip);
 
   /* check channel increment or decrement */
-  const int channel_delta = (value >= seq->machine) ? 1 : -1;
-  seq->machine = value;
+  const int channel_delta = (value >= strip->machine) ? 1 : -1;
+  strip->machine = value;
 
-  if (SEQ_transform_test_overlap(scene, seqbase, seq)) {
-    SEQ_transform_seqbase_shuffle_ex(seqbase, seq, scene, channel_delta);
+  if (SEQ_transform_test_overlap(scene, seqbase, strip)) {
+    SEQ_transform_seqbase_shuffle_ex(seqbase, strip, scene, channel_delta);
   }
-  SEQ_relations_invalidate_cache_composite(scene, seq);
+  SEQ_relations_invalidate_cache_composite(scene, strip);
 }
 
 static void rna_Sequence_use_proxy_set(PointerRNA *ptr, bool value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
-  SEQ_proxy_set(seq, value != 0);
+  Strip *strip = (Strip *)ptr->data;
+  SEQ_proxy_set(strip, value != 0);
 }
 
-static bool transform_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool transform_seq_cmp_fn(Strip *strip, void *arg_pt)
 {
   SequenceSearchData *data = static_cast<SequenceSearchData *>(arg_pt);
 
-  if (seq->strip && seq->strip->transform == data->data) {
-    data->seq = seq;
+  if (strip->data && strip->data->transform == data->data) {
+    data->strip = strip;
     return false; /* done so bail out */
   }
   return true;
 }
 
-static Sequence *sequence_get_by_transform(Editing *ed, StripTransform *transform)
+static Strip *sequence_get_by_transform(Editing *ed, StripTransform *transform)
 {
   SequenceSearchData data;
 
-  data.seq = nullptr;
+  data.strip = nullptr;
   data.data = transform;
 
   /* irritating we need to search for our sequence! */
   SEQ_for_each_callback(&ed->seqbase, transform_seq_cmp_fn, &data);
 
-  return data.seq;
+  return data.strip;
 }
 
 static std::optional<std::string> rna_SequenceTransform_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_transform(ed, static_cast<StripTransform *>(ptr->data));
+  Strip *strip = sequence_get_by_transform(ed, static_cast<StripTransform *>(ptr->data));
 
-  if (seq) {
-    char name_esc[(sizeof(seq->name) - 2) * 2];
-    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  if (strip) {
+    char name_esc[(sizeof(strip->name) - 2) * 2];
+    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
     return fmt::format("sequence_editor.sequences_all[\"{}\"].transform", name_esc);
   }
   return "";
@@ -662,44 +664,44 @@ static void rna_SequenceTransform_update(Main * /*bmain*/, Scene * /*scene*/, Po
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_transform(ed, static_cast<StripTransform *>(ptr->data));
+  Strip *strip = sequence_get_by_transform(ed, static_cast<StripTransform *>(ptr->data));
 
-  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 }
 
-static bool crop_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool crop_seq_cmp_fn(Strip *strip, void *arg_pt)
 {
   SequenceSearchData *data = static_cast<SequenceSearchData *>(arg_pt);
 
-  if (seq->strip && seq->strip->crop == data->data) {
-    data->seq = seq;
+  if (strip->data && strip->data->crop == data->data) {
+    data->strip = strip;
     return false; /* done so bail out */
   }
   return true;
 }
 
-static Sequence *sequence_get_by_crop(Editing *ed, StripCrop *crop)
+static Strip *sequence_get_by_crop(Editing *ed, StripCrop *crop)
 {
   SequenceSearchData data;
 
-  data.seq = nullptr;
+  data.strip = nullptr;
   data.data = crop;
 
   /* irritating we need to search for our sequence! */
   SEQ_for_each_callback(&ed->seqbase, crop_seq_cmp_fn, &data);
 
-  return data.seq;
+  return data.strip;
 }
 
 static std::optional<std::string> rna_SequenceCrop_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_crop(ed, static_cast<StripCrop *>(ptr->data));
+  Strip *strip = sequence_get_by_crop(ed, static_cast<StripCrop *>(ptr->data));
 
-  if (seq) {
-    char name_esc[(sizeof(seq->name) - 2) * 2];
-    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  if (strip) {
+    char name_esc[(sizeof(strip->name) - 2) * 2];
+    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
     return fmt::format("sequence_editor.sequences_all[\"{}\"].crop", name_esc);
   }
   return "";
@@ -709,62 +711,62 @@ static void rna_SequenceCrop_update(Main * /*bmain*/, Scene * /*scene*/, Pointer
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_crop(ed, static_cast<StripCrop *>(ptr->data));
+  Strip *strip = sequence_get_by_crop(ed, static_cast<StripCrop *>(ptr->data));
 
-  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 }
 
 static void rna_Sequence_text_font_set(PointerRNA *ptr,
                                        PointerRNA ptr_value,
                                        ReportList * /*reports*/)
 {
-  Sequence *seq = static_cast<Sequence *>(ptr->data);
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  Strip *strip = static_cast<Strip *>(ptr->data);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   VFont *value = static_cast<VFont *>(ptr_value.data);
 
   SEQ_effect_text_font_unload(data, true);
 
   id_us_plus(&value->id);
-  data->text_blf_id = SEQ_FONT_NOT_LOADED;
+  data->text_blf_id = STRIP_FONT_NOT_LOADED;
   data->text_font = value;
 }
 
 /* name functions that ignore the first two characters */
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
-  Sequence *seq = (Sequence *)ptr->data;
-  strcpy(value, seq->name + 2);
+  Strip *strip = (Strip *)ptr->data;
+  strcpy(value, strip->name + 2);
 }
 
 static int rna_Sequence_name_length(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)ptr->data;
-  return strlen(seq->name + 2);
+  Strip *strip = (Strip *)ptr->data;
+  return strlen(strip->name + 2);
 }
 
 static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  Sequence *seq = (Sequence *)ptr->data;
-  char oldname[sizeof(seq->name)];
+  Strip *strip = (Strip *)ptr->data;
+  char oldname[sizeof(strip->name)];
   AnimData *adt;
 
   SEQ_prefetch_stop(scene);
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, seq->name + 2, sizeof(seq->name) - 2);
+  BLI_strncpy(oldname, strip->name + 2, sizeof(strip->name) - 2);
 
   /* copy the new name into the name slot */
-  SEQ_edit_sequence_name_set(scene, seq, value);
+  SEQ_edit_sequence_name_set(scene, strip, value);
 
   /* make sure the name is unique */
-  SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
+  SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, strip);
   /* fix all the animation data which may link to this */
 
   /* Don't rename everywhere because these are per scene. */
 #  if 0
   BKE_animdata_fix_paths_rename_all(
-      nullptr, "sequence_editor.sequences_all", oldname, seq->name + 2);
+      nullptr, "sequence_editor.sequences_all", oldname, strip->name + 2);
 #  endif
   adt = BKE_animdata_from_id(&scene->id);
   if (adt) {
@@ -773,7 +775,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
                                   nullptr,
                                   "sequence_editor.sequences_all",
                                   oldname,
-                                  seq->name + 2,
+                                  strip->name + 2,
                                   0,
                                   0,
                                   1);
@@ -782,94 +784,94 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 
 static StructRNA *rna_Sequence_refine(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)ptr->data;
+  Strip *strip = (Strip *)ptr->data;
 
-  switch (seq->type) {
-    case SEQ_TYPE_IMAGE:
+  switch (strip->type) {
+    case STRIP_TYPE_IMAGE:
       return &RNA_ImageSequence;
-    case SEQ_TYPE_META:
+    case STRIP_TYPE_META:
       return &RNA_MetaSequence;
-    case SEQ_TYPE_SCENE:
+    case STRIP_TYPE_SCENE:
       return &RNA_SceneSequence;
-    case SEQ_TYPE_MOVIE:
+    case STRIP_TYPE_MOVIE:
       return &RNA_MovieSequence;
-    case SEQ_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MOVIECLIP:
       return &RNA_MovieClipSequence;
-    case SEQ_TYPE_MASK:
+    case STRIP_TYPE_MASK:
       return &RNA_MaskSequence;
-    case SEQ_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND_RAM:
       return &RNA_SoundSequence;
-    case SEQ_TYPE_CROSS:
+    case STRIP_TYPE_CROSS:
       return &RNA_CrossSequence;
-    case SEQ_TYPE_ADD:
+    case STRIP_TYPE_ADD:
       return &RNA_AddSequence;
-    case SEQ_TYPE_SUB:
+    case STRIP_TYPE_SUB:
       return &RNA_SubtractSequence;
-    case SEQ_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAOVER:
       return &RNA_AlphaOverSequence;
-    case SEQ_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_ALPHAUNDER:
       return &RNA_AlphaUnderSequence;
-    case SEQ_TYPE_GAMCROSS:
+    case STRIP_TYPE_GAMCROSS:
       return &RNA_GammaCrossSequence;
-    case SEQ_TYPE_MUL:
+    case STRIP_TYPE_MUL:
       return &RNA_MultiplySequence;
-    case SEQ_TYPE_OVERDROP:
+    case STRIP_TYPE_OVERDROP:
       return &RNA_OverDropSequence;
-    case SEQ_TYPE_MULTICAM:
+    case STRIP_TYPE_MULTICAM:
       return &RNA_MulticamSequence;
-    case SEQ_TYPE_ADJUSTMENT:
+    case STRIP_TYPE_ADJUSTMENT:
       return &RNA_AdjustmentSequence;
-    case SEQ_TYPE_WIPE:
+    case STRIP_TYPE_WIPE:
       return &RNA_WipeSequence;
-    case SEQ_TYPE_GLOW:
+    case STRIP_TYPE_GLOW:
       return &RNA_GlowSequence;
-    case SEQ_TYPE_TRANSFORM:
+    case STRIP_TYPE_TRANSFORM:
       return &RNA_TransformSequence;
-    case SEQ_TYPE_COLOR:
+    case STRIP_TYPE_COLOR:
       return &RNA_ColorSequence;
-    case SEQ_TYPE_SPEED:
+    case STRIP_TYPE_SPEED:
       return &RNA_SpeedControlSequence;
-    case SEQ_TYPE_GAUSSIAN_BLUR:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
       return &RNA_GaussianBlurSequence;
-    case SEQ_TYPE_TEXT:
+    case STRIP_TYPE_TEXT:
       return &RNA_TextSequence;
-    case SEQ_TYPE_COLORMIX:
+    case STRIP_TYPE_COLORMIX:
       return &RNA_ColorMixSequence;
     default:
-      return &RNA_Sequence;
+      return &RNA_Strip;
   }
 }
 
 static std::optional<std::string> rna_Sequence_path(const PointerRNA *ptr)
 {
-  const Sequence *seq = (Sequence *)ptr->data;
+  const Strip *strip = (Strip *)ptr->data;
 
   /* sequencer data comes from scene...
    * TODO: would be nice to make SequenceEditor data a data-block of its own (for shorter paths)
    */
-  char name_esc[(sizeof(seq->name) - 2) * 2];
+  char name_esc[(sizeof(strip->name) - 2) * 2];
 
-  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
   return fmt::format("sequence_editor.sequences_all[\"{}\"]", name_esc);
 }
 
 static IDProperty **rna_Sequence_idprops(PointerRNA *ptr)
 {
-  Sequence *seq = static_cast<Sequence *>(ptr->data);
-  return &seq->prop;
+  Strip *strip = static_cast<Strip *>(ptr->data);
+  return &strip->prop;
 }
 
-static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Sequence *seq, Main *bmain)
+static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Strip *strip, Main *bmain)
 {
   Scene *scene = (Scene *)scene_id;
 
   bool has_reloaded;
   bool can_produce_frames;
 
-  SEQ_add_movie_reload_if_needed(bmain, scene, seq, &has_reloaded, &can_produce_frames);
+  SEQ_add_movie_reload_if_needed(bmain, scene, strip, &has_reloaded, &can_produce_frames);
 
   if (has_reloaded && can_produce_frames) {
-    SEQ_relations_invalidate_cache_raw(scene, seq);
+    SEQ_relations_invalidate_cache_raw(scene, strip);
 
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
@@ -878,13 +880,13 @@ static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Sequence *seq, Main
   return can_produce_frames;
 }
 
-static PointerRNA rna_MovieSequence_metadata_get(ID *scene_id, Sequence *seq)
+static PointerRNA rna_MovieSequence_metadata_get(ID *scene_id, Strip *strip)
 {
-  if (seq == nullptr || seq->anims.first == nullptr) {
+  if (strip == nullptr || strip->anims.first == nullptr) {
     return PointerRNA_NULL;
   }
 
-  StripAnim *sanim = static_cast<StripAnim *>(seq->anims.first);
+  StripAnim *sanim = static_cast<StripAnim *>(strip->anims.first);
   if (sanim->anim == nullptr) {
     return PointerRNA_NULL;
   }
@@ -903,35 +905,37 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
   ListBaseIterator *internal = &iter->internal.listbase;
   MetaStack *ms = (MetaStack *)internal->link;
 
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);
+  return rna_pointer_inherit_refine(&iter->parent, &RNA_Strip, ms->parseq);
 }
 
-/* TODO: expose seq path setting as a higher level sequencer BKE function. */
+/* TODO: expose strip path setting as a higher level sequencer BKE function. */
 static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
+  Strip *strip = (Strip *)(ptr->data);
   BLI_path_split_dir_file(value,
-                          seq->strip->dirpath,
-                          sizeof(seq->strip->dirpath),
-                          seq->strip->stripdata->filename,
-                          sizeof(seq->strip->stripdata->filename));
+                          strip->data->dirpath,
+                          sizeof(strip->data->dirpath),
+                          strip->data->stripdata->filename,
+                          sizeof(strip->data->stripdata->filename));
 }
 
 static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
+  Strip *strip = (Strip *)(ptr->data);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+  BLI_path_join(
+      filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
   strcpy(value, filepath);
 }
 
 static int rna_Sequence_filepath_length(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
+  Strip *strip = (Strip *)(ptr->data);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+  BLI_path_join(
+      filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
   return strlen(filepath);
 }
 
@@ -982,9 +986,9 @@ static void rna_Sequence_pan_range(
 
 static int rna_Sequence_input_count_get(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
+  Strip *strip = (Strip *)(ptr->data);
 
-  return SEQ_effect_get_num_inputs(seq->type);
+  return SEQ_effect_get_num_inputs(strip->type);
 }
 
 static void rna_Sequence_input_set(PointerRNA *ptr,
@@ -993,20 +997,20 @@ static void rna_Sequence_input_set(PointerRNA *ptr,
                                    int input_num)
 {
 
-  Sequence *seq = static_cast<Sequence *>(ptr->data);
-  Sequence *input = static_cast<Sequence *>(ptr_value.data);
+  Strip *strip = static_cast<Strip *>(ptr->data);
+  Strip *input = static_cast<Strip *>(ptr_value.data);
 
-  if (SEQ_relations_render_loop_check(input, seq)) {
+  if (SEQ_relations_render_loop_check(input, strip)) {
     BKE_report(reports, RPT_ERROR, "Cannot reassign inputs: recursion detected");
     return;
   }
 
   switch (input_num) {
     case 1:
-      seq->seq1 = input;
+      strip->seq1 = input;
       break;
     case 2:
-      seq->seq2 = input;
+      strip->seq2 = input;
       break;
   }
 }
@@ -1023,12 +1027,12 @@ static void rna_Sequence_input_2_set(PointerRNA *ptr, PointerRNA ptr_value, Repo
 #  if 0
 static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
+  Strip *strip = (Strip *)(ptr->data);
   BLI_path_split_dir_file(value,
-                          seq->strip->dirpath,
-                          sizeof(seq->strip->dirpath),
-                          seq->strip->stripdata->name,
-                          sizeof(seq->strip->stripdata->name));
+                          strip->data->dirpath,
+                          sizeof(strip->data->dirpath),
+                          strip->data->stripdata->name,
+                          sizeof(strip->data->stripdata->name));
 }
 
 static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
@@ -1047,15 +1051,15 @@ static void rna_Sequence_reopen_files_update(Main *bmain, Scene * /*scene*/, Poi
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 
   if (RNA_struct_is_a(ptr->type, &RNA_SoundSequence)) {
-    SEQ_sound_update_bounds(scene, static_cast<Sequence *>(ptr->data));
+    SEQ_sound_update_bounds(scene, static_cast<Strip *>(ptr->data));
   }
 }
 
 static void rna_Sequence_filepath_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  Sequence *seq = (Sequence *)(ptr->data);
-  SEQ_add_reload_new_file(bmain, scene, seq, true);
+  Strip *strip = (Strip *)(ptr->data);
+  SEQ_add_reload_new_file(bmain, scene, strip, true);
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 }
 
@@ -1066,83 +1070,84 @@ static void rna_Sequence_sound_update(Main *bmain, Scene * /*active_scene*/, Poi
   DEG_relations_tag_update(bmain);
 }
 
-static bool seqproxy_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool seqproxy_seq_cmp_fn(Strip *strip, void *arg_pt)
 {
   SequenceSearchData *data = static_cast<SequenceSearchData *>(arg_pt);
 
-  if (seq->strip && seq->strip->proxy == data->data) {
-    data->seq = seq;
+  if (strip->data && strip->data->proxy == data->data) {
+    data->strip = strip;
     return false; /* done so bail out */
   }
   return true;
 }
 
-static Sequence *sequence_get_by_proxy(Editing *ed, StripProxy *proxy)
+static Strip *sequence_get_by_proxy(Editing *ed, StripProxy *proxy)
 {
   SequenceSearchData data;
 
-  data.seq = nullptr;
+  data.strip = nullptr;
   data.data = proxy;
 
   SEQ_for_each_callback(&ed->seqbase, seqproxy_seq_cmp_fn, &data);
-  return data.seq;
+  return data.strip;
 }
 
 static void rna_Sequence_tcindex_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_proxy(ed, static_cast<StripProxy *>(ptr->data));
+  Strip *strip = sequence_get_by_proxy(ed, static_cast<StripProxy *>(ptr->data));
 
-  SEQ_add_reload_new_file(bmain, scene, seq, false);
-  do_sequence_frame_change_update(scene, seq);
+  SEQ_add_reload_new_file(bmain, scene, strip, false);
+  do_sequence_frame_change_update(scene, strip);
 }
 
 static void rna_SequenceProxy_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_proxy(ed, static_cast<StripProxy *>(ptr->data));
-  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  Strip *strip = sequence_get_by_proxy(ed, static_cast<StripProxy *>(ptr->data));
+  SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 }
 
 /* do_versions? */
 static float rna_Sequence_opacity_get(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
-  return seq->blend_opacity / 100.0f;
+  Strip *strip = (Strip *)(ptr->data);
+  return strip->blend_opacity / 100.0f;
 }
 static void rna_Sequence_opacity_set(PointerRNA *ptr, float value)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
+  Strip *strip = (Strip *)(ptr->data);
   CLAMP(value, 0.0f, 1.0f);
-  seq->blend_opacity = value * 100.0f;
+  strip->blend_opacity = value * 100.0f;
 }
 
 static int rna_Sequence_color_tag_get(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
-  return seq->color_tag;
+  Strip *strip = (Strip *)(ptr->data);
+  return strip->color_tag;
 }
 
 static void rna_Sequence_color_tag_set(PointerRNA *ptr, int value)
 {
-  Sequence *seq = (Sequence *)(ptr->data);
-  seq->color_tag = value;
+  Strip *strip = (Strip *)(ptr->data);
+  strip->color_tag = value;
 }
 
-static bool colbalance_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool colbalance_seq_cmp_fn(Strip *strip, void *arg_pt)
 {
   SequenceSearchData *data = static_cast<SequenceSearchData *>(arg_pt);
 
-  for (SequenceModifierData *smd = static_cast<SequenceModifierData *>(seq->modifiers.first); smd;
+  for (SequenceModifierData *smd = static_cast<SequenceModifierData *>(strip->modifiers.first);
+       smd;
        smd = smd->next)
   {
     if (smd->type == seqModifierType_ColorBalance) {
       ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
       if (&cbmd->color_balance == data->data) {
-        data->seq = seq;
+        data->strip = strip;
         data->smd = smd;
         return false; /* done so bail out */
       }
@@ -1152,13 +1157,13 @@ static bool colbalance_seq_cmp_fn(Sequence *seq, void *arg_pt)
   return true;
 }
 
-static Sequence *sequence_get_by_colorbalance(Editing *ed,
-                                              StripColorBalance *cb,
-                                              SequenceModifierData **r_smd)
+static Strip *sequence_get_by_colorbalance(Editing *ed,
+                                           StripColorBalance *cb,
+                                           SequenceModifierData **r_smd)
 {
   SequenceSearchData data;
 
-  data.seq = nullptr;
+  data.strip = nullptr;
   data.smd = nullptr;
   data.data = cb;
 
@@ -1167,7 +1172,7 @@ static Sequence *sequence_get_by_colorbalance(Editing *ed,
 
   *r_smd = data.smd;
 
-  return data.seq;
+  return data.strip;
 }
 
 static std::optional<std::string> rna_SequenceColorBalance_path(const PointerRNA *ptr)
@@ -1175,13 +1180,13 @@ static std::optional<std::string> rna_SequenceColorBalance_path(const PointerRNA
   Scene *scene = (Scene *)ptr->owner_id;
   SequenceModifierData *smd;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_colorbalance(
+  Strip *strip = sequence_get_by_colorbalance(
       ed, static_cast<StripColorBalance *>(ptr->data), &smd);
 
-  if (seq) {
-    char name_esc[(sizeof(seq->name) - 2) * 2];
+  if (strip) {
+    char name_esc[(sizeof(strip->name) - 2) * 2];
 
-    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
 
     if (!smd) {
       /* Path to old filter color balance. */
@@ -1203,10 +1208,10 @@ static void rna_SequenceColorBalance_update(Main * /*bmain*/, Scene * /*scene*/,
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
   SequenceModifierData *smd;
-  Sequence *seq = sequence_get_by_colorbalance(
+  Strip *strip = sequence_get_by_colorbalance(
       ed, static_cast<StripColorBalance *>(ptr->data), &smd);
 
-  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 }
 
 static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, bool value)
@@ -1263,15 +1268,13 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
   }
 }
 
-static void rna_SequenceEditor_display_stack(ID *id,
-                                             Editing *ed,
-                                             ReportList *reports,
-                                             Sequence *seqm)
+static void rna_SequenceEditor_display_stack(ID *id, Editing *ed, ReportList *reports, Strip *seqm)
 {
   /* Check for non-meta sequence */
-  if (seqm != nullptr && seqm->type != SEQ_TYPE_META && SEQ_exists_in_seqbase(seqm, &ed->seqbase))
+  if (seqm != nullptr && seqm->type != STRIP_TYPE_META &&
+      SEQ_exists_in_seqbase(seqm, &ed->seqbase))
   {
-    BKE_report(reports, RPT_ERROR, "Sequence type must be 'META'");
+    BKE_report(reports, RPT_ERROR, "Strip type must be 'META'");
     return;
   }
 
@@ -1284,29 +1287,29 @@ static void rna_SequenceEditor_display_stack(ID *id,
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
-static bool modifier_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool modifier_seq_cmp_fn(Strip *strip, void *arg_pt)
 {
   SequenceSearchData *data = static_cast<SequenceSearchData *>(arg_pt);
 
-  if (BLI_findindex(&seq->modifiers, data->data) != -1) {
-    data->seq = seq;
+  if (BLI_findindex(&strip->modifiers, data->data) != -1) {
+    data->strip = strip;
     return false; /* done so bail out */
   }
 
   return true;
 }
 
-static Sequence *sequence_get_by_modifier(Editing *ed, SequenceModifierData *smd)
+static Strip *sequence_get_by_modifier(Editing *ed, SequenceModifierData *smd)
 {
   SequenceSearchData data;
 
-  data.seq = nullptr;
+  data.strip = nullptr;
   data.data = smd;
 
   /* irritating we need to search for our sequence! */
   SEQ_for_each_callback(&ed->seqbase, modifier_seq_cmp_fn, &data);
 
-  return data.seq;
+  return data.strip;
 }
 
 static StructRNA *rna_SequenceModifier_refine(PointerRNA *ptr)
@@ -1338,13 +1341,13 @@ static std::optional<std::string> rna_SequenceModifier_path(const PointerRNA *pt
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
   SequenceModifierData *smd = static_cast<SequenceModifierData *>(ptr->data);
-  Sequence *seq = sequence_get_by_modifier(ed, smd);
+  Strip *strip = sequence_get_by_modifier(ed, smd);
 
-  if (seq) {
-    char name_esc[(sizeof(seq->name) - 2) * 2];
+  if (strip) {
+    char name_esc[(sizeof(strip->name) - 2) * 2];
     char name_esc_smd[sizeof(smd->name) * 2];
 
-    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
     BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
     return fmt::format(
         "sequence_editor.sequences_all[\"{}\"].modifiers[\"{}\"]", name_esc, name_esc_smd);
@@ -1357,7 +1360,7 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
   SequenceModifierData *smd = static_cast<SequenceModifierData *>(ptr->data);
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_modifier(ed, smd);
+  Strip *strip = sequence_get_by_modifier(ed, smd);
   AnimData *adt;
   char oldname[sizeof(smd->name)];
 
@@ -1368,17 +1371,17 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
   STRNCPY_UTF8(smd->name, value);
 
   /* make sure the name is truly unique */
-  SEQ_modifier_unique_name(seq, smd);
+  SEQ_modifier_unique_name(strip, smd);
 
   /* fix all the animation data which may link to this */
   adt = BKE_animdata_from_id(&scene->id);
   if (adt) {
     char rna_path_prefix[1024];
 
-    char seq_name_esc[(sizeof(seq->name) - 2) * 2];
-    BLI_str_escape(seq_name_esc, seq->name + 2, sizeof(seq_name_esc));
+    char strip_name_esc[(sizeof(strip->name) - 2) * 2];
+    BLI_str_escape(strip_name_esc, strip->name + 2, sizeof(strip_name_esc));
 
-    SNPRINTF(rna_path_prefix, "sequence_editor.sequences_all[\"%s\"].modifiers", seq_name_esc);
+    SNPRINTF(rna_path_prefix, "sequence_editor.sequences_all[\"%s\"].modifiers", strip_name_esc);
     BKE_animdata_fix_paths_rename(
         &scene->id, adt, nullptr, rna_path_prefix, oldname, smd->name, 0, 0, 1);
   }
@@ -1389,14 +1392,14 @@ static void rna_SequenceModifier_update(Main *bmain, Scene * /*scene*/, PointerR
   /* strip from other scenes could be modified, so using active scene is not reliable */
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_modifier(ed, static_cast<SequenceModifierData *>(ptr->data));
+  Strip *strip = sequence_get_by_modifier(ed, static_cast<SequenceModifierData *>(ptr->data));
 
-  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+  if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
     DEG_relations_tag_update(bmain);
   }
   else {
-    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+    SEQ_relations_invalidate_cache_preprocessed(scene, strip);
   }
 }
 
@@ -1418,10 +1421,10 @@ static bool rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA 
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_modifier(ed, static_cast<SequenceModifierData *>(ptr->data));
-  Sequence *cur = (Sequence *)value.data;
+  Strip *strip = sequence_get_by_modifier(ed, static_cast<SequenceModifierData *>(ptr->data));
+  Strip *cur = (Strip *)value.data;
 
-  if ((seq == cur) || (cur->type == SEQ_TYPE_SOUND_RAM)) {
+  if ((strip == cur) || (cur->type == STRIP_TYPE_SOUND_RAM)) {
     return false;
   }
 
@@ -1429,10 +1432,10 @@ static bool rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA 
 }
 
 static SequenceModifierData *rna_Sequence_modifier_new(
-    Sequence *seq, bContext *C, ReportList *reports, const char *name, int type)
+    Strip *strip, bContext *C, ReportList *reports, const char *name, int type)
 {
-  if (!SEQ_sequence_supports_modifiers(seq)) {
-    BKE_report(reports, RPT_ERROR, "Sequence type does not support modifiers");
+  if (!SEQ_sequence_supports_modifiers(strip)) {
+    BKE_report(reports, RPT_ERROR, "Strip type does not support modifiers");
 
     return nullptr;
   }
@@ -1440,9 +1443,9 @@ static SequenceModifierData *rna_Sequence_modifier_new(
     Scene *scene = CTX_data_scene(C);
     SequenceModifierData *smd;
 
-    smd = SEQ_modifier_new(seq, name, type);
+    smd = SEQ_modifier_new(strip, name, type);
 
-    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+    SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 
@@ -1450,7 +1453,7 @@ static SequenceModifierData *rna_Sequence_modifier_new(
   }
 }
 
-static void rna_Sequence_modifier_remove(Sequence *seq,
+static void rna_Sequence_modifier_remove(Strip *strip,
                                          bContext *C,
                                          ReportList *reports,
                                          PointerRNA *smd_ptr)
@@ -1458,24 +1461,24 @@ static void rna_Sequence_modifier_remove(Sequence *seq,
   SequenceModifierData *smd = static_cast<SequenceModifierData *>(smd_ptr->data);
   Scene *scene = CTX_data_scene(C);
 
-  if (SEQ_modifier_remove(seq, smd) == false) {
+  if (SEQ_modifier_remove(strip, smd) == false) {
     BKE_report(reports, RPT_ERROR, "Modifier was not found in the stack");
     return;
   }
 
   RNA_POINTER_INVALIDATE(smd_ptr);
-  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
 
-static void rna_Sequence_modifier_clear(Sequence *seq, bContext *C)
+static void rna_Sequence_modifier_clear(Strip *strip, bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
-  SEQ_modifier_clear(seq);
+  SEQ_modifier_clear(strip);
 
-  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
@@ -1485,10 +1488,10 @@ static void rna_SequenceModifier_strip_set(PointerRNA *ptr, PointerRNA value, Re
   SequenceModifierData *smd = static_cast<SequenceModifierData *>(ptr->data);
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = sequence_get_by_modifier(ed, smd);
-  Sequence *target = (Sequence *)value.data;
+  Strip *strip = sequence_get_by_modifier(ed, smd);
+  Strip *target = (Strip *)value.data;
 
-  if (target != nullptr && SEQ_relations_render_loop_check(target, seq)) {
+  if (target != nullptr && SEQ_relations_render_loop_check(target, strip)) {
     BKE_report(reports, RPT_ERROR, "Recursion detected, cannot use this strip");
     return;
   }
@@ -1499,19 +1502,19 @@ static void rna_SequenceModifier_strip_set(PointerRNA *ptr, PointerRNA value, Re
 static float rna_Sequence_fps_get(PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  Sequence *seq = (Sequence *)(ptr->data);
-  return SEQ_time_sequence_get_fps(scene, seq);
+  Strip *strip = (Strip *)(ptr->data);
+  return SEQ_time_sequence_get_fps(scene, strip);
 }
 
-static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
+static void rna_Sequence_separate(ID *id, Strip *seqm, Main *bmain)
 {
   Scene *scene = (Scene *)id;
 
   /* Find the appropriate seqbase */
   ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seqm);
 
-  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, &seqm->seqbase) {
-    SEQ_edit_move_strip_to_seqbase(scene, &seqm->seqbase, seq, seqbase);
+  LISTBASE_FOREACH_MUTABLE (Strip *, strip, &seqm->seqbase) {
+    SEQ_edit_move_strip_to_seqbase(scene, &seqm->seqbase, strip, seqbase);
   }
 
   SEQ_edit_flag_for_removal(scene, seqbase, seqm);
@@ -1530,7 +1533,7 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
 
-  Sequence *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
   ListBase *channels_base = &ed->channels;
 
   if (channel_owner != nullptr) {
@@ -1554,7 +1557,7 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
   Editing *ed = SEQ_editing_get(scene);
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr;
 
-  Sequence *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
   ListBase *seqbase;
   if (channel_owner == nullptr) {
     seqbase = &ed->seqbase;
@@ -1563,8 +1566,8 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
     seqbase = &channel_owner->seqbase;
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    SEQ_relations_invalidate_cache_composite(scene, seq);
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    SEQ_relations_invalidate_cache_composite(scene, strip);
   }
 
   rna_Sequence_sound_update(bmain, active_scene, ptr);
@@ -1575,7 +1578,7 @@ static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *
   Scene *scene = (Scene *)ptr->owner_id;
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr->data;
 
-  Sequence *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
 
   char channel_name_esc[(sizeof(channel->name)) * 2];
   BLI_str_escape(channel_name_esc, channel->name, sizeof(channel_name_esc));
@@ -1788,7 +1791,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem seq_tc_items[] = {
+  static const EnumPropertyItem strip_tc_items[] = {
       {SEQ_PROXY_TC_NONE,
        "NONE",
        0,
@@ -1859,7 +1862,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "timecode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "tc");
-  RNA_def_property_enum_items(prop, seq_tc_items);
+  RNA_def_property_enum_items(prop, strip_tc_items);
   RNA_def_property_ui_text(prop, "Timecode", "Method for reading the inputs timecode");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_tcindex_update");
 
@@ -1935,6 +1938,7 @@ static void rna_def_color_balance(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_ui_text(prop, "Power", "Correction for midtones");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
@@ -1997,38 +2001,38 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 
 static const EnumPropertyItem blend_mode_items[] = {
     {SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
-    {SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+    {STRIP_TYPE_CROSS, "CROSS", 0, "Cross", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
-    {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-    {SEQ_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
-    {SEQ_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
+    {STRIP_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
+    {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+    {STRIP_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
+    {STRIP_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
-    {SEQ_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
-    {SEQ_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
-    {SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+    {STRIP_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
+    {STRIP_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
+    {STRIP_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
+    {STRIP_TYPE_ADD, "ADD", 0, "Add", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
-    {SEQ_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
-    {SEQ_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
-    {SEQ_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
-    {SEQ_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
-    {SEQ_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
+    {STRIP_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+    {STRIP_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
+    {STRIP_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
+    {STRIP_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
+    {STRIP_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
+    {STRIP_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
-    {SEQ_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
-    {SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+    {STRIP_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
+    {STRIP_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
+    {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_HUE, "HUE", 0, "Hue", ""},
-    {SEQ_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
-    {SEQ_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
-    {SEQ_TYPE_VALUE, "VALUE", 0, "Value", ""},
+    {STRIP_TYPE_HUE, "HUE", 0, "Hue", ""},
+    {STRIP_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
+    {STRIP_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
+    {STRIP_TYPE_VALUE, "VALUE", 0, "Value", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-    {SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-    {SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-    {SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+    {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+    {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+    {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+    {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2041,7 +2045,7 @@ static void rna_def_sequence_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 
   RNA_def_property_srna(cprop, "SequenceModifiers");
   srna = RNA_def_struct(brna, "SequenceModifiers", nullptr);
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
   RNA_def_struct_ui_text(srna, "Strip Modifiers", "Collection of strip modifiers");
 
   /* add modifier */
@@ -2082,36 +2086,36 @@ static void rna_def_sequence(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem seq_type_items[] = {
-      {SEQ_TYPE_IMAGE, "IMAGE", 0, "Image", ""},
-      {SEQ_TYPE_META, "META", 0, "Meta", ""},
-      {SEQ_TYPE_SCENE, "SCENE", 0, "Scene", ""},
-      {SEQ_TYPE_MOVIE, "MOVIE", 0, "Movie", ""},
-      {SEQ_TYPE_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
-      {SEQ_TYPE_MASK, "MASK", 0, "Mask", ""},
-      {SEQ_TYPE_SOUND_RAM, "SOUND", 0, "Sound", ""},
-      {SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
-      {SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
-      {SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
-      {SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-      {SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-      {SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-      {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-      {SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-      {SEQ_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
-      {SEQ_TYPE_GLOW, "GLOW", 0, "Glow", ""},
-      {SEQ_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
-      {SEQ_TYPE_COLOR, "COLOR", 0, "Color", ""},
-      {SEQ_TYPE_SPEED, "SPEED", 0, "Speed", ""},
-      {SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-      {SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
-      {SEQ_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
-      {SEQ_TYPE_TEXT, "TEXT", 0, "Text", ""},
-      {SEQ_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
+  static const EnumPropertyItem strip_type_items[] = {
+      {STRIP_TYPE_IMAGE, "IMAGE", 0, "Image", ""},
+      {STRIP_TYPE_META, "META", 0, "Meta", ""},
+      {STRIP_TYPE_SCENE, "SCENE", 0, "Scene", ""},
+      {STRIP_TYPE_MOVIE, "MOVIE", 0, "Movie", ""},
+      {STRIP_TYPE_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
+      {STRIP_TYPE_MASK, "MASK", 0, "Mask", ""},
+      {STRIP_TYPE_SOUND_RAM, "SOUND", 0, "Sound", ""},
+      {STRIP_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+      {STRIP_TYPE_ADD, "ADD", 0, "Add", ""},
+      {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+      {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+      {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+      {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+      {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+      {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+      {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
+      {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", ""},
+      {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
+      {STRIP_TYPE_COLOR, "COLOR", 0, "Color", ""},
+      {STRIP_TYPE_SPEED, "SPEED", 0, "Speed", ""},
+      {STRIP_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+      {STRIP_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+      {STRIP_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
+      {STRIP_TYPE_TEXT, "TEXT", 0, "Text", ""},
+      {STRIP_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  srna = RNA_def_struct(brna, "Sequence", nullptr);
+  srna = RNA_def_struct(brna, "Strip", nullptr);
   RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor");
   RNA_def_struct_refine_func(srna, "rna_Sequence_refine");
   RNA_def_struct_path_func(srna, "rna_Sequence_path");
@@ -2120,14 +2124,14 @@ static void rna_def_sequence(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
       prop, "rna_Sequence_name_get", "rna_Sequence_name_length", "rna_Sequence_name_set");
-  RNA_def_property_string_maxlength(prop, sizeof(Sequence::name) - 2);
+  RNA_def_property_string_maxlength(prop, sizeof(Strip::name) - 2);
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_enum_items(prop, seq_type_items);
+  RNA_def_property_enum_items(prop, strip_type_items);
   RNA_def_property_ui_text(prop, "Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
@@ -2265,6 +2269,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "blend_mode");
   RNA_def_property_enum_items(prop, blend_mode_items);
+  RNA_def_property_enum_default(prop, STRIP_TYPE_ALPHAOVER);
   RNA_def_property_ui_text(
       prop, "Blending Mode", "Method for controlling how the strip combines with other strips");
   RNA_def_property_update(
@@ -2272,6 +2277,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "blend_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(
       prop, "Blend Opacity", "Percentage of how much the strip's colors affect other strips");
   /* stupid 0-100 -> 0-1 */
@@ -2396,13 +2402,13 @@ static void rna_def_editor(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "seqbase", nullptr);
-  RNA_def_property_struct_type(prop, "Sequence");
+  RNA_def_property_struct_type(prop, "Strip");
   RNA_def_property_ui_text(prop, "Sequences", "Top-level strips only");
   RNA_api_sequences(brna, prop, false);
 
   prop = RNA_def_property(srna, "sequences_all", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "seqbase", nullptr);
-  RNA_def_property_struct_type(prop, "Sequence");
+  RNA_def_property_struct_type(prop, "Strip");
   RNA_def_property_ui_text(
       prop, "All Sequences", "All strips, recursively including those inside metastrips");
   RNA_def_property_collection_funcs(prop,
@@ -2417,7 +2423,7 @@ static void rna_def_editor(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "meta_stack", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "metastack", nullptr);
-  RNA_def_property_struct_type(prop, "Sequence");
+  RNA_def_property_struct_type(prop, "Strip");
   RNA_def_property_ui_text(
       prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip");
   RNA_def_property_collection_funcs(prop,
@@ -2525,7 +2531,7 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Display sequences stack");
   parm = RNA_def_pointer(
-      func, "meta_sequence", "Sequence", "Meta Sequence", "Meta to display its stack");
+      func, "meta_sequence", "Strip", "Meta Sequence", "Meta to display its stack");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
@@ -2608,11 +2614,11 @@ static void rna_def_filter_video(StructRNA *srna)
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "strip->transform");
+  RNA_def_property_pointer_sdna(prop, nullptr, "data->transform");
   RNA_def_property_ui_text(prop, "Transform", "");
 
   prop = RNA_def_property(srna, "crop", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "strip->crop");
+  RNA_def_property_pointer_sdna(prop, nullptr, "data->crop");
   RNA_def_property_ui_text(prop, "Crop", "");
 }
 
@@ -2629,7 +2635,7 @@ static void rna_def_proxy(StructRNA *srna)
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "strip->proxy");
+  RNA_def_property_pointer_sdna(prop, nullptr, "data->proxy");
   RNA_def_property_ui_text(prop, "Proxy", "");
 }
 
@@ -2690,7 +2696,7 @@ static void rna_def_color_management(StructRNA *srna)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "strip->colorspace_settings");
+  RNA_def_property_pointer_sdna(prop, nullptr, "data->colorspace_settings");
   RNA_def_property_struct_type(prop, "ColorManagedInputColorspaceSettings");
   RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
 }
@@ -2710,17 +2716,17 @@ static void rna_def_image(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "ImageSequence", "Sequence");
+  srna = RNA_def_struct(brna, "ImageSequence", "Strip");
   RNA_def_struct_ui_text(srna, "Image Sequence", "Sequence strip to load one or more images");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
-  RNA_def_property_string_sdna(prop, nullptr, "strip->dirpath");
+  RNA_def_property_string_sdna(prop, nullptr, "data->dirpath");
   RNA_def_property_ui_text(prop, "Directory", "");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "strip->stripdata", nullptr);
+  RNA_def_property_collection_sdna(prop, nullptr, "data->stripdata", nullptr);
   RNA_def_property_struct_type(prop, "SequenceElement");
   RNA_def_property_ui_text(prop, "Elements", "");
   RNA_def_property_collection_funcs(prop,
@@ -2764,14 +2770,14 @@ static void rna_def_meta(BlenderRNA *brna)
   FunctionRNA *func;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "MetaSequence", "Sequence");
+  srna = RNA_def_struct(brna, "MetaSequence", "Strip");
   RNA_def_struct_ui_text(
       srna, "Meta Sequence", "Sequence strip to group other strips as a single sequence strip");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   prop = RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "seqbase", nullptr);
-  RNA_def_property_struct_type(prop, "Sequence");
+  RNA_def_property_struct_type(prop, "Strip");
   RNA_def_property_ui_text(prop, "Sequences", "Sequences nested in meta strip");
   RNA_api_sequences(brna, prop, true);
 
@@ -2796,6 +2802,7 @@ static void rna_def_audio_options(StructRNA *srna)
   prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "volume");
   RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
@@ -2816,10 +2823,10 @@ static void rna_def_scene(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  srna = RNA_def_struct(brna, "SceneSequence", "Sequence");
+  srna = RNA_def_struct(brna, "SceneSequence", "Strip");
   RNA_def_struct_ui_text(
       srna, "Scene Sequence", "Sequence strip using the rendered image of a scene");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
@@ -2857,9 +2864,9 @@ static void rna_def_movie(BlenderRNA *brna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  srna = RNA_def_struct(brna, "MovieSequence", "Sequence");
+  srna = RNA_def_struct(brna, "MovieSequence", "Strip");
   RNA_def_struct_ui_text(srna, "Movie Sequence", "Sequence strip to load a video");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   prop = RNA_def_property(srna, "stream_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "streamindex");
@@ -2871,7 +2878,7 @@ static void rna_def_movie(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_reopen_files_update");
 
   prop = RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "strip->stripdata", nullptr);
+  RNA_def_property_collection_sdna(prop, nullptr, "data->stripdata", nullptr);
   RNA_def_property_struct_type(prop, "SequenceElement");
   RNA_def_property_ui_text(prop, "Elements", "");
   RNA_def_property_collection_funcs(prop,
@@ -2957,10 +2964,10 @@ static void rna_def_movieclip(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "MovieClipSequence", "Sequence");
+  srna = RNA_def_struct(brna, "MovieClipSequence", "Strip");
   RNA_def_struct_ui_text(
       srna, "MovieClip Sequence", "Sequence strip to load a video from the clip editor");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -2987,9 +2994,9 @@ static void rna_def_mask(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "MaskSequence", "Sequence");
+  srna = RNA_def_struct(brna, "MaskSequence", "Strip");
   RNA_def_struct_ui_text(srna, "Mask Sequence", "Sequence strip to load a video from a mask");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -3005,11 +3012,11 @@ static void rna_def_sound(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "SoundSequence", "Sequence");
+  srna = RNA_def_struct(brna, "SoundSequence", "Strip");
   RNA_def_struct_ui_text(srna,
                          "Sound Sequence",
                          "Sequence strip defining a sound to be played over a period of time");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   prop = RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -3053,12 +3060,12 @@ static void rna_def_effect(BlenderRNA *brna)
 {
   StructRNA *srna;
 
-  srna = RNA_def_struct(brna, "EffectSequence", "Sequence");
+  srna = RNA_def_struct(brna, "EffectSequence", "Strip");
   RNA_def_struct_ui_text(
       srna,
       "Effect Sequence",
       "Sequence strip applying an effect on the images created by other strips");
-  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_sdna(srna, "Strip");
 
   rna_def_filter_video(srna);
   rna_def_proxy(srna);
@@ -3500,31 +3507,31 @@ static void rna_def_text(StructRNA *srna)
 static void rna_def_color_mix(StructRNA *srna)
 {
   static const EnumPropertyItem blend_color_items[] = {
-      {SEQ_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
-      {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-      {SEQ_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
-      {SEQ_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
+      {STRIP_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
+      {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+      {STRIP_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
+      {STRIP_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
-      {SEQ_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
-      {SEQ_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
-      {SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+      {STRIP_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
+      {STRIP_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
+      {STRIP_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
+      {STRIP_TYPE_ADD, "ADD", 0, "Add", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
-      {SEQ_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
-      {SEQ_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
-      {SEQ_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
-      {SEQ_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
-      {SEQ_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
+      {STRIP_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+      {STRIP_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
+      {STRIP_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
+      {STRIP_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
+      {STRIP_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
+      {STRIP_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
-      {SEQ_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
-      {SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+      {STRIP_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
+      {STRIP_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
+      {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_HUE, "HUE", 0, "Hue", ""},
-      {SEQ_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
-      {SEQ_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
-      {SEQ_TYPE_VALUE, "VALUE", 0, "Value", ""},
+      {STRIP_TYPE_HUE, "HUE", 0, "Hue", ""},
+      {STRIP_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
+      {STRIP_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
+      {STRIP_TYPE_VALUE, "VALUE", 0, "Value", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -3604,7 +3611,7 @@ static void rna_def_effects(BlenderRNA *brna)
   for (effect = def_effects; effect->struct_name[0] != '\0'; effect++) {
     srna = RNA_def_struct(brna, effect->struct_name, "EffectSequence");
     RNA_def_struct_ui_text(srna, effect->ui_name, effect->ui_desc);
-    RNA_def_struct_sdna(srna, "Sequence");
+    RNA_def_struct_sdna(srna, "Strip");
 
     rna_def_effect_inputs(srna, effect->inputs);
 

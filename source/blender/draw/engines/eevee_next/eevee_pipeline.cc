@@ -78,8 +78,9 @@ void BackgroundPipeline::clear(View &view)
   inst_.manager->submit(clear_ps_, view);
 }
 
-void BackgroundPipeline::render(View &view)
+void BackgroundPipeline::render(View &view, Framebuffer &combined_fb)
 {
+  GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(world_ps_, view);
 }
 
@@ -1659,7 +1660,7 @@ void PlanarProbePipeline::render(View &view,
   inst_.uniform_data.push_update();
 
   /* TODO(NPR): Could this be optimized out? */
-  inst_.pipelines.background.render(view);
+  inst_.pipelines.background.render(view, combined_fb);
 
   float4 data(0.0f);
   dummy_black_.ensure_2d(RAYTRACE_RADIANCE_FORMAT, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);

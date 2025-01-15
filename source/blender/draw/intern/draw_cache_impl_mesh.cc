@@ -273,8 +273,7 @@ static void mesh_cd_calc_active_mask_uv_layer(const Object &object,
 
 static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
                                                    const Mesh &mesh,
-                                                   const GPUMaterial *const *gpumat_array,
-                                                   int gpumat_array_len,
+                                                   const Span<const GPUMaterial *> materials,
                                                    DRW_Attributes *attributes)
 {
   const Mesh &me_final = editmesh_final_or_this(object, mesh);
@@ -291,8 +290,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
                                                me_final.default_color_attribute :
                                                "";
 
-  for (int i = 0; i < gpumat_array_len; i++) {
-    const GPUMaterial *gpumat = gpumat_array[i];
+  for (const GPUMaterial *gpumat : materials) {
     if (gpumat == nullptr) {
       continue;
     }
@@ -951,15 +949,13 @@ gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh)
 
 void DRW_mesh_get_attributes(const Object &object,
                              const Mesh &mesh,
-                             const GPUMaterial *const *gpumat_array,
-                             int gpumat_array_len,
+                             const Span<const GPUMaterial *> materials,
                              DRW_Attributes *r_attrs,
                              DRW_MeshCDMask *r_cd_needed)
 {
   DRW_Attributes attrs_needed;
   drw_attributes_clear(&attrs_needed);
-  DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(
-      object, mesh, gpumat_array, gpumat_array_len, &attrs_needed);
+  DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(object, mesh, materials, &attrs_needed);
 
   if (r_attrs) {
     *r_attrs = attrs_needed;
@@ -970,31 +966,28 @@ void DRW_mesh_get_attributes(const Object &object,
   }
 }
 
-gpu::Batch **DRW_mesh_batch_cache_get_surface_shaded(Object &object,
-                                                     Mesh &mesh,
-                                                     GPUMaterial **gpumat_array,
-                                                     uint gpumat_array_len)
+Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_shaded(
+    Object &object, Mesh &mesh, const Span<const GPUMaterial *> materials)
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
   DRW_Attributes attrs_needed;
   drw_attributes_clear(&attrs_needed);
-  DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(
-      object, mesh, gpumat_array, gpumat_array_len, &attrs_needed);
+  DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(object, mesh, materials, &attrs_needed);
 
-  BLI_assert(gpumat_array_len == cache.mat_len);
+  BLI_assert(materials.size() == cache.mat_len);
 
   mesh_cd_layers_type_merge(&cache.cd_needed, cd_needed);
   drw_attributes_merge(&cache.attr_needed, &attrs_needed, mesh.runtime->render_mutex);
   mesh_batch_cache_request_surface_batches(cache);
-  return cache.surface_per_mat.data();
+  return cache.surface_per_mat;
 }
 
-gpu::Batch **DRW_mesh_batch_cache_get_surface_texpaint(Object &object, Mesh &mesh)
+Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_texpaint(Object &object, Mesh &mesh)
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
   texpaint_request_active_uv(cache, object, mesh);
   mesh_batch_cache_request_surface_batches(cache);
-  return cache.surface_per_mat.data();
+  return cache.surface_per_mat;
 }
 
 gpu::Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object &object, Mesh &mesh)

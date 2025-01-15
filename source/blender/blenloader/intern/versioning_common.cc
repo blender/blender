@@ -29,9 +29,12 @@
 #include "BKE_main_namemap.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_screen.hh"
+
+#include "ANIM_versioning.hh"
 
 #include "NOD_socket.hh"
 
@@ -169,7 +172,7 @@ void version_node_socket_name(bNodeTree *ntree,
                               const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       change_node_socket_name(&node->inputs, old_name, new_name);
       change_node_socket_name(&node->outputs, old_name, new_name);
     }
@@ -182,7 +185,7 @@ void version_node_input_socket_name(bNodeTree *ntree,
                                     const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       change_node_socket_name(&node->inputs, old_name, new_name);
     }
   }
@@ -194,7 +197,7 @@ void version_node_output_socket_name(bNodeTree *ntree,
                                      const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       change_node_socket_name(&node->outputs, old_name, new_name);
     }
   }
@@ -210,7 +213,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
   blender::bke::node_unique_id(&ntree, node);
 
   STRNCPY(node->idname, idname);
-  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name));
+  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name.c_str()));
   blender::bke::node_unique_name(&ntree, node);
 
   node->flag = NODE_SELECT | NODE_OPTIONS | NODE_INIT;
@@ -218,7 +221,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608;
 
-  node->type = ntype->type;
+  node->type_legacy = ntype->type_legacy;
 
   BKE_ntree_update_tag_node_new(&ntree, node);
   return *node;
@@ -299,7 +302,7 @@ bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
 void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       if (!STREQ(node->idname, new_name)) {
         STRNCPY(node->idname, new_name);
       }
@@ -327,7 +330,7 @@ void version_node_socket_index_animdata(Main *bmain,
       }
 
       for (bNode *node : ntree->all_nodes()) {
-        if (node->type != node_type) {
+        if (node->type_legacy != node_type) {
           continue;
         }
 
@@ -424,7 +427,7 @@ void add_realize_instances_before_socket(bNodeTree *ntree,
   blender::Vector<bNodeLink *> links = find_connected_links(ntree, geometry_socket);
   for (bNodeLink *link : links) {
     /* If the realize instances node is already before this socket, no need to continue. */
-    if (link->fromnode->type == GEO_NODE_REALIZE_INSTANCES) {
+    if (link->fromnode->type_legacy == GEO_NODE_REALIZE_INSTANCES) {
       return;
     }
 
@@ -569,7 +572,7 @@ bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type)
   /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
    * during versioning. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != node_type) {
+    if (node->type_legacy != node_type) {
       continue;
     }
     if (node->custom1 == SHD_OUTPUT_ALL) {
@@ -645,7 +648,7 @@ void do_versions_after_setup(Main *new_bmain,
    * the versions of all the linked libraries. */
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
-    do_versions_ipos_to_animato(new_bmain);
+    do_versions_ipos_to_layered_actions(new_bmain);
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
@@ -678,5 +681,10 @@ void do_versions_after_setup(Main *new_bmain,
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 403, 3)) {
     /* Convert all the legacy grease pencil objects. This does not touch annotations. */
     blender::bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 404, 2)) {
+    /* Version all the action assignments of just-versioned datablocks. */
+    blender::animrig::versioning::convert_legacy_action_assignments(*new_bmain, reports->reports);
   }
 }

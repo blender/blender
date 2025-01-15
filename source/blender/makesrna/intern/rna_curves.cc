@@ -47,7 +47,7 @@ const EnumPropertyItem rna_enum_curves_handle_type_items[] = {
      "ALIGN",
      0,
      "Align",
-     "The location is constrained to point in the opposite direction as the other handleW"},
+     "The location is constrained to point in the opposite direction as the other handle"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -550,6 +550,14 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Use Sculpt Collision", "Enable collision with the surface while sculpting");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
+
+  prop = RNA_def_property(srna, "surface_collision_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "surface_collision_distance");
+  RNA_def_property_range(prop, FLT_EPSILON, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 10.0f, 0.001, 3);
+  RNA_def_property_ui_text(
+      prop, "Collision distance", "Distance to keep the curves away from the surface");
   RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   /* attributes */

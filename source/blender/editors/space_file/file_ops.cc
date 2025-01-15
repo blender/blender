@@ -671,6 +671,7 @@ void FILE_OT_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "fill", false, "Fill", "Select everything beginning with the last selection");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "open", true, "Open", "Open a directory when selecting it");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -952,6 +953,7 @@ void FILE_OT_select_walk(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "fill", false, "Fill", "Select everything beginning with the last selection");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

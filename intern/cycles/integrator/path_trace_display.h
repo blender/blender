@@ -8,7 +8,6 @@
 
 #include "util/half.h"
 #include "util/thread.h"
-#include "util/types.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -48,7 +47,7 @@ class PathTraceDisplay {
    * If false is returned then no update is possible, and no update_end() call is needed.
    *
    * The texture width and height denotes an actual resolution of the underlying render result. */
-  bool update_begin(int texture_width, int texture_height);
+  bool update_begin(const int texture_width, const int texture_height);
 
   void update_end();
 
@@ -71,8 +70,11 @@ class PathTraceDisplay {
    * for partial updates from different devices. In this case the caller will acquire the lock
    * once, update all the slices and release
    * the lock once. This will ensure that draw() will never use partially updated texture. */
-  void copy_pixels_to_texture(
-      const half4 *rgba_pixels, int texture_x, int texture_y, int pixels_width, int pixels_height);
+  void copy_pixels_to_texture(const half4 *rgba_pixels,
+                              const int texture_x,
+                              const int texture_y,
+                              const int pixels_width,
+                              const int pixels_height);
 
   /* --------------------------------------------------------------------
    * Texture buffer mapping.

@@ -30,11 +30,12 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
+#include "BKE_paint.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -73,7 +74,6 @@
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
-#include "BKE_paint.hh"
 
 #include "geometry_intern.hh"
 
@@ -408,7 +408,9 @@ static void replace_inputs_evaluated_data_blocks(
 {
   IDP_foreach_property(&properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
     if (ID *id = IDP_Id(property)) {
-      property->data.pointer = const_cast<ID *>(depsgraphs.get_evaluated_id(*id));
+      if (ID_TYPE_USE_COPY_ON_EVAL(GS(id->name))) {
+        property->data.pointer = const_cast<ID *>(depsgraphs.get_evaluated_id(*id));
+      }
     }
   });
 }

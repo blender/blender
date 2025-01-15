@@ -283,7 +283,7 @@ void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_pr
                           MAX_ID_NAME - 2,
                           "Name",
                           "Name of the data-block to use by the operator");
-    RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   }
 
   prop = RNA_def_int(ot->srna,
@@ -295,7 +295,7 @@ void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_pr
                      "Session UID of the data-block to use by the operator",
                      INT32_MIN,
                      INT32_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 static void wm_operator_properties_select_action_ex(wmOperatorType *ot,

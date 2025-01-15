@@ -11,6 +11,8 @@
 #include <atomic>
 #include <mutex>
 
+#include "DNA_vec_types.h"
+
 #include "BLF_api.hh"
 
 #include "BLI_map.hh"
@@ -19,8 +21,13 @@
 #include "GPU_texture.hh"
 #include "GPU_vertex_buffer.hh"
 
+#include <ft2build.h>
+
 struct ColorManagedDisplay;
 struct FontBLF;
+struct GlyphCacheBLF;
+struct GlyphBLF;
+
 namespace blender::gpu {
 class Batch;
 class VertBuf;

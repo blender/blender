@@ -12,6 +12,8 @@
 #include "DNA_asset_types.h"
 #include "DNA_node_types.h"
 
+#include "BLI_array.hh"
+#include "BLI_disjoint_set.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
@@ -20,6 +22,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
 
@@ -29,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_register.hh"
 #include "NOD_socket.hh"
@@ -61,12 +64,12 @@ static bNodeSocket *find_matching_socket(ListBase &sockets, StringRef identifier
   return nullptr;
 }
 
-bNodeSocket *node_group_find_input_socket(bNode *groupnode, const char *identifier)
+bNodeSocket *node_group_find_input_socket(bNode *groupnode, const blender::StringRef identifier)
 {
   return find_matching_socket(groupnode->inputs, identifier);
 }
 
-bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identifier)
+bNodeSocket *node_group_find_output_socket(bNode *groupnode, const blender::StringRef identifier)
 {
   return find_matching_socket(groupnode->outputs, identifier);
 }
@@ -506,10 +509,15 @@ static void node_frame_init(bNodeTree * /*ntree*/, bNode *node)
 void register_node_type_frame()
 {
   /* frame type is used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_cnew<blender::bke::bNodeType>("frame node type");
-  ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
+  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("frame node type");
+  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
+  blender::bke::node_type_base(ntype, "NodeFrame", NODE_FRAME);
+  ntype->ui_name = "Frame";
+  ntype->ui_description =
+      "Collect related nodes together in a common area. Useful for organization when the "
+      "re-usability of a node group is not required";
+  ntype->nclass = NODE_CLASS_LAYOUT;
   ntype->enum_name_legacy = "FRAME";
   ntype->initfunc = node_frame_init;
   blender::bke::node_type_storage(
@@ -549,11 +557,15 @@ static void node_reroute_init(bNodeTree * /*ntree*/, bNode *node)
 void register_node_type_reroute()
 {
   /* frame type is used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_cnew<blender::bke::bNodeType>("frame node type");
-  ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
+  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("frame node type");
+  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
+  blender::bke::node_type_base(ntype, "NodeReroute", NODE_REROUTE);
+  ntype->ui_name = "Reroute";
+  ntype->ui_description =
+      "A single-socket organization tool that supports one input and multiple outputs";
   ntype->enum_name_legacy = "REROUTE";
+  ntype->nclass = NODE_CLASS_LAYOUT;
   ntype->declare = node_reroute_declare;
   ntype->initfunc = node_reroute_init;
   node_type_storage(ntype, "NodeReroute", node_free_standard_storage, node_copy_standard_storage);
@@ -561,88 +573,134 @@ void register_node_type_reroute()
   blender::bke::node_register_type(ntype);
 }
 
-static void propagate_reroute_type_from_start_socket(
-    bNodeSocket *start_socket,
-    const MultiValueMap<bNodeSocket *, bNodeLink *> &links_map,
-    Map<bNode *, const blender::bke::bNodeSocketType *> &r_reroute_types)
-{
-  Stack<bNode *> nodes_to_check;
-  for (bNodeLink *link : links_map.lookup(start_socket)) {
-    if (link->tonode->type == NODE_REROUTE) {
-      nodes_to_check.push(link->tonode);
-    }
-    if (link->fromnode->type == NODE_REROUTE) {
-      nodes_to_check.push(link->fromnode);
-    }
+struct RerouteTargetPriority {
+  int node_i = std::numeric_limits<int>::max();
+  int socket_in_node_i = std::numeric_limits<int>::max();
+
+  RerouteTargetPriority() = default;
+  RerouteTargetPriority(const bNodeSocket &socket)
+      : node_i(socket.owner_node().index()), socket_in_node_i(socket.index())
+  {
   }
-  const blender::bke::bNodeSocketType *current_type = start_socket->typeinfo;
-  while (!nodes_to_check.is_empty()) {
-    bNode *reroute_node = nodes_to_check.pop();
-    BLI_assert(reroute_node->type == NODE_REROUTE);
-    if (r_reroute_types.add(reroute_node, current_type)) {
-      for (bNodeLink *link : links_map.lookup((bNodeSocket *)reroute_node->inputs.first)) {
-        if (link->fromnode->type == NODE_REROUTE) {
-          nodes_to_check.push(link->fromnode);
-        }
-      }
-      for (bNodeLink *link : links_map.lookup((bNodeSocket *)reroute_node->outputs.first)) {
-        if (link->tonode->type == NODE_REROUTE) {
-          nodes_to_check.push(link->tonode);
-        }
-      }
+
+  bool operator>(const RerouteTargetPriority other)
+  {
+    if (this->node_i == other.node_i) {
+      return this->socket_in_node_i < other.socket_in_node_i;
     }
+    return this->node_i < other.node_i;
   }
-}
+};
 
 void ntree_update_reroute_nodes(bNodeTree *ntree)
 {
-  /* Contains nodes that are linked to at least one reroute node. */
-  Set<bNode *> nodes_linked_with_reroutes;
-  /* Contains all links that are linked to at least one reroute node. */
-  MultiValueMap<bNodeSocket *, bNodeLink *> links_map;
-  /* Build acceleration data structures for the algorithm below. */
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->fromsock == nullptr || link->tosock == nullptr) {
+  using namespace blender;
+  ntree->ensure_topology_cache();
+
+  const Span<bNode *> all_reroute_nodes = ntree->nodes_by_type("NodeReroute");
+
+  VectorSet<int> reroute_nodes;
+  for (const bNode *reroute : all_reroute_nodes) {
+    reroute_nodes.add(reroute->index());
+  }
+
+  /* Any reroute can be connected only to one source, or can be not connected at all.
+   * So reroute forms a trees. It is possible that there will be cycle, but such cycle
+   * can be only one in strongly connected set of reroutes. To propagate a types from
+   * some certain target to all the reroutes in such a tree we need to know all such
+   * a trees and all possible targets for each tree. */
+  DisjointSet reroutes_groups(reroute_nodes.size());
+
+  for (const bNode *src_reroute : all_reroute_nodes) {
+    const int src_reroute_i = reroute_nodes.index_of(src_reroute->index());
+    for (const bNodeSocket *dst_socket :
+         src_reroute->output_sockets().first()->directly_linked_sockets())
+    {
+      const bNode &dst_node = dst_socket->owner_node();
+      if (!dst_node.is_reroute()) {
+        continue;
+      }
+      const int dst_reroute_i = reroute_nodes.index_of(dst_node.index());
+      reroutes_groups.join(src_reroute_i, dst_reroute_i);
+    }
+  }
+
+  VectorSet<int> reroute_groups;
+  for (const int reroute_i : reroute_nodes.index_range()) {
+    const int root_reroute_i = reroutes_groups.find_root(reroute_i);
+    reroute_groups.add(root_reroute_i);
+  }
+
+  /* Any reroute can have only one source and many destination targets. Type propagation considers
+   * source as target with highest priority. */
+  Array<const bke::bNodeSocketType *> dst_type_by_reroute_group(reroute_groups.size(), nullptr);
+  Array<const bke::bNodeSocketType *> src_type_by_reroute_group(reroute_groups.size(), nullptr);
+
+  /* Reroute type priority based on the indices of target sockets in the node and the nodes in the
+   * tree. */
+  Array<RerouteTargetPriority> reroute_group_dst_type_priority(reroute_groups.size(),
+                                                               RerouteTargetPriority{});
+
+  for (const bNodeLink *link : ntree->all_links()) {
+    const bNode *src_node = link->fromnode;
+    const bNode *dst_node = link->tonode;
+
+    if (src_node->is_reroute() == dst_node->is_reroute()) {
       continue;
     }
-    if (link->fromnode->type != NODE_REROUTE && link->tonode->type != NODE_REROUTE) {
+
+    if (!dst_node->is_reroute()) {
+      const int src_reroute_i = reroute_nodes.index_of(src_node->index());
+      const int src_reroute_root_i = reroutes_groups.find_root(src_reroute_i);
+      const int src_reroute_group_i = reroute_groups.index_of(src_reroute_root_i);
+
+      const RerouteTargetPriority type_priority(*link->tosock);
+      if (reroute_group_dst_type_priority[src_reroute_group_i] > type_priority) {
+        continue;
+      }
+
+      reroute_group_dst_type_priority[src_reroute_group_i] = type_priority;
+
+      const bNodeSocket *dst_socket = link->tosock;
+      /* There could be a function which will choose best from
+       * #dst_type_by_reroute_group and #dst_socket, but right now this match behavior as-is. */
+      dst_type_by_reroute_group[src_reroute_group_i] = dst_socket->typeinfo;
       continue;
     }
-    if (link->fromnode->type != NODE_REROUTE) {
-      nodes_linked_with_reroutes.add(link->fromnode);
-    }
-    if (link->tonode->type != NODE_REROUTE) {
-      nodes_linked_with_reroutes.add(link->tonode);
-    }
-    links_map.add(link->fromsock, link);
-    links_map.add(link->tosock, link);
+
+    BLI_assert(!src_node->is_reroute());
+    const int dst_reroute_i = reroute_nodes.index_of(dst_node->index());
+    const int dst_reroute_root_i = reroutes_groups.find_root(dst_reroute_i);
+    const int dst_reroute_group_i = reroute_groups.index_of(dst_reroute_root_i);
+
+    const bNodeSocket *src_socket = link->fromsock;
+    /* There could be a function which will choose best from
+     * #src_type_by_reroute_group and #src_socket, but right now this match behavior as-is. */
+    src_type_by_reroute_group[dst_reroute_group_i] = src_socket->typeinfo;
   }
 
-  /* Will contain the socket type for every linked reroute node. */
-  Map<bNode *, const blender::bke::bNodeSocketType *> reroute_types;
+  const Span<bNode *> all_nodes = ntree->all_nodes();
+  for (const int reroute_i : reroute_nodes.index_range()) {
+    const int reroute_root_i = reroutes_groups.find_root(reroute_i);
+    const int reroute_group_i = reroute_groups.index_of(reroute_root_i);
 
-  /* Propagate socket types from left to right. */
-  for (bNode *start_node : nodes_linked_with_reroutes) {
-    LISTBASE_FOREACH (bNodeSocket *, output_socket, &start_node->outputs) {
-      propagate_reroute_type_from_start_socket(output_socket, links_map, reroute_types);
+    const bke::bNodeSocketType *reroute_type = nullptr;
+    if (dst_type_by_reroute_group[reroute_group_i] != nullptr) {
+      reroute_type = dst_type_by_reroute_group[reroute_group_i];
     }
-  }
-
-  /* Propagate socket types from right to left. This affects reroute nodes that haven't been
-   * changed in the loop above. */
-  for (bNode *start_node : nodes_linked_with_reroutes) {
-    LISTBASE_FOREACH (bNodeSocket *, input_socket, &start_node->inputs) {
-      propagate_reroute_type_from_start_socket(input_socket, links_map, reroute_types);
+    if (src_type_by_reroute_group[reroute_group_i] != nullptr) {
+      reroute_type = src_type_by_reroute_group[reroute_group_i];
     }
-  }
 
-  /* Actually update reroute nodes with changed types. */
-  for (const auto item : reroute_types.items()) {
-    bNode *reroute_node = item.key;
-    const blender::bke::bNodeSocketType *socket_type = item.value;
-    NodeReroute *storage = static_cast<NodeReroute *>(reroute_node->storage);
-    STRNCPY(storage->type_idname, socket_type->idname);
-    blender::nodes::update_node_declaration_and_sockets(*ntree, *reroute_node);
+    if (reroute_type == nullptr) {
+      continue;
+    }
+
+    const int reroute_index = reroute_nodes[reroute_i];
+    bNode &reroute_node = *all_nodes[reroute_index];
+    NodeReroute *storage = static_cast<NodeReroute *>(reroute_node.storage);
+    StringRef(reroute_type->idname).copy(storage->type_idname);
+    nodes::update_node_declaration_and_sockets(*ntree, reroute_node);
   }
 }
 
@@ -678,10 +736,10 @@ bool blender::bke::node_is_connected_to_output(const bNodeTree *ntree, const bNo
 /** \name Node #GROUP_INPUT / #GROUP_OUTPUT
  * \{ */
 
-bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
+bNodeSocket *node_group_input_find_socket(bNode *node, const StringRef identifier)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    if (STREQ(sock->identifier, identifier)) {
+    if (sock->identifier == identifier) {
       return sock;
     }
   }
@@ -781,11 +839,15 @@ static bool group_output_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *l
 void register_node_type_group_input()
 {
   /* used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_cnew<blender::bke::bNodeType>("node type");
-  ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
+  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("node type");
+  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
+  blender::bke::node_type_base(ntype, "NodeGroupInput", NODE_GROUP_INPUT);
+  ntype->ui_name = "Group Input";
+  ntype->ui_description =
+      "Expose connected data from inside a node group as inputs to its interface";
   ntype->enum_name_legacy = "GROUP_INPUT";
+  ntype->nclass = NODE_CLASS_INTERFACE;
   blender::bke::node_type_size(ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
@@ -793,10 +855,10 @@ void register_node_type_group_input()
   blender::bke::node_register_type(ntype);
 }
 
-bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
+bNodeSocket *node_group_output_find_socket(bNode *node, const StringRef identifier)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->identifier, identifier)) {
+    if (sock->identifier == identifier) {
       return sock;
     }
   }
@@ -806,11 +868,14 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
 void register_node_type_group_output()
 {
   /* used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_cnew<blender::bke::bNodeType>("node type");
-  ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
+  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("node type");
+  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
+  blender::bke::node_type_base(ntype, "NodeGroupOutput", NODE_GROUP_OUTPUT);
+  ntype->ui_name = "Group Output";
+  ntype->ui_description = "Output data from inside of a node group";
   ntype->enum_name_legacy = "GROUP_OUTPUT";
+  ntype->nclass = NODE_CLASS_INTERFACE;
   blender::bke::node_type_size(ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;

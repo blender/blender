@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "util/aligned_malloc.h"
-#include "util/guarded_allocator.h"
+
+#ifdef WITH_BLENDER_GUARDEDALLOC
+#  include "../../guardedalloc/MEM_guardedalloc.h"
+#endif
 
 #include <cassert>
 
@@ -28,7 +31,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void *util_aligned_malloc(size_t size, int alignment)
+void *util_aligned_malloc(const size_t size, const int alignment)
 {
 #ifdef WITH_BLENDER_GUARDEDALLOC
   return MEM_mallocN_aligned(size, alignment, "Cycles Aligned Alloc");
@@ -40,7 +43,7 @@ void *util_aligned_malloc(size_t size, int alignment)
     /* Non-zero means allocation error
      * either no allocation or bad alignment value.
      */
-    return NULL;
+    return nullptr;
   }
   return result;
 #else /* This is for Linux. */
@@ -51,7 +54,7 @@ void *util_aligned_malloc(size_t size, int alignment)
 void util_aligned_free(void *ptr)
 {
 #if defined(WITH_BLENDER_GUARDEDALLOC)
-  if (ptr != NULL) {
+  if (ptr != nullptr) {
     MEM_freeN(ptr);
   }
 #elif defined(_WIN32)

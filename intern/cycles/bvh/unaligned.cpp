@@ -61,7 +61,8 @@ bool BVHUnaligned::compute_aligned_space(const BVHReference &ref, Transform *ali
     const Hair *hair = static_cast<const Hair *>(object->get_geometry());
     const Hair::Curve &curve = hair->get_curve(curve_index);
     const int key = curve.first_key + segment;
-    const float3 v1 = hair->get_curve_keys()[key], v2 = hair->get_curve_keys()[key + 1];
+    const float3 v1 = hair->get_curve_keys()[key];
+    const float3 v2 = hair->get_curve_keys()[key + 1];
     float length;
     const float3 axis = normalize_len(v2 - v1, &length);
     if (length > 1e-6f) {
@@ -86,8 +87,11 @@ BoundBox BVHUnaligned::compute_aligned_prim_boundbox(const BVHReference &prim,
     const int segment = PRIMITIVE_UNPACK_SEGMENT(packed_type);
     const Hair *hair = static_cast<const Hair *>(object->get_geometry());
     const Hair::Curve &curve = hair->get_curve(curve_index);
-    curve.bounds_grow(
-        segment, &hair->get_curve_keys()[0], &hair->get_curve_radius()[0], aligned_space, bounds);
+    curve.bounds_grow(segment,
+                      hair->get_curve_keys().data(),
+                      hair->get_curve_radius().data(),
+                      aligned_space,
+                      bounds);
   }
   else {
     bounds = prim.bounds().transformed(&aligned_space);
@@ -101,14 +105,14 @@ BoundBox BVHUnaligned::compute_aligned_boundbox(const BVHObjectBinning &range,
                                                 BoundBox *cent_bounds) const
 {
   BoundBox bounds = BoundBox::empty;
-  if (cent_bounds != NULL) {
+  if (cent_bounds != nullptr) {
     *cent_bounds = BoundBox::empty;
   }
   for (int i = range.start(); i < range.end(); ++i) {
     const BVHReference &ref = references[i];
-    BoundBox ref_bounds = compute_aligned_prim_boundbox(ref, aligned_space);
+    const BoundBox ref_bounds = compute_aligned_prim_boundbox(ref, aligned_space);
     bounds.grow(ref_bounds);
-    if (cent_bounds != NULL) {
+    if (cent_bounds != nullptr) {
       cent_bounds->grow(ref_bounds.center2());
     }
   }
@@ -121,14 +125,14 @@ BoundBox BVHUnaligned::compute_aligned_boundbox(const BVHRange &range,
                                                 BoundBox *cent_bounds) const
 {
   BoundBox bounds = BoundBox::empty;
-  if (cent_bounds != NULL) {
+  if (cent_bounds != nullptr) {
     *cent_bounds = BoundBox::empty;
   }
   for (int i = range.start(); i < range.end(); ++i) {
     const BVHReference &ref = references[i];
-    BoundBox ref_bounds = compute_aligned_prim_boundbox(ref, aligned_space);
+    const BoundBox ref_bounds = compute_aligned_prim_boundbox(ref, aligned_space);
     bounds.grow(ref_bounds);
-    if (cent_bounds != NULL) {
+    if (cent_bounds != nullptr) {
       cent_bounds->grow(ref_bounds.center2());
     }
   }
@@ -142,7 +146,7 @@ Transform BVHUnaligned::compute_node_transform(const BoundBox &bounds,
   space.x.w -= bounds.min.x;
   space.y.w -= bounds.min.y;
   space.z.w -= bounds.min.z;
-  float3 dim = bounds.max - bounds.min;
+  const float3 dim = bounds.max - bounds.min;
   return transform_scale(
              1.0f / max(1e-18f, dim.x), 1.0f / max(1e-18f, dim.y), 1.0f / max(1e-18f, dim.z)) *
          space;

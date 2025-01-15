@@ -21,7 +21,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
@@ -248,12 +248,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "offset", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  if (uiLayout *fade_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_fading_panel", IFACE_("Fade")))
+  if (uiLayout *fade_panel = uiLayoutPanelPropWithBoolHeader(
+          C, layout, ptr, "open_fading_panel", "use_fade", IFACE_("Fade")))
   {
-    uiLayoutSetPropSep(fade_panel, true);
-    uiItemR(fade_panel, ptr, "use_fade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-
     uiLayout *sub = uiLayoutColumn(fade_panel, false);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_fade"));
 

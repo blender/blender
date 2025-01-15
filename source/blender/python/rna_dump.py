@@ -51,7 +51,7 @@ def seek(r, txt, recurs):
             print(txt + ' -> ' + str(r))
         return
 
-    if type_r == str:
+    if type_r is str:
         if PRINT_DATA:
             print(txt + ' -> "' + str(r) + '"')
         return

@@ -5,8 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_SPLIT_H__
-#define __BVH_SPLIT_H__
+#pragma once
 
 #include "bvh/build.h"
 #include "bvh/params.h"
@@ -29,14 +28,14 @@ class BVHObjectSplit {
   BoundBox left_bounds;
   BoundBox right_bounds;
 
-  BVHObjectSplit() {}
+  BVHObjectSplit() = default;
   BVHObjectSplit(BVHBuild *builder,
                  BVHSpatialStorage *storage,
                  const BVHRange &range,
                  vector<BVHReference> &references,
-                 float nodeSAH,
-                 const BVHUnaligned *unaligned_heuristic = NULL,
-                 const Transform *aligned_space = NULL);
+                 const float nodeSAH,
+                 const BVHUnaligned *unaligned_heuristic = nullptr,
+                 const Transform *aligned_space = nullptr);
 
   void split(BVHRange &left, BVHRange &right, const BVHRange &range);
 
@@ -48,12 +47,10 @@ class BVHObjectSplit {
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
-    else {
-      return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
-    }
+    return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
   }
 };
 
@@ -65,14 +62,14 @@ class BVHSpatialSplit {
   int dim;
   float pos;
 
-  BVHSpatialSplit() : sah(FLT_MAX), dim(0), pos(0.0f), storage_(NULL), references_(NULL) {}
+  BVHSpatialSplit() : sah(FLT_MAX), dim(0), pos(0.0f), storage_(nullptr), references_(nullptr) {}
   BVHSpatialSplit(const BVHBuild &builder,
                   BVHSpatialStorage *storage,
                   const BVHRange &range,
                   vector<BVHReference> &references,
-                  float nodeSAH,
-                  const BVHUnaligned *unaligned_heuristic = NULL,
-                  const Transform *aligned_space = NULL);
+                  const float nodeSAH,
+                  const BVHUnaligned *unaligned_heuristic = nullptr,
+                  const Transform *aligned_space = nullptr);
 
   void split(BVHBuild *builder, BVHRange &left, BVHRange &right, const BVHRange &range);
 
@@ -80,7 +77,7 @@ class BVHSpatialSplit {
                        BVHReference &left,
                        BVHReference &right,
                        const BVHReference &ref,
-                       int dim,
+                       const int dim,
                        float pos);
 
  protected:
@@ -97,24 +94,24 @@ class BVHSpatialSplit {
    */
   void split_triangle_primitive(const Mesh *mesh,
                                 const Transform *tfm,
-                                int prim_index,
-                                int dim,
-                                float pos,
+                                const int prim_index,
+                                const int dim,
+                                const float pos,
                                 BoundBox &left_bounds,
                                 BoundBox &right_bounds);
   void split_curve_primitive(const Hair *hair,
                              const Transform *tfm,
-                             int prim_index,
-                             int segment_index,
-                             int dim,
-                             float pos,
+                             const int prim_index,
+                             const int segment_index,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
   void split_point_primitive(const PointCloud *pointcloud,
                              const Transform *tfm,
-                             int prim_index,
-                             int dim,
-                             float pos,
+                             const int prim_index,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
 
@@ -125,43 +122,42 @@ class BVHSpatialSplit {
    */
   void split_triangle_reference(const BVHReference &ref,
                                 const Mesh *mesh,
-                                int dim,
-                                float pos,
+                                const int dim,
+                                const float pos,
                                 BoundBox &left_bounds,
                                 BoundBox &right_bounds);
   void split_curve_reference(const BVHReference &ref,
                              const Hair *hair,
-                             int dim,
-                             float pos,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
   void split_point_reference(const BVHReference &ref,
                              const PointCloud *pointcloud,
-                             int dim,
-                             float pos,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
-  void split_object_reference(
-      const Object *object, int dim, float pos, BoundBox &left_bounds, BoundBox &right_bounds);
+  void split_object_reference(const Object *object,
+                              const int dim,
+                              const float pos,
+                              BoundBox &left_bounds,
+                              BoundBox &right_bounds);
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
-    else {
-      return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
-    }
+    return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
   }
 
   __forceinline float3 get_unaligned_point(const float3 &point) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return point;
     }
-    else {
-      return transform_point(aligned_space_, point);
-    }
+    return transform_point(aligned_space_, point);
   }
 };
 
@@ -180,17 +176,17 @@ class BVHMixedSplit {
 
   BoundBox bounds;
 
-  BVHMixedSplit() {}
+  BVHMixedSplit() = default;
 
   __forceinline BVHMixedSplit(BVHBuild *builder,
                               BVHSpatialStorage *storage,
                               const BVHRange &range,
                               vector<BVHReference> &references,
-                              int level,
-                              const BVHUnaligned *unaligned_heuristic = NULL,
-                              const Transform *aligned_space = NULL)
+                              const int level,
+                              const BVHUnaligned *unaligned_heuristic = nullptr,
+                              const Transform *aligned_space = nullptr)
   {
-    if (aligned_space == NULL) {
+    if (aligned_space == nullptr) {
       bounds = range.bounds();
     }
     else {
@@ -198,7 +194,7 @@ class BVHMixedSplit {
           range, &references.at(0), *aligned_space);
     }
     /* find split candidates. */
-    float area = bounds.safe_area();
+    const float area = bounds.safe_area();
 
     leafSAH = area * builder->params.primitive_cost(range.size());
     nodeSAH = area * builder->params.node_cost(2);
@@ -226,13 +222,13 @@ class BVHMixedSplit {
                            BVHRange &right,
                            const BVHRange &range)
   {
-    if (builder->params.use_spatial_split && minSAH == spatial.sah)
+    if (builder->params.use_spatial_split && minSAH == spatial.sah) {
       spatial.split(builder, left, right, range);
-    if (!left.size() || !right.size())
+    }
+    if (!left.size() || !right.size()) {
       object.split(left, right, range);
+    }
   }
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_SPLIT_H__ */

@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 /*
  * NOTE: do NOT modify topology while walking a mesh!
  */

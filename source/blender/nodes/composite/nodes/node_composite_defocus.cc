@@ -311,7 +311,7 @@ class DefocusOperation : public NodeOperation {
 
     if (input_depth.is_single_value()) {
       output_radius.allocate_single_value();
-      output_radius.set_float_value(compute_radius(input_depth.get_float_value()));
+      output_radius.set_single_value(compute_radius(input_depth.get_single_value<float>()));
       return output_radius;
     }
 
@@ -412,7 +412,7 @@ class DefocusOperation : public NodeOperation {
 
     if (input_depth.is_single_value()) {
       output_radius.allocate_single_value();
-      output_radius.set_float_value(compute_radius(input_depth.get_float_value()));
+      output_radius.set_single_value(compute_radius(input_depth.get_single_value<float>()));
       return;
     }
 
@@ -560,8 +560,11 @@ void register_node_type_cmp_defocus()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeDefocus", CMP_NODE_DEFOCUS);
+  ntype.ui_name = "Defocus";
+  ntype.ui_description = "Apply depth of field in 2D, using a Z depth map or mask";
   ntype.enum_name_legacy = "DEFOCUS";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_defocus_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_defocus;
   ntype.initfunc = file_ns::node_composit_init_defocus;

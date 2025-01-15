@@ -66,8 +66,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_MESH_TOPOLOGY_VERTEX_OF_CORNER, "Vertex of Corner", NODE_CLASS_INPUT);
+      &ntype, "GeometryNodeVertexOfCorner", GEO_NODE_MESH_TOPOLOGY_VERTEX_OF_CORNER);
+  ntype.ui_name = "Vertex of Corner";
+  ntype.ui_description = "Retrieve the vertex each face corner is attached to";
   ntype.enum_name_legacy = "VERTEX_OF_CORNER";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

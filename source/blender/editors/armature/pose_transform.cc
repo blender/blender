@@ -791,17 +791,16 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
   PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
   copybuffer.id_add(
       &ob->id,
-      PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
-          PartialWriteContext::IDAddOperations::MAKE_LOCAL |
-          PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-          PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)},
+      PartialWriteContext::IDAddOptions{
+          (PartialWriteContext::IDAddOperations::MAKE_LOCAL |
+           PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+           PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)},
       [ob](LibraryIDLinkCallbackData *cb_data,
            PartialWriteContext::IDAddOptions /*options*/) -> PartialWriteContext::IDAddOperations {
         /* Only include `ob->data` (i.e. the Armature) dependency. */
         if (*(cb_data->id_pointer) == ob->data) {
-          return PartialWriteContext::IDAddOperations(
-              PartialWriteContext::IDAddOperations::MAKE_LOCAL |
-              PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES);
+          return (PartialWriteContext::IDAddOperations::MAKE_LOCAL |
+                  PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES);
         }
         return PartialWriteContext::IDAddOperations::CLEAR_DEPENDENCIES;
       });

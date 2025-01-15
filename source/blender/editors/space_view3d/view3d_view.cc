@@ -804,7 +804,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
                                   ReportList *reports)
 {
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  float min[3], max[3], box[3];
+  blender::float3 min, max, box;
   float size = 0.0f;
   uint local_view_bit;
   bool changed = false;
@@ -1103,7 +1103,8 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = localview_exec;
-  ot->flag = OPTYPE_UNDO; /* localview changes object layer bitflags */
+  /* Use undo because local-view changes object layer bit-flags. */
+  ot->flag = OPTYPE_UNDO;
 
   ot->poll = ED_operator_view3d_active;
 

@@ -2,32 +2,31 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_THREAD_H__
-#define __UTIL_THREAD_H__
+#pragma once
 
 #include <condition_variable>
 #include <functional>
 #include <mutex>
-#include <queue>
-#include <thread>
+
+#if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
+#  include <pthread.h>
+#else
+#  include <thread>
+#endif
 
 #ifdef _WIN32
 #  include "util/windows.h"
-#else
-#  include <pthread.h>
 #endif
 
 /* NOTE: Use tbb/spin_mutex.h instead of util_tbb.h because some of the TBB
  * functionality requires RTTI, which is disabled for OSL kernel. */
 #include <tbb/spin_mutex.h>
 
-#include "util/function.h"
-
 CCL_NAMESPACE_BEGIN
 
-typedef std::mutex thread_mutex;
-typedef std::unique_lock<std::mutex> thread_scoped_lock;
-typedef std::condition_variable thread_condition_variable;
+using thread_mutex = std::mutex;
+using thread_scoped_lock = std::unique_lock<std::mutex>;
+using thread_condition_variable = std::condition_variable;
 
 /**
  * Own thread implementation similar to std::thread, so we can set a
@@ -35,14 +34,14 @@ typedef std::condition_variable thread_condition_variable;
  */
 class thread {
  public:
-  thread(function<void()> run_cb);
+  thread(std::function<void()> run_cb);
   ~thread();
 
   static void *run(void *arg);
   bool join();
 
  protected:
-  function<void()> run_cb_;
+  std::function<void()> run_cb_;
 #if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
   pthread_t pthread_id;
 #else
@@ -72,5 +71,3 @@ class thread_scoped_spin_lock {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_THREAD_H__ */

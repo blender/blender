@@ -3,6 +3,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "main",
+)
+
 import argparse
 import make_utils
 import os
@@ -13,8 +17,8 @@ from pathlib import Path
 from typing import (
     TextIO,
     Any,
-)
-from collections.abc import (
+    Union,
+    # Proxies for `collections.abc`
     Iterable,
 )
 
@@ -95,7 +99,7 @@ def manifest_path(tarball: Path) -> Path:
     return without_suffix.with_name(f"{name}-manifest.txt")
 
 
-def packages_path(current_directory: Path, cli_args: Any) -> Path | None:
+def packages_path(current_directory: Path, cli_args: Any) -> Union[Path, None]:
     if not cli_args.include_packages:
         return None
 
@@ -116,7 +120,7 @@ def create_manifest(
     version: make_utils.BlenderVersion,
     outpath: Path,
     blender_srcdir: Path,
-    packages_dir: Path | None,
+    packages_dir: Union[Path, None],
 ) -> None:
     print(f'Building manifest of files:  "{outpath}"...', end="", flush=True)
     with outpath.open("w", encoding="utf-8") as outfile:
@@ -164,7 +168,7 @@ def create_tarball(
     tarball: Path,
     manifest: Path,
     blender_srcdir: Path,
-    packages_dir: Path | None,
+    packages_dir: Union[Path, None],
 ) -> None:
     print(f'Creating archive:            "{tarball}" ...', end="", flush=True)
 
@@ -238,7 +242,7 @@ def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
         yield path
 
 
-def git_command(*cli_args: bytes | str | Path) -> Iterable[str]:
+def git_command(*cli_args: Union[bytes, str, Path]) -> Iterable[str]:
     """Generator, yields lines of output from a Git command."""
     command = ("git", *cli_args)
 

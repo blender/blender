@@ -32,6 +32,10 @@ To check a .blend file instead of outputting its JSon version (use explicit -o o
    ./blend2json.py -c foo.blend
 
 """
+__all__ = (
+    "main",
+)
+
 
 FILTER_DOC = """
 Each generic filter is made of three arguments, the include/exclude toggle ('+'/'-'), a regex to match against the name

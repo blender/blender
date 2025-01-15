@@ -4,13 +4,24 @@
 
 #pragma once
 
+#include "kernel/image.h"
+
+#include "kernel/svm/util.h"
+
+#include "kernel/util/colorspace.h"
+
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Sky texture */
 
-ccl_device float sky_angle_between(float thetav, float phiv, float theta, float phi)
+ccl_device float sky_angle_between(const float thetav,
+                                   const float phiv,
+                                   const float theta,
+                                   const float phi)
 {
-  float cospsi = sinf(thetav) * sinf(theta) * cosf(phi - phiv) + cosf(thetav) * cosf(theta);
+  const float cospsi = sinf(thetav) * sinf(theta) * cosf(phi - phiv) + cosf(thetav) * cosf(theta);
   return safe_acosf(cospsi);
 }
 
@@ -18,44 +29,46 @@ ccl_device float sky_angle_between(float thetav, float phiv, float theta, float 
  * "A Practical Analytic Model for Daylight"
  * A. J. Preetham, Peter Shirley, Brian Smits
  */
-ccl_device float sky_perez_function(ccl_private float *lam, float theta, float gamma)
+ccl_device float sky_perez_function(const ccl_private float *lam,
+                                    const float theta,
+                                    const float gamma)
 {
-  float ctheta = cosf(theta);
-  float cgamma = cosf(gamma);
+  const float ctheta = cosf(theta);
+  const float cgamma = cosf(gamma);
 
   return (1.0f + lam[0] * expf(lam[1] / ctheta)) *
          (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cgamma * cgamma);
 }
 
 ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
-                                        float3 dir,
-                                        float sunphi,
-                                        float suntheta,
-                                        float radiance_x,
-                                        float radiance_y,
-                                        float radiance_z,
+                                        const float3 dir,
+                                        const float sunphi,
+                                        const float suntheta,
+                                        const float radiance_x,
+                                        const float radiance_y,
+                                        const float radiance_z,
                                         ccl_private float *config_x,
                                         ccl_private float *config_y,
                                         ccl_private float *config_z)
 {
   /* convert vector to spherical coordinates */
-  float2 spherical = direction_to_spherical(dir);
+  const float2 spherical = direction_to_spherical(dir);
   float theta = spherical.x;
-  float phi = -spherical.y + M_PI_2_F;
+  const float phi = -spherical.y + M_PI_2_F;
 
   /* angle between sun direction and dir */
-  float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
+  const float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
 
   /* clamp theta to horizon */
   theta = min(theta, M_PI_2_F - 0.001f);
 
   /* compute xyY color space values */
-  float x = radiance_y * sky_perez_function(config_y, theta, gamma);
-  float y = radiance_z * sky_perez_function(config_z, theta, gamma);
-  float Y = radiance_x * sky_perez_function(config_x, theta, gamma);
+  const float x = radiance_y * sky_perez_function(config_y, theta, gamma);
+  const float y = radiance_z * sky_perez_function(config_z, theta, gamma);
+  const float Y = radiance_x * sky_perez_function(config_x, theta, gamma);
 
   /* convert to RGB */
-  float3 xyz = xyY_to_xyz(x, y, Y);
+  const float3 xyz = xyY_to_xyz(x, y, Y);
   return xyz_to_rgb_clamped(kg, xyz);
 }
 
@@ -63,17 +76,19 @@ ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
  * "An Analytic Model for Full Spectral Sky-Dome Radiance"
  * Lukas Hosek, Alexander Wilkie
  */
-ccl_device float sky_radiance_internal(ccl_private float *configuration, float theta, float gamma)
+ccl_device float sky_radiance_internal(const ccl_private float *configuration,
+                                       const float theta,
+                                       const float gamma)
 {
-  float ctheta = cosf(theta);
-  float cgamma = cosf(gamma);
+  const float ctheta = cosf(theta);
+  const float cgamma = cosf(gamma);
 
-  float expM = expf(configuration[4] * gamma);
-  float rayM = cgamma * cgamma;
-  float mieM = (1.0f + rayM) / powf((1.0f + configuration[8] * configuration[8] -
-                                     2.0f * configuration[8] * cgamma),
-                                    1.5f);
-  float zenith = sqrtf(ctheta);
+  const float expM = expf(configuration[4] * gamma);
+  const float rayM = cgamma * cgamma;
+  const float mieM = (1.0f + rayM) / powf((1.0f + configuration[8] * configuration[8] -
+                                           2.0f * configuration[8] * cgamma),
+                                          1.5f);
+  const float zenith = sqrtf(ctheta);
 
   return (1.0f + configuration[0] * expf(configuration[1] / (ctheta + 0.01f))) *
          (configuration[2] + configuration[3] * expM + configuration[5] * rayM +
@@ -81,66 +96,66 @@ ccl_device float sky_radiance_internal(ccl_private float *configuration, float t
 }
 
 ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
-                                     float3 dir,
-                                     float sunphi,
-                                     float suntheta,
-                                     float radiance_x,
-                                     float radiance_y,
-                                     float radiance_z,
+                                     const float3 dir,
+                                     const float sunphi,
+                                     const float suntheta,
+                                     const float radiance_x,
+                                     const float radiance_y,
+                                     const float radiance_z,
                                      ccl_private float *config_x,
                                      ccl_private float *config_y,
                                      ccl_private float *config_z)
 {
   /* convert vector to spherical coordinates */
-  float2 spherical = direction_to_spherical(dir);
+  const float2 spherical = direction_to_spherical(dir);
   float theta = spherical.x;
-  float phi = -spherical.y + M_PI_2_F;
+  const float phi = -spherical.y + M_PI_2_F;
 
   /* angle between sun direction and dir */
-  float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
+  const float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
 
   /* clamp theta to horizon */
   theta = min(theta, M_PI_2_F - 0.001f);
 
   /* compute xyz color space values */
-  float x = sky_radiance_internal(config_x, theta, gamma) * radiance_x;
-  float y = sky_radiance_internal(config_y, theta, gamma) * radiance_y;
-  float z = sky_radiance_internal(config_z, theta, gamma) * radiance_z;
+  const float x = sky_radiance_internal(config_x, theta, gamma) * radiance_x;
+  const float y = sky_radiance_internal(config_y, theta, gamma) * radiance_y;
+  const float z = sky_radiance_internal(config_z, theta, gamma) * radiance_z;
 
   /* convert to RGB and adjust strength */
   return xyz_to_rgb_clamped(kg, make_float3(x, y, z)) * (M_2PI_F / 683);
 }
 
 /* Nishita improved sky model */
-ccl_device float3 geographical_to_direction(float lat, float lon)
+ccl_device float3 geographical_to_direction(const float lat, const float lon)
 {
   return spherical_to_direction(lat - M_PI_2_F, lon - M_PI_2_F);
 }
 
 ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
-                                       float3 dir,
-                                       uint32_t path_flag,
-                                       float3 pixel_bottom,
-                                       float3 pixel_top,
-                                       ccl_private float *nishita_data,
-                                       uint texture_id)
+                                       const float3 dir,
+                                       const uint32_t path_flag,
+                                       const float3 pixel_bottom,
+                                       const float3 pixel_top,
+                                       const ccl_private float *nishita_data,
+                                       const uint texture_id)
 {
   /* definitions */
-  float sun_elevation = nishita_data[0];
-  float sun_rotation = nishita_data[1];
-  float angular_diameter = nishita_data[2];
-  float sun_intensity = nishita_data[3];
-  bool sun_disc = (angular_diameter >= 0.0f);
+  const float sun_elevation = nishita_data[0];
+  const float sun_rotation = nishita_data[1];
+  const float angular_diameter = nishita_data[2];
+  const float sun_intensity = nishita_data[3];
+  const bool sun_disc = (angular_diameter >= 0.0f);
   float3 xyz;
   /* convert dir to spherical coordinates */
-  float2 direction = direction_to_spherical(dir);
+  const float2 direction = direction_to_spherical(dir);
   /* render above the horizon */
   if (dir.z >= 0.0f) {
     /* definitions */
-    float3 sun_dir = geographical_to_direction(sun_elevation, sun_rotation);
-    float sun_dir_angle = precise_angle(dir, sun_dir);
-    float half_angular = angular_diameter * 0.5f;
-    float dir_elevation = M_PI_2_F - direction.x;
+    const float3 sun_dir = geographical_to_direction(sun_elevation, sun_rotation);
+    const float sun_dir_angle = precise_angle(dir, sun_dir);
+    const float half_angular = angular_diameter * 0.5f;
+    const float dir_elevation = M_PI_2_F - direction.x;
 
     /* If the ray is inside the sun disc, render it, otherwise render the sky.
      * Alternatively, ignore the sun if we're evaluating the background texture. */
@@ -164,16 +179,16 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
         }
       }
       /* limb darkening, coefficient is 0.6f */
-      float limb_darkening = (1.0f -
-                              0.6f * (1.0f - sqrtf(1.0f - sqr(sun_dir_angle / half_angular))));
+      const float limb_darkening = (1.0f - 0.6f * (1.0f - sqrtf(1.0f - sqr(sun_dir_angle /
+                                                                           half_angular))));
       xyz *= limb_darkening;
     }
     /* sky */
     else {
       /* sky interpolation */
-      float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
+      const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
       /* more pixels toward horizon compensation */
-      float y = safe_sqrtf(dir_elevation / M_PI_2_F);
+      const float y = safe_sqrtf(dir_elevation / M_PI_2_F);
       xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
     }
   }
@@ -187,7 +202,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
       float fade = 1.0f + dir.z * 2.5f;
       fade = sqr(fade) * fade;
       /* interpolation */
-      float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
+      const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
       xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, -0.5)) * fade;
     }
   }
@@ -198,24 +213,30 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
 
 ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
                                          ccl_private ShaderData *sd,
-                                         uint32_t path_flag,
+                                         const uint32_t path_flag,
                                          ccl_private float *stack,
-                                         uint4 node,
+                                         const uint4 node,
                                          int offset)
 {
   /* Load data */
-  uint dir_offset = node.y;
-  uint out_offset = node.z;
-  int sky_model = node.w;
+  const uint dir_offset = node.y;
+  const uint out_offset = node.z;
+  const int sky_model = node.w;
 
-  float3 dir = stack_load_float3(stack, dir_offset);
+  const float3 dir = stack_load_float3(stack, dir_offset);
   float3 f;
 
   /* Preetham and Hosek share the same data */
   if (sky_model == 0 || sky_model == 1) {
     /* Define variables */
-    float sunphi, suntheta, radiance_x, radiance_y, radiance_z;
-    float config_x[9], config_y[9], config_z[9];
+    float sunphi;
+    float suntheta;
+    float radiance_x;
+    float radiance_y;
+    float radiance_z;
+    float config_x[9];
+    float config_y[9];
+    float config_z[9];
 
     float4 data = read_node_float(kg, &offset);
     sunphi = data.x;
@@ -297,7 +318,7 @@ ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
     float nishita_data[4];
 
     float4 data = read_node_float(kg, &offset);
-    float3 pixel_bottom = make_float3(data.x, data.y, data.z);
+    const float3 pixel_bottom = make_float3(data.x, data.y, data.z);
     float3 pixel_top;
     pixel_top.x = data.w;
 
@@ -310,7 +331,7 @@ ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
     data = read_node_float(kg, &offset);
     nishita_data[2] = data.x;
     nishita_data[3] = data.y;
-    uint texture_id = __float_as_uint(data.z);
+    const uint texture_id = __float_as_uint(data.z);
 
     /* Compute Sky */
     f = sky_radiance_nishita(

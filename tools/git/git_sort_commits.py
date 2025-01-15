@@ -12,6 +12,10 @@ Example:
     git_sort_commits.py < commits.txt
 """
 
+__all__ = (
+    "main",
+)
+
 import sys
 import os
 

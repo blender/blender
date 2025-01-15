@@ -16,7 +16,7 @@
 #include "scene/scene.h"
 
 #include "util/color.h"
-#include "util/foreach.h"
+
 #include "util/hash.h"
 #include "util/log.h"
 
@@ -25,11 +25,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-ParticleCurveData::ParticleCurveData() {}
+ParticleCurveData::ParticleCurveData() = default;
 
-ParticleCurveData::~ParticleCurveData() {}
+ParticleCurveData::~ParticleCurveData() = default;
 
-static float shaperadius(float shape, float root, float tip, float time)
+static float shaperadius(const float shape, const float root, const float tip, const float time)
 {
   assert(time >= 0.0f);
   assert(time <= 1.0f);
@@ -58,11 +58,11 @@ static bool ObtainCacheParticleData(
     return false;
   }
 
-  Transform tfm = get_transform(b_ob->matrix_world());
-  Transform itfm = transform_inverse(tfm);
+  const Transform tfm = get_transform(b_ob->matrix_world());
+  const Transform itfm = transform_inverse(tfm);
 
   for (BL::Modifier &b_mod : b_ob->modifiers) {
-    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+    if ((b_mod.type() == BL::Modifier::type_PARTICLE_SYSTEM) &&
         (background ? b_mod.show_render() : b_mod.show_viewport()))
     {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
@@ -72,29 +72,32 @@ static bool ObtainCacheParticleData(
       if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
           (b_part.type() == BL::ParticleSettings::type_HAIR))
       {
-        int shader = clamp(b_part.material() - 1, 0, hair->get_used_shaders().size() - 1);
-        int display_step = background ? b_part.render_step() : b_part.display_step();
-        int totparts = b_psys.particles.length();
-        int totchild = background ? b_psys.child_particles.length() :
-                                    (int)((float)b_psys.child_particles.length() *
-                                          (float)b_part.display_percentage() / 100.0f);
+        const int shader = clamp(b_part.material() - 1, 0, hair->get_used_shaders().size() - 1);
+        const int display_step = background ? b_part.render_step() : b_part.display_step();
+        const int totparts = b_psys.particles.length();
+        const int totchild = background ? b_psys.child_particles.length() :
+                                          (int)((float)b_psys.child_particles.length() *
+                                                (float)b_part.display_percentage() / 100.0f);
         int totcurves = totchild;
 
-        if (b_part.child_type() == 0 || totchild == 0)
+        if (b_part.child_type() == 0 || totchild == 0) {
           totcurves += totparts;
+        }
 
-        if (totcurves == 0)
+        if (totcurves == 0) {
           continue;
+        }
 
         int ren_step = (1 << display_step) + 1;
-        if (b_part.kink() == BL::ParticleSettings::kink_SPIRAL)
+        if (b_part.kink() == BL::ParticleSettings::kink_SPIRAL) {
           ren_step += b_part.kink_extra_steps();
+        }
 
         CData->psys_firstcurve.push_back_slow(curvenum);
         CData->psys_curvenum.push_back_slow(totcurves);
         CData->psys_shader.push_back_slow(shader);
 
-        float radius = b_part.radius_scale() * 0.5f;
+        const float radius = b_part.radius_scale() * 0.5f;
 
         CData->psys_rootradius.push_back_slow(radius * b_part.root_radius());
         CData->psys_tipradius.push_back_slow(radius * b_part.tip_radius());
@@ -102,10 +105,11 @@ static bool ObtainCacheParticleData(
         CData->psys_closetip.push_back_slow(b_part.use_close_tip());
 
         int pa_no = 0;
-        if (!(b_part.child_type() == 0) && totchild != 0)
+        if (!(b_part.child_type() == 0) && totchild != 0) {
           pa_no = totparts;
+        }
 
-        int num_add = (totparts + totchild - pa_no);
+        const int num_add = (totparts + totchild - pa_no);
         CData->curve_firstkey.reserve(CData->curve_firstkey.size() + num_add);
         CData->curve_keynum.reserve(CData->curve_keynum.size() + num_add);
         CData->curve_length.reserve(CData->curve_length.size() + num_add);
@@ -122,7 +126,7 @@ static bool ObtainCacheParticleData(
           for (int step_no = 0; step_no < ren_step; step_no++) {
             float3 co_world = prev_co_world;
             b_psys.co_hair(*b_ob, pa_no, step_no, &co_world.x);
-            float3 co_object = transform_point(&itfm, co_world);
+            const float3 co_object = transform_point(&itfm, co_world);
             if (step_no > 0) {
               const float step_length = len(co_object - prev_co_object);
               curve_length += step_length;
@@ -151,7 +155,7 @@ static bool ObtainCacheParticleUV(Hair *hair,
                                   BL::Object *b_ob,
                                   ParticleCurveData *CData,
                                   bool background,
-                                  int uv_num)
+                                  const int uv_num)
 {
   if (!(hair && b_mesh && b_ob && CData)) {
     return false;
@@ -160,7 +164,7 @@ static bool ObtainCacheParticleUV(Hair *hair,
   CData->curve_uv.clear();
 
   for (BL::Modifier &b_mod : b_ob->modifiers) {
-    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+    if ((b_mod.type() == BL::Modifier::type_PARTICLE_SYSTEM) &&
         (background ? b_mod.show_render() : b_mod.show_viewport()))
     {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
@@ -170,23 +174,26 @@ static bool ObtainCacheParticleUV(Hair *hair,
       if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
           (b_part.type() == BL::ParticleSettings::type_HAIR))
       {
-        int totparts = b_psys.particles.length();
-        int totchild = background ? b_psys.child_particles.length() :
-                                    (int)((float)b_psys.child_particles.length() *
-                                          (float)b_part.display_percentage() / 100.0f);
+        const int totparts = b_psys.particles.length();
+        const int totchild = background ? b_psys.child_particles.length() :
+                                          (int)((float)b_psys.child_particles.length() *
+                                                (float)b_part.display_percentage() / 100.0f);
         int totcurves = totchild;
 
-        if (b_part.child_type() == 0 || totchild == 0)
+        if (b_part.child_type() == 0 || totchild == 0) {
           totcurves += totparts;
+        }
 
-        if (totcurves == 0)
+        if (totcurves == 0) {
           continue;
+        }
 
         int pa_no = 0;
-        if (!(b_part.child_type() == 0) && totchild != 0)
+        if (!(b_part.child_type() == 0) && totchild != 0) {
           pa_no = totparts;
+        }
 
-        int num_add = (totparts + totchild - pa_no);
+        const int num_add = (totparts + totchild - pa_no);
         CData->curve_uv.reserve(CData->curve_uv.size() + num_add);
 
         BL::ParticleSystem::particles_iterator b_pa;
@@ -197,12 +204,14 @@ static bool ObtainCacheParticleUV(Hair *hair,
           b_mesh->uv_layers.begin(l);
 
           float2 uv = zero_float2();
-          if (!b_mesh->uv_layers.empty())
+          if (!b_mesh->uv_layers.empty()) {
             b_psys.uv_on_emitter(psmd, *b_pa, pa_no, uv_num, &uv.x);
+          }
           CData->curve_uv.push_back_slow(uv);
 
-          if (pa_no < totparts && b_pa != b_psys.particles.end())
+          if (pa_no < totparts && b_pa != b_psys.particles.end()) {
             ++b_pa;
+          }
         }
       }
     }
@@ -216,7 +225,7 @@ static bool ObtainCacheParticleVcol(Hair *hair,
                                     BL::Object *b_ob,
                                     ParticleCurveData *CData,
                                     bool background,
-                                    int vcol_num)
+                                    const int vcol_num)
 {
   if (!(hair && b_mesh && b_ob && CData)) {
     return false;
@@ -225,7 +234,7 @@ static bool ObtainCacheParticleVcol(Hair *hair,
   CData->curve_vcol.clear();
 
   for (BL::Modifier &b_mod : b_ob->modifiers) {
-    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+    if ((b_mod.type() == BL::Modifier::type_PARTICLE_SYSTEM) &&
         (background ? b_mod.show_render() : b_mod.show_viewport()))
     {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
@@ -235,23 +244,26 @@ static bool ObtainCacheParticleVcol(Hair *hair,
       if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
           (b_part.type() == BL::ParticleSettings::type_HAIR))
       {
-        int totparts = b_psys.particles.length();
-        int totchild = background ? b_psys.child_particles.length() :
-                                    (int)((float)b_psys.child_particles.length() *
-                                          (float)b_part.display_percentage() / 100.0f);
+        const int totparts = b_psys.particles.length();
+        const int totchild = background ? b_psys.child_particles.length() :
+                                          (int)((float)b_psys.child_particles.length() *
+                                                (float)b_part.display_percentage() / 100.0f);
         int totcurves = totchild;
 
-        if (b_part.child_type() == 0 || totchild == 0)
+        if (b_part.child_type() == 0 || totchild == 0) {
           totcurves += totparts;
+        }
 
-        if (totcurves == 0)
+        if (totcurves == 0) {
           continue;
+        }
 
         int pa_no = 0;
-        if (!(b_part.child_type() == 0) && totchild != 0)
+        if (!(b_part.child_type() == 0) && totchild != 0) {
           pa_no = totparts;
+        }
 
-        int num_add = (totparts + totchild - pa_no);
+        const int num_add = (totparts + totchild - pa_no);
         CData->curve_vcol.reserve(CData->curve_vcol.size() + num_add);
 
         BL::ParticleSystem::particles_iterator b_pa;
@@ -262,12 +274,14 @@ static bool ObtainCacheParticleVcol(Hair *hair,
           b_mesh->vertex_colors.begin(l);
 
           float4 vcol = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-          if (!b_mesh->vertex_colors.empty())
+          if (!b_mesh->vertex_colors.empty()) {
             b_psys.mcol_on_emitter(psmd, *b_pa, pa_no, vcol_num, &vcol.x);
+          }
           CData->curve_vcol.push_back_slow(vcol);
 
-          if (pa_no < totparts && b_pa != b_psys.particles.end())
+          if (pa_no < totparts && b_pa != b_psys.particles.end()) {
             ++b_pa;
+          }
         }
       }
     }
@@ -285,10 +299,10 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
     return;
   }
 
-  Attribute *attr_normal = NULL;
-  Attribute *attr_intercept = NULL;
-  Attribute *attr_length = NULL;
-  Attribute *attr_random = NULL;
+  Attribute *attr_normal = nullptr;
+  Attribute *attr_intercept = nullptr;
+  Attribute *attr_length = nullptr;
+  Attribute *attr_random = nullptr;
 
   if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
     attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -356,11 +370,11 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
         num_curve_keys++;
       }
 
-      if (attr_length != NULL) {
+      if (attr_length != nullptr) {
         attr_length->add(CData->curve_length[curve]);
       }
 
-      if (attr_random != NULL) {
+      if (attr_random != nullptr) {
         attr_random->add(hash_uint2_to_float(num_curves, 0));
       }
 
@@ -377,12 +391,15 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   }
 }
 
-static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, int curvekey)
+static float4 CurveSegmentMotionCV(ParticleCurveData *CData,
+                                   const int sys,
+                                   const int curve,
+                                   const int curvekey)
 {
   const float3 ickey_loc = CData->curvekey_co[curvekey];
   const float curve_time = CData->curvekey_time[curvekey];
   const float curve_length = CData->curve_length[curve];
-  float time = (curve_length > 0.0f) ? curve_time / curve_length : 0.0f;
+  const float time = (curve_length > 0.0f) ? curve_time / curve_length : 0.0f;
   float radius = shaperadius(
       CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
 
@@ -398,7 +415,10 @@ static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve,
   return mP;
 }
 
-static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, float step)
+static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData,
+                                       const int sys,
+                                       const int curve,
+                                       const float step)
 {
   assert(step >= 0.0f);
   assert(step <= 1.0f);
@@ -420,8 +440,8 @@ static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData, int sys, int cu
 }
 
 static void export_hair_motion_validate_attribute(Hair *hair,
-                                                  int motion_step,
-                                                  int num_motion_keys,
+                                                  const int motion_step,
+                                                  const int num_motion_keys,
                                                   bool have_motion)
 {
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -448,7 +468,7 @@ static void export_hair_motion_validate_attribute(Hair *hair,
   }
 }
 
-static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int motion_step)
+static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, const int motion_step)
 {
   /* find attribute */
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -461,7 +481,7 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
   }
 
   /* export motion vectors for curve keys */
-  size_t numkeys = hair->get_curve_keys().size();
+  const size_t numkeys = hair->get_curve_keys().size();
   float4 *mP = attr_mP->data_float4() + motion_step * numkeys;
   bool have_motion = false;
   int i = 0;
@@ -473,9 +493,9 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
          curve++)
     {
       /* Curve lengths may not match! Curves can be clipped. */
-      int curve_key_end = (num_curves + 1 < (int)hair->get_curve_first_key().size() ?
-                               hair->get_curve_first_key()[num_curves + 1] :
-                               (int)hair->get_curve_keys().size());
+      const int curve_key_end = (num_curves + 1 < (int)hair->get_curve_first_key().size() ?
+                                     hair->get_curve_first_key()[num_curves + 1] :
+                                     (int)hair->get_curve_keys().size());
       const int num_center_curve_keys = curve_key_end - hair->get_curve_first_key()[num_curves];
       const int is_num_keys_different = CData->curve_keynum[curve] - num_center_curve_keys;
 
@@ -528,7 +548,7 @@ bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
 {
   /* Test if the object has a particle modifier with hair. */
   for (BL::Modifier &b_mod : b_ob.modifiers) {
-    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+    if ((b_mod.type() == BL::Modifier::type_PARTICLE_SYSTEM) &&
         (preview ? b_mod.show_viewport() : b_mod.show_render()))
     {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
@@ -548,7 +568,7 @@ bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
 
 /* Old particle hair. */
 void BlenderSync::sync_particle_hair(
-    Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, int motion_step)
+    Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, const int motion_step)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
@@ -556,7 +576,7 @@ void BlenderSync::sync_particle_hair(
   BL::Object b_ob = b_ob_info.real_object;
 
   /* obtain general settings */
-  if (b_ob.mode() == b_ob.mode_PARTICLE_EDIT || b_ob.mode() == b_ob.mode_EDIT) {
+  if (b_ob.mode() == BL::Object::mode_PARTICLE_EDIT || b_ob.mode() == BL::Object::mode_EDIT) {
     return;
   }
 
@@ -578,14 +598,15 @@ void BlenderSync::sync_particle_hair(
    * blender to handle deforming objects */
   if (!motion) {
     if (hair->need_attribute(scene, ATTR_STD_GENERATED)) {
-      float3 loc, size;
+      float3 loc;
+      float3 size;
       mesh_texture_space(*static_cast<const ::Mesh *>(b_mesh.ptr.data), loc, size);
 
       Attribute *attr_generated = hair->attributes.add(ATTR_STD_GENERATED);
       float3 *generated = attr_generated->data_float3();
 
       for (size_t i = 0; i < hair->num_curves(); i++) {
-        float3 co = hair->get_curve_keys()[hair->get_curve(i).first_key];
+        const float3 co = hair->get_curve_keys()[hair->get_curve(i).first_key];
         generated[i] = co * size - loc;
       }
     }
@@ -625,9 +646,9 @@ void BlenderSync::sync_particle_hair(
     int uv_num = 0;
 
     for (b_mesh.uv_layers.begin(l); l != b_mesh.uv_layers.end(); ++l, uv_num++) {
-      bool active_render = l->active_render();
-      AttributeStandard std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-      ustring name = ustring(l->name().c_str());
+      const bool active_render = l->active_render();
+      const AttributeStandard std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
+      const ustring name = ustring(l->name().c_str());
 
       /* UV map */
       if (hair->need_attribute(scene, name) || hair->need_attribute(scene, std)) {
@@ -693,7 +714,7 @@ static void attr_create_motion_from_velocity(Hair *hair,
   hair->set_motion_steps(3);
 
   /* Find or add attribute */
-  float3 *P = &hair->get_curve_keys()[0];
+  float3 *P = hair->get_curve_keys().data();
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -701,7 +722,7 @@ static void attr_create_motion_from_velocity(Hair *hair,
   }
 
   /* Only export previous and next frame, we don't have any in between data. */
-  float motion_times[2] = {-1.0f, 1.0f};
+  const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
     float3 *mP = attr_mP->data_float3() + step * num_curve_keys;
@@ -833,8 +854,8 @@ static void export_hair_curves(Scene *scene,
   int *curve_shader = hair->get_curve_shader().data();
 
   /* Add requested attributes. */
-  float *attr_intercept = NULL;
-  float *attr_length = NULL;
+  float *attr_intercept = nullptr;
+  float *attr_length = nullptr;
 
   if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
     /* Get geometry normals. */
@@ -917,7 +938,7 @@ static void export_hair_curves(Scene *scene,
 
 static void export_hair_curves_motion(Hair *hair,
                                       const blender::bke::CurvesGeometry &b_curves,
-                                      int motion_step)
+                                      const int motion_step)
 {
   /* Find or add attribute. */
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -947,13 +968,13 @@ static void export_hair_curves_motion(Hair *hair,
       break;
     }
 
-    Hair::Curve curve = hair->get_curve(curve_index);
+    const Hair::Curve curve = hair->get_curve(curve_index);
     curve_index++;
 
     if (points.size() == curve.num_keys) {
       /* Number of keys matches. */
       for (const int i : points.index_range()) {
-        int point = points[i];
+        const int point = points[i];
 
         if (point < num_keys) {
           mP[num_motion_keys] = curve_point_as_float4(b_positions, b_radius, point);
@@ -990,7 +1011,7 @@ static void export_hair_curves_motion(Hair *hair,
 }
 
 /* Hair object. */
-void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step)
+void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, const int motion_step)
 {
   /* Motion blur attribute is relative to seconds, we need it relative to frames. */
   const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
@@ -1026,7 +1047,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
     }
     else {
       /* Particle hair. */
-      bool need_undeformed = new_hair.need_attribute(scene, ATTR_STD_GENERATED);
+      const bool need_undeformed = new_hair.need_attribute(scene, ATTR_STD_GENERATED);
       BL::Mesh b_mesh = object_to_mesh(
           b_data, b_ob_info, b_depsgraph, need_undeformed, Mesh::SUBDIVISION_NONE);
 
@@ -1063,7 +1084,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
 void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
                                    BObjectInfo &b_ob_info,
                                    Hair *hair,
-                                   int motion_step)
+                                   const int motion_step)
 {
   /* Skip if nothing exported. */
   if (hair->num_keys() == 0) {
@@ -1077,15 +1098,14 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
       sync_hair(hair, b_ob_info, true, motion_step);
       return;
     }
-    else {
-      /* Particle hair. */
-      BL::Mesh b_mesh = object_to_mesh(
-          b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
-      if (b_mesh) {
-        sync_particle_hair(hair, b_mesh, b_ob_info, true, motion_step);
-        free_object_to_mesh(b_data, b_ob_info, b_mesh);
-        return;
-      }
+
+    /* Particle hair. */
+    BL::Mesh b_mesh = object_to_mesh(
+        b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
+    if (b_mesh) {
+      sync_particle_hair(hair, b_mesh, b_ob_info, true, motion_step);
+      free_object_to_mesh(b_data, b_ob_info, b_mesh);
+      return;
     }
   }
 

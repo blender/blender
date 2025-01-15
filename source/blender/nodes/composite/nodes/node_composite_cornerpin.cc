@@ -6,6 +6,7 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_node.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -71,7 +72,7 @@ class CornerPinOperation : public NodeOperation {
       }
       if (output_mask.should_compute()) {
         output_mask.allocate_single_value();
-        output_mask.set_float_value(1.0f);
+        output_mask.set_single_value(1.0f);
       }
       return;
     }
@@ -227,10 +228,10 @@ class CornerPinOperation : public NodeOperation {
 
   float3x3 compute_homography_matrix()
   {
-    float2 lower_left = get_input("Lower Left").get_vector_value_default(float4(0.0f)).xy();
-    float2 lower_right = get_input("Lower Right").get_vector_value_default(float4(0.0f)).xy();
-    float2 upper_right = get_input("Upper Right").get_vector_value_default(float4(0.0f)).xy();
-    float2 upper_left = get_input("Upper Left").get_vector_value_default(float4(0.0f)).xy();
+    float2 lower_left = get_input("Lower Left").get_single_value_default(float4(0.0f)).xy();
+    float2 lower_right = get_input("Lower Right").get_single_value_default(float4(0.0f)).xy();
+    float2 upper_right = get_input("Upper Right").get_single_value_default(float4(0.0f)).xy();
+    float2 upper_left = get_input("Upper Left").get_single_value_default(float4(0.0f)).xy();
 
     /* The inputs are invalid because the plane is not convex, fallback to an identity operation in
      * that case. */
@@ -264,8 +265,11 @@ void register_node_type_cmp_cornerpin()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CORNERPIN, "Corner Pin", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeCornerPin", CMP_NODE_CORNERPIN);
+  ntype.ui_name = "Corner Pin";
+  ntype.ui_description = "Plane warp transformation using explicit corner values";
   ntype.enum_name_legacy = "CORNERPIN";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_cornerpin_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

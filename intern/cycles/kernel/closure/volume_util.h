@@ -4,15 +4,19 @@
 
 #pragma once
 
+#include "util/math_fast.h"
+#include "util/projection.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Given a random number, sample a direction that makes an angle of theta with direction D. */
-ccl_device float3 phase_sample_direction(float3 D, float cos_theta, float rand)
+ccl_device float3 phase_sample_direction(const float3 D, const float cos_theta, const float rand)
 {
-  float phi = M_2PI_F * rand;
-  float3 dir = spherical_cos_to_direction(cos_theta, phi);
+  const float phi = M_2PI_F * rand;
+  const float3 dir = spherical_cos_to_direction(cos_theta, phi);
 
-  float3 T, B;
+  float3 T;
+  float3 B;
   make_orthonormals(D, &T, &B);
   return to_global(dir, T, B, D);
 }
@@ -20,7 +24,7 @@ ccl_device float3 phase_sample_direction(float3 D, float cos_theta, float rand)
 /* Given cosine between rays, return probability density that a photon bounces
  * to that direction. The g parameter controls how different it is from the
  * uniform sphere. g=0 uniform diffuse-like, g=1 close to sharp single ray. */
-ccl_device float phase_henyey_greenstein(float cos_theta, float g)
+ccl_device float phase_henyey_greenstein(const float cos_theta, const float g)
 {
   if (fabsf(g) < 1e-3f) {
     return M_1_4PI_F;
@@ -29,9 +33,9 @@ ccl_device float phase_henyey_greenstein(float cos_theta, float g)
   return (1 - sqr(g)) / (M_4PI_F * fac * safe_sqrtf(fac));
 }
 
-ccl_device float3 phase_henyey_greenstein_sample(float3 D,
-                                                 float g,
-                                                 float2 rand,
+ccl_device float3 phase_henyey_greenstein_sample(const float3 D,
+                                                 const float g,
+                                                 const float2 rand,
                                                  ccl_private float *pdf)
 {
   float cos_theta = 1 - 2 * rand.x;
@@ -48,12 +52,12 @@ ccl_device float3 phase_henyey_greenstein_sample(float3 D,
 /* Given cosine between rays, return probability density that a photon bounces to that direction
  * according to the constant Rayleigh phase function.
  * See https://doi.org/10.1364/JOSAA.28.002436 for details. */
-ccl_device float phase_rayleigh(float cos_theta)
+ccl_device float phase_rayleigh(const float cos_theta)
 {
   return (0.1875f * M_1_PI_F) * (1.0f + sqr(cos_theta));
 }
 
-ccl_device float3 phase_rayleigh_sample(float3 D, float2 rand, ccl_private float *pdf)
+ccl_device float3 phase_rayleigh_sample(const float3 D, const float2 rand, ccl_private float *pdf)
 {
   const float a = 2 - 4 * rand.x;
   /* Metal doesn't have cbrtf, but since we compute u - 1/u anyways, we can just as well
@@ -72,13 +76,13 @@ ccl_device float3 phase_rayleigh_sample(float3 D, float2 rand, ccl_private float
  * function. alpha=0 reduces to HG function, g=0, alpha=1 reduces to Rayleigh function, alpha=1
  * reduces to Cornette-Shanks function.
  * See https://doi.org/10.1086/379118 for details. */
-ccl_device float phase_draine(float cos_theta, float g, float alpha)
+ccl_device float phase_draine(const float cos_theta, const float g, float alpha)
 {
   /* Check special cases. */
   if (fabsf(g) < 1e-3f && alpha > 0.999f) {
     return phase_rayleigh(cos_theta);
   }
-  else if (fabsf(alpha) < 1e-3f) {
+  if (fabsf(alpha) < 1e-3f) {
     return phase_henyey_greenstein(cos_theta, g);
   }
 
@@ -89,7 +93,7 @@ ccl_device float phase_draine(float cos_theta, float g, float alpha)
 }
 
 /* Adapted from the HLSL code provided in https://research.nvidia.com/labs/rtr/approximate-mie/ */
-ccl_device float phase_draine_sample_cos(float g, float alpha, float rand)
+ccl_device float phase_draine_sample_cos(const float g, const float alpha, const float rand)
 {
   if (fabsf(g) < 1e-2f) {
     /* Special case to prevent division by zero.
@@ -99,15 +103,20 @@ ccl_device float phase_draine_sample_cos(float g, float alpha, float rand)
     const float inv_u = -fast_inv_cbrtf(b_2 + sqrtf(sqr(b_2) + sqr(inv_alpha) * inv_alpha));
     return 1 / inv_u - inv_u / alpha;
   }
-  const float g2 = sqr(g), g3 = g * g2, g4 = sqr(g2), g6 = g2 * g4;
+  const float g2 = sqr(g);
+  const float g3 = g * g2;
+  const float g4 = sqr(g2);
+  const float g6 = g2 * g4;
   const float pgp1_2 = sqr(1 + g2);
-  const float T1a = alpha * (g4 - 1), T1a3 = sqr(T1a) * T1a;
+  const float T1a = alpha * (g4 - 1);
+  const float T1a3 = sqr(T1a) * T1a;
   const float T2 = -1296 * (g2 - 1) * (alpha - alpha * g2) * T1a * (4 * g2 + alpha * pgp1_2);
   const float T9 = 2 + g2 + g3 * (1 + 2 * g2) * (2 * rand - 1);
   const float T3 = 3 * g2 * (1 + g * (2 * rand - 1)) + alpha * T9;
   const float T4a = 432 * T1a3 + T2 + 432 * (alpha * (1 - g2)) * sqr(T3);
   const float T10 = alpha * (2 * g4 - g2 - g6);
-  const float T4b = 144 * T10, T4b3 = sqr(T4b) * T4b;
+  const float T4b = 144 * T10;
+  const float T4b3 = sqr(T4b) * T4b;
   const float T4 = T4a + sqrtf(-4 * T4b3 + sqr(T4a));
   const float inv_T4p3 = fast_inv_cbrtf(T4);
   const float T8 = 48 * M_CBRT2_F * T10;
@@ -117,14 +126,14 @@ ccl_device float phase_draine_sample_cos(float g, float alpha, float rand)
   return (1 + g2 - 0.25f * sqr(sqrtf(T7) - sqrtf(T5))) / (2 * g);
 }
 
-ccl_device float3
-phase_draine_sample(float3 D, float g, float alpha, float2 rand, ccl_private float *pdf)
+ccl_device float3 phase_draine_sample(
+    const float3 D, const float g, float alpha, const float2 rand, ccl_private float *pdf)
 {
   /* Check special cases. */
   if (fabsf(g) < 1e-3f && alpha > 0.999f) {
     return phase_rayleigh_sample(D, rand, pdf);
   }
-  else if (fabsf(alpha) < 1e-3f) {
+  if (fabsf(alpha) < 1e-3f) {
     return phase_henyey_greenstein_sample(D, g, rand, pdf);
   }
 
@@ -134,13 +143,13 @@ phase_draine_sample(float3 D, float g, float alpha, float2 rand, ccl_private flo
   return phase_sample_direction(D, cos_theta, rand.y);
 }
 
-ccl_device float phase_fournier_forand_delta(float n, float sin_htheta_sqr)
+ccl_device float phase_fournier_forand_delta(const float n, const float sin_htheta_sqr)
 {
-  float u = 4 * sin_htheta_sqr;
+  const float u = 4 * sin_htheta_sqr;
   return u / (3 * sqr(n - 1));
 }
 
-ccl_device_inline float3 phase_fournier_forand_coeffs(float B, float IOR)
+ccl_device_inline float3 phase_fournier_forand_coeffs(const float B, const float IOR)
 {
   const float d90 = phase_fournier_forand_delta(IOR, 0.5f);
   const float d180 = phase_fournier_forand_delta(IOR, 1.0f);
@@ -153,10 +162,15 @@ ccl_device_inline float3 phase_fournier_forand_coeffs(float B, float IOR)
  * refraction and controls how much of the light is refracted. B is the particle backscatter
  * fraction, B = b_b / b.
  * See https://doi.org/10.1117/12.366488 for details. */
-ccl_device_inline float phase_fournier_forand_impl(
-    float cos_theta, float delta, float pow_delta_v, float v, float sin_htheta_sqr, float pf_coeff)
+ccl_device_inline float phase_fournier_forand_impl(float cos_theta,
+                                                   const float delta,
+                                                   const float pow_delta_v,
+                                                   const float v,
+                                                   float sin_htheta_sqr,
+                                                   const float pf_coeff)
 {
-  const float m_delta = 1 - delta, m_pow_delta_v = 1 - pow_delta_v;
+  const float m_delta = 1 - delta;
+  const float m_pow_delta_v = 1 - pow_delta_v;
 
   float pf;
   if (fabsf(m_delta) < 1e-3f) {
@@ -173,13 +187,14 @@ ccl_device_inline float phase_fournier_forand_impl(
   return pf;
 }
 
-ccl_device float phase_fournier_forand(float cos_theta, float3 coeffs)
+ccl_device float phase_fournier_forand(const float cos_theta, const float3 coeffs)
 {
   if (fabsf(cos_theta) >= 1.0f) {
     return 0.0f;
   }
 
-  const float n = coeffs.x, v = coeffs.y;
+  const float n = coeffs.x;
+  const float v = coeffs.y;
   const float pf_coeff = coeffs.z * (1.0f / (16.0f * M_PI_F));
   const float sin_htheta_sqr = 0.5f * (1 - cos_theta); /* sin^2(theta / 2)*/
   const float delta = phase_fournier_forand_delta(n, sin_htheta_sqr);
@@ -187,9 +202,10 @@ ccl_device float phase_fournier_forand(float cos_theta, float3 coeffs)
   return phase_fournier_forand_impl(cos_theta, delta, powf(delta, v), v, sin_htheta_sqr, pf_coeff);
 }
 
-ccl_device float phase_fournier_forand_newton(float rand, float3 coeffs)
+ccl_device float phase_fournier_forand_newton(const float rand, const float3 coeffs)
 {
-  const float n = coeffs.x, v = coeffs.y;
+  const float n = coeffs.x;
+  const float v = coeffs.y;
   const float cdf_coeff = coeffs.z * (1.0f / 8.0f);
   const float pf_coeff = coeffs.z * (1.0f / (16.0f * M_PI_F));
 
@@ -198,7 +214,8 @@ ccl_device float phase_fournier_forand_newton(float rand, float3 coeffs)
     const float sin_htheta_sqr = 0.5f * (1 - cos_theta); /* sin^2(theta / 2)*/
     const float delta = phase_fournier_forand_delta(n, sin_htheta_sqr);
     const float pow_delta_v = powf(delta, v);
-    const float m_delta = 1 - delta, m_pow_delta_v = 1 - pow_delta_v;
+    const float m_delta = 1 - delta;
+    const float m_pow_delta_v = 1 - pow_delta_v;
 
     /* Evaluate CDF and phase functions */
     float cdf;
@@ -229,12 +246,12 @@ ccl_device float phase_fournier_forand_newton(float rand, float3 coeffs)
   return cos_theta;
 }
 
-ccl_device float3 phase_fournier_forand_sample(float3 D,
-                                               float3 coeffs,
-                                               float2 rand,
+ccl_device float3 phase_fournier_forand_sample(const float3 D,
+                                               const float3 coeffs,
+                                               const float2 rand,
                                                ccl_private float *pdf)
 {
-  float cos_theta = phase_fournier_forand_newton(rand.x, coeffs);
+  const float cos_theta = phase_fournier_forand_newton(rand.x, coeffs);
   *pdf = phase_fournier_forand(cos_theta, coeffs);
 
   return phase_sample_direction(D, cos_theta, rand.y);

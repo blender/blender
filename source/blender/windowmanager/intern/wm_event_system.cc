@@ -10,7 +10,6 @@
  * Also some operator reports utility functions.
  */
 
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <fmt/format.h>
@@ -1180,7 +1179,9 @@ static void wm_operator_reports(bContext *C,
   }
 
   /* Refresh Info Editor with reports immediately, even if op returned #OPERATOR_CANCELLED. */
-  if ((retval & OPERATOR_CANCELLED) && !BLI_listbase_is_empty(&op->reports->list)) {
+  if ((retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) &&
+      !BLI_listbase_is_empty(&op->reports->list))
+  {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, nullptr);
   }
   /* If the caller owns them, handle this. */
@@ -3400,6 +3401,8 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
         wmEventHandler_KeymapResult km_result;
         WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
         eHandlerActionFlag action_iter = WM_HANDLER_CONTINUE;
+        /* Compute in advance, as event may be freed on WM_HANDLER_BREAK. */
+        const bool event_is_timer = ISTIMER(event->type);
         for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
           wmKeyMap *keymap = km_result.keymaps[km_index];
           action_iter |= wm_handlers_do_keymap_with_keymap_handler(
@@ -3412,7 +3415,7 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
 
         /* Clear the tool-tip whenever a key binding is handled, without this tool-tips
          * are kept when a modal operators starts (annoying but otherwise harmless). */
-        if (action & WM_HANDLER_BREAK) {
+        if (action & WM_HANDLER_BREAK && !event_is_timer) {
           /* Window may be gone after file read. */
           if (CTX_wm_window(C) != nullptr) {
             WM_tooltip_clear(C, CTX_wm_window(C));
@@ -3781,23 +3784,29 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   if (wm->paintcursors.first) {
-    ARegion *region = CTX_wm_region(C);
+    const bScreen *screen = CTX_wm_screen(C);
+    ARegion *region = screen ? screen->active_region : nullptr;
 
     if (region) {
+      ARegion *prev_region = CTX_wm_region(C);
+
+      CTX_wm_region_set(C, region);
       wm_paintcursor_tag(C, wm, region);
+      CTX_wm_region_set(C, prev_region);
     }
 
     /* If previous position was not in current region, we have to set a temp new context. */
     if (region == nullptr || !BLI_rcti_isect_pt_v(&region->winrct, event->prev_xy)) {
-      ScrArea *area = CTX_wm_area(C);
+      ScrArea *prev_area = CTX_wm_area(C);
+      ARegion *prev_region = CTX_wm_region(C);
 
       CTX_wm_area_set(C, area_event_inside(C, event->prev_xy));
       CTX_wm_region_set(C, region_event_inside(C, event->prev_xy));
 
       wm_paintcursor_tag(C, wm, CTX_wm_region(C));
 
-      CTX_wm_area_set(C, area);
-      CTX_wm_region_set(C, region);
+      CTX_wm_area_set(C, prev_area);
+      CTX_wm_region_set(C, prev_region);
     }
   }
 }

@@ -59,28 +59,9 @@ class VKScheduler {
    * NOTE: Currently will select all nodes.
    * NOTE: Result becomes invalid by the next call to VKScheduler.
    */
-  [[nodiscard]] Span<NodeHandle> select_nodes_for_image(const VKRenderGraph &render_graph,
-                                                        VkImage vk_image);
-
-  /**
-   * Determine which nodes of the render graph should be selected and in what order they should
-   * be executed to update the given vk_buffer to its latest content and state.
-   *
-   * NOTE: Currently will select all nodes.
-   * NOTE: Result becomes invalid by the next call to VKScheduler.
-   */
-  [[nodiscard]] Span<NodeHandle> select_nodes_for_buffer(const VKRenderGraph &render_graph,
-                                                         VkBuffer vk_buffer);
   [[nodiscard]] Span<NodeHandle> select_nodes(const VKRenderGraph &render_graph);
 
  private:
-  /**
-   * Select all nodes.
-   *
-   * Result is stored in `result_`.
-   */
-  void select_all_nodes(const VKRenderGraph &render_graph);
-
   void reorder_nodes(const VKRenderGraph &render_graph);
 
   /**

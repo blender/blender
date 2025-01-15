@@ -174,7 +174,7 @@ static void write_weights_for_drawing(const ModifierData &md,
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (const int point_i : range) {
       const float weight = vgroup_weights[point_i];
-      if (weight < 0.0f) {
+      if (weight <= 0.0f) {
         continue;
       }
 

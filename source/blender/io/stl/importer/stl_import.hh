@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <cstdio>
+
 #include "IO_stl.hh"
 
 struct bContext;

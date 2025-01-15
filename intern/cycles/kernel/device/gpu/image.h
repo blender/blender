@@ -12,7 +12,7 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #endif
 
-ccl_device_inline float frac(float x, ccl_private int *ix)
+ccl_device_inline float frac(const float x, ccl_private int *ix)
 {
   int i = float_to_int(x) - ((x < 0.0f) ? 1 : 0);
   *ix = i;
@@ -20,46 +20,46 @@ ccl_device_inline float frac(float x, ccl_private int *ix)
 }
 
 /* w0, w1, w2, and w3 are the four cubic B-spline basis functions. */
-ccl_device float cubic_w0(float a)
+ccl_device float cubic_w0(const float a)
 {
   return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);
 }
-ccl_device float cubic_w1(float a)
+ccl_device float cubic_w1(const float a)
 {
   return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 }
-ccl_device float cubic_w2(float a)
+ccl_device float cubic_w2(const float a)
 {
   return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 }
-ccl_device float cubic_w3(float a)
+ccl_device float cubic_w3(const float a)
 {
   return (1.0f / 6.0f) * (a * a * a);
 }
 
 /* g0 and g1 are the two amplitude functions. */
-ccl_device float cubic_g0(float a)
+ccl_device float cubic_g0(const float a)
 {
   return cubic_w0(a) + cubic_w1(a);
 }
-ccl_device float cubic_g1(float a)
+ccl_device float cubic_g1(const float a)
 {
   return cubic_w2(a) + cubic_w3(a);
 }
 
 /* h0 and h1 are the two offset functions */
-ccl_device float cubic_h0(float a)
+ccl_device float cubic_h0(const float a)
 {
   return (cubic_w1(a) / cubic_g0(a)) - 1.0f;
 }
-ccl_device float cubic_h1(float a)
+ccl_device float cubic_h1(const float a)
 {
   return (cubic_w3(a) / cubic_g1(a)) + 1.0f;
 }
 
 /* Fast bicubic texture lookup using 4 bilinear lookups, adapted from CUDA samples. */
 template<typename T>
-ccl_device_noinline T kernel_tex_image_interp_bicubic(ccl_global const TextureInfo &info,
+ccl_device_noinline T kernel_tex_image_interp_bicubic(const ccl_global TextureInfo &info,
                                                       float x,
                                                       float y)
 {
@@ -90,7 +90,7 @@ ccl_device_noinline T kernel_tex_image_interp_bicubic(ccl_global const TextureIn
 /* Fast tricubic texture lookup using 8 trilinear lookups. */
 template<typename T>
 ccl_device_noinline T
-kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, float y, float z)
+kernel_tex_image_interp_tricubic(const ccl_global TextureInfo &info, float x, float y, float z)
 {
   ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
 
@@ -132,8 +132,10 @@ kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, fl
 
 #ifdef WITH_NANOVDB
 template<typename OutT, typename Acc>
-ccl_device OutT
-kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, float x, float y, float z)
+ccl_device OutT kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc,
+                                                          const float x,
+                                                          float y,
+                                                          const float z)
 {
   int ix, iy, iz;
   const float tx = frac(x - 0.5f, &ix);
@@ -158,8 +160,10 @@ kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, float x, float y
 }
 
 template<typename OutT, typename Acc>
-ccl_device OutT
-kernel_tex_image_interp_tricubic_nanovdb(ccl_private Acc &acc, float x, float y, float z)
+ccl_device OutT kernel_tex_image_interp_tricubic_nanovdb(ccl_private Acc &acc,
+                                                         const float x,
+                                                         const float y,
+                                                         const float z)
 {
   int ix, iy, iz;
   int nix, niy, niz;
@@ -220,12 +224,18 @@ kernel_tex_image_interp_tricubic_nanovdb(ccl_private Acc &acc, float x, float y,
 
 #  if defined(__KERNEL_METAL__)
 template<typename OutT, typename T>
-__attribute__((noinline)) OutT kernel_tex_image_interp_nanovdb(
-    ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
+__attribute__((noinline)) OutT kernel_tex_image_interp_nanovdb(const ccl_global TextureInfo &info,
+                                                               const float x,
+                                                               const float y,
+                                                               const float z,
+                                                               const uint interpolation)
 #  else
 template<typename OutT, typename T>
-ccl_device_noinline OutT kernel_tex_image_interp_nanovdb(
-    ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
+ccl_device_noinline OutT kernel_tex_image_interp_nanovdb(const ccl_global TextureInfo &info,
+                                                         const float x,
+                                                         const float y,
+                                                         const float z,
+                                                         const uint interpolation)
 #  endif
 {
   using namespace nanovdb;
@@ -250,9 +260,9 @@ ccl_device_noinline OutT kernel_tex_image_interp_nanovdb(
 }
 #endif
 
-ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
+ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, const int id, const float x, float y)
 {
-  ccl_global const TextureInfo &info = kernel_data_fetch(texture_info, id);
+  const ccl_global TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   /* float4, byte4, ushort4 and half4 */
   const int texture_type = info.data_type;
@@ -284,11 +294,11 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
 }
 
 ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
-                                             int id,
+                                             const int id,
                                              float3 P,
                                              InterpolationType interp)
 {
-  ccl_global const TextureInfo &info = kernel_data_fetch(texture_info, id);
+  const ccl_global TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   if (info.use_transform_3d) {
     P = transform_point(&info.transform_3d, P);

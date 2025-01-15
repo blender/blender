@@ -12,10 +12,6 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
-#include "DNA_anim_types.h"
-
-#include "RNA_access.hh"
-
 #include "ANIM_action.hh"
 
 namespace blender::animrig {

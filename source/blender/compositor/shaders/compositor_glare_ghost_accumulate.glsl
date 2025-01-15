@@ -37,5 +37,6 @@ void main()
   }
 
   vec4 current_accumulated_ghost = imageLoad(accumulated_ghost_img, texel);
-  imageStore(accumulated_ghost_img, texel, current_accumulated_ghost + accumulated_ghost);
+  vec4 combined_ghost = current_accumulated_ghost + accumulated_ghost;
+  imageStore(accumulated_ghost_img, texel, vec4(combined_ghost.rgb, 1.0f));
 }
