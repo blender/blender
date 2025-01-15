@@ -130,6 +130,14 @@ REM Git won't be in the path yet, use full path
 mkdir c:\db
 echo Obtaining vmbuild.cmd
 curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/vmbuild.cmd.txt -o c:\db\vmbuild.cmd
+echo Obtaining nuke.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke.cmd -o c:\db\nuke.cmd
+echo Obtaining nuke_python.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke_python.cmd -o c:\db\nuke_python.cmd
+echo Obtaining nuke_embree.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke_embree.cmd -o c:\db\nuke_embree.cmd
+echo Obtaining nuke_shaderc.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke_shaderc.cmd -o c:\db\nuke_shaderc.cmd
 
 echo *******************************************************************
 echo ** Environment variables have changed, please close this console **
