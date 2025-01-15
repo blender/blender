@@ -91,6 +91,7 @@ AssetShelfType *type_find_from_idname(const StringRef idname);
  * \{ */
 
 void type_popup_unlink(const AssetShelfType &shelf_type);
+void ensure_asset_library_fetched(const bContext &C, const AssetShelfType &shelf_type);
 
 /** \} */
 
