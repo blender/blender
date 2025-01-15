@@ -82,14 +82,16 @@ static void realize_on_domain_gpu(Context &context,
       realization_options.interpolation, Interpolation::Bilinear, Interpolation::Bicubic);
   GPU_texture_filter_mode(input, use_bilinear);
 
-  /* If the input wraps, set a repeating wrap mode for out-of-bound texture access. Otherwise,
+  /* If the input repeats, set a repeating extend mode for out-of-bound texture access. Otherwise,
    * make out-of-bound texture access return zero by setting a clamp to border extend mode. */
   GPU_texture_extend_mode_x(input,
-                            realization_options.wrap_x ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
-                                                         GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+                            realization_options.repeat_x ?
+                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
   GPU_texture_extend_mode_y(input,
-                            realization_options.wrap_y ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
-                                                         GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+                            realization_options.repeat_y ?
+                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
   input.bind_as_texture(shader, "input_tx");
 
@@ -129,15 +131,15 @@ static void realize_on_domain_cpu(Result &input,
     switch (realization_options.interpolation) {
       case Interpolation::Nearest:
         sample = input.sample_nearest_wrap(
-            normalized_coordinates, realization_options.wrap_x, realization_options.wrap_y);
+            normalized_coordinates, realization_options.repeat_x, realization_options.repeat_y);
         break;
       case Interpolation::Bilinear:
         sample = input.sample_bilinear_wrap(
-            normalized_coordinates, realization_options.wrap_x, realization_options.wrap_y);
+            normalized_coordinates, realization_options.repeat_x, realization_options.repeat_y);
         break;
       case Interpolation::Bicubic:
         sample = input.sample_cubic_wrap(
-            normalized_coordinates, realization_options.wrap_x, realization_options.wrap_y);
+            normalized_coordinates, realization_options.repeat_x, realization_options.repeat_y);
         break;
     }
     output.store_pixel_generic_type(texel, sample);

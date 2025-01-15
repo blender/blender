@@ -34,11 +34,11 @@ struct RealizationOptions {
   /* If true, the result will be repeated infinitely along the horizontal axis when realizing the
    * result. If false, regions outside of bounds of the result along the horizontal axis will be
    * filled with zeros. */
-  bool wrap_x = false;
+  bool repeat_x = false;
   /* If true, the result will be repeated infinitely along the vertical axis when realizing the
    * result. If false, regions outside of bounds of the result along the vertical axis will be
    * filled with zeros. */
-  bool wrap_y = false;
+  bool repeat_y = false;
 };
 
 /* ------------------------------------------------------------------------------------------------
