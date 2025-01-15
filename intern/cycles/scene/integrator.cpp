@@ -108,7 +108,9 @@ NODE_DEFINE(Integrator)
   SOCKET_BOOLEAN(motion_blur, "Motion Blur", false);
 
   SOCKET_INT(aa_samples, "AA Samples", 0);
-  SOCKET_INT(start_sample, "Start Sample", 0);
+  SOCKET_BOOLEAN(use_sample_subset, "Use Sample Subset", false);
+  SOCKET_INT(sample_subset_offset, "Sample Subset Offset", 0);
+  SOCKET_INT(sample_subset_length, "Sample Subset Length", MAX_SAMPLES);
 
   SOCKET_BOOLEAN(use_adaptive_sampling, "Use Adaptive Sampling", true);
   SOCKET_FLOAT(adaptive_threshold, "Adaptive Threshold", 0.01f);
@@ -272,13 +274,16 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
                                            FLT_MAX :
                                            sample_clamp_indirect * 3.0f;
 
+  const int clamped_aa_samples = min(aa_samples, MAX_SAMPLES);
+
   kintegrator->sampling_pattern = sampling_pattern;
   kintegrator->scrambling_distance = scrambling_distance;
-  kintegrator->sobol_index_mask = reverse_integer_bits(next_power_of_two(aa_samples - 1) - 1);
-  kintegrator->blue_noise_sequence_length = aa_samples;
+  kintegrator->sobol_index_mask = reverse_integer_bits(next_power_of_two(clamped_aa_samples - 1) -
+                                                       1);
+  kintegrator->blue_noise_sequence_length = clamped_aa_samples;
   if (kintegrator->sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_ROUND) {
-    if (!is_power_of_two(aa_samples)) {
-      kintegrator->blue_noise_sequence_length = next_power_of_two(aa_samples);
+    if (!is_power_of_two(clamped_aa_samples)) {
+      kintegrator->blue_noise_sequence_length = next_power_of_two(clamped_aa_samples);
     }
     kintegrator->sampling_pattern = SAMPLING_PATTERN_BLUE_NOISE_PURE;
   }
@@ -309,7 +314,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
   /* Build pre-tabulated Sobol samples if needed. */
   const int sequence_size = clamp(
-      next_power_of_two(aa_samples - 1), MIN_TAB_SOBOL_SAMPLES, MAX_TAB_SOBOL_SAMPLES);
+      next_power_of_two(clamped_aa_samples - 1), MIN_TAB_SOBOL_SAMPLES, MAX_TAB_SOBOL_SAMPLES);
   const int table_size = sequence_size * NUM_TAB_SOBOL_PATTERNS * NUM_TAB_SOBOL_DIMENSIONS;
   if (kintegrator->sampling_pattern == SAMPLING_PATTERN_TABULATED_SOBOL &&
       dscene->sample_pattern_lut.size() != table_size)
@@ -386,12 +391,23 @@ AdaptiveSampling Integrator::get_adaptive_sampling() const
     return adaptive_sampling;
   }
 
-  if (aa_samples > 0 && adaptive_threshold == 0.0f) {
+  const int clamped_aa_samples = min(aa_samples, MAX_SAMPLES);
+
+  if (clamped_aa_samples > 0 && adaptive_threshold == 0.0f) {
     adaptive_sampling.threshold = max(0.001f, 1.0f / (float)aa_samples);
     VLOG_INFO << "Cycles adaptive sampling: automatic threshold = " << adaptive_sampling.threshold;
   }
   else {
     adaptive_sampling.threshold = adaptive_threshold;
+  }
+
+  if (use_sample_subset && clamped_aa_samples > 0) {
+    const int subset_samples = max(
+        min(sample_subset_offset + sample_subset_length, clamped_aa_samples) -
+            sample_subset_offset,
+        0);
+
+    adaptive_sampling.threshold *= sqrtf((float)subset_samples / (float)clamped_aa_samples);
   }
 
   if (adaptive_sampling.threshold > 0 && adaptive_min_samples == 0) {

@@ -65,7 +65,7 @@ class PathTraceWork {
   virtual void render_samples(RenderStatistics &statistics,
                               const int start_sample,
                               const int samples_num,
-                              int sample_offset) = 0;
+                              const int sample_offset) = 0;
 
   /* Copy render result from this work to the corresponding place of the GPU display.
    *
