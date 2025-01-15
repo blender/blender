@@ -12,6 +12,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
+#include "GEO_mesh_selection.hh"
 #include "GEO_mesh_split_edges.hh"
 #include "GEO_randomize.hh"
 
@@ -98,27 +99,6 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
         new_to_old_edge_map,
         MutableSpan(orig_indices, mesh.edges_num).take_back(new_to_old_edge_map.size()));
   }
-}
-
-/** A vertex is selected if it's used by a selected edge. */
-static IndexMask vert_selection_from_edge(const Span<int2> edges,
-                                          const IndexMask &selected_edges,
-                                          const int verts_num,
-                                          IndexMaskMemory &memory)
-{
-  Array<bool> array(verts_num, false);
-  selected_edges.foreach_index_optimized<int>(GrainSize(4096), [&](const int i) {
-    array[edges[i][0]] = true;
-    array[edges[i][1]] = true;
-  });
-  return IndexMask::from_bools(array, memory);
-}
-
-static BitVector<> selection_to_bit_vector(const IndexMask &selection, const int total_size)
-{
-  BitVector<> bits(total_size);
-  selection.to_bits(bits);
-  return bits;
 }
 
 /**
@@ -527,7 +507,8 @@ void split_edges(Mesh &mesh,
   IndexMaskMemory memory;
   const IndexMask affected_verts = vert_selection_from_edge(
       orig_edges, selected_edges, orig_verts_num, memory);
-  const BitVector<> selection_bits = selection_to_bit_vector(selected_edges, orig_edges.size());
+  BitVector<> selection_bits(orig_edges.size());
+  selected_edges.to_bits(selection_bits);
   const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
 
   const GroupedSpan<int> vert_to_corner_map = mesh.vert_to_corner_map();
