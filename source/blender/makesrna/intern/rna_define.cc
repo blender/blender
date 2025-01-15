@@ -2420,7 +2420,7 @@ static void rna_def_property_boolean_sdna(PropertyRNA *prop,
       if ((bit_index + length) > max_length) {
         CLOG_ERROR(&LOG,
                    "%s.%s is a '%s' of %d bytes, but wrapped as type '%s' 'bitset array' of %d "
-                   "items starting at bit %d.",
+                   "items starting at bit %u.",
                    srna->identifier,
                    prop->identifier,
                    dp->dnatype,
