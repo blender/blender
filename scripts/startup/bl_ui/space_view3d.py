@@ -7106,9 +7106,8 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         row.prop(overlay, "show_edge_bevel_weight", text="Bevel", toggle=True)
         row.prop(overlay, "show_edge_seams", text="Seams", toggle=True)
 
-        if context.preferences.view.show_developer_ui:
-            col.label(text="Developer")
-            col.prop(overlay, "show_extra_indices", text="Indices")
+        col.separator()
+        col.prop(overlay, "show_extra_indices", text="Indices")
 
 
 class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
