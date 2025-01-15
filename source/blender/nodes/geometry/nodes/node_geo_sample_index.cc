@@ -13,10 +13,6 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
-
-}  // namespace blender::nodes
-
 namespace blender::nodes::node_geo_sample_index_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometrySampleIndex);
