@@ -1391,6 +1391,68 @@ class USDImportTest(AbstractUSDTest):
                     usd_test_data,
                     f"Frame {frame}: {name} test attributes do not match")
 
+        #
+        # Validate Curves data
+        #
+        blender_curves = [
+            bpy.data.objects["Curves"],
+            bpy.data.objects["Curves.001"],
+            bpy.data.objects["Curves.002"],
+            bpy.data.objects["Curves.003"]]
+        usd_curves = [UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane1/curves1/Curves")),
+                      UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane2/curves2/Curves")),
+                      UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane3/curves3/Curves")),
+                      UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane4/curves4/Curves"))]
+        curves_num = len(blender_curves)
+
+        # Workaround: GeometrySet processing loses the data-block name on export. This is why the
+        # .001 etc. names are being used above. Since we need the order of Blender objects to match
+        # the order of USD prims, sort by the Y location to make them match in our test setup.
+        blender_curves.sort(key=lambda ob: ob.parent.location.y)
+
+        # A MeshSequenceCache modifier should be present on every imported object
+        for i in range(0, curves_num):
+            self.assertTrue(len(blender_curves[i].modifiers) == 1 and blender_curves[i].modifiers[0].type ==
+                            'MESH_SEQUENCE_CACHE', f"{blender_curves[i].name} has incorrect modifiers")
+
+        # Compare Blender and USD data against each other for every frame
+        for frame in range(1, 16):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            for i in range(0, mesh_num):
+                blender_curves[i] = blender_curves[i].evaluated_get(depsgraph)
+
+            # Check positions, velocity, radius, and test data
+            for i in range(0, mesh_num):
+                blender_pos_data = [self.round_vector(d.vector)
+                                    for d in blender_curves[i].data.attributes["position"].data]
+                blender_vel_data = [self.round_vector(d.vector)
+                                    for d in blender_curves[i].data.attributes["velocity"].data]
+                blender_radius_data = [round(d.value, 5) for d in blender_curves[i].data.attributes["radius"].data]
+                blender_test_data = [round(d.value, 5) for d in blender_curves[i].data.attributes["test"].data]
+                usd_pos_data = [self.round_vector(d) for d in usd_curves[i].GetPointsAttr().Get(frame)]
+                usd_vel_data = [self.round_vector(d) for d in usd_curves[i].GetVelocitiesAttr().Get(frame)]
+                usd_radius_data = [round(d / 2, 5) for d in usd_curves[i].GetWidthsAttr().Get(frame)]
+                usd_test_data = [round(d, 5) for d in UsdGeom.PrimvarsAPI(usd_curves[i]).GetPrimvar("test").Get(frame)]
+
+                name = usd_curves[i].GetPath().GetParentPath().name
+                self.assertEqual(
+                    blender_pos_data,
+                    usd_pos_data,
+                    f"Frame {frame}: {name} positions do not match")
+                self.assertEqual(
+                    blender_vel_data,
+                    usd_vel_data,
+                    f"Frame {frame}: {name} velocities do not match")
+                self.assertEqual(
+                    blender_radius_data,
+                    usd_radius_data,
+                    f"Frame {frame}: {name} radii do not match")
+                self.assertEqual(
+                    blender_test_data,
+                    usd_test_data,
+                    f"Frame {frame}: {name} test attributes do not match")
+
     def test_import_shapes(self):
         """Test importing USD Shape prims with time-varying attributes."""
 

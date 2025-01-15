@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <cstdint>
 #include <numeric>
-#include <string>
 
 #include <pxr/usd/usdGeom/basisCurves.h>
 #include <pxr/usd/usdGeom/curves.h>
@@ -21,6 +21,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_generic_virtual_array.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_virtual_array.hh"
 
@@ -73,14 +74,11 @@ pxr::UsdGeomBasisCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue c
 
 static void populate_curve_widths(const bke::CurvesGeometry &curves, pxr::VtArray<float> &widths)
 {
-  const bke::AttributeAccessor curve_attributes = curves.attributes();
-  const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
-                                                                           bke::AttrDomain::Point);
+  const VArray<float> radii = curves.radius();
 
-  widths.resize(radii.varray.size());
-
-  for (const int i : radii.varray.index_range()) {
-    widths[i] = radii.varray[i] * 2.0f;
+  widths.resize(radii.size());
+  for (const int i : radii.index_range()) {
+    widths[i] = radii[i] * 2.0f;
   }
 }
 
@@ -348,15 +346,15 @@ void USDCurvesWriter::set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
                                             const pxr::TfToken interpolation)
 {
   pxr::UsdAttribute attr_points = usd_curves.CreatePointsAttr(pxr::VtValue(), true);
-  usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(verts), timecode);
+  set_attribute(attr_points, verts, timecode, usd_value_writer_);
 
   pxr::UsdAttribute attr_vertex_counts = usd_curves.CreateCurveVertexCountsAttr(pxr::VtValue(),
                                                                                 true);
-  usd_value_writer_.SetAttribute(attr_vertex_counts, pxr::VtValue(control_point_counts), timecode);
+  set_attribute(attr_vertex_counts, control_point_counts, timecode, usd_value_writer_);
 
   if (!widths.empty()) {
     pxr::UsdAttribute attr_widths = usd_curves.CreateWidthsAttr(pxr::VtValue(), true);
-    usd_value_writer_.SetAttribute(attr_widths, pxr::VtValue(widths), timecode);
+    set_attribute(attr_widths, widths, timecode, usd_value_writer_);
 
     usd_curves.SetWidthsInterpolation(interpolation);
   }
@@ -374,6 +372,33 @@ static std::optional<pxr::TfToken> convert_blender_domain_to_usd(
     default:
       return std::nullopt;
   }
+}
+
+/* Excluded attributes are those which are handled through native USD concepts
+ * and should not be exported as generic attributes. */
+static bool is_excluded_attr(StringRefNull name)
+{
+  static const Set<StringRefNull> excluded_attrs = []() {
+    Set<StringRefNull> set;
+    set.add_new("position");
+    set.add_new("radius");
+    set.add_new("resolution");
+    set.add_new("id");
+    set.add_new("cyclic");
+    set.add_new("curve_type");
+    set.add_new("normal_mode");
+    set.add_new("handle_left");
+    set.add_new("handle_right");
+    set.add_new("handle_type_left");
+    set.add_new("handle_type_right");
+    set.add_new("knots_mode");
+    set.add_new("nurbs_order");
+    set.add_new("nurbs_weight");
+    set.add_new("velocity");
+    return set;
+  }();
+
+  return excluded_attrs.contains(name);
 }
 
 void USDCurvesWriter::write_generic_data(const bke::CurvesGeometry &curves,
@@ -432,6 +457,25 @@ void USDCurvesWriter::write_uv_data(const bke::AttributeIter &attr,
   copy_blender_buffer_to_primvar<float2, pxr::GfVec2f>(buffer, timecode, pv_uv, usd_value_writer_);
 }
 
+void USDCurvesWriter::write_velocities(const bke::CurvesGeometry &curves,
+                                       const pxr::UsdGeomCurves &usd_curves)
+{
+  const VArraySpan velocity = *curves.attributes().lookup<float3>("velocity",
+                                                                  blender::bke::AttrDomain::Point);
+  if (velocity.is_empty()) {
+    return;
+  }
+
+  /* Export per-vertex velocity vectors. */
+  Span<pxr::GfVec3f> data = velocity.cast<pxr::GfVec3f>();
+  pxr::VtVec3fArray usd_velocities;
+  usd_velocities.assign(data.begin(), data.end());
+
+  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdAttribute attr_vel = usd_curves.CreateVelocitiesAttr(pxr::VtValue(), true);
+  set_attribute(attr_vel, usd_velocities, timecode, usd_value_writer_);
+}
+
 void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
                                         const pxr::UsdGeomCurves &usd_curves)
 {
@@ -440,16 +484,7 @@ void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip "internal" Blender properties and attributes dealt with elsewhere. */
     if (iter.name[0] == '.' || bke::attribute_name_is_anonymous(iter.name) ||
-        ELEM(iter.name,
-             "position",
-             "radius",
-             "resolution",
-             "id",
-             "curve_type",
-             "handle_left",
-             "handle_right",
-             "handle_type_left",
-             "handle_type_right"))
+        is_excluded_attr(iter.name))
     {
       return;
     }
@@ -591,11 +626,13 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       BLI_assert_unreachable();
   }
 
-  set_writer_attributes(*usd_curves, verts, control_point_counts, widths, timecode, interpolation);
+  this->set_writer_attributes(
+      *usd_curves, verts, control_point_counts, widths, timecode, interpolation);
 
-  assign_materials(context, *usd_curves);
+  this->assign_materials(context, *usd_curves);
 
-  write_custom_data(curves, *usd_curves);
+  this->write_velocities(curves, *usd_curves);
+  this->write_custom_data(curves, *usd_curves);
 
   auto prim = usd_curves->GetPrim();
   write_id_properties(prim, curves_id->id, timecode);

@@ -684,6 +684,35 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(UsdGeom.Boundable(points3).GetExtentAttr().GetTimeSamples(), sparse_frames)
         self.assertEqual(UsdGeom.Boundable(points4).GetExtentAttr().GetTimeSamples(), [])
 
+        #
+        # Validate BasisCurve data
+        #
+        curves1 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane1/curves1/Curves"))
+        curves2 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane2/curves2/Curves"))
+        curves3 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane3/curves3/Curves"))
+        curves4 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane4/curves4/Curves"))
+
+        # Positions (should be sparsely written)
+        self.assertEqual(curves1.GetPointsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(curves2.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves3.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves4.GetPointsAttr().GetTimeSamples(), [])
+        # Velocity (should be sparsely written)
+        self.assertEqual(curves1.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(curves2.GetVelocitiesAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(curves3.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(curves4.GetVelocitiesAttr().GetTimeSamples(), [])
+        # Radius (should be sparsely written)
+        self.assertEqual(curves1.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves2.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves3.GetWidthsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(curves4.GetWidthsAttr().GetTimeSamples(), [])
+        # Regular primvar (should be sparsely written)
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves1).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves2).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves3).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves4).GetPrimvar("test").GetTimeSamples(), sparse_frames)
+
     def test_export_mesh_subd(self):
         """Test exporting Subdivision Surface attributes and values"""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_mesh_subd.blend"))
