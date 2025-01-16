@@ -53,17 +53,17 @@ static const EnumPropertyItem *filter_modifiers_by_sequence_type_itemf(bContext 
                                                                        bool * /*r_free*/)
 {
   if (C == nullptr) {
-    return rna_enum_sequence_modifier_type_items;
+    return rna_enum_strip_modifier_type_items;
   }
 
   Scene *scene = CTX_data_scene(C);
   Strip *strip = SEQ_select_active_get(scene);
   if (strip) {
     if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM)) {
-      return rna_enum_sequence_sound_modifier_type_items;
+      return rna_enum_strip_sound_modifier_type_items;
     }
   }
-  return rna_enum_sequence_video_modifier_type_items;
+  return rna_enum_strip_video_modifier_type_items;
 }
 
 void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)

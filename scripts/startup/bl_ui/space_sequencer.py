@@ -2157,7 +2157,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         frame_current = scene.frame_current
         strip = context.active_sequence_strip
 
-        is_effect = isinstance(strip, bpy.types.EffectSequence)
+        is_effect = isinstance(strip, bpy.types.EffectStrip)
 
         # Get once.
         frame_start = strip.frame_start
