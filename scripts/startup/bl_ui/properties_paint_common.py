@@ -7,6 +7,7 @@ from bpy.types import Menu, Panel
 from bpy.app.translations import (
     contexts as i18n_contexts,
     pgettext_iface as iface_,
+    pgettext_n as n_,
 )
 
 
@@ -323,8 +324,9 @@ class BrushSelectPanel(BrushPanel):
             return
 
         if brush.has_unsaved_changes:
-            layout.label(text="*Unsaved Changes")
-            layout.separator()
+            self.bl_label = n_("Brush Asset (Unsaved)")
+        else:
+            self.bl_label = n_("Brush Asset")
 
     def draw(self, context):
         layout = self.layout
