@@ -363,6 +363,17 @@ def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> Exp
                     composed_image.fill_white(Channel.G)
                 elif socket.socket.name == 'Roughness' and not composed_image.is_filled(Channel.B):
                     composed_image.fill_white(Channel.B)
+
+                # Since Alpha is always used together with BaseColor in glTF, make sure
+                # the other channels are filled.
+                # All these channels may be overwritten later by BaseColor socket
+                if socket.socket.name == 'Alpha' and not composed_image.is_filled(Channel.R):
+                    composed_image.fill_white(Channel.R)
+                if socket.socket.name == 'Alpha' and not composed_image.is_filled(Channel.G):
+                    composed_image.fill_white(Channel.G)
+                if socket.socket.name == 'Alpha' and not composed_image.is_filled(Channel.B):
+                    composed_image.fill_white(Channel.B)
+
             else:
                 # copy full image...eventually following sockets might overwrite things
                 if use_tile is None:
