@@ -118,13 +118,27 @@ static float get_distance_factor(float3 target_pos,
   const float3 gvert = math::transform_point(obmat, pos);
   const float dist = math::distance(target_pos, gvert);
 
-  if (dist > dist_max) {
+  if (dist_max > dist_min) {
+    if (dist > dist_max) {
+      return 1.0f;
+    }
+    if (dist <= dist_max && dist > dist_min) {
+      return 1.0f - ((dist_max - dist) / math::max((dist_max - dist_min), 0.0001f));
+    }
+    return 0.0f;
+  }
+  else if (dist_max < dist_min) {
+    if (dist > dist_min) {
+      return 0.0f;
+    }
+    if (dist <= dist_min && dist > dist_max) {
+      return (dist_min - dist) / math::max((dist_min - dist_max), 0.0001f);
+    }
     return 1.0f;
   }
-  if (dist <= dist_max && dist > dist_min) {
-    return 1.0f - ((dist_max - dist) / math::max((dist_max - dist_min), 0.0001f));
-  }
-  return 0.0f;
+
+  /* dist_max == dist_min, "stepped" behavior then. */
+  return (dist > dist_max) ? 0.0f : 1.0f;
 }
 
 static bool target_vertex_group_available(const StringRefNull name,
