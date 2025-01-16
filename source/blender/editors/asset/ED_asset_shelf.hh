@@ -105,6 +105,9 @@ int tile_height(const AssetShelfSettings &settings);
 
 AssetShelf *active_shelf_from_area(const ScrArea *area);
 
+/**
+ * Enable catalog path in all shelves visible in all windows.
+ */
 void show_catalog_in_visible_shelves(const bContext &C, const StringRefNull catalog_path);
 
 int context(const bContext *C, const char *member, bContextDataResult *result);
