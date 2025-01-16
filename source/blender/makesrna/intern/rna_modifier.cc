@@ -11131,8 +11131,6 @@ static void rna_def_modifier_grease_pencil_texture(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_layer_filter(srna);
   rna_def_modifier_grease_pencil_material_filter(
       srna, "rna_GreasePencilTextureModifier_material_filter_set");
-  rna_def_modifier_grease_pencil_vertex_group(
-      srna, "rna_GreasePencilTextureModifier_vertex_group_name_set");
 
   rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
 
