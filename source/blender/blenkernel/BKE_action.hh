@@ -13,6 +13,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
+#include "BLI_span.hh"
 
 #include "DNA_action_defaults.h"
 struct BlendDataReader;
@@ -366,7 +367,11 @@ void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose
 
 /* `action_mirror.cc` */
 
-void BKE_action_flip_with_pose(bAction *act, Object *ob_arm) ATTR_NONNULL(1, 2);
+/**
+ * Flip the action so it can be applied as a mirror. Only data of slots that are related to the
+ * given objects is mirrored.
+ */
+void BKE_action_flip_with_pose(bAction *act, blender::Span<Object *> objects) ATTR_NONNULL(1);
 
 namespace blender::bke {
 
