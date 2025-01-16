@@ -795,6 +795,8 @@ class ASSETBROWSER_MT_metadata_preview_menu(bpy.types.Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("ed.lib_id_generate_preview_from_object", text="Render Active Object")
+        layout.separator()
+        layout.operator("ed.lib_id_remove_preview")
 
 
 class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
