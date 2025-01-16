@@ -333,6 +333,12 @@ void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
 {
   const VKDevice &device = VKBackend::get().device;
   const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+
+  attachment_states_[GPU_FB_DEPTH_ATTACHMENT] = depth_attachment_state;
+  attachment_states_.as_mutable_span()
+      .slice(GPU_FB_COLOR_ATTACHMENT0, color_attachment_states.size())
+      .copy_from(color_attachment_states);
+
   if (supports_local_read) {
     VKContext &context = *VKContext::get();
 
@@ -344,7 +350,10 @@ void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
         }
       }
     }
-    load_stores.fill(default_load_store());
+    if (is_rendering_) {
+      is_rendering_ = false;
+      load_stores.fill(default_load_store());
+    }
   }
   else {
     VKContext &context = *VKContext::get();
@@ -358,10 +367,6 @@ void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
       load_stores.fill(default_load_store());
     }
 
-    attachment_states_[GPU_FB_DEPTH_ATTACHMENT] = depth_attachment_state;
-    attachment_states_.as_mutable_span()
-        .slice(GPU_FB_COLOR_ATTACHMENT0, color_attachment_states.size())
-        .copy_from(color_attachment_states);
     for (int index : IndexRange(color_attachment_states.size())) {
       if (color_attachment_states[index] == GPU_ATTACHMENT_READ) {
         VKTexture *texture = unwrap(unwrap(color_tex(index)));
