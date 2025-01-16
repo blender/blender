@@ -17,6 +17,7 @@
 #include "BKE_workspace.hh"
 
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BLF_api.hh"

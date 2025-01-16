@@ -6,8 +6,6 @@
  * \ingroup edmesh
  */
 
-#include "DNA_scene_types.h"
-
 #include "RNA_access.hh"
 
 #include "WM_api.hh"

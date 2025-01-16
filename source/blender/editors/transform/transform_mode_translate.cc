@@ -21,7 +21,6 @@
 #include "BKE_report.hh"
 #include "BKE_unit.hh"
 
-#include "ED_node.hh"
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"

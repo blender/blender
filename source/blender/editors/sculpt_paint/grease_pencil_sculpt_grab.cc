@@ -9,7 +9,6 @@
 #include "BKE_paint.hh"
 
 #include "BLI_index_mask.hh"
-#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
 #include "DEG_depsgraph_query.hh"

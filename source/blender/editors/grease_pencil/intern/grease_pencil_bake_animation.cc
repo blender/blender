@@ -17,10 +17,8 @@
 #include "BKE_material.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 

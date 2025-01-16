@@ -8,16 +8,13 @@
 
 #include "paint_intern.hh"
 
-#include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
-#include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"
-#include "ED_curves_sculpt.hh"
 
 struct ARegion;
 struct RegionView3D;

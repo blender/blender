@@ -6,8 +6,6 @@
  * \ingroup edsculpt
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
 
@@ -16,13 +14,13 @@
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
@@ -36,8 +34,6 @@
 #include "sculpt_smooth.hh"
 
 #include "IMB_imbuf.hh"
-
-#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>
@@ -573,7 +569,7 @@ void do_paint_brush(const Scene &scene,
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
   if (!color_attribute) {
     return;
@@ -860,7 +856,7 @@ void do_smear_brush(const Depsgraph &depsgraph,
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
 
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
   if (!color_attribute) {

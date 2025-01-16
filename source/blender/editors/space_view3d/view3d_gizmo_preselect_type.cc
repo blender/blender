@@ -12,8 +12,6 @@
  * \note This is a slight misuse of gizmo's, since clicking performs no action.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 

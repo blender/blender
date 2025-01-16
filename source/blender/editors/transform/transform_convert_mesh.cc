@@ -18,7 +18,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
-#include "BLI_utildefines_stack.h"
 
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"

@@ -9,6 +9,7 @@
 #include "BKE_colorband.hh"
 #include "BKE_context.hh"
 
+#include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 
 #include "BLT_translation.hh"

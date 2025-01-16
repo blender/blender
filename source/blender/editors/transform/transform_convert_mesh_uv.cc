@@ -12,6 +12,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"

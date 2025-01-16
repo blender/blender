@@ -15,10 +15,8 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
-#include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
@@ -308,7 +306,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, object);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();

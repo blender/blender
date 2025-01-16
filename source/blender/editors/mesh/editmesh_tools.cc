@@ -32,7 +32,7 @@
 #include "BLI_rand.h"
 #include "BLI_sort_utils.h"
 
-#include "BKE_attribute.hh"
+#include "BKE_attribute.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"

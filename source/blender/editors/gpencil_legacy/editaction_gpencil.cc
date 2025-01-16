@@ -7,14 +7,13 @@
  */
 
 #include <cmath>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_legacy_types.h"

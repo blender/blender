@@ -7,7 +7,6 @@
  */
 
 #include <cmath>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -29,7 +28,6 @@
 #include "BKE_tracking.h"
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 

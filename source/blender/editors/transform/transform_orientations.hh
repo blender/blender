@@ -8,12 +8,14 @@
 
 #pragma once
 
-#include "RE_engine.h"
-
+struct bContext;
 struct bPoseChannel;
 struct Object;
-struct TransInfo;
+struct Scene;
 struct TransformOrientation;
+struct TransInfo;
+struct View3D;
+struct ViewLayer;
 
 bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3]);
 bool gimbal_axis_object(Object *ob, float gmat[3][3]);

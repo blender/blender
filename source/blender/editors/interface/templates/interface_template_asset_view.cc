@@ -9,7 +9,6 @@
 #include "AS_asset_representation.hh"
 
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_screen.hh"
 

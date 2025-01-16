@@ -11,9 +11,8 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
 
-#include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

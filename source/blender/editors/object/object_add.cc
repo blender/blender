@@ -11,16 +11,11 @@
 #include <cstring>
 #include <optional>
 
-#include "BKE_curve_legacy_convert.hh"
-#include "BKE_curves.hh"
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -28,7 +23,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
@@ -57,6 +51,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_curve_legacy_convert.hh"
 #include "BKE_curve_to_mesh.hh"
 #include "BKE_curves.h"
 #include "BKE_curves.hh"

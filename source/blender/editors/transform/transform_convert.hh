@@ -9,10 +9,6 @@
 
 #pragma once
 
-#include "RE_engine.h"
-
-#include "BKE_curves.hh"
-
 #include "BLI_index_mask.hh"
 
 #include "transform.hh"
@@ -30,6 +26,9 @@ struct Strip;
 
 namespace blender::bke::crazyspace {
 struct GeometryDeformation;
+}
+namespace blender::bke {
+class CurvesGeometry;
 }
 
 struct TransConvertTypeInfo {

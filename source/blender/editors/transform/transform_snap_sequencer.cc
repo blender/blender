@@ -11,15 +11,17 @@
 
 #include "BLI_assert.h"
 #include "BLI_map.hh"
-#include "DNA_scene_types.h"
+#include "BLI_math_base.h"
+
 #include "MEM_guardedalloc.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
 
 #include "ED_transform.hh"
 
-#include "SEQ_retiming.hh"
 #include "UI_view2d.hh"
 
 #include "SEQ_channels.hh"

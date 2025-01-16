@@ -10,8 +10,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -31,7 +29,6 @@
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
-#include "BKE_blender.hh"
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_layer.hh"

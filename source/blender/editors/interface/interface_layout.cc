@@ -14,7 +14,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
@@ -22,7 +21,6 @@
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
-#include "BLI_memory_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"

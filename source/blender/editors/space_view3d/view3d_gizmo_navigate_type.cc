@@ -16,15 +16,12 @@
 
 #include <algorithm>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sort_utils.h"
 
 #include "BKE_context.hh"
 
-#include "GPU_batch.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"

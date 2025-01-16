@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include "BLI_array.hh"
-#include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"

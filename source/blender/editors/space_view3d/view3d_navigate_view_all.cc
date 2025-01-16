@@ -6,8 +6,6 @@
  * \ingroup spview3d
  */
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
@@ -18,7 +16,6 @@
 #include "BKE_screen.hh"
 
 #include "BLI_bounds_types.hh"
-#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.hh"

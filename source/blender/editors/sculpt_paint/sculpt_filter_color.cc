@@ -12,7 +12,6 @@
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 
 #include "BLT_translation.hh"
 
@@ -394,7 +393,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   node_mask.foreach_index(GrainSize(1), [&](const int i) {

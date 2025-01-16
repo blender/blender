@@ -18,7 +18,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
-#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
@@ -58,7 +57,6 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
-#include "BLI_sys_types.h"
 #include "ED_mesh.hh" /* for face mask functions */
 
 #include "WM_api.hh"

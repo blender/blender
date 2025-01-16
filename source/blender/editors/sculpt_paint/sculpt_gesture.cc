@@ -16,12 +16,12 @@
 #include "BLI_lasso_2d.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
-#include "BLI_vector.hh"
 
 #include "BKE_context.hh"
 #include "BKE_paint.hh"

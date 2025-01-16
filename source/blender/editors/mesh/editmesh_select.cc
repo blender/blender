@@ -10,9 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_heap.h"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_geom.h"
@@ -20,7 +18,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
-#include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
 #include "BLI_vector.hh"
 
@@ -54,8 +51,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-
-#include "UI_resources.hh"
 
 #include "bmesh_tools.hh"
 

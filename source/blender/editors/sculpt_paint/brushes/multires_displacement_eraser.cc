@@ -14,8 +14,6 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_matrix.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"

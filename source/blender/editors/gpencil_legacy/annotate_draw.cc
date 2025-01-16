@@ -8,12 +8,9 @@
 
 #include <cfloat>
 #include <cmath>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_sys_types.h"
 

@@ -6,6 +6,8 @@
  * \ingroup edobj
  */
 
+#include <sys/stat.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"
@@ -17,7 +19,6 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_path_utils.hh"

@@ -6,8 +6,6 @@
  * \ingroup edinterface
  */
 
-#include "UI_interface.hh"
-
 #include <cstdio>
 #include <memory>
 

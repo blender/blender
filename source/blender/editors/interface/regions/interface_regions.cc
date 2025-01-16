@@ -11,8 +11,6 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
-#include "MEM_guardedalloc.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"

@@ -18,7 +18,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_brush_types.h"
-#include "DNA_node_tree_interface_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
@@ -26,8 +25,6 @@
 #include "ED_view3d.hh"
 
 #include "grease_pencil_intern.hh"
-
-#include <iostream>
 
 namespace blender::ed::sculpt_paint::greasepencil {
 

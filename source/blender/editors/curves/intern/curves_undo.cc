@@ -21,8 +21,6 @@
 #include "ED_curves.hh"
 #include "ED_undo.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 

@@ -20,7 +20,6 @@
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 

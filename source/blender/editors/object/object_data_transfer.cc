@@ -18,7 +18,6 @@
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"

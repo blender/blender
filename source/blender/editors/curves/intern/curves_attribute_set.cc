@@ -11,7 +11,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_context.hh"
-#include "BKE_report.hh"
 #include "BKE_type_conversions.hh"
 
 #include "WM_api.hh"
@@ -26,15 +25,12 @@
 
 #include "RNA_access.hh"
 
-#include "BLT_translation.hh"
-
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Delete Operator

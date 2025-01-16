@@ -16,7 +16,6 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"

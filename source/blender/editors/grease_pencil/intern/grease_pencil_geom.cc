@@ -7,7 +7,6 @@
  */
 
 #include <algorithm>
-#include <limits>
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"

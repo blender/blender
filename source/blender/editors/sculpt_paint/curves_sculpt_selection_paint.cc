@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
-#include <numeric>
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_memory_utils.hh"
 #include "BLI_task.hh"
 
 #include "DNA_brush_types.h"

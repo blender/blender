@@ -21,7 +21,7 @@
 #include "ED_image.hh"
 #include "ED_object.hh"
 
-#include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"

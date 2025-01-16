@@ -12,7 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_fileops.h"
@@ -22,7 +21,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_addon.h"
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_screen.hh"

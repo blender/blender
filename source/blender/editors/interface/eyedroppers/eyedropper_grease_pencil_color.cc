@@ -15,13 +15,11 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_material_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"

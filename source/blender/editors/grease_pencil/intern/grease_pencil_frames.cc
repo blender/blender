@@ -14,11 +14,9 @@
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
-#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 
 #include "ANIM_keyframing.hh"

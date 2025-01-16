@@ -6,8 +6,6 @@
  * \ingroup edsculpt
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -20,7 +18,6 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
 

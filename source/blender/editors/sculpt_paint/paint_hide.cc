@@ -13,8 +13,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 

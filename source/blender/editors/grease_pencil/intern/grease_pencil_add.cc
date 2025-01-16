@@ -7,13 +7,10 @@
  */
 
 #include <array>
-#include <iomanip>
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-
-#include "BLI_math_matrix.hh"
 
 #include "BLT_translation.hh"
 

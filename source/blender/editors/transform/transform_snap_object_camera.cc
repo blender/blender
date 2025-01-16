@@ -8,7 +8,6 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "BKE_bvhutils.hh"
 #include "BKE_object.hh"
 #include "BKE_tracking.h"
 

@@ -12,8 +12,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_sys_types.h" /* int64_t */
-
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
@@ -12,7 +11,6 @@
 #include "BKE_paint.hh"
 
 #include "BLI_bounds.hh"
-#include "BLI_length_parameterize.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 

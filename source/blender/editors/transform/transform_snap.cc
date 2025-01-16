@@ -15,7 +15,6 @@
 
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 

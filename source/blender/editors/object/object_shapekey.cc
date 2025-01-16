@@ -36,8 +36,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "BLI_sys_types.h" /* for intptr_t support */
-
 #include "ED_curve.hh"
 #include "ED_lattice.hh"
 #include "ED_mesh.hh"

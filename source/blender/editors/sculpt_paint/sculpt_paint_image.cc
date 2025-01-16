@@ -26,8 +26,6 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
-#include "bmesh.hh"
-
 #include "mesh_brush_common.hh"
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"

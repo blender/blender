@@ -10,7 +10,7 @@
 
 #include "BLT_translation.hh"
 
-#include "WM_api.hh"
+#include "WM_keymap.hh"
 
 #include "UI_interface.hh"
 #include "interface_intern.hh"

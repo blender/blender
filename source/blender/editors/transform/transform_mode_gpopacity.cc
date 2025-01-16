@@ -13,8 +13,6 @@
 
 #include "BKE_unit.hh"
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"

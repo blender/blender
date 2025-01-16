@@ -8,13 +8,11 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <limits>
 #include <numeric>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
@@ -39,7 +37,6 @@
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.hh"
@@ -51,7 +48,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"

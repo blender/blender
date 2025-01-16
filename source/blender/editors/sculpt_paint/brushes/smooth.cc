@@ -17,7 +17,6 @@
 #include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_task.hh"
-#include "BLI_virtual_array.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
 #include "editors/sculpt_paint/sculpt_automask.hh"
@@ -108,7 +107,7 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
 
   const PositionDeformData position_data(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);

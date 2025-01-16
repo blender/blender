@@ -58,7 +58,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
