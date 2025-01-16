@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 4, 29),
+    "version": (4, 4, 30),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1909,12 +1909,10 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        layout.prop(self, 'import_pack_images')
         layout.prop(self, 'merge_vertices')
         layout.prop(self, 'import_shading')
-        layout.prop(self, 'guess_original_bind_pose')
         layout.prop(self, 'export_import_convert_lighting_mode')
-        layout.prop(self, 'import_webp_texture')
+        import_texture_panel(layout, operator)
         import_bone_panel(layout, operator)
         import_ux_panel(layout, operator)
 
@@ -2006,10 +2004,11 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
 
 def import_bone_panel(layout, operator):
     header, body = layout.panel("GLTF_import_bone", default_closed=False)
-    header.label(text="Bones")
+    header.label(text="Bones & Skin")
     if body:
         body.prop(operator, 'bone_heuristic')
         if operator.bone_heuristic == 'BLENDER':
+            body.prop(operator, 'guess_original_bind_pose')
             body.prop(operator, 'disable_bone_shape')
             body.prop(operator, 'bone_shape_scale_factor')
 
@@ -2020,6 +2019,13 @@ def import_ux_panel(layout, operator):
     if body:
         body.prop(operator, 'import_select_created_objects')
         body.prop(operator, 'import_scene_extras')
+
+def import_texture_panel(layout, operator):
+    header, body = layout.panel("GLTF_import_texture", default_closed=False)
+    header.label(text="Texture")
+    if body:
+        body.prop(operator, 'import_pack_images')
+        body.prop(operator, 'import_webp_texture')
 
 
 def import_panel_user_extension(context, layout):
