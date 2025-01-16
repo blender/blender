@@ -30,6 +30,8 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
+#include "BLT_translation.hh"
+
 #include "NOD_composite.hh"
 
 #include "RNA_access.hh"
@@ -162,6 +164,8 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
   Eyedropper *eye = static_cast<Eyedropper *>(op->customdata);
   wmWindow *window = CTX_wm_window(C);
   WM_cursor_modal_restore(window);
+
+  ED_workspace_status_text(C, nullptr);
 
   if (eye->draw_handle_sample_text) {
     WM_draw_cb_exit(eye->cb_win, eye->draw_handle_sample_text);
@@ -627,6 +631,16 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
     if (eye->accum_start) {
       /* button is pressed so keep sampling */
       eyedropper_color_sample(C, eye, event->xy);
+      WorkspaceStatus status(C);
+      status.item(TIP_("Drag to continue sampling, release when done"), ICON_MOUSE_MOVE);
+    }
+    else {
+      WorkspaceStatus status(C);
+      status.opmodal(IFACE_("Cancel"), op->type, EYE_MODAL_CANCEL);
+      status.opmodal(IFACE_("Confirm"), op->type, EYE_MODAL_SAMPLE_CONFIRM);
+#ifdef __APPLE__
+      status.item(TIP_("Press 'Enter' to sample outside of a Blender window"), ICON_INFO);
+#endif
     }
 
     if (eye->draw_handle_sample_text) {
