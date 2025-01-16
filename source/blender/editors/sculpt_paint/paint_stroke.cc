@@ -59,6 +59,14 @@ struct PaintSample {
   float pressure;
 };
 
+/**
+ * Common structure for various paint operators (e.g. Sculpt, Grease Pencil, Curves Sculpt)
+ *
+ * Callback functions defined and stored on this struct (e.g. `StrokeGetLocation`) allow each of
+ * these modes to customize specific behavior while still sharing other common handing.
+ *
+ * See #paint_stroke_modal for the majority of the paint operator logic.
+ */
 struct PaintStroke {
   std::unique_ptr<PaintModeData> mode_data;
   void *stroke_cursor;
