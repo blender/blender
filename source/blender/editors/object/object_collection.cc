@@ -189,8 +189,11 @@ void COLLECTION_OT_objects_add_active(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Add Selected to Active Collection";
-  ot->description = "Add the object to an object collection that contains the active object";
+  ot->name = "Add Selected to Active Objects Collection";
+  ot->description =
+      "Add selected objects to one of the collections the active-object is part of. "
+      "Optionally add to \"All Collections\" to ensure selected objects are included in "
+      "the same collections as the active object";
   ot->idname = "COLLECTION_OT_objects_add_active";
 
   /* api callbacks */
