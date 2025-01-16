@@ -140,6 +140,10 @@ if(WITH_BUILDINFO)
   add_definitions(-DBUILD_DATE)
 endif()
 
+if(WITH_INSTALL_PORTABLE)
+  add_definitions(-DWITH_INSTALL_PORTABLE)
+endif()
+
 if(WITH_PYTHON_MODULE)
   add_definitions(-DWITH_PYTHON_MODULE)
 endif()

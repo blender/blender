@@ -468,7 +468,7 @@ def register_impl(do_register: bool, all_users: bool) -> str | None:
         # relative to the blender binary and in general it's not needed because system installations
         # are used by package managers which can handle file association themselves.
         # The Linux builds provided by https://blender.org are portable, register is intended to be used for these.
-        if __import__("bpy").utils.resource_path('SYSTEM'):
+        if not __import__("bpy").app.portable:
             return "System Installation, registration is handled by the package manager"
         # While snap builds are portable, the snap system handled file associations.
         # Blender is also launched via a wrapper, again, we could support this if it were

@@ -89,6 +89,7 @@ static PyStructSequence_Field app_info_fields[] = {
     {"background",
      "Boolean, True when blender is running without a user interface (started with -b)"},
     {"factory_startup", "Boolean, True when blender is running with --factory-startup)"},
+    {"portable", "Boolean, True unless blender was built to reference absolute paths (on UNIX)."},
 
     /* buildinfo */
     {"build_date", "The date this blender instance was built"},
@@ -159,6 +160,12 @@ static PyObject *make_app_info()
   SetStrItem(STRINGIFY(BLENDER_VERSION_CYCLE));
   SetObjItem(PyBool_FromLong(G.background));
   SetObjItem(PyBool_FromLong(G.factory_startup));
+
+#ifdef WITH_INSTALL_PORTABLE
+  SetObjItem(Py_NewRef(Py_True));
+#else
+  SetObjItem(Py_NewRef(Py_False));
+#endif
 
 /* build info, use bytes since we can't assume _any_ encoding:
  * see patch #30154 for issue */
