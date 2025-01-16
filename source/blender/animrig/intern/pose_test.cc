@@ -193,36 +193,6 @@ TEST_F(PoseTest, apply_action_all_bones_multiple_slots)
       << "Applying the same pose should result in the same values.";
 }
 
-TEST_F(PoseTest, apply_action_selected_bones_single_slot)
-{
-  Slot &first_slot = pose_action->slot_add();
-  keyframe_data->keyframe_insert(
-      bmain, first_slot, {"pose.bones[\"BoneA\"].location", 0}, {1, 10}, key_settings);
-  keyframe_data->keyframe_insert(
-      bmain, first_slot, {"pose.bones[\"BoneB\"].location", 1}, {1, 5}, key_settings);
-
-  bPoseChannel *bone_a = BKE_pose_channel_find_name(obj_armature_a->pose, "BoneA");
-  bPoseChannel *bone_b = BKE_pose_channel_find_name(obj_armature_a->pose, "BoneB");
-
-  bone_a->loc[1] = 1.0;
-  bone_a->loc[2] = 2.0;
-  bone_b->loc[1] = 0.0;
-
-  /* The algorithm code uses the bone flag instead of the pose bone flag. */
-  bone_a->bone->flag |= BONE_SELECTED;
-  bone_b->bone->flag &= ~BONE_SELECTED;
-
-  AnimationEvalContext eval_context = {nullptr, 1.0f};
-  blender::animrig::pose_apply_action_selected_bones(
-      obj_armature_a, pose_action, first_slot.handle, &eval_context);
-
-  EXPECT_EQ(bone_a->loc[0], 10.0);
-  EXPECT_EQ(bone_b->loc[1], 0.0) << "Unselected bones should not be affected.";
-
-  EXPECT_EQ(bone_a->loc[1], 1.0) << msg_unexpected_modification;
-  EXPECT_EQ(bone_a->loc[2], 2.0) << msg_unexpected_modification;
-}
-
 TEST_F(PoseTest, apply_action_blend_single_slot)
 {
   Slot &first_slot = pose_action->slot_add();

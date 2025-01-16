@@ -20,14 +20,6 @@ struct bAction;
 namespace blender::animrig {
 
 /**
- * Evaluate the action and apply it to the pose. Only FCurves that
- * relate to selected bones are evaluated.
- */
-void pose_apply_action_selected_bones(Object *ob,
-                                      bAction *action,
-                                      slot_handle_t slot_handle,
-                                      const AnimationEvalContext *anim_eval_context);
-/**
  * Evaluate the action and apply it to the pose. Ignore selection state of the bones.
  */
 void pose_apply_action_all_bones(Object *ob,

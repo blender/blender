@@ -86,21 +86,6 @@ void pose_apply(Object *ob,
 
 }  // namespace
 
-void pose_apply_action_selected_bones(Object *ob,
-                                      bAction *action,
-                                      const int32_t slot_handle,
-                                      const AnimationEvalContext *anim_eval_context)
-{
-  auto evaluate_and_apply = [](PointerRNA *ptr,
-                               bAction *act,
-                               const int32_t slot_handle,
-                               const AnimationEvalContext *anim_eval_context) {
-    animsys_evaluate_action(ptr, act, slot_handle, anim_eval_context, false);
-  };
-
-  pose_apply(ob, action, slot_handle, anim_eval_context, evaluate_and_apply);
-}
-
 void pose_apply_action_all_bones(Object *ob,
                                  bAction *action,
                                  const int32_t slot_handle,
