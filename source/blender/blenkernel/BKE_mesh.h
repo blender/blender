@@ -48,8 +48,12 @@ enum eMeshBatchDirtyMode {
 BMesh *BKE_mesh_to_bmesh_ex(const Mesh *mesh,
                             const BMeshCreateParams *create_params,
                             const BMeshFromMeshParams *convert_params);
+/**
+ * \param active_shapekey: See #BMeshFromMeshParams::active_shapekey.
+ * \param add_key_index: See #BMeshFromMeshParams::add_key_index.
+ */
 BMesh *BKE_mesh_to_bmesh(Mesh *mesh,
-                         Object *ob,
+                         int active_shapekey,
                          bool add_key_index,
                          const BMeshCreateParams *params);
 
