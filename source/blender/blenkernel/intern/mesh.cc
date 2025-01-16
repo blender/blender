@@ -953,7 +953,7 @@ BMesh *BKE_mesh_to_bmesh_ex(const Mesh *mesh,
 }
 
 BMesh *BKE_mesh_to_bmesh(Mesh *mesh,
-                         Object *ob,
+                         const int active_shapekey,
                          const bool add_key_index,
                          const BMeshCreateParams *params)
 {
@@ -962,7 +962,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *mesh,
   bmesh_from_mesh_params.calc_vert_normal = false;
   bmesh_from_mesh_params.add_key_index = add_key_index;
   bmesh_from_mesh_params.use_shapekey = true;
-  bmesh_from_mesh_params.active_shapekey = ob->shapenr;
+  bmesh_from_mesh_params.active_shapekey = active_shapekey;
   return BKE_mesh_to_bmesh_ex(mesh, params, &bmesh_from_mesh_params);
 }
 

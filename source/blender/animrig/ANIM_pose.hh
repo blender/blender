@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ANIM_action.hh"
+#include "BLI_span.hh"
 
 struct AnimationEvalContext;
 struct Object;
@@ -19,14 +20,6 @@ struct bAction;
 namespace blender::animrig {
 
 /**
- * Evaluate the action and apply it to the pose. If any pose bones are selected, only FCurves that
- * relate to those bones are evaluated.
- */
-void pose_apply_action_selected_bones(Object *ob,
-                                      bAction *action,
-                                      slot_handle_t slot_handle,
-                                      const AnimationEvalContext *anim_eval_context);
-/**
  * Evaluate the action and apply it to the pose. Ignore selection state of the bones.
  */
 void pose_apply_action_all_bones(Object *ob,
@@ -34,11 +27,38 @@ void pose_apply_action_all_bones(Object *ob,
                                  slot_handle_t slot_handle,
                                  const AnimationEvalContext *anim_eval_context);
 
+/**
+ * Evaluate the action and blend the result into the curent pose based on `blend_factor`.
+ * Only FCurves that relate to selected bones are evaluated.
+ */
 void pose_apply_action_blend(Object *ob,
                              bAction *action,
                              slot_handle_t slot_handle,
                              const AnimationEvalContext *anim_eval_context,
                              float blend_factor);
+
+/**
+ * Like `pose_apply_action_blend` but applies to all bones regardless of selection.
+ */
+void pose_apply_action_blend_all_bones(Object *ob,
+                                       bAction *action,
+                                       slot_handle_t slot_handle,
+                                       const AnimationEvalContext *anim_eval_context,
+                                       float blend_factor);
+
+/**
+ * Apply the given Action to all objects of the Span.
+ * The slot is chosen automatically, see `get_best_pose_slot_for_id`.
+ */
+void pose_apply_action(blender::Span<Object *> objects,
+                       Action &pose_action,
+                       const AnimationEvalContext *anim_eval_context,
+                       float blend_factor);
+/**
+ * Return true if any bone is selected. This is useful to decide if all bones should be affected
+ * or not.
+ */
+bool any_bone_selected(blender::Span<const Object *> objects);
 
 /**
  * Get the best slot to read pose data from for the given ID.

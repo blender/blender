@@ -728,7 +728,7 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
                 return False
         else:
             # Linux.
-            if bpy.utils.resource_path('SYSTEM'):
+            if not bpy.app.portable:
                 layout.label(text="System Installation")
                 layout.label(text="File association is handled by the package manager")
                 return False

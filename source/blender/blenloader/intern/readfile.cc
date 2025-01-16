@@ -15,6 +15,7 @@
 #include <ctime>   /* for gmtime. */
 #include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
 
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
@@ -173,9 +174,6 @@
  * while ZLIB supports seek it's unusably slow, see: #61880.
  */
 #define USE_BHEAD_READ_ON_DEMAND
-
-/** Use #GHash for #BHead name-based lookups (speeds up linking). */
-#define USE_GHASH_BHEAD
 
 /** Use #GHash for restoring pointers by name. */
 #define USE_GHASH_RESTORE_POINTER
@@ -500,17 +498,14 @@ static bool blo_bhead_is_id_valid_type(const BHead *bhead)
   return BKE_idtype_idcode_is_valid(id_type_code);
 }
 
-#ifdef USE_GHASH_BHEAD
 static void read_file_bhead_idname_map_create(FileData *fd)
 {
-  BHead *bhead;
-
   /* dummy values */
   bool is_link = false;
   int code_prev = BLO_CODE_ENDB;
-  uint reserve = 0;
 
-  for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
+  fd->bhead_idname_map.emplace();
+  for (BHead *bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
       is_link = blo_bhead_is_id_valid_type(bhead) ?
@@ -519,28 +514,11 @@ static void read_file_bhead_idname_map_create(FileData *fd)
     }
 
     if (is_link) {
-      reserve += 1;
-    }
-  }
-
-  BLI_assert(fd->bhead_idname_hash == nullptr);
-
-  fd->bhead_idname_hash = BLI_ghash_str_new_ex(__func__, reserve);
-
-  for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    if (code_prev != bhead->code) {
-      code_prev = bhead->code;
-      is_link = blo_bhead_is_id_valid_type(bhead) ?
-                    BKE_idtype_idcode_is_linkable(short(code_prev)) :
-                    false;
-    }
-
-    if (is_link) {
-      BLI_ghash_insert(fd->bhead_idname_hash, (void *)blo_bhead_id_name(fd, bhead), bhead);
+      const blender::StringRefNull name = blo_bhead_id_name(fd, bhead);
+      fd->bhead_idname_map->add(name, bhead);
     }
   }
 }
-#endif
 
 static Main *blo_find_main(FileData *fd, const char *filepath, const char *relabase)
 {
@@ -1453,12 +1431,6 @@ void blo_filedata_free(FileData *fd)
   if (fd->bheadmap) {
     MEM_freeN(fd->bheadmap);
   }
-
-#ifdef USE_GHASH_BHEAD
-  if (fd->bhead_idname_hash) {
-    BLI_ghash_free(fd->bhead_idname_hash, nullptr, nullptr);
-  }
-#endif
 
   MEM_delete(fd);
 }
@@ -4080,41 +4052,16 @@ static BHead *find_bhead(FileData *fd, void *old)
 
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name)
 {
-#ifdef USE_GHASH_BHEAD
-
   char idname_full[MAX_ID_NAME];
-
   *((short *)idname_full) = idcode;
   BLI_strncpy(idname_full + 2, name, sizeof(idname_full) - 2);
 
-  return static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, idname_full));
-
-#else
-  BHead *bhead;
-
-  for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    if (bhead->code == idcode) {
-      const char *idname_test = blo_bhead_id_name(fd, bhead);
-      if (STREQ(idname_test + 2, name)) {
-        return bhead;
-      }
-    }
-    else if (bhead->code == ENDB) {
-      break;
-    }
-  }
-
-  return nullptr;
-#endif
+  return fd->bhead_idname_map->lookup_default(idname_full, nullptr);
 }
 
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
 {
-#ifdef USE_GHASH_BHEAD
-  BHead *bhead = static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, idname));
-#else
-  BHead *bhead = find_bhead_from_code_name(fd, GS(idname), idname + 2);
-#endif
+  BHead *bhead = fd->bhead_idname_map->lookup_default(idname, nullptr);
   if (LIKELY(bhead)) {
     return bhead;
   }
@@ -4125,14 +4072,7 @@ static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
   if (id_code_old == ID_LINK_PLACEHOLDER) {
     return bhead;
   }
-#ifdef USE_GHASH_BHEAD
-  char id_name_old[MAX_ID_NAME];
-  STRNCPY(id_name_old, idname);
-  *reinterpret_cast<short *>(id_name_old) = id_code_old;
-  return static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, id_name_old));
-#else
   return find_bhead_from_code_name(fd, id_code_old, idname + 2);
-#endif
 }
 
 static ID *library_id_is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
@@ -4443,9 +4383,7 @@ static Main *library_link_begin(Main *mainvar,
   /* needed for do_version */
   mainl->versionfile = short(fd->fileversion);
   read_file_version(fd, mainl);
-#ifdef USE_GHASH_BHEAD
   read_file_bhead_idname_map_create(fd);
-#endif
 
   return mainl;
 }
@@ -4888,9 +4826,7 @@ static FileData *read_library_file_data(FileData *basefd,
 
     /* subversion */
     read_file_version(fd, mainptr);
-#ifdef USE_GHASH_BHEAD
     read_file_bhead_idname_map_create(fd);
-#endif
   }
   else {
     mainptr->curlib->runtime.filedata = nullptr;

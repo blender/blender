@@ -891,6 +891,7 @@ GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
   @autoreleasepool {
     NSColorSampler *sampler = [[NSColorSampler alloc] init];
     __block BOOL selectCompleted = NO;
+    __block BOOL samplingSucceeded = NO;
 
     [sampler showSamplerWithSelectionHandler:^(NSColor *selectedColor) {
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
@@ -904,6 +905,7 @@ GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
                            r_color[1] = [rgbColor greenComponent];
                            r_color[2] = [rgbColor blueComponent];
                          }
+                         samplingSucceeded = YES;
                        }
                        selectCompleted = YES;
                      });
@@ -913,8 +915,9 @@ GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
       [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
                                beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
     }
+
+    return samplingSucceeded ? GHOST_kSuccess : GHOST_kFailure;
   }
-  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(int32_t x, int32_t y)

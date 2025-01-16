@@ -10,12 +10,15 @@
 #pragma once
 
 #include <cstdio> /* Include header using off_t before poisoning it below. */
+#include <optional>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
 
 #include "BLI_filereader.h"
+#include "BLI_map.hh"
+
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h" /* for eReportType */
@@ -129,8 +132,7 @@ struct FileData {
   BHeadSort *bheadmap = nullptr;
   int tot_bheadmap = 0;
 
-  /** See: #USE_GHASH_BHEAD. */
-  GHash *bhead_idname_hash = nullptr;
+  std::optional<blender::Map<blender::StringRefNull, BHead *>> bhead_idname_map;
 
   ListBase *mainlist = nullptr;
   /** Used for undo. */

@@ -48,7 +48,7 @@ void eyedropper_win_area_find(const bContext *C,
  * \note Exposed by 'eyedropper_intern.hh' for use with color band picking.
  */
 struct Eyedropper;
-void eyedropper_color_sample_fl(bContext *C,
+bool eyedropper_color_sample_fl(bContext *C,
                                 struct Eyedropper *eye,
                                 const int event_xy[2],
                                 float r_col[3]);

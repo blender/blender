@@ -625,11 +625,11 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
         &RNA_SequenceEditor,
 
         &RNA_Strip,
-        /* Members of 'Sequence'. */
-        &RNA_SequenceCrop,
-        &RNA_SequenceTransform,
-        &RNA_SequenceModifier,
-        &RNA_SequenceColorBalanceData,
+        /* Members of 'Strip'. */
+        &RNA_StripCrop,
+        &RNA_StripTransform,
+        &RNA_StripModifier,
+        &RNA_StripColorBalanceData,
     };
     wmMsgParams_RNA msg_key_params = {{}};
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {

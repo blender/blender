@@ -90,6 +90,8 @@ struct SelectMap {
 
   /** Mapping between internal IDs and `object->runtime->select_id`. */
   Vector<uint> select_id_map;
+  /** Track objects with OB_DRAW_IN_FRONT. */
+  Vector<bool> in_front_map;
 #ifndef NDEBUG
   /** Debug map containing a copy of the object name. */
   Vector<std::string> map_names;
@@ -100,8 +102,6 @@ struct SelectMap {
   StorageArrayBuffer<uint, 4, true> dummy_select_buf = {"dummy_select_buf"};
   /** Uniform buffer to bind to all passes to pass information about the selection state. */
   UniformBuffer<SelectInfoData> info_buf;
-  /** Will remove the depth test state from any pass drawing objects with select id. */
-  bool disable_depth_test = false;
 
   SelectMap(const SelectionType selection_type) : selection_type(selection_type){};
 
@@ -121,6 +121,7 @@ struct SelectMap {
 
     uint object_id = ob_ref.object->runtime->select_id;
     uint id = select_id_map.append_and_get_index(object_id | sub_object_id);
+    in_front_map.append(ob_ref.object->dtx & OB_DRAW_IN_FRONT);
 
 #ifdef DEBUG_PRINT
     /* Print mapping from object name, select id and the mapping to internal select id.
@@ -153,6 +154,7 @@ struct SelectMap {
     }
 
     select_id_map.clear();
+    in_front_map.clear();
 #ifndef NDEBUG
     map_names.clear();
 #endif
@@ -165,10 +167,8 @@ struct SelectMap {
       return;
     }
 
-    if (disable_depth_test) {
-      /* TODO: clipping state. */
-      pass.state_set(DRW_STATE_WRITE_COLOR);
-    }
+    /* TODO: clipping state. */
+    pass.state_set(DRW_STATE_WRITE_COLOR);
     pass.bind_ubo(SELECT_DATA, &info_buf);
     pass.bind_ssbo(SELECT_ID_OUT, &select_output_buf);
   }
@@ -181,10 +181,8 @@ struct SelectMap {
     }
 
     pass.use_custom_ids = true;
-    if (disable_depth_test) {
-      /* TODO: clipping state. */
-      pass.state_set(DRW_STATE_WRITE_COLOR);
-    }
+    /* TODO: clipping state. */
+    pass.state_set(DRW_STATE_WRITE_COLOR);
     pass.bind_ubo(SELECT_DATA, &info_buf);
     /* IMPORTANT: This binds a dummy buffer `in_select_buf` but it is not supposed to be used. */
     pass.bind_ssbo(SELECT_ID_IN, &dummy_select_buf);
@@ -200,10 +198,8 @@ struct SelectMap {
     }
 
     pass.use_custom_ids = true;
-    if (disable_depth_test) {
-      /* TODO: clipping state. */
-      sub.state_set(DRW_STATE_WRITE_COLOR);
-    }
+    /* TODO: clipping state. */
+    sub.state_set(DRW_STATE_WRITE_COLOR);
     sub.bind_ubo(SELECT_DATA, &info_buf);
     /* IMPORTANT: This binds a dummy buffer `in_select_buf` but it is not supposed to be used. */
     sub.bind_ssbo(SELECT_ID_IN, &dummy_select_buf);
@@ -215,6 +211,8 @@ struct SelectMap {
     if (selection_type == SelectionType::DISABLED) {
       return;
     }
+
+    BLI_assert(select_id_map.size() == in_front_map.size());
 
     select_output_buf.resize(max_uu(ceil_to_multiple_u(select_id_map.size(), 4), 4));
     select_output_buf.push_update();
@@ -236,21 +234,18 @@ struct SelectMap {
       case GPU_SELECT_ALL:
         info_buf.mode = SelectType::SELECT_ALL;
         info_buf.cursor = int2(0);
-        disable_depth_test = true;
         /* This mode uses atomicOr and store result as a bitmap. Clear to 0 (no selection). */
         GPU_storagebuf_clear(select_output_buf, 0);
         break;
       case GPU_SELECT_PICK_ALL:
         info_buf.mode = SelectType::SELECT_PICK_ALL;
         info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
-        disable_depth_test = true;
         /* Mode uses atomicMin. Clear to UINT_MAX. */
         GPU_storagebuf_clear(select_output_buf, 0xFFFFFFFFu);
         break;
       case GPU_SELECT_PICK_NEAREST:
         info_buf.mode = SelectType::SELECT_PICK_NEAREST;
         info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
-        disable_depth_test = true;
         /* Mode uses atomicMin. Clear to UINT_MAX. */
         GPU_storagebuf_clear(select_output_buf, 0xFFFFFFFFu);
         break;
@@ -291,6 +286,13 @@ struct SelectMap {
             GPUSelectResult hit_result{};
             hit_result.id = select_id_map[i];
             hit_result.depth = select_output_buf[i];
+            if (in_front_map[i]) {
+              /* Divide "In Front" objects depth so they go first. */
+              /* TODO(Miguel Pozo): This reproduces the previous engine behavior, but it breaks
+               * with code using depth for position reconstruction. Should we improve this? */
+              float offset_depth = *reinterpret_cast<float *>(&hit_result.depth) / 100.0f;
+              hit_result.depth = *reinterpret_cast<uint32_t *>(&offset_depth);
+            }
             hit_results.append(hit_result);
           }
         }

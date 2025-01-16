@@ -50,6 +50,8 @@ class USDCurvesWriter final : public USDAbstractWriter {
 
   void write_uv_data(const bke::AttributeIter &attr, const pxr::UsdGeomCurves &usd_curves);
 
+  void write_velocities(const bke::CurvesGeometry &curves, const pxr::UsdGeomCurves &usd_curves);
+
   void write_custom_data(const blender::bke::CurvesGeometry &curves,
                          const pxr::UsdGeomCurves &usd_curves);
 };

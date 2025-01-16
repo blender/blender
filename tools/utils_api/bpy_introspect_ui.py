@@ -359,7 +359,7 @@ def fake_runtime():
     """Only call this before `draw()` functions."""
 
     # Misc Sub-classes
-    bpy.types.EffectSequence = type("EffectSequence", (), {})
+    bpy.types.EffectStrip = type("EffectStrip", (), {})
 
     # Operator Sub-classes.
     bpy.types.WM_OT_doc_view = type("WM_OT_doc_view", (), {"_prefix": ""})

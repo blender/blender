@@ -54,8 +54,6 @@ void GPENCIL_engine_init(void *ved)
 {
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   GPENCIL_StorageList *stl = vedata->stl;
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   const DRWContextState *ctx = DRW_context_state_get();
   const View3D *v3d = ctx->v3d;
 
@@ -109,8 +107,8 @@ void GPENCIL_engine_init(void *ved)
   stl->pd->dummy_tx = inst.dummy_texture;
   stl->pd->dummy_depth = inst.dummy_depth;
   stl->pd->draw_wireframe = (v3d && v3d->shading.type == OB_WIRE);
-  stl->pd->scene_depth_tx = dtxl->depth;
-  stl->pd->scene_fb = dfbl->default_fb;
+  stl->pd->scene_depth_tx = nullptr;
+  stl->pd->scene_fb = nullptr;
   stl->pd->is_render = inst.render_depth_tx.is_valid() || (v3d && v3d->shading.type == OB_RENDER);
   stl->pd->is_viewport = (v3d != nullptr);
   stl->pd->global_light_pool = gpencil_light_pool_add(stl->pd);
@@ -155,11 +153,6 @@ void GPENCIL_engine_init(void *ved)
 
   stl->pd->use_lighting = (v3d && v3d->shading.type > OB_SOLID) || stl->pd->is_render;
   stl->pd->use_lights = use_scene_lights;
-
-  if (inst.render_depth_tx.is_valid()) {
-    stl->pd->scene_depth_tx = inst.render_depth_tx;
-    stl->pd->scene_fb = inst.render_fb;
-  }
 
   gpencil_light_ambient_add(stl->pd->shadeless_light_pool, blender::float3{1.0f, 1.0f, 1.0f});
 
@@ -872,6 +865,19 @@ void GPENCIL_draw_scene(void *ved)
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   GPENCIL_Instance &inst = *vedata->instance;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+
+  if (inst.render_depth_tx.is_valid()) {
+    pd->scene_depth_tx = inst.render_depth_tx;
+    pd->scene_fb = inst.render_fb;
+  }
+  else {
+    pd->scene_fb = dfbl->default_fb;
+    pd->scene_depth_tx = dtxl->depth;
+  }
+  BLI_assert(pd->scene_depth_tx);
+
   float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
 
   /* Fade 3D objects. */

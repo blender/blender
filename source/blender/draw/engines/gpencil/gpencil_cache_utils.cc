@@ -440,7 +440,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
 
     PassSimple &pass = *tgp_layer->geom_ps;
 
-    GPUTexture *depth_tex = (is_in_front) ? pd->dummy_depth : pd->scene_depth_tx;
+    GPUTexture **depth_tex = (is_in_front) ? &pd->dummy_depth : &pd->scene_depth_tx;
     GPUTexture **mask_tex = (is_masked) ? &inst->mask_tx : &pd->dummy_tx;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND_ALPHA_PREMUL;

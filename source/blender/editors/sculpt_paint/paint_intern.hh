@@ -67,16 +67,38 @@ struct StrokeCache;
 
 namespace blender::ed::sculpt_paint {
 
+/**
+ * Callback function to retrieve the object space coordinates based on screen space coordinates.
+ * \param location: resulting object space coordinates
+ * \returns whether or not a value was actually found & the value in location is usable
+ */
 using StrokeGetLocation = bool (*)(bContext *C,
                                    float location[3],
                                    const float mouse[2],
                                    bool force_original);
+/**
+ * Callback function to determine whether a stroke has started, and performing initialization.
+ *
+ * In many cases, this is a check to whether the stroke is over the active mesh.
+ */
 using StrokeTestStart = bool (*)(bContext *C, wmOperator *op, const float mouse[2]);
+
+/**
+ * Callback function for performing a paint stroke for a new step.
+ */
 using StrokeUpdateStep = void (*)(bContext *C,
                                   wmOperator *op,
                                   PaintStroke *stroke,
                                   PointerRNA *itemptr);
+
+/**
+ * Callback function for performing necessary redraw functions based on the stroke.
+ */
 using StrokeRedraw = void (*)(const bContext *C, PaintStroke *stroke, bool final);
+
+/**
+ * Callback function for cleaning up and finalizing data after a stroke has finished.
+ */
 using StrokeDone = void (*)(const bContext *C, PaintStroke *stroke);
 
 PaintStroke *paint_stroke_new(bContext *C,
@@ -108,6 +130,20 @@ bool paint_supports_texture(PaintMode mode);
  * Called in paint_ops.cc, on each regeneration of key-maps.
  */
 wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf);
+/**
+ * The main modal callback shared by any custom operator that implements a form of painting.
+ *
+ * At a high level, this function performs the following steps for interactive stroke types:
+ * 1. Initialization of necessary common `PaintStroke` values.
+ * 2. Custom paint initialization via `StrokeTestStart`>
+ * 3. Create an `OperatorStrokeElement` for a given mouse position by calling `StrokeGetLocation`
+ *    to potentially turn screen space coordinates into object space coordinates.
+ * 4. Call `StrokeUpdateStep` to perform custom paint operation on the most recent
+ *    `OperatorStrokeElement` data.
+ * 5. Tag extra redraws if necessary via `StrokeRedraw`.
+ * 6. Return to step 3 while stroke is ongoing.
+ * 7. Call `StrokeDone` when finished to perform any cleanup or finalization.
+ */
 int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke **stroke_p);
 int paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke);
 void paint_stroke_cancel(bContext *C, wmOperator *op, PaintStroke *stroke);

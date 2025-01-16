@@ -163,7 +163,7 @@ class Action : public ::bAction {
    * \note At the time of writing this comment only a single layer per Action is
    * supported in Blender, but this function does NOT enforce that. Be careful!
    *
-   * \param name The name to give the new layer. If no name is given, a default
+   * \param name: The name to give the new layer. If no name is given, a default
    * name is used. The name may be altered (e.g. appending ".001") to enforce
    * uniqueness within the Action.
    *
@@ -200,7 +200,7 @@ class Action : public ::bAction {
   /**
    * Return the Slot with the given handle.
    *
-   * \param handle can be `Slot::unassigned`, in which case `nullptr` is returned.
+   * \param handle: can be `Slot::unassigned`, in which case `nullptr` is returned.
    *
    * \return `nullptr` when the slot cannot be found, so either the handle was
    * `Slot::unassigned` or some value that does not match any Slot in this Action.
@@ -321,7 +321,7 @@ class Action : public ::bAction {
   /**
    * Set the active Slot, ensuring only one Slot is flagged as the Active one.
    *
-   * \param slot_handle if #Slot::unassigned, there will not be any active slot.
+   * \param slot_handle: if #Slot::unassigned, there will not be any active slot.
    * Passing an unknown/invalid slot handle will result in no slot being active.
    */
   void slot_active_set(slot_handle_t slot_handle);
@@ -1721,7 +1721,7 @@ void action_fcurve_attach(Action &action,
  * The F-Curve must exist on the source Action. All channelbags for all slots
  * are searched for the F-Curve.
  *
- * \param action_slot_dst may not be #Slot::unassigned on layered Actions.
+ * \param action_slot_dst: may not be #Slot::unassigned on layered Actions.
  *
  * \see #blender::animrig::action_fcurve_detach
  */

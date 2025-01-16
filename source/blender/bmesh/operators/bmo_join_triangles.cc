@@ -865,7 +865,7 @@ static void reprioritize_join(JoinEdgesState &s,
  *
  * \param s: State information about the join_triangles process.
  * \param f: A quad.
- * \param f_error The current error of the face.
+ * \param f_error: The current error of the face.
  */
 static void reprioritize_face_neighbors(JoinEdgesState &s, BMFace *f, float f_error)
 {
