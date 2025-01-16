@@ -2180,7 +2180,6 @@ RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilArmature);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilSimplify);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilEnvelope);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilShrinkwrap);
-RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilTexture);
 
 static void rna_GreasePencilLineartModifier_material_set(PointerRNA *ptr,
                                                          PointerRNA value,
