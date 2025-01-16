@@ -129,9 +129,9 @@ bool action_treat_as_legacy(const bAction &action);
  * This function works for both legacy and layered Actions. For the former, the
  * slot handle is ignored.
  *
- * \param rna_path_prefix All F-Curves whose RNA path start with this string will get removed. Note
- * that there is no other semantics here, so `prefix = "rotation"` will remove "rotation_euler" as
- * well. The prefix may not be an empty string.
+ * \param rna_path_prefix: All F-Curves whose RNA path start with this string will get removed.
+ * Note that there is no other semantics here, so `prefix = "rotation"` will remove
+ * "rotation_euler" as well. The prefix may not be an empty string.
  *
  * \return true if any were removed, false otherwise.
  */

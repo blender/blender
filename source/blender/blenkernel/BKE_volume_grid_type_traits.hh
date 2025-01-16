@@ -25,7 +25,7 @@ namespace blender::bke {
  * types, while only the code that deals with OpenVDB specifically has to care about the mapping
  * between math type representations.
  *
- * \param T The Blender type that we want to get the grid traits for (e.g. `blender::float3`).
+ * \param T: The Blender type that we want to get the grid traits for (e.g. `blender::float3`).
  */
 template<typename T> struct VolumeGridTraits {
   /**

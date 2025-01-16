@@ -157,7 +157,7 @@ IndexMask curve_mask_from_points(const bke::CurvesGeometry &curves,
 
 /**
  * Return a mask of all the end points in the curves.
- * \param curves_mask (optional): The curves that should be used in the resulting point mask.
+ * \param curves_mask: (optional) The curves that should be used in the resulting point mask.
  * \param amount_start: The amount of points to mask from the front.
  * \param amount_end: The amount of points to mask from the back.
  * \param inverted: Invert the resulting mask.
@@ -177,7 +177,7 @@ IndexMask end_points(const bke::CurvesGeometry &curves,
 /**
  * Return a mask of random points or curves.
  *
- * \param mask (optional): The elements that should be used in the resulting mask. This mask should
+ * \param mask: (optional) The elements that should be used in the resulting mask. This mask should
  * be in the same domain as the \a selection_domain. \param random_seed: The seed for the \a
  * RandomNumberGenerator. \param probability: Determines how likely a point/curve will be chosen.
  * If set to 0.0, nothing will be in the mask, if set to 1.0 everything will be in the mask.
@@ -267,7 +267,7 @@ void apply_selection_operation_at_index(GMutableSpan selection, int index, eSele
 /**
  * (De)select all the curves.
  *
- * \param mask (optional): The elements that should be affected. This mask should be in the domain
+ * \param mask: (optional) The elements that should be affected. This mask should be in the domain
  * of the \a selection_domain.
  * \param action: One of #SEL_TOGGLE, #SEL_SELECT, #SEL_DESELECT, or #SEL_INVERT.
  * See `ED_select_utils.hh`.
@@ -281,7 +281,7 @@ void select_all(bke::CurvesGeometry &curves,
 /**
  * Select the points of all curves that have at least one point selected.
  *
- * \param curves_mask (optional): The curves that should be affected.
+ * \param curves_mask: (optional) The curves that should be affected.
  */
 void select_linked(bke::CurvesGeometry &curves);
 void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask);
@@ -289,7 +289,7 @@ void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask);
 /**
  * Select alternated points in strokes with already selected points
  *
- * \param curves_mask (optional): The curves that should be affected.
+ * \param curves_mask: (optional) The curves that should be affected.
  */
 void select_alternate(bke::CurvesGeometry &curves, const bool deselect_ends);
 void select_alternate(bke::CurvesGeometry &curves,
@@ -299,7 +299,7 @@ void select_alternate(bke::CurvesGeometry &curves,
 /**
  * (De)select all the adjacent points of the current selected points.
  *
- * \param curves_mask (optional): The curves that should be affected.
+ * \param curves_mask: (optional) The curves that should be affected.
  */
 void select_adjacent(bke::CurvesGeometry &curves, bool deselect);
 void select_adjacent(bke::CurvesGeometry &curves, const IndexMask &curves_mask, bool deselect);

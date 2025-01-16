@@ -100,7 +100,7 @@ bke::CurvesGeometry trace_to_curves(const Trace &trace,
 
 /**
  * Convert an image to a potrace bitmap representing foreground and background regions.
- * \param fn Function that returns true if the given color is a foreground color.
+ * \param fn: Function that returns true if the given color is a foreground color.
  */
 template<typename ThresholdFn> Bitmap *image_to_bitmap(const ImBuf &ibuf, ThresholdFn fn)
 {

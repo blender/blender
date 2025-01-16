@@ -69,7 +69,7 @@ namespace blender::ed::sculpt_paint {
 
 /**
  * Callback function to retrieve the object space coordinates based on screen space coordinates.
- * \param location resulting object space coordinates
+ * \param location: resulting object space coordinates
  * \returns whether or not a value was actually found & the value in location is usable
  */
 using StrokeGetLocation = bool (*)(bContext *C,
