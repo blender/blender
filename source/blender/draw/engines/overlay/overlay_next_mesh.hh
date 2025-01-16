@@ -715,10 +715,17 @@ class MeshUVs : Overlay {
       return;
     }
 
-    ResourceHandle res_handle = manager.unique_handle(ob_ref);
-
     Object &ob = *ob_ref.object;
     Mesh &mesh = *static_cast<Mesh *>(ob.data);
+
+    const bool has_active_edit_uvmap =
+        (CustomData_get_active_layer(&mesh.runtime->edit_mesh->bm->ldata, CD_PROP_FLOAT2) != -1);
+
+    if (!has_active_edit_uvmap) {
+      return;
+    }
+
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     if (show_uv_edit) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
