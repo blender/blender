@@ -46,6 +46,7 @@ __all__ = (
     "unregister_tool",
     "user_resource",
     "execfile",
+    "expose_bundled_modules",
 )
 
 from _bpy import (
@@ -1355,3 +1356,27 @@ def make_rna_paths(struct_name, prop_name, enum_name):
         else:
             src = src_rna = struct_name
     return src, src_rna, src_enum
+
+
+def expose_bundled_modules():
+    """
+    For Blender as a Python module, add bundled VFX library python bindings
+    to ``sys.path``. These may be used instead of dedicated packages, to ensure
+    the libraries are compatible with Blender.
+    """
+    # For Blender executable there is nothing to do, already exposed.
+    if not _bpy.app.module:
+        return
+    # System installations do not bundle additional modules,
+    # these are expected to be installed on the system too.
+    if not _bpy.app.portable:
+        return
+
+    version_dir = _os.path.normpath(_os.path.join(_bpy.__file__, "..", "..", "..", ".."))
+    packages_dir = _os.path.join(version_dir, "python", "lib")
+    if _sys.platform != "win32":
+        packages_dir = _os.path.join(packages_dir, "python{:d}.{:d}".format(*_sys.version_info[:2]))
+    packages_dir = _os.path.join(packages_dir, "site-packages")
+
+    if packages_dir not in _sys.path:
+        _sys.path.insert(0, packages_dir)
