@@ -8124,7 +8124,7 @@ static void point_normals_update_statusbar(bContext *C, wmOperator *op)
                  op->type,
                  EDBM_CLNOR_MODAL_POINTTO_SPHERIZE,
                  RNA_boolean_get(op->ptr, "spherize"));
-  status.opmodal(IFACE_("align"),
+  status.opmodal(IFACE_("Align"),
                  op->type,
                  EDBM_CLNOR_MODAL_POINTTO_ALIGN,
                  RNA_boolean_get(op->ptr, "align"));
@@ -8134,8 +8134,8 @@ static void point_normals_update_statusbar(bContext *C, wmOperator *op)
                  EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE,
                  RNA_enum_get(op->ptr, "mode") == EDBM_CLNOR_POINTTO_MODE_MOUSE);
 
-  status.opmodal(IFACE_("Use pivot"), op->type, EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT);
-  status.opmodal(IFACE_("Use object"), op->type, EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT);
+  status.opmodal(IFACE_("Use Pivot"), op->type, EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT);
+  status.opmodal(IFACE_("Use Object"), op->type, EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT);
   status.opmodal(
       IFACE_("Set and use 3D cursor"), op->type, EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR);
   status.opmodal(
