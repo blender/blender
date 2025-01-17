@@ -2175,9 +2175,9 @@ bool PartialWriteContext::write(const char *write_filepath,
    * currently this should never happen. */
   if (make_local_libs.size() > 1) {
     CLOG_WARN(&LOG_PARTIALWRITE,
-              "%ld libraries found using the same filepath as destination one ('%s'), should "
+              "%d libraries found using the same filepath as destination one ('%s'), should "
               "never happen.",
-              make_local_libs.size(),
+              int32_t(make_local_libs.size()),
               write_filepath);
   }
   for (Library *lib : make_local_libs) {
