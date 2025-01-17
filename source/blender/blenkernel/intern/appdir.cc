@@ -446,32 +446,28 @@ static blender::Vector<std::string> get_path_environment_multiple(const char *su
     return paths;
   }
 
-  std::string env_path_str = env_path;
-
 #ifdef _WIN32
   const char separator = ';';
 #else
   const char separator = ':';
 #endif
-  char path[PATH_MAX] = "\0";
 
-  size_t last = 0;
-  size_t next = 0;
-  for (; (next = env_path_str.find(separator, last)) != std::string::npos; last = next + 1) {
-    BLI_path_join(
-        path, sizeof(path), env_path_str.substr(last, next - last).c_str(), subfolder_name);
-    if (!check_is_dir || BLI_is_dir(path)) {
-      paths.append(path);
+  const char *char_begin = env_path;
+  const char *char_end = BLI_strchr_or_end(char_begin, separator);
+  while (char_begin[0]) {
+    const size_t base_path_len = char_end - char_begin;
+    if (base_path_len > 0 && base_path_len <= PATH_MAX) {
+      char base_path[PATH_MAX];
+      memcpy(base_path, char_begin, base_path_len);
+      base_path[base_path_len] = '\0';
+
+      char path[PATH_MAX];
+      if (test_path(path, sizeof(path), check_is_dir, base_path, subfolder_name, nullptr)) {
+        paths.append(path);
+      }
     }
-  }
-  if (last < env_path_str.size()) {
-    BLI_path_join(path,
-                  sizeof(path),
-                  env_path_str.substr(last, env_path_str.size() - last).c_str(),
-                  subfolder_name);
-    if (!check_is_dir || BLI_is_dir(path)) {
-      paths.append(path);
-    }
+    char_begin = char_end[0] ? char_end + 1 : char_end;
+    char_end = BLI_strchr_or_end(char_begin, separator);
   }
 
   return paths;
