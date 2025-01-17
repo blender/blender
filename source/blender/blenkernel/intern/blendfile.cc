@@ -1427,7 +1427,7 @@ UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
       userdef = bfd->user;
     }
     BKE_main_free(bfd->main);
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
 
   return userdef;
