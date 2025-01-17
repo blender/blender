@@ -384,6 +384,7 @@ void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
     if (len_squared_v3(r_tangent) < len_squared_v3(vec)) {
       copy_v3_v3(r_tangent, vec);
     }
+    normalize_v3(r_tangent);
   }
   else {
     /* For ngons use two longest disconnected edges */
