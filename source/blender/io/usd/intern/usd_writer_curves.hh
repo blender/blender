@@ -33,9 +33,9 @@ class USDCurvesWriter final : public USDAbstractWriter {
                                                    bool cubic) const;
 
   void set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
-                             const pxr::VtArray<pxr::GfVec3f> &verts,
-                             const pxr::VtIntArray &control_point_counts,
-                             const pxr::VtArray<float> &widths,
+                             pxr::VtArray<pxr::GfVec3f> &verts,
+                             pxr::VtIntArray &control_point_counts,
+                             pxr::VtArray<float> &widths,
                              const pxr::UsdTimeCode timecode,
                              const pxr::TfToken interpolation);
 
