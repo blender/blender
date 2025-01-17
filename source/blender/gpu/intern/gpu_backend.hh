@@ -89,6 +89,9 @@ static inline ColorTheme4f get_debug_group_color(StringRefNull name)
   else if (name == "Cycles") {
     return ColorTheme4f(0.0, 0.5, 1.0, 1.0);
   }
+  else if (name == "BackBuffer.Blit") {
+    return ColorTheme4f(0.5, 0.7, 1.0, 1.0);
+  }
   else {
     return GPU_DEBUG_GROUP_COLOR_DEFAULT;
   }

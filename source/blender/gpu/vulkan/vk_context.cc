@@ -5,10 +5,12 @@
 /** \file
  * \ingroup gpu
  */
-#include "vk_context.hh"
-#include "vk_debug.hh"
+
+#include "GPU_debug.hh"
 
 #include "vk_backend.hh"
+#include "vk_context.hh"
+#include "vk_debug.hh"
 #include "vk_framebuffer.hh"
 #include "vk_immediate.hh"
 #include "vk_shader.hh"
@@ -321,6 +323,8 @@ void VKContext::swap_buffers_post_callback()
 
 void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
+  GPU_debug_group_begin("BackBuffer.Blit");
+
   VKFrameBuffer &framebuffer = *unwrap(back_left);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
 
@@ -357,9 +361,9 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 
   framebuffer.rendering_end(*this);
   render_graph.add_node(blit_image);
+  GPU_debug_group_end();
   descriptor_set_get().upload_descriptor_sets();
   render_graph.submit_for_present(swap_chain_data.image);
-
   device.resources.remove_image(swap_chain_data.image);
 #if 0
   device.debug_print();
