@@ -718,49 +718,51 @@ class MeshUVs : Overlay {
     Object &ob = *ob_ref.object;
     Mesh &mesh = *static_cast<Mesh *>(ob.data);
 
-    const bool has_active_edit_uvmap =
-        (CustomData_get_active_layer(&mesh.runtime->edit_mesh->bm->ldata, CD_PROP_FLOAT2) != -1);
-
-    if (!has_active_edit_uvmap) {
-      return;
-    }
+    const bool is_edit_object = DRW_object_is_in_edit_mode(&ob);
+    const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh.corner_data,
+                                                                     CD_PROP_FLOAT2) != -1;
+    const bool has_active_edit_uvmap = is_edit_object && (CustomData_get_active_layer(
+                                                              &mesh.runtime->edit_mesh->bm->ldata,
+                                                              CD_PROP_FLOAT2) != -1);
 
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
-    if (show_uv_edit) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
-      edges_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
-    }
-    if (show_vert_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_verts(ob, mesh);
-      verts_ps_.draw(geom, res_handle);
-    }
-    if (show_face_dots_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_facedots(ob, mesh);
-      facedots_ps_.draw(geom, res_handle);
-    }
-    if (show_face_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_faces(ob, mesh);
-      faces_ps_.draw(geom, res_handle);
-    }
-
-    if (show_mesh_analysis_) {
-      int index_3d, index_2d;
-      if (mesh_analysis_type_ == SI_UVDT_STRETCH_AREA) {
-        index_3d = per_mesh_area_3d_.append_and_get_index(nullptr);
-        index_2d = per_mesh_area_2d_.append_and_get_index(nullptr);
+    if (has_active_edit_uvmap) {
+      if (show_uv_edit) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
+        edges_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
+      }
+      if (show_vert_) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_verts(ob, mesh);
+        verts_ps_.draw(geom, res_handle);
+      }
+      if (show_face_dots_) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_facedots(ob, mesh);
+        facedots_ps_.draw(geom, res_handle);
+      }
+      if (show_face_) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_faces(ob, mesh);
+        faces_ps_.draw(geom, res_handle);
       }
 
-      gpu::Batch *geom =
-          mesh_analysis_type_ == SI_UVDT_STRETCH_ANGLE ?
-              DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(ob, mesh) :
-              DRW_mesh_batch_cache_get_edituv_faces_stretch_area(
-                  ob, mesh, &per_mesh_area_3d_[index_3d], &per_mesh_area_2d_[index_2d]);
+      if (show_mesh_analysis_) {
+        int index_3d, index_2d;
+        if (mesh_analysis_type_ == SI_UVDT_STRETCH_AREA) {
+          index_3d = per_mesh_area_3d_.append_and_get_index(nullptr);
+          index_2d = per_mesh_area_2d_.append_and_get_index(nullptr);
+        }
 
-      analysis_ps_.draw(geom, res_handle);
+        gpu::Batch *geom =
+            mesh_analysis_type_ == SI_UVDT_STRETCH_ANGLE ?
+                DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(ob, mesh) :
+                DRW_mesh_batch_cache_get_edituv_faces_stretch_area(
+                    ob, mesh, &per_mesh_area_3d_[index_3d], &per_mesh_area_2d_[index_2d]);
+
+        analysis_ps_.draw(geom, res_handle);
+      }
     }
 
-    if (show_wireframe_) {
+    if (show_wireframe_ && (has_active_object_uvmap || has_active_edit_uvmap)) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_edges(ob, mesh);
       wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
     }
