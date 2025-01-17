@@ -35,16 +35,6 @@
 
 #include <sys/stat.h>
 
-/*
- * Should we only select surfaces that are known to be compatible. Or should we in case no
- * compatible surfaces have been found select the first one.
- *
- * Currently we also select incompatible surfaces as Vulkan is still experimental.  Assuming we get
- * reports of color differences between OpenGL and Vulkan to narrow down if there are other
- * configurations we need to support.
- */
-#define SELECT_COMPATIBLE_SURFACES_ONLY false
-
 using namespace std;
 
 static const char *vulkan_error_as_string(VkResult result)
@@ -776,21 +766,6 @@ GHOST_TSuccess GHOST_ContextVK::createGraphicsCommandBuffer()
   return GHOST_kSuccess;
 }
 
-static bool surfaceFormatSupported(const VkSurfaceFormatKHR &surface_format)
-{
-  if (surface_format.colorSpace != VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-    return false;
-  }
-
-  if (surface_format.format == VK_FORMAT_R8G8B8A8_UNORM ||
-      surface_format.format == VK_FORMAT_B8G8R8A8_UNORM)
-  {
-    return true;
-  }
-
-  return false;
-}
-
 /**
  * Select the surface format that we will use.
  *
@@ -806,15 +781,22 @@ static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
   vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, formats.data());
 
   for (const VkSurfaceFormatKHR &format : formats) {
-    if (surfaceFormatSupported(format)) {
+    if (format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR &&
+        format.format == VK_FORMAT_R8G8B8A8_UNORM)
+    {
       r_surfaceFormat = format;
       return true;
     }
   }
 
-#if !SELECT_COMPATIBLE_SURFACES_ONLY
-  r_surfaceFormat = formats[0];
-#endif
+  for (const VkSurfaceFormatKHR &format : formats) {
+    if (format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR &&
+        format.format == VK_FORMAT_B8G8R8A8_UNORM)
+    {
+      r_surfaceFormat = format;
+      return true;
+    }
+  }
 
   return false;
 }
@@ -826,13 +808,9 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
   VkPhysicalDevice physical_device = vulkan_device->physical_device;
 
   m_surface_format = {};
-#if SELECT_COMPATIBLE_SURFACES_ONLY
   if (!selectSurfaceFormat(physical_device, m_surface, m_surface_format)) {
     return GHOST_kFailure;
   }
-#else
-  selectSurfaceFormat(physical_device, m_surface, m_surface_format);
-#endif
 
   VkPresentModeKHR present_mode;
   if (!selectPresentMode(physical_device, m_surface, &present_mode)) {
