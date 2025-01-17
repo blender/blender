@@ -585,7 +585,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
 
   GHOST_VulkanSwapChainData swap_chain_data;
   swap_chain_data.image = m_swapchain_images[image_index];
-  swap_chain_data.format = m_surface_format.format;
+  swap_chain_data.surface_format = m_surface_format;
   swap_chain_data.extent = m_render_extent;
 
   if (swap_buffers_pre_callback_) {
@@ -636,7 +636,7 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanSwapChainFormat(
     GHOST_VulkanSwapChainData *r_swap_chain_data)
 {
   r_swap_chain_data->image = VK_NULL_HANDLE;
-  r_swap_chain_data->format = m_surface_format.format;
+  r_swap_chain_data->surface_format = m_surface_format;
   r_swap_chain_data->extent = m_render_extent;
 
   return GHOST_kSuccess;
