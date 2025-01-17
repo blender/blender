@@ -951,7 +951,6 @@ int getTransformOrientation_ex(const Scene *scene,
     if (ob->type == OB_MESH) {
       BMEditMesh *em = BKE_editmesh_from_object(ob);
       BMEditSelection ese;
-      float vec[3] = {0, 0, 0};
 
       /* Use last selected with active. */
       if (activeOnly && BM_select_history_active_get(em->bm, &ese)) {
@@ -975,13 +974,41 @@ int getTransformOrientation_ex(const Scene *scene,
           BMFace *efa;
           BMIter iter;
 
+          float normal[3] = {0.0f};
+          float plane_pair[2][3] = {{0.0f}};
+
           BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
             if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-              BM_face_calc_tangent_auto(efa, vec);
-              add_v3_v3(r_normal, efa->no);
-              add_v3_v3(r_plane, vec);
+              float tangent_pair[2][3];
+              BM_face_calc_tangent_pair_auto(efa, tangent_pair[0], tangent_pair[1]);
+              add_v3_v3(normal, efa->no);
+              add_v3_v3(plane_pair[0], tangent_pair[0]);
+              add_v3_v3(plane_pair[1], tangent_pair[1]);
             }
           }
+
+          /* Pick the best plane (least likely to be co-linear),
+           * since this can result in failure to construct a usable matrix, see: #96535. */
+          int plane_index;
+          {
+            float normal_unit[3];
+            float plane_unit_pair[2][3], plane_ortho_pair[2][3];
+
+            normalize_v3_v3(normal_unit, normal);
+            normalize_v3_v3(plane_unit_pair[0], plane_pair[0]);
+            normalize_v3_v3(plane_unit_pair[1], plane_pair[1]);
+
+            cross_v3_v3v3(plane_ortho_pair[0], normal_unit, plane_unit_pair[0]);
+            cross_v3_v3v3(plane_ortho_pair[1], normal_unit, plane_unit_pair[1]);
+
+            plane_index = (len_squared_v3(plane_ortho_pair[0]) >
+                           len_squared_v3(plane_ortho_pair[1])) ?
+                              0 :
+                              1;
+          }
+
+          add_v3_v3(r_normal, normal);
+          add_v3_v3(r_plane, plane_pair[plane_index]);
 
           result = ORIENTATION_FACE;
         }
