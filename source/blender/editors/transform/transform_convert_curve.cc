@@ -198,14 +198,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               BKE_nurb_bezt_calc_normal(nu, bezt, normal);
               BKE_nurb_bezt_calc_plane(nu, bezt, plane);
 
-              if (createSpaceNormalTangent(axismtx, normal, plane)) {
-                /* Pass. */
-              }
-              else {
-                normalize_v3(normal);
-                axis_dominant_v3_to_m3(axismtx, normal);
-                invert_m3(axismtx);
-              }
+              createSpaceNormalTangent_or_fallback(axismtx, normal, plane);
             }
 
             /* Elements that will be transform (not always a match to selection). */
@@ -375,14 +368,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
                   BKE_nurb_bpoint_calc_normal(nu, bp, normal);
                   BKE_nurb_bpoint_calc_plane(nu, bp, plane);
 
-                  if (createSpaceNormalTangent(td->axismtx, normal, plane)) {
-                    /* Pass. */
-                  }
-                  else {
-                    normalize_v3(normal);
-                    axis_dominant_v3_to_m3(td->axismtx, normal);
-                    invert_m3(td->axismtx);
-                  }
+                  createSpaceNormalTangent_or_fallback(td->axismtx, normal, plane);
                 }
               }
 
