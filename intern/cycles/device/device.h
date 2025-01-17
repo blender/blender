@@ -376,7 +376,6 @@ class GPUDevice : public Device {
   using MemMap = map<device_memory *, Mem>;
   MemMap device_mem_map;
   thread_mutex device_mem_map_mutex;
-  bool move_texture_to_host = false;
   /* Simple counter which will try to track amount of used device memory */
   size_t device_mem_in_use = 0;
 

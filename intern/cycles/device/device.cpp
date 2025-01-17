@@ -545,16 +545,19 @@ void GPUDevice::init_host_memory(const size_t preferred_texture_headroom,
             << " bytes. (" << string_human_readable_size(map_host_limit) << ")";
 }
 
-void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
+void GPUDevice::move_textures_to_host(size_t size, const size_t headroom, const bool for_texture)
 {
-  /* Break out of recursive call, which can happen when moving memory on a multi device. */
-  static bool any_device_moving_textures_to_host = false;
-  if (any_device_moving_textures_to_host) {
+  static thread_mutex move_mutex;
+  const thread_scoped_lock lock(move_mutex);
+
+  /* Check if there is enough space. Within mutex locks so that multiple threads
+   * calling take into account memory freed by another thread. */
+  size_t total = 0;
+  size_t free = 0;
+  get_device_memory_info(total, free);
+  if (size + headroom < free) {
     return;
   }
-
-  /* Signal to reallocate textures in host memory only. */
-  move_texture_to_host = true;
 
   while (size > 0) {
     /* Find suitable memory allocation to move. */
@@ -602,11 +605,6 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
     if (max_mem) {
       VLOG_WORK << "Move memory from device to host: " << max_mem->name;
 
-      static thread_mutex move_mutex;
-      const thread_scoped_lock lock(move_mutex);
-
-      any_device_moving_textures_to_host = true;
-
       /* Potentially need to call back into multi device, so pointer mapping
        * and peer devices are updated. This is also necessary since the device
        * pointer may just be a key here, so cannot be accessed and freed directly.
@@ -614,10 +612,10 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
        * devices as well, which is potentially dangerous when still in use (since
        * a thread rendering on another devices would only be caught in this mutex
        * if it so happens to do an allocation at the same time as well. */
+      max_mem->move_to_host = true;
       max_mem->device_move_to_host();
+      max_mem->move_to_host = false;
       size = (max_size >= size) ? 0 : size - max_size;
-
-      any_device_moving_textures_to_host = false;
 
       /* Tag texture info update for new pointers. */
       need_texture_info = true;
@@ -626,9 +624,6 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
       break;
     }
   }
-
-  /* Unset flag before texture info is reloaded, since it should stay in device memory. */
-  move_texture_to_host = false;
 }
 
 GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_padding)
@@ -652,18 +647,17 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
 
   const size_t headroom = (is_texture) ? device_texture_headroom : device_working_headroom;
 
+  /* Move textures to host memory if needed. */
+  if (!mem.move_to_host && !is_image && can_map_host) {
+    move_textures_to_host(size, headroom, is_texture);
+  }
+
   size_t total = 0;
   size_t free = 0;
   get_device_memory_info(total, free);
 
-  /* Move textures to host memory if needed. */
-  if (!move_texture_to_host && !is_image && (size + headroom) >= free && can_map_host) {
-    move_textures_to_host(size + headroom - free, is_texture);
-    get_device_memory_info(total, free);
-  }
-
   /* Allocate in device memory. */
-  if (!move_texture_to_host && (size + headroom) < free) {
+  if (!mem.move_to_host && (size + headroom) < free) {
     mem_alloc_result = alloc_device(device_pointer, size);
     if (mem_alloc_result) {
       device_mem_in_use += size;
@@ -730,7 +724,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
      * does not work if we move textures to host during a render,
      * since other devices might be using the memory. */
 
-    if (!move_texture_to_host && pitch_padding == 0 && mem.host_pointer &&
+    if (!mem.move_to_host && pitch_padding == 0 && mem.host_pointer &&
         mem.host_pointer != shared_pointer)
     {
       memcpy(shared_pointer, mem.host_pointer, size);

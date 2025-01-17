@@ -247,6 +247,7 @@ class device_memory {
   void *shared_pointer;
   /* reference counter for shared_pointer */
   int shared_counter;
+  bool move_to_host = false;
 
   virtual ~device_memory();
 
