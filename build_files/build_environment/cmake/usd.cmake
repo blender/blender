@@ -49,6 +49,10 @@ elseif(UNIX)
   endif()
 endif()
 
+# Custom namespace to prevent conflicts when importing both bpy module
+# and usd-core pip packages with the same version but different libs.
+string(REPLACE "." "_" USD_NAMESPACE "pxrBlender_v${USD_VERSION}")
+
 set(USD_EXTRA_ARGS
   ${DEFAULT_BOOST_FLAGS}
   ${USD_PLATFORM_FLAGS}
@@ -59,6 +63,7 @@ set(USD_EXTRA_ARGS
   -DOPENEXR_INCLUDE_DIR=${LIBDIR}/imath/include
   -DImath_DIR=${LIBDIR}/imath
   -DOPENVDB_LOCATION=${LIBDIR}/openvdb
+  -DPXR_SET_INTERNAL_NAMESPACE=${USD_NAMESPACE}
   -DPXR_ENABLE_PYTHON_SUPPORT=ON
   -DPXR_USE_PYTHON_3=ON
   -DPXR_BUILD_IMAGING=ON
@@ -124,7 +129,10 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_core_profile.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_metal_edf.diff
+      ${PATCH_DIR}/usd_metal_edf.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_ctor.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
