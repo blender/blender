@@ -259,7 +259,7 @@ std::string RNA_path_from_ptr_to_property_index(const PointerRNA *ptr,
                                                 int index);
 /**
  * \param index_dim: The dimension to show, 0 disables. 1 for 1d array, 2 for 2d. etc.
- * \param index: The *flattened* index to use when \a `index_dim > 0`,
+ * \param index: The *flattened* index to use when \a index_dim > 0,
  * this is expanded when used with multi-dimensional arrays.
  */
 std::optional<std::string> RNA_path_from_ID_to_property_index(const PointerRNA *ptr,
