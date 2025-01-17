@@ -18,7 +18,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_rendering_copy_buffer_end_rendering)
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
+  resources.add_image(image, 1);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
@@ -74,7 +74,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_rendering_copy_buffer_end_rendering)
           endl() +
           " - image_barrier(src_access_mask=, "
           "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "old_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
           "new_layout=" +
           color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
           "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
@@ -117,7 +117,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_end)
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
+  resources.add_image(image, 1);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
@@ -188,7 +188,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_end)
           endl() +
           " - image_barrier(src_access_mask=, "
           "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "old_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
           "new_layout=" +
           color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
           "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
@@ -238,7 +238,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_copy_buffer_clear_attachments_end)
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
+  resources.add_image(image, 1);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
@@ -309,7 +309,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_copy_buffer_clear_attachments_end)
           endl() +
           " - image_barrier(src_access_mask=, "
           "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "old_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
           "new_layout=" +
           color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
           "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
@@ -359,7 +359,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_clear_att
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
+  resources.add_image(image, 1);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
@@ -447,7 +447,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_clear_att
           endl() +
           " - image_barrier(src_access_mask=, "
           "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
-          "old_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
           "new_layout=" +
           color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
           "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
@@ -512,10 +512,8 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
   VkHandle<VkPipelineLayout> pipeline_layout_background(6u);
   VkHandle<VkPipeline> pipeline_background(7u);
 
-  resources.add_image(
-      image_attachment, 1, VK_IMAGE_LAYOUT_UNDEFINED, render_graph::ResourceOwner::APPLICATION);
-  resources.add_image(
-      image_feedback, 1, VK_IMAGE_LAYOUT_UNDEFINED, render_graph::ResourceOwner::APPLICATION);
+  resources.add_image(image_attachment, 1);
+  resources.add_image(image_feedback, 1);
 
   {
     VKResourceAccessInfo access_info = {};
@@ -698,7 +696,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
   VkHandle<VkPipelineLayout> pipeline_layout(5u);
   VkHandle<VkPipeline> pipeline(6u);
 
-  resources.add_image(image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(image, 1);
   resources.add_buffer(buffer_a);
   resources.add_buffer(buffer_b);
 
@@ -926,10 +924,8 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
   VkHandle<VkPipelineLayout> pipeline_layout(4u);
   VkHandle<VkPipeline> pipeline(5u);
 
-  resources.add_image(
-      image_attachment, 1, VK_IMAGE_LAYOUT_UNDEFINED, render_graph::ResourceOwner::APPLICATION);
-  resources.add_image(
-      image_editor, 1, VK_IMAGE_LAYOUT_UNDEFINED, render_graph::ResourceOwner::APPLICATION);
+  resources.add_image(image_attachment, 1);
+  resources.add_image(image_editor, 1);
 
   {
     VKResourceAccessInfo access_info = {};

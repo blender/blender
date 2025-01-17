@@ -16,7 +16,7 @@ TEST_P(VKRenderGraphTestRender, begin_clear_attachments_end_read_back)
   VkHandle<VkImageView> image_view(2u);
   VkHandle<VkBuffer> buffer(3u);
 
-  resources.add_image(image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(image, 1);
   resources.add_buffer(buffer);
 
   {
@@ -143,7 +143,7 @@ TEST_P(VKRenderGraphTestRender, begin_draw_end)
   VkHandle<VkPipelineLayout> pipeline_layout(4u);
   VkHandle<VkPipeline> pipeline(3u);
 
-  resources.add_image(image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(image, 1);
 
   {
     VKResourceAccessInfo access_info = {};
@@ -224,7 +224,7 @@ TEST_P(VKRenderGraphTestRender, begin_draw_end__layered)
   VkHandle<VkPipelineLayout> pipeline_layout(4u);
   VkHandle<VkPipeline> pipeline(3u);
 
-  resources.add_image(image, 2, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(image, 2);
 
   {
     VKResourceAccessInfo access_info = {};

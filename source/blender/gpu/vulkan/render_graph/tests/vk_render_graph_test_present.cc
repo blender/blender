@@ -14,8 +14,7 @@ TEST_F(VKRenderGraphTestPresent, transfer_and_present)
 {
   VkHandle<VkImage> back_buffer(1u);
 
-  resources.add_image(
-      back_buffer, 1, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ResourceOwner::SWAP_CHAIN);
+  resources.add_image(back_buffer, 1);
 
   render_graph->submit_for_present(back_buffer);
 
@@ -25,7 +24,7 @@ TEST_F(VKRenderGraphTestPresent, transfer_and_present)
       "dst_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT" +
           endl() +
           " - image_barrier(src_access_mask=, dst_access_mask=, "
-          "old_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
           "new_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, image=0x1, subresource_range=" +
           endl() +
           "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
@@ -38,7 +37,7 @@ TEST_F(VKRenderGraphTestPresent, clear_and_present)
 {
   VkHandle<VkImage> back_buffer(1u);
 
-  resources.add_image(back_buffer, 1, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
+  resources.add_image(back_buffer, 1);
 
   VKClearColorImageNode::CreateInfo clear_color_image = {};
   clear_color_image.vk_image = back_buffer;
@@ -53,7 +52,7 @@ TEST_F(VKRenderGraphTestPresent, clear_and_present)
       "dst_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT" +
           endl() +
           " - image_barrier(src_access_mask=, dst_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
-          "old_layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
           "new_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, image=0x1, subresource_range=" +
           endl() +
           "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
