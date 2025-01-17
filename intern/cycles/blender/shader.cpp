@@ -864,15 +864,23 @@ static ShaderNode *add_node(Scene *scene,
         const int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         if (b_image_source != BL::Image::source_TILED) {
           image->handle = scene->image_manager->add_image(
-              make_unique<BlenderImageLoader>(b_image, image_frame, 0, b_engine.is_preview()),
+              make_unique<BlenderImageLoader>(static_cast<::Image *>(b_image.ptr.data),
+                                              static_cast<::ImageUser *>(b_image_user.ptr.data),
+                                              image_frame,
+                                              0,
+                                              b_engine.is_preview()),
               image->image_params());
         }
         else {
           vector<unique_ptr<ImageLoader>> loaders;
           loaders.reserve(image->get_tiles().size());
           for (const int tile_number : image->get_tiles()) {
-            loaders.push_back(make_unique<BlenderImageLoader>(
-                b_image, image_frame, tile_number, b_engine.is_preview()));
+            loaders.push_back(
+                make_unique<BlenderImageLoader>(static_cast<::Image *>(b_image.ptr.data),
+                                                static_cast<::ImageUser *>(b_image_user.ptr.data),
+                                                image_frame,
+                                                tile_number,
+                                                b_engine.is_preview()));
           }
 
           image->handle = scene->image_manager->add_image(std::move(loaders),
@@ -911,7 +919,11 @@ static ShaderNode *add_node(Scene *scene,
         const int scene_frame = b_scene.frame_current();
         const int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         env->handle = scene->image_manager->add_image(
-            make_unique<BlenderImageLoader>(b_image, image_frame, 0, b_engine.is_preview()),
+            make_unique<BlenderImageLoader>(static_cast<::Image *>(b_image.ptr.data),
+                                            static_cast<::ImageUser *>(b_image_user.ptr.data),
+                                            image_frame,
+                                            0,
+                                            b_engine.is_preview()),
             env->image_params());
       }
       else {
