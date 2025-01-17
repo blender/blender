@@ -534,9 +534,8 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
       if (!type_map->full_names.contains(key_namemap)) {
         is_valid = false;
         if (do_fix) {
-          CLOG_INFO(
+          CLOG_WARN(
               &LOG,
-              3,
               "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
               "the namemap",
               id_iter->name,
@@ -573,9 +572,8 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
             if (!id_names_libs.contains(key)) {
               is_valid = false;
               if (do_fix) {
-                CLOG_INFO(
+                CLOG_WARN(
                     &LOG,
-                    3,
                     "ID name '%s' (from library '%s') is listed in the namemap, but does not "
                     "exists in current Main",
                     key.name,
