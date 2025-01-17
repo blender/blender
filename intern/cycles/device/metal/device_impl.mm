@@ -731,7 +731,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
       if (mem.host_pointer && mem.host_pointer != mmem->hostPtr) {
         memcpy(mmem->hostPtr, mem.host_pointer, size);
 
-        mem.host_free();
+        util_aligned_free(mem.host_pointer, mem.memory_size());
         mem.host_pointer = mmem->hostPtr;
       }
       mem.shared_pointer = mmem->hostPtr;
@@ -776,6 +776,10 @@ void MetalDevice::generic_free(device_memory &mem)
     return;
   }
 
+  /* Host pointer should already have been freed at this point. If not we might
+   * end up freeing shared memory and can't recover original host memory. */
+  assert(mem.host_pointer == nullptr);
+
   std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
   MetalMem &mmem = *metal_mem_map.at(&mem);
   size_t size = mmem.size;
@@ -800,7 +804,10 @@ void MetalDevice::generic_free(device_memory &mem)
 
   if (free_mtlBuffer) {
     if (mem.host_pointer && mem.host_pointer == mem.shared_pointer) {
-      /* Safely move the device-side data back to the host before it is freed. */
+      /* Safely move the device-side data back to the host before it is freed.
+       * We should actually never reach this code as it is inefficient, but
+       * better than to crash if there is a bug. */
+      assert(!"Metal device should not copy memory back to host");
       mem.host_pointer = mem.host_alloc(size);
       memcpy(mem.host_pointer, mem.shared_pointer, size);
       mmem.use_UMA = false;

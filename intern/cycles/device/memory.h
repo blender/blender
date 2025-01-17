@@ -283,15 +283,16 @@ class device_memory {
    * allocated with these functions, for devices that support using
    * the same pointer for host and device. */
   void *host_alloc(const size_t size);
-  void host_free();
 
   /* Device memory allocation and copying. */
   void device_alloc();
-  void device_free();
   void device_copy_to();
   void device_move_to_host();
   void device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem);
   void device_zero();
+
+  /* Memory can only be freed on host and device together. */
+  void host_and_device_free();
 
   bool device_is_cpu();
 
@@ -336,7 +337,7 @@ template<typename T> class device_only_memory : public device_memory {
     }
 
     if (reallocate) {
-      device_free();
+      host_and_device_free();
       data_size = new_size;
       device_alloc();
     }
@@ -344,7 +345,7 @@ template<typename T> class device_only_memory : public device_memory {
 
   void free()
   {
-    device_free();
+    host_and_device_free();
     data_size = 0;
   }
 
@@ -389,8 +390,7 @@ template<typename T> class device_vector : public device_memory {
     size_t new_size = size(width, height, depth);
 
     if (new_size != data_size) {
-      device_free();
-      host_free();
+      host_and_device_free();
       host_pointer = host_alloc(sizeof(T) * new_size);
       modified = true;
       assert(device_pointer == 0);
@@ -424,8 +424,7 @@ template<typename T> class device_vector : public device_memory {
         }
       }
 
-      device_free();
-      host_free();
+      host_and_device_free();
       host_pointer = new_ptr;
       assert(device_pointer == 0);
     }
@@ -441,8 +440,7 @@ template<typename T> class device_vector : public device_memory {
   /* Take over data from an existing array. */
   void steal_data(array<T> &from)
   {
-    device_free();
-    host_free();
+    host_and_device_free();
 
     data_size = from.size();
     data_width = 0;
@@ -452,24 +450,10 @@ template<typename T> class device_vector : public device_memory {
     assert(device_pointer == 0);
   }
 
-  void give_data(array<T> &to)
-  {
-    device_free();
-
-    to.set_data((T *)host_pointer, data_size);
-    data_size = 0;
-    data_width = 0;
-    data_height = 0;
-    data_depth = 0;
-    host_pointer = 0;
-    assert(device_pointer == 0);
-  }
-
   /* Free device and host memory. */
   void free()
   {
-    device_free();
-    host_free();
+    host_and_device_free();
 
     data_size = 0;
     data_width = 0;
@@ -565,14 +549,6 @@ template<typename T> class device_vector : public device_memory {
   void zero_to_device()
   {
     device_zero();
-  }
-
-  void move_device(Device *new_device)
-  {
-    copy_from_device();
-    device_free();
-    device = new_device;
-    copy_to_device();
   }
 
  protected:

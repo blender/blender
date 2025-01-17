@@ -728,15 +728,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
         mem.host_pointer != shared_pointer)
     {
       memcpy(shared_pointer, mem.host_pointer, size);
-
-      /* A Call to device_memory::host_free() should be preceded by
-       * a call to device_memory::device_free() for host memory
-       * allocated by a device to be handled properly. Two exceptions
-       * are here and a call in OptiXDevice::generic_alloc(), where
-       * the current host memory can be assumed to be allocated by
-       * device_memory::host_alloc(), not by a device */
-
-      mem.host_free();
+      util_aligned_free(mem.host_pointer, mem.memory_size());
       mem.host_pointer = shared_pointer;
     }
     mem.shared_pointer = shared_pointer;
@@ -756,6 +748,10 @@ void GPUDevice::generic_free(device_memory &mem)
     return;
   }
 
+  /* Host pointer should already have been freed at this point. If not we might
+   * end up freeing shared memory and can't recover original host memory. */
+  assert(mem.host_pointer == nullptr || mem.move_to_host);
+
   const thread_scoped_lock lock(device_mem_map_mutex);
   DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
   const Mem &cmem = device_mem_map[&mem];
@@ -769,7 +765,13 @@ void GPUDevice::generic_free(device_memory &mem)
       assert(mem.shared_counter > 0);
       if (--mem.shared_counter == 0) {
         if (mem.host_pointer == mem.shared_pointer) {
-          mem.host_pointer = nullptr;
+          /* Safely move the device-side data back to the host before it is freed.
+           * We should actually never reach this code as it is inefficient, but
+           * better than to crash if there is a bug. */
+          assert(!"GPU device should not copy memory back to host");
+          const size_t size = mem.memory_size();
+          mem.host_pointer = mem.host_alloc(size);
+          memcpy(mem.host_pointer, mem.shared_pointer, size);
         }
         free_host(mem.shared_pointer);
         mem.shared_pointer = nullptr;

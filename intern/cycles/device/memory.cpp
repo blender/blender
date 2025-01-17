@@ -54,25 +54,29 @@ void *device_memory::host_alloc(const size_t size)
   return ptr;
 }
 
-void device_memory::host_free()
+void device_memory::host_and_device_free()
 {
   if (host_pointer) {
-    util_aligned_free(host_pointer, memory_size());
+    if (host_pointer != shared_pointer) {
+      util_aligned_free(host_pointer, memory_size());
+    }
     host_pointer = nullptr;
   }
+
+  if (device_pointer) {
+    device->mem_free(*this);
+  }
+
+  data_size = 0;
+  data_width = 0;
+  data_height = 0;
+  data_depth = 0;
 }
 
 void device_memory::device_alloc()
 {
   assert(!device_pointer && type != MEM_TEXTURE && type != MEM_GLOBAL);
   device->mem_alloc(*this);
-}
-
-void device_memory::device_free()
-{
-  if (device_pointer) {
-    device->mem_free(*this);
-  }
 }
 
 void device_memory::device_copy_to()
@@ -204,8 +208,7 @@ device_texture::device_texture(Device *device,
 
 device_texture::~device_texture()
 {
-  device_free();
-  host_free();
+  host_and_device_free();
 }
 
 /* Host memory allocation. */
@@ -214,8 +217,7 @@ void *device_texture::alloc(const size_t width, const size_t height, const size_
   const size_t new_size = size(width, height, depth);
 
   if (new_size != data_size) {
-    device_free();
-    host_free();
+    host_and_device_free();
     host_pointer = host_alloc(data_elements * datatype_size(data_type) * new_size);
     assert(device_pointer == 0);
   }
