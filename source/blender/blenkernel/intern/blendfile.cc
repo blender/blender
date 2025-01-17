@@ -1797,6 +1797,11 @@ ID *PartialWriteContext::id_add_copy(const ID *id, const bool regenerate_session
                           LIB_ID_COPY_ASSET_METADATA);
   ctx_root_id = BKE_id_copy_in_lib(nullptr, id->lib, id, std::nullopt, nullptr, copy_flags);
   ctx_root_id->tag |= ID_TAG_TEMP_MAIN;
+  /* Ensure that the newly copied ID has a library in temp local bmain if it was linked.
+   * While this could be optimized out in case the ID is made local in the context, this adds
+   * complexity as default ID management code like 'make local' code will create invalid bmain
+   * namemap data. */
+  this->ensure_library(ctx_root_id);
   if (regenerate_session_uid) {
     /* Calling #BKE_lib_libblock_session_uid_renew is not needed here, copying already generated a
      * new one. */
@@ -2018,9 +2023,6 @@ ID *PartialWriteContext::id_add(
     const bool do_make_local = (options_final & MAKE_LOCAL) != 0;
     if (do_make_local) {
       this->make_local(ctx_id, make_local_flags);
-    }
-    else {
-      this->ensure_library(ctx_id);
     }
   }
 
