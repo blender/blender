@@ -32,6 +32,7 @@
 #include "BLI_system.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
@@ -2164,17 +2165,26 @@ bool PartialWriteContext::write(const char *write_filepath,
 
   /* In case the write path is the same as one of the libraries used by this context, make this
    * library local, and delete it (and all of its potentially remaining linked data). */
-  Library *make_local_lib = nullptr;
+  blender::Vector<Library *> make_local_libs;
   LISTBASE_FOREACH (Library *, library, &this->bmain.libraries) {
     if (STREQ(write_filepath, library->runtime.filepath_abs)) {
-      make_local_lib = library;
+      make_local_libs.append(library);
     }
   }
-  if (make_local_lib) {
-    BKE_library_make_local(&this->bmain, make_local_lib, nullptr, false, false, false);
-    BKE_id_delete(&this->bmain, make_local_lib);
-    make_local_lib = nullptr;
+  /* Will likely change in the near future (embedded linked IDs, virtual libraries...), but
+   * currently this should never happen. */
+  if (make_local_libs.size() > 1) {
+    CLOG_WARN(&LOG_PARTIALWRITE,
+              "%ld libraries found using the same filepath as destination one ('%s'), should "
+              "never happen.",
+              make_local_libs.size(),
+              write_filepath);
   }
+  for (Library *lib : make_local_libs) {
+    BKE_library_make_local(&this->bmain, lib, nullptr, false, false, false);
+    BKE_id_delete(&this->bmain, lib);
+  }
+  make_local_libs.clear();
 
   BLI_assert(this->is_valid());
 
