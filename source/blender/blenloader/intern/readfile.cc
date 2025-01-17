@@ -3645,7 +3645,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
    * non-BLO functions (e.g. ID deletion) can indirectly trigger it. */
   BKE_layer_collection_resync_forbid();
 
-  bfd = static_cast<BlendFileData *>(MEM_callocN(sizeof(BlendFileData), "blendfiledata"));
+  bfd = MEM_new<BlendFileData>(__func__);
 
   bfd->main = BKE_main_new();
   bfd->main->versionfile = fd->fileversion;

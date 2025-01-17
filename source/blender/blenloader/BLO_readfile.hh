@@ -5,6 +5,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_sys_types.h"
+#include "BLI_utility_mixins.hh"
 
 /** \file
  * \ingroup blenloader
@@ -51,26 +52,26 @@ enum eBlenFileType {
   // BLENFILETYPE_RUNTIME = 3, /* UNUSED */
 };
 
-struct BlendFileData {
-  Main *main;
-  UserDef *user;
+struct BlendFileData : blender::NonCopyable, blender::NonMovable {
+  Main *main = nullptr;
+  UserDef *user = nullptr;
 
-  int fileflags;
-  int globalf;
+  int fileflags = 0;
+  int globalf = 0;
   /** Typically the actual filepath of the read blend-file, except when recovering
    * save-on-exit/autosave files. In the latter case, it will be the path of the file that
    * generated the auto-saved one being recovered.
    *
    * NOTE: Currently expected to be the same path as #BlendFileData.filepath. */
-  char filepath[1024]; /* 1024 = FILE_MAX */
+  char filepath[1024] = {}; /* 1024 = FILE_MAX */
 
   /** TODO: think this isn't needed anymore? */
-  bScreen *curscreen;
-  Scene *curscene;
+  bScreen *curscreen = nullptr;
+  Scene *curscene = nullptr;
   /** Layer to activate in workspaces when reading without UI. */
-  ViewLayer *cur_view_layer;
+  ViewLayer *cur_view_layer = nullptr;
 
-  eBlenFileType type;
+  eBlenFileType type = eBlenFileType(0);
 };
 
 /**
