@@ -244,7 +244,7 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
 
   const bNode *from_node = link->fromnode;
 
-  /* Passing NODE_REROUTE nodes */
+  /* Passing reroute nodes. */
   while (from_node->is_reroute()) {
     link = from_node->input_socket(0).link;
     if (!(link && link->is_used())) {

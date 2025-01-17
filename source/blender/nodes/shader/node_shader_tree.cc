@@ -129,7 +129,7 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
 {
   /* replace muted nodes and reroute nodes by internal links */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &localtree->nodes) {
-    if (node->flag & NODE_MUTED || node->type_legacy == NODE_REROUTE) {
+    if (node->is_muted() || node->is_reroute()) {
       if (node->is_group() && node->id) {
         /* Free the group like in #ntree_shader_groups_flatten. */
         bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
@@ -351,15 +351,14 @@ static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSoc
   bool removed_link = false;
 
   LISTBASE_FOREACH (bNode *, node, &group_ntree->nodes) {
-    const bool is_group = ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP) &&
-                          (node->id != nullptr);
+    const bool is_group = node->is_group() && (node->id != nullptr);
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       if (!is_group && (sock->flag & SOCK_HIDE_VALUE) == 0) {
         continue;
       }
       /* If socket is linked to a group input node and sockets id match. */
-      if (sock && sock->link && sock->link->fromnode->type_legacy == NODE_GROUP_INPUT) {
+      if (sock && sock->link && sock->link->fromnode->is_group_input()) {
         if (STREQ(isock->identifier, sock->link->fromsock->identifier)) {
           if (is_group) {
             /* Recursively unlink sockets within the nested group. */
@@ -386,10 +385,8 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
   bool link_added = false;
 
   LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
-    const bool is_group = ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP) &&
-                          (node->id != nullptr);
-    const bool is_group_output = node->type_legacy == NODE_GROUP_OUTPUT &&
-                                 (node->flag & NODE_DO_OUTPUT);
+    const bool is_group = node->is_group() && (node->id != nullptr);
+    const bool is_group_output = node->is_group_output() && (node->flag & NODE_DO_OUTPUT);
 
     if (is_group) {
       /* Do it recursively. */
@@ -452,7 +449,7 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 static void ntree_shader_groups_remove_muted_links(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type_legacy == NODE_GROUP) {
+    if (node->is_group()) {
       if (node->id != nullptr) {
         ntree_shader_groups_remove_muted_links(reinterpret_cast<bNodeTree *>(node->id));
       }
@@ -475,7 +472,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
      * We must delay removal since sockets will reference this node. see: #52092 */
-    if (ELEM(node->type_legacy, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+    if (node->is_group_input() || node->is_group_output()) {
       BLI_linklist_prepend(&group_interface_nodes, node);
     }
     /* migrate node */
@@ -503,7 +500,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
   if (glinks_first != nullptr) {
     /* input links */
     for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
-      if (link->fromnode->type_legacy == NODE_GROUP_INPUT) {
+      if (link->fromnode->is_group_input()) {
         const char *identifier = link->fromsock->identifier;
         /* find external links to this input */
         for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
@@ -529,9 +526,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
         /* find internal links to this output */
         for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
           /* only use active output node */
-          if (link->tonode->type_legacy == NODE_GROUP_OUTPUT &&
-              (link->tonode->flag & NODE_DO_OUTPUT))
-          {
+          if (link->tonode->is_group_output() && (link->tonode->flag & NODE_DO_OUTPUT)) {
             if (STREQ(link->tosock->identifier, identifier)) {
               blender::bke::node_add_link(
                   ntree, link->fromnode, link->fromsock, tlink->tonode, tlink->tosock);
@@ -558,7 +553,7 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
   for (bNode *node = static_cast<bNode *>(localtree->nodes.first), *node_next; node;
        node = node_next)
   {
-    if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != nullptr) {
+    if (node->is_group() && node->id != nullptr) {
       flatten_group_do(localtree, node);
       /* Continue even on new flattened nodes. */
       node_next = node->next;

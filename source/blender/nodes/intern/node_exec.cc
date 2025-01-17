@@ -173,7 +173,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
       node_init_input_index(sock, &index);
     }
 
-    if (node->flag & NODE_MUTED || node->type_legacy == NODE_REROUTE) {
+    if (node->is_muted() || node->is_reroute()) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         node_init_output_index_muted(sock, &index, node->runtime->internal_links);
       }

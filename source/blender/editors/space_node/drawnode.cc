@@ -228,7 +228,7 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 {
   const float size = NODE_RESIZE_MARGIN * math::max(snode.runtime->aspect, 1.0f);
 
-  if (node->type_legacy == NODE_FRAME) {
+  if (node->is_frame()) {
     NodeFrame *data = (NodeFrame *)node->storage;
 
     /* shrinking frame size is determined by child nodes */
@@ -2371,8 +2371,8 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
                           (field_link ? 0.7f : 1.0f);
   draw_config.has_back_link = gizmo_link;
   draw_config.highlighted = link.flag & NODE_LINK_TEMP_HIGHLIGHT;
-  draw_config.drawarrow = ((link.tonode && (link.tonode->type_legacy == NODE_REROUTE)) &&
-                           (link.fromnode && (link.fromnode->type_legacy == NODE_REROUTE)));
+  draw_config.drawarrow = ((link.tonode && link.tonode->is_reroute()) &&
+                           (link.fromnode && link.fromnode->is_reroute()));
   draw_config.drawmuted = (link.flag & NODE_LINK_MUTED);
 
   UI_GetThemeColor4fv(th_col3, draw_config.outline_color);

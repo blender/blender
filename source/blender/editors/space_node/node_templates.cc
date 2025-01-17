@@ -77,7 +77,7 @@ static void node_link_item_init(NodeLinkItem &item)
  */
 static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 {
-  if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+  if (node->is_group()) {
     return (node->id == (ID *)item->ngroup);
   }
   return true;
@@ -85,7 +85,7 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 
 static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *item)
 {
-  if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+  if (node->is_group()) {
     node->id = (ID *)item->ngroup;
     BKE_ntree_update_tag_node_property(ntree, node);
   }

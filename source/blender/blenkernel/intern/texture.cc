@@ -728,7 +728,7 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture, bNodeTree *ntree, 
       Image *image = (Image *)node->id;
       BKE_image_pool_acquire_ibuf(image, &texture->iuser, pool);
     }
-    else if (node->type_legacy == NODE_GROUP && node->id != nullptr) {
+    else if (node->is_group() && node->id != nullptr) {
       /* TODO(sergey): Do we need to control recursion here? */
       bNodeTree *nested_tree = (bNodeTree *)node->id;
       texture_nodes_fetch_images_for_pool(texture, nested_tree, pool);

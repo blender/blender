@@ -104,7 +104,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
 
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
   for (bNode *node : params.node_tree.all_nodes()) {
-    if (node->type_legacy == NODE_GROUP_INPUT) {
+    if (node->is_group_input()) {
       bNodeSocket *new_group_input_socket = bke::node_find_socket(
           node, SOCK_OUT, socket_iface->identifier);
       if (new_group_input_socket) {

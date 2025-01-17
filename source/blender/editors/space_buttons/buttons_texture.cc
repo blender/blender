@@ -158,7 +158,7 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
                                       RNA_struct_ui_icon(ptr.type),
                                       node->name);
       }
-      else if (node->type_legacy == NODE_GROUP && node->id) {
+      else if (node->is_group() && node->id) {
         buttons_texture_users_find_nodetree(users, id, (bNodeTree *)node->id, category);
       }
     }
@@ -175,7 +175,7 @@ static void buttons_texture_modifier_geonodes_users_add(
   PropertyRNA *prop;
 
   for (bNode *node : node_tree->all_nodes()) {
-    if (node->type_legacy == NODE_GROUP && node->id) {
+    if (node->is_group() && node->id) {
       if (handled_groups.add(reinterpret_cast<bNodeTree *>(node->id))) {
         /* Recurse into the node group */
         buttons_texture_modifier_geonodes_users_add(

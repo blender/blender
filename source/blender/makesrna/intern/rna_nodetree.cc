@@ -2397,7 +2397,7 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
   /* XXX only Frame node allowed for now,
    * in the future should have a poll function or so to test possible attachment.
    */
-  if (parent->type_legacy != NODE_FRAME) {
+  if (!parent->is_frame()) {
     return;
   }
 
@@ -2487,11 +2487,11 @@ static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
   /* XXX only Frame node allowed for now,
    * in the future should have a poll function or so to test possible attachment.
    */
-  if (parent->type_legacy != NODE_FRAME) {
+  if (!parent->is_frame()) {
     return false;
   }
 
-  if (node->type_legacy == NODE_FRAME && blender::bke::node_is_parent_and_child(node, parent)) {
+  if (node->is_frame() && blender::bke::node_is_parent_and_child(node, parent)) {
     return false;
   }
 
@@ -4364,7 +4364,7 @@ static void rna_GroupOutput_is_active_output_set(PointerRNA *ptr, bool value)
   if (value) {
     /* Make sure that no other group output is active at the same time. */
     LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
-      if (other_node->type_legacy == NODE_GROUP_OUTPUT) {
+      if (other_node->is_group_output()) {
         other_node->flag &= ~NODE_DO_OUTPUT;
       }
     }
