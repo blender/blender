@@ -863,17 +863,8 @@ void HIPDevice::tex_alloc(device_texture &mem)
     hip_assert(hipMemcpyHtoD(mem.device_pointer, mem.host_pointer, mem.memory_size()));
   }
 
-  /* Resize once */
-  const uint slot = mem.slot;
-  if (slot >= texture_info.size()) {
-    /* Allocate some slots in advance, to reduce amount
-     * of re-allocations. */
-    texture_info.resize(slot + 128);
-  }
-
   /* Set Mapping and tag that we need to (re-)upload to device */
-  texture_info[slot] = mem.info;
-  need_texture_info = true;
+  TextureInfo tex_info = mem.info;
 
   if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
@@ -925,10 +916,22 @@ void HIPDevice::tex_alloc(device_texture &mem)
           "exceeded.");
     }
 
-    texture_info[slot].data = (uint64_t)cmem->texobject;
+    tex_info.data = (uint64_t)cmem->texobject;
   }
   else {
-    texture_info[slot].data = (uint64_t)mem.device_pointer;
+    tex_info.data = (uint64_t)mem.device_pointer;
+  }
+
+  {
+    /* Update texture info. */
+    thread_scoped_lock lock(texture_info_mutex);
+    const uint slot = mem.slot;
+    if (slot >= texture_info.size()) {
+      /* Allocate some slots in advance, to reduce amount of re-allocations. */
+      texture_info.resize(slot + 128);
+    }
+    texture_info[slot] = tex_info;
+    need_texture_info = true;
   }
 }
 
@@ -940,7 +943,12 @@ void HIPDevice::tex_copy_to(device_texture &mem)
   }
   else if (!mem.is_resident(this)) {
     /* Peering with another device, may still need to create texture info and object. */
-    if (texture_info[mem.slot].data == 0) {
+    bool texture_allocated = false;
+    {
+      thread_scoped_lock lock(texture_info_mutex);
+      texture_allocated = mem.slot < texture_info.size() && texture_info[mem.slot].data != 0;
+    }
+    if (!texture_allocated) {
       tex_alloc(mem);
     }
   }
@@ -976,7 +984,10 @@ void HIPDevice::tex_free(device_texture &mem)
   const Mem &cmem = it->second;
 
   /* Always clear texture info and texture object, regardless of residency. */
-  texture_info[mem.slot] = TextureInfo();
+  {
+    thread_scoped_lock lock(texture_info_mutex);
+    texture_info[mem.slot] = TextureInfo();
+  }
 
   if (cmem.texobject) {
     /* Free bindless texture. */

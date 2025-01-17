@@ -347,6 +347,7 @@ class GPUDevice : public Device {
 
   /* For GPUs that can use bindless textures in some way or another. */
   device_vector<TextureInfo> texture_info;
+  thread_mutex texture_info_mutex;
   bool need_texture_info = false;
   /* Returns true if the texture info was copied to the device (meaning, some more
    * re-initialization might be needed). */

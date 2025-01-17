@@ -404,7 +404,8 @@ template<typename T> class device_vector : public device_memory {
   }
 
   /* Host memory resize. Only use this if the original data needs to be
-   * preserved, it is faster to call alloc() if it can be discarded. */
+   * preserved or memory needs to be initialized, it is faster to call
+   * alloc() if it can be discarded. */
   T *resize(const size_t width, const size_t height = 0, const size_t depth = 0)
   {
     size_t new_size = size(width, height, depth);
@@ -412,9 +413,14 @@ template<typename T> class device_vector : public device_memory {
     if (new_size != data_size) {
       void *new_ptr = host_alloc(sizeof(T) * new_size);
 
-      if (new_size && data_size) {
-        size_t min_size = ((new_size < data_size) ? new_size : data_size);
-        memcpy((T *)new_ptr, (T *)host_pointer, sizeof(T) * min_size);
+      if (new_ptr) {
+        size_t min_size = (new_size < data_size) ? new_size : data_size;
+        for (size_t i = 0; i < min_size; i++) {
+          ((T *)new_ptr)[i] = ((T *)host_pointer)[i];
+        }
+        for (size_t i = data_size; i < new_size; i++) {
+          ((T *)new_ptr)[i] = T();
+        }
       }
 
       device_free();

@@ -500,11 +500,11 @@ GPUDevice::~GPUDevice() noexcept(false) = default;
 
 bool GPUDevice::load_texture_info()
 {
+  /* Note texture_info is never host mapped, and load_texture_info() should only
+   * be called right before kernel enqueue when all memory operations have completed. */
   if (need_texture_info) {
-    /* Unset flag before copying, so this does not loop indefinitely if the copy below calls
-     * into 'move_textures_to_host' (which calls 'load_texture_info' again). */
-    need_texture_info = false;
     texture_info.copy_to_device();
+    need_texture_info = false;
     return true;
   }
   return false;
@@ -618,6 +618,9 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
       size = (max_size >= size) ? 0 : size - max_size;
 
       any_device_moving_textures_to_host = false;
+
+      /* Tag texture info update for new pointers. */
+      need_texture_info = true;
     }
     else {
       break;
@@ -626,9 +629,6 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
 
   /* Unset flag before texture info is reloaded, since it should stay in device memory. */
   move_texture_to_host = false;
-
-  /* Update texture info array with new pointers. */
-  load_texture_info();
 }
 
 GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_padding)

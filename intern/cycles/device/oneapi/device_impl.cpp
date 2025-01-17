@@ -649,16 +649,19 @@ void OneapiDevice::tex_alloc(device_texture &mem)
   generic_alloc(mem);
   generic_copy_to(mem);
 
-  /* Resize if needed. Also, in case of resize - allocate in advance for future allocations. */
-  const uint slot = mem.slot;
-  if (slot >= texture_info.size()) {
-    texture_info.resize(slot + 128);
+  {
+    /* Update texture info. */
+    thread_scoped_lock lock(texture_info_mutex);
+    const uint slot = mem.slot;
+    if (slot >= texture_info.size()) {
+      /* Allocate some slots in advance, to reduce amount of re-allocations. */
+      texture_info.resize(slot + 128);
+    }
+    TextureInfo tex_info = mem.info;
+    tex_info.data = (uint64_t)mem.device_pointer;
+    texture_info[slot] = tex_info;
+    need_texture_info = true;
   }
-
-  texture_info[slot] = mem.info;
-  need_texture_info = true;
-
-  texture_info[slot].data = (uint64_t)mem.device_pointer;
 }
 
 void OneapiDevice::tex_copy_to(device_texture &mem)
