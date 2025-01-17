@@ -444,6 +444,14 @@ void OneapiDevice::mem_move_to_host(device_memory &mem)
     return;
   }
 
+  {
+    /* If already host mapped, nothing to do. */
+    thread_scoped_lock lock(device_mem_map_mutex);
+    if (device_mem_map[&mem].use_mapped_host) {
+      return;
+    }
+  }
+
   if (mem.type == MEM_GLOBAL) {
     global_free(mem);
     global_alloc(mem);
