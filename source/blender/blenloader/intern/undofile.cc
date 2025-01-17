@@ -180,7 +180,7 @@ Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene)
       *r_scene = bfd->curscene;
     }
 
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
 
   return bmain_undo;

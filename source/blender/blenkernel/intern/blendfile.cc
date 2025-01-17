@@ -1447,7 +1447,7 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *file_buf,
       userdef = bfd->user;
     }
     BKE_main_free(bfd->main);
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
@@ -1684,7 +1684,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
       workspace_config->workspaces = bfd->main->workspaces;
     }
 
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
 
   return workspace_config;
