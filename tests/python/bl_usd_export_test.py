@@ -649,6 +649,10 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh1).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh2).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh3).GetPrimvar("test").GetTimeSamples(), sparse_frames)
+        # Extents of the mesh (should be sparsely written)
+        self.assertEqual(UsdGeom.Boundable(mesh1).GetExtentAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(UsdGeom.Boundable(mesh2).GetExtentAttr().GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.Boundable(mesh3).GetExtentAttr().GetTimeSamples(), [])
 
         #
         # Validate PointCloud data
@@ -835,6 +839,71 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(indices1), 15)
         self.assertEqual(len(indices2), 15)
         self.assertNotEqual(indices1, indices2)
+
+    def test_export_curves(self):
+        """Test exporting Curve types"""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_curves_test.blend"))
+        export_path = self.tempdir / "usd_curves_test.usda"
+        self.export_and_validate(filepath=str(export_path), evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        def check_basis_curve(prim, basis, curve_type, wrap, vert_counts, extent):
+            self.assertEqual(prim.GetBasisAttr().Get(), basis)
+            self.assertEqual(prim.GetTypeAttr().Get(), curve_type)
+            self.assertEqual(prim.GetWrapAttr().Get(), wrap)
+            self.assertEqual(prim.GetWidthsInterpolation(), "varying" if basis == "bezier" else "vertex")
+            self.assertEqual(prim.GetCurveVertexCountsAttr().Get(), vert_counts)
+            usd_extent = prim.GetExtentAttr().Get()
+            self.assertEqual(self.round_vector(usd_extent[0]), extent[0])
+            self.assertEqual(self.round_vector(usd_extent[1]), extent[1])
+
+        def check_nurbs_curve(prim, cyclic, orders, vert_counts, knots_count, extent):
+            self.assertEqual(prim.GetOrderAttr().Get(), orders)
+            self.assertEqual(prim.GetCurveVertexCountsAttr().Get(), vert_counts)
+            self.assertEqual(prim.GetWidthsInterpolation(), "vertex")
+            knots = prim.GetKnotsAttr().Get()
+            usd_extent = prim.GetExtentAttr().Get()
+            self.assertEqual(self.round_vector(usd_extent[0]), extent[0])
+            self.assertEqual(self.round_vector(usd_extent[1]), extent[1])
+
+            curve_count = len(vert_counts)
+            self.assertEqual(len(knots), knots_count * curve_count)
+            if not cyclic:
+                for i in range(0, curve_count):
+                    zeroth_knot = i * len(knots) // curve_count
+                    self.assertEqual(knots[zeroth_knot], knots[zeroth_knot + 1], "Knots start rule violated")
+                    self.assertEqual(
+                        knots[zeroth_knot + knots_count - 1],
+                        knots[zeroth_knot + knots_count - 2],
+                        "Knots end rule violated")
+            else:
+                self.assertEqual(curve_count, 1, "Validation is only correct for 1 cyclic curve currently")
+                self.assertEqual(
+                    knots[0], knots[1] - (knots[knots_count - 2] - knots[knots_count - 3]), "Knots rule violated")
+                self.assertEqual(
+                    knots[knots_count - 1], knots[knots_count - 2] + (knots[2] - knots[1]), "Knots rule violated")
+
+        # Contains 3 CatmullRom curves
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/Cube/Curves/Curves"))
+        check_basis_curve(
+            curve, "catmullRom", "cubic", "pinned", [8, 8, 8], [[-0.3784, -0.0866, 1], [0.2714, -0.0488, 1.3]])
+
+        # Contains 1 Bezier curve
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/BezierCurve/BezierCurve"))
+        check_basis_curve(curve, "bezier", "cubic", "nonperiodic", [7], [[-2.644, -0.0777, 0], [1, 0.9815, 0]])
+
+        # Contains 1 Bezier curve
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/BezierCircle/BezierCircle"))
+        check_basis_curve(curve, "bezier", "cubic", "periodic", [12], [[-1, -1, 0], [1, 1, 0]])
+
+        # Contains 2 NURBS curves
+        curve = UsdGeom.NurbsCurves(stage.GetPrimAtPath("/root/NurbsCurve/NurbsCurve"))
+        check_nurbs_curve(curve, False, [4, 4], [6, 6], 10, [[-0.75, -1.6898, -0.0117], [2.0896, 0.9583, 0.0293]])
+
+        # Contains 1 NURBS curve
+        curve = UsdGeom.NurbsCurves(stage.GetPrimAtPath("/root/NurbsCircle/NurbsCircle"))
+        check_nurbs_curve(curve, True, [3], [8], 13, [[-1, -1, 0], [1, 1, 0]])
 
     def test_export_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))

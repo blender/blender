@@ -636,6 +636,8 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 
   auto prim = usd_curves->GetPrim();
   write_id_properties(prim, curves_id->id, timecode);
+
+  this->author_extent(*usd_curves, curves.bounds_min_max(), timecode);
 }
 
 void USDCurvesWriter::assign_materials(const HierarchyContext &context,

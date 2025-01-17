@@ -67,7 +67,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
     write_id_properties(prim, psys->part->id, timecode);
   }
 
-  this->author_extent(timecode, curves);
+  this->author_extent(curves, timecode);
 }
 
 bool USDHairWriter::check_is_animated(const HierarchyContext & /*context*/) const
