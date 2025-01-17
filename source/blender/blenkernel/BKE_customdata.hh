@@ -329,6 +329,13 @@ void CustomData_set_only_copy(const CustomData *data, eCustomDataMask mask);
  * Copies data from one CustomData object to another
  * objects need not be compatible, each source layer is copied to the
  * first dest layer of correct type (if there is none, the layer is skipped).
+ *
+ * NOTE: It's expected that the destination layers are mutable
+ * (#CustomData_ensure_layers_are_mutable). These copy-functions could ensure that internally, but
+ * that would cause additional overhead when copying few elements at a time. It would also be
+ * necessary to pass the total size of the destination layers as parameter if to make them mutable
+ * though. In most cases, these functions are used right after creating a new geometry, in which
+ * case there are no shared layers anyway.
  */
 void CustomData_copy_data(
     const CustomData *source, CustomData *dest, int source_index, int dest_index, int count);

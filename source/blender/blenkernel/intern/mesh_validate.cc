@@ -1164,6 +1164,9 @@ bool BKE_mesh_validate_material_indices(Mesh *mesh)
 
 void strip_loose_faces_corners(Mesh *mesh, blender::BitSpan faces_to_remove)
 {
+  /* Ensure layers are mutable so that #CustomData_copy_data can be used. */
+  CustomData_ensure_layers_are_mutable(&mesh->face_data, mesh->faces_num);
+
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
 
@@ -1238,6 +1241,9 @@ void strip_loose_faces_corners(Mesh *mesh, blender::BitSpan faces_to_remove)
 
 void mesh_strip_edges(Mesh *mesh)
 {
+  /* Ensure layers are mutable so that #CustomData_copy_data can be used. */
+  CustomData_ensure_layers_are_mutable(&mesh->edge_data, mesh->edges_num);
+
   blender::int2 *e;
   int a, b;
   uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * mesh->edges_num, __func__);
