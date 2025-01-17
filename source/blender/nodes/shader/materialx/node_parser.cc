@@ -18,22 +18,16 @@ constexpr StringRef TEXCOORD_NODE_NAME = "node_texcoord";
 
 CLG_LOGREF_DECLARE_GLOBAL(LOG_MATERIALX_SHADER, "materialx.shader");
 
-NodeParser::NodeParser(MaterialX::GraphElement *graph,
-                       const Depsgraph *depsgraph,
-                       const Material *material,
+NodeParser::NodeParser(NodeGraph &graph,
                        const bNode *node,
                        const bNodeSocket *socket_out,
                        NodeItem::Type to_type,
-                       GroupNodeParser *group_parser,
-                       const ExportParams &export_params)
+                       GroupNodeParser *group_parser)
     : graph_(graph),
-      depsgraph_(depsgraph),
-      material_(material),
       node_(node),
       socket_out_(socket_out),
       to_type_(to_type),
-      group_parser_(group_parser),
-      export_params_(export_params)
+      group_parser_(group_parser)
 {
 }
 
@@ -46,7 +40,7 @@ NodeItem NodeParser::compute_full()
   }
 
   /* Checking if node was already computed */
-  res.node = graph_->getNode(node_name());
+  res = graph_.get_node(node_name());
   if (!res.node) {
     CLOG_INFO(LOG_MATERIALX_SHADER,
               1,
@@ -168,7 +162,7 @@ NodeItem NodeParser::get_output_default(int index, NodeItem::Type to_type)
 
 NodeItem NodeParser::empty() const
 {
-  return NodeItem(graph_);
+  return graph_.empty_node();
 }
 
 NodeItem NodeParser::texcoord_node(NodeItem::Type type, const std::string &attribute_name)
@@ -178,19 +172,19 @@ NodeItem NodeParser::texcoord_node(NodeItem::Type type, const std::string &attri
   if (type == NodeItem::Type::Vector3) {
     name += "_vector3";
   }
-  NodeItem res = empty();
-  res.node = graph_->getNode(name);
+  NodeItem res = graph_.get_node(name);
   if (!res.node) {
     /* TODO: Use "Pref" generated texture coordinates for 3D, but needs
      * work in USD and Hydra mesh export. */
     const bool is_active_uvmap = attribute_name == "" ||
-                                 attribute_name == export_params_.original_active_uvmap_name;
-    if (export_params_.new_active_uvmap_name == "st" && is_active_uvmap) {
+                                 attribute_name == graph_.export_params.original_active_uvmap_name;
+    if (graph_.export_params.new_active_uvmap_name == "st" && is_active_uvmap) {
       res = create_node("texcoord", type);
     }
     else {
-      const std::string &geomprop = (is_active_uvmap) ? export_params_.new_active_uvmap_name :
-                                                        attribute_name;
+      const std::string &geomprop = (is_active_uvmap) ?
+                                        graph_.export_params.new_active_uvmap_name :
+                                        attribute_name;
       res = create_node("geompropvalue", type, {{"geomprop", val(geomprop)}});
     }
     res.node->setName(name);
@@ -254,27 +248,13 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
   }
 
   if (from_node->is_group()) {
-    return GroupNodeParser(graph_,
-                           depsgraph_,
-                           material_,
-                           from_node,
-                           link->fromsock,
-                           to_type,
-                           group_parser_,
-                           export_params_,
-                           use_group_default)
+    return GroupNodeParser(
+               graph_, from_node, link->fromsock, to_type, group_parser_, use_group_default)
         .compute_full();
   }
   if (from_node->is_group_input()) {
-    return GroupInputNodeParser(graph_,
-                                depsgraph_,
-                                material_,
-                                from_node,
-                                link->fromsock,
-                                to_type,
-                                group_parser_,
-                                export_params_,
-                                use_group_default)
+    return GroupInputNodeParser(
+               graph_, from_node, link->fromsock, to_type, group_parser_, use_group_default)
         .compute_full();
   }
 
@@ -286,8 +266,7 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
     return empty();
   }
 
-  NodeParserData data = {
-      graph_, depsgraph_, material_, to_type, group_parser_, empty(), export_params_};
+  NodeParserData data = {graph_, to_type, group_parser_, empty()};
   from_node->typeinfo->materialx_fn(&data, const_cast<bNode *>(from_node), link->fromsock);
   return data.result;
 }

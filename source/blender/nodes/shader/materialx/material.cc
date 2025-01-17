@@ -22,14 +22,15 @@ class DefaultMaterialNodeParser : public NodeParser {
 
   NodeItem compute() override
   {
+    const Material *material = graph_.material;
     NodeItem surface = create_node(
         "standard_surface",
         NodeItem::Type::SurfaceShader,
         {{"base", val(1.0f)},
-         {"base_color", val(MaterialX::Color3(material_->r, material_->g, material_->b))},
-         {"diffuse_roughness", val(material_->roughness)},
-         {"specular", val(material_->spec)},
-         {"metalness", val(material_->metallic)}});
+         {"base_color", val(MaterialX::Color3(material->r, material->g, material->b))},
+         {"diffuse_roughness", val(material->roughness)},
+         {"specular", val(material->spec)},
+         {"metalness", val(material->metallic)}});
 
     NodeItem res = create_node(
         "surfacematerial", NodeItem::Type::Material, {{"surfaceshader", surface}});
@@ -59,41 +60,25 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
   MaterialX::DocumentPtr doc = MaterialX::createDocument();
   NodeItem output_item;
 
+  NodeGraph graph(depsgraph, material, export_params, doc);
+
   if (material->use_nodes) {
     material->nodetree->ensure_topology_cache();
     bNode *output_node = ntreeShaderOutputNode(material->nodetree, SHD_OUTPUT_ALL);
     if (output_node && output_node->typeinfo->materialx_fn) {
-      NodeParserData data = {doc.get(),
-                             depsgraph,
-                             material,
-                             NodeItem::Type::Material,
-                             nullptr,
-                             NodeItem(doc.get()),
-                             export_params};
+      NodeParserData data = {graph, NodeItem::Type::Material, nullptr, graph.empty_node()};
       output_node->typeinfo->materialx_fn(&data, output_node, nullptr);
       output_item = data.result;
     }
     else {
-      output_item = DefaultMaterialNodeParser(doc.get(),
-                                              depsgraph,
-                                              material,
-                                              nullptr,
-                                              nullptr,
-                                              NodeItem::Type::Material,
-                                              nullptr,
-                                              export_params)
+      output_item = DefaultMaterialNodeParser(
+                        graph, nullptr, nullptr, NodeItem::Type::Material, nullptr)
                         .compute_error();
     }
   }
   else {
-    output_item = DefaultMaterialNodeParser(doc.get(),
-                                            depsgraph,
-                                            material,
-                                            nullptr,
-                                            nullptr,
-                                            NodeItem::Type::Material,
-                                            nullptr,
-                                            export_params)
+    output_item = DefaultMaterialNodeParser(
+                      graph, nullptr, nullptr, NodeItem::Type::Material, nullptr)
                       .compute();
   }
 
