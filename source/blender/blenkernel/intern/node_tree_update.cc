@@ -19,6 +19,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_image.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
@@ -196,7 +197,6 @@ struct NodeTreeRelations {
  private:
   Main *bmain_;
   std::optional<Vector<bNodeTree *>> all_trees_;
-  std::optional<Map<bNodeTree *, ID *>> owner_ids_;
   std::optional<MultiValueMap<bNodeTree *, TreeNodePair>> group_node_users_;
   std::optional<MultiValueMap<bNodeTree *, ObjectModifierPair>> modifiers_users_;
 
@@ -209,23 +209,14 @@ struct NodeTreeRelations {
       return;
     }
     all_trees_.emplace();
-    owner_ids_.emplace();
     if (bmain_ == nullptr) {
       return;
     }
 
     FOREACH_NODETREE_BEGIN (bmain_, ntree, id) {
       all_trees_->append(ntree);
-      if (&ntree->id != id) {
-        owner_ids_->add_new(ntree, id);
-      }
     }
     FOREACH_NODETREE_END;
-  }
-
-  void ensure_owner_ids()
-  {
-    this->ensure_all_trees();
   }
 
   void ensure_group_node_users()
@@ -286,12 +277,6 @@ struct NodeTreeRelations {
   {
     BLI_assert(group_node_users_.has_value());
     return group_node_users_->lookup(ntree);
-  }
-
-  ID &get_owner_id(bNodeTree *ntree)
-  {
-    BLI_assert(owner_ids_.has_value());
-    return *owner_ids_->lookup_default(ntree, &ntree->id);
   }
 };
 
@@ -395,13 +380,13 @@ class NodeTreeMainUpdater {
         ntree->runtime->geometry_nodes_lazy_function_graph_info.reset();
       }
 
-      relations_.ensure_owner_ids();
-      ID &owner_id = relations_.get_owner_id(ntree);
+      ID *owner_id = BKE_id_owner_get(&ntree->id);
+      ID &owner_or_self_id = owner_id ? *owner_id : ntree->id;
       if (params_.tree_changed_fn) {
-        params_.tree_changed_fn(*ntree, owner_id);
+        params_.tree_changed_fn(*ntree, owner_or_self_id);
       }
       if (params_.tree_output_changed_fn && result.output_changed) {
-        params_.tree_output_changed_fn(*ntree, owner_id);
+        params_.tree_output_changed_fn(*ntree, owner_or_self_id);
       }
     }
 
