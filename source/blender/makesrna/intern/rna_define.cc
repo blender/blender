@@ -26,6 +26,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_bits.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -50,14 +51,14 @@ static CLG_LogRef LOG = {"rna.define"};
 #  define ASSERT_SOFT_HARD_LIMITS (void)0
 #endif
 
-/* Several types cannot use all their bytes to store a bitset (bitshift operations on negative
- * numbers are 'arithmetic', i.e. preserve the sign, i.e. are not 'pure' binary shifting).
+/**
+ * Several types cannot use all their bytes to store a bit-set (bit-shift operations on negative
+ * numbers are 'arithmetic", i.e. preserve the sign, i.e. are not 'pure' binary shifting).
  *
- * Currently, all signed types and uint64_t cannot use their left-most bit (i.e. sign bit). */
+ * Currently, all signed types and `uint64_t` cannot use their left-most bit (i.e. sign bit).
+ */
 #define IS_DNATYPE_BOOLEAN_BITSHIFT_FULLRANGE_COMPAT(_str) \
-  (strcmp(_str, "char") == 0 || strcmp(_str, "uchar") == 0 || strcmp(_str, "ushort") == 0 || \
-   strcmp(_str, "uint") == 0 || strcmp(_str, "uint8_t") == 0 || strcmp(_str, "uint16_t") == 0 || \
-   strcmp(_str, "uint32_t") == 0)
+  STR_ELEM(_str, "char", "uchar", "ushort", "uint", "uint8_t", "uint16_t", "uint32_t")
 
 /* Global used during defining */
 

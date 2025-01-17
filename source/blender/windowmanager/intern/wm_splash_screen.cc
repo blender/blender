@@ -150,7 +150,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
   if (ibuf == nullptr) {
     const char *custom_splash_path = BLI_getenv("BLENDER_CUSTOM_SPLASH");
     if (custom_splash_path) {
-      ibuf = IMB_loadiffname(custom_splash_path, IB_rect, NULL);
+      ibuf = IMB_loadiffname(custom_splash_path, IB_rect, nullptr);
     }
   }
 
@@ -191,7 +191,7 @@ static ImBuf *wm_block_splash_banner_image(int *r_width,
 
   const char *custom_splash_path = BLI_getenv("BLENDER_CUSTOM_SPLASH_BANNER");
   if (custom_splash_path) {
-    ibuf = IMB_loadiffname(custom_splash_path, IB_rect, NULL);
+    ibuf = IMB_loadiffname(custom_splash_path, IB_rect, nullptr);
   }
 
   if (!ibuf) {
@@ -203,8 +203,8 @@ static ImBuf *wm_block_splash_banner_image(int *r_width,
   width = ibuf->x;
   height = ibuf->y;
   if (width > 0 && height > 0 && (width > max_width || height > max_height)) {
-    float splash_ratio = max_width / (float)max_height;
-    float banner_ratio = ibuf->x / (float)ibuf->y;
+    const float splash_ratio = max_width / float(max_height);
+    const float banner_ratio = ibuf->x / float(ibuf->y);
 
     if (banner_ratio > splash_ratio) {
       /* The banner is wider than the splash image. */

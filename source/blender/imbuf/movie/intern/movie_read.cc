@@ -298,7 +298,7 @@ static AVFormatContext *init_format_context_vpx_workarounds(const char *filepath
   if (ELEM(video_stream->codecpar->codec_id, AV_CODEC_ID_VP8, AV_CODEC_ID_VP9)) {
     AVDictionaryEntry *tag = nullptr;
     tag = av_dict_get(video_stream->metadata, "alpha_mode", tag, AV_DICT_IGNORE_SUFFIX);
-    if (tag && strcmp(tag->value, "1") == 0) {
+    if (tag && STREQ(tag->value, "1")) {
       r_codec = avcodec_find_decoder_by_name(
           video_stream->codecpar->codec_id == AV_CODEC_ID_VP8 ? "libvpx" : "libvpx-vp9");
       if (r_codec != nullptr) {
@@ -365,7 +365,7 @@ static int startffmpeg(MovieReader *anim)
   }
 
   /* Check if we need the "never seek, only decode one frame" ffmpeg bug workaround. */
-  const bool is_ogg_container = strcmp(pFormatCtx->iformat->name, "ogg") == 0;
+  const bool is_ogg_container = STREQ(pFormatCtx->iformat->name, "ogg");
   const bool is_non_ogg_video = video_stream->codecpar->codec_id != AV_CODEC_ID_THEORA;
   const bool is_video_thumbnail = (video_stream->disposition & AV_DISPOSITION_ATTACHED_PIC) != 0;
   anim->never_seek_decode_one_frame = is_ogg_container && is_non_ogg_video && is_video_thumbnail;

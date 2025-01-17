@@ -742,7 +742,7 @@ int USD_get_version()
   return PXR_VERSION;
 }
 
-double get_meters_per_unit(const struct USDExportParams *params)
+double get_meters_per_unit(const USDExportParams *params)
 {
   double result;
   switch (params->convert_scene_units) {
