@@ -2193,7 +2193,7 @@ static PyObject *bpy_bmface_calc_tangent_edge(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_edge(self->f, tangent);
+  BM_face_calc_tangent_from_edge(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 
@@ -2215,7 +2215,7 @@ static PyObject *bpy_bmface_calc_tangent_edge_pair(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_edge_pair(self->f, tangent);
+  BM_face_calc_tangent_from_edge_pair(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 
@@ -2233,7 +2233,7 @@ static PyObject *bpy_bmface_calc_tangent_edge_diagonal(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_edge_diagonal(self->f, tangent);
+  BM_face_calc_tangent_from_edge_diagonal(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 
@@ -2251,7 +2251,7 @@ static PyObject *bpy_bmface_calc_tangent_vert_diagonal(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_vert_diagonal(self->f, tangent);
+  BM_face_calc_tangent_from_vert_diagonal(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 

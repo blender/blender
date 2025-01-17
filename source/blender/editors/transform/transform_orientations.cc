@@ -1058,7 +1058,7 @@ int getTransformOrientation_ex(const Scene *scene,
               sub_v3_v3v3(r_plane, v_pair[0]->co, v_pair[1]->co);
             }
             else {
-              BM_vert_tri_calc_tangent_edge(v_tri, r_plane);
+              BM_vert_tri_calc_tangent_from_edge(v_tri, r_plane);
             }
           }
           else {

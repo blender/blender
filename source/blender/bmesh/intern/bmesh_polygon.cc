@@ -325,7 +325,7 @@ static int bm_vert_tri_find_unique_edge(BMVert *verts[3])
   return order[0];
 }
 
-void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3])
+void BM_vert_tri_calc_tangent_from_edge(BMVert *verts[3], float r_tangent[3])
 {
   const int index = bm_vert_tri_find_unique_edge(verts);
   const int index_next = (index + 1) % 3;
@@ -334,9 +334,9 @@ void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-void BM_vert_tri_calc_tangent_pair_edge(BMVert *verts[3],
-                                        float r_tangent_a[3],
-                                        float r_tangent_b[3])
+void BM_vert_tri_calc_tangent_pair_from_edge(BMVert *verts[3],
+                                             float r_tangent_a[3],
+                                             float r_tangent_b[3])
 {
   const int index = bm_vert_tri_find_unique_edge(verts);
   const int index_next = (index + 1) % 3;
@@ -373,7 +373,7 @@ void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-void BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
+void BM_face_calc_tangent_from_edge(const BMFace *f, float r_tangent[3])
 {
   const BMLoop *l_long = BM_face_find_longest_loop((BMFace *)f);
 
@@ -427,7 +427,9 @@ static void bm_face_calc_tangent_pair_from_quad_edge_pair(const BMFace *f,
   }
 }
 
-void BM_face_calc_tangent_pair_edge(const BMFace *f, float r_tangent_a[3], float r_tangent_b[3])
+void BM_face_calc_tangent_pair_from_edge(const BMFace *f,
+                                         float r_tangent_a[3],
+                                         float r_tangent_b[3])
 {
   const BMLoop *l_long = BM_face_find_longest_loop((BMFace *)f);
 
@@ -448,7 +450,7 @@ void BM_face_calc_tangent_pair_edge(const BMFace *f, float r_tangent_a[3], float
                   len_squared_v3(tmp_next) > len_squared_v3(tmp_prev) ? vec_next : vec_prev);
 }
 
-void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
+void BM_face_calc_tangent_from_edge_pair(const BMFace *f, float r_tangent[3])
 {
   if (f->len == 3) {
     BMVert *verts[3];
@@ -459,7 +461,7 @@ void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
   }
   else if (f->len == 4) {
     /* Use longest edge pair */
-    BM_face_calc_tangent_edge(f, r_tangent);
+    BM_face_calc_tangent_from_edge(f, r_tangent);
   }
   else {
     /* For ngons use two longest disconnected edges */
@@ -493,7 +495,7 @@ void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
   }
 }
 
-void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
+void BM_face_calc_tangent_from_edge_diagonal(const BMFace *f, float r_tangent[3])
 {
   BMLoop *l_iter, *l_first;
 
@@ -525,7 +527,7 @@ void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3])
+void BM_face_calc_tangent_from_vert_diagonal(const BMFace *f, float r_tangent[3])
 {
   BMLoop *l_iter, *l_first;
 
@@ -559,7 +561,7 @@ void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3])
     /* most 'unique' edge of a triangle */
     BMVert *verts[3];
     BM_face_as_array_vert_tri((BMFace *)f, verts);
-    BM_vert_tri_calc_tangent_edge(verts, r_tangent);
+    BM_vert_tri_calc_tangent_from_edge(verts, r_tangent);
   }
   else if (f->len == 4) {
     /* longest edge pair of a quad */
@@ -567,7 +569,7 @@ void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3])
   }
   else {
     /* longest edge of an ngon */
-    BM_face_calc_tangent_edge(f, r_tangent);
+    BM_face_calc_tangent_from_edge(f, r_tangent);
   }
 }
 
@@ -577,7 +579,7 @@ void BM_face_calc_tangent_pair_auto(const BMFace *f, float r_tangent_a[3], float
     /* most 'unique' edge of a triangle */
     BMVert *verts[3];
     BM_face_as_array_vert_tri((BMFace *)f, verts);
-    BM_vert_tri_calc_tangent_pair_edge(verts, r_tangent_a, r_tangent_b);
+    BM_vert_tri_calc_tangent_pair_from_edge(verts, r_tangent_a, r_tangent_b);
   }
   else if (f->len == 4) {
     /* longest edge pair of a quad */
@@ -585,7 +587,7 @@ void BM_face_calc_tangent_pair_auto(const BMFace *f, float r_tangent_a[3], float
   }
   else {
     /* longest edge of an ngon */
-    BM_face_calc_tangent_pair_edge(f, r_tangent_a, r_tangent_b);
+    BM_face_calc_tangent_pair_from_edge(f, r_tangent_a, r_tangent_b);
   }
 }
 
