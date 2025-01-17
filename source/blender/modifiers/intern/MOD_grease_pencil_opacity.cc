@@ -89,6 +89,11 @@ static void modify_stroke_color(const GreasePencilOpacityModifierData &omd,
   curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
     const IndexRange points = points_by_curve[curve_i];
     for (const int64_t point_i : points) {
+      const float vgroup_weight = vgroup_weights[point_i];
+      if (vgroup_weight <= 0.0f) {
+        continue;
+      }
+
       const float curve_input = points.size() >= 2 ?
                                     (float(point_i - points.first()) / float(points.size() - 1)) :
                                     0.0f;
@@ -101,12 +106,10 @@ static void modify_stroke_color(const GreasePencilOpacityModifierData &omd,
       }
       else if (use_weight_as_factor) {
         /* Use vertex group weights as opacity factors. */
-        opacities.span[point_i] = std::clamp(
-            omd.color_factor * curve_factor * vgroup_weights[point_i], 0.0f, 1.0f);
+        opacities.span[point_i] = std::clamp(curve_factor * vgroup_weight, 0.0f, 1.0f);
       }
       else {
         /* Use vertex group weights as influence factors. */
-        const float vgroup_weight = vgroup_weights[point_i];
         const float vgroup_influence = invert_vertex_group ? 1.0f - vgroup_weight : vgroup_weight;
         opacities.span[point_i] = std::clamp(
             opacities.span[point_i] + (omd.color_factor * curve_factor - 1.0f) * vgroup_influence,
@@ -141,7 +144,11 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
     if (use_vgroup_opacity) {
       /* Use the first stroke point as vertex weight. */
       const IndexRange points = points_by_curve[curve_i];
-      const float stroke_weight = points.is_empty() ? 1.0f : vgroup_weights[points.first()];
+      const float vgroup_weight_first = vgroup_weights[points.first()];
+      float stroke_weight = vgroup_weight_first;
+      if (points.is_empty() || (vgroup_weight_first <= 0.0f)) {
+        stroke_weight = 1.0f;
+      }
       const float stroke_influence = invert_vertex_group ? 1.0f - stroke_weight : stroke_weight;
 
       fill_opacities.span[curve_i] = std::clamp(stroke_influence, 0.0f, 1.0f);
