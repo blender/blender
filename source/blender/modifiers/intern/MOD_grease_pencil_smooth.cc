@@ -128,6 +128,24 @@ static void deform_drawing(const ModifierData &md,
   const VArray<bool> cyclic = curves.cyclic();
   const VArray<bool> point_selection = VArray<bool>::ForSingle(true, curves.points_num());
 
+  VArray<float> influences;
+  const bool use_influence_vertex_group = mmd.influence.vertex_group_name[0] != '\0';
+  if (use_influence_vertex_group) {
+    const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
+        curves, mmd.influence);
+    Array<float> vgroup_weights_factored(vgroup_weights.size());
+    threading::parallel_for(
+        vgroup_weights_factored.index_range(), 4096, [&](const IndexRange range) {
+          for (const int i : range) {
+            vgroup_weights_factored[i] = vgroup_weights[i] * influence;
+          }
+        });
+    influences = VArray<float>::ForContainer(vgroup_weights_factored);
+  }
+  else {
+    influences = VArray<float>::ForSingle(influence, curves.points_num());
+  }
+
   if (smooth_position) {
     bke::GSpanAttributeWriter positions = attributes.lookup_for_write_span("position");
     geometry::smooth_curve_attribute(strokes,
@@ -135,7 +153,7 @@ static void deform_drawing(const ModifierData &md,
                                      point_selection,
                                      cyclic,
                                      iterations,
-                                     influence,
+                                     influences,
                                      smooth_ends,
                                      keep_shape,
                                      positions.span);
@@ -149,7 +167,7 @@ static void deform_drawing(const ModifierData &md,
                                      point_selection,
                                      cyclic,
                                      iterations,
-                                     influence,
+                                     influences,
                                      smooth_ends,
                                      false,
                                      opacities.span);
@@ -162,7 +180,7 @@ static void deform_drawing(const ModifierData &md,
                                      point_selection,
                                      cyclic,
                                      iterations,
-                                     influence,
+                                     influences,
                                      smooth_ends,
                                      false,
                                      radii.span);
@@ -176,7 +194,7 @@ static void deform_drawing(const ModifierData &md,
                                        point_selection,
                                        cyclic,
                                        iterations,
-                                       influence,
+                                       influences,
                                        smooth_ends,
                                        false,
                                        rotation.span);
