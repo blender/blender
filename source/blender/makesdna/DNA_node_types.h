@@ -2798,8 +2798,7 @@ typedef enum CMPNodeKuwahara {
   CMP_NODE_KUWAHARA_ANISOTROPIC = 1,
 } CMPNodeKuwahara;
 
-/* Stabilize 2D node. Stored in custom1 for Stabilize 2D node and in interpolation for Translate
- * node. */
+/* Shared between nodes with interpolation option. */
 typedef enum CMPNodeInterpolation {
   CMP_NODE_INTERPOLATION_NEAREST = 0,
   CMP_NODE_INTERPOLATION_BILINEAR = 1,
