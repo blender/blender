@@ -179,8 +179,8 @@ static int sculptmode_toggle_exec(bContext *C, wmOperator *op)
   }
   else {
     Scene *scene = CTX_data_scene(C);
-    BKE_paint_init(bmain, scene, PaintMode::SculptGreasePencil, PAINT_CURSOR_SCULPT_GREASE_PENCIL);
-    Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptGreasePencil);
+    BKE_paint_init(bmain, scene, PaintMode::SculptGPencil, PAINT_CURSOR_SCULPT_GREASE_PENCIL);
+    Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptGPencil);
     ED_paint_cursor_start(paint, sculpt_poll_view3d);
     mode = OB_MODE_SCULPT_GREASE_PENCIL;
   }

@@ -105,11 +105,9 @@ enum class PaintMode : int8_t {
   WeightGPencil = 9,
   /** Curves. */
   SculptCurves = 10,
-  /** Grease Pencil. */
-  SculptGreasePencil = 11,
 
   /** Keep last. */
-  Invalid = 12,
+  Invalid = 11,
 };
 
 /* overlay invalidation */
