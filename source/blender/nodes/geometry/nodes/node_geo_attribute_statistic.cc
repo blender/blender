@@ -103,7 +103,25 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 template<typename T> static T compute_sum(const Span<T> data)
 {
-  return std::accumulate(data.begin(), data.end(), T());
+  /* Explicitly splitting work into chunks for a couple of reasons:
+   * - Improve numerical stability. While there are even more stable algorithms (e.g. Kahan
+   *   summation), they also add more complexity to the hot code path. So far, this simple approach
+   *   seems to solve the common issues people run into.
+   * - Support computing the sum using multiple threads.
+   * - Ensure deterministic results even with floating point numbers.
+   */
+  constexpr int64_t chunk_size = 1024;
+  const int64_t chunks_num = divide_ceil_ul(data.size(), chunk_size);
+  Array<T> partial_sums(chunks_num);
+  threading::parallel_for(partial_sums.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      const int64_t start = i * chunk_size;
+      const Span<T> chunk = data.slice_safe(start, chunk_size);
+      const T partial_sum = std::accumulate(chunk.begin(), chunk.end(), T());
+      partial_sums[i] = partial_sum;
+    }
+  });
+  return std::accumulate(partial_sums.begin(), partial_sums.end(), T());
 }
 
 static float compute_variance(const Span<float> data, const float mean)
