@@ -22,7 +22,7 @@ from bl_blendfile_utils import TestBlendLibLinkHelper
 class TestBlendUserMap(TestBlendLibLinkHelper):
 
     def __init__(self, args):
-        self.args = args
+        super().__init__(args)
 
     def test_user_map(self):
         output_dir = self.args.output_dir
@@ -33,13 +33,13 @@ class TestBlendUserMap(TestBlendLibLinkHelper):
 
         bpy.ops.wm.open_mainfile(filepath=output_blendfile_path)
 
-        assert len(bpy.data.images) == 1
-        assert bpy.data.images[0].library is not None
-        assert len(bpy.data.materials) == 1
-        assert bpy.data.materials[0].library is not None
-        assert len(bpy.data.meshes) == 1
-        assert len(bpy.data.objects) == 1
-        assert len(bpy.data.collections) == 1
+        self.assertEqual(len(bpy.data.images), 1)
+        self.assertIsNotNone(bpy.data.images[0].library)
+        self.assertEqual(len(bpy.data.materials), 1)
+        self.assertIsNotNone(bpy.data.materials[0].library)
+        self.assertEqual(len(bpy.data.meshes), 1)
+        self.assertEqual(len(bpy.data.objects), 1)
+        self.assertEqual(len(bpy.data.collections), 1)
 
         user_map = bpy.data.user_map()
         # Note: Workspaces and screens are ignored here.
@@ -55,8 +55,8 @@ class TestBlendUserMap(TestBlendLibLinkHelper):
             bpy.data.window_managers[0]: set(),
         }
         for k, v in expected_map.items():
-            assert k in user_map
-            assert user_map[k] == v
+            self.assertIn(k, user_map)
+            self.assertEqual(user_map[k], v)
 
         user_map = bpy.data.user_map(subset=[bpy.data.objects[0], bpy.data.meshes[0]])
         expected_map = {
@@ -65,12 +65,12 @@ class TestBlendUserMap(TestBlendLibLinkHelper):
                                   bpy.data.collections[0]},
         }
         for k, v in expected_map.items():
-            assert k in user_map
-            assert user_map[k] == v
+            self.assertIn(k, user_map)
+            self.assertEqual(user_map[k], v)
         user_map = bpy.data.user_map(key_types={'OBJECT', 'MESH'})
         for k, v in expected_map.items():
-            assert k in user_map
-            assert user_map[k] == v
+            self.assertIn(k, user_map)
+            self.assertEqual(user_map[k], v)
 
         user_map = bpy.data.user_map(value_types={'SCENE'})
         expected_map = {
@@ -78,21 +78,12 @@ class TestBlendUserMap(TestBlendLibLinkHelper):
             bpy.data.objects[0]: {bpy.data.scenes[0]},
         }
         for k, v in expected_map.items():
-            assert k in user_map
-            assert user_map[k] == v
+            self.assertIn(k, user_map)
+            self.assertEqual(user_map[k], v)
 
         # Test handling of invalid parameters
-        try:
-            user_map = bpy.data.user_map(value_types={'FOOBAR'})
-            assert 0
-        except ValueError:
-            pass
-
-        try:
-            user_map = bpy.data.user_map(subset=[bpy.data.objects[0], bpy.data.meshes[0], "FooBar"])
-            assert 0
-        except TypeError:
-            pass
+        self.assertRaises(ValueError, bpy.data.user_map, value_types={'FOOBAR'})
+        self.assertRaises(TypeError, bpy.data.user_map, subset=[bpy.data.objects[0], bpy.data.meshes[0], "FooBar"])
 
 
 TESTS = (
