@@ -91,7 +91,9 @@ if(WIN32)
 
   set(CPACK_NSIS_MUI_ICON ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.ico)
   set(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
-
+  
+  # Eventhough we no longer display this, we still need to set it otherwise it'll throw an error
+  # during the msi build. 
   set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/release/license/spdx/GPL-3.0-or-later.txt)
   set(CPACK_WIX_PRODUCT_ICON ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.ico)
 
@@ -106,7 +108,8 @@ if(WIN32)
   set(CPACK_WIX_TEMPLATE ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX.template)
   set(CPACK_WIX_UI_BANNER ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX_UI_BANNER.bmp)
   set(CPACK_WIX_UI_DIALOG ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WIX_UI_DIALOG.bmp)
-
+  set(CPACK_WIX_EXTRA_SOURCES ${CMAKE_SOURCE_DIR}/release/windows/installer_wix/WixUI_Blender.wxs)
+  set(CPACK_WIX_UI_REF "WixUI_Blender")
   set(CPACK_WIX_LIGHT_EXTRA_FLAGS -dcl:medium)
 endif()
 
