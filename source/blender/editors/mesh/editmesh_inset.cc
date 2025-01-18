@@ -105,7 +105,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
   WorkspaceStatus status(C);
   status.item(IFACE_("Confirm"), ICON_EVENT_RETURN, ICON_MOUSE_LMB);
   status.item(IFACE_("Cancel"), ICON_EVENT_ESC, ICON_MOUSE_RMB);
-  status.item_bool(IFACE_("Tweak"), opdata->modify_depth, ICON_EVENT_CTRL);
+  status.item_bool(IFACE_("Depth"), opdata->modify_depth, ICON_EVENT_CTRL);
   status.item_bool(IFACE_("Outset"), RNA_boolean_get(op->ptr, "use_outset"), ICON_EVENT_O);
   status.item_bool(IFACE_("Boundary"), RNA_boolean_get(op->ptr, "use_boundary"), ICON_EVENT_B);
   status.item_bool(IFACE_("Individual"), RNA_boolean_get(op->ptr, "use_individual"), ICON_EVENT_I);
