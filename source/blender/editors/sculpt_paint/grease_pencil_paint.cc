@@ -980,7 +980,7 @@ struct PaintOperationExecutor {
         attributes,
         bke::AttrDomain::Point,
         bke::attribute_filter_from_skip_ref(point_attributes_to_skip),
-        curves.points_range().take_back(1));
+        curves.points_range().take_back(new_points_num));
 
     drawing_->set_texture_matrices({self.texture_space_}, IndexRange::from_single(active_curve));
   }
