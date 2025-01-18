@@ -3408,7 +3408,7 @@ class VIEW3D_MT_make_links(Menu):
         layout.operator("object.join_uvs", text="Copy UV Maps")
 
         layout.separator()
-
+        layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("object.data_transfer")
         layout.operator("object.datalayout_transfer")
 
