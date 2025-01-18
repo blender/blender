@@ -76,9 +76,6 @@ struct Cache {
    * \note -1 means the vertex value still needs to be calculated.
    */
   Array<float> cavity_factor;
-
-  bool can_reuse_mask;
-  uchar current_stroke_id;
 };
 
 /**
@@ -103,8 +100,6 @@ bool mode_enabled(const Sculpt &sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt &sd, const Object &object, const Brush *br);
 
 bool needs_normal(const SculptSession &ss, const Sculpt &sd, const Brush *brush);
-
-bool brush_type_can_reuse_automask(int sculpt_brush_type);
 
 /**
  * Calculate all auto-masking influence on each vertex.

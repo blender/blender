@@ -1630,15 +1630,6 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
   }
 }
 
-bool brush_type_can_reuse_automask(int sculpt_brush_type)
-{
-  return ELEM(sculpt_brush_type,
-              SCULPT_BRUSH_TYPE_PAINT,
-              SCULPT_BRUSH_TYPE_SMEAR,
-              SCULPT_BRUSH_TYPE_MASK,
-              SCULPT_BRUSH_TYPE_DRAW_FACE_SETS);
-}
-
 std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob)
 {
   return cache_init(depsgraph, sd, nullptr, ob);
