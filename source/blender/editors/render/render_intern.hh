@@ -9,6 +9,7 @@
 #pragma once
 
 struct ReportList;
+struct Scene;
 struct ScrArea;
 struct bContext;
 struct wmOperatorType;
@@ -71,6 +72,12 @@ void TEXTURE_OT_slot_paste(wmOperatorType *ot);
 void TEXTURE_OT_slot_move(wmOperatorType *ot);
 
 /* `render_internal.cc` */
+
+/* Base class for all WM_JOB_TYPE_RENDER jobs. */
+struct RenderJobBase {
+  Scene *scene = nullptr;
+  Scene *current_scene = nullptr;
+};
 
 /**
  * Contextual render, using current scene, view3d?

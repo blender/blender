@@ -6,7 +6,6 @@
  * \ingroup edrend
  */
 
-#include <cmath>
 #include <cstddef>
 #include <cstring>
 
@@ -16,7 +15,6 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
-#include "BLI_threads.h"
 #include "BLI_time.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
@@ -71,11 +69,9 @@
 /* Render Callbacks */
 static bool render_break(void *rjv);
 
-struct RenderJob {
+struct RenderJob : public RenderJobBase {
   Main *main;
-  Scene *scene;
   ViewLayer *single_layer;
-  Scene *current_scene;
   /* TODO(sergey): Should not be needed once engine will have its own
    * depsgraph and copy-on-write will be implemented.
    */
@@ -401,7 +397,7 @@ static void render_freejob(void *rjv)
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   BKE_color_managed_view_settings_free(&rj->view_settings);
-  MEM_freeN(rj);
+  MEM_delete(rj);
 }
 
 static void make_renderinfo_string(const RenderStats *rs,
@@ -899,11 +895,7 @@ static int screen_render_modal(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   /* running render */
-  switch (event->type) {
-    case EVT_ESCKEY:
-      return OPERATOR_RUNNING_MODAL;
-  }
-  return OPERATOR_PASS_THROUGH;
+  return (event->type == EVT_ESCKEY) ? OPERATOR_RUNNING_MODAL : OPERATOR_PASS_THROUGH;
 }
 
 static void screen_render_cancel(bContext *C, wmOperator *op)
@@ -1035,7 +1027,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   area = render_view_open(C, event->xy[0], event->xy[1], op->reports);
 
   /* job custom data */
-  rj = MEM_cnew<RenderJob>("render job");
+  rj = MEM_new<RenderJob>("render job");
   rj->main = bmain;
   rj->scene = scene;
   rj->current_scene = rj->scene;
@@ -1206,7 +1198,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 Scene *ED_render_job_get_scene(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(
+  RenderJobBase *rj = (RenderJobBase *)WM_jobs_customdata_from_type(
       wm, CTX_data_scene(C), WM_JOB_TYPE_RENDER);
 
   if (rj) {
@@ -1219,7 +1211,7 @@ Scene *ED_render_job_get_scene(const bContext *C)
 Scene *ED_render_job_get_current_scene(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(
+  RenderJobBase *rj = (RenderJobBase *)WM_jobs_customdata_from_type(
       wm, CTX_data_scene(C), WM_JOB_TYPE_RENDER);
   if (rj) {
     return rj->current_scene;
