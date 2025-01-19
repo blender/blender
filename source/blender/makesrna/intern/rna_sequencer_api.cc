@@ -761,12 +761,9 @@ void RNA_api_strip_elements(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
-void RNA_api_strip_retiming_keys(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_api_strip_retiming_keys(BlenderRNA *brna)
 {
-  StructRNA *srna;
-
-  RNA_def_property_srna(cprop, "RetimingKeys");
-  srna = RNA_def_struct(brna, "RetimingKeys", nullptr);
+  StructRNA *srna = RNA_def_struct(brna, "RetimingKeys", nullptr);
   RNA_def_struct_sdna(srna, "Strip");
   RNA_def_struct_ui_text(srna, "RetimingKeys", "Collection of RetimingKey");
 
