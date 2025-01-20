@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2100,20 +2100,20 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Light"
-msgstr "Lumină"
-
-
-msgid "Add Image"
-msgstr "Adăugare Imagine"
-
-
 msgid "Apply"
 msgstr "Aplicare"
 
 
 msgid "Convert"
 msgstr "Convertire"
+
+
+msgid "Add Image"
+msgstr "Adăugare Imagine"
+
+
+msgid "Light"
+msgstr "Lumină"
 
 
 msgid "Marker"
@@ -3088,6 +3088,10 @@ msgid "Nothing selected"
 msgstr "Nimic selectat"
 
 
+msgid "Cancel"
+msgstr "Anulare"
+
+
 msgctxt "Operator"
 msgid "Change Shortcut"
 msgstr "Schimbă Scurtătura"
@@ -3187,10 +3191,6 @@ msgstr "Hex"
 
 msgid "OK"
 msgstr "OK"
-
-
-msgid "Cancel"
-msgstr "Anulare"
 
 
 msgid "Movie"

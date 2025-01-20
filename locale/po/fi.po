@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7344,54 +7344,6 @@ msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
 msgid "Random Mask"
 msgstr "Satunnainen maski"
 
@@ -7400,8 +7352,56 @@ msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
 
 
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
 msgid "Text"
 msgstr "Teksti"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
 
 
 msgid "Basic"
@@ -10329,10 +10329,6 @@ msgid "Canvas"
 msgstr "Kangas"
 
 
-msgid "All Sequences"
-msgstr "Kaikki sekvenssit"
-
-
 msgid "Show Missing Media"
 msgstr "Näytä puuttuva media"
 
@@ -10343,22 +10339,6 @@ msgstr "Lukitse kanava"
 
 msgid "Mute channel"
 msgstr "Mykistä kanava"
-
-
-msgid "Move along X axis"
-msgstr "Liiku X-akselin mukaisesti"
-
-
-msgid "Move along Y axis"
-msgstr "Liiku Y-akselin mukaisesti"
-
-
-msgid "Scale along X axis"
-msgstr "Skaalaa X-akselin mukaisesti"
-
-
-msgid "Scale along Y axis"
-msgstr "Skaalaa Y-akselin mukaisesti"
 
 
 msgid "Show Cache"
@@ -11266,25 +11246,29 @@ msgid "Text Value"
 msgstr "Tekstiarvo"
 
 
-msgid "Movie Sequence"
-msgstr "Videosekvenssi"
-
-
-msgid "Scene Sequence"
-msgstr "Kohtausskvenssi"
-
-
 msgid "Use Annotations"
 msgstr "Käytä huomioita"
-
-
-msgid "Sound Sequence"
-msgstr "Äänisekvenssi"
 
 
 msgctxt "Sound"
 msgid "Pan"
 msgstr "Panoroi"
+
+
+msgid "Move along X axis"
+msgstr "Liiku X-akselin mukaisesti"
+
+
+msgid "Move along Y axis"
+msgstr "Liiku Y-akselin mukaisesti"
+
+
+msgid "Scale along X axis"
+msgstr "Skaalaa X-akselin mukaisesti"
+
+
+msgid "Scale along Y axis"
+msgstr "Skaalaa Y-akselin mukaisesti"
 
 
 msgid "Studio Light"
@@ -11853,10 +11837,6 @@ msgstr "Kohtauksen Valot"
 
 msgid "Scene World"
 msgstr "Kohtauksen Maailma"
-
-
-msgid "X-Ray Alpha"
-msgstr "Röntgensäde Alfa"
 
 
 msgid "Active AOV"
@@ -13032,10 +13012,6 @@ msgid "Render Time"
 msgstr "Renderöintiaika"
 
 
-msgid "*Unsaved Changes"
-msgstr "*Tallentamattomia Muutoksia"
-
-
 msgid "Edge to Edge"
 msgstr "Reunasta Reunaan"
 
@@ -14061,6 +14037,10 @@ msgid "Nothing selected"
 msgstr "Mitään ei ole valittu"
 
 
+msgid "Cancel"
+msgstr "Peruuta"
+
+
 msgctxt "Operator"
 msgid "Change Shortcut"
 msgstr "Vaihda pikakomento"
@@ -14217,10 +14197,6 @@ msgstr "Alfa:"
 
 msgid "OK"
 msgstr "OK"
-
-
-msgid "Cancel"
-msgstr "Peruuta"
 
 
 msgid "Internal error!"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13641,16 +13641,8 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
 msgid "Pivot Point"
@@ -13665,100 +13657,108 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
+msgid "Face Data"
+msgstr "Data Ploch"
 
 
 msgid "Propagate"
 msgstr "Vložit"
 
 
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
+msgid "Clean Up"
+msgstr "Vyčistit"
 
 
-msgid "Merge"
-msgstr "Sloučit"
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Light"
+msgstr "Světlo"
 
 
 msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
-msgid "Text"
-msgstr "Text"
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
 
 
 msgid "Basic"
@@ -20931,11 +20931,6 @@ msgstr "Exportovat"
 
 
 msgctxt "Operator"
-msgid "Add Selected to Active Collection"
-msgstr "Přidat Vybrané do Aktivní Kolekce"
-
-
-msgctxt "Operator"
 msgid "Remove from Collection"
 msgstr "Odstranit z Kolekce"
 
@@ -21883,6 +21878,10 @@ msgstr "Použít vzorkování pro všechny animace"
 
 msgid "JPEG Format (.jpg)"
 msgstr "Formát JPEG (.jpg)"
+
+
+msgid "Keep Original"
+msgstr "Uchovat Původní"
 
 
 msgid "Export all materials used by included objects"
@@ -27653,10 +27652,6 @@ msgstr "Cílová Cesta"
 
 msgid "All Keymaps"
 msgstr "Další klíč"
-
-
-msgid "Keep Original"
-msgstr "Uchovat Původní"
 
 
 msgid "Item Identifier"
@@ -34836,38 +34831,6 @@ msgid "Waveform Mode"
 msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
 
 
-msgid "Sequence Color Balance Data"
-msgstr "Nelineární video editor"
-
-
-msgid "Inverse Gain"
-msgstr "Prohodit"
-
-
-msgid "Inverse Gamma"
-msgstr "Invertovat Výběr Klíčů"
-
-
-msgid "Inverse Lift"
-msgstr "Prohodit"
-
-
-msgid "Sequence Color Balance"
-msgstr "Nelineární video editor"
-
-
-msgid "Color balance parameters for a sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Sequence Crop"
-msgstr "Sekvence "
-
-
-msgid "Cropping parameters for a sequence strip"
-msgstr "První frame animace"
-
-
 msgid "Active Strip"
 msgstr "Měřítko Proužku Akce"
 
@@ -34884,104 +34847,8 @@ msgid "Overlay Offset"
 msgstr "Zrušit odchylku"
 
 
-msgid "Sequences"
-msgstr "Sekvence"
-
-
 msgid "Overlay Lock"
 msgstr "Uzamknout Překrytí"
-
-
-msgid "Sequence Element"
-msgstr "Sekvence "
-
-
-msgid "Orig Height"
-msgstr "Obíhat vpravo"
-
-
-msgid "Original image height"
-msgstr "Původní výška obrázku"
-
-
-msgid "Orig Width"
-msgstr "Šířka"
-
-
-msgid "Original image width"
-msgstr "Původní šířka obrázku"
-
-
-msgid "Modifier for sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Mask Strip"
-msgstr "Přidat action strip"
-
-
-msgid "Mask Input Type"
-msgstr "Vrstvy masky"
-
-
-msgid "Use sequencer strip as mask input"
-msgstr "Sekvence "
-
-
-msgid "Mute this modifier"
-msgstr "Modifikátory"
-
-
-msgid "Mute expanded settings for the modifier"
-msgstr "Zobrazit nastavení vláken pro statické částice"
-
-
-msgid "Bright/contrast modifier data for sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Color balance modifier for sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Multiply Colors"
-msgstr "Multivrstva"
-
-
-msgid "RGB curves modifier for sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Hue correction modifier for sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Sequence Proxy"
-msgstr "Sekvence "
-
-
-msgid "Proxy parameters for a sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Use a custom directory to store data"
-msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
-
-
-msgid "Sequence Transform"
-msgstr "Transformace"
-
-
-msgid "Transform parameters for a sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Translate X"
-msgstr "Posunout"
-
-
-msgid "Translate Y"
-msgstr "Posunout"
 
 
 msgid "Show Cache"
@@ -36258,6 +36125,10 @@ msgid "Use Linear Modifiers"
 msgstr "Upraveno uživatelem"
 
 
+msgid "Multiply Colors"
+msgstr "Multivrstva"
+
+
 msgid "Strobe"
 msgstr "Tah (štětcem)"
 
@@ -36282,10 +36153,6 @@ msgid "Reverse Frames"
 msgstr "Pozpátku"
 
 
-msgid "Add Sequence"
-msgstr "Přidat Sekvenci"
-
-
 msgid "Input 1"
 msgstr "Vstup"
 
@@ -36302,10 +36169,6 @@ msgid "Second input for the effect strip"
 msgstr "Vybrat nový font pro uživatelské rozhraní"
 
 
-msgid "Adjustment Layer Sequence"
-msgstr "Aktivní vrstva"
-
-
 msgid "Animation end offset (trim end)"
 msgstr "Poslední frame"
 
@@ -36314,32 +36177,12 @@ msgid "Animation Start Offset"
 msgstr "Krok animace"
 
 
-msgid "Alpha Over Sequence"
-msgstr "Alfa Přes Sekvenci"
-
-
-msgid "Alpha Under Sequence"
-msgstr "Alfa pod Sekvencí"
-
-
-msgid "Color Sequence"
-msgstr "Barva"
-
-
 msgid "Sequence strip creating an image filled with a single color"
 msgstr "Přidat vazbu aktivní kosti"
 
 
 msgid "Cross Sequence"
 msgstr "Barva"
-
-
-msgid "Gamma Cross Sequence"
-msgstr "Sekvence "
-
-
-msgid "Glow Sequence"
-msgstr "Sekvence "
 
 
 msgid "Sequence strip creating a glow effect"
@@ -36374,10 +36217,6 @@ msgid "Only Boost"
 msgstr "Zobrazit sekundy"
 
 
-msgid "Multicam Select Sequence"
-msgstr "Vybrat řádek"
-
-
 msgid "Sequence strip to perform multicam editing"
 msgstr "Uložit změněný obrázek"
 
@@ -36386,24 +36225,8 @@ msgid "Multicam Source Channel"
 msgstr "Změnit pruh"
 
 
-msgid "Multiply Sequence"
-msgstr "Multivrstva"
-
-
-msgid "Over Drop Sequence"
-msgstr "Sekvence "
-
-
-msgid "SpeedControl Sequence"
-msgstr "Zobrazit kontrolery"
-
-
 msgid "Sequence strip to control the speed of other strips"
 msgstr "Přidat vazbu aktivní kosti"
-
-
-msgid "Subtract Sequence"
-msgstr "Sekvence "
 
 
 msgid "Align X"
@@ -36418,10 +36241,6 @@ msgid "Outline Width"
 msgstr "Šířka obrysu"
 
 
-msgid "Transform Sequence"
-msgstr "Transformace"
-
-
 msgid "Bilinear interpolation"
 msgstr "Extrapolace"
 
@@ -36430,12 +36249,16 @@ msgid "Bicubic interpolation"
 msgstr "Mód Interpolace"
 
 
+msgid "Translate X"
+msgstr "Posunout"
+
+
+msgid "Translate Y"
+msgstr "Posunout"
+
+
 msgid "Translation Unit"
 msgstr "Překlad"
-
-
-msgid "Wipe Sequence"
-msgstr "Sekvence "
 
 
 msgid "Sequence strip creating a wipe transition"
@@ -36446,8 +36269,12 @@ msgid "Blur Width"
 msgstr "Filtr skriptů"
 
 
-msgid "Mask Sequence"
-msgstr "Sekvence "
+msgid "Image Strip"
+msgstr "Otevřít obrázek"
+
+
+msgid "Mask Strip"
+msgstr "Přidat action strip"
 
 
 msgid "Sequence strip to load a video from a mask"
@@ -36458,16 +36285,12 @@ msgid "Mask that this sequence uses"
 msgstr "Přidat vazbu aktivní kosti"
 
 
-msgid "Meta Sequence"
-msgstr "Sekvence "
+msgid "Meta Strip"
+msgstr "Zarovnat NLA proužky"
 
 
 msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "Přidat vazbu aktivní kosti"
-
-
-msgid "MovieClip Sequence"
-msgstr "Sekvence "
 
 
 msgid "Sequence strip to load a video from the clip editor"
@@ -36486,10 +36309,6 @@ msgid "Use the undistorted version of the clip"
 msgstr "Spustit renderovani"
 
 
-msgid "Movie Sequence"
-msgstr "Sekvence "
-
-
 msgid "Sequence strip to load a video"
 msgstr "Uložit změněný obrázek"
 
@@ -36498,16 +36317,96 @@ msgid "Stream Index"
 msgstr "Materiálové uzly"
 
 
-msgid "Scene Sequence"
-msgstr "Sekvence "
+msgid "Scene Strip"
+msgstr "Přidat action strip"
 
 
 msgid "Scene that this sequence uses"
 msgstr "Přidat vazbu aktivní kosti"
 
 
-msgid "Sound Sequence"
+msgid "Inverse Gain"
+msgstr "Prohodit"
+
+
+msgid "Inverse Gamma"
+msgstr "Invertovat Výběr Klíčů"
+
+
+msgid "Inverse Lift"
+msgstr "Prohodit"
+
+
+msgid "Color balance parameters for a sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Cropping parameters for a sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Orig Height"
+msgstr "Obíhat vpravo"
+
+
+msgid "Original image height"
+msgstr "Původní výška obrázku"
+
+
+msgid "Orig Width"
+msgstr "Šířka"
+
+
+msgid "Original image width"
+msgstr "Původní šířka obrázku"
+
+
+msgid "Modifier for sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Mask Input Type"
+msgstr "Vrstvy masky"
+
+
+msgid "Use sequencer strip as mask input"
 msgstr "Sekvence "
+
+
+msgid "Mute this modifier"
+msgstr "Modifikátory"
+
+
+msgid "Mute expanded settings for the modifier"
+msgstr "Zobrazit nastavení vláken pro statické částice"
+
+
+msgid "Bright/contrast modifier data for sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Color balance modifier for sequence strip"
+msgstr "První frame animace"
+
+
+msgid "RGB curves modifier for sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Hue correction modifier for sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Proxy parameters for a sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Use a custom directory to store data"
+msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
+
+
+msgid "Transform parameters for a sequence strip"
+msgstr "První frame animace"
 
 
 msgid "X Mapping"
@@ -37186,24 +37085,12 @@ msgid "Draw Action"
 msgstr "Akce"
 
 
-msgid "Image Strip"
-msgstr "Otevřít obrázek"
-
-
-msgid "Meta Strip"
-msgstr "Zarovnat NLA proužky"
-
-
 msgid "Clip Strip"
 msgstr "Začátek střihu"
 
 
 msgid "Preview Background"
 msgstr "Pozadí okna"
-
-
-msgid "Scene Strip"
-msgstr "Přidat action strip"
 
 
 msgid "Theme Space Settings"
@@ -39657,11 +39544,6 @@ msgstr "Režim interpolace"
 
 
 msgctxt "Operator"
-msgid "Push Down"
-msgstr "Zatlačit Dolů"
-
-
-msgctxt "Operator"
 msgid "More"
 msgstr "Více"
 
@@ -41468,10 +41350,6 @@ msgid "Marker Names"
 msgstr "Názvy značek"
 
 
-msgid "Developer"
-msgstr "Vývojář"
-
-
 msgid "Reference Point"
 msgstr "Referenční Bod"
 
@@ -42018,6 +41896,10 @@ msgid "Unable to find layer to add"
 msgstr "Nelze najít vrstvu, která by se přidala"
 
 
+msgid "Cancel"
+msgstr "Zrušit"
+
+
 msgid "Failed to set value"
 msgstr "Nastavení hodnoty se nezdařilo"
 
@@ -42159,10 +42041,6 @@ msgstr "%d předměty"
 
 msgid "OK"
 msgstr "OK"
-
-
-msgid "Cancel"
-msgstr "Zrušit"
 
 
 msgid "Menu \"%s\" not found"
@@ -43617,10 +43495,6 @@ msgstr "Editor uzlů"
 
 msgid "Mask not found"
 msgstr "Maska nebyla nalezena"
-
-
-msgid "Cannot apply effects to audio sequence strips"
-msgstr "První frame animace"
 
 
 msgid "No valid inputs to swap"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5205,12 +5205,8 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
+msgid "Local View"
+msgstr "Lokal vy"
 
 
 msgid "Pivot Point"
@@ -5221,68 +5217,72 @@ msgid "Snap"
 msgstr "Snäpp"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Show/Hide"
+msgstr "Visa/dölj"
 
 
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
+msgid "Clean Up"
+msgstr "Städa upp"
 
 
 msgid "Apply"
 msgstr "Applicera"
 
 
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Asset"
 msgstr "Tillgång"
 
 
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
 msgid "Text"
 msgstr "Text"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Align View"
+msgstr "Justera vy"
 
 
 msgid "Catalog"
@@ -8228,15 +8228,6 @@ msgstr "Skapa en objektsamling från markerade objekt"
 
 msgid "Name of the new collection"
 msgstr "Namn på den nya samlingen"
-
-
-msgctxt "Operator"
-msgid "Add Selected to Active Collection"
-msgstr "Lägg till markerade i aktiv samling"
-
-
-msgid "Add the object to an object collection that contains the active object"
-msgstr "Lägg till objektet i en objektsamling som innehåller det aktiva objektet"
 
 
 msgid "The collection to add other selected objects to"
@@ -12985,14 +12976,6 @@ msgid "Vectorscope Opacity"
 msgstr "Genomskinlighet för vektroskop"
 
 
-msgid "Inverse Gain"
-msgstr "Invers nivå"
-
-
-msgid "Proxy parameters for a sequence strip"
-msgstr "Mellanparametrar för en sekvensremsa"
-
-
 msgid "Median Point"
 msgstr "Medianpunkt"
 
@@ -13113,8 +13096,20 @@ msgid "Gamma Cross"
 msgstr "Gamma-övertona"
 
 
+msgid "Meta Strip"
+msgstr "Meta-remsa"
+
+
 msgid "Camera Override"
 msgstr "Åsidosätt kamera"
+
+
+msgid "Inverse Gain"
+msgstr "Invers nivå"
+
+
+msgid "Proxy parameters for a sequence strip"
+msgstr "Mellanparametrar för en sekvensremsa"
 
 
 msgctxt "Light"
@@ -13154,10 +13149,6 @@ msgstr "Ytmarkering"
 
 msgid "Theme settings for the Blender Preferences"
 msgstr "Tema-inställningar för Blender-inställningarna"
-
-
-msgid "Meta Strip"
-msgstr "Meta-remsa"
 
 
 msgid "Theme User Interface"
@@ -15703,10 +15694,6 @@ msgid "Marker Names"
 msgstr "Markörnamn"
 
 
-msgid "Developer"
-msgstr "Utvecklare"
-
-
 msgid "Fade Geometry"
 msgstr "Tona ut geometri"
 
@@ -15938,6 +15925,10 @@ msgid "No changes to be saved"
 msgstr "Inga ändringar att spara"
 
 
+msgid "Cancel"
+msgstr "Avbryt"
+
+
 msgctxt "WindowManager"
 msgid "Search"
 msgstr "Sök"
@@ -15963,10 +15954,6 @@ msgstr "Värde:"
 msgctxt "Color"
 msgid "Value"
 msgstr "Värde"
-
-
-msgid "Cancel"
-msgstr "Avbryt"
 
 
 msgid "Movie"

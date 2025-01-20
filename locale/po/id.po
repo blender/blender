@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-10-26 01:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -14853,64 +14853,64 @@ msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Names"
-msgstr "Nama"
+msgid "Apply"
+msgstr "Tetapkan"
 
 
 msgid "Mirror"
 msgstr "Cermin"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Track"
-msgstr "Lacak"
+msgid "Hooks"
+msgstr "Kait"
 
 
 msgid "Asset"
 msgstr "Aset"
 
 
-msgid "Hooks"
-msgstr "Kait"
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
 msgid "Merge"
 msgstr "Menggabungkan"
 
 
-msgid "Text"
-msgstr "Teks"
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgctxt "MovieClip"
@@ -25972,22 +25972,6 @@ msgid "File Suffix"
 msgstr "Suffix Dokumen"
 
 
-msgid "Mask Input Type"
-msgstr "Grup"
-
-
-msgid "Mute this modifier"
-msgstr "Modus Pahat"
-
-
-msgid "Multiply Colors"
-msgstr "Warna Standar"
-
-
-msgid "Cubic B-Spline filter (blurry but no ringing) on 4×4 samples"
-msgstr "Filter Kubik Spline-B (buram tetapi tidak berdering) pada sampel 4×4"
-
-
 msgid "Show Cache"
 msgstr "Tampilkan Cache"
 
@@ -26415,6 +26399,10 @@ msgid "Use Linear Modifiers"
 msgstr "Modus Pahat"
 
 
+msgid "Multiply Colors"
+msgstr "Warna Standar"
+
+
 msgid "Input 1"
 msgstr "Masukan 1"
 
@@ -26439,24 +26427,8 @@ msgid "Animation Start Offset"
 msgstr "Data Animasi"
 
 
-msgid "Alpha Over Sequence"
-msgstr "Orientasi Transformasi"
-
-
-msgid "Alpha Under Sequence"
-msgstr "Orientasi Transformasi"
-
-
 msgid "Cross Sequence"
 msgstr "Orientasi Transformasi"
-
-
-msgid "Gamma Cross Sequence"
-msgstr "Orientasi Transformasi"
-
-
-msgid "Gaussian Blur Sequence"
-msgstr "Urutan Buram Gaussian"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -26529,6 +26501,18 @@ msgstr "Ganda"
 msgctxt "Sequence"
 msgid "Clock"
 msgstr "Jam"
+
+
+msgid "Mask Input Type"
+msgstr "Grup"
+
+
+msgid "Mute this modifier"
+msgstr "Modus Pahat"
+
+
+msgid "Cubic B-Spline filter (blurry but no ringing) on 4×4 samples"
+msgstr "Filter Kubik Spline-B (buram tetapi tidak berdering) pada sampel 4×4"
 
 
 msgid "Brush Texture Slot"
@@ -28584,16 +28568,6 @@ msgstr "Objek Pensil Grease"
 
 
 msgctxt "Operator"
-msgid "Push Down"
-msgstr "Dorong ke Bawah"
-
-
-msgctxt "Operator"
-msgid "Stash"
-msgstr "Stash/Simpan"
-
-
-msgctxt "Operator"
 msgid "Box Select (Axis Range)"
 msgstr "Seleksi Box (Jarak Sumbu)"
 
@@ -29853,6 +29827,10 @@ msgid "Surface"
 msgstr "Permukaan"
 
 
+msgid "Untitled"
+msgstr "Untitled"
+
+
 msgid "materials"
 msgstr "bahan-bahan"
 
@@ -29911,10 +29889,6 @@ msgstr "Animasi_2D"
 
 msgid "Sculpting"
 msgstr "Pemahatan"
-
-
-msgid "Untitled"
-msgstr "Untitled"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -30054,6 +30028,10 @@ msgid "Active layer is locked or hidden"
 msgstr "Layer aktif terkunci atau tersembunyi"
 
 
+msgid "Cancel"
+msgstr "Batal"
+
+
 msgid "%s: %s"
 msgstr "%s: %s"
 
@@ -30165,10 +30143,6 @@ msgstr "Alpha:"
 
 msgid "OK"
 msgstr "OK"
-
-
-msgid "Cancel"
-msgstr "Batal"
 
 
 msgid "Value: {}"
@@ -31048,10 +31022,6 @@ msgstr " Atribut Bernama"
 
 msgid "Operation requires an active keying set"
 msgstr "Tekstur"
-
-
-msgid "Add a gaussian blur effect strip to the sequencer"
-msgstr "Menambahkan strip efek buram gaussian ke pengurut"
 
 
 msgid "Movie clip not found"

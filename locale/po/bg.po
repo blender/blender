@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-11-08 04:56+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1140,40 +1140,40 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
-
-
-msgid "Light"
-msgstr "Светлина"
-
-
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
 
 
 msgid "Apply"
 msgstr "Прилагане"
 
 
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
 msgid "Hooks"
 msgstr "Куки"
 
 
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
 
 
-msgid "Merge"
-msgstr "Слей"
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
 
 
 msgid "Text"
 msgstr "Текст"
+
+
+msgid "Light"
+msgstr "Светлина"
+
+
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "Languages..."
@@ -1521,6 +1521,10 @@ msgid "Other"
 msgstr "Колеб"
 
 
+msgid "Keep Original"
+msgstr "Запазване на оригинала"
+
+
 msgid "Open"
 msgstr "Отвори"
 
@@ -1814,10 +1818,6 @@ msgstr "Поставя обърната версия на запазената �
 
 msgid "Select all visible bones grouped by similar properties"
 msgstr "Избери всички видими кости според общи свойства"
-
-
-msgid "Keep Original"
-msgstr "Запазване на оригинала"
 
 
 msgid "Keep original file after copying to configuration folder"
@@ -2333,6 +2333,10 @@ msgid "Missing script files"
 msgstr "Липсват скриптови файлове"
 
 
+msgid "Cancel"
+msgstr "Отказ"
+
+
 msgid "%d items"
 msgstr "%d артикули"
 
@@ -2343,10 +2347,6 @@ msgstr "Запълненост:"
 
 msgid "OK"
 msgstr "ОК"
-
-
-msgid "Cancel"
-msgstr "Отказ"
 
 
 msgid "Movie"

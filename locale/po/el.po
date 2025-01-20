@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -523,44 +523,44 @@ msgid "Snap"
 msgstr "Προσκόλληση"
 
 
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
-
-
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
-
-
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
-
-
-msgid "Light"
-msgstr "Φως"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
 msgid "Apply"
 msgstr "Εφαρμογή"
 
 
-msgid "Track"
-msgstr "Ανίχνευση"
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
 
 
 msgid "Make Single User"
 msgstr "Ορισμός Ενός Χρήστη"
 
 
-msgid "Merge"
-msgstr "Συγχώνευση"
+msgid "Track"
+msgstr "Ανίχνευση"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
 
 
 msgid "Text"
 msgstr "Κείμενο"
+
+
+msgid "Light"
+msgstr "Φως"
+
+
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Merge"
+msgstr "Συγχώνευση"
 
 
 msgid "Key"
@@ -732,6 +732,10 @@ msgid "Lamp"
 msgstr "Λάμπα"
 
 
+msgid "Keep Original"
+msgstr "Διατήρηση Αρχικού"
+
+
 msgid "Open"
 msgstr "Άνοιγμα"
 
@@ -856,10 +860,6 @@ msgstr "Προηγούμενο καρέ με κλειδί"
 msgctxt "Operator"
 msgid "Paste Pose"
 msgstr "Επικόλληση Στάσης"
-
-
-msgid "Keep Original"
-msgstr "Διατήρηση Αρχικού"
 
 
 msgctxt "Operator"
@@ -1014,12 +1014,12 @@ msgid "Clear"
 msgstr "Καθαρισμός"
 
 
-msgid "Esc"
-msgstr "Esc"
-
-
 msgid "Cancel"
 msgstr "Ακύρωση"
+
+
+msgid "Esc"
+msgstr "Esc"
 
 
 msgid "Movie"

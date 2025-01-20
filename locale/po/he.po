@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -587,20 +587,20 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Mirror"
-msgstr "הארמ"
+msgid "Face Data"
+msgstr "האפ ינותנ"
 
 
 msgid "Apply"
 msgstr "לחה"
 
 
+msgid "Mirror"
+msgstr "הארמ"
+
+
 msgid "Convert"
 msgstr "רמה"
-
-
-msgid "Face Data"
-msgstr "האפ ינותנ"
 
 
 msgid "Languages..."
@@ -899,6 +899,10 @@ msgid "Nothing selected"
 msgstr "רבד רחבנ אל"
 
 
+msgid "Cancel"
+msgstr "לוטיב"
+
+
 msgctxt "Operator"
 msgid "Change Shortcut"
 msgstr "ךרד־רוציק הנש"
@@ -932,10 +936,6 @@ msgstr ":לוחכ"
 
 msgid "Saturation:"
 msgstr ":היוור"
-
-
-msgid "Cancel"
-msgstr "לוטיב"
 
 
 msgid "Movie"

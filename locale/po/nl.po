@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-12-30 14:39+0000\n"
 "Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2735,68 +2735,68 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
 msgid "Local View"
 msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
 
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
 msgid "Text"
 msgstr "Tekst"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
 
 
 msgctxt "MovieClip"
@@ -4114,6 +4114,10 @@ msgstr "Pas Aanpassers Toe"
 
 msgid "Visible Objects"
 msgstr "Zichtbare Objecten"
+
+
+msgid "Keep Original"
+msgstr "Hou Orgineel"
 
 
 msgid "General"
@@ -5450,10 +5454,6 @@ msgstr "Selecteer Gekoppeld"
 msgctxt "Operator"
 msgid "Apply Visual Transform to Pose"
 msgstr "Pas Visuele Transformatie Toe aan Pose"
-
-
-msgid "Keep Original"
-msgstr "Hou Orgineel"
 
 
 msgctxt "Operator"
@@ -6988,10 +6988,6 @@ msgid "Cross"
 msgstr "Kruisovergang"
 
 
-msgid "Add Sequence"
-msgstr "Voeg Sequentie Toe"
-
-
 msgid "Use Annotations"
 msgstr "Gebruik Annotaties"
 
@@ -8486,10 +8482,6 @@ msgid "To 3D Cursor"
 msgstr "Naar 3D Cursor"
 
 
-msgid "Developer"
-msgstr "Ontwikkelaar"
-
-
 msgid "Material Name"
 msgstr "Materiaal Naam"
 
@@ -8669,6 +8661,10 @@ msgid "Nothing selected"
 msgstr "Niets geselecteerd"
 
 
+msgid "Cancel"
+msgstr "Annuleren"
+
+
 msgid "Pin"
 msgstr "Prik"
 
@@ -8710,10 +8706,6 @@ msgstr "Kopieer Alles naar Geselecteerd"
 
 msgid "OK"
 msgstr "OK"
-
-
-msgid "Cancel"
-msgstr "Annuleren"
 
 
 msgid "Movie"
@@ -9143,10 +9135,6 @@ msgstr "(leeg)"
 
 msgid "Mask not found"
 msgstr "Masker niet gevonden"
-
-
-msgid "TODO: in what cases does this happen?"
-msgstr "TODO: wanneer gebeurt dit?"
 
 
 msgid "No valid inputs to swap"
