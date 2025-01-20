@@ -141,11 +141,11 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
       curves, omd.influence);
 
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
+    /* Use the first stroke point as vertex weight. */
+    const IndexRange points = points_by_curve[curve_i];
+    const float vgroup_weight_first = vgroup_weights[points.first()];
+    float stroke_weight = vgroup_weight_first;
     if (use_vgroup_opacity) {
-      /* Use the first stroke point as vertex weight. */
-      const IndexRange points = points_by_curve[curve_i];
-      const float vgroup_weight_first = vgroup_weights[points.first()];
-      float stroke_weight = vgroup_weight_first;
       if (points.is_empty() || (vgroup_weight_first <= 0.0f)) {
         stroke_weight = 1.0f;
       }
@@ -154,7 +154,9 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
       fill_opacities.span[curve_i] = std::clamp(stroke_influence, 0.0f, 1.0f);
     }
     else {
-      fill_opacities.span[curve_i] = std::clamp(omd.color_factor, 0.0f, 1.0f);
+      if (!points.is_empty() && (vgroup_weight_first > 0.0f)) {
+        fill_opacities.span[curve_i] = std::clamp(omd.color_factor * stroke_weight, 0.0f, 1.0f);
+      }
     }
   });
 
