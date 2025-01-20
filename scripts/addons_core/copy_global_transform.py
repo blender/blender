@@ -176,12 +176,7 @@ class AutoKeying:
             group = "Object Transforms"
 
         def keyframe(data_path: str, locks: Iterable[bool]) -> None:
-            try:
-                cls.keyframe_channels(target, options, data_path, group, locks)
-            except RuntimeError:
-                # These are expected when "Insert Available" is turned on, and
-                # these curves are not available.
-                pass
+            cls.keyframe_channels(target, options, data_path, group, locks)
 
         if cls._use_loc and not (is_bone and target.bone.use_connect):
             keyframe("location", target.lock_location)
