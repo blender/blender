@@ -614,8 +614,21 @@ class Transformable(metaclass=abc.ABCMeta):
     def matrix_world(self) -> Matrix:
         pass
 
-    @abc.abstractmethod
     def set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+        """Set the world matrix, without autokeying."""
+        self._set_matrix_world(context, matrix)
+
+    def set_matrix_world_autokey(self, context: Context, matrix: Matrix) -> None:
+        """Set the world matrix, and autokey the resulting transform."""
+        self._set_matrix_world(context, matrix)
+        self._autokey_matrix_world(context)
+
+    @abc.abstractmethod
+    def _set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+        pass
+
+    @abc.abstractmethod
+    def _autokey_matrix_world(self, context: Context) -> None:
         pass
 
     @abc.abstractmethod
@@ -662,11 +675,16 @@ class TransformableObject(Transformable):
         super().__init__()
         self.object = object
 
+    def __str__(self) -> str:
+        return f"TransformableObject({self.object.name})"
+
     def matrix_world(self) -> Matrix:
         return self.object.matrix_world
 
-    def set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+    def _set_matrix_world(self, _context: Context, matrix: Matrix) -> None:
         self.object.matrix_world = matrix
+
+    def _autokey_matrix_world(self, context: Context) -> None:
         AutoKeying.autokey_transformation(context, self.object)
 
     def __hash__(self) -> int:
@@ -692,14 +710,19 @@ class TransformableBone(Transformable):
         self.arm_object = pose_bone.id_data
         self.pose_bone = pose_bone
 
+    def __str__(self) -> str:
+        return f"TransformableBone({self.arm_object.name}, bone={self.pose_bone.name})"
+
     def matrix_world(self) -> Matrix:
         mat = self.arm_object.matrix_world @ self.pose_bone.matrix
         return mat
 
-    def set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+    def _set_matrix_world(self, context: Context, matrix: Matrix) -> None:
         # Convert matrix to armature-local space
         arm_eval = self.arm_object.evaluated_get(context.view_layer.depsgraph)
         self.pose_bone.matrix = arm_eval.matrix_world.inverted() @ matrix
+
+    def _autokey_matrix_world(self, context: Context) -> None:
         AutoKeying.autokey_transformation(context, self.pose_bone)
 
     def __hash__(self) -> int:
@@ -761,10 +784,19 @@ class FixToCameraCommon:
                 return {'CANCELLED'}
 
         restore_frame = context.scene.frame_current
+        restore_matrices = [(transformable, transformable.matrix_world().copy()) for transformable in transformables]
+
         try:
             self._execute(context, transformables)
         finally:
+            # Restore the state of the scene & the transformables. This is necessary
+            # as not all properties may have been auto-keyed (for example 'only
+            # available' enabled, and rotation is not actually keyed yet), so we can't
+            # assume that going to the original frame restores the entire matrix.
             context.scene.frame_set(restore_frame)
+            for transformable, matrix in restore_matrices:
+                transformable.set_matrix_world(context, matrix)
+
         return {'FINISHED'}
 
     def _transformable_objects(self, context: Context) -> list[Transformable]:
@@ -774,7 +806,7 @@ class FixToCameraCommon:
         return [TransformableBone(pose_bone=bone) for bone in context.selected_pose_bones]
 
 
-class OBJECT_OT_fix_to_camera(Operator, FixToCameraCommon):
+class OBJECT_OT_fix_to_camera(FixToCameraCommon, Operator):
     bl_idname = "object.fix_to_camera"
     bl_label = "Fix to Scene Camera"
     bl_description = "Generate new keys to fix the selected object/bone to the camera on unkeyed frames"
@@ -845,7 +877,7 @@ class OBJECT_OT_fix_to_camera(Operator, FixToCameraCommon):
                         continue
 
                     # No key, or a generated one. Overwrite it with a new transform.
-                    t.set_matrix_world(context, cam_matrix_world @ camera_rel_matrix)
+                    t.set_matrix_world_autokey(context, cam_matrix_world @ camera_rel_matrix)
 
 
 class OBJECT_OT_delete_fix_to_camera_keys(Operator, FixToCameraCommon):
