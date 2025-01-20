@@ -306,10 +306,9 @@ static bool foreach_id_file_path_map_callback(BPathForeachPathData *bpath_data,
                                               const char *path_src)
 {
   IDFilePathMapData &data = *static_cast<IDFilePathMapData *>(bpath_data->user_data);
-  ID *id = data.id;
   PyObject *id_file_path_set = data.id_file_path_set;
 
-  BLI_assert(id == bpath_data->owner_id);
+  BLI_assert(data.id == bpath_data->owner_id);
 
   if (path_src && *path_src) {
     PyObject *path = PyUnicode_FromString(path_src);
