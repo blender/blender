@@ -156,7 +156,7 @@ void tag_action_users_for_slotted_actions_conversion(Main &bmain)
   auto flag_adt = [](ID &animated_id,
                      bAction *& /*action_ptr_ref*/,
                      slot_handle_t & /*slot_handle_ref*/,
-                     char * /*slot_name*/) -> bool {
+                     char * /*last_slot_identifier*/) -> bool {
     tag_action_user_for_slotted_actions_conversion(animated_id);
 
     /* Once tagged, the foreach loop can stop, because more tagging of the same

@@ -75,10 +75,11 @@ bool foreach_action_slot_use(
  * \see blender::animrig::generic_assign_action_slot
  * \see blender::animrig::generic_assign_action_slot_handle
  */
-bool foreach_action_slot_use_with_references(ID &animated_id,
-                                             FunctionRef<bool(ID &animated_id,
-                                                              bAction *&action_ptr_ref,
-                                                              slot_handle_t &slot_handle_ref,
-                                                              char *slot_name)> callback);
+bool foreach_action_slot_use_with_references(
+    ID &animated_id,
+    FunctionRef<bool(ID &animated_id,
+                     bAction *&action_ptr_ref,
+                     slot_handle_t &slot_handle_ref,
+                     char *last_slot_identifier)> callback);
 
 }  // namespace blender::animrig
