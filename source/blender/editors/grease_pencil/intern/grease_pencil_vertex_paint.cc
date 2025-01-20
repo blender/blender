@@ -431,6 +431,8 @@ static int grease_pencil_vertex_paint_reset_exec(bContext *C, wmOperator *op)
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
+      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
 
   std::atomic<bool> any_changed;
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
@@ -439,8 +441,22 @@ static int grease_pencil_vertex_paint_reset_exec(bContext *C, wmOperator *op)
     if (curves.is_empty()) {
       return;
     }
-    /* Remove the color attributes. */
+
     bool changed = false;
+    if (use_selection_mask) {
+      changed |= apply_color_operation_for_mode(
+          mode,
+          object,
+          info,
+          use_selection_mask,
+          [&](const ColorGeometry4f &color) -> ColorGeometry4f {
+            return ColorGeometry4f(1.0, 1.0, 1.0, 1.0);
+          });
+      any_changed.store(any_changed | changed, std::memory_order_relaxed);
+      return;
+    }
+
+    /* Remove the color attributes. */
     if (ELEM(mode, VertexColorMode::Stroke, VertexColorMode::Both)) {
       changed |= curves.attributes_for_write().remove("vertex_color");
     }
