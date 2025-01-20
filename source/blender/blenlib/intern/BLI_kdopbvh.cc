@@ -2349,6 +2349,10 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
     data->callback = callback;
     data->userdata = userdata;
 
+#ifdef __GNUC__ /* Invalid `data->clip_plane` warning with GCC 14.2.1. */
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     if (clip_plane) {
       data->clip_plane_len = clip_plane_len;
       for (int i = 0; i < clip_plane_len; i++) {
@@ -2360,6 +2364,9 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
       planes_from_projmat(
           projmat, nullptr, nullptr, nullptr, nullptr, data->clip_plane[0], nullptr);
     }
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
 
     if (nearest) {
       memcpy(&data->nearest, nearest, sizeof(*nearest));
