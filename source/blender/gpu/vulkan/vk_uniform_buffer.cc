@@ -21,16 +21,13 @@ void VKUniformBuffer::update(const void *data)
     allocate();
   }
 
-  if (!data_uploaded_ && buffer_.is_mapped()) {
-    buffer_.update_immediately(data);
-  }
-  else {
+  if (data) {
     void *data_copy = MEM_mallocN(size_in_bytes_, __func__);
     memcpy(data_copy, data, size_in_bytes_);
     VKContext &context = *VKContext::get();
     buffer_.update_render_graph(context, data_copy);
+    data_uploaded_ = true;
   }
-  data_uploaded_ = true;
 }
 
 void VKUniformBuffer::allocate()

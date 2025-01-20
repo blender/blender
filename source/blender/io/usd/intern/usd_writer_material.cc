@@ -1412,6 +1412,8 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
                                           const pxr::UsdShadeMaterial &usd_material)
 {
   blender::nodes::materialx::ExportParams export_params = {
+      /* Output surface material node will have this name. */
+      usd_path.GetElementString(),
       /* We want to re-use the same MaterialX document generation code as used by the renderer.
        * While the graph is traversed, we also want it to export the textures out. */
       (usd_export_context.export_image_fn) ? usd_export_context.export_image_fn :
@@ -1426,9 +1428,8 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
       active_uvmap_name,
   };
 
-  std::string material_name = usd_path.GetElementString();
   MaterialX::DocumentPtr doc = blender::nodes::materialx::export_to_materialx(
-      usd_export_context.depsgraph, material, material_name, export_params);
+      usd_export_context.depsgraph, material, export_params);
 
   /* We want to merge the MaterialX graph under the same Material as the USDPreviewSurface
    * This allows for the same material assignment to have two levels of complexity so other

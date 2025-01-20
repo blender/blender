@@ -450,8 +450,6 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
             row_label = row.row()
             row_label.label(text=type_name, icon=type_icon)
 
-            row_label.active = getattr(edit, prop)
-
 
 class USERPREF_PT_edit_cursor(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "3D Cursor"

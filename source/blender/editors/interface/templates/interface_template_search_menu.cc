@@ -16,8 +16,6 @@
 
 #include "DNA_action_types.h"
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
 
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"

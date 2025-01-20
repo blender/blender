@@ -29,7 +29,7 @@ class VKThreadData;
 class VKContext : public Context, NonCopyable {
  private:
   VkExtent2D vk_extent_ = {};
-  VkFormat swap_chain_format_ = {};
+  VkSurfaceFormatKHR swap_chain_format_ = {};
   GPUTexture *surface_texture_ = nullptr;
   void *ghost_context_;
 

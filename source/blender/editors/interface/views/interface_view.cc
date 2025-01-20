@@ -18,8 +18,6 @@
  */
 
 #include <memory>
-#include <type_traits>
-#include <variant>
 
 #include "DNA_screen_types.h"
 
@@ -27,7 +25,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_string.h"
+#include "BLI_rect.h"
 
 #include "ED_screen.hh"
 

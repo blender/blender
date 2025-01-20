@@ -11,7 +11,6 @@
 #include "BLI_index_mask.hh"
 #include "BLI_lasso_2d.hh"
 #include "BLI_math_geom.h"
-#include "BLI_rand.hh"
 #include "BLI_rect.h"
 
 #include "BKE_attribute.hh"
@@ -19,7 +18,6 @@
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"
-#include "ED_object.hh"
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 

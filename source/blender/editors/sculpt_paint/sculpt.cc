@@ -10,7 +10,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 
 #include "MEM_guardedalloc.h"
 
@@ -18,16 +17,14 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_atomic_disjoint_set.hh"
-#include "BLI_bit_span_ops.hh"
-#include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_ghash.h"
+#include "BLI_math_axis_angle.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
-#include "BLI_math_rotation.hh"
+#include "BLI_rect.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.h"
@@ -5545,6 +5542,15 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
   paint_stroke_operator_properties(ot);
 
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna,
+      "override_location",
+      false,
+      "Override Location",
+      "Override the given `location` array by recalculating object space positions from the "
+      "provided `mouse_event` positions");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+
   RNA_def_boolean(ot->srna,
                   "ignore_background_click",
                   false,
@@ -6103,6 +6109,15 @@ void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
 /** \} */
 
 namespace blender::ed::sculpt_paint {
+
+MeshAttributeData::MeshAttributeData(const Mesh &mesh)
+{
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  this->mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+  this->hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  this->hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  this->face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+}
 
 void gather_bmesh_positions(const Set<BMVert *, 0> &verts, const MutableSpan<float3> positions)
 {

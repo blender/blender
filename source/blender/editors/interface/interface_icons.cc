@@ -12,7 +12,7 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_dynamicpaint_types.h"
@@ -37,7 +37,6 @@
 
 #include "BIF_glutil.hh"
 
-#include "ED_datafiles.h"
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_render.hh"

@@ -41,7 +41,6 @@
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
-#include "GPU_platform.hh"
 #include "GPU_state.hh"
 
 #ifdef WITH_INPUT_IME

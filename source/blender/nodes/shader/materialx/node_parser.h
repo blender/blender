@@ -5,10 +5,9 @@
 #pragma once
 
 #include "material.h"
+#include "node_graph.h"
 #include "node_item.h"
 
-#include "DEG_depsgraph.hh"
-#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
 #include "CLG_log.h"
@@ -25,31 +24,25 @@ class GroupNodeParser;
  */
 class NodeParser {
  protected:
-  MaterialX::GraphElement *graph_;
-  const Depsgraph *depsgraph_;
-  const Material *material_;
+  NodeGraph &graph_;
   const bNode *node_;
   const bNodeSocket *socket_out_;
   NodeItem::Type to_type_;
   GroupNodeParser *group_parser_;
-  ExportParams export_params_;
 
  public:
-  NodeParser(MaterialX::GraphElement *graph,
-             const Depsgraph *depsgraph,
-             const Material *material,
+  NodeParser(NodeGraph &graph,
              const bNode *node,
              const bNodeSocket *socket_out,
              NodeItem::Type to_type,
-             GroupNodeParser *group_parser,
-             const ExportParams &export_params);
+             GroupNodeParser *group_parser);
   virtual ~NodeParser() = default;
 
   virtual NodeItem compute() = 0;
   virtual NodeItem compute_full();
 
  protected:
-  std::string node_name(bool with_out_socket = true) const;
+  std::string node_name(const char *override_output_name = nullptr) const;
   NodeItem create_node(const std::string &category, NodeItem::Type type);
   NodeItem create_node(const std::string &category,
                        NodeItem::Type type,
@@ -99,9 +92,7 @@ template<class T> NodeItem NodeParser::val(const T &data) const
  * \endcode
  */
 struct NodeParserData {
-  MaterialX::GraphElement *graph;
-  const Depsgraph *depsgraph;
-  const Material *material;
+  NodeGraph &graph;
   NodeItem::Type to_type;
   GroupNodeParser *group_parser;
   NodeItem result;
@@ -125,15 +116,8 @@ struct NodeParserData {
   static void node_shader_materialx(void *data, struct bNode *node, struct bNodeSocket *out) \
   { \
     materialx::NodeParserData *d = reinterpret_cast<materialx::NodeParserData *>(data); \
-    d->result = MaterialXNodeParser(d->graph, \
-                                    d->depsgraph, \
-                                    d->material, \
-                                    node, \
-                                    out, \
-                                    d->to_type, \
-                                    d->group_parser, \
-                                    d->export_params) \
-                    .compute_full(); \
+    d->result = \
+        MaterialXNodeParser(d->graph, node, out, d->to_type, d->group_parser).compute_full(); \
   }
 
 }  // namespace blender::nodes::materialx

@@ -6,23 +6,19 @@
  * \ingroup edmesh
  */
 
-#include "BLI_color.hh"
 #include "BLI_generic_pointer.hh"
-#include "BLI_math_quaternion.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
-#include "BKE_report.hh"
 #include "BKE_type_conversions.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "ED_geometry.hh"
@@ -32,17 +28,10 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "BLT_translation.hh"
-
 #include "DNA_object_types.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
-
-#include "bmesh_tools.hh"
-
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "mesh_intern.hh"
 

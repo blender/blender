@@ -18,10 +18,9 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_task.h"
 
 #include "BLT_translation.hh"
 
@@ -353,7 +352,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -621,7 +620,7 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -736,7 +735,7 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -845,7 +844,7 @@ static void calc_random_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -959,7 +958,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -1111,7 +1110,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -1273,7 +1272,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -1555,7 +1554,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
 
       const OffsetIndices faces = mesh.faces();
@@ -1807,7 +1806,7 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -2014,7 +2013,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
         const Span<int> corner_verts = mesh.corner_verts();
         const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
         const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        const MeshAttributeData attribute_data(mesh.attributes());
+        const MeshAttributeData attribute_data(mesh);
         node_mask.foreach_index(GrainSize(1), [&](const int i) {
           LocalData &tls = all_tls.local();
           const Span<int> verts = nodes[i].verts();

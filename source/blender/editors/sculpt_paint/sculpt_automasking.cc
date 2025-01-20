@@ -6,16 +6,11 @@
  * \ingroup edsculpt
  */
 
-#include "sculpt_automask.hh"
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_array.hh"
-#include "BLI_hash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_base_safe.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -1633,15 +1628,6 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
       break;
     }
   }
-}
-
-bool brush_type_can_reuse_automask(int sculpt_brush_type)
-{
-  return ELEM(sculpt_brush_type,
-              SCULPT_BRUSH_TYPE_PAINT,
-              SCULPT_BRUSH_TYPE_SMEAR,
-              SCULPT_BRUSH_TYPE_MASK,
-              SCULPT_BRUSH_TYPE_DRAW_FACE_SETS);
 }
 
 std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob)

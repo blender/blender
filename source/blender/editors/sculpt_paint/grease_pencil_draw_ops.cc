@@ -116,7 +116,8 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
         return greasepencil::new_tint_operation();
     }
   }
-  else if (mode == PaintMode::SculptGreasePencil) {
+  else if (mode == PaintMode::SculptGPencil) {
+
     if (stroke_mode == BRUSH_STROKE_SMOOTH) {
       return greasepencil::new_smooth_operation(stroke_mode, true);
     }

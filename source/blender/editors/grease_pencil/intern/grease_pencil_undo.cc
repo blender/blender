@@ -6,7 +6,6 @@
  * \ingroup edgrease_pencil
  */
 
-#include "BLI_string.h"
 #include "BLI_task.hh"
 
 #include "BKE_context.hh"
@@ -31,9 +30,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include <iostream>
-#include <ostream>
 
 static CLG_LogRef LOG = {"ed.undo.greasepencil"};
 

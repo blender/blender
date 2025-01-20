@@ -15,7 +15,6 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
@@ -28,7 +27,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_function_ref.hh"
 #include "BLI_lasso_2d.hh"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_geom.h"
@@ -42,10 +40,6 @@
 #ifdef __BIG_ENDIAN__
 #  include "BLI_endian_switch.h"
 #endif
-
-/* vertex box select */
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -62,7 +56,6 @@
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"

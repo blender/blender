@@ -43,6 +43,10 @@
 
 #include "grease_pencil_trace_util.hh"
 
+#ifdef WITH_POTRACE
+#  include "potracelib.h"
+#endif
+
 namespace blender::ed::sculpt_paint::greasepencil {
 
 /* -------------------------------------------------------------------- */

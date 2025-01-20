@@ -28,7 +28,7 @@ void pose_apply_action_all_bones(Object *ob,
                                  const AnimationEvalContext *anim_eval_context);
 
 /**
- * Evaluate the action and blend the result into the curent pose based on `blend_factor`.
+ * Evaluate the action and blend the result into the current pose based on `blend_factor`.
  * Only FCurves that relate to selected bones are evaluated.
  */
 void pose_apply_action_blend(Object *ob,

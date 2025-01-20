@@ -179,8 +179,7 @@ static Main *load_main_from_memory(const void *blend, int blend_size)
   bfd = BLO_read_from_memory(blend, blend_size, BLO_READ_SKIP_NONE, nullptr);
   if (bfd) {
     bmain = bfd->main;
-
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
   G.fileflags = fileflags;
 

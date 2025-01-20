@@ -32,6 +32,7 @@
 #include "BLI_system.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
@@ -1427,7 +1428,7 @@ UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
       userdef = bfd->user;
     }
     BKE_main_free(bfd->main);
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
 
   return userdef;
@@ -1447,7 +1448,7 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *file_buf,
       userdef = bfd->user;
     }
     BKE_main_free(bfd->main);
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
@@ -1684,7 +1685,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
       workspace_config->workspaces = bfd->main->workspaces;
     }
 
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
 
   return workspace_config;
@@ -1797,6 +1798,11 @@ ID *PartialWriteContext::id_add_copy(const ID *id, const bool regenerate_session
                           LIB_ID_COPY_ASSET_METADATA);
   ctx_root_id = BKE_id_copy_in_lib(nullptr, id->lib, id, std::nullopt, nullptr, copy_flags);
   ctx_root_id->tag |= ID_TAG_TEMP_MAIN;
+  /* Ensure that the newly copied ID has a library in temp local bmain if it was linked.
+   * While this could be optimized out in case the ID is made local in the context, this adds
+   * complexity as default ID management code like 'make local' code will create invalid bmain
+   * namemap data. */
+  this->ensure_library(ctx_root_id);
   if (regenerate_session_uid) {
     /* Calling #BKE_lib_libblock_session_uid_renew is not needed here, copying already generated a
      * new one. */
@@ -2019,9 +2025,6 @@ ID *PartialWriteContext::id_add(
     if (do_make_local) {
       this->make_local(ctx_id, make_local_flags);
     }
-    else {
-      this->ensure_library(ctx_id);
-    }
   }
 
   return ctx_root_id;
@@ -2162,17 +2165,26 @@ bool PartialWriteContext::write(const char *write_filepath,
 
   /* In case the write path is the same as one of the libraries used by this context, make this
    * library local, and delete it (and all of its potentially remaining linked data). */
-  Library *make_local_lib = nullptr;
+  blender::Vector<Library *> make_local_libs;
   LISTBASE_FOREACH (Library *, library, &this->bmain.libraries) {
     if (STREQ(write_filepath, library->runtime.filepath_abs)) {
-      make_local_lib = library;
+      make_local_libs.append(library);
     }
   }
-  if (make_local_lib) {
-    BKE_library_make_local(&this->bmain, make_local_lib, nullptr, false, false, false);
-    BKE_id_delete(&this->bmain, make_local_lib);
-    make_local_lib = nullptr;
+  /* Will likely change in the near future (embedded linked IDs, virtual libraries...), but
+   * currently this should never happen. */
+  if (make_local_libs.size() > 1) {
+    CLOG_WARN(&LOG_PARTIALWRITE,
+              "%d libraries found using the same filepath as destination one ('%s'), should "
+              "never happen.",
+              int32_t(make_local_libs.size()),
+              write_filepath);
   }
+  for (Library *lib : make_local_libs) {
+    BKE_library_make_local(&this->bmain, lib, nullptr, false, false, false);
+    BKE_id_delete(&this->bmain, lib);
+  }
+  make_local_libs.clear();
 
   BLI_assert(this->is_valid());
 

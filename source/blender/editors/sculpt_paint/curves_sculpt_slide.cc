@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <algorithm>
-
 #include "curves_sculpt_intern.hh"
 
 #include "BLI_math_matrix_types.hh"
@@ -24,10 +22,8 @@
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 
-#include "DNA_brush_enums.h"
 #include "DNA_curves_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

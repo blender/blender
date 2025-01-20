@@ -86,8 +86,6 @@ BLOCKLIST_OPTIX_OSL = [
     'texture_coordinate_generated.blend',
     'principled_absorption.blend',
     'denoise_volume.blend',
-    # The Window texture coordinate is blank on the World shader in OptiX OSL. See 132516
-    'texture_coordinate_window.blend',
     # The 3D texture doesn't have the right mappings
     'point_density_.*_object.blend',
     # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL

@@ -10,7 +10,6 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_color.hh"
 
@@ -24,8 +23,6 @@
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
-
-#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 

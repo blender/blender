@@ -9,15 +9,12 @@
 #pragma once
 
 #include <optional>
-#include <queue>
 
-#include "BKE_attribute.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
-#include "BLI_generic_array.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -47,6 +44,7 @@ struct Node;
 enum class Type : int8_t;
 }  // namespace undo
 }  // namespace blender::ed::sculpt_paint
+struct bContext;
 struct BMLog;
 struct Dial;
 struct DistRayAABB_Precalc;
@@ -55,8 +53,8 @@ struct ImageUser;
 struct Key;
 struct KeyBlock;
 struct Object;
-struct bContext;
 struct PaintModeSettings;
+struct ReportList;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperatorType;

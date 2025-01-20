@@ -14,8 +14,6 @@
 #include "BKE_layer.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
-
 #include "ED_view3d.hh"
 
 #include "view3d_intern.hh"

@@ -104,8 +104,8 @@ TEST_F(VKRenderGraphTestTransfer, clear_clear_copy_and_read_back)
   VkHandle<VkImage> dst_image(2u);
   VkHandle<VkBuffer> staging_buffer(3u);
 
-  resources.add_image(src_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
-  resources.add_image(dst_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(src_image, 1);
+  resources.add_image(dst_image, 1);
   resources.add_buffer(staging_buffer);
   VkClearColorValue color_white = {};
   color_white.float32[0] = 1.0f;
@@ -245,8 +245,8 @@ TEST_F(VKRenderGraphTestTransfer, clear_blit_copy_and_read_back)
   VkHandle<VkImage> dst_image(2u);
   VkHandle<VkBuffer> staging_buffer(3u);
 
-  resources.add_image(src_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
-  resources.add_image(dst_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(src_image, 1);
+  resources.add_image(dst_image, 1);
   resources.add_buffer(staging_buffer);
   VkClearColorValue color_black = {};
   color_black.float32[0] = 0.0f;

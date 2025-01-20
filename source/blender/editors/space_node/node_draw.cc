@@ -423,7 +423,7 @@ static bool node_update_basis_buttons(const bContext &C,
                                      0,
                                      UI_style_get_dpi());
 
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     uiLayoutSetActive(layout, false);
   }
 
@@ -506,7 +506,7 @@ static bool node_update_basis_socket(const bContext &C,
                                      0,
                                      UI_style_get_dpi());
 
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     uiLayoutSetActive(layout, false);
   }
 
@@ -1104,7 +1104,7 @@ static void node_update_basis_from_declaration(
                                                0,
                                                0,
                                                UI_style_get_dpi());
-            if (node.flag & NODE_MUTED) {
+            if (node.is_muted()) {
               uiLayoutSetActive(layout, false);
             }
             PointerRNA node_ptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
@@ -2476,7 +2476,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
         0,
         0,
         "");
-    if (node.flag & NODE_MUTED) {
+    if (node.is_muted()) {
       UI_but_flag_enable(label_but, UI_BUT_INACTIVE);
     }
 
@@ -2646,7 +2646,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
   if (tree_log == nullptr) {
     return std::nullopt;
   }
-  if (node.type_legacy == NODE_GROUP_OUTPUT) {
+  if (node.is_group_output()) {
     return tree_log->execution_time;
   }
   if (node.is_frame()) {
@@ -3104,7 +3104,7 @@ static void node_draw_extra_info_row(const bNode &node,
         but_text, extra_info_row.tooltip_fn, extra_info_row.tooltip_fn_arg, nullptr);
   }
 
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     UI_but_flag_enable(but_text, UI_BUT_INACTIVE);
     UI_but_flag_enable(but_icon, UI_BUT_INACTIVE);
   }
@@ -3120,7 +3120,7 @@ static void node_draw_extra_info_panel_back(const bNode &node, const rctf &extra
   }
 
   ColorTheme4f color;
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     UI_GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color);
   }
   else {
@@ -3306,7 +3306,7 @@ static void node_draw_basis(const bContext &C,
     float color_header[4];
 
     /* Muted nodes get a mix of the background with the node color. */
-    if (node.flag & NODE_MUTED) {
+    if (node.is_muted()) {
       UI_GetThemeColorBlend4f(TH_BACK, color_id, 0.1f, color_header);
     }
     else {
@@ -3320,7 +3320,8 @@ static void node_draw_basis(const bContext &C,
   /* Show/hide icons. */
   float iconofs = rct.xmax - 0.35f * U.widget_unit;
 
-  /* Group edit. This icon should be the first for the node groups. */
+  /* Group edit. This icon should be the first for the node groups. Note that we intentionally
+   * don't check for NODE_GROUP_CUSTOM here. */
   if (node.type_legacy == NODE_GROUP) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
@@ -3472,12 +3473,12 @@ static void node_draw_basis(const bContext &C,
       const_cast<bNode *>(&node),
       nullptr);
 
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     UI_but_flag_enable(but, UI_BUT_INACTIVE);
   }
 
   /* Wire across the node when muted/disabled. */
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     node_draw_mute_line(C, v2d, snode, node);
   }
 
@@ -3489,7 +3490,7 @@ static void node_draw_basis(const bContext &C,
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
     /* Muted nodes get a mix of the background with the node color. */
-    else if (node.flag & NODE_MUTED) {
+    else if (node.is_muted()) {
       UI_GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color);
     }
     else if (node.flag & NODE_CUSTOM_COLOR) {
@@ -3505,7 +3506,7 @@ static void node_draw_basis(const bContext &C,
     }
 
     /* Draw muted nodes slightly transparent so the wires inside are visible. */
-    if (node.flag & NODE_MUTED) {
+    if (node.is_muted()) {
       color[3] -= 0.2f;
     }
 
@@ -3529,7 +3530,7 @@ static void node_draw_basis(const bContext &C,
   {
     float color_underline[4];
 
-    if (node.flag & NODE_MUTED) {
+    if (node.is_muted()) {
       UI_GetThemeColorBlend4f(TH_BACK, color_id, 0.05f, color_underline);
       color_underline[3] = 1.0f;
     }
@@ -3620,7 +3621,7 @@ static void node_draw_hidden(const bContext &C,
   node_draw_shadow(snode, node, hiddenrad, 1.0f);
 
   /* Wire across the node when muted/disabled. */
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     node_draw_mute_line(C, v2d, snode, node);
   }
 
@@ -3631,7 +3632,7 @@ static void node_draw_hidden(const bContext &C,
       /* Use warning color to indicate undefined types. */
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
-    else if (node.flag & NODE_MUTED) {
+    else if (node.is_muted()) {
       /* Muted nodes get a mix of the background with the node color. */
       UI_GetThemeColorBlendShade4fv(TH_BACK, color_id, 0.1f, 0, color);
     }
@@ -3648,7 +3649,7 @@ static void node_draw_hidden(const bContext &C,
     }
 
     /* Draw muted nodes slightly transparent so the wires inside are visible. */
-    if (node.flag & NODE_MUTED) {
+    if (node.is_muted()) {
       color[3] -= 0.2f;
     }
 
@@ -3740,7 +3741,7 @@ static void node_draw_hidden(const bContext &C,
     UI_draw_roundbox_4fv(&rect, false, hiddenrad + outline_width, color_outline);
   }
 
-  if (node.flag & NODE_MUTED) {
+  if (node.is_muted()) {
     UI_but_flag_enable(but, UI_BUT_INACTIVE);
   }
 

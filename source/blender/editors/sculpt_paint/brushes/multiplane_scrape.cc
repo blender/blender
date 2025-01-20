@@ -15,7 +15,6 @@
 #include "DNA_object_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_ccg.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
@@ -284,7 +283,7 @@ static std::optional<ScrapeSampleData> sample_surface(const Depsgraph &depsgraph
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -663,7 +662,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);

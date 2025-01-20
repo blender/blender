@@ -11,6 +11,8 @@
 
 #include "BKE_nla.hh"
 
+#include "DNA_space_types.h"
+
 #include "ED_markers.hh"
 
 #include "transform.hh"

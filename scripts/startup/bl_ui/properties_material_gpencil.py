@@ -49,27 +49,24 @@ class GPENCIL_UL_matslots(UIList):
         if (ma is not None) and (ma.grease_pencil is not None):
             gpcolor = ma.grease_pencil
 
-            if self.layout_type in {'DEFAULT', 'COMPACT'}:
-                if gpcolor.lock:
-                    layout.active = False
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row = layout.row(align=True)
+            row.enabled = not gpcolor.lock
+            row.prop(ma, "name", text="", emboss=False, icon_value=icon)
 
-                row = layout.row(align=True)
-                row.enabled = not gpcolor.lock
-                row.prop(ma, "name", text="", emboss=False, icon_value=icon)
+            row = layout.row(align=True)
 
-                row = layout.row(align=True)
+            if gpcolor.ghost is True:
+                icon = 'ONIONSKIN_OFF'
+            else:
+                icon = 'ONIONSKIN_ON'
+            row.prop(gpcolor, "ghost", text="", icon=icon, emboss=False)
+            row.prop(gpcolor, "hide", text="", emboss=False)
+            row.prop(gpcolor, "lock", text="", emboss=False)
 
-                if gpcolor.ghost is True:
-                    icon = 'ONIONSKIN_OFF'
-                else:
-                    icon = 'ONIONSKIN_ON'
-                row.prop(gpcolor, "ghost", text="", icon=icon, emboss=False)
-                row.prop(gpcolor, "hide", text="", emboss=False)
-                row.prop(gpcolor, "lock", text="", emboss=False)
-
-            elif self.layout_type == 'GRID':
-                layout.alignment = 'CENTER'
-                layout.label(text="", icon_value=icon)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
 
 
 class GPMaterialButtonsPanel:
@@ -118,7 +115,6 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
         ma = context.material
         if ma is not None and ma.grease_pencil is not None:
             gpcolor = ma.grease_pencil
-            self.layout.enabled = not gpcolor.lock
             self.layout.prop(gpcolor, "show_stroke", text="")
 
     def draw(self, context):
@@ -130,7 +126,6 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
             gpcolor = ma.grease_pencil
 
             col = layout.column()
-            col.enabled = not gpcolor.lock
 
             col.prop(gpcolor, "mode")
 
@@ -141,7 +136,6 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
 
             if gpcolor.stroke_style == 'TEXTURE':
                 row = col.row()
-                row.enabled = not gpcolor.lock
                 col = row.column(align=True)
                 col.template_ID(gpcolor, "stroke_image", open="image.open")
 
@@ -166,7 +160,6 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
     def draw_header(self, context):
         ma = context.material
         gpcolor = ma.grease_pencil
-        self.layout.enabled = not gpcolor.lock
         self.layout.prop(gpcolor, "show_fill", text="")
 
     def draw(self, context):
@@ -178,7 +171,6 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
 
         # color settings
         col = layout.column()
-        col.enabled = not gpcolor.lock
         col.prop(gpcolor, "fill_style", text="Style")
 
         if gpcolor.fill_style == 'SOLID':

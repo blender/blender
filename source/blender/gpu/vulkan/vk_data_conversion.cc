@@ -54,6 +54,10 @@ enum class ConversionType {
   I32_TO_I8,
   I8_TO_I32,
 
+  /** Convert device 16F to UINT */
+  HALF_TO_UI8,
+  UI8_TO_HALF,
+
   /** Convert device 16F to floats. */
   HALF_TO_FLOAT,
   FLOAT_TO_HALF,
@@ -306,6 +310,7 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
       return ConversionType::UNORM32_TO_FLOAT;
     case GPU_DEPTH24_STENCIL8:
       return ConversionType::UINT_TO_DEPTH_COMPONENT24;
+
     case GPU_RGBA8I:
     case GPU_RGBA8:
     case GPU_RGBA16I:
@@ -449,10 +454,14 @@ static ConversionType type_of_conversion_ubyte(eGPUTextureFormat device_format)
     case GPU_SRGB8_A8:
       return ConversionType::PASS_THROUGH;
 
+    case GPU_RGBA16F:
+    case GPU_RG16F:
+    case GPU_R16F:
+      return ConversionType::UI8_TO_HALF;
+
     case GPU_RGBA8I:
     case GPU_RGBA16UI:
     case GPU_RGBA16I:
-    case GPU_RGBA16F:
     case GPU_RGBA16:
     case GPU_RGBA32UI:
     case GPU_RGBA32I:
@@ -460,7 +469,6 @@ static ConversionType type_of_conversion_ubyte(eGPUTextureFormat device_format)
     case GPU_RG8I:
     case GPU_RG16UI:
     case GPU_RG16I:
-    case GPU_RG16F:
     case GPU_RG16:
     case GPU_RG32UI:
     case GPU_RG32I:
@@ -468,7 +476,6 @@ static ConversionType type_of_conversion_ubyte(eGPUTextureFormat device_format)
     case GPU_R8I:
     case GPU_R16UI:
     case GPU_R16I:
-    case GPU_R16F:
     case GPU_R16:
     case GPU_R32UI:
     case GPU_R32I:
@@ -610,8 +617,6 @@ static ConversionType host_to_device(const eGPUDataFormat host_format,
                                      const eGPUTextureFormat host_texture_format,
                                      const eGPUTextureFormat device_format)
 {
-  BLI_assert(validate_data_format(device_format, host_format));
-
   switch (host_format) {
     case GPU_DATA_FLOAT:
       return type_of_conversion_float(host_texture_format, device_format);
@@ -668,6 +673,7 @@ static ConversionType reversed(ConversionType type)
       CASE_PAIR(FLOAT3, FLOAT4)
       CASE_PAIR(UINT, DEPTH24_STENCIL8)
       CASE_PAIR(UINT, DEPTH32F_STENCIL8)
+      CASE_PAIR(UI8, HALF)
 
     case ConversionType::UNSUPPORTED:
       return ConversionType::UNSUPPORTED;
@@ -718,6 +724,7 @@ using UI32 = ComponentValue<uint32_t>;
 using I8 = ComponentValue<int8_t>;
 using I16 = ComponentValue<int16_t>;
 using I32 = ComponentValue<int32_t>;
+using F16 = ComponentValue<uint16_t>;
 using F32 = ComponentValue<float>;
 using SRGBA8 = PixelValue<ColorSceneLinearByteEncoded4b<eAlpha::Premultiplied>>;
 using FLOAT3 = PixelValue<float3>;
@@ -939,6 +946,24 @@ static void convert(FLOAT4 &dst, const FLOAT3 &src)
   dst.value.a = 1.0f;
 }
 
+static void convert(F16 &dst, const UI8 &src)
+{
+  UnsignedNormalized<uint8_t> un8;
+  un8.value = src.value;
+  F32 f32;
+  convert(f32, un8);
+  dst.value = math::float_to_half(f32.value);
+}
+
+static void convert(UI8 &dst, const F16 &src)
+{
+  F32 f32;
+  f32.value = math::half_to_float(src.value);
+  UnsignedNormalized<uint8_t> un8;
+  convert(un8, f32);
+  dst.value = un8.value;
+}
+
 constexpr uint32_t MASK_10_BITS = 0b1111111111;
 constexpr uint32_t MASK_11_BITS = 0b11111111111;
 constexpr uint8_t SHIFT_B = 22;
@@ -1120,6 +1145,13 @@ static void convert_buffer(void *dst_memory,
     case ConversionType::UNORM32_TO_FLOAT:
       convert_per_component<F32, UnsignedNormalized<uint32_t>>(
           dst_memory, src_memory, buffer_size, device_format);
+      break;
+
+    case ConversionType::UI8_TO_HALF:
+      convert_per_component<F16, UI8>(dst_memory, src_memory, buffer_size, device_format);
+      break;
+    case ConversionType::HALF_TO_UI8:
+      convert_per_component<UI8, F16>(dst_memory, src_memory, buffer_size, device_format);
       break;
 
     case ConversionType::FLOAT_TO_HALF:

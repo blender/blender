@@ -15,8 +15,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_report.hh"
-
 #include "ED_markers.hh"
 
 #include "SEQ_animation.hh"

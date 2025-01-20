@@ -227,7 +227,7 @@ void ntreeCompositClearTags(bNodeTree *ntree)
 
   for (bNode *node : ntree->all_nodes()) {
     node->runtime->need_exec = 0;
-    if (node->type_legacy == NODE_GROUP) {
+    if (node->is_group()) {
       ntreeCompositClearTags((bNodeTree *)node->id);
     }
   }

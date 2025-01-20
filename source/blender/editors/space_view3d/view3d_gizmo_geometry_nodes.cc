@@ -6,25 +6,20 @@
  * \ingroup spview3d
  */
 
-#include <iostream>
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
-#include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_idprop.hh"
 #include "BKE_instances.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node_legacy_types.hh"
-#include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 
 #include "BLI_math_base_safe.h"
@@ -32,15 +27,13 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_rotation.hh"
-#include "BLI_math_vector.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.hh"
+
+#include "MOD_nodes.hh"
 
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_log.hh"
-
-#include "MOD_nodes.hh"
 
 #include "UI_resources.hh"
 

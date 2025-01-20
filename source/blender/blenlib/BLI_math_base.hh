@@ -52,11 +52,15 @@ template<typename T> inline T max(const T &a, const T &b)
 
 template<typename T> inline void max_inplace(T &a, const T &b)
 {
+  /* Avoid accidentally swapping pointers instead of values. */
+  static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>);
   a = math::max(a, b);
 }
 
 template<typename T> inline void min_inplace(T &a, const T &b)
 {
+  /* Avoid accidentally swapping pointers instead of values. */
+  static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>);
   a = math::min(a, b);
 }
 
@@ -82,6 +86,8 @@ template<typename T> inline T safe_mod(const T &a, const T &b)
 
 template<typename T> inline void min_max(const T &value, T &min, T &max)
 {
+  /* Avoid accidentally swapping pointers instead of values. */
+  static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>);
   min = math::min(value, min);
   max = math::max(value, max);
 }

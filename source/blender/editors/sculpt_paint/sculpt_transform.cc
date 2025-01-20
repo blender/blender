@@ -17,6 +17,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_kelvinlet.h"
@@ -301,7 +302,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -490,7 +491,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
         Mesh &mesh = *static_cast<Mesh *>(ob.data);
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         const PositionDeformData position_data(depsgraph, ob);
-        const MeshAttributeData attribute_data(mesh.attributes());
+        const MeshAttributeData attribute_data(mesh);
         node_mask.foreach_index(GrainSize(1), [&](const int i) {
           TransformLocalData &tls = all_tls.local();
           elastic_transform_node_mesh(sd,
@@ -677,7 +678,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Mesh: {
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const AveragePositionAccumulation total = threading::parallel_reduce(
           node_mask.index_range(),

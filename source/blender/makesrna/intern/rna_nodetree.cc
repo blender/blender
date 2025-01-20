@@ -592,10 +592,10 @@ const EnumPropertyItem rna_enum_geometry_nodes_linear_gizmo_draw_style_items[] =
 };
 
 #ifndef RNA_RUNTIME
-static const EnumPropertyItem node_sampler_type_items[] = {
-    {0, "NEAREST", 0, "Nearest", ""},
-    {1, "BILINEAR", 0, "Bilinear", ""},
-    {2, "BICUBIC", 0, "Bicubic", ""},
+static const EnumPropertyItem cmp_interpolation_items[] = {
+    {CMP_NODE_INTERPOLATION_NEAREST, "NEAREST", 0, "Nearest", "Use Nearest interpolation"},
+    {CMP_NODE_INTERPOLATION_BILINEAR, "BILINEAR", 0, "Bilinear", "Use Bilinear interpolation"},
+    {CMP_NODE_INTERPOLATION_BICUBIC, "BICUBIC", 0, "Bicubic", "Use Cubic B-Spline interpolation"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2422,7 +2422,7 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
   /* XXX only Frame node allowed for now,
    * in the future should have a poll function or so to test possible attachment.
    */
-  if (parent->type_legacy != NODE_FRAME) {
+  if (!parent->is_frame()) {
     return;
   }
 
@@ -2512,11 +2512,11 @@ static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
   /* XXX only Frame node allowed for now,
    * in the future should have a poll function or so to test possible attachment.
    */
-  if (parent->type_legacy != NODE_FRAME) {
+  if (!parent->is_frame()) {
     return false;
   }
 
-  if (node->type_legacy == NODE_FRAME && blender::bke::node_is_parent_and_child(node, parent)) {
+  if (node->is_frame() && blender::bke::node_is_parent_and_child(node, parent)) {
     return false;
   }
 
@@ -4389,7 +4389,7 @@ static void rna_GroupOutput_is_active_output_set(PointerRNA *ptr, bool value)
   if (value) {
     /* Make sure that no other group output is active at the same time. */
     LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
-      if (other_node->type_legacy == NODE_GROUP_OUTPUT) {
+      if (other_node->is_group_output()) {
         other_node->flag &= ~NODE_DO_OUTPUT;
       }
     }
@@ -7537,7 +7537,7 @@ static void def_cmp_rotate(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, node_sampler_type_items);
+  RNA_def_property_enum_items(prop, cmp_interpolation_items);
   RNA_def_property_ui_text(prop, "Filter", "Method to use to filter rotation");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -8690,7 +8690,7 @@ static void def_cmp_stabilize2d(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, node_sampler_type_items);
+  RNA_def_property_enum_items(prop, cmp_interpolation_items);
   RNA_def_property_ui_text(prop, "Filter", "Method to use to filter stabilization");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -8797,7 +8797,7 @@ static void dev_cmd_transform(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, node_sampler_type_items);
+  RNA_def_property_enum_items(prop, cmp_interpolation_items);
   RNA_def_property_ui_text(prop, "Filter", "Method to use to filter transform");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -9413,20 +9413,13 @@ static void def_cmp_translate(BlenderRNA * /*brna*/, StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem interpolation_items[] = {
-      {CMP_NODE_INTERPOLATION_NEAREST, "Nearest", 0, "Nearest", "Use nearest interpolation"},
-      {CMP_NODE_INTERPOLATION_BILINEAR, "Bilinear", 0, "Bilinear", "Use bilinear interpolation"},
-      {CMP_NODE_INTERPOLATION_BICUBIC, "Bicubic", 0, "Bicubic", "Use bicubic interpolation"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeTranslateData", "storage");
 
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "interpolation");
-  RNA_def_property_enum_items(prop, interpolation_items);
+  RNA_def_property_enum_items(prop, cmp_interpolation_items);
   RNA_def_property_ui_text(prop, "", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

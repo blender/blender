@@ -325,13 +325,38 @@ static int bm_vert_tri_find_unique_edge(BMVert *verts[3])
   return order[0];
 }
 
-void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3])
+void BM_vert_tri_calc_tangent_from_edge(BMVert *verts[3], float r_tangent[3])
 {
   const int index = bm_vert_tri_find_unique_edge(verts);
+  const int index_next = (index + 1) % 3;
 
-  sub_v3_v3v3(r_tangent, verts[index]->co, verts[(index + 1) % 3]->co);
-
+  sub_v3_v3v3(r_tangent, verts[index]->co, verts[index_next]->co);
   normalize_v3(r_tangent);
+}
+
+void BM_vert_tri_calc_tangent_pair_from_edge(BMVert *verts[3],
+                                             float r_tangent_a[3],
+                                             float r_tangent_b[3])
+{
+  const int index = bm_vert_tri_find_unique_edge(verts);
+  const int index_next = (index + 1) % 3;
+  const int index_prev = (index_next + 1) % 3;
+
+  sub_v3_v3v3(r_tangent_a, verts[index]->co, verts[index_next]->co);
+  normalize_v3(r_tangent_a);
+
+  /* Pick the adjacent loop that is least co-linear. */
+  float vec_prev[3], vec_next[3];
+  float tmp_prev[3], tmp_next[3];
+
+  sub_v3_v3v3(vec_prev, verts[index_prev]->co, verts[index]->co);
+  sub_v3_v3v3(vec_next, verts[index_next]->co, verts[index_prev]->co);
+
+  cross_v3_v3v3(tmp_prev, r_tangent_a, vec_prev);
+  cross_v3_v3v3(tmp_next, r_tangent_a, vec_next);
+
+  normalize_v3_v3(r_tangent_b,
+                  len_squared_v3(tmp_next) > len_squared_v3(tmp_prev) ? vec_next : vec_prev);
 }
 
 void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3])
@@ -348,7 +373,7 @@ void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-void BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
+void BM_face_calc_tangent_from_edge(const BMFace *f, float r_tangent[3])
 {
   const BMLoop *l_long = BM_face_find_longest_loop((BMFace *)f);
 
@@ -357,7 +382,75 @@ void BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
+static void bm_face_calc_tangent_from_quad_edge_pair(const BMFace *f, float r_tangent[3])
+{
+  BMVert *verts[4];
+  float vec[3], vec_a[3], vec_b[3];
+
+  BM_face_as_array_vert_quad((BMFace *)f, verts);
+
+  sub_v3_v3v3(vec_a, verts[3]->co, verts[2]->co);
+  sub_v3_v3v3(vec_b, verts[0]->co, verts[1]->co);
+  add_v3_v3v3(r_tangent, vec_a, vec_b);
+
+  sub_v3_v3v3(vec_a, verts[0]->co, verts[3]->co);
+  sub_v3_v3v3(vec_b, verts[1]->co, verts[2]->co);
+  add_v3_v3v3(vec, vec_a, vec_b);
+  /* use the longest edge length */
+  if (len_squared_v3(r_tangent) < len_squared_v3(vec)) {
+    copy_v3_v3(r_tangent, vec);
+  }
+  normalize_v3(r_tangent);
+}
+
+static void bm_face_calc_tangent_pair_from_quad_edge_pair(const BMFace *f,
+                                                          float r_tangent_a[3],
+                                                          float r_tangent_b[3])
+{
+  BLI_assert(f->len == 4);
+  BMVert *verts[4];
+  float vec_a[3], vec_b[3];
+
+  BM_face_as_array_vert_quad((BMFace *)f, verts);
+
+  sub_v3_v3v3(vec_a, verts[3]->co, verts[2]->co);
+  sub_v3_v3v3(vec_b, verts[0]->co, verts[1]->co);
+  add_v3_v3v3(r_tangent_a, vec_a, vec_b);
+
+  sub_v3_v3v3(vec_a, verts[0]->co, verts[3]->co);
+  sub_v3_v3v3(vec_b, verts[1]->co, verts[2]->co);
+  add_v3_v3v3(r_tangent_b, vec_a, vec_b);
+
+  /* `r_tangent_a` always gets the longest edge. */
+  if (normalize_v3(r_tangent_a) < normalize_v3(r_tangent_b)) {
+    swap_v3_v3(r_tangent_a, r_tangent_b);
+  }
+}
+
+void BM_face_calc_tangent_pair_from_edge(const BMFace *f,
+                                         float r_tangent_a[3],
+                                         float r_tangent_b[3])
+{
+  const BMLoop *l_long = BM_face_find_longest_loop((BMFace *)f);
+
+  sub_v3_v3v3(r_tangent_a, l_long->v->co, l_long->next->v->co);
+  normalize_v3(r_tangent_a);
+
+  /* Pick the adjacent loop that is least co-linear. */
+  float vec_prev[3], vec_next[3];
+  float tmp_prev[3], tmp_next[3];
+
+  sub_v3_v3v3(vec_prev, l_long->prev->v->co, l_long->v->co);
+  sub_v3_v3v3(vec_next, l_long->next->v->co, l_long->next->next->v->co);
+
+  cross_v3_v3v3(tmp_prev, r_tangent_a, vec_prev);
+  cross_v3_v3v3(tmp_next, r_tangent_a, vec_next);
+
+  normalize_v3_v3(r_tangent_b,
+                  len_squared_v3(tmp_next) > len_squared_v3(tmp_prev) ? vec_next : vec_prev);
+}
+
+void BM_face_calc_tangent_from_edge_pair(const BMFace *f, float r_tangent[3])
 {
   if (f->len == 3) {
     BMVert *verts[3];
@@ -368,22 +461,7 @@ void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
   }
   else if (f->len == 4) {
     /* Use longest edge pair */
-    BMVert *verts[4];
-    float vec[3], vec_a[3], vec_b[3];
-
-    BM_face_as_array_vert_quad((BMFace *)f, verts);
-
-    sub_v3_v3v3(vec_a, verts[3]->co, verts[2]->co);
-    sub_v3_v3v3(vec_b, verts[0]->co, verts[1]->co);
-    add_v3_v3v3(r_tangent, vec_a, vec_b);
-
-    sub_v3_v3v3(vec_a, verts[0]->co, verts[3]->co);
-    sub_v3_v3v3(vec_b, verts[1]->co, verts[2]->co);
-    add_v3_v3v3(vec, vec_a, vec_b);
-    /* use the longest edge length */
-    if (len_squared_v3(r_tangent) < len_squared_v3(vec)) {
-      copy_v3_v3(r_tangent, vec);
-    }
+    BM_face_calc_tangent_from_edge(f, r_tangent);
   }
   else {
     /* For ngons use two longest disconnected edges */
@@ -417,7 +495,7 @@ void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
   }
 }
 
-void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
+void BM_face_calc_tangent_from_edge_diagonal(const BMFace *f, float r_tangent[3])
 {
   BMLoop *l_iter, *l_first;
 
@@ -449,7 +527,7 @@ void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3])
+void BM_face_calc_tangent_from_vert_diagonal(const BMFace *f, float r_tangent[3])
 {
   BMLoop *l_iter, *l_first;
 
@@ -483,15 +561,33 @@ void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3])
     /* most 'unique' edge of a triangle */
     BMVert *verts[3];
     BM_face_as_array_vert_tri((BMFace *)f, verts);
-    BM_vert_tri_calc_tangent_edge(verts, r_tangent);
+    BM_vert_tri_calc_tangent_from_edge(verts, r_tangent);
   }
   else if (f->len == 4) {
     /* longest edge pair of a quad */
-    BM_face_calc_tangent_edge_pair((BMFace *)f, r_tangent);
+    bm_face_calc_tangent_from_quad_edge_pair(f, r_tangent);
   }
   else {
     /* longest edge of an ngon */
-    BM_face_calc_tangent_edge((BMFace *)f, r_tangent);
+    BM_face_calc_tangent_from_edge(f, r_tangent);
+  }
+}
+
+void BM_face_calc_tangent_pair_auto(const BMFace *f, float r_tangent_a[3], float r_tangent_b[3])
+{
+  if (f->len == 3) {
+    /* most 'unique' edge of a triangle */
+    BMVert *verts[3];
+    BM_face_as_array_vert_tri((BMFace *)f, verts);
+    BM_vert_tri_calc_tangent_pair_from_edge(verts, r_tangent_a, r_tangent_b);
+  }
+  else if (f->len == 4) {
+    /* longest edge pair of a quad */
+    bm_face_calc_tangent_pair_from_quad_edge_pair(f, r_tangent_a, r_tangent_b);
+  }
+  else {
+    /* longest edge of an ngon */
+    BM_face_calc_tangent_pair_from_edge(f, r_tangent_a, r_tangent_b);
   }
 }
 

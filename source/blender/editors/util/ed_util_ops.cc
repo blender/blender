@@ -232,6 +232,60 @@ static void ED_OT_lib_id_generate_preview_from_object(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static bool lib_id_remove_preview_poll(bContext *C)
+{
+  if (!lib_id_preview_editing_poll(C)) {
+    return false;
+  }
+
+  const PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  const ID *id = static_cast<const ID *>(idptr.data);
+  if (!id) {
+    return false;
+  }
+
+  const PreviewImage *preview = BKE_previewimg_id_get(id);
+  if (!preview) {
+    CTX_wm_operator_poll_msg_set(C, "No preview available to remove");
+    return false;
+  }
+
+  return true;
+}
+
+static int lib_id_remove_preview_exec(bContext *C, wmOperator *op)
+{
+  const PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  ID *id = static_cast<ID *>(idptr.data);
+
+  if (!id) {
+    BKE_report(
+        op->reports, RPT_ERROR, "Failed to remove preview: no ID in context (incorrect context?)");
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_previewimg_id_free(id);
+
+  WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ED_OT_lib_id_remove_preview(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Preview";
+  ot->description = "Remove the preview of this data-block";
+  ot->idname = "ED_OT_lib_id_remove_preview";
+
+  /* api callbacks */
+  ot->poll = lib_id_remove_preview_poll;
+  ot->exec = lib_id_remove_preview_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -407,6 +461,7 @@ void ED_operatortypes_edutils()
   WM_operatortype_append(ED_OT_lib_id_load_custom_preview);
   WM_operatortype_append(ED_OT_lib_id_generate_preview);
   WM_operatortype_append(ED_OT_lib_id_generate_preview_from_object);
+  WM_operatortype_append(ED_OT_lib_id_remove_preview);
 
   WM_operatortype_append(ED_OT_lib_id_fake_user_toggle);
   WM_operatortype_append(ED_OT_lib_id_unlink);

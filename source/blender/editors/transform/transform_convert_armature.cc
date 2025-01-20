@@ -29,7 +29,7 @@
 #include "ED_armature.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "ANIM_action.hh"
 #include "ANIM_bone_collections.hh"

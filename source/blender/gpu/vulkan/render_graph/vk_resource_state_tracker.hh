@@ -70,28 +70,6 @@ enum class VKResourceType { NONE = (0 << 0), IMAGE = (1 << 0), BUFFER = (1 << 1)
 ENUM_OPERATORS(VKResourceType, VKResourceType::BUFFER);
 
 /**
- * Resources can have deviations in its lifetime based on who owns it.
- */
-enum class ResourceOwner {
-  /**
-   * Resource is owned by Blender.
-   *
-   * These resources can be destroyed internally by Blender.
-   *
-   * NOTE: Most resources are application owned.
-   */
-  APPLICATION,
-
-  /**
-   * Resource is owned by a swap chain.
-   *
-   * These resources cannot be destroyed, could be recreated externally and its layout can be
-   * modified outside our context.
-   */
-  SWAP_CHAIN,
-};
-
-/**
  * State being tracked for a resource.
  */
 struct VKResourceBarrierState {
@@ -146,22 +124,11 @@ class VKResourceStateTracker {
         VkImage vk_image = VK_NULL_HANDLE;
         /** Number of layers that the resource has. */
         uint32_t layer_count = 0;
-
-        /**
-         * Original image layout when the resource was added to the state tracker.
-         *
-         * It is used to reset the state tracker to its original state when working with swap chain
-         * images. See `reset_image_layout`.
-         */
-        VkImageLayout vk_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
       } image;
     };
 
     /** Current modification stamp of the resource. */
     ModificationStamp stamp = 0;
-
-    /** Who owns the resource. */
-    ResourceOwner owner = ResourceOwner::APPLICATION;
 
     /**
      * State tracking to ensure correct pipeline barriers and command creation.
@@ -171,20 +138,6 @@ class VKResourceStateTracker {
 #ifndef NDEBUG
     const char *name;
 #endif
-
-    /**
-     * Reset the image layout to its original layout.
-     *
-     * The layout of swap chain images are externally managed. When they are used again we need to
-     * ensure the correct state.
-     *
-     * NOTE: Also needed when for other external images (Cycles, OpenXR, multi device).
-     */
-    void reset_image_layout()
-    {
-      BLI_assert(type == VKResourceType::IMAGE);
-      barrier_state.image_layout = image.vk_image_layout;
-    }
 
     /**
      * Check if the given resource handle has multiple layers.
@@ -236,11 +189,7 @@ class VKResourceStateTracker {
    * When an image is created in VKTexture, it needs to be registered in the device resources so
    * the resource state can be tracked during its lifetime.
    */
-  void add_image(VkImage vk_image,
-                 uint32_t layer_count,
-                 VkImageLayout vk_image_layout,
-                 ResourceOwner owner,
-                 const char *name = nullptr);
+  void add_image(VkImage vk_image, uint32_t layer_count, const char *name = nullptr);
 
   /**
    * Remove an registered image.
@@ -301,17 +250,6 @@ class VKResourceStateTracker {
    * dependencies. See `VKNodeInfo.build_links`
    */
   ResourceWithStamp get_image(VkImage vk_image) const;
-
-  /**
-   * Reset the swap chain image layouts to its original layout.
-   *
-   * The layout of swap chain images are externally managed. When they are reused we need to
-   * ensure the correct state.
-   *
-   * NOTE: This is also needed when working with external memory (Cycles, OpenXR, multi device
-   * rendering).
-   */
-  void reset_image_layouts();
 
   /** Get the resource type for the given handle. */
   VKResourceType resource_type_get(ResourceHandle resource_handle) const

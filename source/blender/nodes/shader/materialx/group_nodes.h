@@ -21,14 +21,11 @@ class GroupNodeParser : public NodeParser {
   bool use_group_default_;
 
  public:
-  GroupNodeParser(MaterialX::GraphElement *graph,
-                  const Depsgraph *depsgraph,
-                  const Material *material,
+  GroupNodeParser(NodeGraph &graph,
                   const bNode *node,
                   const bNodeSocket *socket_out,
                   NodeItem::Type to_type,
                   GroupNodeParser *group_parser,
-                  ExportParams export_params,
                   bool use_group_default);
   NodeItem compute() override;
   NodeItem compute_full() override;

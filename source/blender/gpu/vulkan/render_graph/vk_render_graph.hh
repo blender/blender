@@ -230,7 +230,7 @@ class VKRenderGraph : public NonCopyable {
    * swap chain swap.
    *
    * Pre conditions:
-   * - `vk_swapchain_image` needs to be a created using ResourceOwner::SWAP_CHAIN`.
+   * - `vk_swapchain_image` needs to be registered in VKResourceStateTracker.
    *
    * Post conditions:
    * - `vk_swapchain_image` layout is transitioned to `VK_IMAGE_LAYOUT_SRC_PRESENT`.

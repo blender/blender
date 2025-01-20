@@ -10,7 +10,6 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"

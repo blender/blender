@@ -23,8 +23,6 @@ void VKCommandBuilder::build_nodes(VKRenderGraph &render_graph,
                                    VKCommandBufferInterface &command_buffer,
                                    Span<NodeHandle> node_handles)
 {
-  /* Swap chain images layouts needs to be reset as the image layouts are changed externally. */
-  render_graph.resources_.reset_image_layouts();
   groups_init(render_graph, node_handles);
   groups_extract_barriers(
       render_graph, node_handles, command_buffer.use_dynamic_rendering_local_read);
@@ -462,12 +460,12 @@ void VKCommandBuilder::send_pipeline_barriers(VKCommandBufferInterface &command_
                                             VkPipelineStageFlagBits(barrier.src_stage_mask);
 
   VkPipelineStageFlags dst_stage_mask = barrier.dst_stage_mask;
-  // TODO: this should be done during barrier extraction making within_rendering obsolete.
+  /* TODO: this should be done during barrier extraction making within_rendering obsolete. */
   if (within_rendering) {
-    /* See: VUID - vkCmdPipelineBarrier - srcStageMask - 09556
-     * If vkCmdPipelineBarrier is called within a render pass instance started with
-     * vkCmdBeginRendering, this command must only specify framebuffer-space stages in
-     * srcStageMask and dstStageMask */
+    /* See: VUID - `vkCmdPipelineBarrier` - `srcStageMask` - 09556
+     * If `vkCmdPipelineBarrier` is called within a render pass instance started with
+     * `vkCmdBeginRendering`, this command must only specify frame-buffer-space stages in
+     * `srcStageMask` and `dstStageMask`. */
     src_stage_mask = dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
                                       VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
                                       VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |

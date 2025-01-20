@@ -16,7 +16,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 

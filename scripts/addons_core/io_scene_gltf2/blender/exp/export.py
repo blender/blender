@@ -269,6 +269,8 @@ def __postprocess_with_gltfpack(export_settings):
 
     if (export_settings['gltf_gltfpack_noq']):
         options.append("-noq")
+    if (export_settings['export_gltfpack_kn']):
+        options.append("-kn")
     else:
         options.append("-vp")
         options.append(f"{export_settings['gltf_gltfpack_vp']}")

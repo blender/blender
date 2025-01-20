@@ -12,9 +12,6 @@
 
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_math_matrix.hh"
-#include "BLI_math_vector.hh"
-#include "BLI_vector.hh"
 
 #include "ED_view3d.hh"
 

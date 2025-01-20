@@ -14,7 +14,6 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
@@ -24,8 +23,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

@@ -32,7 +32,7 @@
 #include "BLI_rand.h"
 #include "BLI_sort_utils.h"
 
-#include "BKE_attribute.hh"
+#include "BKE_attribute.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
@@ -8105,38 +8105,41 @@ static void point_normals_free(wmOperator *op)
 static void point_normals_cancel(bContext *C, wmOperator *op)
 {
   point_normals_free(op);
-  ED_area_status_text(CTX_wm_area(C), nullptr);
+  ED_workspace_status_text(C, nullptr);
 }
 
-static void point_normals_update_header(bContext *C, wmOperator *op)
+static void point_normals_update_statusbar(bContext *C, wmOperator *op)
 {
-  auto get_modal_key_str = [&](int id) {
-    return WM_modalkeymap_operator_items_to_string(op->type, id, true).value_or("");
-  };
+  WorkspaceStatus status(C);
 
-  const std::string header = fmt::format(
-      fmt::runtime(IFACE_("{}: confirm, {}: cancel, "
-                          "{}: point to mouse ({}), {}: point to Pivot, "
-                          "{}: point to object origin, {}: reset normals, "
-                          "{}: set & point to 3D cursor, {}: select & point to mesh item, "
-                          "{}: invert normals ({}), {}: spherize ({}), {}: align ({})")),
-      get_modal_key_str(EDBM_CLNOR_MODAL_CONFIRM),
-      get_modal_key_str(EDBM_CLNOR_MODAL_CANCEL),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE),
-      WM_bool_as_string(RNA_enum_get(op->ptr, "mode") == EDBM_CLNOR_POINTTO_MODE_MOUSE),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_RESET),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_INVERT),
-      WM_bool_as_string(RNA_boolean_get(op->ptr, "invert")),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE),
-      WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
-      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_ALIGN),
-      WM_bool_as_string(RNA_boolean_get(op->ptr, "align")));
+  status.opmodal(IFACE_("Cancel"), op->type, EDBM_CLNOR_MODAL_CANCEL);
+  status.opmodal(IFACE_("Confirm"), op->type, EDBM_CLNOR_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Reset"), op->type, EDBM_CLNOR_MODAL_POINTTO_RESET);
 
-  ED_area_status_text(CTX_wm_area(C), header.c_str());
+  status.opmodal(IFACE_("Invert"),
+                 op->type,
+                 EDBM_CLNOR_MODAL_POINTTO_INVERT,
+                 RNA_boolean_get(op->ptr, "invert"));
+  status.opmodal(IFACE_("Spherize"),
+                 op->type,
+                 EDBM_CLNOR_MODAL_POINTTO_SPHERIZE,
+                 RNA_boolean_get(op->ptr, "spherize"));
+  status.opmodal(IFACE_("Align"),
+                 op->type,
+                 EDBM_CLNOR_MODAL_POINTTO_ALIGN,
+                 RNA_boolean_get(op->ptr, "align"));
+
+  status.opmodal(IFACE_("Use mouse"),
+                 op->type,
+                 EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE,
+                 RNA_enum_get(op->ptr, "mode") == EDBM_CLNOR_POINTTO_MODE_MOUSE);
+
+  status.opmodal(IFACE_("Use Pivot"), op->type, EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT);
+  status.opmodal(IFACE_("Use Object"), op->type, EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT);
+  status.opmodal(
+      IFACE_("Set and use 3D cursor"), op->type, EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR);
+  status.opmodal(
+      IFACE_("Select and use mesh item"), op->type, EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED);
 }
 
 /* TODO: move that to generic function in BMesh? */
@@ -8402,7 +8405,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
       /* Recheck booleans. */
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);
 
-      point_normals_update_header(C, op);
+      point_normals_update_statusbar(C, op);
     }
     else {
       ret = OPERATOR_CANCELLED;
@@ -8434,7 +8437,7 @@ static int edbm_point_normals_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   WM_event_add_modal_handler(C, op);
 
-  point_normals_update_header(C, op);
+  point_normals_update_statusbar(C, op);
 
   op->flag |= OP_IS_MODAL_GRAB_CURSOR;
   return OPERATOR_RUNNING_MODAL;

@@ -4,7 +4,6 @@
 
 #include <numeric>
 
-#include "BKE_attribute_math.hh"
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
@@ -15,7 +14,6 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
 #include "BLI_bounds.hh"
 
 #include "ED_screen.hh"

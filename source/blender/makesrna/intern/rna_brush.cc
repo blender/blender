@@ -964,7 +964,6 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
           return rna_enum_dummy_DEFAULT_items;
       }
     case PaintMode::SculptGPencil:
-    case PaintMode::SculptGreasePencil:
       switch (me->gpencil_sculpt_brush_type) {
         case GPSCULPT_BRUSH_TYPE_THICKNESS:
         case GPSCULPT_BRUSH_TYPE_STRENGTH:

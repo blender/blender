@@ -1229,7 +1229,6 @@ static bool paint_use_2d_cursor(PaintMode mode)
     case PaintMode::SculptGPencil:
     case PaintMode::WeightGPencil:
     case PaintMode::SculptCurves:
-    case PaintMode::SculptGreasePencil:
     case PaintMode::GPencil:
       return true;
     case PaintMode::Invalid:

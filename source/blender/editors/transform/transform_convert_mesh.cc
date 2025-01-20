@@ -18,7 +18,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
-#include "BLI_utildefines_stack.h"
 
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
@@ -861,18 +860,10 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
       }
 
       if (data.axismtx) {
-        if (createSpaceNormalTangent(data.axismtx[i], no, tangent)) {
-          /* Pass. */
-        }
-        else {
-          if (normalize_v3(no) != 0.0f) {
-            axis_dominant_v3_to_m3(data.axismtx[i], no);
-            invert_m3(data.axismtx[i]);
-          }
-          else {
-            unit_m3(data.axismtx[i]);
-          }
-        }
+        normalize_v3(no);
+        normalize_v3(tangent);
+
+        createSpaceNormalTangent_or_fallback(data.axismtx[i], no, tangent);
       }
     }
 

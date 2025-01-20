@@ -11,14 +11,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_set.hh"
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_layer.hh"
 #include "BKE_nla.hh"
-#include "BKE_report.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"

@@ -6,12 +6,10 @@
  * \ingroup spview3d
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 
-#include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 

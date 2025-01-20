@@ -277,6 +277,10 @@ class GlTF2Exporter:
 
             self.nodes_idx_to_remove.extend(insts)
 
+        for child_idx in node.children:
+                child = self.__gltf.nodes[child_idx]
+                self.manage_gpu_instancing(child, also_mesh=child.mesh is not None)
+
     def manage_gpu_instancing_nodes(self, export_settings):
         if export_settings['gltf_gpu_instances'] is True:
             for scene_num in range(len(self.__gltf.scenes)):
@@ -289,9 +293,6 @@ class GlTF2Exporter:
                         self.manage_gpu_instancing(node)
                     else:
                         self.manage_gpu_instancing(node, also_mesh=True)
-                    for child_idx in node.children:
-                        child = self.__gltf.nodes[child_idx]
-                        self.manage_gpu_instancing(child, also_mesh=child.mesh is not None)
 
                 # Slides other nodes index
 

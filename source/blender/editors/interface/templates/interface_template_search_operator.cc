@@ -12,14 +12,9 @@
 #include <cstring>
 #include <fmt/format.h>
 
-#include "DNA_object_types.h"
-#include "DNA_texture_types.h"
-
 #include "BLI_array.hh"
-#include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 

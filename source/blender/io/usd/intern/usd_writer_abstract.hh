@@ -21,6 +21,10 @@
 struct Material;
 struct ReportList;
 
+namespace blender {
+template<typename T> struct Bounds;
+}
+
 namespace blender::io::usd {
 
 using blender::io::AbstractHierarchyWriter;
@@ -103,7 +107,14 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
    *
    * TODO: also provide method for authoring extentsHint on every prim in a hierarchy.
    */
-  virtual void author_extent(const pxr::UsdTimeCode timecode, pxr::UsdGeomBoundable &prim);
+  void author_extent(const pxr::UsdGeomBoundable &boundable, const pxr::UsdTimeCode timecode);
+
+  /**
+   * Author the `extent` attribute for a boundable prim given the Blender `bounds`.
+   */
+  void author_extent(const pxr::UsdGeomBoundable &boundable,
+                     const std::optional<Bounds<float3>> &bounds,
+                     const pxr::UsdTimeCode timecode);
 };
 
 }  // namespace blender::io::usd

@@ -26,12 +26,10 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_armature.hh"
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"

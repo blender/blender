@@ -956,7 +956,7 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
   float c = d0co - d0v0;
   float det = b * b - 4 * a * c;
 
-  if (det >= 0) {
+  if (det >= 0 && a != 0) {
     const float epsilon = 1e-6f;
     float sdet = sqrtf(det);
     float hit_co[3], hit_no[3];

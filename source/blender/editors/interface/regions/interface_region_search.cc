@@ -8,13 +8,11 @@
  * Search Box Region & Interaction
  */
 
+#include "MEM_guardedalloc.h"
+
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
-
-#include "DNA_ID.h"
-#include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
 

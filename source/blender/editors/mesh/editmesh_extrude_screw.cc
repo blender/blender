@@ -6,8 +6,6 @@
  * \ingroup edmesh
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_object_types.h"
 
 #include "BKE_context.hh"

@@ -695,9 +695,9 @@ void ED_node_set_active(
   bool do_update = false;
 
   /* Generic node group output: set node as active output. */
-  if (node->type_legacy == NODE_GROUP_OUTPUT) {
+  if (node->is_group_output()) {
     for (bNode *node_iter : ntree->all_nodes()) {
-      if (node_iter->type_legacy == NODE_GROUP_OUTPUT) {
+      if (node_iter->is_group_output()) {
         node_iter->flag &= ~NODE_DO_OUTPUT;
       }
     }

@@ -6,8 +6,6 @@
  * \ingroup spview3d
  */
 
-#include "BLI_utildefines.h"
-
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 

@@ -14,13 +14,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_array_utils.hh"
 #include "DNA_curve_types.h"
 #include "DNA_defaults.h"
-#include "DNA_dynamicpaint_types.h"
-#include "DNA_fluid_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -29,12 +26,10 @@
 #include "DNA_object_force_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 
 #include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
 #include "BLI_listbase.h"
-#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
@@ -83,8 +78,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

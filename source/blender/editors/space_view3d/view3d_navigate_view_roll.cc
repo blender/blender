@@ -6,10 +6,10 @@
  * \ingroup spview3d
  */
 
-#include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.hh"
 

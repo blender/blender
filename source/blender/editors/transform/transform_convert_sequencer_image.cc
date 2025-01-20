@@ -15,8 +15,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_report.hh"
-
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"

@@ -2716,12 +2716,12 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "None]\n"
 
 #define BPY_PROPDEF_POLL_DOC \
-  "   :arg poll: function to be called to determine whether an item is valid for this " \
-  "property.\n" \
-  "              The function must take 2 values (self, object) and return Bool.\n" \
-  "              Note that the poll return value will be checked only when assigning " \
-  "an item from the UI, but it is still possible to assign an \"invalid\" item to " \
-  "the property directly.\n" \
+  "   :arg poll: Function that determines whether an item is valid for this property.\n" \
+  "      The function must take 2 values (self, object) and return a boolean.\n" \
+  "\n" \
+  "      .. note:: The return value will be checked only when assigning an item from the UI, " \
+  "but it is still possible to assign an \"invalid\" item to the property directly.\n" \
+  "\n" \
   "   :type poll: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.ID`], " \
   "bool]\n"
 

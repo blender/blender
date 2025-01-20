@@ -21,7 +21,6 @@
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_object_types.hh"
 
 #include "ED_curves.hh"
 

@@ -155,7 +155,7 @@
           <ThemeWidgetColors
             outline="#4d4d4dff"
             inner="#999999ff"
-            inner_sel="#999999ff"
+            inner_sel="#b0b0b0ff"
             item="#e6e6e6ff"
             text="#1a1a1a"
             text_sel="#000000"

@@ -14,6 +14,8 @@ BLOCKLIST_HYDRA = [
     "image_half.*.blend",
     "image_packed_float.*.blend",
     "image_packed_half.*.blend",
+    # Differences between devices/drivers causing this to fail
+    "image.blend",
 ]
 
 BLOCKLIST_USD = [

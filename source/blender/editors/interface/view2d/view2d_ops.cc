@@ -1416,7 +1416,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
  * -# RIGHTMOUSE - zoom out of view
  *
  * Currently, these key mappings are hardcoded, but it shouldn't be too important to
- * have custom keymappings for this.
+ * have custom key-mappings for this.
  * \{ */
 
 static int view_borderzoom_exec(bContext *C, wmOperator *op)

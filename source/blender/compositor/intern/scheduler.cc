@@ -27,7 +27,7 @@ using namespace nodes::derived_node_tree_types;
 static bool add_viewer_nodes_in_context(const DTreeContext *context, Stack<DNode> &node_stack)
 {
   for (const bNode *node : context->btree().nodes_by_type("CompositorNodeViewer")) {
-    if (node->flag & NODE_DO_OUTPUT && !(node->flag & NODE_MUTED)) {
+    if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
       node_stack.push(DNode(context, node));
       return true;
     }
@@ -41,13 +41,38 @@ static bool add_viewer_nodes_in_context(const DTreeContext *context, Stack<DNode
   /* No active viewers exist in this context, try to add the Composite node as a fallback viewer if
    * it was not already added. */
   for (const bNode *node : context->btree().nodes_by_type("CompositorNodeComposite")) {
-    if (node->flag & NODE_DO_OUTPUT && !(node->flag & NODE_MUTED)) {
+    if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
       node_stack.push(DNode(context, node));
       return true;
     }
   }
 
   return false;
+}
+
+/* Add all File Output nodes inside the given tree_context recursively to the node stack. */
+static void add_file_output_nodes(const DTreeContext &tree_context, Stack<DNode> &node_stack)
+{
+  for (const bNode *node : tree_context.btree().nodes_by_type("CompositorNodeOutputFile")) {
+    if (node->is_muted()) {
+      continue;
+    }
+
+    node_stack.push(DNode(&tree_context, node));
+  }
+
+  for (const bNode *node : tree_context.btree().group_nodes()) {
+    if (node->is_muted()) {
+      continue;
+    }
+
+    const bNodeTree *group_tree = reinterpret_cast<const bNodeTree *>(node->id);
+    if (!group_tree) {
+      continue;
+    }
+
+    add_file_output_nodes(*tree_context.child_context(*node), node_stack);
+  }
 }
 
 /* Add the output nodes whose result should be computed to the given stack. This includes File
@@ -64,18 +89,14 @@ static void add_output_nodes(const Context &context,
 
   /* Only add File Output nodes if the context supports them. */
   if (context.use_file_output()) {
-    for (const bNode *node : root_context.btree().nodes_by_type("CompositorNodeOutputFile")) {
-      if (!(node->flag & NODE_MUTED)) {
-        node_stack.push(DNode(&root_context, node));
-      }
-    }
+    add_file_output_nodes(root_context, node_stack);
   }
 
   /* Only add the Composite output node if the context supports composite outputs. The active
    * Composite node may still be added as a fallback viewer output below. */
   if (context.use_composite_output()) {
     for (const bNode *node : root_context.btree().nodes_by_type("CompositorNodeComposite")) {
-      if (node->flag & NODE_DO_OUTPUT && !(node->flag & NODE_MUTED)) {
+      if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
         node_stack.push(DNode(&root_context, node));
         break;
       }

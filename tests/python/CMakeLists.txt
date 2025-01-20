@@ -563,6 +563,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
       shader
       shadow_catcher
       sss
+      texture
     )
 
     if(WITH_OPENSUBDIV)

@@ -11,7 +11,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -27,12 +26,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "ED_view3d.hh"
-
 #include "BLT_translation.hh"
 
 #include "UI_resources.hh"
-#include "UI_view2d.hh"
 
 #include "transform.hh"
 #include "transform_gizmo.hh"

@@ -1185,7 +1185,7 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
  * otherwise. */
 static Scene *get_scene_referenced_by_node(const bNode *node)
 {
-  if (node->flag & NODE_MUTED) {
+  if (node->is_muted()) {
     return nullptr;
   }
 
@@ -1236,13 +1236,13 @@ static bool node_tree_has_composite_output(const bNodeTree *node_tree)
   }
 
   for (const bNode *node : node_tree->all_nodes()) {
-    if (node->flag & NODE_MUTED) {
+    if (node->is_muted()) {
       continue;
     }
     if (node->type_legacy == CMP_NODE_COMPOSITE && node->flag & NODE_DO_OUTPUT) {
       return true;
     }
-    if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
+    if (node->is_group() && node->id) {
       if (node_tree_has_composite_output(reinterpret_cast<const bNodeTree *>(node->id))) {
         return true;
       }
@@ -1628,7 +1628,7 @@ static bool check_valid_compositing_camera(Scene *scene,
 {
   if (scene->r.scemode & R_DOCOMP && scene->use_nodes) {
     for (bNode *node : scene->nodetree->all_nodes()) {
-      if (node->type_legacy == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
+      if (node->type_legacy == CMP_NODE_R_LAYERS && !node->is_muted()) {
         Scene *sce = node->id ? (Scene *)node->id : scene;
         if (sce->camera == nullptr) {
           sce->camera = BKE_view_layer_camera_find(sce, BKE_view_layer_default_render(sce));
@@ -1742,7 +1742,7 @@ static bool node_tree_has_any_compositor_output(const bNodeTree *ntree)
     if (ELEM(node->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
       return true;
     }
-    if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+    if (node->is_group()) {
       if (node->id) {
         if (node_tree_has_any_compositor_output((const bNodeTree *)node->id)) {
           return true;

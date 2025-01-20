@@ -2,16 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <optional>
-
 #include "DNA_gpencil_legacy_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_paint.hh"
 
+#include "BLI_index_mask.hh"
+#include "BLI_math_color.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
+#include "BLI_virtual_array.hh"
 
 #include "grease_pencil_intern.hh"
 

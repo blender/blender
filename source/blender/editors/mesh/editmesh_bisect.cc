@@ -173,7 +173,9 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     G.moving = G_TRANSFORM_EDIT;
 
     /* Initialize modal callout. */
-    ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
+    WorkspaceStatus status(C);
+    status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+    status.item(IFACE_("Draw Cut Line"), ICON_MOUSE_LMB_DRAG);
   }
   return ret;
 }

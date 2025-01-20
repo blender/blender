@@ -97,31 +97,43 @@ float BM_face_calc_perimeter_with_mat3(const BMFace *f,
 /**
  * Compute the tangent of the face, using the longest edge.
  */
-void BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_from_edge(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_pair_from_edge(const BMFace *f,
+                                         float r_tangent_a[3],
+                                         float r_tangent_b[3]);
+
 /**
  * Compute the tangent of the face, using the two longest disconnected edges.
  *
  * \param r_tangent: Calculated unit length tangent (return value).
  */
-void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_from_edge_pair(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
 /**
  * Compute the tangent of the face, using the edge farthest away from any vertex in the face.
  *
  * \param r_tangent: Calculated unit length tangent (return value).
  */
-void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_from_edge_diagonal(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
 /**
  * Compute the tangent of the face, using longest distance between vertices on the face.
  *
  * \note The logic is almost identical to #BM_face_calc_tangent_edge_diagonal
  */
-void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_from_vert_diagonal(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
 /**
  * Compute a meaningful direction along the face (use for gizmo axis).
  *
  * \note Callers shouldn't depend on the *exact* method used here.
  */
 void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+
+/**
+ * A version of BM_face_calc_tangent_auto that calculates two tangents.
+ * Useful when one may not be usable.
+ */
+void BM_face_calc_tangent_pair_auto(const BMFace *f, float r_tangent_a[3], float r_tangent_b[3])
+    ATTR_NONNULL();
+
 /**
  * computes center of face in 3d.  uses center of bounding box.
  */
@@ -279,7 +291,10 @@ void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4]) ATTR_NONNULL();
  *
  * \param r_tangent: Calculated unit length tangent (return value).
  */
-void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3]);
+void BM_vert_tri_calc_tangent_from_edge(BMVert *verts[3], float r_tangent[3]);
+void BM_vert_tri_calc_tangent_pair_from_edge(BMVert *verts[3],
+                                             float r_tangent_a[3],
+                                             float r_tangent_b[3]);
 /**
  * Calculate a tangent from any 3 vertices,
  *

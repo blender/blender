@@ -67,6 +67,8 @@
 #include "BKE_ccg.hh"
 #include "bmesh.hh"
 
+#include "RNA_define.hh"
+
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh" /* own include */
 #include "sculpt_automask.hh"
@@ -1991,6 +1993,14 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
   paint_stroke_operator_properties(ot);
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna,
+      "override_location",
+      false,
+      "Override Location",
+      "Override the given `location` array by recalculating object space positions from the "
+      "provided `mouse_event` positions");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */

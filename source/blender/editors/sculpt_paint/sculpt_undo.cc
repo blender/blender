@@ -31,13 +31,10 @@
 
 #include <mutex>
 
-#include "MEM_guardedalloc.h"
-
 #include "CLG_log.h"
 
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
-#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string.h"

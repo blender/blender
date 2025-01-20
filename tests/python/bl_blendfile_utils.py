@@ -5,9 +5,14 @@
 import bpy
 import os
 import pprint
+import unittest
 
 
-class TestHelper:
+class TestHelper(unittest.TestCase):
+
+    def __init__(self, args):
+        super().__init__()
+        self.args = args
 
     @staticmethod
     def id_to_uid(id_data):
@@ -48,7 +53,7 @@ class TestBlendLibLinkHelper(TestHelper):
     def __init__(self, args):
         assert hasattr(args, "src_test_dir")
         assert hasattr(args, "output_dir")
-        self.args = args
+        super().__init__(args)
 
     @staticmethod
     def reset_blender():

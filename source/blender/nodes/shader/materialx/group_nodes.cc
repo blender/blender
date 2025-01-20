@@ -5,68 +5,49 @@
 #include "group_nodes.h"
 #include "node_parser.h"
 
-#include "BLI_vector.hh"
-
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#ifdef USE_MATERIALX_NODEGRAPH
+#  include "BLI_vector.hh"
+#endif
+
 namespace blender::nodes::materialx {
 
-GroupNodeParser::GroupNodeParser(MaterialX::GraphElement *graph,
-                                 const Depsgraph *depsgraph,
-                                 const Material *material,
+GroupNodeParser::GroupNodeParser(NodeGraph &graph,
                                  const bNode *node,
                                  const bNodeSocket *socket_out,
                                  NodeItem::Type to_type,
                                  GroupNodeParser *group_parser,
-                                 ExportParams export_params,
                                  bool use_group_default)
-    : NodeParser(
-          graph, depsgraph, material, node, socket_out, to_type, group_parser, export_params),
+    : NodeParser(graph, node, socket_out, to_type, group_parser),
       use_group_default_(use_group_default)
 {
 }
 
 NodeItem GroupNodeParser::compute()
 {
-  NodeItem res = empty();
-
   const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(node_->id);
   ngroup->ensure_topology_cache();
   const bNode *node_out = ngroup->group_output_node();
   if (!node_out) {
-    return res;
+    return empty();
   }
 
-  MaterialX::GraphElement *graph = graph_;
-#ifdef USE_MATERIALX_NODEGRAPH
-  std::string name = MaterialX::createValidName(ngroup->id.name);
-  MaterialX::NodeGraphPtr group_graph = graph_->getChildOfType<MaterialX::NodeGraph>(name);
-  if (!group_graph) {
-    CLOG_INFO(LOG_MATERIALX_SHADER, 1, "<nodegraph name=%s>", name.c_str());
-    group_graph = graph_->addChild<MaterialX::NodeGraph>(name);
-  }
-  graph = group_graph.get();
-#endif
+  NodeGraph group_graph(graph_, ngroup->id.name + 2);
 
-  NodeItem out = GroupOutputNodeParser(graph,
-                                       depsgraph_,
-                                       material_,
-                                       node_out,
-                                       socket_out_,
-                                       to_type_,
-                                       this,
-                                       export_params_,
-                                       use_group_default_)
+  NodeItem out = GroupOutputNodeParser(
+                     group_graph, node_out, socket_out_, to_type_, this, use_group_default_)
                      .compute_full();
 
 #ifdef USE_MATERIALX_NODEGRAPH
   /* We have to be in NodeParser's graph_, therefore copying output */
+  NodeItem res = empty();
   res.output = out.output;
-#else
-  res = out;
-#endif
   return res;
+#else
+  return out;
+#endif
 }
 
 NodeItem GroupNodeParser::compute_full()
@@ -82,7 +63,7 @@ NodeItem GroupOutputNodeParser::compute()
 {
 #ifdef USE_MATERIALX_NODEGRAPH
   Vector<NodeItem> values;
-  for (auto socket_in : node_->input_sockets()) {
+  for (const auto *socket_in : node_->input_sockets()) {
     NodeItem value = get_input_value(
         socket_in->index(), NodeItem::is_arithmetic(to_type_) ? NodeItem::Type::Any : to_type_);
     if (value.value) {
@@ -115,10 +96,8 @@ NodeItem GroupOutputNodeParser::compute_full()
             NodeItem::type(to_type_).c_str());
 
 #ifdef USE_MATERIALX_NODEGRAPH
-  NodeItem res = empty();
-
   /* Checking if output was already computed */
-  res.output = graph_->getOutput(out_name(socket_out_));
+  NodeItem res = graph_.get_output(out_name(socket_out_));
   if (res.output) {
     return res;
   }
@@ -165,10 +144,8 @@ NodeItem GroupInputNodeParser::compute_full()
             NodeItem::type(to_type_).c_str());
 
 #ifdef USE_MATERIALX_NODEGRAPH
-  NodeItem res = empty();
-
   /* Checking if input was already computed */
-  res.input = graph_->getInput(in_name());
+  NodeItem res = graph_.get_input(in_name());
   if (res.input) {
     return res;
   }

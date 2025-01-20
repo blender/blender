@@ -7,6 +7,8 @@
 
 #include "kernel/tables.h"
 
+#include "kernel/camera/camera.h"
+
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/curve.h"
 #include "kernel/geom/object.h"
@@ -1038,6 +1040,7 @@ ccl_device_inline bool set_attribute_matrix(const ccl_private Transform &tfm,
 }
 
 ccl_device_inline bool get_background_attribute(KernelGlobals kg,
+                                                ccl_private ShaderGlobals *sg,
                                                 ccl_private ShaderData *sd,
                                                 DeviceString name,
                                                 const TypeDesc type,
@@ -1048,6 +1051,32 @@ ccl_device_inline bool get_background_attribute(KernelGlobals kg,
     /* Ray Length */
     float f = sd->ray_length;
     return set_attribute_float(f, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_ndc) {
+    /* NDC coordinates with special exception for orthographic projection. */
+    float3 ndc[3];
+
+    if ((sg->raytype & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
+        kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+    {
+      ndc[0] = camera_world_to_ndc(kg, sd, sd->ray_P);
+
+      if (derivatives) {
+        ndc[1] = zero_float3();
+        ndc[2] = zero_float3();
+      }
+    }
+    else {
+      ndc[0] = camera_world_to_ndc(kg, sd, sd->P);
+
+      if (derivatives) {
+        const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+        ndc[1] = camera_world_to_ndc(kg, sd, sd->P + dP.dx) - ndc[0];
+        ndc[2] = camera_world_to_ndc(kg, sd, sd->P + dP.dy) - ndc[0];
+      }
+    }
+
+    return set_attribute_float3(ndc, type, derivatives, val);
   }
 
   return false;
@@ -1113,6 +1142,7 @@ ccl_device_inline bool get_object_attribute(KernelGlobals kg,
 }
 
 ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
+                                                     ccl_private ShaderGlobals *sg,
                                                      ccl_private ShaderData *sd,
                                                      DeviceString name,
                                                      const TypeDesc type,
@@ -1275,7 +1305,7 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
     }
   }
 
-  return get_background_attribute(kg, sd, name, type, derivatives, val);
+  return get_background_attribute(kg, sg, sd, name, type, derivatives, val);
 }
 
 ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
@@ -1304,7 +1334,7 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
     return get_object_attribute(kg, sd, desc, type, derivatives, res);
   }
   else {
-    return get_object_standard_attribute(kg, sd, name, type, derivatives, res);
+    return get_object_standard_attribute(kg, sg, sd, name, type, derivatives, res);
   }
 }
 

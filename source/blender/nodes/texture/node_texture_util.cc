@@ -120,7 +120,7 @@ void tex_output(bNode *node,
 {
   TexDelegate *dg;
 
-  if (node->flag & NODE_MUTED) {
+  if (node->is_muted()) {
     /* do not add a delegate if the node is muted */
     return;
   }

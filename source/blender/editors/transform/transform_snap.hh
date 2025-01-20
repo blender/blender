@@ -10,10 +10,6 @@
 
 #define SNAP_MIN_DISTANCE 30
 
-/* For enum. */
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-
 #include "transform.hh"
 
 bool peelObjectsTransform(TransInfo *t,

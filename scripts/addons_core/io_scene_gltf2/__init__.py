@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 4, 28),
+    "version": (4, 4, 33),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -295,6 +295,12 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         name='Disable Quantization',
         description='Disable quantization; produces much larger glTF files with no extensions',
         default=True,
+    )
+
+    export_gltfpack_kn: BoolProperty(
+        name='Keep Named Nodes',
+        description='Restrict some optimization to keep named nodes and meshes attached to named nodes so that named nodes can be transformed externally',
+        default=False,
     )
 
     # TODO: some stuff in Textures
@@ -1274,6 +1280,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             export_settings['gltf_gltfpack_vpi'] = self.export_gltfpack_vpi
 
             export_settings['gltf_gltfpack_noq'] = self.export_gltfpack_noq
+            export_settings['gltf_gltfpack_kn'] = self.export_gltfpack_kn
 
         export_settings['gltf_binary'] = bytearray()
         export_settings['gltf_binaryfilename'] = (
@@ -1767,7 +1774,7 @@ def export_panel_gltfpack(layout, operator):
         # col = body.column(heading = "Scene", align = True)
         col = body.column(heading="Miscellaneous", align=True)
         col.prop(operator, 'export_gltfpack_noq')
-
+        col.prop(operator, 'export_gltfpack_kn')
 
 def export_panel_user_extension(context, layout):
     for draw in exporter_extension_layout_draw.values():
@@ -1902,12 +1909,10 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        layout.prop(self, 'import_pack_images')
         layout.prop(self, 'merge_vertices')
         layout.prop(self, 'import_shading')
-        layout.prop(self, 'guess_original_bind_pose')
         layout.prop(self, 'export_import_convert_lighting_mode')
-        layout.prop(self, 'import_webp_texture')
+        import_texture_panel(layout, operator)
         import_bone_panel(layout, operator)
         import_ux_panel(layout, operator)
 
@@ -1999,10 +2004,11 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
 
 def import_bone_panel(layout, operator):
     header, body = layout.panel("GLTF_import_bone", default_closed=False)
-    header.label(text="Bones")
+    header.label(text="Bones & Skin")
     if body:
         body.prop(operator, 'bone_heuristic')
         if operator.bone_heuristic == 'BLENDER':
+            body.prop(operator, 'guess_original_bind_pose')
             body.prop(operator, 'disable_bone_shape')
             body.prop(operator, 'bone_shape_scale_factor')
 
@@ -2013,6 +2019,13 @@ def import_ux_panel(layout, operator):
     if body:
         body.prop(operator, 'import_select_created_objects')
         body.prop(operator, 'import_scene_extras')
+
+def import_texture_panel(layout, operator):
+    header, body = layout.panel("GLTF_import_texture", default_closed=False)
+    header.label(text="Texture")
+    if body:
+        body.prop(operator, 'import_pack_images')
+        body.prop(operator, 'import_webp_texture')
 
 
 def import_panel_user_extension(context, layout):

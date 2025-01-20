@@ -10,7 +10,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
-#include "BKE_curves_utils.hh"
+#include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.hh"
 

@@ -4,6 +4,7 @@
 
 #include "sculpt_flood_fill.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 
 #include "DNA_mesh_types.h"

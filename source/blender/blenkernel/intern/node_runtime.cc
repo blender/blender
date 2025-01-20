@@ -178,7 +178,7 @@ static void find_logical_origins_for_socket_recursive(
       /* Non available sockets are ignored. */
       continue;
     }
-    if (origin_node.type_legacy == NODE_REROUTE) {
+    if (origin_node.is_reroute()) {
       bNodeSocket &reroute_input = *origin_node.runtime->inputs[0];
       bNodeSocket &reroute_output = *origin_node.runtime->outputs[0];
       r_skipped_origins.append(&reroute_input);

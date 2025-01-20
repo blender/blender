@@ -31,8 +31,6 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "mesh_intern.hh" /* own include */
 
 using blender::Vector;

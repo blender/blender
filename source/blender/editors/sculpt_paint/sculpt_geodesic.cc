@@ -9,30 +9,14 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
+#include "BLI_bit_vector.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
 
-#include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 
-#include "BKE_ccg.hh"
-#include "BKE_context.hh"
-#include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-#include "BKE_object.hh"
-#include "BKE_paint.hh"
-#include "BKE_paint_bvh.hh"
-
-#include "paint_intern.hh"
 #include "sculpt_geodesic.hh"
-#include "sculpt_intern.hh"
-
-#include "bmesh.hh"
 
 #define SCULPT_GEODESIC_VERTEX_NONE -1
 

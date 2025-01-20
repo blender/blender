@@ -12,6 +12,7 @@
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
+#include "BLI_virtual_array.hh"
 
 #include "BKE_subdiv_ccg.hh"
 
@@ -45,6 +46,9 @@ struct SculptSession;
 struct SubdivCCG;
 struct SubdivCCGCoord;
 namespace blender {
+namespace bke {
+class AttributeAccessor;
+}
 namespace bke::pbvh {
 class Node;
 class Tree;
@@ -164,13 +168,7 @@ struct MeshAttributeData {
   VArraySpan<bool> hide_poly;
   VArraySpan<int> face_sets;
 
-  explicit MeshAttributeData(const bke::AttributeAccessor &attributes)
-  {
-    this->mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
-    this->hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
-    this->hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-    this->face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
-  }
+  explicit MeshAttributeData(const Mesh &mesh);
 };
 
 void calc_factors_common_mesh(const Depsgraph &depsgraph,

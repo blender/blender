@@ -5,10 +5,12 @@
 /** \file
  * \ingroup gpu
  */
-#include "vk_context.hh"
-#include "vk_debug.hh"
+
+#include "GPU_debug.hh"
 
 #include "vk_backend.hh"
+#include "vk_context.hh"
+#include "vk_debug.hh"
 #include "vk_framebuffer.hh"
 #include "vk_immediate.hh"
 #include "vk_shader.hh"
@@ -70,7 +72,10 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
       resource_pool.discard_pool.move_data(device.orphaned_data);
     }
 
-    const bool reset_framebuffer = swap_chain_format_ != swap_chain_data.format ||
+    const bool reset_framebuffer = swap_chain_format_.format !=
+                                       swap_chain_data.surface_format.format ||
+                                   swap_chain_format_.colorSpace !=
+                                       swap_chain_data.surface_format.colorSpace ||
                                    vk_extent_.width != swap_chain_data.extent.width ||
                                    vk_extent_.height != swap_chain_data.extent.height;
     if (reset_framebuffer) {
@@ -81,13 +86,14 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
         GPU_texture_free(surface_texture_);
         surface_texture_ = nullptr;
       }
-      surface_texture_ = GPU_texture_create_2d("back-left",
-                                               swap_chain_data.extent.width,
-                                               swap_chain_data.extent.height,
-                                               1,
-                                               to_gpu_format(swap_chain_data.format),
-                                               GPU_TEXTURE_USAGE_ATTACHMENT,
-                                               nullptr);
+      surface_texture_ = GPU_texture_create_2d(
+          "back-left",
+          swap_chain_data.extent.width,
+          swap_chain_data.extent.height,
+          1,
+          to_gpu_format(swap_chain_data.surface_format.format),
+          GPU_TEXTURE_USAGE_ATTACHMENT,
+          nullptr);
 
       back_left->attachment_set(GPU_FB_COLOR_ATTACHMENT0,
                                 GPU_ATTACHMENT_TEXTURE(surface_texture_));
@@ -96,7 +102,7 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
 
       back_left->bind(false);
 
-      swap_chain_format_ = swap_chain_data.format;
+      swap_chain_format_ = swap_chain_data.surface_format;
       vk_extent_ = swap_chain_data.extent;
     }
   }
@@ -317,6 +323,8 @@ void VKContext::swap_buffers_post_callback()
 
 void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
+  GPU_debug_group_begin("BackBuffer.Blit");
+
   VKFrameBuffer &framebuffer = *unwrap(back_left);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
 
@@ -345,17 +353,13 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
    * chain image as device resources. When we move towards GPU swap chain synchronization we need
    * to keep track of the swap chain image between frames. */
   VKDevice &device = VKBackend::get().device;
-  device.resources.add_image(swap_chain_data.image,
-                             1,
-                             VK_IMAGE_LAYOUT_UNDEFINED,
-                             render_graph::ResourceOwner::SWAP_CHAIN,
-                             "SwapchainImage");
+  device.resources.add_image(swap_chain_data.image, 1, "SwapchainImage");
 
   framebuffer.rendering_end(*this);
   render_graph.add_node(blit_image);
+  GPU_debug_group_end();
   descriptor_set_get().upload_descriptor_sets();
   render_graph.submit_for_present(swap_chain_data.image);
-
   device.resources.remove_image(swap_chain_data.image);
 #if 0
   device.debug_print();

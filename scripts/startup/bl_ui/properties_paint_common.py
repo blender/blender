@@ -7,6 +7,7 @@ from bpy.types import Menu, Panel
 from bpy.app.translations import (
     contexts as i18n_contexts,
     pgettext_iface as iface_,
+    pgettext_n as n_,
 )
 
 
@@ -310,9 +311,9 @@ class BrushPanel(UnifiedPaintPanel):
 class BrushSelectPanel(BrushPanel):
     bl_label = "Brush Asset"
 
-    # Use header preset function to right align the layout.
+    # Use header preset function to set the title.
     def draw_header_preset(self, context):
-        layout = self.layout
+        # layout = self.layout  # UNUSED.
 
         settings = self.paint_settings(context)
         if settings is None:
@@ -323,8 +324,9 @@ class BrushSelectPanel(BrushPanel):
             return
 
         if brush.has_unsaved_changes:
-            layout.label(text="*Unsaved Changes")
-            layout.separator()
+            self.bl_label = n_("Brush Asset (Unsaved)")
+        else:
+            self.bl_label = n_("Brush Asset")
 
     def draw(self, context):
         layout = self.layout

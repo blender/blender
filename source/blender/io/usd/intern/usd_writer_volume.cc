@@ -121,17 +121,7 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
     usd_volume.CreateFieldRelationship(pxr::TfToken(grid_id), grid_path);
   }
 
-  if (const std::optional<Bounds<float3>> bounds = BKE_volume_min_max(volume)) {
-    pxr::VtArray<pxr::GfVec3f> volume_extent = {pxr::GfVec3f(&bounds->min.x),
-                                                pxr::GfVec3f(&bounds->max.x)};
-
-    pxr::UsdAttribute attr_extent = usd_volume.CreateExtentAttr(pxr::VtValue(), true);
-    if (!attr_extent.HasValue()) {
-      attr_extent.Set(volume_extent, pxr::UsdTimeCode::Default());
-    }
-
-    usd_value_writer_.SetAttribute(attr_extent, volume_extent, timecode);
-  }
+  this->author_extent(usd_volume, BKE_volume_min_max(volume), timecode);
 
   BKE_volume_unload(volume);
 }

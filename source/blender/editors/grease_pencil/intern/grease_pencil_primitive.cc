@@ -586,51 +586,17 @@ static void grease_pencil_primitive_status_indicators(bContext *C,
                                                       wmOperator *op,
                                                       PrimitiveToolOperation &ptd)
 {
-  std::string header;
-
-  switch (ptd.type) {
-    case PrimitiveType::Line: {
-      header += RPT_("Line: ");
-      break;
-    }
-    case (PrimitiveType::Polyline): {
-      header += RPT_("Polyline: ");
-      break;
-    }
-    case (PrimitiveType::Box): {
-      header += RPT_("Rectangle: ");
-      break;
-    }
-    case (PrimitiveType::Circle): {
-      header += RPT_("Circle: ");
-      break;
-    }
-    case (PrimitiveType::Arc): {
-      header += RPT_("Arc: ");
-      break;
-    }
-    case (PrimitiveType::Curve): {
-      header += RPT_("Curve: ");
-      break;
-    }
-  }
-
-  auto get_modal_key_str = [&](ModalKeyMode id) {
-    return WM_modalkeymap_operator_items_to_string(op->type, int(id), true).value_or("");
-  };
-
-  header += fmt::format(fmt::runtime(IFACE_("{}: confirm, {}: cancel, {}: panning, Shift: align")),
-                        get_modal_key_str(ModalKeyMode::Confirm),
-                        get_modal_key_str(ModalKeyMode::Cancel),
-                        get_modal_key_str(ModalKeyMode::Panning));
-
-  header += fmt::format(fmt::runtime(IFACE_(", {}/{}: adjust subdivisions: {}")),
-                        get_modal_key_str(ModalKeyMode::IncreaseSubdivision),
-                        get_modal_key_str(ModalKeyMode::DecreaseSubdivision),
-                        int(ptd.subdivision));
+  WorkspaceStatus status(C);
+  status.opmodal(IFACE_("Confirm"), op->type, int(ModalKeyMode::Confirm));
+  status.opmodal(IFACE_("Cancel"), op->type, int(ModalKeyMode::Cancel));
+  status.opmodal(IFACE_("Panning"), op->type, int(ModalKeyMode::Panning));
+  status.item(IFACE_("Align"), ICON_EVENT_SHIFT);
+  status.opmodal("", op->type, int(ModalKeyMode::IncreaseSubdivision));
+  status.opmodal("", op->type, int(ModalKeyMode::DecreaseSubdivision));
+  status.item(fmt::format("{} ({})", IFACE_("subdivisions"), int(ptd.subdivision)), ICON_NONE);
 
   if (ptd.segments == 1) {
-    header += IFACE_(", Alt: center");
+    status.item(IFACE_("Center"), ICON_EVENT_ALT);
   }
 
   if (ELEM(ptd.type,
@@ -639,16 +605,12 @@ static void grease_pencil_primitive_status_indicators(bContext *C,
            PrimitiveType::Arc,
            PrimitiveType::Curve))
   {
-    header += fmt::format(fmt::runtime(IFACE_(", {}: extrude")),
-                          get_modal_key_str(ModalKeyMode::Extrude));
+    status.opmodal(IFACE_("Extrude"), op->type, int(ModalKeyMode::Extrude));
   }
 
-  header += fmt::format(fmt::runtime(IFACE_(", {}: grab, {}: rotate, {}: scale")),
-                        get_modal_key_str(ModalKeyMode::Grab),
-                        get_modal_key_str(ModalKeyMode::Rotate),
-                        get_modal_key_str(ModalKeyMode::Scale));
-
-  ED_workspace_status_text(C, header.c_str());
+  status.opmodal(IFACE_("Grab"), op->type, int(ModalKeyMode::Grab));
+  status.opmodal(IFACE_("Rotate"), op->type, int(ModalKeyMode::Rotate));
+  status.opmodal(IFACE_("Scale"), op->type, int(ModalKeyMode::Scale));
 }
 
 static void grease_pencil_primitive_update_view(bContext *C, PrimitiveToolOperation &ptd)

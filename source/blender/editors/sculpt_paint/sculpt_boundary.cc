@@ -11,12 +11,12 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.hh"
 #include "BKE_colortools.hh"

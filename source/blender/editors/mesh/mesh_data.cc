@@ -10,10 +10,8 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
