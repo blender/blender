@@ -49,7 +49,7 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
     return 0;
   }
 
-  if (kmi->val == KM_RELEASE) {
+  if ((kmi->val == KM_RELEASE) && ISKEYBOARD(kmi->type)) {
     /* Assume release events just disable something which was toggled on. */
     return 1;
   }
