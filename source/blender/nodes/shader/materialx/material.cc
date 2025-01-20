@@ -34,7 +34,6 @@ class DefaultMaterialNodeParser : public NodeParser {
 
     NodeItem res = create_node(
         "surfacematerial", NodeItem::Type::Material, {{"surfaceshader", surface}});
-    res.node->setName("Material_Default");
     return res;
   }
 
@@ -45,14 +44,12 @@ class DefaultMaterialNodeParser : public NodeParser {
                                    {{"base_color", val(MaterialX::Color3(1.0f, 0.0f, 1.0f))}});
     NodeItem res = create_node(
         "surfacematerial", NodeItem::Type::Material, {{"surfaceshader", surface}});
-    res.node->setName("Material_Error");
     return res;
   }
 };
 
 MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                                            Material *material,
-                                           const std::string &material_name,
                                            const ExportParams &export_params)
 {
   CLOG_INFO(LOG_MATERIALX_SHADER, 0, "Material: %s", material->id.name);
@@ -82,9 +79,8 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                       .compute();
   }
 
-  if (output_item.node) {
-    output_item.node->setName(material_name);
-  }
+  /* This node is expected to have a specific name to link up to USD. */
+  graph.set_output_node_name(output_item);
 
   CLOG_INFO(LOG_MATERIALX_SHADER,
             1,

@@ -50,7 +50,6 @@ class NodeItem {
   };
   enum class CompareOp { Less = 0, LessEq, Eq, GreaterEq, Greater, NotEq };
 
- public:
   MaterialX::ValuePtr value;
   MaterialX::NodePtr node;
   MaterialX::InputPtr input;

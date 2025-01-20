@@ -42,7 +42,7 @@ class NodeParser {
   virtual NodeItem compute_full();
 
  protected:
-  std::string node_name(bool with_out_socket = true) const;
+  std::string node_name(const char *override_output_name = nullptr) const;
   NodeItem create_node(const std::string &category, NodeItem::Type type);
   NodeItem create_node(const std::string &category,
                        NodeItem::Type type,

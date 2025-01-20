@@ -178,7 +178,7 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   /* Getting node name for Color output. This name will be used for <image> node. */
-  std::string image_node_name = node_name(false) + "_Color";
+  std::string image_node_name = node_name("Color");
 
   NodeItem res = graph_.get_node(image_node_name);
   if (!res.node) {

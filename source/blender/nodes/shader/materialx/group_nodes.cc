@@ -34,7 +34,7 @@ NodeItem GroupNodeParser::compute()
     return empty();
   }
 
-  NodeGraph group_graph(graph_, MaterialX::createValidName(ngroup->id.name));
+  NodeGraph group_graph(graph_, ngroup->id.name + 2);
 
   NodeItem out = GroupOutputNodeParser(
                      group_graph, node_out, socket_out_, to_type_, this, use_group_default_)

@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifdef WITH_USD
-#  include <pxr/base/tf/stringUtils.h>
-#endif
-
 #include "node_parser.h"
 
 #include "group_nodes.h"
@@ -40,7 +36,8 @@ NodeItem NodeParser::compute_full()
   }
 
   /* Checking if node was already computed */
-  res = graph_.get_node(node_name());
+  const std::string res_node_name = node_name();
+  res = graph_.get_node(res_node_name);
   if (!res.node) {
     CLOG_INFO(LOG_MATERIALX_SHADER,
               1,
@@ -51,51 +48,22 @@ NodeItem NodeParser::compute_full()
 
     res = compute();
     if (res.node) {
-      res.node->setName(node_name());
+      res.node->setName(res_node_name);
     }
   }
   return res.convert(to_type_);
 }
 
-std::string NodeParser::node_name(bool with_out_socket) const
+std::string NodeParser::node_name(const char *override_output_name) const
 {
-  auto valid_name = [](const std::string &name) {
-#ifdef WITH_USD
-    /* Node name should suite to MatX and USD valid names.
-     * It shouldn't start from '_', due to error occurred in Storm delegate. */
-    std::string res = MaterialX::createValidName(pxr::TfMakeValidIdentifier(name));
-#else
-    std::string res = MaterialX::createValidName(name);
-#endif
-    if (res[0] == '_') {
-      res = "node" + res;
-    }
-    return res;
-  };
-
-  std::string name = node_->name;
-  if (with_out_socket) {
-    if (node_->output_sockets().size() > 1) {
-      name += std::string("_") + socket_out_->name;
-    }
-    if (ELEM(to_type_, NodeItem::Type::BSDF, NodeItem::Type::EDF, NodeItem::Type::SurfaceOpacity))
-    {
-      name += "_" + NodeItem::type(to_type_);
-    }
-  }
-#ifdef USE_MATERIALX_NODEGRAPH
-  return valid_name(name);
-#else
-
-  std::string prefix;
-  GroupNodeParser *gr = group_parser_;
-  while (gr) {
-    const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(gr->node_->id);
-    prefix = valid_name(ngroup->id.name) + "_" + prefix;
-    gr = gr->group_parser_;
-  }
-  return prefix + valid_name(name);
-#endif
+  const NodeItem::Type to_type =
+      ELEM(to_type_, NodeItem::Type::BSDF, NodeItem::Type::EDF, NodeItem::Type::SurfaceOpacity) ?
+          to_type_ :
+          NodeItem::Type::Empty;
+  const StringRef socket_out_name = (override_output_name) ? override_output_name :
+                                    (socket_out_)          ? socket_out_->name :
+                                                             "";
+  return graph_.unique_node_name(node_, socket_out_name, to_type);
 }
 
 NodeItem NodeParser::create_node(const std::string &category, NodeItem::Type type)
