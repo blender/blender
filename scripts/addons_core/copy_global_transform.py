@@ -66,7 +66,14 @@ class AutoKeying:
 
     @classmethod
     @contextlib.contextmanager
-    def options(cls, *, keytype="", use_loc=True, use_rot=True, use_scale=True, force_autokey=False) -> Iterator[None]:
+    def options(
+            cls,
+            *,
+            keytype: str = "",
+            use_loc: bool = True,
+            use_rot: bool = True,
+            use_scale: bool = True,
+            force_autokey: bool = False) -> Iterator[None]:
         """Context manager to set various options."""
         default_keytype = cls._keytype
         default_use_loc = cls._use_loc
@@ -325,6 +332,11 @@ class OBJECT_OT_copy_relative_transform(Operator):
 
     def execute(self, context: Context) -> set[str]:
         rel_ob = _get_relative_ob(context)
+        if not rel_ob:
+            self.report(
+                {'ERROR'},
+                "No 'Relative To' object found, set one explicitly or make sure there is an active object")
+            return {'CANCELLED'}
         mat = rel_ob.matrix_world.inverted() @ get_matrix(context)
         _copy_matrix_to_clipboard(context.window_manager, mat)
         return {'FINISHED'}
@@ -631,7 +643,12 @@ class Transformable(metaclass=abc.ABCMeta):
         self._key_info_cache = keyinfo
         return keyinfo
 
-    def remove_keys_of_type(self, key_type: str, *, frame_start=float("-inf"), frame_end=float("inf")) -> None:
+    def remove_keys_of_type(
+            self,
+            key_type: str,
+            *,
+            frame_start: float | int = float("-inf"),
+            frame_end: float | int = float("inf")) -> None:
         self._key_info_cache = None
 
         for fcurve in self._my_fcurves():
