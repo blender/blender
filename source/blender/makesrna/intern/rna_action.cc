@@ -1364,7 +1364,7 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
      * be able to resolve an idroot for automatically, so let these through
      */
     if (action.idroot == 0) {
-      return 1;
+      return true;
     }
     else if (srcId) {
       return GS(srcId->name) == action.idroot;

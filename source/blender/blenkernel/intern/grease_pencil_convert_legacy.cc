@@ -536,7 +536,7 @@ class AnimDataConvertor {
         this->animdata_dst = BKE_animdata_ensure_id(&this->id_dst);
       }
       auto actions_idroot_ensure = [&](bAction &action) -> bool {
-        action.idroot = GS(this->id_dst.name);
+        BKE_animdata_action_ensure_idroot(&this->id_dst, &action);
         return true;
       };
       this->animdata_action_foreach(*this->animdata_dst, actions_idroot_ensure);

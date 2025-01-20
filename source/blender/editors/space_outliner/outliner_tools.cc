@@ -84,6 +84,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "ANIM_action_legacy.hh"
+
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
 
@@ -3200,7 +3202,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No valid action to add");
     return OPERATOR_CANCELLED;
   }
-  if (act->idroot == 0) {
+  if (act->idroot == 0 && blender::animrig::legacy::action_treat_as_legacy(*act)) {
     /* Hopefully in this case (i.e. library of userless actions),
      * the user knows what they're doing. */
     BKE_reportf(op->reports,
