@@ -311,9 +311,9 @@ class BrushPanel(UnifiedPaintPanel):
 class BrushSelectPanel(BrushPanel):
     bl_label = "Brush Asset"
 
-    # Use header preset function to right align the layout.
+    # Use header preset function to set the title.
     def draw_header_preset(self, context):
-        layout = self.layout
+        # layout = self.layout  # UNUSED.
 
         settings = self.paint_settings(context)
         if settings is None:
