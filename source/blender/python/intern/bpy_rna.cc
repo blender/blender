@@ -8642,6 +8642,7 @@ PyObject *BPY_rna_types()
         &pyrna_prop_Type,
         &pyrna_prop_array_Type,
         &pyrna_prop_collection_Type,
+        &pyrna_prop_collection_idprop_Type,
         &pyrna_func_Type,
     };
 
