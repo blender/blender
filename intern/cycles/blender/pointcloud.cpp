@@ -207,6 +207,8 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
                     need_motion,
                     motion_scale);
 
+  pointcloud->clear_non_sockets();
+
   /* Update original sockets. */
   for (const SocketType &socket : new_pointcloud.type->inputs) {
     /* Those sockets are updated in sync_object, so do not modify them. */
