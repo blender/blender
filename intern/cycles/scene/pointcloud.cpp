@@ -115,6 +115,11 @@ void PointCloud::reserve(int numpoints)
   attributes.resize(true);
 }
 
+void PointCloud::clear_non_sockets()
+{
+  Geometry::clear(true);
+}
+
 void PointCloud::clear(const bool preserve_shaders)
 {
   Geometry::clear(preserve_shaders);
