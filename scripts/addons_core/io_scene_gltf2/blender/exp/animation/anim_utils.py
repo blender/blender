@@ -75,7 +75,7 @@ def reset_sk_data(blender_object, datas, export_settings) -> None:
             return
     else:
         # For actions
-        if len([i for i in datas.values() if len([s for s in i.slots if s.id_root == "KEY"]) != 0]) <= 1:
+        if len([i for i in datas.values() if len([s for s in i.slots if s.target_id_type == "KEY"]) != 0]) <= 1:
             return
 
     if blender_object.type != "MESH":

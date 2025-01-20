@@ -44,20 +44,20 @@ class BlenderPointerAnim():
 
         import_user_extensions('gather_import_animation_pointer_channel_before_hook', gltf, animation, channel)
 
-        # For some asset_type, we need to check what is the real id_root
+        # For some asset_type, we need to check what is the real ID type.
         if asset_type == "MATERIAL":
             if len(pointer_tab) == 4 and pointer_tab[1] == "materials" and \
                     pointer_tab[3] == "alphaCutoff":
-                id_root = "MATERIAL"
+                target_id_type = "MATERIAL"
             else:
-                id_root = "NODETREE"
+                target_id_type = "NODETREE"
         elif asset_type == "MATERIAL_PBR":
-            id_root = "NODETREE"
+            target_id_type = "NODETREE"
         else:
-            id_root = asset_type
+            target_id_type = asset_type
 
         action, slot = BlenderPointerAnim.get_or_create_action_and_slot(
-            gltf, anim_idx, asset, asset_idx, id_root, name_=name)
+            gltf, anim_idx, asset, asset_idx, target_id_type, name_=name)
 
         keys = BinaryData.get_data_from_accessor(gltf, animation.samplers[channel.sampler].input)
         values = BinaryData.get_data_from_accessor(gltf, animation.samplers[channel.sampler].output)
@@ -720,27 +720,27 @@ class BlenderPointerAnim():
         if asset_type == "CAMERA":
             name = asset.name
             stash = asset.blender_object_data
-            id_root = "CAMERA"
+            target_id_type = "CAMERA"
         elif asset_type == "LIGHT":
             name = asset['name']
             stash = asset['blender_object_data']
-            id_root = "LIGHT"
+            target_id_type = "LIGHT"
         elif asset_type == "MATERIAL":
             name = asset.name
             stash = asset.blender_mat
-            id_root = "MATERIAL"
+            target_id_type = "MATERIAL"
         elif asset_type == "NODETREE":
             name = name_ if name_ is not None else asset.name
             stash = asset.blender_nodetree
-            id_root = "NODETREE"
+            target_id_type = "NODETREE"
         elif asset_type == "TEX_TRANSFORM":
             name = name_ if name_ is not None else asset.name
             stash = asset['blender_nodetree']
-            id_root = "NODETREE"
+            target_id_type = "NODETREE"
         elif asset_type == "EXT":
             name = name_ if name_ is not None else asset.name
             stash = asset['blender_nodetree']
-            id_root = "NODETREE"
+            target_id_type = "NODETREE"
 
         objects = gltf.action_cache.get(anim_idx)
         if not objects:
@@ -768,10 +768,10 @@ class BlenderPointerAnim():
             action.layers[0].strips[0].channelbags.new(slot)
 
             gltf.action_cache[anim_idx]['object_slots'][name] = {}
-            gltf.action_cache[anim_idx]['object_slots'][name][slot.id_root] = (action, slot)
+            gltf.action_cache[anim_idx]['object_slots'][name][slot.target_id_type] = (action, slot)
         else:
-            # We have slots, check if we have the right slot (based on id_root)
-            ac_sl = slots.get(id_root)
+            # We have slots, check if we have the right slot (based on target_id_type)
+            ac_sl = slots.get(target_id_type)
             if not ac_sl:
                 action = gltf.action_cache[anim_idx]['action']
                 slot = action.slots.new(stash.id_type, "Slot")
@@ -779,7 +779,7 @@ class BlenderPointerAnim():
 
                 action.layers[0].strips[0].channelbags.new(slot)
 
-                gltf.action_cache[anim_idx]['object_slots'][name][slot.id_root] = (action, slot)
+                gltf.action_cache[anim_idx]['object_slots'][name][slot.target_id_type] = (action, slot)
             else:
                 action, slot = ac_sl
 

@@ -34,7 +34,7 @@ class ActionsData:
             self.actions[id(action.action)] = action
         else:
             for slot in action.slots:
-                self.actions[id(action.action)].add_slot(slot.slot, slot.id_root, slot.track)
+                self.actions[id(action.action)].add_slot(slot.slot, slot.target_id_type, slot.track)
 
     def get(self):
         # sort animations alphabetically (case insensitive) so they have a defined order and match Blender's Action list
@@ -70,28 +70,28 @@ class ActionData:
         self.action = action
         self.slots = []
 
-    def add_slot(self, slot, id_root, track):
+    def add_slot(self, slot, target_id_type, track):
         # If slot already exists with None track (so active action/slot) => Replace it with the track (NLA)
         f = [s for s in self.slots if s.slot.handle == slot.handle and s.track is None]
         if len(f) > 0:
             self.slots.remove(f[0])
-        new_slot = SlotData(slot, id_root, track)
+        new_slot = SlotData(slot, target_id_type, track)
         self.slots.append(new_slot)
 
     def sort(self):
         # Implement sorting, to be sure to get:
         # TRS first, and then SK
         sort_items = {'OBJECT': 1, 'KEY': 2}
-        self.slots.sort(key=lambda x: sort_items.get(x.id_root))
+        self.slots.sort(key=lambda x: sort_items.get(x.target_id_type))
 
     def has_slots(self):
         return len(self.slots) > 0
 
 
 class SlotData:
-    def __init__(self, slot, id_root, track):
+    def __init__(self, slot, target_id_type, track):
         self.slot = slot
-        self.id_root = id_root
+        self.target_id_type = target_id_type
         self.track = track
 
 
@@ -188,7 +188,7 @@ def prepare_actions_range(export_settings):
         for action_data in blender_actions.values():
             blender_action = action_data.action
             for slot in action_data.slots:
-                type_ = slot.id_root
+                type_ = slot.target_id_type
                 track = slot.track
 
                 # Frame range is set on action level, not on slot level
@@ -445,7 +445,7 @@ def gather_action_animations(obj_uuid: int,
         for slot in action_data.slots:
             blender_action = action_data.action
             track_name = slot.track
-            on_type = slot.id_root
+            on_type = slot.target_id_type
 
             # Set action as active, to be able to bake if needed
             if on_type == "OBJECT":  # Not for shapekeys!
@@ -605,7 +605,7 @@ def gather_action_animations(obj_uuid: int,
                     all_channels)
 
             # If we are in a SK animation (without any TRS animation), and we need to bake
-            if len([a for a in blender_actions.values() if len([s for s in a.slots if s.id_root == "OBJECT"]) != 0]) == 0 and slot.id_root == "KEY":
+            if len([a for a in blender_actions.values() if len([s for s in a.slots if s.target_id_type == "OBJECT"]) != 0]) == 0 and slot.target_id_type == "KEY":
                 if export_settings['gltf_bake_animation'] is True and export_settings['gltf_force_sampling'] is True:
                     # We also have to check if this is a skinned mesh, because we don't have to force animation baking on this case
                     # (skinned meshes TRS must be ignored, says glTF specification)
@@ -618,7 +618,7 @@ def gather_action_animations(obj_uuid: int,
                         if channels is not None:
                             all_channels.extend(channels)
 
-            if len([a for a in blender_actions.values() if len([s for s in a.slots if s.id_root == "KEY"]) != 0]) == 0 \
+            if len([a for a in blender_actions.values() if len([s for s in a.slots if s.target_id_type == "KEY"]) != 0]) == 0 \
                     and export_settings['gltf_morph_anim'] \
                     and blender_object.type == "MESH" \
                     and blender_object.data is not None \
@@ -759,7 +759,7 @@ def __get_blender_actions(obj_uuid: str,
             else:
                 # Store Action info
                 new_action = ActionData(blender_object.animation_data.action)
-                new_action.add_slot(blender_object.animation_data.action_slot, blender_object.animation_data.action_slot.id_root, None)  # Active action => No track
+                new_action.add_slot(blender_object.animation_data.action_slot, blender_object.animation_data.action_slot.target_id_type, None)  # Active action => No track
                 actions.add_action(new_action)
 
         # Collect associated strips from NLA tracks.
@@ -785,7 +785,7 @@ def __get_blender_actions(obj_uuid: str,
 
                     # Store Action info
                     new_action = ActionData(strip.action)
-                    new_action.add_slot(strip.action_slot, strip.action_slot.id_root, track.name)
+                    new_action.add_slot(strip.action_slot, strip.action_slot.target_id_type, track.name)
                     actions.add_action(new_action)
 
     # For caching, actions linked to SK must be after actions about TRS
@@ -803,7 +803,7 @@ def __get_blender_actions(obj_uuid: str,
             else:
                 # Store Action info
                 new_action = ActionData(blender_object.data.shape_keys.animation_data.action)
-                new_action.add_slot(blender_object.data.shape_keys.animation_data.action_slot, blender_object.data.shape_keys.animation_data.action_slot.id_root, None)
+                new_action.add_slot(blender_object.data.shape_keys.animation_data.action_slot, blender_object.data.shape_keys.animation_data.action_slot.target_id_type, None)
                 actions.add_action(new_action)
 
         if export_settings['gltf_animation_mode'] == "ACTIONS":
@@ -821,7 +821,7 @@ def __get_blender_actions(obj_uuid: str,
 
                     # Store Action info
                     new_action = ActionData(strip.action)
-                    new_action.add_slot(strip.action_slot, strip.action_slot.id_root, track.name)
+                    new_action.add_slot(strip.action_slot, strip.action_slot.target_id_type, track.name)
                     actions.add_action(new_action)
 
     # If there are only 1 armature, include all animations, even if not in NLA
@@ -832,7 +832,7 @@ def __get_blender_actions(obj_uuid: str,
             if len(export_settings['vtree'].get_all_node_of_type(VExportNode.ARMATURE)) == 1:
                 # Keep all actions on objects (no Shapekey animation)
                 for act in bpy.data.actions:
-                    for slot in [s for s in act.slots if s.id_root == "OBJECT"]:
+                    for slot in [s for s in act.slots if s.target_id_type == "OBJECT"]:
                         # We need to check this is an armature action
                         # Checking that at least 1 bone is animated
                         if not __is_armature_slot(act, slot):
@@ -847,7 +847,7 @@ def __get_blender_actions(obj_uuid: str,
                             continue  # We ignore this action
 
                         new_action = ActionData(act)
-                        new_action.add_slot(slot, slot.id_root, None)
+                        new_action.add_slot(slot, slot.target_id_type, None)
                         actions.add_action(new_action)
 
     export_user_extensions('gather_actions_hook', export_settings, blender_object, actions)
@@ -897,18 +897,18 @@ def __get_blender_actions_broadcast(obj_uuid, export_settings):
 
         for slot in blender_action.slots:
 
-            if slot.id_root == "OBJECT":
+            if slot.target_id_type == "OBJECT":
 
                 # Do not export actions on objects without animation data
                 if blender_object.animation_data is None:
                     continue
 
                 if blender_object and blender_object.type == "ARMATURE" and __is_armature_slot(blender_action, slot):
-                    new_action.add_slot(slot, slot.id_root, None)
+                    new_action.add_slot(slot, slot.target_id_type, None)
                 elif blender_object and blender_object.type == "MESH" and not __is_armature_slot(blender_action, slot):
-                    new_action.add_slot(slot, slot.id_root, None)
+                    new_action.add_slot(slot, slot.target_id_type, None)
 
-            elif slot.id_root == "KEY":
+            elif slot.target_id_type == "KEY":
                 if blender_object.type != "MESH" or blender_object.data is None or blender_object.data.shape_keys is None or blender_object.data.shape_keys.animation_data is None:
                     continue
                 # Checking that the object has some SK and some animation on it
@@ -916,7 +916,7 @@ def __get_blender_actions_broadcast(obj_uuid, export_settings):
                     continue
                 if blender_object.type != "MESH":
                     continue
-                new_action.add_slot(slot, slot.id_root, None)
+                new_action.add_slot(slot, slot.target_id_type, None)
 
             else:
                 pass  # TODOSLOT slot-3

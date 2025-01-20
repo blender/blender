@@ -696,8 +696,8 @@ class DOPESHEET_PT_action_slot(Panel):
 
         # Draw the ID type of the slot.
         try:
-            enum_items = slot.bl_rna.properties['id_root'].enum_items
-            idtype_label = enum_items[slot.id_root].name
+            enum_items = slot.bl_rna.properties['target_id_type'].enum_items
+            idtype_label = enum_items[slot.target_id_type].name
         except (KeyError, IndexError, AttributeError) as ex:
             idtype_label = str(ex)
 
@@ -706,7 +706,7 @@ class DOPESHEET_PT_action_slot(Panel):
         split.label(text="Type")
         split.alignment = 'LEFT'
 
-        split.label(text=idtype_label, icon_value=slot.id_root_icon)
+        split.label(text=idtype_label, icon_value=slot.target_id_type_icon)
 
 
 #######################################
