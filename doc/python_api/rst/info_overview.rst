@@ -213,6 +213,19 @@ otherwise Blender's internal initialization won't happen properly:
 
 .. note::
 
+   In case you are using complex/multi-inheritance, `super()` may not work. It is best then to
+   explicitly invoke the Blender-defined parent class constructor. For example:
+
+   .. code-block:: python
+
+      import bpy
+      class FancyRaytracer(AwesomeRaytracer, bpy.types.RenderEngine):
+         def __init__(self, *args, **kwargs):
+            bpy.types.RenderEngine.__init__(self, *args, **kwargs)
+            ...
+
+.. note::
+
    Defining a custom ``__new__()`` function is strongly discouraged, not tested, and not considered
    as supported currently.
    Doing so presents a very high risk of crashes or otherwise corruption of Blender internal data.
