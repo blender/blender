@@ -85,7 +85,7 @@ def rna2xml(
         bpy.types.ActionGroup,
         bpy.types.PoseBone,
         bpy.types.Node,
-        bpy.types.Sequence,
+        bpy.types.Strip,
     )
 
     def number_to_str(val, val_type):
