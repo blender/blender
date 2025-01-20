@@ -167,7 +167,7 @@ class VKCommandBuilder {
   /** Barriers that will be recorded after a group is recorded. */
   Vector<Barriers> group_post_barriers_;
   /**
-   * Barriers that will be recorded just befor the commands of a specific node are recorded. The
+   * Barriers that will be recorded just before the commands of a specific node are recorded. The
    * barriers are stored per NodeHandle and in the same order as `Span<NodeHandle> nodes`.
    */
   Vector<Barriers> node_pre_barriers_;

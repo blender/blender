@@ -471,7 +471,7 @@ if(WITH_PYTHON)
     install(
       FILES ${CMAKE_SOURCE_DIR}/scripts/site/sitecustomize.py
       DESTINATION ${TARGETDIR_VER}/scripts/startup
-      # Rename to avoid conflict with system sitecustomize.py
+      # Rename to avoid conflict with system `sitecustomize.py`.
       RENAME bpy_site_customize.py
     )
   elseif(WITH_PYTHON_INSTALL)

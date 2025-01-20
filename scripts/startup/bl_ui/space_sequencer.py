@@ -751,7 +751,7 @@ class SEQUENCER_MT_add(Menu):
 
         col = layout.column()
         col.menu("SEQUENCER_MT_add_transitions", icon='ARROW_LEFTRIGHT')
-        # Enable for video transitions or sound crossfade.
+        # Enable for video transitions or sound cross-fade.
         col.enabled = nonsound == 2 or (nonsound == 0 and total == 2)
 
         col = layout.column()

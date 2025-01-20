@@ -1255,7 +1255,7 @@ static void opengl_render_startjob(void *customdata, wmJobWorkerStatus *worker_s
   }
 
   if (canceled) {
-    /* Cancel task pool writing images async. */
+    /* Cancel task pool writing images asynchronously. */
     oglrender->pool_ok = false;
   }
 }

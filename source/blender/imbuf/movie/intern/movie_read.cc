@@ -287,9 +287,9 @@ static AVFormatContext *init_format_context_vpx_workarounds(const char *filepath
     return nullptr;
   }
 
-  /* By default ffmpeg uses built-in VP8/VP9 decoders, however those do not detect
-   * alpha channel (see ffmpeg trac issue #8344 https://trac.ffmpeg.org/ticket/8344).
-   * The trick for VP8/VP9 is to explicitly force use of libvpx decoder.
+  /* By default FFMPEG uses built-in VP8/VP9 decoders, however those do not detect
+   * alpha channel (see FFMPEG issue #8344 https://trac.ffmpeg.org/ticket/8344).
+   * The trick for VP8/VP9 is to explicitly force use of LIBVPX decoder.
    * Only do this where alpha_mode=1 metadata is set. Note that in order to work,
    * the previously initialized format context must be closed and a fresh one
    * with explicitly requested codec must be created. */
@@ -373,7 +373,7 @@ static int startffmpeg(MovieReader *anim)
   anim->frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, nullptr);
   if (anim->never_seek_decode_one_frame) {
     /* Files that need this workaround have nonsensical frame rates too, resulting
-     * in "millions of frames" if done through regular math. Treat framerate as 24/1 instead. */
+     * in "millions of frames" if done through regular math. Treat frame-rate as 24/1 instead. */
     anim->frame_rate = {24, 1};
   }
   int frs_num = anim->frame_rate.num;

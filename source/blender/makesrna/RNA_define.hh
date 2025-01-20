@@ -383,7 +383,7 @@ void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop,
  * for the `0`-indexed item of the array.
  *
  * The maximum #len depends on the type of the DNA member, and the #booleanbit value. The left-most
- * bit is not usable (because bitshift operations over signed negative values are typically
+ * bit is not usable (because bit-shift operations over signed negative values are typically
  * 'arithmetic', and not 'bitwise', in C++). So e.g. `31` for an `int32_t` with a `booleanbit`
  * value of `1 << 0`, and so on.
  */
