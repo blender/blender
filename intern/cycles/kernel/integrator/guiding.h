@@ -10,6 +10,10 @@
 #include "kernel/integrator/state.h"
 #include "kernel/util/colorspace.h"
 
+#ifdef WITH_CYCLES_DEBUG
+#  include "kernel/closure/bsdf.h"
+#endif
+
 #include "util/color.h"
 
 CCL_NAMESPACE_BEGIN

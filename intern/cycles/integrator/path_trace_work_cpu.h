@@ -65,8 +65,7 @@ class PathTraceWorkCPU : public PathTraceWork {
    * This function is called at the end of a random walk/path generation. */
   void guiding_push_sample_data_to_global_storage(ThreadKernelGlobalsCPU *kg,
                                                   IntegratorStateCPU *state,
-                                                  const ccl_global float *ccl_restrict
-                                                      render_buffer);
+                                                  ccl_global float *ccl_restrict render_buffer);
 #endif
 
  protected:
