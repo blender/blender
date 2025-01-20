@@ -68,8 +68,11 @@ static bool apply_color_operation_for_mode(const VertexColorMode mode,
   }
   if (ELEM(mode, VertexColorMode::Fill, VertexColorMode::Both)) {
     if (info.drawing.strokes().attributes().contains("fill_color")) {
-      const IndexMask strokes = ed::greasepencil::retrieve_editable_strokes(
-          object, info.drawing, info.layer_index, memory);
+      const IndexMask strokes = use_selection_mask ?
+                                    ed::greasepencil::retrieve_editable_and_selected_strokes(
+                                        object, info.drawing, info.layer_index, memory) :
+                                    ed::greasepencil::retrieve_editable_strokes(
+                                        object, info.drawing, info.layer_index, memory);
       if (!strokes.is_empty()) {
         MutableSpan<ColorGeometry4f> fill_colors = info.drawing.fill_colors_for_write();
         strokes.foreach_index(GrainSize(1024), [&](const int64_t curve_i) {
