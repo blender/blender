@@ -303,15 +303,15 @@ class QuickExplode(ObjectModeOperator, Operator):
             settings.normal_factor = self.velocity
             settings.render_type = 'NONE'
 
-            explode = obj.modifiers.new(name="Explode", type='EXPLODE')
+            explode = obj.modifiers.new(name=data_("Explode"), type='EXPLODE')
             explode.use_edge_cut = True
 
             if self.fade:
                 explode.show_dead = False
-                uv = obj.data.uv_layers.new(name="Explode fade")
+                uv = obj.data.uv_layers.new(name=data_("Explode fade"))
                 explode.particle_uv = uv.name
 
-                mat = object_ensure_material(obj, "Explode Fade")
+                mat = object_ensure_material(obj, data_("Explode Fade"))
                 mat.surface_render_method = 'DITHERED'
                 if not mat.use_nodes:
                     mat.use_nodes = True
@@ -476,7 +476,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         # add the smoke domain object
         bpy.ops.mesh.primitive_cube_add()
         obj = context.active_object
-        obj.name = "Smoke Domain"
+        obj.name = data_("Smoke Domain")
 
         # give the smoke some room above the flows
         obj.location = 0.5 * (max_co + min_co) + Vector((0.0, 0.0, 1.0))
@@ -499,7 +499,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         # Cycles and EEVEE.
         bpy.ops.object.material_slot_add()
 
-        mat = bpy.data.materials.new("Smoke Domain Material")
+        mat = bpy.data.materials.new(data_("Smoke Domain Material"))
         obj.material_slots[0].material = mat
 
         # Make sure we use nodes
@@ -592,7 +592,7 @@ class QuickLiquid(Operator):
         # add the liquid domain object
         bpy.ops.mesh.primitive_cube_add(align='WORLD')
         obj = context.active_object
-        obj.name = "Liquid Domain"
+        obj.name = data_("Liquid Domain")
 
         # give the liquid some room above the flows
         obj.location = 0.5 * (max_co + min_co) + Vector((0.0, 0.0, -1.0))
@@ -634,7 +634,7 @@ class QuickLiquid(Operator):
         # create a ray-transparent material for the domain
         bpy.ops.object.material_slot_add()
 
-        mat = bpy.data.materials.new("Liquid Domain Material")
+        mat = bpy.data.materials.new(data_("Liquid Domain Material"))
         obj.material_slots[0].material = mat
 
         # Make sure we use nodes
