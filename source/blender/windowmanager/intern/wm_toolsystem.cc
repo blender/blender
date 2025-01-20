@@ -54,6 +54,10 @@ static void toolsystem_refresh_screen_from_active_tool(Main *bmain,
                                                        bToolRef *tref);
 static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type);
 
+static void toolsystem_ref_set_by_id_pending(Main *bmain,
+                                             bToolRef *tref,
+                                             const char *idname_pending);
+
 /* -------------------------------------------------------------------- */
 /** \name Tool Reference API
  * \{ */
@@ -429,6 +433,39 @@ static void toolsystem_brush_activate_from_toolref(Main *bmain,
   }
 }
 
+/**
+ * Special case, the active brush data-block for the image & 3D viewport are shared.
+ * This means changing the active brush tool in one space must change the tool
+ * for the other space as well, see: #131062.
+ */
+static void toolsystem_brush_sync_for_texture_paint(Main *bmain,
+                                                    WorkSpace *workspace,
+                                                    bToolRef *tref)
+{
+  if (tref->space_type == SPACE_VIEW3D) {
+    if (tref->mode == CTX_MODE_PAINT_TEXTURE) {
+      bToolKey tkey{};
+      tkey.space_type = SPACE_IMAGE;
+      tkey.mode = SI_MODE_PAINT;
+      bToolRef *tref_other = WM_toolsystem_ref_find(workspace, &tkey);
+      if (tref_other) {
+        toolsystem_ref_set_by_id_pending(bmain, tref_other, tref->idname);
+      }
+    }
+  }
+  else if (tref->space_type == SPACE_IMAGE) {
+    if (tref->mode == SI_MODE_PAINT) {
+      bToolKey tkey{};
+      tkey.space_type = SPACE_VIEW3D;
+      tkey.mode = CTX_MODE_PAINT_TEXTURE;
+      bToolRef *tref_other = WM_toolsystem_ref_find(workspace, &tkey);
+      if (tref_other) {
+        toolsystem_ref_set_by_id_pending(bmain, tref_other, tref->idname);
+      }
+    }
+  }
+}
+
 /** \} */
 
 static void toolsystem_ref_link(Main *bmain, WorkSpace *workspace, bToolRef *tref)
@@ -454,6 +491,7 @@ static void toolsystem_ref_link(Main *bmain, WorkSpace *workspace, bToolRef *tre
 
   if (tref_rt->flag & TOOLREF_FLAG_USE_BRUSHES) {
     toolsystem_brush_activate_from_toolref(bmain, workspace, tref);
+    toolsystem_brush_sync_for_texture_paint(bmain, workspace, tref);
   }
 }
 
@@ -545,6 +583,9 @@ void WM_toolsystem_ref_set_from_runtime(bContext *C,
   }
 
   STRNCPY(tref->idname, idname);
+
+  /* This immediate request supersedes any unhandled pending requests. */
+  tref->idname_pending[0] = '\0';
 
   if (tref->runtime == nullptr) {
     tref->runtime = static_cast<bToolRef_Runtime *>(MEM_callocN(sizeof(*tref->runtime), __func__));
@@ -969,12 +1010,66 @@ static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type
   }
 }
 
+/**
+ * Request a tool ID be activated in a context where it's not known if the tool exists,
+ * when the areas using this tool are not visible.
+ * In this case, set the `idname` as pending and flag tools area for updating.
+ *
+ * If the tool doesn't exist then the current tool is to be left as-is.
+ */
+static void toolsystem_ref_set_by_id_pending(Main *bmain,
+                                             bToolRef *tref,
+                                             const char *idname_pending)
+{
+  BLI_assert(idname_pending[0]);
+
+  /* Check if the pending or current tool is already set to the requested value. */
+  const bool this_match = STREQ(idname_pending, tref->idname);
+  if (tref->idname_pending[0]) {
+    const bool next_match = STREQ(idname_pending, tref->idname_pending);
+    if (next_match) {
+      return;
+    }
+    /* Highly unlikely but possible the current active tool matches the name.
+     * In this case clear pending as there is nothing to do. */
+    if (this_match) {
+      tref->idname_pending[0] = '\0';
+      return;
+    }
+  }
+  else {
+    if (this_match) {
+      return;
+    }
+  }
+
+  STRNCPY(tref->idname_pending, idname_pending);
+
+  /* If there would be a convenient way to know which screens used which work-spaces,
+   * that could be used here. */
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->runtime.tool == tref) {
+        area->runtime.tool = nullptr;
+        area->runtime.is_tool_set = false;
+        area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+      }
+    }
+  }
+}
+
 static void toolsystem_reinit_with_toolref(bContext *C, WorkSpace *workspace, bToolRef *tref)
 {
   bToolKey tkey{};
   tkey.space_type = tref->space_type;
   tkey.mode = tref->mode;
-  WM_toolsystem_ref_set_by_id_ex(C, workspace, &tkey, tref->idname, false);
+
+  const char *idname = tref->idname_pending[0] ? tref->idname_pending : tref->idname;
+
+  WM_toolsystem_ref_set_by_id_ex(C, workspace, &tkey, idname, false);
+
+  /* Never attempt the pending name again, if it's not found, no need to keep trying. */
+  tref->idname_pending[0] = '\0';
 }
 
 static const char *toolsystem_default_tool(const bToolKey *tkey)
