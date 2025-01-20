@@ -473,7 +473,6 @@ struct EraseOperationExecutor {
 
   static bool skip_strokes_with_locked_material(
       Object &ob,
-      const bke::CurvesGeometry &src,
       const int src_curve,
       const IndexRange &src_points,
       const VArray<int> stroke_material,
@@ -535,7 +534,7 @@ struct EraseOperationExecutor {
       const IndexRange src_points = src_points_by_curve[src_curve];
 
       if (skip_strokes_with_locked_material(
-              ob, src, src_curve, src_points, stroke_material, point_opacity, src_to_dst_points))
+              ob, src_curve, src_points, stroke_material, point_opacity, src_to_dst_points))
       {
         continue;
       }
@@ -746,7 +745,7 @@ struct EraseOperationExecutor {
       const IndexRange src_points = src_points_by_curve[src_curve];
 
       if (skip_strokes_with_locked_material(
-              ob, src, src_curve, src_points, stroke_material, src_opacity, src_to_dst_points))
+              ob, src_curve, src_points, stroke_material, src_opacity, src_to_dst_points))
       {
         continue;
       }
