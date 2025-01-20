@@ -3591,6 +3591,17 @@ static void version_group_input_socket_data_block_reference(bNodeTree &ntree)
   }
 }
 
+static void version_geometry_normal_input_node(bNodeTree &ntree)
+{
+  if (ntree.type == NTREE_GEOMETRY) {
+    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+      if (STREQ(node->idname, "GeometryNodeInputNormal")) {
+        node->custom1 = 1;
+      }
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -5641,6 +5652,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (Curves *, curves, &bmain->hair_curves) {
         curves->surface_collision_distance = 0.005f;
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 24)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      version_geometry_normal_input_node(*ntree);
     }
   }
 
