@@ -13,7 +13,13 @@ if NOT "%1" == "" (
 		set BUILD_TYPE=Debug
 	REM Build Configurations
 	) else if "%1" == "builddir" (
-		set BUILD_DIR_OVERRRIDE=%BLENDER_DIR%..\%2
+		REM Check if the second character is a : and interpret as an absolute path if present.
+		call set BUILDDIR_ARG=%~2
+		if "!BUILDDIR_ARG:~1,1!" == ":" (
+			set BUILD_DIR_OVERRRIDE=%2
+		) else (
+			set BUILD_DIR_OVERRRIDE=%BLENDER_DIR%..\%2
+		)
 		shift /1
 	) else if "%1" == "with_tests" (
 		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GTESTS=On
