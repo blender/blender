@@ -187,11 +187,11 @@ static void modify_stroke_color(Object &ob,
   };
 
   auto get_point_factor = [&](const int64_t point_i) {
+    const float weight = vgroup_weights[point_i];
     if (use_weight_as_factor) {
-      const float weight = vgroup_weights[point_i];
       return invert_vertex_group ? 1.0f - weight : weight;
     }
-    return tmd.factor;
+    return tmd.factor * weight;
   };
 
   const GreasePencilTintModifierMode tint_mode = GreasePencilTintModifierMode(tmd.tint_mode);
