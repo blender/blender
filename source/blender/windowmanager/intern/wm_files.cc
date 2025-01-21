@@ -3922,7 +3922,7 @@ static int wm_clear_recent_files_exec(bContext * /*C*/, wmOperator *op)
   else if (include == CLEAR_RECENT_MISSING) {
     LISTBASE_FOREACH_MUTABLE (RecentFile *, recent, &G.recent_files) {
       if (!BLI_exists(recent->filepath)) {
-        BLI_freelinkN(&G.recent_files, recent);
+        wm_history_file_free(recent);
       }
     }
   }
