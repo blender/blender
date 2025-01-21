@@ -892,6 +892,9 @@ void GPENCIL_draw_scene(void *ved)
     mul_v4_fl(clear_cols[1], pd->fade_3d_object_opacity);
   }
 
+  /* Sort object by decreasing Z to avoid most of alpha ordering issues. */
+  gpencil_object_cache_sort(pd);
+
   if (pd->tobjects.first == nullptr) {
     return;
   }
@@ -910,9 +913,6 @@ void GPENCIL_draw_scene(void *ved)
   }
 
   blender::draw::View &view = blender::draw::View::default_get();
-
-  /* Sort object by decreasing Z to avoid most of alpha ordering issues. */
-  gpencil_object_cache_sort(pd);
 
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &pd->tobjects) {
     GPENCIL_draw_object(vedata, view, ob);
