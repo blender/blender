@@ -1581,6 +1581,24 @@ static int bake(const BakeAPIRender *bkr,
                                          BASE_ENABLED_RENDER);
       highpoly[i].mesh = BKE_mesh_new_from_object(nullptr, highpoly[i].ob_eval, false, false);
 
+      /* NOTE(@ideasman42): While ideally this should never happen,
+       * it's possible the `visibility_flag` assignment in this function
+       * is overridden by animated visibility, see: #107426.
+       *
+       * There is also the potential that scripts called from depsgraph callbacks
+       * change this value too, so we can't guarantee the mesh will be available.
+       * Use an error here instead of a warning so users don't accidentally perform
+       * a bake which seems to succeed with invalid results.
+       * If visibility could be forced/overridden - it would help avoid the problem. */
+      if (UNLIKELY(highpoly[i].mesh == nullptr)) {
+        BKE_reportf(
+            reports,
+            RPT_ERROR,
+            "Failed to access mesh from object \"%s\", ensure it's visible while rendering",
+            ob_iter->id.name + 2);
+        goto cleanup;
+      }
+
       /* Low-poly to high-poly transformation matrix. */
       copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->object_to_world().ptr());
       invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
