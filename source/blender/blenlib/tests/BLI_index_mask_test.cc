@@ -1222,4 +1222,57 @@ TEST(index_mask, SliceAndShift)
   }
 }
 
+TEST(index_mask, IndexRangeToMaskSegments)
+{
+  auto test_range = [](const IndexRange range) {
+    Vector<IndexMaskSegment> segments;
+    index_range_to_mask_segments(range, segments);
+    IndexMaskMemory memory;
+    const IndexMask mask = IndexMask::from_segments(segments, memory);
+    const std::optional<IndexRange> new_range = mask.to_range();
+    EXPECT_TRUE(new_range.has_value());
+    EXPECT_EQ(range, *new_range);
+  };
+
+  test_range(IndexRange::from_begin_size(1'000, 0));
+
+  test_range(IndexRange::from_begin_end_inclusive(0, 10));
+  test_range(IndexRange::from_begin_end_inclusive(0, 10'000));
+  test_range(IndexRange::from_begin_end_inclusive(0, 100'000));
+  test_range(IndexRange::from_begin_end_inclusive(0, 1'000'000));
+
+  test_range(IndexRange::from_begin_end_inclusive(50'000, 1'000'000));
+  test_range(IndexRange::from_begin_end_inclusive(999'999, 1'000'000));
+  test_range(IndexRange::from_begin_end_inclusive(1'000'000, 1'000'000));
+}
+
+TEST(index_mask, FromRanges)
+{
+  IndexMaskMemory memory;
+  Array<int> data = {5, 100, 400, 500, 100'000, 200'000};
+  OffsetIndices<int> offsets(data);
+
+  {
+    const IndexMask mask = IndexMask::from_ranges(offsets, offsets.index_range(), memory);
+    EXPECT_EQ(mask.size(), 199'995);
+    EXPECT_EQ(*mask.to_range(), IndexRange::from_begin_end(5, 200'000));
+  }
+  {
+    const IndexMask mask = IndexMask::from_ranges(offsets, IndexRange(0), memory);
+    EXPECT_TRUE(mask.is_empty());
+  }
+  {
+    const IndexMask mask = IndexMask::from_ranges(offsets, IndexRange(1), memory);
+    EXPECT_EQ(*mask.to_range(), IndexRange::from_begin_end(5, 100));
+  }
+  {
+    const IndexMask offsets_mask = IndexMask::from_indices(Span<int>({1, 4}), memory);
+    const IndexMask mask = IndexMask::from_ranges(offsets, offsets_mask, memory);
+    EXPECT_EQ(mask,
+              IndexMask::from_initializers({IndexRange::from_begin_end(100, 400),
+                                            IndexRange::from_begin_end(100'000, 200'000)},
+                                           memory));
+  }
+}
+
 }  // namespace blender::index_mask::tests
