@@ -327,6 +327,8 @@ typedef struct GPENCIL_PrivateData {
   int mask_invert;
   /* Vertex Paint opacity. */
   float vertex_paint_opacity;
+  /* Force 3D depth rendering. */
+  bool force_stroke_order_3d;
 } GPENCIL_PrivateData;
 
 /* geometry batch cache functions */

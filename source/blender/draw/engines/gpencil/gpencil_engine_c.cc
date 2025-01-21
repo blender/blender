@@ -142,6 +142,7 @@ void GPENCIL_engine_init(void *ved)
 
     const bool shmode_xray_support = v3d->shading.type <= OB_SOLID;
     stl->pd->xray_alpha = (shmode_xray_support && XRAY_ENABLED(v3d)) ? XRAY_ALPHA(v3d) : 1.0f;
+    stl->pd->force_stroke_order_3d = v3d->gp_flag & V3D_GP_FORCE_STROKE_ORDER_3D;
   }
   else if (stl->pd->is_render) {
     use_scene_lights = true;
@@ -149,6 +150,7 @@ void GPENCIL_engine_init(void *ved)
     stl->pd->use_multiedit_lines_only = false;
     stl->pd->xray_alpha = 1.0f;
     stl->pd->v3d_color_type = -1;
+    stl->pd->force_stroke_order_3d = false;
   }
 
   stl->pd->use_lighting = (v3d && v3d->shading.type > OB_SOLID) || stl->pd->is_render;
@@ -379,7 +381,8 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
   const bool do_multi_frame = (((pd->scene->toolsettings->gpencil_flags &
                                  GP_USE_MULTI_FRAME_EDITING) != 0) &&
                                (ob->mode != OB_MODE_OBJECT));
-  const bool use_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
+  const bool use_stroke_order_3d = pd->force_stroke_order_3d ||
+                                   ((grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0);
   GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(pd, ob, use_stroke_order_3d, bounds);
 
   int mat_ofs = 0;

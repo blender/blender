@@ -95,7 +95,7 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
       placement_loc_ = layer_space_to_world_space_.location();
     }
     else if (align_flag & GP_PROJECT_DEPTH_STROKE) {
-      depth_ = DrawingPlacementDepth::NearestStroke;
+      depth_ = DrawingPlacementDepth::Stroke;
       surface_offset_ = 0.0f;
       /* Default to view placement with the object origin if we don't hit a stroke. */
       placement_loc_ = layer_space_to_world_space_.location();
@@ -113,7 +113,8 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
   }
 
   if (plane_ != DrawingPlacementPlane::View) {
-    plane_from_point_normal_v3(placement_plane_, placement_loc_, placement_normal_);
+    placement_plane_ = float4();
+    plane_from_point_normal_v3(*placement_plane_, placement_loc_, placement_normal_);
   }
 }
 
@@ -190,7 +191,8 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
   }
 
   if (plane_ != DrawingPlacementPlane::View) {
-    plane_from_point_normal_v3(placement_plane_, placement_loc_, placement_normal_);
+    placement_plane_ = float4();
+    plane_from_point_normal_v3(*placement_plane_, placement_loc_, placement_normal_);
   }
 }
 
@@ -271,13 +273,14 @@ bool DrawingPlacement::use_project_to_surface() const
   return depth_ == DrawingPlacementDepth::Surface;
 }
 
-bool DrawingPlacement::use_project_to_nearest_stroke() const
+bool DrawingPlacement::use_project_to_stroke() const
 {
-  return depth_ == DrawingPlacementDepth::NearestStroke;
+  return depth_ == DrawingPlacementDepth::Stroke;
 }
 
 void DrawingPlacement::cache_viewport_depths(Depsgraph *depsgraph, ARegion *region, View3D *view3d)
 {
+  const short previous_gp_flag = view3d->gp_flag;
   eV3DDepthOverrideMode mode = V3D_DEPTH_GPENCIL_ONLY;
 
   if (use_project_to_surface()) {
@@ -288,40 +291,52 @@ void DrawingPlacement::cache_viewport_depths(Depsgraph *depsgraph, ARegion *regi
       mode = V3D_DEPTH_NO_GPENCIL;
     }
   }
+  if (use_project_to_stroke()) {
+    /* Enforce render engine to use 3D stroke order, otherwise depth buffer values are not in 3D
+     * space. */
+    view3d->gp_flag |= V3D_GP_FORCE_STROKE_ORDER_3D;
+  }
+
   ED_view3d_depth_override(depsgraph, region, view3d, nullptr, mode, false, &this->depth_cache_);
+
+  view3d->gp_flag = previous_gp_flag;
 }
 
-void DrawingPlacement::set_origin_to_nearest_stroke(const float2 co)
+std::optional<float3> DrawingPlacement::project_depth(const float2 co) const
 {
-  BLI_assert(depth_cache_ != nullptr);
-  float depth;
-  if (ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth)) {
-    float3 origin;
-    ED_view3d_depth_unproject_v3(region_, int2(co), depth, origin);
-
-    placement_loc_ = origin;
+  std::optional<float> depth = get_depth(co);
+  if (!depth) {
+    return std::nullopt;
   }
-  else {
-    /* If nothing was hit, use origin. */
-    placement_loc_ = layer_space_to_world_space_.location();
-  }
-  plane_from_point_normal_v3(placement_plane_, placement_loc_, placement_normal_);
-}
 
-float3 DrawingPlacement::project_depth(const float2 co) const
-{
   float3 proj_point;
-  float depth;
-  if (depth_cache_ != nullptr && ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth)) {
-    ED_view3d_depth_unproject_v3(region_, int2(co), depth, proj_point);
+  if (ED_view3d_depth_unproject_v3(region_, int2(co), *depth, proj_point)) {
     float3 view_normal;
     ED_view3d_win_to_vector(region_, co, view_normal);
     proj_point -= view_normal * surface_offset_;
+    return proj_point;
   }
-  else {
-    /* Fallback to `View` placement. */
-    ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
+  return std::nullopt;
+}
+
+std::optional<float> DrawingPlacement::get_depth(float2 co) const
+{
+  float depth;
+  if (depth_cache_ != nullptr && ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth)) {
+    return depth;
   }
+  return std::nullopt;
+}
+
+float3 DrawingPlacement::try_project_depth(const float2 co) const
+{
+  if (std::optional<float3> proj_point = this->project_depth(co)) {
+    return *proj_point;
+  }
+
+  float3 proj_point;
+  /* Fallback to `View` placement. */
+  ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
   return proj_point;
 }
 
@@ -330,14 +345,14 @@ float3 DrawingPlacement::project(const float2 co) const
   float3 proj_point;
   if (depth_ == DrawingPlacementDepth::Surface) {
     /* Project using the viewport depth cache. */
-    proj_point = this->project_depth(co);
+    proj_point = this->try_project_depth(co);
   }
   else {
-    if (plane_ == DrawingPlacementPlane::View) {
-      ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
+    if (placement_plane_) {
+      ED_view3d_win_to_3d_on_plane(region_, *placement_plane_, co, false, proj_point);
     }
     else {
-      ED_view3d_win_to_3d_on_plane(region_, placement_plane_, co, false, proj_point);
+      ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
     }
   }
   return math::transform_point(world_space_to_layer_space_, proj_point);
@@ -348,14 +363,14 @@ float3 DrawingPlacement::project_with_shift(const float2 co) const
   float3 proj_point;
   if (depth_ == DrawingPlacementDepth::Surface) {
     /* Project using the viewport depth cache. */
-    proj_point = this->project_depth(co);
+    proj_point = this->try_project_depth(co);
   }
   else {
-    if (plane_ == DrawingPlacementPlane::View) {
-      ED_view3d_win_to_3d_with_shift(view3d_, region_, placement_loc_, co, proj_point);
+    if (placement_plane_) {
+      ED_view3d_win_to_3d_on_plane(region_, *placement_plane_, co, false, proj_point);
     }
     else {
-      ED_view3d_win_to_3d_on_plane(region_, placement_plane_, co, false, proj_point);
+      ED_view3d_win_to_3d_with_shift(view3d_, region_, placement_loc_, co, proj_point);
     }
   }
   return math::transform_point(world_space_to_layer_space_, proj_point);
@@ -370,6 +385,13 @@ void DrawingPlacement::project(const Span<float2> src, MutableSpan<float3> dst) 
   });
 }
 
+float3 DrawingPlacement::place(const float2 co, const float depth) const
+{
+  float3 loc;
+  ED_view3d_unproject_v3(region_, co.x, co.y, depth, loc);
+  return math::transform_point(world_space_to_layer_space_, loc);
+}
+
 float3 DrawingPlacement::reproject(const float3 pos) const
 {
   const float3 world_pos = math::transform_point(layer_space_to_world_space_, pos);
@@ -382,7 +404,7 @@ float3 DrawingPlacement::reproject(const float3 pos) const
       return pos;
     }
     /* Project using the viewport depth cache. */
-    proj_point = this->project_depth(co);
+    proj_point = this->try_project_depth(co);
   }
   else {
     /* Reproject the point onto the `placement_plane_` from the current view. */
@@ -396,11 +418,11 @@ float3 DrawingPlacement::reproject(const float3 pos) const
       ray_no = -float3(rv3d->viewinv[2]);
     }
     float4 plane;
-    if (plane_ == DrawingPlacementPlane::View) {
-      plane_from_point_normal_v3(plane, placement_loc_, rv3d->viewinv[2]);
+    if (placement_plane_) {
+      plane = *placement_plane_;
     }
     else {
-      plane = placement_plane_;
+      plane_from_point_normal_v3(plane, placement_loc_, rv3d->viewinv[2]);
     }
 
     float lambda;
