@@ -13,6 +13,7 @@ from bl_ui.properties_grease_pencil_common import (
     AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
 )
+from . import anim
 
 
 class CLIP_UL_tracking_objects(UIList):
@@ -1268,6 +1269,24 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
         col.template_movieclip_information(sc, "clip", sc.clip_user)
 
 
+class CLIP_PT_animation(CLIP_PT_clip_view_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Footage"
+    bl_label = "Animation"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        sc = context.space_data
+        clip = sc.clip
+
+        col = layout.column(align=True)
+        anim.draw_action_and_slot_selector_for_id(col, clip)
+
+
 class CLIP_PT_tools_scenesetup(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
@@ -1996,6 +2015,7 @@ classes = (
     CLIP_PT_marker,
     CLIP_PT_proxy,
     CLIP_PT_footage,
+    CLIP_PT_animation,
     CLIP_PT_stabilization,
     CLIP_PT_2d_cursor,
     CLIP_PT_mask,
