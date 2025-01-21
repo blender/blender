@@ -602,10 +602,8 @@ bool Instance::object_is_selected(const ObjectRef &ob_ref)
 
 bool Instance::object_is_paint_mode(const Object *object)
 {
-  if (object->type == OB_GREASE_PENCIL && (object->mode & OB_MODE_ALL_PAINT_GPENCIL)) {
-    return true;
-  }
-  return (object == state.object_active) && (state.object_mode & OB_MODE_ALL_PAINT);
+  return (object == state.object_active) &&
+         (state.object_mode & (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL));
 }
 
 bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
