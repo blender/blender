@@ -152,7 +152,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
     if (vos->sco[0] != IS_CLIPPED) {
       if (col_pack_prev != vos->col.pack) {
         BLF_color4ubv(font_id, vos->col.ub);
-        const uchar lightness = rgb_to_grayscale_byte(vos->col.ub);
+        const uchar lightness = srgb_to_grayscale_byte(vos->col.ub);
         outline_is_dark = lightness > 96;
         col_pack_prev = vos->col.pack;
       }

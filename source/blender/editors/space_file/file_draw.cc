@@ -651,7 +651,7 @@ static void file_draw_preview(const FileDirEntry *file,
     float border_color[4] = {1.0f, 1.0f, 1.0f, 0.15f};
     float bgcolor[4];
     UI_GetThemeColor4fv(TH_BACK, bgcolor);
-    if (rgb_to_grayscale(bgcolor) > 0.5f) {
+    if (srgb_to_grayscale(bgcolor) > 0.5f) {
       border_color[0] = 0.0f;
       border_color[1] = 0.0f;
       border_color[2] = 0.0f;
@@ -719,7 +719,7 @@ static void file_draw_special_image(const FileDirEntry *file,
     /* Small icon in the middle of large image, scaled to fit container and UI scale */
     float icon_opacity = 0.4f;
     uchar icon_color[4] = {0, 0, 0, 255};
-    if (rgb_to_grayscale(document_img_col) < 0.5f) {
+    if (srgb_to_grayscale(document_img_col) < 0.5f) {
       icon_color[0] = 255;
       icon_color[1] = 255;
       icon_color[2] = 255;

@@ -157,8 +157,8 @@ static void color_blend_v4_v4v4(uchar r_col[4],
 static void color_ensure_contrast_v3(uchar cp[3], const uchar cp_other[3], int contrast)
 {
   BLI_assert(contrast > 0);
-  const int item_value = rgb_to_grayscale_byte(cp);
-  const int inner_value = rgb_to_grayscale_byte(cp_other);
+  const int item_value = srgb_to_grayscale_byte(cp);
+  const int inner_value = srgb_to_grayscale_byte(cp_other);
   const int delta = item_value - inner_value;
   if (delta >= 0) {
     if (contrast > delta) {
@@ -2439,7 +2439,7 @@ static void ui_widget_color_disabled(uiWidgetType *wt, const uiWidgetStateInfo *
 
 static void widget_active_color(uiWidgetColors *wcol)
 {
-  const bool dark = (rgb_to_grayscale_byte(wcol->text) > rgb_to_grayscale_byte(wcol->inner));
+  const bool dark = (srgb_to_grayscale_byte(wcol->text) > srgb_to_grayscale_byte(wcol->inner));
   color_mul_hsl_v3(wcol->inner, 1.0f, 1.15f, dark ? 1.2f : 1.1f);
   color_mul_hsl_v3(wcol->outline, 1.0f, 1.15f, 1.15f);
   color_mul_hsl_v3(wcol->text, 1.0f, 1.15f, dark ? 1.25f : 0.8f);
@@ -2610,7 +2610,7 @@ static void widget_state_numslider(uiWidgetType *wt,
     /* Set the slider 'item' so that it reflects state settings too.
      * De-saturate so the color of the slider doesn't conflict with the blend color,
      * which can make the color hard to see when the slider is set to full (see #66102). */
-    wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = rgb_to_grayscale_byte(wt->wcol.item);
+    wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = srgb_to_grayscale_byte(wt->wcol.item);
     color_blend_v3_v3(wt->wcol.item, color_blend, wcol_state->blend);
     color_ensure_contrast_v3(wt->wcol.item, wt->wcol.inner, 30);
   }
@@ -3994,7 +3994,7 @@ static void widget_swatch(uiBut *but,
     const float width = rect->xmax - rect->xmin;
     const float height = rect->ymax - rect->ymin;
     /* find color luminance and change it slightly */
-    float bw = rgb_to_grayscale(col);
+    float bw = srgb_to_grayscale(col);
 
     bw += (bw < 0.5f) ? 0.5f : -0.5f;
 
