@@ -553,11 +553,13 @@ void CUDADevice::free_host(void *shared_pointer)
   cuMemFreeHost(shared_pointer);
 }
 
-void CUDADevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void *CUDADevice::transform_host_to_device_pointer(const void *shared_pointer)
 {
   CUDAContextScope scope(this);
-
-  cuda_assert(cuMemHostGetDevicePointer_v2((CUdeviceptr *)&device_pointer, shared_pointer, 0));
+  void *device_pointer = nullptr;
+  cuda_assert(
+      cuMemHostGetDevicePointer_v2((CUdeviceptr *)&device_pointer, (void *)shared_pointer, 0));
+  return device_pointer;
 }
 
 void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
@@ -601,14 +603,6 @@ void CUDADevice::mem_copy_to(device_memory &mem)
 
 void CUDADevice::mem_move_to_host(device_memory &mem)
 {
-  {
-    /* If already host mapped, nothing to do. */
-    thread_scoped_lock lock(device_mem_map_mutex);
-    if (device_mem_map[&mem].use_mapped_host) {
-      return;
-    }
-  }
-
   if (mem.type == MEM_GLOBAL) {
     global_free(mem);
     global_alloc(mem);
@@ -618,7 +612,7 @@ void CUDADevice::mem_move_to_host(device_memory &mem)
     tex_alloc((device_texture &)mem);
   }
   else {
-    assert(0);
+    assert(!"mem_move_to_host only supported for texture and global memory");
   }
 }
 
@@ -652,10 +646,7 @@ void CUDADevice::mem_zero(device_memory &mem)
     return;
   }
 
-  /* If use_mapped_host of mem is false, mem.device_pointer currently refers to device memory
-   * regardless of mem.host_pointer and mem.shared_pointer. */
-  thread_scoped_lock lock(device_mem_map_mutex);
-  if (!device_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
+  if (!(mem.is_host_mapped(this) && mem.host_pointer == mem.shared_pointer)) {
     const CUDAContextScope scope(this);
     cuda_assert(cuMemsetD8((CUdeviceptr)mem.device_pointer, 0, mem.memory_size()));
   }

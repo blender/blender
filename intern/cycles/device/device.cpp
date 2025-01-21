@@ -572,7 +572,7 @@ void GPUDevice::move_textures_to_host(size_t size, const size_t headroom, const 
 
       /* Can only move textures allocated on this device (and not those from peer devices).
        * And need to ignore memory that is already on the host. */
-      if (!mem.is_resident(this) || cmem->use_mapped_host) {
+      if (!mem.is_resident(this) || mem.is_host_mapped(this)) {
         continue;
       }
 
@@ -684,7 +684,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
     }
 
     if (mem_alloc_result) {
-      transform_host_pointer(device_pointer, shared_pointer);
+      device_pointer = transform_host_to_device_pointer(shared_pointer);
       map_host_used += size;
       status = " in host memory";
     }
@@ -733,10 +733,6 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
     }
     mem.shared_pointer = shared_pointer;
     mem.shared_counter++;
-    cmem->use_mapped_host = true;
-  }
-  else {
-    cmem->use_mapped_host = false;
   }
 
   return cmem;
@@ -754,28 +750,22 @@ void GPUDevice::generic_free(device_memory &mem)
 
   const thread_scoped_lock lock(device_mem_map_mutex);
   DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
-  const Mem &cmem = device_mem_map[&mem];
 
-  /* If cmem.use_mapped_host is true, reference counting is used
-   * to safely free a mapped host memory. */
-
-  if (cmem.use_mapped_host) {
-    assert(mem.shared_pointer);
-    if (mem.shared_pointer) {
-      assert(mem.shared_counter > 0);
-      if (--mem.shared_counter == 0) {
-        if (mem.host_pointer == mem.shared_pointer) {
-          /* Safely move the device-side data back to the host before it is freed.
-           * We should actually never reach this code as it is inefficient, but
-           * better than to crash if there is a bug. */
-          assert(!"GPU device should not copy memory back to host");
-          const size_t size = mem.memory_size();
-          mem.host_pointer = mem.host_alloc(size);
-          memcpy(mem.host_pointer, mem.shared_pointer, size);
-        }
-        free_host(mem.shared_pointer);
-        mem.shared_pointer = nullptr;
+  /* For host mapped memory, reference counting is used to safely free it. */
+  if (mem.is_host_mapped(this)) {
+    assert(mem.shared_counter > 0);
+    if (--mem.shared_counter == 0) {
+      if (mem.host_pointer == mem.shared_pointer) {
+        /* Safely move the device-side data back to the host before it is freed.
+         * We should actually never reach this code as it is inefficient, but
+         * better than to crash if there is a bug. */
+        assert(!"GPU device should not copy memory back to host");
+        const size_t size = mem.memory_size();
+        mem.host_pointer = mem.host_alloc(size);
+        memcpy(mem.host_pointer, mem.shared_pointer, size);
       }
+      free_host(mem.shared_pointer);
+      mem.shared_pointer = nullptr;
     }
     map_host_used -= mem.device_size;
   }
@@ -798,13 +788,20 @@ void GPUDevice::generic_copy_to(device_memory &mem)
     return;
   }
 
-  /* If use_mapped_host of mem is false, the current device only uses device memory allocated by
-   * backend device allocation regardless of mem.host_pointer and mem.shared_pointer, and should
+  /* If not host mapped, the current device only uses device memory allocated by backend
+   * device allocation regardless of mem.host_pointer and mem.shared_pointer, and should
    * copy data from mem.host_pointer. */
-  const thread_scoped_lock lock(device_mem_map_mutex);
-  if (!device_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
+  if (!(mem.is_host_mapped(this) && mem.host_pointer == mem.shared_pointer)) {
     copy_host_to_device((void *)mem.device_pointer, mem.host_pointer, mem.memory_size());
   }
+}
+
+bool GPUDevice::is_host_mapped(const void *shared_pointer,
+                               const device_ptr device_pointer,
+                               Device * /*sub_device*/)
+{
+  return (shared_pointer && device_pointer &&
+          (device_ptr)transform_host_to_device_pointer(shared_pointer) == device_pointer);
 }
 
 /* DeviceInfo */

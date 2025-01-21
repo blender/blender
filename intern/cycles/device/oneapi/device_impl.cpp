@@ -343,11 +343,11 @@ void OneapiDevice::free_host(void *shared_pointer)
   usm_free(device_queue_, shared_pointer);
 }
 
-void OneapiDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void *OneapiDevice::transform_host_to_device_pointer(const void *shared_pointer)
 {
   /* Device and host pointer are in the same address space
    * as we're using Unified Shared Memory. */
-  device_pointer = shared_pointer;
+  return const_cast<void *>(shared_pointer);
 }
 
 void OneapiDevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
@@ -442,14 +442,6 @@ void OneapiDevice::mem_move_to_host(device_memory &mem)
    * because the associated GPU context may be in an invalid state at this point. */
   if (have_error()) {
     return;
-  }
-
-  {
-    /* If already host mapped, nothing to do. */
-    thread_scoped_lock lock(device_mem_map_mutex);
-    if (device_mem_map[&mem].use_mapped_host) {
-      return;
-    }
   }
 
   if (mem.type == MEM_GLOBAL) {

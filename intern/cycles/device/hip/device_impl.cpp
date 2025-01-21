@@ -515,11 +515,13 @@ void HIPDevice::free_host(void *shared_pointer)
   hipHostFree(shared_pointer);
 }
 
-void HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void *HIPDevice::transform_host_to_device_pointer(const void *shared_pointer)
 {
   HIPContextScope scope(this);
-
-  hip_assert(hipHostGetDevicePointer((hipDeviceptr_t *)&device_pointer, shared_pointer, 0));
+  void *device_pointer = nullptr;
+  hip_assert(
+      hipHostGetDevicePointer((hipDeviceptr_t *)&device_pointer, (void *)shared_pointer, 0));
+  return device_pointer;
 }
 
 void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
@@ -563,14 +565,6 @@ void HIPDevice::mem_copy_to(device_memory &mem)
 
 void HIPDevice::mem_move_to_host(device_memory &mem)
 {
-  {
-    /* If already host mapped, nothing to do. */
-    thread_scoped_lock lock(device_mem_map_mutex);
-    if (device_mem_map[&mem].use_mapped_host) {
-      return;
-    }
-  }
-
   if (mem.type == MEM_GLOBAL) {
     global_free(mem);
     global_alloc(mem);
@@ -580,7 +574,7 @@ void HIPDevice::mem_move_to_host(device_memory &mem)
     tex_alloc((device_texture &)mem);
   }
   else {
-    assert(0);
+    assert(!"mem_move_to_host only supported for texture and global memory");
   }
 }
 
@@ -614,10 +608,7 @@ void HIPDevice::mem_zero(device_memory &mem)
     return;
   }
 
-  /* If use_mapped_host of mem is false, mem.device_pointer currently refers to device memory
-   * regardless of mem.host_pointer and mem.shared_pointer. */
-  thread_scoped_lock lock(device_mem_map_mutex);
-  if (!device_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
+  if (!(mem.is_host_mapped(this) && mem.host_pointer == mem.shared_pointer)) {
     const HIPContextScope scope(this);
     hip_assert(hipMemsetD8((hipDeviceptr_t)mem.device_pointer, 0, mem.memory_size()));
   }

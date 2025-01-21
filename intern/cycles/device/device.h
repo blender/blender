@@ -247,6 +247,13 @@ class Device {
     return false;
   }
 
+  virtual bool is_host_mapped(const void * /*shared_pointer*/,
+                              const device_ptr /*device_pointer*/,
+                              Device * /*sub_device*/)
+  {
+    return false;
+  }
+
   /* Graphics resources interoperability.
    *
    * The interoperability comes here by the meaning that the device is capable of computing result
@@ -369,9 +376,6 @@ class GPUDevice : public Device {
 
     texMemObject texobject = 0;
     arrayMemObject array = 0;
-
-    /* If true, a mapped host memory in shared_pointer is being used. */
-    bool use_mapped_host = false;
   };
   using MemMap = map<device_memory *, Mem>;
   MemMap device_mem_map;
@@ -402,10 +406,13 @@ class GPUDevice : public Device {
 
   virtual void free_host(void *shared_pointer) = 0;
 
+  bool is_host_mapped(const void *shared_pointer,
+                      const device_ptr device_pointer,
+                      Device *sub_device) override;
+
   /* This function should return device pointer corresponding to shared pointer, which
-   * is host buffer, allocated in `alloc_host`. The function should `true`, if such
-   * address transformation is possible and `false` otherwise. */
-  virtual void transform_host_pointer(void *&device_pointer, void *&shared_pointer) = 0;
+   * is host buffer, allocated in `alloc_host`. */
+  virtual void *transform_host_to_device_pointer(const void *shared_pointer) = 0;
 
   virtual void copy_host_to_device(void *device_pointer,
                                    void *host_pointer,

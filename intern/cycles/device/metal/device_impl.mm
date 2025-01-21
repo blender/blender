@@ -866,7 +866,7 @@ void MetalDevice::mem_copy_to(device_memory &mem)
 void MetalDevice::mem_move_to_host(device_memory & /*mem*/)
 {
   /* Metal implements own mechanism for moving host memory. */
-  assert(0);
+  assert(!"Metal does not support mem_move_to_host");
 }
 
 void MetalDevice::mem_copy_from(

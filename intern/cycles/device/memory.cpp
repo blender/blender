@@ -136,6 +136,11 @@ bool device_memory::is_resident(Device *sub_device) const
   return device->is_resident(device_pointer, sub_device);
 }
 
+bool device_memory::is_host_mapped(Device *sub_device) const
+{
+  return device->is_host_mapped(shared_pointer, device_pointer, sub_device);
+}
+
 /* Device Sub `ptr`. */
 
 device_sub_ptr::device_sub_ptr(device_memory &mem, const size_t offset, const size_t size)
