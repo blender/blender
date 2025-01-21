@@ -794,10 +794,7 @@ class GREASE_PENCIL_MT_stroke_simplify(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("grease_pencil.stroke_simplify", text="Fixed").mode = 'FIXED'
-        layout.operator("grease_pencil.stroke_simplify", text="Adaptive").mode = 'ADAPTIVE'
-        layout.operator("grease_pencil.stroke_simplify", text="Sample").mode = 'SAMPLE'
-        layout.operator("grease_pencil.stroke_simplify", text="Merge").mode = 'MERGE'
+        layout.operator_enum("grease_pencil.stroke_simplify", "mode")
 
 
 classes = (
