@@ -204,12 +204,22 @@ otherwise Blender's internal initialization won't happen properly:
          super().__init__(*args, **kwargs)
          ...
 
-.. note::
+.. warning::
 
    Calling the parent's ``__init__()`` function is a hard requirement since Blender 4.4.
    The 'generic' signature is the recommended one here, as Blender internal BPY code is typically
    the only caller of these functions. The actual arguments passed to the constructor are fully
    internal data, and may change depending on the implementation.
+
+   Unfortunately, the error message, generated in case the expected constructor is not called, can
+   be fairly cryptic and unhelping. Generally they should be about failure to create a (python)
+   object:
+
+      MemoryError: couldn't create bpy_struct object_
+
+   With Operators, it might be something like that:
+
+      RuntimeError: could not create instance of <OPERATOR_OT_identifier> to call callback function execute
 
 .. note::
 
