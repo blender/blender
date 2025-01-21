@@ -875,6 +875,12 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
   bsdf->extra->gamma_m_min = gamma_m_min;
   bsdf->extra->gamma_m_max = gamma_m_max;
 
+  if (!(bsdf->extra->gamma_m_min < bsdf->extra->gamma_m_max)) {
+    /* No overlap between the valid range and the visible range. Can happen at grazing `theta`
+     * angles. */
+    return zero_spectrum();
+  }
+
   const float projected_area = cos_theta(local_I) * dh;
 
   return (bsdf_hair_huang_eval_r(kg, sc, local_I, local_O) +
