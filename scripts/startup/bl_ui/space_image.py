@@ -987,6 +987,7 @@ from bl_ui.properties_mask_common import (
     MASK_PT_layers,
     MASK_PT_spline,
     MASK_PT_point,
+    MASK_PT_animation,
     MASK_PT_display,
 )
 
@@ -1010,6 +1011,12 @@ class IMAGE_PT_active_mask_spline(MASK_PT_spline, Panel):
 
 
 class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Mask"
+
+
+class IMAGE_PT_mask_animation(MASK_PT_animation, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Mask"
@@ -1771,6 +1778,7 @@ classes = (
     IMAGE_PT_mask_display,
     IMAGE_PT_active_mask_spline,
     IMAGE_PT_active_mask_point,
+    IMAGE_PT_mask_animation,
     IMAGE_PT_snapping,
     IMAGE_PT_proportional_edit,
     IMAGE_PT_image_properties,

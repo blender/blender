@@ -1191,6 +1191,7 @@ from bl_ui.properties_mask_common import (
     MASK_PT_layers,
     MASK_PT_spline,
     MASK_PT_point,
+    MASK_PT_animation,
     MASK_PT_display,
     MASK_PT_transforms,
     MASK_PT_tools,
@@ -1210,6 +1211,12 @@ class CLIP_PT_active_mask_spline(MASK_PT_spline, Panel):
 
 
 class CLIP_PT_active_mask_point(MASK_PT_point, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Mask"
+
+
+class CLIP_PT_mask_animation(MASK_PT_animation, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Mask"
@@ -1996,6 +2003,7 @@ classes = (
     CLIP_PT_mask_display,
     CLIP_PT_active_mask_spline,
     CLIP_PT_active_mask_point,
+    CLIP_PT_mask_animation,
     CLIP_PT_tools_mask_transforms,
     CLIP_PT_tools_mask_tools,
     CLIP_PT_tools_scenesetup,
