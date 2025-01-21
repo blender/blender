@@ -464,7 +464,7 @@ void RNA_api_space_text(StructRNA *srna);
 void RNA_api_space_filebrowser(StructRNA *srna);
 void RNA_api_region_view3d(StructRNA *srna);
 void RNA_api_texture(StructRNA *srna);
-void RNA_api_strips(BlenderRNA *brna, PropertyRNA *cprop, bool metastrip);
+void RNA_api_strips(StructRNA *srna, bool metastrip);
 void RNA_api_strip_elements(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_api_strip_retiming_keys(BlenderRNA *brna);
 void RNA_api_sound(StructRNA *srna);

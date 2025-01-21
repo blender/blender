@@ -2845,9 +2845,9 @@ class WM_OT_batch_rename(Operator):
                 return data_type_test
             if data_type == data_type_test:
                 data = (
-                    context.selected_sequences
+                    context.selected_strips
                     if only_selected else
-                    scene.sequence_editor.sequences_all,
+                    scene.sequence_editor.strips_all,
                     "name",
                     iface_("Strip(s)"),
                 )

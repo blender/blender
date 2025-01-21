@@ -133,7 +133,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     if (GS(ptr.owner_id->name) == ID_SCE) {
       char stripname[name_maxncpy];
       if (BLI_str_quoted_substr(
-              fcu->rna_path, "sequence_editor.sequences_all[", stripname, sizeof(stripname)))
+              fcu->rna_path, "sequence_editor.strips_all[", stripname, sizeof(stripname)))
       {
         if (strstr(fcu->rna_path, ".transform.") || strstr(fcu->rna_path, ".crop.") ||
             strstr(fcu->rna_path, ".modifiers["))

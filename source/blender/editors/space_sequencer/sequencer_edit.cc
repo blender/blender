@@ -113,7 +113,7 @@ bool ED_space_sequencer_check_show_strip(SpaceSeq *sseq)
 
 static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
 {
-  if (!BLI_str_startswith(fcurve->rna_path, "sequence_editor.sequences_all[\"")) {
+  if (!BLI_str_startswith(fcurve->rna_path, "sequence_editor.strips_all[\"")) {
     return false;
   }
 
