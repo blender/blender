@@ -1433,8 +1433,8 @@ static void save_sample_line(
 
   /* Vector-scope. */
   rgb_to_yuv(rgb[0], rgb[1], rgb[2], &yuv[0], &yuv[1], &yuv[2], BLI_YUV_ITU_BT709);
-  scopes->vecscope[idx + 0] = yuv[1];
-  scopes->vecscope[idx + 1] = yuv[2];
+  scopes->vecscope[idx + 0] = yuv[1] * SCOPES_VEC_U_SCALE;
+  scopes->vecscope[idx + 1] = yuv[2] * SCOPES_VEC_V_SCALE;
 
   int color_idx = (idx / 2) * 3;
   scopes->vecscope_rgb[color_idx + 0] = rgb[0];
