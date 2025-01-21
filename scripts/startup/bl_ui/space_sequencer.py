@@ -1136,7 +1136,7 @@ class SEQUENCER_MT_strip(Menu):
             layout.menu("SEQUENCER_MT_strip_lock_mute")
 
             layout.separator()
-            layout.operator("sequencer.connect", icon="LINKED").toggle = True
+            layout.operator("sequencer.connect", icon='LINKED').toggle = True
             layout.operator("sequencer.disconnect")
 
             layout.separator()
@@ -1319,7 +1319,7 @@ class SEQUENCER_MT_context_menu(Menu):
         layout.menu("SEQUENCER_MT_strip_lock_mute")
 
         layout.separator()
-        layout.operator("sequencer.connect", icon="LINKED").toggle = True
+        layout.operator("sequencer.connect", icon='LINKED').toggle = True
         layout.operator("sequencer.disconnect")
 
     def draw_retime(self, context):
@@ -1771,14 +1771,14 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_effect_text_outline(SequencerButtonsPanel, Panel):
     bl_label = "Outline"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
     bl_parent_id = "SEQUENCER_PT_effect_text_style"
 
     @classmethod
     def poll(cls, context):
         strip = context.active_strip
-        return strip.type == "TEXT"
+        return strip.type == 'TEXT'
 
     def draw_header(self, context):
         strip = context.active_strip
@@ -1798,14 +1798,14 @@ class SEQUENCER_PT_effect_text_outline(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_effect_text_shadow(SequencerButtonsPanel, Panel):
     bl_label = "Shadow"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
     bl_parent_id = "SEQUENCER_PT_effect_text_style"
 
     @classmethod
     def poll(cls, context):
         strip = context.active_strip
-        return strip.type == "TEXT"
+        return strip.type == 'TEXT'
 
     def draw_header(self, context):
         strip = context.active_strip
@@ -1828,14 +1828,14 @@ class SEQUENCER_PT_effect_text_shadow(SequencerButtonsPanel, Panel):
 class SEQUENCER_PT_effect_text_box(SequencerButtonsPanel, Panel):
     bl_label = "Box"
     bl_translation_context = i18n_contexts.id_sequence
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
     bl_parent_id = "SEQUENCER_PT_effect_text_style"
 
     @classmethod
     def poll(cls, context):
         strip = context.active_strip
-        return strip.type == "TEXT"
+        return strip.type == 'TEXT'
 
     def draw_header(self, context):
         strip = context.active_strip

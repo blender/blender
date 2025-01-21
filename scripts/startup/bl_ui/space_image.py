@@ -1726,7 +1726,7 @@ class IMAGE_PT_annotation(AnnotationDataPanel, Panel):
 
 
 class ImageAssetShelf(BrushAssetShelf):
-    bl_space_type = "IMAGE_EDITOR"
+    bl_space_type = 'IMAGE_EDITOR'
 
 
 class IMAGE_AST_brush_paint(ImageAssetShelf, AssetShelf):

@@ -804,7 +804,7 @@ class TOPBAR_PT_grease_pencil_layers(Panel):
         object = context.object
         if object is None:
             return False
-        if object.type != "GREASEPENCIL":
+        if object.type != 'GREASEPENCIL':
             return False
 
         return True

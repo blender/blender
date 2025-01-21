@@ -933,7 +933,7 @@ class USERPREF_PT_viewport_subdivision(ViewportPanel, CenterAlignMixIn, Panel):
     def poll(cls, context):
         import gpu
         backend = gpu.platform.backend_type_get()
-        return backend == "OPENGL"
+        return backend == 'OPENGL'
 
     def draw_centered(self, context, layout):
         prefs = context.preferences
