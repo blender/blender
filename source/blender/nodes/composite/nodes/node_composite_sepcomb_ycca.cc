@@ -7,6 +7,12 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_color.h"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
 
 #include "GPU_material.hh"
 
@@ -74,6 +80,54 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new SeparateYCCAShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  static auto ycca_itu_601_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+      "Separate Color YCCA ITU 601",
+      [](const float4 &color, float &y, float &cb, float &cr, float &a) -> void {
+        rgb_to_ycc(color.x, color.y, color.z, &y, &cb, &cr, BLI_YCC_ITU_BT601);
+        y /= 255.0f;
+        cb /= 255.0f;
+        cr /= 255.0f;
+        a = color.w;
+      },
+      mf::build::exec_presets::AllSpanOrSingle());
+
+  static auto ycca_itu_709_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+      "Separate Color YCCA ITU 709",
+      [](const float4 &color, float &y, float &cb, float &cr, float &a) -> void {
+        rgb_to_ycc(color.x, color.y, color.z, &y, &cb, &cr, BLI_YCC_ITU_BT709);
+        y /= 255.0f;
+        cb /= 255.0f;
+        cr /= 255.0f;
+        a = color.w;
+      },
+      mf::build::exec_presets::AllSpanOrSingle());
+
+  static auto ycca_jpeg_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+      "Separate Color YCCA JPEG",
+      [](const float4 &color, float &y, float &cb, float &cr, float &a) -> void {
+        rgb_to_ycc(color.x, color.y, color.z, &y, &cb, &cr, BLI_YCC_JFIF_0_255);
+        y /= 255.0f;
+        cb /= 255.0f;
+        cr /= 255.0f;
+        a = color.w;
+      },
+      mf::build::exec_presets::AllSpanOrSingle());
+
+  switch (builder.node().custom1) {
+    case BLI_YCC_ITU_BT601:
+      builder.set_matching_fn(ycca_itu_601_function);
+      break;
+    case BLI_YCC_ITU_BT709:
+      builder.set_matching_fn(ycca_itu_709_function);
+      break;
+    case BLI_YCC_JFIF_0_255:
+      builder.set_matching_fn(ycca_jpeg_function);
+      break;
+  }
+}
+
 }  // namespace blender::nodes::node_composite_separate_ycca_cc
 
 void register_node_type_cmp_sepycca()
@@ -91,6 +145,7 @@ void register_node_type_cmp_sepycca()
   ntype.initfunc = file_ns::node_composit_init_mode_sepycca;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }
@@ -170,6 +225,69 @@ static ShaderNode *get_compositor_shader_node(DNode node)
   return new CombineYCCAShaderNode(node);
 }
 
+static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  static auto ycca_itu_601_function = mf::build::SI4_SO<float, float, float, float, float4>(
+      "Combine Color YCCA ITU 601",
+      [](const float y, const float cb, const float cr, const float a) -> float4 {
+        float4 result;
+        ycc_to_rgb(y * 255.0f,
+                   cb * 255.0f,
+                   cr * 255.0f,
+                   &result.x,
+                   &result.y,
+                   &result.z,
+                   BLI_YCC_ITU_BT601);
+        result.w = a;
+        return result;
+      },
+      mf::build::exec_presets::Materialized());
+
+  static auto ycca_itu_709_function = mf::build::SI4_SO<float, float, float, float, float4>(
+      "Combine Color YCCA ITU 709",
+      [](const float y, const float cb, const float cr, const float a) -> float4 {
+        float4 result;
+        ycc_to_rgb(y * 255.0f,
+                   cb * 255.0f,
+                   cr * 255.0f,
+                   &result.x,
+                   &result.y,
+                   &result.z,
+                   BLI_YCC_ITU_BT709);
+        result.w = a;
+        return result;
+      },
+      mf::build::exec_presets::Materialized());
+
+  static auto ycca_jpeg_function = mf::build::SI4_SO<float, float, float, float, float4>(
+      "Combine Color YCCA JPEG",
+      [](const float y, const float cb, const float cr, const float a) -> float4 {
+        float4 result;
+        ycc_to_rgb(y * 255.0f,
+                   cb * 255.0f,
+                   cr * 255.0f,
+                   &result.x,
+                   &result.y,
+                   &result.z,
+                   BLI_YCC_JFIF_0_255);
+        result.w = a;
+        return result;
+      },
+      mf::build::exec_presets::Materialized());
+
+  switch (builder.node().custom1) {
+    case BLI_YCC_ITU_BT601:
+      builder.set_matching_fn(ycca_itu_601_function);
+      break;
+    case BLI_YCC_ITU_BT709:
+      builder.set_matching_fn(ycca_itu_709_function);
+      break;
+    case BLI_YCC_JFIF_0_255:
+      builder.set_matching_fn(ycca_jpeg_function);
+      break;
+  }
+}
+
 }  // namespace blender::nodes::node_composite_combine_ycca_cc
 
 void register_node_type_cmp_combycca()
@@ -187,6 +305,7 @@ void register_node_type_cmp_combycca()
   ntype.initfunc = file_ns::node_composit_init_mode_combycca;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
 }
