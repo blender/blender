@@ -119,7 +119,7 @@ def __convert_keyframes(obj_uuid: str, channel: str, keyframes, action_name: str
             value = gltf2_blender_math.swizzle_yup(value, channel)
         keyframe_value = gltf2_blender_math.mathutils_to_gltf(value)
 
-        # No tangents when baking, we are using LINEAR interpolation
+        # No tangents when baking, we are using LINEAR or STEP interpolation
 
         values += keyframe_value
 
@@ -152,15 +152,15 @@ def __gather_interpolation(
         export_settings):
 
     if len(keyframes) > 2:
-        # keep STEP as STEP, other become LINEAR
+        # keep STEP as STEP, other become the interpolation choosen by the user
         return {
             "STEP": "STEP"
-        }.get(node_channel_interpolation, "LINEAR")
+        }.get(node_channel_interpolation, export_settings['gltf_sampling_interpolation_fallback'])
     elif len(keyframes) == 1:
         if node_channel_is_animated is False:
             return "STEP"
         elif node_channel_interpolation == "CUBICSPLINE":
-            return "LINEAR"  # We can't have a single keyframe with CUBICSPLINE
+            return export_settings['gltf_sampling_interpolation_fallback'] # We can't have a single keyframe with CUBICSPLINE
         else:
             return node_channel_interpolation
     else:
@@ -172,4 +172,4 @@ def __gather_interpolation(
             if keyframes[0].value == keyframes[1].value:
                 return "STEP"
             else:
-                return "LINEAR"
+                return export_settings['gltf_sampling_interpolation_fallback']

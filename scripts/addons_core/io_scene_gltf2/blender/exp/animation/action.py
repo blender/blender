@@ -577,11 +577,11 @@ def gather_action_animations(obj_uuid: int,
                             blender_action.name,
                             slot.slot.handle,
                             True,
-                            get_gltf_interpolation("LINEAR"),
+                            get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
                             export_settings)
                     elif type_ == "OBJECT":
                         channel = gather_sampled_object_channel(
-                            obj_uuid, prop, blender_action.name, slot.slot.handle, True, get_gltf_interpolation("LINEAR"), export_settings)
+                            obj_uuid, prop, blender_action.name, slot.slot.handle, True, get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings), export_settings)
                     elif type_ == "SK":
                         channel = gather_sampled_sk_channel(obj_uuid, blender_action.name, slot.slot.handle, export_settings)
                     elif type_ == "EXTRA":  # TODOSLOT slot-3

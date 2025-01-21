@@ -133,7 +133,7 @@ def __gather_interpolation(
         keyframes,
         export_settings):
     # TODOPointer
-    return 'LINEAR'
+    return export_settings['gltf_sampling_interpolation_fallback']
 
 
 def __convert_to_gltf(value):

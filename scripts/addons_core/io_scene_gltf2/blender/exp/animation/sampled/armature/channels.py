@@ -38,7 +38,7 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_ha
             for chan in [chan for chan in channels_animated.values() if chan['bone'] is not None]:
                 for prop in chan['properties'].keys():
                     list_of_animated_bone_channels[(chan['bone'], get_channel_from_target(get_target(prop)))] = get_gltf_interpolation(
-                        chan['properties'][prop][0].keyframe_points[0].interpolation)  # Could be exported without sampling : keep interpolation
+                        chan['properties'][prop][0].keyframe_points[0].interpolation, export_settings)  # Could be exported without sampling : keep interpolation
 
             for _, _, chan_prop, chan_bone in [chan for chan in to_be_sampled if chan[1] == "BONE"]:
                 list_of_animated_bone_channels[
@@ -46,7 +46,7 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_ha
                         chan_bone,
                         chan_prop,
                     )
-                ] = get_gltf_interpolation("LINEAR")  # if forced to be sampled, keep LINEAR interpolation
+                ] = get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)  # if forced to be sampled, keep the interpolation chosen by the user
     else:
         pass
         # There is no animated channels (because if it was, we would have a slot_handle)
@@ -61,12 +61,12 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_ha
                 blender_action_name,
                 slot_handle,
                 (bone, p) in list_of_animated_bone_channels.keys(),
-                list_of_animated_bone_channels[(bone, p)] if (bone, p) in list_of_animated_bone_channels.keys() else get_gltf_interpolation("LINEAR"),
+                list_of_animated_bone_channels[(bone, p)] if (bone, p) in list_of_animated_bone_channels.keys() else get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
                 export_settings)
             if channel is not None:
                 channels.append(channel)
 
-    bake_interpolation = get_gltf_interpolation("LINEAR")
+    bake_interpolation = get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)
     # Retrieve animation on armature object itself, if any
     if blender_action_name == armature_uuid or export_settings['gltf_animation_mode'] in ["SCENE", "NLA_TRACKS"]:
         # If armature is baked (no animation of armature), need to use all channels
@@ -211,7 +211,7 @@ def __gather_armature_object_channel(obj_uuid: str, blender_action, slot_handle,
                     "delta_rotation_euler": "rotation_quaternion",
                     "delta_rotation_quaternion": "rotation_quaternion"
                 }.get(c),
-                get_gltf_interpolation(inter)
+                get_gltf_interpolation(inter, export_settings)
             )
         )
 
@@ -228,7 +228,7 @@ def __gather_armature_object_channel(obj_uuid: str, blender_action, slot_handle,
                     "delta_rotation_euler": "rotation_quaternion",
                     "delta_rotation_quaternion": "rotation_quaternion"
                 }.get(c[2]),
-                get_gltf_interpolation("LINEAR")  # Forced to be sampled, so use LINEAR
+                get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)  # Forced to be sampled, so use the interpolation chosen by the user
             )
         )
 

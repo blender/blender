@@ -31,7 +31,7 @@ def gather_data_sampled_channels(blender_type_data, blender_id, blender_action_n
             blender_action_name,
             slot_handle,
             path in list_of_animated_data_channels.keys(),
-            list_of_animated_data_channels[path] if path in list_of_animated_data_channels.keys() else get_gltf_interpolation("LINEAR"),
+            list_of_animated_data_channels[path] if path in list_of_animated_data_channels.keys() else get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
             additional_key,
             export_settings)
         if channel is not None:
