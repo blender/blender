@@ -265,7 +265,8 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
         const VKRenderGraphNode &last_node = render_graph.nodes_[group_node_handles.last()];
         bool will_be_suspended = last_node.type != VKNodeType::END_RENDERING;
         if (will_be_suspended) {
-          node.begin_rendering.vk_rendering_info.flags = VK_RENDERING_SUSPENDING_BIT;
+          render_graph.storage_.begin_rendering[node.storage_index].vk_rendering_info.flags =
+              VK_RENDERING_SUSPENDING_BIT;
         }
       }
 
@@ -276,8 +277,9 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
         if (!rendering_active) {
           /* Resume rendering scope. */
           VKRenderGraphNode &rendering_node = render_graph.nodes_[rendering_scope];
-          rendering_node.begin_rendering.vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
-          rendering_node.build_commands(command_buffer, active_pipelines);
+          render_graph.storage_.begin_rendering[rendering_node.storage_index]
+              .vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
+          rendering_node.build_commands(command_buffer, render_graph.storage_, active_pipelines);
           rendering_active = true;
         }
       }
@@ -302,7 +304,7 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
                 << ", node_type=" << node.type
                 << ", debug group=" << render_graph.full_debug_group(node_handle) << "\n";
 #endif
-      node.build_commands(command_buffer, active_pipelines);
+      node.build_commands(command_buffer, render_graph.storage_, active_pipelines);
     }
 
     if (rendering_active) {
@@ -317,7 +319,8 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
       }
 
       VKRenderGraphNode &rendering_node = render_graph.nodes_[rendering_scope];
-      rendering_node.begin_rendering.vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
+      render_graph.storage_.begin_rendering[rendering_node.storage_index].vk_rendering_info.flags =
+          VK_RENDERING_RESUMING_BIT;
     }
 
     /* Record group post barriers. */

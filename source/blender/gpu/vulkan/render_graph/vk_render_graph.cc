@@ -29,9 +29,10 @@ void VKRenderGraph::remove_nodes(Span<NodeHandle> node_handles)
                  "needs to be fixed when implementing a better scheduler.");
   links_.clear();
   for (VKRenderGraphNode &node : nodes_) {
-    node.free_data();
+    node.free_data(storage_);
   }
   nodes_.clear();
+  storage_.reset();
 
   debug_.node_group_map.clear();
   debug_.used_groups.clear();

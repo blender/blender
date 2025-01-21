@@ -46,10 +46,12 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
    * (`VK*Data`/`VK*CreateInfo`) types can be included in the same header file as the logic. The
    * actual node data (`VKRenderGraphNode` includes all header files.)
    */
-  template<typename Node> static void set_node_data(Node &node, const CreateInfo &create_info)
+  template<typename Node, typename Storage>
+  static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
   {
-    node.draw_indexed = create_info.node_data;
-    vk_pipeline_data_copy(node.draw_indexed.pipeline_data, create_info.node_data.pipeline_data);
+    node.storage_index = storage.draw_indexed.append_and_get_index(create_info.node_data);
+    vk_pipeline_data_copy(storage.draw_indexed[node.storage_index].pipeline_data,
+                          create_info.node_data.pipeline_data);
   }
 
   /**
