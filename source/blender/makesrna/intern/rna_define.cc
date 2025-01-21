@@ -53,7 +53,7 @@ static CLG_LogRef LOG = {"rna.define"};
 
 /**
  * Several types cannot use all their bytes to store a bit-set (bit-shift operations on negative
- * numbers are 'arithmetic", i.e. preserve the sign, i.e. are not 'pure' binary shifting).
+ * numbers are "arithmetic", i.e. preserve the sign, i.e. are not "pure" binary shifting).
  *
  * Currently, all signed types and `uint64_t` cannot use their left-most bit (i.e. sign bit).
  */

@@ -408,7 +408,7 @@ static PyObject *bpy_file_path_map(PyObject * /*self*/, PyObject *args, PyObject
 
   bpath_data.bmain = bmain;
   bpath_data.callback_function = foreach_id_file_path_map_callback;
-  /* TODO: needs to be controlable from caller (add more options to the API). */
+  /* TODO: needs to be controllable from caller (add more options to the API). */
   bpath_data.flag = BKE_BPATH_FOREACH_PATH_SKIP_PACKED | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES;
   bpath_data.user_data = &filepathmap_data;
 

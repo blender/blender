@@ -187,7 +187,7 @@ import bpy
 import bpy.types
 import textwrap
 
-# Make pxr module available, for running as bpy pip package.
+# Make `pxr` module available, for running as `bpy` PIP package.
 bpy.utils.expose_bundled_modules()
 
 import pxr.Gf as Gf
