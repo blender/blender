@@ -1284,6 +1284,10 @@ static void std_node_socket_draw(
   int type = sock->typeinfo->type;
   // int subtype = sock->typeinfo->subtype;
 
+  if (sock->is_input() && !sock->affects_node_output()) {
+    uiLayoutSetActive(layout, false);
+  }
+
   /* XXX not nice, eventually give this node its own socket type ... */
   if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
     node_file_output_socket_draw(C, layout, ptr, node_ptr);
