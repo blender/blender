@@ -846,7 +846,8 @@ template<typename T> struct Interval {
 
   ccl_device_inline_method bool is_empty() const
   {
-    return min >= max;
+    /* NaN-safe comparison. */
+    return !(min < max);
   }
 
   ccl_device_inline_method bool contains(T value) const

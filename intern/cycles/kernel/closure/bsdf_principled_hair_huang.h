@@ -38,7 +38,7 @@ struct HuangHairExtra {
   float pixel_coverage;
 
   /* Valid integration interval. */
-  float gamma_m_min, gamma_m_max;
+  Interval<float> gamma_m;
 };
 
 struct HuangHairBSDF {
@@ -349,7 +349,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_r(KernelGlobals kg,
   /* Maximal sample resolution. */
   float res = roughness * 0.7f;
 
-  const float gamma_m_range = bsdf->extra->gamma_m_max - bsdf->extra->gamma_m_min;
+  const float gamma_m_range = bsdf->extra->gamma_m.length();
 
   /* Number of intervals should be even. */
   const size_t intervals = 2 * (size_t)ceilf(gamma_m_range / res * 0.5f);
@@ -360,7 +360,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_r(KernelGlobals kg,
   /* Integrate using Composite Simpson's 1/3 rule. */
   float integral = 0.0f;
   for (size_t i = 0; i <= intervals; i++) {
-    const float gamma_m = bsdf->extra->gamma_m_min + i * res;
+    const float gamma_m = bsdf->extra->gamma_m.min + i * res;
     const float3 wm = sphg_dir(bsdf->tilt, gamma_m, b);
 
     if (microfacet_visible(wi, wo, make_float3(wm.x, 0.0f, wm.z), wh)) {
@@ -418,7 +418,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
   const float sqrt_roughness = sqrtf(roughness);
 
   float res = roughness * 0.8f;
-  const float gamma_m_range = bsdf->extra->gamma_m_max - bsdf->extra->gamma_m_min;
+  const float gamma_m_range = bsdf->extra->gamma_m.length();
   const size_t intervals = 2 * (size_t)ceilf(gamma_m_range / res * 0.5f);
   res = gamma_m_range / intervals;
 
@@ -427,7 +427,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
   Spectrum S_trrt = zero_spectrum();
   for (size_t i = 0; i <= intervals; i++) {
 
-    const float gamma_mi = bsdf->extra->gamma_m_min + i * res;
+    const float gamma_mi = bsdf->extra->gamma_m.min + i * res;
 
     const float3 wmi = sphg_dir(bsdf->tilt, gamma_mi, b);
     const float3 wmi_ = sphg_dir(0.0f, gamma_mi, b);
@@ -827,15 +827,15 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
   const float r = bsdf->extra->radius;
   const float b = bsdf->aspect_ratio;
   const float phi_i = (b == 1.0f) ? 0.0f : dir_phi(local_I);
-  float gamma_m_min = to_gamma(phi_i - half_span, b);
-  float gamma_m_max = to_gamma(phi_i + half_span, b);
-  if (gamma_m_max < gamma_m_min) {
-    gamma_m_max += M_2PI_F;
+
+  Interval<float> gamma_m = {to_gamma(phi_i - half_span, b), to_gamma(phi_i + half_span, b)};
+  if (gamma_m.max < gamma_m.min) {
+    gamma_m.max += M_2PI_F;
   }
 
   /* Prevent numerical issues at the boundary. */
-  gamma_m_min += 1e-3f;
-  gamma_m_max -= 1e-3f;
+  gamma_m.min += 1e-3f;
+  gamma_m.max -= 1e-3f;
 
   /* Length of the integral interval. */
   float dh = 2.0f * r;
@@ -845,41 +845,40 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
      * Inspired by [An Efficient and Practical Near and Far Field Fur Reflectance Model]
      * (https://sites.cs.ucsb.edu/~lingqi/publications/paper_fur2.pdf) by Ling-Qi Yan, Henrik Wann
      * Jensen and Ravi Ramamoorthi. */
-    const float h_max = min(bsdf->h + bsdf->extra->pixel_coverage, r);
-    const float h_min = max(bsdf->h - bsdf->extra->pixel_coverage, -r);
+    const float half_pixel = bsdf->extra->pixel_coverage;
+    const Interval<float> h = intervals_intersection(Interval<float>{-r, r},
+                                                     {bsdf->h - half_pixel, bsdf->h + half_pixel});
 
     /* At the boundaries the hair might not cover the whole pixel. */
-    dh = h_max - h_min;
+    dh = h.length();
 
-    float nearfield_gamma_min = h_to_gamma(h_max / r, bsdf->aspect_ratio, local_I);
-    float nearfield_gamma_max = h_to_gamma(h_min / r, bsdf->aspect_ratio, local_I);
+    Interval<float> nearfield_gamma = {h_to_gamma(h.max / r, bsdf->aspect_ratio, local_I),
+                                       h_to_gamma(h.min / r, bsdf->aspect_ratio, local_I)};
 
-    if (nearfield_gamma_max < nearfield_gamma_min) {
-      nearfield_gamma_max += M_2PI_F;
+    if (nearfield_gamma.max < nearfield_gamma.min) {
+      nearfield_gamma.max += M_2PI_F;
     }
 
     /* Wrap range to compute the intersection. */
-    if ((gamma_m_max - nearfield_gamma_min) > M_2PI_F) {
-      gamma_m_min -= M_2PI_F;
-      gamma_m_max -= M_2PI_F;
+    if ((gamma_m.max - nearfield_gamma.min) > M_2PI_F) {
+      gamma_m.min -= M_2PI_F;
+      gamma_m.max -= M_2PI_F;
     }
-    else if ((nearfield_gamma_max - gamma_m_min) > M_2PI_F) {
-      nearfield_gamma_min -= M_2PI_F;
-      nearfield_gamma_max -= M_2PI_F;
+    else if ((nearfield_gamma.max - gamma_m.min) > M_2PI_F) {
+      nearfield_gamma.min -= M_2PI_F;
+      nearfield_gamma.max -= M_2PI_F;
     }
 
-    gamma_m_min = fmaxf(gamma_m_min, nearfield_gamma_min);
-    gamma_m_max = fminf(gamma_m_max, nearfield_gamma_max);
+    gamma_m = intervals_intersection(gamma_m, nearfield_gamma);
   }
 
-  bsdf->extra->gamma_m_min = gamma_m_min;
-  bsdf->extra->gamma_m_max = gamma_m_max;
-
-  if (!(bsdf->extra->gamma_m_min < bsdf->extra->gamma_m_max)) {
+  if (gamma_m.is_empty()) {
     /* No overlap between the valid range and the visible range. Can happen at grazing `theta`
      * angles. */
     return zero_spectrum();
   }
+
+  bsdf->extra->gamma_m = gamma_m;
 
   const float projected_area = cos_theta(local_I) * dh;
 
