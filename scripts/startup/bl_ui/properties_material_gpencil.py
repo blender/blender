@@ -212,6 +212,15 @@ class MATERIAL_PT_gpencil_animation(GPMaterialButtonsPanel, PropertiesAnimationM
     _animated_id_context_property = "material"
 
 
+class MATERIAL_PT_gpencil_preview(GPMaterialButtonsPanel, Panel):
+    bl_label = "Preview"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        ma = context.material
+        self.layout.template_preview(ma)
+
+
 class MATERIAL_PT_gpencil_custom_props(GPMaterialButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
     _context_path = "object.active_material"
@@ -243,6 +252,7 @@ classes = (
     GPENCIL_UL_matslots,
     GPENCIL_MT_material_context_menu,
     MATERIAL_PT_gpencil_slots,
+    MATERIAL_PT_gpencil_preview,
     MATERIAL_PT_gpencil_material_presets,
     MATERIAL_PT_gpencil_surface,
     MATERIAL_PT_gpencil_strokecolor,
