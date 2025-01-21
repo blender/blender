@@ -2296,6 +2296,12 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
   const IndexMask &node_mask = ss.filter_cache->node_mask;
 
+  if (auto_mask::is_enabled(sd, object, nullptr) && ss.filter_cache->automasking &&
+      ss.filter_cache->automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL)
+  {
+    ss.filter_cache->automasking->calc_cavity_factor(*depsgraph, object, node_mask);
+  }
+
   float3 gravity(0.0f);
   if (sd.gravity_object) {
     gravity = sd.gravity_object->object_to_world().ptr()[2];
