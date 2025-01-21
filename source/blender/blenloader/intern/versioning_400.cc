@@ -1492,7 +1492,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 24)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 25)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->adt) {
         continue;
