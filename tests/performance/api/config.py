@@ -93,10 +93,12 @@ class TestQueue:
 
     def find(self, revision: str, test: str, category: str, device_id: str) -> dict:
         for entry in self.entries:
-            if entry.revision == revision and \
-               entry.test == test and \
-               entry.category == category and \
-               entry.device_id == device_id:
+            if (
+                entry.revision == revision and
+                entry.test == test and
+                entry.category == category and
+                entry.device_id == device_id
+            ):
                 return entry
 
         return None

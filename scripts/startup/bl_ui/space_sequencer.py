@@ -577,10 +577,13 @@ class SEQUENCER_MT_select(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         st = context.space_data
         has_sequencer, has_preview = _space_view_types(st)
-        is_retiming = context.scene.sequence_editor is not None and \
+        is_retiming = (
+            context.scene.sequence_editor is not None and
             context.scene.sequence_editor.selected_retiming_keys
+        )
 
         layout.operator("sequencer.select_all", text="All").action = 'SELECT'
         layout.operator("sequencer.select_all", text="None").action = 'DESELECT'
@@ -1009,10 +1012,13 @@ class SEQUENCER_MT_strip_retiming(Menu):
     bl_label = "Retiming"
 
     def draw(self, context):
-        is_retiming = context.scene.sequence_editor is not None and \
-            context.scene.sequence_editor.selected_retiming_keys
-        strip = context.active_strip
         layout = self.layout
+
+        is_retiming = (
+            context.scene.sequence_editor is not None and
+            context.scene.sequence_editor.selected_retiming_keys
+        )
+        strip = context.active_strip
 
         layout.operator("sequencer.retiming_key_add")
         layout.operator("sequencer.retiming_add_freeze_frame_slide")
