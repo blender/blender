@@ -10,6 +10,7 @@
 #include "NOD_socket_usage_inference.hh"
 
 #include "DNA_anim_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
 #include "BKE_compute_contexts.hh"
@@ -179,6 +180,14 @@ struct SocketUsageInferencer {
         this->usage_task__input__generic_switch(socket, menu_switch__is_socket_selected);
         break;
       }
+      case SH_NODE_MIX: {
+        this->usage_task__input__generic_switch(socket, mix_node__is_socket_selected);
+        break;
+      }
+      case SH_NODE_MIX_SHADER: {
+        this->usage_task__input__generic_switch(socket, shader_mix_node__is_socket_selected);
+        break;
+      }
       case GEO_NODE_SIMULATION_INPUT: {
         this->usage_task__input__simulation_input_node(socket);
         break;
@@ -217,13 +226,14 @@ struct SocketUsageInferencer {
   {
     const NodeInContext node = socket.owner_node();
     BLI_assert(node->input_sockets().size() >= 1);
-    BLI_assert(node->output_sockets().size() == 1);
+    BLI_assert(node->output_sockets().size() >= 1);
 
     if (socket->type == SOCK_CUSTOM && STREQ(socket->idname, "NodeSocketVirtual")) {
       all_socket_usages_.add_new(socket, false);
       return;
     }
-    const SocketInContext output_socket = node.output_socket(0);
+    const SocketInContext output_socket{socket.context,
+                                        this->get_first_available_bsocket(node->output_sockets())};
     const std::optional<bool> output_is_used = all_socket_usages_.lookup_try(output_socket);
     if (!output_is_used.has_value()) {
       this->push_usage_task(output_socket);
@@ -233,7 +243,8 @@ struct SocketUsageInferencer {
       all_socket_usages_.add_new(socket, false);
       return;
     }
-    const SocketInContext condition_socket = node.input_socket(0);
+    const SocketInContext condition_socket{
+        socket.context, this->get_first_available_bsocket(node->input_sockets())};
     if (socket == condition_socket) {
       all_socket_usages_.add_new(socket, true);
       return;
@@ -246,6 +257,16 @@ struct SocketUsageInferencer {
     }
     const bool is_used = is_selected_socket(socket, condition_value);
     all_socket_usages_.add_new(socket, is_used);
+  }
+
+  const bNodeSocket *get_first_available_bsocket(const Span<const bNodeSocket *> sockets) const
+  {
+    for (const bNodeSocket *socket : sockets) {
+      if (socket->is_available()) {
+        return socket;
+      }
+    }
+    return nullptr;
   }
 
   void usage_task__input__group_node(const SocketInContext &socket)
@@ -766,6 +787,69 @@ struct SocketUsageInferencer {
     const int menu_value = *static_cast<const int *>(condition);
     const NodeEnumItem &item = storage.enum_definition.items_array[socket->index() - 1];
     return menu_value == item.identifier;
+  }
+
+  static bool mix_node__is_socket_selected(const SocketInContext &socket, const void *condition)
+  {
+    const NodeShaderMix &storage = *static_cast<const NodeShaderMix *>(
+        socket.owner_node()->storage);
+    if (storage.data_type == SOCK_RGBA && storage.blend_type != MA_RAMP_BLEND) {
+      return true;
+    }
+
+    const bool clamp_factor = storage.clamp_factor != 0;
+    bool only_a = false;
+    bool only_b = false;
+    if (storage.data_type == SOCK_VECTOR && storage.factor_mode == NODE_MIX_MODE_NON_UNIFORM) {
+      const float3 mix_factor = *static_cast<const float3 *>(condition);
+      if (clamp_factor) {
+        only_a = mix_factor.x <= 0.0f && mix_factor.y <= 0.0f && mix_factor.z <= 0.0f;
+        only_b = mix_factor.x >= 1.0f && mix_factor.y >= 1.0f && mix_factor.z >= 1.0f;
+      }
+      else {
+        only_a = float3{0.0f, 0.0f, 0.0f} == mix_factor;
+        only_b = float3{1.0f, 1.0f, 1.0f} == mix_factor;
+      }
+    }
+    else {
+      const float mix_factor = *static_cast<const float *>(condition);
+      if (clamp_factor) {
+        only_a = mix_factor <= 0.0f;
+        only_b = mix_factor >= 1.0f;
+      }
+      else {
+        only_a = mix_factor == 0.0f;
+        only_b = mix_factor == 1.0f;
+      }
+    }
+    if (only_a) {
+      if (STREQ(socket->name, "B")) {
+        return false;
+      }
+    }
+    if (only_b) {
+      if (STREQ(socket->name, "A")) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool shader_mix_node__is_socket_selected(const SocketInContext &socket,
+                                                  const void *condition)
+  {
+    const float mix_factor = *static_cast<const float *>(condition);
+    if (mix_factor == 0.0f) {
+      if (STREQ(socket->identifier, "Shader_001")) {
+        return false;
+      }
+    }
+    else if (mix_factor == 1.0f) {
+      if (STREQ(socket->identifier, "Shader")) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void push_usage_task(const SocketInContext &socket)
