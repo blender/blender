@@ -337,12 +337,7 @@ class Device {
 class GPUDevice : public Device {
  protected:
   GPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_)
-      : Device(info_, stats_, profiler_, headless_),
-        texture_info(this, "texture_info", MEM_GLOBAL),
-
-        device_mem_map(),
-        device_mem_map_mutex()
-
+      : Device(info_, stats_, profiler_, headless_), texture_info(this, "texture_info", MEM_GLOBAL)
   {
   }
 
