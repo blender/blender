@@ -5,7 +5,6 @@
 #include "BKE_curves.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_task.hh"
 
 #include "node_geometry_util.hh"
 

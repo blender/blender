@@ -7,8 +7,6 @@
 #include "BKE_pointcloud.hh"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_task.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_points_cc {

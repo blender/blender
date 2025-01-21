@@ -4,8 +4,6 @@
 
 #include "BKE_mesh.hh"
 
-#include "BLI_task.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc {

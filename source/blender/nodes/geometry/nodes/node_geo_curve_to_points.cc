@@ -4,7 +4,6 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_task.hh"
 
 #include "DNA_pointcloud_types.h"
 
