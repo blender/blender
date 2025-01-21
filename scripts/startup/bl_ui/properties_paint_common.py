@@ -622,8 +622,11 @@ class FalloffPanel(BrushPanel):
             return
 
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(brush, "curve_preset", text="")
+        if context.region.type == 'TOOL_HEADER':
+            col.prop(brush, "curve_preset", expand=True)
+        else:
+            row = col.row(align=True)
+            col.prop(brush, "curve_preset", text="")
 
         if brush.curve_preset == 'CUSTOM':
             layout.template_curve_mapping(brush, "curve", brush=True)

@@ -1379,9 +1379,13 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
     def draw(self, context):
         layout = self.layout
         props = context.scene.tool_settings.uv_sculpt
-        layout.prop(props, "curve_preset", text="")
+
+        col = layout.column()
+        col.prop(props, "curve_preset", expand=True)
+
         if props.curve_preset == 'CUSTOM':
-            layout.template_curve_mapping(props, "strength_curve")
+            col = layout.column()
+            col.template_curve_mapping(props, "strength_curve")
 
 
 # Only a popover.
