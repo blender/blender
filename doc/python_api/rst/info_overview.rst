@@ -212,9 +212,10 @@ otherwise Blender's internal initialization won't happen properly:
    internal data, and may change depending on the implementation.
 
    Unfortunately, the error message, generated in case the expected constructor is not called, can
-   be fairly cryptic and unhelping. Generally they should be about failure to create a (python) object:
+   be fairly cryptic and unhelping. Generally they should be about failure to create a (python)
+   object:
 
-      MemoryError: couldn't create bpy_struct object_
+      MemoryError: couldn't create bpy_struct object\_
 
    With Operators, it might be something like that:
 
