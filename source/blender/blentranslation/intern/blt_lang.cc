@@ -227,8 +227,8 @@ void BLT_lang_init()
 void BLT_lang_free()
 {
 #ifdef WITH_INTERNATIONAL
+  bl_locale_free();
   free_locales();
-#else
 #endif
 }
 

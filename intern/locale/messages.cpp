@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
-#include <stdexcept>
+#include <memory>
 #include <string>
 #include <string_view>
 
@@ -63,194 +63,202 @@ static constexpr bool is_numeric_ascii(const char c)
   return '0' <= c && c <= '9';
 }
 
-/* Locale parsing. */
-
-static bool parse_from_variant(Info &info, const std::string_view input)
-{
-  if (info.language == "C" || input.empty()) {
-    return false;
-  }
-  info.variant = input;
-  /* No assumptions, just make it lowercase. */
-  for (char &c : info.variant) {
-    make_lower_ascii(c);
-  }
-  return true;
-}
-
-static bool parse_from_encoding(Info &info, const std::string_view input)
-{
-  const auto end = input.find_first_of('@');
-  std::string tmp(input.substr(0, end));
-  if (tmp.empty()) {
-    return false;
-  }
-  /* tmp contains encoding, we ignore it. */
-  if (end >= input.size()) {
-    return true;
-  }
-  BLI_assert(input[end] == '@');
-  return parse_from_variant(info, input.substr(end + 1));
-}
-
-static bool parse_from_country(Info &info, const std::string_view input)
-{
-  if (info.language == "C") {
-    return false;
-  }
-
-  const auto end = input.find_first_of("@.");
-  std::string tmp(input.substr(0, end));
-  if (tmp.empty()) {
-    return false;
-  }
-
-  for (char &c : tmp) {
-    make_upper_ascii(c);
-  }
-
-  /* If it's ALL uppercase ASCII, assume ISO 3166 country id. */
-  if (std::find_if_not(tmp.begin(), tmp.end(), is_upper_ascii) != tmp.end()) {
-    /* else handle special cases:
-     *   - en_US_POSIX is an alias for C
-     *   - M49 country code: 3 digits */
-    if (info.language == "en" && tmp == "US_POSIX") {
-      info.language = "C";
-      tmp.clear();
-    }
-    else if (tmp.size() != 3u ||
-             std::find_if_not(tmp.begin(), tmp.end(), is_numeric_ascii) != tmp.end())
-    {
-      return false;
-    }
-  }
-
-  info.country = tmp;
-  if (end >= input.size()) {
-    return true;
-  }
-  if (input[end] == '.') {
-    return parse_from_encoding(info, input.substr(end + 1));
-  }
-  BLI_assert(input[end] == '@');
-  return parse_from_variant(info, input.substr(end + 1));
-}
-
-static bool parse_from_script(Info &info, const std::string_view input)
-{
-  const auto end = input.find_first_of("-_@.");
-  std::string tmp(input.substr(0, end));
-  /* Script is exactly 4 ASCII characters, otherwise it is not present. */
-  if (tmp.length() != 4) {
-    return parse_from_country(info, input);
-  }
-
-  for (char &c : tmp) {
-    if (!is_lower_ascii(c) && !make_lower_ascii(c)) {
-      return parse_from_country(info, input);
-    }
-  }
-  make_upper_ascii(tmp[0]); /* Capitalize first letter only. */
-  info.script = tmp;
-
-  if (end >= input.size()) {
-    return true;
-  }
-  if (input[end] == '-' || input[end] == '_') {
-    return parse_from_country(info, input.substr(end + 1));
-  }
-  if (input[end] == '.') {
-    return parse_from_encoding(info, input.substr(end + 1));
-  }
-  BLI_assert(input[end] == '@');
-  return parse_from_variant(info, input.substr(end + 1));
-}
-
-static bool parse_from_lang(Info &info, const std::string_view input)
-{
-  const auto end = input.find_first_of("-_@.");
-  std::string tmp(input.substr(0, end));
-  if (tmp.empty()) {
-    return false;
-  }
-  for (char &c : tmp) {
-    if (!is_lower_ascii(c) && !make_lower_ascii(c)) {
-      return false;
-    }
-  }
-  if (tmp != "c" && tmp != "posix") { /* Keep default if C or POSIX. */
-    info.language = tmp;
-  }
-
-  if (end >= input.size()) {
-    return true;
-  }
-  if (input[end] == '-' || input[end] == '_') {
-    return parse_from_script(info, input.substr(end + 1));
-  }
-  if (input[end] == '.') {
-    return parse_from_encoding(info, input.substr(end + 1));
-  }
-  BLI_assert(input[end] == '@');
-  return parse_from_variant(info, input.substr(end + 1));
-}
-
 /* Info about a locale. */
 
-Info::Info(const StringRef locale_full_name)
-{
-  std::string locale_name(locale_full_name);
+class Info {
+ public:
+  std::string language = "C";
+  std::string script;
+  std::string country;
+  std::string variant;
 
-  /* If locale name not specified, try to get the appropriate one from the system. */
+  Info(const StringRef locale_full_name)
+  {
+    std::string locale_name(locale_full_name);
+
+    /* If locale name not specified, try to get the appropriate one from the system. */
 #if defined(__APPLE__) && !defined(WITH_HEADLESS) && !defined(WITH_GHOST_SDL)
-  if (locale_name.empty()) {
-    locale_name = macos_user_locale();
-  }
+    if (locale_name.empty()) {
+      locale_name = macos_user_locale();
+    }
 #endif
 
-  if (locale_name.empty()) {
-    const char *lc_all = BLI_getenv("LC_ALL");
-    if (lc_all) {
-      locale_name = lc_all;
-    }
-  }
-  if (locale_name.empty()) {
-    const char *lang = BLI_getenv("LANG");
-    if (lang) {
-      locale_name = lang;
-    }
-  }
-
-#ifdef _WIN32
-  if (locale_name.empty()) {
-    char buf[128] = {};
-    if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, buf, sizeof(buf)) != 0) {
-      locale_name = buf;
-      if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, buf, sizeof(buf)) != 0) {
-        locale_name += "_";
-        locale_name += buf;
+    if (locale_name.empty()) {
+      const char *lc_all = BLI_getenv("LC_ALL");
+      if (lc_all) {
+        locale_name = lc_all;
       }
     }
-  }
+    if (locale_name.empty()) {
+      const char *lang = BLI_getenv("LANG");
+      if (lang) {
+        locale_name = lang;
+      }
+    }
+
+#ifdef _WIN32
+    if (locale_name.empty()) {
+      char buf[128] = {};
+      if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, buf, sizeof(buf)) != 0) {
+        locale_name = buf;
+        if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, buf, sizeof(buf)) != 0) {
+          locale_name += "_";
+          locale_name += buf;
+        }
+      }
+    }
 #endif
 
-  parse_from_lang(*this, locale_name);
-}
+    parse_from_lang(locale_name);
+  }
 
-std::string Info::to_full_name() const
-{
-  std::string result = language;
-  if (!script.empty()) {
-    result += '_' + script;
+  std::string to_full_name() const
+  {
+    std::string result = language;
+    if (!script.empty()) {
+      result += '_' + script;
+    }
+    if (!country.empty()) {
+      result += '_' + country;
+    }
+    if (!variant.empty()) {
+      result += '@' + variant;
+    }
+    return result;
   }
-  if (!country.empty()) {
-    result += '_' + country;
+
+ private:
+  /* Locale parsing. */
+  bool parse_from_variant(const std::string_view input)
+  {
+    if (language == "C" || input.empty()) {
+      return false;
+    }
+    variant = input;
+    /* No assumptions, just make it lowercase. */
+    for (char &c : variant) {
+      make_lower_ascii(c);
+    }
+    return true;
   }
-  if (!variant.empty()) {
-    result += '@' + variant;
+
+  bool parse_from_encoding(const std::string_view input)
+  {
+    const int64_t end = input.find_first_of('@');
+    std::string tmp(input.substr(0, end));
+    if (tmp.empty()) {
+      return false;
+    }
+    /* tmp contains encoding, we ignore it. */
+    if (end >= input.size()) {
+      return true;
+    }
+    BLI_assert(input[end] == '@');
+    return parse_from_variant(input.substr(end + 1));
   }
-  return result;
-}
+
+  bool parse_from_country(const std::string_view input)
+  {
+    if (language == "C") {
+      return false;
+    }
+
+    const int64_t end = input.find_first_of("@.");
+    std::string tmp(input.substr(0, end));
+    if (tmp.empty()) {
+      return false;
+    }
+
+    for (char &c : tmp) {
+      make_upper_ascii(c);
+    }
+
+    /* If it's ALL uppercase ASCII, assume ISO 3166 country id. */
+    if (std::find_if_not(tmp.begin(), tmp.end(), is_upper_ascii) != tmp.end()) {
+      /* else handle special cases:
+       *   - en_US_POSIX is an alias for C
+       *   - M49 country code: 3 digits */
+      if (language == "en" && tmp == "US_POSIX") {
+        language = "C";
+        tmp.clear();
+      }
+      else if (tmp.size() != 3u ||
+               std::find_if_not(tmp.begin(), tmp.end(), is_numeric_ascii) != tmp.end())
+      {
+        return false;
+      }
+    }
+
+    country = tmp;
+    if (end >= input.size()) {
+      return true;
+    }
+    if (input[end] == '.') {
+      return parse_from_encoding(input.substr(end + 1));
+    }
+    BLI_assert(input[end] == '@');
+    return parse_from_variant(input.substr(end + 1));
+  }
+
+  bool parse_from_script(const std::string_view input)
+  {
+    const int64_t end = input.find_first_of("-_@.");
+    std::string tmp(input.substr(0, end));
+    /* Script is exactly 4 ASCII characters, otherwise it is not present. */
+    if (tmp.length() != 4) {
+      return parse_from_country(input);
+    }
+
+    for (char &c : tmp) {
+      if (!is_lower_ascii(c) && !make_lower_ascii(c)) {
+        return parse_from_country(input);
+      }
+    }
+    make_upper_ascii(tmp[0]); /* Capitalize first letter only. */
+    script = tmp;
+
+    if (end >= input.size()) {
+      return true;
+    }
+    if (input[end] == '-' || input[end] == '_') {
+      return parse_from_country(input.substr(end + 1));
+    }
+    if (input[end] == '.') {
+      return parse_from_encoding(input.substr(end + 1));
+    }
+    BLI_assert(input[end] == '@');
+    return parse_from_variant(input.substr(end + 1));
+  }
+
+  bool parse_from_lang(const std::string_view input)
+  {
+    const int64_t end = input.find_first_of("-_@.");
+    std::string tmp(input.substr(0, end));
+    if (tmp.empty()) {
+      return false;
+    }
+    for (char &c : tmp) {
+      if (!is_lower_ascii(c) && !make_lower_ascii(c)) {
+        return false;
+      }
+    }
+    if (tmp != "c" && tmp != "posix") { /* Keep default if C or POSIX. */
+      language = tmp;
+    }
+
+    if (end >= input.size()) {
+      return true;
+    }
+    if (input[end] == '-' || input[end] == '_') {
+      return parse_from_script(input.substr(end + 1));
+    }
+    if (input[end] == '.') {
+      return parse_from_encoding(input.substr(end + 1));
+    }
+    BLI_assert(input[end] == '@');
+    return parse_from_variant(input.substr(end + 1));
+  }
+};
 
 /* .mo file reader. */
 
@@ -418,17 +426,17 @@ inline bool operator==(const MessageKeyRef &a, const MessageKey &b)
   return a.context_ == b.context_ && a.str_ == b.str_;
 }
 
-/* std::locale facet for translation based on .mo files. */
+/* Messages translation based on .mo files. */
 
-class MOMessageFacet : public MessageFacet {
+class MOMessages {
   using Catalog = Map<MessageKey, std::string>;
   Vector<Catalog> catalogs_;
   std::string error_;
 
  public:
-  MOMessageFacet(const Info &info,
-                 const Vector<std::string> &domains,
-                 const Vector<std::string> &paths)
+  MOMessages(const Info &info,
+             const Vector<std::string> &domains,
+             const Vector<std::string> &paths)
   {
     const Vector<std::string> catalog_paths = get_catalog_paths(info, paths);
     for (size_t i = 0; i < domains.size(); i++) {
@@ -444,9 +452,7 @@ class MOMessageFacet : public MessageFacet {
     }
   }
 
-  const char *translate(const int domain,
-                        const StringRef context,
-                        const StringRef str) const override
+  const char *translate(const int domain, const StringRef context, const StringRef str) const
   {
     if (domain < 0 || domain >= catalogs_.size()) {
       return nullptr;
@@ -533,22 +539,47 @@ class MOMessageFacet : public MessageFacet {
   }
 };
 
-/* Install facet into std::locale. */
+/* Public API */
 
-std::locale::id MessageFacet::id;
+static std::unique_ptr<MOMessages> global_messages;
+static std::string global_full_name;
 
-std::locale MessageFacet::install(const std::locale &locale,
-                                  const Info &info,
-                                  const Vector<std::string> &domains,
-                                  const Vector<std::string> &paths)
+void init(const StringRef locale_full_name,
+          const Vector<std::string> &domains,
+          const Vector<std::string> &paths)
 {
-  MOMessageFacet *facet = new MOMessageFacet(info, domains, paths);
-  if (!facet->error().empty()) {
-    throw std::runtime_error(facet->error());
-    return locale;
+  Info info(locale_full_name);
+  if (global_full_name == info.to_full_name()) {
+    return;
   }
 
-  return std::locale(locale, facet);
+  global_messages = std::make_unique<MOMessages>(info, domains, paths);
+  global_full_name = info.to_full_name();
+
+  if (!global_messages->error().empty()) {
+    printf("bl_locale_set(%s): %s\n", global_full_name.c_str(), global_messages->error().c_str());
+    free();
+  }
+}
+
+void free()
+{
+  global_messages.reset();
+  global_full_name = "";
+}
+
+const char *translate(const int domain, const StringRef context, const StringRef key)
+{
+  if (!global_messages) {
+    return nullptr;
+  }
+
+  return global_messages->translate(domain, context, key);
+}
+
+const char *full_name()
+{
+  return global_full_name.c_str();
 }
 
 }  // namespace blender::locale

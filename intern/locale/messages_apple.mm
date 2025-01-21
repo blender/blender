@@ -17,7 +17,7 @@ namespace blender::locale {
 
 #if !defined(WITH_HEADLESS) && !defined(WITH_GHOST_SDL)
 /* Get current locale. */
-std::string Info::macos_user_locale()
+std::string macos_user_locale()
 {
   std::string result;
 

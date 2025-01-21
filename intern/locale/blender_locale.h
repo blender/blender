@@ -16,6 +16,7 @@ extern "C" {
 
 void bl_locale_init(const char *messages_path, const char *default_domain);
 void bl_locale_set(const char *locale);
+void bl_locale_free(void);
 const char *bl_locale_get(void);
 const char *bl_locale_pgettext(const char *msgctxt, const char *msgid);
 
