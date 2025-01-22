@@ -32,6 +32,8 @@ namespace blender::ed::sculpt_paint {
 inline namespace layer_cc {
 
 struct LocalData {
+  Vector<float3> persistent_positions;
+  Vector<float3> persistent_normals;
   Vector<float3> positions;
   Vector<float> factors;
   Vector<float> distances;
@@ -218,6 +220,9 @@ static void calc_grids(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
                        Object &object,
+                       const bool use_persistent_base,
+                       const Span<float3> persistent_base_positions,
+                       const Span<float3> persistent_base_normals,
                        bke::pbvh::GridsNode &node,
                        LocalData &tls,
                        MutableSpan<float> layer_displacement_factor)
@@ -250,33 +255,64 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
+  if (subdiv_ccg.masks.is_empty()) {
+    tls.masks.clear();
+  }
+  else {
+    tls.masks.resize(positions.size());
+    gather_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, tls.masks.as_mutable_span());
+  }
+  const MutableSpan<float> masks = tls.masks;
+
   const MutableSpan<float> displacement_factors = gather_data_grids(
       subdiv_ccg, layer_displacement_factor.as_span(), grids, tls.displacement_factors);
 
-  offset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
-  if (!subdiv_ccg.masks.is_empty()) {
-    tls.masks.resize(positions.size());
-    mask::gather_mask_grids(subdiv_ccg, grids, tls.masks);
+  if (use_persistent_base) {
+    if (cache.invert) {
+      reset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
+    }
+    else {
+      offset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
+    }
+    clamp_displacement_factors(displacement_factors, masks);
+
+    scatter_data_grids(
+        subdiv_ccg, displacement_factors.as_span(), grids, layer_displacement_factor);
+
+    tls.translations.resize(positions.size());
+    const MutableSpan<float3> translations = tls.translations;
+    calc_translations(
+        gather_data_grids(subdiv_ccg, persistent_base_positions, grids, tls.persistent_positions),
+        gather_data_grids(subdiv_ccg, persistent_base_normals, grids, tls.persistent_normals),
+        positions,
+        displacement_factors,
+        tls.factors,
+        brush.height,
+        translations);
+
+    clip_and_lock_translations(sd, ss, positions, translations);
+    apply_translations(translations, grids, subdiv_ccg);
   }
   else {
-    tls.masks.clear();
+    offset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
+    clamp_displacement_factors(displacement_factors, masks);
+
+    scatter_data_grids(
+        subdiv_ccg, displacement_factors.as_span(), grids, layer_displacement_factor);
+
+    tls.translations.resize(positions.size());
+    const MutableSpan<float3> translations = tls.translations;
+    calc_translations(orig_data.positions,
+                      orig_data.normals,
+                      positions,
+                      displacement_factors,
+                      tls.factors,
+                      brush.height,
+                      translations);
+
+    clip_and_lock_translations(sd, ss, positions, translations);
+    apply_translations(translations, grids, subdiv_ccg);
   }
-  clamp_displacement_factors(displacement_factors, tls.masks);
-
-  scatter_data_grids(subdiv_ccg, displacement_factors.as_span(), grids, layer_displacement_factor);
-
-  tls.translations.resize(positions.size());
-  const MutableSpan<float3> translations = tls.translations;
-  calc_translations(orig_data.positions,
-                    orig_data.normals,
-                    positions,
-                    displacement_factors,
-                    tls.factors,
-                    brush.height,
-                    translations);
-
-  clip_and_lock_translations(sd, ss, positions, translations);
-  apply_translations(translations, grids, subdiv_ccg);
 }
 
 static void calc_bmesh(const Depsgraph &depsgraph,
@@ -414,14 +450,42 @@ void do_layer_brush(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
-      if (ss.cache->layer_displacement_factor.is_empty()) {
-        ss.cache->layer_displacement_factor = Array<float>(positions.size(), 0.0f);
+
+      const Span<float3> persistent_position = ss.sculpt_persistent_co;
+      const Span<float3> persistent_normal = ss.sculpt_persistent_no;
+
+      bool use_persistent_base = false;
+      MutableSpan<float> displacement;
+      if (brush.flag & BRUSH_PERSISTENT) {
+        if (!persistent_position.is_empty() && !persistent_normal.is_empty()) {
+          if (ss.sculpt_persistent_disp.is_empty()) {
+            ss.sculpt_persistent_disp = Array<float>(positions.size(), 0.0f);
+          }
+          use_persistent_base = true;
+          displacement = ss.sculpt_persistent_disp;
+        }
       }
-      const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
+
+      if (displacement.is_empty()) {
+        if (ss.cache->layer_displacement_factor.is_empty()) {
+          ss.cache->layer_displacement_factor = Array<float>(positions.size(), 0.0f);
+        }
+        displacement = ss.cache->layer_displacement_factor;
+      }
+
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
-        calc_grids(depsgraph, sd, brush, object, nodes[i], tls, displacement);
+        calc_grids(depsgraph,
+                   sd,
+                   brush,
+                   object,
+                   use_persistent_base,
+                   persistent_position,
+                   persistent_normal,
+                   nodes[i],
+                   tls,
+                   displacement);
         bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
       });
       break;

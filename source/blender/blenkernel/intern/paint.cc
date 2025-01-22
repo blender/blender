@@ -2096,6 +2096,10 @@ void BKE_sculptsession_free_pbvh(Object &object)
   ss->fake_neighbors.fake_neighbor_index = {};
   ss->topology_island_cache.reset();
 
+  ss->sculpt_persistent_co = {};
+  ss->sculpt_persistent_no = {};
+  ss->sculpt_persistent_disp = {};
+
   ss->clear_active_vert(false);
 }
 
