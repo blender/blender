@@ -1405,6 +1405,10 @@ static int bake(const BakeAPIRender *bkr,
   /* We build a depsgraph for the baking,
    * so we don't need to change the original data to adjust visibility and modifiers. */
   Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
+
+  /* Ensure meshes are generated even for objects with animated visibility, see: #107426. */
+  DEG_disable_visibility_optimization(depsgraph);
+
   DEG_graph_build_from_view_layer(depsgraph);
 
   int op_result = OPERATOR_CANCELLED;
