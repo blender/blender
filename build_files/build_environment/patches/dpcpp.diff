@@ -265,3 +265,17 @@ index ec740f913ed4..c0e04bfaf119 100644
  
  foreach(flag_var
      CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+diff --git a/llvm/cmake/modules/HandleLLVMOptions.cmake b/llvm/cmake/modules/HandleLLVMOptions.cmake
+index 63a5bfe09a03..0eb3fd2adf20 100644
+--- a/llvm/cmake/modules/HandleLLVMOptions.cmake
++++ b/llvm/cmake/modules/HandleLLVMOptions.cmake
+@@ -575,6 +575,9 @@ if( MSVC )
+ 
+   append("/Zc:inline" CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
+ 
++  # Zc:lambda works around VS19 internal compiler errors.
++  append("/Zc:lambda" CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
++
+   if (NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+     # Enable standards-conforming preprocessor.
+     # https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor
