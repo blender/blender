@@ -1155,7 +1155,6 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
           break;
         }
         case CMP_NODE_IMAGE:
-        case CMP_NODE_R_LAYERS:
         case CMP_NODE_VIEWER: {
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           iuser->scene = nullptr;
