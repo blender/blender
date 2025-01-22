@@ -134,7 +134,6 @@ static bool buffer_from_filepath(const char *filepath,
         size_read);
   }
   else {
-    close(file);
     *r_size = size;
     if (r_mem) {
       *r_mem = mem;
