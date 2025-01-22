@@ -1,33 +1,5 @@
-diff --git a/extern/quadriflow/src/loader.cpp b/extern/quadriflow/src/loader.cpp
---- a/extern/quadriflow/src/loader.cpp
-+++ b/extern/quadriflow/src/loader.cpp
-@@ -69,7 +69,7 @@
-        };
-
-        /// Hash function for obj_vertex
--       struct obj_vertexHash : std::unary_function<obj_vertex, size_t> {
-+       struct obj_vertexHash {
-                std::size_t operator()(const obj_vertex &v) const {
-                        size_t hash = std::hash<uint32_t>()(v.p);
-                        hash = hash * 37 + std::hash<uint32_t>()(v.uv);
-diff --git a/extern/quadriflow/src/config.hpp b/extern/quadriflow/src/config.hpp
-index 842b885..bf597ad 100644
---- a/extern/quadriflow/src/config.hpp
-+++ b/extern/quadriflow/src/config.hpp
-@@ -1,6 +1,11 @@
- #ifndef CONFIG_H_
- #define CONFIG_H_
- 
-+/* Workaround a bug in boost 1.68, until we upgrade to a newer version. */
-+#if defined(__clang__) && defined(WIN32)
-+  #include <boost/type_traits/is_assignable.hpp>
-+  using namespace boost;
-+#endif
- // Move settings to cmake to make CMake happy :)
- 
- // #define WITH_SCALE
 diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc b/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc
-index 35a73d9..0eeba8a 100644
+index 35a73d9f308..0eeba8ab6c2 100644
 --- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc
 +++ b/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc
 @@ -221,9 +221,8 @@ namespace lemon {
@@ -41,108 +13,6 @@ index 35a73d9..0eeba8a 100644
      ParData p;
      p.help=opt;
      p.mandatory=false;
-diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h b/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
-index 6ccad33..388e990 100644
---- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
-+++ b/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
-@@ -234,7 +234,7 @@ namespace lemon {
-     int in_arc, join, u_in, v_in, u_out, v_out;
-     Value delta;
- 
--    const Value MAX;
-+    const Value MAX_VALUE;
- 
-   public:
- 
-@@ -649,9 +649,9 @@ namespace lemon {
-     NetworkSimplex(const GR& graph, bool arc_mixing = true) :
-       _graph(graph), _node_id(graph), _arc_id(graph),
-       _arc_mixing(arc_mixing),
--      MAX(std::numeric_limits<Value>::max()),
-+      MAX_VALUE(std::numeric_limits<Value>::max()),
-       INF(std::numeric_limits<Value>::has_infinity ?
--          std::numeric_limits<Value>::infinity() : MAX)
-+          std::numeric_limits<Value>::infinity() : MAX_VALUE)
-     {
-       // Check the number types
-       LEMON_ASSERT(std::numeric_limits<Value>::is_signed,
-@@ -1076,9 +1076,9 @@ namespace lemon {
-         for (int i = 0; i != _arc_num; ++i) {
-           Value c = _lower[i];
-           if (c >= 0) {
--            _cap[i] = _upper[i] < MAX ? _upper[i] - c : INF;
-+            _cap[i] = _upper[i] < MAX_VALUE ? _upper[i] - c : INF;
-           } else {
--            _cap[i] = _upper[i] < MAX + c ? _upper[i] - c : INF;
-+            _cap[i] = _upper[i] < MAX_VALUE + c ? _upper[i] - c : INF;
-           }
-           _supply[_source[i]] -= c;
-           _supply[_target[i]] += c;
-@@ -1282,7 +1282,7 @@ namespace lemon {
-         d = _flow[e];
-         if (_pred_dir[u] == DIR_DOWN) {
-           c = _cap[e];
--          d = c >= MAX ? INF : c - d;
-+          d = c >= MAX_VALUE ? INF : c - d;
-         }
-         if (d < delta) {
-           delta = d;
-@@ -1297,7 +1297,7 @@ namespace lemon {
-         d = _flow[e];
-         if (_pred_dir[u] == DIR_UP) {
-           c = _cap[e];
--          d = c >= MAX ? INF : c - d;
-+          d = c >= MAX_VALUE ? INF : c - d;
-         }
-         if (d <= delta) {
-           delta = d;
-@@ -1559,7 +1559,7 @@ namespace lemon {
-             _pi[_target[in_arc]]) >= 0) continue;
-         findJoinNode();
-         bool change = findLeavingArc();
--        if (delta >= MAX) return false;
-+        if (delta >= MAX_VALUE) return false;
-         changeFlow(change);
-         if (change) {
-           updateTreeStructure();
-@@ -1598,7 +1598,7 @@ namespace lemon {
-       while (pivot.findEnteringArc()) {
-         findJoinNode();
-         bool change = findLeavingArc();
--        if (delta >= MAX) return UNBOUNDED;
-+        if (delta >= MAX_VALUE) return UNBOUNDED;
-         changeFlow(change);
-         if (change) {
-           updateTreeStructure();
-diff --git a/extern/quadriflow/src/hierarchy.cpp b/extern/quadriflow/src/hierarchy.cpp
-index c333256..8cc41da 100644
---- a/extern/quadriflow/src/hierarchy.cpp
-+++ b/extern/quadriflow/src/hierarchy.cpp
-@@ -1133,7 +1133,8 @@ void Hierarchy::propagateConstraints() {
-         auto& COw = mCOw[l];
-         auto& COw_next = mCOw[l + 1];
-         auto& toUpper = mToUpper[l];
--        MatrixXd& S = mS[l];
-+        // FIXME
-+        // MatrixXd& S = mS[l];
- 
-         for (uint32_t i = 0; i != mV[l + 1].cols(); ++i) {
-             Vector2i upper = toUpper.col(i);
-diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h b/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h
-index 8de74ede8a9..f9861f39169 100644
---- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h
-+++ b/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h
-@@ -249,8 +249,8 @@ namespace lemon {
- 
-         current = state + length;
- 
--        register Word *curr = state + length - 1;
--        register long num;
-+        Word *curr = state + length - 1;
-+        long num;
- 
-         num = length - shift;
-         while (num--) {
 diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/bits/array_map.h b/extern/quadriflow/3rd/lemon-1.3.1/lemon/bits/array_map.h
 index 355ee008246..a770bbee60c 100644
 --- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/bits/array_map.h
@@ -231,8 +101,112 @@ index 355ee008246..a770bbee60c 100644
          }
          allocator.deallocate(values, capacity);
          capacity = 0;
+diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h b/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
+index 6ccad33e68e..388e990ec3b 100644
+--- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
++++ b/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
+@@ -234,7 +234,7 @@ namespace lemon {
+     int in_arc, join, u_in, v_in, u_out, v_out;
+     Value delta;
+ 
+-    const Value MAX;
++    const Value MAX_VALUE;
+ 
+   public:
+ 
+@@ -649,9 +649,9 @@ namespace lemon {
+     NetworkSimplex(const GR& graph, bool arc_mixing = true) :
+       _graph(graph), _node_id(graph), _arc_id(graph),
+       _arc_mixing(arc_mixing),
+-      MAX(std::numeric_limits<Value>::max()),
++      MAX_VALUE(std::numeric_limits<Value>::max()),
+       INF(std::numeric_limits<Value>::has_infinity ?
+-          std::numeric_limits<Value>::infinity() : MAX)
++          std::numeric_limits<Value>::infinity() : MAX_VALUE)
+     {
+       // Check the number types
+       LEMON_ASSERT(std::numeric_limits<Value>::is_signed,
+@@ -1076,9 +1076,9 @@ namespace lemon {
+         for (int i = 0; i != _arc_num; ++i) {
+           Value c = _lower[i];
+           if (c >= 0) {
+-            _cap[i] = _upper[i] < MAX ? _upper[i] - c : INF;
++            _cap[i] = _upper[i] < MAX_VALUE ? _upper[i] - c : INF;
+           } else {
+-            _cap[i] = _upper[i] < MAX + c ? _upper[i] - c : INF;
++            _cap[i] = _upper[i] < MAX_VALUE + c ? _upper[i] - c : INF;
+           }
+           _supply[_source[i]] -= c;
+           _supply[_target[i]] += c;
+@@ -1282,7 +1282,7 @@ namespace lemon {
+         d = _flow[e];
+         if (_pred_dir[u] == DIR_DOWN) {
+           c = _cap[e];
+-          d = c >= MAX ? INF : c - d;
++          d = c >= MAX_VALUE ? INF : c - d;
+         }
+         if (d < delta) {
+           delta = d;
+@@ -1297,7 +1297,7 @@ namespace lemon {
+         d = _flow[e];
+         if (_pred_dir[u] == DIR_UP) {
+           c = _cap[e];
+-          d = c >= MAX ? INF : c - d;
++          d = c >= MAX_VALUE ? INF : c - d;
+         }
+         if (d <= delta) {
+           delta = d;
+@@ -1559,7 +1559,7 @@ namespace lemon {
+             _pi[_target[in_arc]]) >= 0) continue;
+         findJoinNode();
+         bool change = findLeavingArc();
+-        if (delta >= MAX) return false;
++        if (delta >= MAX_VALUE) return false;
+         changeFlow(change);
+         if (change) {
+           updateTreeStructure();
+@@ -1598,7 +1598,7 @@ namespace lemon {
+       while (pivot.findEnteringArc()) {
+         findJoinNode();
+         bool change = findLeavingArc();
+-        if (delta >= MAX) return UNBOUNDED;
++        if (delta >= MAX_VALUE) return UNBOUNDED;
+         changeFlow(change);
+         if (change) {
+           updateTreeStructure();
+diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h b/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h
+index 8de74ede8a9..f9861f39169 100644
+--- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h
++++ b/extern/quadriflow/3rd/lemon-1.3.1/lemon/random.h
+@@ -249,8 +249,8 @@ namespace lemon {
+ 
+         current = state + length;
+ 
+-        register Word *curr = state + length - 1;
+-        register long num;
++        Word *curr = state + length - 1;
++        long num;
+ 
+         num = length - shift;
+         while (num--) {
+diff --git a/extern/quadriflow/src/config.hpp b/extern/quadriflow/src/config.hpp
+index 842b885a209..bf597ad0f39 100644
+--- a/extern/quadriflow/src/config.hpp
++++ b/extern/quadriflow/src/config.hpp
+@@ -1,6 +1,11 @@
+ #ifndef CONFIG_H_
+ #define CONFIG_H_
+ 
++/* Workaround a bug in boost 1.68, until we upgrade to a newer version. */
++#if defined(__clang__) && defined(WIN32)
++  #include <boost/type_traits/is_assignable.hpp>
++  using namespace boost;
++#endif
+ // Move settings to cmake to make CMake happy :)
+ 
+ // #define WITH_SCALE
 diff --git a/extern/quadriflow/src/hierarchy.cpp b/extern/quadriflow/src/hierarchy.cpp
-index 8cc41da23d0..70a9628320f 100644
+index c333256a139..70a9628320f 100644
 --- a/extern/quadriflow/src/hierarchy.cpp
 +++ b/extern/quadriflow/src/hierarchy.cpp
 @@ -269,7 +269,13 @@ void Hierarchy::DownsampleGraph(const AdjacentMatrix adj, const MatrixXd& V, con
@@ -250,3 +224,34 @@ index 8cc41da23d0..70a9628320f 100644
              *entry_it = Entry(i, k, dp * ratio);
          }
      }
+@@ -1133,7 +1139,8 @@ void Hierarchy::propagateConstraints() {
+         auto& COw = mCOw[l];
+         auto& COw_next = mCOw[l + 1];
+         auto& toUpper = mToUpper[l];
+-        MatrixXd& S = mS[l];
++        // FIXME
++        // MatrixXd& S = mS[l];
+ 
+         for (uint32_t i = 0; i != mV[l + 1].cols(); ++i) {
+             Vector2i upper = toUpper.col(i);
+diff --git a/extern/quadriflow/src/loader.cpp b/extern/quadriflow/src/loader.cpp
+index aa27066e6e4..5b9d717db71 100644
+--- a/extern/quadriflow/src/loader.cpp
++++ b/extern/quadriflow/src/loader.cpp
+@@ -8,6 +8,7 @@
+ 
+ #include "loader.hpp"
+ 
++#include <cstdint>
+ #include <fstream>
+ #include <unordered_map>
+ 
+@@ -69,7 +70,7 @@ void load(const char* filename, MatrixXd& V, MatrixXi& F)
+ 	};
+ 
+ 	/// Hash function for obj_vertex
+-	struct obj_vertexHash : std::unary_function<obj_vertex, size_t> {
++	struct obj_vertexHash {
+ 		std::size_t operator()(const obj_vertex &v) const {
+ 			size_t hash = std::hash<uint32_t>()(v.p);
+ 			hash = hash * 37 + std::hash<uint32_t>()(v.uv);
