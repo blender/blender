@@ -3862,7 +3862,7 @@ static void knifetool_undo(KnifeTool_OpData *kcd)
     }
   }
 
-  if (kcd->mode == MODE_DRAGGING) {
+  if (ELEM(kcd->mode, MODE_DRAGGING, MODE_IDLE)) {
     /* Restore kcd->prev. */
     kcd->prev = undo->pos;
   }
