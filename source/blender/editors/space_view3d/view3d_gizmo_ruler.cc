@@ -215,7 +215,8 @@ static void ruler_item_as_string(
       BLI_snprintf(numstr, numstr_size, "%.*f", prec, ruler_len);
     }
     else {
-      BKE_unit_value_as_string(numstr, numstr_size, ruler_len, prec, B_UNIT_LENGTH, unit, false);
+      BKE_unit_value_as_string_scaled(
+          numstr, numstr_size, ruler_len, prec, B_UNIT_LENGTH, unit, false);
     }
   }
 }
