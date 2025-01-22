@@ -1101,7 +1101,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
 
         # Collection Export does not handle correctly props declaration for now
         # So use this tweak to manage it, waiting for a better solution
-        is_file_browser = context.space_data.type == 'FILE_BROWSER'
+        is_file_browser = context.space_data and context.space_data.type == 'FILE_BROWSER'
         if not is_file_browser:
             if not hasattr(context.scene, "gltf_action_filter") and self.export_action_filter:
                 bpy.types.Scene.gltf_action_filter = bpy.props.CollectionProperty(type=GLTF2_filter_action)
