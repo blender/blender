@@ -31,6 +31,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "ED_clip.hh"
@@ -1949,62 +1950,39 @@ static void annotation_draw_cursor_set(tGPsdata *p)
 /* update UI indicators of status, including cursor and header prints */
 static void annotation_draw_status_indicators(bContext *C, tGPsdata *p)
 {
+  WorkspaceStatus status(C);
+
   /* header prints */
   switch (p->status) {
     case GP_STATUS_PAINTING:
       switch (p->paintmode) {
         case GP_PAINTMODE_DRAW_POLY:
-          /* Provide usage tips, since this is modal, and unintuitive without hints */
-          ED_workspace_status_text(
-              C,
-              IFACE_("Annotation Create Poly: LMB click to place next stroke vertex | "
-                     "ESC/Enter to end  (or click outside this area)"));
+          status.item(IFACE_("End"), ICON_EVENT_ESC);
+          status.item(IFACE_("Place Next Stroke Vertex"), ICON_MOUSE_LMB);
           break;
-        default:
-          /* Do nothing - the others are self explanatory, exit quickly once the mouse is
-           * released Showing any text would just be annoying as it would flicker.
-           */
+        case GP_PAINTMODE_ERASER:
+          status.item(IFACE_("End"), ICON_EVENT_ESC);
+          status.item(IFACE_("Erase"), ICON_MOUSE_LMB);
+          break;
+        case GP_PAINTMODE_DRAW_STRAIGHT:
+          status.item(IFACE_("End"), ICON_EVENT_ESC);
+          status.item(IFACE_("Draw"), ICON_MOUSE_LMB);
+          break;
+        case GP_PAINTMODE_DRAW:
+          status.item(IFACE_("End"), ICON_EVENT_ESC);
+          status.item(IFACE_("Draw"), ICON_MOUSE_LMB);
+          break;
+
+        default: /* unhandled future cases */
+          status.item(IFACE_("End"), ICON_EVENT_ESC);
           break;
       }
       break;
 
     case GP_STATUS_IDLING:
-      /* print status info */
-      switch (p->paintmode) {
-        case GP_PAINTMODE_ERASER:
-          ED_workspace_status_text(C,
-                                   IFACE_("Annotation Eraser: Hold and drag LMB or RMB to erase | "
-                                          "ESC/Enter to end  (or click outside this area)"));
-          break;
-        case GP_PAINTMODE_DRAW_STRAIGHT:
-          ED_workspace_status_text(C,
-                                   IFACE_("Annotation Line Draw: Hold and drag LMB to draw | "
-                                          "ESC/Enter to end  (or click outside this area)"));
-          break;
-        case GP_PAINTMODE_DRAW:
-          ED_workspace_status_text(C,
-                                   IFACE_("Annotation Freehand Draw: Hold and drag LMB to draw | "
-                                          "E/ESC/Enter to end  (or click outside this area)"));
-          break;
-        case GP_PAINTMODE_DRAW_POLY:
-          ED_workspace_status_text(
-              C,
-              IFACE_("Annotation Create Poly: LMB click to place next stroke vertex | "
-                     "ESC/Enter to end  (or click outside this area)"));
-          break;
-
-        default: /* unhandled future cases */
-          ED_workspace_status_text(
-              C, IFACE_("Annotation Session: ESC/Enter to end   (or click outside this area)"));
-          break;
-      }
-      break;
-
     case GP_STATUS_ERROR:
     case GP_STATUS_DONE:
     case GP_STATUS_CAPTURE:
-      /* clear status string */
-      ED_workspace_status_text(C, nullptr);
       break;
   }
 }
