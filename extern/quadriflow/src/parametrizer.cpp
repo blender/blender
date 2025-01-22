@@ -18,7 +18,7 @@
 
 namespace qflow {
 
-void Parametrizer::ComputeIndexMap(int with_scale) {
+bool Parametrizer::ComputeIndexMap(int with_scale) {
     // build edge info
     auto& V = hierarchy.mV[0];
     auto& F = hierarchy.mF;
@@ -80,9 +80,12 @@ void Parametrizer::ComputeIndexMap(int with_scale) {
 #ifdef LOG_OUTPUT
     printf("subdivide...\n");
 #endif
-    subdivide_edgeDiff(F, V, N, Q, O, &hierarchy.mS[0], V2E, hierarchy.mE2E, boundary, nonManifold,
-                       edge_diff, edge_values, face_edgeOrients, face_edgeIds, sharp_edges,
-                       singularities, 1);
+    if (!subdivide_edgeDiff(F, V, N, Q, O, &hierarchy.mS[0], V2E, hierarchy.mE2E, boundary, nonManifold,
+                            edge_diff, edge_values, face_edgeOrients, face_edgeIds, sharp_edges,
+                            singularities, 1))
+    {
+      return false;
+    }
 
     allow_changes.clear();
     allow_changes.resize(edge_diff.size() * 2, 1);
@@ -99,9 +102,12 @@ void Parametrizer::ComputeIndexMap(int with_scale) {
     int t1 = GetCurrentTime64();
 #endif
     FixFlipHierarchy();
-    subdivide_edgeDiff(F, V, N, Q, O, &hierarchy.mS[0], V2E, hierarchy.mE2E, boundary, nonManifold,
+    if (!subdivide_edgeDiff(F, V, N, Q, O, &hierarchy.mS[0], V2E, hierarchy.mE2E, boundary, nonManifold,
                        edge_diff, edge_values, face_edgeOrients, face_edgeIds, sharp_edges,
-                       singularities, 1);
+                            singularities, 1))
+    {
+      return false;
+    }
     FixFlipSat();
 
 #ifdef LOG_OUTPUT
@@ -242,6 +248,7 @@ void Parametrizer::ComputeIndexMap(int with_scale) {
     //    E2E_compact,
     //                            V, N, Q, O, F, V2E, hierarchy.mE2E, disajoint_tree,
     //                            hierarchy.mScale, false);
+    return true;
 }
 
 }  // namespace qflow

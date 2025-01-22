@@ -54,7 +54,8 @@ class Parametrizer {
     void ComputePositionSingularities();
 
     // Integer Grid Map Pipeline
-    void ComputeIndexMap(int with_scale = 0);
+    // Return false when the solver fails.
+    bool ComputeIndexMap(int with_scale = 0);
     void BuildEdgeInfo();
     void ComputeMaxFlow();
     void MarkInteger();
