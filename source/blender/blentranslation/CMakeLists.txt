@@ -5,7 +5,6 @@
 set(INC
   PUBLIC .
   ../makesrna
-  ../../../intern/locale
 )
 
 set(INC_SYS

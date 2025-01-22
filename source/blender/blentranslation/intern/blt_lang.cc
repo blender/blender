@@ -32,16 +32,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"translation.language"};
+
 #ifdef WITH_INTERNATIONAL
 
 #  include "BLI_fileops.h"
 #  include "BLI_linklist.h"
 
-#  include "CLG_log.h"
-
 #  include "messages.hh"
-
-static CLG_LogRef LOG = {"translation.language"};
 
 /* Locale options. */
 static const char **locales = nullptr;
