@@ -9,6 +9,8 @@
 #include "BLI_hash.hh"
 #include "BLI_string_utils.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "node_graph.h"
 
 namespace blender::nodes::materialx {
