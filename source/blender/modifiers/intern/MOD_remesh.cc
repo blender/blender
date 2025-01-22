@@ -127,7 +127,7 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   output->curface++;
 }
 
-static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   using namespace blender;
   RemeshModifierData *rmd;
@@ -142,6 +142,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
   if (rmd->mode == MOD_REMESH_VOXEL) {
     /* OpenVDB modes. */
     if (rmd->voxel_size == 0.0f) {
+      BKE_modifier_set_error(ctx->object, md, "Zero voxel size cannot be solved");
       return nullptr;
     }
     result = BKE_mesh_remesh_voxel(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f);
@@ -150,6 +151,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
     }
   }
   else {
+    if (rmd->scale == 0.0f) {
+      BKE_modifier_set_error(ctx->object, md, "Zero scale cannot be solved");
+      return nullptr;
+    }
+
     /* Dualcon modes. */
     init_dualcon_mesh(&input, mesh);
 

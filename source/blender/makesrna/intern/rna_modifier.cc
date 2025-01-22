@@ -6350,9 +6350,11 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
       "edges closer to the input");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  /* NOTE: allow zero (which skips computation), to avoid zero clamping
+   * to a small value which is likely to run out of memory, see: #130526. */
   prop = RNA_def_property(srna, "voxel_size", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "voxel_size");
-  RNA_def_property_range(prop, 0.0001f, FLT_MAX);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0001, 2, 0.1, 3);
   RNA_def_property_ui_scale_type(prop, PROP_SCALE_LOG);
   RNA_def_property_ui_text(prop,
@@ -8172,6 +8174,8 @@ static void rna_def_modifier_mesh_to_volume(BlenderRNA *brna)
       prop, "Resolution Mode", "Mode for how the desired voxel size is specified");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  /* NOTE: allow zero (which skips computation), to avoid zero clamping
+   * to a small value which is likely to run out of memory, see: #130526. */
   prop = RNA_def_property(srna, "voxel_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Voxel Size", "Smaller values result in a higher resolution output");
@@ -8336,6 +8340,8 @@ static void rna_def_modifier_volume_to_mesh(BlenderRNA *brna)
       prop, "Resolution Mode", "Mode for how the desired voxel size is specified");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  /* NOTE: allow zero (which skips computation), to avoid zero clamping
+   * to a small value which is likely to run out of memory, see: #130526. */
   prop = RNA_def_property(srna, "voxel_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Voxel Size", "Smaller values result in a higher resolution output");
