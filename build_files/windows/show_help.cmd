@@ -25,7 +25,6 @@ echo - debug ^(Build an unoptimized debuggable build^)
 echo - packagename [newname] ^(override default cpack package name^)
 echo - builddir [newdir] ^(override default build folder^)
 echo - 2019 ^(build with visual studio 2019^)
-echo - 2019pre ^(build with visual studio 2019 pre-release^)
 echo - 2019b ^(build with visual studio 2019 Build Tools^)
 echo - 2022 ^(build with visual studio 2022^)
 echo - 2022pre ^(build with visual studio 2022 pre-release^)
@@ -39,6 +38,6 @@ echo.
 echo Experimental options
 echo - with_gpu_tests ^(enable both the render and draw gpu test suites including EEVEE, Workbench, Grease Pencil, draw manager and GPU backends^)
 echo - clang ^(enable building with clang^)
-echo - asan ^(enable asan when building with clang^)
+echo - asan ^(enable asan^)
 echo - ninja ^(enable building with ninja instead of msbuild^)
 echo.
