@@ -84,7 +84,7 @@ vec4 color_to_vector(vec4 value)
  * Those should have the same interface and names as the macros in gpu_shader_codegen_lib.glsl
  * since the GPUMaterial compiler inserts those hard coded names. */
 
-float float_from_vec4(vec4 vector)
+float float_from_vec4(vec4 vector, vec3 luminance_coefficients)
 {
   return dot(vector.rgb, vec3(1.0)) / 3.0;
 }

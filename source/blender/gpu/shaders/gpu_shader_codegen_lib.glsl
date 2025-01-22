@@ -103,8 +103,8 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 
 #endif
 
-/* Assumes GPU_VEC4 is color data. So converting to luminance like cycles. */
-#define float_from_vec4(v) dot(v.rgb, vec3(0.2126, 0.7152, 0.0722))
+/* Assumes GPU_VEC4 is color data, special case that needs luminance coefficients from OCIO. */
+#define float_from_vec4(v, luminance_coefficients) dot(v.rgb, luminance_coefficients)
 #define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0 / 3.0))
 #define float_from_vec2(v) v.r
 
