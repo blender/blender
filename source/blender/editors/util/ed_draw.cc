@@ -556,6 +556,22 @@ void ED_slider_status_string_get(const tSlider *slider,
                increments_str);
 }
 
+void ED_slider_status_get(const tSlider *slider, WorkspaceStatus &status)
+{
+  if (slider->allow_overshoot_lower || slider->allow_overshoot_upper) {
+    status.item_bool(IFACE_("Overshoot"), slider->overshoot, ICON_EVENT_E);
+  }
+  else {
+    status.item(IFACE_("Overshoot Disabled"), ICON_INFO);
+  }
+
+  status.item_bool(IFACE_("Precision"), slider->precision, ICON_EVENT_SHIFT);
+
+  if (slider->allow_increments) {
+    status.item_bool(IFACE_("Increments"), slider->increments, ICON_EVENT_CTRL);
+  }
+}
+
 void ED_slider_destroy(bContext *C, tSlider *slider)
 {
   /* Remove draw callback. */
