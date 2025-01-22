@@ -8,8 +8,6 @@
 
 #include <algorithm>
 
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BKE_global.hh"
@@ -26,6 +24,7 @@
 #include "UI_resources.hh"
 
 #include "draw_manager_profiling.hh"
+#include "draw_view_data.hh"
 
 #define MAX_TIMER_NAME 32
 #define MAX_NESTED_TIMER 8

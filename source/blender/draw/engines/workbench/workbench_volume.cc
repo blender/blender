@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_cache.hh"
+#include "draw_common_c.hh"
+
 #include "workbench_private.hh"
 
 #include "BKE_volume.hh"

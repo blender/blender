@@ -8,12 +8,7 @@
 
 #include "DRW_render.hh"
 
-#include "BLI_dynstr.h"
-#include "BLI_string_utils.hh"
-
 #include "GPU_batch.hh"
-#include "GPU_index_buffer.hh"
-#include "GPU_vertex_buffer.hh"
 
 #include "draw_shader.hh"
 

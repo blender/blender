@@ -10,7 +10,6 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
-#include "BKE_deform.hh"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
 
@@ -28,6 +27,7 @@
 
 #include "GPU_batch.hh"
 
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
 #include "../engines/gpencil/gpencil_defines.h"

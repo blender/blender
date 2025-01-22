@@ -8,16 +8,19 @@
  * Engine for drawing a selection map where the pixels indicate the selection indices.
  */
 
-#include "DNA_screen_types.h"
+#include "BLI_math_matrix.h"
+
+#include "BLT_translation.hh"
 
 #include "ED_view3d.hh"
 
-#include "UI_resources.hh"
+#include "RE_engine.h"
 
 #include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
+#include "draw_common_c.hh"
 #include "draw_manager_c.hh"
 
 #include "select_engine.hh"

@@ -7,17 +7,11 @@
  *
  * \brief Extraction of Mesh data into VBO to feed to GPU.
  */
-#include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_array.hh"
 #include "BLI_task.h"
-#include "BLI_vector.hh"
-
-#include "BKE_editmesh.hh"
-#include "BKE_object.hh"
 
 #include "GPU_capabilities.hh"
 

@@ -12,8 +12,6 @@
 
 #include "BKE_paint.hh"
 
-#include "draw_debug.hh"
-
 #include "overlay_next_instance.hh"
 
 namespace blender::draw::overlay {

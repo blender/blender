@@ -5,16 +5,16 @@
 /** \file
  * \ingroup draw
  */
+#include "BLI_math_matrix.h"
 #include "BLI_rect.h"
 
 #include "DRW_render.hh"
 
 #include "BKE_object.hh"
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "DEG_depsgraph_query.hh"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #include "IMB_imbuf_types.hh"

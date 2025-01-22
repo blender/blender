@@ -15,16 +15,15 @@
 #include "BLI_array_utils.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_curves_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "DEG_depsgraph_query.hh"
 

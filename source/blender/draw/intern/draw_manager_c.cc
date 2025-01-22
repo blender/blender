@@ -10,9 +10,8 @@
 
 #include "CLG_log.h"
 
-#include "BLI_alloca.h"
 #include "BLI_listbase.h"
-#include "BLI_memblock.h"
+#include "BLI_math_matrix.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -31,6 +30,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.h"
 #include "BKE_lattice.hh"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
@@ -41,9 +41,9 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_subdiv_modifier.hh"
-#include "BKE_viewer_path.hh"
 #include "BKE_volume.hh"
 
 #include "DNA_camera_types.h"
@@ -59,7 +59,6 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_framebuffer.hh"
-#include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_platform.hh"
 #include "GPU_shader_shared.hh"
@@ -76,14 +75,16 @@
 #include "WM_api.hh"
 #include "wm_window.hh"
 
+#include "draw_cache.hh"
 #include "draw_color_management.hh"
+#include "draw_common_c.hh"
 #include "draw_manager_c.hh"
 #include "draw_manager_profiling.hh"
-#include "draw_manager_testing.hh"
 #include "draw_manager_text.hh"
 #include "draw_shader.hh"
 #include "draw_subdivision.hh"
 #include "draw_texture_pool.hh"
+#include "draw_view_c.hh"
 
 /* only for callbacks */
 #include "draw_cache_impl.hh"
@@ -101,6 +102,8 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "BLI_time.h"
 
 #include "DRW_select_buffer.hh"
 

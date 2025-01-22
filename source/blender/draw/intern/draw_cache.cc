@@ -11,7 +11,6 @@
 #include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -21,16 +20,17 @@
 
 #include "UI_resources.hh"
 
+#include "BLI_ghash.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.hh"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
-#include "BKE_paint.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_batch_utils.hh"
 #include "GPU_capabilities.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "draw_cache.hh"
 #include "draw_cache_impl.hh"

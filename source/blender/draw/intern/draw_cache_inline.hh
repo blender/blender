@@ -9,7 +9,6 @@
 #pragma once
 
 #include "GPU_batch.hh"
-#include "MEM_guardedalloc.h"
 
 /* Common */
 // #define DRW_DEBUG_MESH_CACHE_REQUEST

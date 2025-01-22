@@ -11,6 +11,8 @@
 
 #include "GPU_capabilities.hh"
 
+#include "BKE_material.hh"
+
 #include "gpu_shader_create_info.hh"
 
 #include "eevee_shader.hh"

@@ -12,9 +12,16 @@
 
 #include <fmt/format.h>
 
+#include "BLI_string.h"
+
+#include "BLT_translation.hh"
+
 #include "BKE_object.hh"
+
 #include "DEG_depsgraph.hh"
+
 #include "DNA_lightprobe_types.h"
+
 #include "DRW_render.hh"
 
 #include "eevee_ambient_occlusion.hh"

@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <cstdint>
+
+#include "BLI_span.hh"
+
 struct GPUMaterial;
 namespace blender::gpu {
 class Batch;
@@ -23,11 +27,13 @@ struct Curve;
 struct Curves;
 struct Lattice;
 struct Mesh;
+struct Object;
+struct Scene;
 struct PointCloud;
 struct Volume;
 struct GreasePencil;
 
-#include "BKE_mesh.h"
+enum eMeshBatchDirtyMode : int8_t;
 
 namespace blender::draw {
 

@@ -8,17 +8,22 @@
  * An instance contains all structures needed to do a complete render.
  */
 
-#include <sstream>
-
 #include "BKE_global.hh"
 #include "BKE_object.hh"
+
 #include "BLI_rect.h"
+#include "BLI_time.h"
+
 #include "BLT_translation.hh"
+
 #include "DEG_depsgraph_query.hh"
+
 #include "DNA_ID.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
+
 #include "IMB_imbuf_types.hh"
+
 #include "RE_pipeline.h"
 
 #include "eevee_engine.h"
@@ -27,6 +32,7 @@
 #include "DNA_particle_types.h"
 
 #include "draw_common.hh"
+#include "draw_view_data.hh"
 
 namespace blender::eevee {
 

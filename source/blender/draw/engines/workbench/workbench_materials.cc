@@ -4,11 +4,12 @@
 
 #include "workbench_private.hh"
 
+#include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_math_color.h"
 /* get_image */
-#include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "ED_uvedit.hh"
 /* get_image */

@@ -14,7 +14,6 @@
 #include "DNA_view3d_types.h"
 
 #include "ED_screen.hh"
-#include "ED_util.hh"
 #include "ED_view3d.hh"
 
 #include "GPU_debug.hh"
@@ -34,9 +33,13 @@
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
 
-#include "view3d_intern.hh"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
-#include "draw_manager_c.hh"
+#include "draw_cache.hh"
+#include "draw_view_c.hh"
+
+#include "view3d_intern.hh"
 
 /* ******************** region info ***************** */
 

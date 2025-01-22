@@ -8,6 +8,8 @@
  * \ingroup eevee
  */
 
+#include "BLI_math_matrix.h"
+
 #include "eevee_shader_shared.hh"
 
 namespace blender::eevee {

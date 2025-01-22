@@ -10,27 +10,25 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array.hh"
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
-#include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_object_types.hh"
 #include "BKE_vfont.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_capabilities.hh"
-#include "GPU_material.hh"
 #include "GPU_texture.hh"
 
 #include "UI_resources.hh"

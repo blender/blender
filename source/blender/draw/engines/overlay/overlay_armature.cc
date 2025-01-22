@@ -15,12 +15,12 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
 #include "DRW_render.hh"
 
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
@@ -28,9 +28,7 @@
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_deform.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -42,11 +40,11 @@
 
 #include "UI_resources.hh"
 
+#include "draw_cache.hh"
 #include "draw_common_c.hh"
 #include "draw_manager_text.hh"
 
 #include "overlay_next_armature.hh"
-#include "overlay_private.hh"
 
 #include "draw_cache_impl.hh"
 

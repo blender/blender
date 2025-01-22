@@ -7,24 +7,30 @@
 #include "DNA_fluid_types.h"
 
 #include "BKE_editmesh.hh"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
-#include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_windowmanager_types.h"
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_capabilities.hh"
+#include "BLT_translation.hh"
 
 #include "IMB_imbuf_types.hh"
 
+#include "RE_engine.h"
+#include "RE_pipeline.h"
+
+#include "draw_cache.hh"
 #include "draw_common.hh"
 #include "draw_sculpt.hh"
+#include "draw_view_data.hh"
 
 #include "workbench_private.hh"
 

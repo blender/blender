@@ -57,8 +57,6 @@
  *   Simple wrapper to #GPUFramebuffer that can be moved.
  */
 
-#include "DRW_render.hh"
-
 #include "MEM_guardedalloc.h"
 
 #include "draw_manager_c.hh"

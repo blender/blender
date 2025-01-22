@@ -15,8 +15,9 @@
 
 #include "NOD_shader.h"
 
-#include "eevee_instance.hh"
+#include "draw_cache.hh"
 
+#include "eevee_instance.hh"
 #include "eevee_material.hh"
 
 namespace blender::eevee {

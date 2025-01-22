@@ -17,13 +17,15 @@
 #include "BLI_set.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_scene.hh"
 
-#include "GPU_debug.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_texture.hh"
 
 #include "DRW_render.hh"
 #include "RE_pipeline.h"
+
+#include "draw_view_data.hh"
 
 #include "eevee_film.hh"
 #include "eevee_instance.hh"

@@ -6,20 +6,18 @@
  * \ingroup draw
  */
 
-#include "draw_manager_c.hh"
+#include "GPU_viewport.hh"
+
+#include "BLI_string.h"
 
 #include "DRW_render.hh"
-
-#include "GPU_batch.hh"
-#include "GPU_framebuffer.hh"
-#include "GPU_matrix.hh"
-#include "GPU_texture.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_colortools.hh"
 #include "BKE_image.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 

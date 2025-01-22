@@ -13,7 +13,7 @@
 #include "BKE_gpencil_legacy.h"
 
 #include "BLI_link_utils.h"
-#include "BLI_memblock.h"
+#include "BLI_math_matrix.h"
 
 #include "DRW_render.hh"
 

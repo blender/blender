@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -35,7 +36,6 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
 #include "UI_interface.hh"

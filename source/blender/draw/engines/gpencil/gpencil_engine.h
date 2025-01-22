@@ -8,18 +8,16 @@
 
 #pragma once
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "DRW_render.hh"
 
 #include "BLI_bitmap.h"
-#include "BLI_bounds.hh"
 
 #include "BKE_grease_pencil.hh"
 
 #include "GPU_batch.hh"
 
 #include "draw_pass.hh"
+#include "draw_view_data.hh"
 
 #define GP_LIGHT
 

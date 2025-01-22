@@ -7,30 +7,17 @@
  */
 
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_map.hh"
-#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLI_time.h"
-
-#include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_main.hh"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
-
-#include "wm_window.hh"
 
 #include "draw_manager_c.hh"
 

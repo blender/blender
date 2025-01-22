@@ -18,6 +18,9 @@
 
 #include "GPU_material.hh"
 
+#include "draw_cache.hh"
+#include "draw_view_data.hh"
+
 #include "eevee_instance.hh"
 
 namespace blender::eevee {

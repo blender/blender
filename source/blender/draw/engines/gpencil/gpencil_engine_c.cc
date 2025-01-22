@@ -8,33 +8,34 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_id.hh"
-#include "BKE_main.hh"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_shader_fx.h"
 
 #include "BKE_camera.h"
-#include "BKE_global.hh" /* for G.debug */
 
-#include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_memblock.h"
 #include "BLI_virtual_array.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_camera_types.h"
-#include "DNA_gpencil_legacy_types.h"
+#include "DNA_material_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
+#include "draw_cache.hh"
 #include "draw_manager.hh"
 #include "draw_view.hh"
 
@@ -46,7 +47,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "UI_resources.hh"
+#include "draw_manager_profiling.hh"
 
 /* *********** FUNCTIONS *********** */
 
