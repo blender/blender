@@ -27,13 +27,13 @@ class ActionSlotCreationTest(unittest.TestCase):
         slot3 = self.action.slots.new('LIGHT', "Bob")
 
         self.assertEqual("OBBob", slot1.identifier)
-        self.assertEqual('OBJECT', slot1.id_root)
+        self.assertEqual('OBJECT', slot1.target_id_type)
 
         self.assertEqual("CABob", slot2.identifier)
-        self.assertEqual('CAMERA', slot2.id_root)
+        self.assertEqual('CAMERA', slot2.target_id_type)
 
         self.assertEqual("LABob", slot3.identifier)
-        self.assertEqual('LIGHT', slot3.id_root)
+        self.assertEqual('LIGHT', slot3.target_id_type)
 
     def test_same_name_same_type(self):
         slot1 = self.action.slots.new('OBJECT', "Bob")
@@ -41,13 +41,13 @@ class ActionSlotCreationTest(unittest.TestCase):
         slot3 = self.action.slots.new('OBJECT', "Bob")
 
         self.assertEqual("OBBob", slot1.identifier)
-        self.assertEqual('OBJECT', slot1.id_root)
+        self.assertEqual('OBJECT', slot1.target_id_type)
 
         self.assertEqual("OBBob.001", slot2.identifier)
-        self.assertEqual('OBJECT', slot2.id_root)
+        self.assertEqual('OBJECT', slot2.target_id_type)
 
         self.assertEqual("OBBob.002", slot3.identifier)
-        self.assertEqual('OBJECT', slot3.id_root)
+        self.assertEqual('OBJECT', slot3.target_id_type)
 
     def test_invalid_arguments(self):
         with self.assertRaises(TypeError):

@@ -995,11 +995,6 @@ static eOLDrawState tree_element_posechannel_state_get(const Object *ob_pose,
 static eOLDrawState tree_element_viewlayer_state_get(const ViewLayer *view_layer,
                                                      const TreeElement *te)
 {
-  /* paranoia check */
-  if (te->idcode != ID_SCE) {
-    return OL_DRAWSEL_NONE;
-  }
-
   const ViewLayer *te_view_layer = static_cast<ViewLayer *>(te->directdata);
 
   if (view_layer == te_view_layer) {

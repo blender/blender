@@ -20,7 +20,8 @@
 #include "workbench_private.hh"
 
 #include "BKE_camera.h"
-#include "DEG_depsgraph_query.hh"
+
+#include "draw_manager_profiling.hh"
 
 namespace blender::workbench {
 /**

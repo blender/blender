@@ -509,7 +509,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
     const ID_Type ptr_id_type = GS(ptr->owner_id->name);
     switch (ptr_id_type) {
       case ID_SCE: {
-        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_sequence_strip", RNA_Strip, ptr);
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_strip", RNA_Strip, ptr);
 
         CTX_TEST_PTR_ID(C, "scene", ptr->owner_id);
         break;

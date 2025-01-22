@@ -11,8 +11,6 @@
 
 #include "BKE_geometry_fields.hh"
 
-#include "BLI_task.hh"
-
 #include "RNA_enum_types.hh"
 
 #include "NOD_socket_search_link.hh"

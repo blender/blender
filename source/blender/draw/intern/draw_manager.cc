@@ -6,21 +6,17 @@
  * \ingroup draw
  */
 
-#include "BKE_global.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
 #include "BLI_math_base.h"
 #include "GPU_compute.hh"
 
-#include "draw_debug.hh"
 #include "draw_defines.hh"
 #include "draw_manager.hh"
 #include "draw_manager_c.hh"
 #include "draw_pass.hh"
 #include "draw_shader.hh"
-#include <iostream>
-#include <string>
 
 namespace blender::draw {
 

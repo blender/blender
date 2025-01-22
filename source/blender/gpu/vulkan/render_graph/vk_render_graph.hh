@@ -72,6 +72,9 @@ class VKRenderGraph : public NonCopyable {
   Vector<VKRenderGraphNodeLinks> links_;
   /** All nodes inside the graph indexable via NodeHandle. */
   Vector<VKRenderGraphNode> nodes_;
+  /** Storage for large node datas to improve CPU cache pre-loading. */
+  VKRenderGraphStorage storage_;
+
   /** Scheduler decides which nodes to select and in what order to execute them. */
   VKScheduler scheduler_;
   /**
@@ -164,7 +167,7 @@ class VKRenderGraph : public NonCopyable {
       links_.resize(nodes_.size());
     }
     VKRenderGraphNode &node = nodes_[node_handle];
-    node.set_node_data<NodeInfo>(create_info);
+    node.set_node_data<NodeInfo>(storage_, create_info);
 
     VKRenderGraphNodeLinks &node_links = links_[node_handle];
     BLI_assert(node_links.inputs.is_empty());

@@ -8,33 +8,34 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
+#include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_id.hh"
-#include "BKE_main.hh"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_shader_fx.h"
 
 #include "BKE_camera.h"
-#include "BKE_global.hh" /* for G.debug */
 
-#include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_memblock.h"
 #include "BLI_virtual_array.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_camera_types.h"
-#include "DNA_gpencil_legacy_types.h"
+#include "DNA_material_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
+#include "draw_cache.hh"
 #include "draw_manager.hh"
 #include "draw_view.hh"
 
@@ -46,7 +47,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "UI_resources.hh"
+#include "draw_manager_profiling.hh"
 
 /* *********** FUNCTIONS *********** */
 
@@ -142,6 +143,7 @@ void GPENCIL_engine_init(void *ved)
 
     const bool shmode_xray_support = v3d->shading.type <= OB_SOLID;
     stl->pd->xray_alpha = (shmode_xray_support && XRAY_ENABLED(v3d)) ? XRAY_ALPHA(v3d) : 1.0f;
+    stl->pd->force_stroke_order_3d = v3d->gp_flag & V3D_GP_FORCE_STROKE_ORDER_3D;
   }
   else if (stl->pd->is_render) {
     use_scene_lights = true;
@@ -149,6 +151,7 @@ void GPENCIL_engine_init(void *ved)
     stl->pd->use_multiedit_lines_only = false;
     stl->pd->xray_alpha = 1.0f;
     stl->pd->v3d_color_type = -1;
+    stl->pd->force_stroke_order_3d = false;
   }
 
   stl->pd->use_lighting = (v3d && v3d->shading.type > OB_SOLID) || stl->pd->is_render;
@@ -379,7 +382,8 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
   const bool do_multi_frame = (((pd->scene->toolsettings->gpencil_flags &
                                  GP_USE_MULTI_FRAME_EDITING) != 0) &&
                                (ob->mode != OB_MODE_OBJECT));
-  const bool use_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
+  const bool use_stroke_order_3d = pd->force_stroke_order_3d ||
+                                   ((grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0);
   GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(pd, ob, use_stroke_order_3d, bounds);
 
   int mat_ofs = 0;
@@ -892,6 +896,9 @@ void GPENCIL_draw_scene(void *ved)
     mul_v4_fl(clear_cols[1], pd->fade_3d_object_opacity);
   }
 
+  /* Sort object by decreasing Z to avoid most of alpha ordering issues. */
+  gpencil_object_cache_sort(pd);
+
   if (pd->tobjects.first == nullptr) {
     return;
   }
@@ -910,9 +917,6 @@ void GPENCIL_draw_scene(void *ved)
   }
 
   blender::draw::View &view = blender::draw::View::default_get();
-
-  /* Sort object by decreasing Z to avoid most of alpha ordering issues. */
-  gpencil_object_cache_sort(pd);
 
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &pd->tobjects) {
     GPENCIL_draw_object(vedata, view, ob);

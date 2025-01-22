@@ -59,13 +59,13 @@ static blender::float2 rgb_to_uv_normalized(const float rgb[3])
    * since this function is called a lot, and non-inline function
    * call plus color-space switch in there overhead does add up. */
   float r = rgb[0], g = rgb[1], b = rgb[2];
-  /* We don't need y. */
+  /* We don't need Y. */
   float u = -0.09991f * r - 0.33609f * g + 0.436f * b;
   float v = 0.615f * r - 0.55861f * g - 0.05639f * b;
 
-  /* Normalize: possible range is +/- 0.615. */
-  u = clamp_f(u * (0.5f / 0.615f) + 0.5f, 0.0f, 1.0f);
-  v = clamp_f(v * (0.5f / 0.615f) + 0.5f, 0.0f, 1.0f);
+  /* Normalize to 0..1 range. */
+  u = clamp_f(u * SeqScopes::VECSCOPE_U_SCALE + 0.5f, 0.0f, 1.0f);
+  v = clamp_f(v * SeqScopes::VECSCOPE_V_SCALE + 0.5f, 0.0f, 1.0f);
   return float2(u, v);
 }
 

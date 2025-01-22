@@ -10,9 +10,11 @@
 
 #include "BKE_image.hh"
 #include "BKE_paint.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
 #include "overlay_next_base.hh"

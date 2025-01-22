@@ -2,22 +2,24 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "boost_locale_wrapper.h"
-
 /** \file
- * \ingroup intern_locale
+ * \ingroup blt
  */
+
+#include "messages.hh"
 
 #import <Cocoa/Cocoa.h>
 
 #include <cstdlib>
+#include <string>
 
-static char *user_locale = nullptr;
+namespace blender::locale {
 
+#if !defined(WITH_HEADLESS) && !defined(WITH_GHOST_SDL)
 /* Get current locale. */
-const char *osx_user_locale()
+std::string macos_user_locale()
 {
-  ::free(user_locale);
+  std::string result;
 
   @autoreleasepool {
     CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
@@ -34,8 +36,11 @@ const char *osx_user_locale()
       nsIdentifier = [NSString stringWithFormat:@"%@_%@", nsIdentifier, nsIdentifier_country];
     }
 
-    user_locale = ::strdup(nsIdentifier.UTF8String);
+    result = nsIdentifier.UTF8String;
   }
 
-  return user_locale;
+  return result + ".UTF-8";
 }
+#endif
+
+}  // namespace blender::locale

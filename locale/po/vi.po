@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-12-30 20:42+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -33593,16 +33593,8 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Bone Roll"
-msgstr "Lăn Xương"
-
-
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
 
 
 msgid "Pivot Point"
@@ -33633,196 +33625,204 @@ msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
 
 
-msgid "Names"
-msgstr "Tên"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
-
-
-msgid "UV Mapping"
-msgstr "Ánh Xạ UV"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
-msgid "View Regions"
-msgstr "Vùng Góc Nhìn"
-
-
-msgid "Select More/Less"
-msgstr "Tăng/Giảm Lựa Chọn"
-
-
-msgid "Select Similar"
-msgstr "Chọn Tương Tự"
-
-
-msgid "Select All by Trait"
-msgstr "Chọn Toàn Bộ theo Đặc Điểm"
-
-
-msgid "Select Linked"
-msgstr "Chọn cái Kết Nối"
-
-
-msgid "Select Loops"
-msgstr "Chọn Vòng Mạch"
-
-
-msgid "Assign Material"
-msgstr "Ấn Định Nguyên Vật Liệu"
-
-
-msgid "Metaball"
-msgstr "Siêu Cầu"
-
-
-msgid "Light"
-msgstr "Nguồn/Ánh Sáng/Đèn"
-
-
-msgid "Light Probe"
-msgstr "Đầu Dò Ánh Sáng"
-
-
-msgid "Add Image"
-msgstr "Thêm Hình Ảnh"
-
-
-msgid "Relations"
-msgstr "Mối Quan Hệ"
-
-
-msgid "Rigid Body"
-msgstr "Thân Cứng"
-
-
-msgid "Apply"
-msgstr "Áp Dụng"
-
-
-msgid "Track"
-msgstr "Giám Sát"
-
-
-msgid "Quick Effects"
-msgstr "Hiệu Ứng Nhanh"
-
-
-msgid "Asset"
-msgstr "Tài Sản"
-
-
-msgid "Make Single User"
-msgstr "Biến Thành Đơn Người Dùng"
-
-
-msgid "Convert"
-msgstr "Chuyển Đổi"
-
-
-msgid "Link/Transfer Data"
-msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
-
-
-msgid "Hooks"
-msgstr "Móc"
-
-
-msgid "Trim/Add"
-msgstr "Cắt Xén/Thêm"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Điêu Khắc: Đặt Điểm Tựa"
-
-
-msgid "Face Sets Init"
-msgstr "Khởi Thủy các Mặt Ấn Định"
-
-
-msgid "Random Mask"
-msgstr "Màn Chắn Lọc Ngẫu Nhiên"
-
-
-msgid "Clear Transform"
-msgstr "Xóa Biến Hóa"
-
-
-msgid "In-Betweens"
-msgstr "Bước Trung Gian"
-
-
-msgid "Propagate"
-msgstr "Lan Truyền"
-
-
-msgid "Bone Collections"
-msgstr "Bộ Sưu Tập Xương"
-
-
-msgid "Toggle Bone Options"
-msgstr "Bật/Tắt Tùy Chọn về Xương"
-
-
-msgid "Enable Bone Options"
-msgstr "Bật các Tùy Chọn về Xương"
-
-
-msgid "Disable Bone Options"
-msgstr "Tắt các Tùy Chọn về Xương"
-
-
-msgid "Mesh Select Mode"
-msgstr "Chế Độ Chọn Khung Lưới"
-
-
-msgid "Face Data"
-msgstr "Dữ Liệu Mặt"
+msgid "Set Face Strength"
+msgstr "Đặt Cường Độ Mặt"
 
 
 msgid "Select by Face Strength"
 msgstr "Chọn theo Cường Độ Mặt"
 
 
-msgid "Set Face Strength"
-msgstr "Đặt Cường Độ Mặt"
+msgid "Face Data"
+msgstr "Dữ Liệu Mặt"
 
 
-msgid "Merge"
-msgstr "Hợp Nhất"
+msgid "Bone Collections"
+msgstr "Bộ Sưu Tập Xương"
 
 
-msgid "Special Characters"
-msgstr "Các Ký Tự Đặc Biệt"
+msgid "Propagate"
+msgstr "Lan Truyền"
+
+
+msgid "In-Betweens"
+msgstr "Bước Trung Gian"
+
+
+msgid "Clear Transform"
+msgstr "Xóa Biến Hóa"
+
+
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
+
+
+msgid "Random Mask"
+msgstr "Màn Chắn Lọc Ngẫu Nhiên"
+
+
+msgid "Face Sets Init"
+msgstr "Khởi Thủy các Mặt Ấn Định"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Điêu Khắc: Đặt Điểm Tựa"
+
+
+msgid "Trim/Add"
+msgstr "Cắt Xén/Thêm"
+
+
+msgid "Mesh Select Mode"
+msgstr "Chế Độ Chọn Khung Lưới"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
+msgid "Disable Bone Options"
+msgstr "Tắt các Tùy Chọn về Xương"
+
+
+msgid "Enable Bone Options"
+msgstr "Bật các Tùy Chọn về Xương"
+
+
+msgid "Toggle Bone Options"
+msgstr "Bật/Tắt Tùy Chọn về Xương"
+
+
+msgid "UV Mapping"
+msgstr "Ánh Xạ UV"
+
+
+msgid "Apply"
+msgstr "Áp Dụng"
+
+
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "Names"
+msgstr "Tên"
+
+
+msgid "Assign Material"
+msgstr "Ấn Định Nguyên Vật Liệu"
+
+
+msgid "Bone Roll"
+msgstr "Lăn Xương"
+
+
+msgid "Hooks"
+msgstr "Móc"
+
+
+msgid "Link/Transfer Data"
+msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
+
+
+msgid "Convert"
+msgstr "Chuyển Đổi"
+
+
+msgid "Make Single User"
+msgstr "Biến Thành Đơn Người Dùng"
+
+
+msgid "Asset"
+msgstr "Tài Sản"
+
+
+msgid "Quick Effects"
+msgstr "Hiệu Ứng Nhanh"
+
+
+msgid "Track"
+msgstr "Giám Sát"
+
+
+msgid "Rigid Body"
+msgstr "Thân Cứng"
+
+
+msgid "Relations"
+msgstr "Mối Quan Hệ"
+
+
+msgid "Add Image"
+msgstr "Thêm Hình Ảnh"
+
+
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgid "Light Probe"
+msgstr "Đầu Dò Ánh Sáng"
+
+
+msgid "Light"
+msgstr "Nguồn/Ánh Sáng/Đèn"
 
 
 msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
 
 
-msgid "Text"
-msgstr "Văn Bản"
+msgid "Select More/Less"
+msgstr "Tăng/Giảm Lựa Chọn"
+
+
+msgid "Special Characters"
+msgstr "Các Ký Tự Đặc Biệt"
+
+
+msgid "Select Loops"
+msgstr "Chọn Vòng Mạch"
+
+
+msgid "Select Linked"
+msgstr "Chọn cái Kết Nối"
+
+
+msgid "Select All by Trait"
+msgstr "Chọn Toàn Bộ theo Đặc Điểm"
+
+
+msgid "Select Similar"
+msgstr "Chọn Tương Tự"
+
+
+msgid "View Regions"
+msgstr "Vùng Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
+msgid "Merge"
+msgstr "Hợp Nhất"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
 
 
 msgid "Keyframe Insert Pie"
@@ -46012,18 +46012,6 @@ msgid "Offset an image"
 msgstr "Dịch chuyển một hình ảnh"
 
 
-msgid "Use nearest interpolation"
-msgstr "Sử dụng nội suy gần nhất"
-
-
-msgid "Use bilinear interpolation"
-msgstr "Sử dụng nội suy song tuyến tính"
-
-
-msgid "Use bicubic interpolation"
-msgstr "Sử dụng nội suy song lập phương (bicubic)"
-
-
 msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Sử dụng các giá trị tương đối (phân số kích thước của hình ảnh cung cấp) để định nghĩa sự dịch chuyển"
 
@@ -53175,11 +53163,6 @@ msgid "Change Factor"
 msgstr "Thay Đổi Hệ Số"
 
 
-msgctxt "NodeTree"
-msgid "Frame Selected"
-msgstr "Đóng Khung cái Được Chọn"
-
-
 msgid "Connect two nodes without clicking a specific socket (automatically determined"
 msgstr "Kết nối hai nút mà không cần nhấp vào ổ cắm cụ thể nào (tự động xác định)"
 
@@ -58661,15 +58644,6 @@ msgid "Remove Exporter"
 msgstr "Xóa Trình Xuất Khẩu"
 
 
-msgctxt "Operator"
-msgid "Add Selected to Active Collection"
-msgstr "Thêm cái được Chọn vào Bộ Sưu Tập đang Hoạt Động"
-
-
-msgid "Add the object to an object collection that contains the active object"
-msgstr "Thêm đối tượng vào một bộ sưu tập có chứa đối tượng đang hoạt động"
-
-
 msgid "The collection to add other selected objects to"
 msgstr "Bộ sưu tập để thêm những đối tượng được chọn khác vào"
 
@@ -59895,10 +59869,6 @@ msgid "Select Control Point Row"
 msgstr "Chọn Dãy Điểm Điều Khiển"
 
 
-msgid "Select a row of control points including active one"
-msgstr "Chọn một dãy các điểm điều khiển, bao gồm cả cái đang hoạt động"
-
-
 msgid "Select similar curve points by property type"
 msgstr "Chọn các điểm đường cong tương đồng về thể loại tính chất"
 
@@ -60774,10 +60744,6 @@ msgid "Filter Actions to be exported"
 msgstr "Thanh Lọc các Hành Động sẽ được xuất khẩu"
 
 
-msgid "Export active vertex color when no material"
-msgstr "Xuất màu điểm đỉnh đang hoạt động khi không có nguyên vật liệu"
-
-
 msgid "When there is no material on object, export active vertex color"
 msgstr "Khi không có nguyên vật liệu trên đối tượng thì xuất khẩu màu điểm đỉnh đang hoạt động"
 
@@ -60788,10 +60754,6 @@ msgstr "Bao Gồm Toàn Bộ các Tác Động của Xương"
 
 msgid "Allow export of all joint vertex influences. Models may appear incorrectly in many viewers"
 msgstr "Cho phép xuất khẩu toàn bộ các ảnh hưởng điểm đỉnh của khớp nối. Các mô hình có thể xuất hiện không chính xác ở nhiều trình quan sát"
-
-
-msgid "Export all vertex colors"
-msgstr "Xuất toàn bộ các màu điểm đỉnh"
 
 
 msgid "Export all vertex colors, even if not used by any material. If no Vertex Color is used in the mesh materials, a fake COLOR_0 will be created, in order to keep material unchanged"
@@ -60814,16 +60776,8 @@ msgid "Export all actions, bound to a single armature. WARNING: Option does not 
 msgstr "Xuất khẩu toàn bộ các hành động, kết buộc vào đơn thực thể khung rối. CẢNH BÁO: Tùy chọn không hỗ trợ xuất khẩu nhiều trường hợp khung rối"
 
 
-msgid "Set all glTF Animation starting at 0"
-msgstr "Đặt toàn bộ Hoạt Họa glTF bắt đầu từ 0"
-
-
 msgid "Set all glTF animation starting at 0.0s. Can be useful for looping animations"
 msgstr "Đặt toàn bộ hoạt họa glTF bắt đầu từ giây 0.0. Có thể hữu ích cho quá trình nhắc lại tuần hoàn các hoạt họa"
-
-
-msgid "Animation mode"
-msgstr "Chế độ hoạt họa"
 
 
 msgid "Export Animation mode"
@@ -60890,10 +60844,6 @@ msgid "Export cameras"
 msgstr "Xuất Khẩu Máy Quay Phim"
 
 
-msgid "Convert TRS/weights to Animation Pointer"
-msgstr "Chuyển đổi DXT/trọng lượng thành Con Trỏ Hoạt Họa"
-
-
 msgid "Export TRS and weights as Animation Pointer. Using KHR_animation_pointer extension"
 msgstr "Xuất DXT ( Dịch chuyển, Xoay chiều, Đổi Tỷ Lệ) (TRS) và trọng lượng dưới dạng Con Trỏ Hoạt Họa (Animation Pointer). Sử dụng trình mở rộng KHR_animation_pointer (con trỏ_hoạt họa_Khronos)"
 
@@ -60918,64 +60868,32 @@ msgid "Export Deformation bones only"
 msgstr "Chỉ xuất khẩu các xương biến dạng mà thôi"
 
 
-msgid "Color quantization bits"
-msgstr "Số bit lượng tử màu"
-
-
 msgid "Quantization bits for color values (0 = no quantization)"
 msgstr "Số bit lượng tử cho các giá trị màu sắc (bằng 0 có nghĩa là không lượng tử hóa)"
-
-
-msgid "Generic quantization bits"
-msgstr "Bit lượng tử hóa phổ thông"
 
 
 msgid "Quantization bits for generic values like weights or joints (0 = no quantization)"
 msgstr "Các bit lượng tử hóa dành cho các giá trị phổ thông như các trọng lượng hoặc các khớp nối (0 = không lượng tử hóa)"
 
 
-msgid "Draco mesh compression"
-msgstr "Nén khung lưới dùng Draco"
-
-
 msgid "Compress mesh using Draco"
 msgstr "Nén khung lưới dùng Draco"
-
-
-msgid "Compression level"
-msgstr "Mức nén"
 
 
 msgid "Compression level (0 = most speed, 6 = most compression, higher values currently not supported)"
 msgstr "Mức độ nén (0 = tốc độ nhanh chóng, 6=nén nhiều nhất, những giá trị cao hơn thì hiện giờ chưa hỗ trợ)"
 
 
-msgid "Normal quantization bits"
-msgstr "Bit lượng tử hóa pháp tuyến"
-
-
 msgid "Quantization bits for normal values (0 = no quantization)"
 msgstr "Các bit lượng tử hóa dành cho các giá trị pháp tuyến (bằng 0 có nghĩa là không lượng tử hóa)"
-
-
-msgid "Position quantization bits"
-msgstr "Bit lượng tử hóa vị trí"
 
 
 msgid "Quantization bits for position values (0 = no quantization)"
 msgstr "Các bit lượng tử hóa dành cho các giá trị vị trí (bằng 0 có nghĩa là không lượng tử hóa)"
 
 
-msgid "Texcoord quantization bits"
-msgstr "Bit lượng tử hóa tọa độ chất liệu"
-
-
 msgid "Quantization bits for texture coordinate values (0 = no quantization)"
 msgstr "Các bit lượng tử hóa dành cho các giá trị tọa độ chất liệu (bằng 0 có nghĩa là không lượng tử hóa)"
-
-
-msgid "Prepare extra animations"
-msgstr "Chuẩn bị hoạt họa bổ sung"
 
 
 msgid ""
@@ -61186,16 +61104,8 @@ msgid "Don't export images"
 msgstr "Không xuất khẩu hình ảnh"
 
 
-msgid "Image quality"
-msgstr "Chất lượng hình ảnh"
-
-
 msgid "Quality of image export"
 msgstr "Chất lượng xuất khẩu hình ảnh"
-
-
-msgid "WebP fallback"
-msgstr "Dự phòng WebP"
 
 
 msgid "For all WebP textures, create a PNG fallback texture"
@@ -61238,16 +61148,12 @@ msgid "Choose how many Bone influences to export"
 msgstr "Chọn số lượng ảnh hưởng của Xương để xuất khẩu"
 
 
-msgid "JPEG quality"
-msgstr "Chất lượng JPEG"
-
-
 msgid "Quality of JPEG export"
 msgstr "Chất lượng xuất khẩu của JPEG"
 
 
-msgid "Keep original"
-msgstr "Duy trì bản gốc"
+msgid "Keep Original"
+msgstr "Duy Trì Bản Gốc"
 
 
 msgid "Keep original textures files if possible. WARNING: if you use more than one texture, where pbr standard requires only one, only one texture will be used. This can lead to unexpected results"
@@ -61306,10 +61212,6 @@ msgid "Export vertex normals with shape keys (morph targets)"
 msgstr "Xuất Khẩu các pháp tuyến điểm đỉnh với các hình mẫu (các mục tiêu biến dạng)"
 
 
-msgid "Reset shape keys between actions"
-msgstr "Hoàn lại các hình mẫu giữa các hành động"
-
-
 msgid "Reset shape keys between each action exported. This is needed when some SK channels are not keyed on some animations"
 msgstr "Hoàn lại các hình mẫu giữa mỗi hành động xuất khẩu. Việc làm này là cần thiết khi một số kênh SK không được khóa hóa trên một số hoạt họa"
 
@@ -61362,16 +61264,8 @@ msgid "Export vertex normals with meshes"
 msgstr "Xuất Khẩu các pháp tuyến điểm đỉnh với những khung lưới"
 
 
-msgid "Force keeping channels for bones"
-msgstr "Ép buộc duy trì các kênh cho xương"
-
-
 msgid "If all keyframes are identical in a rig, force keeping the minimal animation. When off, all possible channels for the bones will be exported, even if empty (minimal animation, 2 keyframes)"
 msgstr "Nếu toàn bộ các khung khóa đều giống hệt nhau trong một giàn điều khiển thì sự ép buộc sẽ duy trì hoạt họa ở mức tối thiểu. Khi tắt đi thì tất cả các kênh khả dĩ dành cho xương đều sẽ được xuất khẩu hết, ngay cả khi trống rỗng (hoạt họa tối thiểu, 2 khung khóa)"
-
-
-msgid "Force keeping channel for objects"
-msgstr "Bắt buộc duy trì kênh cho đối tượng"
 
 
 msgid "If all keyframes are identical for object transformations, force keeping the minimal animation"
@@ -61386,16 +61280,8 @@ msgid "Reduce exported file size by removing duplicate keyframes"
 msgstr "Giảm thiểu kích thước tập tin xuất khẩu bằng cách xóa các khung hình chính trùng lặp đi"
 
 
-msgid "Disable viewport for other objects"
-msgstr "Tắt hiển thị cổng nhìn đối với các đối tượng khác"
-
-
 msgid "When exporting animations, disable viewport for other objects, for performance"
 msgstr "Khi xuất khẩu các hoạt họa thì tắt hiển thị cổng nhìn đối với các đối tượng khác để tăng hiệu suất hoạt động"
-
-
-msgid "Export original PBR Specular"
-msgstr "Xuất Khẩu ánh lóng lánh PBR glTF gốc"
 
 
 msgid "Export original glTF PBR Specular, instead of Blender Principled Shader Specular"
@@ -61408,10 +61294,6 @@ msgstr "Xuất Khẩu Con Trỏ Hoạt Họa (Thử Nghiệm)"
 
 msgid "Export material, Light & Camera animation as Animation Pointer. Available only for baked animation mode 'NLA Tracks' and 'Scene'"
 msgstr "Xuất khẩu nguyên vật liệu, hoạt họa Ánh Sáng & Máy Quay Phim dưới dạng Con Trỏ Hoạt Họa. Chỉ khả dụng cho chế độ hoạt họa nướng 'NLA Tracks' (Dãnh NLA) và 'Scene' (Cảnh)"
-
-
-msgid "Reset pose bones between actions"
-msgstr "Hoàn lại các xương tư thế giữa các hành động"
 
 
 msgid "Reset pose bones between each action exported. This is needed when some bones are not keyed on some animations"
@@ -61462,24 +61344,12 @@ msgid "Omitting Sparse Accessor if data is empty"
 msgstr "Bỏ qua Trình Truy Cập Thưa Thớt nếu dữ liệu là trống rỗng"
 
 
-msgid "Use Sparse Accessor if better"
-msgstr "Sử dụng Trình Truy Cập Thưa Thớt nếu tốt hơn"
-
-
 msgid "Try using Sparse Accessor if it saves space"
 msgstr "Hãy thử sử dụng Trình Truy Cập Thưa Thớt nếu nó tiết kiệm được dung lượng"
 
 
-msgid "Unused images"
-msgstr "Các hình ảnh không sử dụng đến"
-
-
 msgid "Export images not assigned to any material"
 msgstr "Xuất khẩu các hình ảnh không được ấn định cho bất kỳ nguyên vật liệu nào cả"
-
-
-msgid "Prepare Unused textures"
-msgstr "Chuẩn bị các chất liệu Không Sử Dụng đến"
 
 
 msgid "Export image texture nodes not assigned to any material. This feature is not standard and needs an external extension to be included in the glTF file"
@@ -66462,10 +66332,6 @@ msgid "Import scene extras as custom properties. Existing custom properties will
 msgstr "Chức năng bổ sung về nhập khẩu cảnh dưới dạng các tính chất tùy chỉnh. Các tính chất tùy chỉnh hiện tại sẽ bị viết đè lên"
 
 
-msgid "Select imported objects"
-msgstr "Chọn các đối tượng đã nhập khẩu"
-
-
 msgid "Select created objects at the end of the import"
 msgstr "Lựa chọn các đối tượng đã được tạo ra ở cuối quá trình nhập khẩu"
 
@@ -66480,10 +66346,6 @@ msgstr "Sử Dụng Dữ Liệu Pháp Tuyến"
 
 msgid "Flat Shading"
 msgstr "Tô Bóng Phẳng Bẹt"
-
-
-msgid "Import WebP textures"
-msgstr "Nhập Khẩu Chất Liệu WebP"
 
 
 msgid "If a texture exists in WebP format, loads the WebP texture instead of the fallback PNG/JPEG one"
@@ -71363,22 +71225,6 @@ msgid "Change factors of Mix nodes and Mix Shader nodes"
 msgstr "Thay đổi hệ số của các nút Hòa Trộn và các nút Hòa Trộn Tô Bóng"
 
 
-msgid "Add a frame node and parent the selected nodes to it"
-msgstr "Thêm một nút khung hình và phụ huynh hóa các nút đã chọn vào đó"
-
-
-msgid "The color of the frame node"
-msgstr "Màu sắc của nút đóng khung"
-
-
-msgid "The visual name of the frame node"
-msgstr "Tên trực quan của nút đóng khung"
-
-
-msgid "Use custom color for the frame node"
-msgstr "Sử dụng màu tùy chỉnh cho nút đóng khung"
-
-
 msgid "Merge selected nodes"
 msgstr "Hợp nhất các nút được chọn"
 
@@ -72017,14 +71863,6 @@ msgid "Convert selected objects to another type"
 msgstr "Chuyển đổi các đối tượng được chọn sang một thể loại khác"
 
 
-msgid "Threshold Angle"
-msgstr "Góc Độ Giới Hạn"
-
-
-msgid "Threshold to determine ends of the strokes"
-msgstr "Giới hạn dùng để xác định điểm kết của các nét vẽ"
-
-
 msgid "Export Faces"
 msgstr "Xuất Khẩu Các Mặt"
 
@@ -72056,14 +71894,6 @@ msgstr "Dịch Chuyển của Nét Vẽ"
 
 msgid "Offset strokes from fill"
 msgstr "Dịch chuyển nét vẽ khỏi vùng tô kín"
-
-
-msgid "Only Seam Edges"
-msgstr "Duy các Cạnh Đường Khâu"
-
-
-msgid "Convert only seam edges"
-msgstr "Duy chuyển đổi các cạnh là đường khâu vá mà thôi"
 
 
 msgid "Type of object to convert to"
@@ -77984,10 +77814,6 @@ msgstr "Toàn Thể các Cấu Hình Phím"
 
 msgid "Write all keymaps (not just user modified)"
 msgstr "Ghi toàn bộ các cấu hình phím (không chỉ cái mà người dùng đã thay đổi mà thôi)"
-
-
-msgid "Keep Original"
-msgstr "Duy Trì Bản Gốc"
 
 
 msgid "Keep original file after copying to configuration folder"
@@ -89280,16 +89106,16 @@ msgid "Multi Frame"
 msgstr "Đa Khung Hình"
 
 
+msgid "Auto-Masking"
+msgstr "Tự Động Chắn Lọc"
+
+
 msgid "glTF Variants"
 msgstr "Biến Thể glTF"
 
 
 msgid "glTF Material Variants"
 msgstr "Biến Thể Nguyên Vật Liệu glTF"
-
-
-msgid "Auto-Masking"
-msgstr "Tự Động Chắn Lọc"
 
 
 msgid "Curves Sculpt Add Curve Options"
@@ -89300,16 +89126,16 @@ msgid "Curves Sculpt Parameter Falloff"
 msgstr "Điêu Khắc Đường Cong Tham Số Suy Giảm Dần"
 
 
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
-
-
 msgid "Curves Grow/Shrink Scaling"
 msgstr "Tỷ Lệ Phình Ra/Thu Lại của Đường Cong"
 
 
 msgid "Viewport Debug"
 msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
+
+
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
 
 
 msgid "VR"
@@ -96216,14 +96042,6 @@ msgid "If non-zero, the maximum value for an indirect sample, higher values will
 msgstr "Nếu khác 0 thì là giá trị tối đa cho một mẫu vật gián tiếp, những giá trị cao hơn sẽ được thu nhỏ lại để tránh quá nhiều nhiễu và trì trệ quá trình đồng quy, mặc dù sẽ mất tính chính xác"
 
 
-msgid "Sample Offset"
-msgstr "Lượng Mẫu Vật Xê Dịch"
-
-
-msgid "Number of samples to skip when starting render"
-msgstr "Số mẫu vật bỏ qua khi khởi động kết xuất"
-
-
 msgid "Number of samples to render for each pixel"
 msgstr "Số mẫu vật để kết xuất cho mỗi điểm ảnh"
 
@@ -100456,110 +100274,6 @@ msgid "Python Scripts Directories"
 msgstr "Thư Mục Tập Lệnh Python"
 
 
-msgid "Sequence Color Balance Data"
-msgstr "Dữ Liệu Cân Bằng Màu của Trình Tự"
-
-
-msgid "Color balance parameters for a sequence strip and its modifiers"
-msgstr "Tham số cân bằng màu cho một dải trình tự và các bộ điều chỉnh của nó"
-
-
-msgid "Correction Method"
-msgstr "Phương Pháp Chỉnh Sửa"
-
-
-msgid "Color balance gain (highlights)"
-msgstr "Khuếch đại cân bằng màu (vùng nêu bật)"
-
-
-msgid "Color balance gamma (midtones)"
-msgstr "Gamma của cân bằng màu (sắc thái ở vùng trung độ (midtones))"
-
-
-msgid "Inverse Gain"
-msgstr "Đảo Nghịch Khuếch Đại"
-
-
-msgid "Invert the gain color"
-msgstr "Đảo nghịch màu khuếch đại"
-
-
-msgid "Inverse Gamma"
-msgstr "Đảo Nghịch Gamma"
-
-
-msgid "Invert the gamma color"
-msgstr "Đảo nghịch màu gamma"
-
-
-msgid "Inverse Lift"
-msgstr "Đảo Nghịch Màu Nâng"
-
-
-msgid "Invert the lift color"
-msgstr "Đảo nghịch màu nâng sáng"
-
-
-msgid "Inverse Offset"
-msgstr "Đảo Nghịch Dịch Chuyển"
-
-
-msgid "Invert the offset color"
-msgstr "Đảo nghịch màu dịch chuyển"
-
-
-msgid "Inverse Power"
-msgstr "Đảo Nghịch Năng Lượng"
-
-
-msgid "Invert the power color"
-msgstr "Đảo nghịch màu năng lượng"
-
-
-msgid "Inverse Slope"
-msgstr "Đảo Nghịch Dốc"
-
-
-msgid "Invert the slope color"
-msgstr "Đảo nghịch màu dốc"
-
-
-msgid "Color balance lift (shadows)"
-msgstr "Nâng sáng cân bằng màu (bóng tối)"
-
-
-msgid "Sequence Color Balance"
-msgstr "Cân Bằng Màu của Trình Tự"
-
-
-msgid "Color balance parameters for a sequence strip"
-msgstr "Tham số cân bằng màu cho một dải trình tự"
-
-
-msgid "Sequence Crop"
-msgstr "Cắt Xén Trình Tự"
-
-
-msgid "Cropping parameters for a sequence strip"
-msgstr "Các tham số để cắt xén một dải trình tự"
-
-
-msgid "Number of pixels to crop from the right side"
-msgstr "Số điểm ảnh để cắt xén từ bên phải"
-
-
-msgid "Number of pixels to crop from the top"
-msgstr "Số điểm ảnh để cắt xén từ đỉnh"
-
-
-msgid "Number of pixels to crop from the left side"
-msgstr "Số điểm ảnh để cắt xén từ bên trái"
-
-
-msgid "Number of pixels to crop from the bottom"
-msgstr "Số điểm ảnh để cắt xén từ đáy"
-
-
 msgid "Sequence editing data for a Scene data-block"
 msgstr "Dữ liệu biên soạn của trình phối hình cho một khối dữ liệu Cảnh"
 
@@ -100623,16 +100337,8 @@ msgid "Retiming Key Selection Status"
 msgstr "Trạng Thái Lựa Chọn Khóa Tính Lại Thời Gian"
 
 
-msgid "Sequences"
-msgstr "Các Trình Tự"
-
-
 msgid "Top-level strips only"
 msgstr "Duy các dải phim ở tầng trên cùng"
-
-
-msgid "All Sequences"
-msgstr "Toàn Bộ các Trình Tự"
 
 
 msgid "All strips, recursively including those inside metastrips"
@@ -100699,304 +100405,12 @@ msgid "Render frames ahead of current frame in the background for faster playbac
 msgstr "Vượt trước kết xuất khung hình hiện tại ở nền, hòng giúp chơi lại được nhanh hơn"
 
 
-msgid "Sequence Element"
-msgstr "Phần Tử của Trình Tự"
-
-
-msgid "Sequence strip data for a single frame"
-msgstr "Dữ liệu dải trình tự cho riêng một khung hình"
-
-
-msgid "Name of the source file"
-msgstr "Tên của tập tin nguồn"
-
-
-msgid "Orig FPS"
-msgstr "Khung Hình/Giây Ban Đầu"
-
-
-msgid "Original frames per second"
-msgstr "Số khung hình mỗi giây ban đầu"
-
-
-msgid "Orig Height"
-msgstr "Chiều Cao Ban Đầu"
-
-
-msgid "Original image height"
-msgstr "Chiều cao ban đầu của hình ảnh"
-
-
-msgid "Orig Width"
-msgstr "Chiều Rộng Ban Đầu"
-
-
-msgid "Original image width"
-msgstr "Chiều rộng ban đầu của hình ảnh"
-
-
-msgid "Collection of SequenceElement"
-msgstr "Bộ Sưu Tập của Phần Tử Trình Tự"
-
-
-msgid "Modifier for sequence strip"
-msgstr "Bộ điều chỉnh cho dải trình tự"
-
-
-msgid "Mask ID used as mask input for the modifier"
-msgstr "Chỉ danh ID của Màn Chắn Lọc được sử dụng làm nguồn cung cấp màn chắn lọc cho bộ điều chỉnh"
-
-
-msgid "Mask Strip"
-msgstr "Dải Màn Chắn Lọc"
-
-
-msgid "Strip used as mask input for the modifier"
-msgstr "Dải phim được sử dụng làm nguồn màn chắn lọc cung cấp cho bộ điều chỉnh"
-
-
-msgid "Mask Input Type"
-msgstr "Thể Loại Màn Chắn Lọc Cung Cấp"
-
-
-msgid "Type of input data used for mask"
-msgstr "Loại dữ liệu cung cấp dùng làm màn chắn lọc"
-
-
-msgid "Use sequencer strip as mask input"
-msgstr "Dùng dải trình tự của trình phối hình làm nguồn cung cấp màn chắn lọc"
-
-
-msgid "Use mask ID as mask input"
-msgstr "Dùng ID của màn chắn lọc làm nguồn màn chắn lọc cung cấp"
-
-
-msgid "Mask Time"
-msgstr "Thời Gian của Màn Chắn Lọc"
-
-
-msgid "Time to use for the Mask animation"
-msgstr "Thời điểm sử dụng hoạt họa Màn Chắn Lọc"
-
-
-msgid "Mask animation is offset to start of strip"
-msgstr "Hoạt họa Màn Chắn Lọc nằm lệch với điểm đầu của đoạn phim"
-
-
-msgid "Mask animation is in sync with scene frame"
-msgstr "Hoạt họa Màn Chắn Lọc đồng hành với khung hình trong cảnh"
-
-
-msgid "Mute this modifier"
-msgstr "Chặn/Tắt hoạt tính bộ điều chỉnh này"
-
-
-msgid "Mute expanded settings for the modifier"
-msgstr "Chặn/Tắt sắp đặt mở rộng cho bộ điều chỉnh"
-
-
-msgid "Tone Map"
-msgstr "Ánh Xạ Sắc Thái"
-
-
-msgid "Sound Equalizer"
-msgstr "Bộ Cân Bằng Âm Thanh"
-
-
-msgid "Bright/contrast modifier data for sequence strip"
-msgstr "Dữ liệu của bộ điều chỉnh độ (sáng/tương phản) cho dải trình tự"
-
-
-msgid "Adjust the luminosity of the colors"
-msgstr "Điều chỉnh độ sáng của các màu sắc"
-
-
-msgid "Adjust the difference in luminosity between pixels"
-msgstr "Điều chỉnh độ chênh lệch trong độ sáng giữa các điểm ảnh"
-
-
-msgid "Color balance modifier for sequence strip"
-msgstr "Bộ điều chỉnh cân bằng màu sắc cho dải trình tự"
-
-
-msgid "Multiply Colors"
-msgstr "Nhân Các Màu Lên"
-
-
-msgid "Multiply the intensity of each pixel"
-msgstr "Nhân cường độ của mỗi điểm ảnh"
-
-
-msgid "RGB curves modifier for sequence strip"
-msgstr "Bộ điều chỉnh đường cong RGB cho dải trình tự"
-
-
-msgid "Hue correction modifier for sequence strip"
-msgstr "Bộ điều chỉnh sắc màu cho dải trình tự"
-
-
-msgid "Tone mapping modifier"
-msgstr "Bộ điều chỉnh ánh xạ tông màu"
-
-
-msgid "Tone mapping algorithm"
-msgstr "Thuật toán ánh xạ tông màu"
-
-
-msgid "Equalize audio"
-msgstr "Cân bằng âm thanh"
-
-
-msgid "Graphical definition equalization"
-msgstr "Cân bằng định nghĩa đồ họa"
-
-
-msgid "White balance modifier for sequence strip"
-msgstr "Bộ điều chỉnh cân bằng trắng cho dải trình tự"
-
-
-msgid "White Value"
-msgstr "Giá trị màu trắng"
-
-
-msgid "This color defines white in the strip"
-msgstr "Màu này sẽ xác định màu trắng trong dải"
-
-
-msgid "Strip Modifiers"
-msgstr "Bộ Điều Chỉnh Dải"
-
-
-msgid "Collection of strip modifiers"
-msgstr "Bộ sưu tập các bộ điều chỉnh dải"
-
-
-msgid "Sequence Proxy"
-msgstr "Đại Diện của Trình Tự"
-
-
-msgid "Proxy parameters for a sequence strip"
-msgstr "Các tham số của bản đại diện cho một dải trình tự"
-
-
-msgid "Build 100% proxy resolution"
-msgstr "Kiến dựng bản đại diện với độ phân giải 100%"
-
-
-msgid "Build 25% proxy resolution"
-msgstr "Kiến dựng bản đại diện với độ phân giải 25%"
-
-
-msgid "Build 50% proxy resolution"
-msgstr "Kiến dựng bản đại diện với độ phân giải 50%"
-
-
-msgid "Build 75% proxy resolution"
-msgstr "Kiến dựng bản đại diện với độ phân giải 75%"
-
-
-msgid "Location of custom proxy file"
-msgstr "Vị trí của tập tin đại diện tùy chọn"
-
-
-msgid "Quality of proxies to build"
-msgstr "Chất lượng của các bản đại diện sẽ xây dựng"
-
-
-msgid "Method for reading the inputs timecode"
-msgstr "Phương pháp để đọc mã thời gian của đầu vào"
-
-
-msgid "Overwrite existing proxy files when building"
-msgstr "Viết đè lên các tập tin đại diện đang tồn tại khi kiến dựng"
-
-
-msgid "Use a custom directory to store data"
-msgstr "Dùng thư mục tùy chọn để lưu trữ dữ liệu"
-
-
-msgid "Proxy Custom File"
-msgstr "Tập Tin Đại Diện Tùy Chọn"
-
-
-msgid "Use a custom file to read proxy data from"
-msgstr "Dùng một tập tin tùy chọn để đọc dữ liệu đại diện"
-
-
 msgid "Lock channel"
 msgstr "Khóa Kênh"
 
 
 msgid "Mute channel"
 msgstr "Chặn âm thanh của kênh"
-
-
-msgid "Sequence Transform"
-msgstr "Biến Hóa Trình Tự"
-
-
-msgid "Transform parameters for a sequence strip"
-msgstr "Các tham số biến hóa cho một dải trình tự"
-
-
-msgid "Type of filter to use for image transformation"
-msgstr "Thể loại bộ lọc sử dụng cho quá trình biến hóa hình ảnh"
-
-
-msgid "Automatically choose filter based on scaling factor"
-msgstr "Tự động lựa chọn bộ lọc dựa trên hệ số tỷ lệ"
-
-
-msgid "Use nearest sample"
-msgstr "Sử dụng mẫu vật gần nhất"
-
-
-msgid "Interpolate between 2×2 samples"
-msgstr "Nội suy giữa các mẫu vật 2×2"
-
-
-msgid "Cubic Mitchell filter on 4×4 samples"
-msgstr "Bộ lọc Cubic Mitchell trên các mẫu vật 4×4"
-
-
-msgid "Cubic B-Spline filter (blurry but no ringing) on 4×4 samples"
-msgstr "Bộ lọc Cubic B-Spline (nhòe mờ nhưng không rung rinh) trên các mẫu vật 4×4"
-
-
-msgid "Averages source image samples that fall under destination pixel"
-msgstr "Tính trung bình các mẫu vật hình ảnh nguồn nằm dưới điểm ảnh đích"
-
-
-msgid "Translate X"
-msgstr "Dịch Chuyển X"
-
-
-msgid "Move along X axis"
-msgstr "Di chuyển dọc theo trục X"
-
-
-msgid "Translate Y"
-msgstr "Dịch Chuyển Y"
-
-
-msgid "Move along Y axis"
-msgstr "Di chuyển dọc theo trục Y"
-
-
-msgid "Origin of image for transformation"
-msgstr "Tọa độ gốc của hình ảnh biến hóa"
-
-
-msgid "Rotate around image center"
-msgstr "Xoay chiều quanh trung tâm hình ảnh"
-
-
-msgid "Scale along X axis"
-msgstr "Đổi tỷ lệ dọc theo trục X"
-
-
-msgid "Scale along Y axis"
-msgstr "Đổi tỷ lệ dọc theo trục Y"
 
 
 msgid "Cache Overlay Settings"
@@ -101293,10 +100707,6 @@ msgstr "Bám Dính Khung Hình Hiện Tại vào các Dải"
 
 msgid "Snap current frame to strip start or end"
 msgstr "Bám dính khung hình hiện tại vào điểm khởi đầu hoặc điểm kết của dải"
-
-
-msgid "Collection of Sequences"
-msgstr "Bộ Sưu Tập các Trình Tự"
 
 
 msgid "Effect affecting the Grease Pencil object"
@@ -105099,10 +104509,6 @@ msgid "Calculate modifiers in linear space instead of sequencer's space"
 msgstr "Tính toán các bộ điều chỉnh trong không gian tuyến tính thay vì không gian của trình phối hình"
 
 
-msgid "Effect Sequence"
-msgstr "Dãy Hiệu Ứng"
-
-
 msgid "Sequence strip applying an effect on the images created by other strips"
 msgstr "Dải trình tự áp dụng một ảnh hưởng trên các hình ảnh của các dải khác"
 
@@ -105117,6 +104523,10 @@ msgstr "Các kênh RGB trong các điểm ảnh trong suốt không bị kênh a
 
 msgid "RGB channels in transparent pixels are multiplied by the alpha channel"
 msgstr "Các kênh RGB trong các điểm ảnh trong suốt được kênh alpha nhân lên"
+
+
+msgid "Multiply Colors"
+msgstr "Nhân Các Màu Lên"
 
 
 msgid "Adjust the intensity of the input's color"
@@ -105167,10 +104577,6 @@ msgid "Reverse frame order"
 msgstr "Đảo ngược trật tự của khung hình"
 
 
-msgid "Add Sequence"
-msgstr "Thêm Trình Tự"
-
-
 msgid "Input 1"
 msgstr "Đầu Vào 1"
 
@@ -105185,10 +104591,6 @@ msgstr "Đầu Vào 2"
 
 msgid "Second input for the effect strip"
 msgstr "Đầu vào thứ hai cho dải hiệu ứng"
-
-
-msgid "Adjustment Layer Sequence"
-msgstr "Trình Tự Tầng Điều Chỉnh"
 
 
 msgid "Sequence strip to perform filter adjustments to layers below"
@@ -105211,20 +104613,8 @@ msgid "Animation start offset (trim start)"
 msgstr "Dịch chuyển đầu của hoạt họa (điểm cắt đầu)"
 
 
-msgid "Alpha Over Sequence"
-msgstr "Trình Tự Alpha Trên"
-
-
-msgid "Alpha Under Sequence"
-msgstr "Trình Tự Alpha Dưới"
-
-
-msgid "Color Mix Sequence"
-msgstr "Trình Tự Hòa Trộn Màu"
-
-
-msgid "Color Sequence"
-msgstr "Trình Tự Màu"
+msgid "Color Strip"
+msgstr "Dải Màu Sắc"
 
 
 msgid "Sequence strip creating an image filled with a single color"
@@ -105239,14 +104629,6 @@ msgid "Cross Sequence"
 msgstr "Trình Tự Giao Hòa"
 
 
-msgid "Gamma Cross Sequence"
-msgstr "Trình Tự Giao Hòa Gamma"
-
-
-msgid "Gaussian Blur Sequence"
-msgstr "Trình Tự Mờ Nhòe Gaus"
-
-
 msgid "Sequence strip creating a gaussian blur"
 msgstr "Dải trình tự tạo mờ nhòe Gaus"
 
@@ -105257,10 +104639,6 @@ msgstr "Kích thước mờ nhòe dọc theo trục X"
 
 msgid "Size of the blur along Y axis"
 msgstr "Kích thước mờ nhòe dọc theo trục Y"
-
-
-msgid "Glow Sequence"
-msgstr "Dải Hừng Sáng"
 
 
 msgid "Sequence strip creating a glow effect"
@@ -105303,28 +104681,12 @@ msgid "Show the glow buffer only"
 msgstr "Chỉ hiển thị bộ đệm hừng sáng mà thôi"
 
 
-msgid "Multicam Select Sequence"
-msgstr "Trình Tự Đa Máy Quay Lựa Chọn"
-
-
 msgid "Sequence strip to perform multicam editing"
 msgstr "Dải trình tự thực hiện biên soạn đa máy quay phim"
 
 
 msgid "Multicam Source Channel"
 msgstr "Kênh Nguồn Đa Máy Quay Phim"
-
-
-msgid "Multiply Sequence"
-msgstr "Trình Tự Nhân"
-
-
-msgid "Over Drop Sequence"
-msgstr "Trình Tự Thả Lên"
-
-
-msgid "SpeedControl Sequence"
-msgstr "Trình Tự Điều Khiển Tốc Độ"
 
 
 msgid "Sequence strip to control the speed of other strips"
@@ -105379,12 +104741,8 @@ msgid "Do crossfade blending between current and next frame"
 msgstr "Tạo hiệu ứng chuyển cảnh pha trộn nhòe mờ cắt ngang giữa khung hình hiện tại và khung hình tiếp theo"
 
 
-msgid "Subtract Sequence"
-msgstr "Trình Tự Khấu Trừ"
-
-
-msgid "Text Sequence"
-msgstr "Trình Tự Văn Bản"
+msgid "Text Strip"
+msgstr "Dải Văn Bản"
 
 
 msgid "Sequence strip creating text"
@@ -105499,10 +104857,6 @@ msgid "Word wrap width as factor, zero disables"
 msgstr "Dùng chiều rộng của trang, trước khi xuống dòng, làm hệ số, đặt = 0 để tắt"
 
 
-msgid "Transform Sequence"
-msgstr "Trình Tự Biến Hóa"
-
-
 msgid "Sequence strip applying affine transformations to other strips"
 msgstr "Dải trình tự áp dụng biến đổi Afin tới các dải khác"
 
@@ -105531,8 +104885,16 @@ msgid "Amount to scale the input in the Y axis"
 msgstr "Lượng tỷ lệ đổi đầu vào trên trục Y"
 
 
+msgid "Translate X"
+msgstr "Dịch Chuyển X"
+
+
 msgid "Amount to move the input on the X axis"
 msgstr "Lượng di chuyển đầu vào trên trục X"
+
+
+msgid "Translate Y"
+msgstr "Dịch Chuyển Y"
 
 
 msgid "Amount to move the input on the Y axis"
@@ -105549,10 +104911,6 @@ msgstr "Đơn vị đo lường để dịch chuyển đầu vào"
 
 msgid "Scale uniformly, preserving aspect ratio"
 msgstr "Đổi tỷ lệ đồng đều, giữ nguyên tỷ lệ khung hình"
-
-
-msgid "Wipe Sequence"
-msgstr "Trình Tự Gạt"
 
 
 msgid "Sequence strip creating a wipe transition"
@@ -105615,12 +104973,16 @@ msgid "Clock"
 msgstr "Đồng Hồ"
 
 
+msgid "Image Strip"
+msgstr "Dải Hình Ảnh"
+
+
 msgid "Sequence strip to load one or more images"
 msgstr "Dải trình tự để nạp một hoặc nhiều hình ảnh vào"
 
 
-msgid "Mask Sequence"
-msgstr "Trình Tự Màn Chắn Lọc"
+msgid "Mask Strip"
+msgstr "Dải Màn Chắn Lọc"
 
 
 msgid "Sequence strip to load a video from a mask"
@@ -105631,20 +104993,12 @@ msgid "Mask that this sequence uses"
 msgstr "Màn Chắn Lọc mà trình tự này đang sử dụng"
 
 
-msgid "Meta Sequence"
-msgstr "Siêu Trình Tự"
+msgid "Meta Strip"
+msgstr "Siêu Trình tự"
 
 
 msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "Dải trình tự để nhóm các dải khác lại thành một"
-
-
-msgid "Sequences nested in meta strip"
-msgstr "Các trình tự lồng trong dải siêu"
-
-
-msgid "MovieClip Sequence"
-msgstr "Trình Tự Đoạn Phim"
 
 
 msgid "Sequence strip to load a video from the clip editor"
@@ -105675,10 +105029,6 @@ msgid "Use the undistorted version of the clip"
 msgstr "Dùng phiên bản đoạn phim chưa bị biến dạng"
 
 
-msgid "Movie Sequence"
-msgstr "Trình Tự Phim"
-
-
 msgid "Sequence strip to load a video"
 msgstr "Dải trình tự để nạp video"
 
@@ -105695,8 +105045,8 @@ msgid "Mode to load movie views"
 msgstr "Chế độ nạp các góc nhìn của phim"
 
 
-msgid "Scene Sequence"
-msgstr "Trình Tự Cảnh"
+msgid "Scene Strip"
+msgstr "Dải về Cảnh"
 
 
 msgid "Sequence strip using the rendered image of a scene"
@@ -105739,10 +105089,6 @@ msgid "Playback volume of the sound"
 msgstr "Âm lượng chơi lại"
 
 
-msgid "Sound Sequence"
-msgstr "Dãy Âm Thanh"
-
-
 msgid "Sequence strip defining a sound to be played over a period of time"
 msgstr "Đoạn phim xác định một âm thanh được chơi lại qua một giai đoạn thời gian"
 
@@ -105775,6 +105121,358 @@ msgstr "Dịch Chuyển Âm Thanh"
 
 msgid "Offset of the sound from the beginning of the strip, expressed in seconds"
 msgstr "Dịch chuyển của âm thanh từ điểm đầu của dải, được thể hiện trong số giây đồng hồ"
+
+
+msgid "Color balance parameters for a sequence strip and its modifiers"
+msgstr "Tham số cân bằng màu cho một dải trình tự và các bộ điều chỉnh của nó"
+
+
+msgid "Correction Method"
+msgstr "Phương Pháp Chỉnh Sửa"
+
+
+msgid "Color balance gain (highlights)"
+msgstr "Khuếch đại cân bằng màu (vùng nêu bật)"
+
+
+msgid "Color balance gamma (midtones)"
+msgstr "Gamma của cân bằng màu (sắc thái ở vùng trung độ (midtones))"
+
+
+msgid "Inverse Gain"
+msgstr "Đảo Nghịch Khuếch Đại"
+
+
+msgid "Invert the gain color"
+msgstr "Đảo nghịch màu khuếch đại"
+
+
+msgid "Inverse Gamma"
+msgstr "Đảo Nghịch Gamma"
+
+
+msgid "Invert the gamma color"
+msgstr "Đảo nghịch màu gamma"
+
+
+msgid "Inverse Lift"
+msgstr "Đảo Nghịch Màu Nâng"
+
+
+msgid "Invert the lift color"
+msgstr "Đảo nghịch màu nâng sáng"
+
+
+msgid "Inverse Offset"
+msgstr "Đảo Nghịch Dịch Chuyển"
+
+
+msgid "Invert the offset color"
+msgstr "Đảo nghịch màu dịch chuyển"
+
+
+msgid "Inverse Power"
+msgstr "Đảo Nghịch Năng Lượng"
+
+
+msgid "Invert the power color"
+msgstr "Đảo nghịch màu năng lượng"
+
+
+msgid "Inverse Slope"
+msgstr "Đảo Nghịch Dốc"
+
+
+msgid "Invert the slope color"
+msgstr "Đảo nghịch màu dốc"
+
+
+msgid "Color balance lift (shadows)"
+msgstr "Nâng sáng cân bằng màu (bóng tối)"
+
+
+msgid "Color balance parameters for a sequence strip"
+msgstr "Tham số cân bằng màu cho một dải trình tự"
+
+
+msgid "Cropping parameters for a sequence strip"
+msgstr "Các tham số để cắt xén một dải trình tự"
+
+
+msgid "Number of pixels to crop from the right side"
+msgstr "Số điểm ảnh để cắt xén từ bên phải"
+
+
+msgid "Number of pixels to crop from the top"
+msgstr "Số điểm ảnh để cắt xén từ đỉnh"
+
+
+msgid "Number of pixels to crop from the left side"
+msgstr "Số điểm ảnh để cắt xén từ bên trái"
+
+
+msgid "Number of pixels to crop from the bottom"
+msgstr "Số điểm ảnh để cắt xén từ đáy"
+
+
+msgid "Sequence strip data for a single frame"
+msgstr "Dữ liệu dải trình tự cho riêng một khung hình"
+
+
+msgid "Name of the source file"
+msgstr "Tên của tập tin nguồn"
+
+
+msgid "Orig FPS"
+msgstr "Khung Hình/Giây Ban Đầu"
+
+
+msgid "Original frames per second"
+msgstr "Số khung hình mỗi giây ban đầu"
+
+
+msgid "Orig Height"
+msgstr "Chiều Cao Ban Đầu"
+
+
+msgid "Original image height"
+msgstr "Chiều cao ban đầu của hình ảnh"
+
+
+msgid "Orig Width"
+msgstr "Chiều Rộng Ban Đầu"
+
+
+msgid "Original image width"
+msgstr "Chiều rộng ban đầu của hình ảnh"
+
+
+msgid "Modifier for sequence strip"
+msgstr "Bộ điều chỉnh cho dải trình tự"
+
+
+msgid "Mask ID used as mask input for the modifier"
+msgstr "Chỉ danh ID của Màn Chắn Lọc được sử dụng làm nguồn cung cấp màn chắn lọc cho bộ điều chỉnh"
+
+
+msgid "Strip used as mask input for the modifier"
+msgstr "Dải phim được sử dụng làm nguồn màn chắn lọc cung cấp cho bộ điều chỉnh"
+
+
+msgid "Mask Input Type"
+msgstr "Thể Loại Màn Chắn Lọc Cung Cấp"
+
+
+msgid "Type of input data used for mask"
+msgstr "Loại dữ liệu cung cấp dùng làm màn chắn lọc"
+
+
+msgid "Use sequencer strip as mask input"
+msgstr "Dùng dải trình tự của trình phối hình làm nguồn cung cấp màn chắn lọc"
+
+
+msgid "Use mask ID as mask input"
+msgstr "Dùng ID của màn chắn lọc làm nguồn màn chắn lọc cung cấp"
+
+
+msgid "Mask Time"
+msgstr "Thời Gian của Màn Chắn Lọc"
+
+
+msgid "Time to use for the Mask animation"
+msgstr "Thời điểm sử dụng hoạt họa Màn Chắn Lọc"
+
+
+msgid "Mask animation is offset to start of strip"
+msgstr "Hoạt họa Màn Chắn Lọc nằm lệch với điểm đầu của đoạn phim"
+
+
+msgid "Mask animation is in sync with scene frame"
+msgstr "Hoạt họa Màn Chắn Lọc đồng hành với khung hình trong cảnh"
+
+
+msgid "Mute this modifier"
+msgstr "Chặn/Tắt hoạt tính bộ điều chỉnh này"
+
+
+msgid "Mute expanded settings for the modifier"
+msgstr "Chặn/Tắt sắp đặt mở rộng cho bộ điều chỉnh"
+
+
+msgid "Tone Map"
+msgstr "Ánh Xạ Sắc Thái"
+
+
+msgid "Sound Equalizer"
+msgstr "Bộ Cân Bằng Âm Thanh"
+
+
+msgid "Bright/contrast modifier data for sequence strip"
+msgstr "Dữ liệu của bộ điều chỉnh độ (sáng/tương phản) cho dải trình tự"
+
+
+msgid "Adjust the luminosity of the colors"
+msgstr "Điều chỉnh độ sáng của các màu sắc"
+
+
+msgid "Adjust the difference in luminosity between pixels"
+msgstr "Điều chỉnh độ chênh lệch trong độ sáng giữa các điểm ảnh"
+
+
+msgid "Color balance modifier for sequence strip"
+msgstr "Bộ điều chỉnh cân bằng màu sắc cho dải trình tự"
+
+
+msgid "Multiply the intensity of each pixel"
+msgstr "Nhân cường độ của mỗi điểm ảnh"
+
+
+msgid "RGB curves modifier for sequence strip"
+msgstr "Bộ điều chỉnh đường cong RGB cho dải trình tự"
+
+
+msgid "Hue correction modifier for sequence strip"
+msgstr "Bộ điều chỉnh sắc màu cho dải trình tự"
+
+
+msgid "Tone mapping modifier"
+msgstr "Bộ điều chỉnh ánh xạ tông màu"
+
+
+msgid "Tone mapping algorithm"
+msgstr "Thuật toán ánh xạ tông màu"
+
+
+msgid "Equalize audio"
+msgstr "Cân bằng âm thanh"
+
+
+msgid "Graphical definition equalization"
+msgstr "Cân bằng định nghĩa đồ họa"
+
+
+msgid "White balance modifier for sequence strip"
+msgstr "Bộ điều chỉnh cân bằng trắng cho dải trình tự"
+
+
+msgid "White Value"
+msgstr "Giá trị màu trắng"
+
+
+msgid "This color defines white in the strip"
+msgstr "Màu này sẽ xác định màu trắng trong dải"
+
+
+msgid "Strip Modifiers"
+msgstr "Bộ Điều Chỉnh Dải"
+
+
+msgid "Collection of strip modifiers"
+msgstr "Bộ sưu tập các bộ điều chỉnh dải"
+
+
+msgid "Proxy parameters for a sequence strip"
+msgstr "Các tham số của bản đại diện cho một dải trình tự"
+
+
+msgid "Build 100% proxy resolution"
+msgstr "Kiến dựng bản đại diện với độ phân giải 100%"
+
+
+msgid "Build 25% proxy resolution"
+msgstr "Kiến dựng bản đại diện với độ phân giải 25%"
+
+
+msgid "Build 50% proxy resolution"
+msgstr "Kiến dựng bản đại diện với độ phân giải 50%"
+
+
+msgid "Build 75% proxy resolution"
+msgstr "Kiến dựng bản đại diện với độ phân giải 75%"
+
+
+msgid "Location of custom proxy file"
+msgstr "Vị trí của tập tin đại diện tùy chọn"
+
+
+msgid "Quality of proxies to build"
+msgstr "Chất lượng của các bản đại diện sẽ xây dựng"
+
+
+msgid "Method for reading the inputs timecode"
+msgstr "Phương pháp để đọc mã thời gian của đầu vào"
+
+
+msgid "Overwrite existing proxy files when building"
+msgstr "Viết đè lên các tập tin đại diện đang tồn tại khi kiến dựng"
+
+
+msgid "Use a custom directory to store data"
+msgstr "Dùng thư mục tùy chọn để lưu trữ dữ liệu"
+
+
+msgid "Proxy Custom File"
+msgstr "Tập Tin Đại Diện Tùy Chọn"
+
+
+msgid "Use a custom file to read proxy data from"
+msgstr "Dùng một tập tin tùy chọn để đọc dữ liệu đại diện"
+
+
+msgid "Transform parameters for a sequence strip"
+msgstr "Các tham số biến hóa cho một dải trình tự"
+
+
+msgid "Type of filter to use for image transformation"
+msgstr "Thể loại bộ lọc sử dụng cho quá trình biến hóa hình ảnh"
+
+
+msgid "Automatically choose filter based on scaling factor"
+msgstr "Tự động lựa chọn bộ lọc dựa trên hệ số tỷ lệ"
+
+
+msgid "Use nearest sample"
+msgstr "Sử dụng mẫu vật gần nhất"
+
+
+msgid "Interpolate between 2×2 samples"
+msgstr "Nội suy giữa các mẫu vật 2×2"
+
+
+msgid "Cubic Mitchell filter on 4×4 samples"
+msgstr "Bộ lọc Cubic Mitchell trên các mẫu vật 4×4"
+
+
+msgid "Cubic B-Spline filter (blurry but no ringing) on 4×4 samples"
+msgstr "Bộ lọc Cubic B-Spline (nhòe mờ nhưng không rung rinh) trên các mẫu vật 4×4"
+
+
+msgid "Averages source image samples that fall under destination pixel"
+msgstr "Tính trung bình các mẫu vật hình ảnh nguồn nằm dưới điểm ảnh đích"
+
+
+msgid "Move along X axis"
+msgstr "Di chuyển dọc theo trục X"
+
+
+msgid "Move along Y axis"
+msgstr "Di chuyển dọc theo trục Y"
+
+
+msgid "Origin of image for transformation"
+msgstr "Tọa độ gốc của hình ảnh biến hóa"
+
+
+msgid "Rotate around image center"
+msgstr "Xoay chiều quanh trung tâm hình ảnh"
+
+
+msgid "Scale along X axis"
+msgstr "Đổi tỷ lệ dọc theo trục X"
+
+
+msgid "Scale along Y axis"
+msgstr "Đổi tỷ lệ dọc theo trục Y"
 
 
 msgid "Studio Light"
@@ -107404,20 +107102,8 @@ msgid "Audio Strip"
 msgstr "Dải Âm Thanh"
 
 
-msgid "Color Strip"
-msgstr "Dải Màu Sắc"
-
-
 msgid "Draw Action"
 msgstr "Hành Động Vẽ"
-
-
-msgid "Image Strip"
-msgstr "Dải Hình Ảnh"
-
-
-msgid "Meta Strip"
-msgstr "Siêu Trình tự"
 
 
 msgid "Clip Strip"
@@ -107428,20 +107114,12 @@ msgid "Preview Background"
 msgstr "Nền Xem Trước"
 
 
-msgid "Scene Strip"
-msgstr "Dải về Cảnh"
-
-
 msgid "Selected Strips"
 msgstr "Dải Được Chọn"
 
 
 msgid "Selected text"
 msgstr "Văn Bản được Chọn"
-
-
-msgid "Text Strip"
-msgstr "Dải Văn Bản"
 
 
 msgid "Text Strip Cursor"
@@ -110447,14 +110125,6 @@ msgstr "Hiển thị màu đối tượng trên khung dây"
 
 msgid "Show random object color on wireframe"
 msgstr "Hiển thị màu đối tượng ngẫu nhiên trên khung dây"
-
-
-msgid "X-Ray Alpha"
-msgstr "X-Quang Alpha"
-
-
-msgid "Amount of alpha to use"
-msgstr "Lượng alpha sử dụng"
 
 
 msgid "View layer"
@@ -118870,10 +118540,6 @@ msgid "Sample Bias"
 msgstr "Mức Thiên Lệch của Mẫu Vật"
 
 
-msgid "*Unsaved Changes"
-msgstr "*Có Thay Đổi Chưa Lưu Lại"
-
-
 msgid "Edge to Edge"
 msgstr "Cạnh Nọ đến Cạnh Kia"
 
@@ -120278,16 +119944,6 @@ msgstr "Bộ Lọc sửa sự Gián Đoạn (Euler)"
 
 msgid "Grease Pencil Objects"
 msgstr "Đối Tượng Bút Chì Dầu"
-
-
-msgctxt "Operator"
-msgid "Push Down"
-msgstr "Đẩn Xuống"
-
-
-msgctxt "Operator"
-msgid "Stash"
-msgstr "Cất Giấu"
 
 
 msgctxt "Operator"
@@ -124532,10 +124188,6 @@ msgid "Marker Names"
 msgstr "Tên của Dấu Mốc"
 
 
-msgid "Developer"
-msgstr "Lập Trình Viên"
-
-
 msgid "Fade Geometry"
 msgstr "Phai Mờ Dần Hình Học"
 
@@ -125640,6 +125292,10 @@ msgid "var"
 msgstr "biến số"
 
 
+msgid "Untitled"
+msgstr "Vô Danh"
+
+
 msgctxt "Action"
 msgid "Stepped"
 msgstr "Phân Bậc"
@@ -125699,10 +125355,6 @@ msgstr "Hiện tại không thể đóng gói các hình ảnh đa góc nhìn d�
 
 msgid "Cannot pack tiled images from raw data currently..."
 msgstr "Hiện tại không thể đóng gói hình ảnh xếp ô từ dữ liệu thô được ..."
-
-
-msgid "untitled"
-msgstr "vô danh"
 
 
 msgid "Did not write, no Multilayer Image"
@@ -126560,10 +126212,6 @@ msgstr "VFX (Hiệu Ứng Thị Giác)"
 
 msgid "Video_Editing"
 msgstr "Biên Soạn Video"
-
-
-msgid "Untitled"
-msgstr "Vô Danh"
 
 
 msgid "Unable to make version backup: filename too short"
@@ -128069,48 +127717,8 @@ msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "Không có đối tượng nào là đang hoạt động, hoặc đối tượng đang hoạt động không phải là đối tượng Bút Chì Dầu"
 
 
-msgid "{}: confirm, {}: cancel, {}: panning, Shift: align"
-msgstr "{}: xác nhận, {}: hủy, {}: lia, Shift: căn chỉnh"
-
-
-msgid ", {}/{}: adjust subdivisions: {}"
-msgstr ", {}/{}: điều chỉnh mức phân chia: {}"
-
-
-msgid ", Alt: center"
-msgstr ", Alt: trung tâm"
-
-
-msgid ", {}: extrude"
-msgstr ", {}: đẩy trồi"
-
-
-msgid ", {}: grab, {}: rotate, {}: scale"
-msgstr ", {}: túm nắm, {}: xoay chiều, {}: đổi tỷ lệ"
-
-
-msgid "Line: "
-msgstr "Đường Thẳng: "
-
-
-msgid "Polyline: "
-msgstr "Đường Đa Giác: "
-
-
-msgid "Rectangle: "
-msgstr "Hình Chữ Nhật: "
-
-
-msgid "Circle: "
-msgstr "Hình Tròn: "
-
-
-msgid "Arc: "
-msgstr "Cung: "
-
-
-msgid "Curve: "
-msgstr "Đường cong: "
+msgid "Cancel"
+msgstr "Hủy"
 
 
 msgid "Active Vertex Group is locked"
@@ -128564,10 +128172,6 @@ msgstr "Tái Tác"
 
 msgid "OK"
 msgstr "Chấp Nhận"
-
-
-msgid "Cancel"
-msgstr "Hủy"
 
 
 msgid "Menu \"%s\" not found"
@@ -129571,10 +129175,6 @@ msgid "Intersection Type"
 msgstr "Kiểu Giao Cắt"
 
 
-msgid "LMB: Click and drag to draw cut line"
-msgstr "NCT: Bấm và kéo để vẽ đường cắt"
-
-
 msgid "Selected edges/faces required"
 msgstr "Đòi hỏi phải lựa chọn các cạnh/các mặt"
 
@@ -129741,10 +129341,6 @@ msgstr "Không có điểm đỉnh nào đã được chọn cả"
 
 msgid "No vertex group among the selected vertices"
 msgstr "Không có nhóm điểm đỉnh nào trong số các điểm đỉnh đã chọn cả"
-
-
-msgid "{}: confirm, {}: cancel, {}: point to mouse ({}), {}: point to Pivot, {}: point to object origin, {}: reset normals, {}: set & point to 3D cursor, {}: select & point to mesh item, {}: invert normals ({}), {}: spherize ({}), {}: align ({})"
-msgstr "{}: xác nhận, {}: hủy, {}: trỏ tới chuột ({}), {}: trỏ tới Điểm Tựa, {}: trỏ tới tọa độ gốc đối tượng, {}: hoàn lại pháp tuyến, {}: đặt & trỏ tới con trỏ 3D, {}: chọn & trỏ tới chỉ mục khung lưới, {}: đảo ngược pháp tuyến ({}), {}: hình cầu hóa ({}), {}: căn chỉnh ({})"
 
 
 msgid "Invalid selection order"
@@ -134368,56 +133964,8 @@ msgid "Can't reload with running modal operators"
 msgstr "Không thể tái nạp với các thao tác mô thái đang chạy được"
 
 
-msgid "Add a crossfade transition to the sequencer"
-msgstr "Thêm một dải chuyển cảnh nhòe mờ cắt ngang vào trình phối hình"
-
-
-msgid "Add an add effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng thêm vào trình phối hình"
-
-
-msgid "Add a subtract effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng khấu trừ vào trình phối hình"
-
-
-msgid "Add an alpha over effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng alpha trên vào trình phối hình"
-
-
-msgid "Add an alpha under effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng alpha dưới vào trình phối hình"
-
-
-msgid "Add a gamma cross transition to the sequencer"
-msgstr "Thêm một dải chuyển cảnh cắt ngang gamma vào trình phối hình"
-
-
-msgid "Add a multiply effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng nhân lên vào trình phối hình"
-
-
-msgid "Add an alpha over drop effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng thả trên alpha vào trình phối hình"
-
-
-msgid "Add a wipe transition to the sequencer"
-msgstr "Thêm một chuyển cảnh gạt vào trình phối hình"
-
-
-msgid "Add a glow effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng hừng sáng vào trình phối hình"
-
-
-msgid "Add a transform effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng biến dạng vào trình phối hình"
-
-
 msgid "Add a color strip to the sequencer"
 msgstr "Thêm một dải màu sắc vào trình phối hình"
-
-
-msgid "Add a speed effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng tốc độ vào trình phối hình"
 
 
 msgid "Add a multicam selector effect strip to the sequencer"
@@ -134426,10 +133974,6 @@ msgstr "Thêm một dải hiệu ứng cần chọn đa máy quay vào trình ph
 
 msgid "Add an adjustment layer effect strip to the sequencer"
 msgstr "Thêm một dải hiệu ứng tầng lớp điều chỉnh vào trình phối hình"
-
-
-msgid "Add a gaussian blur effect strip to the sequencer"
-msgstr "Thêm một dải hiệu ứng nhòe mờ gauss vào trình phối hình"
 
 
 msgid "Add a text strip to the sequencer"
@@ -134490,26 +134034,6 @@ msgstr "Tách Phân Trình Tự Hình Ảnh"
 
 msgid "MetaStrip"
 msgstr "Siêu Dải"
-
-
-msgid "Cannot apply effects to audio sequence strips"
-msgstr "Không thể áp dụng các hiệu ứng vào các dải âm thanh"
-
-
-msgid "Cannot apply effect to more than 2 sequence strips"
-msgstr "Không thể áp dụng hiệu ứng cho hơn 2 dải trình tự được"
-
-
-msgid "At least one selected sequence strip is needed"
-msgstr "Cần ít nhất một dải trình tự được chọn"
-
-
-msgid "2 selected sequence strips are needed"
-msgstr "Cần phải chọn 2 dải trình tự"
-
-
-msgid "TODO: in what cases does this happen?"
-msgstr "Cần Làm: vấn đề này xảy ra trong những trường hợp nào?"
 
 
 msgid "Cannot reassign inputs: strip has no inputs"
@@ -136250,10 +135774,6 @@ msgid "%s: Couldn't find a common Xform ancestor for skinned prim %s and skeleto
 msgstr "%s: Không thể tìm thấy tổ tiên Xform chung cho hình cơ bản đã bọc da %s và bộ xương %s để chuyển đổi sang USD SkelRoot (gốc của bộ xương). Vấn đề này có thể được giải quyết bằng cách đặt hình cơ bản gốc trong các tùy chọn xuất khẩu"
 
 
-msgid "USD Export: no bounds could be computed for %s"
-msgstr "Xuất Khẩu USD: không thể tính ranh giới cho %s"
-
-
 msgid "Curve width size not supported for USD interpolation"
 msgstr "Kích thước chiều rộng đường cong chưa được hỗ trợ cho nội suy USD"
 
@@ -137622,36 +137142,8 @@ msgid "Recursion detected, cannot use this strip"
 msgstr "Phát hiện thấy có sự lặp lại đệ quy, không thể sử dụng dải này được"
 
 
-msgid "Sequences.new_sound: unable to open sound file"
-msgstr "Sequences.new_image: không mở được tập tin âm thanh"
-
-
 msgid "Blender compiled without Audaspace support"
 msgstr "Bản Blender này vốn được biên dịch không có sự hỗ trợ Audaspace"
-
-
-msgid "Sequences.new_effect: end frame not set"
-msgstr "Sequences.new_effect: khung hình cuối chưa đặt"
-
-
-msgid "Sequences.new_effect: effect takes 1 input sequence"
-msgstr "Sequences.new_effect: hiệu ứng cần được cung cấp 1 trình tự"
-
-
-msgid "Sequences.new_effect: effect takes 2 input sequences"
-msgstr "Sequences.new_effect: hiệu ứng cần được cung cấp 2 trình tự"
-
-
-msgid "SequenceElements.pop: cannot pop the last element"
-msgstr "Sequenceelements.pop: không thể xóa phần tử cuối cùng được"
-
-
-msgid "SequenceElements.pop: index out of range"
-msgstr "Sequenceelements.pop: chỉ số nằm ngoài phạm vi"
-
-
-msgid "Sequences.new_effect: effect expects more than 2 inputs (%d, should never happen!)"
-msgstr "Sequences.new_effect (trình tự.hiệu_ứng_mới): hiệu ứng kỳ vọng số đầu vào hơn 2 (%d, không bao giờ được xảy ra cả!)"
 
 
 msgid "Sound not packed"

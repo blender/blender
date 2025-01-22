@@ -147,21 +147,13 @@ void rgb_float_to_uchar(unsigned char r_col[3], const float col_f[3]);
 void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4]);
 
 /**
- * ITU-R BT.709 primaries
- * https://en.wikipedia.org/wiki/Relative_luminance
+ * Compute luminance using Rec.709 primaries, for sRGB and linear Rec.709.
  *
- * Real values are:
- * `Y = 0.2126390059(R) + 0.7151686788(G) + 0.0721923154(B)`
- * according to: "Derivation of Basic Television Color Equations", RP 177-1993
- *
- * As this sums slightly above 1.0, the document recommends to use:
- * `0.2126(R) + 0.7152(G) + 0.0722(B)`, as used here.
- *
- * The high precision values are used to calculate the rounded byte weights so they add up to 255:
- * `54(R) + 182(G) + 19(B)`
+ * Only use for colors known to be in sRGB space, like user interface and themes.
+ * Scene colors should use #IMB_colormanagement_get_luminance instead.
  */
-MINLINE float rgb_to_grayscale(const float rgb[3]);
-MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
+MINLINE float srgb_to_grayscale(const float rgb[3]);
+MINLINE unsigned char srgb_to_grayscale_byte(const unsigned char rgb[3]);
 
 MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
                               const unsigned char col_b[3],

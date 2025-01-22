@@ -256,20 +256,15 @@ if(WITH_BOOST)
   set(Boost_ROOT ${LIBDIR}/boost)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(_boost_FIND_COMPONENTS)
-  if(WITH_INTERNATIONAL)
-    list(APPEND _boost_FIND_COMPONENTS locale)
-  endif()
   if(WITH_USD AND USD_PYTHON_SUPPORT)
     list(APPEND _boost_FIND_COMPONENTS python${PYTHON_VERSION_NO_DOTS})
   endif()
   set(Boost_NO_WARN_NEW_VERSIONS ON)
   find_package(Boost COMPONENTS ${_boost_FIND_COMPONENTS})
 
-  # Boost Python is separate to avoid linking Python into tests that don't need it.
-  set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+  # Boost Python is the only library Blender directly depends on, though USD headers.
   if(WITH_USD AND USD_PYTHON_SUPPORT)
     set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
-    list(REMOVE_ITEM BOOST_LIBRARIES ${BOOST_PYTHON_LIBRARIES})
   endif()
   set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   set(BOOST_DEFINITIONS)
@@ -280,8 +275,8 @@ if(WITH_BOOST)
 endif()
 add_bundled_libraries(boost/lib)
 
-if(WITH_INTERNATIONAL OR WITH_CODEC_FFMPEG)
-  string(APPEND PLATFORM_LINKFLAGS " -liconv") # boost_locale and ffmpeg needs it !
+if(WITH_CODEC_FFMPEG)
+  string(APPEND PLATFORM_LINKFLAGS " -liconv") # ffmpeg needs it !
 endif()
 
 if(WITH_PUGIXML)

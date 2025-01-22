@@ -7,7 +7,9 @@
  */
 
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
+
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 

@@ -13,6 +13,7 @@ from bl_ui.properties_grease_pencil_common import (
     AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
 )
+from . import anim
 
 
 class CLIP_UL_tracking_objects(UIList):
@@ -1191,6 +1192,7 @@ from bl_ui.properties_mask_common import (
     MASK_PT_layers,
     MASK_PT_spline,
     MASK_PT_point,
+    MASK_PT_animation,
     MASK_PT_display,
     MASK_PT_transforms,
     MASK_PT_tools,
@@ -1210,6 +1212,12 @@ class CLIP_PT_active_mask_spline(MASK_PT_spline, Panel):
 
 
 class CLIP_PT_active_mask_point(MASK_PT_point, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Mask"
+
+
+class CLIP_PT_mask_animation(MASK_PT_animation, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Mask"
@@ -1259,6 +1267,24 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
         col.prop(clip, "frame_start")
         col.prop(clip, "frame_offset")
         col.template_movieclip_information(sc, "clip", sc.clip_user)
+
+
+class CLIP_PT_animation(CLIP_PT_clip_view_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Footage"
+    bl_label = "Animation"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        sc = context.space_data
+        clip = sc.clip
+
+        col = layout.column(align=True)
+        anim.draw_action_and_slot_selector_for_id(col, clip)
 
 
 class CLIP_PT_tools_scenesetup(Panel):
@@ -1624,9 +1650,9 @@ class CLIP_MT_select_graph(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("clip.graph_select_all_markers", text="All").action = "SELECT"
-        layout.operator("clip.graph_select_all_markers", text="None").action = "DESELECT"
-        layout.operator("clip.graph_select_all_markers", text="Invert").action = "INVERT"
+        layout.operator("clip.graph_select_all_markers", text="All").action = 'SELECT'
+        layout.operator("clip.graph_select_all_markers", text="None").action = 'DESELECT'
+        layout.operator("clip.graph_select_all_markers", text="Invert").action = 'INVERT'
 
 
 class CLIP_MT_tracking_context_menu(Menu):
@@ -1989,6 +2015,7 @@ classes = (
     CLIP_PT_marker,
     CLIP_PT_proxy,
     CLIP_PT_footage,
+    CLIP_PT_animation,
     CLIP_PT_stabilization,
     CLIP_PT_2d_cursor,
     CLIP_PT_mask,
@@ -1996,6 +2023,7 @@ classes = (
     CLIP_PT_mask_display,
     CLIP_PT_active_mask_spline,
     CLIP_PT_active_mask_point,
+    CLIP_PT_mask_animation,
     CLIP_PT_tools_mask_transforms,
     CLIP_PT_tools_mask_tools,
     CLIP_PT_tools_scenesetup,

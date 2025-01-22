@@ -3370,7 +3370,7 @@ class VIEW3D_MT_object_convert(Menu):
         layout = self.layout
         ob = context.active_object
 
-        if ob and ob.type != "EMPTY":
+        if ob and ob.type != 'EMPTY':
             layout.operator_enum("object.convert", "target")
 
         else:
@@ -3623,10 +3623,10 @@ class VIEW3D_MT_sculpt(Menu):
         props.action = 'HIDE'
 
         props = layout.operator("paint.visibility_filter", text="Grow Visibility")
-        props.action = "GROW"
+        props.action = 'GROW'
 
         props = layout.operator("paint.visibility_filter", text="Shrink Visibility")
-        props.action = "SHRINK"
+        props.action = 'SHRINK'
 
         layout.menu("VIEW3D_MT_sculpt_showhide", text="Show/Hide")
 
@@ -5713,7 +5713,7 @@ class VIEW3D_MT_edit_greasepencil(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_greasepencil_animation", text="Animation")
-        layout.operator("grease_pencil.interpolate_sequence", text="Interpolate Sequence")
+        layout.operator("grease_pencil.interpolate_sequence", text="Interpolate Sequence").use_selection = True
 
         layout.separator()
 

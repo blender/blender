@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -8634,44 +8634,84 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
+msgid "Local View"
+msgstr "Lokalni pogled"
 
 
 msgid "Snap"
 msgstr "Lepljenje"
 
 
-msgid "Names"
-msgstr "Imena"
+msgid "Propagate"
+msgstr "Prenesi"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
 
 
 msgid "UV Mapping"
 msgstr "UV Mapiranje"
 
 
-msgid "Local View"
-msgstr "Lokalni pogled"
+msgid "Apply"
+msgstr "Primeni"
 
 
-msgid "Navigation"
-msgstr "Navigacija"
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
-msgid "Align View"
-msgstr "Poravnaj pogled"
+msgid "Names"
+msgstr "Imena"
 
 
-msgid "Select Linked"
-msgstr "Izaberi povezano"
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Relations"
+msgstr "Odnosi"
 
 
 msgid "Metaball"
@@ -8682,64 +8722,24 @@ msgid "Light"
 msgstr "Svetlost"
 
 
-msgid "Relations"
-msgstr "Odnosi"
+msgid "Special Characters"
+msgstr "Specijalni znaci"
 
 
-msgid "Rigid Body"
-msgstr "Kruto telo"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Quick Effects"
-msgstr "Brzi efekti"
-
-
-msgid "Hooks"
-msgstr "Udice"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Merge"
 msgstr "Sjedini"
 
 
-msgid "Special Characters"
-msgstr "Specijalni znaci"
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
 
 
 msgid "Basic"
@@ -14050,6 +14050,10 @@ msgid "Convert all faces to triangles"
 msgstr "Pretvroi sve stranice u trouglove"
 
 
+msgid "Keep Original"
+msgstr "Sačuvaj original"
+
+
 msgid "URL"
 msgstr "Adresa"
 
@@ -17600,10 +17604,6 @@ msgstr "Ciljna putanja"
 
 msgid "All Keymaps"
 msgstr "Svi mapirani tasteri"
-
-
-msgid "Keep Original"
-msgstr "Sačuvaj original"
 
 
 msgid "Restore all keymaps to default"
@@ -21643,62 +21643,6 @@ msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "Inverse Gamma"
-msgstr "Obrnuta gama"
-
-
-msgid "Sequence Crop"
-msgstr "Isecanje sekvence"
-
-
-msgid "Sequences"
-msgstr "Sekvence"
-
-
-msgid "All Sequences"
-msgstr "Sve sekvence"
-
-
-msgid "Sequence Element"
-msgstr "Element sekvence"
-
-
-msgid "Orig Height"
-msgstr "Orig. visina"
-
-
-msgid "Original image height"
-msgstr "Originalna visina slike"
-
-
-msgid "Orig Width"
-msgstr "Orig. širina"
-
-
-msgid "Original image width"
-msgstr "Originalna širina slike"
-
-
-msgid "Mask Strip"
-msgstr "Maskiraj traku"
-
-
-msgid "Multiply Colors"
-msgstr "Umnožene boje"
-
-
-msgid "Sequence Transform"
-msgstr "Transformacija sekvence"
-
-
-msgid "Translate X"
-msgstr "X pomeranje"
-
-
-msgid "Translate Y"
-msgstr "Y pomeranje"
-
-
 msgid "Show Cache"
 msgstr "Prikaži keš"
 
@@ -22351,6 +22295,10 @@ msgid "Use Linear Modifiers"
 msgstr "Koristi linearni modifikator"
 
 
+msgid "Multiply Colors"
+msgstr "Umnožene boje"
+
+
 msgid "Only display every nth frame"
 msgstr "Prikaži samo svaki n-ti kadar"
 
@@ -22375,10 +22323,6 @@ msgid "Reverse Frames"
 msgstr "Obrnuti kadrovi"
 
 
-msgid "Add Sequence"
-msgstr "Dodaj sekvencu"
-
-
 msgid "Input 1"
 msgstr "Ulaz 1"
 
@@ -22399,22 +22343,6 @@ msgid "Animation start offset (trim start)"
 msgstr "Simulacija počinje u ovom kadru"
 
 
-msgid "Alpha Over Sequence"
-msgstr "Providnost preko sekvence"
-
-
-msgid "Alpha Under Sequence"
-msgstr "Providnost ispod sekvence"
-
-
-msgid "Gamma Cross Sequence"
-msgstr "Sekvenca ukrštanja game"
-
-
-msgid "Glow Sequence"
-msgstr "Sekvenca isijavanja"
-
-
 msgid "Blur Distance"
 msgstr "Vrednost zamućenja"
 
@@ -22427,14 +22355,6 @@ msgid "Accuracy of the blur effect"
 msgstr "Preciznost efekta zamućenja"
 
 
-msgid "Multiply Sequence"
-msgstr "Umnožena sekvenca"
-
-
-msgid "SpeedControl Sequence"
-msgstr "Kontrola brzine sekvence"
-
-
 msgid "Bilinear interpolation"
 msgstr "Linearna interpolacija"
 
@@ -22443,24 +22363,28 @@ msgid "Bicubic interpolation"
 msgstr "Kubična interpolacija"
 
 
+msgid "Translate X"
+msgstr "X pomeranje"
+
+
+msgid "Translate Y"
+msgstr "Y pomeranje"
+
+
 msgid "Translation Unit"
 msgstr "Jedinice pomeranja"
 
 
-msgid "Wipe Sequence"
-msgstr "Očisti sekvencu"
+msgid "Image Strip"
+msgstr "Traka slike"
 
 
-msgid "Mask Sequence"
-msgstr "Meta sekvenca"
+msgid "Mask Strip"
+msgstr "Maskiraj traku"
 
 
-msgid "Meta Sequence"
-msgstr "Meta sekvenca"
-
-
-msgid "MovieClip Sequence"
-msgstr "Video sekvenca"
+msgid "Meta Strip"
+msgstr "Meta traka"
 
 
 msgid "Stabilize 2D Clip"
@@ -22471,20 +22395,32 @@ msgid "Undistort Clip"
 msgstr "Klip bez izobličavanja"
 
 
-msgid "Movie Sequence"
-msgstr "Video sekvenca"
-
-
-msgid "Scene Sequence"
-msgstr "Sekvenca scene"
+msgid "Scene Strip"
+msgstr "Traka scene"
 
 
 msgid "Playback volume of the sound"
 msgstr "Jačina zvuka pri reprodukciji"
 
 
-msgid "Sound Sequence"
-msgstr "Zvučna sekvenca"
+msgid "Inverse Gamma"
+msgstr "Obrnuta gama"
+
+
+msgid "Orig Height"
+msgstr "Orig. visina"
+
+
+msgid "Original image height"
+msgstr "Originalna visina slike"
+
+
+msgid "Orig Width"
+msgstr "Orig. širina"
+
+
+msgid "Original image width"
+msgstr "Originalna širina slike"
 
 
 msgid "Map X and Y coordinates directly"
@@ -22911,24 +22847,12 @@ msgid "Draw Action"
 msgstr "Crtaj akciju"
 
 
-msgid "Image Strip"
-msgstr "Traka slike"
-
-
-msgid "Meta Strip"
-msgstr "Meta traka"
-
-
 msgid "Clip Strip"
 msgstr "Traka isečka"
 
 
 msgid "Preview Background"
 msgstr "Pozadina pregleda"
-
-
-msgid "Scene Strip"
-msgstr "Traka scene"
 
 
 msgid "Window Background"
@@ -25109,6 +25033,10 @@ msgid "Nothing selected"
 msgstr "Ništa nije izabrano"
 
 
+msgid "Cancel"
+msgstr "Odustani"
+
+
 msgid "Pin"
 msgstr "Zakači"
 
@@ -25193,10 +25121,6 @@ msgstr "Svetlina"
 
 msgid "OK"
 msgstr "U redu"
-
-
-msgid "Cancel"
-msgstr "Odustani"
 
 
 msgid "Menu \"%s\" not found"
@@ -25964,10 +25888,6 @@ msgstr "Uređivač video isečaka"
 
 msgid "Mask not found"
 msgstr "Maskiraj pozadinu"
-
-
-msgid "2 selected sequence strips are needed"
-msgstr "Potebno je izabrati 2 trake sekvenci"
 
 
 msgid "No active sequence!"

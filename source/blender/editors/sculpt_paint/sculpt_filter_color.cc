@@ -371,6 +371,7 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
 static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 {
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
+  const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -388,6 +389,11 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   }
 
   const IndexMask &node_mask = ss.filter_cache->node_mask;
+  if (auto_mask::is_enabled(sd, ob, nullptr) && ss.filter_cache->automasking &&
+      ss.filter_cache->automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL)
+  {
+    ss.filter_cache->automasking->calc_cavity_factor(depsgraph, ob, node_mask);
+  }
 
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();

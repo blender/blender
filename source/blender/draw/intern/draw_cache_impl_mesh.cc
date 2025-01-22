@@ -8,23 +8,15 @@
  * \brief Mesh API for render engines
  */
 
-#include <memory>
 #include <optional>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_buffer.h"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
-#include "BLI_map.hh"
-#include "BLI_math_bits.h"
-#include "BLI_math_vector.h"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -32,14 +24,9 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_editmesh_cache.hh"
-#include "BKE_editmesh_tangent.hh"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
-#include "BKE_mesh_tangent.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
@@ -48,15 +35,10 @@
 
 #include "atomic_ops.h"
 
-#include "bmesh.hh"
-
 #include "GPU_batch.hh"
 #include "GPU_material.hh"
 
 #include "DRW_render.hh"
-
-#include "ED_mesh.hh"
-#include "ED_uvedit.hh"
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_inline.hh"

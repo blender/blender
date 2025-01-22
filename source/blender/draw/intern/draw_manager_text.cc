@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -35,7 +36,6 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
 #include "UI_interface.hh"
@@ -152,7 +152,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
     if (vos->sco[0] != IS_CLIPPED) {
       if (col_pack_prev != vos->col.pack) {
         BLF_color4ubv(font_id, vos->col.ub);
-        const uchar lightness = rgb_to_grayscale_byte(vos->col.ub);
+        const uchar lightness = srgb_to_grayscale_byte(vos->col.ub);
         outline_is_dark = lightness > 96;
         col_pack_prev = vos->col.pack;
       }

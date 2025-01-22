@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-11-14 16:56+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3518,10 +3518,6 @@ msgid "Language"
 msgstr "Kalba"
 
 
-msgid "Animation mode"
-msgstr "Animacijos/-ų veiksena"
-
-
 msgid "Object settings"
 msgstr "Objekto/-ų nustatymai"
 
@@ -4472,10 +4468,6 @@ msgid "New"
 msgstr "Nauja/-s/-i"
 
 
-msgid "*Unsaved Changes"
-msgstr "*Neišsaugoti pakeitimai"
-
-
 msgid "Blender IDs"
 msgstr "„Blender“ ID (dgs.)"
 
@@ -4591,13 +4583,13 @@ msgid "objects"
 msgstr "objektai"
 
 
+msgid "Cancel"
+msgstr "Atšaukti"
+
+
 msgctxt "WindowManager"
 msgid "Search"
 msgstr "Paieška"
-
-
-msgid "Cancel"
-msgstr "Atšaukti"
 
 
 msgctxt "Action"

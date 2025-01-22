@@ -10,13 +10,10 @@
 
 #include "BLI_vector.hh"
 
-#include "GPU_capabilities.hh"
 #include "GPU_viewport.hh"
 
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
-
-#include "draw_instance_data.hh"
 
 #include "draw_manager_text.hh"
 

@@ -446,6 +446,12 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Boundary Brush Preview */
   std::unique_ptr<SculptBoundaryPreview> boundary_preview;
 
+  /* "Persistent" positions and normals for multires. (For mesh the
+   * ".sculpt_persistent_co" attribute is used, etc.). */
+  blender::Array<blender::float3> sculpt_persistent_co;
+  blender::Array<blender::float3> sculpt_persistent_no;
+  blender::Array<float> sculpt_persistent_disp;
+
   SculptVertexInfo vertex_info = {};
   SculptFakeNeighbors fake_neighbors = {};
 

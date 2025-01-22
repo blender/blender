@@ -17,7 +17,11 @@ CCL_NAMESPACE_BEGIN
 /* Strings are represented by their hashes on the GPU. */
 using DeviceString = size_t;
 #elif defined(OPENIMAGEIO_USTRING_H)
+#  if OSL_LIBRARY_VERSION_CODE >= 11400
+using DeviceString = ustringhash;
+#  else
 using DeviceString = ustring;
+#  endif
 #else
 using DeviceString = const char *;
 #endif

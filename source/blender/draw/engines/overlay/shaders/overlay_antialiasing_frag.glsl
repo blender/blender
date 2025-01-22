@@ -100,6 +100,11 @@ void main()
   float dist_raw = texelFetch(lineTex, center_texel, 0).b;
   float dist = decode_line_dist(dist_raw);
 
+  if (!doSmoothLines && dist <= 1.0f) {
+    /* No expansion or AA should be applied. */
+    return;
+  }
+
   /* TODO: Optimization: use textureGather. */
   vec4 neightbor_col0 = texelFetchOffset(colorTex, center_texel, 0, ivec2(1, 0));
   vec4 neightbor_col1 = texelFetchOffset(colorTex, center_texel, 0, ivec2(-1, 0));

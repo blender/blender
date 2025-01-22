@@ -6,10 +6,7 @@
  * \ingroup draw
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_array_utils.hh"
-#include "BLI_string.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"

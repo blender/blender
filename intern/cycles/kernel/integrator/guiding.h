@@ -10,6 +10,10 @@
 #include "kernel/integrator/state.h"
 #include "kernel/util/colorspace.h"
 
+/* FIXME: The below include could be guarded behind `ifdef WITH_CYCLES_DEBUG`, but Metal
+ * pre-processing is not expanding guarded include files properly. */
+#include "kernel/closure/bsdf.h"
+
 #include "util/color.h"
 
 CCL_NAMESPACE_BEGIN

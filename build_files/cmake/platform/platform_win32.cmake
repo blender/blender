@@ -12,8 +12,8 @@ endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(MSVC_CLANG ON)
-  if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST AND (CMAKE_GENERATOR MATCHES "Visual Studio" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64"))
-    message(WARNING "WITH_WINDOWS_EXTERNAL_MANIFEST is required for clang (all generators on ARM64, VS generator on x64), turning ON")
+  if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
+    message(WARNING "WITH_WINDOWS_EXTERNAL_MANIFEST is required for clang, turning ON")
     set(WITH_WINDOWS_EXTERNAL_MANIFEST ON)
   endif()
   set(VC_TOOLS_DIR $ENV{VCToolsRedistDir} CACHE STRING "Location of the msvc redistributables")
@@ -178,8 +178,8 @@ remove_cc_flag(
 )
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
-  string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
-  string(APPEND CMAKE_C_FLAGS   " /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
+  string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /MP /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
+  string(APPEND CMAKE_C_FLAGS   " /MP /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
 else()
   string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj")
   string(APPEND CMAKE_C_FLAGS   " /nologo /J /Gd /MP /bigobj")
@@ -680,9 +680,7 @@ if(NOT WITH_WINDOWS_FIND_MODULES)
 endif()
 
 if(WITH_BOOST)
-  if(WITH_INTERNATIONAL)
-    list(APPEND boost_extra_libs locale)
-  endif()
+  set(boost_extra_libs)
   set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
   set(Boost_USE_MULTITHREADED ON) # suffix -mt
   set(Boost_USE_STATIC_LIBS ON) # suffix -s
@@ -698,8 +696,8 @@ if(WITH_BOOST)
       set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
       set(BOOST_PREFIX "lib")
     endif()
-    set(BOOST_LIBRARIES)
     if(EXISTS ${BOOST_34_TRIGGER_FILE})
+      # Boost Python is the only library Blender directly depends on, though USD headers.
       if(WITH_USD)
         set(BOOST_PYTHON_LIBRARIES
           debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_DEBUG_POSTFIX}.lib
@@ -707,15 +705,8 @@ if(WITH_BOOST)
         )
       endif()
     endif()
-    if(WITH_INTERNATIONAL)
-      set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-        optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_locale-${BOOST_POSTFIX}.lib
-        debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_locale-${BOOST_DEBUG_POSTFIX}.lib
-      )
-    endif()
   else() # we found boost using find_package
     set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
-    set(BOOST_LIBRARIES ${Boost_LIBRARIES})
     set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
   endif()
 

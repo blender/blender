@@ -535,21 +535,19 @@ static int poselib_blend_modal(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   if (pbd->needs_redraw) {
-    char status_string[UI_MAX_DRAW_STR];
-    char slider_string[UI_MAX_DRAW_STR];
-    char tab_string[50];
 
-    ED_slider_status_string_get(pbd->slider, slider_string, sizeof(slider_string));
+    WorkspaceStatus status(C);
 
     if (pbd->state == POSE_BLEND_BLENDING) {
-      STRNCPY(tab_string, IFACE_("[Tab] - Show original pose"));
+      status.item(IFACE_("Show Original Pose"), ICON_EVENT_TAB);
     }
     else {
-      STRNCPY(tab_string, IFACE_("[Tab] - Show blended pose"));
+      status.item(IFACE_("Show Blended Pose"), ICON_EVENT_TAB);
     }
 
-    SNPRINTF(status_string, IFACE_("%s | %s | [Ctrl] - Flip Pose"), tab_string, slider_string);
-    ED_workspace_status_text(C, status_string);
+    ED_slider_status_get(pbd->slider, status);
+
+    status.item_bool(IFACE_("Flip Pose"), pbd->is_flipped, ICON_EVENT_CTRL);
 
     poselib_blend_apply(C, op);
   }

@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "DNA_light_types.h"
+
+#include "BLI_math_matrix.h"
+
 #include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {

@@ -89,6 +89,7 @@ set(SRC
   intern/node_util.cc
   intern/partial_eval.cc
   intern/socket_search_link.cc
+  intern/socket_usage_inference.cc
   intern/value_elem.cc
 
   NOD_common.hh
@@ -121,6 +122,7 @@ set(SRC
   NOD_socket_items_ops.hh
   NOD_socket_items_ui.hh
   NOD_socket_search_link.hh
+  NOD_socket_usage_inference.hh
   NOD_texture.h
   NOD_value_elem.hh
   NOD_value_elem_eval.hh

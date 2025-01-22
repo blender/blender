@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6614,6 +6614,10 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6622,52 +6626,48 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
-
-
 msgid "Apply"
 msgstr "Elfogadás"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
 msgid "Track"
 msgstr "Nyom"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
+
+
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Text"
 msgstr "Szöveg"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
 
 
 msgctxt "MovieClip"
@@ -14358,14 +14358,6 @@ msgid "Reduce extra velocity that can build up when objects collide (lowers simu
 msgstr "Extra sebesség csökkentése, ami termelődhet az objektumok ütözésekor (alacsonyabb szimulációs stabilitás, csak akkor ajánlott, ha feltétlenül szükséges)"
 
 
-msgid "Translate X"
-msgstr "Áthelyezés X (irányba)"
-
-
-msgid "Translate Y"
-msgstr "Áthelyezés Y (irányba)"
-
-
 msgid "Show Cache"
 msgstr "Gyorsítótár megjelenítése"
 
@@ -14720,6 +14712,14 @@ msgstr "Trimmelés kezdete"
 
 msgid "Outline Width"
 msgstr "Körvonal vastagsága"
+
+
+msgid "Translate X"
+msgstr "Áthelyezés X (irányba)"
+
+
+msgid "Translate Y"
+msgstr "Áthelyezés Y (irányba)"
 
 
 msgid "Force Field"
@@ -16540,6 +16540,10 @@ msgid "No active frame to delete"
 msgstr "Nincs törölhető aktív képkocka"
 
 
+msgid "Cancel"
+msgstr "Mégsem"
+
+
 msgctxt "Operator"
 msgid "Online Python Reference"
 msgstr "Online Python Referencia"
@@ -16575,10 +16579,6 @@ msgstr "Átlátszóság:"
 
 msgid "Hex"
 msgstr "Hex"
-
-
-msgid "Cancel"
-msgstr "Mégsem"
 
 
 msgid "Movie"
@@ -17153,18 +17153,6 @@ msgstr " Elnevezett tulajdonság"
 
 msgid " Named Attributes"
 msgstr " Elnevezett tulajdonságok"
-
-
-msgid "Add a multiply effect strip to the sequencer"
-msgstr "Egy megtöbbszöröző effektsáv hozzáadása a szekvenszerhez"
-
-
-msgid "Add a wipe transition to the sequencer"
-msgstr "Egy törlő tranzíció hozzáadása a szekvenszerhez"
-
-
-msgid "Add a glow effect strip to the sequencer"
-msgstr "Egy világító effektsáv hozzáadása a szekvenszerhez"
 
 
 msgid "Add a text strip to the sequencer"

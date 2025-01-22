@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_layer.hh"
+
 #include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {

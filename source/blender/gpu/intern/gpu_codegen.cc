@@ -19,6 +19,7 @@
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"
@@ -26,6 +27,8 @@
 
 #include "BKE_cryptomatte.hh"
 #include "BKE_material.hh"
+
+#include "IMB_colormanagement.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_context.hh"
@@ -81,7 +84,7 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
   /** Optional name buffer containing names referenced by StringRefNull. */
   NameBuffer name_buffer;
 
-  GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name){};
+  GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name) {};
   ~GPUCodegenCreateInfo()
   {
     delete interface_generated;
@@ -225,25 +228,31 @@ static std::ostream &operator<<(std::ostream &stream, const GPUOutput *output)
   return stream << (output->is_zone_io ? "zone" : "tmp") << output->id;
 }
 
-/* Trick type to change overload and keep a somewhat nice syntax. */
-struct GPUConstant : public GPUInput {};
-
 /* Print data constructor (i.e: vec2(1.0f, 1.0f)). */
-static std::ostream &operator<<(std::ostream &stream, const GPUConstant *input)
+static std::ostream &operator<<(std::ostream &stream, const blender::Span<float> &span)
 {
-  stream << input->type << "(";
-  for (int i = 0; i < input->type; i++) {
+  stream << (eGPUType)span.size() << "(";
+  /* Use uint representation to allow exact same bit pattern even if NaN. This is
+   * because we can pass UINTs as floats for constants. */
+  const blender::Span<uint32_t> uint_span = span.cast<uint32_t>();
+  for (const uint32_t &element : uint_span) {
     char formatted_float[32];
-    /* Use uint representation to allow exact same bit pattern even if NaN. This is because we can
-     * pass UINTs as floats for constants. */
-    const uint32_t *uint_vec = reinterpret_cast<const uint32_t *>(input->vec);
-    SNPRINTF(formatted_float, "uintBitsToFloat(%uu)", uint_vec[i]);
+    SNPRINTF(formatted_float, "uintBitsToFloat(%uu)", element);
     stream << formatted_float;
-    if (i < input->type - 1) {
+    if (&element != &uint_span.last()) {
       stream << ", ";
     }
   }
   stream << ")";
+  return stream;
+}
+
+/* Trick type to change overload and keep a somewhat nice syntax. */
+struct GPUConstant : public GPUInput {};
+
+static std::ostream &operator<<(std::ostream &stream, const GPUConstant *input)
+{
+  stream << blender::Span<float>(input->vec, input->type);
   return stream;
 }
 
@@ -499,6 +508,12 @@ void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
     }
 
     if (from != to) {
+      /* Special case that needs luminance coefficients as argument. */
+      if (from == GPU_VEC4 && to == GPU_FLOAT) {
+        float coefficients[3];
+        IMB_colormanagement_get_luminance_coefficients(coefficients);
+        eval_ss << ", " << blender::Span<float>(coefficients, 3);
+      }
       eval_ss << ")";
     }
   };

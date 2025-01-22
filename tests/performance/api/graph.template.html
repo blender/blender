@@ -1,16 +1,20 @@
 <html>
 <head>
-	<title>Benchmarks</title>
+  <title>Benchmarks</title>
   <meta charset="UTF-8">
-	<style type="text/css">
-		body               { margin: 40px auto;
-		                     font-family: Arial;
-		                     font-size: 14px;
-		                     color: #333;
-                         max-width: 900px; }
-		a                  { text-decoration: none; color: #06b; }
-	</style>
-	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <style type="text/css">
+    body                    { margin: 20px; font-size: 16px; color: #333; }
+    a                       { text-decoration: none; color: #06b; }
+    h2                      { color: #222; font-size: 1.2em; }
+    h3                      { color: #889; font-size: 1.2em; }
+    .nav-tabs               { font-size: 1.2em; }
+    .tab-content            { margin: 20px 20px; }
+    /* Tricks to make chart load with proper width while hidden. */
+    .tab-content>.tab-pane  { height: 1px; overflow: hidden; display: block; visibility: hidden; }
+    .tab-content>.active    { height: auto; overflow: auto; visibility: visible; }
+  </style>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script>
     google.charts.load('current', {'packages':['line', 'bar']});
     google.charts.setOnLoadCallback(draw_charts);
@@ -40,38 +44,79 @@
       var json_data = %JSON_DATA%;
 
       /* Clear contents. */
-      charts_elem = document.getElementById("charts");
-      while(charts_elem.firstChild)
-      {
-        charts_elem.removeChild(charts_elem.firstChild);
+      charts_nav_elem = document.getElementById("charts-nav");
+      charts_content_elem = document.getElementById("charts-content");
+      while(charts_nav_elem.firstChild) {
+        charts_nav_elem.removeChild(charts_nav_elem.firstChild);
+      }
+      while(charts_content_elem.firstChild) {
+        charts_content_elem.removeChild(charts_content_elem.firstChild);
       }
 
       /* Draw charts for each device. */
       for (var i = 0; i < json_data.length; i++)
       {
-        device = json_data[i];
+        benchmark = json_data[i];
+
+        tab_name = benchmark['name'].split(" ")[0];
+        tab_id = "benchmark-" + tab_name;
+        tab_div = document.getElementById(tab_id);
+
+        if (!tab_div) {
+          /* Create tab button. */
+          li_nav = document.createElement('li');
+          li_nav.class = "nav-item";
+          charts_nav_elem.appendChild(li_nav);
+
+          button_nav = document.createElement('button');
+          button_nav.id = tab_id + "-tab";
+          button_nav.classList.add("nav-link");
+          button_nav.setAttribute("data-bs-toggle", "tab");
+          button_nav.setAttribute("data-bs-target", "#" + tab_id);
+          button_nav.setAttribute("type", "button");
+          button_nav.setAttribute("role", "tab");
+          button_nav.setAttribute("aria-controls", tab_id);
+          button_nav.appendChild(document.createTextNode(tab_name))
+          li_nav.appendChild(button_nav);
+
+          /* Create chart container div. */
+          tab_div = document.createElement('div');
+          tab_div.id = tab_id;
+          tab_div.classList.add("tab-pane");
+          tab_div.setAttribute("aria-labelledby", button_nav.id);
+          charts_content_elem.appendChild(tab_div)
+
+          if (i == 0) {
+            button_nav.classList.add("active");
+            tab_div.classList.add('show');
+            tab_div.classList.add('active');
+          }
+        }
+
+        /* Create title. */
+        subtitle_h3 = document.createElement('h3');
+        subtitle_h3.appendChild(document.createTextNode(benchmark['device']));
+        tab_div.appendChild(subtitle_h3);
+
+        /* Create chart div. */
+        chart_div = document.createElement('div');
+        tab_div.appendChild(chart_div)
 
         /* Chart drawing options. */
         var options = {
-          chart: {title: device["name"], subtitle: device['device']},
           pointsVisible: true,
           pointSize: 2.5,
           height: 500,
         };
 
-        /* Create chart div. */
-        elem = document.createElement('div');
-        elem.id = device["id"];
-        charts_elem.appendChild(elem)
-
         /* Create chart. */
-        var data = new google.visualization.DataTable(device["data"]);
-        if (device['chart_type'] == 'line') {
-          var chart = new google.charts.Line(elem);
+        var data = new google.visualization.DataTable(benchmark["data"]);
+        if (benchmark['chart_type'] == 'line') {
+          var chart = new google.charts.Line(chart_div);
           chart.draw(data, options);
         }
         else {
-          var chart = new google.charts.Bar(elem);
+          var chart = new google.charts.Bar(chart_div);
           chart.draw(transposeDataTable(data), options);
         }
       }
@@ -80,8 +125,12 @@
 </head>
 <body>
   <h1>Benchmarks</h1>
-  <div id="charts">
-    ...
+
+  <ul class="nav nav-tabs" id="charts-nav" role="tablist">
+  </ul>
+  <div class="tab-content" id="charts-content">
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

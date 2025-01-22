@@ -425,7 +425,7 @@ static int action_stash_exec(bContext *C, wmOperator *op)
     }
     else {
       /* action has already been added - simply warn about this, and clear */
-      BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+      BKE_report(op->reports, RPT_ERROR, "Action+Slot has already been stashed");
     }
 
     /* clear action refs from editor, and then also the backing data (not necessary) */
@@ -540,7 +540,7 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
     }
     else {
       /* action has already been added - simply warn about this, and clear */
-      BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+      BKE_report(op->reports, RPT_ERROR, "Action+Slot has already been stashed");
       actedit_change_action(C, nullptr);
     }
   }

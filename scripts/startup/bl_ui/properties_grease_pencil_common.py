@@ -175,8 +175,11 @@ class GreasePencilBrushFalloff:
             brush = settings.brush
 
             col = layout.column(align=True)
-            row = col.row(align=True)
-            row.prop(brush, "curve_preset", text="")
+            if context.region.type == 'TOOL_HEADER':
+                col.prop(brush, "curve_preset", expand=True)
+            else:
+                row = col.row(align=True)
+                col.prop(brush, "curve_preset", text="")
 
             if brush.curve_preset == 'CUSTOM':
                 layout.template_curve_mapping(brush, "curve", brush=True)
@@ -791,10 +794,7 @@ class GREASE_PENCIL_MT_stroke_simplify(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("grease_pencil.stroke_simplify", text="Fixed").mode = 'FIXED'
-        layout.operator("grease_pencil.stroke_simplify", text="Adaptive").mode = 'ADAPTIVE'
-        layout.operator("grease_pencil.stroke_simplify", text="Sample").mode = 'SAMPLE'
-        layout.operator("grease_pencil.stroke_simplify", text="Merge").mode = 'MERGE'
+        layout.operator_enum("grease_pencil.stroke_simplify", "mode")
 
 
 classes = (

@@ -9,6 +9,8 @@
 #include "BLI_hash.hh"
 #include "BLI_string_utils.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "node_graph.h"
 
 namespace blender::nodes::materialx {
@@ -122,7 +124,7 @@ std::string NodeGraph::unique_node_name(const bNode *node,
     return *existing_name;
   }
 
-  /* Generate name based on noode, socket, to type and node groups. */
+  /* Generate name based on node, socket, to type and node groups. */
   std::string name = node->name;
 
   if (!socket_out_name.is_empty() && node->output_sockets().size() > 1) {
@@ -134,7 +136,7 @@ std::string NodeGraph::unique_node_name(const bNode *node,
 
   name = node_name_prefix_ + valid_name(name);
 
-  /* Avoid conflicts with anonymouse node names. */
+  /* Avoid conflicts with anonymous node names. */
   if (StringRef(name).startswith(ANONYMOUS_NODE_NAME_PREFIX)) {
     name = "b" + name;
   }

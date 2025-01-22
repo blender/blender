@@ -6,7 +6,9 @@
 
 #include "BLI_compute_context.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_generic_pointer.hh"
 #include "BLI_multi_value_map.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 
 #include "BKE_idprop.hh"
@@ -65,5 +67,16 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
 void update_output_properties_from_node_tree(const bNodeTree &tree,
                                              const IDProperty *old_properties,
                                              IDProperty &properties);
+
+/**
+ * Get the "base" input values that are passed into geometry nodes. In this context, "base" means
+ * that the retrieved input types are #bNodeSocketType::base_cpp_type (e.g. `float` for float
+ * sockets). If the input value can't be represented as base value, null is returned instead (e.g.
+ * for attribute inputs).
+ */
+void get_geometry_nodes_input_base_values(const bNodeTree &btree,
+                                          const IDProperty *properties,
+                                          ResourceScope &scope,
+                                          MutableSpan<GPointer> r_values);
 
 }  // namespace blender::nodes

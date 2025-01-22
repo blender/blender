@@ -19,6 +19,8 @@
 #include "DRW_render.hh"
 #include "GPU_compute.hh"
 
+#include "draw_cache.hh"
+
 #include "workbench_private.hh"
 
 namespace blender::workbench {

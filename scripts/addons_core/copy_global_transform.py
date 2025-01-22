@@ -13,8 +13,8 @@ It's called "global" to avoid confusion with the Blender World data-block.
 bl_info = {
     "name": "Copy Global Transform",
     "author": "Sybren A. Stüvel",
-    "version": (3, 0),
-    "blender": (4, 2, 0),
+    "version": (4, 4),
+    "blender": (4, 4, 0),
     "location": "N-panel in the 3D Viewport",
     "description": "Copy and paste object and bone transforms with ease",
     "category": "Animation",
@@ -29,7 +29,7 @@ from typing import Iterable, Optional, Union, Any, TypeAlias, Iterator
 
 import bpy
 from bpy.app.translations import contexts as i18n_contexts
-from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, Camera
+from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, Camera, ID, ActionChannelbag
 from mathutils import Matrix
 
 
@@ -66,7 +66,14 @@ class AutoKeying:
 
     @classmethod
     @contextlib.contextmanager
-    def options(cls, *, keytype="", use_loc=True, use_rot=True, use_scale=True, force_autokey=False) -> Iterator[None]:
+    def options(
+            cls,
+            *,
+            keytype: str = "",
+            use_loc: bool = True,
+            use_rot: bool = True,
+            use_scale: bool = True,
+            force_autokey: bool = False) -> Iterator[None]:
         """Context manager to set various options."""
         default_keytype = cls._keytype
         default_use_loc = cls._use_loc
@@ -169,12 +176,7 @@ class AutoKeying:
             group = "Object Transforms"
 
         def keyframe(data_path: str, locks: Iterable[bool]) -> None:
-            try:
-                cls.keyframe_channels(target, options, data_path, group, locks)
-            except RuntimeError:
-                # These are expected when "Insert Available" is turned on, and
-                # these curves are not available.
-                pass
+            cls.keyframe_channels(target, options, data_path, group, locks)
 
         if cls._use_loc and not (is_bone and target.bone.use_connect):
             keyframe("location", target.lock_location)
@@ -224,6 +226,26 @@ def set_matrix(context: Context, mat: Matrix) -> None:
         AutoKeying.autokey_transformation(context, context.active_object)
 
 
+def _channelbag_for_id(animated_id: ID) -> ActionChannelbag | None:
+    # This is on purpose limited to the first layer and strip. To support more
+    # than 1 layer, a rewrite of the caller is needed.
+
+    adt = animated_id.animation_data
+    action = adt and adt.action
+    if action is None:
+        return None
+
+    slot_handle = adt.action_slot_handle
+
+    for layer in action.layers:
+        for strip in layer.strips:
+            assert strip.type == 'KEYFRAME'
+            channelbag = strip.channels(slot_handle)
+            return channelbag
+
+    return None
+
+
 def _selected_keyframes(context: Context) -> list[float]:
     """Return the list of frame numbers that have a selected key.
 
@@ -241,7 +263,7 @@ def _selected_keyframes_for_bone(object: Object, bone: PoseBone) -> list[float]:
     Only keys on the given pose bone are considered.
     """
     name = bpy.utils.escape_identifier(bone.name)
-    return _selected_keyframes_in_action(object, "pose.bones[\"{:s}\"].".format(name))
+    return _selected_keyframes_for_action_slot(object, "pose.bones[\"{:s}\"].".format(name))
 
 
 def _selected_keyframes_for_object(object: Object) -> list[float]:
@@ -249,21 +271,21 @@ def _selected_keyframes_for_object(object: Object) -> list[float]:
 
     Only keys on the given object are considered.
     """
-    return _selected_keyframes_in_action(object, "")
+    return _selected_keyframes_for_action_slot(object, "")
 
 
-def _selected_keyframes_in_action(object: Object, rna_path_prefix: str) -> list[float]:
+def _selected_keyframes_for_action_slot(object: Object, rna_path_prefix: str) -> list[float]:
     """Return the list of frame numbers that have a selected key.
 
-    Only keys on the given object's Action on FCurves starting with rna_path_prefix are considered.
+    Only keys on the given object's Action Slot on FCurves starting with rna_path_prefix are considered.
     """
 
-    action = object.animation_data and object.animation_data.action
-    if action is None:
+    cbag = _channelbag_for_id(object)
+    if not cbag:
         return []
 
     keyframes = set()
-    for fcurve in action.fcurves:
+    for fcurve in cbag.fcurves:
         if not fcurve.data_path.startswith(rna_path_prefix):
             continue
 
@@ -325,6 +347,11 @@ class OBJECT_OT_copy_relative_transform(Operator):
 
     def execute(self, context: Context) -> set[str]:
         rel_ob = _get_relative_ob(context)
+        if not rel_ob:
+            self.report(
+                {'ERROR'},
+                "No 'Relative To' object found, set one explicitly or make sure there is an active object")
+            return {'CANCELLED'}
         mat = rel_ob.matrix_world.inverted() @ get_matrix(context)
         _copy_matrix_to_clipboard(context.window_manager, mat)
         return {'FINISHED'}
@@ -461,16 +488,14 @@ class OBJECT_OT_paste_transform(Operator):
         return applicator(context, mat)
 
     def _preprocess_matrix(self, context: Context, matrix: Matrix) -> Matrix:
-        matrix = self._relative_to_world(context, matrix)
+        if self.use_relative:
+            matrix = self._relative_to_world(context, matrix)
 
         if self.use_mirror:
             matrix = self._mirror_matrix(context, matrix)
         return matrix
 
     def _relative_to_world(self, context: Context, matrix: Matrix) -> Matrix:
-        if not self.use_relative:
-            return matrix
-
         rel_ob = _get_relative_ob(context)
         if not rel_ob:
             return matrix
@@ -607,8 +632,21 @@ class Transformable(metaclass=abc.ABCMeta):
     def matrix_world(self) -> Matrix:
         pass
 
-    @abc.abstractmethod
     def set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+        """Set the world matrix, without autokeying."""
+        self._set_matrix_world(context, matrix)
+
+    def set_matrix_world_autokey(self, context: Context, matrix: Matrix) -> None:
+        """Set the world matrix, and autokey the resulting transform."""
+        self._set_matrix_world(context, matrix)
+        self._autokey_matrix_world(context)
+
+    @abc.abstractmethod
+    def _set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+        pass
+
+    @abc.abstractmethod
+    def _autokey_matrix_world(self, context: Context) -> None:
         pass
 
     @abc.abstractmethod
@@ -631,7 +669,12 @@ class Transformable(metaclass=abc.ABCMeta):
         self._key_info_cache = keyinfo
         return keyinfo
 
-    def remove_keys_of_type(self, key_type: str, *, frame_start=float("-inf"), frame_end=float("inf")) -> None:
+    def remove_keys_of_type(
+            self,
+            key_type: str,
+            *,
+            frame_start: float | int = float("-inf"),
+            frame_end: float | int = float("inf")) -> None:
         self._key_info_cache = None
 
         for fcurve in self._my_fcurves():
@@ -650,25 +693,27 @@ class TransformableObject(Transformable):
         super().__init__()
         self.object = object
 
+    def __str__(self) -> str:
+        return f"TransformableObject({self.object.name})"
+
     def matrix_world(self) -> Matrix:
         return self.object.matrix_world
 
-    def set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+    def _set_matrix_world(self, _context: Context, matrix: Matrix) -> None:
         self.object.matrix_world = matrix
+
+    def _autokey_matrix_world(self, context: Context) -> None:
         AutoKeying.autokey_transformation(context, self.object)
 
     def __hash__(self) -> int:
         return hash(self.object.as_pointer())
 
     def _my_fcurves(self) -> Iterable[bpy.types.FCurve]:
-        action = self._action()
-        if not action:
+        cbag = _channelbag_for_id(self.object)
+        if not cbag:
             return
-        yield from action.fcurves
+        yield from cbag.fcurves
 
-    def _action(self) -> Optional[bpy.types.Action]:
-        adt = self.object.animation_data
-        return adt and adt.action
 
 
 class TransformableBone(Transformable):
@@ -680,32 +725,33 @@ class TransformableBone(Transformable):
         self.arm_object = pose_bone.id_data
         self.pose_bone = pose_bone
 
+    def __str__(self) -> str:
+        return f"TransformableBone({self.arm_object.name}, bone={self.pose_bone.name})"
+
     def matrix_world(self) -> Matrix:
         mat = self.arm_object.matrix_world @ self.pose_bone.matrix
         return mat
 
-    def set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+    def _set_matrix_world(self, context: Context, matrix: Matrix) -> None:
         # Convert matrix to armature-local space
         arm_eval = self.arm_object.evaluated_get(context.view_layer.depsgraph)
         self.pose_bone.matrix = arm_eval.matrix_world.inverted() @ matrix
+
+    def _autokey_matrix_world(self, context: Context) -> None:
         AutoKeying.autokey_transformation(context, self.pose_bone)
 
     def __hash__(self) -> int:
         return hash(self.pose_bone.as_pointer())
 
     def _my_fcurves(self) -> Iterable[bpy.types.FCurve]:
-        action = self._action()
-        if not action:
+        cbag = _channelbag_for_id(self.arm_object)
+        if not cbag:
             return
 
-        rna_prefix = f"{self.pose_bone.path_from_id()}."
-        for fcurve in action.fcurves:
+        rna_prefix = self.pose_bone.path_from_id() + "."
+        for fcurve in cbag.fcurves:
             if fcurve.data_path.startswith(rna_prefix):
                 yield fcurve
-
-    def _action(self) -> Optional[bpy.types.Action]:
-        adt = self.arm_object.animation_data
-        return adt and adt.action
 
 
 class FixToCameraCommon:
@@ -749,10 +795,19 @@ class FixToCameraCommon:
                 return {'CANCELLED'}
 
         restore_frame = context.scene.frame_current
+        restore_matrices = [(transformable, transformable.matrix_world().copy()) for transformable in transformables]
+
         try:
             self._execute(context, transformables)
         finally:
+            # Restore the state of the scene & the transformables. This is necessary
+            # as not all properties may have been auto-keyed (for example 'only
+            # available' enabled, and rotation is not actually keyed yet), so we can't
+            # assume that going to the original frame restores the entire matrix.
             context.scene.frame_set(restore_frame)
+            for transformable, matrix in restore_matrices:
+                transformable.set_matrix_world(context, matrix)
+
         return {'FINISHED'}
 
     def _transformable_objects(self, context: Context) -> list[Transformable]:
@@ -762,7 +817,7 @@ class FixToCameraCommon:
         return [TransformableBone(pose_bone=bone) for bone in context.selected_pose_bones]
 
 
-class OBJECT_OT_fix_to_camera(Operator, FixToCameraCommon):
+class OBJECT_OT_fix_to_camera(FixToCameraCommon, Operator):
     bl_idname = "object.fix_to_camera"
     bl_label = "Fix to Scene Camera"
     bl_description = "Generate new keys to fix the selected object/bone to the camera on unkeyed frames"
@@ -833,7 +888,7 @@ class OBJECT_OT_fix_to_camera(Operator, FixToCameraCommon):
                         continue
 
                     # No key, or a generated one. Overwrite it with a new transform.
-                    t.set_matrix_world(context, cam_matrix_world @ camera_rel_matrix)
+                    t.set_matrix_world_autokey(context, cam_matrix_world @ camera_rel_matrix)
 
 
 class OBJECT_OT_delete_fix_to_camera_keys(Operator, FixToCameraCommon):

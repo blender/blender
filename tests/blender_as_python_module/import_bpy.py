@@ -6,10 +6,10 @@
 import sys
 sys.path.append(sys.argv[1])
 
-# Just import bpy and see if there are any dynamic loader errors.
+# Just import `bpy` and see if there are any dynamic loader errors.
 import bpy
 
-# Try bundled libraries
+# Try bundled libraries.
 bpy.utils.expose_bundled_modules()
 
 from pxr import Usd

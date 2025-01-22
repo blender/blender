@@ -228,4 +228,4 @@ def __gather_interpolation(
     blender_keyframe = [c for c in channel_group if c is not None][0].keyframe_points[0]
 
     # Select the interpolation method.
-    return get_gltf_interpolation(blender_keyframe.interpolation)
+    return get_gltf_interpolation(blender_keyframe.interpolation, export_settings)

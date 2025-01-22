@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 #ifndef _WIN32
 #  include <clocale>
@@ -27,18 +28,20 @@
 
 #include "BKE_appdir.hh"
 
-#include "IMB_thumbs.hh"
-
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"translation.language"};
 
 #ifdef WITH_INTERNATIONAL
 
 #  include "BLI_fileops.h"
 #  include "BLI_linklist.h"
 
-#  include "boost_locale_wrapper.h"
+#  include "messages.hh"
 
 /* Locale options. */
 static const char **locales = nullptr;
@@ -66,17 +69,19 @@ static void free_locales()
 static void fill_locales()
 {
   std::optional<std::string> languages_path = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
-  char languages[FILE_MAX];
-  LinkNode *lines = nullptr, *line = nullptr;
-  char *str;
-  int idx = 0;
+  if (!languages_path.has_value()) {
+    CLOG_WARN(&LOG, "'locale' data path for translations not found");
+    return;
+  }
 
   free_locales();
 
-  if (languages_path.has_value()) {
-    BLI_path_join(languages, FILE_MAX, languages_path->c_str(), "languages");
-    line = lines = BLI_file_read_as_lines(languages);
-  }
+  char languages[FILE_MAX];
+  BLI_path_join(languages, FILE_MAX, languages_path->c_str(), "languages");
+
+  LinkNode *lines = BLI_file_read_as_lines(languages);
+  LinkNode *line = lines;
+  int idx = 0;
 
   /* This whole "parsing" code is a bit weak, in that it expects strictly formatted input file...
    * Should not be a problem, though, as this file is script-generated! */
@@ -84,7 +89,7 @@ static void fill_locales()
   /* First loop to find highest locale ID */
   while (line) {
     int t;
-    str = (char *)line->link;
+    char *str = (char *)line->link;
     if (ELEM(str[0], '#', '\0')) {
       line = line->next;
       continue; /* Comment or void... */
@@ -109,7 +114,7 @@ static void fill_locales()
     while (line) {
       const char *loc, *sep1, *sep2, *sep3;
 
-      str = (char *)line->link;
+      char *str = (char *)line->link;
       if (ELEM(str[0], '#', '\0')) {
         line = line->next;
         continue;
@@ -181,10 +186,6 @@ const EnumPropertyItem *BLT_lang_RNA_enum_properties()
 
 void BLT_lang_init()
 {
-#ifdef WITH_INTERNATIONAL
-  const std::optional<std::string> messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
-#endif
-
 /* Make sure LANG is correct and wouldn't cause #std::runtime_error. */
 #ifndef _WIN32
   /* TODO(sergey): This code only ensures LANG is set properly, so later when
@@ -205,7 +206,7 @@ void BLT_lang_init()
     old_locale = BLI_strdup(old_locale);
     if (setlocale(LC_ALL, lang) == nullptr) {
       setenv("LANG", "C", 1);
-      printf("Warning: Falling back to the standard locale (\"C\")\n");
+      CLOG_WARN(&LOG, "Falling back to standard locale (\"C\")");
     }
     setlocale(LC_ALL, old_locale);
     MEM_freeN(old_locale);
@@ -213,22 +214,15 @@ void BLT_lang_init()
 #endif
 
 #ifdef WITH_INTERNATIONAL
-  if (messagepath.has_value()) {
-    bl_locale_init(messagepath->c_str(), TEXT_DOMAIN_NAME);
-    fill_locales();
-  }
-  else {
-    printf("%s: 'locale' data path for translations not found, continuing\n", __func__);
-  }
-#else
+  fill_locales();
 #endif
 }
 
 void BLT_lang_free()
 {
 #ifdef WITH_INTERNATIONAL
+  blender::locale::free();
   free_locales();
-#else
 #endif
 }
 
@@ -252,27 +246,12 @@ void BLT_lang_set(const char *str)
 {
 #ifdef WITH_INTERNATIONAL
   int ulang = ULANGUAGE;
-  const char *short_locale = str ? str : LOCALE(ulang);
-  const char *short_locale_utf8 = nullptr;
+  std::string locale_name = str ? str : LOCALE(ulang);
 
-  /* We want to avoid locales like '.UTF-8'! */
-  if (short_locale[0]) {
-    /* Hooray! Encoding needs to be placed *before* variant! */
-    const char *variant = strchr(short_locale, '@');
-    if (variant) {
-      char *locale = BLI_strdupn(short_locale, variant - short_locale);
-      short_locale_utf8 = BLI_sprintfN("%s.UTF-8%s", locale, variant);
-      MEM_freeN(locale);
-    }
-    else {
-      short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
-    }
-    bl_locale_set(short_locale_utf8);
-    MEM_freeN((void *)short_locale_utf8);
-  }
-  else {
-    bl_locale_set(short_locale);
-  }
+  /* blender::locale assumes UTF-8, no need to put it in the name. */
+  const std::optional<std::string> messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
+  blender::locale::init(locale_name, {TEXT_DOMAIN_NAME}, {messagepath.value_or("")});
+
 #else
   (void)str;
 #endif
@@ -285,7 +264,7 @@ const char *BLT_lang_get()
     const char *locale = LOCALE(ULANGUAGE);
     if (locale[0] == '\0') {
       /* Default locale, we have to find which one we are actually using! */
-      locale = bl_locale_get();
+      locale = blender::locale::full_name();
     }
     return locale;
   }

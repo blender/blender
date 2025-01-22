@@ -2750,31 +2750,31 @@ class WM_OT_batch_rename(Operator):
     data_type: EnumProperty(
         name="Type",
         items=(
-            ('OBJECT', "Objects", ""),
-            ('COLLECTION', "Collections", ""),
-            ('MATERIAL', "Materials", ""),
+            ('OBJECT', "Objects", "", 'OBJECT_DATA', 0),
+            ('COLLECTION', "Collections", "", 'OUTLINER_COLLECTION', 1),
+            ('MATERIAL', "Materials", "", 'MATERIAL_DATA', 2),
             None,
             # Enum identifiers are compared with `object.type`.
             # Follow order in "Add" menu.
-            ('MESH', "Meshes", ""),
-            ('CURVE', "Curves", ""),
-            ('META', "Metaballs", ""),
-            ('VOLUME', "Volumes", ""),
-            ('GPENCIL', "Grease Pencils", ""),
-            ('ARMATURE', "Armatures", ""),
-            ('LATTICE', "Lattices", ""),
-            ('LIGHT', "Light", ""),
-            ('LIGHT_PROBE', "Light Probes", ""),
-            ('CAMERA', "Cameras", ""),
-            ('SPEAKER', "Speakers", ""),
+            ('MESH', "Meshes", "", 'MESH_DATA', 3),
+            ('CURVE', "Curves", "", 'CURVE_DATA', 4),
+            ('META', "Metaballs", "", 'META_DATA', 5),
+            ('VOLUME', "Volumes", "", 'VOLUME_DATA', 6),
+            ('GPENCIL', "Grease Pencils", "", 'OUTLINER_DATA_GREASEPENCIL', 7),
+            ('ARMATURE', "Armatures", "", 'ARMATURE_DATA', 8),
+            ('LATTICE', "Lattices", "", 'LATTICE_DATA', 9),
+            ('LIGHT', "Lights", "", 'LIGHT_DATA', 10),
+            ('LIGHT_PROBE', "Light Probes", "", 'OUTLINER_DATA_LIGHTPROBE', 11),
+            ('CAMERA', "Cameras", "", 'CAMERA_DATA', 12),
+            ('SPEAKER', "Speakers", "", 'OUTLINER_DATA_SPEAKER', 13),
             None,
-            ('BONE', "Bones", ""),
-            ('NODE', "Nodes", ""),
-            ('SEQUENCE_STRIP', "Sequence Strips", ""),
-            ('ACTION_CLIP', "Action Clips", ""),
+            ('BONE', "Bones", "", 'BONE_DATA', 14),
+            ('NODE', "Nodes", "", 'NODETREE', 15),
+            ('SEQUENCE_STRIP', "Sequence Strips", "", 'SEQ_SEQUENCER', 16),
+            ('ACTION_CLIP', "Action Clips", "", 'ACTION', 17),
             None,
-            ('SCENE', "Scenes", ""),
-            ('BRUSH', "Brushes", ""),
+            ('SCENE', "Scenes", "", 'SCENE_DATA', 18),
+            ('BRUSH', "Brushes", "", 'BRUSH_DATA', 19),
         ),
         translation_context=i18n_contexts.id_id,
         description="Type of data to rename",
@@ -2845,9 +2845,9 @@ class WM_OT_batch_rename(Operator):
                 return data_type_test
             if data_type == data_type_test:
                 data = (
-                    context.selected_sequences
+                    context.selected_strips
                     if only_selected else
-                    scene.sequence_editor.sequences_all,
+                    scene.sequence_editor.strips_all,
                     "name",
                     iface_("Strip(s)"),
                 )

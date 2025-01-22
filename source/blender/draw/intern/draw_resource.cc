@@ -6,13 +6,10 @@
  * \ingroup draw
  */
 
-#include "DNA_particle_types.h"
-#include "RNA_access.hh"
-#include "RNA_path.hh"
-#include "RNA_types.hh"
+#include "BKE_duplilist.hh"
+#include "GPU_material.hh"
 
 #include "draw_handle.hh"
-#include "draw_manager.hh"
 #include "draw_shader_shared.hh"
 
 /* -------------------------------------------------------------------- */

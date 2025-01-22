@@ -3380,11 +3380,19 @@ static void outliner_draw_tree_element(uiBlock *block,
           /* Active items like camera or material. */
           icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
+          if (te->idcode == ID_SCE) {
+            UI_GetThemeColor3ubv(TH_TEXT_HI, text_color);
+            text_color[3] = 255;
+          }
         }
       }
     }
     else {
       active = tree_element_type_active_state_get(tvc, te, tselem);
+      if (active != OL_DRAWSEL_NONE) {
+        UI_GetThemeColor3ubv(TH_TEXT_HI, text_color);
+        text_color[3] = 255;
+      }
     }
 
     /* Active circle. */

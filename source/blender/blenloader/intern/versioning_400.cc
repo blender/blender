@@ -1506,6 +1506,34 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 25)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->adt) {
+        continue;
+      }
+      using namespace blender;
+      auto replace_rna_path_prefix =
+          [](FCurve &fcurve, const StringRef old_prefix, const StringRef new_prefix) {
+            const StringRef rna_path = fcurve.rna_path;
+            if (!rna_path.startswith(old_prefix)) {
+              return;
+            }
+            const StringRef tail = rna_path.drop_prefix(old_prefix.size());
+            char *new_rna_path = BLI_strdupcat(new_prefix.data(), tail.data());
+            MEM_freeN(fcurve.rna_path);
+            fcurve.rna_path = new_rna_path;
+          };
+      if (scene->adt->action) {
+        animrig::foreach_fcurve_in_action(scene->adt->action->wrap(), [&](FCurve &fcurve) {
+          replace_rna_path_prefix(fcurve, "sequence_editor.sequences", "sequence_editor.strips");
+        });
+      }
+      LISTBASE_FOREACH (FCurve *, driver, &scene->adt->drivers) {
+        replace_rna_path_prefix(*driver, "sequence_editor.sequences", "sequence_editor.strips");
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
@@ -3605,6 +3633,17 @@ static void version_group_input_socket_data_block_reference(bNodeTree &ntree)
   }
 }
 
+static void version_geometry_normal_input_node(bNodeTree &ntree)
+{
+  if (ntree.type == NTREE_GEOMETRY) {
+    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+      if (STREQ(node->idname, "GeometryNodeInputNormal")) {
+        node->custom1 = 1;
+      }
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -5654,6 +5693,26 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "Curves", "float", "surface_collision_distance")) {
       LISTBASE_FOREACH (Curves *, curves, &bmain->hair_curves) {
         curves->surface_collision_distance = 0.005f;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 24)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      version_geometry_normal_input_node(*ntree);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 26)) {
+    const Brush *default_brush = DNA_struct_default_get(Brush);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if ((brush->mask_stencil_dimension[0] == 0) && (brush->mask_stencil_dimension[1] == 0)) {
+        brush->mask_stencil_dimension[0] = default_brush->mask_stencil_dimension[0];
+        brush->mask_stencil_dimension[1] = default_brush->mask_stencil_dimension[1];
+      }
+      if ((brush->mask_stencil_pos[0] == 0) && (brush->mask_stencil_pos[1] == 0)) {
+        brush->mask_stencil_pos[0] = default_brush->mask_stencil_pos[0];
+        brush->mask_stencil_pos[1] = default_brush->mask_stencil_pos[1];
       }
     }
   }

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_view_data.hh"
+
 #include "image_drawing_mode.hh"
 #include "image_instance.hh"
 #include "image_shader.hh"

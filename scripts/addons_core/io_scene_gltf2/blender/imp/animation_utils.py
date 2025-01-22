@@ -146,9 +146,9 @@ def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
         action.layers[0].strips[0].channelbags.new(slot)
 
         gltf.action_cache[anim_idx]['object_slots'][obj.name] = {}
-        gltf.action_cache[anim_idx]['object_slots'][obj.name][slot.id_root] = (action, slot)
+        gltf.action_cache[anim_idx]['object_slots'][obj.name][slot.target_id_type] = (action, slot)
     else:
-        # We have slots, check if we have the right slot (based on id_root)
+        # We have slots, check if we have the right slot (based on target_id_type)
         ac_sl = slots.get(use_id)
         if not ac_sl:
             action = gltf.action_cache[anim_idx]['action']
@@ -166,7 +166,7 @@ def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
 
             action.layers[0].strips[0].channelbags.new(slot)
 
-            gltf.action_cache[anim_idx]['object_slots'][obj.name][slot.id_root] = (action, slot)
+            gltf.action_cache[anim_idx]['object_slots'][obj.name][slot.target_id_type] = (action, slot)
         else:
             action, slot = ac_sl
 

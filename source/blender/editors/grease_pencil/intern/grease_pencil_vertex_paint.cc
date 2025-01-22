@@ -449,7 +449,7 @@ static int grease_pencil_vertex_paint_reset_exec(bContext *C, wmOperator *op)
           object,
           info,
           use_selection_mask,
-          [&](const ColorGeometry4f &color) -> ColorGeometry4f {
+          [&](const ColorGeometry4f & /*color*/) -> ColorGeometry4f {
             return ColorGeometry4f(1.0, 1.0, 1.0, 1.0);
           });
       any_changed.store(any_changed | changed, std::memory_order_relaxed);

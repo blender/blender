@@ -6,6 +6,8 @@
  * \ingroup overlay
  */
 
+#include "draw_cache.hh"
+
 #include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {

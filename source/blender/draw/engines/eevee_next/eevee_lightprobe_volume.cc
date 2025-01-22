@@ -8,9 +8,8 @@
 #include "BKE_lightprobe.h"
 
 #include "GPU_capabilities.hh"
-#include "GPU_debug.hh"
 
-#include "BLI_math_rotation.hh"
+#include "draw_manager_profiling.hh"
 
 #include "eevee_instance.hh"
 

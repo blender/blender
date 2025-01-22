@@ -15,10 +15,10 @@ typedef float (*DualConCo)[3];
 
 typedef unsigned int (*DualConTri)[3];
 
-typedef unsigned int *DualConLoop;
+typedef unsigned int *DualConCornerVerts;
 
 typedef struct DualConInput {
-  DualConLoop mloop;
+  DualConCornerVerts corner_verts;
 
   DualConCo co;
   int co_stride;
@@ -28,7 +28,7 @@ typedef struct DualConInput {
   int tri_stride;
   int tottri;
 
-  int loop_stride;
+  int corner_verts_stride;
 
   float min[3], max[3];
 } DualConInput;

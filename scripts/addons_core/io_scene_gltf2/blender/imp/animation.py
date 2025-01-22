@@ -22,7 +22,7 @@ class BlenderAnimation():
         # Caches the action/slot for each object, keyed by:
         #   - anim_idx
         #   - obj_name
-        #   - id_root
+        #   - target_id_type
         gltf.action_cache = {}
         # Things we need to stash when we're done.
         gltf.needs_stash = []

@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "DNA_world_types.h"
+
+#include "draw_cache.hh"
+
 #include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {

@@ -8,10 +8,7 @@
  * \brief Extraction of Mesh data into VBO to feed to GPU.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 
 #include "ED_uvedit.hh"
 

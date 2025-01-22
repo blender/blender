@@ -2132,6 +2132,11 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op, bool is_replay
   SCULPT_vertex_random_access_ensure(ob);
 
   const IndexMask &node_mask = ss.filter_cache->node_mask;
+  if (auto_mask::is_enabled(sd, ob, nullptr) && ss.filter_cache->automasking &&
+      ss.filter_cache->automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL)
+  {
+    ss.filter_cache->automasking->calc_cavity_factor(depsgraph, ob, node_mask);
+  }
   switch (filter_type) {
     case MeshFilterType::Smooth:
       calc_smooth_filter(depsgraph,

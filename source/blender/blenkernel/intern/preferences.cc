@@ -119,7 +119,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_containing_path(const UserDef *
                                                                  const char *path)
 {
   LISTBASE_FOREACH (bUserAssetLibrary *, asset_lib_pref, &userdef->asset_libraries) {
-    if (BLI_path_contains(asset_lib_pref->dirpath, path)) {
+    if (asset_lib_pref->dirpath[0] && BLI_path_contains(asset_lib_pref->dirpath, path)) {
       return asset_lib_pref;
     }
   }

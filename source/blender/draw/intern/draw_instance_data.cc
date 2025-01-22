@@ -16,24 +16,13 @@
  */
 
 #include "draw_instance_data.hh"
-#include "draw_manager_c.hh"
 
 #include "DRW_engine.hh"
 #include "DRW_render.hh" /* For DRW_shgroup_get_instance_count() */
 
-#include "GPU_material.hh"
-
-#include "DNA_particle_types.h"
-
-#include "BKE_duplilist.hh"
-
-#include "RNA_access.hh"
-#include "RNA_path.hh"
-
-#include "BLI_bitmap.h"
-#include "BLI_memblock.h"
+#include "BLI_listbase.h"
 #include "BLI_mempool.h"
-#include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 struct DRWInstanceData {

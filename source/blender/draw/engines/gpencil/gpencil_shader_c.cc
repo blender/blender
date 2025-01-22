@@ -7,6 +7,8 @@
  */
 #include "DRW_render.hh"
 
+#include "BLI_string.h"
+
 #include "gpencil_engine.h"
 
 extern "C" char datatoc_gpencil_common_lib_glsl[];

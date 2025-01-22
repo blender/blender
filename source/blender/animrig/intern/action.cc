@@ -2964,7 +2964,7 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
 /**
  * Clone information from the given slot into this slot while retaining important info like the
  * slot handle and runtime data. This copies the identifier which might clash with other
- * identifiers on the action. Call `slot_name_ensure_unique` after.
+ * identifiers on the action. Call `slot_identifier_ensure_unique` after.
  */
 static void clone_slot(Slot &from, Slot &to)
 {

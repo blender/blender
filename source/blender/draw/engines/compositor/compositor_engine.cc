@@ -34,6 +34,8 @@
 #include "GPU_context.hh"
 #include "GPU_texture.hh"
 
+#include "draw_view_data.hh"
+
 #include "compositor_engine.h" /* Own include. */
 
 namespace blender::draw::compositor_engine {

@@ -88,7 +88,7 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
 
         world.use_eevee_finite_volume = False
 
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @staticmethod
     def _world_get(context):

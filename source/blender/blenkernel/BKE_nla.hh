@@ -466,13 +466,15 @@ void BKE_nla_validate_state(AnimData *adt);
 /* ............ */
 
 /**
- * Check if an action is "stashed" in the NLA already
+ * Check if an action+slot combination is "stashed" in the NLA already.
  *
  * The criteria for this are:
- * 1) The action in question lives in a "stash" track.
+ * 1) The action+slot in question lives in a "stash" track.
  * 2) We only check first-level strips. That is, we will not check inside meta strips.
  */
-bool BKE_nla_action_is_stashed(AnimData *adt, bAction *act);
+bool BKE_nla_action_slot_is_stashed(AnimData *adt,
+                                    bAction *act,
+                                    blender::animrig::slot_handle_t slot_handle);
 /**
  * "Stash" an action (i.e. store it as a track/layer in the NLA, but non-contributing)
  * to retain it in the file for future uses.

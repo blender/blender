@@ -12,29 +12,27 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "DNA_modifier_types.h"
+#include "BLI_string.h"
+
+#include "BLT_translation.hh"
+
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
-
-#include "BKE_object.hh"
-#include "BKE_particle.h"
-#include "BKE_screen.hh"
 
 #include "ED_image.hh"
 #include "ED_screen.hh"
 
-#include "GPU_batch.hh"
 #include "GPU_debug.hh"
 #include "GPU_matrix.hh"
-#include "GPU_shader.hh"
 #include "GPU_state.hh"
-#include "GPU_viewport.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #include "draw_command.hh"
 #include "draw_view.hh"
+#include "draw_view_data.hh"
+
 #include "external_engine.h" /* own include */
 
 /* Shaders */

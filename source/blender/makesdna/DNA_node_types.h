@@ -207,6 +207,11 @@ typedef struct bNodeSocket {
   bool is_input() const;
   bool is_output() const;
 
+  /**
+   * False when this input socket definitely does not affect the output.
+   */
+  bool affects_node_output() const;
+
   /** Utility to access the value of the socket. */
   template<typename T> T *default_value_typed();
   template<typename T> const T *default_value_typed() const;
@@ -501,10 +506,12 @@ typedef struct bNode {
   blender::Span<bNodeSocket *> input_sockets();
   blender::Span<const bNodeSocket *> input_sockets() const;
   blender::IndexRange input_socket_indices_in_tree() const;
+  blender::IndexRange input_socket_indices_in_all_inputs() const;
   /** A span containing all output sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> output_sockets();
   blender::Span<const bNodeSocket *> output_sockets() const;
   blender::IndexRange output_socket_indices_in_tree() const;
+  blender::IndexRange output_socket_indices_in_all_outputs() const;
   /** Utility to get an input socket by its index. */
   bNodeSocket &input_socket(int index);
   const bNodeSocket &input_socket(int index) const;

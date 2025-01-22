@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -1303,12 +1303,12 @@ msgid "Mask"
 msgstr "Маска"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
 msgid "Apply"
 msgstr "Колдонуу"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgid "Text"
@@ -3396,6 +3396,10 @@ msgid "Surface"
 msgstr "Бет"
 
 
+msgid "Cancel"
+msgstr "Жокко чыгаруу"
+
+
 msgid "%s: %s"
 msgstr "%s: %s"
 
@@ -3406,10 +3410,6 @@ msgstr "Hex"
 
 msgid "OK"
 msgstr "ООБА"
-
-
-msgid "Cancel"
-msgstr "Жокко чыгаруу"
 
 
 msgid "Movie"

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(OIDN_EXTRA_ARGS
+  -DCMAKE_BUILD_TYPE=Release
   -DOIDN_APPS=OFF
   -DTBB_ROOT=${LIBDIR}/tbb
   -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc

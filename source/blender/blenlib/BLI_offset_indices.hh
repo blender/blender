@@ -17,14 +17,15 @@ namespace blender::offset_indices {
 struct NoSortCheck {};
 
 /**
- * References an array of ascending indices. A pair of consecutive indices encode an index range.
- * Another common way to store the same kind of data is to store the start and size of every range
- * separately. Using offsets instead halves the memory consumption. The downside is that the
- * array has to be one element longer than the total number of ranges. The extra element is
- * necessary to be able to get the last index range without requiring an extra branch for the case.
+ * This class is a thin wrapper around an array of increasing indices that makes it easy to
+ * retrieve an index range at a specific index. Each index range is typically a representation of
+ * a contiguous chunk of a larger array.
  *
- * This class is a thin wrapper around such an array that makes it easy to retrieve the index range
- * at a specific index.
+ * Another common way to store many index ranges is to store the start and size of every range.
+ * Using #OffsetIndices instead requires that chunks are ordered consecutively but halves the
+ * memory consumption. Another downside is that the underlying array has to be one element longer
+ * than the total number of ranges. The extra element necessary to encode the size of the last
+ * range without requiring a branch for each range access.
  */
 template<typename T> class OffsetIndices {
  private:
@@ -44,7 +45,7 @@ template<typename T> class OffsetIndices {
    * high performance impact making debug builds unusable for files that would be fine otherwise.
    * This can be used when it is known that the indices are sorted already.
    */
-  OffsetIndices(const Span<T> offsets, NoSortCheck) : offsets_(offsets) {}
+  OffsetIndices(const Span<T> offsets, NoSortCheck /*no_sort_check*/) : offsets_(offsets) {}
 
   /** Return the total number of elements in the referenced arrays. */
   T total_size() const
@@ -109,8 +110,8 @@ template<typename T> class OffsetIndices {
  * store many grouped arrays, without requiring many small allocations, giving the general benefits
  * of using contiguous memory.
  *
- * \note If the offsets are shared between many #GroupedSpan objects, it will still
- * be more efficient to retrieve the #IndexRange only once and slice each span.
+ * \note If the offsets are shared between many #GroupedSpan objects, it will be more efficient
+ * to retrieve the #IndexRange only once and slice each span.
  */
 template<typename T> struct GroupedSpan {
   OffsetIndices<int> offsets;
@@ -177,6 +178,7 @@ inline OffsetIndices<int> gather_selected_offsets(OffsetIndices<int> src_offsets
 {
   return gather_selected_offsets(src_offsets, selection, 0, dst_offsets);
 }
+
 /**
  * Create a map from indexed elements to the source indices, in other words from the larger array
  * to the smaller array.

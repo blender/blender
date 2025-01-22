@@ -168,6 +168,7 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
   else if (sl->spacetype == SPACE_IMAGE) {
     const SpaceImage *sima = (SpaceImage *)sl;
     const eSpaceImage_Mode mode = eSpaceImage_Mode(sima->mode);
+    space_type = SPACE_IMAGE;
     switch (mode) {
       case SI_MODE_VIEW:
         km_id = "Image";

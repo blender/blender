@@ -690,7 +690,7 @@ class TOPBAR_PT_name(Panel):
         found = False
         if space_type == 'SEQUENCE_EDITOR':
             layout.label(text="Sequence Strip Name")
-            item = context.active_sequence_strip
+            item = context.active_strip
             if item:
                 row = row_with_icon(layout, 'SEQUENCE')
                 row.prop(item, "name", text="")
@@ -807,7 +807,7 @@ class TOPBAR_PT_grease_pencil_layers(Panel):
         object = context.object
         if object is None:
             return False
-        if object.type != "GREASEPENCIL":
+        if object.type != 'GREASEPENCIL':
             return False
 
         return True

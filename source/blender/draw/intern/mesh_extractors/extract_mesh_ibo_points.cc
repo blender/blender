@@ -6,8 +6,6 @@
  * \ingroup draw
  */
 
-#include "BLI_array_utils.hh"
-
 #include "GPU_index_buffer.hh"
 
 #include "draw_subdivision.hh"

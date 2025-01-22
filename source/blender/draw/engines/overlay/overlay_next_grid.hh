@@ -31,11 +31,7 @@ class Grid : Overlay {
   UniformBuffer<OVERLAY_GridData> data_;
   StorageVectorBuffer<float4> tile_pos_buf_;
 
-  PassSimple grid_background_ps_ = {"grid_background_ps_"};
-  PassSimple wire_border_ps_ = {"wire_border_ps_"};
   PassSimple grid_ps_ = {"grid_ps_"};
-  PassSimple zneg_ps_ = {"zneg_ps_"};
-  PassSimple zpos_ps_ = {"zpos_ps_"};
 
   bool show_axis_z_ = false;
   bool is_xr_ = false;
@@ -55,14 +51,8 @@ class Grid : Overlay {
     is_3d_grid_ = state.is_space_v3d();
 
     enabled_ = !state.is_space_node() && init(state);
-
-    grid_background_ps_.init();
-    wire_border_ps_.init();
-    grid_ps_.init();
-    zneg_ps_.init();
-    zpos_ps_.init();
-
     if (!enabled_) {
+      grid_ps_.init();
       return;
     }
 
@@ -70,45 +60,51 @@ class Grid : Overlay {
     GPUTexture **depth_infront_tx = state.use_in_front ? &res.depth_target_in_front_tx :
                                                          &res.dummy_depth_tx;
 
+    grid_ps_.init();
+    grid_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    grid_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
     if (state.is_space_image()) {
       /* Add quad background. */
-      grid_background_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
-      grid_background_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
-      grid_background_ps_.shader_set(res.shaders.grid_background.get());
+      auto &sub = grid_ps_.sub("grid_background");
+      sub.shader_set(res.shaders.grid_background.get());
       const float4 color_back = math::interpolate(
           res.theme_settings.color_background, res.theme_settings.color_grid, 0.5);
-      grid_background_ps_.push_constant("ucolor", color_back);
-      grid_background_ps_.push_constant("tile_scale", float3(data_.size));
-      grid_background_ps_.bind_texture("depthBuffer", depth_tx);
-      grid_background_ps_.draw(res.shapes.quad_solid.get());
+      sub.push_constant("ucolor", color_back);
+      sub.push_constant("tile_scale", float3(data_.size));
+      sub.bind_texture("depthBuffer", depth_tx);
+      sub.draw(res.shapes.quad_solid.get());
     }
-
-    auto setup_grid_pass = [&](PassSimple &ps, int &grid_flag, float3 &plane_axes) {
-      ps.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
-      ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
-      ps.shader_set(res.shaders.grid.get());
-      ps.bind_ubo("grid_buf", &data_);
-      ps.bind_texture("depth_tx", depth_tx, GPUSamplerState::default_sampler());
-      ps.bind_texture("depth_infront_tx", depth_infront_tx, GPUSamplerState::default_sampler());
-      ps.push_constant("grid_flag", &grid_flag);
-      ps.push_constant("plane_axes", &plane_axes);
-      ps.draw(res.shapes.grid.get());
-    };
-
-    setup_grid_pass(grid_ps_, grid_flag_, grid_axes_);
-    setup_grid_pass(zneg_ps_, zneg_flag_, zplane_axes_);
-    setup_grid_pass(zpos_ps_, zpos_flag_, zplane_axes_);
-
+    {
+      auto &sub = grid_ps_.sub("grid");
+      sub.shader_set(res.shaders.grid.get());
+      sub.bind_ubo("grid_buf", &data_);
+      sub.bind_texture("depth_tx", depth_tx, GPUSamplerState::default_sampler());
+      sub.bind_texture("depth_infront_tx", depth_infront_tx, GPUSamplerState::default_sampler());
+      if (zneg_flag_ & SHOW_AXIS_Z) {
+        sub.push_constant("grid_flag", &zneg_flag_);
+        sub.push_constant("plane_axes", &zplane_axes_);
+        sub.draw(res.shapes.grid.get());
+      }
+      if (grid_flag_) {
+        sub.push_constant("grid_flag", &grid_flag_);
+        sub.push_constant("plane_axes", &grid_axes_);
+        sub.draw(res.shapes.grid.get());
+      }
+      if (zpos_flag_ & SHOW_AXIS_Z) {
+        sub.push_constant("grid_flag", &zpos_flag_);
+        sub.push_constant("plane_axes", &zplane_axes_);
+        sub.draw(res.shapes.grid.get());
+      }
+    }
     if (state.is_space_image()) {
-      /* Add wire border. */
       float4 theme_color;
       UI_GetThemeColorShade4fv(TH_BACK, 60, theme_color);
       srgb_to_linearrgb_v4(theme_color, theme_color);
 
-      wire_border_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
-      wire_border_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
-      wire_border_ps_.shader_set(res.shaders.grid_image.get());
-      wire_border_ps_.push_constant("ucolor", theme_color);
+      /* Add wire border. */
+      auto &sub = grid_ps_.sub("wire_border");
+      sub.shader_set(res.shaders.grid_image.get());
+      sub.push_constant("ucolor", theme_color);
       tile_pos_buf_.clear();
       for (const int x : IndexRange(data_.size[0])) {
         for (const int y : IndexRange(data_.size[1])) {
@@ -116,8 +112,8 @@ class Grid : Overlay {
         }
       }
       tile_pos_buf_.push_update();
-      wire_border_ps_.bind_ssbo("tile_pos_buf", &tile_pos_buf_);
-      wire_border_ps_.draw(res.shapes.quad_wire.get(), tile_pos_buf_.size());
+      sub.bind_ssbo("tile_pos_buf", &tile_pos_buf_);
+      sub.draw(res.shapes.quad_wire.get(), tile_pos_buf_.size());
     }
   }
 
@@ -131,18 +127,7 @@ class Grid : Overlay {
     data_.push_update();
 
     GPU_framebuffer_bind(framebuffer);
-
-    manager.submit(grid_background_ps_, view);
-    if (zneg_flag_ & SHOW_AXIS_Z) {
-      manager.submit(zneg_ps_, view);
-    }
-    if (grid_flag_) {
-      manager.submit(grid_ps_, view);
-    }
-    if (zpos_flag_ & SHOW_AXIS_Z) {
-      manager.submit(zpos_ps_, view);
-    }
-    manager.submit(wire_border_ps_, view);
+    manager.submit(grid_ps_, view);
   }
 
  private:
@@ -263,7 +248,7 @@ class Grid : Overlay {
 
     /* Z axis if needed */
     if (((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) && show_axis_z) {
-      zpos_flag_ = SHOW_AXIS_Z;
+      zpos_flag_ = zneg_flag_ = SHOW_AXIS_Z;
     }
     else {
       zneg_flag_ = zpos_flag_ = CLIP_ZNEG | CLIP_ZPOS;

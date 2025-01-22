@@ -190,23 +190,29 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name RGB/Gray-Scale Functions
+/** \name sRGB/Gray-Scale Functions
  *
  * \warning
- * These are only an approximation,
- * in almost _all_ cases, #IMB_colormanagement_get_luminance should be used instead. However for
- * screen-only colors which don't depend on the currently loaded profile - this is preferred.
- * Checking theme colors for contrast, etc. Basically anything outside the render pipeline.
+ * Only use for colors known to be in sRGB space, like user interface and themes.
+ * Scene color should use #IMB_colormanagement_get_luminance instead.
  *
  * \{ */
 
-MINLINE float rgb_to_grayscale(const float rgb[3])
+MINLINE float srgb_to_grayscale(const float rgb[3])
 {
+  /* Real values are:
+   * `Y = 0.2126390059(R) + 0.7151686788(G) + 0.0721923154(B)`
+   * according to: "Derivation of Basic Television Color Equations", RP 177-1993
+   *
+   * As this sums slightly above 1.0, the document recommends to use:
+   * `0.2126(R) + 0.7152(G) + 0.0722(B)`, as used here. */
   return (0.2126f * rgb[0]) + (0.7152f * rgb[1]) + (0.0722f * rgb[2]);
 }
 
-MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3])
+MINLINE unsigned char srgb_to_grayscale_byte(const unsigned char rgb[3])
 {
+  /* The high precision values are used to calculate the rounded byte weights so they add up to
+   * 255: `54(R) + 182(G) + 19(B)` */
   return (unsigned char)(((54 * (unsigned short)rgb[0]) + (182 * (unsigned short)rgb[1]) +
                           (19 * (unsigned short)rgb[2])) /
                          255);

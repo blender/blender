@@ -38,7 +38,7 @@ bool SEQ_animation_drivers_exist(Scene *scene)
 bool SEQ_fcurve_matches(const Strip &strip, const FCurve &fcurve)
 {
   return animrig::fcurve_matches_collection_path(
-      fcurve, "sequence_editor.sequences_all[", strip.name + 2);
+      fcurve, "sequence_editor.strips_all[", strip.name + 2);
 }
 
 void SEQ_offset_animdata(Scene *scene, Strip *strip, int ofs)

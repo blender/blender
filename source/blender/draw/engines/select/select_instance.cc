@@ -8,7 +8,7 @@
 
 #include "DRW_render.hh"
 
-#include "GPU_capabilities.hh"
+#include "BLT_translation.hh"
 
 #include "select_engine.hh"
 

@@ -3862,7 +3862,7 @@ static void knifetool_undo(KnifeTool_OpData *kcd)
     }
   }
 
-  if (kcd->mode == MODE_DRAGGING) {
+  if (ELEM(kcd->mode, MODE_DRAGGING, MODE_IDLE)) {
     /* Restore kcd->prev. */
     kcd->prev = undo->pos;
   }
@@ -3918,14 +3918,14 @@ static void knife_init_colors(KnifeColors *colors)
   /* Possible BMESH_TODO: add explicit themes or calculate these by
    * figuring out contrasting colors with grid / edges / verts
    * a la UI_make_axis_color. */
-  UI_GetThemeColorType3ubv(TH_NURB_VLINE, SPACE_VIEW3D, colors->line);
-  UI_GetThemeColorType3ubv(TH_NURB_ULINE, SPACE_VIEW3D, colors->edge);
-  UI_GetThemeColorType3ubv(TH_NURB_SEL_ULINE, SPACE_VIEW3D, colors->edge_extra);
-  UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, colors->curpoint);
-  UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, colors->curpoint_a);
+  UI_GetThemeColorType3ubv(TH_GIZMO_PRIMARY, SPACE_VIEW3D, colors->line);
+  UI_GetThemeColorType3ubv(TH_GIZMO_A, SPACE_VIEW3D, colors->edge);
+  UI_GetThemeColorType3ubv(TH_GIZMO_B, SPACE_VIEW3D, colors->edge_extra);
+  UI_GetThemeColorType3ubv(TH_GIZMO_SECONDARY, SPACE_VIEW3D, colors->curpoint);
+  UI_GetThemeColorType3ubv(TH_GIZMO_SECONDARY, SPACE_VIEW3D, colors->curpoint_a);
   colors->curpoint_a[3] = 102;
-  UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, colors->point);
-  UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, colors->point_a);
+  UI_GetThemeColorType3ubv(TH_VERTEX, SPACE_VIEW3D, colors->point);
+  UI_GetThemeColorType3ubv(TH_VERTEX, SPACE_VIEW3D, colors->point_a);
   colors->point_a[3] = 102;
 
   UI_GetThemeColorType3ubv(TH_AXIS_X, SPACE_VIEW3D, colors->xaxis);

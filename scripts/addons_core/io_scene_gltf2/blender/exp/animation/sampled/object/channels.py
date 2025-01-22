@@ -30,11 +30,11 @@ def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, s
             for chan in [chan for chan in channels_animated.values() if chan['bone'] is None]:
                 for prop in chan['properties'].keys():
                     list_of_animated_channels[get_channel_from_target(get_target(prop))] = get_gltf_interpolation(
-                        chan['properties'][prop][0].keyframe_points[0].interpolation)  # Could be exported without sampling : keep interpolation
+                        chan['properties'][prop][0].keyframe_points[0].interpolation, export_settings)  # Could be exported without sampling : keep interpolation
 
             for _, _, chan_prop, _ in [chan for chan in to_be_sampled if chan[1] == "OBJECT"]:
                 list_of_animated_channels[chan_prop] = get_gltf_interpolation(
-                    "LINEAR")  # if forced to be sampled, keep LINEAR interpolation
+                    export_settings['gltf_sampling_interpolation_fallback'], export_settings)  # if forced to be sampled, keep the interpolation choosen by the user
     else:
         pass
         # There is no animated channels (because if it was, we would have a slot_handle)
@@ -47,7 +47,7 @@ def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, s
             blender_action_name,
             slot_handle,
             p in list_of_animated_channels.keys(),
-            list_of_animated_channels[p] if p in list_of_animated_channels.keys() else get_gltf_interpolation("LINEAR"),
+            list_of_animated_channels[p] if p in list_of_animated_channels.keys() else get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
             export_settings
         )
         if channel is not None:

@@ -69,7 +69,7 @@ const EnumPropertyItem rna_enum_strip_type_items[] = {
 
 /* Cannot use rna_enum_dummy_DEFAULT_items because the UNSPECIFIED entry needs
  * to exist as it is the default. */
-const EnumPropertyItem default_ActionSlot_id_root_items[] = {
+const EnumPropertyItem default_ActionSlot_target_id_type_items[] = {
     {0,
      "UNSPECIFIED",
      ICON_NONE,
@@ -294,7 +294,7 @@ static std::optional<std::string> rna_ActionSlot_path(const PointerRNA *ptr)
   return fmt::format("slots[\"{}\"]", identifier_esc);
 }
 
-int rna_ActionSlot_id_root_icon_get(PointerRNA *ptr)
+int rna_ActionSlot_target_id_type_icon_get(PointerRNA *ptr)
 {
   animrig::Slot &slot = rna_data_slot(ptr);
   return UI_icon_from_idcode(slot.idtype);
@@ -1364,7 +1364,7 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
      * be able to resolve an idroot for automatically, so let these through
      */
     if (action.idroot == 0) {
-      return 1;
+      return true;
     }
     else if (srcId) {
       return GS(srcId->name) == action.idroot;
@@ -1492,17 +1492,24 @@ static std::optional<std::string> rna_DopeSheet_path(const PointerRNA *ptr)
   return "dopesheet";
 }
 
-static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
-                                                            PointerRNA * /* ptr */,
-                                                            PropertyRNA * /* prop */,
-                                                            bool *r_free)
+/**
+ * Used for both `action.id_root` and `slot.target_id_type`.
+ *
+ * Note that `action.id_root` is deprecated, as it is only relevant to legacy
+ * Animato actions. So in practice this function is primarily here for
+ * `slot.target_id_type`.
+ */
+static const EnumPropertyItem *rna_ActionSlot_target_id_type_itemf(bContext * /* C */,
+                                                                   PointerRNA * /* ptr */,
+                                                                   PropertyRNA * /* prop */,
+                                                                   bool *r_free)
 {
   /* These items don't change, as the ID types are hard-coded. So better to
    * cache the list of enum items. */
-  static EnumPropertyItem *_rna_ActionSlot_id_root_items = nullptr;
+  static EnumPropertyItem *_rna_ActionSlot_target_id_type_items = nullptr;
 
-  if (_rna_ActionSlot_id_root_items) {
-    return _rna_ActionSlot_id_root_items;
+  if (_rna_ActionSlot_target_id_type_items) {
+    return _rna_ActionSlot_target_id_type_items;
   }
 
   int totitem = 0;
@@ -1520,7 +1527,7 @@ static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
     i++;
   }
 
-  RNA_enum_item_add(&items, &totitem, &default_ActionSlot_id_root_items[0]);
+  RNA_enum_item_add(&items, &totitem, &default_ActionSlot_target_id_type_items[0]);
 
   RNA_enum_item_end(&items, &totitem);
 
@@ -1529,11 +1536,11 @@ static const EnumPropertyItem *rna_ActionSlot_id_root_itemf(bContext * /* C */,
    * Blender use memory after it is freed:
    *
    * >>> slot = C.object.animation_data.action_slot
-   * >>> enum_item = s.bl_rna.properties['id_root'].enum_items[slot.id_root]
+   * >>> enum_item = s.bl_rna.properties['target_id_type'].enum_items[slot.target_id_type]
    * >>> print(enum_item.name)
    */
   *r_free = false;
-  _rna_ActionSlot_id_root_items = items;
+  _rna_ActionSlot_target_id_type_items = items;
 
   BKE_blender_atexit_register(MEM_freeN, items);
 
@@ -1990,18 +1997,18 @@ static void rna_def_action_slot(BlenderRNA *brna)
       "Used when connecting an Action to a data-block, to find the correct slot handle. This is "
       "the display name, prefixed by two characters determined by the slot's ID type");
 
-  prop = RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "target_id_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "idtype");
-  RNA_def_property_enum_items(prop, default_ActionSlot_id_root_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_id_root_itemf");
+  RNA_def_property_enum_items(prop, default_ActionSlot_target_id_type_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_target_id_type_itemf");
   RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop, "ID Root Type", "Type of data-block that can be animated by this slot");
+      prop, "Target ID Type", "Type of data-block that this slot is intended to animate");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 
-  prop = RNA_def_property(srna, "id_root_icon", PROP_INT, PROP_NONE);
-  RNA_def_property_int_funcs(prop, "rna_ActionSlot_id_root_icon_get", nullptr, nullptr);
+  prop = RNA_def_property(srna, "target_id_type_icon", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop, "rna_ActionSlot_target_id_type_icon_get", nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "name_display", PROP_STRING, PROP_NONE);
@@ -2695,8 +2702,8 @@ static void rna_def_action_legacy(BlenderRNA *brna, StructRNA *srna)
    * but is still available/editable in 'emergencies' */
   prop = RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "idroot");
-  RNA_def_property_enum_items(prop, default_ActionSlot_id_root_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_id_root_itemf");
+  RNA_def_property_enum_items(prop, default_ActionSlot_target_id_type_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ActionSlot_target_id_type_itemf");
   RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_ui_text(prop,
                            "ID Root Type",

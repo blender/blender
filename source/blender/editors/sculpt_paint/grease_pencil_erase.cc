@@ -17,12 +17,14 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
+#include "DNA_material_types.h"
 
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
@@ -469,11 +471,36 @@ struct EraseOperationExecutor {
     return total_intersections;
   }
 
+  static bool skip_strokes_with_locked_material(
+      Object &ob,
+      const int src_curve,
+      const IndexRange &src_points,
+      const VArray<int> stroke_material,
+      const VArray<float> &point_opacity,
+      Array<Vector<ed::greasepencil::PointTransferData>> &src_to_dst_points)
+  {
+    const MaterialGPencilStyle *mat = BKE_gpencil_material_settings(
+        &ob, stroke_material[src_curve] + 1);
+
+    if ((mat->flag & GP_MATERIAL_LOCKED) == 0) {
+      return false;
+    }
+
+    for (const int src_point : src_points) {
+      const int src_next_point = (src_point == src_points.last()) ? src_points.first() :
+                                                                    (src_point + 1);
+      src_to_dst_points[src_point].append(
+          {src_point, src_next_point, 0.0f, true, false, point_opacity[src_point]});
+    }
+    return true;
+  }
+
   /* The hard eraser cuts out the curves at their intersection with the eraser, and removes
    * everything that lies in-between two consecutive intersections. Note that intersections are
    * computed using integers (pixel-space) to avoid floating-point approximation errors. */
 
-  bool hard_eraser(const bke::CurvesGeometry &src,
+  bool hard_eraser(Object &ob,
+                   const bke::CurvesGeometry &src,
                    const Span<float2> screen_space_positions,
                    bke::CurvesGeometry &dst,
                    const bool keep_caps) const
@@ -496,9 +523,21 @@ struct EraseOperationExecutor {
         src, screen_space_positions, eraser_rings, src_point_ring, src_intersections);
 
     Array<Vector<ed::greasepencil::PointTransferData>> src_to_dst_points(src_points_num);
+
+    const VArray<int> &stroke_material = *src.attributes().lookup_or_default<int>(
+        "material_index", bke::AttrDomain::Curve, 0);
+    const VArray<float> &point_opacity = *src.attributes().lookup_or_default<float>(
+        "opacity", bke::AttrDomain::Point, 1.0f);
+
     const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
     for (const int src_curve : src.curves_range()) {
       const IndexRange src_points = src_points_by_curve[src_curve];
+
+      if (skip_strokes_with_locked_material(
+              ob, src_curve, src_points, stroke_material, point_opacity, src_to_dst_points))
+      {
+        continue;
+      }
 
       for (const int src_point : src_points) {
         Vector<ed::greasepencil::PointTransferData> &dst_points = src_to_dst_points[src_point];
@@ -656,7 +695,8 @@ struct EraseOperationExecutor {
    * If the opacity of a point falls below a threshold, then the point is removed from the
    * curves.
    */
-  bool soft_eraser(const blender::bke::CurvesGeometry &src,
+  bool soft_eraser(Object &ob,
+                   const blender::bke::CurvesGeometry &src,
                    const Span<float2> screen_space_positions,
                    blender::bke::CurvesGeometry &dst,
                    const bool keep_caps)
@@ -682,6 +722,9 @@ struct EraseOperationExecutor {
     /* Function to get the resulting opacity at a specific point in the source. */
     const VArray<float> &src_opacity = *src.attributes().lookup_or_default<float>(
         opacity_attr, bke::AttrDomain::Point, 1.0f);
+    const VArray<int> &stroke_material = *src.attributes().lookup_or_default<int>(
+        "material_index", bke::AttrDomain::Curve, 0);
+
     const auto compute_opacity = [&](const int src_point) {
       const float distance = math::distance(screen_space_positions[src_point],
                                             this->mouse_position);
@@ -701,6 +744,11 @@ struct EraseOperationExecutor {
     for (const int src_curve : src.curves_range()) {
       const IndexRange src_points = src_points_by_curve[src_curve];
 
+      if (skip_strokes_with_locked_material(
+              ob, src_curve, src_points, stroke_material, src_opacity, src_to_dst_points))
+      {
+        continue;
+      }
       for (const int src_point : src_points) {
         Vector<ed::greasepencil::PointTransferData> &dst_points = src_to_dst_points[src_point];
         const int src_next_point = (src_point == src_points.last()) ? src_points.first() :
@@ -797,7 +845,8 @@ struct EraseOperationExecutor {
     return true;
   }
 
-  bool stroke_eraser(const bke::CurvesGeometry &src,
+  bool stroke_eraser(Object &ob,
+                     const bke::CurvesGeometry &src,
                      const Span<float2> screen_space_positions,
                      bke::CurvesGeometry &dst) const
   {
@@ -805,8 +854,17 @@ struct EraseOperationExecutor {
     const VArray<bool> src_cyclic = src.cyclic();
 
     IndexMaskMemory memory;
+    const VArray<int> &stroke_materials = *src.attributes().lookup_or_default<int>(
+        "material_index", bke::AttrDomain::Curve, 0);
     const IndexMask strokes_to_keep = IndexMask::from_predicate(
         src.curves_range(), GrainSize(256), memory, [&](const int src_curve) {
+          const MaterialGPencilStyle *mat = BKE_gpencil_material_settings(
+              &ob, stroke_materials[src_curve] + 1);
+          /* Keep strokes with locked material. */
+          if (mat->flag & GP_MATERIAL_LOCKED) {
+            return true;
+          }
+
           const IndexRange src_curve_points = src_points_by_curve[src_curve];
 
           /* One-point stroke : remove the stroke if the point lies inside of the eraser. */
@@ -923,13 +981,13 @@ struct EraseOperationExecutor {
           bool erased = false;
           switch (self.eraser_mode_) {
             case GP_BRUSH_ERASER_STROKE:
-              erased = stroke_eraser(src, screen_space_positions, dst);
+              erased = stroke_eraser(*obact, src, screen_space_positions, dst);
               break;
             case GP_BRUSH_ERASER_HARD:
-              erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps_);
+              erased = hard_eraser(*obact, src, screen_space_positions, dst, self.keep_caps_);
               break;
             case GP_BRUSH_ERASER_SOFT:
-              erased = soft_eraser(src, screen_space_positions, dst, self.keep_caps_);
+              erased = soft_eraser(*obact, src, screen_space_positions, dst, self.keep_caps_);
               break;
           }
 

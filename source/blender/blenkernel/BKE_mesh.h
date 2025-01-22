@@ -7,10 +7,9 @@
  * \ingroup bke
  */
 
+#include <cstdint>
+
 #include "BLI_array.hh"
-#include "BLI_compiler_attrs.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 
@@ -34,7 +33,7 @@ struct Object;
 struct Scene;
 
 /* TODO: Move to `BKE_mesh_types.hh` when possible. */
-enum eMeshBatchDirtyMode {
+enum eMeshBatchDirtyMode : int8_t {
   BKE_MESH_BATCH_DIRTY_ALL = 0,
   BKE_MESH_BATCH_DIRTY_SELECT,
   BKE_MESH_BATCH_DIRTY_SELECT_PAINT,

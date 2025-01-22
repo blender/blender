@@ -3151,6 +3151,12 @@ static void do_brush_action(const Depsgraph &depsgraph,
     return;
   }
 
+  if (auto_mask::is_enabled(sd, ob, &brush) && ss.cache->automasking &&
+      ss.cache->automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL)
+  {
+    ss.cache->automasking->calc_cavity_factor(depsgraph, ob, node_mask);
+  }
+
   if (!use_pixels) {
     push_undo_nodes(depsgraph, ob, brush, node_mask);
   }

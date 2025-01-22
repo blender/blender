@@ -1013,9 +1013,9 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
     Strip *strip = nullptr;
     char strip_name[sizeof(strip->name)];
 
-    /* Only consider if F-Curve involves `sequence_editor.sequences`. */
+    /* Only consider if F-Curve involves `sequence_editor.strips`. */
     if (fcu->rna_path &&
-        BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", strip_name, sizeof(strip_name)))
+        BLI_str_quoted_substr(fcu->rna_path, "strips_all[", strip_name, sizeof(strip_name)))
     {
       /* Get strip name, and check if this strip is selected. */
       Editing *ed = SEQ_editing_get(scene);

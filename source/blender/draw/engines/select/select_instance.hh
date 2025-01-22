@@ -278,11 +278,8 @@ struct SelectMap {
         break;
 
       case SelectType::SELECT_PICK_ALL:
-      case SelectType::SELECT_PICK_NEAREST:
         for (auto i : IndexRange(select_id_map.size())) {
           if (select_output_buf[i] != 0xFFFFFFFFu) {
-            /* NOTE: For `SELECT_PICK_NEAREST`, `select_output_buf` also contains the screen
-             * distance to cursor in the lowest bits. */
             GPUSelectResult hit_result{};
             hit_result.id = select_id_map[i];
             hit_result.depth = select_output_buf[i];
@@ -294,6 +291,28 @@ struct SelectMap {
               hit_result.depth = *reinterpret_cast<uint32_t *>(&offset_depth);
             }
             hit_results.append(hit_result);
+          }
+        }
+        break;
+
+      case SelectType::SELECT_PICK_NEAREST:
+        for (auto i : IndexRange(select_id_map.size())) {
+          if (select_output_buf[i] != 0xFFFFFFFFu) {
+            /* NOTE: For `SELECT_PICK_NEAREST`, `select_output_buf` also contains the screen
+             * distance to cursor in the lowest bits. */
+            GPUSelectResult hit_result{};
+            hit_result.id = select_id_map[i];
+            hit_result.depth = select_output_buf[i];
+            if (in_front_map[i]) {
+              /* Divide "In Front" objects depth so they go first. */
+              const uint32_t depth_mask = 0x00FFFFFFu;
+              uint32_t offset_depth = (hit_result.depth & depth_mask) / 100;
+              hit_result.depth &= ~depth_mask;
+              hit_result.depth |= offset_depth;
+            }
+            if (hit_results.is_empty() || hit_result.depth < hit_results[0].depth) {
+              hit_results = {hit_result};
+            }
           }
         }
         break;

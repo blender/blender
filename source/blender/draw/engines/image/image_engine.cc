@@ -10,30 +10,21 @@
 
 #include "DRW_render.hh"
 
-#include <memory>
-#include <optional>
+#include "BLT_translation.hh"
 
+#include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 
-#include "DNA_camera_types.h"
-#include "DNA_screen_types.h"
-
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
-
 #include "ED_image.hh"
 
-#include "GPU_batch.hh"
+#include "draw_view_data.hh"
 
 #include "image_drawing_mode.hh"
 #include "image_engine.h"
 #include "image_instance.hh"
-#include "image_private.hh"
 #include "image_shader.hh"
-#include "image_space_image.hh"
-#include "image_space_node.hh"
 
 namespace blender::image_engine {
 

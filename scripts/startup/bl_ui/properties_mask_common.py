@@ -7,6 +7,7 @@
 
 from bpy.types import Menu, UIList
 from bpy.app.translations import contexts as i18n_contexts
+from . import anim
 
 
 # Use by both image & clip context menus.
@@ -220,6 +221,31 @@ class MASK_PT_point:
                     parent, "sub_parent", tracking,
                     tracks_list, icon='ANIM_DATA', text="Track", text_ctxt=i18n_contexts.id_movieclip,
                 )
+
+
+class MASK_PT_animation:
+    # subclasses must define...
+    # ~ bl_space_type = 'CLIP_EDITOR'
+    # ~ bl_region_type = 'UI'
+    bl_label = "Animation"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        space_data = context.space_data
+        return space_data.mask and space_data.mode == 'MASK'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        # poll() ensures this is not None.
+        sc = context.space_data
+        mask = sc.mask
+
+        col = layout.column(align=True)
+        anim.draw_action_and_slot_selector_for_id(col, mask)
 
 
 class MASK_PT_display:

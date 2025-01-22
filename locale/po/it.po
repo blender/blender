@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2025-01-12 22:56+0000\n"
 "Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -23438,16 +23438,8 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
+msgid "Local View"
+msgstr "Vista Locale"
 
 
 msgid "Pivot Point"
@@ -23462,148 +23454,156 @@ msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
 
 
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Luce"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
-
-
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
-
-
-msgid "In-Betweens"
-msgstr "Intermedio"
+msgid "Face Data"
+msgstr "Dati Faccia"
 
 
 msgid "Propagate"
 msgstr "Propaga"
 
 
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
+msgid "In-Betweens"
+msgstr "Intermedio"
 
 
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
 
 
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
 
 
 msgid "Mesh Select Mode"
 msgstr "Modalità Selezione Mesh"
 
 
-msgid "Face Data"
-msgstr "Dati Faccia"
+msgid "Clean Up"
+msgstr "Ripulisci"
 
 
-msgid "Merge"
-msgstr "Unisci"
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
 
 
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
 
-msgid "Text"
-msgstr "Testo"
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
 
 
 msgid "Basic"
@@ -34819,10 +34819,6 @@ msgid "Select Control Point Row"
 msgstr "Seleziona Riga Punto di Controllo"
 
 
-msgid "Select a row of control points including active one"
-msgstr "Seleziona una riga di punti di controllo comprendente quello attivo"
-
-
 msgid "Select similar curve points by property type"
 msgstr "Seleziona punti curva simili per tipo proprietà"
 
@@ -35379,10 +35375,6 @@ msgid "Convert all faces to triangles"
 msgstr "Converte tutte le facce in triangoli"
 
 
-msgid "Convert TRS/weights to Animation Pointer"
-msgstr "Converti TRS/pesi in Puntatore di Animazione"
-
-
 msgid "Export TRS and weights as Animation Pointer. Using KHR_animation_pointer extension"
 msgstr "Esporta TRS e pesi come Puntatore di Animazione. Utilizzando l'estensione KHR_animation_pointer"
 
@@ -35393,6 +35385,10 @@ msgstr "Istanze GPU"
 
 msgid "Bone Influences"
 msgstr "Influenza sulle Ossa"
+
+
+msgid "Keep Original"
+msgstr "Mantieni Originale"
 
 
 msgid "Export Animation Pointer (Experimental)"
@@ -42949,10 +42945,6 @@ msgstr "Rimuove modelli esistenti che hanno lo stesso ID"
 
 msgid "All Keymaps"
 msgstr "Tutte le mappe dei tasti"
-
-
-msgid "Keep Original"
-msgstr "Mantieni Originale"
 
 
 msgid "Keep original file after copying to configuration folder"
@@ -51007,10 +50999,6 @@ msgid "If non-zero, the maximum value for an indirect sample, higher values will
 msgstr "Se diverso da zero, il massimo valore di un campione indiretto; i valori superiori sono ridotti per evitare troppo rumore ed una lenta convergenza, al costo di una minor accuratezza"
 
 
-msgid "Sample Offset"
-msgstr "Offset Campione"
-
-
 msgid "Number of samples to render for each pixel"
 msgstr "Numero di campioni da renderizzare per ogni pixel"
 
@@ -52551,50 +52539,6 @@ msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "Sequence Color Balance Data"
-msgstr "Bilanciamento Colore Sequenza"
-
-
-msgid "Color balance gain (highlights)"
-msgstr "Guadagno bilanciamento colore (alte luci)"
-
-
-msgid "Color balance gamma (midtones)"
-msgstr "Gamma bilanciamento colore (mezzi toni)"
-
-
-msgid "Inverse Gain"
-msgstr "Guadagno Inverso"
-
-
-msgid "Inverse Gamma"
-msgstr "Gamma inverso"
-
-
-msgid "Inverse Lift"
-msgstr "Lift Inverso"
-
-
-msgid "Invert the lift color"
-msgstr "Inverti il colore del lift"
-
-
-msgid "Inverse Offset"
-msgstr "Offset Inverso"
-
-
-msgid "Color balance lift (shadows)"
-msgstr "Lift bilanciamento colore (ombre)"
-
-
-msgid "Sequence Color Balance"
-msgstr "Bilanciamento Colore Sequenza"
-
-
-msgid "Color balance parameters for a sequence strip"
-msgstr "Parametri per il bilanciamento del colore di uno spezzone sequenza"
-
-
 msgid "Active Strip"
 msgstr "Spezzone Attivo"
 
@@ -52607,152 +52551,8 @@ msgid "Overlay Offset"
 msgstr "Offset Sovrapposizione"
 
 
-msgid "Sequences"
-msgstr "Sequenze"
-
-
-msgid "All Sequences"
-msgstr "Tutte le Sequenze"
-
-
 msgid "Overlay Lock"
 msgstr "Blocco Sovrapposizione"
-
-
-msgid "Sequence Element"
-msgstr "Elemento Sequenza"
-
-
-msgid "Orig Height"
-msgstr "Altezza Originale"
-
-
-msgid "Original image height"
-msgstr "Altezza originale dell'immagine"
-
-
-msgid "Orig Width"
-msgstr "Larghezza Originale"
-
-
-msgid "Original image width"
-msgstr "Larghezza originale dell'immagine"
-
-
-msgid "Modifier for sequence strip"
-msgstr "Modificatore per spezzoni di sequenza"
-
-
-msgid "Mask Strip"
-msgstr "Maschera Spezzone"
-
-
-msgid "Mask Input Type"
-msgstr "Tipo Ingresso Maschera"
-
-
-msgid "Use sequencer strip as mask input"
-msgstr "Scorre lungo il tempo una strip di sequenza"
-
-
-msgid "Mute this modifier"
-msgstr "Disabilita questo modificatore"
-
-
-msgid "Tone Map"
-msgstr "Mappa Toni"
-
-
-msgid "Bright/contrast modifier data for sequence strip"
-msgstr "Dati modifica luminosità/contrasto di uno spezzone sequenza"
-
-
-msgid "Adjust the luminosity of the colors"
-msgstr "Corregge la luminosità dei colori"
-
-
-msgid "Color balance modifier for sequence strip"
-msgstr "Modificatore bilanciamento colore di uno spezzone sequenza"
-
-
-msgid "RGB curves modifier for sequence strip"
-msgstr "Modificatore curve RGB di uno spzzone sequenza"
-
-
-msgid "Hue correction modifier for sequence strip"
-msgstr "Modificatore tonalità di uno spezzone sequenza"
-
-
-msgid "White balance modifier for sequence strip"
-msgstr "Modificatore bilanciamento del bianco per uno spezzone sequenza"
-
-
-msgid "Strip Modifiers"
-msgstr "Modificatori Spezzone"
-
-
-msgid "Collection of strip modifiers"
-msgstr "Raccolta di modificatori spezzone"
-
-
-msgid "Sequence Proxy"
-msgstr "Proxy Sequenza"
-
-
-msgid "Build 100% proxy resolution"
-msgstr "Crea un proxy al 100% della risoluzione"
-
-
-msgid "Build 25% proxy resolution"
-msgstr "Crea un proxy al 25% della risoluzione"
-
-
-msgid "Build 50% proxy resolution"
-msgstr "Crea un proxy al 50% della risoluzione"
-
-
-msgid "Build 75% proxy resolution"
-msgstr "Crea un proxy al 75% della risoluzione"
-
-
-msgid "Location of custom proxy file"
-msgstr "Posizione del file proxy personalizzato"
-
-
-msgid "Overwrite existing proxy files when building"
-msgstr "Sovrascrivi file proxy esistenti quando costruisci"
-
-
-msgid "Use a custom directory to store data"
-msgstr "Utilizza una cartella personalizzata per memorizzare i dati"
-
-
-msgid "Proxy Custom File"
-msgstr "File Personalizzato Proxy"
-
-
-msgid "Use a custom file to read proxy data from"
-msgstr "Utilizza un file personalizzato da cui leggere i dati proxy"
-
-
-msgid "Sequence Transform"
-msgstr "Trasforma Sequenza"
-
-
-msgid "Translate X"
-msgstr "Trasla X"
-
-
-msgid "Move along X axis"
-msgstr "Muovi lungo l'asse X"
-
-
-msgid "Translate Y"
-msgstr "Trasla Y"
-
-
-msgid "Move along Y axis"
-msgstr "Muovi lungo l'asse Y"
 
 
 msgid "Show Cache"
@@ -52805,10 +52605,6 @@ msgstr "Origini Individuali"
 
 msgid "Hold Offset"
 msgstr "Mantieni l'Offset"
-
-
-msgid "Collection of Sequences"
-msgstr "Raccolta di Sequenze"
 
 
 msgid "Use effect during render"
@@ -54518,10 +54314,6 @@ msgid "Reverse Frames"
 msgstr "Fotogrammi Inversi"
 
 
-msgid "Add Sequence"
-msgstr "Aggiungi Sequenza"
-
-
 msgid "Input 1"
 msgstr "Ingresso 1"
 
@@ -54538,36 +54330,12 @@ msgid "Second input for the effect strip"
 msgstr "Secondo ingresso dello spezzone effetto"
 
 
-msgid "Alpha Over Sequence"
-msgstr "Sequenza Sovra Trasparenza"
-
-
-msgid "Alpha Under Sequence"
-msgstr "Sequenza Sotto Trasparenza"
-
-
-msgid "Color Mix Sequence"
-msgstr "Sequenza Mix Colore"
-
-
-msgid "Color Sequence"
-msgstr "Sequenza Colore"
-
-
 msgid "Effect Strip color"
 msgstr "Colore Spezzone Effetto"
 
 
 msgid "Cross Sequence"
 msgstr "Sequenza Incrocio"
-
-
-msgid "Gamma Cross Sequence"
-msgstr "Sequenza Incrocio Gamma"
-
-
-msgid "Gaussian Blur Sequence"
-msgstr "Sequenza Sfocatura Gaussiana"
 
 
 msgid "Size of the blur along X axis"
@@ -54598,20 +54366,12 @@ msgid "Sequence strip to perform multicam editing"
 msgstr "Spezzone di sequenza per eseguire la modifica multicamera"
 
 
-msgid "Multiply Sequence"
-msgstr "Moltiplica Sequenza"
-
-
 msgid "Multiply the current speed of the sequence with this number or remap current frame to this frame"
 msgstr "Moltiplica la velocità corrente della sequenza con questo numero o rimappa il fotogramma corrente a questo fotogramma"
 
 
-msgid "Subtract Sequence"
-msgstr "Sottrai Sequenza"
-
-
-msgid "Text Sequence"
-msgstr "Sequenza Testo"
+msgid "Text Strip"
+msgstr "Spezzone Testo"
 
 
 msgid "Align X"
@@ -54658,8 +54418,16 @@ msgid "Amount to scale the input in the Y axis"
 msgstr "Quantità di cui scalare l'ingresso sull'asse Y"
 
 
+msgid "Translate X"
+msgstr "Trasla X"
+
+
 msgid "Amount to move the input on the X axis"
 msgstr "Quantità di cui spostare l'ingresso sull'asse X"
+
+
+msgid "Translate Y"
+msgstr "Trasla Y"
 
 
 msgid "Amount to move the input on the Y axis"
@@ -54678,10 +54446,6 @@ msgid "Scale uniformly, preserving aspect ratio"
 msgstr "Scala uniformemente, mantenendo le proporzioni"
 
 
-msgid "Wipe Sequence"
-msgstr "Sequenza Tendina"
-
-
 msgid "Sequence strip creating a wipe transition"
 msgstr "Spezzone di sequenza che crea un effetto tendina"
 
@@ -54695,20 +54459,20 @@ msgid "Iris"
 msgstr "Iris"
 
 
-msgid "Mask Sequence"
-msgstr "Maschera Sequenza"
+msgid "Image Strip"
+msgstr "Spezzone Immagine"
+
+
+msgid "Mask Strip"
+msgstr "Maschera Spezzone"
 
 
 msgid "Sequence strip to load a video from a mask"
 msgstr "Spezzone di sequenza per caricare un video da una maschera"
 
 
-msgid "Meta Sequence"
-msgstr "Meta Sequenza"
-
-
-msgid "MovieClip Sequence"
-msgstr "Sequenza Filmata"
+msgid "Meta Strip"
+msgstr "Meta Spezzone"
 
 
 msgid "Sequence strip to load a video from the clip editor"
@@ -54731,10 +54495,6 @@ msgid "Use the undistorted version of the clip"
 msgstr "Utilizza la versione non distorta della clip"
 
 
-msgid "Movie Sequence"
-msgstr "Sequenza Filmata"
-
-
 msgid "Sequence strip to load a video"
 msgstr "Spezzone di sequenza per caricare un video"
 
@@ -54747,8 +54507,8 @@ msgid "For files with several movie streams, use the stream with the given index
 msgstr "Per files contenenti più stream video, utilizza lo stream con l'indice dato"
 
 
-msgid "Scene Sequence"
-msgstr "Sequenza Scena"
+msgid "Scene Strip"
+msgstr "Spezzone Scena"
 
 
 msgid "Camera Override"
@@ -54759,16 +54519,160 @@ msgid "Playback volume of the sound"
 msgstr "Volume di riproduzione del suono"
 
 
-msgid "Sound Sequence"
-msgstr "Sequenza Suono"
-
-
 msgid "Playback panning of the sound (only for Mono sources)"
 msgstr "Scorrimento (pan) della riproduzione del suono (solo sorgenti Mono)"
 
 
 msgid "Sound data-block used by this sequence"
 msgstr "Blocco-dati Suono utilizzato da questa sequenza"
+
+
+msgid "Color balance gain (highlights)"
+msgstr "Guadagno bilanciamento colore (alte luci)"
+
+
+msgid "Color balance gamma (midtones)"
+msgstr "Gamma bilanciamento colore (mezzi toni)"
+
+
+msgid "Inverse Gain"
+msgstr "Guadagno Inverso"
+
+
+msgid "Inverse Gamma"
+msgstr "Gamma inverso"
+
+
+msgid "Inverse Lift"
+msgstr "Lift Inverso"
+
+
+msgid "Invert the lift color"
+msgstr "Inverti il colore del lift"
+
+
+msgid "Inverse Offset"
+msgstr "Offset Inverso"
+
+
+msgid "Color balance lift (shadows)"
+msgstr "Lift bilanciamento colore (ombre)"
+
+
+msgid "Color balance parameters for a sequence strip"
+msgstr "Parametri per il bilanciamento del colore di uno spezzone sequenza"
+
+
+msgid "Orig Height"
+msgstr "Altezza Originale"
+
+
+msgid "Original image height"
+msgstr "Altezza originale dell'immagine"
+
+
+msgid "Orig Width"
+msgstr "Larghezza Originale"
+
+
+msgid "Original image width"
+msgstr "Larghezza originale dell'immagine"
+
+
+msgid "Modifier for sequence strip"
+msgstr "Modificatore per spezzoni di sequenza"
+
+
+msgid "Mask Input Type"
+msgstr "Tipo Ingresso Maschera"
+
+
+msgid "Use sequencer strip as mask input"
+msgstr "Scorre lungo il tempo una strip di sequenza"
+
+
+msgid "Mute this modifier"
+msgstr "Disabilita questo modificatore"
+
+
+msgid "Tone Map"
+msgstr "Mappa Toni"
+
+
+msgid "Bright/contrast modifier data for sequence strip"
+msgstr "Dati modifica luminosità/contrasto di uno spezzone sequenza"
+
+
+msgid "Adjust the luminosity of the colors"
+msgstr "Corregge la luminosità dei colori"
+
+
+msgid "Color balance modifier for sequence strip"
+msgstr "Modificatore bilanciamento colore di uno spezzone sequenza"
+
+
+msgid "RGB curves modifier for sequence strip"
+msgstr "Modificatore curve RGB di uno spzzone sequenza"
+
+
+msgid "Hue correction modifier for sequence strip"
+msgstr "Modificatore tonalità di uno spezzone sequenza"
+
+
+msgid "White balance modifier for sequence strip"
+msgstr "Modificatore bilanciamento del bianco per uno spezzone sequenza"
+
+
+msgid "Strip Modifiers"
+msgstr "Modificatori Spezzone"
+
+
+msgid "Collection of strip modifiers"
+msgstr "Raccolta di modificatori spezzone"
+
+
+msgid "Build 100% proxy resolution"
+msgstr "Crea un proxy al 100% della risoluzione"
+
+
+msgid "Build 25% proxy resolution"
+msgstr "Crea un proxy al 25% della risoluzione"
+
+
+msgid "Build 50% proxy resolution"
+msgstr "Crea un proxy al 50% della risoluzione"
+
+
+msgid "Build 75% proxy resolution"
+msgstr "Crea un proxy al 75% della risoluzione"
+
+
+msgid "Location of custom proxy file"
+msgstr "Posizione del file proxy personalizzato"
+
+
+msgid "Overwrite existing proxy files when building"
+msgstr "Sovrascrivi file proxy esistenti quando costruisci"
+
+
+msgid "Use a custom directory to store data"
+msgstr "Utilizza una cartella personalizzata per memorizzare i dati"
+
+
+msgid "Proxy Custom File"
+msgstr "File Personalizzato Proxy"
+
+
+msgid "Use a custom file to read proxy data from"
+msgstr "Utilizza un file personalizzato da cui leggere i dati proxy"
+
+
+msgid "Move along X axis"
+msgstr "Muovi lungo l'asse X"
+
+
+msgid "Move along Y axis"
+msgstr "Muovi lungo l'asse Y"
 
 
 msgid "Lights used to display objects in solid draw mode"
@@ -55679,28 +55583,12 @@ msgid "Draw Action"
 msgstr "Disegna Azione"
 
 
-msgid "Image Strip"
-msgstr "Spezzone Immagine"
-
-
-msgid "Meta Strip"
-msgstr "Meta Spezzone"
-
-
 msgid "Clip Strip"
 msgstr "Spezzone Clip"
 
 
 msgid "Preview Background"
 msgstr "Sfondo Finestra"
-
-
-msgid "Scene Strip"
-msgstr "Spezzone Scena"
-
-
-msgid "Text Strip"
-msgstr "Spezzone Testo"
 
 
 msgid "Theme Space Settings"
@@ -58599,16 +58487,6 @@ msgstr "Filtro di Discontinuità (Eulero)"
 
 
 msgctxt "Operator"
-msgid "Push Down"
-msgstr "Spingi Giù"
-
-
-msgctxt "Operator"
-msgid "Stash"
-msgstr "Accantona"
-
-
-msgctxt "Operator"
 msgid "More"
 msgstr "Più"
 
@@ -60914,6 +60792,10 @@ msgid "Surface"
 msgstr "Superficie"
 
 
+msgid "Untitled"
+msgstr "Senza Titolo"
+
+
 msgid "GP_Layer"
 msgstr "Livello_Matita"
 
@@ -61092,10 +60974,6 @@ msgstr "Tavolozza_Matita"
 
 msgid "2D_Animation"
 msgstr "Animazione_2D"
-
-
-msgid "Untitled"
-msgstr "Senza Titolo"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -61450,20 +61328,8 @@ msgid "Nothing selected"
 msgstr "Nessuna selezione"
 
 
-msgid "Line: "
-msgstr "Linea: "
-
-
-msgid "Rectangle: "
-msgstr "Rettangolo: "
-
-
-msgid "Circle: "
-msgstr "Cerchio: "
-
-
-msgid "Curve: "
-msgstr "Curva: "
+msgid "Cancel"
+msgstr "Annulla"
 
 
 msgid "Could not resolve path '%s'"
@@ -61674,10 +61540,6 @@ msgstr "Luminosità"
 
 msgid "OK"
 msgstr "OK"
-
-
-msgid "Cancel"
-msgstr "Annulla"
 
 
 msgid "Menu \"%s\" not found"
@@ -62172,10 +62034,6 @@ msgstr "Esterno"
 
 msgid "Intersection Type"
 msgstr "Tipo Intersezione"
-
-
-msgid "LMB: Click and drag to draw cut line"
-msgstr "LMB: click e trascina per disegnare la linea di taglio"
 
 
 msgid "Selected edges/faces required"
@@ -63642,10 +63500,6 @@ msgstr "Offset troncamento: %s"
 
 msgid "Slip offset: %d"
 msgstr "Offset troncamento: %d"
-
-
-msgid "2 selected sequence strips are needed"
-msgstr "Sono necessari 2 spezzoni sequenza selezionati"
 
 
 msgid "No valid inputs to swap"

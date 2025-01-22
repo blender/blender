@@ -24,7 +24,8 @@
 
 #include "GPU_platform.hh"
 #include "GPU_texture.hh"
-#include "GPU_uniform_buffer.hh"
+
+#include "draw_manager_profiling.hh"
 
 #include "eevee_camera.hh"
 #include "eevee_instance.hh"

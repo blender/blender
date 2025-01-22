@@ -6,21 +6,16 @@
  * \ingroup eevee
  */
 
-#include <array>
+#include "BLI_bounds.hh"
 
 #include "DRW_render.hh"
-
-#include "BLI_bounds.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_camera.h"
 
-#include "DEG_depsgraph_query.hh"
-
-#include "ED_view3d.hh"
-
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 #include "render_types.h"
 

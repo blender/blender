@@ -14,8 +14,6 @@
 
 #include "BLT_translation.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_userdef_types.h" /* For user settings. */
 
 #ifdef WITH_PYTHON
@@ -24,7 +22,7 @@
 
 #ifdef WITH_INTERNATIONAL
 #  include "BLI_threads.h"
-#  include "boost_locale_wrapper.h"
+#  include "messages.hh"
 #endif /* WITH_INTERNATIONAL */
 
 bool BLT_is_default_context(const char *msgctxt)
@@ -45,15 +43,17 @@ const char *BLT_pgettext(const char *msgctxt, const char *msgid)
     if (BLT_is_default_context(msgctxt)) {
       msgctxt = BLT_I18NCONTEXT_DEFAULT;
     }
-    ret = bl_locale_pgettext(msgctxt, msgid);
-/* We assume if the returned string is the same (memory level) as the msgid,
- * no translation was found, and we can try py scripts' ones!
- */
+
+    ret = blender::locale::translate(0, msgctxt, msgid);
+
+    /* No translation found? Try py script translations. */
+    if (ret == nullptr) {
 #  ifdef WITH_PYTHON
-    if (ret == msgid) {
       ret = BPY_app_translations_py_pgettext(msgctxt, msgid);
-    }
+#  else
+      ret = msgid;
 #  endif
+    }
   }
 
   return ret;

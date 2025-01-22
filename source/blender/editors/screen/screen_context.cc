@@ -85,10 +85,10 @@ const char *screen_context_dir[] = {
     "image_paint_object",
     "particle_edit_object",
     "pose_object",
-    "active_sequence_strip",
-    "sequences",
-    "selected_sequences",
-    "selected_editable_sequences", /* sequencer */
+    "active_sequence_strip",       /* DEPRECATED - use "active_strip" */
+    "sequences",                   /* DEPRECATED - use "strips" */
+    "selected_sequences",          /* DEPRECATED - use "selected_strips" */
+    "selected_editable_sequences", /* DEPRECATED - use "selected_editable_strips" */
     "active_nla_track",
     "active_nla_strip",
     "selected_nla_strips", /* nla editor */
@@ -112,6 +112,10 @@ const char *screen_context_dir[] = {
     "ui_list",
     "property",
     "asset_library_reference",
+    "active_strip",
+    "strips",
+    "selected_strips",
+    "selected_editable_strips",
     nullptr,
 };
 
@@ -1131,6 +1135,67 @@ static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *
   return CTX_RESULT_NO_DATA;
 }
 
+static eContextResult screen_ctx_active_strip(const bContext *C, bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  Scene *scene = WM_window_get_active_scene(win);
+  Strip *strip = SEQ_select_active_get(scene);
+  if (strip) {
+    CTX_data_pointer_set(result, &scene->id, &RNA_Strip, strip);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
+static eContextResult screen_ctx_strips(const bContext *C, bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  Scene *scene = WM_window_get_active_scene(win);
+  Editing *ed = SEQ_editing_get(scene);
+  if (ed) {
+    LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+      CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
+    }
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
+static eContextResult screen_ctx_selected_strips(const bContext *C, bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  Scene *scene = WM_window_get_active_scene(win);
+  Editing *ed = SEQ_editing_get(scene);
+  if (ed) {
+    LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+      if (strip->flag & SELECT) {
+        CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
+      }
+    }
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
+static eContextResult screen_ctx_selected_editable_strips(const bContext *C,
+                                                          bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  Scene *scene = WM_window_get_active_scene(win);
+  Editing *ed = SEQ_editing_get(scene);
+  if (ed == nullptr) {
+    return CTX_RESULT_NO_DATA;
+  }
+
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+    if (strip->flag & SELECT && !SEQ_transform_is_locked(channels, strip)) {
+      CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
+    }
+  }
+  CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+  return CTX_RESULT_OK;
+}
+
 /* Registry of context callback functions. */
 
 using context_callback = eContextResult (*)(const bContext *C, bContextDataResult *result);
@@ -1167,10 +1232,11 @@ ensure_ed_screen_context_functions()
     map.add("image_paint_object", screen_ctx_image_paint_object);
     map.add("particle_edit_object", screen_ctx_particle_edit_object);
     map.add("pose_object", screen_ctx_pose_object);
-    map.add("active_sequence_strip", screen_ctx_active_sequence_strip);
-    map.add("sequences", screen_ctx_sequences);
-    map.add("selected_sequences", screen_ctx_selected_sequences);
-    map.add("selected_editable_sequences", screen_ctx_selected_editable_sequences);
+    map.add("active_sequence_strip", screen_ctx_active_sequence_strip); /* DEPRECATED */
+    map.add("sequences", screen_ctx_sequences);                         /* DEPRECATED */
+    map.add("selected_sequences", screen_ctx_selected_sequences);       /* DEPRECATED */
+    map.add("selected_editable_sequences",
+            screen_ctx_selected_editable_sequences); /* DEPRECATED */
     map.add("active_nla_track", screen_ctx_active_nla_track);
     map.add("active_nla_strip", screen_ctx_active_nla_strip);
     map.add("selected_nla_strips", screen_ctx_selected_nla_strips);
@@ -1192,6 +1258,10 @@ ensure_ed_screen_context_functions()
     map.add("asset_library_reference", screen_ctx_asset_library);
     map.add("ui_list", screen_ctx_ui_list);
     map.add("property", screen_ctx_property);
+    map.add("active_strip", screen_ctx_active_strip);
+    map.add("strips", screen_ctx_strips);
+    map.add("selected_strips", screen_ctx_selected_strips);
+    map.add("selected_editable_strips", screen_ctx_selected_editable_strips);
     return map;
   }();
   return screen_context_functions;

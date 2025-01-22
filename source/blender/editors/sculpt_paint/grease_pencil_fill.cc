@@ -1151,12 +1151,8 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                                                                pixel_scale);
 
   ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
-  if (placement.use_project_to_surface()) {
+  if (placement.use_project_to_surface() || placement.use_project_to_stroke()) {
     placement.cache_viewport_depths(&depsgraph, &region, &view3d);
-  }
-  else if (placement.use_project_to_nearest_stroke()) {
-    placement.cache_viewport_depths(&depsgraph, &region, &view3d);
-    placement.set_origin_to_nearest_stroke(fill_point);
   }
 
   Image *ima = render_strokes(view_context,

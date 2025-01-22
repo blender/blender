@@ -17,7 +17,11 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
+
 #include "DNA_object_types.h"
+
+#include "draw_shader_shared.hh"
+
 #include "DRW_gpu_wrapper.hh"
 
 namespace blender::draw {

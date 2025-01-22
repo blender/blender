@@ -45,7 +45,8 @@ class VKClearDepthStencilImageNode : public VKNodeInfo<VKNodeType::CLEAR_DEPTH_S
    * (`VK*Data`/`VK*CreateInfo`) types can be included in the same header file as the logic. The
    * actual node data (`VKRenderGraphNode` includes all header files.)
    */
-  template<typename Node> static void set_node_data(Node &node, const CreateInfo &create_info)
+  template<typename Node, typename Storage>
+  static void set_node_data(Node &node, Storage & /* storage */, const CreateInfo &create_info)
   {
     node.clear_depth_stencil_image = create_info.node_data;
   }

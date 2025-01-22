@@ -177,7 +177,7 @@ _attribute_builder_overrides = {
     "context.gpencil_data.layers": AttributeBuilder_Seq("context.gpencil_data.layers", "layers"),
     "context.object.material_slots": (),
     "context.selected_nodes": (),
-    "context.selected_sequences": (),
+    "context.selected_strips": (),
     "context.space_data.bookmarks": (),
     "context.space_data.text.filepath": "",
     "context.preferences.filepaths.script_directory": "",

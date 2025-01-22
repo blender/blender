@@ -10708,6 +10708,17 @@ static void def_geo_input_collection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_input_normal(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop = RNA_def_property(srna, "legacy_corner_normals", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Flat Corner Normals",
+      "Always use face normals for the face corner domain, matching old behavior of the node");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_input_object(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -12688,7 +12699,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeInputMeshVertexNeighbors");
   define("GeometryNode", "GeometryNodeInputNamedAttribute");
   define("GeometryNode", "GeometryNodeInputNamedLayerSelection");
-  define("GeometryNode", "GeometryNodeInputNormal");
+  define("GeometryNode", "GeometryNodeInputNormal", def_geo_input_normal);
   define("GeometryNode", "GeometryNodeInputObject", def_geo_input_object);
   define("GeometryNode", "GeometryNodeInputPosition");
   define("GeometryNode", "GeometryNodeInputRadius");

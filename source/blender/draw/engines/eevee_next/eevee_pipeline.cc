@@ -17,7 +17,7 @@
 #include "eevee_pipeline.hh"
 #include "eevee_shadow.hh"
 
-#include <iostream>
+#include "draw_manager_profiling.hh"
 
 #include "draw_common.hh"
 

@@ -210,7 +210,7 @@ void ED_area_and_region_types_init(ScrArea *area);
 /**
  * Called in screen_refresh, or screens_init, also area size changes.
  */
-void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area);
+void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area);
 void ED_area_exit(bContext *C, ScrArea *area);
 blender::StringRefNull ED_area_name(const ScrArea *area);
 int ED_area_icon(const ScrArea *area);

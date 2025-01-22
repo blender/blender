@@ -13,6 +13,7 @@
 
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_socket_usage_inference.hh"
 
 namespace blender::bke::node_tree_runtime {
 
@@ -661,4 +662,18 @@ const bNodeSocket &bNode::socket_by_decl(const blender::nodes::SocketDeclaration
 bNodeSocket &bNode::socket_by_decl(const blender::nodes::SocketDeclaration &decl)
 {
   return decl.in_out == SOCK_IN ? this->input_socket(decl.index) : this->output_socket(decl.index);
+}
+
+bool bNodeSocket::affects_node_output() const
+{
+  BLI_assert(this->is_input());
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  const bNodeTree &tree = this->owner_tree();
+
+  tree.runtime->inferenced_input_socket_usage_mutex.ensure([&]() {
+    tree.runtime->inferenced_input_socket_usage =
+        blender::nodes::socket_usage_inference::infer_all_input_sockets_usage(tree);
+  });
+
+  return tree.runtime->inferenced_input_socket_usage[this->index_in_all_inputs()];
 }

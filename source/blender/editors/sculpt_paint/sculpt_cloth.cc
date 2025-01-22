@@ -571,6 +571,18 @@ void ensure_nodes_constraints(const Sculpt &sd,
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+
+      Span<float3> init_positions;
+      Span<float3> persistent_position;
+      if (brush != nullptr && brush->flag & BRUSH_PERSISTENT) {
+        persistent_position = ss.sculpt_persistent_co;
+      }
+      if (persistent_position.is_empty()) {
+        init_positions = cloth_sim.init_pos;
+      }
+      else {
+        init_positions = persistent_position;
+      }
       uninitialized_nodes.foreach_index([&](const int i) {
         const Span<int> verts = calc_visible_vert_indices_grids(
             key, grid_hidden, nodes[i].grids(), vert_indices);
@@ -2295,6 +2307,12 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   brush_store_simulation_state(*depsgraph, object, *ss.filter_cache->cloth_sim);
 
   const IndexMask &node_mask = ss.filter_cache->node_mask;
+
+  if (auto_mask::is_enabled(sd, object, nullptr) && ss.filter_cache->automasking &&
+      ss.filter_cache->automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL)
+  {
+    ss.filter_cache->automasking->calc_cavity_factor(*depsgraph, object, node_mask);
+  }
 
   float3 gravity(0.0f);
   if (sd.gravity_object) {

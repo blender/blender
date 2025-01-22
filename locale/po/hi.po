@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 11:47+0000\n"
+"POT-Creation-Date: 2025-01-20 09:44+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -2613,68 +2613,68 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
+msgid "Snap"
+msgstr "स्नैप"
 
 
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
 
 
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
+msgid "Apply"
+msgstr "लागू करें"
 
 
-msgid "Merge"
-msgstr "विलय करें"
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
 
 
 msgid "Text"
 msgstr "पाठ"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -5980,6 +5980,10 @@ msgid "Surface"
 msgstr "सतह"
 
 
+msgid "Cancel"
+msgstr "रद्द करें"
+
+
 msgctxt "Operator"
 msgid "Change Shortcut"
 msgstr "परिवर्तन शॉर्टकट"
@@ -6055,10 +6059,6 @@ msgstr "हेक्स"
 
 msgid "OK"
 msgstr "ठीक है"
-
-
-msgid "Cancel"
-msgstr "रद्द करें"
 
 
 msgid "Movie"

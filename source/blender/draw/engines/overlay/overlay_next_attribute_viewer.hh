@@ -14,6 +14,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 #include "overlay_next_base.hh"
 

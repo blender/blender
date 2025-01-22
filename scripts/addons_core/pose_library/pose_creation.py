@@ -315,32 +315,6 @@ def create_pose_asset_from_context(context: Context, new_asset_name: str) -> Opt
     return create_pose_asset(params)
 
 
-def copy_fcurves(
-    dst_action: Action,
-    src_action: Action,
-    src_frame_nr: float,
-    bone_names: Set[str],
-) -> int:
-    """Copy FCurves, returning number of curves copied."""
-    num_fcurves_copied = 0
-    for fcurve in src_action.fcurves:
-        match = pose_bone_re.match(fcurve.data_path)
-        if not match:
-            continue
-
-        bone_name = match.group(1)
-        if bone_name not in bone_names:
-            continue
-
-        # Check if there is a keyframe on this frame.
-        keyframe = find_keyframe(fcurve, src_frame_nr)
-        if keyframe is None:
-            continue
-        create_single_key_fcurve(dst_action, fcurve, keyframe)
-        num_fcurves_copied += 1
-    return num_fcurves_copied
-
-
 def create_single_key_fcurve(dst_action: Action, src_fcurve: FCurve, src_keyframe: Keyframe) -> FCurve:
     """Create a copy of the source FCurve, but only for the given keyframe.
 

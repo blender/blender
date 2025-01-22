@@ -126,6 +126,15 @@ template<typename Key, typename Value> class MultiValueMap {
   }
 
   /**
+   * Returns true if there are no keys in the map.
+   * NOTE: There may be keys without values. In this case the map is not empty.
+   */
+  bool is_empty() const
+  {
+    return map_.is_empty();
+  }
+
+  /**
    * NOTE: This signature will change when the implementation changes.
    */
   typename MapType::ItemIterator items() const

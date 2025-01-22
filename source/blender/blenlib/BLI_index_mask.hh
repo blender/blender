@@ -13,6 +13,7 @@
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_index_ranges_builder_fwd.hh"
 #include "BLI_linear_allocator.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_offset_span.hh"
 #include "BLI_task.hh"
 #include "BLI_unique_sorted_indices.hh"
@@ -208,6 +209,11 @@ class IndexMask : private IndexMaskData {
   static IndexMask from_bools(const IndexMask &universe,
                               const VArray<bool> &bools,
                               IndexMaskMemory &memory);
+  /** Construct a mask from the ranges referenced by the offset indices. */
+  template<typename T>
+  static IndexMask from_ranges(OffsetIndices<T> offsets,
+                               const IndexMask &mask,
+                               IndexMaskMemory &memory);
   /**
    * Constructs a mask by repeating the indices in the given mask with a stride.
    * For example, with an input mask containing `{3, 5}` and a stride of 10 the resulting mask
@@ -580,6 +586,13 @@ template<typename T> void build_reverse_map(const IndexMask &mask, MutableSpan<T
  */
 int64_t consolidate_index_mask_segments(MutableSpan<IndexMaskSegment> segments,
                                         IndexMaskMemory &memory);
+
+/**
+ * Adds index mask segments to the the vector for the given range. Ranges shorter than
+ * #max_segment_size fit into a single segment. Larger ranges are split into multiple segments.
+ */
+template<int64_t N>
+void index_range_to_mask_segments(const IndexRange range, Vector<IndexMaskSegment, N> &r_segments);
 
 /* -------------------------------------------------------------------- */
 /** \name #RawMaskIterator Inline Methods
@@ -1079,6 +1092,20 @@ inline Vector<std::variant<IndexRange, IndexMaskSegment>, N> IndexMask::to_spans
 inline bool operator!=(const IndexMask &a, const IndexMask &b)
 {
   return !(a == b);
+}
+
+template<int64_t N>
+inline void index_range_to_mask_segments(const IndexRange range,
+                                         Vector<IndexMaskSegment, N> &r_segments)
+{
+  const std::array<int16_t, max_segment_size> &static_indices_array = get_static_indices_array();
+
+  const int64_t full_size = range.size();
+  for (int64_t i = 0; i < full_size; i += max_segment_size) {
+    const int64_t size = std::min(i + max_segment_size, full_size) - i;
+    r_segments.append(
+        IndexMaskSegment(range.first() + i, Span(static_indices_array).take_front(size)));
+  }
 }
 
 }  // namespace blender::index_mask

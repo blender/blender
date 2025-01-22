@@ -8505,7 +8505,7 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
         if (is_label) {
           bScreen *screen = WM_window_get_active_screen(data->window);
           if (screen->tool_tip) {
-            screen->tool_tip->pass = 1;
+            screen->tool_tip->pass = screen->tool_tip->region ? 0 : 1;
           }
         }
       }

@@ -365,7 +365,6 @@ class Meshes : Overlay {
     manager.submit(edit_mesh_prepass_ps_, view);
     manager.submit(edit_mesh_analysis_ps_, view);
     manager.submit(edit_mesh_weight_ps_, view);
-    manager.submit(edit_mesh_faces_ps_, view);
 
     if (xray_enabled_) {
       GPU_debug_group_end();
@@ -377,6 +376,7 @@ class Meshes : Overlay {
     view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
 
     manager.submit(edit_mesh_normals_ps_, view);
+    manager.submit(edit_mesh_faces_ps_, view);
     manager.submit(edit_mesh_cages_ps_, view_edit_cage_);
     manager.submit(edit_mesh_edges_ps_, view_edit_edge_);
     manager.submit(edit_mesh_verts_ps_, view_edit_vert_);
@@ -404,6 +404,7 @@ class Meshes : Overlay {
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_normals_ps_, view);
+    manager.submit(edit_mesh_faces_ps_, view);
     manager.submit(edit_mesh_cages_ps_, view_edit_cage_);
     manager.submit(edit_mesh_edges_ps_, view_edit_edge_);
     manager.submit(edit_mesh_verts_ps_, view_edit_vert_);

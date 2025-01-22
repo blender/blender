@@ -1514,7 +1514,7 @@ static void icon_draw_size(float x,
 #endif
 
     /* If the theme is light, we will adjust the icon colors. */
-    const bool invert = (rgb_to_grayscale_byte(btheme->tui.wcol_toolbar_item.inner) > 128);
+    const bool invert = (srgb_to_grayscale_byte(btheme->tui.wcol_toolbar_item.inner) > 128);
     const bool geom_inverted = di->data.geom.inverted;
 
     /* This could re-generate often if rendered at different sizes in the one interface.
@@ -1584,7 +1584,7 @@ static void icon_draw_size(float x,
       else {
         UI_GetThemeColor4ubv(TH_TEXT, text_color);
       }
-      const bool is_light = rgb_to_grayscale_byte(text_color) > 96;
+      const bool is_light = srgb_to_grayscale_byte(text_color) > 96;
       const float zoom_factor = w / UI_ICON_SIZE;
       uiFontStyle fstyle_small = *UI_FSTYLE_WIDGET;
       fstyle_small.points *= zoom_factor * 0.8f;

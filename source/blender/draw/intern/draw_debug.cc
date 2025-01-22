@@ -9,10 +9,9 @@
  */
 
 #include "BKE_object.hh"
-#include "BLI_link_utils.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "GPU_batch.hh"
-#include "GPU_capabilities.hh"
 #include "GPU_debug.hh"
 
 #include "draw_debug.hh"
@@ -20,9 +19,6 @@
 #include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_shader_shared.hh"
-
-#include <iomanip>
-#include <sstream>
 
 #if defined(_DEBUG) || defined(WITH_DRAW_DEBUG)
 #  define DRAW_DEBUG

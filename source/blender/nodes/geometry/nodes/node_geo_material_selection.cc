@@ -6,7 +6,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BLI_task.hh"
+#include "BLI_index_mask.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"

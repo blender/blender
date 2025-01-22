@@ -8,10 +8,13 @@
 
 #pragma once
 
+#include "BKE_context.hh"
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
 
 #include "BLI_function_ref.hh"
+
+#include "DNA_world_types.h"
 
 #include "GPU_matrix.hh"
 
@@ -20,6 +23,7 @@
 #include "UI_resources.hh"
 #include "draw_manager.hh"
 #include "draw_pass.hh"
+#include "draw_view_data.hh"
 #include "gpu_shader_create_info.hh"
 
 #include "../select/select_instance.hh"

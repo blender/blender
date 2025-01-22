@@ -1029,7 +1029,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MASK_BLENDFLAG_INVERT);
-  RNA_def_property_ui_text(prop, "Restrict View", "Invert the mask black/white");
+  RNA_def_property_ui_text(prop, "Invert", "Invert the mask black/white");
   RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
