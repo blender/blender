@@ -1577,13 +1577,23 @@ static int bake(const BakeAPIRender *bkr,
         continue;
       }
 
-      /* initialize highpoly_data */
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
+      ob_eval->visibility_flag &= ~OB_HIDE_RENDER;
+      ob_eval->base_flag |= (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_ENABLED_RENDER);
+
+      Mesh *mesh_eval = BKE_mesh_new_from_object(nullptr, ob_eval, false, false);
+
+      /* Initialize `highpoly` data. */
       highpoly[i].ob = ob_iter;
-      highpoly[i].ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
-      highpoly[i].ob_eval->visibility_flag &= ~OB_HIDE_RENDER;
-      highpoly[i].ob_eval->base_flag |= (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
-                                         BASE_ENABLED_RENDER);
-      highpoly[i].mesh = BKE_mesh_new_from_object(nullptr, highpoly[i].ob_eval, false, false);
+      highpoly[i].ob_eval = ob_eval;
+      highpoly[i].mesh = mesh_eval;
+
+      /* Low-poly to high-poly transformation matrix. */
+      copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->object_to_world().ptr());
+      invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
+
+      highpoly[i].is_flip_object = is_negative_m4(highpoly[i].ob->object_to_world().ptr());
+      i++;
 
       /* NOTE(@ideasman42): While ideally this should never happen,
        * it's possible the `visibility_flag` assignment in this function
@@ -1594,7 +1604,7 @@ static int bake(const BakeAPIRender *bkr,
        * Use an error here instead of a warning so users don't accidentally perform
        * a bake which seems to succeed with invalid results.
        * If visibility could be forced/overridden - it would help avoid the problem. */
-      if (UNLIKELY(highpoly[i].mesh == nullptr)) {
+      if (UNLIKELY(mesh_eval == nullptr)) {
         BKE_reportf(
             reports,
             RPT_ERROR,
@@ -1602,14 +1612,6 @@ static int bake(const BakeAPIRender *bkr,
             ob_iter->id.name + 2);
         goto cleanup;
       }
-
-      /* Low-poly to high-poly transformation matrix. */
-      copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->object_to_world().ptr());
-      invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
-
-      highpoly[i].is_flip_object = is_negative_m4(highpoly[i].ob->object_to_world().ptr());
-
-      i++;
     }
 
     BLI_assert(i == highpoly_num);
