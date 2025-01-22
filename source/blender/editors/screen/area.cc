@@ -976,7 +976,7 @@ void ED_workspace_status_text(bContext *C, const char *str)
 
 /* ************************************************************ */
 
-static void area_azone_init(wmWindow *win, const bScreen *screen, ScrArea *area)
+static void area_azone_init(const wmWindow *win, const bScreen *screen, ScrArea *area)
 {
   /* reinitialize entirely, regions and full-screen add azones too */
   BLI_freelistN(&area->actionzones);
@@ -2046,8 +2046,9 @@ void ED_area_and_region_types_init(ScrArea *area)
   }
 }
 
-void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
+void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   WorkSpace *workspace = WM_window_get_active_workspace(win);
   const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
   const Scene *scene = WM_window_get_active_scene(win);
@@ -2064,6 +2065,8 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 
   /* area sizes */
   area_calc_totrct(area, &window_rect);
+
+  area_regions_poll(C, screen, area);
 
   /* region rect sizes */
   rcti rect = area->totrct;
@@ -2249,7 +2252,7 @@ void ED_region_visibility_change_update_ex(
   }
 
   if (do_init) {
-    ED_area_init(CTX_wm_manager(C), CTX_wm_window(C), area);
+    ED_area_init(C, CTX_wm_window(C), area);
     ED_area_tag_redraw(area);
   }
 }
@@ -2577,8 +2580,8 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
   ED_area_data_copy(tmp, sa1, false);
   ED_area_data_copy(sa1, sa2, true);
   ED_area_data_copy(sa2, tmp, true);
-  ED_area_init(CTX_wm_manager(C), win, sa1);
-  ED_area_init(CTX_wm_manager(C), win, sa2);
+  ED_area_init(C, win, sa1);
+  ED_area_init(C, win, sa2);
 
   BKE_screen_area_free(tmp);
   MEM_delete(tmp);
@@ -2694,7 +2697,7 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
       region_align_info_to_area(area, region_align_info);
     }
 
-    ED_area_init(CTX_wm_manager(C), win, area);
+    ED_area_init(C, win, area);
 
     /* tell WM to refresh, cursor types etc */
     WM_event_add_mousemove(win);

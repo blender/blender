@@ -220,8 +220,7 @@ static void sequencer_init(wmWindowManager * /*wm*/, ScrArea *area)
 
 static void sequencer_refresh(const bContext *C, ScrArea *area)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *window = CTX_wm_window(C);
+  const wmWindow *window = CTX_wm_window(C);
   SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
   ARegion *region_main = sequencer_find_region(area, RGN_TYPE_WINDOW);
   ARegion *region_preview = sequencer_find_region(area, RGN_TYPE_PREVIEW);
@@ -272,7 +271,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
   }
 
   if (view_changed) {
-    ED_area_init(wm, window, area);
+    ED_area_init(const_cast<bContext *>(C), window, area);
     ED_area_tag_redraw(area);
   }
 }

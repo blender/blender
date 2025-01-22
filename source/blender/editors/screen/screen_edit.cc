@@ -699,6 +699,53 @@ static bool region_poll(const bContext *C,
 }
 
 /**
+ * \return true if any region polling state changed, and an area re-init is needed.
+ */
+bool area_regions_poll(bContext *C, const bScreen *screen, ScrArea *area)
+{
+  bScreen *prev_screen = CTX_wm_screen(C);
+  ScrArea *prev_area = CTX_wm_area(C);
+  ARegion *prev_region = CTX_wm_region(C);
+
+  CTX_wm_screen_set(C, const_cast<bScreen *>(screen));
+  CTX_wm_area_set(C, area);
+
+  bool any_changed = false;
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    const int old_region_flag = region->flag;
+
+    region->flag &= ~RGN_FLAG_POLL_FAILED;
+
+    CTX_wm_region_set(C, region);
+    if (region_poll(C, screen, area, region) == false) {
+      region->flag |= RGN_FLAG_POLL_FAILED;
+    }
+    else if (region->runtime->type && region->runtime->type->on_poll_success) {
+      region->runtime->type->on_poll_success(C, region);
+    }
+
+    if (old_region_flag != region->flag) {
+      any_changed = true;
+
+      /* Enforce complete re-init. */
+      region->v2d.flag &= ~V2D_IS_INIT;
+
+      const bool is_hidden = region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_POLL_FAILED);
+      /* Don't re-init areas, caller is expected to handle that. In fact, this code might actually
+       * run as part of #ED_area_init(). */
+      const bool do_init = false;
+      ED_region_visibility_change_update_ex(C, area, region, is_hidden, do_init);
+    }
+  }
+
+  CTX_wm_screen_set(C, prev_screen);
+  CTX_wm_area_set(C, prev_area);
+  CTX_wm_region_set(C, prev_region);
+
+  return any_changed;
+}
+
+/**
  * \return true if any region polling state changed, and a screen refresh is needed.
  */
 static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *screen)
@@ -711,28 +758,8 @@ static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *scree
 
   bool any_changed = false;
   ED_screen_areas_iter (win, screen, area) {
-    CTX_wm_area_set(C, area);
-
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      const int old_region_flag = region->flag;
-
-      region->flag &= ~RGN_FLAG_POLL_FAILED;
-
-      CTX_wm_region_set(C, region);
-      if (region_poll(C, screen, area, region) == false) {
-        region->flag |= RGN_FLAG_POLL_FAILED;
-      }
-      else if (region->runtime->type && region->runtime->type->on_poll_success) {
-        region->runtime->type->on_poll_success(C, region);
-      }
-
-      if (old_region_flag != region->flag) {
-        any_changed = true;
-
-        /* Enforce complete re-init. */
-        region->v2d.flag &= ~V2D_IS_INIT;
-        ED_region_visibility_change_update(C, area, region);
-      }
+    if (area_regions_poll(C, screen, area)) {
+      any_changed = true;
     }
   }
 
@@ -785,7 +812,7 @@ static void screen_refresh_if_needed(bContext *C, wmWindowManager *wm, wmWindow 
     ED_screen_areas_iter (win, screen, area) {
       /* Set space-type and region callbacks, calls init() */
       /* Sets sub-windows for regions, adds handlers. */
-      ED_area_init(wm, win, area);
+      ED_area_init(C, win, area);
     }
 
     /* wake up animtimer */
