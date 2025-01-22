@@ -5689,6 +5689,20 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 26)) {
+    const Brush *default_brush = DNA_struct_default_get(Brush);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if ((brush->mask_stencil_dimension[0] == 0) && (brush->mask_stencil_dimension[1] == 0)) {
+        brush->mask_stencil_dimension[0] = default_brush->mask_stencil_dimension[0];
+        brush->mask_stencil_dimension[1] = default_brush->mask_stencil_dimension[1];
+      }
+      if ((brush->mask_stencil_pos[0] == 0) && (brush->mask_stencil_pos[1] == 0)) {
+        brush->mask_stencil_pos[0] = default_brush->mask_stencil_pos[0];
+        brush->mask_stencil_pos[1] = default_brush->mask_stencil_pos[1];
+      }
+    }
+  }
+
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */
