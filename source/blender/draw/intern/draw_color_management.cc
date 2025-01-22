@@ -108,13 +108,11 @@ static eDRWColorManagementType drw_color_management_type_get(Main *bmain,
   if (space_data) {
     switch (space_data->spacetype) {
       case SPACE_IMAGE: {
-        const SpaceImage *sima = static_cast<const SpaceImage *>(
-            static_cast<const void *>(space_data));
+        const SpaceImage *sima = reinterpret_cast<const SpaceImage *>(space_data);
         return drw_color_management_type_for_space_image(*sima);
       }
       case SPACE_NODE: {
-        const SpaceNode *snode = static_cast<const SpaceNode *>(
-            static_cast<const void *>(space_data));
+        const SpaceNode *snode = reinterpret_cast<const SpaceNode *>(space_data);
         return drw_color_management_type_for_space_node(*bmain, *snode);
       }
     }
