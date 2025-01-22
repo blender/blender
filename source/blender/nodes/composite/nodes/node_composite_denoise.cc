@@ -62,13 +62,6 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, Point
 {
 #ifndef WITH_OPENIMAGEDENOISE
   uiItemL(layout, RPT_("Disabled, built without OpenImageDenoise"), ICON_ERROR);
-#else
-  /* Always supported through Accelerate framework BNNS on macOS. */
-#  ifndef __APPLE__
-  if (!BLI_cpu_support_sse42()) {
-    uiItemL(layout, RPT_("Disabled, CPU with SSE4.2 is required"), ICON_ERROR);
-  }
-#  endif
 #endif
 
   uiItemL(layout, IFACE_("Prefilter:"), ICON_NONE);
@@ -297,19 +290,13 @@ class DenoiseOperation : public NodeOperation {
   }
 #endif /* WITH_OPENIMAGEDENOISE */
 
-  /* OIDN can be disabled as a build option, so check WITH_OPENIMAGEDENOISE. Additionally, it is
-   * only supported at runtime for CPUs that supports SSE4.1, except for MacOS where it is always
-   * supported through the Accelerate framework BNNS on macOS. */
+  /* OIDN can be disabled as a build option, so check WITH_OPENIMAGEDENOISE. */
   bool is_oidn_supported()
   {
-#ifndef WITH_OPENIMAGEDENOISE
-    return false;
-#else
-#  ifdef __APPLE__
+#ifdef WITH_OPENIMAGEDENOISE
     return true;
-#  else
-    return BLI_cpu_support_sse42();
-#  endif
+#else
+    return false;
 #endif
   }
 };
