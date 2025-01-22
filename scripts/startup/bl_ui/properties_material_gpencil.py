@@ -46,8 +46,12 @@ class GPENCIL_UL_matslots(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         slot = item
         ma = slot.material
-        if (ma is not None) and (ma.grease_pencil is not None):
-            gpcolor = ma.grease_pencil
+
+        if ma is None:
+            return
+
+        if (gpcolor := ma.grease_pencil) is None:
+            return
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
