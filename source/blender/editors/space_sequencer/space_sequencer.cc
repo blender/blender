@@ -678,6 +678,12 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     return;
   }
 
+  const View2D *v2d = &region->v2d;
+  if (UI_view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy)) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
   float mouse_co_region[2] = {float(win->eventstate->xy[0] - region->winrct.xmin),
                               float(win->eventstate->xy[1] - region->winrct.ymin)};
   float mouse_co_view[2];
@@ -705,7 +711,6 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     return;
   }
 
-  const View2D *v2d = &region->v2d;
   const float scale_y = UI_view2d_scale_get_y(v2d);
 
   if (!ED_sequencer_can_select_handle(scene, selection.seq1, v2d) || scale_y < 16 * U.pixelsize) {
