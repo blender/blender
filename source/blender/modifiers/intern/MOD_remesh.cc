@@ -61,8 +61,8 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->co_stride = sizeof(blender::float3);
   input->totco = mesh->verts_num;
 
-  input->mloop = (DualConLoop)mesh->corner_verts().data();
-  input->loop_stride = sizeof(int);
+  input->corner_verts = (DualConCornerVerts)mesh->corner_verts().data();
+  input->corner_verts_stride = sizeof(int);
 
   input->corner_tris = (DualConTri)mesh->corner_tris().data();
   input->tri_stride = sizeof(blender::int3);
@@ -130,14 +130,8 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   using namespace blender;
-  RemeshModifierData *rmd;
-  DualConOutput *output;
-  DualConInput input;
+  RemeshModifierData *rmd = (RemeshModifierData *)md;
   Mesh *result;
-  DualConFlags flags = DualConFlags(0);
-  DualConMode mode = DualConMode(0);
-
-  rmd = (RemeshModifierData *)md;
 
   if (rmd->mode == MOD_REMESH_VOXEL) {
     /* OpenVDB modes. */
@@ -155,6 +149,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       BKE_modifier_set_error(ctx->object, md, "Zero scale cannot be solved");
       return nullptr;
     }
+
+    DualConOutput *output;
+    DualConInput input;
+    DualConFlags flags = DualConFlags(0);
+    DualConMode mode = DualConMode(0);
 
     /* Dualcon modes. */
     init_dualcon_mesh(&input, mesh);
