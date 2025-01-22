@@ -567,13 +567,6 @@ Try to link with static libraries, as much as possible, \
 to make blender more portable across distributions"
     OFF
   )
-  if(WITH_STATIC_LIBS)
-    option(WITH_BOOST_ICU "\
-Boost uses ICU library (required for linking with static Boost built with libicu)."
-      OFF
-    )
-    mark_as_advanced(WITH_BOOST_ICU)
-  endif()
 endif()
 
 # Misc
@@ -1513,16 +1506,6 @@ endif()
 # -----------------------------------------------------------------------------
 # Common Checks for Compatible Options
 
-if(WITH_INTERNATIONAL)
-  if(NOT WITH_BOOST)
-    message(
-      FATAL_ERROR
-      "Internationalization requires WITH_BOOST, the library may not have been found. "
-      "Configure BOOST or disable WITH_INTERNATIONAL"
-    )
-  endif()
-endif()
-
 # Enable SIMD support if detected by `test_sse_support()` or `test_neon_support()`.
 #
 if(WITH_CPU_SIMD)
@@ -1627,19 +1610,9 @@ if(WITH_OPENVDB)
     ${OPENEXR_INCLUDE_DIRS}
   )
 
-  list(APPEND OPENVDB_LIBRARIES ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
-
   if(WITH_OPENVDB_BLOSC)
     list(APPEND OPENVDB_DEFINITIONS -DWITH_OPENVDB_BLOSC)
-    # Even when `WITH_OPENVDB_BLOSC` is set, `FindBlosc.cmake` isn't running.
-    # As this might be used at some point, check the libraries are defined.
-    if(DEFINED BLOSC_LIBRARIES)
-      list(APPEND OPENVDB_LIBRARIES ${BLOSC_LIBRARIES})
-    endif()
-    list(APPEND OPENVDB_LIBRARIES ${ZLIB_LIBRARIES})
   endif()
-
-  list(APPEND OPENVDB_LIBRARIES ${BOOST_LIBRARIES} ${TBB_LIBRARIES})
 endif()
 
 # -----------------------------------------------------------------------------

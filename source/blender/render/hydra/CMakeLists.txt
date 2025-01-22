@@ -67,7 +67,6 @@ set(INC_SYS
 set(LIB
   ${Epoxy_LIBRARIES}
   ${PYTHON_LIBRARIES}
-  ${BOOST_LIBRARIES}
   ${USD_LIBRARIES}
   ${TBB_LIBRARIES}
   PRIVATE bf::blenkernel

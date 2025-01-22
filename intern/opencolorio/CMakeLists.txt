@@ -48,15 +48,6 @@ if(WITH_OPENCOLORIO)
     ${OPENCOLORIO_LIBRARIES}
   )
 
-  if(WIN32)
-    list(APPEND INC_SYS
-      ${BOOST_INCLUDE_DIR}
-    )
-    list(APPEND LIB
-      ${BOOST_LIBRARIES}
-    )
-  endif()
-
   set(GLSL_SRC
     gpu_shader_display_transform_vert.glsl
     gpu_shader_display_transform_frag.glsl

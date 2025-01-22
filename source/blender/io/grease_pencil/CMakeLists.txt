@@ -72,10 +72,4 @@ if(WITH_HARU)
   add_definitions(-DWITH_HARU)
 endif()
 
-if(WITH_BOOST)
-  list(APPEND LIB
-    ${BOOST_LIBRARIES}
-  )
-endif()
-
 blender_add_lib(bf_io_grease_pencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
