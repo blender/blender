@@ -41,7 +41,37 @@ if(WIN32)
   set_target_properties(BlendThumb PROPERTIES LINK_FLAGS_DEBUG "/NODEFAULTLIB:msvcrt")
   set_target_properties(BlendThumb PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
 
-else()
+elseif(APPLE)
+  # -----------------------------------------------------------------------------
+  # Build `blender-thumbnailer.appex` app extension.
+  set(SRC_APPEX
+    src/thumbnail_provider.mm
+    src/thumbnail_provider.h
+  )
+
+  add_executable(blender-thumbnailer MACOSX_BUNDLE ${SRC} ${SRC_APPEX})
+  setup_platform_linker_flags(blender-thumbnailer)
+  setup_platform_linker_libs(blender-thumbnailer)
+  target_link_libraries(blender-thumbnailer
+    bf_blenlib
+    # Avoid linker error about undefined _main symbol.
+    "-e _NSExtensionMain"
+    "-framework QuickLookThumbnailing"
+  )
+  # CMake needs the target defined in the same file as add_custom_command.
+  # The rpath here points to the main Blender Resources/lib directory. Avoid duplicating the large dylibs (~300MB).
+  add_custom_command(
+    TARGET blender-thumbnailer POST_BUILD
+    COMMAND install_name_tool -add_rpath @loader_path/../../../../Resources/lib $<TARGET_FILE:blender-thumbnailer>
+  )
+  # It needs to be codesigned (ad-hoc in this case) even on developer machine to generate thumbnails.
+  # Command taken from XCode build process.
+  add_custom_command(
+    TARGET blender-thumbnailer POST_BUILD
+    COMMAND codesign --deep --force --sign - --entitlements "${CMAKE_SOURCE_DIR}/release/darwin/thumbnailer_entitlements.plist"
+    --timestamp=none $<TARGET_BUNDLE_DIR:blender-thumbnailer>
+  )
+elseif(UNIX)
   # -----------------------------------------------------------------------------
   # Build `blender-thumbnailer` executable
 

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>en</string>
+		<key>CFBundleName</key>
+		<string>blender-thumbnailer</string>
+		<key>CFBundleDisplayName</key>
+		<string>Blender Thumbnailer</string>
+		<key>CFBundleExecutable</key>
+		<string>blender-thumbnailer</string>
+		<key>CFBundleIdentifier</key>
+		<string>org.blenderfoundation.blender.thumbnailer</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundlePackageType</key>
+		<string>XPC!</string>
+		<key>CFBundleSupportedPlatforms</key>
+		<array>
+			<string>MacOSX</string>
+		</array>
+		<key>CFBundleShortVersionString</key>
+		<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
+		<key>CFBundleVersion</key>
+		<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}</string>
+		<key>CFBundleGetInfoString</key>
+		<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
+		<key>LSMinimumSystemVersion</key>
+		<string>10.15</string>
+		<key>NSExtension</key>
+		<dict>
+			<key>NSExtensionAttributes</key>
+			<dict>
+				<key>QLSupportedContentTypes</key>
+				<array>
+					<!-- The supported file UTIs. Not inherited from parent bundle. -->
+					<string>org.blenderfoundation.blender.file</string>
+				</array>
+				<key>QLThumbnailMinimumDimension</key>
+				<integer>0</integer>
+			</dict>
+			<key>NSExtensionPointIdentifier</key>
+			<string>com.apple.quicklook.thumbnail</string>
+			<key>NSExtensionPrincipalClass</key>
+			<!-- Must be the same as the class implementing the reply method. -->
+			<string>ThumbnailProvider</string>
+		</dict>
+	</dict>
+</plist>
