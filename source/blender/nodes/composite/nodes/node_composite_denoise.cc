@@ -58,7 +58,7 @@ static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
   node->storage = ndg;
 }
 
-bool is_oidn_supported()
+static bool is_oidn_supported()
 {
 #ifdef WITH_OPENIMAGEDENOISE
 #  if defined(__APPLE__)
