@@ -8,6 +8,8 @@
  * Engine for debugging the selection map drawing.
  */
 
+#include "BLT_translation.hh"
+
 #include "DNA_ID.h"
 #include "DNA_vec_types.h"
 
