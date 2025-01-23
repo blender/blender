@@ -456,7 +456,7 @@ typedef struct TextVars {
   char align;
   char _pad[2];
 
-  /** Offsets in bytes relative to #TextVars::text. */
+  /** Offsets in characters (unicode code-points) for #TextVars::text. */
   int cursor_offset;
   int selection_start_offset;
   int selection_end_offset;
