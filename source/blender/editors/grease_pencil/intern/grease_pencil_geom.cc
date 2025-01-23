@@ -356,6 +356,8 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
 
   Array<float2> screen_start_points(src_curves.curves_num());
   Array<float2> screen_end_points(src_curves.curves_num());
+  const VArray<bool> cyclic = *src_curves.attributes().lookup_or_default<bool>(
+      "cyclic", bke::AttrDomain::Curve, false);
   /* For comparing screen space positions use a 2D KDTree. Each curve adds 2 points. */
   KDTree_2d *tree = BLI_kdtree_2d_new(2 * src_curves.curves_num());
 
@@ -375,6 +377,9 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
   });
   /* Note: KDTree insertion is not thread-safe, don't parallelize this. */
   for (const int src_i : src_curves.curves_range()) {
+    if (cyclic[src_i] == true) {
+      continue;
+    }
     BLI_kdtree_2d_insert(tree, src_i * 2, screen_start_points[src_i]);
     BLI_kdtree_2d_insert(tree, src_i * 2 + 1, screen_end_points[src_i]);
   }
