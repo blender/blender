@@ -54,10 +54,11 @@ void Instance::init()
     state.use_in_front = true;
     state.is_wireframe_mode = (state.v3d->shading.type == OB_WIRE);
     state.hide_overlays = (state.v3d->flag2 & V3D_HIDE_OVERLAYS) != 0;
-    state.xray_enabled = XRAY_ACTIVE(state.v3d);
+    state.xray_enabled = XRAY_ACTIVE(state.v3d) && !state.is_depth_only_drawing;
     state.xray_enabled_and_not_wire = state.xray_enabled && (state.v3d->shading.type > OB_WIRE);
     state.xray_opacity = state.xray_enabled ? XRAY_ALPHA(state.v3d) : 1.0f;
-    state.xray_flag_enabled = SHADING_XRAY_FLAG_ENABLED(state.v3d->shading);
+    state.xray_flag_enabled = SHADING_XRAY_FLAG_ENABLED(state.v3d->shading) &&
+                              !state.is_depth_only_drawing;
 
     if (!state.hide_overlays) {
       state.overlay = state.v3d->overlay;
