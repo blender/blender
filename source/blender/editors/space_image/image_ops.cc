@@ -39,6 +39,7 @@
 #include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_image.hh"
+#include "BKE_image_format.hh"
 #include "BKE_image_save.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -2962,6 +2963,7 @@ void IMAGE_OT_rotate_orthogonal(wmOperatorType *ot)
 
 static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
 {
+  Scene *scene = CTX_data_scene(C);
   Image *ima = image_from_context(C);
   if (ima == nullptr) {
     return false;
@@ -2978,9 +2980,25 @@ static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
   bool changed = false;
   if (ibuf) {
-    if (WM_clipboard_image_set(ibuf)) {
+    /* Clipboard uses byte buffer, so matchsaving an 8 bit PNG for color management. */
+    const bool save_as_render = ima->flag & IMA_VIEW_AS_RENDER;
+
+    ImageFormatData image_format;
+    BKE_image_format_init_for_write(&image_format, scene, nullptr);
+    BKE_image_format_set(&image_format, nullptr, R_IMF_IMTYPE_PNG);
+    image_format.depth = R_IMF_CHAN_DEPTH_8;
+
+    ImBuf *colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
+        ibuf, save_as_render, true, &image_format);
+
+    if (WM_clipboard_image_set_byte_buffer(colormanaged_ibuf)) {
       changed = true;
     }
+
+    if (colormanaged_ibuf != ibuf) {
+      IMB_freeImBuf(colormanaged_ibuf);
+    }
+    BKE_image_format_free(&image_format);
   }
   BKE_image_release_ibuf(ima, ibuf, lock);
   WM_cursor_wait(false);

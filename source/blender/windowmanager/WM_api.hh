@@ -1783,7 +1783,7 @@ ImBuf *WM_clipboard_image_get();
  *
  * \param ibuf: the image to set the clipboard to.
  */
-bool WM_clipboard_image_set(ImBuf *ibuf) ATTR_NONNULL(1);
+bool WM_clipboard_image_set_byte_buffer(ImBuf *ibuf) ATTR_NONNULL(1);
 
 /* Progress. */
 

@@ -2507,25 +2507,16 @@ ImBuf *WM_clipboard_image_get()
   return ibuf;
 }
 
-bool WM_clipboard_image_set(ImBuf *ibuf)
+bool WM_clipboard_image_set_byte_buffer(ImBuf *ibuf)
 {
   if (G.background) {
     return false;
   }
-
-  bool free_byte_buffer = false;
   if (ibuf->byte_buffer.data == nullptr) {
-    /* Add a byte buffer if it does not have one. */
-    IMB_rect_from_float(ibuf);
-    free_byte_buffer = true;
+    return false;
   }
 
   bool success = bool(GHOST_putClipboardImage((uint *)ibuf->byte_buffer.data, ibuf->x, ibuf->y));
-
-  if (free_byte_buffer) {
-    /* Remove the byte buffer if we added it. */
-    imb_freerectImBuf(ibuf);
-  }
 
   return success;
 }
