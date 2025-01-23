@@ -465,6 +465,11 @@ if(WITH_PYTHON)
     PATTERN "__pycache__" EXCLUDE
     PATTERN "site" EXCLUDE
     PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
+
+    # Exclude extensions development files.
+    PATTERN "addons_core/bl_pkg/Makefile" EXCLUDE
+    PATTERN "addons_core/bl_pkg/tests" EXCLUDE
+    PATTERN "addons_core/bl_pkg/example_extension" EXCLUDE
   )
 
   if(WITH_PYTHON_MODULE)
