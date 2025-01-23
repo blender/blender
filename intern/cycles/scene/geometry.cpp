@@ -164,15 +164,6 @@ void Geometry::tag_update(Scene *scene, bool rebuild)
   scene->geometry_manager->tag_update(scene, GeometryManager::GEOMETRY_MODIFIED);
 }
 
-void Geometry::tag_bvh_update(bool rebuild)
-{
-  tag_modified();
-
-  if (rebuild) {
-    need_update_rebuild = true;
-  }
-}
-
 /* Geometry Manager */
 
 GeometryManager::GeometryManager()
@@ -335,11 +326,16 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
     }
 
     if (prim_offset_changed) {
-      /* Need to rebuild BVH in OptiX, since refit only allows modified mesh data there */
-      const bool has_optix_bvh = bvh_layout == BVH_LAYOUT_OPTIX ||
-                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
-                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE;
-      geom->need_update_rebuild |= has_optix_bvh;
+      /* Need to rebuild BVH in OptiX, since refit only allows modified mesh data.
+       * Metal has optimization for static BVH, that also require a rebuild. */
+      const bool need_update_rebuild = (bvh_layout == BVH_LAYOUT_OPTIX ||
+                                        bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
+                                        bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE) ||
+                                       ((bvh_layout == BVH_LAYOUT_METAL ||
+                                         bvh_layout == BVH_LAYOUT_MULTI_METAL ||
+                                         bvh_layout == BVH_LAYOUT_MULTI_METAL_EMBREE) &&
+                                        scene->params.bvh_type == BVH_TYPE_STATIC);
+      geom->need_update_rebuild |= need_update_rebuild;
       geom->need_update_bvh_for_offset = true;
     }
   }
