@@ -13,7 +13,6 @@
  * the function. `Params` is then used inside the called function to access the parameters.
  */
 
-#include <mutex>
 #include <variant>
 
 #include "BLI_generic_pointer.hh"

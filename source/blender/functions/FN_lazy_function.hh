@@ -42,14 +42,12 @@
 
 #include "BLI_cpp_type.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_vector.hh"
 
-#include <atomic>
-#include <thread>
-
 #ifndef NDEBUG
+#  include <atomic>
+#  include <thread>
 #  define FN_LAZY_FUNCTION_DEBUG_THREADS
 #endif
 

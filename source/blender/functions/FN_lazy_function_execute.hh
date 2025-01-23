@@ -10,7 +10,7 @@
  * This file contains common utilities for actually executing a lazy-function.
  */
 
-#include "BLI_parameter_pack_utils.hh"
+#include "BLI_generic_pointer.hh"
 
 #include "FN_lazy_function.hh"
 

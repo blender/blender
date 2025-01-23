@@ -206,6 +206,7 @@ endif()
 
 if(WITH_GTESTS)
   set(TEST_SRC
+    paint_test.cc
     sculpt_detail_test.cc
   )
   set(TEST_INC

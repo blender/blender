@@ -41,15 +41,14 @@
  * starts again.
  */
 
+#include <atomic>
 #include <mutex>
-#include <sstream>
 
-#include "BLI_compute_context.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_stack.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
 #include "FN_lazy_function_graph_executor.hh"
 

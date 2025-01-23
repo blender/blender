@@ -51,6 +51,11 @@ void VKIndexBuffer::upload_data()
 
 void VKIndexBuffer::bind_as_ssbo(uint binding)
 {
+  if (is_subrange_) {
+    src_->bind_as_ssbo(binding);
+    return;
+  }
+
   VKContext::get()->state_manager_get().storage_buffer_bind(
       BindSpaceStorageBuffers::Type::IndexBuffer, this, binding);
 }

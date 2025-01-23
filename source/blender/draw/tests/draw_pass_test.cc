@@ -6,6 +6,7 @@
 
 #include "BLI_math_matrix.hh"
 
+#include "draw_cache.hh"
 #include "draw_manager.hh"
 #include "draw_pass.hh"
 #include "draw_shader.hh"

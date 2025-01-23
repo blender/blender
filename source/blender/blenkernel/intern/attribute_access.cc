@@ -30,6 +30,10 @@
 
 #include "attribute_access_intern.hh"
 
+#ifndef NDEBUG
+#  include <iostream>
+#endif
+
 namespace blender::bke {
 
 const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)

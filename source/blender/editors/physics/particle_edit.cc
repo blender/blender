@@ -24,6 +24,7 @@
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rand.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
@@ -4773,7 +4774,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
   RNA_float_get_array(itemptr, "mouse", mousef);
   mouse[0] = mousef[0];
   mouse[1] = mousef[1];
-  flip = RNA_boolean_get(itemptr, "pen_flip");
+  flip = RNA_boolean_get(op->ptr, "pen_flip");
 
   if (bedit->first) {
     bedit->lastmouse[0] = mouse[0];
@@ -5020,7 +5021,6 @@ static void brush_edit_apply_event(bContext *C, wmOperator *op, const wmEvent *e
   RNA_collection_add(op->ptr, "stroke", &itemptr);
 
   RNA_float_set_array(&itemptr, "mouse", mouse);
-  RNA_boolean_set(&itemptr, "pen_flip", event->modifier & KM_SHIFT); /* XXX hardcoded */
 
   /* apply */
   brush_edit_apply(C, op, &itemptr);
@@ -5031,6 +5031,8 @@ static int brush_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (!brush_edit_init(C, op)) {
     return OPERATOR_CANCELLED;
   }
+
+  RNA_boolean_set(op->ptr, "pen_flip", event->modifier & KM_SHIFT); /* XXX hardcoded */
 
   brush_edit_apply_event(C, op, event);
 
@@ -5088,6 +5090,9 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(
+      ot->srna, "pen_flip", false, "Pen Flip", "Whether a tablet's eraser mode is being used");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

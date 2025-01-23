@@ -85,7 +85,7 @@ FromCollectionBuilderPipeline::FromCollectionBuilderPipeline(::Depsgraph *graph,
   const int base_flag = (deg_graph_->mode == DAG_EVAL_RENDER) ? BASE_ENABLED_RENDER :
                                                                 BASE_ENABLED_VIEWPORT;
   for (; base; base = base->next) {
-    if (base->flag & base_flag) {
+    if (!deg_graph_->use_visibility_optimization || (base->flag & base_flag)) {
       ids_.add(&base->object->id);
     }
   }

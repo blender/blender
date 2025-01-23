@@ -261,8 +261,12 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   return data;
 }
 
-void VKTexture::update_sub(
-    int mip, int offset_[3], int extent_[3], eGPUDataFormat format, const void *data)
+void VKTexture::update_sub(int mip,
+                           int offset_[3],
+                           int extent_[3],
+                           eGPUDataFormat format,
+                           const void *data,
+                           VKPixelBuffer *pixel_buffer)
 {
   BLI_assert(!is_texture_view());
 
@@ -304,36 +308,45 @@ void VKTexture::update_sub(
   }
 
   VKBuffer staging_buffer;
-  staging_buffer.create(device_memory_size,
-                        GPU_USAGE_DYNAMIC,
-                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
-   * other cases we unpack the rows to reduce the size of the staging buffer and data transfer. */
-  const uint texture_unpack_row_length =
-      context.state_manager_get().texture_unpack_row_length_get();
-  if (ELEM(texture_unpack_row_length, 0, extent.x)) {
-    convert_host_to_device(
-        staging_buffer.mapped_memory_get(), data, sample_len, format, format_, device_format_);
+  VkBuffer vk_buffer = VK_NULL_HANDLE;
+  if (data) {
+    staging_buffer.create(device_memory_size,
+                          GPU_USAGE_DYNAMIC,
+                          VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    vk_buffer = staging_buffer.vk_handle();
+    /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
+     * other cases we unpack the rows to reduce the size of the staging buffer and data transfer.
+     */
+    const uint texture_unpack_row_length =
+        context.state_manager_get().texture_unpack_row_length_get();
+    if (ELEM(texture_unpack_row_length, 0, extent.x)) {
+      convert_host_to_device(
+          staging_buffer.mapped_memory_get(), data, sample_len, format, format_, device_format_);
+    }
+    else {
+      BLI_assert_msg(!is_compressed,
+                     "Compressed data with texture_unpack_row_length != 0 is not supported.");
+      size_t dst_row_stride = extent.x * to_bytesize(device_format_);
+      size_t src_row_stride = texture_unpack_row_length * to_bytesize(format_, format);
+      uint8_t *dst_ptr = static_cast<uint8_t *>(staging_buffer.mapped_memory_get());
+      const uint8_t *src_ptr = static_cast<const uint8_t *>(data);
+      for (int x = 0; x < extent.x; x++) {
+        convert_host_to_device(dst_ptr, src_ptr, extent.x, format, format_, device_format_);
+        src_ptr += src_row_stride;
+        dst_ptr += dst_row_stride;
+      }
+    }
   }
   else {
-    BLI_assert_msg(!is_compressed,
-                   "Compressed data with texture_unpack_row_length != 0 is not supported.");
-    size_t dst_row_stride = extent.x * to_bytesize(device_format_);
-    size_t src_row_stride = texture_unpack_row_length * to_bytesize(format_, format);
-    uint8_t *dst_ptr = static_cast<uint8_t *>(staging_buffer.mapped_memory_get());
-    const uint8_t *src_ptr = static_cast<const uint8_t *>(data);
-    for (int x = 0; x < extent.x; x++) {
-      convert_host_to_device(dst_ptr, src_ptr, extent.x, format, format_, device_format_);
-      src_ptr += src_row_stride;
-      dst_ptr += dst_row_stride;
-    }
+    BLI_assert(pixel_buffer);
+    vk_buffer = pixel_buffer->buffer_get().vk_handle();
   }
 
   render_graph::VKCopyBufferToImageNode::CreateInfo copy_buffer_to_image = {};
   render_graph::VKCopyBufferToImageNode::Data &node_data = copy_buffer_to_image.node_data;
-  node_data.src_buffer = staging_buffer.vk_handle();
+  node_data.src_buffer = vk_buffer;
   node_data.dst_image = vk_image_handle();
   node_data.region.imageExtent.width = extent.x;
   node_data.region.imageExtent.height = extent.y;
@@ -352,13 +365,19 @@ void VKTexture::update_sub(
   context.render_graph.add_node(copy_buffer_to_image);
 }
 
-void VKTexture::update_sub(int offset_[3],
-                           int extent_[3],
+void VKTexture::update_sub(
+    int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data)
+{
+  update_sub(mip, offset, extent, format, data, nullptr);
+}
+
+void VKTexture::update_sub(int offset[3],
+                           int extent[3],
                            eGPUDataFormat format,
                            GPUPixelBuffer *pixbuf)
 {
   VKPixelBuffer &pixel_buffer = *unwrap(unwrap(pixbuf));
-  update_sub(0, offset_, extent_, format, pixel_buffer.map());
+  update_sub(0, offset, extent, format, nullptr, &pixel_buffer);
 }
 
 uint VKTexture::gl_bindcode_get() const

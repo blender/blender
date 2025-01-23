@@ -58,17 +58,31 @@ static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
   node->storage = ndg;
 }
 
+static bool is_oidn_supported()
+{
+#ifdef WITH_OPENIMAGEDENOISE
+#  if defined(__APPLE__)
+  /* Always supported through Accelerate framework BNNS. */
+  return true;
+#  elif defined(__aarch64__) || defined(_M_ARM64)
+  /* OIDN 2.2 and up supports ARM64 on Windows and Linux. */
+  return true;
+#  else
+  return BLI_cpu_support_sse42();
+#  endif
+#else
+  return false;
+#endif
+}
+
 static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
 #ifndef WITH_OPENIMAGEDENOISE
-  uiItemL(layout, RPT_("Disabled, built without OpenImageDenoise"), ICON_ERROR);
+  uiItemL(layout, RPT_("Disabled. Built without OpenImageDenoise"), ICON_ERROR);
 #else
-  /* Always supported through Accelerate framework BNNS on macOS. */
-#  ifndef __APPLE__
-  if (!BLI_cpu_support_sse42()) {
-    uiItemL(layout, RPT_("Disabled, CPU with SSE4.2 is required"), ICON_ERROR);
+  if (!is_oidn_supported()) {
+    uiItemL(layout, RPT_("Disabled. Platform not supported"), ICON_ERROR);
   }
-#  endif
 #endif
 
   uiItemL(layout, IFACE_("Prefilter:"), ICON_NONE);
@@ -296,22 +310,6 @@ class DenoiseOperation : public NodeOperation {
 #  endif
   }
 #endif /* WITH_OPENIMAGEDENOISE */
-
-  /* OIDN can be disabled as a build option, so check WITH_OPENIMAGEDENOISE. Additionally, it is
-   * only supported at runtime for CPUs that supports SSE4.1, except for MacOS where it is always
-   * supported through the Accelerate framework BNNS on macOS. */
-  bool is_oidn_supported()
-  {
-#ifndef WITH_OPENIMAGEDENOISE
-    return false;
-#else
-#  ifdef __APPLE__
-    return true;
-#  else
-    return BLI_cpu_support_sse42();
-#  endif
-#endif
-  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
