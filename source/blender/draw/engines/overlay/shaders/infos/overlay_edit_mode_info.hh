@@ -160,8 +160,6 @@ VERTEX_SOURCE("overlay_edit_mesh_normal_vert.glsl")
 FRAGMENT_SOURCE("overlay_varying_color.glsl")
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_edit_mesh_normal)
-
 GPU_SHADER_CREATE_INFO(overlay_mesh_face_normal)
 DO_STATIC_COMPILATION()
 ADDITIONAL_INFO(overlay_edit_mesh_normal)
