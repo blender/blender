@@ -1284,7 +1284,10 @@ static void std_node_socket_draw(
   int type = sock->typeinfo->type;
   // int subtype = sock->typeinfo->subtype;
 
-  if (sock->is_input() && !sock->affects_node_output()) {
+  /* Gray out inputs that do not affect the output of the node currently.
+   * Don't gray out any inputs if the node has no outputs (in which case no input can affect the
+   * output). Otherwise, viewer node inputs would be inactive. */
+  if (sock->is_input() && !sock->affects_node_output() && !node->output_sockets().is_empty()) {
     uiLayoutSetActive(layout, false);
   }
 
