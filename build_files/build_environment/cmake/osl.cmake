@@ -56,7 +56,7 @@ set(OSL_EXTRA_ARGS
 )
 
 if(NOT APPLE)
-  list(APPEND OSL_EXTRA_ARGS -DOSL_USE_OPTIX=ON)
+  list(APPEND OSL_EXTRA_ARGS -DOSL_USE_OPTIX=ON -DCUDA_TARGET_ARCH=sm_50)
 endif()
 
 ExternalProject_Add(external_osl
