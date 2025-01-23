@@ -37,6 +37,7 @@ struct VertOut {
   vec4 gpu_position;
   vec4 final_color;
   vec4 final_color_outer;
+  vec3 world_position;
   uint select_override;
 };
 
@@ -46,8 +47,8 @@ VertOut vertex_main(VertIn vert_in)
 
   VertOut vert_out;
 
-  vec3 world_pos = point_object_to_world(vert_in.lP);
-  vec3 view_pos = point_world_to_view(world_pos);
+  vert_out.world_position = point_object_to_world(vert_in.lP);
+  vec3 view_pos = point_world_to_view(vert_out.world_position);
   vert_out.gpu_position = point_view_to_ndc(view_pos);
 
   /* Offset Z position for retopology overlay. */
@@ -127,7 +128,7 @@ VertOut vertex_main(VertIn vert_in)
       fresnelMixEdit);
 #endif
 
-  view_clipping_distances(world_pos);
+  view_clipping_distances(vert_out.world_position);
 
   return vert_out;
 }
