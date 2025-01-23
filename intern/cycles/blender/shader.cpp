@@ -842,11 +842,13 @@ static ShaderNode *add_node(Scene *scene,
       image->set_animated(is_image_animated(b_image_source, b_image_user));
       image->set_alpha_type(get_image_alpha_type(b_image));
 
-      array<int> tiles;
-      for (BL::UDIMTile &b_tile : b_image.tiles) {
-        tiles.push_back_slow(b_tile.number());
+      if (b_image_source == BL::Image::source_TILED) {
+        array<int> tiles;
+        for (BL::UDIMTile &b_tile : b_image.tiles) {
+          tiles.push_back_slow(b_tile.number());
+        }
+        image->set_tiles(tiles);
       }
-      image->set_tiles(tiles);
 
       /* builtin images will use callback-based reading because
        * they could only be loaded correct from blender side
