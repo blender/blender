@@ -18,6 +18,7 @@ namespace blender::gpu {
 class VKSampler;
 class VKDescriptorSetTracker;
 class VKVertexBuffer;
+class VKPixelBuffer;
 
 /** Additional modifiers when requesting image views. */
 enum class VKImageViewFlags {
@@ -94,6 +95,13 @@ class VKTexture : public Texture {
   void *read(int mip, eGPUDataFormat format) override;
   void read_sub(
       int mip, eGPUDataFormat format, const int region[6], IndexRange layers, void *r_data);
+  void update_sub(int mip,
+                  int offset[3],
+                  int extent[3],
+                  eGPUDataFormat format,
+                  const void *data,
+                  VKPixelBuffer *pixel_buffer);
+
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) override;
   void update_sub(int offset[3],
