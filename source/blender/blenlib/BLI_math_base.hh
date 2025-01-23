@@ -42,26 +42,28 @@ template<typename T> inline T sign(const T &a)
 
 template<typename T> inline T min(const T &a, const T &b)
 {
+  static_assert(std::is_arithmetic_v<T>, "math::min on non-arithmetic type is likely unintended");
   return std::min(a, b);
 }
 
 template<typename T> inline T max(const T &a, const T &b)
 {
+  static_assert(std::is_arithmetic_v<T>, "math::max on non-arithmetic type is likely unintended");
   return std::max(a, b);
 }
 
 template<typename T> inline void max_inplace(T &a, const T &b)
 {
-  /* Avoid accidentally swapping pointers instead of values. */
-  static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>);
-  a = math::max(a, b);
+  static_assert(std::is_arithmetic_v<T>,
+                "math::max_inplace on non-arithmetic type is likely unintended");
+  a = std::max(a, b);
 }
 
 template<typename T> inline void min_inplace(T &a, const T &b)
 {
-  /* Avoid accidentally swapping pointers instead of values. */
-  static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>);
-  a = math::min(a, b);
+  static_assert(std::is_arithmetic_v<T>,
+                "math::min_inplace on non-arithmetic type is likely unintended");
+  a = std::min(a, b);
 }
 
 template<typename T> inline T clamp(const T &a, const T &min, const T &max)
@@ -86,10 +88,10 @@ template<typename T> inline T safe_mod(const T &a, const T &b)
 
 template<typename T> inline void min_max(const T &value, T &min, T &max)
 {
-  /* Avoid accidentally swapping pointers instead of values. */
-  static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>);
-  min = math::min(value, min);
-  max = math::max(value, max);
+  static_assert(std::is_arithmetic_v<T>,
+                "math::min_max on non-arithmetic type is likely unintended");
+  min = std::min(value, min);
+  max = std::max(value, max);
 }
 
 template<typename T> inline T safe_divide(const T &a, const T &b)

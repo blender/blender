@@ -24,6 +24,7 @@
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rand.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
