@@ -177,6 +177,7 @@ set(SRC
   BLI_allocator.hh
   BLI_any.hh
   BLI_array.hh
+  BLI_array_state.hh
   BLI_array_store.h
   BLI_array_store_utils.h
   BLI_array_utils.h
@@ -512,6 +513,7 @@ add_library(bf::blenlib ALIAS bf_blenlib)
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/BLI_any_test.cc
+    tests/BLI_array_state_test.cc
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc
