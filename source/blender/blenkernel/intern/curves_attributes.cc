@@ -336,6 +336,21 @@ static GeometryAttributeProviders create_attribute_providers_for_curve()
                                                curve_access,
                                                tag_component_topology_changed);
 
+  static const auto material_index_clamp = mf::build::SI1_SO<int, int>(
+      "Material Index Validate",
+      [](int value) {
+        /* Use #short for the maximum since many areas still use that type for indices. */
+        return std::clamp<int>(value, 0, std::numeric_limits<short>::max());
+      },
+      mf::build::exec_presets::AllSpanOrSingle());
+  static BuiltinCustomDataLayerProvider material_index("material_index",
+                                                       AttrDomain::Curve,
+                                                       CD_PROP_INT32,
+                                                       BuiltinAttributeProvider::Deletable,
+                                                       curve_access,
+                                                       nullptr,
+                                                       AttributeValidator{&material_index_clamp});
+
   static CurvesVertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider curve_custom_data(AttrDomain::Curve, curve_access);
   static CustomDataAttributeProvider point_custom_data(AttrDomain::Point, point_access);
@@ -355,7 +370,8 @@ static GeometryAttributeProviders create_attribute_providers_for_curve()
                                      &nurbs_weight,
                                      &curve_type,
                                      &resolution,
-                                     &cyclic},
+                                     &cyclic,
+                                     &material_index},
                                     {&vertex_groups, &curve_custom_data, &point_custom_data});
 }
 
