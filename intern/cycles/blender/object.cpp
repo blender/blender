@@ -172,7 +172,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   if (is_instance) {
     persistent_id_array = b_instance.persistent_id();
     persistent_id = persistent_id_array.data;
-    if (!b_ob_info.is_real_object_data()) {
+    if (!motion && !b_ob_info.is_real_object_data()) {
       /* Remember which object data the geometry is coming from, so that we can sync it when the
        * object has changed. */
       instance_geometries_by_object[b_ob_info.real_object.ptr.data].insert(b_ob_info.object_data);
@@ -560,7 +560,12 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   else {
     geometry_motion_synced.clear();
   }
-  instance_geometries_by_object.clear();
+
+  if (!motion) {
+    /* Object to geometry instance mapping is built for the reference time, as other
+     * times just look up the corresponding geometry. */
+    instance_geometries_by_object.clear();
+  }
 
   /* initialize culling */
   BlenderObjectCulling culling(scene, b_scene);
