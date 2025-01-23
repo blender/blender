@@ -87,6 +87,40 @@ void BKE_image_format_blend_write(BlendWriter *writer, ImageFormatData *imf)
   BKE_color_managed_view_settings_blend_write(writer, &imf->view_settings);
 }
 
+void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
+{
+  imf->imtype = imtype;
+
+  const bool is_render = (owner_id && GS(owner_id->name) == ID_SCE);
+  /* see note below on why this is */
+  const char chan_flag = BKE_imtype_valid_channels(imf->imtype, true) |
+                         (is_render ? IMA_CHAN_FLAG_BW : 0);
+
+  /* ensure depth and color settings match */
+  if ((imf->planes == R_IMF_PLANES_BW) && !(chan_flag & IMA_CHAN_FLAG_BW)) {
+    imf->planes = R_IMF_PLANES_RGBA;
+  }
+  if ((imf->planes == R_IMF_PLANES_RGBA) && !(chan_flag & IMA_CHAN_FLAG_RGBA)) {
+    imf->planes = R_IMF_PLANES_RGB;
+  }
+
+  /* ensure usable depth */
+  {
+    const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
+    if ((imf->depth & depth_ok) == 0) {
+      imf->depth = BKE_imtype_first_valid_depth(depth_ok);
+    }
+  }
+
+  if (owner_id && GS(owner_id->name) == ID_SCE) {
+    Scene *scene = reinterpret_cast<Scene *>(owner_id);
+    RenderData *rd = &scene->r;
+    MOV_validate_output_settings(rd, imf);
+  }
+
+  BKE_image_format_update_color_space_for_type(imf);
+}
+
 /* File Types */
 
 int BKE_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
@@ -336,6 +370,27 @@ char BKE_imtype_valid_depths_with_video(char imtype, const ID *owner_id)
     }
   }
   return depths;
+}
+
+char BKE_imtype_first_valid_depth(const char valid_depths)
+{
+  /* set first available depth */
+  const char depth_ls[] = {
+      R_IMF_CHAN_DEPTH_32,
+      R_IMF_CHAN_DEPTH_24,
+      R_IMF_CHAN_DEPTH_16,
+      R_IMF_CHAN_DEPTH_12,
+      R_IMF_CHAN_DEPTH_10,
+      R_IMF_CHAN_DEPTH_8,
+      R_IMF_CHAN_DEPTH_1,
+      0,
+  };
+  for (int i = 0; depth_ls[i]; i++) {
+    if (valid_depths & depth_ls[i]) {
+      return depth_ls[i];
+    }
+  }
+  return R_IMF_CHAN_DEPTH_8;
 }
 
 char BKE_imtype_from_arg(const char *imtype_arg)

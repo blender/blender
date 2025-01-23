@@ -2208,21 +2208,29 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
 
     ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
 
-    BLI_assert(movie_writers[0] != nullptr);
-    if (!MOV_write_append(movie_writers[0],
-                          rd,
-                          preview ? scene->r.psfra : scene->r.sfra,
-                          scene->r.cfra,
-                          ibuf_arr[2],
-                          "",
-                          reports))
-    {
+    if (ibuf_arr[2]) {
+      BLI_assert(movie_writers[0] != nullptr);
+      if (!MOV_write_append(movie_writers[0],
+                            rd,
+                            preview ? scene->r.psfra : scene->r.sfra,
+                            scene->r.cfra,
+                            ibuf_arr[2],
+                            "",
+                            reports))
+      {
+        ok = false;
+      }
+    }
+    else {
+      BKE_report(reports, RPT_ERROR, "Failed to create stereo image buffer");
       ok = false;
     }
 
     for (i = 0; i < 3; i++) {
       /* imbuf knows which rects are not part of ibuf */
-      IMB_freeImBuf(ibuf_arr[i]);
+      if (ibuf_arr[i]) {
+        IMB_freeImBuf(ibuf_arr[i]);
+      }
     }
   }
 

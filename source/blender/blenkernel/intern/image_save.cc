@@ -579,9 +579,11 @@ static bool image_save_single(ReportList *reports,
         ibuf = IMB_stereo3d_ImBuf(imf, ibuf_stereo[0], ibuf_stereo[1]);
 
         /* save via traditional path */
-        ok = BKE_imbuf_write_as(ibuf, opts->filepath, imf, save_copy);
+        if (ibuf) {
+          ok = BKE_imbuf_write_as(ibuf, opts->filepath, imf, save_copy);
 
-        IMB_freeImBuf(ibuf);
+          IMB_freeImBuf(ibuf);
+        }
       }
 
       for (int i = 0; i < 2; i++) {
@@ -1169,28 +1171,36 @@ bool BKE_image_render_write(ReportList *reports,
 
       ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
 
-      ok = image_render_write_stamp_test(
-          reports, scene, rr, ibuf_arr[2], filepath, &image_format, stamp);
-
-      /* optional preview images for exr */
-      if (ok && is_exr_rr && (image_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
-        image_format.imtype = R_IMF_IMTYPE_JPEG90;
-        image_format.depth = R_IMF_CHAN_DEPTH_8;
-
-        if (BLI_path_extension_check(filepath, ".exr")) {
-          filepath[strlen(filepath) - 4] = 0;
-        }
-
-        BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
-        ibuf_arr[2]->planes = 24;
-
+      if (ibuf_arr[2]) {
         ok = image_render_write_stamp_test(
             reports, scene, rr, ibuf_arr[2], filepath, &image_format, stamp);
+
+        /* optional preview images for exr */
+        if (ok && is_exr_rr && (image_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
+          image_format.imtype = R_IMF_IMTYPE_JPEG90;
+          image_format.depth = R_IMF_CHAN_DEPTH_8;
+
+          if (BLI_path_extension_check(filepath, ".exr")) {
+            filepath[strlen(filepath) - 4] = 0;
+          }
+
+          BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
+          ibuf_arr[2]->planes = 24;
+
+          ok = image_render_write_stamp_test(
+              reports, scene, rr, ibuf_arr[2], filepath, &image_format, stamp);
+        }
+      }
+      else {
+        BKE_reportf(reports, RPT_ERROR, "Failed to create stereo image buffer");
+        ok = false;
       }
 
       /* imbuf knows which rects are not part of ibuf */
       for (i = 0; i < 3; i++) {
-        IMB_freeImBuf(ibuf_arr[i]);
+        if (ibuf_arr[i]) {
+          IMB_freeImBuf(ibuf_arr[i]);
+        }
       }
     }
   }

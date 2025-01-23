@@ -2007,7 +2007,7 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
                 "release.\n");
       }
       else {
-        scene->r.im_format.imtype = imtype_new;
+        BKE_image_format_set(&scene->r.im_format, &scene->id, imtype_new);
         DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
     }

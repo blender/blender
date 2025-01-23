@@ -676,18 +676,6 @@ void IMB_stereo3d_write_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);
 void IMB_stereo3d_read_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);
-int *IMB_stereo3d_from_rect(const ImageFormatData *im_format,
-                            size_t x,
-                            size_t y,
-                            size_t channels,
-                            int *rect_left,
-                            int *rect_right);
-float *IMB_stereo3d_from_rectf(const ImageFormatData *im_format,
-                               size_t x,
-                               size_t y,
-                               size_t channels,
-                               float *rectf_left,
-                               float *rectf_right);
 /**
  * Left/right are always float.
  */
