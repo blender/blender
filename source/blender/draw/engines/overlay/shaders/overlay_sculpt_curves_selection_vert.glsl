@@ -4,7 +4,8 @@
 
 #include "common_hair_lib.glsl"
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 
 float retrieve_selection()
 {
@@ -30,7 +31,7 @@ void main()
                               thickness,
                               thick_time);
 
-  gl_Position = point_world_to_ndc(world_pos);
+  gl_Position = drw_point_world_to_homogenous(world_pos);
 
   mask_weight = 1.0 - (selection_opacity - retrieve_selection() * selection_opacity);
 

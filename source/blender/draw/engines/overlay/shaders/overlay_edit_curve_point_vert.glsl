@@ -3,12 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 
 void main()
 {
-  GPU_INTEL_VERTEX_SHADER_WORKAROUND
-
   /* Reuse the FREESTYLE flag to determine is GPencil. */
   bool is_gpencil = ((data & EDGE_FREESTYLE) != 0u);
   if ((data & VERT_SELECTED) != 0u) {
@@ -23,8 +22,8 @@ void main()
     finalColor = (!is_gpencil) ? colorVertex : colorGpencilVertex;
   }
 
-  vec3 world_pos = point_object_to_world(pos);
-  gl_Position = point_world_to_ndc(world_pos);
+  vec3 world_pos = drw_point_object_to_world(pos);
+  gl_Position = drw_point_world_to_homogenous(world_pos);
   gl_PointSize = (!is_gpencil) ? sizeVertex * 2.0 : sizeVertexGpencil * 2.0;
   view_clipping_distances(world_pos);
 

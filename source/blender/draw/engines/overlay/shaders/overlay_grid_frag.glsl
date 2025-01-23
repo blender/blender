@@ -27,7 +27,7 @@
 #define GRID_LINE_STEP(dist) smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist)
 
 #include "common_math_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
 
 float get_grid(vec2 co, vec2 fwidthCos, vec2 grid_scale)
 {
@@ -59,12 +59,12 @@ void main()
   vec3 dFdxPos = dFdx(P);
   vec3 dFdyPos = dFdy(P);
   vec3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
-  P += cameraPos * plane_axes;
+  P += drw_view_position() * plane_axes;
 
   float dist, fade;
   bool is_persp = drw_view.winmat[3][3] == 0.0;
   if (is_persp) {
-    vec3 V = cameraPos - P;
+    vec3 V = drw_view_position() - P;
     dist = length(V);
     V /= dist;
 

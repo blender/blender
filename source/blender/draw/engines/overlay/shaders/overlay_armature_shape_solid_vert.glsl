@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 
 void main()
@@ -17,7 +18,7 @@ void main()
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
   mat3 normal_mat = transpose(inverse(to_float3x3(model_mat)));
-  vec3 normal = normalize(normal_world_to_view(normal_mat * nor));
+  vec3 normal = normalize(drw_normal_world_to_view(normal_mat * nor));
 
   inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0);
 

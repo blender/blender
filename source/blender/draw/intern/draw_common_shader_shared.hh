@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#pragma once
+
 #ifndef GPU_SHADER
 #  include "GPU_shader_shared_utils.hh"
 

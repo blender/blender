@@ -2,7 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "select_lib.glsl"
 
 /* Straight Port from BKE_defvert_weight_to_rgb()
@@ -194,6 +195,6 @@ void main()
 #  endif
 #endif
 
-  vec3 world_pos = point_object_to_world(pos);
-  gl_Position = point_world_to_ndc(world_pos);
+  vec3 world_pos = drw_point_object_to_world(pos);
+  gl_Position = drw_point_world_to_homogenous(world_pos);
 }

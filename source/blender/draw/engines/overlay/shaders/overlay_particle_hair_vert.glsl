@@ -11,6 +11,7 @@
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
+#include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 
 /* TODO(fclem): Deduplicate wireframe color. */
@@ -85,7 +86,7 @@ void main()
   vec3 ws_P = drw_point_object_to_world(pos);
   vec3 ws_N = normalize(drw_normal_object_to_world(-nor));
 
-  gl_Position = point_world_to_ndc(ws_P);
+  gl_Position = drw_point_world_to_homogenous(ws_P);
 
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
 

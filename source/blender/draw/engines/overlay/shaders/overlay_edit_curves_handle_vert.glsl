@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
@@ -43,8 +44,8 @@ VertOut vertex_main(VertIn vert_in)
 {
   VertOut vert;
   vert.flag = vert_in.e_data;
-  vert.ws_P = point_object_to_world(vert_in.ls_P);
-  vert.gpu_position = point_world_to_ndc(vert.ws_P);
+  vert.ws_P = drw_point_object_to_world(vert_in.ls_P);
+  vert.gpu_position = drw_point_world_to_homogenous(vert.ws_P);
   vert.sel = vert_in.sel;
   return vert;
 }

@@ -4,7 +4,8 @@
 
 #include "common_hair_lib.glsl"
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 uint outline_colorid_get()
@@ -32,7 +33,7 @@ uint outline_colorid_get()
 
 /* Replace top 2 bits (of the 16bit output) by outlineId.
  * This leaves 16K different IDs to create outlines between objects.
- * `vec3 world_pos = point_object_to_world(pos);`
+ * `vec3 world_pos = drw_point_object_to_world(pos);`
  * `SHIFT = (32 - (16 - 2))`. */
 #define SHIFT 18u
 
@@ -53,7 +54,7 @@ void main()
   vec3 world_pos;
   if (hairThicknessRes > 1) {
     /* Calculate the thickness, thick-time, world-position taken into account the outline. */
-    float outline_width = point_world_to_ndc(center_wpos).w * 1.25 * sizeViewportInv.y *
+    float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25 * sizeViewportInv.y *
                           drw_view.wininv[1][1];
     thickness += outline_width;
     float thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
@@ -67,10 +68,10 @@ void main()
     world_pos = center_wpos;
   }
 
-  gl_Position = point_world_to_ndc(world_pos);
+  gl_Position = drw_point_world_to_homogenous(world_pos);
 
 #ifdef USE_GEOM
-  vert.pos = point_world_to_view(world_pos);
+  vert.pos = drw_point_world_to_view(world_pos);
 #endif
 
   /* Small bias to always be on top of the geom. */

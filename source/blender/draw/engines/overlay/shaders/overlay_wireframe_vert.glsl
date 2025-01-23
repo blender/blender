@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
+#include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 
 #if !defined(POINTS) && !defined(CURVES)
@@ -88,7 +90,7 @@ void main()
 {
   select_id_set(drw_CustomID);
 
-  vec3 wpos = point_object_to_world(pos);
+  vec3 wpos = drw_point_object_to_world(pos);
 #if defined(POINTS)
   gl_PointSize = sizeVertex * 2.0;
 #elif defined(CURVES)
@@ -97,7 +99,7 @@ void main()
   bool no_attr = all(equal(nor, vec3(0)));
   /* If no attribute is available, use a direction perpendicular
    * to the view to have full brightness. */
-  vec3 wnor = no_attr ? drw_view.viewinv[1].xyz : normalize(normal_object_to_world(nor));
+  vec3 wnor = no_attr ? drw_view.viewinv[1].xyz : normalize(drw_normal_object_to_world(nor));
 
   if (isHair) {
     mat4 obmat = hairDupliMatrix;
@@ -111,7 +113,7 @@ void main()
   float facing = dot(wnor, V);
 #endif
 
-  gl_Position = point_world_to_ndc(wpos);
+  gl_Position = drw_point_world_to_homogenous(wpos);
 
 #ifndef CUSTOM_DEPTH_BIAS_CONST
 /* TODO(fclem): Cleanup after overlay next. */
@@ -128,7 +130,7 @@ void main()
     float flip = sign(facing);           /* Flip when not facing the normal (i.e.: back-facing). */
     float curvature = (1.0 - wd * 0.75); /* Avoid making things worse for curvy areas. */
     vec3 wofs = wnor * (facing_ratio * curvature * flip);
-    wofs = normal_world_to_view(wofs);
+    wofs = drw_normal_world_to_view(wofs);
 
     /* Push vertex half a pixel (maximum) in normal direction. */
     gl_Position.xy += wofs.xy * sizeViewportInv * gl_Position.w;

@@ -150,6 +150,7 @@
 #include "overlay_antialiasing_info.hh"
 #include "overlay_armature_info.hh"
 #include "overlay_background_info.hh"
+#include "overlay_common_info.hh"
 #include "overlay_edit_mode_info.hh"
 #include "overlay_extra_info.hh"
 #include "overlay_facing_info.hh"

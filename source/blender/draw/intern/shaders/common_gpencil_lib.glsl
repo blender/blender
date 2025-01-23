@@ -5,7 +5,8 @@
 #pragma once
 
 #include "common_math_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 
 #ifndef DRW_GPENCIL_INFO
 #  error Missing additional info draw_gpencil
@@ -225,9 +226,9 @@ vec4 gpencil_vertex(vec4 viewport_size,
     vec3 B = cross(T, ViewMatrixInverse[2].xyz);
     out_N = normalize(cross(B, T));
 
-    vec4 ndc_adj = point_world_to_ndc(wpos_adj);
-    vec4 ndc1 = point_world_to_ndc(wpos1);
-    vec4 ndc2 = point_world_to_ndc(wpos2);
+    vec4 ndc_adj = drw_point_world_to_homogenous(wpos_adj);
+    vec4 ndc1 = drw_point_world_to_homogenous(wpos1);
+    vec4 ndc2 = drw_point_world_to_homogenous(wpos2);
 
     out_ndc = (use_curr) ? ndc1 : ndc2;
     out_P = (use_curr) ? wpos1 : wpos2;
@@ -265,7 +266,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
         x_axis = vec2(1.0, 0.0);
       }
       else { /* GP_STROKE_ALIGNMENT_OBJECT */
-        vec4 ndc_x = point_world_to_ndc(wpos1 + ModelMatrix[0].xyz);
+        vec4 ndc_x = drw_point_world_to_homogenous(wpos1 + ModelMatrix[0].xyz);
         vec2 ss_x = gpencil_project_to_screenspace(ndc_x, viewport_size);
         x_axis = safe_normalize(ss_x - ss1);
       }
@@ -335,7 +336,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
   }
   else {
     out_P = transform_point(ModelMatrix, pos1.xyz);
-    out_ndc = point_world_to_ndc(out_P);
+    out_ndc = drw_point_world_to_homogenous(out_P);
     out_uv = uv1.xy;
     out_thickness.x = 1e18;
     out_thickness.y = 1e20;
@@ -344,10 +345,10 @@ vec4 gpencil_vertex(vec4 viewport_size,
     out_sspos = vec4(0.0);
 
     /* Flat normal following camera and object bounds. */
-    vec3 V = cameraVec(ModelMatrix[3].xyz);
-    vec3 N = normal_world_to_object(V);
+    vec3 V = drw_world_incident_vector(ModelMatrix[3].xyz);
+    vec3 N = drw_normal_world_to_object(V);
     N *= OrcoTexCoFactors[1].xyz;
-    N = normal_object_to_world(N);
+    N = drw_normal_object_to_world(N);
     out_N = safe_normalize(N);
 
     /* Decode fill opacity. */

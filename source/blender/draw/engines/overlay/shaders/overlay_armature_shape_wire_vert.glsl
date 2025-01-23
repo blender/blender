@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
+#include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 
 struct VertIn {
@@ -38,7 +39,7 @@ VertOut vertex_main(VertIn v_in)
 
   VertOut v_out;
   v_out.world_pos = (model_mat * vec4(v_in.lP, 1.0)).xyz;
-  v_out.gpu_position = point_world_to_ndc(v_out.world_pos);
+  v_out.gpu_position = drw_point_world_to_homogenous(v_out.world_pos);
 
   v_out.finalColor.rgb = mix(state_color.rgb, bone_color.rgb, 0.5);
   v_out.finalColor.a = 1.0;
