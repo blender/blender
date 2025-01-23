@@ -72,11 +72,17 @@ class Meshes : Overlay {
   bool select_face_ = false;
   bool select_vert_ = false;
 
+  /**
+   * Depth offsets applied in screen space to different edit overlay components.
+   * This is multiplied by a factor based on zoom level computed by `GPU_polygon_offset_calc`.
+   */
+  static constexpr float cage_ndc_offset_ = 0.5f;
+  static constexpr float edge_ndc_offset_ = 1.0f;
+  static constexpr float vert_ndc_offset_ = 1.5f;
+
   /* TODO(fclem): This is quite wasteful and expensive, prefer in shader Z modification like the
    * retopology offset. */
   View view_edit_cage_ = {"view_edit_cage"};
-  View view_edit_edge_ = {"view_edit_edge"};
-  View view_edit_vert_ = {"view_edit_vert"};
   View::OffsetData offset_data_;
 
  public:
@@ -204,7 +210,7 @@ class Meshes : Overlay {
       pass.bind_texture("weightTex", res.weight_ramp_tx);
     }
 
-    auto mesh_edit_common_resource_bind = [&](PassSimple &pass, float alpha) {
+    auto mesh_edit_common_resource_bind = [&](PassSimple &pass, float alpha, float ndc_offset) {
       pass.bind_texture("depthTex", depth_tex);
       /* TODO(fclem): UBO. */
       pass.push_constant("wireShading", is_wire_shading_mode);
@@ -212,6 +218,8 @@ class Meshes : Overlay {
       pass.push_constant("selectEdge", select_edge_);
       pass.push_constant("alpha", alpha);
       pass.push_constant("retopologyOffset", retopology_offset);
+      pass.push_constant("ndc_offset_factor", &state.ndc_offset_factor);
+      pass.push_constant("ndc_offset", ndc_offset);
       pass.push_constant("dataMask", int4(data_mask));
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     };
@@ -226,7 +234,7 @@ class Meshes : Overlay {
       pass.shader_set(res.shaders.mesh_edit_edge.get());
       pass.push_constant("do_smooth_wire", do_smooth_wire);
       pass.push_constant("use_vertex_selection", select_vert_);
-      mesh_edit_common_resource_bind(pass, backwire_opacity);
+      mesh_edit_common_resource_bind(pass, backwire_opacity, edge_ndc_offset_);
     }
     {
       auto &pass = edit_mesh_faces_ps_;
@@ -235,7 +243,7 @@ class Meshes : Overlay {
                          face_culling,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders.mesh_edit_face.get());
-      mesh_edit_common_resource_bind(pass, face_alpha);
+      mesh_edit_common_resource_bind(pass, face_alpha, 0.0f);
     }
     {
       auto &pass = edit_mesh_cages_ps_;
@@ -243,7 +251,7 @@ class Meshes : Overlay {
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders.mesh_edit_face.get());
-      mesh_edit_common_resource_bind(pass, face_alpha);
+      mesh_edit_common_resource_bind(pass, face_alpha, cage_ndc_offset_);
     }
     {
       auto &pass = edit_mesh_verts_ps_;
@@ -252,7 +260,7 @@ class Meshes : Overlay {
                          DRW_STATE_WRITE_DEPTH,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders.mesh_edit_vert.get());
-      mesh_edit_common_resource_bind(pass, backwire_opacity);
+      mesh_edit_common_resource_bind(pass, backwire_opacity, vert_ndc_offset_);
     }
     {
       auto &pass = edit_mesh_facedots_ps_;
@@ -261,7 +269,7 @@ class Meshes : Overlay {
                          DRW_STATE_WRITE_DEPTH,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders.mesh_edit_facedot.get());
-      mesh_edit_common_resource_bind(pass, backwire_opacity);
+      mesh_edit_common_resource_bind(pass, backwire_opacity, vert_ndc_offset_);
     }
     {
       auto &pass = edit_mesh_skin_roots_ps_;
@@ -372,17 +380,13 @@ class Meshes : Overlay {
       return;
     }
 
-    view_edit_cage_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
-    view_edit_edge_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.0f));
-    view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
-
     manager.submit(edit_mesh_normals_ps_, view);
     manager.submit(edit_mesh_faces_ps_, view);
-    manager.submit(edit_mesh_cages_ps_, view_edit_cage_);
-    manager.submit(edit_mesh_edges_ps_, view_edit_edge_);
-    manager.submit(edit_mesh_verts_ps_, view_edit_vert_);
-    manager.submit(edit_mesh_skin_roots_ps_, view_edit_vert_);
-    manager.submit(edit_mesh_facedots_ps_, view_edit_vert_);
+    manager.submit(edit_mesh_cages_ps_, view);
+    manager.submit(edit_mesh_edges_ps_, view);
+    manager.submit(edit_mesh_verts_ps_, view);
+    manager.submit(edit_mesh_skin_roots_ps_, view);
+    manager.submit(edit_mesh_facedots_ps_, view);
 
     GPU_debug_group_end();
   }
@@ -399,18 +403,14 @@ class Meshes : Overlay {
 
     GPU_debug_group_begin("Mesh Edit Color Only");
 
-    view_edit_cage_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
-    view_edit_edge_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.0f));
-    view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
-
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_normals_ps_, view);
     manager.submit(edit_mesh_faces_ps_, view);
-    manager.submit(edit_mesh_cages_ps_, view_edit_cage_);
-    manager.submit(edit_mesh_edges_ps_, view_edit_edge_);
-    manager.submit(edit_mesh_verts_ps_, view_edit_vert_);
-    manager.submit(edit_mesh_skin_roots_ps_, view_edit_vert_);
-    manager.submit(edit_mesh_facedots_ps_, view_edit_vert_);
+    manager.submit(edit_mesh_cages_ps_, view);
+    manager.submit(edit_mesh_edges_ps_, view);
+    manager.submit(edit_mesh_verts_ps_, view);
+    manager.submit(edit_mesh_skin_roots_ps_, view);
+    manager.submit(edit_mesh_facedots_ps_, view);
 
     GPU_debug_group_end();
   }

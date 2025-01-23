@@ -107,6 +107,8 @@ void main()
   finalColor.rgb = mix(finalColor.rgb,
                        non_linear_blend_color(colorEditMeshMiddle.rgb, finalColor.rgb, facing),
                        fresnelMixEdit);
+
+  gl_Position.z -= ndc_offset_factor * ndc_offset;
 #endif
 
   view_clipping_distances(world_pos);

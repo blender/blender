@@ -91,6 +91,7 @@ class Wireframe : Overlay {
             sub.push_constant("colorType", state.v3d->shading.wire_color_type);
             sub.push_constant("useColoring", use_coloring);
             sub.push_constant("wireStepParam", wire_threshold);
+            sub.push_constant("ndc_offset_factor", &state.ndc_offset_factor);
             sub.push_constant("isHair", false);
             return &sub;
           };

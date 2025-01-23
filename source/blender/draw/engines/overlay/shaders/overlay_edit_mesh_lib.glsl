@@ -128,7 +128,7 @@ VertOut vertex_main(VertIn vert_in)
       fresnelMixEdit);
 #endif
 
-  view_clipping_distances(vert_out.world_position);
+  vert_out.gpu_position.z -= ndc_offset_factor * ndc_offset;
 
   return vert_out;
 }

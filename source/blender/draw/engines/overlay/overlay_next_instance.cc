@@ -378,6 +378,9 @@ void Instance::draw(Manager &manager)
     draw_scope.begin_capture();
   }
 
+  /* TODO(fclem): To be moved to overlay UBO. */
+  state.ndc_offset_factor = state.offset_data_get().polygon_offset_factor(view.winmat());
+
   resources.pre_draw();
 
   outline.flat_objects_pass_sync(manager, view, resources, state);

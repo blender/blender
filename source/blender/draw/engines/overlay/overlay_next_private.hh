@@ -177,6 +177,11 @@ struct State {
     return View::OffsetData(*rv3d);
   }
 
+  /* Factor to use for wireframe offset.
+   * Result of GPU_polygon_offset_calc for the current view.
+   * Only valid at draw time, so use push constant reference instead of copy. */
+  float ndc_offset_factor = 0.0f;
+
   /** Convenience functions. */
 
   /** Scene geometry is solid. Occlude overlays behind scene geometry. */

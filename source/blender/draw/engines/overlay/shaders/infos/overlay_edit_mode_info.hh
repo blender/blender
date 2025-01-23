@@ -24,6 +24,10 @@ SAMPLER(0, DEPTH_2D, depthTex)
 DEFINE("LINE_OUTPUT")
 FRAGMENT_OUT(0, VEC4, fragColor)
 FRAGMENT_OUT(1, VEC4, lineOutput)
+/* Per view factor. */
+PUSH_CONSTANT(FLOAT, ndc_offset_factor)
+/* Per pass factor. */
+PUSH_CONSTANT(FLOAT, ndc_offset)
 PUSH_CONSTANT(BOOL, wireShading)
 PUSH_CONSTANT(BOOL, selectFace)
 PUSH_CONSTANT(BOOL, selectEdge)
