@@ -133,9 +133,12 @@ static void select_cache_init(void *vedata)
   bool retopology_occlusion = RETOPOLOGY_ENABLED(draw_ctx->v3d) && !XRAY_ENABLED(draw_ctx->v3d);
   float retopology_offset = RETOPOLOGY_OFFSET(draw_ctx->v3d);
 
+  /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity. */
+  int clipping_plane_count = RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ? 6 : 0;
+
   {
     inst.depth_only_ps.init();
-    inst.depth_only_ps.state_set(state);
+    inst.depth_only_ps.state_set(state, clipping_plane_count);
     inst.depth_only = nullptr;
     inst.depth_occlude = nullptr;
     {
@@ -154,7 +157,7 @@ static void select_cache_init(void *vedata)
     }
 
     inst.select_face_ps.init();
-    inst.select_face_ps.state_set(state);
+    inst.select_face_ps.state_set(state, clipping_plane_count);
     inst.select_face_uniform = nullptr;
     inst.select_face_flat = nullptr;
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
@@ -175,7 +178,7 @@ static void select_cache_init(void *vedata)
     inst.select_edge = nullptr;
     if (e_data.context.select_mode & SCE_SELECT_EDGE) {
       auto &sub = inst.select_edge_ps.sub("Sub");
-      sub.state_set(state | DRW_STATE_FIRST_VERTEX_CONVENTION);
+      sub.state_set(state | DRW_STATE_FIRST_VERTEX_CONVENTION, clipping_plane_count);
       sub.shader_set(sh->select_id_flat);
       sub.push_constant("retopologyOffset", retopology_offset);
       inst.select_edge = &sub;
@@ -185,7 +188,7 @@ static void select_cache_init(void *vedata)
     inst.select_vert = nullptr;
     if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
       auto &sub = inst.select_id_vert_ps.sub("Sub");
-      sub.state_set(state);
+      sub.state_set(state, clipping_plane_count);
       sub.shader_set(sh->select_id_flat);
       sub.push_constant("sizeVertex", float(2 * G_draw.block.size_vertex));
       sub.push_constant("retopologyOffset", retopology_offset);
