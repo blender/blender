@@ -697,6 +697,17 @@ def build_paths_expand_iter(
     path_swap = os.sep != "/"
     path_strip = path.rstrip(os.sep)
     for filepath in path_list:
+        # This is needed so it's possible to compare relative paths against string literals.
+        # So it's possible to know if a path list includes a path or not.
+        #
+        # Simple path normalization:
+        # - Remove redundant slashes.
+        # - Strip all `./`.
+        while "//" in filepath:
+            filepath = filepath.replace("//", "/")
+        while filepath.startswith("./"):
+            filepath = filepath[2:]
+
         if path_swap:
             filepath = filepath.replace("/", "\\")
 
@@ -4705,6 +4716,20 @@ class subcmd_author:
             except Exception as ex:
                 msglog.fatal_error("Error building path list \"{:s}\"".format(str(ex)))
                 return False
+
+        if manifest.type == "add-on":
+            # We could have a more generic way to find expected files,
+            # for now perform specific checks.
+            is_valid_python_package = False
+            for _, filepath_rel in build_paths:
+                # Other Python module suffixes besides `.py` can be used.
+                if filepath_rel.startswith("__init__."):
+                    is_valid_python_package = True
+                    break
+            if not is_valid_python_package:
+                msglog.fatal_error("Not a Python package: missing \"__init__.*\" file, typically \"__init__.py\"")
+                return False
+            del is_valid_python_package
 
         request_exit = False
 
