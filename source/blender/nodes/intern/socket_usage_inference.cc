@@ -208,11 +208,27 @@ struct SocketUsageInferencer {
         this->usage_task__input__capture_attribute_node(socket);
         break;
       }
+      case SH_NODE_OUTPUT_AOV:
+      case SH_NODE_OUTPUT_LIGHT:
+      case SH_NODE_OUTPUT_WORLD:
+      case SH_NODE_OUTPUT_LINESTYLE:
+      case SH_NODE_OUTPUT_MATERIAL:
+      case CMP_NODE_OUTPUT_FILE:
+      case CMP_NODE_COMPOSITE:
+      case TEX_NODE_OUTPUT: {
+        this->usage_task__input__output_node(socket);
+        break;
+      }
       default: {
         this->usage_task__input__fallback(socket);
         break;
       }
     }
+  }
+
+  void usage_task__input__output_node(const SocketInContext &socket)
+  {
+    all_socket_usages_.add_new(socket, true);
   }
 
   /**
