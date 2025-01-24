@@ -435,8 +435,6 @@ class _draw_tool_settings_context_mode:
         # Brush falloff
         layout.popover("VIEW3D_PT_tools_brush_falloff")
 
-        # Active layer only switch
-        layout.prop(brush.gpencil_settings, "use_active_layer_only")
         return True
 
     @staticmethod
@@ -954,6 +952,12 @@ class VIEW3D_HT_header(Header):
                         panel="VIEW3D_PT_grease_pencil_guide",
                         text="Guides",
                     )
+            if object_mode == 'SCULPT_GREASE_PENCIL':
+                layout.popover(
+                    panel="VIEW3D_PT_grease_pencil_sculpt_automasking",
+                    text="",
+                    icon=VIEW3D_HT_header._grease_pencil_sculpt_automasking_icon(tool_settings.gpencil_sculpt),
+                )
 
         elif object_mode == 'SCULPT':
             # If the active tool supports it, show the canvas selector popover.

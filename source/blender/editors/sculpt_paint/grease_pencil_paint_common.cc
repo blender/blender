@@ -28,19 +28,32 @@
 
 namespace blender::ed::sculpt_paint::greasepencil {
 
-Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_painting(const bContext &C)
+Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_stroke_operation(const bContext &C)
 {
   using namespace blender::bke::greasepencil;
 
   const Scene &scene = *CTX_data_scene(&C);
   Object &ob_orig = *CTX_data_active_object(&C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
-  Paint &paint = *BKE_paint_get_active_from_context(&C);
-  const Brush &brush = *BKE_paint_brush(&paint);
-  const bool active_layer_only = ((brush.gpencil_settings->flag & GP_BRUSH_ACTIVE_LAYER_ONLY) !=
-                                  0);
 
-  if (active_layer_only) {
+  /* Apply to all editable drawings. */
+  return ed::greasepencil::retrieve_editable_drawings_with_falloff(scene, grease_pencil);
+}
+
+Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_with_masking_for_stroke_operation(
+    const bContext &C)
+{
+  using namespace blender::bke::greasepencil;
+
+  const Scene &scene = *CTX_data_scene(&C);
+  const ToolSettings &ts = *CTX_data_tool_settings(&C);
+  Object &ob_orig = *CTX_data_active_object(&C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+
+  const bool active_layer_masking = (ts.gp_sculpt.flag &
+                                     GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_ACTIVE) != 0;
+
+  if (active_layer_masking) {
     /* Apply only to the drawing at the current frame of the active layer. */
     if (!grease_pencil.has_active_layer()) {
       return {};
@@ -293,35 +306,33 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
           drawing};
 }
 
-IndexMask point_selection_mask(const GreasePencilStrokeParams &params,
-                               const bool use_masking,
-                               IndexMaskMemory &memory)
+IndexMask point_mask_for_stroke_operation(const GreasePencilStrokeParams &params,
+                                          const bool use_selection_masking,
+                                          IndexMaskMemory &memory)
 {
-
-  return use_masking ? ed::greasepencil::retrieve_editable_and_selected_points(
-                           params.ob_orig, params.drawing, params.layer_index, memory) :
-                       ed::greasepencil::retrieve_editable_points(
-                           params.ob_orig, params.drawing, params.layer_index, memory);
+  return use_selection_masking ? ed::greasepencil::retrieve_editable_and_selected_points(
+                                     params.ob_orig, params.drawing, params.layer_index, memory) :
+                                 ed::greasepencil::retrieve_editable_points(
+                                     params.ob_orig, params.drawing, params.layer_index, memory);
 }
 
-IndexMask stroke_selection_mask(const GreasePencilStrokeParams &params,
-                                const bool use_masking,
-                                IndexMaskMemory &memory)
+IndexMask curve_mask_for_stroke_operation(const GreasePencilStrokeParams &params,
+                                          const bool use_selection_masking,
+                                          IndexMaskMemory &memory)
 {
-
-  return use_masking ? ed::greasepencil::retrieve_editable_and_selected_strokes(
-                           params.ob_orig, params.drawing, params.layer_index, memory) :
-                       ed::greasepencil::retrieve_editable_strokes(
-                           params.ob_orig, params.drawing, params.layer_index, memory);
+  return use_selection_masking ? ed::greasepencil::retrieve_editable_and_selected_strokes(
+                                     params.ob_orig, params.drawing, params.layer_index, memory) :
+                                 ed::greasepencil::retrieve_editable_strokes(
+                                     params.ob_orig, params.drawing, params.layer_index, memory);
 }
 
-IndexMask fill_selection_mask(const GreasePencilStrokeParams &params,
-                              const bool use_masking,
-                              IndexMaskMemory &memory)
+IndexMask fill_mask_for_stroke_operation(const GreasePencilStrokeParams &params,
+                                         const bool use_selection_masking,
+                                         IndexMaskMemory &memory)
 {
-  return use_masking ? ed::greasepencil::retrieve_editable_and_selected_fill_strokes(
-                           params.ob_orig, params.drawing, params.layer_index, memory) :
-                       params.drawing.strokes().curves_range();
+  return use_selection_masking ? ed::greasepencil::retrieve_editable_and_selected_fill_strokes(
+                                     params.ob_orig, params.drawing, params.layer_index, memory) :
+                                 params.drawing.strokes().curves_range();
 }
 
 bke::crazyspace::GeometryDeformation get_drawing_deformation(
@@ -395,6 +406,92 @@ float2 GreasePencilStrokeOperationCommon::mouse_delta(const InputSample &input_s
   return input_sample.mouse_position - this->prev_mouse_position;
 }
 
+void GreasePencilStrokeOperationCommon::foreach_editable_drawing_with_automask(
+    const bContext &C,
+    FunctionRef<bool(const GreasePencilStrokeParams &params, const IndexMask &point_mask)> fn)
+    const
+{
+  using namespace blender::bke::greasepencil;
+
+  const Scene &scene = *CTX_data_scene(&C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
+  ARegion &region = *CTX_wm_region(&C);
+  RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
+  Object &object = *CTX_data_active_object(&C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = get_drawings_with_masking_for_stroke_operation(C);
+  for (const int64_t i : drawings.index_range()) {
+    const MutableDrawingInfo &info = drawings[i];
+    const AutoMaskingInfo &auto_mask_info = this->auto_masking_info_per_drawing[i];
+    GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
+        scene,
+        depsgraph,
+        region,
+        rv3d,
+        object,
+        info.layer_index,
+        info.frame_number,
+        info.multi_frame_falloff,
+        info.drawing);
+
+    if (fn(params, auto_mask_info.point_mask)) {
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+}
+
+void GreasePencilStrokeOperationCommon::foreach_editable_drawing_with_automask(
+    const bContext &C,
+    FunctionRef<bool(const GreasePencilStrokeParams &params,
+                     const IndexMask &point_mask,
+                     const DeltaProjectionFunc &projection_fn)> fn) const
+{
+  using namespace blender::bke::greasepencil;
+
+  const Scene &scene = *CTX_data_scene(&C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
+  ARegion &region = *CTX_wm_region(&C);
+  RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
+  Object &object = *CTX_data_active_object(&C);
+  Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = get_drawings_with_masking_for_stroke_operation(C);
+  threading::parallel_for_each(drawings.index_range(), [&](const int i) {
+    const MutableDrawingInfo &info = drawings[i];
+    const Layer &layer = grease_pencil.layer(info.layer_index);
+    const AutoMaskingInfo &auto_mask_info = this->auto_masking_info_per_drawing[i];
+    const GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
+        scene,
+        depsgraph,
+        region,
+        rv3d,
+        object,
+        info.layer_index,
+        info.frame_number,
+        info.multi_frame_falloff,
+        info.drawing);
+
+    const DeltaProjectionFunc projection_fn = get_screen_projection_fn(params, object_eval, layer);
+    if (fn(params, auto_mask_info.point_mask, projection_fn)) {
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+}
+
 void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
     const bContext &C, FunctionRef<bool(const GreasePencilStrokeParams &params)> fn) const
 {
@@ -407,8 +504,8 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   Object &object = *CTX_data_active_object(&C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
-  std::atomic<bool> changed = false;
-  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
+  bool changed = false;
+  const Vector<MutableDrawingInfo> drawings = get_drawings_for_stroke_operation(C);
   for (const int64_t i : drawings.index_range()) {
     const MutableDrawingInfo &info = drawings[i];
     GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
@@ -447,7 +544,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
-  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
+  const Vector<MutableDrawingInfo> drawings = get_drawings_for_stroke_operation(C);
   threading::parallel_for(drawings.index_range(), grain_size.value, [&](const IndexRange range) {
     for (const int64_t i : range) {
       const MutableDrawingInfo &info = drawings[i];
@@ -473,48 +570,6 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   }
 }
 
-void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
-    const bContext &C,
-    FunctionRef<bool(const GreasePencilStrokeParams &params,
-                     const DeltaProjectionFunc &projection_fn)> fn) const
-{
-  using namespace blender::bke::greasepencil;
-
-  const Scene &scene = *CTX_data_scene(&C);
-  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
-  ARegion &region = *CTX_wm_region(&C);
-  RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
-  Object &object = *CTX_data_active_object(&C);
-  Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-
-  std::atomic<bool> changed = false;
-  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
-  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    const Layer &layer = grease_pencil.layer(info.layer_index);
-
-    const GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
-        scene,
-        depsgraph,
-        region,
-        rv3d,
-        object,
-        info.layer_index,
-        info.frame_number,
-        info.multi_frame_falloff,
-        info.drawing);
-    const DeltaProjectionFunc projection_fn = get_screen_projection_fn(params, object_eval, layer);
-    if (fn(params, projection_fn)) {
-      changed = true;
-    }
-  });
-
-  if (changed) {
-    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil);
-  }
-}
-
 void GreasePencilStrokeOperationCommon::init_stroke(const bContext &C,
                                                     const InputSample &start_sample)
 {
@@ -525,6 +580,150 @@ void GreasePencilStrokeOperationCommon::init_stroke(const bContext &C,
 
   this->start_mouse_position = start_sample.mouse_position;
   this->prev_mouse_position = start_sample.mouse_position;
+}
+
+void GreasePencilStrokeOperationCommon::init_auto_masking(const bContext &C,
+                                                          const InputSample &start_sample)
+{
+  const Scene &scene = *CTX_data_scene(&C);
+  ARegion &region = *CTX_wm_region(&C);
+  RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
+  Object &object = *CTX_data_active_object(&C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
+  Paint &paint = *BKE_paint_get_active_from_context(&C);
+  const Brush &brush = *BKE_paint_brush(&paint);
+
+  const eGP_Sculpt_SelectMaskFlag sculpt_selection_flag = eGP_Sculpt_SelectMaskFlag(
+      scene.toolsettings->gpencil_selectmode_sculpt);
+  const bool use_sculpt_selection_masking = (sculpt_selection_flag &
+                                             (GP_SCULPT_MASK_SELECTMODE_POINT |
+                                              GP_SCULPT_MASK_SELECTMODE_STROKE |
+                                              GP_SCULPT_MASK_SELECTMODE_SEGMENT)) != 0;
+
+  const eGP_Sculpt_SettingsFlag sculpt_settings_flag = eGP_Sculpt_SettingsFlag(
+      scene.toolsettings->gp_sculpt.flag);
+  const bool use_auto_mask_stroke = (sculpt_settings_flag & GP_SCULPT_SETT_FLAG_AUTOMASK_STROKE);
+  const bool use_auto_mask_layer = (sculpt_settings_flag &
+                                    GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_STROKE);
+  const bool use_auto_mask_material = (sculpt_settings_flag &
+                                       GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_STROKE);
+  const bool use_auto_mask_active_material = (sculpt_settings_flag &
+                                              GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_ACTIVE);
+
+  const float radius = brush_radius(scene, brush);
+  const int2 mval_i = int2(math::round(start_sample.mouse_position));
+  const int active_material_index = math::max(object.actcol - 1, 0);
+
+  const Vector<MutableDrawingInfo> drawings = get_drawings_with_masking_for_stroke_operation(C);
+  this->auto_masking_info_per_drawing.reinitialize(drawings.size());
+
+  VectorSet<int> masked_layer_indices;
+  VectorSet<int> masked_material_indices;
+  for (const int drawing_i : drawings.index_range()) {
+    const MutableDrawingInfo &drawing_info = drawings[drawing_i];
+    AutoMaskingInfo &automask_info = this->auto_masking_info_per_drawing[drawing_i];
+    GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
+        scene,
+        depsgraph,
+        region,
+        rv3d,
+        object,
+        drawing_info.layer_index,
+        drawing_info.frame_number,
+        drawing_info.multi_frame_falloff,
+        drawing_info.drawing);
+    automask_info.point_mask = point_mask_for_stroke_operation(
+        params, use_sculpt_selection_masking, automask_info.memory);
+    if (automask_info.point_mask.is_empty()) {
+      continue;
+    }
+
+    const bke::CurvesGeometry &curves = drawing_info.drawing.strokes();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+    const bke::AttributeAccessor attributes = curves.attributes();
+
+    if (use_auto_mask_active_material) {
+      IndexMaskMemory memory;
+      const VArraySpan<int> materials = *attributes.lookup_or_default<int>(
+          "material_index", bke::AttrDomain::Point, 0);
+      const IndexMask active_material_mask = IndexMask::from_predicate(
+          curves.points_range(), GrainSize(4096), memory, [&](const int64_t point_i) {
+            return active_material_index == materials[point_i];
+          });
+      automask_info.point_mask = IndexMask::from_intersection(
+          automask_info.point_mask, active_material_mask, automask_info.memory);
+      if (automask_info.point_mask.is_empty()) {
+        continue;
+      }
+    }
+
+    if (use_auto_mask_layer || use_auto_mask_stroke || use_auto_mask_material) {
+      Array<float2> view_positions = calculate_view_positions(params, automask_info.point_mask);
+
+      IndexMaskMemory memory;
+      const IndexMask stroke_selection = curve_mask_for_stroke_operation(
+          params, use_sculpt_selection_masking, memory);
+      const IndexMask strokes_under_brush = IndexMask::from_predicate(
+          stroke_selection, GrainSize(512), memory, [&](const int curve_i) {
+            for (const int point_i : points_by_curve[curve_i]) {
+              const float distance = math::distance(mval_i, int2(view_positions[point_i]));
+              if (distance <= radius) {
+                return true;
+              }
+            }
+            return false;
+          });
+
+      if (use_auto_mask_layer && !strokes_under_brush.is_empty()) {
+        masked_layer_indices.add(drawing_info.layer_index);
+      }
+
+      if (use_auto_mask_stroke) {
+        automask_info.point_mask = IndexMask::from_intersection(
+            automask_info.point_mask,
+            IndexMask::from_ranges(curves.points_by_curve(), strokes_under_brush, memory),
+            automask_info.memory);
+      }
+
+      if (use_auto_mask_material) {
+        const VArraySpan<int> material_indices = *attributes.lookup<int>("material_index",
+                                                                         bke::AttrDomain::Curve);
+        strokes_under_brush.foreach_index(
+            [&](const int curve_i) { masked_material_indices.add(material_indices[curve_i]); });
+      }
+    }
+  }
+
+  /* When we mask by the initial strokes under the cursor, the other masking options don't affect
+   * the resulting mask. So we can skip the second loop. */
+  if (use_auto_mask_stroke) {
+    return;
+  }
+
+  threading::parallel_for_each(drawings.index_range(), [&](const int drawing_i) {
+    const MutableDrawingInfo &drawing_info = drawings[drawing_i];
+    AutoMaskingInfo &automask_info = this->auto_masking_info_per_drawing[drawing_i];
+
+    if (use_auto_mask_layer && !masked_layer_indices.contains(drawing_info.layer_index)) {
+      automask_info.point_mask = {};
+      return;
+    }
+
+    if (use_auto_mask_material) {
+      const bke::CurvesGeometry &curves = drawing_info.drawing.strokes();
+      const VArraySpan<int> material_indices = *curves.attributes().lookup<int>("material_index");
+      IndexMaskMemory memory;
+      const IndexMask masked_curves = IndexMask::from_predicate(
+          curves.curves_range(), GrainSize(1024), memory, [&](const int curve_i) {
+            return masked_material_indices.contains(material_indices[curve_i]);
+          });
+
+      automask_info.point_mask = IndexMask::from_intersection(
+          automask_info.point_mask,
+          IndexMask::from_ranges(curves.points_by_curve(), masked_curves, memory),
+          automask_info.memory);
+    }
+  });
 }
 
 void GreasePencilStrokeOperationCommon::stroke_extended(const InputSample &extension_sample)

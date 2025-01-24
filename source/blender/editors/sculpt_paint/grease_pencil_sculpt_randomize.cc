@@ -53,6 +53,7 @@ uint32_t RandomizeOperation::unique_seed() const
 void RandomizeOperation::on_stroke_begin(const bContext &C, const InputSample &start_sample)
 {
   this->init_stroke(C, start_sample);
+  this->init_auto_masking(C, start_sample);
 }
 
 void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample &extension_sample)
@@ -62,21 +63,15 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
   const Brush &brush = *BKE_paint_brush(&paint);
   const int sculpt_mode_flag = brush.gpencil_settings->sculpt_mode_flag;
 
-  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
-      eGP_Sculpt_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_sculpt));
-
-  this->foreach_editable_drawing(
-      C, [&](const GreasePencilStrokeParams &params, const DeltaProjectionFunc &projection_fn) {
+  this->foreach_editable_drawing_with_automask(
+      C,
+      [&](const GreasePencilStrokeParams &params,
+          const IndexMask &point_mask,
+          const DeltaProjectionFunc &projection_fn) {
         const uint32_t seed = this->unique_seed();
 
-        IndexMaskMemory selection_memory;
-        const IndexMask selection = point_selection_mask(params, is_masking, selection_memory);
-        if (selection.is_empty()) {
-          return false;
-        }
-
         bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
-        Array<float2> view_positions = calculate_view_positions(params, selection);
+        Array<float2> view_positions = calculate_view_positions(params, point_mask);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
@@ -88,7 +83,7 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
           const float2 forward = math::normalize(this->mouse_delta(extension_sample));
           const float2 sideways = float2(-forward.y, forward.x);
 
-          selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+          point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
             const float2 &co = view_positions[point_i];
             const float influence = brush_point_influence(
                 scene, brush, co, extension_sample, params.multi_frame_falloff);
@@ -105,7 +100,7 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
         }
         if (sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_STRENGTH) {
           MutableSpan<float> opacities = params.drawing.opacities_for_write();
-          selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+          point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
             const float2 &co = view_positions[point_i];
             const float influence = brush_point_influence(
                 scene, brush, co, extension_sample, params.multi_frame_falloff);
@@ -119,7 +114,7 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
         }
         if (sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_THICKNESS) {
           const MutableSpan<float> radii = params.drawing.radii_for_write();
-          selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+          point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
             const float2 &co = view_positions[point_i];
             const float influence = brush_point_influence(
                 scene, brush, co, extension_sample, params.multi_frame_falloff);
@@ -135,7 +130,7 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
         if (sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_UV) {
           bke::SpanAttributeWriter<float> rotations =
               attributes.lookup_or_add_for_write_span<float>("rotation", bke::AttrDomain::Point);
-          selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+          point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
             const float2 &co = view_positions[point_i];
             const float influence = brush_point_influence(
                 scene, brush, co, extension_sample, params.multi_frame_falloff);

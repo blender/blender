@@ -4077,6 +4077,10 @@ def km_grease_pencil_sculpt_mode(params):
         # Active layer
         op_menu("GREASE_PENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
 
+        # Auto-masking menu.
+        op_menu_pie("VIEW3D_MT_grease_pencil_sculpt_automasking_pie", {
+                    "type": 'A', "value": 'PRESS', "shift": True, "alt": True}),
+
         *_template_paint_radial_control("gpencil_sculpt_paint"),
         *_template_asset_shelf_popup("VIEW3D_AST_brush_gpencil_sculpt", params.spacebar_action),
         *_template_items_context_panel("VIEW3D_PT_greasepencil_sculpt_context_menu", params.context_menu_event),

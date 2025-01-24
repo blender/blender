@@ -127,17 +127,16 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
   Object &ob_eval = *DEG_get_evaluated_object(&depsgraph, &ob_orig);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
 
-  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
-      eGP_Sculpt_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_sculpt));
-
   init_brush(brush);
+  init_auto_masking(C, start_sample);
 
   this->prev_mouse_position = start_sample.mouse_position;
 
-  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
+  const Vector<MutableDrawingInfo> drawings = get_drawings_with_masking_for_stroke_operation(C);
   this->drawing_data.reinitialize(drawings.size());
   threading::parallel_for_each(drawings.index_range(), [&](const int i) {
     const MutableDrawingInfo &info = drawings[i];
+    const AutoMaskingInfo &auto_mask_info = this->auto_masking_info_per_drawing[i];
     BLI_assert(info.layer_index >= 0);
     PointWeights &data = this->drawing_data[i];
 
@@ -155,10 +154,8 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
                                        info.frame_number,
                                        info.multi_frame_falloff,
                                        info.drawing};
-    IndexMaskMemory selection_memory;
-    IndexMask selection = point_selection_mask(params, is_masking, selection_memory);
 
-    Array<float2> view_positions = calculate_view_positions(params, selection);
+    Array<float2> view_positions = calculate_view_positions(params, auto_mask_info.point_mask);
 
     /* Cache points under brush influence. */
     Vector<float> weights;
@@ -167,7 +164,7 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
                                                       start_sample.mouse_position,
                                                       1.0f,
                                                       info.multi_frame_falloff,
-                                                      selection,
+                                                      auto_mask_info.point_mask,
                                                       view_positions,
                                                       weights,
                                                       data.memory);

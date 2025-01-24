@@ -36,7 +36,7 @@ void VertexReplaceOperation::on_stroke_extended(const bContext &C,
   Paint &paint = *BKE_paint_get_active_from_context(&C);
   const Brush &brush = *BKE_paint_brush(&paint);
 
-  const bool is_masking = GPENCIL_ANY_VERTEX_MASK(
+  const bool use_selection_masking = GPENCIL_ANY_VERTEX_MASK(
       eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
 
   const bool do_points = do_vertex_color_points(brush);
@@ -48,7 +48,8 @@ void VertexReplaceOperation::on_stroke_extended(const bContext &C,
 
   this->foreach_editable_drawing(C, GrainSize(1), [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory memory;
-    const IndexMask point_selection = point_selection_mask(params, is_masking, memory);
+    const IndexMask point_selection = point_mask_for_stroke_operation(
+        params, use_selection_masking, memory);
     if (!point_selection.is_empty() && do_points) {
       Array<float2> view_positions = calculate_view_positions(params, point_selection);
       MutableSpan<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors_for_write();
@@ -61,7 +62,8 @@ void VertexReplaceOperation::on_stroke_extended(const bContext &C,
       });
     }
 
-    const IndexMask fill_selection = fill_selection_mask(params, is_masking, memory);
+    const IndexMask fill_selection = fill_mask_for_stroke_operation(
+        params, use_selection_masking, memory);
     if (!fill_selection.is_empty() && do_fill) {
       const OffsetIndices<int> points_by_curve = params.drawing.strokes().points_by_curve();
       Array<float2> view_positions = calculate_view_positions(params, point_selection);
