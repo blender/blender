@@ -46,7 +46,7 @@ void ConversionOperation::execute()
     {
       float luminance_coefficients[3];
       IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-      GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
+      GPU_shader_uniform_3fv(shader, "luminance_coefficients_u", luminance_coefficients);
     }
 
     input.bind_as_texture(shader, "input_tx");
