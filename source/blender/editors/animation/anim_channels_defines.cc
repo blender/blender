@@ -858,7 +858,7 @@ static void acf_group_name(bAnimListElem *ale, char *name)
 /* name property for group entries */
 static bool acf_group_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-  *r_ptr = RNA_pointer_create(ale->fcurve_owner_id, &RNA_ActionGroup, ale->data);
+  *r_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, &RNA_ActionGroup, ale->data);
   *r_prop = RNA_struct_name_property(r_ptr->type);
 
   return (*r_prop != nullptr);
@@ -1057,7 +1057,7 @@ static bool acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, Property
    * as our "name" so that user can perform quick fixes
    */
   if (fcu->flag & FCURVE_DISABLED) {
-    *r_ptr = RNA_pointer_create(ale->fcurve_owner_id, &RNA_FCurve, ale->data);
+    *r_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, &RNA_FCurve, ale->data);
     *r_prop = RNA_struct_find_property(r_ptr, "data_path");
   }
   else {
@@ -1434,7 +1434,7 @@ static bool acf_action_slot_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, Pro
   animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
   BLI_assert(GS(ale->fcurve_owner_id->name) == ID_AC);
 
-  *r_ptr = RNA_pointer_create(ale->fcurve_owner_id, &RNA_ActionSlot, slot);
+  *r_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, &RNA_ActionSlot, slot);
   *r_prop = RNA_struct_find_property(r_ptr, "name_display");
 
   return (*r_prop != nullptr);
@@ -3486,7 +3486,7 @@ static bool acf_shapekey_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, Proper
 
   /* if the KeyBlock had a name, use it, otherwise use the index */
   if (kb && kb->name[0]) {
-    *r_ptr = RNA_pointer_create(ale->id, &RNA_ShapeKey, kb);
+    *r_ptr = RNA_pointer_create_discrete(ale->id, &RNA_ShapeKey, kb);
     *r_prop = RNA_struct_name_property(r_ptr->type);
 
     return (*r_prop != nullptr);
@@ -3675,7 +3675,7 @@ static void acf_gpl_name_legacy(bAnimListElem *ale, char *name)
 static bool acf_gpl_name_prop_legacy(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    *r_ptr = RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data);
+    *r_ptr = RNA_pointer_create_discrete(ale->id, &RNA_GPencilLayer, ale->data);
     *r_prop = RNA_struct_name_property(r_ptr->type);
 
     return (*r_prop != nullptr);
@@ -3843,7 +3843,7 @@ static bool layer_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA *
     return false;
   }
 
-  *r_ptr = RNA_pointer_create(ale->id, &RNA_GreasePencilLayer, ale->data);
+  *r_ptr = RNA_pointer_create_discrete(ale->id, &RNA_GreasePencilLayer, ale->data);
   *r_prop = RNA_struct_name_property(r_ptr->type);
 
   return (*r_prop != nullptr);
@@ -4124,7 +4124,7 @@ static void acf_masklay_name(bAnimListElem *ale, char *name)
 static bool acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    *r_ptr = RNA_pointer_create(ale->id, &RNA_MaskLayer, ale->data);
+    *r_ptr = RNA_pointer_create_discrete(ale->id, &RNA_MaskLayer, ale->data);
     *r_prop = RNA_struct_name_property(r_ptr->type);
 
     return (*r_prop != nullptr);
@@ -4240,7 +4240,7 @@ static void acf_nlatrack_name(bAnimListElem *ale, char *name)
 static bool acf_nlatrack_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    *r_ptr = RNA_pointer_create(ale->id, &RNA_NlaTrack, ale->data);
+    *r_ptr = RNA_pointer_create_discrete(ale->id, &RNA_NlaTrack, ale->data);
     *r_prop = RNA_struct_name_property(r_ptr->type);
 
     return (*r_prop != nullptr);
@@ -4442,7 +4442,7 @@ static void acf_nlaaction_name(bAnimListElem *ale, char *name)
 static bool acf_nlaaction_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    *r_ptr = RNA_pointer_create(ale->fcurve_owner_id, &RNA_Action, ale->data);
+    *r_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, &RNA_Action, ale->data);
     *r_prop = RNA_struct_name_property(r_ptr->type);
 
     return (*r_prop != nullptr);
@@ -5759,7 +5759,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
   offset += SLIDER_WIDTH;
 
   /* Create the RNA pointers. */
-  PointerRNA ptr = RNA_pointer_create(ale->id, &RNA_GreasePencilLayer, ale->data);
+  PointerRNA ptr = RNA_pointer_create_discrete(ale->id, &RNA_GreasePencilLayer, ale->data);
   PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
 
   /* Layer onion skinning switch. */
@@ -6125,7 +6125,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
           PropertyRNA *prop;
 
           /* create RNA pointers */
-          PointerRNA ptr = RNA_pointer_create(ale->id, &RNA_NlaStrip, strip);
+          PointerRNA ptr = RNA_pointer_create_discrete(ale->id, &RNA_NlaStrip, strip);
           prop = RNA_struct_find_property(&ptr, fcu->rna_path);
 
           /* create property slider */
@@ -6177,7 +6177,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
             /* Create the RNA pointers. */
-            ptr = RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data);
+            ptr = RNA_pointer_create_discrete(ale->id, &RNA_GPencilLayer, ale->data);
             PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
             int icon;
 

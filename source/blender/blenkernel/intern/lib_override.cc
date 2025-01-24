@@ -4777,8 +4777,8 @@ static bool lib_override_library_id_reset_do(Main *bmain,
       PointerRNA ptr, ptr_lib;
       PropertyRNA *prop, *prop_lib;
 
-      PointerRNA ptr_root = RNA_pointer_create(id_root, &RNA_ID, id_root);
-      PointerRNA ptr_root_lib = RNA_pointer_create(
+      PointerRNA ptr_root = RNA_pointer_create_discrete(id_root, &RNA_ID, id_root);
+      PointerRNA ptr_root_lib = RNA_pointer_create_discrete(
           id_root->override_library->reference, &RNA_ID, id_root->override_library->reference);
 
       bool prop_exists = RNA_path_resolve_property(&ptr_root, op->rna_path, &ptr, &prop);

@@ -145,7 +145,7 @@ static void actedit_change_action(bContext *C, bAction *act)
   PropertyRNA *prop;
 
   /* create RNA pointers and get the property */
-  PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_SpaceDopeSheetEditor, saction);
+  PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceDopeSheetEditor, saction);
   prop = RNA_struct_find_property(&ptr, "action");
 
   /* NOTE: act may be nullptr here, so better to just use a cast here */
@@ -646,7 +646,7 @@ void ED_animedit_unlink_action(
   }
   else {
     /* Clear AnimData -> action via RNA, so that it triggers message bus updates. */
-    PointerRNA ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
+    PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_AnimData, adt);
     PropertyRNA *prop = RNA_struct_find_property(&ptr, "action");
 
     RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);

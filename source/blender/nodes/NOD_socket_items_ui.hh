@@ -52,7 +52,7 @@ static void draw_items_list_with_operators(const bContext *C,
                                            const bNode &node)
 {
   BLI_assert(Accessor::node_type == node.type_legacy);
-  PointerRNA node_ptr = RNA_pointer_create(
+  PointerRNA node_ptr = RNA_pointer_create_discrete(
       const_cast<ID *>(&tree.id), &RNA_Node, const_cast<bNode *>(&node));
 
   static const uiListType *items_list = []() {
@@ -112,7 +112,8 @@ static void draw_active_item_props(const bNodeTree &tree,
   }
 
   ItemT &item = (*ref.items)[*ref.active_index];
-  PointerRNA item_ptr = RNA_pointer_create(const_cast<ID *>(&tree.id), Accessor::item_srna, &item);
+  PointerRNA item_ptr = RNA_pointer_create_discrete(
+      const_cast<ID *>(&tree.id), Accessor::item_srna, &item);
   draw_item(&item_ptr);
 }
 

@@ -215,7 +215,7 @@ void AssetViewItem::build_grid_tile(const bContext &C, uiLayout &layout) const
   AssetHandle asset_handle = list::asset_handle_get_by_index(&asset_view.library_ref_,
                                                              asset_index_);
 
-  PointerRNA file_ptr = RNA_pointer_create(
+  PointerRNA file_ptr = RNA_pointer_create_discrete(
       nullptr,
       &RNA_FileSelectEntry,
       /* XXX passing file pointer here, should be asset handle or asset representation. */

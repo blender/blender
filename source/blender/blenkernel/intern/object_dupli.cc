@@ -2009,7 +2009,7 @@ bool BKE_view_layer_find_rgba_attribute(const Scene *scene,
                                         float r_value[4])
 {
   if (layer) {
-    PointerRNA layer_ptr = RNA_pointer_create(
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(
         &const_cast<ID &>(scene->id), &RNA_ViewLayer, const_cast<ViewLayer *>(layer));
 
     if (find_rna_property_rgba(&layer_ptr, name, r_value)) {

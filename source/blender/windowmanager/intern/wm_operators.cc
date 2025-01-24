@@ -725,7 +725,7 @@ std::optional<std::string> WM_prop_pystring_assign(bContext *C,
 void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
 {
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  *ptr = RNA_pointer_create(static_cast<ID *>(G_MAIN->wm.first), ot->srna, nullptr);
+  *ptr = RNA_pointer_create_discrete(static_cast<ID *>(G_MAIN->wm.first), ot->srna, nullptr);
 }
 
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
@@ -737,7 +737,7 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
   }
   else {
     /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-    *ptr = RNA_pointer_create(
+    *ptr = RNA_pointer_create_discrete(
         static_cast<ID *>(G_MAIN->wm.first), &RNA_OperatorProperties, nullptr);
   }
 }
@@ -1311,7 +1311,7 @@ IDProperty *WM_operator_last_properties_ensure_idprops(wmOperatorType *ot)
 void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
 {
   IDProperty *props = WM_operator_last_properties_ensure_idprops(ot);
-  *ptr = RNA_pointer_create(static_cast<ID *>(G_MAIN->wm.first), ot->srna, props);
+  *ptr = RNA_pointer_create_discrete(static_cast<ID *>(G_MAIN->wm.first), ot->srna, props);
 }
 
 ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
@@ -2975,7 +2975,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 {
   RadialControl *rc = static_cast<RadialControl *>(op->customdata);
 
-  PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
+  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
 
   /* Check if we use primary or secondary path. */
   PointerRNA use_secondary_ptr;

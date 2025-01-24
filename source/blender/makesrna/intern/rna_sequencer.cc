@@ -300,7 +300,7 @@ static bool rna_SequenceEditor_strips_all_lookup_string(PointerRNA *ptr,
 
   Strip *strip = SEQ_lookup_strip_by_name(scene, key);
   if (strip) {
-    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Strip, strip);
+    *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Strip, strip);
     return true;
   }
   return false;
@@ -885,7 +885,7 @@ static PointerRNA rna_MovieStrip_metadata_get(ID *scene_id, Strip *strip)
     return PointerRNA_NULL;
   }
 
-  PointerRNA ptr = RNA_pointer_create(scene_id, &RNA_IDPropertyWrapPtr, metadata);
+  PointerRNA ptr = RNA_pointer_create_discrete(scene_id, &RNA_IDPropertyWrapPtr, metadata);
   return ptr;
 }
 

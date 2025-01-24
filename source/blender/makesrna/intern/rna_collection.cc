@@ -464,15 +464,17 @@ static PointerRNA rna_CollectionExport_export_properties_get(PointerRNA *ptr)
    * as generic ID properties. */
   blender::bke::FileHandlerType *fh = blender::bke::file_handler_find(data->fh_idname);
   if (!fh) {
-    return RNA_pointer_create(ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
+    return RNA_pointer_create_discrete(
+        ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
   }
 
   wmOperatorType *ot = WM_operatortype_find(fh->export_operator, false);
   if (!ot) {
-    return RNA_pointer_create(ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
+    return RNA_pointer_create_discrete(
+        ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
   }
 
-  return RNA_pointer_create(ptr->owner_id, ot->srna, data->export_properties);
+  return RNA_pointer_create_discrete(ptr->owner_id, ot->srna, data->export_properties);
 }
 
 #else

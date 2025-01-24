@@ -76,9 +76,10 @@ static void asset_view_draw_item(uiList *ui_list,
   AssetHandle asset_handle = asset::list::asset_handle_get_by_index(&list_data->asset_library_ref,
                                                                     index);
 
-  PointerRNA file_ptr = RNA_pointer_create(&list_data->screen->id,
-                                           &RNA_FileSelectEntry,
-                                           const_cast<FileDirEntry *>(asset_handle.file_data));
+  PointerRNA file_ptr = RNA_pointer_create_discrete(
+      &list_data->screen->id,
+      &RNA_FileSelectEntry,
+      const_cast<FileDirEntry *>(asset_handle.file_data));
   uiLayoutSetContextPointer(layout, "active_file", &file_ptr);
 
   asset::list::asset_preview_ensure_requested(*C, &list_data->asset_library_ref, &asset_handle);
@@ -202,7 +203,7 @@ static void populate_asset_collection(const AssetLibraryReference &asset_library
 
     PointerRNA itemptr;
     RNA_property_collection_add(&assets_dataptr, assets_prop, &itemptr);
-    PointerRNA fileptr = RNA_pointer_create(nullptr, &RNA_FileSelectEntry, nullptr);
+    PointerRNA fileptr = RNA_pointer_create_discrete(nullptr, &RNA_FileSelectEntry, nullptr);
     RNA_pointer_set(&itemptr, "file_data", fileptr);
 
     return true;

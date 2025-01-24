@@ -183,7 +183,8 @@ void library_selector_draw(const bContext *C, uiLayout *layout, AssetShelf &shel
 {
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
-  PointerRNA shelf_ptr = RNA_pointer_create(&CTX_wm_screen(C)->id, &RNA_AssetShelf, &shelf);
+  PointerRNA shelf_ptr = RNA_pointer_create_discrete(
+      &CTX_wm_screen(C)->id, &RNA_AssetShelf, &shelf);
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiItemR(row, &shelf_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);

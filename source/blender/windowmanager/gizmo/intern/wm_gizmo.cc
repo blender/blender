@@ -63,7 +63,8 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   else {
     gz->properties = blender::bke::idprop::create_group("wmGizmoProperties").release();
   }
-  *gz->ptr = RNA_pointer_create(static_cast<ID *>(G_MAIN->wm.first), gzt->srna, gz->properties);
+  *gz->ptr = RNA_pointer_create_discrete(
+      static_cast<ID *>(G_MAIN->wm.first), gzt->srna, gz->properties);
 
   WM_gizmo_properties_sanitize(gz->ptr, false);
 
@@ -581,7 +582,7 @@ void WM_gizmo_calc_matrix_final(const wmGizmo *gz, float r_mat[4][4])
 
 void WM_gizmo_properties_create_ptr(PointerRNA *ptr, wmGizmoType *gzt)
 {
-  *ptr = RNA_pointer_create(nullptr, gzt->srna, nullptr);
+  *ptr = RNA_pointer_create_discrete(nullptr, gzt->srna, nullptr);
 }
 
 void WM_gizmo_properties_create(PointerRNA *ptr, const char *gtstring)
@@ -592,7 +593,7 @@ void WM_gizmo_properties_create(PointerRNA *ptr, const char *gtstring)
     WM_gizmo_properties_create_ptr(ptr, (wmGizmoType *)gzt);
   }
   else {
-    *ptr = RNA_pointer_create(nullptr, &RNA_GizmoProperties, nullptr);
+    *ptr = RNA_pointer_create_discrete(nullptr, &RNA_GizmoProperties, nullptr);
   }
 }
 

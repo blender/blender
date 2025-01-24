@@ -738,9 +738,9 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::socket_name_ptr(
 {
   /* Doing const-casts here because this data is generally only available as const when creating
    * the declaration, but it's still valid to modify later. */
-  return this->socket_name_ptr(RNA_pointer_create(const_cast<ID *>(id),
-                                                  const_cast<StructRNA *>(srna),
-                                                  const_cast<void *>(data)),
+  return this->socket_name_ptr(RNA_pointer_create_discrete(const_cast<ID *>(id),
+                                                           const_cast<StructRNA *>(srna),
+                                                           const_cast<void *>(data)),
                                property_name);
 }
 

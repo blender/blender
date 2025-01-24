@@ -610,7 +610,7 @@ static int collection_exporter_export(bContext *C,
   /* Execute operator with our stored properties. */
   /* TODO: Cascade settings down from parent collections(?) */
   IDProperty *op_props = IDP_CopyProperty(data->export_properties);
-  PointerRNA properties = RNA_pointer_create(nullptr, ot->srna, op_props);
+  PointerRNA properties = RNA_pointer_create_discrete(nullptr, ot->srna, op_props);
   const char *collection_name = collection->id.name + 2;
 
   /* Ensure we have a valid filepath set. Create one if the user has not specified anything yet. */

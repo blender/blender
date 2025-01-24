@@ -47,7 +47,15 @@ extern BlenderRNA BLENDER_RNA;
 
 PointerRNA RNA_main_pointer_create(Main *main);
 PointerRNA RNA_id_pointer_create(ID *id);
-PointerRNA RNA_pointer_create(ID *id, StructRNA *type, void *data);
+/**
+ * Create a 'discrete', isolated PointerRNA of some data. It won't have any ancestor information
+ * available.
+ *
+ * \param id: The owner ID, may be null, in which case the PointerRNA won't have any ownership
+ * information at all.
+ */
+PointerRNA RNA_pointer_create_discrete(ID *id, StructRNA *type, void *data);
+
 bool RNA_pointer_is_null(const PointerRNA *ptr);
 
 bool RNA_path_resolved_create(PointerRNA *ptr,

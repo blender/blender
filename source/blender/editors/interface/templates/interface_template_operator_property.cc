@@ -124,7 +124,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     user_data.flag = layout_flags;
     const bool use_prop_split = (layout_flags & UI_TEMPLATE_OP_PROPS_NO_SPLIT_LAYOUT) == 0;
 
-    PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
+    PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
     uiLayoutSetPropSep(layout, use_prop_split);
     uiLayoutSetPropDecorate(layout, false);
@@ -244,7 +244,7 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
     user_data.op = op;
     user_data.flag = layout_flags;
 
-    PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
+    PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
     bool all_booleans = true;
     RNA_STRUCT_BEGIN (&ptr, prop) {
@@ -415,7 +415,8 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
   }();
 
   /* Draw exporter list and controls. */
-  PointerRNA collection_ptr = RNA_pointer_create(&collection->id, &RNA_Collection, collection);
+  PointerRNA collection_ptr = RNA_pointer_create_discrete(
+      &collection->id, &RNA_Collection, collection);
   uiLayout *row = uiLayoutRow(layout, false);
   uiTemplateList(row,
                  C,
@@ -447,7 +448,8 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
   }
 
   using namespace blender;
-  PointerRNA exporter_ptr = RNA_pointer_create(&collection->id, &RNA_CollectionExport, data);
+  PointerRNA exporter_ptr = RNA_pointer_create_discrete(
+      &collection->id, &RNA_CollectionExport, data);
   PanelLayout panel = uiLayoutPanelProp(C, layout, &exporter_ptr, "is_open");
 
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
@@ -465,7 +467,8 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
   }
 
   /* Assign temporary operator to uiBlock, which takes ownership. */
-  PointerRNA properties = RNA_pointer_create(&collection->id, ot->srna, data->export_properties);
+  PointerRNA properties = RNA_pointer_create_discrete(
+      &collection->id, ot->srna, data->export_properties);
   wmOperator *op = minimal_operator_create(ot, &properties);
   UI_block_set_active_operator(uiLayoutGetBlock(panel.header), op, true);
 

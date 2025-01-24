@@ -142,7 +142,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Camera *ca = static_cast<Camera *>(ob->data);
   float dir[3];
 
-  PointerRNA camera_ptr = RNA_pointer_create(&ca->id, &RNA_Camera, ca);
+  PointerRNA camera_ptr = RNA_pointer_create_discrete(&ca->id, &RNA_Camera, ca);
 
   negate_v3_v3(dir, ob->object_to_world().ptr()[2]);
 
@@ -154,7 +154,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, false);
 
     /* Need to set property here for undo. TODO: would prefer to do this in _init. */
-    PointerRNA camera_dof_ptr = RNA_pointer_create(&ca->id, &RNA_CameraDOFSettings, &ca->dof);
+    PointerRNA camera_dof_ptr = RNA_pointer_create_discrete(
+        &ca->id, &RNA_CameraDOFSettings, &ca->dof);
     WM_gizmo_target_property_def_rna(
         cagzgroup->dop_dist, "offset", &camera_dof_ptr, "focus_distance", -1);
   }

@@ -72,7 +72,7 @@ class AnimationEvaluationTest : public testing::Test {
     /* Make it easier to predict test values. */
     settings.interpolation = BEZT_IPO_LIN;
 
-    cube_rna_ptr = RNA_pointer_create(&cube->id, &RNA_Object, &cube->id);
+    cube_rna_ptr = RNA_pointer_create_discrete(&cube->id, &RNA_Object, &cube->id);
   }
 
   void TearDown() override

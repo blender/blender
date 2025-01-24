@@ -154,7 +154,7 @@ static bool autokeyframe_sequencer_image(bContext *C,
                                          const int tmode)
 {
   PropertyRNA *prop;
-  PointerRNA ptr = RNA_pointer_create(&scene->id, &RNA_StripTransform, transform);
+  PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, &RNA_StripTransform, transform);
 
   const bool around_cursor = scene->toolsettings->sequencer_tool_settings->pivot_point ==
                              V3D_AROUND_CURSOR;

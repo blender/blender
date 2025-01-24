@@ -1218,7 +1218,8 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   // bool have_function[1];
 
   /* Setup dummy add-on preference and it's type to store static properties in. */
-  PointerRNA dummy_addon_ptr = RNA_pointer_create(nullptr, &RNA_AddonPreferences, &dummy_addon);
+  PointerRNA dummy_addon_ptr = RNA_pointer_create_discrete(
+      nullptr, &RNA_AddonPreferences, &dummy_addon);
 
   /* validate the python class */
   if (validate(&dummy_addon_ptr, data, nullptr /*have_function*/) != 0) {

@@ -363,7 +363,7 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
 
   // WM_operator_properties_create(&ptr, opname);
   /* Save another lookup */
-  PointerRNA ptr = RNA_pointer_create(nullptr, ot->srna, nullptr);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ot->srna, nullptr);
 
   if (kw && PyDict_Size(kw)) {
     error_val = pyrna_pydict_to_props(
@@ -412,7 +412,7 @@ static PyObject *pyop_getrna_type(PyObject * /*self*/, PyObject *value)
     return nullptr;
   }
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_Struct, ot->srna);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, ot->srna);
   BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
   return (PyObject *)pyrna;
 }

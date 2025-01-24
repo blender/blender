@@ -293,7 +293,7 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
     kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, value));
   }
 
-  PointerRNA ptr = RNA_pointer_create(id, &RNA_ShapeKey, kb);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_ShapeKey, kb);
   return ptr;
 }
 

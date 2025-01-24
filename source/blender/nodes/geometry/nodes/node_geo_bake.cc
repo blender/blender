@@ -622,7 +622,7 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
     return false;
   }
 
-  r_ctx.bake_rna = RNA_pointer_create(
+  r_ctx.bake_rna = RNA_pointer_create_discrete(
       const_cast<ID *>(&r_ctx.object->id), &RNA_NodesModifierBake, (void *)r_ctx.bake);
   if (r_ctx.nmd->runtime->cache) {
     const bke::bake::ModifierCache &cache = *r_ctx.nmd->runtime->cache;
@@ -875,7 +875,7 @@ void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna)
     return list;
   }();
 
-  PointerRNA data_blocks_ptr = RNA_pointer_create(
+  PointerRNA data_blocks_ptr = RNA_pointer_create_discrete(
       bake_rna.owner_id, &RNA_NodesModifierBakeDataBlocks, bake_rna.data);
 
   if (uiLayout *panel = uiLayoutPanel(

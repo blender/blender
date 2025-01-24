@@ -1527,7 +1527,7 @@ static void image_open_draw(bContext * /*C*/, wmOperator *op)
                    false);
 
   /* image template */
-  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf);
+  PointerRNA imf_ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImageFormatSettings, imf);
 
   /* multiview template */
   if (RNA_boolean_get(op->ptr, "show_multiview")) {
@@ -2037,7 +2037,8 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
   uiItemS(layout);
 
   /* Image format settings. */
-  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, &isd->opts.im_format);
+  PointerRNA imf_ptr = RNA_pointer_create_discrete(
+      nullptr, &RNA_ImageFormatSettings, &isd->opts.im_format);
   uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
 
   if (!save_as_render) {

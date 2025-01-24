@@ -5039,7 +5039,7 @@ PanelLayout uiLayoutPanel(const bContext *C,
   BLI_assert(panel != nullptr);
 
   LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(panel, idname, default_closed);
-  PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
+  PointerRNA state_ptr = RNA_pointer_create_discrete(nullptr, &RNA_LayoutPanelState, state);
 
   return uiLayoutPanelProp(C, layout, &state_ptr, "is_open");
 }
@@ -6158,7 +6158,7 @@ void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but)
 
   if (but->rnapoin.data && but->rnaprop) {
     /* TODO: index could be supported as well */
-    PointerRNA ptr_prop = RNA_pointer_create(nullptr, &RNA_Property, but->rnaprop);
+    PointerRNA ptr_prop = RNA_pointer_create_discrete(nullptr, &RNA_Property, but->rnaprop);
     uiLayoutSetContextPointer(layout, "button_prop", &ptr_prop);
     uiLayoutSetContextPointer(layout, "button_pointer", &but->rnapoin);
   }

@@ -387,7 +387,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     {
       MovieTrackingTrack *track = channel->track;
       const int icon = (track->flag & TRACK_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
-      PointerRNA ptr = RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track);
+      PointerRNA ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTrackingTrack, track);
 
       UI_block_emboss_set(block, UI_EMBOSS_NONE);
       uiDefIconButR_prop(block,

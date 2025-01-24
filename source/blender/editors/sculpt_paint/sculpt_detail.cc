@@ -690,7 +690,7 @@ static void dyntopo_detail_size_update_header(bContext *C,
   Scene *scene = CTX_data_scene(C);
 
   Sculpt *sd = scene->toolsettings->sculpt;
-  PointerRNA sculpt_ptr = RNA_pointer_create(&scene->id, &RNA_Sculpt, sd);
+  PointerRNA sculpt_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Sculpt, sd);
 
   char msg[UI_MAX_DRAW_STR];
   const char *format_string;

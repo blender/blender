@@ -224,7 +224,7 @@ FCurve *id_data_find_fcurve(
     return nullptr;
   }
 
-  PointerRNA ptr = RNA_pointer_create(id, type, data);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, type, data);
   prop = RNA_struct_find_property(&ptr, prop_name);
   if (prop == nullptr) {
     return nullptr;

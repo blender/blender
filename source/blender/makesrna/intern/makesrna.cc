@@ -3022,7 +3022,8 @@ static void rna_def_struct_function_impl_cpp(FILE *f, StructRNA *srna, FunctionD
         }
         else {
           fprintf(f,
-                  "\t\tresult = RNA_pointer_create((::ID *) ptr.owner_id, &RNA_%s, retdata);\n",
+                  "\t\tresult = RNA_pointer_create_discrete((::ID *) ptr.owner_id, &RNA_%s, "
+                  "retdata);\n",
                   (const char *)pprop->type);
         }
       }

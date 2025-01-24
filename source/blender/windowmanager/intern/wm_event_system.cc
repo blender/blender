@@ -1453,7 +1453,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
   else {
     op->properties = blender::bke::idprop::create_group("wmOperatorProperties").release();
   }
-  *op->ptr = RNA_pointer_create(&wm->id, ot->srna, op->properties);
+  *op->ptr = RNA_pointer_create_discrete(&wm->id, ot->srna, op->properties);
 
   /* Initialize error reports. */
   if (reports) {
@@ -1897,7 +1897,7 @@ int WM_operator_name_call_with_properties(bContext *C,
                                           const wmEvent *event)
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
-  PointerRNA props_ptr = RNA_pointer_create(
+  PointerRNA props_ptr = RNA_pointer_create_discrete(
       &static_cast<wmWindowManager *>(G_MAIN->wm.first)->id, ot->srna, properties);
   return WM_operator_name_call_ptr(C, ot, context, &props_ptr, event);
 }

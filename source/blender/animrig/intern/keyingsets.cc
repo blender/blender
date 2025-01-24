@@ -178,7 +178,7 @@ void relative_keyingset_add_source(blender::Vector<PointerRNA> &sources,
   if (ELEM(nullptr, srna, data, id)) {
     return;
   }
-  sources.append(RNA_pointer_create(id, srna, data));
+  sources.append(RNA_pointer_create_discrete(id, srna, data));
 }
 
 void relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID *id)

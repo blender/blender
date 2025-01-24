@@ -496,7 +496,7 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__pose_bone_rna_pointer)
 {
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
   bPoseChannel *pchan = BKE_pose_channel_find_name(armature_object->pose, "Bone");
-  PointerRNA pose_bone_rna_pointer = RNA_pointer_create(
+  PointerRNA pose_bone_rna_pointer = RNA_pointer_create_discrete(
       &armature_object->id, &RNA_PoseBone, pchan);
 
   const CombinedKeyingResult result = insert_keyframes(bmain,
@@ -1130,7 +1130,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__pose_bone_rna_pointer)
 {
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
   bPoseChannel *pchan = BKE_pose_channel_find_name(armature_object->pose, "Bone");
-  PointerRNA pose_bone_rna_pointer = RNA_pointer_create(
+  PointerRNA pose_bone_rna_pointer = RNA_pointer_create_discrete(
       &armature_object->id, &RNA_PoseBone, pchan);
 
   ensure_legacy_action_assigned(armature_object->id);

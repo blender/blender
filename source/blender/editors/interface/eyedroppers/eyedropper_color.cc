@@ -104,7 +104,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
       MEM_freeN(eye);
       return false;
     }
-    PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
+    PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
     if (!RNA_path_resolve(&ctx_ptr, prop_data_path, &eye->ptr, &eye->prop)) {
       BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", prop_data_path);
       MEM_freeN(eye);

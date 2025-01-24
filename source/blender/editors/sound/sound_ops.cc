@@ -657,7 +657,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
       break;
   }
 
-  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   /* main draw call */
   uiDefAutoButsRNA(layout,

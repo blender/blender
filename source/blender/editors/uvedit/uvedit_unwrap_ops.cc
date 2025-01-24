@@ -2886,7 +2886,7 @@ static void unwrap_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   /* Main draw call */
-  PointerRNA ptr = RNA_pointer_create(nullptr, op->type->srna, op->properties);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, op->type->srna, op->properties);
 
   uiLayout *col;
 

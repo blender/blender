@@ -673,7 +673,7 @@ void DataSetViewItem::on_activate(bContext &C)
   if (data_id->layer_index) {
     sspreadsheet.active_layer_index = *data_id->layer_index;
   }
-  PointerRNA ptr = RNA_pointer_create(&screen.id, &RNA_SpaceSpreadsheet, &sspreadsheet);
+  PointerRNA ptr = RNA_pointer_create_discrete(&screen.id, &RNA_SpaceSpreadsheet, &sspreadsheet);
   /* These updates also make sure that the attribute domain is set properly based on the
    * component type. */
   RNA_property_update(&C, &ptr, RNA_struct_find_property(&ptr, "attribute_domain"));

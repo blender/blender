@@ -219,7 +219,7 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEven
   {
     bAnimVizSettings *avs = &ob->pose->avs;
 
-    PointerRNA avs_ptr = RNA_pointer_create(nullptr, &RNA_AnimVizMotionPaths, avs);
+    PointerRNA avs_ptr = RNA_pointer_create_discrete(nullptr, &RNA_AnimVizMotionPaths, avs);
     RNA_enum_set(op->ptr, "display_type", RNA_enum_get(&avs_ptr, "type"));
     RNA_enum_set(op->ptr, "range", RNA_enum_get(&avs_ptr, "range"));
     RNA_enum_set(op->ptr, "bake_location", RNA_enum_get(&avs_ptr, "bake_location"));
@@ -252,7 +252,7 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
     avs->path_range = RNA_enum_get(op->ptr, "range");
     animviz_motionpath_compute_range(ob, scene);
 
-    PointerRNA avs_ptr = RNA_pointer_create(nullptr, &RNA_AnimVizMotionPaths, avs);
+    PointerRNA avs_ptr = RNA_pointer_create_discrete(nullptr, &RNA_AnimVizMotionPaths, avs);
     RNA_enum_set(&avs_ptr, "bake_location", RNA_enum_get(op->ptr, "bake_location"));
   }
 

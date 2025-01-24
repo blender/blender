@@ -69,11 +69,11 @@ class CopyDriversToSelected : public testing::Test {
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "OBCube");
     suzanne = BKE_object_add_only_object(bmain, OB_EMPTY, "OBSuzanne");
 
-    cube_ptr = RNA_pointer_create(&cube->id, &RNA_Object, &cube->id);
+    cube_ptr = RNA_pointer_create_discrete(&cube->id, &RNA_Object, &cube->id);
     cube_quaternion_prop = RNA_struct_find_property(&cube_ptr, "rotation_quaternion");
     cube_rotation_mode_prop = RNA_struct_find_property(&cube_ptr, "rotation_mode");
 
-    suzanne_ptr = RNA_pointer_create(&suzanne->id, &RNA_Object, &suzanne->id);
+    suzanne_ptr = RNA_pointer_create_discrete(&suzanne->id, &RNA_Object, &suzanne->id);
     suzanne_quaternion_prop = RNA_struct_find_property(&suzanne_ptr, "rotation_quaternion");
     suzanne_rotation_mode_prop = RNA_struct_find_property(&suzanne_ptr, "rotation_mode");
 
@@ -109,7 +109,7 @@ class CopyDriversToSelected : public testing::Test {
     STRNCPY(suzanne_rotation_mode_driver->driver->expression, "4");
 
     /* Add animation to cube's fourth quaternion element. */
-    PointerRNA cube_ptr = RNA_pointer_create(&cube->id, &RNA_Object, &cube->id);
+    PointerRNA cube_ptr = RNA_pointer_create_discrete(&cube->id, &RNA_Object, &cube->id);
     bAction *act = animrig::id_action_ensure(bmain, &cube->id);
     FCurve *fcu = animrig::action_fcurve_ensure(
         bmain, act, "Object Transforms", &cube_ptr, {"rotation_quaternion", 3});

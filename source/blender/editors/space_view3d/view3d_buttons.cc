@@ -439,7 +439,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     }
 
     if (totcurvedata == 1) {
-      data_ptr = RNA_pointer_create(&cu->id, seltype, selp);
+      data_ptr = RNA_pointer_create_discrete(&cu->id, seltype, selp);
     }
   }
   else if (ob->type == OB_LATTICE) {
@@ -467,7 +467,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     }
 
     if (totlattdata == 1) {
-      data_ptr = RNA_pointer_create(&lt->id, seltype, selp);
+      data_ptr = RNA_pointer_create_discrete(&lt->id, seltype, selp);
     }
   }
 
@@ -1331,7 +1331,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     bcol = uiLayoutColumn(panel->layout, true);
     row = uiLayoutRow(bcol, true); /* The filter button row */
 
-    PointerRNA tools_ptr = RNA_pointer_create(nullptr, &RNA_ToolSettings, ts);
+    PointerRNA tools_ptr = RNA_pointer_create_discrete(nullptr, &RNA_ToolSettings, ts);
     uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(bcol, true);
@@ -1589,7 +1589,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
     return;
   }
 
-  PointerRNA pchanptr = RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan);
+  PointerRNA pchanptr = RNA_pointer_create_discrete(&ob->id, &RNA_PoseBone, pchan);
 
   col = uiLayoutColumn(layout, false);
 
@@ -1612,7 +1612,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
     return;
   }
 
-  PointerRNA eboneptr = RNA_pointer_create(&arm->id, &RNA_EditBone, ebone);
+  PointerRNA eboneptr = RNA_pointer_create_discrete(&arm->id, &RNA_EditBone, ebone);
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &eboneptr, "head", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1642,7 +1642,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
     return;
   }
 
-  PointerRNA ptr = RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem);
+  PointerRNA ptr = RNA_pointer_create_discrete(&mball->id, &RNA_MetaElement, mball->lastelem);
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &ptr, "co", UI_ITEM_NONE, std::nullopt, ICON_NONE);

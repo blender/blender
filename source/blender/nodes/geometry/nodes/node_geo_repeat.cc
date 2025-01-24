@@ -45,7 +45,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     return;
   }
   bNode &output_node = const_cast<bNode &>(*zone->output_node);
-  PointerRNA output_node_ptr = RNA_pointer_create(
+  PointerRNA output_node_ptr = RNA_pointer_create_discrete(
       current_node_ptr->owner_id, &RNA_Node, &output_node);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "repeat_items", false, IFACE_("Repeat Items"))) {

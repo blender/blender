@@ -235,9 +235,10 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   void on_activate(bContext &C) override
   {
-    PointerRNA layers_ptr = RNA_pointer_create(
+    PointerRNA layers_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilv3Layers, nullptr);
-    PointerRNA value_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
+    PointerRNA value_ptr = RNA_pointer_create_discrete(
+        &grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
     PropertyRNA *prop = RNA_struct_find_property(&layers_ptr, "active");
 
@@ -262,7 +263,8 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   bool rename(const bContext &C, StringRefNull new_name) override
   {
-    PointerRNA layer_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(
+        &grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
     PropertyRNA *prop = RNA_struct_find_property(&layer_ptr, "name");
 
     RNA_property_string_set(&layer_ptr, prop, new_name.c_str());
@@ -304,7 +306,8 @@ class LayerViewItem : public AbstractTreeViewItem {
   void build_layer_buttons(uiLayout &row)
   {
     uiLayout *sub;
-    PointerRNA layer_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(
+        &grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
     sub = uiLayoutRow(&row, true);
     uiLayoutSetActive(sub, layer_.parent_group().use_masks());
@@ -353,7 +356,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
 
     /* Let RNA handle the property change. This makes sure all the notifiers and DEG
      * update calls are properly called. */
-    PointerRNA group_ptr = RNA_pointer_create(
+    PointerRNA group_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
     PropertyRNA *prop = RNA_struct_find_property(&group_ptr, "is_expanded");
 
@@ -390,9 +393,9 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
 
   void on_activate(bContext &C) override
   {
-    PointerRNA grease_pencil_ptr = RNA_pointer_create(
+    PointerRNA grease_pencil_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilv3LayerGroup, nullptr);
-    PointerRNA value_ptr = RNA_pointer_create(
+    PointerRNA value_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
 
     PropertyRNA *prop = RNA_struct_find_property(&grease_pencil_ptr, "active");
@@ -418,7 +421,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
 
   bool rename(const bContext &C, StringRefNull new_name) override
   {
-    PointerRNA group_ptr = RNA_pointer_create(
+    PointerRNA group_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
     PropertyRNA *prop = RNA_struct_find_property(&group_ptr, "name");
 
@@ -466,7 +469,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   void build_layer_group_buttons(uiLayout &row)
   {
     uiLayout *sub;
-    PointerRNA group_ptr = RNA_pointer_create(
+    PointerRNA group_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
 
     sub = uiLayoutRow(&row, true);

@@ -406,7 +406,7 @@ static bool node_update_basis_buttons(const bContext &C,
     return false;
   }
 
-  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
 
   /* Round the node origin because text contents are always pixel-aligned. */
   const float2 loc = math::round(node_to_view(node.location));
@@ -511,12 +511,12 @@ static bool node_update_basis_socket(const bContext &C,
   }
 
   uiLayout *row = uiLayoutRow(layout, true);
-  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
   uiLayoutSetContextPointer(row, "node", &nodeptr);
 
   if (input_socket) {
     /* Context pointers for current node and socket. */
-    PointerRNA sockptr = RNA_pointer_create(&ntree.id, &RNA_NodeSocket, input_socket);
+    PointerRNA sockptr = RNA_pointer_create_discrete(&ntree.id, &RNA_NodeSocket, input_socket);
     uiLayoutSetContextPointer(row, "socket", &sockptr);
 
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
@@ -526,7 +526,7 @@ static bool node_update_basis_socket(const bContext &C,
   }
   else {
     /* Context pointers for current node and socket. */
-    PointerRNA sockptr = RNA_pointer_create(&ntree.id, &RNA_NodeSocket, output_socket);
+    PointerRNA sockptr = RNA_pointer_create_discrete(&ntree.id, &RNA_NodeSocket, output_socket);
     uiLayoutSetContextPointer(row, "socket", &sockptr);
 
     /* Align output buttons to the right. */
@@ -1125,7 +1125,7 @@ static void node_update_basis_from_declaration(
             if (node.is_muted()) {
               uiLayoutSetActive(layout, false);
             }
-            PointerRNA node_ptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+            PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
             uiLayoutSetContextPointer(layout, "node", &node_ptr);
             decl.draw(layout, const_cast<bContext *>(&C), &node_ptr);
             UI_block_align_end(&block);
@@ -1469,7 +1469,7 @@ void node_socket_color_get(const bContext &C,
   }
 
   BLI_assert(RNA_struct_is_a(node_ptr.type, &RNA_Node));
-  PointerRNA ptr = RNA_pointer_create(
+  PointerRNA ptr = RNA_pointer_create_discrete(
       &const_cast<ID &>(ntree.id), &RNA_NodeSocket, &const_cast<bNodeSocket &>(sock));
   sock.typeinfo->draw_color((bContext *)&C, &ptr, &node_ptr, r_color);
 }
@@ -2361,7 +2361,7 @@ static void node_draw_sockets(const bContext &C,
     return;
   }
 
-  PointerRNA nodeptr = RNA_pointer_create(
+  PointerRNA nodeptr = RNA_pointer_create_discrete(
       const_cast<ID *>(&ntree.id), &RNA_Node, const_cast<bNode *>(&node));
 
   const float outline_thickness = NODE_SOCKET_OUTLINE;
@@ -4313,7 +4313,7 @@ static void reroute_node_draw_body(const bContext &C,
 
   bNodeSocket &sock = *static_cast<bNodeSocket *>(node.inputs.first);
 
-  PointerRNA nodeptr = RNA_pointer_create(
+  PointerRNA nodeptr = RNA_pointer_create_discrete(
       const_cast<ID *>(&ntree.id), &RNA_Node, const_cast<bNode *>(&node));
 
   ColorTheme4f socket_color;

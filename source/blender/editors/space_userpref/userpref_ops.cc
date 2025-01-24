@@ -379,7 +379,8 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   U.runtime.is_dirty = true;
 
   {
-    PointerRNA new_repo_ptr = RNA_pointer_create(nullptr, &RNA_UserExtensionRepo, new_repo);
+    PointerRNA new_repo_ptr = RNA_pointer_create_discrete(
+        nullptr, &RNA_UserExtensionRepo, new_repo);
     PointerRNA *pointers[] = {&new_repo_ptr};
 
     BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);

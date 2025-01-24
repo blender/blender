@@ -108,7 +108,7 @@ static int toggle_pin_exec(bContext *C, wmOperator * /*op*/)
 
   /* Create the properties space pointer. */
   bScreen *screen = CTX_wm_screen(C);
-  PointerRNA sbuts_ptr = RNA_pointer_create(&screen->id, &RNA_SpaceProperties, sbuts);
+  PointerRNA sbuts_ptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceProperties, sbuts);
 
   /* Create the new ID pointer and set the pin ID with RNA
    * so we can use the property's RNA update functionality. */

@@ -299,7 +299,7 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
      * if the old node-tree has animation data which potentially covers this node. */
     std::optional<std::string> old_animation_basepath;
     if (wgroup->adt) {
-      PointerRNA ptr = RNA_pointer_create(&wgroup->id, &RNA_Node, node);
+      PointerRNA ptr = RNA_pointer_create_discrete(&wgroup->id, &RNA_Node, node);
       old_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
     }
 
@@ -314,7 +314,7 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     BKE_ntree_update_tag_node_new(ntree, node);
 
     if (wgroup->adt) {
-      PointerRNA ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
+      PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
       const std::optional<std::string> new_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
       BLI_addtail(&anim_basepaths,
                   animation_basepath_change_new(*old_animation_basepath, *new_animation_basepath));
@@ -545,7 +545,7 @@ static bool node_group_separate_selected(
     /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old node-tree has animation data which potentially covers this node. */
     if (ngroup.adt) {
-      PointerRNA ptr = RNA_pointer_create(&ngroup.id, &RNA_Node, newnode);
+      PointerRNA ptr = RNA_pointer_create_discrete(&ngroup.id, &RNA_Node, newnode);
       if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
         BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
       }
@@ -1088,7 +1088,7 @@ static void node_group_make_insert_selected(const bContext &C,
   if (ntree.adt) {
     ListBase anim_basepaths = {nullptr, nullptr};
     for (bNode *node : nodes_to_move) {
-      PointerRNA ptr = RNA_pointer_create(&ntree.id, &RNA_Node, node);
+      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, node);
       if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
         BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
       }

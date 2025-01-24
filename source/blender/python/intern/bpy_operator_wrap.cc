@@ -54,7 +54,7 @@ static void operator_properties_init(wmOperatorType *ot)
       if (prop_id != nullptr) {
         PropertyRNA *prop;
 
-        PointerRNA ptr = RNA_pointer_create(nullptr, ot->srna, nullptr);
+        PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ot->srna, nullptr);
         prop = RNA_struct_find_property(&ptr, prop_id);
         if (prop) {
           ot->prop = prop;
@@ -157,6 +157,6 @@ PyObject *PYOP_wrap_macro_define(PyObject * /*self*/, PyObject *args)
 
   otmacro = WM_operatortype_macro_define(ot, idname);
 
-  PointerRNA ptr_otmacro = RNA_pointer_create(nullptr, &RNA_OperatorMacro, otmacro);
+  PointerRNA ptr_otmacro = RNA_pointer_create_discrete(nullptr, &RNA_OperatorMacro, otmacro);
   return pyrna_struct_CreatePyObject(&ptr_otmacro);
 }

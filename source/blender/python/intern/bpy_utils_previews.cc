@@ -52,7 +52,7 @@ static PyObject *bpy_utils_previews_new(PyObject * /*self*/, PyObject *args)
   }
 
   prv = BKE_previewimg_cached_ensure(name);
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_ImagePreview, prv);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImagePreview, prv);
 
   return pyrna_struct_CreatePyObject(&ptr);
 }
@@ -120,7 +120,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 
   Py_XDECREF(filepath_data.value_coerce);
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_ImagePreview, prv);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImagePreview, prv);
   return pyrna_struct_CreatePyObject(&ptr);
 }
 

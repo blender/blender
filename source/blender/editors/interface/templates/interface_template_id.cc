@@ -1615,7 +1615,7 @@ void uiTemplateAction(uiLayout *layout,
    * has a `getter` & `setter` that only need the owner ID and are null-safe regarding the `adt`
    * itself. */
   AnimData *adt = BKE_animdata_from_id(id);
-  PointerRNA adt_ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
+  PointerRNA adt_ptr = RNA_pointer_create_discrete(id, &RNA_AnimData, adt);
 
   TemplateID template_ui = {};
   template_ui.ptr = adt_ptr;

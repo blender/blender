@@ -156,7 +156,7 @@ void uiTemplatePreview(uiLayout *layout,
       }
 
       /* Create RNA Pointer */
-      PointerRNA material_ptr = RNA_pointer_create(&ma->id, &RNA_Material, ma);
+      PointerRNA material_ptr = RNA_pointer_create_discrete(&ma->id, &RNA_Material, ma);
 
       col = uiLayoutColumn(row, true);
       uiLayoutSetScaleX(col, 1.5);
@@ -172,7 +172,7 @@ void uiTemplatePreview(uiLayout *layout,
 
     if (pr_texture) {
       /* Create RNA Pointer */
-      PointerRNA texture_ptr = RNA_pointer_create(id, &RNA_Texture, tex);
+      PointerRNA texture_ptr = RNA_pointer_create_discrete(id, &RNA_Texture, tex);
 
       uiLayoutRow(layout, true);
       uiDefButS(block,

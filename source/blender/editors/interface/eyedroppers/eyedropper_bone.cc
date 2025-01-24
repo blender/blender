@@ -195,7 +195,7 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
       BoneSampleData sample_data;
       sample_data.name = bone->name;
       /* Not using the search pointer owner ID because pose bones are part of the object. */
-      sample_data.bone_rna = RNA_pointer_create(&base->object->id, &RNA_PoseBone, bone);
+      sample_data.bone_rna = RNA_pointer_create_discrete(&base->object->id, &RNA_PoseBone, bone);
       sample_data.sample_result = SampleResult::SUCCESS;
       return sample_data;
     }
@@ -213,7 +213,7 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
 
       BoneSampleData sample_data;
       sample_data.name = ebone->name;
-      sample_data.bone_rna = RNA_pointer_create(&armature->id, &RNA_EditBone, ebone);
+      sample_data.bone_rna = RNA_pointer_create_discrete(&armature->id, &RNA_EditBone, ebone);
       sample_data.sample_result = SampleResult::SUCCESS;
       return sample_data;
     }
@@ -374,7 +374,8 @@ static SampleResult bonedropper_sample(bContext *C, BoneDropper &bdr, const int 
      * searching for since there is no way to get the armature ID from the object ID that we
      * have. */
     bPoseChannel *pose_bone = (bPoseChannel *)sample_data.bone_rna.data;
-    sample_data.bone_rna = RNA_pointer_create(bdr.search_ptr.owner_id, &RNA_Bone, pose_bone->bone);
+    sample_data.bone_rna = RNA_pointer_create_discrete(
+        bdr.search_ptr.owner_id, &RNA_Bone, pose_bone->bone);
   }
 
   PropertyType type = RNA_property_type(bdr.prop);

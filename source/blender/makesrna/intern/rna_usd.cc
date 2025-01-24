@@ -61,7 +61,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   USDHook dummy_hook{};
 
   /* setup dummy type info to store static properties in */
-  PointerRNA dummy_hook_ptr = RNA_pointer_create(nullptr, &RNA_USDHook, &dummy_hook);
+  PointerRNA dummy_hook_ptr = RNA_pointer_create_discrete(nullptr, &RNA_USDHook, &dummy_hook);
 
   /* validate the python class */
   if (validate(&dummy_hook_ptr, data, nullptr) != 0) {

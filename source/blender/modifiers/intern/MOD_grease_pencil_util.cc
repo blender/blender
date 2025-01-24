@@ -93,7 +93,7 @@ void read_influence_data(BlendDataReader *reader,
 
 void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
-  PointerRNA ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
+  PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   const bool use_layer_pass = RNA_boolean_get(ptr, "use_layer_pass_filter");
   uiLayout *row, *col, *sub, *subsub;
@@ -125,7 +125,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
 
 void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
-  PointerRNA ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
+  PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   const bool use_material_pass = RNA_boolean_get(ptr, "use_material_pass_filter");
   uiLayout *row, *col, *sub, *subsub;
@@ -152,7 +152,7 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
 
 void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
-  PointerRNA ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
+  PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group_name") != 0;
   uiLayout *row, *col, *sub;
 

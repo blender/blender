@@ -161,7 +161,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
         /* For now, Grease Pencil data is associated with the space
          * (actually preview region only). */
         if (r_ptr) {
-          *r_ptr = RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq);
+          *r_ptr = RNA_pointer_create_discrete(screen_id, &RNA_SpaceSequenceEditor, sseq);
         }
         return &sseq->gpd;
       }
@@ -171,7 +171,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
 
         /* For now, Grease Pencil data is associated with the space... */
         if (r_ptr) {
-          *r_ptr = RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima);
+          *r_ptr = RNA_pointer_create_discrete(screen_id, &RNA_SpaceImageEditor, sima);
         }
         return &sima->gpd;
       }
@@ -191,7 +191,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
             }
 
             if (r_ptr) {
-              *r_ptr = RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track);
+              *r_ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTrackingTrack, track);
             }
             return &track->gpd;
           }

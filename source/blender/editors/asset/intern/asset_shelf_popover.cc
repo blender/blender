@@ -235,7 +235,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   }
 
   bScreen *screen = CTX_wm_screen(C);
-  PointerRNA library_ref_ptr = RNA_pointer_create(
+  PointerRNA library_ref_ptr = RNA_pointer_create_discrete(
       &screen->id, &RNA_AssetLibraryReference, &shelf->settings.asset_library_reference);
   uiLayoutSetContextPointer(layout, "asset_library_reference", &library_ref_ptr);
 
@@ -249,7 +249,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   uiLayout *right_col = uiLayoutColumn(row, false);
   uiLayout *sub = uiLayoutRow(right_col, false);
   /* Same as file/asset browser header. */
-  PointerRNA shelf_ptr = RNA_pointer_create(&screen->id, &RNA_AssetShelf, shelf);
+  PointerRNA shelf_ptr = RNA_pointer_create_discrete(&screen->id, &RNA_AssetShelf, shelf);
   uiItemR(sub,
           &shelf_ptr,
           "search_filter",

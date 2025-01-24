@@ -516,7 +516,7 @@ static PointerRNA rna_AttributeGroupID_new(
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
-  PointerRNA ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_Attribute, layer);
   return ptr;
 }
 
@@ -647,7 +647,7 @@ bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerR
   if (CustomDataLayer *layer = BKE_attribute_search_for_write(
           owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
   {
-    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Attribute, layer);
+    *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
     return true;
   }
 
@@ -657,7 +657,7 @@ bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerR
     if (CustomDataLayer *layer = BKE_attribute_search_for_write(
             owner, "uv_seam", CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
     {
-      *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Attribute, layer);
+      *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
       return true;
     }
   }
@@ -677,7 +677,7 @@ static PointerRNA rna_AttributeGroupID_active_get(PointerRNA *ptr)
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   CustomDataLayer *layer = BKE_attributes_active_get(owner);
 
-  PointerRNA attribute_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Attribute, layer);
+  PointerRNA attribute_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 
@@ -745,7 +745,7 @@ static PointerRNA rna_AttributeGroupMesh_active_color_get(PointerRNA *ptr)
       CD_MASK_COLOR_ALL,
       ATTR_DOMAIN_MASK_COLOR);
 
-  PointerRNA attribute_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Attribute, layer);
+  PointerRNA attribute_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 
@@ -912,7 +912,7 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_new(ID *grease_pencil_id
   DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);
 
-  PointerRNA ptr = RNA_pointer_create(grease_pencil_id, &RNA_Attribute, layer);
+  PointerRNA ptr = RNA_pointer_create_discrete(grease_pencil_id, &RNA_Attribute, layer);
   return ptr;
 }
 
@@ -936,7 +936,7 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_active_get(PointerRNA *p
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
   CustomDataLayer *layer = BKE_attributes_active_get(owner);
 
-  PointerRNA attribute_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Attribute, layer);
+  PointerRNA attribute_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 

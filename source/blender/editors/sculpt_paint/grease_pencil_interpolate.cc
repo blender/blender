@@ -1432,7 +1432,7 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
     /* Get an RNA pointer to ToolSettings to give to the custom curve. */
     Scene *scene = CTX_data_scene(C);
     ToolSettings *ts = scene->toolsettings;
-    PointerRNA gpsettings_ptr = RNA_pointer_create(
+    PointerRNA gpsettings_ptr = RNA_pointer_create_discrete(
         &scene->id, &RNA_GPencilInterpolateSettings, &ts->gp_interpolate);
     uiTemplateCurveMapping(
         layout, &gpsettings_ptr, "interpolation_curve", 0, false, true, true, false);

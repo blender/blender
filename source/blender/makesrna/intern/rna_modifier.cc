@@ -1901,7 +1901,7 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
   }
 
   psys = static_cast<ParticleSystem *>(BLI_findlink(&psmd->ob->particlesystem, psmd->psys - 1));
-  PointerRNA rptr = RNA_pointer_create((ID *)psmd->ob, &RNA_ParticleSystem, psys);
+  PointerRNA rptr = RNA_pointer_create_discrete((ID *)psmd->ob, &RNA_ParticleSystem, psys);
   return rptr;
 }
 
@@ -2001,9 +2001,9 @@ static PointerRNA rna_NodesModifier_node_warnings_iterator_get(CollectionPropert
 {
   NodesModifierData *nmd = static_cast<NodesModifierData *>(iter->parent.data);
   blender::Span warnings = get_node_modifier_warnings(*nmd);
-  return RNA_pointer_create(iter->parent.owner_id,
-                            &RNA_NodesModifierWarning,
-                            (void *)&warnings[iter->internal.count.item]);
+  return RNA_pointer_create_discrete(iter->parent.owner_id,
+                                     &RNA_NodesModifierWarning,
+                                     (void *)&warnings[iter->internal.count.item]);
 }
 
 static int rna_NodesModifier_node_warnings_length(PointerRNA *ptr)
@@ -2085,7 +2085,8 @@ static PointerRNA rna_NodesModifierBake_node_get(PointerRNA *ptr)
     return PointerRNA_NULL;
   }
   BLI_assert(tree != nullptr);
-  return RNA_pointer_create(const_cast<ID *>(&tree->id), &RNA_Node, const_cast<bNode *>(node));
+  return RNA_pointer_create_discrete(
+      const_cast<ID *>(&tree->id), &RNA_Node, const_cast<bNode *>(node));
 }
 
 static StructRNA *rna_NodesModifierBake_data_block_typef(PointerRNA *ptr)
