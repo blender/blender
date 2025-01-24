@@ -291,12 +291,12 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
    * This is not ideal, but prevents crashes from missing storage.
    * FileOutput node needs a redesign to support this properly.
    */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
     if (sock->storage == nullptr) {
       blender::bke::node_remove_socket(ntree, node, sock);
     }
   }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->outputs) {
     blender::bke::node_remove_socket(ntree, node, sock);
   }
 
