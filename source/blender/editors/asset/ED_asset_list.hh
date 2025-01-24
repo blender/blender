@@ -109,7 +109,6 @@ bool asset_image_is_loading(const AssetLibraryReference *library_reference,
 void asset_preview_ensure_requested(const bContext &C,
                                     const AssetLibraryReference *library_reference,
                                     AssetHandle *asset_handle);
-ImBuf *asset_image_get(const AssetHandle *asset_handle);
 
 /**
  * \return True if the region needs a UI redraw.

@@ -55,9 +55,11 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
   const eAssetImportMethod import_method = asset->get_import_method().value_or(
       ASSET_IMPORT_APPEND_REUSE);
 
-  ImBuf *imbuf = asset::list::asset_image_get(asset_handle);
-  UI_but_drag_set_asset(
-      but, asset, import_method, asset::handle_get_preview_icon_id(asset_handle), imbuf, 1.0f);
+  UI_but_drag_set_asset(but,
+                        asset,
+                        import_method,
+                        asset::handle_get_preview_or_type_icon_id(asset_handle),
+                        asset::handle_get_preview_icon_id(asset_handle));
 }
 
 static void asset_view_draw_item(uiList *ui_list,

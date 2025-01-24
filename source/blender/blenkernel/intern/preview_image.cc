@@ -434,7 +434,7 @@ std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *
   return prv->runtime->deferred_loading_data->source;
 }
 
-ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
+ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, const int size)
 {
   const uint w = prv->w[size];
   const uint h = prv->h[size];

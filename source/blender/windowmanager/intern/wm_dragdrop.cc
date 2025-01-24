@@ -32,6 +32,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
 
 #include "GHOST_C-api.h"
@@ -44,6 +45,7 @@
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "UI_interface.hh"
@@ -354,6 +356,12 @@ void WM_event_drag_image(wmDrag *drag, const ImBuf *imb, float scale)
 {
   drag->imb = imb;
   drag->imbuf_scale = scale;
+}
+
+void WM_event_drag_preview_icon(wmDrag *drag, int icon_id)
+{
+  BLI_assert_msg(!drag->imb, "Drag image and preview are mutually exclusive");
+  drag->preview_icon_id = icon_id;
 }
 
 void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
@@ -1013,6 +1021,11 @@ static int wm_drag_imbuf_icon_height_get(const wmDrag *drag)
   return round_fl_to_int(drag->imb->y * drag->imbuf_scale);
 }
 
+static int wm_drag_preview_icon_size_get()
+{
+  return UI_preview_tile_size_x();
+}
+
 static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
 {
   int x, y;
@@ -1041,6 +1054,13 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
                                   1.0f,
                                   1.0f,
                                   col);
+  }
+  else if (drag->preview_icon_id) {
+    const int size = wm_drag_preview_icon_size_get();
+    x = xy[0] - (size / 2);
+    y = xy[1] - (size / 2);
+
+    UI_icon_draw_preview(x, y, drag->preview_icon_id, UI_INV_SCALE_FAC, 0.8, size);
   }
   else {
     int padding = 4 * UI_SCALE_FAC;
@@ -1100,6 +1120,18 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
       y = xy[1] - (icon_height / 2) - padding - iconsize - padding - iconsize;
     }
   }
+  if (drag->preview_icon_id) {
+    const int size = wm_drag_preview_icon_size_get();
+
+    x = xy[0] - (size / 2);
+
+    if (xy[1] + (size / 2) + padding + iconsize < winsize_y) {
+      y = xy[1] + (size / 2) + padding;
+    }
+    else {
+      y = xy[1] - (size / 2) - padding - iconsize - padding - iconsize;
+    }
+  }
   else {
     x = xy[0] - 2 * padding;
 
@@ -1131,6 +1163,12 @@ static void wm_drag_draw_default(bContext *C, wmWindow *win, wmDrag *drag, const
     int iconsize = UI_ICON_SIZE;
     xy_tmp[0] = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);
     xy_tmp[1] = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2) - iconsize;
+  }
+  else if (drag->preview_icon_id) {
+    const int icon_size = UI_ICON_SIZE;
+    const int preview_size = wm_drag_preview_icon_size_get();
+    xy_tmp[0] = xy[0] - (preview_size / 2);
+    xy_tmp[1] = xy[1] - (preview_size / 2) - icon_size;
   }
   else {
     xy_tmp[0] = xy[0] + 10 * UI_SCALE_FAC;

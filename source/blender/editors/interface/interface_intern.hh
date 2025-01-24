@@ -294,6 +294,7 @@ struct uiBut {
   eWM_DragDataType dragtype = WM_DRAG_ID;
   short dragflag = 0;
   void *dragpoin = nullptr;
+  BIFIconID drag_preview_icon_id;
   const ImBuf *imb = nullptr;
   float imb_scale = 0;
 

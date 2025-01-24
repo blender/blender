@@ -1283,9 +1283,11 @@ struct wmDrag {
   eWM_DragDataType type;
   void *poin;
 
-  /** If no icon but imbuf should be drawn around cursor. */
+  /** If no small icon but imbuf should be drawn around cursor. */
   const ImBuf *imb;
   float imbuf_scale;
+  /** If #imb is not set, draw this as a big preview instead of the small #icon. */
+  int preview_icon_id; /* BIFIconID */
 
   wmDragActiveDropState drop_state;
 

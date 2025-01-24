@@ -1463,6 +1463,7 @@ wmDrag *WM_drag_data_create(
  */
 void WM_event_start_prepared_drag(bContext *C, wmDrag *drag);
 void WM_event_drag_image(wmDrag *drag, const ImBuf *imb, float scale);
+void WM_event_drag_preview_icon(wmDrag *drag, int icon_id);
 void WM_drag_free(wmDrag *drag);
 void WM_drag_data_free(eWM_DragDataType dragtype, void *poin);
 void WM_drag_free_list(ListBase *lb);

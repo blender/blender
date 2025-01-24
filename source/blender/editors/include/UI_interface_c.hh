@@ -1973,13 +1973,15 @@ void UI_but_drag_attach_image(uiBut *but, const ImBuf *imb, float scale);
 /**
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
+ * \param icon: Small icon that will be drawn while dragging.
+ * \param preview_icon: Bigger preview size icon that will be drawn while dragging instead of \a
+ * icon.
  */
 void UI_but_drag_set_asset(uiBut *but,
                            const blender::asset_system::AssetRepresentation *asset,
                            int import_method, /* eAssetImportMethod */
                            int icon,
-                           const ImBuf *imb,
-                           float scale);
+                           int preview_icon);
 
 void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr);
 /**
