@@ -818,14 +818,12 @@ if(WITH_GTESTS)
     )
   endif()
 
-  if(TEST_SRC)
-    set(TEST_COMMON_SRC
-      tests/gpu_testing.cc
-      tests/gpu_testing.hh
-    )
+  set(TEST_COMMON_SRC
+    tests/gpu_testing.cc
+    tests/gpu_testing.hh
+  )
 
-    blender_add_test_suite_lib(gpu
-      "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}" "${TEST_COMMON_SRC}"
-    )
-  endif()
+  blender_add_test_suite_lib(gpu
+    "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}" "${TEST_COMMON_SRC}"
+  )
 endif()

@@ -861,6 +861,7 @@ if(WITH_GTESTS)
       ../gpu/tests
     )
     set(TEST_LIB
+      gpu_tests
     )
     blender_add_test_suite_lib(draw "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
