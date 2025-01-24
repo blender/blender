@@ -2325,6 +2325,12 @@ void DRW_subdiv_free()
     GPU_shader_free(g_subdiv_shaders[i]);
   }
 
+  for (auto &comp_variants : g_subdiv_custom_data_shaders) {
+    for (GPUShader *shader : comp_variants) {
+      GPU_SHADER_FREE_SAFE(shader);
+    }
+  }
+
   DRW_cache_free_old_subdiv();
 
   if (g_evaluator_cache) {
