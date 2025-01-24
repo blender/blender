@@ -1727,7 +1727,7 @@ class PreviewLoadJob {
     PreviewImage *preview;
     /** Requested size. */
     eIconSizes icon_size;
-    std::atomic<int> done = false;
+    std::atomic<bool> done = false;
 
     RequestedPreview(PreviewImage *preview, eIconSizes icon_size)
         : preview(preview), icon_size(icon_size)
