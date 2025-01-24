@@ -421,7 +421,7 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
     case PaintMode::WeightGPencil:
       return rna_enum_brush_gpencil_weight_types_items;
     case PaintMode::SculptCurves:
-      return rna_enum_brush_gpencil_sculpt_types_items;
+      return rna_enum_brush_curves_sculpt_brush_type_items;
     case PaintMode::Invalid:
       break;
   }
