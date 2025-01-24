@@ -39,6 +39,14 @@ class VKShaderCompiler : public ShaderCompiler {
   TaskPool *task_pool_ = nullptr;
 
  public:
+  /**
+   * Cached path to the cache folder.
+   *
+   * GHOST and BKE_appdir are not thread safe. Storing the cache_dir locally to work around
+   * threading issues.
+   */
+  static std::optional<std::string> cache_dir;
+
   VKShaderCompiler();
   virtual ~VKShaderCompiler();
   BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
