@@ -1421,6 +1421,25 @@ static void simplify_stroke(bke::greasepencil::Drawing &drawing,
   }
 }
 
+static void add_strokes_to_drawing(const bool on_back,
+                                   Curves *strokes,
+                                   bke::greasepencil::Drawing &drawing)
+{
+  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
+  std::array<bke::GeometrySet, 2> geometry_sets;
+  if (on_back) {
+    geometry_sets = {bke::GeometrySet::from_curves(strokes),
+                     bke::GeometrySet::from_curves(other_curves)};
+  }
+  else {
+    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
+                     bke::GeometrySet::from_curves(strokes)};
+  }
+  drawing.strokes_for_write() = std::move(
+      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
+  drawing.tag_topology_changed();
+}
+
 static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
                              const int active_curve,
                              const bool on_back)
@@ -1464,20 +1483,7 @@ static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
   drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
 
   /* Join the trimmed stroke into the drawing. */
-  Curves *trimmed_curve = bke::curves_new_nomain(std::move(stroke_trimmed));
-  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
-  std::array<bke::GeometrySet, 2> geometry_sets;
-  if (on_back) {
-    geometry_sets = {bke::GeometrySet::from_curves(trimmed_curve),
-                     bke::GeometrySet::from_curves(other_curves)};
-  }
-  else {
-    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
-                     bke::GeometrySet::from_curves(trimmed_curve)};
-  }
-  drawing.strokes_for_write() = std::move(
-      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
-  drawing.tag_topology_changed();
+  add_strokes_to_drawing(on_back, bke::curves_new_nomain(std::move(stroke_trimmed)), drawing);
 }
 
 static void outline_stroke(bke::greasepencil::Drawing &drawing,
@@ -1505,20 +1511,7 @@ static void outline_stroke(bke::greasepencil::Drawing &drawing,
   drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
 
   /* Join the outline stroke into the drawing. */
-  Curves *outline_curve = bke::curves_new_nomain(std::move(outline));
-  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
-  std::array<bke::GeometrySet, 2> geometry_sets;
-  if (on_back) {
-    geometry_sets = {bke::GeometrySet::from_curves(outline_curve),
-                     bke::GeometrySet::from_curves(other_curves)};
-  }
-  else {
-    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
-                     bke::GeometrySet::from_curves(outline_curve)};
-  }
-  drawing.strokes_for_write() = std::move(
-      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
-  drawing.tag_topology_changed();
+  add_strokes_to_drawing(on_back, bke::curves_new_nomain(std::move(outline)), drawing);
 }
 
 static int trim_end_points(bke::greasepencil::Drawing &drawing,
@@ -1697,6 +1690,55 @@ static void process_stroke_weights(const Scene &scene,
   });
 }
 
+static bke::CurvesGeometry get_single_stroke(const bke::CurvesGeometry &src, const int curve)
+{
+
+  const IndexRange points = src.points_by_curve()[curve];
+  bke::CurvesGeometry dst(points.size(), 1);
+
+  Array<int> src_offsets({points.first(), points.one_after_last()});
+  Array<int> dst_offsets({0, int(points.size())});
+
+  copy_attributes_group_to_group(src.attributes(),
+                                 bke::AttrDomain::Point,
+                                 bke::AttrDomain::Point,
+                                 {},
+                                 src_offsets.as_span(),
+                                 dst_offsets.as_span(),
+                                 IndexMask{1},
+                                 dst.attributes_for_write());
+
+  src_offsets = {curve, curve + 1};
+  dst_offsets = {0, 1};
+
+  copy_attributes_group_to_group(src.attributes(),
+                                 bke::AttrDomain::Curve,
+                                 bke::AttrDomain::Curve,
+                                 {},
+                                 src_offsets.as_span(),
+                                 dst_offsets.as_span(),
+                                 IndexMask{1},
+                                 dst.attributes_for_write());
+  return dst;
+}
+
+static void append_stroke_to_multiframe_drawings(
+    const bke::CurvesGeometry &src_strokes,
+    const int curve,
+    const int current_frame,
+    const bool on_back,
+    Span<ed::greasepencil::MutableDrawingInfo> drawings)
+{
+  const bke::CurvesGeometry stroke = get_single_stroke(src_strokes, curve);
+
+  for (const ed::greasepencil::MutableDrawingInfo &drawing_info : drawings) {
+    if (drawing_info.frame_number == current_frame) {
+      continue;
+    }
+    add_strokes_to_drawing(on_back, bke::curves_new_nomain(stroke), drawing_info.drawing);
+  }
+}
+
 void PaintOperation::on_stroke_done(const bContext &C)
 {
   using namespace blender::bke;
@@ -1788,6 +1830,18 @@ void PaintOperation::on_stroke_done(const bContext &C)
   }
 
   drawing.tag_topology_changed();
+
+  const bool use_multi_frame_editing = (scene->toolsettings->gpencil_flags &
+                                        GP_USE_MULTI_FRAME_EDITING) != 0;
+
+  if (use_multi_frame_editing) {
+    append_stroke_to_multiframe_drawings(
+        drawing.strokes(),
+        active_curve,
+        scene->r.cfra,
+        on_back,
+        ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil));
+  }
 
   /* Now we're done drawing. */
   grease_pencil.runtime->is_drawing_stroke = false;
