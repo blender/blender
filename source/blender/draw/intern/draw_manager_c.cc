@@ -80,6 +80,7 @@
 #include "draw_common_c.hh"
 #include "draw_manager_c.hh"
 #include "draw_manager_profiling.hh"
+#include "draw_manager_testing.hh"
 #include "draw_manager_text.hh"
 #include "draw_shader.hh"
 #include "draw_subdivision.hh"
