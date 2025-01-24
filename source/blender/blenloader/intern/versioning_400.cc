@@ -48,6 +48,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_numbers.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -1188,6 +1189,92 @@ static void do_version_glare_node_bloom_strength_recursive(
   node_trees_already_versioned.add_new(node_tree);
 }
 
+/* Previously, color to float implicit conversion happened by taking the average, while now it uses
+ * luminance coefficients. So we need to convert all implicit conversions manually by adding a
+ * normal node to sum the color components then divide them by an appropriate factor. The normal
+ * node compute negative the dot product with its output vector, which is normalized. So if we
+ * supply a vector of (-1, -1, -1), we will get the dot product multiplied by 1 / sqrt(3) due to
+ * normalization. So if we want the average, we need to multiply by the normalization factor, then
+ * divide by 3. */
+static void do_version_color_to_float_conversion(bNodeTree *node_tree)
+{
+  /* Stores a mapping between an output and the final link of the versioning node tree that was
+   * added for it, in order to share the same versioning node tree with potentially multiple
+   * outgoing links from that same output. */
+  blender::Map<bNodeSocket *, bNodeLink *> color_to_float_links;
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (!(link->fromsock->type == SOCK_RGBA && link->tosock->type == SOCK_FLOAT)) {
+      continue;
+    }
+
+    /* If that output was versioned before, just connect the existing link. */
+    bNodeLink *existing_link = color_to_float_links.lookup_default(link->fromsock, nullptr);
+    if (existing_link) {
+      version_node_add_link(*node_tree,
+                            *existing_link->fromnode,
+                            *existing_link->fromsock,
+                            *link->tonode,
+                            *link->tosock);
+      blender::bke::node_remove_link(node_tree, link);
+      continue;
+    }
+
+    /* Add a hidden dot product node. */
+    bNode *dot_product_node = blender::bke::node_add_static_node(
+        nullptr, node_tree, CMP_NODE_NORMAL);
+    dot_product_node->flag |= NODE_HIDDEN;
+    dot_product_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 10.0f;
+    dot_product_node->location[1] = link->fromnode->location[1];
+
+    /* Link the source socket to the dot product input. */
+    bNodeSocket *dot_product_input = version_node_add_socket_if_not_exist(
+        node_tree, dot_product_node, SOCK_IN, SOCK_VECTOR, PROP_NONE, "Normal", "Normal");
+    version_node_add_link(
+        *node_tree, *link->fromnode, *link->fromsock, *dot_product_node, *dot_product_input);
+
+    /* Assign (-1, -1, -1) to the dot product output, which stores the second vector for the
+     * dot product. Notice that negative sign, since the node actually returns negative the dot
+     * product. */
+    bNodeSocket *dot_product_normal_output = version_node_add_socket_if_not_exist(
+        node_tree, dot_product_node, SOCK_OUT, SOCK_VECTOR, PROP_NONE, "Normal", "Normal");
+    copy_v3_fl(dot_product_normal_output->default_value_typed<bNodeSocketValueVector>()->value,
+               -1.0f);
+
+    /* Add a hidden multiply node. */
+    bNode *multiply_node = blender::bke::node_add_static_node(nullptr, node_tree, CMP_NODE_MATH);
+    multiply_node->custom1 = NODE_MATH_MULTIPLY;
+    multiply_node->flag |= NODE_HIDDEN;
+    multiply_node->location[0] = dot_product_node->location[0] + dot_product_node->width + 10.0f;
+    multiply_node->location[1] = dot_product_node->location[1];
+
+    /* Link the dot product output with the first input of the multiply node. */
+    bNodeSocket *dot_product_dot_output = version_node_add_socket_if_not_exist(
+        node_tree, dot_product_node, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Dot", "Dot");
+    bNodeSocket *multiply_input_a = static_cast<bNodeSocket *>(
+        BLI_findlink(&multiply_node->inputs, 0));
+    version_node_add_link(
+        *node_tree, *dot_product_node, *dot_product_dot_output, *multiply_node, *multiply_input_a);
+
+    /* Set the second input to  sqrt(3) / 3 as described in the function description. */
+    bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
+        BLI_findlink(&multiply_node->inputs, 1));
+    multiply_input_b->default_value_typed<bNodeSocketValueFloat>()->value =
+        blender::math::numbers::sqrt3 / 3.0f;
+
+    /* Link the multiply node output to the link target. */
+    bNodeSocket *multiply_output = version_node_add_socket_if_not_exist(
+        node_tree, multiply_node, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Value", "Value");
+    bNodeLink *final_link = &version_node_add_link(
+        *node_tree, *multiply_node, *multiply_output, *link->tonode, *link->tosock);
+
+    /* Add the new link to the cache. */
+    color_to_float_links.add_new(link->fromsock, final_link);
+
+    /* Remove the old link. */
+    blender::bke::node_remove_link(node_tree, link);
+  }
+}
+
 static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
 {
   if (!bmain->scenes.first) {
@@ -1518,6 +1605,15 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         replace_rna_path_prefix(*driver, "sequence_editor.sequences", "sequence_editor.strips");
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 27)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_color_to_float_conversion(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**
