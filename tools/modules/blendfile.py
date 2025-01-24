@@ -24,6 +24,7 @@ import logging
 import os
 import struct
 import tempfile
+import zstandard as zstd
 
 log = logging.getLogger("blendfile")
 
@@ -1190,21 +1191,10 @@ def open_blend(filename, access="rb", wrapper_type=BlendFile):
     supports 2 kind of blend files. Uncompressed and compressed.
     Known issue: does not support packaged blend files
     """
-    handle = open(filename, access)
-    magic_test = b"BLENDER"
-    magic = handle.read(len(magic_test))
-    if magic == magic_test:
-        log.debug("normal blendfile detected")
-        handle.seek(0, os.SEEK_SET)
-        bfile = wrapper_type(handle)
-        bfile.is_compressed = False
-        bfile.filepath_orig = filename
-        return bfile
-    elif magic[:2] == b'\x1f\x8b':
-        log.debug("gzip blendfile detected")
-        handle.close()
+
+    def decompress(filename, file_open):
         log.debug("decompressing started")
-        fs = gzip.open(filename, "rb")
+        fs = file_open(filename, "rb")
         data = fs.read(FILE_BUFFER_SIZE)
         magic = data[:len(magic_test)]
         if magic == magic_test:
@@ -1220,7 +1210,24 @@ def open_blend(filename, access="rb", wrapper_type=BlendFile):
             bfile.is_compressed = True
             bfile.filepath_orig = filename
             return bfile
-        else:
-            raise BlendFileError("filetype inside gzip not a blend")
+
+    handle = open(filename, access)
+    magic_test = b"BLENDER"
+    magic = handle.read(len(magic_test))
+    if magic == magic_test:
+        log.debug("normal blendfile detected")
+        handle.seek(0, os.SEEK_SET)
+        bfile = wrapper_type(handle)
+        bfile.is_compressed = False
+        bfile.filepath_orig = filename
+        return bfile
+    elif magic[:4] == b'\x28\xb5\x2f\xfd':
+        log.debug("zstd blendfile detected")
+        handle.close()
+        return decompress(filename, zstd.open)
+    elif magic[:2] == b'\x1f\x8b':
+        log.debug("gzip blendfile detected")
+        handle.close()
+        return decompress(filename, gzip.open)
     else:
-        raise BlendFileError("filetype not a blend or a gzip blend")
+        raise BlendFileError(f"filetype not an uncompressed, zstd or gzip blend (starts with '{magic}')")
