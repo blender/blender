@@ -23,7 +23,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -36,6 +35,7 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .compositor_realization_options(CompositorInputRealizationOptions::None)
       .compositor_domain_priority(0);
   b.add_output<decl::Color>("Image");
 }
@@ -74,8 +74,8 @@ class Stabilize2DOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
 
     MovieClip *movie_clip = get_movie_clip();
     if (input.is_single_value() || !movie_clip) {
@@ -99,7 +99,9 @@ class Stabilize2DOperation : public NodeOperation {
       transformation = math::invert(transformation);
     }
 
-    transform(this->context(), input, output, transformation, this->get_interpolation());
+    input.pass_through(output);
+    output.transform(transformation);
+    output.get_realization_options().interpolation = this->get_interpolation();
   }
 
   Interpolation get_interpolation()
@@ -124,7 +126,7 @@ class Stabilize2DOperation : public NodeOperation {
 
   MovieClip *get_movie_clip()
   {
-    return (MovieClip *)bnode().id;
+    return reinterpret_cast<MovieClip *>(bnode().id);
   }
 };
 

@@ -155,14 +155,15 @@ class Domain {
 
   /* Returns a domain of size 1x1 and an identity transformation. */
   static Domain identity();
+
+  /* Compare the size and transformation of the domain. Transformations are compared within the
+   * given epsilon. The realization_options are not compared because they only describe the method
+   * of realization on another domain, which is not technically a property of the domain itself. */
+  static bool is_equal(const Domain &a, const Domain &b, const float epsilon = 0.0f);
 };
 
-/* Compare the size and transformation of the domain. The realization_options are not compared
- * because they only describe the method of realization on another domain, which is not technically
- * a property of the domain itself. */
+/* Identical to the is_equal static method with zero epsilon. */
 bool operator==(const Domain &a, const Domain &b);
-
-/* Inverse of the above equality operator. */
 bool operator!=(const Domain &a, const Domain &b);
 
 }  // namespace blender::compositor

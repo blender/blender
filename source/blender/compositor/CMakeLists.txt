@@ -77,13 +77,11 @@ set(SRC
   algorithms/intern/morphological_distance.cc
   algorithms/intern/morphological_distance_feather.cc
   algorithms/intern/parallel_reduction.cc
-  algorithms/intern/realize_on_domain.cc
   algorithms/intern/recursive_gaussian_blur.cc
   algorithms/intern/smaa.cc
   algorithms/intern/summed_area_table.cc
   algorithms/intern/symmetric_separable_blur.cc
   algorithms/intern/symmetric_separable_blur_variable_size.cc
-  algorithms/intern/transform.cc
   algorithms/intern/van_vliet_gaussian_blur.cc
 
   algorithms/COM_algorithm_compute_preview.hh
@@ -95,13 +93,11 @@ set(SRC
   algorithms/COM_algorithm_morphological_distance.hh
   algorithms/COM_algorithm_morphological_distance_feather.hh
   algorithms/COM_algorithm_parallel_reduction.hh
-  algorithms/COM_algorithm_realize_on_domain.hh
   algorithms/COM_algorithm_recursive_gaussian_blur.hh
   algorithms/COM_algorithm_smaa.hh
   algorithms/COM_algorithm_summed_area_table.hh
   algorithms/COM_algorithm_symmetric_separable_blur.hh
   algorithms/COM_algorithm_symmetric_separable_blur_variable_size.hh
-  algorithms/COM_algorithm_transform.hh
   algorithms/COM_algorithm_van_vliet_gaussian_blur.hh
 
   cached_resources/intern/bokeh_kernel.cc
