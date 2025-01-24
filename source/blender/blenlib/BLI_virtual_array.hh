@@ -936,6 +936,16 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
     return VMutableArray::For<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc, SetFunc>>(values);
   }
 
+  /**
+   * Construct a new virtual array for an existing container. Every container that lays out the
+   * elements in a plain array works. This takes ownership of the passed in container. If that is
+   * not desired, use #ForSpan instead.
+   */
+  template<typename ContainerT> static VMutableArray ForContainer(ContainerT container)
+  {
+    return VMutableArray::For<VArrayImpl_For_ArrayContainer<ContainerT>>(std::move(container));
+  }
+
   /** Convert to a #VArray by copying. */
   operator VArray<T>() const &
   {
