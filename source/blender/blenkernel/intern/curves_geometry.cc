@@ -117,6 +117,7 @@ CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
                             other.runtime->evaluated_length_cache,
                             other.runtime->evaluated_tangent_cache,
                             other.runtime->evaluated_normal_cache,
+                            other.runtime->max_material_index_cache,
                             {},
                             true});
 
@@ -1082,6 +1083,7 @@ void CurvesGeometry::tag_topology_changed()
   this->tag_positions_changed();
   this->runtime->evaluated_offsets_cache.tag_dirty();
   this->runtime->nurbs_basis_cache.tag_dirty();
+  this->runtime->max_material_index_cache.tag_dirty();
   this->runtime->check_type_counts = true;
 }
 void CurvesGeometry::tag_normals_changed()
@@ -1089,6 +1091,10 @@ void CurvesGeometry::tag_normals_changed()
   this->runtime->evaluated_normal_cache.tag_dirty();
 }
 void CurvesGeometry::tag_radii_changed() {}
+void CurvesGeometry::tag_material_index_changed()
+{
+  this->runtime->max_material_index_cache.tag_dirty();
+}
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {
@@ -1202,6 +1208,17 @@ std::optional<Bounds<float3>> CurvesGeometry::bounds_min_max() const
   this->runtime->bounds_cache.ensure(
       [&](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(this->evaluated_positions()); });
   return this->runtime->bounds_cache.data();
+}
+
+std::optional<int> CurvesGeometry::material_index_max() const
+{
+  this->runtime->max_material_index_cache.ensure([&](std::optional<int> &r_max_material_index) {
+    r_max_material_index = blender::bounds::max<int>(
+        this->attributes()
+            .lookup_or_default<int>("material_index", blender::bke::AttrDomain::Curve, 0)
+            .varray);
+  });
+  return this->runtime->max_material_index_cache.data();
 }
 
 void CurvesGeometry::count_memory(MemoryCounter &memory) const

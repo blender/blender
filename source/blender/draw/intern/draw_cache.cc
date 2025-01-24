@@ -935,11 +935,6 @@ blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
   }
 }
 
-int DRW_cache_object_material_count_get(const Object *ob)
-{
-  return BKE_object_material_count_with_fallback_eval(ob);
-}
-
 Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
     Object *ob, const Span<const GPUMaterial *> materials)
 {
@@ -3293,7 +3288,7 @@ void drw_batch_cache_validate(Object *ob)
   using namespace blender::draw;
   switch (ob->type) {
     case OB_MESH:
-      DRW_mesh_batch_cache_validate(*ob, *(Mesh *)ob->data);
+      DRW_mesh_batch_cache_validate(*(Mesh *)ob->data);
       break;
     case OB_CURVES_LEGACY:
     case OB_FONT:
@@ -3307,7 +3302,7 @@ void drw_batch_cache_validate(Object *ob)
       DRW_curves_batch_cache_validate((Curves *)ob->data);
       break;
     case OB_POINTCLOUD:
-      DRW_pointcloud_batch_cache_validate(*ob, (PointCloud *)ob->data);
+      DRW_pointcloud_batch_cache_validate((PointCloud *)ob->data);
       break;
     case OB_VOLUME:
       DRW_volume_batch_cache_validate((Volume *)ob->data);

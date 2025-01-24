@@ -5485,6 +5485,18 @@ void BKE_curve_correct_bezpart(const float v1[2], float v2[2], float v3[2], cons
   }
 }
 
+std::optional<int> Curve::material_index_max() const
+{
+  if (BLI_listbase_is_empty(&this->nurb)) {
+    return std::nullopt;
+  }
+  int max_index = 0;
+  LISTBASE_FOREACH (const Nurb *, nurb, &this->nurb) {
+    max_index = std::max<int>(max_index, nurb->mat_nr);
+  }
+  return max_index;
+}
+
 /* **** Depsgraph evaluation **** */
 
 void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)

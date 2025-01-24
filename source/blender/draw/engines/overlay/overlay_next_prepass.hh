@@ -216,7 +216,7 @@ class Prepass : Overlay {
       case OB_MESH:
         if (use_material_slot_selection_) {
           /* TODO(fclem): Improve the API. */
-          const int materials_len = DRW_cache_object_material_count_get(ob_ref.object);
+          const int materials_len = BKE_object_material_used_with_fallback_eval(*ob_ref.object);
           Array<GPUMaterial *> materials(materials_len, nullptr);
           geom_list = DRW_cache_mesh_surface_shaded_get(ob_ref.object, materials);
         }

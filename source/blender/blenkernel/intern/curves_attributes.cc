@@ -46,6 +46,12 @@ static void tag_component_normals_changed(void *owner)
   curves.tag_normals_changed();
 }
 
+static void tag_component_material_index_changed(void *owner)
+{
+  CurvesGeometry &curves = *static_cast<CurvesGeometry *>(owner);
+  curves.tag_material_index_changed();
+}
+
 /**
  * This provider makes vertex groups available as float attributes.
  */
@@ -348,7 +354,7 @@ static GeometryAttributeProviders create_attribute_providers_for_curve()
                                                        CD_PROP_INT32,
                                                        BuiltinAttributeProvider::Deletable,
                                                        curve_access,
-                                                       nullptr,
+                                                       tag_component_material_index_changed,
                                                        AttributeValidator{&material_index_clamp});
 
   static CurvesVertexGroupsAttributeProvider vertex_groups;

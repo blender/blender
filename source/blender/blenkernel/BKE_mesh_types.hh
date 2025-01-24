@@ -169,6 +169,8 @@ struct MeshRuntime {
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges;
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges_no_hidden;
 
+  SharedCache<std::optional<int>> max_material_index;
+
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};
 

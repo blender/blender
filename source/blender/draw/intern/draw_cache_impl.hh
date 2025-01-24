@@ -46,7 +46,7 @@ void DRW_curve_batch_cache_validate(Curve *cu);
 void DRW_curve_batch_cache_free(Curve *cu);
 
 void DRW_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode);
-void DRW_mesh_batch_cache_validate(Object &object, Mesh &mesh);
+void DRW_mesh_batch_cache_validate(Mesh &mesh);
 void DRW_mesh_batch_cache_free(void *batch_cache);
 
 void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode);
@@ -61,7 +61,7 @@ void DRW_curves_batch_cache_validate(Curves *curves);
 void DRW_curves_batch_cache_free(Curves *curves);
 
 void DRW_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode);
-void DRW_pointcloud_batch_cache_validate(Object &object, PointCloud *pointcloud);
+void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud);
 void DRW_pointcloud_batch_cache_free(PointCloud *pointcloud);
 
 void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode);

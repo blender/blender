@@ -118,6 +118,9 @@ class CurvesGeometryRuntime {
   /** Normal direction vectors for each evaluated point. */
   mutable SharedCache<Vector<float3>> evaluated_normal_cache;
 
+  /** The maximum of the "material_index" attribute. */
+  mutable SharedCache<std::optional<int>> max_material_index_cache;
+
   /** Stores weak references to material data blocks. */
   std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 
@@ -305,6 +308,9 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void count_memory(MemoryCounter &memory) const;
 
+  /** Get the largest material index used by the curves or nullopt if there are none. */
+  std::optional<int> material_index_max() const;
+
  private:
   /* --------------------------------------------------------------------
    * Evaluation.
@@ -399,6 +405,8 @@ class CurvesGeometry : public ::CurvesGeometry {
    * this in #finish() calls.
    */
   void tag_radii_changed();
+  /** Call after changing the "material_index" attribute. */
+  void tag_material_index_changed();
 
   void translate(const float3 &translation);
   void transform(const float4x4 &matrix);

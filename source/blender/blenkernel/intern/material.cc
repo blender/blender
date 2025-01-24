@@ -49,6 +49,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_curve.hh"
+#include "BKE_curves.hh"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
@@ -732,7 +733,7 @@ Material *BKE_object_material_get(Object *ob, short act)
   return ma_p ? *ma_p : nullptr;
 }
 
-static const ID *get_evaluated_object_data_with_materials(Object *ob)
+static const ID *get_evaluated_object_data_with_materials(const Object *ob)
 {
   const ID *data = static_cast<ID *>(ob->data);
   /* Meshes in edit mode need special handling. */
@@ -799,10 +800,43 @@ int BKE_object_material_count_eval(const Object *ob)
   return std::max(ob->totcol, len_p ? *len_p : 0);
 }
 
-int BKE_object_material_count_with_fallback_eval(const Object *ob)
+std::optional<int> BKE_id_material_index_max_eval(const ID &id)
 {
-  const int actual_count = BKE_object_material_count_eval(ob);
-  return std::max(1, actual_count);
+  switch (GS(id.name)) {
+    case ID_ME:
+      return reinterpret_cast<const Mesh &>(id).material_index_max();
+    case ID_CU_LEGACY:
+      return reinterpret_cast<const Curve &>(id).material_index_max();
+    case ID_CV:
+      return reinterpret_cast<const Curves &>(id).geometry.wrap().material_index_max();
+    case ID_PT:
+      return reinterpret_cast<const PointCloud &>(id).material_index_max();
+    case ID_GP:
+      return reinterpret_cast<const GreasePencil &>(id).material_index_max_eval();
+    case ID_VO:
+    case ID_MB:
+      /* Always use the first material. */
+      return 0;
+    case ID_GD_LEGACY:
+      /* Is not rendered anymore. */
+      BLI_assert_unreachable();
+      return 0;
+    default:
+      break;
+  }
+  return 0;
+}
+
+int BKE_id_material_used_with_fallback_eval(const ID &id)
+{
+  const int max_material_index = std::max(0, BKE_id_material_index_max_eval(id).value_or(0));
+  return max_material_index + 1;
+}
+
+int BKE_object_material_used_with_fallback_eval(const Object &ob)
+{
+  const ID *data = get_evaluated_object_data_with_materials(&ob);
+  return BKE_id_material_used_with_fallback_eval(*data);
 }
 
 void BKE_id_material_eval_assign(ID *id, int slot, Material *material)

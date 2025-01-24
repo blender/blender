@@ -309,6 +309,9 @@ typedef struct Mesh {
   /** Set cached mesh bounds to a known-correct value to avoid their lazy calculation later on. */
   void bounds_set_eager(const blender::Bounds<blender::float3> &bounds);
 
+  /** Get the largest material index used by the mesh or nullopt if it has no faces. */
+  std::optional<int> material_index_max() const;
+
   /**
    * Cached map containing the index of the face using each face corner.
    */
@@ -429,6 +432,8 @@ typedef struct Mesh {
   void tag_topology_changed();
   /** Call when changing the ".hide_vert", ".hide_edge", or ".hide_poly" attributes. */
   void tag_visibility_changed();
+  /** Call when changing the "material_index" attribute. */
+  void tag_material_index_changed();
 #endif
 } Mesh;
 

@@ -450,7 +450,7 @@ MaterialArray &MaterialModule::material_array_get(Object *ob, bool has_motion)
   material_array_.materials.clear();
   material_array_.gpu_materials.clear();
 
-  const int materials_len = DRW_cache_object_material_count_get(ob);
+  const int materials_len = BKE_object_material_used_with_fallback_eval(*ob);
 
   for (auto i : IndexRange(materials_len)) {
     ::Material *blender_mat = material_from_slot(ob, i);

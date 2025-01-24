@@ -402,7 +402,7 @@ static void drw_shgroup_bone_custom_solid_mesh(const Armatures::DrawContext *ctx
   using namespace blender::draw;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  DRW_mesh_batch_cache_validate(custom, mesh);
+  DRW_mesh_batch_cache_validate(mesh);
 
   blender::gpu::Batch *surf = DRW_mesh_batch_cache_get_surface(mesh);
   blender::gpu::Batch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
@@ -447,7 +447,7 @@ static void drw_shgroup_bone_custom_mesh_wire(const Armatures::DrawContext *ctx,
   using namespace blender::draw;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  DRW_mesh_batch_cache_validate(custom, mesh);
+  DRW_mesh_batch_cache_validate(mesh);
 
   blender::gpu::Batch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
   if (geom) {

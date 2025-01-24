@@ -92,20 +92,20 @@ static PointCloudBatchCache *pointcloud_batch_cache_get(PointCloud &pointcloud)
   return static_cast<PointCloudBatchCache *>(pointcloud.batch_cache);
 }
 
-static bool pointcloud_batch_cache_valid(Object &object, PointCloud &pointcloud)
+static bool pointcloud_batch_cache_valid(PointCloud &pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
   if (cache == nullptr) {
     return false;
   }
-  if (cache->eval_cache.mat_len != BKE_object_material_count_with_fallback_eval(&object)) {
+  if (cache->eval_cache.mat_len != BKE_id_material_used_with_fallback_eval(pointcloud.id)) {
     return false;
   }
   return cache->is_dirty == false;
 }
 
-static void pointcloud_batch_cache_init(Object &object, PointCloud &pointcloud)
+static void pointcloud_batch_cache_init(PointCloud &pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
@@ -117,7 +117,7 @@ static void pointcloud_batch_cache_init(Object &object, PointCloud &pointcloud)
     cache->eval_cache = {};
   }
 
-  cache->eval_cache.mat_len = BKE_object_material_count_with_fallback_eval(&object);
+  cache->eval_cache.mat_len = BKE_id_material_used_with_fallback_eval(pointcloud.id);
   cache->eval_cache.surface_per_mat = static_cast<gpu::Batch **>(
       MEM_callocN(sizeof(gpu::Batch *) * cache->eval_cache.mat_len, __func__));
 
@@ -171,11 +171,11 @@ static void pointcloud_batch_cache_clear(PointCloud &pointcloud)
   pointcloud_discard_attributes(*cache);
 }
 
-void DRW_pointcloud_batch_cache_validate(Object &object, PointCloud *pointcloud)
+void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud)
 {
-  if (!pointcloud_batch_cache_valid(object, *pointcloud)) {
+  if (!pointcloud_batch_cache_valid(*pointcloud)) {
     pointcloud_batch_cache_clear(*pointcloud);
-    pointcloud_batch_cache_init(object, *pointcloud);
+    pointcloud_batch_cache_init(*pointcloud);
   }
 }
 
