@@ -70,14 +70,29 @@
 
 namespace blender::bke {
 
-/* very slow! enable for testing only! */
+/**
+ * Validate all meshes being modified, input and output.
+ * This is slow (even for debug mode), enable manually when investigating bugs.
+ *
+ * \note Validating the input as well as the output can be useful
+ * to rule out corrupt input.
+ */
 // #define USE_MODIFIER_VALIDATE
 
 #ifdef USE_MODIFIER_VALIDATE
-#  define ASSERT_IS_VALID_MESH(mesh) \
+#  define ASSERT_IS_VALID_MESH_INPUT(mesh) (BLI_assert(BKE_mesh_is_valid(mesh) == true))
+#  define ASSERT_IS_VALID_MESH_OUTPUT(mesh) \
     (BLI_assert((mesh == nullptr) || (BKE_mesh_is_valid(mesh) == true)))
 #else
-#  define ASSERT_IS_VALID_MESH(mesh)
+#  define ASSERT_IS_VALID_MESH_INPUT(mesh) \
+    { \
+      (void)mesh; \
+    };
+#  define ASSERT_IS_VALID_MESH_OUTPUT(mesh) \
+    { \
+      (void)mesh; \
+    };
+
 #endif
 
 static void mesh_init_origspace(Mesh &mesh);
@@ -371,8 +386,9 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
 
   if (ob.modifier_flag & OB_MODIFIER_FLAG_ADD_REST_POSITION) {
     if (mesh == nullptr) {
+      ASSERT_IS_VALID_MESH_INPUT(&mesh_input);
       mesh = BKE_mesh_copy_for_eval(mesh_input);
-      ASSERT_IS_VALID_MESH(mesh);
+      ASSERT_IS_VALID_MESH_OUTPUT(mesh);
     }
     set_rest_position(*mesh);
   }
@@ -389,8 +405,9 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
       if (mti->type == ModifierTypeType::OnlyDeform && !sculpt_dyntopo) {
         ScopedModifierTimer modifier_timer{*md};
         if (!mesh) {
+          ASSERT_IS_VALID_MESH_INPUT(&mesh_input);
           mesh = BKE_mesh_copy_for_eval(mesh_input);
-          ASSERT_IS_VALID_MESH(mesh);
+          ASSERT_IS_VALID_MESH_OUTPUT(mesh);
         }
 
         if (mti->required_data_mask) {
@@ -484,8 +501,9 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
 
     if (mti->type == ModifierTypeType::OnlyDeform) {
       if (!mesh) {
+        ASSERT_IS_VALID_MESH_INPUT(&mesh_input);
         mesh = BKE_mesh_copy_for_eval(mesh_input);
-        ASSERT_IS_VALID_MESH(mesh);
+        ASSERT_IS_VALID_MESH_OUTPUT(mesh);
       }
       BKE_modifier_deform_verts(md, &mectx, mesh, mesh->vert_positions_for_write());
     }
@@ -499,8 +517,9 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
         }
       }
       else {
+        ASSERT_IS_VALID_MESH_INPUT(&mesh_input);
         mesh = BKE_mesh_copy_for_eval(mesh_input);
-        ASSERT_IS_VALID_MESH(mesh);
+        ASSERT_IS_VALID_MESH_OUTPUT(mesh);
         check_for_needs_mapping = true;
       }
 
@@ -568,8 +587,9 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
         }
       }
 
+      ASSERT_IS_VALID_MESH_INPUT(mesh);
       Mesh *mesh_next = modifier_modify_mesh_and_geometry_set(md, mectx, mesh, geometry_set_final);
-      ASSERT_IS_VALID_MESH(mesh_next);
+      ASSERT_IS_VALID_MESH_OUTPUT(mesh_next);
 
       if (mesh_next) {
         /* if the modifier returned a new mesh, release the old one */
@@ -599,8 +619,9 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
         CustomData_MeshMasks_update(&temp_cddata_masks, &nextmask);
         mesh_set_only_copy(mesh_orco, &temp_cddata_masks);
 
+        ASSERT_IS_VALID_MESH_INPUT(mesh_orco);
         mesh_next = BKE_modifier_modify_mesh(md, &mectx_orco, mesh_orco);
-        ASSERT_IS_VALID_MESH(mesh_next);
+        ASSERT_IS_VALID_MESH_OUTPUT(mesh_next);
 
         if (mesh_next) {
           /* if the modifier returned a new mesh, release the old one */
@@ -625,8 +646,9 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
         nextmask.pmask |= CD_MASK_ORIGINDEX;
         mesh_set_only_copy(mesh_orco_cloth, &nextmask);
 
+        ASSERT_IS_VALID_MESH_INPUT(mesh_orco_cloth);
         mesh_next = BKE_modifier_modify_mesh(md, &mectx_orco, mesh_orco_cloth);
-        ASSERT_IS_VALID_MESH(mesh_next);
+        ASSERT_IS_VALID_MESH_OUTPUT(mesh_next);
 
         if (mesh_next) {
           /* if the modifier returned a new mesh, release the old one */
@@ -892,8 +914,9 @@ static void editbmesh_calc_modifiers(Depsgraph &depsgraph,
         mask.pmask |= CD_MASK_ORIGINDEX;
         mesh_set_only_copy(mesh_orco, &mask);
 
+        ASSERT_IS_VALID_MESH_INPUT(mesh_orco);
         Mesh *mesh_next = BKE_modifier_modify_mesh(md, &mectx_orco, mesh_orco);
-        ASSERT_IS_VALID_MESH(mesh_next);
+        ASSERT_IS_VALID_MESH_OUTPUT(mesh_next);
 
         if (mesh_next) {
           /* if the modifier returned a new dm, release the old one */
@@ -923,8 +946,9 @@ static void editbmesh_calc_modifiers(Depsgraph &depsgraph,
         }
       }
 
+      ASSERT_IS_VALID_MESH_INPUT(mesh);
       Mesh *mesh_next = modifier_modify_mesh_and_geometry_set(md, mectx, mesh, geometry_set_final);
-      ASSERT_IS_VALID_MESH(mesh_next);
+      ASSERT_IS_VALID_MESH_OUTPUT(mesh_next);
 
       if (mesh_next) {
         if (mesh != mesh_next) {
