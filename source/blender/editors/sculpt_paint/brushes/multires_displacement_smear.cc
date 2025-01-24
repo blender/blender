@@ -5,7 +5,6 @@
 #include "editors/sculpt_paint/brushes/types.hh"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -18,7 +17,6 @@
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
-#include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint {
@@ -61,8 +59,6 @@ static void calc_node(const Depsgraph &depsgraph,
         const int node_vert = node_grid_range[offset];
         const int vert = grid_range[offset];
 
-        float3 interp_limit_surface_disp = cache.displacement_smear.prev_displacement[vert];
-
         float3 current_disp;
         switch (brush.smear_deform_type) {
           case BRUSH_SMEAR_DEFORM_DRAG:
@@ -77,14 +73,14 @@ static void calc_node(const Depsgraph &depsgraph,
         }
 
         const float3 current_disp_norm = math::normalize(current_disp);
-        current_disp *= cache.bstrength;
-
-        float weights_accum = 1.0f;
 
         SubdivCCGCoord coord{};
         coord.grid_index = grid;
         coord.x = x;
         coord.y = y;
+
+        float3 interp_limit_surface_disp = cache.displacement_smear.prev_displacement[vert];
+        float weights_accum = 1.0f;
 
         SubdivCCGNeighbors neighbors;
         BKE_subdiv_ccg_neighbor_coords_get(*ss.subdiv_ccg, coord, false, neighbors);
