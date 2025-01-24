@@ -195,10 +195,10 @@ void VKTexture::read_sub(
   VKBuffer staging_buffer;
   size_t device_memory_size = sample_len * to_bytesize(device_format_);
   staging_buffer.create(device_memory_size,
-                        GPU_USAGE_DYNAMIC,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
   render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
   render_graph::VKCopyImageToBufferNode::Data &node_data = copy_image_to_buffer.node_data;
@@ -311,10 +311,11 @@ void VKTexture::update_sub(int mip,
   VkBuffer vk_buffer = VK_NULL_HANDLE;
   if (data) {
     staging_buffer.create(device_memory_size,
-                          GPU_USAGE_DYNAMIC,
                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
     vk_buffer = staging_buffer.vk_handle();
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
      * other cases we unpack the rows to reduce the size of the staging buffer and data transfer.

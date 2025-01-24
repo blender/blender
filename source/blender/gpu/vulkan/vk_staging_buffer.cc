@@ -24,10 +24,11 @@ VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer, Direction direct
   }
 
   host_buffer_.create(device_buffer.size_in_bytes(),
-                      GPU_USAGE_STREAM,
                       usage,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                      VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
   debug::object_label(host_buffer_.vk_handle(), "StagingBuffer");
 }
 

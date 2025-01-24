@@ -198,10 +198,10 @@ void VKDevice::init_memory_allocator()
 void VKDevice::init_dummy_buffer()
 {
   dummy_buffer.create(sizeof(float4x4),
-                      GPU_USAGE_DEVICE_ONLY,
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                      VkMemoryPropertyFlags(0),
+                      VmaAllocationCreateFlags(0));
   debug::object_label(dummy_buffer.vk_handle(), "DummyBuffer");
   /* Default dummy buffer. Set the 4th element to 1 to fix missing orcos. */
   float data[16] = {

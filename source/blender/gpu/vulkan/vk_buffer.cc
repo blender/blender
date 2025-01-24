@@ -24,27 +24,11 @@ bool VKBuffer::is_allocated() const
   return allocation_ != VK_NULL_HANDLE;
 }
 
-static VmaAllocationCreateFlags vma_allocation_flags(GPUUsageType usage)
-{
-  switch (usage) {
-    case GPU_USAGE_STATIC:
-    case GPU_USAGE_DEVICE_ONLY:
-      return 0;
-    case GPU_USAGE_DYNAMIC:
-    case GPU_USAGE_STREAM:
-      return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
-    case GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY:
-      break;
-  }
-  BLI_assert_msg(false, "Unimplemented GPUUsageType");
-  return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
-}
-
 bool VKBuffer::create(size_t size_in_bytes,
-                      GPUUsageType usage,
                       VkBufferUsageFlags buffer_usage,
                       VkMemoryPropertyFlags required_flags,
-                      VkMemoryPropertyFlags preferred_flags)
+                      VkMemoryPropertyFlags preferred_flags,
+                      VmaAllocationCreateFlags allocation_flags)
 {
   BLI_assert(!is_allocated());
   BLI_assert(vk_buffer_ == VK_NULL_HANDLE);
@@ -71,7 +55,7 @@ bool VKBuffer::create(size_t size_in_bytes,
   create_info.pQueueFamilyIndices = queue_family_indices;
 
   VmaAllocationCreateInfo vma_create_info = {};
-  vma_create_info.flags = vma_allocation_flags(usage);
+  vma_create_info.flags = allocation_flags;
   vma_create_info.priority = 1.0f;
   vma_create_info.requiredFlags = required_flags;
   vma_create_info.preferredFlags = preferred_flags;

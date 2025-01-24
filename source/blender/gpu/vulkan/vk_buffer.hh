@@ -40,10 +40,10 @@ class VKBuffer : public NonCopyable {
    * Allocate the buffer.
    */
   bool create(size_t size,
-              GPUUsageType usage,
               VkBufferUsageFlags buffer_usage,
               VkMemoryPropertyFlags required_flags,
-              VkMemoryPropertyFlags preferred_flags);
+              VkMemoryPropertyFlags preferred_flags,
+              VmaAllocationCreateFlags vma_allocation_flags);
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;
 
