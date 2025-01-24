@@ -1004,12 +1004,14 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
     }
   }
   else if (!prv_img->rect[size]) {
-    prv_img->w[size] = render_size;
-    prv_img->h[size] = render_size;
     prv_img->flag[size] |= PRV_CHANGED;
     prv_img->changed_timestamp[size] = 0;
-    prv_img->rect[size] = static_cast<uint *>(
-        MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect"));
+    if (!ED_preview_use_image_size(prv_img, size)) {
+      prv_img->w[size] = render_size;
+      prv_img->h[size] = render_size;
+      prv_img->rect[size] = static_cast<uint *>(
+          MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect"));
+    }
   }
 }
 

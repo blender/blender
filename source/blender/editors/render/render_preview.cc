@@ -1834,13 +1834,21 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
     IMB_thumb_path_unlock(filepath);
 
     if (thumb) {
-      /* PreviewImage assumes premultiplied alpha... */
+      /* PreviewImage assumes premultiplied alpha. */
       IMB_premultiply_alpha(thumb);
 
-      icon_copy_rect(thumb,
-                     preview->w[request->icon_size],
-                     preview->h[request->icon_size],
-                     preview->rect[request->icon_size]);
+      if (ED_preview_use_image_size(preview, request->icon_size)) {
+        preview->w[request->icon_size] = thumb->x;
+        preview->h[request->icon_size] = thumb->y;
+        BLI_assert(preview->rect[request->icon_size] == nullptr);
+        preview->rect[request->icon_size] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
+      }
+      else {
+        icon_copy_rect(thumb,
+                       preview->w[request->icon_size],
+                       preview->h[request->icon_size],
+                       preview->rect[request->icon_size]);
+      }
       IMB_freeImBuf(thumb);
     }
 
@@ -1913,6 +1921,11 @@ static void icon_preview_free(void *customdata)
 
   BLI_freelistN(&ip->sizes);
   MEM_freeN(ip);
+}
+
+bool ED_preview_use_image_size(const PreviewImage *preview, eIconSizes size)
+{
+  return size == ICON_SIZE_PREVIEW && preview->runtime->deferred_loading_data;
 }
 
 bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
