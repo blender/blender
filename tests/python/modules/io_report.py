@@ -248,7 +248,14 @@ class Report:
         if isinstance(val, bpy.types.VertexGroup):
             return f"'{val.name}'"
         if isinstance(val, bpy.types.Keyframe):
-            return f"({val.co[0]:.1f}, {val.co[1]:.1f} int:{val.interpolation} ease:{val.easing})"
+            res = f"({val.co[0]:.1f}, {val.co[1]:.1f})"
+            res += f" lh:({val.handle_left[0]:.1f}, {val.handle_left[1]:.1f} {val.handle_left_type})"
+            res += f" rh:({val.handle_right[0]:.1f}, {val.handle_right[1]:.1f} {val.handle_right_type})"
+            if val.interpolation != 'LINEAR':
+                res += f" int:{val.interpolation}"
+            if val.easing != 'AUTO':
+                res += f" ease:{val.easing}"
+            return res
         if isinstance(val, bpy.types.SplinePoint):
             return f"({val.co[0]:.3f}, {val.co[1]:.3f}, {val.co[2]:.3f}) w:{val.weight:.3f}"
         return str(val)
@@ -341,6 +348,8 @@ class Report:
         except ValueError:
             rel_path = "<outside of test folder>"
         desc = f" tex:'{tex.image.name}' ({rel_path}) a:{tex.use_alpha}"
+        if str(tex.colorspace_is_data) == "True":  # unset value is "Ellipsis"
+            desc += f" data"
         if tex.texcoords != 'UV':
             desc += f" uv:{tex.texcoords}"
         if tex.extension != 'REPEAT':
@@ -541,9 +550,9 @@ class Report:
             for act in sorted(bpy.data.actions, key=lambda a: a.name):
                 desc.write(
                     f"- Action '{act.name}' curverange:({act.curve_frame_range[0]:.1f} .. {act.curve_frame_range[1]:.1f}) curves:{len(act.fcurves)}\n")
-                for fcu in act.fcurves[:5]:
+                for fcu in act.fcurves[:15]:
                     desc.write(
-                        f"  - fcu '{fcu.data_path}[{fcu.array_index}] smooth:{fcu.auto_smoothing} extra:{fcu.extrapolation} keyframes:{len(fcu.keyframe_points)}'\n")
+                        f"  - fcu '{fcu.data_path}[{fcu.array_index}]' smooth:{fcu.auto_smoothing} extra:{fcu.extrapolation} keyframes:{len(fcu.keyframe_points)}\n")
                     Report._write_collection_multi(fcu.keyframe_points, desc)
                 Report._write_custom_props(act, desc)
                 desc.write(f"\n")
