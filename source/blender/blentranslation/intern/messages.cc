@@ -480,17 +480,35 @@ class MOMessages {
   {
     /* Find language folders. */
     Vector<std::string> lang_folders;
-    if (!info.language.empty()) {
+    if (info.language.empty()) {
+      return {};
+    }
+
+    /* Blender uses non-standard uppercase script zh_HANS instead of zh_Hans, try both. */
+    Vector<std::string> scripts = {info.script};
+    if (!info.script.empty()) {
+      std::string script_uppercase = info.script;
+      for (char &c : script_uppercase) {
+        make_upper_ascii(c);
+      }
+      scripts.append(script_uppercase);
+    }
+
+    for (const std::string &script : scripts) {
+      std::string language = info.language;
+      if (!script.empty()) {
+        language += "_" + script;
+      }
       if (!info.variant.empty() && !info.country.empty()) {
-        lang_folders.append(info.language + "_" + info.country + "@" + info.variant);
+        lang_folders.append(language + "_" + info.country + "@" + info.variant);
       }
       if (!info.variant.empty()) {
-        lang_folders.append(info.language + "@" + info.variant);
+        lang_folders.append(language + "@" + info.variant);
       }
       if (!info.country.empty()) {
-        lang_folders.append(info.language + "_" + info.country);
+        lang_folders.append(language + "_" + info.country);
       }
-      lang_folders.append(info.language);
+      lang_folders.append(language);
     }
 
     /* Find catalogs in language folders. */
