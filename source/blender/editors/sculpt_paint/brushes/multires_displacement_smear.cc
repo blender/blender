@@ -161,7 +161,7 @@ void do_displacement_smear_brush(const Depsgraph &depsgraph,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   if (ss.cache->displacement_smear.limit_surface_co.is_empty()) {
-    ss.cache->displacement_smear.prev_displacement = Array<float3>(positions.size());
+    ss.cache->displacement_smear.prev_displacement = Array<float3>(positions.size(), float3(0.0f));
     ss.cache->displacement_smear.limit_surface_co = Array<float3>(positions.size());
 
     eval_all_limit_positions(subdiv_ccg, ss.cache->displacement_smear.limit_surface_co);
