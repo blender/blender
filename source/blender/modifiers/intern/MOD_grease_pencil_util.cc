@@ -323,8 +323,21 @@ VArray<float> get_influence_vertex_weights(const bke::CurvesGeometry &curves,
     return VArray<float>::ForSingle(1.0f, curves.point_num);
   }
   /* Vertex group weights, with zero weight as fallback. */
-  return *curves.attributes().lookup_or_default<float>(
+  VArray<float> influence_weights = *curves.attributes().lookup_or_default<float>(
       influence_data.vertex_group_name, bke::AttrDomain::Point, 0.0f);
+
+  if (influence_data.flag & GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP) {
+    Array<float> influence_weights_inverted(influence_weights.size());
+    threading::parallel_for(
+        influence_weights_inverted.index_range(), 8192, [&](const IndexRange range) {
+          for (const int i : range) {
+            influence_weights_inverted[i] = 1.0f - influence_weights[i];
+          }
+        });
+    return VArray<float>::ForContainer(influence_weights_inverted);
+  }
+
+  return influence_weights;
 }
 
 Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease_pencil,

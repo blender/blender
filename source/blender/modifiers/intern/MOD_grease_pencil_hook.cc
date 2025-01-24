@@ -197,14 +197,6 @@ static void deform_drawing(const ModifierData &md,
   }
   float4x4 use_mat = ob.world_to_object() * dmat * float4x4(mmd.parentinv);
 
-  auto get_weight = [&](const int point) {
-    const float weight = input_weights[point];
-    if (mmd.influence.flag & GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP) {
-      return 1.0f - weight;
-    }
-    return weight;
-  };
-
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions = curves.positions_for_write();
 
@@ -212,7 +204,7 @@ static void deform_drawing(const ModifierData &md,
     const IndexRange points_range = points_by_curve[stroke].index_range();
     for (const int point_i : points_range) {
       const int point = point_i + points_by_curve[stroke].first();
-      const float weight = get_weight(point);
+      const float weight = input_weights[point];
       if (weight < 0.0f) {
         continue;
       }
