@@ -42,8 +42,6 @@ static CLG_LogRef LOG = {"ed.anim.motion_paths"};
 
 /* Motion path needing to be baked (mpt). */
 struct MPathTarget {
-  MPathTarget *next, *prev;
-
   bMotionPath *mpath; /* Motion path in question. */
 
   AnimKeylist *keylist; /* Temp, to know where the keyframes are. */
@@ -68,18 +66,15 @@ static void motionpaths_calc_update_scene(Depsgraph *depsgraph)
 Depsgraph *animviz_depsgraph_build(Main *bmain,
                                    Scene *scene,
                                    ViewLayer *view_layer,
-                                   ListBase *targets)
+                                   blender::Span<MPathTarget *> targets)
 {
   /* Allocate dependency graph. */
   Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
 
   /* Make a flat array of IDs for the DEG API. */
-  const int num_ids = BLI_listbase_count(targets);
-  blender::Array<ID *> ids(num_ids);
+  blender::Array<ID *> ids(targets.size());
   int current_id_index = 0;
-  for (MPathTarget *mpt = static_cast<MPathTarget *>(targets->first); mpt != nullptr;
-       mpt = mpt->next)
-  {
+  for (const MPathTarget *mpt : targets) {
     ids[current_id_index++] = &mpt->ob->id;
   }
 
@@ -91,7 +86,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
   return depsgraph;
 }
 
-void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
+void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *> &r_targets)
 {
   /* TODO: it would be nice in future to be able to update objects dependent on these bones too? */
 
@@ -101,10 +96,10 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
   if ((ob->avs.recalc & ANIMVIZ_RECALC_PATHS) && (ob->mpath)) {
     /* New target for object. */
     mpt = static_cast<MPathTarget *>(MEM_callocN(sizeof(MPathTarget), "MPathTarget Ob"));
-    BLI_addtail(targets, mpt);
-
     mpt->mpath = ob->mpath;
     mpt->ob = ob;
+
+    r_targets.append(mpt);
   }
 
   /* Bones. */
@@ -114,27 +109,34 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
       if ((pchan->bone) && ANIM_bonecoll_is_visible_pchan(arm, pchan) && (pchan->mpath)) {
         /* New target for bone. */
         mpt = static_cast<MPathTarget *>(MEM_callocN(sizeof(MPathTarget), "MPathTarget PoseBone"));
-        BLI_addtail(targets, mpt);
-
         mpt->mpath = pchan->mpath;
         mpt->ob = ob;
         mpt->pchan = pchan;
+        r_targets.append(mpt);
       }
     }
   }
 }
 
+void animviz_free_motionpath_targets(blender::Vector<MPathTarget *> &targets)
+{
+  for (MPathTarget *mpt : targets) {
+    MEM_freeN(mpt);
+  }
+  targets.clear_and_shrink();
+}
+
 /* ........ */
 
 /* Perform baking for the targets on the current frame. */
-static void motionpaths_calc_bake_targets(ListBase *targets,
+static void motionpaths_calc_bake_targets(blender::Span<MPathTarget *> targets,
                                           int cframe,
                                           Depsgraph *depsgraph,
                                           Object *camera)
 {
   using namespace blender;
   /* For each target, check if it can be baked on the current frame. */
-  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
+  for (const MPathTarget *mpt : targets) {
     bMotionPath *mpath = mpt->mpath;
 
     /* Current frame must be within the range the cache works for.
@@ -213,7 +215,7 @@ static void motionpaths_calc_bake_targets(ListBase *targets,
 }
 
 /* Get pointer to animviz settings for the given target. */
-static bAnimVizSettings *animviz_target_settings_get(MPathTarget *mpt)
+static bAnimVizSettings *animviz_target_settings_get(const MPathTarget *mpt)
 {
   if (mpt->pchan != nullptr) {
     return &mpt->ob->pose->avs;
@@ -221,11 +223,13 @@ static bAnimVizSettings *animviz_target_settings_get(MPathTarget *mpt)
   return &mpt->ob->avs;
 }
 
-static void motionpath_get_global_framerange(ListBase *targets, int *r_sfra, int *r_efra)
+static void motionpath_get_global_framerange(blender::Span<MPathTarget *> targets,
+                                             int *r_sfra,
+                                             int *r_efra)
 {
   *r_sfra = INT_MAX;
   *r_efra = INT_MIN;
-  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
+  for (const MPathTarget *mpt : targets) {
     *r_sfra = min_ii(*r_sfra, mpt->mpath->start_frame);
     *r_efra = max_ii(*r_efra, mpt->mpath->end_frame);
   }
@@ -342,9 +346,9 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
   }
 }
 
-static void motionpath_free_free_tree_data(ListBase *targets)
+static void motionpath_free_free_tree_data(blender::MutableSpan<MPathTarget *> targets)
 {
-  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
+  for (MPathTarget *mpt : targets) {
     ED_keylist_free(mpt->keylist);
   }
 }
@@ -398,14 +402,13 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
-                              ListBase *targets,
+                              blender::MutableSpan<MPathTarget *> targets,
                               eAnimvizCalcRange range,
                               bool restore)
 {
   /* TODO: include reports pointer? */
 
-  /* Sanity check. */
-  if (ELEM(nullptr, targets, targets->first)) {
+  if (targets.is_empty()) {
     return;
   }
 
@@ -450,7 +453,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     DEG_make_inactive(depsgraph);
   }
 
-  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
+  for (MPathTarget *mpt : targets) {
     mpt->ob_eval = DEG_get_evaluated_object(depsgraph, mpt->ob);
 
     AnimData *adt = BKE_animdata_from_id(&mpt->ob_eval->id);
@@ -531,7 +534,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   }
 
   /* Clear recalc flags from targets. */
-  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
+  for (MPathTarget *mpt : targets) {
     bMotionPath *mpath = mpt->mpath;
 
     /* Get pointer to animviz settings for each target. */

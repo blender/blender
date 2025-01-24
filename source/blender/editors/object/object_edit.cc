@@ -1241,7 +1241,7 @@ void motion_paths_recalc(bContext *C,
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  ListBase targets = {nullptr, nullptr};
+  blender::Vector<MPathTarget *> targets;
   LISTBASE_FOREACH (LinkData *, link, ld_objects) {
     Object *ob = static_cast<Object *>(link->data);
 
@@ -1254,7 +1254,7 @@ void motion_paths_recalc(bContext *C,
       ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
     }
 
-    animviz_get_object_motionpaths(ob, &targets);
+    animviz_build_motionpath_targets(ob, targets);
   }
 
   Depsgraph *depsgraph;
@@ -1268,14 +1268,13 @@ void motion_paths_recalc(bContext *C,
     free_depsgraph = false;
   }
   else {
-    depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, &targets);
+    depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, targets);
     free_depsgraph = true;
   }
 
-  /* recalculate paths, then free */
   animviz_calc_motionpaths(
-      depsgraph, bmain, scene, &targets, object_path_convert_range(range), true);
-  BLI_freelistN(&targets);
+      depsgraph, bmain, scene, targets, object_path_convert_range(range), true);
+  animviz_free_motionpath_targets(targets);
 
   if (range != OBJECT_PATH_CALC_RANGE_CURRENT_FRAME) {
     /* Tag objects for copy-on-eval - so paths will draw/redraw
