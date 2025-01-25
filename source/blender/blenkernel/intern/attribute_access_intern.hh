@@ -71,7 +71,7 @@ class BuiltinAttributeProvider {
   virtual GAttributeReader try_get_for_read(const void *owner) const = 0;
   virtual GAttributeWriter try_get_for_write(void *owner) const = 0;
   virtual bool try_delete(void *owner) const = 0;
-  virtual bool try_create(void *onwer, const AttributeInit &initializer) const = 0;
+  virtual bool try_create(void *owner, const AttributeInit &initializer) const = 0;
   virtual bool exists(const void *owner) const = 0;
 
   StringRefNull name() const
