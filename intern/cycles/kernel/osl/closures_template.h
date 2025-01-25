@@ -156,6 +156,10 @@ OSL_CLOSURE_STRUCT_END(GenericEmissive, emission)
 OSL_CLOSURE_STRUCT_BEGIN(GenericBackground, background)
 OSL_CLOSURE_STRUCT_END(GenericBackground, background)
 
+OSL_CLOSURE_STRUCT_BEGIN(UniformEDF, uniform_edf)
+  OSL_CLOSURE_STRUCT_MEMBER(UniformEDF, COLOR, packed_float3, emittance, nullptr)
+OSL_CLOSURE_STRUCT_END(UniformEDF, uniform_edf)
+
 OSL_CLOSURE_STRUCT_BEGIN(Holdout, holdout)
 OSL_CLOSURE_STRUCT_END(Holdout, holdout)
 
