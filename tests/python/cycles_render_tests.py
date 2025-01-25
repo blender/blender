@@ -59,8 +59,6 @@ BLOCKLIST_OSL = [
     # TODO: Tests that need investigating into why they're failing, and how to fix that.
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
-    # Noise differences in Principled BSDF mixing/layering
-    'principled_bsdf_.*.blend',
 ]
 
 BLOCKLIST_OPTIX = [
@@ -260,6 +258,11 @@ def main():
     test_dir_name = Path(args.testdir).name
     if (test_dir_name in {'motion_blur', 'integrator'}) or ((args.osl) and (test_dir_name in {'shader', 'hair'})):
         report.set_fail_threshold(0.032)
+
+    # Layer mixing is different between SVM and OSL, so a few tests have
+    # noticably different noise causing OSL Principled BSDF tests to fail.
+    if ((args.osl) and (test_dir_name == 'principled_bsdf')):
+        report.set_fail_threshold(0.06)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 
