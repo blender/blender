@@ -2,8 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_material.hh"
-#include "BKE_mesh.h"
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
 

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

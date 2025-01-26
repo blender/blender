@@ -6,8 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include <climits>
-
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -257,9 +255,7 @@ class DefocusOperation : public NodeOperation {
     if (node_storage(bnode()).no_zbuf) {
       return compute_defocus_radius_from_scale();
     }
-    else {
-      return compute_defocus_radius_from_depth();
-    }
+    return compute_defocus_radius_from_depth();
   }
 
   Result compute_defocus_radius_from_scale()
@@ -516,7 +512,7 @@ class DefocusOperation : public NodeOperation {
   }
 
   /* Returns the f-stop number. Fallback to 1e-3 for zero f-stop. */
-  const float get_f_stop()
+  float get_f_stop()
   {
     return math::max(1e-3f, node_storage(bnode()).fstop);
   }

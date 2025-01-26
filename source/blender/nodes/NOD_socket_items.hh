@@ -205,9 +205,7 @@ inline std::string get_socket_identifier(const typename Accessor::ItemT &item,
     if (in_out == SOCK_IN) {
       return Accessor::input_socket_identifier_for_item(item);
     }
-    else {
-      return Accessor::output_socket_identifier_for_item(item);
-    }
+    return Accessor::output_socket_identifier_for_item(item);
   }
 }
 

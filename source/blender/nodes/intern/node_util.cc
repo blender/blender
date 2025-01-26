@@ -7,7 +7,6 @@
  */
 
 #include <cctype>
-#include <climits>
 #include <cstring>
 
 #include "DNA_node_types.h"
@@ -21,7 +20,6 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_node.hh"
-#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 
 #include "RNA_access.hh"
@@ -29,8 +27,6 @@
 #include "RNA_prototypes.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "NOD_common.hh"
 
 #include "node_util.hh"
 

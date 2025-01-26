@@ -12,7 +12,6 @@
 #include "FN_multi_function_builder.hh"
 
 #include "BKE_attribute_filter.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_nodes_reference_set.hh"
 #include "BKE_geometry_set.hh"
@@ -97,18 +96,18 @@ class GeoNodeExecParams {
   }
 
   template<typename T>
-  static inline constexpr bool is_field_base_type_v = is_same_any_v<T,
-                                                                    float,
-                                                                    int,
-                                                                    bool,
-                                                                    ColorGeometry4f,
-                                                                    float3,
-                                                                    std::string,
-                                                                    math::Quaternion,
-                                                                    float4x4>;
+  static constexpr bool is_field_base_type_v = is_same_any_v<T,
+                                                             float,
+                                                             int,
+                                                             bool,
+                                                             ColorGeometry4f,
+                                                             float3,
+                                                             std::string,
+                                                             math::Quaternion,
+                                                             float4x4>;
 
   template<typename T>
-  static inline constexpr bool stored_as_SocketValueVariant_v =
+  static constexpr bool stored_as_SocketValueVariant_v =
       is_field_base_type_v<T> || fn::is_field_v<T> || bke::is_VolumeGrid_v<T> ||
       is_same_any_v<T, GField, bke::GVolumeGrid>;
 

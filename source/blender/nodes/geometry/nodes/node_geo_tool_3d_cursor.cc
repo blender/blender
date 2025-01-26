@@ -4,8 +4,6 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "BKE_scene.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_tool_3d_cursor_cc {

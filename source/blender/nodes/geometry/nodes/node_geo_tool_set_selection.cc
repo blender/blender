@@ -12,6 +12,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "FN_multi_function_builder.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_tool_set_selection_cc {

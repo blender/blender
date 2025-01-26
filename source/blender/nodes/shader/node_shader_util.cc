@@ -312,7 +312,10 @@ bNode *node_get_active_paint_canvas(bNodeTree *ntree)
 }
 }  // namespace blender::bke
 
-void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node, int *depth_level)
+void ntreeExecGPUNodes(bNodeTreeExec *exec,
+                       GPUMaterial *mat,
+                       bNode *output_node,
+                       const int *depth_level)
 {
   bNodeExec *nodeexec;
   bNode *node;

@@ -4,8 +4,6 @@
 
 #include "node_geometry_util.hh"
 
-#include "NOD_rna_define.hh"
-
 #include "RNA_enum_types.hh"
 
 #include "UI_interface.hh"

@@ -17,8 +17,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BKE_mesh.hh"
-
 #include "GEO_mesh_selection.hh"
 
 #include "NOD_rna_define.hh"

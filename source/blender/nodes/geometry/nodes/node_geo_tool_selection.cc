@@ -78,7 +78,7 @@ class EditSelectionFieldInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask & /*mask*/) const
+                                 const IndexMask & /*mask*/) const override
   {
     const AttrDomain domain = context.domain();
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(*type_);

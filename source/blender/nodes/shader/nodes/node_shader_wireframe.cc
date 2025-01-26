@@ -35,9 +35,7 @@ static int node_shader_gpu_wireframe(GPUMaterial *mat,
   if (node->custom1) {
     return GPU_stack_link(mat, node, "node_wireframe_screenspace", in, out);
   }
-  else {
-    return GPU_stack_link(mat, node, "node_wireframe", in, out);
-  }
+  return GPU_stack_link(mat, node, "node_wireframe", in, out);
 }
 
 NODE_SHADER_MATERIALX_BEGIN

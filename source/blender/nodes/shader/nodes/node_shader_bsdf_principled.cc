@@ -4,8 +4,6 @@
 
 #include <map>
 
-#include "BLI_string.h"
-
 #include "node_shader_util.hh"
 
 #include "UI_interface.hh"

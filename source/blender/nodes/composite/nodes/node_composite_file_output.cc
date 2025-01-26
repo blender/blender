@@ -9,7 +9,6 @@
 #include <cstring>
 
 #include "BLI_assert.h"
-#include "BLI_fileops.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
@@ -33,7 +32,6 @@
 #include "BKE_scene.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -41,8 +39,6 @@
 #include "WM_api.hh"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
-#include "IMB_openexr.hh"
 
 #include "GPU_state.hh"
 #include "GPU_texture.hh"

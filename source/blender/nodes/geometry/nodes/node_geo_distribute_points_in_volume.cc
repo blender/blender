@@ -6,6 +6,8 @@
 #  include <openvdb/openvdb.h>
 #  include <openvdb/tools/Interpolation.h>
 #  include <openvdb/tools/PointScatter.h>
+
+#  include <algorithm>
 #endif
 
 #include "DNA_node_types.h"
@@ -134,8 +136,7 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
                                      double(spacing.z) / grid.voxelSize().z());
 
   /* Abort if spacing is zero. */
-  const double min_spacing = std::min(voxel_spacing.x(),
-                                      std::min(voxel_spacing.y(), voxel_spacing.z()));
+  const double min_spacing = std::min({voxel_spacing.x(), voxel_spacing.y(), voxel_spacing.z()});
   if (std::abs(min_spacing) < 0.0001) {
     return;
   }

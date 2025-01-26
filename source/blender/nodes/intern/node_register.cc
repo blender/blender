@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string.h"
-
 #include "NOD_geometry.hh"
 #include "NOD_register.hh"
 #include "NOD_socket.hh"

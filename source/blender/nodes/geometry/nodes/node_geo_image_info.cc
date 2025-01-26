@@ -9,8 +9,6 @@
 
 #include "MOV_read.hh"
 
-#include "UI_resources.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_image_info_cc {

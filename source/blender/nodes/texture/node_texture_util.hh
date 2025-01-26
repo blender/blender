@@ -13,9 +13,9 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 
-#include "node_texture_register.hh"
+#include "node_texture_register.hh"  // IWYU pragma: export
 
-#include "BLT_translation.hh"
+#include "BLT_translation.hh"  // IWYU pragma: export
 
 #include "RE_texture.h"
 

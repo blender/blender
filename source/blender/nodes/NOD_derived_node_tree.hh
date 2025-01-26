@@ -58,7 +58,7 @@ class DTreeContext {
   const bNodeTree &btree() const;
   const DTreeContext *parent_context() const;
   const bNode *parent_node() const;
-  const bNodeInstanceKey instance_key() const;
+  bNodeInstanceKey instance_key() const;
   const DTreeContext *child_context(const bNode &node) const;
   const DerivedNodeTree &derived_tree() const;
   bool is_root() const;
@@ -79,7 +79,7 @@ class DNode {
 
   const DTreeContext *context() const;
   const bNode *bnode() const;
-  const bNodeInstanceKey instance_key() const;
+  bNodeInstanceKey instance_key() const;
   const bNode *operator->() const;
   const bNode &operator*() const;
 
@@ -253,7 +253,7 @@ inline const bNode *DTreeContext::parent_node() const
   return parent_node_;
 }
 
-inline const bNodeInstanceKey DTreeContext::instance_key() const
+inline bNodeInstanceKey DTreeContext::instance_key() const
 {
   return instance_key_;
 }

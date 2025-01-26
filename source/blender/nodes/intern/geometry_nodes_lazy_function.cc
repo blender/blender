@@ -29,9 +29,6 @@
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_cpp_types.hh"
-#include "BLI_dot_export.hh"
-#include "BLI_hash.h"
-#include "BLI_hash_md5.hh"
 #include "BLI_lazy_threading.hh"
 #include "BLI_map.hh"
 
@@ -39,17 +36,16 @@
 
 #include "BKE_anonymous_attribute_make.hh"
 #include "BKE_compute_contexts.hh"
-#include "BKE_curves.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_type_conversions.hh"
 
-#include "FN_lazy_function_execute.hh"
 #include "FN_lazy_function_graph_executor.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -1068,7 +1064,7 @@ bool should_log_socket_values_for_context(const GeoNodesLFUserData &user_data,
   if (const Set<ComputeContextHash> *contexts = user_data.call_data->socket_log_contexts) {
     return contexts->contains(hash);
   }
-  else if (user_data.call_data->operator_data) {
+  if (user_data.call_data->operator_data) {
     return false;
   }
   return true;
@@ -3992,7 +3988,7 @@ struct GeometryNodesLazyFunctionBuilder {
           lf_sockets_to_check.resize(index_in_sockets_to_check + 1);
           break;
         }
-        else if (!socket_states[lf_origin_socket->index_in_graph()].done) {
+        if (!socket_states[lf_origin_socket->index_in_graph()].done) {
           lf_sockets_to_check.append(lf_origin_socket);
           pushed_socket = true;
         }

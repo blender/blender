@@ -12,8 +12,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "BLI_string_utils.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 

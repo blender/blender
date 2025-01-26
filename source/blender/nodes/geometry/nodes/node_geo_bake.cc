@@ -6,7 +6,6 @@
 
 #include "NOD_geo_bake.hh"
 #include "NOD_node_extra_info.hh"
-#include "NOD_rna_define.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"

@@ -35,7 +35,7 @@ static void shortest_paths(const Mesh &mesh,
   const Span<int2> edges = mesh.edges();
   Array<bool> visited(mesh.verts_num, false);
 
-  std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<VertPriority>> queue;
+  std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<>> queue;
 
   end_selection.foreach_index([&](const int start_vert_i) {
     r_cost[start_vert_i] = 0.0f;

@@ -6,9 +6,7 @@
  * \ingroup nodes
  */
 
-#include "BLI_math_color.hh"
 #include "BLI_math_euler.hh"
-#include "BLI_math_quaternion.hh"
 #include "BLI_string.h"
 
 #include "NOD_geometry.hh"
@@ -17,7 +15,6 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
-#include "BKE_compute_contexts.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_nodes_reference_set.hh"
 #include "BKE_geometry_set.hh"
@@ -26,7 +23,6 @@
 #include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
-#include "BKE_type_conversions.hh"
 
 #include "FN_lazy_function_execute.hh"
 

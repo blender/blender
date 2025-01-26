@@ -8,7 +8,6 @@
 
 #include "BLI_math_vector.h"
 #include "node_texture_util.hh"
-#include <cmath>
 
 static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_VECTOR, N_("Coordinate 1"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE},

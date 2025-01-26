@@ -6,6 +6,8 @@
  * \ingroup texnodes
  */
 
+#include <algorithm>
+
 #include "BLI_string.h"
 
 #include "node_texture_util.hh"
@@ -77,9 +79,7 @@ static void unique_name(bNode *node)
       else {
         suffix = 0;
         new_len = len + 4;
-        if (new_len > (sizeof(tno->name) - 1)) {
-          new_len = (sizeof(tno->name) - 1);
-        }
+        new_len = std::min<unsigned long>(new_len, sizeof(tno->name) - 1);
       }
 
       STRNCPY(new_name, name);

@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "GEO_uv_parametrizer.hh"
+#include "DNA_mesh_types.h"
 
-#include "BKE_mesh.hh"
+#include "GEO_uv_parametrizer.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

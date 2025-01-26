@@ -14,8 +14,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "DNA_scene_types.h"
-
 #include "COM_algorithm_jump_flooding.hh"
 #include "COM_algorithm_symmetric_separable_blur_variable_size.hh"
 #include "COM_node_operation.hh"

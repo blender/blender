@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_vector.h"
 #include "BLI_task.hh"
 
 #include "BKE_bvhutils.hh"
@@ -96,7 +95,7 @@ class ProximityFunction : public mf::MultiFunction {
     }
   }
 
-  ~ProximityFunction() = default;
+  ~ProximityFunction() override = default;
 
   void init_for_pointcloud(const PointCloud &pointcloud, const Field<int> &group_id_field)
   {

@@ -6,19 +6,15 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_base.h"
 #include "BLI_math_color.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
-#include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_algorithm_morphological_distance.hh"
 #include "COM_algorithm_morphological_distance_feather.hh"

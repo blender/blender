@@ -4,7 +4,6 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh_sample.hh"
 
@@ -15,6 +14,8 @@
 #include "UI_resources.hh"
 
 #include "RNA_enum_types.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "node_geometry_util.hh"
 

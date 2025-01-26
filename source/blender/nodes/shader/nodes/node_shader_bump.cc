@@ -53,10 +53,8 @@ static int gpu_shader_bump(GPUMaterial *mat,
     if (!in[3].link) {
       return GPU_link(mat, "world_normals_get", &out[0].link);
     }
-    else {
-      /* Actually running the bump code would normalize, but Cycles handles it as total no-op. */
-      return GPU_link(mat, "vector_copy", in[3].link, &out[0].link);
-    }
+    /* Actually running the bump code would normalize, but Cycles handles it as total no-op. */
+    return GPU_link(mat, "vector_copy", in[3].link, &out[0].link);
   }
 
   if (!in[3].link) {

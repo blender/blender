@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
@@ -206,7 +208,7 @@ class BrickFunction : public mf::MultiFunction {
 
     const float tint = clamp_f(
         brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias, 0.0f, 1.0f);
-    float min_dist = std::min(std::min(x, y), std::min(brick_width - x, row_height - y));
+    float min_dist = std::min({x, y, brick_width - x, row_height - y});
 
     float mortar;
     if (min_dist >= mortar_size) {

@@ -16,6 +16,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "FN_multi_function_builder.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_mesh_to_points_cc {

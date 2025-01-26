@@ -81,7 +81,7 @@ class ConvertColorSpaceOperation : public NodeOperation {
       execute_single();
       return;
     }
-    else if (this->context().use_gpu()) {
+    if (this->context().use_gpu()) {
       execute_gpu();
     }
     else {

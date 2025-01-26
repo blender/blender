@@ -15,8 +15,6 @@
 #include "node_composite_util.hh"
 
 #include "BLI_assert.h"
-#include "BLI_dynstr.h"
-#include "BLI_hash_mm3.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"

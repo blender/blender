@@ -6,18 +6,18 @@
 
 #include <optional>
 
-#include "MEM_guardedalloc.h"
+#include "MEM_guardedalloc.h"  // IWYU pragma: export
 
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"  // IWYU pragma: export
-#include "BKE_node_socket_value.hh"
+#include "BKE_node_socket_value.hh"  // IWYU pragma: export
 
-#include "NOD_geometry_exec.hh"
-#include "NOD_register.hh"
-#include "NOD_socket_declarations.hh"
-#include "NOD_socket_declarations_geometry.hh"
+#include "NOD_geometry_exec.hh"                 // IWYU pragma: export
+#include "NOD_register.hh"                      // IWYU pragma: export
+#include "NOD_socket_declarations.hh"           // IWYU pragma: export
+#include "NOD_socket_declarations_geometry.hh"  // IWYU pragma: export
 
-#include "node_util.hh"
+#include "node_util.hh"  // IWYU pragma: export
 
 namespace blender {
 namespace bke {

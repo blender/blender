@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "NOD_inverse_eval_params.hh"
-
 #include "BKE_node_socket_value.hh"
 
 #include "BLI_compute_context.hh"

@@ -12,7 +12,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.hh" /* IWYU pragma: export */
 
 #include "DNA_node_types.h"
 
@@ -224,8 +224,7 @@ class SocketDeclaration : public ItemDeclaration {
   friend class BaseSocketDeclarationBuilder;
   template<typename SocketDecl> friend class SocketDeclarationBuilder;
 
- public:
-  virtual ~SocketDeclaration() = default;
+  ~SocketDeclaration() override = default;
 
   virtual bNodeSocket &build(bNodeTree &ntree, bNode &node) const = 0;
   virtual bool matches(const bNodeSocket &socket) const = 0;
@@ -448,7 +447,7 @@ class PanelDeclaration : public ItemDeclaration {
   friend class PanelDeclarationBuilder;
 
  public:
-  virtual ~PanelDeclaration() = default;
+  ~PanelDeclaration() override = default;
 
   void build(bNodePanelState &panel) const;
   bool matches(const bNodePanelState &panel) const;
@@ -581,7 +580,6 @@ class NodeDeclarationBuilder : public DeclarationListBuilder {
   Vector<std::unique_ptr<PanelDeclarationBuilder>> panel_builders_;
   bool is_function_node_ = false;
 
- private:
   friend DeclarationListBuilder;
 
  public:

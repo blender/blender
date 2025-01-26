@@ -8,8 +8,6 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 

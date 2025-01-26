@@ -10,17 +10,17 @@
 
 #include <optional>
 
-#include "DNA_ID.h"
+#include "DNA_ID.h"  // IWYU pragma: export
 #include "DNA_node_types.h"
 
 #include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 
-#include "node_composite_register.hh"
-#include "node_util.hh"
+#include "node_composite_register.hh"  // IWYU pragma: export
+#include "node_util.hh"                // IWYU pragma: export
 
-#include "NOD_composite.hh"
-#include "NOD_socket.hh"
-#include "NOD_socket_declarations.hh"
+#include "NOD_composite.hh"            // IWYU pragma: export
+#include "NOD_socket.hh"               // IWYU pragma: export
+#include "NOD_socket_declarations.hh"  // IWYU pragma: export
 
 #define CMP_SCALE_MAX 12000
 

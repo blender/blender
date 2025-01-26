@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <memory>
-
 #include "BKE_pointcloud.hh"
 #include "DNA_pointcloud_types.h"
 
@@ -43,7 +41,7 @@ class PointsFieldContext : public FieldContext {
 
   GVArray get_varray_for_input(const FieldInput &field_input,
                                const IndexMask &mask,
-                               ResourceScope & /*scope*/) const
+                               ResourceScope & /*scope*/) const override
   {
     const bke::IDAttributeFieldInput *id_field_input =
         dynamic_cast<const bke::IDAttributeFieldInput *>(&field_input);

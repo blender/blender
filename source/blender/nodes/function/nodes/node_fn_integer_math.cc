@@ -4,9 +4,7 @@
 
 #include <numeric>
 
-#include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 
 #include "RNA_enum_types.hh"
 

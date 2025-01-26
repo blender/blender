@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_matrix.hh"
-
 #include "NOD_inverse_eval_params.hh"
 #include "NOD_value_elem_eval.hh"
 

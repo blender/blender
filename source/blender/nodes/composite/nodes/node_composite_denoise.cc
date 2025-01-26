@@ -6,7 +6,9 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_system.h"
+#ifndef __APPLE__
+#  include "BLI_system.h"
+#endif
 
 #include "MEM_guardedalloc.h"
 

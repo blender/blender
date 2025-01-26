@@ -9,7 +9,6 @@
 #include "BLI_assert.h"
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

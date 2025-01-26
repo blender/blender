@@ -16,6 +16,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "FN_lazy_function_graph_executor.hh"
+
 namespace blender::nodes {
 
 using bke::SocketValueVariant;
@@ -33,7 +35,7 @@ class RepeatBodyNodeExecuteWrapper : public lf::GraphExecutorNodeExecuteWrapper 
 
   void execute_node(const lf::FunctionNode &node,
                     lf::Params &params,
-                    const lf::Context &context) const
+                    const lf::Context &context) const override
   {
     GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     const int iteration = lf_body_nodes_->index_of_try(const_cast<lf::FunctionNode *>(&node));

@@ -19,8 +19,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "GPU_texture.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 

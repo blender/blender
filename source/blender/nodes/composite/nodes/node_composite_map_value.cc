@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include <algorithm>
+
 #include "FN_multi_function_builder.hh"
 
 #include "NOD_multi_function.hh"
@@ -117,15 +119,11 @@ static float map_value(
   float result = (value + offset) * size;
 
   if constexpr (UseMin) {
-    if (result < min) {
-      result = min;
-    }
+    result = std::max(result, min);
   }
 
   if constexpr (UseMax) {
-    if (result > max) {
-      result = max;
-    }
+    result = std::min(result, max);
   }
 
   return result;

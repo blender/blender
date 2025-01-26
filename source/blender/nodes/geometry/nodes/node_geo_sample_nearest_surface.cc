@@ -129,7 +129,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
             [&](const int group_i) { return group_masks[group_i].size(); }, mesh.faces_num));
   }
 
-  ~SampleNearestSurfaceFunction() = default;
+  ~SampleNearestSurfaceFunction() override = default;
 
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {

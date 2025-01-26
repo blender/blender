@@ -21,7 +21,6 @@
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"

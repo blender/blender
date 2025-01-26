@@ -5,7 +5,6 @@
 #include "group_nodes.h"
 #include "node_parser.h"
 
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #ifdef USE_MATERIALX_NODEGRAPH

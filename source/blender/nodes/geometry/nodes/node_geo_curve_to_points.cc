@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_array.hh"
 #include "BLI_math_matrix.hh"
 
 #include "DNA_pointcloud_types.h"

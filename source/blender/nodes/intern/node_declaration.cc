@@ -6,7 +6,6 @@
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
-#include "BLI_stack.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_geometry_fields.hh"
