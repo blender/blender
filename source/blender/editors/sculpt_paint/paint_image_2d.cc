@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -1014,7 +1015,7 @@ static void paint_2d_lift_soften(ImagePaintState *s,
       }
 
       if (count > 0.0f) {
-        mul_v4_fl(outrgb, 1.0f / float(count));
+        mul_v4_fl(outrgb, 1.0f / count);
 
         if (sharpen) {
           /* subtract blurred image from normal image gives high pass filter */
@@ -1943,15 +1944,9 @@ void paint_2d_bucket_fill(const bContext *C,
         paint_2d_fill_add_pixel_float(
             x_px + 1, y_px + 1, ibuf, stack, touched, pixel_color, threshold_sq);
 
-        if (x_px > maxx) {
-          maxx = x_px;
-        }
-        if (x_px < minx) {
-          minx = x_px;
-        }
-        if (y_px > maxy) {
-          maxy = y_px;
-        }
+        maxx = std::max(x_px, maxx);
+        minx = std::min(x_px, minx);
+        maxy = std::max(y_px, maxy);
         if (x_px > miny) {
           miny = y_px;
         }
@@ -1987,15 +1982,9 @@ void paint_2d_bucket_fill(const bContext *C,
         paint_2d_fill_add_pixel_byte(
             x_px + 1, y_px + 1, ibuf, stack, touched, pixel_color, threshold_sq);
 
-        if (x_px > maxx) {
-          maxx = x_px;
-        }
-        if (x_px < minx) {
-          minx = x_px;
-        }
-        if (y_px > maxy) {
-          maxy = y_px;
-        }
+        maxx = std::max(x_px, maxx);
+        minx = std::min(x_px, minx);
+        maxy = std::max(y_px, maxy);
         if (x_px > miny) {
           miny = y_px;
         }

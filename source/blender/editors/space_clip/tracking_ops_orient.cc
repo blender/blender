@@ -6,8 +6,6 @@
  * \ingroup spclip
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_screen_types.h"
@@ -15,7 +13,6 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_constraint.h"
 #include "BKE_context.hh"

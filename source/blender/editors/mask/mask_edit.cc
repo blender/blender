@@ -9,8 +9,6 @@
 #include "BKE_context.hh"
 #include "BKE_mask.h"
 
-#include "DNA_scene_types.h"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 

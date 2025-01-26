@@ -10,9 +10,8 @@
 
 #  include "BLT_translation.hh"
 
-#  include "BLI_blenlib.h"
+#  include "BLI_fileops.h"
 #  include "BLI_string.h"
-#  include "BLI_utildefines.h"
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"

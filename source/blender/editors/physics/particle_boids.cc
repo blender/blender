@@ -13,7 +13,6 @@
 #include "DNA_particle_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_boids.h"
 #include "BKE_context.hh"

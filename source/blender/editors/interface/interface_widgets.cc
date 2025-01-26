@@ -1591,7 +1591,7 @@ static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rct
                          0 :
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
-  const float minwidth = float(UI_ICON_SIZE) / but->block->aspect * 2.0f;
+  const float minwidth = UI_ICON_SIZE / but->block->aspect * 2.0f;
 
   but->ofs = 0;
   char new_drawstr[UI_MAX_DRAW_STR];
@@ -1617,7 +1617,7 @@ static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
                          0 :
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
-  const float minwidth = float(UI_ICON_SIZE) / but->block->aspect * 2.0f;
+  const float minwidth = UI_ICON_SIZE / but->block->aspect * 2.0f;
 
   but->ofs = 0;
   char new_drawstr[UI_MAX_DRAW_STR];
@@ -1641,9 +1641,7 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
   UI_fontstyle_set(fstyle);
 
   /* define ofs dynamically */
-  if (but->ofs > but->pos) {
-    but->ofs = but->pos;
-  }
+  but->ofs = std::min(but->ofs, but->pos);
 
   if (BLF_width(fstyle->uifont_id, but->editstr, INT_MAX) <= okwidth) {
     but->ofs = 0;
@@ -5568,7 +5566,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
     char drawstr[UI_MAX_DRAW_STR];
     const float okwidth = float(BLI_rcti_size_x(rect));
     const size_t max_len = sizeof(drawstr);
-    const float minwidth = float(UI_ICON_SIZE);
+    const float minwidth = UI_ICON_SIZE;
 
     STRNCPY(drawstr, name);
     if (drawstr[0]) {
@@ -5617,7 +5615,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
       char hint_drawstr[UI_MAX_DRAW_STR];
       {
         const size_t max_len = sizeof(hint_drawstr);
-        const float minwidth = float(UI_ICON_SIZE);
+        const float minwidth = UI_ICON_SIZE;
 
         STRNCPY(hint_drawstr, cpoin + 1);
         if (hint_drawstr[0] && (max_hint_width < INT_MAX)) {
@@ -5685,7 +5683,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     char drawstr[UI_MAX_DRAW_STR];
     const float okwidth = float(BLI_rcti_size_x(&trect));
     const size_t max_len = sizeof(drawstr);
-    const float minwidth = float(UI_ICON_SIZE);
+    const float minwidth = UI_ICON_SIZE;
 
     memcpy(drawstr, name.data(), name.size());
     drawstr[name.size()] = '\0';

@@ -9,7 +9,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 

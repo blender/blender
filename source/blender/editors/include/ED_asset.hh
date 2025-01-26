@@ -22,10 +22,8 @@
 #include "../asset/ED_asset_temp_id_consumer.hh"  // IWYU pragma: export
 #include "../asset/ED_asset_type.hh"              // IWYU pragma: export
 
-#include "../asset/ED_asset_catalog.hh"  // IWYU pragma: export
-#include "../asset/ED_asset_filter.hh"   // IWYU pragma: export
-#include "../asset/ED_asset_import.hh"   // IWYU pragma: export
-#include "../asset/ED_asset_list.hh"     // IWYU pragma: export
+#include "../asset/ED_asset_filter.hh"  // IWYU pragma: export
+#include "../asset/ED_asset_import.hh"  // IWYU pragma: export
 
 struct PointerRNA;
 

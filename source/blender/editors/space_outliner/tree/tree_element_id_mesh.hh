@@ -20,7 +20,7 @@ class TreeElementIDMesh final : public TreeElementID {
  public:
   TreeElementIDMesh(TreeElement &legacy_te_, Mesh &mesh);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_key() const;

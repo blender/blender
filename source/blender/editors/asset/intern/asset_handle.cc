@@ -6,10 +6,6 @@
  * \ingroup edasset
  */
 
-#include <string>
-
-#include "DNA_space_types.h"
-
 #include "DNA_space_types.h"
 
 #include "ED_fileselect.hh"

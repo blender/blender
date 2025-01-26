@@ -11,7 +11,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
 
@@ -29,11 +30,11 @@
 #include "UI_view2d.hh"
 
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 
-#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "MOV_read.hh"

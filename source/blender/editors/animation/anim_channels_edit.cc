@@ -6,15 +6,16 @@
  * \ingroup edanimation
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_listbase.h"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -5186,9 +5187,7 @@ static int channels_bake_exec(bContext *C, wmOperator *op)
    * constantly be overridden. */
   blender::int2 frame_range;
   RNA_int_get_array(op->ptr, "range", frame_range);
-  if (frame_range[1] < frame_range[0]) {
-    frame_range[1] = frame_range[0];
-  }
+  frame_range[1] = std::max(frame_range[1], frame_range[0]);
   const float step = RNA_float_get(op->ptr, "step");
   if (frame_range[0] == 0 && frame_range[1] == 0) {
     if (scene->r.flag & SCER_PRV_RANGE) {

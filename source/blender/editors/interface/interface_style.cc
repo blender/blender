@@ -6,7 +6,6 @@
  * \ingroup edinterface
  */
 
-#include <climits>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>

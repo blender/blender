@@ -7,12 +7,10 @@
  */
 
 #include "BLI_map.hh"
-#include "MEM_guardedalloc.h"
-
+#include "BLI_math_base.h"
 #include "BLI_set.hh"
 
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_report.hh"
@@ -960,7 +958,7 @@ int sequencer_retiming_box_select_exec(bContext *C, wmOperator *op)
 
   if (and_keys.size() > 0) {
     SEQ_retiming_selection_clear(ed);
-    for (auto key : and_keys) {
+    for (auto *key : and_keys) {
       SEQ_retiming_selection_append(key);
     }
   }

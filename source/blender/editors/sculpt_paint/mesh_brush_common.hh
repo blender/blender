@@ -258,7 +258,7 @@ void fill_factor_from_hide_and_mask(const BMesh &bm,
 void calc_front_face(const float3 &view_normal, Span<float3> normals, MutableSpan<float> factors);
 void calc_front_face(const float3 &view_normal,
                      Span<float3> vert_normals,
-                     Span<int> vert_indices,
+                     Span<int> verts,
                      MutableSpan<float> factors);
 void calc_front_face(const float3 &view_normal,
                      const SubdivCCG &subdiv_ccg,
@@ -290,7 +290,7 @@ void filter_region_clip_factors(const SculptSession &ss,
  */
 void calc_brush_distances(const SculptSession &ss,
                           Span<float3> vert_positions,
-                          Span<int> vert_indices,
+                          Span<int> vert,
                           eBrushFalloffShape falloff_shape,
                           MutableSpan<float> r_distances);
 void calc_brush_distances(const SculptSession &ss,
@@ -298,8 +298,8 @@ void calc_brush_distances(const SculptSession &ss,
                           eBrushFalloffShape falloff_shape,
                           MutableSpan<float> r_distances);
 void calc_brush_distances_squared(const SculptSession &ss,
-                                  Span<float3> vert_positions,
-                                  Span<int> vert_indices,
+                                  Span<float3> positions,
+                                  Span<int> verts,
                                   eBrushFalloffShape falloff_shape,
                                   MutableSpan<float> r_distances);
 void calc_brush_distances_squared(const SculptSession &ss,
@@ -351,7 +351,7 @@ void calc_brush_strength_factors(const StrokeCache &cache,
 void calc_brush_texture_factors(const SculptSession &ss,
                                 const Brush &brush,
                                 Span<float3> vert_positions,
-                                Span<int> vert_indices,
+                                Span<int> vert,
                                 MutableSpan<float> factors);
 void calc_brush_texture_factors(const SculptSession &ss,
                                 const Brush &brush,
@@ -411,14 +411,14 @@ void clip_and_lock_translations(const Sculpt &sd,
  * new array.
  */
 OffsetIndices<int> create_node_vert_offsets(const Span<bke::pbvh::MeshNode> nodes,
-                                            const IndexMask &nodes_mask,
+                                            const IndexMask &node_mask,
                                             Array<int> &node_data);
 OffsetIndices<int> create_node_vert_offsets(const CCGKey &key,
                                             const Span<bke::pbvh::GridsNode> nodes,
-                                            const IndexMask &nodes_mask,
+                                            const IndexMask &node_mask,
                                             Array<int> &node_data);
 OffsetIndices<int> create_node_vert_offsets_bmesh(const Span<bke::pbvh::BMeshNode> nodes,
-                                                  const IndexMask &nodes_mask,
+                                                  const IndexMask &node_mask,
                                                   Array<int> &node_data);
 
 /**

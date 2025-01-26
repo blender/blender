@@ -723,7 +723,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
     NodeCryptomatte *crypto = (NodeCryptomatte *)node->storage;
     PointerRNA imaptr = RNA_pointer_get(ptr, "image");
     PointerRNA iuserptr = RNA_pointer_create_discrete(
-        (ID *)ptr->owner_id, &RNA_ImageUser, &crypto->iuser);
+        ptr->owner_id, &RNA_ImageUser, &crypto->iuser);
     uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 
     node_buts_image_user(col, C, ptr, &imaptr, &iuserptr, false, false);
@@ -1217,11 +1217,8 @@ static void node_file_output_socket_draw(bContext *C,
 
     const char *imtype_name;
     PropertyRNA *imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
-    RNA_property_enum_name((bContext *)C,
-                           &imfptr,
-                           imtype_prop,
-                           RNA_property_enum_get(&imfptr, imtype_prop),
-                           &imtype_name);
+    RNA_property_enum_name(
+        C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
     block = uiLayoutGetBlock(row);
     UI_block_emboss_set(block, UI_EMBOSS_PULLDOWN);
     uiItemL(row, imtype_name, ICON_NONE);
@@ -1258,7 +1255,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
     if (sock->runtime->declaration->socket_name_rna) {
       uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
       uiItemR(layout,
-              const_cast<PointerRNA *>(&sock->runtime->declaration->socket_name_rna->owner),
+              (&sock->runtime->declaration->socket_name_rna->owner),
               sock->runtime->declaration->socket_name_rna->property_name,
               UI_ITEM_NONE,
               "",

@@ -16,7 +16,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_texture_types.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"

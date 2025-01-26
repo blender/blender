@@ -6,8 +6,8 @@
  * \ingroup spseq
  */
 
+#include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include "DNA_gpencil_legacy_types.h"
@@ -16,8 +16,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 
 #include "BLF_api.hh"
 
@@ -66,7 +66,7 @@ static void sequencer_scopes_tag_refresh(ScrArea *area)
   sseq->runtime->scopes.reference_ibuf = nullptr;
 }
 
-blender::ed::seq::SpaceSeq_Runtime::~SpaceSeq_Runtime() {}
+blender::ed::seq::SpaceSeq_Runtime::~SpaceSeq_Runtime() = default;
 
 /* ******************** manage regions ********************* */
 
@@ -496,10 +496,7 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   /* Add padding to be able to scroll the view so that the collapsed redo panel doesn't occlude any
    * strips. */
   float bottom_channel_padding = UI_MARKER_MARGIN_Y * pixel_view_size_y;
-  if (bottom_channel_padding < 1.0f) {
-    /* Make sure that we can always scroll off at least by one channel. */
-    bottom_channel_padding = 1.0f;
-  }
+  bottom_channel_padding = std::max(bottom_channel_padding, 1.0f);
   /* Add the padding and make sure we have a margin of one channel in each direction. */
   strip_boundbox.ymax += 1.0f + pad_top * pixel_view_size_y;
   strip_boundbox.ymin -= bottom_channel_padding;

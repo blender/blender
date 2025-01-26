@@ -39,14 +39,13 @@ struct ViewContext;
 struct BVHTree;
 struct GreasePencilLineartModifierData;
 struct RV3DMatrixStore;
-namespace blender {
-namespace bke {
+
+namespace blender::bke {
 enum class AttrDomain : int8_t;
 class CurvesGeometry;
 namespace crazyspace {
 }
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::bke
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -86,7 +85,7 @@ void ED_interpolatetool_modal_keymap(wmKeyConfig *keyconf);
 
 void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot);
 
-void ED_undosys_type_grease_pencil(UndoType *undo_type);
+void ED_undosys_type_grease_pencil(UndoType *ut);
 
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
@@ -161,7 +160,6 @@ class DrawingPlacement {
   DrawingPlacement &operator=(DrawingPlacement &&other);
   ~DrawingPlacement();
 
- public:
   bool use_project_to_surface() const;
   bool use_project_to_stroke() const;
 

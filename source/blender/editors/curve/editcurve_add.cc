@@ -6,7 +6,7 @@
  * \ingroup edcurve
  */
 
-#include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 

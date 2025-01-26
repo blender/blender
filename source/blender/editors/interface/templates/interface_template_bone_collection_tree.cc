@@ -284,9 +284,9 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     PropertyRNA *prop = RNA_struct_find_property(&bcolls_ptr, "active_index");
 
     RNA_property_int_set(&bcolls_ptr, prop, bcoll_index_);
-    RNA_property_update(&const_cast<bContext &>(C), &bcolls_ptr, prop);
+    RNA_property_update(&C, &bcolls_ptr, prop);
 
-    ED_undo_push(&const_cast<bContext &>(C), "Change Armature's Active Bone Collection");
+    ED_undo_push(&C, "Change Armature's Active Bone Collection");
   }
 
   std::optional<bool> should_be_collapsed() const override

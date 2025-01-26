@@ -74,6 +74,7 @@
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
 #include "render_intern.hh"

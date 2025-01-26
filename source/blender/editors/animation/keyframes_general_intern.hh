@@ -15,7 +15,10 @@
 #include "ANIM_action.hh"
 
 #include <limits>
+#include <optional>
+#include <string>
 
+struct FCurve;
 struct ID;
 struct Main;
 

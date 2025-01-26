@@ -7,8 +7,6 @@
  */
 
 #include <cfloat>
-#include <cmath>
-#include <cstdio>
 #include <cstring>
 #include <optional>
 
@@ -1169,7 +1167,7 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
 {
   using namespace blender;
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, const_cast<Object *>(object));
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, object);
   const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings, object);
@@ -3219,7 +3217,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   Object *object = (vc.obedit ? vc.obedit : vc.obact);
 
   /* Collect editable drawings. */
-  const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(object));
+  const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
@@ -4275,7 +4273,7 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
 {
   using namespace blender;
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, const_cast<Object *>(object));
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, object);
   const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings, object);
@@ -5142,7 +5140,7 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
 {
   using namespace blender;
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, const_cast<Object *>(object));
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, object);
   const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings, object);

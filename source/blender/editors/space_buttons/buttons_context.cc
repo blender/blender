@@ -6,6 +6,7 @@
  * \ingroup spbuttons
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -974,9 +975,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
       if (ob && OB_TYPE_SUPPORT_MATERIAL(ob->type) && ob->totcol) {
         /* a valid actcol isn't ensured #27526. */
         int matnr = ob->actcol - 1;
-        if (matnr < 0) {
-          matnr = 0;
-        }
+        matnr = std::max(matnr, 0);
         /* Keep aligned with rna_Object_material_slots_get. */
         CTX_data_pointer_set(
             result, &ob->id, &RNA_MaterialSlot, (void *)(matnr + uintptr_t(&ob->id)));

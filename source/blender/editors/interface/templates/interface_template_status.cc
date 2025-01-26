@@ -361,7 +361,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, const char * /*tip*/)
 {
   Main *bmain = CTX_data_main(C);
-  std::string tooltip_message = "";
+  std::string tooltip_message;
 
   if (bmain->has_forward_compatibility_issues) {
     char writer_ver_str[12];

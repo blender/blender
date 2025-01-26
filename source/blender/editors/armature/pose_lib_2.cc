@@ -6,14 +6,11 @@
  * \ingroup edarmature
  */
 
-#include <cmath>
 #include <cstring>
 
 #include "AS_asset_representation.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 

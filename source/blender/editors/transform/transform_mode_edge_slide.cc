@@ -6,6 +6,7 @@
  * \ingroup edtransform
  */
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_string.h"
@@ -16,6 +17,7 @@
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -474,7 +476,7 @@ static void drawEdgeSlide(TransInfo *t)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
-  const float3 &curr_sv_co_orig = curr_sv->v_co_orig();
+  const float3 curr_sv_co_orig = curr_sv->v_co_orig();
 
   if (slp->use_even == true) {
     /* Even mode. */
@@ -551,7 +553,7 @@ static void drawEdgeSlide(TransInfo *t)
       mul_v3_fl(a, 100.0f);
       negate_v3_v3(b, a);
 
-      const float3 &sv_co_orig = sv.v_co_orig();
+      const float3 sv_co_orig = sv.v_co_orig();
       add_v3_v3(a, sv_co_orig);
       add_v3_v3(b, sv_co_orig);
 

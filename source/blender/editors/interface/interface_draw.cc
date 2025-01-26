@@ -43,6 +43,7 @@
 #include "GPU_matrix.hh"
 #include "GPU_shader_shared.hh"
 #include "GPU_state.hh"
+#include "GPU_uniform_buffer.hh"
 
 #include "UI_interface.hh"
 

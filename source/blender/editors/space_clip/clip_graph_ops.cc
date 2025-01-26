@@ -6,6 +6,8 @@
  * \ingroup spclip
  */
 
+#include <algorithm>
+
 #include "DNA_scene_types.h"
 
 #include "BLI_math_geom.h"
@@ -618,13 +620,8 @@ static void view_all_cb(void *userdata,
 {
   ViewAllUserData *data = (ViewAllUserData *)userdata;
 
-  if (val < data->min) {
-    data->min = val;
-  }
-
-  if (val > data->max) {
-    data->max = val;
-  }
+  data->min = std::min(val, data->min);
+  data->max = std::max(val, data->max);
 }
 
 static int view_all_exec(bContext *C, wmOperator * /*op*/)

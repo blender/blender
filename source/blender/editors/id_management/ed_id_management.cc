@@ -6,8 +6,6 @@
  * \ingroup edundo
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "CLG_log.h"
 
 #include "DNA_ID.h"

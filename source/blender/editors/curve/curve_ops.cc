@@ -6,10 +6,7 @@
  * \ingroup edcurve
  */
 
-#include <cmath>
 #include <cstdlib>
-
-#include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
 

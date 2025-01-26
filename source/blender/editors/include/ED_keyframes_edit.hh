@@ -471,7 +471,7 @@ void smooth_fcurve_segment(FCurve *fcu,
                            float *samples,
                            float factor,
                            int kernel_size,
-                           double *kernel);
+                           const double *kernel);
 /**
  * Snap the keys on the given FCurve segment to an S-Curve. By modifying the `factor` the part of
  * the S-Curve that the keys are snapped to is moved on the x-axis.

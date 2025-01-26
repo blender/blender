@@ -30,7 +30,7 @@ namespace blender::ed::space_node {
 
 struct NodeClipboardItemIDInfo {
   /** Name of the referenced ID. */
-  std::string id_name = "";
+  std::string id_name;
   /**
    * Library filepath of the referenced ID, together with its name it forms a unique identifier.
    *
@@ -38,7 +38,7 @@ struct NodeClipboardItemIDInfo {
    * data, persistent over new blend-files opening, this should guarantee that identical IDs from
    * identical libraries can be matched accordingly, even across several blend-files.
    */
-  std::string library_path = "";
+  std::string library_path;
 
   /** The validated ID pointer (may be the same as the original one, or a new one). */
   std::optional<ID *> new_id = {};

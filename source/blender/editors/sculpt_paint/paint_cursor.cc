@@ -6,6 +6,8 @@
  * \ingroup edsculpt
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_rotation.h"
@@ -292,13 +294,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
       size = (1 << r);
 
-      if (size < 256) {
-        size = 256;
-      }
-
-      if (size < target->old_size) {
-        size = target->old_size;
-      }
+      size = std::max(size, 256);
+      size = std::max(size, target->old_size);
     }
     else {
       size = 512;
@@ -440,13 +437,8 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
     size = (1 << r);
 
-    if (size < 256) {
-      size = 256;
-    }
-
-    if (size < cursor_snap.size) {
-      size = cursor_snap.size;
-    }
+    size = std::max(size, 256);
+    size = std::max(size, cursor_snap.size);
 
     if (cursor_snap.size != size) {
       if (cursor_snap.overlay_texture) {

@@ -6,6 +6,7 @@
  * \ingroup edtransform
  */
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_string.h"
@@ -14,6 +15,7 @@
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_screen.hh"
 
@@ -95,7 +97,7 @@ struct VertSlideData {
         continue;
       }
 
-      const float3 &v_co_orig = sv.co_orig_3d();
+      const float3 v_co_orig = sv.co_orig_3d();
       float2 loc_src_2d = math::project_point(this->proj_mat, v_co_orig).xy();
 
       float dir_dot_best = -FLT_MAX;
@@ -153,8 +155,8 @@ static void vert_slide_update_input(TransInfo *t)
       TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data);
   TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
 
-  const float3 &co_orig_3d = sv->co_orig_3d();
-  const float3 &co_dest_3d = sv->co_dest_3d();
+  const float3 co_orig_3d = sv->co_orig_3d();
+  const float3 co_dest_3d = sv->co_dest_3d();
 
   int mval_ofs[2], mval_start[2], mval_end[2];
 
@@ -281,8 +283,8 @@ static void drawVertSlide(TransInfo *t)
     {
       TransDataVertSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 
-      const float3 &co_orig_3d_act = curr_sv->co_orig_3d();
-      const float3 &co_dest_3d_act = curr_sv->co_dest_3d();
+      const float3 co_orig_3d_act = curr_sv->co_orig_3d();
+      const float3 co_dest_3d_act = curr_sv->co_dest_3d();
 
       const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
       const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
@@ -317,8 +319,8 @@ static void drawVertSlide(TransInfo *t)
       }
       else {
         for (TransDataVertSlideVert &sv : sld->sv) {
-          const float3 &co_orig_3d = sv.co_orig_3d();
-          const float3 &co_dest_3d = sv.co_dest_3d();
+          const float3 co_orig_3d = sv.co_orig_3d();
+          const float3 co_dest_3d = sv.co_dest_3d();
           float a[3], b[3];
           sub_v3_v3v3(a, co_dest_3d, co_orig_3d);
           mul_v3_fl(a, 100.0f);
@@ -395,8 +397,8 @@ static void vert_slide_apply_elem(const TransDataVertSlideVert &sv,
                                   const bool use_flip,
                                   float r_co[3])
 {
-  const float3 &co_orig_3d = sv.co_orig_3d();
-  const float3 &co_dest_3d = sv.co_dest_3d();
+  const float3 co_orig_3d = sv.co_orig_3d();
+  const float3 co_dest_3d = sv.co_dest_3d();
   if (use_even == false) {
     interp_v3_v3v3(r_co, co_orig_3d, co_dest_3d, perc);
   }

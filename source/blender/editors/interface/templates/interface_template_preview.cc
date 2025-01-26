@@ -22,7 +22,6 @@
 #include "ED_render.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.hh"
 
 #include "WM_api.hh"
 

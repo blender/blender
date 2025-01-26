@@ -94,10 +94,8 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 {
   Eyedropper *eye = MEM_new<Eyedropper>(__func__);
 
-  PropertyRNA *prop;
-  if ((prop = RNA_struct_find_property(op->ptr, "prop_data_path")) &&
-      RNA_property_is_set(op->ptr, prop))
-  {
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "prop_data_path");
+  if (prop && RNA_property_is_set(op->ptr, prop)) {
     char *prop_data_path = RNA_string_get_alloc(op->ptr, "prop_data_path", nullptr, 0, nullptr);
     BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(prop_data_path); });
     if (!prop_data_path || prop_data_path[0] == '\0') {

@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_outliner_types.h"
 
 #include "BLT_translation.hh"

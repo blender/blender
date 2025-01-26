@@ -9,14 +9,12 @@
 #include "AS_asset_library.hh"
 
 #include "AS_asset_catalog.hh"
-#include "AS_asset_catalog_tree.hh"
 
 #include "BKE_main.hh"
 
 #include "BLI_string_utils.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.hh"
 
 #include "ED_asset_catalog.hh"
 

@@ -6,50 +6,26 @@
  * \ingroup edgpencil
  */
 
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_lasso_2d.hh"
-#include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_vector.hh"
-#include "BLI_time.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
-#include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_action.hh"
-#include "BKE_brush.hh"
-#include "BKE_collection.hh"
-#include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_main.hh"
-#include "BKE_material.hh"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_preview_image.hh"
 #include "BKE_tracking.h"
 
 #include "WM_api.hh"
@@ -57,25 +33,17 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.hh"
 
-#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
 #include "ED_select_utils.hh"
-#include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_immediate.hh"
-#include "GPU_immediate_util.hh"
-#include "GPU_state.hh"
-
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.hh"

@@ -160,7 +160,7 @@ static void InputCustomRatioFlip(TransInfo * /*t*/,
 
     distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length : 0.0;
 
-    output[0] = (length != 0.0) ? double(distance / length) : 0.0;
+    output[0] = (length != 0.0) ? (distance / length) : 0.0;
   }
 }
 

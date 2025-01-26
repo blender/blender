@@ -8,7 +8,6 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 
-#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"

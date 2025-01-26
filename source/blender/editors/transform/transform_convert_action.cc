@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
+
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
@@ -855,9 +857,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
               if (gpf_iter->flag & GP_FRAME_SELECT) {
                 if (FrameOnMouseSide(t->frame_side, float(gpf_iter->framenum), cfra)) {
                   int val = abs(gpf->framenum - gpf_iter->framenum);
-                  if (val < min) {
-                    min = val;
-                  }
+                  min = std::min(val, min);
                 }
               }
             }
@@ -920,9 +920,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
                 if (masklay_iter->flag & MASK_SHAPE_SELECT) {
                   if (FrameOnMouseSide(t->frame_side, float(masklay_iter->frame), cfra)) {
                     int val = abs(masklay_shape->frame - masklay_iter->frame);
-                    if (val < min) {
-                      min = val;
-                    }
+                    min = std::min(val, min);
                   }
                 }
               }
@@ -948,11 +946,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
               float min = FLT_MAX;
               for (j = 0, bezt_iter = fcu->bezt; j < fcu->totvert; j++, bezt_iter++) {
                 if (bezt_iter->f2 & SELECT) {
-                  if (FrameOnMouseSide(t->frame_side, float(bezt_iter->vec[1][0]), cfra)) {
+                  if (FrameOnMouseSide(t->frame_side, bezt_iter->vec[1][0], cfra)) {
                     float val = fabs(bezt->vec[1][0] - bezt_iter->vec[1][0]);
-                    if (val < min) {
-                      min = val;
-                    }
+                    min = std::min(val, min);
                   }
                 }
               }

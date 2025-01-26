@@ -30,7 +30,7 @@ class AssetRepresentation;
 
 struct FileDirEntry;
 
-typedef uint32_t FileUID;
+using FileUID = uint32_t;
 
 enum FileSelType {
   FILE_SEL_REMOVE = 0,

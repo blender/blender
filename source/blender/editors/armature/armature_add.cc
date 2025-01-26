@@ -15,11 +15,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -1188,7 +1188,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
           /* If this bone has a parent that IS not selected,
            * Set the duplicate->parent to the cur_bone->parent
            */
-          ebone->parent = (EditBone *)ebone_iter->parent;
+          ebone->parent = ebone_iter->parent;
           ebone->flag &= ~BONE_CONNECTED;
         }
 
@@ -1406,7 +1406,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
     {
       if (ebone_iter->temp.ebone) {
         /* copy all flags except for ... */
-        const int flag_copy = int(~0) & ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+        const int flag_copy = (~0) & ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
 
         EditBone *ebone = ebone_iter->temp.ebone;
 

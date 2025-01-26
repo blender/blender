@@ -14,9 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -35,7 +34,7 @@
 
 #include "ANIM_action.hh"
 
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 #include <cstring>
 
@@ -291,7 +290,7 @@ std::string getname_anim_fcurve_for_slot(Main &bmain,
     return propname;
   }
 
-  std::string arrayname = "";
+  std::string arrayname;
   char c = RNA_property_array_item_char(prop, fcurve.array_index);
   if (c) {
     arrayname = std::string(1, c);

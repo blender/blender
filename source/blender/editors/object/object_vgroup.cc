@@ -6,6 +6,7 @@
  * \ingroup edobj
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -834,9 +835,7 @@ static void vgroup_nr_vert_add(
         break;
       case WEIGHT_ADD:
         dw->weight += weight;
-        if (dw->weight >= 1.0f) {
-          dw->weight = 1.0f;
-        }
+        dw->weight = std::min(dw->weight, 1.0f);
         break;
       case WEIGHT_SUBTRACT:
         dw->weight -= weight;

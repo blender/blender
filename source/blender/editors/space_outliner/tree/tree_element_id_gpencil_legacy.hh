@@ -20,7 +20,7 @@ class TreeElementIDGPLegacy final : public TreeElementID {
  public:
   TreeElementIDGPLegacy(TreeElement &legacy_te, bGPdata &gpd);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_layers() const;

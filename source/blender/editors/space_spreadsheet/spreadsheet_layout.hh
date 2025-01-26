@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <optional>
-
 #include "spreadsheet_column_values.hh"
 #include "spreadsheet_draw.hh"
 

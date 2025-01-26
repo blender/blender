@@ -386,7 +386,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
       continue;
     }
 
-    if (WM_operator_poll((bContext *)C, ot)) {
+    if (WM_operator_poll(C, ot)) {
       const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
 
       MenuSearch_Item *item = nullptr;

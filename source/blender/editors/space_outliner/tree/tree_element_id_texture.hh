@@ -20,7 +20,7 @@ class TreeElementIDTexture final : public TreeElementID {
  public:
   TreeElementIDTexture(TreeElement &legacy_te, Tex &texture);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_image() const;

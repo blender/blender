@@ -9,7 +9,6 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include <cstdio>
 #include <cstring>
 
 #include "AS_asset_representation.hh"
@@ -518,7 +517,7 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
     return;
   }
 
-  state = static_cast<V3DSnapCursorState *>(ED_view3d_cursor_snap_state_create());
+  state = ED_view3d_cursor_snap_state_create();
   drop->draw_data = state;
   state->draw_plane = true;
 

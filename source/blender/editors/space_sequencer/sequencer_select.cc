@@ -12,11 +12,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
@@ -1054,7 +1054,7 @@ static bool is_mouse_over_both_handles_of_adjacent_strips(const Scene *scene,
   if (seq1_handle == SEQ_HANDLE_RIGHT && seq2_handle != SEQ_HANDLE_LEFT) {
     return false;
   }
-  else if (seq1_handle == SEQ_HANDLE_LEFT && seq2_handle != SEQ_HANDLE_RIGHT) {
+  if (seq1_handle == SEQ_HANDLE_LEFT && seq2_handle != SEQ_HANDLE_RIGHT) {
     return false;
   }
 
@@ -1367,10 +1367,8 @@ static int sequencer_select_handle_exec(bContext *C, wmOperator *op)
     sseq->flag &= ~SPACE_SEQ_DESELECT_STRIP_HANDLE;
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
-  else {
-    sseq->flag |= SPACE_SEQ_DESELECT_STRIP_HANDLE;
-    ED_sequencer_deselect_all(scene);
-  }
+  sseq->flag |= SPACE_SEQ_DESELECT_STRIP_HANDLE;
+  ED_sequencer_deselect_all(scene);
 
   /* Do actual selection. */
   sequencer_select_strip_impl(ed, selection.seq1, selection.handle, false, false, false);

@@ -708,9 +708,7 @@ static int collection_export(bContext *C,
       /* Do not continue calling exporters if we encounter one that fails. */
       return OPERATOR_CANCELLED;
     }
-    else {
-      files_num++;
-    }
+    files_num++;
   }
 
   if (files_num) {

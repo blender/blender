@@ -17,7 +17,6 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"

@@ -13,7 +13,6 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -58,8 +57,6 @@
 #include "ED_info.hh"
 
 #include "WM_api.hh"
-
-#include "UI_resources.hh"
 
 #include "GPU_capabilities.hh"
 

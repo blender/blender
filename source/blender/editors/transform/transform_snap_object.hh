@@ -39,7 +39,7 @@ struct SnapObjectContext {
   Scene *scene;
 
   struct SnapCache {
-    virtual ~SnapCache(){};
+    virtual ~SnapCache() = default;
   };
   blender::Map<const ID *, std::unique_ptr<SnapCache>> editmesh_caches;
 
@@ -147,7 +147,6 @@ class SnapData {
   /* Read and write. */
   BVHTreeNearest nearest_point;
 
- public:
   /* Constructor. */
   SnapData(SnapObjectContext *sctx,
            const blender::float4x4 &obmat = blender::float4x4::identity());

@@ -6,6 +6,8 @@
  * \ingroup edgreasepencil
  */
 
+#include <algorithm>
+
 #include "BKE_curves.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
@@ -640,24 +642,16 @@ bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard
             {frame_number, Drawing(*drawing), duration, eBezTriple_KeyframeType(frame.type)});
 
         /* Check the range of this layer only. */
-        if (frame_number < layer_first_frame) {
-          layer_first_frame = frame_number;
-        }
-        if (frame_number > layer_last_frame) {
-          layer_last_frame = frame_number;
-        }
+        layer_first_frame = std::min(frame_number, layer_first_frame);
+        layer_last_frame = std::max(frame_number, layer_last_frame);
       }
     }
     if (!buf.is_empty()) {
       BLI_assert(!clipboard.copy_buffer.contains(layer->name()));
       clipboard.copy_buffer.add_new(layer->name(), {buf, layer_first_frame, layer_last_frame});
       /* Update the range of entire copy buffer. */
-      if (layer_first_frame < clipboard.first_frame) {
-        clipboard.first_frame = layer_first_frame;
-      }
-      if (layer_last_frame > clipboard.last_frame) {
-        clipboard.last_frame = layer_last_frame;
-      }
+      clipboard.first_frame = std::min(layer_first_frame, clipboard.first_frame);
+      clipboard.last_frame = std::max(layer_last_frame, clipboard.last_frame);
     }
   }
 

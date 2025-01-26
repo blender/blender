@@ -26,7 +26,7 @@ class TreeElementGreasePencilNode final : public AbstractTreeElement {
                               GreasePencil &owner_grease_pencil,
                               blender::bke::greasepencil::TreeNode &node);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
   blender::bke::greasepencil::TreeNode &node() const;
 };

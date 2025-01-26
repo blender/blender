@@ -27,11 +27,11 @@
 #include "transform_convert.hh"
 
 /** Used for sequencer transform. */
-typedef struct TransDataSeq {
+struct TransDataSeq {
   Strip *strip;
   int orig_timeline_frame;
   int key_index; /* Some actions may need to destroy original data, use index to access it. */
-} TransDataSeq;
+};
 
 static TransData *SeqToTransData(const Scene *scene,
                                  Strip *strip,
@@ -66,7 +66,7 @@ static TransData *SeqToTransData(const Scene *scene,
 
 static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData * /*custom_data*/)
 {
-  const TransData *const td = (TransData *)tc->data;
+  const TransData *const td = tc->data;
   Scene *scene = t->scene;
   const Editing *ed = SEQ_editing_get(t->scene);
 

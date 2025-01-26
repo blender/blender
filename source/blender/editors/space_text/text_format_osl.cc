@@ -11,7 +11,7 @@
 
 #include <cstring>
 
-#include "BLI_blenlib.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"

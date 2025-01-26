@@ -6,6 +6,7 @@
 
 #include <functional>
 
+#include "BLI_index_mask.hh"
 #include "BLI_task.hh"
 
 #include "DNA_scene_types.h"
@@ -179,7 +180,7 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
   };
   Array<AutoMaskingInfo> auto_masking_info_per_drawing;
 
-  GreasePencilStrokeOperationCommon() {}
+  GreasePencilStrokeOperationCommon() = default;
   GreasePencilStrokeOperationCommon(const BrushStrokeMode stroke_mode) : stroke_mode(stroke_mode)
   {
   }
@@ -215,7 +216,7 @@ std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation(bool temp_draw 
 std::unique_ptr<GreasePencilStrokeOperation> new_erase_operation(bool temp_eraser = false);
 std::unique_ptr<GreasePencilStrokeOperation> new_tint_operation();
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_draw_operation(
-    const BrushStrokeMode &brush_mode);
+    const BrushStrokeMode &stroke_mode);
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_blur_operation();
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_average_operation();
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_smear_operation();

@@ -7,7 +7,6 @@
  */
 
 #include "BKE_context.hh"
-#include "BKE_preferences.h"
 
 #include "ED_asset_library.hh"
 #include "ED_asset_list.hh"
@@ -18,11 +17,9 @@
 
 #include "DNA_userdef_types.h"
 #include "RNA_access.hh"
-#include "UI_resources.hh"
 #include "WM_api.hh"
 
 #include "AS_asset_catalog.hh"
-#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 
 namespace blender::ed::asset {

@@ -8,7 +8,6 @@
  */
 
 #include "DNA_brush_types.h"
-#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
@@ -230,7 +229,7 @@ struct PaintOperation : public PaintModeData {
   ViewContext vc = {nullptr};
 
   PaintOperation() = default;
-  ~PaintOperation()
+  ~PaintOperation() override
   {
     MEM_delete(mode);
     mode = nullptr;

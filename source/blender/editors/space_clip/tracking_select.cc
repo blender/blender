@@ -6,10 +6,9 @@
  * \ingroup spclip
  */
 
-#include "MEM_guardedalloc.h"
+#include <algorithm>
 
 #include "DNA_movieclip_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
@@ -18,7 +17,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 #include "BKE_tracking.h"
@@ -160,9 +158,7 @@ static float mouse_to_closest_corners_edge_distance_squared(const float co[2],
     const float distance_squared = dist_squared_to_line_segment_v2(
         co_px, corner_co_px, prev_corner_co_px);
 
-    if (distance_squared < min_distance_squared) {
-      min_distance_squared = distance_squared;
-    }
+    min_distance_squared = std::min(distance_squared, min_distance_squared);
 
     copy_v2_v2(prev_corner_co_px, corner_co_px);
   }
@@ -498,7 +494,7 @@ static bool tracking_should_prefer_point_track(bContext *C,
   if (can_slide_point_track && !can_slide_plane_track) {
     return true;
   }
-  else if (!can_slide_point_track && can_slide_plane_track) {
+  if (!can_slide_point_track && can_slide_plane_track) {
     return false;
   }
 

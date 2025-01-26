@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
+
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 
@@ -1075,9 +1077,7 @@ static void recalcData_edit_armature(TransInfo *t)
         ebo->rad_tail = 0.10f * ebo->length;
         ebo->dist = 0.25f * ebo->length;
         if (ebo->parent) {
-          if (ebo->rad_head > ebo->parent->rad_tail) {
-            ebo->rad_head = ebo->parent->rad_tail;
-          }
+          ebo->rad_head = std::min(ebo->rad_head, ebo->parent->rad_tail);
         }
       }
       else if (t->mode != TFM_BONE_ENVELOPE) {

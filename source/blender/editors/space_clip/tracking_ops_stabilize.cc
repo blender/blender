@@ -6,10 +6,10 @@
  * \ingroup spclip
  */
 
+#include <algorithm>
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 #include "BKE_tracking.h"
@@ -94,9 +94,7 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator * /*op*/)
         track->flag &= ~TRACK_USE_2D_STAB;
         stabilization->act_track--;
         stabilization->tot_track--;
-        if (stabilization->act_track < 0) {
-          stabilization->act_track = 0;
-        }
+        stabilization->act_track = std::max(stabilization->act_track, 0);
         update = true;
         break;
       }
@@ -225,9 +223,7 @@ static int stabilize_2d_rotation_remove_exec(bContext *C, wmOperator * /*op*/)
         track->flag &= ~TRACK_USE_2D_STAB_ROT;
         stabilization->act_rot_track--;
         stabilization->tot_rot_track--;
-        if (stabilization->act_rot_track < 0) {
-          stabilization->act_rot_track = 0;
-        }
+        stabilization->act_rot_track = std::max(stabilization->act_rot_track, 0);
         update = true;
         break;
       }

@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "DNA_object_types.h"
-
 #include "DNA_windowmanager_types.h"
 
 void MBALL_OT_hide_metaelems(wmOperatorType *ot);

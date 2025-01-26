@@ -1082,9 +1082,7 @@ static int sequencer_disconnect_exec(bContext *C, wmOperator * /*op*/)
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void SEQUENCER_OT_disconnect(wmOperatorType *ot)

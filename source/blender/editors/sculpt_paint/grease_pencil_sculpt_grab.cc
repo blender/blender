@@ -13,7 +13,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_view3d_types.h"
 

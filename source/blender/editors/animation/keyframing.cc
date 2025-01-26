@@ -6,14 +6,13 @@
  * \ingroup edanimation
  */
 
-#include <cstddef>
 #include <cstdio>
 
 #include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -47,7 +46,6 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
-#include "ANIM_action_legacy.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_driver.hh"
@@ -1248,7 +1246,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
     else {
       /* standard properties */
       if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
-        RNAPath rna_path = {path->c_str(), std::nullopt, index};
+        RNAPath rna_path = {*path, std::nullopt, index};
         if (all) {
           /* nullopt indicates operating on the entire array (or the property itself otherwise). */
           rna_path.index = std::nullopt;
@@ -1313,7 +1311,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 
   if (ptr.owner_id && ptr.data && prop) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
-      RNAPath rna_path = {path->c_str(), std::nullopt, index};
+      RNAPath rna_path = {*path, std::nullopt, index};
       if (all) {
         /* nullopt indicates operating on the entire array (or the property itself otherwise). */
         rna_path.index = std::nullopt;

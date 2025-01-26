@@ -7,7 +7,6 @@
  */
 
 #include <algorithm>
-#include <climits>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -3963,7 +3962,7 @@ static void ui_litem_estimate_column(uiLayout *litem, bool is_box)
   litem->w = 0;
   litem->h = 0;
 
-  for (auto iter = litem->items.begin(); iter != litem->items.end(); iter++) {
+  for (auto *iter = litem->items.begin(); iter != litem->items.end(); iter++) {
     uiItem *item = *iter;
     ui_item_size(item, &itemw, &itemh);
 
@@ -3987,7 +3986,7 @@ static void ui_litem_layout_column(uiLayout *litem, bool is_box, bool is_menu)
   const int x = litem->x;
   int y = litem->y;
 
-  for (auto iter = litem->items.begin(); iter != litem->items.end(); iter++) {
+  for (auto *iter = litem->items.begin(); iter != litem->items.end(); iter++) {
     uiItem *item = *iter;
     int itemw, itemh;
     ui_item_size(item, &itemw, &itemh);

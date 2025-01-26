@@ -7,26 +7,17 @@
  */
 
 #include <cfloat>
-#include <cmath>
 #include <cstddef>
-#include <cstdio>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
-
 #include "DNA_anim_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_main.hh"
 #include "BKE_report.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
@@ -699,10 +690,8 @@ KeyingSet *ANIM_keyingset_get_from_enum_type(Scene *scene, int type)
   if (type > 0) {
     return static_cast<KeyingSet *>(BLI_findlink(&scene->keyingsets, type - 1));
   }
-  else {
-    return static_cast<KeyingSet *>(BLI_findlink(&builtin_keyingsets, -type - 1));
-  }
-  return nullptr;
+
+  return static_cast<KeyingSet *>(BLI_findlink(&builtin_keyingsets, -type - 1));
 }
 
 KeyingSet *ANIM_keyingset_get_from_idname(Scene *scene, const char *idname)

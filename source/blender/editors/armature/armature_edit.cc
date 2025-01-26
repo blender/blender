@@ -8,7 +8,6 @@
  */
 
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -16,7 +15,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -24,7 +22,6 @@
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
-#include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"

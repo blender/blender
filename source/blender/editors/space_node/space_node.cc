@@ -44,7 +44,6 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "DEG_depsgraph.hh"

@@ -42,11 +42,10 @@ void ED_spacetype_userpref();
 void ED_spacetype_clip();
 void ED_spacetype_statusbar();
 void ED_spacetype_topbar();
-namespace blender::ed {
-namespace spreadsheet {
+
+namespace blender::ed::spreadsheet {
 void register_spacetype();
 }
-}  // namespace blender::ed
 
 /** \} */
 

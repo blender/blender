@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "BLI_vector.hh"
-
 struct ARegion;
 struct bContext;
 struct uiBlock;

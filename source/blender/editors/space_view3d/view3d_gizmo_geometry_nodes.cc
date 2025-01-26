@@ -20,6 +20,7 @@
 #include "BKE_main_invariants.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 
 #include "BLI_math_base_safe.h"
@@ -865,7 +866,7 @@ static std::optional<float4x4> find_gizmo_geometry_transform_recursive(
         if (const std::optional<float4x4> m = find_gizmo_geometry_transform_recursive(
                 reference_geometry, gizmo_id, sub_transform))
         {
-          return *m;
+          return m;
         }
       }
     }

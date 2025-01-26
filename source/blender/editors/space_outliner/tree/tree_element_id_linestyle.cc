@@ -8,7 +8,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_linestyle_types.h"
-#include "DNA_listBase.h"
 #include "DNA_outliner_types.h"
 #include "DNA_texture_types.h"
 

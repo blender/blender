@@ -97,7 +97,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   /* Set of locked vertex groups (object level). */
   Set<std::string> object_locked_defgroups;
 
-  ~WeightPaintOperation() override {}
+  ~WeightPaintOperation() override = default;
 
   /* Apply a weight to a point under the brush. */
   void apply_weight_to_point(const BrushPoint &point,

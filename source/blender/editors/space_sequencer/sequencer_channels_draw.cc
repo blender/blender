@@ -14,13 +14,12 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "ED_screen.hh"
 
 #include "GPU_matrix.hh"
-#include "GPU_vertex_buffer.hh"
 
 #include "RNA_prototypes.hh"
 

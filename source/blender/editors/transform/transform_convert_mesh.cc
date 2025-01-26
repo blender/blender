@@ -2339,7 +2339,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
   /* Alloc and initialize the #TransDataEdgeSlideVert. */
 
   Array<TransDataEdgeSlideVert> r_sv(td_selected_len);
-  TransDataEdgeSlideVert *sv = &r_sv[0];
+  TransDataEdgeSlideVert *sv = r_sv.data();
   int sv_index = 0;
   td = tc->data;
   for (int i = 0; i < tc->data_len; i++, td++) {

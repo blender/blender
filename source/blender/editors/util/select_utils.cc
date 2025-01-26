@@ -11,7 +11,6 @@
 #include <cstring>
 
 #include "BLI_kdtree.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 

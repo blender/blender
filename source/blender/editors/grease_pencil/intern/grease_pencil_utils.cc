@@ -1102,7 +1102,7 @@ IndexMask retrieve_editable_elements(Object &object,
   if (selection_domain == bke::AttrDomain::Curve) {
     return ed::greasepencil::retrieve_editable_strokes(object, drawing, info.layer_index, memory);
   }
-  else if (selection_domain == bke::AttrDomain::Point) {
+  if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_editable_points(object, drawing, info.layer_index, memory);
   }
   return {};
@@ -1213,7 +1213,7 @@ IndexMask retrieve_visible_bezier_handle_elements(Object &object,
     return ed::greasepencil::retrieve_editable_and_selected_strokes(
         object, drawing, layer_index, memory);
   }
-  else if (selection_domain == bke::AttrDomain::Point) {
+  if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_visible_bezier_handle_points(
         object, drawing, layer_index, memory);
   }
@@ -1273,7 +1273,7 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
     return ed::greasepencil::retrieve_editable_and_selected_strokes(
         object, drawing, layer_index, memory);
   }
-  else if (selection_domain == bke::AttrDomain::Point) {
+  if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_editable_and_selected_points(
         object, drawing, layer_index, memory);
   }

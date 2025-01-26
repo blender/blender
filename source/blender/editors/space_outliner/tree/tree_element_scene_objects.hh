@@ -20,7 +20,7 @@ class TreeElementSceneObjectsBase final : public AbstractTreeElement {
  public:
   TreeElementSceneObjectsBase(TreeElement &legacy_te, Scene &scene);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 };
 
 }  // namespace blender::ed::outliner

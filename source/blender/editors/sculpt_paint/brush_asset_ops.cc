@@ -9,7 +9,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BKE_asset.hh"
 #include "BKE_asset_edit.hh"
@@ -22,7 +21,6 @@
 #include "BKE_report.hh"
 
 #include "AS_asset_catalog_path.hh"
-#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 

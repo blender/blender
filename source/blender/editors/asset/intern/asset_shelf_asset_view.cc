@@ -11,7 +11,6 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BKE_asset.hh"
 #include "BKE_screen.hh"
 
 #include "BLI_fnmatch.h"
@@ -249,7 +248,7 @@ void AssetViewItem::build_grid_tile(const bContext &C, uiLayout &layout) const
             static_cast<const asset_system::AssetRepresentation *>(argN);
         return asset_tooltip(*asset, /*include_name=*/false);
       },
-      const_cast<asset_system::AssetRepresentation *>(&asset_),
+      (&asset_),
       nullptr);
 
   /* Request preview when drawing. Grid views have an optimization to only draw items that are

@@ -12,24 +12,21 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
-
 #include "BLI_vector.hh"
-#include "DNA_sequence_types.h"
-#include "DNA_view2d_types.h"
-#include "GPU_primitive.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view2d_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -37,11 +34,14 @@
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
+#include "GPU_primitive.hh"
+#include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
 #include "ED_gpencil_legacy.hh"

@@ -45,6 +45,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.hh"
@@ -1442,8 +1443,7 @@ static int object_grease_pencil_add_exec(bContext *C, wmOperator *op)
       greasepencil::create_blank(*bmain, *object, scene->r.cfra);
 
       auto *grease_pencil = reinterpret_cast<GreasePencil *>(object->data);
-      auto *new_md = reinterpret_cast<ModifierData *>(
-          BKE_modifier_new(eModifierType_GreasePencilLineart));
+      auto *new_md = BKE_modifier_new(eModifierType_GreasePencilLineart);
       auto *md = reinterpret_cast<GreasePencilLineartModifierData *>(new_md);
 
       BLI_addtail(&object->modifiers, md);
@@ -4249,7 +4249,6 @@ static void object_add_duplicate_internal(Main *bmain,
     *r_ob_new = obn;
   }
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  return;
 }
 
 static Base *object_add_duplicate_internal(Main *bmain,

@@ -23,11 +23,11 @@ struct View3D;
 struct Object;
 struct Brush;
 struct Scene;
-namespace blender {
-namespace bke {
+
+namespace blender::bke {
 struct BVHTreeFromMesh;
 }
-}  // namespace blender
+
 struct ReportList;
 
 namespace blender::ed::sculpt_paint {

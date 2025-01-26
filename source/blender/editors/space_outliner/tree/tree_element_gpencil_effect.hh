@@ -20,7 +20,7 @@ class TreeElementGPencilEffectBase final : public AbstractTreeElement {
 
  public:
   TreeElementGPencilEffectBase(TreeElement &legacy_te, Object &object);
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 };
 
 class TreeElementGPencilEffect final : public AbstractTreeElement {
@@ -30,7 +30,7 @@ class TreeElementGPencilEffect final : public AbstractTreeElement {
 
  public:
   TreeElementGPencilEffect(TreeElement &legacy_te, Object &object, ShaderFxData &fx);
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 };
 
 }  // namespace blender::ed::outliner

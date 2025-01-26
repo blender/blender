@@ -6,9 +6,8 @@
  * \ingroup spoutliner
  */
 
+#include <algorithm>
 #include <cstring>
-#include <iostream>
-#include <ostream>
 
 #include <fmt/format.h>
 
@@ -20,9 +19,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -1092,9 +1090,7 @@ static int outliner_count_levels(ListBase *lb, const int curlevel)
 
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     int lev = outliner_count_levels(&te->subtree, curlevel + 1);
-    if (lev > level) {
-      level = lev;
-    }
+    level = std::max(lev, level);
   }
   return level;
 }
@@ -2225,7 +2221,7 @@ static int unused_message_popup_width_compute(bContext *C)
   data.do_recursive = true;
   BKE_lib_query_unused_ids_amounts(bmain, data);
 
-  std::string unused_message = "";
+  std::string unused_message;
   const uiStyle *style = UI_style_get_dpi();
   unused_message_gen(unused_message, data.num_local);
   float max_messages_width = BLF_width(
@@ -2346,7 +2342,7 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   }
   LibQueryUnusedIDsData &data = *static_cast<LibQueryUnusedIDsData *>(op->customdata);
 
-  std::string unused_message = "";
+  std::string unused_message;
   unused_message_gen(unused_message, data.num_local);
   uiLayout *column = uiLayoutColumn(layout, true);
   uiItemR(column, ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);

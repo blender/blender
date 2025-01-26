@@ -639,7 +639,7 @@ struct PaintOperationExecutor {
     bke::SpanAttributeWriter<float> init_times = attributes.lookup_or_add_for_write_span<float>(
         "init_time", bke::AttrDomain::Curve);
     /* Truncating time in ms to uint32 then we don't lose precision in lower bits. */
-    init_times.span[active_curve] = float(uint64_t(self.start_time_ * double(1e3))) / float(1e3);
+    init_times.span[active_curve] = float(uint64_t(self.start_time_ * 1e3)) / float(1e3);
     curve_attributes_to_skip.add("init_time");
     init_times.finish();
 
@@ -1797,7 +1797,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
       process_stroke_weights(*scene, *object, drawing, active_curve);
     }
     if ((settings->flag & GP_BRUSH_OUTLINE_STROKE) != 0) {
-      const float outline_radius = float(brush->unprojected_radius) * settings->outline_fac * 0.5f;
+      const float outline_radius = brush->unprojected_radius * settings->outline_fac * 0.5f;
       const int material_index = [&]() {
         Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
             CTX_data_main(&C), object, brush);

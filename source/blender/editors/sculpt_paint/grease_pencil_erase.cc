@@ -53,7 +53,7 @@ class EraseOperation : public GreasePencilStrokeOperation {
 
  public:
   EraseOperation(bool temp_use_eraser = false) : temp_eraser_(temp_use_eraser) {}
-  ~EraseOperation() override {}
+  ~EraseOperation() override = default;
 
   void on_stroke_begin(const bContext &C, const InputSample &start_sample) override;
   void on_stroke_extended(const bContext &C, const InputSample &extension_sample) override;
@@ -637,7 +637,7 @@ struct EraseOperationExecutor {
                       (sample_after.opacity - sample.opacity);
 
       const int64_t radius = math::round(
-          math::interpolate(float(sample.radius), float(sample_after.radius), t));
+          math::interpolate(sample.radius, float(sample_after.radius), t));
 
       sample.radius = radius;
       sample.squared_radius = radius * radius;

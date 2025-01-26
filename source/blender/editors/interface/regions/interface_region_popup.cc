@@ -8,6 +8,7 @@
  * PopUp Region (Generic)
  */
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
@@ -497,12 +498,8 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
     block->rect.xmax += xofs;
   }
 
-  if (block->rect.ymin < margin) {
-    block->rect.ymin = margin;
-  }
-  if (block->rect.ymax > win_size[1] - UI_POPUP_MENU_TOP) {
-    block->rect.ymax = win_size[1] - UI_POPUP_MENU_TOP;
-  }
+  block->rect.ymin = std::max<float>(block->rect.ymin, margin);
+  block->rect.ymax = std::min<float>(block->rect.ymax, win_size[1] - UI_POPUP_MENU_TOP);
 
   /* ensure menu items draw inside left/right boundary */
   const float xofs = block->rect.xmin - xmin_orig;

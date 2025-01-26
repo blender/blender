@@ -6,10 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "DNA_listBase.h"
 #include "DNA_space_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "tree_display.hh"
 

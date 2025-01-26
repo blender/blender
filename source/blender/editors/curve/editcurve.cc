@@ -6,6 +6,8 @@
  * \ingroup edcurve
  */
 
+#include <algorithm>
+
 #include "DNA_anim_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -14,7 +16,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_geom.h"
@@ -23,6 +24,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -2076,12 +2078,8 @@ static NurbDim editnurb_find_max_points_num(const EditNurb *editnurb)
 {
   NurbDim ret = {0, 0};
   LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
-    if (nu->pntsu > ret.pntsu) {
-      ret.pntsu = nu->pntsu;
-    }
-    if (nu->pntsv > ret.pntsv) {
-      ret.pntsv = nu->pntsv;
-    }
+    ret.pntsu = std::max(nu->pntsu, ret.pntsu);
+    ret.pntsv = std::max(nu->pntsv, ret.pntsv);
   }
   return ret;
 }

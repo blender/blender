@@ -52,7 +52,7 @@ class AbstractTreeElement {
   /**
    * Check if the type is expandable in current context.
    */
-  virtual bool expand_poll(const SpaceOutliner &) const
+  virtual bool expand_poll(const SpaceOutliner & /*soops*/) const
   {
     return true;
   }
@@ -105,7 +105,7 @@ class AbstractTreeElement {
   /**
    * Let the type add its own children.
    */
-  virtual void expand(SpaceOutliner &) const {}
+  virtual void expand(SpaceOutliner & /*soops*/) const {}
 
   /** See #AbstractTreeDisplay::add_element() (which this forwards to). */
   TreeElement *add_element(ListBase *lb,

@@ -17,14 +17,11 @@
 
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
-#  include "BLI_utildefines.h"
 
 #  include "BLT_translation.hh"
 
 #  include "ED_fileselect.hh"
 #  include "ED_outliner.hh"
-
-#  include "MEM_guardedalloc.h"
 
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"

@@ -8,7 +8,6 @@
 
 #include <cctype>
 #include <cfloat>
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>

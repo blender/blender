@@ -12,7 +12,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_easing.h"
 #include "BLI_index_mask.hh"
-#include "BLI_length_parameterize.hh"
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"

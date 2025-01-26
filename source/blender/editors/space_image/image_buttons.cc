@@ -14,7 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -747,7 +748,7 @@ void uiTemplateImage(uiLayout *layout,
   ImageUser *iuser = static_cast<ImageUser *>(userptr->data);
 
   Scene *scene = CTX_data_scene(C);
-  BKE_image_user_frame_calc(ima, iuser, int(scene->r.cfra));
+  BKE_image_user_frame_calc(ima, iuser, scene->r.cfra);
 
   uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
   uiLayoutSetContextPointer(layout, "edit_image_user", userptr);

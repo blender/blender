@@ -6,14 +6,12 @@
  * \ingroup edasset
  */
 
-#include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
 #include "DNA_screen_types.h"
 
-#include "BKE_asset.hh"
 #include "BKE_report.hh"
 
 #include "BLT_translation.hh"

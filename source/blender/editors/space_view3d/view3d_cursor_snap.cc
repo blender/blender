@@ -11,6 +11,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 
@@ -26,6 +27,7 @@
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_screen.hh"
 #include "ED_transform.hh"
@@ -189,7 +191,7 @@ static void v3d_cursor_plane_draw_grid(const int resolution,
   const int axis_z = (plane_axis + 2) % 3;
 
   int i;
-  const float resolution_div = float(1.0f) / float(resolution);
+  const float resolution_div = 1.0f / float(resolution);
   i = 0;
   for (int x = 0; x < resolution; x++) {
     const float x_fl = (x * resolution_div) - 0.5f;
@@ -1037,7 +1039,7 @@ V3DSnapCursorState *ED_view3d_cursor_snap_state_create()
   state_intern->snap_state = g_data_intern.state_default;
   BLI_addtail(&g_data_intern.state_intern, state_intern);
 
-  return (V3DSnapCursorState *)&state_intern->snap_state;
+  return &state_intern->snap_state;
 }
 
 void ED_view3d_cursor_snap_state_free(V3DSnapCursorState *state)

@@ -6,6 +6,7 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "DNA_windowmanager_types.h"
@@ -128,16 +129,12 @@ static void constrain_scale_to_boundary(const float numerator,
 
   if (denominator < 0.0f) {
     /* Scale origin is outside boundary, only make scale bigger. */
-    if (*scale < correction) {
-      *scale = correction;
-    }
+    *scale = std::max(*scale, correction);
     return;
   }
 
   /* Scale origin is inside boundary, the "regular" case, limit maximum scale. */
-  if (*scale > correction) {
-    *scale = correction;
-  }
+  *scale = std::min(*scale, correction);
 }
 
 static bool clip_uv_transform_resize(TransInfo *t, float vec[2])

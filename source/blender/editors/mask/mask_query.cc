@@ -18,7 +18,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_mask_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "ED_clip.hh"

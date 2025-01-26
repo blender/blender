@@ -18,7 +18,6 @@
 
 #include "RNA_access.hh"
 
-#include "GPU_immediate.hh"
 #include "GPU_viewport.hh"
 
 #include "ED_sequencer.hh"
@@ -179,7 +178,7 @@ Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel);
 void recurs_sel_seq(Strip *strip_meta);
 bool strip_effect_get_new_inputs(Scene *scene,
                                  bool ignore_active,
-                                 int strip_type,
+                                 int num_inputs,
                                  Strip **r_seq1,
                                  Strip **r_seq2,
                                  const char **r_error_str);

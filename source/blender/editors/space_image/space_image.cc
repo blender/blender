@@ -15,7 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "BKE_colortools.hh"
@@ -47,7 +47,6 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
@@ -567,11 +566,11 @@ static void image_main_region_set_view2d(SpaceImage *sima, ARegion *region)
   y1 -= sima->zoom * sima->yof;
 
   /* relative display right */
-  region->v2d.cur.xmin = ((region->winrct.xmin - float(x1)) / sima->zoom);
+  region->v2d.cur.xmin = ((region->winrct.xmin - x1) / sima->zoom);
   region->v2d.cur.xmax = region->v2d.cur.xmin + (float(winx) / sima->zoom);
 
   /* relative display left */
-  region->v2d.cur.ymin = ((region->winrct.ymin - float(y1)) / sima->zoom);
+  region->v2d.cur.ymin = ((region->winrct.ymin - y1) / sima->zoom);
   region->v2d.cur.ymax = region->v2d.cur.ymin + (float(winy) / sima->zoom);
 
   /* normalize 0.0..1.0 */

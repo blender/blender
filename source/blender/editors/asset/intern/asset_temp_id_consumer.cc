@@ -9,7 +9,6 @@
  * Uses the `BLO_library_temp_xxx()` API internally.
  */
 
-#include <new>
 #include <string>
 
 #include "AS_asset_representation.hh"

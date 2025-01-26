@@ -22,10 +22,11 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_time.h"
+#include "BLI_path_utils.hh"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -46,7 +47,6 @@
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -80,8 +80,6 @@
 #include "IMB_thumbs.hh"
 
 #include "BIF_glutil.hh"
-
-#include "GPU_shader.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

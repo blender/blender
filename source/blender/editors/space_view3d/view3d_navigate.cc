@@ -404,10 +404,10 @@ struct ViewOpsData_Utility : ViewOpsData {
   ListBase keymap_items;
 
   /* Used by #ED_view3d_navigation_do. */
-  bool is_modal_event;
+  bool is_modal_event = false;
 
   ViewOpsData_Utility(bContext *C, const wmKeyMapItem *kmi_merge = nullptr)
-      : ViewOpsData(), keymap_items(), is_modal_event(false)
+      : ViewOpsData(), keymap_items()
   {
     this->init_context(C);
 

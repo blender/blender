@@ -8,7 +8,7 @@
 
 #include "WM_api.hh"
 
-#include "ED_screen.hh"
+#include "DNA_space_types.h"
 
 #include "outliner_intern.hh"
 

@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "BLF_api.hh"
 
@@ -48,7 +49,7 @@
 
 #include "interface_intern.hh"
 
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 struct IconImage {
   int w;
@@ -1548,7 +1549,7 @@ static void icon_draw_size(float x,
                                             0.0f;
     float color[4];
     if (mono_rgba) {
-      rgba_uchar_to_float(color, (const uchar *)mono_rgba);
+      rgba_uchar_to_float(color, mono_rgba);
     }
     else {
       UI_GetThemeColor4fv(TH_TEXT, color);

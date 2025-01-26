@@ -604,7 +604,7 @@ static void grease_pencil_primitive_status_indicators(bContext *C,
   status.item(IFACE_("Align"), ICON_EVENT_SHIFT);
   status.opmodal("", op->type, int(ModalKeyMode::IncreaseSubdivision));
   status.opmodal("", op->type, int(ModalKeyMode::DecreaseSubdivision));
-  status.item(fmt::format("{} ({})", IFACE_("subdivisions"), int(ptd.subdivision)), ICON_NONE);
+  status.item(fmt::format("{} ({})", IFACE_("subdivisions"), ptd.subdivision), ICON_NONE);
 
   if (ptd.segments == 1) {
     status.item(IFACE_("Center"), ICON_EVENT_ALT);
@@ -1111,7 +1111,6 @@ static void grease_pencil_primitive_cursor_update(bContext *C,
   }
 
   WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
-  return;
 }
 
 static int grease_pencil_primitive_event_modal_map(bContext *C,
@@ -1415,19 +1414,17 @@ static int grease_pencil_primitive_modal(bContext *C, wmOperator *op, const wmEv
 
         return OPERATOR_CANCELLED;
       }
-      else {
-        if (ptd.mode == OperatorMode::ChangeRadius) {
-          grease_pencil_primitive_cancel_radius(ptd);
-        }
-        if (ptd.mode == OperatorMode::ChangeOpacity) {
-          grease_pencil_primitive_cancel_opacity(ptd);
-        }
 
-        ptd.mode = OperatorMode::Idle;
-
-        grease_pencil_primitive_load(ptd);
-        break;
+      if (ptd.mode == OperatorMode::ChangeRadius) {
+        grease_pencil_primitive_cancel_radius(ptd);
       }
+      if (ptd.mode == OperatorMode::ChangeOpacity) {
+        grease_pencil_primitive_cancel_opacity(ptd);
+      }
+
+      ptd.mode = OperatorMode::Idle;
+      grease_pencil_primitive_load(ptd);
+      break;
     }
   }
 

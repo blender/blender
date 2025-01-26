@@ -61,13 +61,13 @@ StripType TreeElementStrip::get_strip_type() const
 /* -------------------------------------------------------------------- */
 /* Strip */
 
-TreeElementStripData::TreeElementStripData(TreeElement &legacy_te, StripData &data)
+TreeElementStripData::TreeElementStripData(TreeElement &legacy_te, StripData &strip)
     : AbstractTreeElement(legacy_te)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_STRIP_DATA);
 
-  if (data.dirpath[0] != '\0') {
-    legacy_te_.name = data.dirpath;
+  if (strip.dirpath[0] != '\0') {
+    legacy_te_.name = strip.dirpath;
   }
   else {
     legacy_te_.name = IFACE_("Strip None");

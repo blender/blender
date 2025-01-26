@@ -20,7 +20,7 @@ class TreeElementPoseBase final : public AbstractTreeElement {
 
  public:
   TreeElementPoseBase(TreeElement &legacy_te, Object &object);
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 };
 
 class TreeElementPoseChannel final : public AbstractTreeElement {

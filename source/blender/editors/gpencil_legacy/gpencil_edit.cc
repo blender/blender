@@ -7,49 +7,26 @@
  * Operators for editing Grease Pencil strokes.
  */
 
-#include <cmath>
-#include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-#include "DNA_object_enums.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
-#include "BLI_lasso_2d.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_grease_pencil_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 
-#include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.hh"
-#include "BKE_global.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
-#include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -57,7 +34,6 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 
 #include "UI_view2d.hh"
 
@@ -66,14 +42,9 @@
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
-#include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
-#include "ANIM_keyframing.hh"
-
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_build.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.hh"
 

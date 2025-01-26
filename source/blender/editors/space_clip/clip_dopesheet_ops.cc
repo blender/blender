@@ -6,10 +6,7 @@
  * \ingroup spclip
  */
 
-#include "DNA_scene_types.h"
-
 #include "BLI_rect.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 #include "BKE_tracking.h"

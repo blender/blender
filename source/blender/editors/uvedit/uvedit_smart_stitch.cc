@@ -21,8 +21,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -1077,7 +1075,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
     /* fill the appropriate preview buffers */
     if (ssc->mode == STITCH_VERT) {
       for (i = 0; i < state->total_separate_uvs; i++) {
-        UvElement *element = (UvElement *)state->uvs[i];
+        UvElement *element = state->uvs[i];
         if (element->flag & STITCH_STITCHABLE) {
           luv = BM_ELEM_CD_GET_FLOAT_P(element->l, cd_loop_uv_offset);
           copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex * 2], luv);

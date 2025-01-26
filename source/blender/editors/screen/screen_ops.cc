@@ -4047,10 +4047,8 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
       jd->factor = area_docking_snap(std::max(1.0f - fac_y, min_fac_y), event);
       return AreaDockTarget::Top;
     }
-    else {
-      jd->factor = area_docking_snap(std::max(fac_y, min_fac_y), event);
-      return AreaDockTarget::Bottom;
-    }
+    jd->factor = area_docking_snap(std::max(fac_y, min_fac_y), event);
+    return AreaDockTarget::Bottom;
   }
   if (jd->sa2->winy < (min_y * 3)) {
     if (fac_x > 0.4f && fac_x < 0.6f) {
@@ -4060,10 +4058,8 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
       jd->factor = area_docking_snap(std::max(1.0f - fac_x, min_fac_x), event);
       return AreaDockTarget::Right;
     }
-    else {
-      jd->factor = area_docking_snap(std::max(fac_x, min_fac_x), event);
-      return AreaDockTarget::Left;
-    }
+    jd->factor = area_docking_snap(std::max(fac_x, min_fac_x), event);
+    return AreaDockTarget::Left;
   }
 
   /* Are we in the center? But not in same area! */
@@ -4144,11 +4140,7 @@ static float area_split_factor(bContext *C, sAreaJoinData *jd, const wmEvent *ev
   if (min_fac < 0.5f) {
     return std::clamp(fac, min_fac, 1.0f - min_fac);
   }
-  else {
-    return 0.5f;
-  }
-
-  return fac;
+  return 0.5f;
 }
 
 static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent *event)

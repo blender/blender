@@ -8,7 +8,7 @@
 
 /* global includes */
 
-#include <cmath>
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
@@ -30,19 +30,19 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
 #include "BLI_fnmatch.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_utils.hh"
 #include "BLI_stack.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_uuid.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -61,7 +61,6 @@
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_datafiles.h"
 #include "ED_fileselect.hh"
 
 #include "IMB_imbuf.hh"
@@ -606,10 +605,10 @@ static int compare_asset_catalog(void *user_data, const void *a1, const void *a2
   if (asset1 && !asset2) {
     return 1;
   }
-  else if (!asset1 && asset2) {
+  if (!asset1 && asset2) {
     return -1;
   }
-  else if (!asset1 && !asset2) {
+  if (!asset1 && !asset2) {
     if (int order = compare_direntry_generic(entry1, entry2); order) {
       return compare_apply_inverted(order, sort_data);
     }
@@ -4205,9 +4204,8 @@ static void filelist_readjob_update(void *flrjv)
   }
 
   /* Important for partial reads: Copy increased UID counter back to the real list. */
-  if (flrj->tmp_filelist->filelist_intern.curr_uid > fl_intern->curr_uid) {
-    fl_intern->curr_uid = flrj->tmp_filelist->filelist_intern.curr_uid;
-  }
+  fl_intern->curr_uid = std::max(flrj->tmp_filelist->filelist_intern.curr_uid,
+                                 fl_intern->curr_uid);
 
   BLI_mutex_unlock(&flrj->lock);
 

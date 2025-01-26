@@ -13,17 +13,15 @@
 #include <cstring>
 
 #include "DNA_anim_types.h"
-#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_bounds_types.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
-#include "BKE_action.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_nla.hh"
 

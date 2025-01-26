@@ -2562,7 +2562,7 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
     else {
       bool has_parents_in_potential_roots = false;
       bool is_potential_root = false;
-      for (auto collection_root_iter : potential_root_collections) {
+      for (auto *collection_root_iter : potential_root_collections) {
         if (BKE_collection_has_collection(collection_root_iter, collection)) {
           BLI_assert_msg(!BKE_collection_has_collection(collection, collection_root_iter),
                          "Invalid loop in collection hierarchy");

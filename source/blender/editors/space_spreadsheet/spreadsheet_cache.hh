@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <atomic>
-
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_vector.hh"

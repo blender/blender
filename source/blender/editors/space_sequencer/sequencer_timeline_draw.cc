@@ -10,8 +10,9 @@
 #include <cmath>
 #include <cstring>
 
-#include "BLI_array.hh"
-#include "BLI_blenlib.h"
+#include "BLI_math_vector.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
@@ -36,9 +37,9 @@
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 
+#include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
-
-#include "IMB_imbuf.hh"
+#include "GPU_state.hh"
 
 #include "RNA_prototypes.hh"
 
@@ -64,8 +65,6 @@
 #include "WM_types.hh"
 
 #include "BLF_api.hh"
-
-#include "MEM_guardedalloc.h"
 
 /* Own include. */
 #include "sequencer_intern.hh"

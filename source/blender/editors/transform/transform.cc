@@ -1523,7 +1523,7 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
   Scene *scene = nullptr;
   if (t->spacetype == SPACE_VIEW3D) {
     v3d = static_cast<View3D *>(t->view);
-    scene = static_cast<Scene *>(t->scene);
+    scene = t->scene;
   }
 
   const int font_id = BLF_set_default();

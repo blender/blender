@@ -6,7 +6,6 @@
  * \ingroup spnla
  */
 
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -14,8 +13,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"

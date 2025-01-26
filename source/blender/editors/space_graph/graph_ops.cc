@@ -6,7 +6,6 @@
  * \ingroup spgraph
  */
 
-#include <cmath>
 #include <cstdlib>
 
 #include "DNA_scene_types.h"

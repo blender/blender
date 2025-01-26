@@ -6,7 +6,6 @@
  * \ingroup spview3d
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 

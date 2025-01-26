@@ -12,7 +12,9 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_blenlib.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -432,14 +434,12 @@ static int space_text_draw_wrapped(const SpaceText *st,
   int mi, ma, mstart, mend; /* mem */
   char fmt_prev = 0xff;
   /* don't draw lines below this */
-  const int clip_min_y = -int(st->runtime->lheight_px - 1);
+  const int clip_min_y = -(st->runtime->lheight_px - 1);
 
   flatten_string(st, &fs, str);
   str = fs.buf;
   max = w / st->runtime->cwidth_px;
-  if (max < 8) {
-    max = 8;
-  }
+  max = std::max(max, 8);
   basex = x;
   lines = 1;
 
@@ -932,9 +932,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *r_scroll, rcti 
   CLAMP(st->runtime->scroll_region_handle.ymax, pix_bottom_margin, region->winy - pix_top_margin);
 
   st->runtime->scroll_px_per_line = (pix_available > 0) ? float(ltexth) / pix_available : 0;
-  if (st->runtime->scroll_px_per_line < 0.1f) {
-    st->runtime->scroll_px_per_line = 0.1f;
-  }
+  st->runtime->scroll_px_per_line = std::max(st->runtime->scroll_px_per_line, 0.1f);
 
   curl_off = space_text_get_span_wrap(
       st, region, static_cast<TextLine *>(st->text->lines.first), st->text->curl);
@@ -1199,9 +1197,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
     vcurl = txt_get_span(static_cast<TextLine *>(text->lines.first), text->curl) - st->top + offl;
     vcurc = space_text_get_char_pos(st, text->curl->line, text->curc) - st->left + offc;
 
-    if (vcurc < 0) {
-      vcurc = 0;
-    }
+    vcurc = std::max(vcurc, 0);
 
     immUniformThemeColor(TH_SHADE2);
 
@@ -1523,7 +1519,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
   st->runtime->lheight_px = (U.widget_unit * st->lheight) / 20;
 
   /* don't draw lines below this */
-  const int clip_min_y = -int(st->runtime->lheight_px - 1);
+  const int clip_min_y = -(st->runtime->lheight_px - 1);
 
   st->runtime->viewlines = (st->runtime->lheight_px) ?
                                int(region->winy - clip_min_y) / TXT_LINE_HEIGHT(st) :
@@ -1752,12 +1748,8 @@ void ED_space_text_scroll_to_cursor(SpaceText *st, ARegion *region, const bool c
     }
   }
 
-  if (st->top < 0) {
-    st->top = 0;
-  }
-  if (st->left < 0) {
-    st->left = 0;
-  }
+  st->top = std::max(st->top, 0);
+  st->left = std::max(st->left, 0);
 
   st->runtime->scroll_ofs_px[0] = 0;
   st->runtime->scroll_ofs_px[1] = 0;

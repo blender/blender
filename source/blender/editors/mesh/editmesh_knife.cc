@@ -23,6 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_color.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
@@ -3389,8 +3390,8 @@ static bool knife_snap_angle_impl(KnifeTool_OpData *kcd, const float3 &vec_x, co
 /* Update both kcd->curr.mval and kcd->mval to snap to required angle. */
 static bool knife_snap_angle_screen(KnifeTool_OpData *kcd)
 {
-  const float3 &vec_x = kcd->vc.rv3d->viewinv[0];
-  const float3 &vec_z = kcd->vc.rv3d->viewinv[2];
+  const float3 vec_x = kcd->vc.rv3d->viewinv[0];
+  const float3 vec_z = kcd->vc.rv3d->viewinv[2];
   return knife_snap_angle_impl(kcd, vec_x, vec_z);
 }
 

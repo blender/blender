@@ -97,7 +97,7 @@ static void freeSeqData(TransInfo * /*t*/,
                         TransDataContainer *tc,
                         TransCustomData * /*custom_data*/)
 {
-  TransData *td = (TransData *)tc->data;
+  TransData *td = tc->data;
   MEM_freeN(td->extra);
 }
 

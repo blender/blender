@@ -7,13 +7,13 @@
  */
 
 #include <cctype>
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -27,7 +27,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
-#include "IMB_imbuf.hh"
+#include "IMB_imbuf_enums.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -189,7 +189,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   Strip *tgt = nullptr;
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_ensure(scene);
-  int timeline_frame = int(scene->r.cfra);
+  int timeline_frame = scene->r.cfra;
   int proximity = INT_MAX;
 
   if (!ed || !ed->seqbasep) {
@@ -244,7 +244,7 @@ static void sequencer_generic_invoke_xy__internal(
 {
   Scene *scene = CTX_data_scene(C);
 
-  int timeline_frame = int(scene->r.cfra);
+  int timeline_frame = scene->r.cfra;
   if ((flag & SEQPROP_NOPATHS) && event) {
     sequencer_file_drop_channel_frame_set(C, op, event);
   }
@@ -362,7 +362,7 @@ static bool load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   {
     if (op->customdata) {
       SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
-      ImageFormatData *imf = static_cast<ImageFormatData *>(&sad->im_format);
+      ImageFormatData *imf = &sad->im_format;
 
       load_data->use_multiview = true;
       load_data->views_format = imf->views_format;

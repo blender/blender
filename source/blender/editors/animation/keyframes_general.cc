@@ -6,6 +6,7 @@
  * \ingroup edanimation
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>
@@ -14,9 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -473,7 +473,7 @@ static double butterworth_filter_value(
 }
 
 static float butterworth_calculate_blend_value(float *samples,
-                                               float *filtered_values,
+                                               const float *filtered_values,
                                                const int start_index,
                                                const int end_index,
                                                const int sample_index,
@@ -640,7 +640,7 @@ void smooth_fcurve_segment(FCurve *fcu,
                            float *samples,
                            const float factor,
                            const int kernel_size,
-                           double *kernel)
+                           const double *kernel)
 {
   const int segment_end_index = segment->start_index + segment->length;
   const float segment_start_x = fcu->bezt[segment->start_index].vec[1][0];

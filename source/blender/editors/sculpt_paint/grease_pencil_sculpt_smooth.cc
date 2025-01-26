@@ -10,7 +10,6 @@
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
-#include "DNA_gpencil_legacy_types.h"
 
 #include "GEO_smooth_curves.hh"
 

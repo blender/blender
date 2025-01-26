@@ -640,9 +640,7 @@ bool transform_snap_sequencer_calc(TransInfo *t)
   if (ELEM(t->data_type, &TransConvertType_Sequencer, &TransConvertType_SequencerRetiming)) {
     return transform_snap_sequencer_calc_timeline(t, snap_data);
   }
-  else {
-    return transform_snap_sequencer_calc_preview(t, snap_data);
-  }
+  return transform_snap_sequencer_calc_preview(t, snap_data);
 }
 
 void transform_snap_sequencer_apply_seqslide(TransInfo *t, float *vec)
