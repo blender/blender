@@ -6,6 +6,8 @@
  * \ingroup sequencer
  */
 
+#include <algorithm>
+
 #include "BLI_task.hh"
 
 #include "DNA_sequence_types.h"
@@ -217,12 +219,8 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
         temp3 = temp1 - widthf * (1 - fac);
         temp4 = temp1 + widthf * fac;
       }
-      if (temp3 < 0) {
-        temp3 = 0;
-      }
-      if (temp4 > 2.0f * float(M_PI)) {
-        temp4 = 2.0f * float(M_PI);
-      }
+      temp3 = std::max<float>(temp3, 0);
+      temp4 = std::min(temp4, 2.0f * float(M_PI));
 
       if (temp2 < temp3) {
         output = 0;

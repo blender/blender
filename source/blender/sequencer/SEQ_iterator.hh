@@ -100,7 +100,7 @@ blender::VectorSet<Strip *> SEQ_query_all_strips_recursive(const ListBase *seqba
  * \param strips: set of strips to be filled
  */
 void SEQ_query_strip_effect_chain(const Scene *scene,
-                                  Strip *strip_reference,
+                                  Strip *reference_strip,
                                   ListBase *seqbase,
                                   blender::VectorSet<Strip *> &r_strips);
 

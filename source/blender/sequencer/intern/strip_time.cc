@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -362,16 +364,10 @@ void SEQ_timeline_expand_boundbox(const Scene *scene, const ListBase *seqbase, r
   }
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (rect->xmin > SEQ_time_left_handle_frame_get(scene, strip) - 1) {
-      rect->xmin = SEQ_time_left_handle_frame_get(scene, strip) - 1;
-    }
-    if (rect->xmax < SEQ_time_right_handle_frame_get(scene, strip) + 1) {
-      rect->xmax = SEQ_time_right_handle_frame_get(scene, strip) + 1;
-    }
-    if (rect->ymax < strip->machine + 1.0f) {
-      /* We do +1 here to account for the channel thickness. Channel n has range of <n, n+1>. */
-      rect->ymax = strip->machine + 1.0f;
-    }
+    rect->xmin = std::min<float>(rect->xmin, SEQ_time_left_handle_frame_get(scene, strip) - 1);
+    rect->xmax = std::max<float>(rect->xmax, SEQ_time_right_handle_frame_get(scene, strip) + 1);
+    /* We do +1 here to account for the channel thickness. Channel n has range of <n, n+1>. */
+    rect->ymax = std::max(rect->ymax, strip->machine + 1.0f);
   }
 }
 

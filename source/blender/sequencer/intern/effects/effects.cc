@@ -8,8 +8,6 @@
  * \ingroup sequencer
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 

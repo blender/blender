@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -222,9 +223,7 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
     pfjob->cfra = cfra;
     pfjob->num_frames_prefetched -= delta;
 
-    if (pfjob->num_frames_prefetched <= 1) {
-      pfjob->num_frames_prefetched = 1;
-    }
+    pfjob->num_frames_prefetched = std::max(pfjob->num_frames_prefetched, 1);
   }
 
   /* reset */

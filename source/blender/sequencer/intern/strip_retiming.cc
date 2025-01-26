@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include "BLI_math_base.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -615,9 +614,7 @@ static int strip_retiming_clamp_transition_offset(SeqRetimingKey *start_key, int
   if (offset >= 0) {
     return min_ii(offset, next_dist - 1);
   }
-  else {
-    return max_ii(offset, -(prev_dist - 1));
-  }
+  return max_ii(offset, -(prev_dist - 1));
 }
 
 static void strip_retiming_transition_offset(const Scene *scene,
@@ -952,7 +949,7 @@ class RetimingRange {
     }
   }
 
-  const eIntersectType intersect_type(const RetimingRange &other) const
+  eIntersectType intersect_type(const RetimingRange &other) const
   {
     if (other.start <= start && other.end >= end) {
       return FULL;
@@ -1007,7 +1004,7 @@ class RetimingRangeData {
         if (range.intersect_type(rhs_range) == NONE) {
           continue;
         }
-        else if (range.intersect_type(rhs_range) == FULL) {
+        if (range.intersect_type(rhs_range) == FULL) {
           RetimingRange isect = range * rhs_range;
           ranges.remove(i);
           ranges.insert(i, isect);

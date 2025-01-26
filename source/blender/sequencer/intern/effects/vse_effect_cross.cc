@@ -6,8 +6,6 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_vector.hh"
-
 #include "DNA_sequence_types.h"
 
 #include "IMB_imbuf.hh"
