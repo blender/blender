@@ -7,30 +7,15 @@
  */
 
 #include <climits>
-#include <cstdio>
 #include <cstdlib>
 
-#include "DNA_boid_types.h"
-#include "DNA_cloth_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_force_types.h"
-#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-
-#include "BKE_mesh.hh"
-#include "BKE_mesh_legacy_convert.hh"
-
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 
 #include "BLT_translation.hh"
 
@@ -140,6 +125,13 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 
 #  include "BLI_string_utils.hh"
 
+#  include "DNA_cloth_types.h"
+#  include "DNA_mesh_types.h"
+#  include "DNA_meshdata_types.h"
+
+#  include "BLI_math_matrix.h"
+#  include "BLI_math_vector.h"
+
 #  include "BKE_boids.h"
 #  include "BKE_cloth.hh"
 #  include "BKE_context.hh"
@@ -147,6 +139,8 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 #  include "BKE_deform.hh"
 #  include "BKE_effect.h"
 #  include "BKE_material.hh"
+#  include "BKE_mesh.hh"
+#  include "BKE_mesh_legacy_convert.hh"
 #  include "BKE_modifier.hh"
 #  include "BKE_particle.h"
 #  include "BKE_pointcache.h"
@@ -392,6 +386,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
     return;
   }
   BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
+#  include "BKE_mesh_legacy_convert.hh"
 
   if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < modifier->mesh_final->totface_legacy) {

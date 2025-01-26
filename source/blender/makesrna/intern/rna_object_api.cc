@@ -6,25 +6,17 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
 #include "BLI_kdopbvh.hh"
 #include "BLI_math_geom.h"
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 
 #include "DNA_constraint_types.h"
-#include "DNA_layer_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-
-#include "BKE_layer.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "ED_outliner.hh"
 

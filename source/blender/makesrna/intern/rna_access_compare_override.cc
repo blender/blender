@@ -1063,9 +1063,8 @@ static bool rna_property_override_collection_subitem_name_id_lookup(
 
     return iter.valid;
   }
-  else {
-    return RNA_property_collection_lookup_string(ptr, prop, item_name, r_ptr_item_name);
-  }
+
+  return RNA_property_collection_lookup_string(ptr, prop, item_name, r_ptr_item_name);
 }
 
 static void rna_property_override_collection_subitem_name_index_lookup(

@@ -12,8 +12,6 @@
 
 #include "DNA_collection_types.h"
 
-#include "DNA_lineart_types.h"
-
 #include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
@@ -53,6 +51,8 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 #  include "BKE_collection.hh"
 #  include "BKE_global.hh"
 #  include "BKE_layer.hh"
+#  include "BKE_lib_id.hh"
+#  include "BKE_report.hh"
 
 #  include "BLT_translation.hh"
 

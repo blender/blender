@@ -11,7 +11,6 @@
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -25,9 +24,11 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_string.h"
+#  include "BLI_math_base.h"
 
 #  include "BKE_cachefile.hh"
+#  include "BKE_context.hh"
+#  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

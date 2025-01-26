@@ -7,24 +7,10 @@
  */
 
 #include <cfloat>
-#include <cstdio>
 #include <cstdlib>
 
-#include "DNA_brush_types.h"
-#include "DNA_light_types.h"
-#include "DNA_material_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h" /* MAXFRAME only */
 #include "DNA_texture_types.h"
-#include "DNA_world_types.h"
 
-#include "BLI_utildefines.h"
-
-#include "BKE_main_invariants.hh"
-#include "BKE_node.hh"
-#include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
 
 #include "BLT_translation.hh"
@@ -131,6 +117,8 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "DNA_particle_types.h"
+
 #  include "MEM_guardedalloc.h"
 
 #  include "RNA_access.hh"
@@ -140,7 +128,9 @@ static const EnumPropertyItem blend_type_items[] = {
 #  include "BKE_context.hh"
 #  include "BKE_image.hh"
 #  include "BKE_main.hh"
+#  include "BKE_main_invariants.hh"
 #  include "BKE_node_legacy_types.hh"
+#  include "BKE_node_tree_update.hh"
 #  include "BKE_texture.h"
 
 #  include "DEG_depsgraph.hh"

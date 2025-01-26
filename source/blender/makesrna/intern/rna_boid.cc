@@ -7,15 +7,9 @@
  */
 
 #include <cfloat>
-#include <climits>
 #include <cstdlib>
 
 #include "DNA_boid_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -103,6 +97,7 @@ static const EnumPropertyItem boidruleset_type_items[] = {
 #  include <fmt/format.h>
 
 #  include "BLI_math_base.h"
+#  include "BLI_string.h"
 
 #  include "BKE_context.hh"
 #  include "BKE_particle.h"

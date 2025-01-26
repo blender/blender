@@ -6,11 +6,9 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 
 #include "BLI_math_rotation.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 

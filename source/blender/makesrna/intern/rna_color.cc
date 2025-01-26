@@ -6,18 +6,12 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 
 #include "DNA_color_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLT_translation.hh"
-
-#include "BKE_main_invariants.hh"
-#include "BKE_node_tree_update.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -57,9 +51,11 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "BKE_colortools.hh"
 #  include "BKE_image.hh"
 #  include "BKE_linestyle.h"
+#  include "BKE_main_invariants.hh"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.hh"
 #  include "BKE_node_legacy_types.hh"
+#  include "BKE_node_tree_update.hh"
 
 #  include "DEG_depsgraph.hh"
 

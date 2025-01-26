@@ -8,13 +8,11 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
-
 #include "BLI_compiler_attrs.h"
 
 #include "rna_internal_types.hh"
 
-#include "UI_resources.hh"
+#include "UI_resources.hh" /* IWYU pragma: export */
 
 #define RNA_MAGIC ((int)~0)
 
@@ -583,8 +581,8 @@ PointerRNA rna_array_lookup_int(
 /* Duplicated code since we can't link in blenlib */
 
 #ifndef RNA_RUNTIME
-void *rna_alloc_from_buffer(const char *buffer, int buffer_len);
-void *rna_calloc(int buffer_len);
+void *rna_alloc_from_buffer(const char *buffer, int buffer_size);
+void *rna_calloc(int buffer_size);
 #endif
 
 void rna_addtail(ListBase *listbase, void *vlink);

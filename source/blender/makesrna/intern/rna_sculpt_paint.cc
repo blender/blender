@@ -8,29 +8,19 @@
 
 #include <cstdlib>
 
-#include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "rna_internal.hh"
 
-#include "DNA_ID.h"
 #include "DNA_brush_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
-#include "BKE_brush.hh"
-#include "BKE_layer.hh"
-#include "BKE_material.hh"
 #include "BKE_paint.hh"
-
-#include "ED_image.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -115,13 +105,17 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "BKE_colortools.hh"
 #  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
+#  include "BKE_layer.hh"
+#  include "BKE_material.hh"
 #  include "BKE_object.hh"
+#  include "BKE_paint.hh"
 #  include "BKE_particle.h"
 #  include "BKE_pointcache.h"
 
 #  include "DEG_depsgraph.hh"
 
 #  include "ED_gpencil_legacy.hh"
+#  include "ED_image.hh"
 #  include "ED_paint.hh"
 #  include "ED_particle.hh"
 

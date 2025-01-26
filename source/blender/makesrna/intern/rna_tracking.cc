@@ -9,21 +9,12 @@
 #include <climits>
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
-#include "BKE_movieclip.h"
-#include "BKE_node_tree_update.hh"
-#include "BKE_tracking.h"
-
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"
 
-#include "DNA_defaults.h"
-#include "DNA_movieclip_types.h"
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
 
@@ -32,13 +23,18 @@
 #ifdef RNA_RUNTIME
 
 #  include "DNA_anim_types.h"
+#  include "DNA_defaults.h"
+#  include "DNA_movieclip_types.h"
 
 #  include "BLI_math_vector.h"
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_animsys.h"
+#  include "BKE_movieclip.h"
 #  include "BKE_node.hh"
+#  include "BKE_node_tree_update.hh"
 #  include "BKE_report.hh"
+#  include "BKE_tracking.h"
 
 #  include "DEG_depsgraph.hh"
 

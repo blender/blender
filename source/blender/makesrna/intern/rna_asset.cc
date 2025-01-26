@@ -15,7 +15,6 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_defs.h"
-#include "DNA_space_types.h"
 
 #include "rna_internal.hh"
 
@@ -53,9 +52,10 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 #  include "BKE_asset.hh"
 #  include "BKE_context.hh"
-#  include "BKE_idprop.hh"
+#  include "BKE_report.hh"
 
 #  include "BLI_listbase.h"
+#  include "BLI_string.h"
 #  include "BLI_uuid.h"
 
 #  include "ED_asset.hh"

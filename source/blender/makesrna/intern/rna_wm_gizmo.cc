@@ -8,18 +8,10 @@
 
 #include <cstdlib>
 
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
-
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -33,22 +25,22 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 #  include "BLI_string_utils.hh"
 
 #  include "WM_api.hh"
-
-#  include "DNA_workspace_types.h"
 
 #  include "ED_screen.hh"
 
 #  include "UI_interface.hh"
 
+#  include "BKE_context.hh"
 #  include "BKE_global.hh"
-#  include "BKE_idprop.hh"
+#  include "BKE_main.hh"
+#  include "BKE_report.hh"
 #  include "BKE_screen.hh"
 #  include "BKE_workspace.hh"
-
-#  include "MEM_guardedalloc.h"
 
 #  include "GPU_state.hh"
 
@@ -108,7 +100,7 @@ static int rna_gizmo_test_select_cb(bContext *C, wmGizmo *gz, const int location
   RNA_parameter_list_create(&list, &gz_ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
   RNA_parameter_set_lookup(&list, "location", location);
-  gzgroup->type->rna_ext.call((bContext *)C, &gz_ptr, func, &list);
+  gzgroup->type->rna_ext.call(C, &gz_ptr, func, &list);
 
   void *ret;
   RNA_parameter_get_lookup(&list, "intersect_id", &ret);
@@ -135,7 +127,7 @@ static int rna_gizmo_modal_cb(bContext *C,
   RNA_parameter_set_lookup(&list, "context", &C);
   RNA_parameter_set_lookup(&list, "event", &event);
   RNA_parameter_set_lookup(&list, "tweak", &tweak_flag_int);
-  gzgroup->type->rna_ext.call((bContext *)C, &gz_ptr, func, &list);
+  gzgroup->type->rna_ext.call(C, &gz_ptr, func, &list);
 
   void *ret;
   RNA_parameter_get_lookup(&list, "result", &ret);
@@ -171,7 +163,7 @@ static int rna_gizmo_invoke_cb(bContext *C, wmGizmo *gz, const wmEvent *event)
   RNA_parameter_list_create(&list, &gz_ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
   RNA_parameter_set_lookup(&list, "event", &event);
-  gzgroup->type->rna_ext.call((bContext *)C, &gz_ptr, func, &list);
+  gzgroup->type->rna_ext.call(C, &gz_ptr, func, &list);
 
   void *ret;
   RNA_parameter_get_lookup(&list, "result", &ret);
@@ -196,7 +188,7 @@ static void rna_gizmo_exit_cb(bContext *C, wmGizmo *gz, bool cancel)
     int cancel_i = cancel;
     RNA_parameter_set_lookup(&list, "cancel", &cancel_i);
   }
-  gzgroup->type->rna_ext.call((bContext *)C, &gz_ptr, func, &list);
+  gzgroup->type->rna_ext.call(C, &gz_ptr, func, &list);
   RNA_parameter_list_free(&list);
 }
 
@@ -274,9 +266,7 @@ static StructRNA *rna_GizmoProperties_refine(PointerRNA *ptr)
   if (gz) {
     return gz->type->srna;
   }
-  else {
-    return ptr->type;
-  }
+  return ptr->type;
 }
 
 static IDProperty **rna_GizmoProperties_idprops(PointerRNA *ptr)
@@ -580,9 +570,7 @@ static StructRNA *rna_GizmoGroupProperties_refine(PointerRNA *ptr)
   if (gzgt) {
     return gzgt->srna;
   }
-  else {
-    return ptr->type;
-  }
+  return ptr->type;
 }
 
 static IDProperty **rna_GizmoGroupProperties_idprops(PointerRNA *ptr)

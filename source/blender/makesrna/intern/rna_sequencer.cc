@@ -6,55 +6,27 @@
  * \ingroup RNA
  */
 
-#include <climits>
 #include <cstdlib>
 
-#include "DNA_anim_types.h"
-#include "DNA_movieclip_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_vfont_types.h"
 
-#include "BLI_iterator.h"
-#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string_utf8_symbols.h"
-#include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
-#include "BKE_sound.h"
 
-#include "IMB_metadata.hh"
-
-#include "MEM_guardedalloc.h"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "UI_resources.hh"
 #include "rna_internal.hh"
 
-#include "SEQ_add.hh"
-#include "SEQ_channels.hh"
 #include "SEQ_effects.hh"
-#include "SEQ_iterator.hh"
-#include "SEQ_modifier.hh"
-#include "SEQ_prefetch.hh"
-#include "SEQ_proxy.hh"
-#include "SEQ_relations.hh"
-#include "SEQ_retiming.hh"
-#include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
-#include "SEQ_thumbnail_cache.hh"
-#include "SEQ_time.hh"
-#include "SEQ_transform.hh"
-#include "SEQ_utils.hh"
 
 #include "WM_types.hh"
 
@@ -117,8 +89,15 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "DNA_vfont_types.h"
+
+#  include "BLI_iterator.h"
+#  include "BLI_string_utils.hh"
+
+#  include "BKE_anim_data.hh"
 #  include "BKE_global.hh"
 #  include "BKE_idprop.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_movieclip.h"
 #  include "BKE_report.hh"
 
@@ -131,7 +110,23 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include "MOV_read.hh"
 
+#  include "SEQ_add.hh"
+#  include "SEQ_channels.hh"
 #  include "SEQ_edit.hh"
+#  include "SEQ_effects.hh"
+#  include "SEQ_iterator.hh"
+#  include "SEQ_modifier.hh"
+#  include "SEQ_prefetch.hh"
+#  include "SEQ_proxy.hh"
+#  include "SEQ_relations.hh"
+#  include "SEQ_retiming.hh"
+#  include "SEQ_select.hh"
+#  include "SEQ_sequencer.hh"
+#  include "SEQ_sound.hh"
+#  include "SEQ_thumbnail_cache.hh"
+#  include "SEQ_time.hh"
+#  include "SEQ_transform.hh"
+#  include "SEQ_utils.hh"
 
 struct StripSearchData {
   Strip *strip;

@@ -8,19 +8,15 @@
 
 #include <cstdlib>
 
-#include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"
 
 #include "DNA_armature_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "ED_anim_api.hh"
 
@@ -62,12 +58,16 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 #  include <fmt/format.h>
 
 #  include "BLI_math_vector.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_action.hh"
 #  include "BKE_context.hh"
 #  include "BKE_global.hh"
 #  include "BKE_idprop.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
+#  include "BKE_report.hh"
 
 #  include "BKE_armature.hh"
 #  include "ED_armature.hh"

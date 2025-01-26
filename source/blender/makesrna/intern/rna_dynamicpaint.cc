@@ -6,10 +6,8 @@
  * \ingroup RNA
  */
 
-#include <climits>
 #include <cstdlib>
 
-#include "BKE_dynamicpaint.h"
 #include "BKE_modifier.hh"
 
 #include "BLI_string_utf8_symbols.h"
@@ -18,8 +16,6 @@
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_force_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_define.hh"
@@ -39,7 +35,10 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_string.h"
+
 #  include "BKE_context.hh"
+#  include "BKE_dynamicpaint.h"
 #  include "BKE_particle.h"
 
 #  include "DEG_depsgraph.hh"
@@ -185,7 +184,6 @@ static void rna_Surface_active_point_index_set(PointerRNA *ptr, int value)
 {
   DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
   canvas->active_sur = value;
-  return;
 }
 
 static void rna_Surface_active_point_range(
@@ -219,7 +217,7 @@ static bool rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
 {
   DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 
-  return (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) ? 1 : 0;
+  return (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) ? true : false;
 }
 
 /* Does output layer exist. */

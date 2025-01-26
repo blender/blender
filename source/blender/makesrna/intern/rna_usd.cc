@@ -6,7 +6,6 @@
  * \ingroup RNA
  */
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -14,12 +13,12 @@
 
 #include "WM_types.hh"
 
-#include "usd.hh"
-
 #ifdef RNA_RUNTIME
 
 #  include "DNA_object_types.h"
 #  include "WM_api.hh"
+
+#  include "usd.hh"
 
 using namespace blender::io::usd;
 

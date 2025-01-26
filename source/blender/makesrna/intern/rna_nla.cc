@@ -10,16 +10,10 @@
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
-#include "DNA_scene_types.h"
 
 #include "ANIM_action.hh"
 #include "ANIM_nla.hh"
 
-#include "BLI_utildefines.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 

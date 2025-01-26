@@ -7,15 +7,9 @@
  */
 
 #include "DNA_layer_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-
-#include "BLT_translation.hh"
 
 #include "ED_object.hh"
 #include "ED_render.hh"
-
-#include "RE_engine.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -47,6 +41,8 @@
 
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_query.hh"
+
+#  include "RE_engine.h"
 
 /***********************************/
 

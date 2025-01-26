@@ -6,11 +6,8 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 

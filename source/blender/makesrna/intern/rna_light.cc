@@ -8,9 +8,7 @@
 
 #include <cstdlib>
 
-#include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
-#include "BLI_sys_types.h"
 
 #include "BLT_translation.hh"
 
@@ -19,8 +17,6 @@
 #include "rna_internal.hh"
 
 #include "DNA_light_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 
 #ifdef RNA_RUNTIME
 

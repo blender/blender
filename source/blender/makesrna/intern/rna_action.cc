@@ -84,8 +84,12 @@ const EnumPropertyItem default_ActionSlot_target_id_type_items[] = {
 #  include <algorithm>
 
 #  include "BLI_math_base.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_fcurve.hh"
+#  include "BKE_main.hh"
+#  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
 
@@ -96,8 +100,6 @@ const EnumPropertyItem default_ActionSlot_target_id_type_items[] = {
 #  include "WM_api.hh"
 
 #  include "UI_interface_icons.hh"
-
-#  include "DEG_depsgraph.hh"
 
 #  include "ANIM_action_legacy.hh"
 #  include "ANIM_keyframing.hh"
@@ -125,7 +127,7 @@ static animrig::Strip &rna_data_strip(const PointerRNA *ptr)
   return reinterpret_cast<ActionStrip *>(ptr->data)->wrap();
 }
 
-static void rna_Action_tag_animupdate(Main *, Scene *, PointerRNA *ptr)
+static void rna_Action_tag_animupdate(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   animrig::Action &action = rna_action(ptr);
   DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION);
@@ -1371,7 +1373,7 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
     if (action.idroot == 0) {
       return true;
     }
-    else if (srcId) {
+    if (srcId) {
       return GS(srcId->name) == action.idroot;
     }
   }

@@ -15,16 +15,11 @@
 #include "rna_internal.hh"
 
 #include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_base.h"
+
 #include "BLI_string_utf8_symbols.h"
-
-#include "BLT_translation.hh"
 
 #include "UI_resources.hh"
 
@@ -59,23 +54,28 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include <fmt/format.h>
 
-#  include "BLI_ghash.h"
-#  include "BLI_string_utils.hh"
-
-#  include "BIK_api.h"
-#  include "BKE_action.hh"
-#  include "BKE_armature.hh"
-
-#  include "DNA_userdef_types.h"
+#  include "BLI_math_vector.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "MEM_guardedalloc.h"
 
+#  include "DNA_constraint_types.h"
+
+#  include "BIK_api.h"
+
+#  include "BKE_action.hh"
+#  include "BKE_armature.hh"
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
 #  include "BKE_global.hh"
-#  include "BKE_idprop.hh"
+#  include "BKE_lib_id.hh"
+#  include "BKE_main.hh"
+#  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -325,27 +325,13 @@ static void rna_Itasc_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *pt
   bItasc *itasc = static_cast<bItasc *>(ptr->data);
 
   /* verify values */
-  if (itasc->precision < 0.0001f) {
-    itasc->precision = 0.0001f;
-  }
-  if (itasc->minstep < 0.001f) {
-    itasc->minstep = 0.001f;
-  }
-  if (itasc->maxstep < itasc->minstep) {
-    itasc->maxstep = itasc->minstep;
-  }
-  if (itasc->feedback < 0.01f) {
-    itasc->feedback = 0.01f;
-  }
-  if (itasc->feedback > 100.0f) {
-    itasc->feedback = 100.0f;
-  }
-  if (itasc->maxvel < 0.01f) {
-    itasc->maxvel = 0.01f;
-  }
-  if (itasc->maxvel > 100.0f) {
-    itasc->maxvel = 100.0f;
-  }
+  itasc->precision = std::max(itasc->precision, 0.0001f);
+  itasc->minstep = std::max(itasc->minstep, 0.001f);
+  itasc->maxstep = std::max(itasc->maxstep, itasc->minstep);
+  itasc->feedback = std::max(itasc->feedback, 0.01f);
+  itasc->feedback = std::min(itasc->feedback, 100.0f);
+  itasc->maxvel = std::max(itasc->maxvel, 0.01f);
+  itasc->maxvel = std::min(itasc->maxvel, 100.0f);
   BIK_update_param(ob->pose);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -523,15 +509,13 @@ static int rna_PoseChannel_location_editable(const PointerRNA *ptr, int index)
   if ((index == 0) && (pchan->protectflag & OB_LOCK_LOCX)) {
     return 0;
   }
-  else if ((index == 1) && (pchan->protectflag & OB_LOCK_LOCY)) {
+  if ((index == 1) && (pchan->protectflag & OB_LOCK_LOCY)) {
     return 0;
   }
-  else if ((index == 2) && (pchan->protectflag & OB_LOCK_LOCZ)) {
+  if ((index == 2) && (pchan->protectflag & OB_LOCK_LOCZ)) {
     return 0;
   }
-  else {
-    return PROP_EDITABLE;
-  }
+  return PROP_EDITABLE;
 }
 
 static int rna_PoseChannel_scale_editable(const PointerRNA *ptr, int index)
@@ -542,15 +526,13 @@ static int rna_PoseChannel_scale_editable(const PointerRNA *ptr, int index)
   if ((index == 0) && (pchan->protectflag & OB_LOCK_SCALEX)) {
     return 0;
   }
-  else if ((index == 1) && (pchan->protectflag & OB_LOCK_SCALEY)) {
+  if ((index == 1) && (pchan->protectflag & OB_LOCK_SCALEY)) {
     return 0;
   }
-  else if ((index == 2) && (pchan->protectflag & OB_LOCK_SCALEZ)) {
+  if ((index == 2) && (pchan->protectflag & OB_LOCK_SCALEZ)) {
     return 0;
   }
-  else {
-    return PROP_EDITABLE;
-  }
+  return PROP_EDITABLE;
 }
 
 static int rna_PoseChannel_rotation_euler_editable(const PointerRNA *ptr, int index)
@@ -561,15 +543,13 @@ static int rna_PoseChannel_rotation_euler_editable(const PointerRNA *ptr, int in
   if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTX)) {
     return 0;
   }
-  else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTY)) {
+  if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTY)) {
     return 0;
   }
-  else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTZ)) {
+  if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTZ)) {
     return 0;
   }
-  else {
-    return PROP_EDITABLE;
-  }
+  return PROP_EDITABLE;
 }
 
 static int rna_PoseChannel_rotation_4d_editable(const PointerRNA *ptr, int index)
@@ -582,13 +562,13 @@ static int rna_PoseChannel_rotation_4d_editable(const PointerRNA *ptr, int index
     if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTW)) {
       return 0;
     }
-    else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTX)) {
+    if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTX)) {
       return 0;
     }
-    else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTY)) {
+    if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTY)) {
       return 0;
     }
-    else if ((index == 3) && (pchan->protectflag & OB_LOCK_ROTZ)) {
+    if ((index == 3) && (pchan->protectflag & OB_LOCK_ROTZ)) {
       return 0;
     }
   }
@@ -605,9 +585,7 @@ static bool rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, Pointe
     *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_PoseBone, pchan);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static void rna_PoseChannel_matrix_basis_get(PointerRNA *ptr, float *values)
@@ -656,8 +634,8 @@ static void rna_PoseChannel_custom_shape_transform_set(PointerRNA *ptr,
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
 
-  pchan->custom_tx = static_cast<bPoseChannel *>(rna_PoseChannel_ensure_own_pchan(
-      ob, (Object *)value.owner_id, static_cast<bPoseChannel *>(value.data)));
+  pchan->custom_tx = rna_PoseChannel_ensure_own_pchan(
+      ob, (Object *)value.owner_id, static_cast<bPoseChannel *>(value.data));
 }
 
 #else

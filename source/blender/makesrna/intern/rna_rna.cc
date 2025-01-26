@@ -10,13 +10,8 @@
 
 #include <CLG_log.h>
 
-#include "DNA_ID.h"
-
-#include "BLI_utildefines.h"
-
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 

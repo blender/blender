@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include "DNA_grease_pencil_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_define.hh"
@@ -164,7 +164,7 @@ static GreasePencilFrame *rna_Frames_frame_new(ID *id,
 {
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
-  Layer &layer = static_cast<GreasePencilLayer *>(layer_in)->wrap();
+  Layer &layer = layer_in->wrap();
 
   if (layer.frames().contains(frame_number)) {
     BKE_reportf(reports, RPT_ERROR, "Frame already exists on frame number %d", frame_number);
@@ -185,7 +185,7 @@ static void rna_Frames_frame_remove(ID *id,
 {
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
-  Layer &layer = static_cast<GreasePencilLayer *>(layer_in)->wrap();
+  Layer &layer = layer_in->wrap();
 
   if (!layer.frames().contains(frame_number)) {
     BKE_reportf(reports, RPT_ERROR, "Frame doesn't exists on frame number %d", frame_number);
@@ -210,7 +210,7 @@ static GreasePencilFrame *rna_Frames_frame_copy(ID *id,
 {
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
-  Layer &layer = static_cast<GreasePencilLayer *>(layer_in)->wrap();
+  Layer &layer = layer_in->wrap();
 
   if (!layer.frames().contains(from_frame_number)) {
     BKE_reportf(reports, RPT_ERROR, "Frame doesn't exists on frame number %d", from_frame_number);
@@ -236,7 +236,7 @@ static GreasePencilFrame *rna_Frames_frame_move(ID *id,
 {
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
-  Layer &layer = static_cast<GreasePencilLayer *>(layer_in)->wrap();
+  Layer &layer = layer_in->wrap();
 
   if (!layer.frames().contains(from_frame_number)) {
     BKE_reportf(reports, RPT_ERROR, "Frame doesn't exists on frame number %d", from_frame_number);

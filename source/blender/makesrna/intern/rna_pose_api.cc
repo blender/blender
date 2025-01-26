@@ -6,17 +6,11 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
-#include "BLI_math_matrix.h"
-#include "BLI_utildefines.h"
-
 #include "RNA_define.hh"
-
-#include "DNA_object_types.h"
 
 /* #include "BLI_sys_types.h" */
 
@@ -35,6 +29,7 @@ using namespace blender;
 #  include "DNA_anim_types.h"
 
 #  include "BLI_ghash.h"
+#  include "BLI_math_matrix.h"
 
 #  include "ANIM_action.hh"
 #  include "ANIM_pose.hh"

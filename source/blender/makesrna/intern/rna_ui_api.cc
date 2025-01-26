@@ -6,12 +6,7 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
-
-#include "BLI_utildefines.h"
-
-#include "BLT_translation.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -19,7 +14,6 @@
 #include "DNA_screen_types.h"
 
 #include "UI_interface.hh"
-#include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 
 #include "rna_internal.hh"
@@ -35,12 +29,18 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "BLT_translation.hh"
+
 #  include "DNA_asset_types.h"
+
+#  include "BKE_report.hh"
 
 #  include "ED_asset_filter.hh"
 #  include "ED_geometry.hh"
 #  include "ED_node.hh"
 #  include "ED_object.hh"
+
+#  include "WM_api.hh"
 
 using blender::StringRefNull;
 

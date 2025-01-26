@@ -8,46 +8,24 @@
 
 #include <cstdlib>
 
-#include "DNA_brush_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_gpencil_legacy_types.h"
-#include "DNA_grease_pencil_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_layer_types.h"
-#include "DNA_linestyle_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h" /* TransformOrientation */
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
 #include "IMB_colormanagement.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "MOV_enums.hh"
-#include "MOV_util.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.hh"
 
-#include "BKE_armature.hh"
-#include "BKE_editmesh.hh"
-#include "BKE_idtype.hh"
-#include "BKE_main_invariants.hh"
 #include "BKE_paint.hh"
-#include "BKE_volume.hh"
 
-#include "ED_gpencil_legacy.hh"
-#include "ED_grease_pencil.hh"
 #include "ED_object.hh"
-#include "ED_uvedit.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -55,20 +33,12 @@
 #include "rna_internal.hh"
 
 /* Include for Bake Options */
-#include "RE_engine.h"
 #include "RE_pipeline.h"
-
-#include "ED_render.hh"
-#include "ED_transform.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "BLI_threads.h"
-
-#include "ANIM_keyingsets.hh"
-
-#include "DEG_depsgraph.hh"
 
 #ifdef WITH_OPENEXR
 const EnumPropertyItem rna_enum_exr_codec_items[] = {
@@ -717,21 +687,29 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "DNA_anim_types.h"
 #  include "DNA_cachefile_types.h"
 #  include "DNA_color_types.h"
+#  include "DNA_grease_pencil_types.h"
+#  include "DNA_linestyle_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_node_types.h"
 #  include "DNA_object_types.h"
+#  include "DNA_particle_types.h"
 #  include "DNA_text_types.h"
 #  include "DNA_workspace_types.h"
+#  include "DNA_world_types.h"
 
 #  include "RNA_access.hh"
 
 #  include "MEM_guardedalloc.h"
 
+#  include "MOV_util.hh"
+
 #  include "BKE_animsys.h"
+#  include "BKE_armature.hh"
 #  include "BKE_bake_geometry_nodes_modifier.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_collection.hh"
 #  include "BKE_context.hh"
+#  include "BKE_editmesh.hh"
 #  include "BKE_freestyle.h"
 #  include "BKE_global.hh"
 #  include "BKE_gpencil_legacy.h"
@@ -740,6 +718,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "BKE_image_format.hh"
 #  include "BKE_layer.hh"
 #  include "BKE_main.hh"
+#  include "BKE_main_invariants.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_node.hh"
 #  include "BKE_node_legacy_types.hh"
@@ -750,14 +729,18 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 
 #  include "NOD_composite.hh"
 
+#  include "ED_grease_pencil.hh"
 #  include "ED_image.hh"
 #  include "ED_info.hh"
 #  include "ED_keyframing.hh"
 #  include "ED_mesh.hh"
 #  include "ED_node.hh"
+#  include "ED_render.hh"
 #  include "ED_scene.hh"
+#  include "ED_uvedit.hh"
 #  include "ED_view3d.hh"
 
+#  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_query.hh"
 
@@ -768,6 +751,14 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  ifdef WITH_FREESTYLE
 #    include "FRS_freestyle.h"
 #  endif
+
+#  ifdef WITH_ALEMBIC
+#    include "ABC_alembic.h"
+#  endif
+
+#  include "RE_engine.h"
+
+#  include "ANIM_keyingsets.hh"
 
 using blender::Vector;
 

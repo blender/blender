@@ -11,11 +11,7 @@
 #include <cstdlib>
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_shader_fx_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math_rotation.h"
 
@@ -23,7 +19,6 @@
 
 #include "BKE_animsys.h"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 

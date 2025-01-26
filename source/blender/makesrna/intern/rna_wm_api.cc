@@ -7,10 +7,7 @@
  */
 
 #include <cctype>
-#include <cstdio>
 #include <cstdlib>
-
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -64,7 +61,13 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
 #  include "BKE_context.hh"
+#  include "BKE_global.hh"
+#  include "BKE_main.hh"
+#  include "BKE_report.hh"
 #  include "BKE_undo_system.hh"
 
 #  include "WM_types.hh"
@@ -511,14 +514,12 @@ static wmKeyMap *rna_KeyMaps_find(wmKeyConfig *keyconf,
 
 static wmKeyMap *rna_KeyMaps_find_modal(wmKeyConfig * /*keyconf*/, const char *idname)
 {
-  wmOperatorType *ot = WM_operatortype_find(idname, 0);
+  wmOperatorType *ot = WM_operatortype_find(idname, false);
 
   if (!ot) {
     return nullptr;
   }
-  else {
-    return ot->modalkeymap;
-  }
+  return ot->modalkeymap;
 }
 
 static void rna_KeyMaps_remove(wmKeyConfig *keyconfig, ReportList *reports, PointerRNA *keymap_ptr)

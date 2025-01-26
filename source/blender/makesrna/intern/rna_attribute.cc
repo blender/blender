@@ -8,25 +8,14 @@
 
 #include <cstdlib>
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "rna_internal.hh"
 
-#include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_grease_pencil_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_pointcloud_types.h"
-
-#include "BLI_math_color.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
-
-#include "BLT_translation.hh"
 
 #include "WM_types.hh"
 
@@ -177,6 +166,15 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
+
+#  include "DNA_customdata_types.h"
+#  include "DNA_grease_pencil_types.h"
+#  include "DNA_mesh_types.h"
+#  include "DNA_meshdata_types.h"
+
+#  include "BLI_string.h"
+
+#  include "BKE_customdata.hh"
 
 #  include "DEG_depsgraph.hh"
 

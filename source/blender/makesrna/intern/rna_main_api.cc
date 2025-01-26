@@ -7,17 +7,11 @@
  */
 
 #include <cerrno>
-#include <cstdio>
 #include <cstdlib>
 
 #include "DNA_ID.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_utildefines.h"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 

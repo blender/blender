@@ -6,16 +6,12 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
-#include "BLI_utildefines.h"
-
 #include "RNA_define.hh"
 
-#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
 #include "ANIM_fcurve.hh"
@@ -24,9 +20,12 @@
 
 #ifdef RNA_RUNTIME
 
-#  include <stddef.h>
+#  include <cstddef>
 
 #  include "BKE_fcurve.hh"
+#  include "BKE_report.hh"
+
+#  include "WM_api.hh"
 
 static void rna_FCurve_convert_to_samples(FCurve *fcu, ReportList *reports, int start, int end)
 {

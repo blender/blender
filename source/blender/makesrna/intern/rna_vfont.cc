@@ -12,14 +12,14 @@
 
 #include "rna_internal.hh"
 
-#include "DNA_vfont_types.h"
-
 #include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_vfont.hh"
 #  include "DNA_object_types.h"
+#  include "DNA_vfont_types.h"
+
+#  include "BKE_vfont.hh"
 
 #  include "DEG_depsgraph.hh"
 

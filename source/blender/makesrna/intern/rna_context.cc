@@ -8,13 +8,8 @@
 
 #include <cstdlib>
 
-#include "DNA_ID.h"
-#include "DNA_userdef_types.h"
-
 #include "BKE_context.hh"
-#include "BLI_utildefines.h"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 

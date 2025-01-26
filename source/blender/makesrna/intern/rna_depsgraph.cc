@@ -6,13 +6,9 @@
  * \ingroup RNA
  */
 
-#include <array>
 #include <cstdlib>
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -32,11 +28,16 @@
 #  endif
 
 #  include "BLI_iterator.h"
+#  include "BLI_math_matrix.h"
+#  include "BLI_math_vector.h"
+#  include "BLI_string.h"
+
+#  include "DNA_scene_types.h"
 
 #  include "RNA_access.hh"
 
-#  include "BKE_duplilist.hh"
 #  include "BKE_object.hh"
+#  include "BKE_report.hh"
 #  include "BKE_scene.hh"
 
 #  include "DEG_depsgraph_build.hh"
@@ -158,9 +159,7 @@ static int rna_DepsgraphObjectInstance_random_id_get(PointerRNA *ptr)
   if (deg_iter->dupli_object_current != nullptr) {
     return int(deg_iter->dupli_object_current->random_id);
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static void rna_DepsgraphObjectInstance_matrix_world_get(PointerRNA *ptr, float *mat)

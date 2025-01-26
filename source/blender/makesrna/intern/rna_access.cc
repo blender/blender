@@ -53,11 +53,12 @@
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
+#include "UI_resources.hh"
+
 #include "WM_api.hh"
 #include "WM_message.hh"
 
 /* flush updates */
-#include "DNA_object_types.h"
 #include "WM_types.hh"
 
 #ifdef WITH_PYTHON
@@ -6753,7 +6754,7 @@ bool RNA_property_assign_default(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 #ifdef WITH_PYTHON
-extern void PyC_LineSpit(void);
+extern void PyC_LineSpit();
 #endif
 
 void _RNA_warning(const char *format, ...)

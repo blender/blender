@@ -6,8 +6,6 @@
  * \ingroup RNA
  */
 
-#include "BLI_math_vector.h"
-
 #include "DNA_node_types.h"
 
 #include "RNA_define.hh"
@@ -45,6 +43,7 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 
 #  include "DNA_material_types.h"
 
+#  include "BLI_math_vector.h"
 #  include "BLI_string_ref.hh"
 
 #  include "BKE_main_invariants.hh"

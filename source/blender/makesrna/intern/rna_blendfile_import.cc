@@ -16,7 +16,6 @@
 
 #include "BKE_blendfile_link_append.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -25,7 +24,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "BLI_bit_span.hh"
-#  include "BLI_string_utils.hh"
+#  include "BLI_string.h"
 
 void rna_BlendImportContextLibrary_filepath_get(PointerRNA *ptr, char *value)
 {
@@ -226,7 +225,7 @@ int rna_BlendImportContext_import_items_len(PointerRNA *ptr)
 int rna_BlendImportContext_options_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContext *ctx = static_cast<BlendfileLinkAppendContext *>(ptr->data);
-  return int(ctx->params->flag);
+  return ctx->params->flag;
 }
 
 int rna_BlendImportContext_process_stage_get(PointerRNA *ptr)

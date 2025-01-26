@@ -8,7 +8,6 @@
 
 #include <cstdlib>
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -17,9 +16,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
-#include "BKE_volume.hh"
+#include "BKE_volume_enums.hh"
 
-#include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.hh"
@@ -52,6 +50,8 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
 struct DummyVolumeGridData;
 
 #ifdef RNA_RUNTIME
+
+#  include "BKE_volume.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

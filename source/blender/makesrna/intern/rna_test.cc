@@ -11,8 +11,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "RNA_define.hh"
-
 #include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME

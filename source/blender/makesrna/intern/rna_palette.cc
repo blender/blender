@@ -8,9 +8,6 @@
 
 #include <cstdlib>
 
-#include "BLI_utildefines.h"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"

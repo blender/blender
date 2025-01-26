@@ -9,13 +9,7 @@
 #include <climits>
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLT_translation.hh"
-
-#include "BKE_text.h"
-
-#include "ED_text.hh"
 
 #include "RNA_define.hh"
 
@@ -26,6 +20,10 @@
 #include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
+
+#  include "BKE_text.h"
+
+#  include "ED_text.hh"
 
 static void rna_Text_filepath_get(PointerRNA *ptr, char *value)
 {

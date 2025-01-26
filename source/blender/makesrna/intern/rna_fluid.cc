@@ -9,27 +9,18 @@
 #include <climits>
 #include <cstdlib>
 
-#include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "rna_internal.hh"
 
-#include "BKE_fluid.h"
 #include "BKE_modifier.hh"
-#include "BKE_pointcache.h"
 
 #include "BLT_translation.hh"
 
 #include "DNA_fluid_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_force_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
 #include "WM_api.hh"
@@ -39,10 +30,13 @@
 
 #  include <fmt/format.h>
 
+#  include "BLI_math_vector.h"
+#  include "BLI_string.h"
 #  include "BLI_threads.h"
 
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
+#  include "BKE_fluid.h"
 #  include "BKE_particle.h"
 
 #  include "DEG_depsgraph.hh"

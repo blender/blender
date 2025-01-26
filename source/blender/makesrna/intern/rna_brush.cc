@@ -10,13 +10,8 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_workspace_types.h"
-
-#include "BKE_layer.hh"
 
 #include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"
@@ -39,6 +34,9 @@ static const EnumPropertyItem prop_direction_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#  include "DNA_material_types.h"
+
 static const EnumPropertyItem prop_smooth_direction_items[] = {
     {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surface"},
     {BRUSH_DIR_IN,
@@ -383,14 +381,14 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "MEM_guardedalloc.h"
-
 #  include "RNA_access.hh"
 
 #  include "BKE_brush.hh"
 #  include "BKE_colorband.hh"
+#  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
+#  include "BKE_layer.hh"
 #  include "BKE_material.hh"
 #  include "BKE_paint.hh"
 #  include "BKE_preview_image.hh"
@@ -1079,7 +1077,6 @@ static bool rna_GPencilBrush_pin_mode_get(PointerRNA *ptr)
 static void rna_GPencilBrush_pin_mode_set(PointerRNA * /*ptr*/, bool /*value*/)
 {
   /* All data is set in update. Keep this function only to avoid RNA compilation errors. */
-  return;
 }
 
 static void rna_GPencilBrush_pin_mode_update(bContext *C, PointerRNA *ptr)

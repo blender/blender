@@ -8,12 +8,9 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_xr_types.h"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -23,7 +20,6 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_listbase.h"
 #  include "BLI_math_rotation.h"
 #  include "BLI_math_vector.h"
 

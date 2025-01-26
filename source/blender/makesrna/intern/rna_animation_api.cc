@@ -6,14 +6,11 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "DNA_anim_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "rna_internal.hh" /* own include */

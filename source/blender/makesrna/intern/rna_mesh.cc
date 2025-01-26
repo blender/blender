@@ -8,24 +8,13 @@
 
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 
-#include "BLI_math_base.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_rotation.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
-
-#include "BKE_attribute.hh"
+#include "BKE_attribute.h"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh_types.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
@@ -53,12 +42,16 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "DNA_material_types.h"
 #  include "DNA_scene_types.h"
+#  include "DNA_world_types.h"
 
+#  include "BLI_math_geom.h"
 #  include "BLI_math_vector.h"
 
 #  include "BKE_attribute.hh"
 #  include "BKE_customdata.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"

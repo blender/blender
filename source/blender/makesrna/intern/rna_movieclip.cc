@@ -6,26 +6,18 @@
  * \ingroup RNA
  */
 
-#include <climits>
 #include <cstdlib>
-
-#include "MEM_guardedalloc.h"
 
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"
 
 #include "BKE_movieclip.h"
-#include "BKE_tracking.h"
 
 #include "WM_types.hh"
-
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "MOV_enums.hh"
 #include "MOV_read.hh"
@@ -38,6 +30,8 @@
 
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
+
+#  include "BKE_scene.hh"
 
 #  include "SEQ_relations.hh"
 

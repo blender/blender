@@ -7,49 +7,26 @@
  */
 
 #include <climits>
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
-#include <utility>
-
-#include "BLI_function_ref.hh"
 #include "BLI_linear_allocator.hh"
-#include "BLI_math_base.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
-#include "BLI_string_utf8_symbols.h"
-#include "BLI_utildefines.h"
-
-#include "BLF_api.hh"
 
 #include "BLT_translation.hh"
 
-#include "DNA_curves_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
-#include "BKE_cryptomatte.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_image.hh"
-#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
-#include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.hh"
-#include "BKE_scene.hh"
-#include "BKE_texture.h"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -57,24 +34,8 @@
 #include "rna_internal_types.hh"
 
 #include "IMB_colormanagement.hh"
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "WM_types.hh"
-
-#include "MEM_guardedalloc.h"
-
-#include "RE_texture.h"
-
-#include "NOD_composite.hh"
-#include "NOD_geometry.hh"
-#include "NOD_geometry_nodes_lazy_function.hh"
-#include "NOD_socket.hh"
-
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
-
-#include "BLI_string_utils.hh"
 
 const EnumPropertyItem rna_enum_node_socket_in_out_items[] = {{SOCK_IN, "IN", 0, "Input", ""},
                                                               {SOCK_OUT, "OUT", 0, "Output", ""},
@@ -641,14 +602,21 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_linklist.h"
 #  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_context.hh"
-#  include "BKE_idprop.hh"
-#  include "BKE_node_legacy_types.hh"
-
+#  include "BKE_cryptomatte.hh"
 #  include "BKE_global.hh"
+#  include "BKE_image.hh"
+#  include "BKE_main_invariants.hh"
+#  include "BKE_node_legacy_types.hh"
+#  include "BKE_node_tree_update.hh"
+#  include "BKE_report.hh"
+#  include "BKE_scene.hh"
+#  include "BKE_texture.h"
+
+#  include "BLF_api.hh"
 
 #  include "ED_node.hh"
 #  include "ED_render.hh"
@@ -665,6 +633,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "NOD_geo_repeat.hh"
 #  include "NOD_geo_simulation.hh"
 #  include "NOD_geometry.hh"
+#  include "NOD_geometry_nodes_lazy_function.hh"
 #  include "NOD_shader.h"
 #  include "NOD_socket.hh"
 #  include "NOD_socket_items.hh"
@@ -672,9 +641,14 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 
 #  include "RE_engine.h"
 #  include "RE_pipeline.h"
+#  include "RE_texture.h"
 
 #  include "DNA_scene_types.h"
+#  include "DNA_text_types.h"
+
 #  include "WM_api.hh"
+
+#  include "DEG_depsgraph_query.hh"
 
 using blender::float2;
 using blender::nodes::BakeItemsAccessor;

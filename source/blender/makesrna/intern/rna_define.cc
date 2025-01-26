@@ -1737,7 +1737,7 @@ void RNA_def_property_ui_range(
       fprop->softmin = float(min);
       fprop->softmax = float(max);
       fprop->step = float(step);
-      fprop->precision = int(precision);
+      fprop->precision = precision;
       break;
     }
     default:

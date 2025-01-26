@@ -9,59 +9,31 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLT_translation.hh"
 
-#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_image.hh"
-#include "BKE_key.hh"
 #include "BKE_movieclip.h"
-#include "BKE_node.hh"
-#include "BKE_studiolight.h"
-#include "BKE_viewer_path.hh"
 
 #include "ED_asset.hh"
-#include "ED_spreadsheet.hh"
-#include "ED_text.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_sys_types.h"
-#include "BLI_uuid.h"
 
 #include "DNA_action_types.h"
-#include "DNA_gpencil_legacy_types.h"
-#include "DNA_key_types.h"
 #include "DNA_mask_types.h"
-#include "DNA_material_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_workspace_types.h"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"
 
-#include "SEQ_proxy.hh"
-#include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_thumbnail_cache.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "RE_engine.h"
-#include "RE_pipeline.h"
 
 #include "RNA_enum_types.hh"
 
@@ -555,10 +527,15 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 
 #  include "DNA_anim_types.h"
 #  include "DNA_asset_types.h"
+#  include "DNA_key_types.h"
 #  include "DNA_scene_types.h"
 #  include "DNA_screen_types.h"
+#  include "DNA_sequence_types.h"
 #  include "DNA_userdef_types.h"
 
+#  include "BLI_math_matrix.h"
+#  include "BLI_math_rotation.h"
+#  include "BLI_math_vector.h"
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
 
@@ -568,12 +545,16 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BKE_global.hh"
 #  include "BKE_icons.h"
 #  include "BKE_idprop.hh"
+#  include "BKE_image.hh"
+#  include "BKE_key.hh"
 #  include "BKE_layer.hh"
 #  include "BKE_nla.hh"
+#  include "BKE_node.hh"
 #  include "BKE_paint.hh"
 #  include "BKE_preferences.h"
 #  include "BKE_scene.hh"
 #  include "BKE_screen.hh"
+#  include "BKE_studiolight.h"
 #  include "BKE_workspace.hh"
 
 #  include "DEG_depsgraph.hh"
@@ -588,6 +569,8 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "ED_node.hh"
 #  include "ED_screen.hh"
 #  include "ED_sequencer.hh"
+#  include "ED_spreadsheet.hh"
+#  include "ED_text.hh"
 #  include "ED_transform.hh"
 #  include "ED_view3d.hh"
 
@@ -597,6 +580,11 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 
 #  include "UI_interface.hh"
 #  include "UI_view2d.hh"
+
+#  include "SEQ_proxy.hh"
+#  include "SEQ_relations.hh"
+
+#  include "RE_engine.h"
 
 static StructRNA *rna_Space_refine(PointerRNA *ptr)
 {

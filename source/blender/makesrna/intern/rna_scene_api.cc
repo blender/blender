@@ -6,26 +6,19 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "DNA_anim_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "rna_internal.hh" /* own include */
 
 #ifdef WITH_ALEMBIC
-#  include "ABC_alembic.h"
 #endif
 
 #ifdef RNA_RUNTIME

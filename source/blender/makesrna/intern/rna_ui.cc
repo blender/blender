@@ -9,15 +9,11 @@
 #include <cstdlib>
 
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "BLT_translation.hh"
 
 #include "BKE_file_handler.hh"
-#include "BKE_idprop.hh"
 #include "BKE_screen.hh"
-
-#include "BLI_listbase.h"
 
 #include "RNA_define.hh"
 
@@ -56,6 +52,8 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "MEM_guardedalloc.h"
+
+#  include "DNA_space_types.h"
 
 #  include "RNA_access.hh"
 

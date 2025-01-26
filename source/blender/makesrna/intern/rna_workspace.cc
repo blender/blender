@@ -10,12 +10,6 @@
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
 
-#include "BKE_workspace.hh"
-
-#include "ED_render.hh"
-
-#include "RE_engine.h"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -26,11 +20,13 @@
 #ifdef RNA_RUNTIME
 
 #  include "BLI_listbase.h"
+#  include "BLI_string.h"
 
 #  include "BKE_global.hh"
 #  include "BKE_paint.hh"
+#  include "BKE_report.hh"
+#  include "BKE_workspace.hh"
 
-#  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
 

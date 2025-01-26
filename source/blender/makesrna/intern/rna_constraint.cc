@@ -8,16 +8,12 @@
 
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_rotation.h"
 
 #include "BLT_translation.hh"
 
-#include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_define.hh"
@@ -28,9 +24,6 @@
 #include "WM_types.hh"
 
 #include "ED_object.hh"
-
-#include "ANIM_action.hh"
-#include "rna_action_tools.hh"
 
 /* Please keep the names in sync with `constraint.cc`. */
 const EnumPropertyItem rna_enum_constraint_type_items[] = {
@@ -335,6 +328,9 @@ static const EnumPropertyItem target_space_object_items[] = {
 #  ifdef WITH_ALEMBIC
 #    include "ABC_alembic.h"
 #  endif
+
+#  include "ANIM_action.hh"
+#  include "rna_action_tools.hh"
 
 static StructRNA *rna_ConstraintType_refine(PointerRNA *ptr)
 {

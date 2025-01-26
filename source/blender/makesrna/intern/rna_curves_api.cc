@@ -25,6 +25,10 @@
 
 #  include "ED_curves.hh"
 
+#  include "DEG_depsgraph.hh"
+
+#  include "WM_api.hh"
+
 #  include "rna_curves_utils.hh"
 
 /* Common `CurvesGeometry` API functions. */
@@ -71,8 +75,7 @@ static std::optional<IndexMask> rna_indices_to_mask(const IndexRange universe,
     BKE_report(&reports, RPT_ERROR, "Indices must be sorted in ascending order");
     return std::nullopt;
   }
-  if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<int>()) !=
-      indices.end())
+  if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<>()) != indices.end())
   {
     BKE_report(&reports, RPT_ERROR, "Indices can't have duplicates");
     return std::nullopt;
