@@ -150,7 +150,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
                                                 offset_str,
                                                 IFACE_("Segments"),
                                                 RNA_int_get(op->ptr, "segments"),
-                                                IFACE_("Profile"),
+                                                IFACE_("Profile Shape"),
                                                 RNA_float_get(op->ptr, "profile"));
 
   ED_area_status_text(CTX_wm_area(C), header_status.c_str());
@@ -184,8 +184,10 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
                  op->type,
                  BEV_MODAL_VALUE_SEGMENTS,
                  opdata->value_mode == SEGMENTS_VALUE);
-  status.opmodal(
-      IFACE_("Profile"), op->type, BEV_MODAL_VALUE_PROFILE, opdata->value_mode == PROFILE_VALUE);
+  status.opmodal(IFACE_("Profile Shape"),
+                 op->type,
+                 BEV_MODAL_VALUE_PROFILE,
+                 opdata->value_mode == PROFILE_VALUE);
 
   status.opmodal(IFACE_("Clamp"),
                  op->type,
@@ -914,7 +916,8 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
             op->ptr,
             "profile",
             UI_ITEM_R_SLIDER,
-            (profile_type == BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Shape") : IFACE_("Miter Shape"),
+            (profile_type == BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Profile Shape") :
+                                                           IFACE_("Miter Profile Shape"),
             ICON_NONE);
   }
   uiItemR(layout, op->ptr, "material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
