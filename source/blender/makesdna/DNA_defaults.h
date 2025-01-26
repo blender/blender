@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_sys_types.h"
 
 #include "dna_type_offsets.h"
 
@@ -28,13 +28,13 @@ uint8_t *_DNA_struct_default_alloc_impl(const uint8_t *data_src,
  * Wrap with macro that casts correctly.
  */
 #define DNA_struct_default_get(struct_name) \
-  (const struct_name *)DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)]
+  ((const struct_name *)DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)])
 
 #define DNA_struct_default_alloc(struct_name) \
-  (struct_name *)_DNA_struct_default_alloc_impl( \
+  ((struct_name *)_DNA_struct_default_alloc_impl( \
       (const uint8_t *)DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)], \
       sizeof(struct_name), \
-      __func__)
+      __func__))
 
 #ifdef __cplusplus
 }
