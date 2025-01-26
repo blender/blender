@@ -34,7 +34,7 @@ struct IKPlugin {
   void (*test_constraint)(struct Object *ob, struct bConstraint *cons);
 };
 
-typedef struct IKPlugin IKPlugin;
+using IKPlugin = struct IKPlugin;
 
 #ifdef __cplusplus
 }
