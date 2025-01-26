@@ -20,7 +20,6 @@
  * \endcode
  */
 
-#include <fstream>
 #include <iostream>
 #include <optional>
 
