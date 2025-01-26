@@ -90,7 +90,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
     case ASSET_LIBRARY_ALL:
       return this->get_asset_library_all(bmain);
     case ASSET_LIBRARY_CUSTOM: {
-      bUserAssetLibrary *custom_library = this->find_custom_asset_library_from_library_ref(
+      bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
           library_reference);
       if (!custom_library) {
         return nullptr;
@@ -260,8 +260,8 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
     case ASSET_LIBRARY_CUSTOM: {
-      bUserAssetLibrary *custom_lib =
-          this->find_custom_preferences_asset_library_from_asset_weak_ref(asset_reference);
+      bUserAssetLibrary *custom_lib = find_custom_preferences_asset_library_from_asset_weak_ref(
+          asset_reference);
       if (custom_lib) {
         library_dirpath = custom_lib->dirpath;
         break;

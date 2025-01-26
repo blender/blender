@@ -100,7 +100,6 @@ class AssetLibrary {
   friend class AssetLibraryService;
   friend class AssetRepresentation;
 
- public:
   /**
    * \param name: The name this asset library will be displayed in the UI as. Will also be used as
    *              a weak way to identify an asset library (e.g. by #AssetWeakReference). Make sure

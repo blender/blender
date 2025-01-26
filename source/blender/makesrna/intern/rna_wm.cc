@@ -29,9 +29,12 @@
 #include "rna_internal.hh"
 
 #include "WM_api.hh"
+#include "WM_keymap.hh"
 #include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
+
+#  include "BKE_wm_runtime.hh"
 
 #  include "wm_event_system.hh"
 

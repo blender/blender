@@ -50,6 +50,7 @@
 #include "rna_internal.hh"
 
 #include "WM_api.hh"
+#include "WM_keymap.hh"
 #include "WM_types.hh"
 
 #include "BLT_lang.hh"

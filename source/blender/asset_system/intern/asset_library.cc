@@ -228,7 +228,7 @@ void AssetLibrary::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappi
 {
   Set<AssetRepresentation *> removed_assets;
 
-  for (auto &asset_ptr : asset_storage_.local_id_assets) {
+  for (const auto &asset_ptr : asset_storage_.local_id_assets) {
     AssetRepresentation &asset = *asset_ptr;
     BLI_assert(asset.is_local_id());
 
