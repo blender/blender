@@ -34,6 +34,10 @@ Checks:  >
   -bugprone-reserved-identifier,
   -bugprone-easily-swappable-parameters,
   -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-multi-level-implicit-pointer-conversion,
+  -bugprone-switch-missing-default-case,
+  -bugprone-signed-char-misuse,
+  -bugprone-assignment-in-if-condition,
 
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
