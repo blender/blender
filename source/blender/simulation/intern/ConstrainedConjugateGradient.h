@@ -9,6 +9,7 @@
  */
 
 #include <Eigen/Core>
+#include <Eigen/IterativeLinearSolvers>
 #include <Eigen/Sparse>
 
 namespace Eigen {
@@ -42,9 +43,9 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
 {
   using std::abs;
   using std::sqrt;
-  typedef typename Dest::RealScalar RealScalar;
-  typedef typename Dest::Scalar Scalar;
-  typedef Matrix<Scalar, Dynamic, 1> VectorType;
+  using RealScalar = typename Dest::RealScalar;
+  using Scalar = typename Dest::Scalar;
+  using VectorType = Matrix<Scalar, Dynamic, 1>;
 
   RealScalar tol = tol_error;
   int maxIters = iters;
@@ -137,9 +138,9 @@ namespace internal {
 template<typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
 struct traits<
     ConstrainedConjugateGradient<_MatrixType, _UpLo, _FilterMatrixType, _Preconditioner>> {
-  typedef _MatrixType MatrixType;
-  typedef _FilterMatrixType FilterMatrixType;
-  typedef _Preconditioner Preconditioner;
+  using MatrixType = _MatrixType;
+  using FilterMatrixType = _FilterMatrixType;
+  using Preconditioner = _Preconditioner;
 };
 
 }  // namespace internal
@@ -197,7 +198,7 @@ template<typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _
 class ConstrainedConjugateGradient
     : public IterativeSolverBase<
           ConstrainedConjugateGradient<_MatrixType, _UpLo, _FilterMatrixType, _Preconditioner>> {
-  typedef IterativeSolverBase<ConstrainedConjugateGradient> Base;
+  using Base = IterativeSolverBase<ConstrainedConjugateGradient>;
   using Base::m_error;
   using Base::m_info;
   using Base::m_isInitialized;
@@ -205,16 +206,15 @@ class ConstrainedConjugateGradient
   using Base::mp_matrix;
 
  public:
-  typedef _MatrixType MatrixType;
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::Index Index;
-  typedef typename MatrixType::RealScalar RealScalar;
-  typedef _FilterMatrixType FilterMatrixType;
-  typedef _Preconditioner Preconditioner;
+  using MatrixType = _MatrixType;
+  using Scalar = typename MatrixType::Scalar;
+  using Index = typename MatrixType::Index;
+  using RealScalar = typename MatrixType::RealScalar;
+  using FilterMatrixType = _FilterMatrixType;
+  using Preconditioner = _Preconditioner;
 
   enum { UpLo = _UpLo };
 
- public:
   /** Default constructor. */
   ConstrainedConjugateGradient() : Base() {}
 
@@ -231,7 +231,7 @@ class ConstrainedConjugateGradient
    */
   ConstrainedConjugateGradient(const MatrixType &A) : Base(A) {}
 
-  ~ConstrainedConjugateGradient() {}
+  ~ConstrainedConjugateGradient() = default;
 
   FilterMatrixType &filter()
   {
@@ -249,8 +249,8 @@ class ConstrainedConjugateGradient
    * \sa compute()
    */
   template<typename Rhs, typename Guess>
-  inline const internal::solve_retval_with_guess<ConstrainedConjugateGradient, Rhs, Guess>
-  solveWithGuess(const MatrixBase<Rhs> &b, const Guess &x0) const
+  internal::solve_retval_with_guess<ConstrainedConjugateGradient, Rhs, Guess> solveWithGuess(
+      const MatrixBase<Rhs> &b, const Guess &x0) const
   {
     eigen_assert(m_isInitialized && "ConjugateGradient is not initialized.");
     eigen_assert(
@@ -302,7 +302,7 @@ struct solve_retval<ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _P
                     Rhs>
     : solve_retval_base<ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _Preconditioner>,
                         Rhs> {
-  typedef ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _Preconditioner> Dec;
+  using Dec = ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _Preconditioner>;
   EIGEN_MAKE_SOLVE_HELPERS(Dec, Rhs)
 
   template<typename Dest> void evalTo(Dest &dst) const

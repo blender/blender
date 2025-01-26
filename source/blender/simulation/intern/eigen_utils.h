@@ -21,19 +21,18 @@
 #  pragma GCC diagnostic pop
 #endif
 
-#include "BLI_utildefines.h"
 #include "implicit.h"
 
-typedef float Scalar;
+using Scalar = float;
 
 /* slightly extended Eigen vector class
  * with conversion to/from plain C float array
  */
 class Vector3 : public Eigen::Vector3f {
  public:
-  typedef float *ctype;
+  using ctype = float *;
 
-  Vector3() {}
+  Vector3() = default;
 
   Vector3(const ctype &v)
   {
@@ -61,9 +60,9 @@ class Vector3 : public Eigen::Vector3f {
  */
 class Matrix3 : public Eigen::Matrix3f {
  public:
-  typedef float (*ctype)[3];
+  using ctype = float (*)[3];
 
-  Matrix3() {}
+  Matrix3() = default;
 
   Matrix3(const ctype &v)
   {
@@ -90,16 +89,16 @@ class Matrix3 : public Eigen::Matrix3f {
   }
 };
 
-typedef Eigen::VectorXf lVector;
+using lVector = Eigen::VectorXf;
 
 /* Extension of dense Eigen vectors,
  * providing 3-float block access for blenlib math functions
  */
 class lVector3f : public Eigen::VectorXf {
  public:
-  typedef Eigen::VectorXf base_t;
+  using base_t = Eigen::VectorXf;
 
-  lVector3f() {}
+  lVector3f() = default;
 
   template<typename T> lVector3f &operator=(T rhs)
   {
@@ -118,10 +117,10 @@ class lVector3f : public Eigen::VectorXf {
   }
 };
 
-typedef Eigen::Triplet<Scalar> Triplet;
-typedef std::vector<Triplet> TripletList;
+using Triplet = Eigen::Triplet<Scalar>;
+using TripletList = std::vector<Triplet>;
 
-typedef Eigen::SparseMatrix<Scalar> lMatrix;
+using lMatrix = Eigen::SparseMatrix<Scalar>;
 
 /* Constructor type that provides more convenient handling of Eigen triplets
  * for efficient construction of sparse 3x3 block matrices.
@@ -130,7 +129,7 @@ typedef Eigen::SparseMatrix<Scalar> lMatrix;
  * matrix can be filled using construct().
  */
 struct lMatrix3fCtor {
-  lMatrix3fCtor() {}
+  lMatrix3fCtor() = default;
 
   void reset()
   {
@@ -149,7 +148,7 @@ struct lMatrix3fCtor {
     j *= 3;
     for (int k = 0; k < 3; k++) {
       for (int l = 0; l < 3; l++) {
-        m_trips.push_back(Triplet(i + k, j + l, m.coeff(l, k)));
+        m_trips.emplace_back(i + k, j + l, m.coeff(l, k));
       }
     }
   }
@@ -160,12 +159,12 @@ struct lMatrix3fCtor {
     j *= 3;
     for (int k = 0; k < 3; k++) {
       for (int l = 0; l < 3; l++) {
-        m_trips.push_back(Triplet(i + k, j + l, -m.coeff(l, k)));
+        m_trips.emplace_back(i + k, j + l, -m.coeff(l, k));
       }
     }
   }
 
-  inline void construct(lMatrix &m)
+  void construct(lMatrix &m)
   {
     m.setFromTriplets(m_trips.begin(), m_trips.end());
     m_trips.clear();
@@ -175,8 +174,8 @@ struct lMatrix3fCtor {
   TripletList m_trips;
 };
 
-typedef Eigen::ConjugateGradient<lMatrix, Eigen::Lower, Eigen::DiagonalPreconditioner<Scalar>>
-    ConjugateGradient;
+using ConjugateGradient =
+    Eigen::ConjugateGradient<lMatrix, Eigen::Lower, Eigen::DiagonalPreconditioner<Scalar>>;
 
 using Eigen::ComputationInfo;
 
