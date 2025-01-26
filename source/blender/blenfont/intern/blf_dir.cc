@@ -8,7 +8,6 @@
  * Manage search paths for font files.
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -19,12 +18,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_vec_types.h"
-
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
-#include "BLF_api.hh"
 #include "blf_internal.hh"
 
 char *blf_dir_metrics_search(const char *filepath)

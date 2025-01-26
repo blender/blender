@@ -11,11 +11,8 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_assert.h"
-#include "BLI_math_vector_types.hh"
 
 #include "BLF_api.hh"
-
-#include "blf_internal.hh"
 
 /* call BLF_default_set first! */
 #define ASSERT_DEFAULT_SET BLI_assert(global_font_default != -1)

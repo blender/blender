@@ -20,20 +20,14 @@
 #include FT_TRUETYPE_IDS_H    /* Code-point coverage constants. */
 #include FT_TRUETYPE_TABLES_H /* For TT_OS2 */
 
-#include "BLI_listbase.h"
 #include "BLI_math_bits.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "blf_internal.hh"
 #include "blf_internal_types.hh"
 
 #include "BLF_api.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* Maximum length of text sample in char32_t, including nullptr terminator. */
 #define BLF_SAMPLE_LEN 5
