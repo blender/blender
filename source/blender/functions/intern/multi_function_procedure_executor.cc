@@ -45,7 +45,7 @@ struct VariableValue {
 
 /* This variable is the unmodified virtual array from the caller. */
 struct VariableValue_GVArray : public VariableValue {
-  static inline constexpr ValueType static_type = ValueType::GVArray;
+  static constexpr ValueType static_type = ValueType::GVArray;
   const GVArray &data;
 
   VariableValue_GVArray(const GVArray &data) : VariableValue(static_type), data(data)
@@ -57,7 +57,7 @@ struct VariableValue_GVArray : public VariableValue {
 /* This variable has a different value for every index. Some values may be uninitialized. The span
  * may be owned by the caller. */
 struct VariableValue_Span : public VariableValue {
-  static inline constexpr ValueType static_type = ValueType::Span;
+  static constexpr ValueType static_type = ValueType::Span;
   void *data;
   bool owned;
 
@@ -68,7 +68,7 @@ struct VariableValue_Span : public VariableValue {
 
 /* This variable is the unmodified virtual vector array from the caller. */
 struct VariableValue_GVVectorArray : public VariableValue {
-  static inline constexpr ValueType static_type = ValueType::GVVectorArray;
+  static constexpr ValueType static_type = ValueType::GVVectorArray;
   const GVVectorArray &data;
 
   VariableValue_GVVectorArray(const GVVectorArray &data) : VariableValue(static_type), data(data)
@@ -78,7 +78,7 @@ struct VariableValue_GVVectorArray : public VariableValue {
 
 /* This variable has a different vector for every index. */
 struct VariableValue_GVectorArray : public VariableValue {
-  static inline constexpr ValueType static_type = ValueType::GVectorArray;
+  static constexpr ValueType static_type = ValueType::GVectorArray;
   GVectorArray &data;
   bool owned;
 
@@ -90,7 +90,7 @@ struct VariableValue_GVectorArray : public VariableValue {
 
 /* This variable has the same value for every index. */
 struct VariableValue_OneSingle : public VariableValue {
-  static inline constexpr ValueType static_type = ValueType::OneSingle;
+  static constexpr ValueType static_type = ValueType::OneSingle;
   void *data;
   bool is_initialized = false;
 
@@ -99,7 +99,7 @@ struct VariableValue_OneSingle : public VariableValue {
 
 /* This variable has the same vector for every index. */
 struct VariableValue_OneVector : public VariableValue {
-  static inline constexpr ValueType static_type = ValueType::OneVector;
+  static constexpr ValueType static_type = ValueType::OneVector;
   GVectorArray &data;
 
   VariableValue_OneVector(GVectorArray &data) : VariableValue(static_type), data(data) {}
@@ -124,7 +124,7 @@ class ValueAllocator : NonCopyable, NonMovable {
    * Allocate with 64 byte alignment for better reusability of buffers and improved cache
    * performance.
    */
-  static constexpr inline int min_alignment = 64;
+  static constexpr int min_alignment = 64;
 
   /** All buffers in the free-lists below have been allocated with this allocator. */
   LinearAllocator<> &linear_allocator_;
@@ -143,8 +143,8 @@ class ValueAllocator : NonCopyable, NonMovable {
   Map<int, Stack<void *>> span_buffers_free_lists_;
 
   /** Cache buffers for single values of different types. */
-  static constexpr inline int small_value_max_size = 16;
-  static constexpr inline int small_value_max_alignment = 8;
+  static constexpr int small_value_max_size = 16;
+  static constexpr int small_value_max_alignment = 8;
   Stack<void *> small_single_value_free_list_;
   Map<const CPPType *, Stack<void *>> single_value_free_lists_;
 

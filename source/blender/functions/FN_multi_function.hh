@@ -44,7 +44,7 @@ class MultiFunction : NonCopyable, NonMovable {
   const Signature *signature_ref_ = nullptr;
 
  public:
-  virtual ~MultiFunction() {}
+  virtual ~MultiFunction() = default;
 
   /**
    * The result is the same as using #call directly but this method has some additional features.

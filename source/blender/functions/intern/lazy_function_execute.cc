@@ -109,7 +109,7 @@ void *RemappedParams::get_output_data_ptr_impl(const int index)
 
 void RemappedParams::output_set_impl(const int index)
 {
-  return base_params_.output_set(output_map_[index]);
+  base_params_.output_set(output_map_[index]);
 }
 
 bool RemappedParams::output_was_set_impl(const int index) const
@@ -124,7 +124,7 @@ lf::ValueUsage RemappedParams::get_output_usage_impl(const int index) const
 
 void RemappedParams::set_input_unused_impl(const int index)
 {
-  return base_params_.set_input_unused(input_map_[index]);
+  base_params_.set_input_unused(input_map_[index]);
 }
 
 bool RemappedParams::try_enable_multi_threading_impl()

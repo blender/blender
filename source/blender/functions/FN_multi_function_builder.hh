@@ -65,8 +65,8 @@ struct AllSpanOrSingle {
                              const std::tuple<LoadedParams...> &loaded_params) const
   {
     return std::make_tuple([&]() {
-      typedef ParamTags ParamTag;
-      typedef typename ParamTag::base_type T;
+      using ParamTag = ParamTags;
+      using T = typename ParamTag::base_type;
       if constexpr (ParamTag::category == ParamCategory::SingleInput) {
         const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
         return GVArrayDevirtualizer<T, true, true>{varray_impl};
@@ -97,8 +97,8 @@ template<size_t... Indices> struct SomeSpanOrSingle {
                              const std::tuple<LoadedParams...> &loaded_params) const
   {
     return std::make_tuple([&]() {
-      typedef ParamTags ParamTag;
-      typedef typename ParamTag::base_type T;
+      using ParamTag = ParamTags;
+      using T = typename ParamTag::base_type;
 
       if constexpr (ParamTag::category == ParamCategory::SingleInput) {
         constexpr bool UseSpan = ValueSequence<size_t, Indices...>::template contains<I>();
@@ -216,8 +216,8 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
       /* Setup information for all parameters. */
       [&] {
         /* Use `typedef` instead of `using` to work around a compiler bug. */
-        typedef ParamTags ParamTag;
-        typedef typename ParamTag::base_type T;
+        using ParamTag = ParamTags;
+        using T = typename ParamTag::base_type;
         [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == ParamCategory::SingleInput) {
           const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
@@ -258,8 +258,8 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
       (
           [&] {
             /* Use `typedef` instead of `using` to work around a compiler bug. */
-            typedef ParamTags ParamTag;
-            typedef typename ParamTag::base_type T;
+            using ParamTag = ParamTags;
+            using T = typename ParamTag::base_type;
             if constexpr (ParamTag::category == ParamCategory::SingleMutable) {
               T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
               T *param_buffer = std::get<I>(loaded_params);
@@ -317,11 +317,9 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
               T *param_buffer = std::get<I>(loaded_params);
               return param_buffer + mask_start;
             }
-            else {
-              /* Use the temporary buffer. The values will have to be copied out of that
-               * buffer into the caller-provided buffer afterwards. */
-              return const_cast<T *>(tmp_buffer);
-            }
+            /* Use the temporary buffer. The values will have to be copied out of that
+             * buffer into the caller-provided buffer afterwards. */
+            return tmp_buffer;
           }
         }()...);
 
@@ -330,8 +328,8 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
       (
           [&] {
             /* Use `typedef` instead of `using` to work around a compiler bug. */
-            typedef ParamTags ParamTag;
-            typedef typename ParamTag::base_type T;
+            using ParamTag = ParamTags;
+            using T = typename ParamTag::base_type;
             if constexpr (ELEM(ParamTag::category,
                                ParamCategory::SingleOutput,
                                ParamCategory::SingleMutable))
@@ -351,8 +349,8 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
         /* Destruct values that have been materialized before. */
         [&] {
           /* Use `typedef` instead of `using` to work around a compiler bug. */
-          typedef ParamTags ParamTag;
-          typedef typename ParamTag::base_type T;
+          using ParamTag = ParamTags;
+          using T = typename ParamTag::base_type;
           [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
           if constexpr (ParamTag::category == ParamCategory::SingleInput) {
             if (arg_info.mode == MaterializeArgMode::Materialized) {
@@ -368,8 +366,8 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
       /* Destruct buffers for single value inputs. */
       [&] {
         /* Use `typedef` instead of `using` to work around a compiler bug. */
-        typedef ParamTags ParamTag;
-        typedef typename ParamTag::base_type T;
+        using ParamTag = ParamTags;
+        using T = typename ParamTag::base_type;
         [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == ParamCategory::SingleInput) {
           if (arg_info.mode == MaterializeArgMode::Single) {
@@ -394,8 +392,8 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
   /* Contains `const GVArrayImpl *` for inputs and `T *` for outputs. */
   const auto loaded_params = std::make_tuple([&]() {
     /* Use `typedef` instead of `using` to work around a compiler bug. */
-    typedef ParamTags ParamTag;
-    typedef typename ParamTag::base_type T;
+    using ParamTag = ParamTags;
+    using T = typename ParamTag::base_type;
 
     if constexpr (ParamTag::category == ParamCategory::SingleInput) {
       return params.readonly_single_input(I).get_implementation();
@@ -463,8 +461,8 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
         execute_array(
             TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, segment, [&]() {
               /* Use `typedef` instead of `using` to work around a compiler bug. */
-              typedef ParamTags ParamTag;
-              typedef typename ParamTag::base_type T;
+              using ParamTag = ParamTags;
+              using T = typename ParamTag::base_type;
               if constexpr (ParamTag::category == ParamCategory::SingleInput) {
                 const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
                 return GVArray(&varray_impl).typed<T>();
@@ -753,7 +751,7 @@ class CustomMF_GenericConstant : public MultiFunction {
 
  public:
   CustomMF_GenericConstant(const CPPType &type, const void *value, bool make_value_copy);
-  ~CustomMF_GenericConstant();
+  ~CustomMF_GenericConstant() override;
   void call(const IndexMask &mask, Params params, Context context) const override;
   uint64_t hash() const override;
   bool equals(const MultiFunction &other) const override;
