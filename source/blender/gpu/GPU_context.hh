@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "GPU_batch.hh"
-#include "GPU_common.hh"
 #include "GPU_platform.hh"
 
 /* GPU back-ends abstract the differences between different APIs. #GPU_context_create

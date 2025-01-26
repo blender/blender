@@ -7,12 +7,9 @@
  */
 #pragma once
 
-#include "MEM_guardedalloc.h"
-
 #include "gpu_context_private.hh"
 
 #include "GPU_common_types.hh"
-#include "GPU_context.hh"
 
 /* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
  * solvable in a short term. */

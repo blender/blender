@@ -10,13 +10,11 @@
 
 #pragma once
 
-#include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
 #include "BLI_ghash.h"
 
 #include "GPU_material.hh"
-#include "GPU_shader.hh"
 
 struct GPUNode;
 struct GPUOutput;

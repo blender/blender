@@ -16,8 +16,6 @@
 #include "GPU_select.hh"
 #include "GPU_state.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_rect.h"
 
 #include "BLI_utildefines.h"

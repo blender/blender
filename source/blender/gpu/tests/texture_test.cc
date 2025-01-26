@@ -6,10 +6,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_vector.hh"
-#include "BLI_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "GPU_context.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
 
 #include "gpu_texture_private.hh"

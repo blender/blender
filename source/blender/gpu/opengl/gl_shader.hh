@@ -20,6 +20,7 @@
 #include "gpu_shader_private.hh"
 
 #include <functional>
+#include <mutex>
 
 namespace blender::gpu {
 

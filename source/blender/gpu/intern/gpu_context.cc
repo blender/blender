@@ -13,16 +13,14 @@
  * - free can be called from any thread
  */
 
-#include "GHOST_C-api.h"
-
 #include "BKE_global.hh"
 
 #include "BLI_assert.h"
-#include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
+#include "GHOST_Types.h"
+
 #include "GPU_context.hh"
-#include "GPU_framebuffer.hh"
 
 #include "GPU_batch.hh"
 #include "gpu_backend.hh"
@@ -44,7 +42,6 @@
 #include "dummy_backend.hh"
 
 #include <mutex>
-#include <vector>
 
 using namespace blender::gpu;
 

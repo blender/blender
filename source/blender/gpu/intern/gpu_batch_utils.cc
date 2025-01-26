@@ -8,9 +8,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_base.h"
+#include "DNA_vec_types.h"
+
 #include "BLI_polyfill_2d.h"
-#include "BLI_rect.h"
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
 
@@ -25,7 +25,7 @@ blender::gpu::Batch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat
                                                          uint polys_flat_len,
                                                          const rctf *rect)
 {
-  const uchar(*polys)[2] = static_cast<const uchar(*)[2]>((const void *)polys_flat);
+  const uchar(*polys)[2] = reinterpret_cast<const uchar(*)[2]>(polys_flat);
   const uint polys_len = polys_flat_len / 2;
   BLI_assert(polys_flat_len == polys_len * 2);
 
@@ -114,7 +114,7 @@ blender::gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat
                                                          uint polys_flat_len,
                                                          const rctf *rect)
 {
-  const uchar(*polys)[2] = static_cast<const uchar(*)[2]>((const void *)polys_flat);
+  const uchar(*polys)[2] = reinterpret_cast<const uchar(*)[2]>(polys_flat);
   const uint polys_len = polys_flat_len / 2;
   BLI_assert(polys_flat_len == polys_len * 2);
 

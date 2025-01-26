@@ -954,7 +954,7 @@ int GPU_texture_opengl_bindcode(const GPUTexture *texture)
 
 void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *r_size)
 {
-  return unwrap(texture)->mip_size_get(mip_level, r_size);
+  unwrap(texture)->mip_size_get(mip_level, r_size);
 }
 
 /** \} */

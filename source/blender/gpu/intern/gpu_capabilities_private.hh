@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "GPU_platform.hh"
+#include "BLI_sys_types.h"
 
 namespace blender::gpu {
 

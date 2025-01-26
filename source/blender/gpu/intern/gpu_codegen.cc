@@ -11,7 +11,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_customdata_types.h"
-#include "DNA_image_types.h"
 #include "DNA_material_types.h"
 
 #include "BLI_ghash.h"
@@ -22,7 +21,6 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_cryptomatte.hh"
 #include "BKE_material.hh"

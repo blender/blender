@@ -24,7 +24,6 @@
 #include "GPU_index_buffer.hh"
 #include "GPU_shader.hh"
 #include "GPU_storage_buffer.hh"
-#include "GPU_uniform_buffer.hh"
 #include "GPU_vertex_buffer.hh"
 
 struct GPUShader;

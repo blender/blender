@@ -15,6 +15,7 @@
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_texture.hh"
+#include "GPU_uniform_buffer.hh"
 
 #include "gpu_context_private.hh"
 #include "gpu_immediate_private.hh"

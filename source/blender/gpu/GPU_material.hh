@@ -14,8 +14,6 @@
 #include "DNA_image_types.h"
 #include "DNA_listBase.h"
 
-#include "BLI_sys_types.h" /* for bool */
-
 #include "GPU_shader.hh"  /* for GPUShaderCreateInfo */
 #include "GPU_texture.hh" /* for GPUSamplerState */
 

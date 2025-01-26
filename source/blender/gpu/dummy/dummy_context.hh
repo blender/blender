@@ -20,7 +20,7 @@ class DummyContext : public Context {
   {
     back_left = active_fb = new DummyFrameBuffer("DummyFramebuffer");
   }
-  ~DummyContext()
+  ~DummyContext() override
   {
     free_framebuffers();
   }
@@ -34,7 +34,7 @@ class DummyContext : public Context {
 
   void memory_statistics_get(int * /*r_total_mem*/, int * /*r_free_mem*/) override {}
 
-  void debug_group_begin(const char *, int) override {}
+  void debug_group_begin(const char * /*unused*/, int /*unused*/) override {}
   void debug_group_end() override {}
   bool debug_capture_begin(const char * /*title*/) override
   {

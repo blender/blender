@@ -11,10 +11,9 @@
 #include <string>
 
 #include "BLI_span.hh"
-#include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_platform_backend_enum.h"
+#include "GPU_platform_backend_enum.h"  // IWYU pragma: export
 
 /* GPU platform support */
 

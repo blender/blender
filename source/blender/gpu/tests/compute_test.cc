@@ -10,6 +10,7 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
+#include "GPU_state.hh"
 #include "GPU_storage_buffer.hh"
 #include "GPU_texture.hh"
 

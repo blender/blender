@@ -7,6 +7,7 @@
 #include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
 #include "GPU_shader.hh"
+#include "GPU_state.hh"
 #include "GPU_storage_buffer.hh"
 
 #include "BLI_math_vector.hh"

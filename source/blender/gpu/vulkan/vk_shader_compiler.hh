@@ -16,6 +16,8 @@
 
 #include "shaderc/shaderc.hpp"
 
+#include <mutex>
+
 namespace blender::gpu {
 class VKShader;
 class VKShaderModule;

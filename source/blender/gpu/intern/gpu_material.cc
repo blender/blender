@@ -8,8 +8,6 @@
  * Manages materials, lights and textures.
  */
 
-#include <algorithm>
-#include <cmath>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"

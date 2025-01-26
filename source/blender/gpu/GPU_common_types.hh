@@ -181,7 +181,7 @@ struct SpecializationConstant {
       float f;
     };
 
-    inline bool operator==(const Value &other) const
+    bool operator==(const Value &other) const
     {
       return u == other.u;
     }
@@ -213,7 +213,7 @@ struct SpecializationConstant {
     this->value.u = value ? 1 : 0;
   }
 
-  inline bool operator==(const SpecializationConstant &b) const
+  bool operator==(const SpecializationConstant &b) const
   {
     return this->type == b.type && this->name == b.name && this->value == b.value;
   }

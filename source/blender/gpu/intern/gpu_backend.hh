@@ -71,33 +71,31 @@ static inline ColorTheme4f get_debug_group_color(StringRefNull name)
   if (name == "EEVEE") {
     return ColorTheme4f(1.0, 0.5, 0.0, 1.0);
   }
-  else if (name == "External") {
+  if (name == "External") {
     return ColorTheme4f(0.0, 0.0, 1.0, 1.0);
   }
-  else if (name == "GpencilMode") {
+  if (name == "GpencilMode") {
     return ColorTheme4f(1.0, 1.0, 0.0, 1.0);
   }
-  else if (name == "UV/Image") {
+  if (name == "UV/Image") {
     return ColorTheme4f(0.0, 1.0, 1.0, 1.0);
   }
-  else if (name == "Overlay") {
+  if (name == "Overlay") {
     return ColorTheme4f(0.0, 1.0, 0.5, 1.0);
   }
-  else if (name == "Workbench") {
+  if (name == "Workbench") {
     return ColorTheme4f(0.0, 0.7, 1.0, 1.0);
   }
-  else if (name == "Cycles") {
+  if (name == "Cycles") {
     return ColorTheme4f(0.0, 0.5, 1.0, 1.0);
   }
-  else if (name == "BackBuffer.Blit") {
+  if (name == "BackBuffer.Blit") {
     return ColorTheme4f(0.5, 0.7, 1.0, 1.0);
   }
-  else if (name == "Compositor") {
+  if (name == "Compositor") {
     return ColorTheme4f(1.0, 0.5, 0.7, 1.0);
   }
-  else {
-    return GPU_DEBUG_GROUP_COLOR_DEFAULT;
-  }
+  return GPU_DEBUG_GROUP_COLOR_DEFAULT;
 }
 }  // namespace debug
 

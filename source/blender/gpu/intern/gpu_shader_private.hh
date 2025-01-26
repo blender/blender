@@ -17,7 +17,6 @@
 
 #include "BLI_map.hh"
 
-#include <mutex>
 #include <string>
 
 namespace blender::gpu {
@@ -124,17 +123,17 @@ class Shader {
   /* DEPRECATED: Kept only because of BGL API. */
   virtual int program_handle_get() const = 0;
 
-  inline StringRefNull name_get() const
+  StringRefNull name_get() const
   {
     return name;
   }
 
-  inline void parent_set(Shader *parent)
+  void parent_set(Shader *parent)
   {
     parent_shader_ = parent;
   }
 
-  inline Shader *parent_get() const
+  Shader *parent_get() const
   {
     return parent_shader_;
   }

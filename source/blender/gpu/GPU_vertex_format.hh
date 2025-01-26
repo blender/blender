@@ -12,9 +12,8 @@
 
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
-#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "GPU_common.hh"
 
 struct GPUShader;
 

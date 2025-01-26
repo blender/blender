@@ -11,7 +11,6 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_threads.h"
 
 #include "BKE_global.hh"
 
@@ -19,7 +18,6 @@
 #include "GPU_context.hh"
 #include "GPU_platform.hh"
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"

@@ -9,8 +9,9 @@
 #include "MEM_guardedalloc.h"
 #include <cstring>
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 
 #include "BKE_global.hh"
 

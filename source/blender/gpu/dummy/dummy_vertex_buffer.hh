@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
+#include "GPU_vertex_buffer.hh"
+
 namespace blender::gpu {
 
 class DummyVertexBuffer : public VertBuf {

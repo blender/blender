@@ -16,7 +16,7 @@
 #include <cstring> /* required for STREQ later on. */
 
 #include "BLI_hash.h"
-#include "BLI_utildefines.h"
+#include "BLI_sys_types.h"
 
 #include "GPU_shader.hh"
 #include "GPU_vertex_format.hh" /* GPU_VERT_ATTR_MAX_LEN */
@@ -82,63 +82,63 @@ class ShaderInterface {
 
   void debug_print() const;
 
-  inline const ShaderInput *attr_get(const StringRefNull name) const
+  const ShaderInput *attr_get(const StringRefNull name) const
   {
     return input_lookup(inputs_, attr_len_, name);
   }
-  inline const ShaderInput *attr_get(const int binding) const
+  const ShaderInput *attr_get(const int binding) const
   {
     return input_lookup(inputs_, attr_len_, binding);
   }
 
-  inline const ShaderInput *ubo_get(const StringRefNull name) const
+  const ShaderInput *ubo_get(const StringRefNull name) const
   {
     return input_lookup(inputs_ + attr_len_, ubo_len_, name);
   }
-  inline const ShaderInput *ubo_get(const int binding) const
+  const ShaderInput *ubo_get(const int binding) const
   {
     return input_lookup(inputs_ + attr_len_, ubo_len_, binding);
   }
 
-  inline const ShaderInput *uniform_get(const StringRefNull name) const
+  const ShaderInput *uniform_get(const StringRefNull name) const
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_, uniform_len_, name);
   }
 
-  inline const ShaderInput *texture_get(const int binding) const
+  const ShaderInput *texture_get(const int binding) const
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_, uniform_len_, binding);
   }
 
-  inline const ShaderInput *ssbo_get(const StringRefNull name) const
+  const ShaderInput *ssbo_get(const StringRefNull name) const
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_, name);
   }
-  inline const ShaderInput *ssbo_get(const int binding) const
+  const ShaderInput *ssbo_get(const int binding) const
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_, binding);
   }
 
-  inline const ShaderInput *constant_get(const StringRefNull name) const
+  const ShaderInput *constant_get(const StringRefNull name) const
   {
     return input_lookup(
         inputs_ + attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_, constant_len_, name);
   }
 
-  inline const char *input_name_get(const ShaderInput *input) const
+  const char *input_name_get(const ShaderInput *input) const
   {
     return name_buffer_ + input->name_offset;
   }
 
   /* Returns uniform location. */
-  inline int32_t uniform_builtin(const GPUUniformBuiltin builtin) const
+  int32_t uniform_builtin(const GPUUniformBuiltin builtin) const
   {
     BLI_assert(builtin >= 0 && builtin < GPU_NUM_UNIFORMS);
     return builtins_[builtin];
   }
 
   /* Returns binding position. */
-  inline int32_t ubo_builtin(const GPUUniformBlockBuiltin builtin) const
+  int32_t ubo_builtin(const GPUUniformBlockBuiltin builtin) const
   {
     BLI_assert(builtin >= 0 && builtin < GPU_NUM_UNIFORM_BLOCKS);
     return builtin_blocks_[builtin];

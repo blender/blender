@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_global.hh"
 
 #include "GPU_batch.hh"

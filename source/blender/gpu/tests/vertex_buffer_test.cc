@@ -4,10 +4,10 @@
 
 #include "testing/testing.h"
 
-#include "GPU_context.hh"
+#include "GPU_batch.hh"
 #include "GPU_framebuffer.hh"
-#include "GPU_immediate.hh"
 #include "GPU_shader.hh"
+#include "GPU_state.hh"
 #include "GPU_vertex_buffer.hh"
 #include "GPU_vertex_format.hh"
 

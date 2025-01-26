@@ -11,7 +11,7 @@
 #pragma once
 
 #include "BLI_assert.h"
-#include "GPU_common.hh"
+#include "BLI_sys_types.h"
 
 enum GPUPrimType {
   GPU_PRIM_POINTS,

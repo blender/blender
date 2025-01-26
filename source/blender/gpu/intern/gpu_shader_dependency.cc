@@ -13,12 +13,10 @@
 #include <iomanip>
 #include <iostream>
 #include <regex>
-#include <sstream>
 #include <string>
 
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
-#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
 #include "gpu_material_library.hh"
@@ -26,8 +24,6 @@
 #include "gpu_shader_dependency_private.hh"
 
 #include "../glsl_preprocess/glsl_preprocess.hh"
-
-#include "GPU_context.hh"
 
 extern "C" {
 #define SHADER_SOURCE(datatoc, filename, filepath) extern char datatoc[];
@@ -302,7 +298,7 @@ struct GPUSource {
     name.copy_utf8_truncated(func->name, sizeof(func->name));
     func->source = reinterpret_cast<void *>(this);
     func->totparam = 0;
-    while (1) {
+    while (true) {
       StringRef arg_qual = pop_token(line);
       StringRef arg_type = pop_token(line);
       if (arg_qual.is_empty()) {

@@ -9,14 +9,12 @@
 #include "MEM_guardedalloc.h"
 #include <cstring>
 
-#include "BLI_blenlib.h"
-#include "BLI_math_base.h"
+#include "BLI_string.h"
 
 #include "BKE_global.hh"
 
 #include "gpu_backend.hh"
 
-#include "GPU_material.hh"
 #include "GPU_storage_buffer.hh"
 #include "GPU_vertex_buffer.hh" /* For GPUUsageType. */
 

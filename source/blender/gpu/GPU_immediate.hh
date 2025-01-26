@@ -11,11 +11,13 @@
 #pragma once
 
 #include "GPU_batch.hh"
-#include "GPU_immediate_util.hh"
+#include "GPU_immediate_util.hh" /* IWYU pragma: export */
 #include "GPU_primitive.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 #include "GPU_vertex_format.hh"
+
+struct GPUUniformBuf;
 
 /** Returns a cleared vertex format, ready for #add_attr. */
 GPUVertFormat *immVertexFormat();
