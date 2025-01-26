@@ -47,7 +47,7 @@
 #  include "../bmesh/bmesh_py_types.hh"
 #endif /* MATH_STANDALONE */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Documentation String (snippets)
@@ -790,7 +790,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
       plink = static_cast<PolyLink *>(BLI_memarena_alloc(
           poly_arena, sizeof(*plink) + (sizeof(int) * size_t(py_tricoords_len))));
 
-      plink->len = uint(py_tricoords_len);
+      plink->len = py_tricoords_len;
       *p_plink_prev = plink;
       p_plink_prev = &plink->next;
 

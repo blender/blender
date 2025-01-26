@@ -4174,7 +4174,7 @@ static void pyrna_dir_members_py(PyObject *list, PyObject *self)
   PyObject *dict;
   PyObject **dict_ptr;
 
-  dict_ptr = _PyObject_GetDictPtr((PyObject *)self);
+  dict_ptr = _PyObject_GetDictPtr(self);
 
   if (dict_ptr && (dict = *dict_ptr)) {
     pyrna_dir_members_py__add_keys(list, dict);
@@ -5675,7 +5675,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
             ((float *)array)[i] = float(PyFloat_AsDouble(item));
             break;
           case PROP_RAW_DOUBLE:
-            ((double *)array)[i] = double(PyFloat_AsDouble(item));
+            ((double *)array)[i] = PyFloat_AsDouble(item);
             break;
           case PROP_RAW_INT64:
             ((int64_t *)array)[i] = PyC_Long_AsI64(item);
@@ -5756,7 +5756,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
             item = PyFloat_FromDouble(double(((float *)array)[i]));
             break;
           case PROP_RAW_DOUBLE:
-            item = PyFloat_FromDouble(double(((double *)array)[i]));
+            item = PyFloat_FromDouble(((double *)array)[i]);
             break;
           case PROP_RAW_BOOLEAN:
             item = PyBool_FromLong(long(((bool *)array)[i]));
@@ -8552,7 +8552,7 @@ static PyObject *bpy_types_module_getattro(PyObject *self, PyObject *pyname)
     return nullptr;
 #endif
     /* The error raised here will be displayed. */
-    ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+    ret = PyObject_GenericGetAttr(self, pyname);
   }
 
   return ret;

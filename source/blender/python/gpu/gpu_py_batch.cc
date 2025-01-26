@@ -240,7 +240,7 @@ static const char *pygpu_shader_check_compatibility(blender::gpu::Batch *batch)
   }
 
   /* Check batch compatibility with shader. */
-  for (auto vert : blender::Span(batch->verts, ARRAY_SIZE(batch->verts))) {
+  for (auto *vert : blender::Span(batch->verts, ARRAY_SIZE(batch->verts))) {
     if (!vert) {
       continue;
     }

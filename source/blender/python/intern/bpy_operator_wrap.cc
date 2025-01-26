@@ -142,7 +142,7 @@ PyObject *PYOP_wrap_macro_define(PyObject * /*self*/, PyObject *args)
   }
 
   /* identifiers */
-  srna = pyrna_struct_as_srna((PyObject *)macro, false, "Macro Define:");
+  srna = pyrna_struct_as_srna(macro, false, "Macro Define:");
   if (srna == nullptr) {
     return nullptr;
   }

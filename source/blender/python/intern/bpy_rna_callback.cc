@@ -85,7 +85,7 @@ static void cb_wm_cursor_draw(bContext *C, int x, int y, void *customdata)
   PyObject *cb_func, *cb_args, *result;
   PyGILState_STATE gilstate;
 
-  bpy_context_set((bContext *)C, &gilstate);
+  bpy_context_set(C, &gilstate);
 
   cb_func = PyTuple_GET_ITEM((PyObject *)customdata, 1);
   cb_args = PyTuple_GET_ITEM((PyObject *)customdata, 2);
@@ -110,7 +110,7 @@ static void cb_wm_cursor_draw(bContext *C, int x, int y, void *customdata)
     PyErr_Clear();
   }
 
-  bpy_context_clear((bContext *)C, &gilstate);
+  bpy_context_clear(C, &gilstate);
 }
 
 #if 0
@@ -354,7 +354,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
    * This reference is decremented in #BPY_callback_screen_free and #BPY_callback_wm_free. */
   Py_INCREF(args);
 
-  PyObject *ret = PyCapsule_New((void *)handle, rna_capsual_id, nullptr);
+  PyObject *ret = PyCapsule_New(handle, rna_capsual_id, nullptr);
 
   /* Store 'args' in context as well for simple access. */
   PyCapsule_SetDestructor(ret, cb_rna_capsule_destructor);

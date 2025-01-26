@@ -218,7 +218,7 @@ static float turb(
   float amp, out, t;
   int i;
   amp = 1.0f;
-  out = float(2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f);
+  out = (2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f);
   if (hard) {
     out = fabsf(out);
   }
@@ -227,7 +227,7 @@ static float turb(
     x *= freqscale;
     y *= freqscale;
     z *= freqscale;
-    t = float(amp * (2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f));
+    t = (amp * (2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f));
     if (hard) {
       t = fabsf(t);
     }

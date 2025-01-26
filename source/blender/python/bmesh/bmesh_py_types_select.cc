@@ -353,7 +353,7 @@ static PyObject *bpy_bmeditseliter_next(BPy_BMEditSelIter *self)
   }
 
   self->ese = ese->next;
-  return (PyObject *)BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
+  return BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
 }
 
 PyTypeObject BPy_BMEditSelSeq_Type;

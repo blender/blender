@@ -122,7 +122,7 @@ static PyObject *pyop_poll(PyObject * /*self*/, PyObject *args)
   }
 
   /* main purpose of this function */
-  ret = WM_operator_poll_context((bContext *)C, ot, context) ? Py_True : Py_False;
+  ret = WM_operator_poll_context(C, ot, context) ? Py_True : Py_False;
 
   return Py_NewRef(ret);
 }
@@ -204,7 +204,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
     context = wmOperatorCallContext(context_int);
   }
 
-  if (WM_operator_poll_context((bContext *)C, ot, context) == false) {
+  if (WM_operator_poll_context(C, ot, context) == false) {
     bool msg_free = false;
     const char *msg = CTX_wm_operator_poll_msg_get(C, &msg_free);
     PyErr_Format(PyExc_RuntimeError,

@@ -338,7 +338,7 @@ static PyObject *app_translations_py_messages_register(BlenderAppTranslations *s
         PyExc_ValueError,
         "bpy.app.translations.register: translations message cache already contains some data for "
         "addon '%s'",
-        (const char *)PyUnicode_AsUTF8(module_name));
+        PyUnicode_AsUTF8(module_name));
     return nullptr;
   }
 

@@ -550,7 +550,7 @@ static int py_to_array(PyObject *seq,
     if (prop_is_param_dyn_alloc) {
       /* not freeing allocated mem, RNA_parameter_list_free() will do this */
       ParameterDynAlloc *param_alloc = (ParameterDynAlloc *)param_data;
-      param_alloc->array_tot = int(totitem);
+      param_alloc->array_tot = totitem;
 
       /* freeing param list will free */
       param_alloc->array = MEM_callocN(item_size * totitem, "py_to_array dyn");

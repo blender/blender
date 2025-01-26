@@ -99,7 +99,7 @@ static PyObject *vec__apply_to_copy(PyObject *(*vec_func)(VectorObject *), Vecto
   PyObject *ret_dummy = vec_func((VectorObject *)ret);
   if (ret_dummy) {
     Py_DECREF(ret_dummy);
-    return (PyObject *)ret;
+    return ret;
   }
   /* error */
   Py_DECREF(ret);
@@ -2813,7 +2813,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
     size_from = axis_from;
   }
-  else if ((void)PyErr_Clear(), /* run but ignore the result */
+  else if (PyErr_Clear(), /* run but ignore the result */
            (size_from = size_t(mathutils_array_parse(
                 vec_assign, 2, 4, value, "Vector.**** = swizzle assignment"))) == size_t(-1))
   {

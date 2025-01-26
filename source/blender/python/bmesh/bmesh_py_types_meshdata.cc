@@ -360,7 +360,7 @@ int BPy_BMVertSkin_AssignPyObject(MVertSkin *mvertskin, PyObject *value)
     return -1;
   }
 
-  *((MVertSkin *)mvertskin) = *(((BPy_BMVertSkin *)value)->data);
+  *(mvertskin) = *(((BPy_BMVertSkin *)value)->data);
   return 0;
 }
 
