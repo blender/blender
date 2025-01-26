@@ -2063,12 +2063,12 @@ TEST_F(ActionFCurveMoveTest, test_fcurve_move_legacy)
   Action &action_dst = action_add(*this->bmain, "DestinationAction");
 
   /* Add F-Curves to source Action. */
-  BLI_addtail(&action_src.curves, this->fcurve_create("source_prop", 0));
-  FCurve *fcurve_to_move = this->fcurve_create("source_prop", 2);
+  BLI_addtail(&action_src.curves, fcurve_create("source_prop", 0));
+  FCurve *fcurve_to_move = fcurve_create("source_prop", 2);
   BLI_addtail(&action_src.curves, fcurve_to_move);
 
   /* Add F-Curves to destination Action. */
-  BLI_addtail(&action_dst.curves, this->fcurve_create("dest_prop", 0));
+  BLI_addtail(&action_dst.curves, fcurve_create("dest_prop", 0));
 
   ASSERT_TRUE(action_src.is_action_legacy());
   ASSERT_TRUE(action_dst.is_action_legacy());

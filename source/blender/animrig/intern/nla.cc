@@ -8,12 +8,6 @@
 
 #include "ANIM_nla.hh"
 
-#include "BKE_anim_data.hh"
-#include "BKE_lib_id.hh"
-#include "BKE_nla.hh"
-
-#include "BLI_string_utf8.h"
-
 namespace blender::animrig::nla {
 
 bool assign_action(NlaStrip &strip, Action &action, ID &animated_id)

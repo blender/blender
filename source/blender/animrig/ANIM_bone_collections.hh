@@ -14,8 +14,6 @@
 #  error This is a C++ header.
 #endif
 
-#include <stdbool.h>
-
 #include "BLI_map.hh"
 
 #include "BKE_armature.hh"

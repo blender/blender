@@ -92,7 +92,6 @@ class EvaluationResult {
   EvaluationResult(const EvaluationResult &other) = default;
   ~EvaluationResult() = default;
 
- public:
   operator bool() const
   {
     return !this->is_empty();

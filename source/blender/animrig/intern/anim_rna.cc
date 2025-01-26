@@ -40,7 +40,7 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
       }
       case PROP_FLOAT: {
         values.reinitialize(length);
-        RNA_property_float_get_array(ptr, prop, &values[0]);
+        RNA_property_float_get_array(ptr, prop, values.data());
         break;
       }
       default:

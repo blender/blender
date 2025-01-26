@@ -19,7 +19,6 @@
 #include "RNA_prototypes.hh"
 
 #include "BLI_math_base.h"
-#include "BLI_string_utf8.h"
 
 #include <optional>
 

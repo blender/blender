@@ -32,7 +32,7 @@ void pose_apply_restore_fcurves(const Span<FCurve *> fcurves)
 }
 
 /* Returns a vector of all FCurves on which the fcurve flag was modified. */
-static Vector<FCurve *> pose_apply_disable_fcurves_for_unselected_bones(
+Vector<FCurve *> pose_apply_disable_fcurves_for_unselected_bones(
     bAction *action,
     const slot_handle_t slot_handle,
     const blender::bke::BoneNameSet &selected_bone_names)

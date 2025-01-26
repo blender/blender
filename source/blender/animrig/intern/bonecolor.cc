@@ -10,6 +10,8 @@
 
 #include "BLI_hash.hh"
 
+#include "DNA_action_types.h"
+
 #include "UI_resources.hh"
 
 #include <cstring>
@@ -25,7 +27,7 @@ BoneColor::BoneColor(const BoneColor &other)
   this->palette_index = other.palette_index;
   std::memcpy(&this->custom, &other.custom, sizeof(this->custom));
 }
-BoneColor::~BoneColor() {}
+BoneColor::~BoneColor() = default;
 
 const ThemeWireColor *BoneColor::effective_color() const
 {

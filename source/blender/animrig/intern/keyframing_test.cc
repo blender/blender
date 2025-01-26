@@ -27,9 +27,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
-
-#include <limits>
 
 #include "CLG_log.h"
 #include "testing/testing.h"

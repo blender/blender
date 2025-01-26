@@ -4,8 +4,6 @@
 
 #include "ANIM_evaluation.hh"
 
-#include "RNA_access.hh"
-
 #include "BKE_animsys.h"
 #include "BKE_fcurve.hh"
 

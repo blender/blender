@@ -968,13 +968,13 @@ TEST_F(ArmatureBoneCollections, bcoll_move_to_parent__root_unroot)
 TEST_F(ArmatureBoneCollections, bcoll_move_to_parent__within_siblings)
 {
   /* Set up a small hierarchy. */
-  auto bcoll_root_0 = ANIM_armature_bonecoll_new(&arm, "root_0");
-  auto bcoll_root_1 = ANIM_armature_bonecoll_new(&arm, "root_1");
-  auto bcoll_r1_child0 = ANIM_armature_bonecoll_new(&arm, "r1_child0", 1);
-  auto bcoll_r0_child0 = ANIM_armature_bonecoll_new(&arm, "r0_child0", 0);
-  auto bcoll_r0_child1 = ANIM_armature_bonecoll_new(&arm, "r0_child1", 0);
-  auto bcoll_r0_child2 = ANIM_armature_bonecoll_new(&arm, "r0_child2", 0);
-  auto bcoll_r0_child3 = ANIM_armature_bonecoll_new(&arm, "r0_child3", 0);
+  auto *bcoll_root_0 = ANIM_armature_bonecoll_new(&arm, "root_0");
+  auto *bcoll_root_1 = ANIM_armature_bonecoll_new(&arm, "root_1");
+  auto *bcoll_r1_child0 = ANIM_armature_bonecoll_new(&arm, "r1_child0", 1);
+  auto *bcoll_r0_child0 = ANIM_armature_bonecoll_new(&arm, "r0_child0", 0);
+  auto *bcoll_r0_child1 = ANIM_armature_bonecoll_new(&arm, "r0_child1", 0);
+  auto *bcoll_r0_child2 = ANIM_armature_bonecoll_new(&arm, "r0_child2", 0);
+  auto *bcoll_r0_child3 = ANIM_armature_bonecoll_new(&arm, "r0_child3", 0);
 
   ASSERT_EQ(2, arm.collection_root_count);
   ASSERT_EQ(7, arm.collection_array_num);
@@ -1321,7 +1321,7 @@ class ArmatureBoneCollectionsTestList : public testing::Test {
   {
     std::vector<std::string> actual_names;
     for (const BoneCollection *bcoll : arm.collections_span()) {
-      actual_names.push_back(bcoll->name);
+      actual_names.emplace_back(bcoll->name);
     }
 
     if (expect_names == actual_names) {

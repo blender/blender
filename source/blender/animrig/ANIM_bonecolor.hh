@@ -14,7 +14,7 @@
 #  error This is a C++ header.
 #endif
 
-#include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 
 struct bPoseChannel;
 struct ThemeWireColor;
