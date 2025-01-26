@@ -20,7 +20,7 @@
 #include "BLI_memarena.h"
 #include "BLI_task.h"
 
-#include "BKE_attribute.hh"
+#include "BKE_attribute.h"
 #include "BKE_customdata.hh"
 #include "BKE_multires.hh"
 
@@ -282,7 +282,7 @@ static bool quad_co(const float v1[3],
 
 static void mdisp_axis_from_quad(const float v1[3],
                                  const float v2[3],
-                                 float[3] /*v3[3]*/,
+                                 float /*v3*/[3],
                                  const float v4[3],
                                  float r_axis_x[3],
                                  float r_axis_y[3])

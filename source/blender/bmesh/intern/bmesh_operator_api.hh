@@ -11,7 +11,7 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
-#include <stdarg.h>
+#include <cstdarg>
 
 #include "bmesh_class.hh"
 
@@ -181,7 +181,7 @@ BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, short ofla
 
 /* slot type arrays are terminated by the last member
  * having a slot type of 0 */
-typedef enum eBMOpSlotType {
+enum eBMOpSlotType {
   /* BMO_OP_SLOT_SENTINEL = 0, */
   BMO_OP_SLOT_BOOL = 1,
   BMO_OP_SLOT_INT = 2,
@@ -199,55 +199,55 @@ typedef enum eBMOpSlotType {
    * it's very important this remain a power of two */
   BMO_OP_SLOT_ELEMENT_BUF = 9, /* list of verts/edges/faces */
   BMO_OP_SLOT_MAPPING = 10     /* simple hash map, requires subtype BMO_OP_SLOT_SUBTYPE_MAP_xxx */
-} eBMOpSlotType;
+};
 #define BMO_OP_SLOT_TOTAL_TYPES 11
 
 /* don't overlap values to avoid confusion */
-typedef enum eBMOpSlotSubType_Elem {
+enum eBMOpSlotSubType_Elem {
   /* use as flags */
   BMO_OP_SLOT_SUBTYPE_ELEM_VERT = BM_VERT,
   BMO_OP_SLOT_SUBTYPE_ELEM_EDGE = BM_EDGE,
   BMO_OP_SLOT_SUBTYPE_ELEM_FACE = BM_FACE,
   BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE = (BM_FACE << 1),
-} eBMOpSlotSubType_Elem;
+};
 ENUM_OPERATORS(eBMOpSlotSubType_Elem, BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE)
 
-typedef enum eBMOpSlotSubType_Map {
+enum eBMOpSlotSubType_Map {
   BMO_OP_SLOT_SUBTYPE_MAP_EMPTY = 64, /* use as a set(), unused value */
   BMO_OP_SLOT_SUBTYPE_MAP_ELEM = 65,
   BMO_OP_SLOT_SUBTYPE_MAP_FLT = 66,
   BMO_OP_SLOT_SUBTYPE_MAP_INT = 67,
   BMO_OP_SLOT_SUBTYPE_MAP_BOOL = 68,
   BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL = 69, /* python can't convert these */
-} eBMOpSlotSubType_Map;
-typedef enum eBMOpSlotSubType_Ptr {
+};
+enum eBMOpSlotSubType_Ptr {
   BMO_OP_SLOT_SUBTYPE_PTR_BMESH = 100,
   BMO_OP_SLOT_SUBTYPE_PTR_SCENE = 101,
   BMO_OP_SLOT_SUBTYPE_PTR_OBJECT = 102,
   BMO_OP_SLOT_SUBTYPE_PTR_MESH = 103,
   BMO_OP_SLOT_SUBTYPE_PTR_STRUCT = 104,
-} eBMOpSlotSubType_Ptr;
-typedef enum eBMOpSlotSubType_Int {
+};
+enum eBMOpSlotSubType_Int {
   BMO_OP_SLOT_SUBTYPE_INT_ENUM = 200,
   BMO_OP_SLOT_SUBTYPE_INT_FLAG = 201,
-} eBMOpSlotSubType_Int;
+};
 
-typedef union eBMOpSlotSubType_Union {
+union eBMOpSlotSubType_Union {
   eBMOpSlotSubType_Elem elem;
   eBMOpSlotSubType_Ptr ptr;
   eBMOpSlotSubType_Map map;
   eBMOpSlotSubType_Int intg;
-} eBMOpSlotSubType_Union;
+};
 
-typedef struct BMO_FlagSet {
+struct BMO_FlagSet {
   int value;
   const char *identifier;
-} BMO_FlagSet;
+};
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine. */
 
-typedef struct BMOpSlot {
+struct BMOpSlot {
   const char *slot_name; /* pointer to BMOpDefine.slot_args */
   eBMOpSlotType slot_type;
   eBMOpSlotSubType_Union slot_subtype;
@@ -268,7 +268,7 @@ typedef struct BMOpSlot {
       BMO_FlagSet *flags;
     } enum_data;
   } data;
-} BMOpSlot;
+};
 
 /* mainly for use outside bmesh internal code */
 #define BMO_SLOT_AS_BOOL(slot) ((slot)->data.i)
@@ -287,7 +287,7 @@ typedef struct BMOpSlot {
 #define BMO_OP_MAX_SLOTS 21
 
 /* BMOpDefine->type_flag */
-typedef enum {
+enum BMOpTypeFlag {
   BMO_OPTYPE_FLAG_NOP = 0,
   /** Switch from multires tangent space to absolute coordinates. */
   BMO_OPTYPE_FLAG_UNTAN_MULTIRES = (1 << 0),
@@ -295,10 +295,10 @@ typedef enum {
   BMO_OPTYPE_FLAG_SELECT_FLUSH = (1 << 2),
   BMO_OPTYPE_FLAG_SELECT_VALIDATE = (1 << 3),
   BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL = (1 << 4),
-} BMOpTypeFlag;
+};
 ENUM_OPERATORS(BMOpTypeFlag, BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL)
 
-typedef struct BMOperator {
+struct BMOperator {
   struct BMOpSlot slots_in[BMO_OP_MAX_SLOTS];
   struct BMOpSlot slots_out[BMO_OP_MAX_SLOTS];
   void (*exec)(BMesh *bm, struct BMOperator *op);
@@ -306,7 +306,7 @@ typedef struct BMOperator {
   int type;
   BMOpTypeFlag type_flag;
   int flag; /* runtime options */
-} BMOperator;
+};
 
 enum {
   BMO_FLAG_RESPECT_HIDE = 1,
@@ -316,20 +316,20 @@ enum {
 
 #define MAX_SLOTNAME 32
 
-typedef struct BMOSlotType {
+struct BMOSlotType {
   char name[MAX_SLOTNAME];
   eBMOpSlotType type;
   eBMOpSlotSubType_Union subtype;
   BMO_FlagSet *enum_flags;
-} BMOSlotType;
+};
 
-typedef struct BMOpDefine {
+struct BMOpDefine {
   const char *opname;
   BMOSlotType slot_types_in[BMO_OP_MAX_SLOTS];
   BMOSlotType slot_types_out[BMO_OP_MAX_SLOTS];
   void (*exec)(BMesh *bm, BMOperator *op);
   BMOpTypeFlag type_flag;
-} BMOpDefine;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name BMesh Operator API
@@ -521,7 +521,7 @@ enum {
   DEL_ONLYTAGGED,
 };
 
-typedef enum {
+enum BMO_SymmDirection {
   BMO_SYMMETRIZE_NEGATIVE_X,
   BMO_SYMMETRIZE_NEGATIVE_Y,
   BMO_SYMMETRIZE_NEGATIVE_Z,
@@ -529,15 +529,15 @@ typedef enum {
   BMO_SYMMETRIZE_POSITIVE_X,
   BMO_SYMMETRIZE_POSITIVE_Y,
   BMO_SYMMETRIZE_POSITIVE_Z,
-} BMO_SymmDirection;
+};
 
-typedef enum {
+enum BMO_Delimit {
   BMO_DELIM_NORMAL = 1 << 0,
   BMO_DELIM_MATERIAL = 1 << 1,
   BMO_DELIM_SEAM = 1 << 2,
   BMO_DELIM_SHARP = 1 << 3,
   BMO_DELIM_UV = 1 << 4,
-} BMO_Delimit;
+};
 ENUM_OPERATORS(BMO_Delimit, BMO_DELIM_UV)
 
 void BMO_op_flag_enable(BMesh *bm, BMOperator *op, int op_flag);
@@ -784,14 +784,14 @@ void BMO_slot_buffer_from_all(BMesh *bm,
 
 /* contents of this structure are private,
  * don't directly access. */
-typedef struct BMOIter {
+struct BMOIter {
   BMOpSlot *slot;
   int cur;  // for arrays
   GHashIterator giter;
   void **val;
   /** Bit-wise '&' with #BMHeader.htype */
   char restrictmask;
-} BMOIter;
+};
 
 void *BMO_slot_buffer_get_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 

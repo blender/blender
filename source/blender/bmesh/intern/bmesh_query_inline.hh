@@ -53,10 +53,10 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2) BLI_INLINE BMVert *BM_edge_other_vert
   if (e->v1 == v) {
     return e->v2;
   }
-  else if (e->v2 == v) {
+  if (e->v2 == v) {
     return e->v1;
   }
-  return NULL;
+  return nullptr;
 }
 
 /**
@@ -65,7 +65,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2) BLI_INLINE BMVert *BM_edge_other_vert
  */
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE bool BM_edge_is_wire(const BMEdge *e)
 {
-  return (e->l == NULL);
+  return (e->l == nullptr);
 }
 
 /**
@@ -140,7 +140,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE bool BM_loop_is_manifold(cons
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE bool BM_vert_is_wire_endpoint(const BMVert *v)
 {
   const BMEdge *e = v->e;
-  if (e && e->l == NULL) {
+  if (e && e->l == nullptr) {
     return (BM_DISK_EDGE_NEXT(e, v) == e);
   }
   return false;

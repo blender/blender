@@ -777,4 +777,4 @@ int BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
 /* Not really any good place to put this. */
 float bmesh_subd_falloff_calc(int falloff, float val) ATTR_WARN_UNUSED_RESULT;
 
-#include "bmesh_query_inline.hh"
+#include "bmesh_query_inline.hh" /* IWYU pragma: export */

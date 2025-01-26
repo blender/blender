@@ -217,4 +217,4 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
  */
 void BM_mesh_calc_uvs_cube(BMesh *bm, short oflag);
 
-#include "intern/bmesh_operator_api_inline.hh"
+#include "intern/bmesh_operator_api_inline.hh" /* IWYU pragma: export */

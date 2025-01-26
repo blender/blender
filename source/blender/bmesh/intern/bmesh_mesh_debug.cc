@@ -17,8 +17,6 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BLI_utildefines.h"
-
 #  include "BKE_customdata.hh"
 
 #  include "bmesh.hh"

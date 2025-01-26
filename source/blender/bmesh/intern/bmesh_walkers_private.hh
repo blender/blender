@@ -18,77 +18,77 @@ extern BMWalker *bm_walker_types[];
 extern const int bm_totwalkers;
 
 /* Pointer hiding */
-typedef struct BMwGenericWalker {
+struct BMwGenericWalker {
   Link link;
   int depth;
-} BMwGenericWalker;
+};
 
-typedef struct BMwShellWalker {
+struct BMwShellWalker {
   BMwGenericWalker header;
   BMEdge *curedge;
-} BMwShellWalker;
+};
 
-typedef struct BMwLoopShellWalker {
+struct BMwLoopShellWalker {
   BMwGenericWalker header;
   BMLoop *curloop;
-} BMwLoopShellWalker;
+};
 
-typedef struct BMwLoopShellWireWalker {
+struct BMwLoopShellWireWalker {
   BMwGenericWalker header;
   BMElem *curelem;
-} BMwLoopShellWireWalker;
+};
 
-typedef struct BMwIslandboundWalker {
+struct BMwIslandboundWalker {
   BMwGenericWalker header;
   BMLoop *base;
   BMVert *lastv;
   BMLoop *curloop;
-} BMwIslandboundWalker;
+};
 
-typedef struct BMwIslandWalker {
+struct BMwIslandWalker {
   BMwGenericWalker header;
   BMFace *cur;
-} BMwIslandWalker;
+};
 
-typedef struct BMwEdgeLoopWalker {
+struct BMwEdgeLoopWalker {
   BMwGenericWalker header;
   BMEdge *cur, *start;
   BMVert *lastv, *startv;
   BMFace *f_hub;
   bool is_boundary; /* boundary looping changes behavior */
   bool is_single;   /* single means the edge verts are only connected to 1 face */
-} BMwEdgeLoopWalker;
+};
 
-typedef struct BMwFaceLoopWalker {
+struct BMwFaceLoopWalker {
   BMwGenericWalker header;
   BMLoop *l;
   bool no_calc;
-} BMwFaceLoopWalker;
+};
 
-typedef struct BMwEdgeringWalker {
+struct BMwEdgeringWalker {
   BMwGenericWalker header;
   BMLoop *l;
   BMEdge *wireedge;
-} BMwEdgeringWalker;
+};
 
-typedef struct BMwEdgeboundaryWalker {
+struct BMwEdgeboundaryWalker {
   BMwGenericWalker header;
   BMEdge *e;
-} BMwEdgeboundaryWalker;
+};
 
-typedef struct BMwNonManifoldEdgeLoopWalker {
+struct BMwNonManifoldEdgeLoopWalker {
   BMwGenericWalker header;
   BMEdge *start, *cur;
   BMVert *startv, *lastv;
   int face_count; /* face count around the edge. */
-} BMwNonManifoldEdgeLoopWalker;
+};
 
-typedef struct BMwUVEdgeWalker {
+struct BMwUVEdgeWalker {
   BMwGenericWalker header;
   BMLoop *l;
-} BMwUVEdgeWalker;
+};
 
-typedef struct BMwConnectedVertexWalker {
+struct BMwConnectedVertexWalker {
   BMwGenericWalker header;
   BMVert *curvert;
-} BMwConnectedVertexWalker;
+};

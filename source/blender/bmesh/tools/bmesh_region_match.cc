@@ -52,7 +52,7 @@
 #  include "BLI_time_utildefines.h"
 #endif
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal UIDWalk API
@@ -60,7 +60,7 @@
 
 #define PRIME_VERT_INIT 100003
 
-typedef uintptr_t UID_Int;
+using UID_Int = uintptr_t;
 
 struct UIDWalk {
 
@@ -902,7 +902,7 @@ static void bm_face_array_visit(BMFace **faces,
  * \{ */
 
 /* signed user id */
-typedef intptr_t SUID_Int;
+using SUID_Int = intptr_t;
 
 BLI_INLINE intptr_t abs_intptr(intptr_t a)
 {
@@ -1227,7 +1227,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
 /** \name Fast Match
  * \{ */
 
-typedef uintptr_t UIDFashMatch;
+using UIDFashMatch = uintptr_t;
 
 static UIDFashMatch bm_vert_fasthash_single(BMVert *v)
 {

@@ -991,14 +991,14 @@ int BM_face_share_edge_count(BMFace *f_a, BMFace *f_b)
   return count;
 }
 
-bool BM_face_share_edge_check(BMFace *f1, BMFace *f2)
+bool BM_face_share_edge_check(BMFace *f_a, BMFace *f_b)
 {
   BMLoop *l_iter;
   BMLoop *l_first;
 
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f1);
+  l_iter = l_first = BM_FACE_FIRST_LOOP(f_a);
   do {
-    if (BM_edge_in_face(l_iter->e, f2)) {
+    if (BM_edge_in_face(l_iter->e, f_b)) {
       return true;
     }
   } while ((l_iter = l_iter->next) != l_first);

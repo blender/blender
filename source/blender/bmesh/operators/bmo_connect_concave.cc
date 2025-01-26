@@ -26,7 +26,6 @@
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
-#include "BLI_utildefines.h"
 
 #include "bmesh.hh"
 

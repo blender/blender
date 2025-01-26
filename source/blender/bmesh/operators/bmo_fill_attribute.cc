@@ -9,7 +9,6 @@
  */
 
 #include "BLI_linklist_stack.h"
-#include "BLI_utildefines.h"
 
 #include "bmesh.hh"
 

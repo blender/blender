@@ -12,7 +12,6 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 
 #include "bmesh.hh"

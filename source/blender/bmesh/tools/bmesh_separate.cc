@@ -9,16 +9,14 @@
  * so they don't share any vertices/edges with other faces.
  */
 
-#include <climits>
+#include "bmesh_separate.hh" /* own include */
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_buffer.h"
-#include "BLI_utildefines.h"
 
 #include "bmesh.hh"
-#include "bmesh_separate.hh" /* own include */
-#include "intern/bmesh_private.hh"
+#include "intern/bmesh_structure.hh"
 
 void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data)
 {

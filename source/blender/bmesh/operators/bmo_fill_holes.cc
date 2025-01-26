@@ -8,8 +8,6 @@
  * Fill boundary edge loop(s) with faces.
  */
 
-#include "BLI_utildefines.h"
-
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
