@@ -7,7 +7,6 @@
 #include "usd_exporter_context.hh"
 #include "usd_hook.hh"
 #include "usd_utils.hh"
-#include "usd_writer_abstract.hh"
 
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
@@ -23,7 +22,6 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_memory_utils.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -44,7 +42,6 @@ static CLG_LogRef LOG = {"io.usd"};
 
 #ifdef WITH_MATERIALX
 #  include "shader/materialx/material.h"
-#  include "shader/materialx/node_parser.h"
 #  include <pxr/usd/sdf/copyUtils.h>
 #  include <pxr/usd/usdMtlx/reader.h>
 #  include <pxr/usd/usdMtlx/utils.h>
@@ -1361,8 +1358,11 @@ pxr::TfToken token_for_input(const char *input_name)
 
 #ifdef WITH_MATERIALX
 /* A wrapper for the MaterialX code to re-use the standard Texture export code */
-static std::string materialx_export_image(
-    const USDExporterContext &usd_export_context, Main *, Scene *, Image *ima, ImageUser *)
+static std::string materialx_export_image(const USDExporterContext &usd_export_context,
+                                          Main * /*main*/,
+                                          Scene * /*scene*/,
+                                          Image *ima,
+                                          ImageUser * /*iuser*/)
 {
   auto tex_path = get_tex_image_asset_filepath(
       ima, usd_export_context.stage, usd_export_context.export_params);
@@ -1383,7 +1383,7 @@ static pxr::SdfPath reflow_materialx_paths(pxr::SdfPath input_path,
   /* First we see if the path is in the rename_pairs,
    * otherwise we check if it starts with any items in the list plus a path separator (/ or .) .
    * Checking for the path separators, removes false positives from other prefixed elements. */
-  auto value_lookup_ptr = rename_pairs.lookup_ptr(input_path_string);
+  const auto *value_lookup_ptr = rename_pairs.lookup_ptr(input_path_string);
   if (value_lookup_ptr) {
     input_path = pxr::SdfPath(*value_lookup_ptr);
   }
@@ -1415,13 +1415,11 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
       usd_path.GetElementString(),
       /* We want to re-use the same MaterialX document generation code as used by the renderer.
        * While the graph is traversed, we also want it to export the textures out. */
-      (usd_export_context.export_image_fn) ? usd_export_context.export_image_fn :
-                                             std::bind(materialx_export_image,
-                                                       usd_export_context,
-                                                       std::placeholders::_1,
-                                                       std::placeholders::_2,
-                                                       std::placeholders::_3,
-                                                       std::placeholders::_4),
+      (usd_export_context.export_image_fn) ?
+          usd_export_context.export_image_fn :
+          [usd_export_context](Main *main, Scene *scene, Image *ima, ImageUser *iuser) {
+            return materialx_export_image(usd_export_context, main, scene, ima, iuser);
+          },
       /* Active UV map name to use for default texture coordinates. */
       (usd_export_context.export_params.rename_uvmaps) ? "st" : active_uvmap_name,
       active_uvmap_name,

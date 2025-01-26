@@ -23,7 +23,7 @@ class USDCurvesWriter final : public USDAbstractWriter {
   ~USDCurvesWriter() final = default;
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
+  void do_write(HierarchyContext &context) override;
   void assign_materials(const HierarchyContext &context, const pxr::UsdGeomCurves &usd_curves);
 
  private:

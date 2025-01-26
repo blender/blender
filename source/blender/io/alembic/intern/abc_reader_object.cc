@@ -24,7 +24,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 using Alembic::AbcGeom::IObject;

@@ -10,37 +10,24 @@
  * * name imported objects
  * * import object rotation as euler */
 
-#include <algorithm> /* sort() */
 #include <map>
 #include <string>
 
 #include "COLLADAFWArrayPrimitiveType.h"
 #include "COLLADAFWCamera.h"
-#include "COLLADAFWColorOrTexture.h"
-#include "COLLADAFWIndexList.h"
 #include "COLLADAFWLibraryNodes.h"
 #include "COLLADAFWLight.h"
-#include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
-#include "COLLADAFWPolygons.h"
 #include "COLLADAFWRoot.h"
-#include "COLLADAFWSampler.h"
-#include "COLLADAFWStableHeaders.h"
-#include "COLLADAFWTypes.h"
 #include "COLLADAFWVisualScene.h"
 
-#include "COLLADASaxFWLIExtraDataCallbackHandler.h"
 #include "COLLADASaxFWLLoader.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_camera.h"
 #include "BKE_collection.hh"
+#include "BKE_constraint.h"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
@@ -66,7 +53,6 @@
 #include "DocumentImporter.h"
 #include "ErrorHandler.h"
 #include "ExtraHandler.h"
-#include "TransformReader.h"
 
 #include "Materials.h"
 #include "collada_internal.h"

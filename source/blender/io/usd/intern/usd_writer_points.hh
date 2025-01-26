@@ -23,7 +23,7 @@ class USDPointsWriter final : public USDAbstractWriter {
   ~USDPointsWriter() final = default;
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
+  void do_write(HierarchyContext &context) override;
 
  private:
   void write_generic_data(const bke::AttributeIter &attr,

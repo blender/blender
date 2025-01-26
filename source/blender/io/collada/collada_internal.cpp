@@ -6,14 +6,16 @@
  * \ingroup collada
  */
 
-/* COLLADABU_ASSERT, may be able to remove later */
-#include "COLLADABUPlatform.h"
-#include "collada_utils.h"
+#include "collada_internal.h"
 
-#include "BLI_linklist.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 
 #include "BKE_armature.hh"
+
+#include "RNA_access.hh"
+
+#include <map>
 
 UnitConverter::UnitConverter() : up_axis(COLLADAFW::FileInfo::Z_UP)
 {

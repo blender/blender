@@ -44,6 +44,7 @@
 
 #include "ANIM_animdata.hh"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -1313,9 +1314,7 @@ void export_deform_verts(const Mesh *mesh,
   int max_totweight = 1;
   for (const int i : dverts.index_range()) {
     const MDeformVert &vert = dverts[i];
-    if (vert.totweight > max_totweight) {
-      max_totweight = vert.totweight;
-    }
+    max_totweight = std::max(vert.totweight, max_totweight);
   }
 
   /* elem_size will specify the number of

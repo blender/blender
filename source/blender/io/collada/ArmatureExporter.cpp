@@ -6,18 +6,9 @@
  * \ingroup collada
  */
 
-#include "COLLADASWBaseInputElement.h"
 #include "COLLADASWInstanceController.h"
-#include "COLLADASWPrimitves.h"
-#include "COLLADASWSource.h"
 
-#include "DNA_action_types.h"
-#include "DNA_modifier_types.h"
-
-#include "BKE_action.hh"
 #include "BKE_armature.hh"
-#include "BKE_global.hh"
-#include "BKE_mesh.hh"
 
 #include "ED_armature.hh"
 
@@ -25,8 +16,9 @@
 #include "BLI_math_matrix.h"
 
 #include "ArmatureExporter.h"
-#include "GeometryExporter.h"
 #include "SceneExporter.h"
+
+#include "collada_utils.h"
 
 void ArmatureExporter::add_bone_collections(Object *ob_arm, COLLADASW::Node &node)
 {
@@ -190,7 +182,7 @@ void ArmatureExporter::add_bone_node(Bone *bone,
         }
       }
 
-      std::string collection_names = "";
+      std::string collection_names;
       LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, &bone->runtime.collections) {
         collection_names += std::string(bcoll_ref->bcoll->name) + "\n";
       }

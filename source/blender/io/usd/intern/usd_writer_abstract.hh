@@ -41,7 +41,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
  public:
   USDAbstractWriter(const USDExporterContext &usd_export_context);
 
-  virtual void write(HierarchyContext &context) override;
+  void write(HierarchyContext &context) override;
 
   /**
    * Returns true if the data to be written is actually supported. This would, for example, allow a

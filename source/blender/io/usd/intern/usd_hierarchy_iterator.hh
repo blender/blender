@@ -41,21 +41,19 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
   void set_export_frame(float frame_nr);
 
-  virtual std::string make_valid_name(const std::string &name) const override;
+  std::string make_valid_name(const std::string &name) const override;
 
   void process_usd_skel() const;
 
  protected:
-  virtual bool mark_as_weak_export(const Object *object) const override;
+  bool mark_as_weak_export(const Object *object) const override;
 
-  virtual AbstractHierarchyWriter *create_transform_writer(
-      const HierarchyContext *context) override;
-  virtual AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) override;
-  virtual AbstractHierarchyWriter *create_hair_writer(const HierarchyContext *context) override;
-  virtual AbstractHierarchyWriter *create_particle_writer(
-      const HierarchyContext *context) override;
+  AbstractHierarchyWriter *create_transform_writer(const HierarchyContext *context) override;
+  AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) override;
+  AbstractHierarchyWriter *create_hair_writer(const HierarchyContext *context) override;
+  AbstractHierarchyWriter *create_particle_writer(const HierarchyContext *context) override;
 
-  virtual void release_writer(AbstractHierarchyWriter *writer) override;
+  void release_writer(AbstractHierarchyWriter *writer) override;
 
   virtual bool include_data_writers(const HierarchyContext *context) const override;
   virtual bool include_child_writers(const HierarchyContext *context) const override;

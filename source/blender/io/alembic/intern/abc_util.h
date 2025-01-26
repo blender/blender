@@ -18,7 +18,6 @@
 #include <Alembic/AbcCoreAbstract/TimeSampling.h>
 #include <Alembic/AbcGeom/IXform.h>
 
-#include <fstream>
 #include <optional>
 #include <string>
 #include <vector>

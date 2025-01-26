@@ -4,8 +4,6 @@
 
 #include "id.hh"
 
-#include "BKE_lib_id.hh"
-
 namespace blender::io::hydra {
 
 IdData::IdData(HydraSceneDelegate *scene_delegate, const ID *id, pxr::SdfPath const &prim_id)

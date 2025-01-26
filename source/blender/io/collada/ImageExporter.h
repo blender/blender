@@ -8,15 +8,10 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "COLLADASWLibraryImages.h"
 #include "COLLADASWStreamWriter.h"
 
 #include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "ExportSettings.h"

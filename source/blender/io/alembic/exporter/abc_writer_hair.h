@@ -23,12 +23,12 @@ class ABCHairWriter : public ABCAbstractWriter {
  public:
   explicit ABCHairWriter(const ABCWriterConstructorArgs &args);
 
-  virtual void create_alembic_objects(const HierarchyContext *context) override;
-  virtual Alembic::Abc::OObject get_alembic_object() const override;
+  void create_alembic_objects(const HierarchyContext *context) override;
+  Alembic::Abc::OObject get_alembic_object() const override;
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
-  virtual bool check_is_animated(const HierarchyContext &context) const override;
+  void do_write(HierarchyContext &context) override;
+  bool check_is_animated(const HierarchyContext &context) const override;
   Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
 
  private:

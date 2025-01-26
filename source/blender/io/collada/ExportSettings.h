@@ -18,30 +18,30 @@
 extern "C" {
 #endif
 
-typedef enum BC_export_mesh_type {
+enum BC_export_mesh_type {
   BC_MESH_TYPE_VIEW,
   BC_MESH_TYPE_RENDER,
-} BC_export_mesh_type;
+};
 
-typedef enum BC_export_transformation_type {
+enum BC_export_transformation_type {
   BC_TRANSFORMATION_TYPE_MATRIX,
   BC_TRANSFORMATION_TYPE_DECOMPOSED,
-} BC_export_transformation_type;
+};
 
-typedef enum BC_export_animation_type {
+enum BC_export_animation_type {
   BC_ANIMATION_EXPORT_SAMPLES,
   BC_ANIMATION_EXPORT_KEYS,
-} BC_export_animation_type;
+};
 
-typedef enum BC_ui_export_section {
+enum BC_ui_export_section {
   BC_UI_SECTION_MAIN,
   BC_UI_SECTION_GEOMETRY,
   BC_UI_SECTION_ARMATURE,
   BC_UI_SECTION_ANIMATION,
   BC_UI_SECTION_COLLADA,
-} BC_ui_export_section;
+};
 
-typedef struct ExportSettings {
+struct ExportSettings {
   bool apply_modifiers;
   BC_global_forward_axis global_forward;
   BC_global_up_axis global_up;
@@ -78,7 +78,7 @@ typedef struct ExportSettings {
 
   char *filepath;
   LinkNode *export_set;
-} ExportSettings;
+};
 
 #ifdef __cplusplus
 }

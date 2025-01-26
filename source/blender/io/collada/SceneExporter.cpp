@@ -6,13 +6,15 @@
  * \ingroup collada
  */
 
-#include "BKE_collection.hh"
-#include "BKE_lib_id.hh"
-#include "BKE_object.hh"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "COLLADASWInstanceCamera.h"
+#include "COLLADASWInstanceGeometry.h"
+#include "COLLADASWInstanceLight.h"
 
-#include "BCSampleData.h"
+#include "BLI_listbase.h"
+
+#include "BKE_collection.hh"
+#include "BKE_constraint.h"
+
 #include "SceneExporter.h"
 #include "collada_utils.h"
 

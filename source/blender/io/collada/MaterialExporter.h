@@ -22,7 +22,6 @@
 
 #include "ExportSettings.h"
 #include "GeometryExporter.h"
-#include "Materials.h"
 #include "collada_internal.h"
 
 class MaterialsExporter : COLLADASW::LibraryMaterials {

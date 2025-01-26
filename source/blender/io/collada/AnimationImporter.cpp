@@ -8,8 +8,15 @@
 
 #include <cstddef>
 
-/* COLLADABU_ASSERT, may be able to remove later */
-#include "COLLADABUPlatform.h"
+#include "COLLADAFWAnimation.h"
+#include "COLLADAFWAnimationCurve.h"
+#include "COLLADAFWAnimationList.h"
+#include "COLLADAFWCamera.h"
+#include "COLLADAFWEffect.h"
+#include "COLLADAFWLight.h"
+#include "COLLADAFWNode.h"
+#include "COLLADAFWRotate.h"
+#include "COLLADAFWUniqueId.h"
 
 #include "DNA_armature_types.h"
 
@@ -20,23 +27,16 @@
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
-#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
-
-#include "BLT_translation.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_object.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
-#include "MaterialExporter.h"
 #include "collada_utils.h"
 
 #include <algorithm>

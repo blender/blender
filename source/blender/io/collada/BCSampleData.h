@@ -4,25 +4,15 @@
 
 #pragma once
 
-#include <algorithm>
 #include <map>
 #include <string>
 
 #include "BCMath.h"
-#include "BCSampleData.h"
-#include "ExportSettings.h"
-
-#include "BKE_object.hh"
-
-#include "BLI_math_rotation.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_light_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
-typedef std::map<Bone *, BCMatrix *> BCBoneMatrixMap;
+using BCBoneMatrixMap = std::map<Bone *, BCMatrix *>;
 
 class BCSample {
  private:
@@ -42,6 +32,6 @@ class BCSample {
   const BCMatrix *get_matrix(Bone *bone) const; /* returns NULL if bone is not animated */
 };
 
-typedef std::map<Object *, BCSample *> BCSampleMap;
-typedef std::map<int, const BCSample *> BCFrameSampleMap;
-typedef std::map<int, const BCMatrix *> BCMatrixSampleMap;
+using BCSampleMap = std::map<Object *, BCSample *>;
+using BCFrameSampleMap = std::map<int, const BCSample *>;
+using BCMatrixSampleMap = std::map<int, const BCMatrix *>;

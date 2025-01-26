@@ -6,14 +6,15 @@
  * \ingroup collada
  */
 
-/* COLLADABU_ASSERT, may be able to remove later */
-#include "COLLADABUPlatform.h"
+#include "COLLADAFWMatrix.h"
+#include "COLLADAFWRotate.h"
+#include "COLLADAFWScale.h"
+#include "COLLADAFWTranslate.h"
 
 #include "TransformReader.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 
 TransformReader::TransformReader(UnitConverter *conv) : unit_converter(conv)
 {

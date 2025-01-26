@@ -16,9 +16,9 @@ class USDArmatureWriter : public USDAbstractWriter {
   USDArmatureWriter(const USDExporterContext &ctx);
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
+  void do_write(HierarchyContext &context) override;
 
-  virtual bool check_is_animated(const HierarchyContext &context) const override;
+  bool check_is_animated(const HierarchyContext &context) const override;
 
  private:
   Map<StringRef, const Bone *> deform_map_;

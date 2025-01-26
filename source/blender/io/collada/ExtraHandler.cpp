@@ -6,8 +6,10 @@
  * \ingroup collada
  */
 
-#include "BLI_string.h"
 #include <cstddef>
+#include <vector>
+
+#include "BLI_string.h"
 
 #include "ExtraHandler.h"
 

@@ -520,7 +520,7 @@ void USD_read_geometry(CacheReader *reader,
     return;
   }
 
-  return usd_reader->read_geometry(geometry_set, params, r_err_str);
+  usd_reader->read_geometry(geometry_set, params, r_err_str);
 }
 
 bool USD_mesh_topology_changed(CacheReader *reader,

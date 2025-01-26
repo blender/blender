@@ -8,13 +8,9 @@
 
 #pragma once
 
-#include <algorithm> /* sort() */
-#include <map>
 #include <string>
 #include <vector>
 
-#include "COLLADASWInstanceController.h"
-#include "COLLADASaxFWLFilePartLoader.h"
 #include "COLLADASaxFWLIExtraDataCallbackHandler.h"
 
 #include "AnimationImporter.h"
@@ -29,20 +25,20 @@ class ExtraHandler : public COLLADASaxFWL::IExtraDataCallbackHandler {
   ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp);
 
   /** Handle the beginning of an element. */
-  bool elementBegin(const char *elementName, const char **attributes);
+  bool elementBegin(const char *elementName, const char **attributes) override;
 
   /** Handle the end of an element. */
-  bool elementEnd(const char *elementName);
+  bool elementEnd(const char *elementName) override;
 
   /** Receive the data in text format. */
-  bool textData(const char *text, size_t textLength);
+  bool textData(const char *text, size_t textLength) override;
 
   /** Method to ask, if the current callback handler want to read the data of the given extra
    * element. */
   bool parseElement(const char *profileName,
                     const unsigned long &elementHash,
                     const COLLADAFW::UniqueId &uniqueId,
-                    COLLADAFW::Object *object);
+                    COLLADAFW::Object *object) override;
 
   /** For backwards compatibility with older OpenCollada, new version added object parameter */
   bool parseElement(const char *profileName,

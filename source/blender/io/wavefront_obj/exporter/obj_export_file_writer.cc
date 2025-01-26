@@ -15,6 +15,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_fileops.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"

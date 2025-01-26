@@ -5,12 +5,9 @@
 #include "tests/blendfile_loading_base_test.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_main.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_string.h"
-
-#include "BLO_readfile.hh"
 
 #include "DEG_depsgraph.hh"
 

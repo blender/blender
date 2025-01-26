@@ -20,12 +20,12 @@ class ABCTransformWriter : public ABCAbstractWriter {
 
  public:
   explicit ABCTransformWriter(const ABCWriterConstructorArgs &args);
-  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  void create_alembic_objects(const HierarchyContext *context) override;
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
-  virtual bool check_is_animated(const HierarchyContext &context) const override;
-  virtual Alembic::Abc::OObject get_alembic_object() const override;
+  void do_write(HierarchyContext &context) override;
+  bool check_is_animated(const HierarchyContext &context) const override;
+  Alembic::Abc::OObject get_alembic_object() const override;
   const IDProperty *get_id_properties(const HierarchyContext &context) const override;
   Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
 };

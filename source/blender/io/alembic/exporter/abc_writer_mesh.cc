@@ -10,8 +10,6 @@
 #include "abc_hierarchy_iterator.h"
 #include "intern/abc_axis_conversion.h"
 
-#include "BLI_math_vector.h"
-
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"

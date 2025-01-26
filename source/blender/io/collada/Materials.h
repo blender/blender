@@ -9,14 +9,13 @@
 
 #include "BKE_context.hh"
 #include "BKE_node.hh"
-#include "BLI_listbase.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
 #include "COLLADAFWEffectCommon.h"
 #include "collada_utils.h"
 
-typedef std::map<std::string, bNode *> NodeMap;
+using NodeMap = std::map<std::string, bNode *>;
 
 class MaterialNode {
 

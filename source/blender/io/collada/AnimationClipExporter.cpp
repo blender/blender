@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "AnimationClipExporter.h"
-#include "GeometryExporter.h"
-#include "MaterialExporter.h"
 
 void AnimationClipExporter::exportAnimationClips(Scene *sce)
 {

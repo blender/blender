@@ -34,7 +34,7 @@ class ABCAbstractWriter : public AbstractHierarchyWriter {
  public:
   explicit ABCAbstractWriter(const ABCWriterConstructorArgs &args);
 
-  virtual void write(HierarchyContext &context) override;
+  void write(HierarchyContext &context) override;
 
   /* Returns true if the data to be written is actually supported. This would, for example, allow a
    * hypothetical camera writer accept a perspective camera but reject an orthogonal one.

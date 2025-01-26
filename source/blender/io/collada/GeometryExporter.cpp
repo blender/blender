@@ -15,14 +15,15 @@
 
 #include "GeometryExporter.h"
 
+#include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.hh"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -68,7 +69,7 @@ void GeometryExporter::operator()(Object *ob)
 
   exportedGeometry.insert(geom_id);
 
-  bool has_color = bool(CustomData_has_layer(&mesh->fdata_legacy, CD_MCOL));
+  bool has_color = CustomData_has_layer(&mesh->fdata_legacy, CD_MCOL);
 
   create_normals(nor, norind, mesh);
 
@@ -81,7 +82,7 @@ void GeometryExporter::operator()(Object *ob)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, mesh, nor);
 
-  bool has_uvs = bool(CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2));
+  bool has_uvs = CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2);
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -152,7 +153,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *mesh, KeyBlock *kb)
 
   exportedGeometry.insert(geom_id);
 
-  bool has_color = bool(CustomData_has_layer(&mesh->fdata_legacy, CD_MCOL));
+  bool has_color = CustomData_has_layer(&mesh->fdata_legacy, CD_MCOL);
 
   create_normals(nor, norind, mesh);
 
@@ -165,7 +166,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *mesh, KeyBlock *kb)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, mesh, nor);
 
-  bool has_uvs = bool(CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2));
+  bool has_uvs = CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2);
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -452,9 +453,9 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *mesh)
   source.setAccessorStride(3);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("X");
-  param.push_back("Y");
-  param.push_back("Z");
+  param.emplace_back("X");
+  param.emplace_back("Y");
+  param.emplace_back("Z");
   /* main function, it creates <source id = "">, <float_array id = ""
    * count = ""> */
   source.prepareToAppendValues();
@@ -504,10 +505,10 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *mesh)
     source.setAccessorStride(4);
 
     COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-    param.push_back("R");
-    param.push_back("G");
-    param.push_back("B");
-    param.push_back("A");
+    param.emplace_back("R");
+    param.emplace_back("G");
+    param.emplace_back("B");
+    param.emplace_back("A");
 
     source.prepareToAppendValues();
 
@@ -562,8 +563,8 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *mesh)
       source.setAccessorCount(totuv);
       source.setAccessorStride(2);
       COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-      param.push_back("S");
-      param.push_back("T");
+      param.emplace_back("S");
+      param.emplace_back("T");
 
       source.prepareToAppendValues();
 
@@ -594,9 +595,9 @@ void GeometryExporter::createNormalsSource(std::string geom_id,
   source.setAccessorCount(ulong(nor.size()));
   source.setAccessorStride(3);
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("X");
-  param.push_back("Y");
-  param.push_back("Z");
+  param.emplace_back("X");
+  param.emplace_back("Y");
+  param.emplace_back("Z");
 
   source.prepareToAppendValues();
 

@@ -69,12 +69,12 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     return true;
   }
 
-  virtual void SetUp() override
+  void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
   }
 
-  virtual void TearDown() override
+  void TearDown() override
   {
     BlendfileLoadingBaseTest::TearDown();
     CTX_free(context);
@@ -85,7 +85,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     }
   }
 
-  const pxr::UsdPrim get_first_child_mesh(const pxr::UsdPrim prim)
+  pxr::UsdPrim get_first_child_mesh(const pxr::UsdPrim prim)
   {
     for (auto child : prim.GetChildren()) {
       if (child.IsA<pxr::UsdGeomMesh>()) {
@@ -99,13 +99,12 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
    * Loop the sockets on the Blender `bNode`, and fail if any of their values do
    * not match the equivalent Attribute values on the `UsdPrim`.
    */
-  const void compare_blender_node_to_usd_prim(const bNode *bsdf_node,
-                                              const pxr::UsdPrim &bsdf_prim)
+  void compare_blender_node_to_usd_prim(const bNode *bsdf_node, const pxr::UsdPrim &bsdf_prim)
   {
     ASSERT_NE(bsdf_node, nullptr);
     ASSERT_TRUE(bool(bsdf_prim));
 
-    for (auto socket : bsdf_node->input_sockets()) {
+    for (const auto *socket : bsdf_node->input_sockets()) {
       const pxr::TfToken attribute_token = blender::io::usd::token_for_input(socket->name);
       if (attribute_token.IsEmpty()) {
         /* This socket is not translated between Blender and USD. */
@@ -152,8 +151,8 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     }
   }
 
-  const void compare_blender_image_to_usd_image_shader(const bNode *image_node,
-                                                       const pxr::UsdPrim &image_prim)
+  void compare_blender_image_to_usd_image_shader(const bNode *image_node,
+                                                 const pxr::UsdPrim &image_prim)
   {
     const Image *image = reinterpret_cast<Image *>(image_node->id);
 
@@ -178,7 +177,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
    * Determine if a Blender Mesh matches a UsdGeomMesh prim by checking counts
    * on vertices, faces, face indices, and normals.
    */
-  const void compare_blender_mesh_to_usd_prim(const Mesh *mesh, const pxr::UsdGeomMesh &mesh_prim)
+  void compare_blender_mesh_to_usd_prim(const Mesh *mesh, const pxr::UsdGeomMesh &mesh_prim)
   {
     pxr::VtIntArray face_indices;
     pxr::VtIntArray face_counts;

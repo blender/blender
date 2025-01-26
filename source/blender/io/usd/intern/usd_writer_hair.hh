@@ -13,8 +13,8 @@ class USDHairWriter : public USDAbstractWriter {
   USDHairWriter(const USDExporterContext &ctx);
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
-  virtual bool check_is_animated(const HierarchyContext &context) const override;
+  void do_write(HierarchyContext &context) override;
+  bool check_is_animated(const HierarchyContext &context) const override;
 };
 
 }  // namespace blender::io::usd

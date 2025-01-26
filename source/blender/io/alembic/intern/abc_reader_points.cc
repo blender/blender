@@ -19,8 +19,6 @@
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
 
-#include "BLI_math_vector.h"
-
 using namespace Alembic::AbcGeom;
 
 namespace blender::io::alembic {

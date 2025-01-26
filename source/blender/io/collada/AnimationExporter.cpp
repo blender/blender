@@ -7,11 +7,12 @@
  */
 
 #include "AnimationExporter.h"
-#include "AnimationClipExporter.h"
 #include "BCAnimationSampler.h"
-#include "GeometryExporter.h"
-#include "MaterialExporter.h"
 #include "collada_utils.h"
+
+#include "BKE_material.hh"
+
+#include "BLI_string.h"
 
 std::string EMPTY_STRING;
 
@@ -388,7 +389,6 @@ void AnimationExporter::export_collada_curve_animation(
   BCValues values;
   curve.get_frames(frames);
   curve.get_values(values);
-  std::string channel_target = curve.get_channel_target();
 
   fprintf(
       stdout, "Export animation curve %s (%d control points)\n", id.c_str(), int(frames.size()));
@@ -503,31 +503,31 @@ void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNa
 {
   switch (semantic) {
     case COLLADASW::InputSemantic::INPUT:
-      param.push_back("TIME");
+      param.emplace_back("TIME");
       break;
     case COLLADASW::InputSemantic::OUTPUT:
       if (is_rot) {
-        param.push_back("ANGLE");
+        param.emplace_back("ANGLE");
       }
       else {
         if (!axis.empty()) {
           param.push_back(axis);
         }
         else if (transform) {
-          param.push_back("TRANSFORM");
+          param.emplace_back("TRANSFORM");
         }
         else {
           /* assumes if axis isn't specified all axes are added */
-          param.push_back("X");
-          param.push_back("Y");
-          param.push_back("Z");
+          param.emplace_back("X");
+          param.emplace_back("Y");
+          param.emplace_back("Z");
         }
       }
       break;
     case COLLADASW::InputSemantic::IN_TANGENT:
     case COLLADASW::InputSemantic::OUT_TANGENT:
-      param.push_back("X");
-      param.push_back("Y");
+      param.emplace_back("X");
+      param.emplace_back("Y");
       break;
     default:
       break;
@@ -680,7 +680,7 @@ std::string AnimationExporter::collada_interpolation_source(const BCAnimationCur
   source.setAccessorStride(1);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("INTERPOLATION");
+  param.emplace_back("INTERPOLATION");
 
   source.prepareToAppendValues();
 
@@ -723,7 +723,7 @@ std::string AnimationExporter::collada_linear_interpolation_source(int tot,
   source.setAccessorStride(1);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("INTERPOLATION");
+  param.emplace_back("INTERPOLATION");
 
   source.prepareToAppendValues();
 
@@ -791,7 +791,6 @@ std::string AnimationExporter::get_collada_name(std::string channel_type) const
 std::string AnimationExporter::get_collada_sid(const BCAnimationCurve &curve,
                                                const std::string axis_name)
 {
-  std::string channel_target = curve.get_channel_target();
   std::string channel_type = curve.get_channel_type();
   std::string tm_name = get_collada_name(channel_type);
 

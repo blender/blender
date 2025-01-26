@@ -15,9 +15,9 @@
 
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_math_rotation.h"
-#include "BLI_path_utils.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -65,7 +65,7 @@ void WorldData::init()
       const Span<bNodeSocket *> input_sockets = output_node->input_sockets();
       bNodeSocket *input_socket = nullptr;
 
-      for (auto socket : input_sockets) {
+      for (auto *socket : input_sockets) {
         if (STREQ(socket->name, "Surface")) {
           input_socket = socket;
           break;

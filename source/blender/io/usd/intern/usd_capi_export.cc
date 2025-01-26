@@ -432,10 +432,12 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   pxr::VtValue upAxis = pxr::VtValue(pxr::UsdGeomTokens->z);
   if (params.convert_orientation) {
-    if (params.up_axis == IO_AXIS_X)
+    if (params.up_axis == IO_AXIS_X) {
       upAxis = pxr::VtValue(pxr::UsdGeomTokens->x);
-    else if (params.up_axis == IO_AXIS_Y)
+    }
+    else if (params.up_axis == IO_AXIS_Y) {
       upAxis = pxr::VtValue(pxr::UsdGeomTokens->y);
+    }
   }
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);

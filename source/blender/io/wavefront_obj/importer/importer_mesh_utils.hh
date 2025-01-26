@@ -29,7 +29,7 @@ namespace blender::io::obj {
  * \return List of faces with each element containing indices of one face. The indices
  * are into face_vert_indices array.
  */
-Vector<Vector<int>> fixup_invalid_face(Span<float3> vert_coords, Span<int> face_vert_indices);
+Vector<Vector<int>> fixup_invalid_face(Span<float3> vert_positions, Span<int> face_verts);
 
 /**
  * Apply axes transform to the Object, and clamp object dimensions to the specified value.

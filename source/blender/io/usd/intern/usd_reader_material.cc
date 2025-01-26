@@ -7,7 +7,6 @@
 #include "usd_reader_utils.hh"
 #include "usd_utils.hh"
 
-#include "BKE_appdir.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -22,7 +21,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
@@ -687,62 +685,61 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
      * and attempt to convert the connected USD shader to a Blender node. */
     return follow_connection(usd_input, dest_node, dest_socket_name, ntree, column, r_ctx, extra);
   }
-  else {
-    /* Set the destination node socket value from the USD shader input value. */
 
-    bNodeSocket *sock = blender::bke::node_find_socket(dest_node, SOCK_IN, dest_socket_name);
-    if (!sock) {
-      CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name);
-      return false;
-    }
+  /* Set the destination node socket value from the USD shader input value. */
 
-    pxr::VtValue val;
-    if (!usd_input.Get(&val)) {
-      CLOG_ERROR(&LOG,
-                 "Couldn't get value for usd shader input %s",
-                 usd_input.GetPrim().GetPath().GetAsString().c_str());
-      return false;
-    }
+  bNodeSocket *sock = blender::bke::node_find_socket(dest_node, SOCK_IN, dest_socket_name);
+  if (!sock) {
+    CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name);
+    return false;
+  }
 
-    switch (sock->type) {
-      case SOCK_FLOAT:
-        if (val.IsHolding<float>()) {
-          ((bNodeSocketValueFloat *)sock->default_value)->value = val.UncheckedGet<float>();
-          return true;
-        }
-        else if (val.IsHolding<pxr::GfVec3f>()) {
-          pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-          float average = (v3f[0] + v3f[1] + v3f[2]) / 3.0f;
-          ((bNodeSocketValueFloat *)sock->default_value)->value = average;
-          return true;
-        }
-        break;
-      case SOCK_RGBA:
-        if (val.IsHolding<pxr::GfVec3f>()) {
-          pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-          copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, v3f.data());
-          return true;
-        }
-        break;
-      case SOCK_VECTOR:
-        if (val.IsHolding<pxr::GfVec3f>()) {
-          pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-          copy_v3_v3(((bNodeSocketValueVector *)sock->default_value)->value, v3f.data());
-          return true;
-        }
-        else if (val.IsHolding<pxr::GfVec2f>()) {
-          pxr::GfVec2f v2f = val.UncheckedGet<pxr::GfVec2f>();
-          copy_v2_v2(((bNodeSocketValueVector *)sock->default_value)->value, v2f.data());
-          return true;
-        }
-        break;
-      default:
-        CLOG_WARN(&LOG,
-                  "Unexpected type %s for destination node socket %s",
-                  sock->idname,
-                  dest_socket_name);
-        break;
-    }
+  pxr::VtValue val;
+  if (!usd_input.Get(&val)) {
+    CLOG_ERROR(&LOG,
+               "Couldn't get value for usd shader input %s",
+               usd_input.GetPrim().GetPath().GetAsString().c_str());
+    return false;
+  }
+
+  switch (sock->type) {
+    case SOCK_FLOAT:
+      if (val.IsHolding<float>()) {
+        ((bNodeSocketValueFloat *)sock->default_value)->value = val.UncheckedGet<float>();
+        return true;
+      }
+      else if (val.IsHolding<pxr::GfVec3f>()) {
+        pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
+        float average = (v3f[0] + v3f[1] + v3f[2]) / 3.0f;
+        ((bNodeSocketValueFloat *)sock->default_value)->value = average;
+        return true;
+      }
+      break;
+    case SOCK_RGBA:
+      if (val.IsHolding<pxr::GfVec3f>()) {
+        pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
+        copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, v3f.data());
+        return true;
+      }
+      break;
+    case SOCK_VECTOR:
+      if (val.IsHolding<pxr::GfVec3f>()) {
+        pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
+        copy_v3_v3(((bNodeSocketValueVector *)sock->default_value)->value, v3f.data());
+        return true;
+      }
+      else if (val.IsHolding<pxr::GfVec2f>()) {
+        pxr::GfVec2f v2f = val.UncheckedGet<pxr::GfVec2f>();
+        copy_v2_v2(((bNodeSocketValueVector *)sock->default_value)->value, v2f.data());
+        return true;
+      }
+      break;
+    default:
+      CLOG_WARN(&LOG,
+                "Unexpected type %s for destination node socket %s",
+                sock->idname,
+                dest_socket_name);
+      break;
   }
 
   return false;

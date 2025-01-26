@@ -5,7 +5,6 @@
 #include "usd_attribute_utils.hh"
 #include "usd_hash_types.hh"
 
-#include "BLI_generic_span.hh"
 #include "BLI_map.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"

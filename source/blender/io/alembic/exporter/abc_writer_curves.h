@@ -24,12 +24,12 @@ class ABCCurveWriter : public ABCAbstractWriter {
  public:
   explicit ABCCurveWriter(const ABCWriterConstructorArgs &args);
 
-  virtual void create_alembic_objects(const HierarchyContext *context) override;
-  virtual Alembic::Abc::OObject get_alembic_object() const override;
+  void create_alembic_objects(const HierarchyContext *context) override;
+  Alembic::Abc::OObject get_alembic_object() const override;
   Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
+  void do_write(HierarchyContext &context) override;
 };
 
 class ABCCurveMeshWriter : public ABCGenericMeshWriter {
@@ -37,7 +37,7 @@ class ABCCurveMeshWriter : public ABCGenericMeshWriter {
   ABCCurveMeshWriter(const ABCWriterConstructorArgs &args);
 
  protected:
-  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
+  Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
 }  // namespace blender::io::alembic

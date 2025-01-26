@@ -8,11 +8,6 @@
 
 #include <string>
 
-#include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
-
-#include "BKE_appdir.hh"
-
 namespace blender::io::usd {
 
 class USDStageCreationTest : public testing::Test {};

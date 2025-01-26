@@ -30,48 +30,32 @@ using Alembic::AbcCoreAbstract::chrono_t;
 namespace blender::io::alembic {
 
 struct ImportSettings {
-  bool do_convert_mat;
+  bool do_convert_mat = false;
   float conversion_mat[4][4];
 
-  int from_up;
-  int from_forward;
-  float scale;
-  bool is_sequence;
-  bool set_frame_range;
+  int from_up = 0;
+  int from_forward = 0;
+  float scale = 1.0f;
+  bool is_sequence = false;
+  bool set_frame_range = false;
 
   /* Min and max frame detected from  file sequences. */
-  int sequence_min_frame;
-  int sequence_max_frame;
+  int sequence_min_frame = 0;
+  int sequence_max_frame = 1;
 
   /* From MeshSeqCacheModifierData.read_flag */
-  int read_flag;
+  int read_flag = 0;
 
   /* From CacheFile and MeshSeqCacheModifierData */
   std::string velocity_name;
-  float velocity_scale;
+  float velocity_scale = 1.0f;
 
-  bool validate_meshes;
-  bool always_add_cache_reader;
+  bool validate_meshes = false;
+  bool always_add_cache_reader = false;
 
-  CacheFile *cache_file;
+  CacheFile *cache_file = nullptr;
 
-  ImportSettings()
-      : do_convert_mat(false),
-        from_up(0),
-        from_forward(0),
-        scale(1.0f),
-        is_sequence(false),
-        set_frame_range(false),
-        sequence_min_frame(0),
-        sequence_max_frame(1),
-        read_flag(0),
-        velocity_name(""),
-        velocity_scale(1.0f),
-        validate_meshes(false),
-        always_add_cache_reader(false),
-        cache_file(NULL)
-  {
-  }
+  ImportSettings() = default;
 };
 
 template<typename Schema> static bool has_animations(Schema &schema, ImportSettings *settings)
@@ -105,14 +89,13 @@ class AbcObjectReader {
  public:
   AbcObjectReader *parent_reader;
 
- public:
   explicit AbcObjectReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
   virtual ~AbcObjectReader() = default;
 
   const Alembic::Abc::IObject &iobject() const;
 
-  typedef std::vector<AbcObjectReader *> ptr_vector;
+  using ptr_vector = std::vector<AbcObjectReader *>;
 
   /**
    * Returns the transform of this object. This can be the Alembic object

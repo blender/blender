@@ -649,7 +649,7 @@ void USDCurvesWriter::assign_materials(const HierarchyContext &context,
   }
 
   bool curve_material_bound = false;
-  for (short mat_num = 0; mat_num < context.object->totcol; mat_num++) {
+  for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
     Material *material = BKE_object_material_get(context.object, mat_num + 1);
     if (material == nullptr) {
       continue;

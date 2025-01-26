@@ -11,7 +11,6 @@
 #include "CLG_log.h"
 
 #include "obj_import_file_reader.hh"
-#include "obj_importer.hh"
 
 namespace blender::io::obj {
 

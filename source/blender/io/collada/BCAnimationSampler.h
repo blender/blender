@@ -11,14 +11,10 @@
 #include "BKE_action.hh"
 #include "BKE_lib_id.hh"
 
-#include "BLI_math_rotation.h"
-
-#include "DNA_action_types.h"
-
 /* Collection of animation curves */
 class BCAnimation {
  private:
-  Object *reference = NULL;
+  Object *reference = nullptr;
   bContext *mContext;
 
  public:
@@ -52,7 +48,7 @@ class BCAnimation {
   }
 };
 
-typedef std::map<Object *, BCAnimation *> BCAnimationObjectMap;
+using BCAnimationObjectMap = std::map<Object *, BCAnimation *>;
 
 class BCSampleFrame {
 
@@ -90,7 +86,7 @@ class BCSampleFrame {
   bool has_sample_for(Object *ob, Bone *bone) const;
 };
 
-typedef std::map<int, BCSampleFrame> BCSampleFrameMap;
+using BCSampleFrameMap = std::map<int, BCSampleFrame>;
 
 class BCSampleFrameContainer {
 
@@ -122,7 +118,7 @@ class BCSampleFrameContainer {
   BCSampleFrameMap sample_frames;
 
  public:
-  ~BCSampleFrameContainer() {}
+  ~BCSampleFrameContainer() = default;
 
   BCSample &add(Object *ob, int frame_index);
   /** Return either the #BCSampleFrame or NULL if frame does not exist. */

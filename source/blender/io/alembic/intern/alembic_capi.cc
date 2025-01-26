@@ -10,14 +10,16 @@
 #include "IO_types.hh"
 
 #include <Alembic/AbcGeom/ILight.h>
+#include <Alembic/AbcGeom/INuPatch.h>
 #include <Alembic/AbcMaterial/IMaterial.h>
 
-#include "abc_axis_conversion.h"
 #include "abc_reader_archive.h"
 #include "abc_reader_camera.h"
 #include "abc_reader_curves.h"
 #include "abc_reader_mesh.h"
-#include "abc_reader_nurbs.h"
+#ifdef USE_NURBS
+#  include "abc_reader_nurbs.h"
+#endif
 #include "abc_reader_points.h"
 #include "abc_reader_transform.h"
 #include "abc_util.h"
@@ -839,12 +841,12 @@ void ABC_read_geometry(CacheReader *reader,
   }
 
   ISampleSelector sample_sel = sample_selector_for_time(params->time);
-  return abc_reader->read_geometry(geometry_set,
-                                   sample_sel,
-                                   params->read_flags,
-                                   params->velocity_name,
-                                   params->velocity_scale,
-                                   r_err_str);
+  abc_reader->read_geometry(geometry_set,
+                            sample_sel,
+                            params->read_flags,
+                            params->velocity_name,
+                            params->velocity_scale,
+                            r_err_str);
 }
 
 bool ABC_mesh_topology_changed(CacheReader *reader,

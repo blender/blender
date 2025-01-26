@@ -113,7 +113,7 @@ enum eUSDTexExportMode {
   USD_TEX_EXPORT_NEW_PATH,
 };
 
-typedef enum eUSDSceneUnits {
+enum eUSDSceneUnits {
   USD_SCENE_UNITS_CUSTOM = -1,
   USD_SCENE_UNITS_METERS = 0,
   USD_SCENE_UNITS_KILOMETERS = 1,
@@ -122,7 +122,7 @@ typedef enum eUSDSceneUnits {
   USD_SCENE_UNITS_INCHES = 4,
   USD_SCENE_UNITS_FEET = 5,
   USD_SCENE_UNITS_YARDS = 6,
-} eUSDSceneUnits;
+};
 
 struct USDExportParams {
   bool export_animation = false;

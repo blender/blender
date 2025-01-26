@@ -144,9 +144,7 @@ struct USDSceneImportContext {
 
   void release()
   {
-    if (prim_map_dict) {
-      delete prim_map_dict;
-    }
+    delete prim_map_dict;
   }
 
   pxr::UsdStageRefPtr get_stage() const
@@ -165,7 +163,7 @@ struct USDSceneImportContext {
         }
         PYTHON_NS::list list = PYTHON_NS::extract<PYTHON_NS::list>((*prim_map_dict)[path]);
 
-        for (auto &ptr_rna : ids) {
+        for (const auto &ptr_rna : ids) {
           list.append(ptr_rna);
         }
       });
@@ -507,7 +505,7 @@ class MaterialImportPollInvoker : public USDHookInvoker {
  private:
   USDMaterialImportContext hook_context_;
   pxr::UsdShadeMaterial usd_material_;
-  bool result_;
+  bool result_ = false;
 
  public:
   MaterialImportPollInvoker(pxr::UsdStageRefPtr stage,
@@ -516,8 +514,7 @@ class MaterialImportPollInvoker : public USDHookInvoker {
                             ReportList *reports)
       : USDHookInvoker(reports),
         hook_context_(stage, import_params, reports),
-        usd_material_(usd_material),
-        result_(false)
+        usd_material_(usd_material)
   {
   }
 
@@ -548,7 +545,7 @@ class OnMaterialImportInvoker : public USDHookInvoker {
   USDMaterialImportContext hook_context_;
   pxr::UsdShadeMaterial usd_material_;
   PointerRNA material_ptr_;
-  bool result_;
+  bool result_ = false;
 
  public:
   OnMaterialImportInvoker(pxr::UsdStageRefPtr stage,
@@ -558,8 +555,7 @@ class OnMaterialImportInvoker : public USDHookInvoker {
                           ReportList *reports)
       : USDHookInvoker(reports),
         hook_context_(stage, import_params, reports),
-        usd_material_(usd_material),
-        result_(false)
+        usd_material_(usd_material)
   {
     material_ptr_ = RNA_pointer_create_discrete(nullptr, &RNA_Material, material);
   }

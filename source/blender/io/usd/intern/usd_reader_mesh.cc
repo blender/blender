@@ -953,13 +953,12 @@ std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) 
          * is constant over time. */
         return XformResult(pxr::GfMatrix4f(bind_xf), true);
       }
-      else {
-        BKE_reportf(reports(),
-                    RPT_WARNING,
-                    "%s: Couldn't compute geom bind transform for %s",
-                    __func__,
-                    prim_.GetPath().GetAsString().c_str());
-      }
+
+      BKE_reportf(reports(),
+                  RPT_WARNING,
+                  "%s: Couldn't compute geom bind transform for %s",
+                  __func__,
+                  prim_.GetPath().GetAsString().c_str());
     }
   }
 

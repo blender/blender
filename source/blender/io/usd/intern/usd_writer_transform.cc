@@ -137,7 +137,8 @@ bool USDTransformWriter::check_is_animated(const HierarchyContext &context) cons
   return BKE_object_moves_in_time(context.object, context.animation_check_include_parent);
 }
 
-void USDTransformWriter::set_xform_ops(float xf_matrix[4][4], const pxr::UsdGeomXformable &xf)
+void USDTransformWriter::set_xform_ops(float parent_relative_matrix[4][4],
+                                       const pxr::UsdGeomXformable &xf)
 {
   if (!xf) {
     return;
@@ -175,7 +176,7 @@ void USDTransformWriter::set_xform_ops(float xf_matrix[4][4], const pxr::UsdGeom
   pxr::UsdTimeCode time_code = get_export_time_code();
 
   if (xformOps_.size() == 1) {
-    pxr::GfMatrix4d mat_val(xf_matrix);
+    pxr::GfMatrix4d mat_val(parent_relative_matrix);
     usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), mat_val, time_code);
   }
   else if (xformOps_.size() == 3) {
@@ -184,7 +185,7 @@ void USDTransformWriter::set_xform_ops(float xf_matrix[4][4], const pxr::UsdGeom
     float quat[4];
     float scale[3];
 
-    mat4_decompose(loc, quat, scale, xf_matrix);
+    mat4_decompose(loc, quat, scale, parent_relative_matrix);
 
     if (xfOpMode == USD_XFORM_OP_TRS) {
       float rot[3];

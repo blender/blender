@@ -14,6 +14,7 @@
 
 #include "IO_wavefront_obj.hh"
 #include "obj_export_io.hh"
+#include "obj_export_mesh.hh"
 #include "obj_export_mtl.hh"
 
 namespace blender::io::obj {

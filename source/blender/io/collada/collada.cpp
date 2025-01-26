@@ -6,22 +6,14 @@
  * \ingroup collada
  */
 
-/* COLLADABU_ASSERT, may be able to remove later */
-#include "COLLADABUPlatform.h"
-
+#include "collada.h"
 #include "DocumentExporter.h"
 #include "DocumentImporter.h"
 #include "ExportSettings.h"
 #include "ImportSettings.h"
-#include "collada.h"
 
 #include "BKE_context.hh"
-#include "BKE_scene.hh"
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
-/* make dummy file */
-#include "BLI_fileops.h"
 #include "BLI_linklist.h"
 
 extern "C" {

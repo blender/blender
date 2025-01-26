@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_layer.hh"
+
 #include "DEG_depsgraph_query.hh"
 
 #include "curves.hh"
@@ -10,6 +12,7 @@
 #include "mesh.hh"
 #include "object.hh"
 #include "volume.hh"
+#include "volume_modifier.hh"
 
 namespace blender::io::hydra {
 

@@ -9,10 +9,7 @@
 #pragma once
 
 #include "BlenderContext.h"
-#include "collada.h"
 #include "collada_utils.h"
-
-#include "DNA_customdata_types.h"
 
 class DocumentExporter {
  public:

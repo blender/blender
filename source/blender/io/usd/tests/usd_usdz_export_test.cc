@@ -48,7 +48,7 @@ class UsdUsdzExportTest : public BlendfileLoadingBaseTest {
     return true;
   }
 
-  virtual void SetUp() override
+  void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
 
@@ -64,7 +64,7 @@ class UsdUsdzExportTest : public BlendfileLoadingBaseTest {
     BLI_path_join(output_filepath, FILE_MAX, temp_output_dir, "output_новый.usdz");
   }
 
-  virtual void TearDown() override
+  void TearDown() override
   {
     BlendfileLoadingBaseTest::TearDown();
     CTX_free(context);

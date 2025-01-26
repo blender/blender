@@ -9,7 +9,6 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
-#include "BLI_utildefines.h"
 
 namespace blender::io::alembic {
 

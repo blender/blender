@@ -133,7 +133,7 @@ class ArmatureImporter : private TransformReader {
   void create_armature_bones(Main *bmain, std::vector<Object *> &arm_objs);
 
   /** TagsMap typedef for uid_tags_map. */
-  typedef std::map<std::string, ExtraTags *> TagsMap;
+  using TagsMap = std::map<std::string, ExtraTags *>;
   TagsMap uid_tags_map;
 
  public:

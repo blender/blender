@@ -13,13 +13,11 @@
 
 #include "DNA_action_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.hh"
-#include "BKE_idprop.hh"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 
@@ -28,10 +26,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 
-#include "ArmatureExporter.h"
 #include "ControllerExporter.h"
 #include "GeometryExporter.h"
-#include "SceneExporter.h"
 
 #include "collada_utils.h"
 
@@ -320,7 +316,7 @@ std::string ControllerExporter::add_morph_targets(Key *key, Object *ob)
   source.setAccessorStride(1);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("IDREF");
+  param.emplace_back("IDREF");
 
   source.prepareToAppendValues();
 
@@ -348,7 +344,7 @@ std::string ControllerExporter::add_morph_weights(Key *key, Object *ob)
   source.setAccessorStride(1);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("MORPH_WEIGHT");
+  param.emplace_back("MORPH_WEIGHT");
 
   source.prepareToAppendValues();
 
@@ -437,7 +433,7 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm,
   source.setAccessorStride(1);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("JOINT");
+  param.emplace_back("JOINT");
 
   source.prepareToAppendValues();
 
@@ -474,7 +470,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
 
   source.setParameterTypeName(&COLLADASW::CSWC::CSW_VALUE_TYPE_FLOAT4x4);
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("TRANSFORM");
+  param.emplace_back("TRANSFORM");
 
   source.prepareToAppendValues();
 
@@ -578,7 +574,7 @@ std::string ControllerExporter::add_weights_source(Mesh *mesh,
   source.setAccessorStride(1);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-  param.push_back("WEIGHT");
+  param.emplace_back("WEIGHT");
 
   source.prepareToAppendValues();
 

@@ -86,7 +86,7 @@ class MeshImporter : public MeshImporterBase {
     int *material_indices;
     uint faces_num;
   };
-  typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;
+  using MaterialIdPrimitiveArrayMap = std::map<COLLADAFW::MaterialId, std::vector<Primitive>>;
   /* crazy name! */
   std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map;
   /* < materials that have already been mapped to a geometry.
@@ -190,9 +190,9 @@ class MeshImporter : public MeshImporterBase {
                Scene *sce,
                ViewLayer *view_layer);
 
-  virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId &geom_uid);
+  Object *get_object_by_geom_uid(const COLLADAFW::UniqueId &geom_uid) override;
 
-  virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId &geom_uid);
+  Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId &geom_uid) override;
 
   /**
    *
@@ -234,5 +234,5 @@ class MeshImporter : public MeshImporterBase {
 
   /** Create a mesh storing a pointer in a map so it can be retrieved later by geometry UID. */
   bool write_geometry(const COLLADAFW::Geometry *geom);
-  std::string *get_geometry_name(const std::string &mesh_name);
+  std::string *get_geometry_name(const std::string &mesh_name) override;
 };
