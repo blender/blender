@@ -34,10 +34,11 @@ extern "C" {
 #  include "ffmpeg_compat.h"
 #  include <libavutil/imgutils.h>
 }
+
+static const char temp_ext[] = "_part";
 #endif
 
 static const char binary_header_str[] = "BlenMIdx";
-static const char temp_ext[] = "_part";
 
 static const IMB_Proxy_Size proxy_sizes[] = {
     IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75, IMB_PROXY_100};
