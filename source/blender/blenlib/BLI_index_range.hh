@@ -55,7 +55,7 @@ class IndexRange {
  public:
   constexpr IndexRange() = default;
 
-  constexpr explicit IndexRange(int64_t size) : start_(0), size_(size)
+  constexpr explicit IndexRange(int64_t size) : size_(size)
   {
     BLI_assert(size >= 0);
   }

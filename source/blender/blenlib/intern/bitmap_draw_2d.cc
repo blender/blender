@@ -8,6 +8,7 @@
  * Utility functions for primitive drawing operations.
  */
 
+#include <algorithm>
 #include <climits>
 
 #include "MEM_guardedalloc.h"
@@ -18,7 +19,7 @@
 #include "BLI_sort.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 using blender::int2;
 using blender::Span;
@@ -433,12 +434,8 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
       }
 
       if (x_dst > xmin) {
-        if (x_src < xmin) {
-          x_src = xmin;
-        }
-        if (x_dst > xmax) {
-          x_dst = xmax;
-        }
+        x_src = std::max(x_src, xmin);
+        x_dst = std::min(x_dst, xmax);
         /* for single call per x-span */
         if (x_src < x_dst) {
           callback(x_src - xmin, x_dst - xmin, pixel_y - ymin, user_data);

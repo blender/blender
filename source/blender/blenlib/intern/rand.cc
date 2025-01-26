@@ -23,7 +23,7 @@
 #include "BLI_sys_types.h"
 #include "BLI_threads.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 #define hash BLI_noise_hash_uchar_512
 

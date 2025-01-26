@@ -6,6 +6,8 @@
 
 #include "BLI_cache_mutex.hh"
 
+#include <memory>
+
 namespace blender {
 
 /**

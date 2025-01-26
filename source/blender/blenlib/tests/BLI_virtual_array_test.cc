@@ -9,7 +9,7 @@
 #include "BLI_virtual_array.hh"
 #include "testing/testing.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 

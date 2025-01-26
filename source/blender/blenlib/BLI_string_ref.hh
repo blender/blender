@@ -36,7 +36,6 @@
 #include <string_view>
 
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 
 namespace blender {
 

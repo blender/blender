@@ -34,7 +34,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
 
   /* Buffers larger than that are not packed together with smaller allocations to avoid wasting
    * memory. */
-  constexpr static inline int64_t large_buffer_threshold = 4096;
+  constexpr static int64_t large_buffer_threshold = 4096;
 
  public:
 #ifdef BLI_DEBUG_LINEAR_ALLOCATOR_SIZE

@@ -6,6 +6,8 @@
  * \ingroup bli
  */
 
+#include <algorithm>
+
 #include "BLI_array.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_base.hh"
@@ -17,7 +19,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /********************************** Polygons *********************************/
 
@@ -3118,13 +3120,8 @@ bool isect_ray_aabb_v3(const IsectRayAABB_Precalc *data,
     return false;
   }
 
-  if (tymin > tmin) {
-    tmin = tymin;
-  }
-
-  if (tymax < tmax) {
-    tmax = tymax;
-  }
+  tmin = std::max(tymin, tmin);
+  tmax = std::min(tymax, tmax);
 
   const float tzmin = (bbox[data->sign[2]][2] - data->ray_origin[2]) * data->ray_inv_dir[2];
   const float tzmax = (bbox[1 - data->sign[2]][2] - data->ray_origin[2]) * data->ray_inv_dir[2];
@@ -3133,9 +3130,7 @@ bool isect_ray_aabb_v3(const IsectRayAABB_Precalc *data,
     return false;
   }
 
-  if (tzmin > tmin) {
-    tmin = tzmin;
-  }
+  tmin = std::max(tzmin, tmin);
 
   /* NOTE(jwilkins): tmax does not need to be updated since we don't use it
    * keeping this here for future reference. */

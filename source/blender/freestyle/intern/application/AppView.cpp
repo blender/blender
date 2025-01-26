@@ -21,7 +21,6 @@
 #include "../view_map/Silhouette.h"
 #include "../view_map/ViewMap.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
 
 #include "IMB_imbuf.hh"

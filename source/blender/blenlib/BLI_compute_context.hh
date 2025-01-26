@@ -161,7 +161,7 @@ class ComputeContextBuilder {
     return contexts_.peek().get();
   }
 
-  const ComputeContextHash hash() const
+  ComputeContextHash hash() const
   {
     BLI_assert(!contexts_.is_empty());
     return this->current()->hash();

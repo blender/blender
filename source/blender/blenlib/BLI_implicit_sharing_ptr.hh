@@ -181,10 +181,7 @@ class ImplicitSharingPtrAndData {
   {
   }
 
-  ImplicitSharingPtrAndData(const ImplicitSharingPtrAndData &other)
-      : sharing_info(other.sharing_info), data(other.data)
-  {
-  }
+  ImplicitSharingPtrAndData(const ImplicitSharingPtrAndData &other) = default;
 
   ImplicitSharingPtrAndData(ImplicitSharingPtrAndData &&other)
       : sharing_info(std::move(other.sharing_info)), data(std::exchange(other.data, nullptr))

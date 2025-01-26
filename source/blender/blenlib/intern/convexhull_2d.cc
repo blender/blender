@@ -13,12 +13,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bounds.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_convexhull_2d.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /**
  * Assert the optimized bounds match a brute force check,
@@ -636,7 +638,7 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
     convexhull_2d_angle_iter_step(hull_iter);
   }
 
-  const float angle = (area_best != FLT_MAX) ? float(atan2(sincos_best[0], sincos_best[1])) : 0.0f;
+  const float angle = (area_best != FLT_MAX) ? atan2(sincos_best[0], sincos_best[1]) : 0.0f;
 
 #if defined(USE_BRUTE_FORCE_ASSERT) && !defined(NDEBUG)
   {

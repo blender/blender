@@ -118,23 +118,21 @@ class Any {
 
  public:
   /** Only copy constructible types can be stored in #Any. */
-  template<typename T> static constexpr inline bool is_allowed_v = std::is_copy_constructible_v<T>;
+  template<typename T> static constexpr bool is_allowed_v = std::is_copy_constructible_v<T>;
 
   /**
    * Checks if the type will be stored in the inline buffer or if it requires a separate
    * allocation.
    */
   template<typename T>
-  static constexpr inline bool is_inline_v = std::is_nothrow_move_constructible_v<T> &&
-                                             sizeof(T) <= InlineBufferCapacity &&
-                                             alignof(T) <= Alignment;
+  static constexpr bool is_inline_v = std::is_nothrow_move_constructible_v<T> &&
+                                      sizeof(T) <= InlineBufferCapacity && alignof(T) <= Alignment;
 
   /**
    * Checks if #T is the same type as this #Any, because in this case the behavior of e.g. the
    * assignment operator is different.
    */
-  template<typename T>
-  static constexpr inline bool is_same_any_v = std::is_same_v<std::decay_t<T>, Any>;
+  template<typename T> static constexpr bool is_same_any_v = std::is_same_v<std::decay_t<T>, Any>;
 
  private:
   template<typename T> const Info &get_info() const

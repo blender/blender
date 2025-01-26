@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 #define _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
@@ -148,7 +148,7 @@ static uint kdtree_balance(KDTreeNode *nodes, uint nodes_len, uint axis, const u
   if (nodes_len <= 0) {
     return KD_NODE_UNSET;
   }
-  else if (nodes_len == 1) {
+  if (nodes_len == 1) {
     return 0 + ofs;
   }
 
@@ -434,9 +434,7 @@ finally:
 
     return min_node->index;
   }
-  else {
-    return -1;
-  }
+  return -1;
 }
 
 static void nearest_ordered_insert(KDTreeNearest *nearest,
@@ -456,9 +454,7 @@ static void nearest_ordered_insert(KDTreeNearest *nearest,
     if (dist >= nearest[i - 1].dist) {
       break;
     }
-    else {
-      nearest[i] = nearest[i - 1];
-    }
+    nearest[i] = nearest[i - 1];
   }
 
   nearest[i].index = index;
@@ -602,12 +598,10 @@ static int nearest_cmp_dist(const void *a, const void *b)
   if (kda->dist < kdb->dist) {
     return -1;
   }
-  else if (kda->dist > kdb->dist) {
+  if (kda->dist > kdb->dist) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 static void nearest_add_in_range(KDTreeNearest **r_nearest,
                                  uint nearest_index,
@@ -956,7 +950,7 @@ static int kdtree_node_cmp_deduplicate(const void *n0_p, const void *n1_p)
     if (n0->co[j] < n1->co[j]) {
       return -1;
     }
-    else if (n0->co[j] > n1->co[j]) {
+    if (n0->co[j] > n1->co[j]) {
       return 1;
     }
   }

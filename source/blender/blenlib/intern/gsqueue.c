@@ -16,7 +16,7 @@
 #include "BLI_gsqueue.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* target chunk size: 64kb */
 #define CHUNK_SIZE_DEFAULT (1 << 16)

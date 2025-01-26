@@ -196,7 +196,7 @@ template<typename T, int Size>
 
 template<typename T> inline bool Bounds<T>::is_empty() const
 {
-  if constexpr (std::is_integral<T>::value || std::is_floating_point<T>::value) {
+  if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
     return this->max <= this->min;
   }
   else {

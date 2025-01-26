@@ -36,7 +36,7 @@
 #include "BLI_buffer.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 static void *buffer_alloc(const BLI_Buffer *buffer, const size_t len)
 {

@@ -14,8 +14,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include "BLI_utildefines.h"
-
 namespace blender {
 
 /**

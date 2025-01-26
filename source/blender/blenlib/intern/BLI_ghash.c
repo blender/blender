@@ -24,7 +24,7 @@
 #define GHASH_INTERNAL_API
 #include "BLI_ghash.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Structs & Constants

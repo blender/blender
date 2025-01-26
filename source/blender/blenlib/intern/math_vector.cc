@@ -6,6 +6,8 @@
  * \ingroup bli
  */
 
+#include <algorithm>
+
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 
@@ -13,7 +15,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Interpolation
@@ -698,71 +700,35 @@ void print_vn(const char *str, const float v[], const int n)
 
 void minmax_v4v4_v4(float min[4], float max[4], const float vec[4])
 {
-  if (min[0] > vec[0]) {
-    min[0] = vec[0];
-  }
-  if (min[1] > vec[1]) {
-    min[1] = vec[1];
-  }
-  if (min[2] > vec[2]) {
-    min[2] = vec[2];
-  }
-  if (min[3] > vec[3]) {
-    min[3] = vec[3];
-  }
+  min[0] = std::min(min[0], vec[0]);
+  min[1] = std::min(min[1], vec[1]);
+  min[2] = std::min(min[2], vec[2]);
+  min[3] = std::min(min[3], vec[3]);
 
-  if (max[0] < vec[0]) {
-    max[0] = vec[0];
-  }
-  if (max[1] < vec[1]) {
-    max[1] = vec[1];
-  }
-  if (max[2] < vec[2]) {
-    max[2] = vec[2];
-  }
-  if (max[3] < vec[3]) {
-    max[3] = vec[3];
-  }
+  max[0] = std::max(max[0], vec[0]);
+  max[1] = std::max(max[1], vec[1]);
+  max[2] = std::max(max[2], vec[2]);
+  max[3] = std::max(max[3], vec[3]);
 }
 
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3])
 {
-  if (min[0] > vec[0]) {
-    min[0] = vec[0];
-  }
-  if (min[1] > vec[1]) {
-    min[1] = vec[1];
-  }
-  if (min[2] > vec[2]) {
-    min[2] = vec[2];
-  }
+  min[0] = std::min(min[0], vec[0]);
+  min[1] = std::min(min[1], vec[1]);
+  min[2] = std::min(min[2], vec[2]);
 
-  if (max[0] < vec[0]) {
-    max[0] = vec[0];
-  }
-  if (max[1] < vec[1]) {
-    max[1] = vec[1];
-  }
-  if (max[2] < vec[2]) {
-    max[2] = vec[2];
-  }
+  max[0] = std::max(max[0], vec[0]);
+  max[1] = std::max(max[1], vec[1]);
+  max[2] = std::max(max[2], vec[2]);
 }
 
 void minmax_v2v2_v2(float min[2], float max[2], const float vec[2])
 {
-  if (min[0] > vec[0]) {
-    min[0] = vec[0];
-  }
-  if (min[1] > vec[1]) {
-    min[1] = vec[1];
-  }
+  min[0] = std::min(min[0], vec[0]);
+  min[1] = std::min(min[1], vec[1]);
 
-  if (max[0] < vec[0]) {
-    max[0] = vec[0];
-  }
-  if (max[1] < vec[1]) {
-    max[1] = vec[1];
-  }
+  max[0] = std::max(max[0], vec[0]);
+  max[1] = std::max(max[1], vec[1]);
 }
 
 void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist)

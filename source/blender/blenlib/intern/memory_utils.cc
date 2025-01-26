@@ -9,14 +9,14 @@
  * This is to extend on existing functions
  * such as `memcpy` & `memcmp`.
  */
-#include <string.h>
+#include <cstring>
 
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_memory_utils.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 bool BLI_memory_is_zero(const void *arr, const size_t arr_size)
 {

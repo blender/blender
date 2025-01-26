@@ -12,7 +12,6 @@
 
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 
 namespace blender::threading {
 

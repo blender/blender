@@ -32,7 +32,7 @@
 
 #include "BLI_polyfill_2d_beautify.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* Used to find matching edges. */
 struct OrderEdge {

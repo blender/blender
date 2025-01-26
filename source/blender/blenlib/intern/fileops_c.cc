@@ -21,6 +21,7 @@
 
 #ifdef WIN32
 #  include "BLI_fileops_types.h"
+#  include "BLI_string_utils.hh"
 #  include "BLI_winstuff.h"
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
@@ -45,7 +46,6 @@
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 #include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_utildefines.h"
 

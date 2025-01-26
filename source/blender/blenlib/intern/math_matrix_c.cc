@@ -16,9 +16,9 @@
 #  include "eigen_capi.h"
 #endif
 
-#include <string.h>
+#include <cstring>
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /********************************* Init **************************************/
 

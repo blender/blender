@@ -23,6 +23,8 @@
  *   #BLI_bvhtree_range_query
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
@@ -34,7 +36,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* used for iterative_raycast */
 // #define USE_SKIP_LINKS
@@ -261,7 +263,7 @@ static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
 static int bvh_partition(BVHNode **a, int lo, int hi, const BVHNode *x, int axis)
 {
   int i = lo, j = hi;
-  while (1) {
+  while (true) {
     while (a[i]->bv[axis] < x->bv[axis]) {
       i++;
     }
@@ -360,12 +362,8 @@ static void create_kdop_hull(
     /* for all Axes. */
     for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
       newminmax = dot_v3v3(&co[k * 3], bvhtree_kdop_axes[axis_iter]);
-      if (newminmax < bv[2 * axis_iter]) {
-        bv[2 * axis_iter] = newminmax;
-      }
-      if (newminmax > bv[(2 * axis_iter) + 1]) {
-        bv[(2 * axis_iter) + 1] = newminmax;
-      }
+      bv[2 * axis_iter] = std::min(newminmax, bv[2 * axis_iter]);
+      bv[(2 * axis_iter) + 1] = std::max(newminmax, bv[(2 * axis_iter) + 1]);
     }
   }
 }
@@ -388,14 +386,10 @@ static void refit_kdop_hull(const BVHTree *tree, BVHNode *node, int start, int e
     /* for all Axes. */
     for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
       newmin = node_bv[(2 * axis_iter)];
-      if (newmin < bv[(2 * axis_iter)]) {
-        bv[(2 * axis_iter)] = newmin;
-      }
+      bv[(2 * axis_iter)] = std::min(newmin, bv[(2 * axis_iter)]);
 
       newmax = node_bv[(2 * axis_iter) + 1];
-      if (newmax > bv[(2 * axis_iter) + 1]) {
-        bv[(2 * axis_iter) + 1] = newmax;
-      }
+      bv[(2 * axis_iter) + 1] = std::max(newmax, bv[(2 * axis_iter) + 1]);
     }
   }
 }
@@ -438,14 +432,12 @@ static void node_join(BVHTree *tree, BVHNode *node)
     if (node->children[i]) {
       for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
         /* update minimum */
-        if (node->children[i]->bv[(2 * axis_iter)] < node->bv[(2 * axis_iter)]) {
-          node->bv[(2 * axis_iter)] = node->children[i]->bv[(2 * axis_iter)];
-        }
+        node->bv[(2 * axis_iter)] = std::min(node->children[i]->bv[(2 * axis_iter)],
+                                             node->bv[(2 * axis_iter)]);
 
         /* update maximum */
-        if (node->children[i]->bv[(2 * axis_iter) + 1] > node->bv[(2 * axis_iter) + 1]) {
-          node->bv[(2 * axis_iter) + 1] = node->children[i]->bv[(2 * axis_iter) + 1];
-        }
+        node->bv[(2 * axis_iter) + 1] = std::max(node->children[i]->bv[(2 * axis_iter) + 1],
+                                                 node->bv[(2 * axis_iter) + 1]);
       }
     }
     else {
@@ -561,7 +553,7 @@ static void bvhtree_verify(BVHTree *tree)
 /* Helper data and structures to build a min-leaf generalized implicit tree
  * This code can be easily reduced
  * (basically this is only method to calculate pow(k, n) in O(1).. and stuff like that) */
-typedef struct BVHBuildHelper {
+struct BVHBuildHelper {
   int tree_type;
   int leafs_num;
 
@@ -572,8 +564,7 @@ typedef struct BVHBuildHelper {
 
   /** Number of leafs that are placed on the level that is not 100% filled */
   int remain_leafs;
-
-} BVHBuildHelper;
+};
 
 static void build_implicit_tree_helper(const BVHTree *tree, BVHBuildHelper *data)
 {
@@ -681,7 +672,7 @@ static void split_leafs(BVHNode **leafs_array,
   }
 }
 
-typedef struct BVHDivNodesData {
+struct BVHDivNodesData {
   const BVHTree *tree;
   BVHNode *branches_array;
   BVHNode **leafs_array;
@@ -694,7 +685,7 @@ typedef struct BVHDivNodesData {
   int depth;
   int i;
   int first_of_next_level;
-} BVHDivNodesData;
+};
 
 static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
                                                 const int j,
@@ -845,7 +836,7 @@ static void non_recursive_bvh_div_nodes(const BVHTree *tree,
     }
     else {
       /* Less hassle for debugging. */
-      TaskParallelTLS tls = {0};
+      TaskParallelTLS tls = {nullptr};
       for (int i_task = i; i_task < i_stop; i_task++) {
         non_recursive_bvh_div_nodes_task_cb(&cb_data, i_task, &tls);
       }
@@ -1090,11 +1081,11 @@ static bool tree_overlap_test(const BVHNode *node1,
   /* test all axis if min + max overlap */
   for (; bv1 != bv1_end; bv1 += 2, bv2 += 2) {
     if ((bv1[0] > bv2[1]) || (bv2[0] > bv1[1])) {
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 
 static void tree_overlap_traverse(BVHOverlapData_Thread *data_thread,
@@ -1544,12 +1535,8 @@ static float calc_nearest_point_squared(const float proj[3], BVHNode *node, floa
   /* nearest on AABB hull */
   for (i = 0; i != 3; i++, bv += 2) {
     float val = proj[i];
-    if (bv[0] > val) {
-      val = bv[0];
-    }
-    if (bv[1] < val) {
-      val = bv[1];
-    }
+    val = std::max(bv[0], val);
+    val = std::min(bv[1], val);
     nearest[i] = val;
   }
 
@@ -1825,20 +1812,12 @@ static float ray_nearest_hit(const BVHRayCastData *data, const float bv[6])
       float lu = (bv[1] + data->ray.radius - data->ray.origin[i]) / data->ray_dot_axis[i];
 
       if (data->ray_dot_axis[i] > 0.0f) {
-        if (ll > low) {
-          low = ll;
-        }
-        if (lu < upper) {
-          upper = lu;
-        }
+        low = std::max(ll, low);
+        upper = std::min(lu, upper);
       }
       else {
-        if (lu > low) {
-          low = lu;
-        }
-        if (ll < upper) {
-          upper = ll;
-        }
+        low = std::max(lu, low);
+        upper = std::min(ll, upper);
       }
 
       if (low > upper) {
@@ -2127,7 +2106,7 @@ void BLI_bvhtree_ray_cast_all(const BVHTree *tree,
  *
  * \{ */
 
-typedef struct RangeQueryData {
+struct RangeQueryData {
   const BVHTree *tree;
   const float *center;
   float radius_sq; /* squared radius */
@@ -2136,7 +2115,7 @@ typedef struct RangeQueryData {
 
   BVHTree_RangeQuery callback;
   void *userdata;
-} RangeQueryData;
+};
 
 static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 {

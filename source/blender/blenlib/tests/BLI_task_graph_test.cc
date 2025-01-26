@@ -4,8 +4,6 @@
 
 #include "testing/testing.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_task.h"
 
 struct TaskData {

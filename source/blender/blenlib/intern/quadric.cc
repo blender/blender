@@ -24,7 +24,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_quadric.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 #define QUADRIC_FLT_TOT (sizeof(Quadric) / sizeof(double))
 

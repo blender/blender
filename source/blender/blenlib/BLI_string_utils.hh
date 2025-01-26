@@ -8,7 +8,7 @@
  * \ingroup bli
  */
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <string>
 
 #include "BLI_compiler_attrs.h"

@@ -10,10 +10,11 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_geom.h"
+#include "BLI_sys_types.h"
 
 #include "BLI_lasso_2d.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 using blender::int2;
 using blender::Span;

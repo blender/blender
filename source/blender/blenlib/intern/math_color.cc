@@ -6,7 +6,6 @@
  * \ingroup bli
  */
 
-#include "BLI_array.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_color.hh"
 #include "BLI_math_matrix.hh"
@@ -14,9 +13,10 @@
 #include "BLI_simd.hh"
 #include "BLI_utildefines.h"
 
-#include <string.h>
+#include <algorithm>
+#include <cstring>
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 void hsv_to_rgb(float h, float s, float v, float *r_r, float *r_g, float *r_b)
 {
@@ -379,15 +379,9 @@ uint rgb_to_cpack(float r, float g, float b)
   ig = uint(floorf(255.0f * max_ff(g, 0.0f)));
   ib = uint(floorf(255.0f * max_ff(b, 0.0f)));
 
-  if (ir > 255) {
-    ir = 255;
-  }
-  if (ig > 255) {
-    ig = 255;
-  }
-  if (ib > 255) {
-    ib = 255;
-  }
+  ir = std::min<uint>(ir, 255);
+  ig = std::min<uint>(ig, 255);
+  ib = std::min<uint>(ib, 255);
 
   return (ir + (ig * 256) + (ib * 256 * 256));
 }

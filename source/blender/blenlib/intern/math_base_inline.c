@@ -56,12 +56,10 @@ MINLINE float sqrt3f(float f)
   if (UNLIKELY(f == 0.0f)) {
     return 0.0f;
   }
-  else if (UNLIKELY(f < 0.0f)) {
+  if (UNLIKELY(f < 0.0f)) {
     return -(float)(exp(log(-f) / 3.0));
   }
-  else {
-    return (float)(exp(log(f) / 3.0));
-  }
+  return (float)(exp(log(f) / 3.0));
 }
 
 MINLINE double sqrt3d(double d)
@@ -69,12 +67,10 @@ MINLINE double sqrt3d(double d)
   if (UNLIKELY(d == 0.0)) {
     return 0.0;
   }
-  else if (UNLIKELY(d < 0.0)) {
+  if (UNLIKELY(d < 0.0)) {
     return -exp(log(-d) / 3.0);
   }
-  else {
-    return exp(log(d) / 3.0);
-  }
+  return exp(log(d) / 3.0);
 }
 
 MINLINE float sqrtf_signed(float f)
@@ -157,9 +153,7 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
   if (is_power_of_2_i((int)x)) {
     return log2_floor_u(x);
   }
-  else {
-    return log2_floor_u(x) + 1;
-  }
+  return log2_floor_u(x) + 1;
 }
 
 /* rounding and clamping */
@@ -170,12 +164,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
     if (UNLIKELY(r <= (float)min)) { \
       return (ty)min; \
     } \
-    else if (UNLIKELY(r >= (float)max)) { \
+    if (UNLIKELY(r >= (float)max)) { \
       return (ty)max; \
     } \
-    else { \
-      return (ty)r; \
-    } \
+    return (ty)r; \
   }
 
 #define _round_clamp_db_impl(arg, ty, min, max) \
@@ -184,12 +176,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
     if (UNLIKELY(r <= (double)min)) { \
       return (ty)min; \
     } \
-    else if (UNLIKELY(r >= (double)max)) { \
+    if (UNLIKELY(r >= (double)max)) { \
       return (ty)max; \
     } \
-    else { \
-      return (ty)r; \
-    } \
+    return (ty)r; \
   }
 
 #define _round_fl_impl(arg, ty) \
@@ -346,9 +336,7 @@ MINLINE float smoothminf(float a, float b, float c)
     float h = max_ff(c - fabsf(a - b), 0.0f) / c;
     return min_ff(a, b) - h * h * h * c * (1.0f / 6.0f);
   }
-  else {
-    return min_ff(a, b);
-  }
+  return min_ff(a, b);
 }
 
 MINLINE float smoothstep(float edge0, float edge1, float x)
@@ -463,7 +451,7 @@ MINLINE float clamp_f(float value, float min, float max)
   if (value > max) {
     return max;
   }
-  else if (value < min) {
+  if (value < min) {
     return min;
   }
   return value;
@@ -497,14 +485,12 @@ MINLINE uint ulp_diff_ff(float a, float b)
     /* NaNs always return maximum ulps apart. */
     return 0xffffffff;
   }
-  else if (a_sign == b_sign) {
+  if (a_sign == b_sign) {
     const uint min_abs = a_abs < b_abs ? a_abs : b_abs;
     const uint max_abs = a_abs > b_abs ? a_abs : b_abs;
     return max_abs - min_abs;
   }
-  else {
-    return a_abs + b_abs;
-  }
+  return a_abs + b_abs;
 }
 
 MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps)
@@ -543,9 +529,7 @@ MINLINE float compatible_signf(float f)
   if (f < 0.0f) {
     return -1.0f;
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 MINLINE int signum_i_ex(float a, float eps)
@@ -556,9 +540,7 @@ MINLINE int signum_i_ex(float a, float eps)
   if (a < -eps) {
     return -1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 MINLINE int signum_i(float a)
@@ -569,9 +551,7 @@ MINLINE int signum_i(float a)
   if (a < 0.0f) {
     return -1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 MINLINE int integer_digits_f(const float f)

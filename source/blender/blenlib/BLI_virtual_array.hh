@@ -517,7 +517,6 @@ template<typename T> class VArrayCommon {
    */
   Storage storage_;
 
- protected:
   VArrayCommon() = default;
 
   /** Copy constructor. */
@@ -1236,7 +1235,7 @@ template<typename T> class VArrayRef {
  public:
   VArrayRef(const VArray<T> &ref) : ref_(ref) {}
 
-  const T operator[](const int64_t index) const
+  T operator[](const int64_t index) const
   {
     return ref_[index];
   }
