@@ -17,7 +17,7 @@
 #  if defined(_MSC_VER) && !defined(_USE_MATH_DEFINES)
 #    define _USE_MATH_DEFINES
 #  endif
-#  include <cmath>
+#  include <cmath>  // IWYU pragma: keep
 
 extern "C" {
 #  include <libavcodec/codec_id.h>

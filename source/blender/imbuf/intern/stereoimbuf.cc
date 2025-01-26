@@ -12,15 +12,10 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "imbuf.hh"
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 /* prototypes */
 struct Stereo3DData;

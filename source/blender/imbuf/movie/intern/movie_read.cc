@@ -7,6 +7,7 @@
  * \ingroup imbuf
  */
 
+#include <algorithm>
 #include <cctype>
 #include <climits>
 #include <cmath>
@@ -14,7 +15,6 @@
 #include <cstdlib>
 #include <sys/types.h>
 
-#include "BLI_math_base.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -871,9 +871,7 @@ static int64_t ffmpeg_get_seek_pts(MovieReader *anim, int64_t pts_to_search)
    */
   int64_t seek_pts = pts_to_search - (ffmpeg_steps_per_frame_get(anim) * 3);
 
-  if (seek_pts < 0) {
-    seek_pts = 0;
-  }
+  seek_pts = std::max<int64_t>(seek_pts, 0);
   return seek_pts;
 }
 

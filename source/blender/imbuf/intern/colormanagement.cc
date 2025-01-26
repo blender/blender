@@ -28,9 +28,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color.hh"
+#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -947,8 +947,7 @@ static OCIO_ConstCPUProcessorRcPtr *colorspace_to_scene_linear_cpu_processor(
           colorspace->name, global_role_scene_linear);
 
       if (processor != nullptr) {
-        colorspace->to_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)OCIO_processorGetCPUProcessor(
-            processor);
+        colorspace->to_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }
@@ -970,8 +969,7 @@ static OCIO_ConstCPUProcessorRcPtr *colorspace_from_scene_linear_cpu_processor(
           global_role_scene_linear, colorspace->name);
 
       if (processor != nullptr) {
-        colorspace->from_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)
-            OCIO_processorGetCPUProcessor(processor);
+        colorspace->from_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }
@@ -1010,8 +1008,7 @@ static OCIO_ConstCPUProcessorRcPtr *display_from_scene_linear_processor(
       }
 
       if (processor != nullptr) {
-        display->from_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)OCIO_processorGetCPUProcessor(
-            processor);
+        display->from_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }
@@ -1049,8 +1046,7 @@ static OCIO_ConstCPUProcessorRcPtr *display_to_scene_linear_processor(ColorManag
       }
 
       if (processor != nullptr) {
-        display->to_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)OCIO_processorGetCPUProcessor(
-            processor);
+        display->to_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }

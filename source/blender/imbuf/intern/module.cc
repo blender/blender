@@ -8,8 +8,6 @@
 
 #include <cstddef>
 
-#include "BLI_utildefines.h"
-
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement_intern.hh"
 #include "IMB_filetype.hh"

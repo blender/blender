@@ -7,8 +7,6 @@
  * \ingroup imbuf
  */
 
-#include <cmath>
-
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -127,8 +125,8 @@ static void imb_half_y_no_alloc(ImBuf *ibuf2, ImBuf *ibuf1)
 
   _p1 = ibuf1->byte_buffer.data;
   dest = ibuf2->byte_buffer.data;
-  _p1f = (float *)ibuf1->float_buffer.data;
-  destf = (float *)ibuf2->float_buffer.data;
+  _p1f = ibuf1->float_buffer.data;
+  destf = ibuf2->float_buffer.data;
 
   for (y = ibuf2->y; y > 0; y--) {
     if (do_rect) {

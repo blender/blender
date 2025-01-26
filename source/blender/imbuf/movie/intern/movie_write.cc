@@ -280,7 +280,7 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
 
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
   if (context->img_convert_frame != nullptr) {
-    BLI_assert(context->img_convert_ctx != NULL);
+    BLI_assert(context->img_convert_ctx != nullptr);
     /* Ensure the frame we are scaling to is writable as well. */
     av_frame_make_writable(context->current_frame);
     ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);

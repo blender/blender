@@ -24,7 +24,7 @@ extern "C" {
 #define CINEON_UNDEFINED_R32 0x7F800000
 #define CINEON_UNDEFINED_CHAR 0
 
-typedef struct {
+struct CineonFileHeader {
   unsigned int magic_num;
   unsigned int offset;
   unsigned int gen_hdr_size;
@@ -36,9 +36,9 @@ typedef struct {
   char creation_date[12];
   char creation_time[12];
   char reserved[36];
-} CineonFileHeader;
+};
 
-typedef struct {
+struct CineonElementHeader {
   uchar descriptor1;
   uchar descriptor2;
   uchar bits_per_sample;
@@ -49,9 +49,9 @@ typedef struct {
   float ref_low_quantity;
   unsigned int ref_high_data;
   float ref_high_quantity;
-} CineonElementHeader;
+};
 
-typedef struct {
+struct CineonImageHeader {
   uchar orientation;
   uchar elements_per_image;
   unsigned short filler;
@@ -73,9 +73,9 @@ typedef struct {
   unsigned int line_padding;
   unsigned int element_padding;
   char reserved2[20];
-} CineonImageHeader;
+};
 
-typedef struct {
+struct CineonOriginationHeader {
   int x_offset;
   int y_offset;
   char file_name[100];
@@ -88,9 +88,9 @@ typedef struct {
   float y_input_samples_per_mm;
   float input_device_gamma;
   char reserved[40];
-} CineonOriginationHeader;
+};
 
-typedef struct {
+struct CineonFilmHeader {
   uchar film_code;
   uchar film_type;
   uchar edge_code_perforation_offset;
@@ -103,14 +103,14 @@ typedef struct {
   char attribute[32];
   char slate[200];
   char reserved[740];
-} CineonFilmHeader;
+};
 
-typedef struct {
+struct CineonMainHeader {
   CineonFileHeader fileHeader;
   CineonImageHeader imageHeader;
   CineonOriginationHeader originationHeader;
   CineonFilmHeader filmHeader;
-} CineonMainHeader;
+};
 
 void cineonSetVerbose(int);
 LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize);

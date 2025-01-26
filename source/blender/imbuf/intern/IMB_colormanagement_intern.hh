@@ -8,12 +8,11 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
 #include "DNA_listBase.h"
 
 struct ImBuf;
 struct OCIO_ConstCPUProcessorRc;
-typedef struct OCIO_ConstCPUProcessorRc *OCIO_ConstCPUProcessorRcPtr;
+using OCIO_ConstCPUProcessorRcPtr = struct OCIO_ConstCPUProcessorRc *;
 
 extern float imbuf_luma_coefficients[3];
 extern float imbuf_scene_linear_to_xyz[3][3];

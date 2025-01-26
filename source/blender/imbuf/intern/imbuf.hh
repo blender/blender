@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/types.h>
 
 #ifndef WIN32
@@ -17,8 +16,6 @@
 #endif
 
 #include <fcntl.h>
-#include <math.h>
-#include <string.h>
 #include <sys/stat.h>
 
 #ifndef WIN32

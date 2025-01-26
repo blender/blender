@@ -6,7 +6,6 @@
  * \ingroup imbuf
  */
 
-#include "BLI_math_vector.h"
 #include "IMB_colormanagement.hh"
 #include "IMB_interp.hh"
 

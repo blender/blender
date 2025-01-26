@@ -820,7 +820,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
     }
   }
 
-  return (MovieProxyBuilder *)context;
+  return context;
 }
 
 static void index_rebuild_ffmpeg_finish(MovieProxyBuilder *context, const bool stop)

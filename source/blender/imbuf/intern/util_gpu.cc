@@ -33,11 +33,9 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
        * and can therefore be optimized. */
       return true;
     }
-    else {
-      /* TODO: Support gray-scale byte buffers.
-       * The challenge is that Blender always stores byte images as RGBA. */
-      return false;
-    }
+    /* TODO: Support gray-scale byte buffers.
+     * The challenge is that Blender always stores byte images as RGBA. */
+    return false;
   }
 
   /* Only #IMBuf's with color-space that do not modify the chrominance of the texture data relative

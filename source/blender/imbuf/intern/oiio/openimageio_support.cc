@@ -6,11 +6,14 @@
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imagebufalgo.h>
 
-#include "BLI_blenlib.h"
+#include <algorithm>
+
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_idprop.hh"
-#include "DNA_ID.h" /* ID property definitions. */
 
+#include "DNA_ID.h"
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_metadata.hh"
@@ -52,9 +55,7 @@ class ImBufMemWriter : public Filesystem::IOProxy {
 
     memcpy(ibuf_->encoded_buffer.data + offset, buf, size);
 
-    if (end > ibuf_->encoded_size) {
-      ibuf_->encoded_size = end;
-    }
+    ibuf_->encoded_size = std::max<size_t>(end, ibuf_->encoded_size);
 
     return size;
   }

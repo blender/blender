@@ -6,8 +6,6 @@
 
 #include "DNA_vec_types.h" /* for rcti */
 
-#include "BLI_sys_types.h"
-
 #include "IMB_imbuf_enums.h"
 
 struct ColormanageCache;

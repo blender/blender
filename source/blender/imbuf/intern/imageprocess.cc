@@ -7,13 +7,11 @@
  * \ingroup imbuf
  */
 
-#include <cmath>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

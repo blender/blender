@@ -11,7 +11,6 @@
 #include <cstdlib>
 
 #include "BLI_path_utils.hh" /* For assertions. */
-#include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"

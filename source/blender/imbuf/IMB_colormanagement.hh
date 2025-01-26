@@ -9,7 +9,6 @@
  */
 
 #include "BLI_compiler_compat.h"
-#include "BLI_sys_types.h"
 
 #include "BLI_math_matrix_types.hh"
 
@@ -70,7 +69,7 @@ BLI_INLINE float IMB_colormanagement_get_luminance(const float rgb[3]);
 /**
  * Byte equivalent of #IMB_colormanagement_get_luminance().
  */
-BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
+BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char rgb[3]);
 
 /**
  * Conversion between scene linear and other color spaces.
@@ -549,4 +548,4 @@ void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, int width);
 
 /** \} */
 
-#include "intern/colormanagement_inline.h"
+#include "intern/colormanagement_inline.h"  // IWYU pragma: export

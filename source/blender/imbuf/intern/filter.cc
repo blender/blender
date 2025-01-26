@@ -17,8 +17,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "imbuf.hh"
-
 static void filtcolum(uchar *point, int y, int skip)
 {
   uint c1, c2, c3, error;
@@ -168,7 +166,7 @@ static void imb_filterN(ImBuf *out, ImBuf *in)
       const float *row1 = (y == 0) ? row2 : row2 - channels * rowlen;
       const float *row3 = (y == in->y - 1) ? row2 : row2 + channels * rowlen;
 
-      float *cp = (float *)out->float_buffer.data + y * channels * rowlen;
+      float *cp = out->float_buffer.data + y * channels * rowlen;
 
       for (int x = 0; x < rowlen; x++) {
         const float *r11, *r13, *r21, *r23, *r31, *r33;

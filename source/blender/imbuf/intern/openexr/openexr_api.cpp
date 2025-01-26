@@ -16,7 +16,6 @@
 #include <fstream>
 #include <iostream>
 #include <set>
-#include <stdexcept>
 #include <string>
 
 /* The OpenEXR version can reliably be found in this header file from OpenEXR,
@@ -75,11 +74,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_fileops.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_mmap.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "BKE_idprop.hh"
@@ -760,7 +760,7 @@ void *IMB_exr_get_handle_name(const char *name)
 void IMB_exr_add_view(void *handle, const char *name)
 {
   ExrHandle *data = (ExrHandle *)handle;
-  data->multiView->push_back(name);
+  data->multiView->emplace_back(name);
 }
 
 static int imb_exr_get_multiView_id(StringVector &views, const std::string &name)
@@ -1660,11 +1660,11 @@ static std::vector<MultiViewChannelName> exr_channels_in_multi_part_file(
   for (int p = 0; p < file.parts(); p++) {
     const ChannelList &c = file.header(p).channels();
 
-    std::string part_view = "";
+    std::string part_view;
     if (file.header(p).hasView()) {
       part_view = file.header(p).view();
     }
-    std::string part_name = "";
+    std::string part_name;
     if (file.header(p).hasName()) {
       part_name = file.header(p).name();
     }

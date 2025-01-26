@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef __cplusplus
 extern "C" {
