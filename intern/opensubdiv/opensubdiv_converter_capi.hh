@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <cstdint>  // for bool
-
 #include "BLI_offset_indices.hh"
 
 #include "opensubdiv_capi_type.hh"

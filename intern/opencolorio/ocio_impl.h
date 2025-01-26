@@ -9,12 +9,12 @@
 
 class IOCIOImpl {
  public:
-  virtual ~IOCIOImpl() {}
+  virtual ~IOCIOImpl() = default;
 
-  virtual OCIO_ConstConfigRcPtr *getCurrentConfig(void) = 0;
+  virtual OCIO_ConstConfigRcPtr *getCurrentConfig() = 0;
   virtual void setCurrentConfig(const OCIO_ConstConfigRcPtr *config) = 0;
 
-  virtual OCIO_ConstConfigRcPtr *configCreateFromEnv(void) = 0;
+  virtual OCIO_ConstConfigRcPtr *configCreateFromEnv() = 0;
   virtual OCIO_ConstConfigRcPtr *configCreateFromFile(const char *filename) = 0;
 
   virtual void configRelease(OCIO_ConstConfigRcPtr *config) = 0;
@@ -125,79 +125,86 @@ class IOCIOImpl {
   {
     return false;
   }
-  virtual void gpuDisplayShaderUnbind(void) {}
-  virtual void gpuCacheFree(void) {}
+  virtual void gpuDisplayShaderUnbind() {}
+  virtual void gpuCacheFree() {}
 
-  virtual const char *getVersionString(void) = 0;
-  virtual int getVersionHex(void) = 0;
+  virtual const char *getVersionString() = 0;
+  virtual int getVersionHex() = 0;
 };
 
 class FallbackImpl : public IOCIOImpl {
  public:
-  FallbackImpl() {}
+  FallbackImpl() = default;
 
-  OCIO_ConstConfigRcPtr *getCurrentConfig(void);
-  void setCurrentConfig(const OCIO_ConstConfigRcPtr *config);
+  OCIO_ConstConfigRcPtr *getCurrentConfig() override;
+  void setCurrentConfig(const OCIO_ConstConfigRcPtr *config) override;
 
-  OCIO_ConstConfigRcPtr *configCreateFromEnv(void);
-  OCIO_ConstConfigRcPtr *configCreateFromFile(const char *filename);
+  OCIO_ConstConfigRcPtr *configCreateFromEnv() override;
+  OCIO_ConstConfigRcPtr *configCreateFromFile(const char *filename) override;
 
-  void configRelease(OCIO_ConstConfigRcPtr *config);
+  void configRelease(OCIO_ConstConfigRcPtr *config) override;
 
-  int configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config);
-  const char *configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
-  OCIO_ConstColorSpaceRcPtr *configGetColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
-  int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
+  int configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config) override;
+  const char *configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index) override;
+  OCIO_ConstColorSpaceRcPtr *configGetColorSpace(OCIO_ConstConfigRcPtr *config,
+                                                 const char *name) override;
+  int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name) override;
 
-  int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
-  int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
+  int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs) override;
+  int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs) override;
   void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
                            OCIO_ConstColorSpaceRcPtr *cs,
                            bool &is_scene_linear,
-                           bool &is_srgb);
+                           bool &is_srgb) override;
 
-  void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs);
+  void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs) override;
 
-  const char *configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config);
-  int configGetNumDisplays(OCIO_ConstConfigRcPtr *config);
-  const char *configGetDisplay(OCIO_ConstConfigRcPtr *config, int index);
-  const char *configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display);
-  int configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display);
-  const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
+  const char *configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config) override;
+  int configGetNumDisplays(OCIO_ConstConfigRcPtr *config) override;
+  const char *configGetDisplay(OCIO_ConstConfigRcPtr *config, int index) override;
+  const char *configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display) override;
+  int configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display) override;
+  const char *configGetView(OCIO_ConstConfigRcPtr *config,
+                            const char *display,
+                            int index) override;
   const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config,
                                              const char *display,
-                                             const char *view);
+                                             const char *view) override;
 
-  void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
-  void configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config, float xyz_to_scene_linear[3][3]);
+  void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb) override;
+  void configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config,
+                                 float xyz_to_scene_linear[3][3]) override;
 
-  int configGetNumLooks(OCIO_ConstConfigRcPtr *config);
-  const char *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
-  OCIO_ConstLookRcPtr *configGetLook(OCIO_ConstConfigRcPtr *config, const char *name);
+  int configGetNumLooks(OCIO_ConstConfigRcPtr *config) override;
+  const char *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index) override;
+  OCIO_ConstLookRcPtr *configGetLook(OCIO_ConstConfigRcPtr *config, const char *name) override;
 
-  const char *lookGetProcessSpace(OCIO_ConstLookRcPtr *look);
-  void lookRelease(OCIO_ConstLookRcPtr *look);
+  const char *lookGetProcessSpace(OCIO_ConstLookRcPtr *look) override;
+  void lookRelease(OCIO_ConstLookRcPtr *look) override;
 
   OCIO_ConstProcessorRcPtr *configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config,
                                                         const char *srcName,
-                                                        const char *dstName);
-  void processorRelease(OCIO_ConstProcessorRcPtr *processor);
+                                                        const char *dstName) override;
+  void processorRelease(OCIO_ConstProcessorRcPtr *processor) override;
 
-  OCIO_ConstCPUProcessorRcPtr *processorGetCPUProcessor(OCIO_ConstProcessorRcPtr *processor);
-  bool cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor);
-  void cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_PackedImageDesc *img);
+  OCIO_ConstCPUProcessorRcPtr *processorGetCPUProcessor(
+      OCIO_ConstProcessorRcPtr *processor) override;
+  bool cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor) override;
+  void cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                         OCIO_PackedImageDesc *img) override;
   void cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
-                                   OCIO_PackedImageDesc *img);
-  void cpuProcessorApplyRGB(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
-  void cpuProcessorApplyRGBA(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
-  void cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
-  void cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *cpu_processor);
+                                   OCIO_PackedImageDesc *img) override;
+  void cpuProcessorApplyRGB(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel) override;
+  void cpuProcessorApplyRGBA(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel) override;
+  void cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                                       float *pixel) override;
+  void cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *cpu_processor) override;
 
-  const char *colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs);
-  const char *colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs);
-  const char *colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs);
-  int colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr *cs);
-  const char *colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr *cs, const int index);
+  const char *colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs) override;
+  const char *colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs) override;
+  const char *colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs) override;
+  int colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr *cs) override;
+  const char *colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr *cs, const int index) override;
 
   OCIO_ConstProcessorRcPtr *createDisplayProcessor(OCIO_ConstConfigRcPtr *config,
                                                    const char *input,
@@ -209,7 +216,7 @@ class FallbackImpl : public IOCIOImpl {
                                                    const float temperature,
                                                    const float tint,
                                                    const bool use_white_balance,
-                                                   const bool inverse);
+                                                   const bool inverse) override;
 
   OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
                                                    long width,
@@ -217,81 +224,88 @@ class FallbackImpl : public IOCIOImpl {
                                                    long numChannels,
                                                    long chanStrideBytes,
                                                    long xStrideBytes,
-                                                   long yStrideBytes);
+                                                   long yStrideBytes) override;
 
-  void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p);
+  void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id) override;
 
-  const char *getVersionString(void);
-  int getVersionHex(void);
+  const char *getVersionString() override;
+  int getVersionHex() override;
 };
 
 #ifdef WITH_OCIO
 class OCIOImpl : public IOCIOImpl {
  public:
-  OCIOImpl(){};
+  OCIOImpl() = default;
 
-  OCIO_ConstConfigRcPtr *getCurrentConfig(void);
-  void setCurrentConfig(const OCIO_ConstConfigRcPtr *config);
+  OCIO_ConstConfigRcPtr *getCurrentConfig() override;
+  void setCurrentConfig(const OCIO_ConstConfigRcPtr *config) override;
 
-  OCIO_ConstConfigRcPtr *configCreateFromEnv(void);
-  OCIO_ConstConfigRcPtr *configCreateFromFile(const char *filename);
+  OCIO_ConstConfigRcPtr *configCreateFromEnv() override;
+  OCIO_ConstConfigRcPtr *configCreateFromFile(const char *filename) override;
 
-  void configRelease(OCIO_ConstConfigRcPtr *config);
+  void configRelease(OCIO_ConstConfigRcPtr *config) override;
 
-  int configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config);
-  const char *configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
-  OCIO_ConstColorSpaceRcPtr *configGetColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
-  int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
+  int configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config) override;
+  const char *configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index) override;
+  OCIO_ConstColorSpaceRcPtr *configGetColorSpace(OCIO_ConstConfigRcPtr *config,
+                                                 const char *name) override;
+  int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name) override;
 
-  int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
-  int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
+  int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs) override;
+  int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs) override;
   void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
                            OCIO_ConstColorSpaceRcPtr *cs,
                            bool &is_scene_linear,
-                           bool &is_srgb);
+                           bool &is_srgb) override;
 
-  void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs);
+  void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs) override;
 
-  const char *configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config);
-  int configGetNumDisplays(OCIO_ConstConfigRcPtr *config);
-  const char *configGetDisplay(OCIO_ConstConfigRcPtr *config, int index);
-  const char *configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display);
-  int configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display);
-  const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
+  const char *configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config) override;
+  int configGetNumDisplays(OCIO_ConstConfigRcPtr *config) override;
+  const char *configGetDisplay(OCIO_ConstConfigRcPtr *config, int index) override;
+  const char *configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display) override;
+  int configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display) override;
+  const char *configGetView(OCIO_ConstConfigRcPtr *config,
+                            const char *display,
+                            int index) override;
   const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config,
                                              const char *display,
-                                             const char *view);
+                                             const char *view) override;
 
-  void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
-  void configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config, float xyz_to_scene_linear[3][3]);
+  void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb) override;
+  void configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config,
+                                 float xyz_to_scene_linear[3][3]) override;
 
-  int configGetNumLooks(OCIO_ConstConfigRcPtr *config);
-  const char *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
-  OCIO_ConstLookRcPtr *configGetLook(OCIO_ConstConfigRcPtr *config, const char *name);
+  int configGetNumLooks(OCIO_ConstConfigRcPtr *config) override;
+  const char *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index) override;
+  OCIO_ConstLookRcPtr *configGetLook(OCIO_ConstConfigRcPtr *config, const char *name) override;
 
-  const char *lookGetProcessSpace(OCIO_ConstLookRcPtr *look);
-  void lookRelease(OCIO_ConstLookRcPtr *look);
+  const char *lookGetProcessSpace(OCIO_ConstLookRcPtr *look) override;
+  void lookRelease(OCIO_ConstLookRcPtr *look) override;
 
   OCIO_ConstProcessorRcPtr *configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config,
                                                         const char *srcName,
-                                                        const char *dstName);
-  void processorRelease(OCIO_ConstProcessorRcPtr *processor);
+                                                        const char *dstName) override;
+  void processorRelease(OCIO_ConstProcessorRcPtr *processor) override;
 
-  OCIO_ConstCPUProcessorRcPtr *processorGetCPUProcessor(OCIO_ConstProcessorRcPtr *processor);
-  bool cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor);
-  void cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_PackedImageDesc *img);
+  OCIO_ConstCPUProcessorRcPtr *processorGetCPUProcessor(
+      OCIO_ConstProcessorRcPtr *processor) override;
+  bool cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor) override;
+  void cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                         OCIO_PackedImageDesc *img) override;
   void cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
-                                   OCIO_PackedImageDesc *img);
-  void cpuProcessorApplyRGB(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
-  void cpuProcessorApplyRGBA(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
-  void cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
-  void cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *cpu_processor);
+                                   OCIO_PackedImageDesc *img) override;
+  void cpuProcessorApplyRGB(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel) override;
+  void cpuProcessorApplyRGBA(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel) override;
+  void cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                                       float *pixel) override;
+  void cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *cpu_processor) override;
 
-  const char *colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs);
-  const char *colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs);
-  const char *colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs);
-  int colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr *cs);
-  const char *colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr *cs, const int index);
+  const char *colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs) override;
+  const char *colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs) override;
+  const char *colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs) override;
+  int colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr *cs) override;
+  const char *colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr *cs, const int index) override;
 
   OCIO_ConstProcessorRcPtr *createDisplayProcessor(OCIO_ConstConfigRcPtr *config,
                                                    const char *input,
@@ -303,7 +317,7 @@ class OCIOImpl : public IOCIOImpl {
                                                    const float temperature,
                                                    const float tint,
                                                    const bool use_white_balance,
-                                                   const bool inverse);
+                                                   const bool inverse) override;
 
   OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
                                                    long width,
@@ -311,11 +325,11 @@ class OCIOImpl : public IOCIOImpl {
                                                    long numChannels,
                                                    long chanStrideBytes,
                                                    long xStrideBytes,
-                                                   long yStrideBytes);
+                                                   long yStrideBytes) override;
 
-  void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p);
+  void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id) override;
 
-  bool supportGPUShader();
+  bool supportGPUShader() override;
   bool gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                             const char *input,
                             const char *view,
@@ -330,12 +344,12 @@ class OCIOImpl : public IOCIOImpl {
                             const bool use_predivide,
                             const bool use_overlay,
                             const bool use_hdr,
-                            const bool use_white_balance);
-  void gpuDisplayShaderUnbind(void);
-  void gpuCacheFree(void);
+                            const bool use_white_balance) override;
+  void gpuDisplayShaderUnbind() override;
+  void gpuCacheFree() override;
 
-  const char *getVersionString(void);
-  int getVersionHex(void);
+  const char *getVersionString() override;
+  int getVersionHex() override;
 };
 #endif
 

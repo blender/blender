@@ -10,15 +10,13 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Solvers for Ax = b and AtAx = Atb */
 
-typedef struct LinearSolver LinearSolver;
+struct LinearSolver;
 
 LinearSolver *EIG_linear_solver_new(int num_rows, int num_columns, int num_right_hand_sides);
 

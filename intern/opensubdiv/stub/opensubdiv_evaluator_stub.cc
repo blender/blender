@@ -10,12 +10,12 @@
 
 OpenSubdiv_EvaluatorCache *openSubdiv_createEvaluatorCache(eOpenSubdivEvaluator /*evaluator_type*/)
 {
-  return NULL;
+  return nullptr;
 }
 
 void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache * /*evaluator_cache*/) {}
 
 const char *openSubdiv_getGLSLPatchBasisSource()
 {
-  return NULL;
+  return nullptr;
 }

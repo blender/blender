@@ -15,8 +15,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include <cstdio>
-
 /* For now only used with NDOF. */
 #ifdef WITH_INPUT_NDOF
 static const char *getButtonActionString(const GHOST_TButtonAction action)

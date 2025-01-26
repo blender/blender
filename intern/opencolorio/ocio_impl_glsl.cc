@@ -4,10 +4,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause */
 
-#include <limits>
+#include <cstring>
 #include <list>
 #include <sstream>
-#include <string.h>
 #include <vector>
 
 #ifdef _MSC_VER
@@ -27,11 +26,8 @@
 
 using namespace OCIO_NAMESPACE;
 
-#include "BLI_math_color.h"
 #include "BLI_math_color.hh"
 #include "BLI_math_matrix.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "ocio_impl.h"
 #include "ocio_shader_shared.hh"

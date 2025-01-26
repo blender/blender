@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "GHOST_IContext.hh"
 #include "GHOST_ITimerTask.hh"
@@ -161,7 +161,7 @@ class GHOST_ISystem {
    * Destructor.
    * Protected default constructor to force use of static dispose member.
    */
-  virtual ~GHOST_ISystem() {}
+  virtual ~GHOST_ISystem() = default;
 
  public:
   /***************************************************************************************
@@ -486,7 +486,7 @@ class GHOST_ISystem {
   /**
    * Returns GHOST_kSuccess if the clipboard contains an image.
    */
-  virtual GHOST_TSuccess hasClipboardImage(void) const = 0;
+  virtual GHOST_TSuccess hasClipboardImage() const = 0;
 
   /**
    * Get image data from the Clipboard

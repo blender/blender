@@ -5,11 +5,13 @@
 #ifndef __OCIO_CAPI_H__
 #define __OCIO_CAPI_H__
 
+#include <cstddef>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct OCIO_GPUShader OCIO_GPUShader;
+using OCIO_GPUShader = struct OCIO_GPUShader;
 
 #define OCIO_DECLARE_HANDLE(name) \
   struct name; \
@@ -45,7 +47,7 @@ static const float OCIO_ACES_TO_XYZ[3][3] = {{0.938280f, 0.337369f, 0.001174f},
  * blender's DNA structure stored in view transform settings
  * to a generic OpenColorIO C-API.
  */
-typedef struct OCIO_CurveMappingSettings {
+struct OCIO_CurveMappingSettings {
   /* This is a LUT which contain values for all 4 curve mapping tables
    * (combined, R, G and B).
    *
@@ -95,7 +97,7 @@ typedef struct OCIO_CurveMappingSettings {
    * upload of new settings to GPU is needed.
    */
   size_t cache_id;
-} OCIO_CurveMappingSettings;
+};
 
 void OCIO_init(void);
 void OCIO_exit(void);
@@ -188,7 +190,7 @@ struct OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data,
                                                              long xStrideBytes,
                                                              long yStrideBytes);
 
-void OCIO_PackedImageDescRelease(struct OCIO_PackedImageDesc *p);
+void OCIO_PackedImageDescRelease(struct OCIO_PackedImageDesc *id);
 
 bool OCIO_supportGPUShader(void);
 bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,

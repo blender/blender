@@ -13,8 +13,8 @@
 class GHOST_NDOFManagerUnix : public GHOST_NDOFManager {
  public:
   GHOST_NDOFManagerUnix(GHOST_System &);
-  ~GHOST_NDOFManagerUnix();
-  bool available();
+  ~GHOST_NDOFManagerUnix() override;
+  bool available() override;
   bool processEvents();
 
  private:

@@ -34,7 +34,7 @@ class GHOST_Rect {
   /**
    * Destructor.
    */
-  virtual ~GHOST_Rect() {}
+  virtual ~GHOST_Rect() = default;
 
   /**
    * Access to rectangle width.

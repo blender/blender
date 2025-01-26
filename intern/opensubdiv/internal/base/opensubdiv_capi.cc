@@ -8,8 +8,6 @@
 #  include <iso646.h>
 #endif
 
-#include "internal/base/util.h"
-
 void openSubdiv_init() {}
 
 void openSubdiv_cleanup() {}

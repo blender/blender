@@ -9,7 +9,9 @@
 #pragma once
 
 #include <cassert>
+#include <cfloat>
 #include <cmath>
+#include <vector>
 
 #ifndef M_PI_F
 #  define M_PI_F (3.1415926535897932f) /* pi */
@@ -105,18 +107,19 @@ static uint hash_float3x3(const float3 &x, const float3 &y, const float3 &z)
 template<typename T, typename KeyGetter>
 void radixsort(std::vector<T> &data, std::vector<T> &data2, KeyGetter getKey)
 {
-  typedef decltype(getKey(data[0])) key_t;
+  using key_t = decltype(getKey(data[0]));
   constexpr size_t datasize = sizeof(key_t);
   static_assert(datasize % 2 == 0);
-  static_assert(std::is_integral<key_t>::value);
+  static_assert(std::is_integral_v<key_t>);
 
   uint bins[datasize][257] = {{0}};
 
   /* Count number of elements per bin. */
   for (const T &item : data) {
     key_t key = getKey(item);
-    for (uint pass = 0; pass < datasize; pass++)
+    for (uint pass = 0; pass < datasize; pass++) {
       bins[pass][((key >> (8 * pass)) & 0xff) + 1]++;
+    }
   }
 
   /* Compute prefix sum to find position of each bin in the sorted array. */

@@ -10,7 +10,6 @@
 #include "flip_avoiding_line_search.h"
 
 #include <Eigen/Dense>
-#include <vector>
 
 namespace slim {
 
@@ -95,13 +94,9 @@ static inline double get_smallest_pos_quad_zero(double a, double b, double c)
     if (t2 > 0) {
       return t2;
     }
-    else {
-      return t1;
-    }
+    return t1;
   }
-  else {
-    return INFINITY;
-  }
+  return INFINITY;
 }
 
 static inline double get_min_pos_root_2D(const Eigen::MatrixXd &uv,

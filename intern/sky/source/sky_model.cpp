@@ -78,10 +78,9 @@ All instructions on how to use this code are in the accompanying header file.
 #include "sky_model.h"
 #include "sky_model_data.h"
 
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
 
 //   Some macro definitions that occur elsewhere in ART, and that have to be
 //   replicated to make this a stand-alone module.
@@ -107,12 +106,12 @@ All instructions on how to use this code are in the accompanying header file.
 #endif
 
 /* Not defined on all platforms (macOS & WIN32). */
-typedef unsigned int uint;
+using uint = unsigned int;
 
 // internal definitions
 
-typedef const double *ArHosekSkyModel_Dataset;
-typedef const double *ArHosekSkyModel_Radiance_Dataset;
+using ArHosekSkyModel_Dataset = const double *;
+using ArHosekSkyModel_Radiance_Dataset = const double *;
 
 // internal functions
 

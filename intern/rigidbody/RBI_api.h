@@ -86,10 +86,10 @@ void RB_dworld_export(rbDynamicsWorld *world, const char *filename);
 /* Setup ---------------------------- */
 
 /* Add RigidBody to dynamics world */
-void RB_dworld_add_body(rbDynamicsWorld *world, rbRigidBody *body, int col_groups);
+void RB_dworld_add_body(rbDynamicsWorld *world, rbRigidBody *object, int col_groups);
 
 /* Remove RigidBody from dynamics world */
-void RB_dworld_remove_body(rbDynamicsWorld *world, rbRigidBody *body);
+void RB_dworld_remove_body(rbDynamicsWorld *world, rbRigidBody *object);
 
 /* Collision detection */
 
@@ -108,93 +108,93 @@ void RB_world_convex_sweep_test(rbDynamicsWorld *world,
 rbRigidBody *RB_body_new(rbCollisionShape *shape, const float loc[3], const float rot[4]);
 
 /* Delete the given RigidBody instance */
-void RB_body_delete(rbRigidBody *body);
+void RB_body_delete(rbRigidBody *object);
 
 /* Settings ------------------------- */
 
 /* 'Type' */
-void RB_body_set_type(rbRigidBody *body, int type, float mass);
+void RB_body_set_type(rbRigidBody *object, int type, float mass);
 
 /* ............ */
 
 /* Collision Shape */
-void RB_body_set_collision_shape(rbRigidBody *body, rbCollisionShape *shape);
+void RB_body_set_collision_shape(rbRigidBody *object, rbCollisionShape *shape);
 
 /* ............ */
 
 /* Mass */
-float RB_body_get_mass(rbRigidBody *body);
-void RB_body_set_mass(rbRigidBody *body, float value);
+float RB_body_get_mass(rbRigidBody *object);
+void RB_body_set_mass(rbRigidBody *object, float value);
 
 /* Friction */
-float RB_body_get_friction(rbRigidBody *body);
-void RB_body_set_friction(rbRigidBody *body, float value);
+float RB_body_get_friction(rbRigidBody *object);
+void RB_body_set_friction(rbRigidBody *object, float value);
 
 /* Restitution */
-float RB_body_get_restitution(rbRigidBody *body);
-void RB_body_set_restitution(rbRigidBody *body, float value);
+float RB_body_get_restitution(rbRigidBody *object);
+void RB_body_set_restitution(rbRigidBody *object, float value);
 
 /* Damping */
-float RB_body_get_linear_damping(rbRigidBody *body);
-void RB_body_set_linear_damping(rbRigidBody *body, float value);
+float RB_body_get_linear_damping(rbRigidBody *object);
+void RB_body_set_linear_damping(rbRigidBody *object, float value);
 
-float RB_body_get_angular_damping(rbRigidBody *body);
-void RB_body_set_angular_damping(rbRigidBody *body, float value);
+float RB_body_get_angular_damping(rbRigidBody *object);
+void RB_body_set_angular_damping(rbRigidBody *object, float value);
 
 void RB_body_set_damping(rbRigidBody *object, float linear, float angular);
 
 /* Sleeping Thresholds */
-float RB_body_get_linear_sleep_thresh(rbRigidBody *body);
-void RB_body_set_linear_sleep_thresh(rbRigidBody *body, float value);
+float RB_body_get_linear_sleep_thresh(rbRigidBody *object);
+void RB_body_set_linear_sleep_thresh(rbRigidBody *object, float value);
 
-float RB_body_get_angular_sleep_thresh(rbRigidBody *body);
-void RB_body_set_angular_sleep_thresh(rbRigidBody *body, float value);
+float RB_body_get_angular_sleep_thresh(rbRigidBody *object);
+void RB_body_set_angular_sleep_thresh(rbRigidBody *object, float value);
 
-void RB_body_set_sleep_thresh(rbRigidBody *body, float linear, float angular);
+void RB_body_set_sleep_thresh(rbRigidBody *object, float linear, float angular);
 
 /* Linear Velocity */
-void RB_body_get_linear_velocity(rbRigidBody *body, float v_out[3]);
-void RB_body_set_linear_velocity(rbRigidBody *body, const float v_in[3]);
+void RB_body_get_linear_velocity(rbRigidBody *object, float v_out[3]);
+void RB_body_set_linear_velocity(rbRigidBody *object, const float v_in[3]);
 
 /* Angular Velocity */
-void RB_body_get_angular_velocity(rbRigidBody *body, float v_out[3]);
-void RB_body_set_angular_velocity(rbRigidBody *body, const float v_in[3]);
+void RB_body_get_angular_velocity(rbRigidBody *object, float v_out[3]);
+void RB_body_set_angular_velocity(rbRigidBody *object, const float v_in[3]);
 
 /* Linear/Angular Factor, used to lock translation/rotation axes */
 void RB_body_set_linear_factor(rbRigidBody *object, float x, float y, float z);
 void RB_body_set_angular_factor(rbRigidBody *object, float x, float y, float z);
 
 /* Kinematic State */
-void RB_body_set_kinematic_state(rbRigidBody *body, int kinematic);
+void RB_body_set_kinematic_state(rbRigidBody *object, int kinematic);
 
 /* RigidBody Interface - Rigid Body Activation States */
-int RB_body_get_activation_state(rbRigidBody *body);
-void RB_body_set_activation_state(rbRigidBody *body, int use_deactivation);
-void RB_body_activate(rbRigidBody *body);
-void RB_body_deactivate(rbRigidBody *body);
+int RB_body_get_activation_state(rbRigidBody *object);
+void RB_body_set_activation_state(rbRigidBody *object, int use_deactivation);
+void RB_body_activate(rbRigidBody *object);
+void RB_body_deactivate(rbRigidBody *object);
 
 /* Simulation ----------------------- */
 
 /* Get current transform matrix of RigidBody to use in Blender (OpenGL format) */
-void RB_body_get_transform_matrix(rbRigidBody *body, float m_out[4][4]);
+void RB_body_get_transform_matrix(rbRigidBody *object, float m_out[4][4]);
 
 /* Set RigidBody's location and rotation */
-void RB_body_set_loc_rot(rbRigidBody *body, const float loc[3], const float rot[4]);
+void RB_body_set_loc_rot(rbRigidBody *object, const float loc[3], const float rot[4]);
 /* Set RigidBody's local scaling */
-void RB_body_set_scale(rbRigidBody *body, const float scale[3]);
+void RB_body_set_scale(rbRigidBody *object, const float scale[3]);
 
 /* ............ */
 
 /* Get RigidBody's position as a vector */
-void RB_body_get_position(rbRigidBody *body, float v_out[3]);
+void RB_body_get_position(rbRigidBody *object, float v_out[3]);
 /* Get RigidBody's orientation as a quaternion */
-void RB_body_get_orientation(rbRigidBody *body, float v_out[4]);
+void RB_body_get_orientation(rbRigidBody *object, float v_out[4]);
 /* Get RigidBody's local scale as a vector */
 void RB_body_get_scale(rbRigidBody *object, float v_out[3]);
 
 /* ............ */
 
-void RB_body_apply_central_force(rbRigidBody *body, const float v_in[3]);
+void RB_body_apply_central_force(rbRigidBody *object, const float v_in[3]);
 
 /* ********************************** */
 /* Collision Shape Methods */
@@ -228,7 +228,7 @@ rbCollisionShape *RB_shape_new_gimpact_mesh(rbMeshData *mesh);
 /* Compound Shape ---------------- */
 
 rbCollisionShape *RB_shape_new_compound(void);
-void RB_compound_add_child_shape(rbCollisionShape *collisionShape,
+void RB_compound_add_child_shape(rbCollisionShape *parentShape,
                                  rbCollisionShape *shape,
                                  const float loc[3],
                                  const float rot[4]);

@@ -9,9 +9,9 @@
 #ifndef __UTFCONV_H__
 #define __UTFCONV_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <wchar.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cwchar>
 
 /**
  * Counts how many bytes is required for future utf-8 string using utf-16

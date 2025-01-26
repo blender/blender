@@ -25,7 +25,7 @@ CCL_NAMESPACE_END
 
 /* specializations of TopologyRefinerFactory for ccl::Mesh */
 
-namespace OpenSubdiv::v3_6_0::Far {
+namespace OpenSubdiv::OPENSUBDIV_VERSION::Far {
 template<>
 bool TopologyRefinerFactory<ccl::Mesh>::resizeComponentTopology(TopologyRefiner &refiner,
                                                                 const ccl::Mesh &mesh)
@@ -134,7 +134,7 @@ void TopologyRefinerFactory<ccl::Mesh>::reportInvalidTopology(TopologyError /*er
                                                               const ccl::Mesh & /*mesh*/)
 {
 }
-}  // namespace OpenSubdiv::v3_6_0::Far
+}  // namespace OpenSubdiv::OPENSUBDIV_VERSION::Far
 
 CCL_NAMESPACE_BEGIN
 

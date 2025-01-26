@@ -4,10 +4,8 @@
 
 #include <algorithm>
 #include <cstring>
-#include <vector>
 
 #include "BLI_math_color.h"
-#include "BLI_math_vector.h"
 #include "MEM_guardedalloc.h"
 
 #include "ocio_impl.h"
@@ -40,9 +38,8 @@ struct OCIO_PackedImageDescription {
 };
 
 struct FallbackTransform {
-  FallbackTransform() : type(TRANSFORM_UNKNOWN), scale(1.0f), exponent(1.0f) {}
-
-  virtual ~FallbackTransform() {}
+  FallbackTransform() = default;
+  virtual ~FallbackTransform() = default;
 
   void applyRGB(float *pixel)
   {
@@ -83,11 +80,11 @@ struct FallbackTransform {
     return false;
   }
 
-  TransformType type;
+  TransformType type = TRANSFORM_UNKNOWN;
   /* Scale transform. */
-  float scale;
+  float scale = 1.0f;
   /* Exponent transform. */
-  float exponent;
+  float exponent = 1.0f;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("FallbackTransform");
 };
@@ -124,7 +121,7 @@ void FallbackImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr * /*config*/) {}
 
 OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromEnv()
 {
-  return NULL;
+  return nullptr;
 }
 
 OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromFile(const char * /*filename*/)
@@ -145,11 +142,11 @@ const char *FallbackImpl::configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *
   if (index == 0) {
     return "Linear";
   }
-  else if (index == 1) {
+  if (index == 1) {
     return "sRGB";
   }
 
-  return NULL;
+  return nullptr;
 }
 
 OCIO_ConstColorSpaceRcPtr *FallbackImpl::configGetColorSpace(OCIO_ConstConfigRcPtr * /*config*/,
@@ -158,32 +155,32 @@ OCIO_ConstColorSpaceRcPtr *FallbackImpl::configGetColorSpace(OCIO_ConstConfigRcP
   if (strcmp(name, "scene_linear") == 0) {
     return COLORSPACE_LINEAR;
   }
-  else if (strcmp(name, "color_picking") == 0) {
+  if (strcmp(name, "color_picking") == 0) {
     return COLORSPACE_SRGB;
   }
-  else if (strcmp(name, "texture_paint") == 0) {
+  if (strcmp(name, "texture_paint") == 0) {
     return COLORSPACE_LINEAR;
   }
-  else if (strcmp(name, "default_byte") == 0) {
+  if (strcmp(name, "default_byte") == 0) {
     return COLORSPACE_SRGB;
   }
-  else if (strcmp(name, "default_float") == 0) {
+  if (strcmp(name, "default_float") == 0) {
     return COLORSPACE_LINEAR;
   }
-  else if (strcmp(name, "default_sequencer") == 0) {
+  if (strcmp(name, "default_sequencer") == 0) {
     return COLORSPACE_SRGB;
   }
-  else if (strcmp(name, "Linear") == 0) {
+  if (strcmp(name, "Linear") == 0) {
     return COLORSPACE_LINEAR;
   }
-  else if (strcmp(name, "sRGB") == 0) {
+  if (strcmp(name, "sRGB") == 0) {
     return COLORSPACE_SRGB;
   }
-  else if (strcmp(name, "data") == 0) {
+  if (strcmp(name, "data") == 0) {
     return COLORSPACE_DATA;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int FallbackImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name)
@@ -193,10 +190,10 @@ int FallbackImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, con
   if (cs == COLORSPACE_LINEAR) {
     return 0;
   }
-  else if (cs == COLORSPACE_SRGB) {
+  if (cs == COLORSPACE_SRGB) {
     return 1;
   }
-  else if (cs == COLORSPACE_DATA) {
+  if (cs == COLORSPACE_DATA) {
     return 2;
   }
   return -1;
@@ -217,7 +214,7 @@ const char *FallbackImpl::configGetDisplay(OCIO_ConstConfigRcPtr * /*config*/, i
   if (index == 0) {
     return "sRGB";
   }
-  return NULL;
+  return nullptr;
 }
 
 const char *FallbackImpl::configGetDefaultView(OCIO_ConstConfigRcPtr * /*config*/,
@@ -238,7 +235,7 @@ const char *FallbackImpl::configGetView(OCIO_ConstConfigRcPtr * /*config*/,
   if (index == 0) {
     return "Standard";
   }
-  return NULL;
+  return nullptr;
 }
 
 const char *FallbackImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr * /*config*/,
@@ -282,12 +279,12 @@ const char *FallbackImpl::configGetLookNameByIndex(OCIO_ConstConfigRcPtr * /*con
 OCIO_ConstLookRcPtr *FallbackImpl::configGetLook(OCIO_ConstConfigRcPtr * /*config*/,
                                                  const char * /*name*/)
 {
-  return NULL;
+  return nullptr;
 }
 
 const char *FallbackImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr * /*look*/)
 {
-  return NULL;
+  return nullptr;
 }
 
 void FallbackImpl::lookRelease(OCIO_ConstLookRcPtr * /*look*/) {}
@@ -458,13 +455,13 @@ const char *FallbackImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
   if (cs == COLORSPACE_LINEAR) {
     return "Linear";
   }
-  else if (cs == COLORSPACE_SRGB) {
+  if (cs == COLORSPACE_SRGB) {
     return "sRGB";
   }
-  else if (cs == COLORSPACE_DATA) {
+  if (cs == COLORSPACE_DATA) {
     return "data";
   }
-  return NULL;
+  return nullptr;
 }
 
 const char *FallbackImpl::colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr * /*cs*/)

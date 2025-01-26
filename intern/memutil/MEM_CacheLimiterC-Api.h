@@ -9,7 +9,7 @@
 #ifndef __MEM_CACHELIMITERC_API_H__
 #define __MEM_CACHELIMITERC_API_H__
 
-#include "BLI_utildefines.h"
+#include <cstddef>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,20 +18,20 @@ extern "C" {
 struct MEM_CacheLimiter_s;
 struct MEM_CacheLimiterHandle_s;
 
-typedef struct MEM_CacheLimiter_s MEM_CacheLimiterC;
-typedef struct MEM_CacheLimiterHandle_s MEM_CacheLimiterHandleC;
+using MEM_CacheLimiterC = struct MEM_CacheLimiter_s;
+using MEM_CacheLimiterHandleC = struct MEM_CacheLimiterHandle_s;
 
 /* function used to remove data from memory */
-typedef void (*MEM_CacheLimiter_Destruct_Func)(void *);
+using MEM_CacheLimiter_Destruct_Func = void (*)(void *);
 
 /* function used to measure stored data element size */
-typedef size_t (*MEM_CacheLimiter_DataSize_Func)(void *);
+using MEM_CacheLimiter_DataSize_Func = size_t (*)(void *);
 
 /* function used to measure priority of item when freeing memory */
-typedef int (*MEM_CacheLimiter_ItemPriority_Func)(void *, int);
+using MEM_CacheLimiter_ItemPriority_Func = int (*)(void *, int);
 
 /* function to check whether item could be destroyed */
-typedef bool (*MEM_CacheLimiter_ItemDestroyable_Func)(void *);
+using MEM_CacheLimiter_ItemDestroyable_Func = bool (*)(void *);
 
 #ifndef __MEM_CACHELIMITER_H__
 void MEM_CacheLimiter_set_maximum(size_t m);

@@ -6,16 +6,12 @@
  * \ingroup intern_slim
  */
 
-#include <stdlib.h>
-#include <string>
-#include <vector>
+#include <cstdlib>
+
+#include "slim.h"
+#include "slim_matrix_transfer.h"
 
 #include "area_compensation.h"
-#include "doublearea.h"
-#include "geometry_data_retrieval.h"
-#include "least_squares_relocator.h"
-#include "slim.h"
-#include "uv_initializer.h"
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -54,9 +50,9 @@ static void adjust_pins(SLIMData &slim_data, const PinnedVertexData &pinned_vert
     return;
   }
 
-  auto &pinned_vertex_indices = pinned_vertex_data.pinned_vertex_indices;
-  auto &pinned_vertex_positions_2D = pinned_vertex_data.pinned_vertex_positions_2D;
-  auto &selected_pins = pinned_vertex_data.selected_pins;
+  const auto &pinned_vertex_indices = pinned_vertex_data.pinned_vertex_indices;
+  const auto &pinned_vertex_positions_2D = pinned_vertex_data.pinned_vertex_positions_2D;
+  const auto &selected_pins = pinned_vertex_data.selected_pins;
 
   int n_pins = pinned_vertex_indices.size();
   int n_selected_pins = selected_pins.size();

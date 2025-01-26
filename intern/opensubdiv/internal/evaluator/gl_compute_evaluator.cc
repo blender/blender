@@ -190,12 +190,12 @@ static GLuint compileKernel(BufferDescriptor const &srcDesc,
 
   std::string defineStr = defines.str();
 
-  const char *shaderSources[4] = {"#version 430\n", 0, 0, 0};
+  const char *shaderSources[4] = {"#version 430\n", nullptr, nullptr, nullptr};
 
   shaderSources[1] = defineStr.c_str();
   shaderSources[2] = patchBasisShaderSource.c_str();
   shaderSources[3] = datatoc_glsl_compute_kernel_glsl;
-  glShaderSource(shader, 4, shaderSources, NULL);
+  glShaderSource(shader, 4, shaderSources, nullptr);
   glCompileShader(shader);
   glAttachShader(program, shader);
 
@@ -205,10 +205,10 @@ static GLuint compileKernel(BufferDescriptor const &srcDesc,
 
   if (linked == GL_FALSE) {
     char buffer[1024];
-    glGetShaderInfoLog(shader, 1024, NULL, buffer);
+    glGetShaderInfoLog(shader, 1024, nullptr, buffer);
     OpenSubdiv::Far::Error(OpenSubdiv::Far::FAR_RUNTIME_ERROR, buffer);
 
-    glGetProgramInfoLog(program, 1024, NULL, buffer);
+    glGetProgramInfoLog(program, 1024, nullptr, buffer);
     OpenSubdiv::Far::Error(OpenSubdiv::Far::FAR_RUNTIME_ERROR, buffer);
 
     glDeleteProgram(program);
@@ -524,7 +524,7 @@ bool GLComputeEvaluator::EvalPatches(GLuint srcBuffer,
   int patchArraySize = sizeof(PatchArray);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, _patchArraysSSBO);
   glBufferData(
-      GL_SHADER_STORAGE_BUFFER, patchArrays.size() * patchArraySize, NULL, GL_STATIC_DRAW);
+      GL_SHADER_STORAGE_BUFFER, patchArrays.size() * patchArraySize, nullptr, GL_STATIC_DRAW);
   for (int i = 0; i < (int)patchArrays.size(); ++i) {
     glBufferSubData(
         GL_SHADER_STORAGE_BUFFER, i * patchArraySize, sizeof(PatchArray), &patchArrays[i]);

@@ -58,7 +58,7 @@ static const char *home_dir_get()
 
 const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionstr) const
 {
-  static string user_path = "";
+  static string user_path;
   static int last_version = 0;
 
   /* in blender 2.64, we migrate to XDG. to ensure the copy previous settings
@@ -103,7 +103,7 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
 const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
 {
   const char *type_str;
-  static string path = "";
+  static string path;
 
   switch (type) {
     case GHOST_kUserSpecialDirDesktop:

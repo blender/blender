@@ -6,10 +6,8 @@
  * \ingroup GHOST
  */
 
-#include <cstdio>
-
-#include "GHOST_ISystemPaths.hh"
 #include "GHOST_Path-api.hh"
+#include "GHOST_ISystemPaths.hh"
 #include "GHOST_Types.h"
 #include "intern/GHOST_Debug.hh"
 

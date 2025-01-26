@@ -52,7 +52,7 @@
 #ifndef __ATOMIC_OPS_H__
 #define __ATOMIC_OPS_H__
 
-#include "intern/atomic_ops_utils.h"
+#include "intern/atomic_ops_utils.h" /* IWYU pragma: export */
 
 /******************************************************************************/
 /* Function prototypes. */
@@ -139,12 +139,12 @@ ATOMIC_INLINE float atomic_add_and_fetch_fl(float *p, const float x);
 /* Note that we are using _unix flavor as fallback here
  * (it will raise precompiler errors as needed). */
 #if defined(_MSC_VER)
-#  include "intern/atomic_ops_msvc.h"
+#  include "intern/atomic_ops_msvc.h" /* IWYU pragma: export */
 #else
-#  include "intern/atomic_ops_unix.h"
+#  include "intern/atomic_ops_unix.h" /* IWYU pragma: export */
 #endif
 
 /* Include 'fake' atomic extensions, built over real atomic primitives. */
-#include "intern/atomic_ops_ext.h"
+#include "intern/atomic_ops_ext.h" /* IWYU pragma: export */
 
 #endif /* __ATOMIC_OPS_H__ */

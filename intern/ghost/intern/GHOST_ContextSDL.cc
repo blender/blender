@@ -10,10 +10,7 @@
 
 #include "GHOST_ContextSDL.hh"
 
-#include <vector>
-
 #include <cassert>
-#include <cstdio>
 #include <cstring>
 
 SDL_GLContext GHOST_ContextSDL::s_sharedContext = nullptr;

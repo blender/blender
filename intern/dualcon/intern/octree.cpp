@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "MEM_guardedalloc.h"
-
 #include "octree.h"
+#include "Queue.h"
+
 #include <Eigen/Dense>
-#include <limits>
-#include <time.h>
+#include <algorithm>
+#include <ctime>
 
 /**
  * Implementations of Octree member functions.
@@ -266,7 +266,7 @@ void Octree::addAllTriangles()
 
   srand(0);
 
-  while ((trian = reader->getNextTriangle()) != NULL) {
+  while ((trian = reader->getNextTriangle()) != nullptr) {
     // Drop triangles
     {
       addTriangle(trian, count);
@@ -473,10 +473,10 @@ void Octree::trace()
   totRingLengths = 0;
   maxRingLength = 0;
 
-  PathList *chdpath = NULL;
+  PathList *chdpath = nullptr;
   root = trace(root, st, dimen, maxDepth, chdpath);
 
-  if (chdpath != NULL) {
+  if (chdpath != nullptr) {
     dc_printf("there are incomplete rings.\n");
     printPaths(chdpath);
   }
@@ -500,8 +500,8 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths
       nst[i][j] = st[j] + len * vertmap[i][j];
     }
 
-    if (chd[i] == NULL || newnode->internal.is_child_leaf(i)) {
-      chdpaths[i] = NULL;
+    if (chd[i] == nullptr || newnode->internal.is_child_leaf(i)) {
+      chdpaths[i] = nullptr;
     }
     else {
       trace(chd[i], nst[i], len, depth - 1, chdpaths[i]);
@@ -526,7 +526,7 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths
       nstf[j] = nst[c[j]];
     }
 
-    conn[i] = NULL;
+    conn[i] = nullptr;
 
     findPaths((Node **)nf, lf, df, nstf, depth - 1, cellProcFaceMask[i][2], conn[i]);
 
@@ -538,7 +538,7 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths
   }
 
   // Connect paths
-  PathList *rings = NULL;
+  PathList *rings = nullptr;
   combinePaths(chdpaths[0], chdpaths[1], conn[8], rings);
   combinePaths(chdpaths[2], chdpaths[3], conn[9], rings);
   combinePaths(chdpaths[4], chdpaths[5], conn[10], rings);
@@ -546,13 +546,13 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths
 
   combinePaths(chdpaths[0], chdpaths[2], conn[4], rings);
   combinePaths(chdpaths[4], chdpaths[6], conn[5], rings);
-  combinePaths(chdpaths[0], NULL, conn[6], rings);
-  combinePaths(chdpaths[4], NULL, conn[7], rings);
+  combinePaths(chdpaths[0], nullptr, conn[6], rings);
+  combinePaths(chdpaths[4], nullptr, conn[7], rings);
 
   combinePaths(chdpaths[0], chdpaths[4], conn[0], rings);
-  combinePaths(chdpaths[0], NULL, conn[1], rings);
-  combinePaths(chdpaths[0], NULL, conn[2], rings);
-  combinePaths(chdpaths[0], NULL, conn[3], rings);
+  combinePaths(chdpaths[0], nullptr, conn[1], rings);
+  combinePaths(chdpaths[0], nullptr, conn[2], rings);
+  combinePaths(chdpaths[0], nullptr, conn[3], rings);
 
   // By now, only chdpaths[0] and rings have contents
 
@@ -565,9 +565,7 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths
     while (trings) {
       numRings++;
       totRingLengths += trings->length;
-      if (trings->length > maxRingLength) {
-        maxRingLength = trings->length;
-      }
+      maxRingLength = std::max(trings->length, maxRingLength);
       trings = trings->next;
     }
 
@@ -580,8 +578,13 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths
   return newnode;
 }
 
-void Octree::findPaths(
-    Node *node[2], int leaf[2], int depth[2], int *st[2], int maxdep, int dir, PathList *&paths)
+void Octree::findPaths(Node *node[2],
+                       const int leaf[2],
+                       const int depth[2],
+                       int *st[2],
+                       int maxdep,
+                       int dir,
+                       PathList *&paths)
 {
   if (!(node[0] && node[1])) {
     return;
@@ -651,7 +654,7 @@ void Octree::findPaths(
       ele2->pos[2] = st[1][2];
 
       ele1->next = ele2;
-      ele2->next = NULL;
+      ele2->next = nullptr;
 
       PathList *lst = new PathList;
       lst->head = ele1;
@@ -668,7 +671,7 @@ void Octree::findPaths(
 void Octree::combinePaths(PathList *&list1, PathList *list2, PathList *paths, PathList *&rings)
 {
   // Make new list of paths
-  PathList *nlist = NULL;
+  PathList *nlist = nullptr;
 
   // Search for each connectors in paths
   PathList *tpaths = paths;
@@ -677,13 +680,15 @@ void Octree::combinePaths(PathList *&list1, PathList *list2, PathList *paths, Pa
     PathList *singlist = tpaths;
     PathList *templist;
     tpaths = tpaths->next;
-    singlist->next = NULL;
+    singlist->next = nullptr;
 
     // Look for hookup in list1
     tlist = list1;
-    pre = NULL;
+    pre = nullptr;
     while (tlist) {
-      if ((templist = combineSinglePath(list1, pre, tlist, singlist, NULL, singlist)) != NULL) {
+      if ((templist = combineSinglePath(list1, pre, tlist, singlist, nullptr, singlist)) !=
+          nullptr)
+      {
         singlist = templist;
         continue;
       }
@@ -693,9 +698,11 @@ void Octree::combinePaths(PathList *&list1, PathList *list2, PathList *paths, Pa
 
     // Look for hookup in list2
     tlist = list2;
-    pre = NULL;
+    pre = nullptr;
     while (tlist) {
-      if ((templist = combineSinglePath(list2, pre, tlist, singlist, NULL, singlist)) != NULL) {
+      if ((templist = combineSinglePath(list2, pre, tlist, singlist, nullptr, singlist)) !=
+          nullptr)
+      {
         singlist = templist;
         continue;
       }
@@ -705,9 +712,11 @@ void Octree::combinePaths(PathList *&list1, PathList *list2, PathList *paths, Pa
 
     // Look for hookup in nlist
     tlist = nlist;
-    pre = NULL;
+    pre = nullptr;
     while (tlist) {
-      if ((templist = combineSinglePath(nlist, pre, tlist, singlist, NULL, singlist)) != NULL) {
+      if ((templist = combineSinglePath(nlist, pre, tlist, singlist, nullptr, singlist)) !=
+          nullptr)
+      {
         singlist = templist;
         continue;
       }
@@ -734,8 +743,8 @@ void Octree::combinePaths(PathList *&list1, PathList *list2, PathList *paths, Pa
 
   // Append list2 and nlist to the end of list1
   tlist = list1;
-  if (tlist != NULL) {
-    while (tlist->next != NULL) {
+  if (tlist != nullptr) {
+    while (tlist->next != nullptr) {
       tlist = tlist->next;
     }
     tlist->next = list2;
@@ -745,8 +754,8 @@ void Octree::combinePaths(PathList *&list1, PathList *list2, PathList *paths, Pa
     list1 = list2;
   }
 
-  if (tlist != NULL) {
-    while (tlist->next != NULL) {
+  if (tlist != nullptr) {
+    while (tlist->next != nullptr) {
       tlist = tlist->next;
     }
     tlist->next = nlist;
@@ -770,8 +779,8 @@ PathList *Octree::combineSinglePath(PathList *&head1,
       // Reverse list1
       PathElement *prev = list1->head;
       PathElement *next = prev->next;
-      prev->next = NULL;
-      while (next != NULL) {
+      prev->next = nullptr;
+      while (next != nullptr) {
         PathElement *tnext = next->next;
         next->next = prev;
 
@@ -786,8 +795,8 @@ PathList *Octree::combineSinglePath(PathList *&head1,
       // Reverse list2
       PathElement *prev = list2->head;
       PathElement *next = prev->next;
-      prev->next = NULL;
-      while (next != NULL) {
+      prev->next = nullptr;
+      while (next != nullptr) {
         PathElement *tnext = next->next;
         next->next = prev;
 
@@ -811,14 +820,14 @@ PathList *Octree::combineSinglePath(PathList *&head1,
     nlist->length = list1->length + list2->length - 1;
     nlist->head = list2->head;
     nlist->tail = list1->tail;
-    nlist->next = NULL;
+    nlist->next = nullptr;
 
     deletePath(head1, pre1, list1);
     deletePath(head2, pre2, list2);
 
     return nlist;
   }
-  else if (isEqual(list1->tail, list2->head)) {
+  if (isEqual(list1->tail, list2->head)) {
     // Easy case
     PathElement *temp = list2->head->next;
     delete list2->head;
@@ -828,7 +837,7 @@ PathList *Octree::combineSinglePath(PathList *&head1,
     nlist->length = list1->length + list2->length - 1;
     nlist->head = list1->head;
     nlist->tail = list2->tail;
-    nlist->next = NULL;
+    nlist->next = nullptr;
 
     deletePath(head1, pre1, list1);
     deletePath(head2, pre2, list2);
@@ -836,7 +845,7 @@ PathList *Octree::combineSinglePath(PathList *&head1,
     return nlist;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void Octree::deletePath(PathList *&head, PathList *pre, PathList *&curr)
@@ -845,7 +854,7 @@ void Octree::deletePath(PathList *&head, PathList *pre, PathList *&curr)
   curr = temp->next;
   delete temp;
 
-  if (pre == NULL) {
+  if (pre == nullptr) {
     head = curr;
   }
   else {
@@ -855,7 +864,7 @@ void Octree::deletePath(PathList *&head, PathList *pre, PathList *&curr)
 
 void Octree::printElement(PathElement *ele)
 {
-  if (ele != NULL) {
+  if (ele != nullptr) {
     dc_printf("(%d %d %d)", ele->pos[0], ele->pos[1], ele->pos[2]);
   }
 }
@@ -906,7 +915,7 @@ void Octree::printPath(PathElement *path)
 void Octree::printPaths(PathList *path)
 {
   PathList *iter = path;
-  while (iter != NULL) {
+  while (iter != nullptr) {
     dc_printf("Path %d:\n", i);
     printPath(iter);
     iter = iter->next;
@@ -924,7 +933,7 @@ Node *Octree::patch(Node *newnode, int st[3], int len, PathList *rings)
      PathList* tlist = rings;
      PathList* ttlist;
      PathElement* telem, * ttelem;
-     while(tlist!= NULL) {
+     while(tlist!= nullptr) {
       // printPath(tlist);
       numRings ++;
       totRingLengths += tlist->length;
@@ -963,7 +972,7 @@ Node *Octree::patch(Node *newnode, int st[3], int len, PathList *rings)
   len >>= 1;
   int count = 0;
   for (int i = 0; i < 8; i++) {
-    if (zlists[i] != NULL) {
+    if (zlists[i] != nullptr) {
       int nori[3] = {
           st[0] + len * vertmap[i][0], st[1] + len * vertmap[i][1], st[2] + len * vertmap[i][2]};
       patch(newnode->internal.get_child(count), nori, len, zlists[i]);
@@ -992,10 +1001,10 @@ Node *Octree::patchSplit(Node *newnode,
   printPaths(rings);
 #endif
 
-  nrings1 = NULL;
-  nrings2 = NULL;
+  nrings1 = nullptr;
+  nrings2 = nullptr;
   PathList *tmp;
-  while (rings != NULL) {
+  while (rings != nullptr) {
     // Process this ring
     newnode = patchSplitSingle(newnode, st, len, rings->head, dir, nrings1, nrings2);
 
@@ -1029,19 +1038,18 @@ Node *Octree::patchSplitSingle(Node *newnode,
   printPath(head);
 #endif
 
-  if (head == NULL) {
+  if (head == nullptr) {
 #ifdef IN_DEBUG_MODE
-    dc_printf("Return from PATCHSPLITSINGLE with head==NULL.\n");
+    dc_printf("Return from PATCHSPLITSINGLE with head==nullptr.\n");
 #endif
     return newnode;
   }
-  else {
-    // printPath(head);
-  }
+
+  // printPath(head);
 
   // Walk along the ring to find pair of intersections
-  PathElement *pre1 = NULL;
-  PathElement *pre2 = NULL;
+  PathElement *pre1 = nullptr;
+  PathElement *pre2 = nullptr;
   int side = findPair(head, st[dir] + len / 2, dir, pre1, pre2);
 
 #if 0
@@ -1084,7 +1092,7 @@ Node *Octree::patchSplitSingle(Node *newnode,
     if (isEqual(pre1, pre1->next)) {
       if (pre1 == pre1->next) {
         delete pre1;
-        pre1 = NULL;
+        pre1 = nullptr;
       }
       else {
         PathElement *temp = pre1->next;
@@ -1095,7 +1103,7 @@ Node *Octree::patchSplitSingle(Node *newnode,
     if (isEqual(pre2, pre2->next)) {
       if (pre2 == pre2->next) {
         delete pre2;
-        pre2 = NULL;
+        pre2 = nullptr;
       }
       else {
         PathElement *temp = pre2->next;
@@ -1183,10 +1191,10 @@ Node *Octree::connectFace(
 
   PathElement *curEleN = f1;
   PathElement *curEleP = f2->next;
-  Node *nodeN = NULL, *nodeP = NULL;
+  Node *nodeN = nullptr, *nodeP = nullptr;
   LeafNode *curN = locateLeaf(&newnode->internal, len, f1->pos);
   LeafNode *curP = locateLeaf(&newnode->internal, len, f2->next->pos);
-  if (curN == NULL || curP == NULL) {
+  if (curN == nullptr || curP == nullptr) {
     exit(0);
   }
   int stN[3], stP[3];
@@ -1412,7 +1420,7 @@ LeafNode *Octree::patchAdjacent(InternalNode *node,
 }
 
 Node *Octree::locateCell(InternalNode *node,
-                         int st[3],
+                         const int st[3],
                          int len,
                          int ori[3],
                          int dir,
@@ -1498,7 +1506,7 @@ Node *Octree::locateCell(InternalNode *node,
 void Octree::checkElement(PathElement * /*ele*/)
 {
 #if 0
-  if (ele != NULL && locateLeafCheck(ele->pos) != ele->node) {
+  if (ele != nullptr && locateLeafCheck(ele->pos) != ele->node) {
     dc_printf("Screwed! at pos: %d %d %d\n",
               ele->pos[0] >> minshift,
               ele->pos[1] >> minshift,
@@ -1522,7 +1530,7 @@ void Octree::checkPath(PathElement *path)
 void Octree::testFacePoint(PathElement *e1, PathElement *e2)
 {
   int i;
-  PathElement *e = NULL;
+  PathElement *e = nullptr;
   for (i = 0; i < 3; i++) {
     if (e1->pos[i] != e2->pos[i]) {
       if (e1->pos[i] < e2->pos[i]) {
@@ -1708,7 +1716,7 @@ int Octree::isEqual(PathElement *e1, PathElement *e2)
 
 void Octree::compressRing(PathElement *&ring)
 {
-  if (ring == NULL) {
+  if (ring == nullptr) {
     return;
   }
 #ifdef IN_DEBUG_MODE
@@ -1728,20 +1736,18 @@ void Octree::compressRing(PathElement *&ring)
         // The ring has shrinked to a point
         delete pre;
         delete cur;
-        anchor = NULL;
+        anchor = nullptr;
         break;
       }
-      else {
-        prepre->next = cur->next;
-        delete pre;
-        delete cur;
-        pre = prepre->next;
-        cur = pre->next;
-        anchor = prepre;
-      }
+      prepre->next = cur->next;
+      delete pre;
+      delete cur;
+      pre = prepre->next;
+      cur = pre->next;
+      anchor = prepre;
     }
 
-    if (anchor == NULL) {
+    if (anchor == nullptr) {
       break;
     }
 
@@ -1787,7 +1793,7 @@ void Octree::buildSigns()
 
 void Octree::buildSigns(unsigned char table[], Node *node, int isLeaf, int sg, int rvalue[8])
 {
-  if (node == NULL) {
+  if (node == nullptr) {
     for (int i = 0; i < 8; i++) {
       rvalue[i] = sg;
     }
@@ -1864,7 +1870,7 @@ void Octree::clearProcessBits(Node *node, int height)
   }
 }
 
-int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int threshold)
+int Octree::floodFill(LeafNode *leaf, const int st[3], int len, int /*height*/, int threshold)
 {
   int i, j;
   int maxtotal = 0;
@@ -1980,9 +1986,7 @@ int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int th
 
       if (threshold == 0) {
         // Measuring stage
-        if (total > maxtotal) {
-          maxtotal = total;
-        }
+        maxtotal = std::max(total, maxtotal);
         dc_printf(".\n");
         delete queue;
         continue;
@@ -2112,9 +2116,7 @@ int Octree::floodFill(Node *node, int st[3], int len, int height, int threshold)
         nst[2] = st[2] + vertmap[i][2] * len;
 
         int d = floodFill(node->internal.get_child(count), nst, len, height - 1, threshold);
-        if (d > maxtotal) {
-          maxtotal = d;
-        }
+        maxtotal = std::max(d, maxtotal);
         count++;
       }
     }
@@ -2442,13 +2444,11 @@ void Octree::processEdgeWrite(Node *node[4], int /*depth*/[4], int /*maxdep*/, i
       }
       return;
     }
-    else {
-      return;
-    }
+    return;
   }
 }
 
-void Octree::edgeProcContour(Node *node[4], int leaf[4], int depth[4], int maxdep, int dir)
+void Octree::edgeProcContour(Node *node[4], const int leaf[4], int depth[4], int maxdep, int dir)
 {
   if (!(node[0] && node[1] && node[2] && node[3])) {
     return;
@@ -2463,7 +2463,7 @@ void Octree::edgeProcContour(Node *node[4], int leaf[4], int depth[4], int maxde
       for (i = 0; i < 8; i++) {
         chd[j][i] = ((!leaf[j]) && node[j]->internal.has_child(i)) ?
                         node[j]->internal.get_child(node[j]->internal.get_child_count(i)) :
-                        NULL;
+                        nullptr;
       }
     }
 
@@ -2495,7 +2495,8 @@ void Octree::edgeProcContour(Node *node[4], int leaf[4], int depth[4], int maxde
   }
 }
 
-void Octree::faceProcContour(Node *node[2], int leaf[2], int depth[2], int maxdep, int dir)
+void Octree::faceProcContour(
+    Node *node[2], const int leaf[2], const int depth[2], int maxdep, int dir)
 {
   if (!(node[0] && node[1])) {
     return;
@@ -2509,7 +2510,7 @@ void Octree::faceProcContour(Node *node[2], int leaf[2], int depth[2], int maxde
       for (i = 0; i < 8; i++) {
         chd[j][i] = ((!leaf[j]) && node[j]->internal.has_child(i)) ?
                         node[j]->internal.get_child(node[j]->internal.get_child_count(i)) :
-                        NULL;
+                        nullptr;
       }
     }
 
@@ -2567,7 +2568,7 @@ void Octree::faceProcContour(Node *node[2], int leaf[2], int depth[2], int maxde
 
 void Octree::cellProcContour(Node *node, int leaf, int depth)
 {
-  if (node == NULL) {
+  if (node == nullptr) {
     return;
   }
 
@@ -2579,7 +2580,7 @@ void Octree::cellProcContour(Node *node, int leaf, int depth)
     for (i = 0; i < 8; i++) {
       chd[i] = ((!leaf) && node->internal.has_child(i)) ?
                    node->internal.get_child(node->internal.get_child_count(i)) :
-                   NULL;
+                   nullptr;
     }
 
     // 8 Cell calls
@@ -2623,7 +2624,7 @@ void Octree::cellProcContour(Node *node, int leaf, int depth)
   }
 }
 
-void Octree::processEdgeParity(LeafNode *node[4], int /*depth*/[4], int /*maxdep*/, int dir)
+void Octree::processEdgeParity(LeafNode *node[4], const int /*depth*/[4], int /*maxdep*/, int dir)
 {
   int con = 0;
   for (int i = 0; i < 4; i++) {
@@ -2644,7 +2645,8 @@ void Octree::processEdgeParity(LeafNode *node[4], int /*depth*/[4], int /*maxdep
   }
 }
 
-void Octree::edgeProcParity(Node *node[4], int leaf[4], int depth[4], int maxdep, int dir)
+void Octree::edgeProcParity(
+    Node *node[4], const int leaf[4], const int depth[4], int maxdep, int dir)
 {
   if (!(node[0] && node[1] && node[2] && node[3])) {
     return;
@@ -2659,7 +2661,7 @@ void Octree::edgeProcParity(Node *node[4], int leaf[4], int depth[4], int maxdep
       for (i = 0; i < 8; i++) {
         chd[j][i] = ((!leaf[j]) && node[j]->internal.has_child(i)) ?
                         node[j]->internal.get_child(node[j]->internal.get_child_count(i)) :
-                        NULL;
+                        nullptr;
       }
     }
 
@@ -2693,7 +2695,8 @@ void Octree::edgeProcParity(Node *node[4], int leaf[4], int depth[4], int maxdep
   }
 }
 
-void Octree::faceProcParity(Node *node[2], int leaf[2], int depth[2], int maxdep, int dir)
+void Octree::faceProcParity(
+    Node *node[2], const int leaf[2], const int depth[2], int maxdep, int dir)
 {
   if (!(node[0] && node[1])) {
     return;
@@ -2707,7 +2710,7 @@ void Octree::faceProcParity(Node *node[2], int leaf[2], int depth[2], int maxdep
       for (i = 0; i < 8; i++) {
         chd[j][i] = ((!leaf[j]) && node[j]->internal.has_child(i)) ?
                         node[j]->internal.get_child(node[j]->internal.get_child_count(i)) :
-                        NULL;
+                        nullptr;
       }
     }
 
@@ -2765,7 +2768,7 @@ void Octree::faceProcParity(Node *node[2], int leaf[2], int depth[2], int maxdep
 
 void Octree::cellProcParity(Node *node, int leaf, int depth)
 {
-  if (node == NULL) {
+  if (node == nullptr) {
     return;
   }
 
@@ -2777,7 +2780,7 @@ void Octree::cellProcParity(Node *node, int leaf, int depth)
     for (i = 0; i < 8; i++) {
       chd[i] = ((!leaf) && node->internal.has_child(i)) ?
                    node->internal.get_child(node->internal.get_child_count(i)) :
-                   NULL;
+                   nullptr;
     }
 
     // 8 Cell calls

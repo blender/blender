@@ -12,7 +12,7 @@ namespace blender::opensubdiv {
 
 MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0) {}
 
-MeshTopology::~MeshTopology() {}
+MeshTopology::~MeshTopology() = default;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vertices.

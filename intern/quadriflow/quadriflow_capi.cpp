@@ -6,9 +6,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "config.hpp"
-#include "field-math.hpp"
-#include "loader.hpp"
 #include "optimizer.hpp"
 #include "parametrizer.hpp"
 #include "quadriflow_capi.hpp"
@@ -20,7 +17,7 @@ struct ObjVertex {
   uint32_t n = (uint32_t)-1;
   uint32_t uv = (uint32_t)-1;
 
-  ObjVertex() {}
+  ObjVertex() = default;
 
   ObjVertex(uint32_t pi)
   {
@@ -43,7 +40,7 @@ struct ObjVertexHash {
   }
 };
 
-typedef std::unordered_map<ObjVertex, uint32_t, ObjVertexHash> VertexMap;
+using VertexMap = std::unordered_map<ObjVertex, uint32_t, ObjVertexHash>;
 
 static int check_if_canceled(float progress,
                              void (*update_cb)(void *, float progress, int *cancel),

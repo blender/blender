@@ -113,48 +113,65 @@ static inline void grad(const Eigen::PlainObjectBase<DerivedV> &V,
   /* Row indices. */
   for (int r = 0; r < 3; r++) {
     for (int j = 0; j < 4; j++) {
-      for (int i = r * F.rows(); i < (r + 1) * F.rows(); i++)
+      for (int i = r * F.rows(); i < (r + 1) * F.rows(); i++) {
         rs.push_back(i);
+      }
     }
   }
 
   /* Column indices. */
   for (int r = 0; r < 3; r++) {
-    for (int i = 0; i < F.rows(); i++)
+    for (int i = 0; i < F.rows(); i++) {
       cs.push_back(F(i, 1));
-    for (int i = 0; i < F.rows(); i++)
+    }
+    for (int i = 0; i < F.rows(); i++) {
       cs.push_back(F(i, 0));
-    for (int i = 0; i < F.rows(); i++)
+    }
+    for (int i = 0; i < F.rows(); i++) {
       cs.push_back(F(i, 2));
-    for (int i = 0; i < F.rows(); i++)
+    }
+    for (int i = 0; i < F.rows(); i++) {
       cs.push_back(F(i, 0));
+    }
   }
 
   /* Values. */
-  for (int i = 0; i < F.rows(); i++)
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(eperp13(i, 0));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(-eperp13(i, 0));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(eperp21(i, 0));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(-eperp21(i, 0));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(eperp13(i, 1));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(-eperp13(i, 1));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(eperp21(i, 1));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(-eperp21(i, 1));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(eperp13(i, 2));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(-eperp13(i, 2));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(eperp21(i, 2));
-  for (int i = 0; i < F.rows(); i++)
+  }
+  for (int i = 0; i < F.rows(); i++) {
     vs.push_back(-eperp21(i, 2));
+  }
 
   /* Create sparse gradient operator matrix.. */
   G.resize(3 * F.rows(), V.rows());
@@ -278,8 +295,8 @@ static inline void update_weights_and_closest_rotations(SLIMData &s, Eigen::Matr
   double exp_f = s.exp_factor;
 
   for (int i = 0; i < s.Ji.rows(); ++i) {
-    typedef Eigen::Matrix<double, 2, 2> Mat2;
-    typedef Eigen::Matrix<double, 2, 1> Vec2;
+    using Mat2 = Eigen::Matrix<double, 2, 2>;
+    using Vec2 = Eigen::Matrix<double, 2, 1>;
     Mat2 ji, ri, ti, ui, vi;
     Vec2 sing;
     Vec2 closest_sing_vec;
@@ -358,10 +375,12 @@ static inline void update_weights_and_closest_rotations(SLIMData &s, Eigen::Matr
       }
     }
 
-    if (std::abs(s1 - 1) < eps)
+    if (std::abs(s1 - 1) < eps) {
       m_sing_new(0) = 1;
-    if (std::abs(s2 - 1) < eps)
+    }
+    if (std::abs(s2 - 1) < eps) {
       m_sing_new(1) = 1;
+    }
     mat_W = ui * m_sing_new.asDiagonal() * ui.transpose();
 
     s.W_11(i) = mat_W(0, 0);
@@ -430,9 +449,11 @@ static inline void pre_calc(SLIMData &s)
 
     /* Flattened weight matrix. */
     s.WGL_M.resize(s.dim * s.dim * s.f_n);
-    for (int i = 0; i < s.dim * s.dim; i++)
-      for (int j = 0; j < s.f_n; j++)
+    for (int i = 0; i < s.dim * s.dim; i++) {
+      for (int j = 0; j < s.f_n; j++) {
         s.WGL_M(i * s.f_n + j) = s.M(j);
+      }
+    }
 
     s.first_solve = true;
     s.has_pre_calc = true;
@@ -458,12 +479,11 @@ static inline void buildA(SLIMData &s, Eigen::SparseMatrix<double> &A)
       double val = it.value();
       double weight = s.weightPerFaceMap(dx_r);
 
-      IJV.push_back(Eigen::Triplet<double>(dx_r, dx_c, weight * val * s.W_11(dx_r)));
-      IJV.push_back(Eigen::Triplet<double>(dx_r, s.v_n + dx_c, weight * val * s.W_12(dx_r)));
+      IJV.emplace_back(dx_r, dx_c, weight * val * s.W_11(dx_r));
+      IJV.emplace_back(dx_r, s.v_n + dx_c, weight * val * s.W_12(dx_r));
 
-      IJV.push_back(Eigen::Triplet<double>(2 * s.f_n + dx_r, dx_c, weight * val * s.W_21(dx_r)));
-      IJV.push_back(
-          Eigen::Triplet<double>(2 * s.f_n + dx_r, s.v_n + dx_c, weight * val * s.W_22(dx_r)));
+      IJV.emplace_back(2 * s.f_n + dx_r, dx_c, weight * val * s.W_21(dx_r));
+      IJV.emplace_back(2 * s.f_n + dx_r, s.v_n + dx_c, weight * val * s.W_22(dx_r));
     }
   }
 
@@ -474,13 +494,11 @@ static inline void buildA(SLIMData &s, Eigen::SparseMatrix<double> &A)
       double val = it.value();
       double weight = s.weightPerFaceMap(dy_r);
 
-      IJV.push_back(Eigen::Triplet<double>(s.f_n + dy_r, dy_c, weight * val * s.W_11(dy_r)));
-      IJV.push_back(
-          Eigen::Triplet<double>(s.f_n + dy_r, s.v_n + dy_c, weight * val * s.W_12(dy_r)));
+      IJV.emplace_back(s.f_n + dy_r, dy_c, weight * val * s.W_11(dy_r));
+      IJV.emplace_back(s.f_n + dy_r, s.v_n + dy_c, weight * val * s.W_12(dy_r));
 
-      IJV.push_back(Eigen::Triplet<double>(3 * s.f_n + dy_r, dy_c, weight * val * s.W_21(dy_r)));
-      IJV.push_back(
-          Eigen::Triplet<double>(3 * s.f_n + dy_r, s.v_n + dy_c, weight * val * s.W_22(dy_r)));
+      IJV.emplace_back(3 * s.f_n + dy_r, dy_c, weight * val * s.W_21(dy_r));
+      IJV.emplace_back(3 * s.f_n + dy_r, s.v_n + dy_c, weight * val * s.W_22(dy_r));
     }
   }
 
@@ -506,9 +524,11 @@ static inline void buildRhs(SLIMData &s, const Eigen::SparseMatrix<double> &At)
   }
 
   Eigen::VectorXd uv_flat(s.dim * s.v_n);
-  for (int i = 0; i < s.dim; i++)
-    for (int j = 0; j < s.v_n; j++)
+  for (int i = 0; i < s.dim; i++) {
+    for (int j = 0; j < s.v_n; j++) {
       uv_flat(s.v_n * i + j) = s.V_o(j, i);
+    }
+  }
 
   s.rhs = (At * s.WGL_M.asDiagonal() * f_rhs + s.proximal_p * uv_flat);
 }
@@ -565,8 +585,8 @@ static inline double compute_energy_with_jacobians(SLIMData &s,
     ji(1, 0) = Ji(i, 2);
     ji(1, 1) = Ji(i, 3);
 
-    typedef Eigen::Matrix<double, 2, 2> Mat2;
-    typedef Eigen::Matrix<double, 2, 1> Vec2;
+    using Mat2 = Eigen::Matrix<double, 2, 2>;
+    using Vec2 = Eigen::Matrix<double, 2, 1>;
     Mat2 ri, ti, ui, vi;
     Vec2 sing;
     polar_svd(ji, ri, ti, ui, sing, vi);
@@ -753,12 +773,15 @@ static inline void solve_weighted_arap(SLIMData &s, Eigen::MatrixXd &uv)
   SimplicialLDLT<Eigen::SparseMatrix<double>> solver;
   Uc = solver.compute(L).solve(s.rhs);
 
-  for (int i = 0; i < Uc.size(); i++)
-    if (!std::isfinite(Uc(i)))
+  for (int i = 0; i < Uc.size(); i++) {
+    if (!std::isfinite(Uc(i))) {
       throw SlimFailedException();
+    }
+  }
 
-  for (int i = 0; i < s.dim; i++)
+  for (int i = 0; i < s.dim; i++) {
     uv.col(i) = Uc.block(i * s.v_n, 0, s.v_n, 1);
+  }
 }
 
 Eigen::MatrixXd slim_solve(SLIMData &data, int iter_num)

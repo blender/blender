@@ -10,8 +10,6 @@
 
 #include "GHOST_Types.h"
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,7 +19,7 @@ extern "C" {
  * \param event: The event received.
  * \param user_data: The callback's user data, supplied to #GHOST_CreateSystem.
  */
-typedef bool (*GHOST_EventCallbackProcPtr)(GHOST_EventHandle event, GHOST_TUserDataPtr user_data);
+using GHOST_EventCallbackProcPtr = bool (*)(GHOST_EventHandle event, GHOST_TUserDataPtr user_data);
 
 /**
  * Creates the one and only system.

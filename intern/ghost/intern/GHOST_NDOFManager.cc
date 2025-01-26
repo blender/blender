@@ -600,8 +600,9 @@ void GHOST_NDOFManager::updateButtonsArray(NDOF_Button_Array buttons,
       }
     }
 
-    if (!found)
+    if (!found) {
       updateButton(cached_button, false, time);
+    }
   }
 
   /* Find pressed buttons */
@@ -614,8 +615,9 @@ void GHOST_NDOFManager::updateButtonsArray(NDOF_Button_Array buttons,
       }
     }
 
-    if (!found)
+    if (!found) {
       updateButton(button, true, time);
+    }
   }
   cache = buttons;
 }
@@ -632,10 +634,8 @@ static CLG_LogRef LOG_NDOF_MOTION = {"ghost.ndof.motion"};
 
 void GHOST_NDOFManager::setDeadZone(float dz)
 {
-  if (dz < 0.0f) {
-    /* Negative values don't make sense, so clamp at zero. */
-    dz = 0.0f;
-  }
+  /* Negative values don't make sense, so clamp at zero. */
+  dz = std::max(dz, 0.0f);
   motion_dead_zone_ = dz;
 
   /* Warn the rogue user/developer about high dead-zone, but allow it. */

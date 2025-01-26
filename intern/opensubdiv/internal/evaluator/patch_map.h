@@ -46,7 +46,7 @@ class PatchMap {
     Child children[4];
   };
 
-  typedef OpenSubdiv::Far::PatchTable::PatchHandle Handle;
+  using Handle = OpenSubdiv::Far::PatchTable::PatchHandle;
 
   /// \brief Constructor
   ///
@@ -104,7 +104,7 @@ class PatchMap {
   void initializeHandles(OpenSubdiv::Far::PatchTable const &patchTable);
   void initializeQuadtree(OpenSubdiv::Far::PatchTable const &patchTable);
 
-  typedef std::vector<QuadNode> QuadTree;
+  using QuadTree = std::vector<QuadNode>;
 
   // Internal methods supporting quadtree construction and queries
   void assignRootNode(QuadNode *node, int index);
@@ -114,7 +114,6 @@ class PatchMap {
   template<class T>
   static int transformUVToTriQuadrant(T const &median, T &u, T &v, bool &rotated);
 
- private:
   bool _patchesAreTriangular;  // tri and quad assembly and search requirements differ
 
   int _minPatchFace;  // minimum patch face index supported by the map
@@ -180,23 +179,22 @@ int inline PatchMap::transformUVToTriQuadrant(T const &median, T &u, T &v, bool 
     }
     return 0;
   }
-  else {
-    if (u < median) {
-      v -= median;
-      return 1;
-    }
-    if (v < median) {
-      u -= median;
-      return 2;
-    }
-    u -= median;
+
+  if (u < median) {
     v -= median;
-    if ((u + v) < median) {
-      rotated = false;
-      return 3;
-    }
-    return 0;
+    return 1;
   }
+  if (v < median) {
+    u -= median;
+    return 2;
+  }
+  u -= median;
+  v -= median;
+  if ((u + v) < median) {
+    rotated = false;
+    return 3;
+  }
+  return 0;
 }
 
 /// Returns a handle to the sub-patch of the face at the given (u,v).
@@ -209,13 +207,13 @@ inline PatchMap::Handle const *PatchMap::FindPatch(int faceid, double u, double 
   //  have all or no quadrants set):
   //
   if ((faceid < _minPatchFace) || (faceid > _maxPatchFace)) {
-    return 0;
+    return nullptr;
   }
 
   QuadNode const *node = &_quadtree[faceid - _minPatchFace];
 
   if (!node->children[0].isSet) {
-    return 0;
+    return nullptr;
   }
 
   //
@@ -237,12 +235,10 @@ inline PatchMap::Handle const *PatchMap::FindPatch(int faceid, double u, double 
     if (node->children[quadrant].isLeaf) {
       return &_handles[node->children[quadrant].index];
     }
-    else {
-      node = &_quadtree[node->children[quadrant].index];
-    }
+    node = &_quadtree[node->children[quadrant].index];
   }
   assert(0);
-  return 0;
+  return nullptr;
 }
 
 }  // namespace blender::opensubdiv

@@ -16,7 +16,7 @@ using namespace Eigen;
 
 namespace slim {
 
-void correct_map_surface_area_if_necessary(SLIMData &slimData);
-void correct_mesh_surface_area_if_necessary(SLIMData &slimData);
+void correct_map_surface_area_if_necessary(SLIMData &slim_data);
+void correct_mesh_surface_area_if_necessary(SLIMData &slim_data);
 
 }  // namespace slim

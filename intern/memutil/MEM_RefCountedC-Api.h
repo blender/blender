@@ -12,9 +12,9 @@
 #define __MEM_REFCOUNTEDC_API_H__
 
 /** A pointer to a private object. */
-typedef struct MEM_TOpaqueObject *MEM_TObjectPtr;
+using MEM_TObjectPtr = struct MEM_TOpaqueObject *;
 /** A pointer to a shared object. */
-typedef MEM_TObjectPtr MEM_TRefCountedObjectPtr;
+using MEM_TRefCountedObjectPtr = MEM_TObjectPtr;
 
 #ifdef __cplusplus
 extern "C" {

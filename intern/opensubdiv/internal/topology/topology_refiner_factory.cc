@@ -24,11 +24,9 @@ struct TopologyRefinerData {
   blender::opensubdiv::MeshTopology *base_mesh_topology;
 };
 
-typedef OpenSubdiv::Far::TopologyRefinerFactory<TopologyRefinerData> TopologyRefinerFactoryType;
+using TopologyRefinerFactoryType = OpenSubdiv::Far::TopologyRefinerFactory<TopologyRefinerData>;
 
-namespace OpenSubdiv {
-namespace OPENSUBDIV_VERSION {
-namespace Far {
+namespace OpenSubdiv::OPENSUBDIV_VERSION::Far {
 
 template<>
 inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
@@ -139,15 +137,15 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
     IndexArray dst_vertex_faces = getBaseVertexFaces(refiner, vertex_index);
     const int num_vertex_faces = converter->getNumVertexFaces(converter, vertex_index);
     vertex_faces.resize(num_vertex_faces);
-    converter->getVertexFaces(converter, vertex_index, &vertex_faces[0]);
+    converter->getVertexFaces(converter, vertex_index, vertex_faces.data());
 
     // Vertex-edges.
     IndexArray dst_vertex_edges = getBaseVertexEdges(refiner, vertex_index);
     const int num_vertex_edges = converter->getNumVertexEdges(converter, vertex_index);
     vertex_edges.resize(num_vertex_edges);
-    converter->getVertexEdges(converter, vertex_index, &vertex_edges[0]);
-    memcpy(&dst_vertex_edges[0], &vertex_edges[0], sizeof(int) * num_vertex_edges);
-    memcpy(&dst_vertex_faces[0], &vertex_faces[0], sizeof(int) * num_vertex_faces);
+    converter->getVertexEdges(converter, vertex_index, vertex_edges.data());
+    memcpy(&dst_vertex_edges[0], vertex_edges.data(), sizeof(int) * num_vertex_edges);
+    memcpy(&dst_vertex_faces[0], vertex_faces.data(), sizeof(int) * num_vertex_faces);
   }
 
   // Edge relations.
@@ -184,7 +182,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
   MeshTopology *base_mesh_topology = cb_data.base_mesh_topology;
 
   const bool full_topology_specified = converter->specifiesFullTopology(converter);
-  if (full_topology_specified || converter->getEdgeVertices != NULL) {
+  if (full_topology_specified || converter->getEdgeVertices != nullptr) {
     const int num_edges = converter->getNumEdges(converter);
     for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
       const float sharpness = converter->getEdgeSharpness(converter, edge_index);
@@ -228,7 +226,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
 
     // Get sharpness provided by the converter.
     float sharpness = 0.0f;
-    if (converter->getVertexSharpness != NULL) {
+    if (converter->getVertexSharpness != nullptr) {
       sharpness = converter->getVertexSharpness(converter, vertex_index);
       base_mesh_topology->setVertexSharpness(vertex_index, sharpness);
     }
@@ -256,11 +254,11 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopolo
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
   const OpenSubdiv_Converter *converter = cb_data.converter;
-  if (converter->getNumUVLayers == NULL) {
-    assert(converter->precalcUVLayer == NULL);
-    assert(converter->getNumUVCoordinates == NULL);
-    assert(converter->getFaceCornerUVIndex == NULL);
-    assert(converter->finishUVLayer == NULL);
+  if (converter->getNumUVLayers == nullptr) {
+    assert(converter->precalcUVLayer == nullptr);
+    assert(converter->getNumUVCoordinates == nullptr);
+    assert(converter->getFaceCornerUVIndex == nullptr);
+    assert(converter->finishUVLayer == nullptr);
     return true;
   }
   const int num_layers = converter->getNumUVLayers(converter);
@@ -295,9 +293,7 @@ inline void TopologyRefinerFactory<TopologyRefinerData>::reportInvalidTopology(
   printf("OpenSubdiv Error: %s\n", msg);
 }
 
-} /* namespace Far */
-} /* namespace OPENSUBDIV_VERSION */
-} /* namespace OpenSubdiv */
+}  // namespace OpenSubdiv::OPENSUBDIV_VERSION::Far
 
 namespace blender::opensubdiv {
 

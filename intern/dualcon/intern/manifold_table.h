@@ -5,10 +5,10 @@
 #ifndef __MANIFOLD_TABLE_H__
 #define __MANIFOLD_TABLE_H__
 
-typedef struct {
+struct ManifoldIndices {
   int comps;
   int pairs[12][2];
-} ManifoldIndices;
+};
 
 extern const ManifoldIndices manifold_table[256];
 

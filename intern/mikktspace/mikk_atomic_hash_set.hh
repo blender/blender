@@ -27,12 +27,14 @@
 #endif
 
 #include <atomic>
+#include <cassert>
 #include <type_traits>
+#include <vector>
 
 namespace mikk {
 
 struct AtomicHashSetLinearProbeFcn {
-  inline size_t operator()(size_t idx, size_t /* numProbes */, size_t capacity) const
+  size_t operator()(size_t idx, size_t /* numProbes */, size_t capacity) const
   {
     idx += 1;  // linear probing
 
@@ -42,7 +44,7 @@ struct AtomicHashSetLinearProbeFcn {
 };
 
 struct AtomicHashSetQuadraticProbeFcn {
-  inline size_t operator()(size_t idx, size_t numProbes, size_t capacity) const
+  size_t operator()(size_t idx, size_t numProbes, size_t capacity) const
   {
     idx += numProbes;  // quadratic probing
 
@@ -57,9 +59,8 @@ template<class KeyT,
          class KeyEqual = std::equal_to<KeyT>,
          class ProbeFcn = AtomicHashSetLinearProbeFcn>
 class AtomicHashSet {
-  static_assert((std::is_convertible<KeyT, int32_t>::value ||
-                 std::is_convertible<KeyT, int64_t>::value ||
-                 std::is_convertible<KeyT, const void *>::value),
+  static_assert((std::is_convertible_v<KeyT, int32_t> || std::is_convertible_v<KeyT, int64_t> ||
+                 std::is_convertible_v<KeyT, const void *>),
                 "You are trying to use AtomicHashSet with disallowed key "
                 "types.  You must use atomically compare-and-swappable integer "
                 "keys, or a different container class.");
@@ -74,18 +75,18 @@ class AtomicHashSet {
  private:
   size_t kAnchorMask_;
   /* When using a single thread, we can avoid overhead by not bothering with atomic cells. */
-  typedef typename std::conditional<isAtomic, std::atomic<KeyT>, KeyT>::type cell_type;
+  using cell_type = std::conditional_t<isAtomic, std::atomic<KeyT>, KeyT>;
   std::vector<cell_type> cells_;
 
  public:
   struct Config {
-    KeyT emptyKey;
-    double maxLoadFactor;
-    double growthFactor;
-    size_t capacity;  // if positive, overrides maxLoadFactor
+    KeyT emptyKey = (KeyT)-1;
+    double maxLoadFactor = 0.8;
+    double growthFactor = -1;
+    size_t capacity = 0;  // if positive, overrides maxLoadFactor
 
     //  Cannot have constexpr ctor because some compilers rightly complain.
-    Config() : emptyKey((KeyT)-1), maxLoadFactor(0.8), growthFactor(-1), capacity(0) {}
+    Config() = default;
   };
 
   /* Instead of a mess of arguments, we take a max size and a Config struct to
@@ -172,7 +173,7 @@ class AtomicHashSet {
   }
 
  private:
-  inline size_t keyToAnchorIdx(const KeyT k) const
+  size_t keyToAnchorIdx(const KeyT k) const
   {
     const size_t hashVal = hasher_(k);
     const size_t probe = hashVal & kAnchorMask_;

@@ -37,7 +37,7 @@ class GHOST_SystemHeadless : public GHOST_System {
   }
   bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/) override
   {
-    return 0;
+    return false;
   }
   GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys & /*keys*/) const override
   {

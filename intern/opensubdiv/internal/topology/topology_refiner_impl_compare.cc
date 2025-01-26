@@ -38,7 +38,7 @@ static bool checkSchemeTypeMatches(const TopologyRefinerImpl *topology_refiner_i
 static bool checkOptionsMatches(const TopologyRefinerImpl *topology_refiner_impl,
                                 const OpenSubdiv_Converter *converter)
 {
-  typedef OpenSubdiv::Sdc::Options Options;
+  using Options = OpenSubdiv::Sdc::Options;
   const Options options = getOSDTopologyRefiner(topology_refiner_impl)->GetSchemeOptions();
   const Options::FVarLinearInterpolation fvar_interpolation = options.GetFVarLinearInterpolation();
   const Options::FVarLinearInterpolation converter_fvar_interpolation =

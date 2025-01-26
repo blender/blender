@@ -5,8 +5,9 @@
 #ifndef __PROJECTIONS_H__
 #define __PROJECTIONS_H__
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
+
+#include "MEM_guardedalloc.h"
 
 #define CONTAINS_INDEX
 #define GRID_DIMENSION 20
@@ -16,7 +17,7 @@
 #  define LONG __int64
 #  define int64_t __int64
 #else
-#  include <stdint.h>
+#  include <cstdint>
 #endif
 
 /**
@@ -76,8 +77,7 @@ class CubeTriangleIsect {
   /// Projections of the cube vertices
   CubeProjection cubeProj[NUM_AXES];
 
- public:
-  CubeTriangleIsect() {}
+  CubeTriangleIsect() = default;
 
   /**
    * Construction from a cube (axes aligned) and triangle
@@ -95,7 +95,7 @@ class CubeTriangleIsect {
   /**
    * Shifting a cube to a new origin
    */
-  void shift(int off[3]);
+  void shift(const int off[3]);
 
   /**
    * Method to test intersection of the triangle and the cube

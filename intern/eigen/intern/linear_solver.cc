@@ -20,10 +20,10 @@
 
 /* Eigen data structures */
 
-typedef Eigen::SparseMatrix<double, Eigen::ColMajor> EigenSparseMatrix;
-typedef Eigen::SparseLU<EigenSparseMatrix> EigenSparseLU;
-typedef Eigen::VectorXd EigenVectorX;
-typedef Eigen::Triplet<double> EigenTriplet;
+using EigenSparseMatrix = Eigen::SparseMatrix<double, Eigen::ColMajor>;
+using EigenSparseLU = Eigen::SparseLU<EigenSparseMatrix>;
+using EigenVectorX = Eigen::VectorXd;
+using EigenTriplet = Eigen::Triplet<double>;
 
 /* Linear Solver data structure */
 
@@ -63,7 +63,7 @@ struct LinearSolver {
     state = STATE_VARIABLES_CONSTRUCT;
     m = 0;
     n = 0;
-    sparseLU = NULL;
+    sparseLU = nullptr;
     num_variables = num_variables_;
     num_rhs = num_rhs_;
     num_rows = num_rows_;
@@ -99,14 +99,16 @@ struct LinearSolver {
   bool least_squares;
 };
 
-LinearSolver *EIG_linear_solver_new(int num_rows, int num_columns, int num_rhs)
+LinearSolver *EIG_linear_solver_new(int num_rows, int num_columns, int num_right_hand_sides)
 {
-  return new LinearSolver(num_rows, num_columns, num_rhs, false);
+  return new LinearSolver(num_rows, num_columns, num_right_hand_sides, false);
 }
 
-LinearSolver *EIG_linear_least_squares_solver_new(int num_rows, int num_columns, int num_rhs)
+LinearSolver *EIG_linear_least_squares_solver_new(int num_rows,
+                                                  int num_columns,
+                                                  int num_right_hand_sides)
 {
-  return new LinearSolver(num_rows, num_columns, num_rhs, true);
+  return new LinearSolver(num_rows, num_columns, num_right_hand_sides, true);
 }
 
 void EIG_linear_solver_delete(LinearSolver *solver)

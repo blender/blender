@@ -7,7 +7,6 @@
  */
 
 #include "uv_initializer.h"
-#include "cotmatrix.h"
 
 #include <Eigen/SparseLU>
 
@@ -23,8 +22,7 @@ static void find_vertex_to_opposite_angles_correspondence(
     const Eigen::MatrixXd &v,
     Eigen::SparseMatrix<double> &vertex_to_face_indices)
 {
-
-  typedef Eigen::Triplet<double> t;
+  using t = Eigen::Triplet<double>;
   std::vector<t> coefficients;
 
   for (int i = 0; i < f.rows(); i++) {
@@ -40,14 +38,14 @@ static void find_vertex_to_opposite_angles_correspondence(
     double angle3 = compute_angle(v.row(vertex_index1) - v.row(vertex_index3),
                                   v.row(vertex_index2) - v.row(vertex_index3));
 
-    coefficients.push_back(t(vertex_index1, 2 * vertex_index2, angle3));
-    coefficients.push_back(t(vertex_index1, 2 * vertex_index3 + 1, angle2));
+    coefficients.emplace_back(vertex_index1, 2 * vertex_index2, angle3);
+    coefficients.emplace_back(vertex_index1, 2 * vertex_index3 + 1, angle2);
 
-    coefficients.push_back(t(vertex_index2, 2 * vertex_index1 + 1, angle3));
-    coefficients.push_back(t(vertex_index2, 2 * vertex_index3, angle1));
+    coefficients.emplace_back(vertex_index2, 2 * vertex_index1 + 1, angle3);
+    coefficients.emplace_back(vertex_index2, 2 * vertex_index3, angle1);
 
-    coefficients.push_back(t(vertex_index3, 2 * vertex_index1, angle2));
-    coefficients.push_back(t(vertex_index3, 2 * vertex_index2 + 1, angle1));
+    coefficients.emplace_back(vertex_index3, 2 * vertex_index1, angle2);
+    coefficients.emplace_back(vertex_index3, 2 * vertex_index2 + 1, angle1);
   }
 
   vertex_to_face_indices.setFromTriplets(coefficients.begin(), coefficients.end());
@@ -59,7 +57,7 @@ static void find_vertex_to_its_angles_correspondence(
     Eigen::SparseMatrix<double> &vertex_to_face_indices)
 {
 
-  typedef Eigen::Triplet<double> t;
+  using t = Eigen::Triplet<double>;
   std::vector<t> coefficients;
 
   for (int i = 0; i < f.rows(); i++) {
@@ -75,14 +73,14 @@ static void find_vertex_to_its_angles_correspondence(
     double angle3 = compute_angle(v.row(vertex_index1) - v.row(vertex_index3),
                                   v.row(vertex_index2) - v.row(vertex_index3));
 
-    coefficients.push_back(t(vertex_index1, 2 * vertex_index2, angle1));
-    coefficients.push_back(t(vertex_index1, 2 * vertex_index3 + 1, angle1));
+    coefficients.emplace_back(vertex_index1, 2 * vertex_index2, angle1);
+    coefficients.emplace_back(vertex_index1, 2 * vertex_index3 + 1, angle1);
 
-    coefficients.push_back(t(vertex_index2, 2 * vertex_index1 + 1, angle2));
-    coefficients.push_back(t(vertex_index2, 2 * vertex_index3, angle2));
+    coefficients.emplace_back(vertex_index2, 2 * vertex_index1 + 1, angle2);
+    coefficients.emplace_back(vertex_index2, 2 * vertex_index3, angle2);
 
-    coefficients.push_back(t(vertex_index3, 2 * vertex_index1, angle3));
-    coefficients.push_back(t(vertex_index3, 2 * vertex_index2 + 1, angle3));
+    coefficients.emplace_back(vertex_index3, 2 * vertex_index1, angle3);
+    coefficients.emplace_back(vertex_index3, 2 * vertex_index2 + 1, angle3);
   }
 
   vertex_to_face_indices.setFromTriplets(coefficients.begin(), coefficients.end());
@@ -158,18 +156,18 @@ void convex_border_parameterization(const Eigen::MatrixXi &f,
           break;
       }
 
-      int_triplet_vector.push_back(Eigen::Triplet<double>(rowindex, rowindex, edge_weight));
+      int_triplet_vector.emplace_back(rowindex, rowindex, edge_weight);
 
       if (second_vertex >= n_knowns) {
         /* Also an unknown point in the interior. */
         columnindex = second_vertex - n_knowns;
 
-        int_triplet_vector.push_back(Eigen::Triplet<double>(rowindex, columnindex, -edge_weight));
+        int_triplet_vector.emplace_back(rowindex, columnindex, -edge_weight);
       }
       else {
         /* Known point on the border. */
         columnindex = second_vertex;
-        bnd_triplet_vector.push_back(Eigen::Triplet<double>(rowindex, columnindex, edge_weight));
+        bnd_triplet_vector.emplace_back(rowindex, columnindex, edge_weight);
       }
     }
   }
