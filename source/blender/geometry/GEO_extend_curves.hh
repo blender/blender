@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include "BLI_span.hh"
 #include "DNA_node_types.h"
 
 #include "BKE_curves.hh"
-#include "BKE_curves_utils.hh"
-#include "BKE_geometry_set.hh"
 
 namespace blender::geometry {
 

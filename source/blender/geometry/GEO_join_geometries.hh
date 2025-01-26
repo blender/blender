@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_geometry_set.hh"
 
 namespace blender::geometry {

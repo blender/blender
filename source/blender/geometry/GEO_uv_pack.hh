@@ -5,13 +5,11 @@
 #pragma once
 
 #include "BLI_heap.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_space_types.h"
-#include "DNA_vec_types.h"
 
 /** \file
  * \ingroup geo

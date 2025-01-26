@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include "FN_field.hh"
-
-#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 namespace blender::geometry {

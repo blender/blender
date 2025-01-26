@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include <optional>
-
 #include "BLI_math_vector_types.hh"
-#include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
 
 namespace blender::geometry {

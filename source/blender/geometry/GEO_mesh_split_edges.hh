@@ -13,7 +13,7 @@ struct Mesh;
 namespace blender::geometry {
 
 void split_edges(Mesh &mesh,
-                 const IndexMask &mask,
+                 const IndexMask &selected_edges,
                  const bke::AttributeFilter &attribute_filter = {});
 
 }  // namespace blender::geometry

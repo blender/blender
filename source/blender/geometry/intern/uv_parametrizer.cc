@@ -1834,7 +1834,7 @@ static bool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
     if (edge && !edge->next->pair && !edge->next->next->pair) {
       return false;
     }
-    else if (pair && !pair->next->pair && !pair->next->next->pair) {
+    if (pair && !pair->next->pair && !pair->next->next->pair) {
       return false;
     }
   }

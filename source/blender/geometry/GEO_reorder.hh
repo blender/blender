@@ -7,7 +7,6 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
 
-#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
