@@ -13,7 +13,6 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include <cstddef>
 #include <cstring>
 
 #include "DNA_windowmanager_types.h"
@@ -38,6 +37,7 @@
 #include "BKE_workspace.hh"
 
 #include "WM_api.hh"
+#include "WM_keymap.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
 #include "wm.hh"

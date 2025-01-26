@@ -12,6 +12,7 @@
  * this could be made into its own module, alongside creator.
  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -1976,9 +1977,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
         ps.picture = ps.picture->prev;
       }
     }
-    if (g_playanim.total_time > 0.0) {
-      g_playanim.total_time = 0.0;
-    }
+    g_playanim.total_time = std::min(g_playanim.total_time, 0.0);
 
 #ifdef WITH_AUDASPACE
     if (g_audaspace.playback_handle) {

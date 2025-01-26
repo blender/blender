@@ -17,7 +17,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_vector_set.hh"
 
 #include "BKE_context.hh"
@@ -33,6 +33,7 @@
 #endif
 
 #include "WM_api.hh"
+#include "WM_keymap.hh"
 #include "WM_types.hh"
 
 #include "wm.hh"

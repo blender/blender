@@ -13,6 +13,9 @@
 
 #pragma once
 
+#include "WM_gizmo_types.hh"
+#include "wm_gizmo_fn.hh"
+
 struct ARegion;
 struct bContext;
 struct IDProperty;
@@ -39,8 +42,6 @@ struct wmMsgSubscribeValue;
 struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
-
-#include "wm_gizmo_fn.hh"
 
 /* -------------------------------------------------------------------- */
 /* #wmGizmo. */

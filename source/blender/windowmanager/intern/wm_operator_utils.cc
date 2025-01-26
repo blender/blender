@@ -128,7 +128,7 @@ static bool interactive_value_update(ValueInteraction *inter,
                       value_scale;
   if (event->modifier & KM_CTRL) {
     const double snap = 0.1;
-    value_delta = float(roundf(double(value_delta) / snap)) * snap;
+    value_delta = roundf(double(value_delta) / snap) * snap;
   }
   if (event->modifier & KM_SHIFT) {
     value_delta *= 0.1f;

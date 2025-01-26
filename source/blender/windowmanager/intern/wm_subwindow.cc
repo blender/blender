@@ -9,13 +9,13 @@
  */
 
 #include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
 #include "WM_api.hh"

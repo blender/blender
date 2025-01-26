@@ -71,6 +71,7 @@
 #include "RNA_define.hh"
 
 #include "WM_api.hh"
+#include "WM_keymap.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
 
@@ -102,7 +103,6 @@
 #include "UI_resources.hh"
 #include "UI_string_search.hh"
 
-#include "GPU_compilation_subprocess.hh"
 #include "GPU_context.hh"
 #include "GPU_init_exit.hh"
 #include "GPU_material.hh"

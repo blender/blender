@@ -11,8 +11,6 @@
 #  include "BLI_threads.h"
 #endif
 
-#include "GHOST_C-api.h"
-
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 

@@ -7,11 +7,9 @@
  */
 #pragma once
 
-#include "BLI_sys_types.h"
-
 #include "GHOST_Types.h"
 
-#include "GPU_context.hh"
+#include "GPU_platform_backend_enum.h"
 
 struct bContext;
 

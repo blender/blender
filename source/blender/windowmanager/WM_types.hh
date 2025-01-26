@@ -118,7 +118,7 @@ struct wmWindowManager;
 #include "DNA_vec_types.h"
 #include "DNA_xr_types.h"
 
-#include "BKE_wm_runtime.hh"
+#include "BKE_wm_runtime.hh"  // IWYU pragma: export
 
 #include "RNA_types.hh"
 

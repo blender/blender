@@ -21,6 +21,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_global.hh"
 
+#include "GPU_context.hh"
 #include "GPU_platform.hh"
 
 #define WM_PLATFORM_SUPPORT_TEXT_SIZE 1024

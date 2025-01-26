@@ -10,10 +10,9 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-
-#include "GPU_batch.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
