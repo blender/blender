@@ -42,7 +42,7 @@ class ViewportEngine : public Engine {
   void render(bContext *context);
 
  protected:
-  void notify_status(float progress, const std::string &title, const std::string &info) override;
+  void notify_status(float progress, const std::string &info, const std::string &status) override;
 };
 
 }  // namespace blender::render::hydra

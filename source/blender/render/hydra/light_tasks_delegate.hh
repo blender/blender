@@ -12,7 +12,7 @@ namespace blender::render::hydra {
 
 class LightTasksDelegate : public pxr::HdSceneDelegate {
  public:
-  LightTasksDelegate(pxr::HdRenderIndex *parentIndex, pxr::SdfPath const &delegate_id);
+  LightTasksDelegate(pxr::HdRenderIndex *parent_index, pxr::SdfPath const &delegate_id);
   ~LightTasksDelegate() override = default;
 
   /* Delegate methods */

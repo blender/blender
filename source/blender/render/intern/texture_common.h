@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_color.h" /* IWYU pragma: keep. Used in macros. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

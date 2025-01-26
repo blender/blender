@@ -14,7 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "Eigen/Core"
+#include <Eigen/Core>
 
 #include "engine.hh"
 

@@ -23,7 +23,6 @@
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math_color.h"
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
@@ -303,9 +302,7 @@ static void clipx_rctf_swap(rctf *stack, short *count, float x1, float x2)
         rf->xmax += (x2 - x1);
       }
       else {
-        if (rf->xmax > x2) {
-          rf->xmax = x2;
-        }
+        rf->xmax = std::min(rf->xmax, x2);
         newrct = stack + *count;
         (*count)++;
 
@@ -327,9 +324,7 @@ static void clipx_rctf_swap(rctf *stack, short *count, float x1, float x2)
         rf->xmax -= (x2 - x1);
       }
       else {
-        if (rf->xmin < x1) {
-          rf->xmin = x1;
-        }
+        rf->xmin = std::max(rf->xmin, x1);
         newrct = stack + *count;
         (*count)++;
 
@@ -363,9 +358,7 @@ static void clipy_rctf_swap(rctf *stack, short *count, float y1, float y2)
         rf->ymax += (y2 - y1);
       }
       else {
-        if (rf->ymax > y2) {
-          rf->ymax = y2;
-        }
+        rf->ymax = std::min(rf->ymax, y2);
         newrct = stack + *count;
         (*count)++;
 
@@ -387,9 +380,7 @@ static void clipy_rctf_swap(rctf *stack, short *count, float y1, float y2)
         rf->ymax -= (y2 - y1);
       }
       else {
-        if (rf->ymin < y1) {
-          rf->ymin = y1;
-        }
+        rf->ymin = std::max(rf->ymin, y1);
         newrct = stack + *count;
         (*count)++;
 
@@ -424,12 +415,8 @@ static float clipx_rctf(rctf *rf, float x1, float x2)
 
   size = BLI_rctf_size_x(rf);
 
-  if (rf->xmin < x1) {
-    rf->xmin = x1;
-  }
-  if (rf->xmax > x2) {
-    rf->xmax = x2;
-  }
+  rf->xmin = std::max(rf->xmin, x1);
+  rf->xmax = std::min(rf->xmax, x2);
   if (rf->xmin > rf->xmax) {
     rf->xmin = rf->xmax;
     return 0.0;
@@ -446,12 +433,8 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 
   size = BLI_rctf_size_y(rf);
 
-  if (rf->ymin < y1) {
-    rf->ymin = y1;
-  }
-  if (rf->ymax > y2) {
-    rf->ymax = y2;
-  }
+  rf->ymin = std::max(rf->ymin, y1);
+  rf->ymax = std::min(rf->ymax, y2);
 
   if (rf->ymin > rf->ymax) {
     rf->ymin = rf->ymax;
@@ -476,12 +459,8 @@ static void boxsampleclip(ImBuf *ibuf, const rctf *rf, TexResult *texres)
   starty = int(floor(rf->ymin));
   endy = int(floor(rf->ymax));
 
-  if (startx < 0) {
-    startx = 0;
-  }
-  if (starty < 0) {
-    starty = 0;
-  }
+  startx = std::max(startx, 0);
+  starty = std::max(starty, 0);
   if (endx >= ibuf->x) {
     endx = ibuf->x - 1;
   }
@@ -706,16 +685,12 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
       y %= ibuf->y;
       y += (y < 0) ? ibuf->y : 0;
       break;
-    default: { /* as extend, if clipped, set alpha to 0.0 */
-      if (x < 0) {
-        x = 0;
-      } /* TXF alpha: clip = 1; } */
+    default: {            /* as extend, if clipped, set alpha to 0.0 */
+      x = std::max(x, 0); /* TXF alpha: clip = 1; } */
       if (x >= ibuf->x) {
         x = ibuf->x - 1;
-      } /* TXF alpha: clip = 1; } */
-      if (y < 0) {
-        y = 0;
-      } /* TXF alpha: clip = 1; } */
+      }                   /* TXF alpha: clip = 1; } */
+      y = std::max(y, 0); /* TXF alpha: clip = 1; } */
       if (y >= ibuf->y) {
         y = ibuf->y - 1;
       } /* TXF alpha: clip = 1; } */
@@ -1035,12 +1010,8 @@ static int imagewraposa_aniso(Tex *tex,
     /* Make sure the filtersize is minimal in pixels
      * (normal, ref map can have miniature pixel dx/dy). */
     const float addval = (0.5f * tex->filtersize) / float(std::min(ibuf->x, ibuf->y));
-    if (addval > minx) {
-      minx = addval;
-    }
-    if (addval > miny) {
-      miny = addval;
-    }
+    minx = std::max(addval, minx);
+    miny = std::max(addval, miny);
   }
   else if (tex->filtersize != 1.0f) {
     minx *= tex->filtersize;
@@ -1439,12 +1410,8 @@ int imagewraposa(Tex *tex,
      * (normal, ref map can have miniature pixel dx/dy). */
     float addval = (0.5f * tex->filtersize) / float(std::min(ibuf->x, ibuf->y));
 
-    if (addval > minx) {
-      minx = addval;
-    }
-    if (addval > miny) {
-      miny = addval;
-    }
+    minx = std::max(addval, minx);
+    miny = std::max(addval, miny);
   }
   else if (tex->filtersize != 1.0f) {
     minx *= tex->filtersize;
@@ -1636,9 +1603,7 @@ int imagewraposa(Tex *tex,
     dx = minx;
     dy = miny;
     maxd = max_ff(dx, dy);
-    if (maxd > 0.5f) {
-      maxd = 0.5f;
-    }
+    maxd = std::min(maxd, 0.5f);
 
     pixsize = 1.0f / float(std::min(ibuf->x, ibuf->y));
 
@@ -1656,12 +1621,8 @@ int imagewraposa(Tex *tex,
 
     if (previbuf != curibuf || (tex->imaflag & TEX_INTERPOL)) {
       /* sample at least 1 pixel */
-      if (minx < 0.5f / ibuf->x) {
-        minx = 0.5f / ibuf->x;
-      }
-      if (miny < 0.5f / ibuf->y) {
-        miny = 0.5f / ibuf->y;
-      }
+      minx = std::max(minx, 0.5f / ibuf->x);
+      miny = std::max(miny, 0.5f / ibuf->y);
     }
 
     maxx = fx + minx;
@@ -1695,12 +1656,8 @@ int imagewraposa(Tex *tex,
     const int intpol = tex->imaflag & TEX_INTERPOL;
     if (intpol) {
       /* sample 1 pixel minimum */
-      if (minx < 0.5f / ibuf->x) {
-        minx = 0.5f / ibuf->x;
-      }
-      if (miny < 0.5f / ibuf->y) {
-        miny = 0.5f / ibuf->y;
-      }
+      minx = std::max(minx, 0.5f / ibuf->x);
+      miny = std::max(miny, 0.5f / ibuf->y);
     }
 
     boxsample(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);

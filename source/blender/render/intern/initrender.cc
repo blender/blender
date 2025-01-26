@@ -9,20 +9,19 @@
 /* Global includes */
 
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
 #include "BLI_rect.h"
-#include "BLI_utildefines.h"
+
+#include "DNA_scene_types.h"
 
 #include "BKE_camera.h"
 
 /* this module */
+#include "RE_pipeline.h"
 #include "render_types.h"
 
 /* ****************** MASKS and LUTS **************** */

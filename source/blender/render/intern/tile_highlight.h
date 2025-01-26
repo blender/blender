@@ -42,11 +42,11 @@ class TilesHighlight {
 
     uint64_t hash() const;
 
-    inline bool operator==(const Tile &other) const
+    bool operator==(const Tile &other) const
     {
       return rect == other.rect;
     }
-    inline bool operator!=(const Tile &other) const
+    bool operator!=(const Tile &other) const
     {
       return !(*this == other);
     }

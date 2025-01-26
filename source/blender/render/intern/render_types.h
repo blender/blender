@@ -135,7 +135,7 @@ struct Render : public BaseRender {
   /* NOTE: Currently unused, provision for the future.
    * Add these now to allow the guarded memory allocator to catch C-specific function calls. */
   Render() = default;
-  virtual ~Render();
+  ~Render() override;
 
   blender::render::TilesHighlight *get_tile_highlight() override
   {

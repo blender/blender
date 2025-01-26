@@ -24,8 +24,6 @@
 
 #include "IMB_imbuf.hh"
 
-#include "DEG_depsgraph_query.hh"
-
 #include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_evaluator.hh"
@@ -37,6 +35,7 @@
 #include "WM_api.hh"
 
 #include "GPU_context.hh"
+#include "GPU_state.hh"
 
 #include "render_types.h"
 
@@ -256,12 +255,10 @@ class Context : public compositor::Context {
       if (render_size == output_result_.domain().size) {
         return output_result_;
       }
-      else {
-        /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
-         * the new render size below. */
-        output_result_.release();
-        output_result_.reset();
-      }
+      /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
+       * the new render size below. */
+      output_result_.release();
+      output_result_.reset();
     }
 
     output_result_.allocate_texture(render_size, false);
@@ -282,12 +279,10 @@ class Context : public compositor::Context {
       {
         return viewer_output_result_;
       }
-      else {
-        /* Otherwise, the size or precision changed, so release its data and reset it, then we
-         * reallocate it on the new domain below. */
-        viewer_output_result_.release();
-        viewer_output_result_.reset();
-      }
+      /* Otherwise, the size or precision changed, so release its data and reset it, then we
+       * reallocate it on the new domain below. */
+      viewer_output_result_.release();
+      viewer_output_result_.reset();
     }
 
     viewer_output_result_.set_precision(precision);

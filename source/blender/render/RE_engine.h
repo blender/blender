@@ -71,7 +71,7 @@ enum RenderEngineFlag {
 
 extern ListBase R_engines;
 
-typedef struct RenderEngineType {
+struct RenderEngineType {
   struct RenderEngineType *next, *prev;
 
   /* type info */
@@ -120,17 +120,17 @@ typedef struct RenderEngineType {
 
   /* RNA integration */
   ExtensionRNA rna_ext;
-} RenderEngineType;
+};
 
-typedef void (*update_render_passes_cb_t)(void *userdata,
-                                          struct Scene *scene,
-                                          struct ViewLayer *view_layer,
-                                          const char *name,
-                                          int channels,
-                                          const char *chanid,
-                                          eNodeSocketDatatype type);
+using update_render_passes_cb_t = void (*)(void *userdata,
+                                           struct Scene *scene,
+                                           struct ViewLayer *view_layer,
+                                           const char *name,
+                                           int channels,
+                                           const char *chanid,
+                                           eNodeSocketDatatype type);
 
-typedef struct RenderEngine {
+struct RenderEngine {
   RenderEngineType *type;
   void *py_instance;
 
@@ -170,7 +170,7 @@ typedef struct RenderEngine {
   struct GPUContext *blender_gpu_context;
   /* Whether to restore DRWState after RenderEngine display pass. */
   bool gpu_restore_context;
-} RenderEngine;
+};
 
 RenderEngine *RE_engine_create(RenderEngineType *type);
 void RE_engine_free(RenderEngine *engine);

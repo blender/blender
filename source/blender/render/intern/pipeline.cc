@@ -9,23 +9,18 @@
 #include <fmt/format.h>
 
 #include <cerrno>
-#include <climits>
-#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <forward_list>
 
 #include "DNA_anim_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -1192,8 +1187,8 @@ static Scene *get_scene_referenced_by_node(const bNode *node)
   if (node->type_legacy == CMP_NODE_R_LAYERS) {
     return reinterpret_cast<Scene *>(node->id);
   }
-  else if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
-           node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
+  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
+      node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
   {
     return reinterpret_cast<Scene *>(node->id);
   }

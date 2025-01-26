@@ -6,8 +6,8 @@
  * \ingroup render
  */
 
+#include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -16,7 +16,6 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_texture_types.h"
@@ -28,8 +27,6 @@
 #include "BKE_image.hh"
 
 #include "NOD_texture.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "texture_common.h"
 
@@ -99,9 +96,7 @@ static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
   }
   else { /* sphere TEX_SPHERE */
     texres->tin = 1.0f - sqrtf(x * x + y * y + texvec[2] * texvec[2]);
-    if (texres->tin < 0.0f) {
-      texres->tin = 0.0f;
-    }
+    texres->tin = std::max(texres->tin, 0.0f);
     if (tex->stype == TEX_HALO) {
       texres->tin *= texres->tin; /* Halo. */
     }
@@ -395,9 +390,7 @@ static int stucci(const Tex *tex, const float texvec[3], TexResult *texres)
     texres->tin = 1.0f - texres->tin;
   }
 
-  if (texres->tin < 0.0f) {
-    texres->tin = 0.0f;
-  }
+  texres->tin = std::max(texres->tin, 0.0f);
 
   return retval;
 }
@@ -530,9 +523,7 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
     texres->trgba[2] += aw4 * ca[2];
     if (ELEM(tex->vn_coltype, TEX_COL2, TEX_COL3)) {
       float t1 = (da[1] - da[0]) * 10;
-      if (t1 > 1) {
-        t1 = 1;
-      }
+      t1 = std::min<float>(t1, 1);
       if (tex->vn_coltype == TEX_COL3) {
         t1 *= texres->tin;
       }
@@ -848,9 +839,7 @@ static void do_2d_mapping(
           }
         }
 
-        if (max < tex->yrepeat) {
-          max = tex->yrepeat;
-        }
+        max = std::max<float>(max, tex->yrepeat);
 
         dxt[1] *= tex->yrepeat;
         dyt[1] *= tex->yrepeat;

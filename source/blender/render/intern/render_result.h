@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_global.hh" /* IWYU pragma: keep. Used in macro. */
+
 #define PASS_VECTOR_MAX 10000.0f
 
 #define RR_ALL_LAYERS NULL

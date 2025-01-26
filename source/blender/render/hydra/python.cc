@@ -15,8 +15,6 @@
 
 #include "BKE_context.hh"
 
-#include "RE_engine.h"
-
 #include "RNA_prototypes.hh"
 
 #include "hydra/image.hh"
