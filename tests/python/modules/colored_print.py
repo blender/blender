@@ -36,9 +36,9 @@ def print_message(message, type=None, status=''):
     elif status == 'OK':
         status_text = "       OK "
     elif status == 'PASSED':
-        status_text = "  PASSED  "
+        status_text = " PASSED   "
     elif status == 'FAILED':
-        status_text = "  FAILED  "
+        status_text = " FAILED   "
     else:
         status_text = status
     if status_text:

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import math
+import os
 import pathlib
 import sys
 import tempfile
@@ -11,6 +12,10 @@ from pxr import Ar, Gf, Sdf, Usd, UsdGeom, UsdShade
 
 import bpy
 
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
+from modules.colored_print import (print_message, use_message_colors)
+
+
 args = None
 
 
@@ -18,6 +23,8 @@ class AbstractUSDTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.testdir = args.testdir
+        if os.environ.get("BLENDER_TEST_COLOR") is not None:
+            use_message_colors()
 
     def setUp(self):
         self._tempdir = tempfile.TemporaryDirectory()
@@ -28,11 +35,20 @@ class AbstractUSDTest(unittest.TestCase):
         self.assertTrue(self.tempdir.exists(),
                         'Temp dir {0} should exist'.format(self.tempdir))
 
+        print_message(self._testMethodName, 'SUCCESS', 'RUN')
+
         # Make sure we always start with a known-empty file.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
 
     def tearDown(self):
         self._tempdir.cleanup()
+
+        result = self._outcome.result
+        ok = all(test != self for test, _ in result.errors + result.failures)
+        if not ok:
+            print_message(self._testMethodName, 'FAILURE', 'FAILED')
+        else:
+            print_message(self._testMethodName, 'SUCCESS', 'PASSED')
 
 
 class USDImportTest(AbstractUSDTest):
@@ -577,6 +593,7 @@ class USDImportTest(AbstractUSDTest):
 
         # Validate some simple aspects of the animated objects which prove that they're animating.
         ob_xform = bpy.data.objects["cube_anim_xform"]
+        ob_xform_child = bpy.data.objects["cube_anim_child_mesh"]
         ob_shapekeys = bpy.data.objects["cube_anim_keys"]
         ob_arm = bpy.data.objects["column_anim_armature"]
         ob_arm2_side_a = bpy.data.objects["side_a"]
@@ -585,7 +602,10 @@ class USDImportTest(AbstractUSDTest):
 
         bpy.context.scene.frame_set(1)
         self.assertEqual(len(ob_xform.constraints), 1)
+        self.assertEqual(len(ob_xform_child.constraints), 1)
         self.assertEqual(self.round_vector(ob_xform.matrix_world.translation), [0.0, -2.0, 0.0])
+        self.assertEqual(self.round_vector(ob_xform_child.matrix_world.translation), [0.0, -2.0, 1.0])
+        self.assertEqual(self.round_vector(ob_xform_child.matrix_world.to_euler('XYZ')), [0.0, 0.0, 0.0])
         self.assertEqual(self.round_vector(ob_shapekeys.dimensions), [1.0, 1.0, 1.0])
         self.assertEqual(self.round_vector(ob_arm.dimensions), [0.4, 0.4, 3.0])
         self.assertEqual(self.round_vector(ob_arm2_side_a.dimensions), [0.5, 0.0, 0.5])
@@ -595,7 +615,10 @@ class USDImportTest(AbstractUSDTest):
 
         bpy.context.scene.frame_set(5)
         self.assertEqual(len(ob_xform.constraints), 1)
+        self.assertEqual(len(ob_xform_child.constraints), 1)
         self.assertEqual(self.round_vector(ob_xform.matrix_world.translation), [3.0, -2.0, 0.0])
+        self.assertEqual(self.round_vector(ob_xform_child.matrix_world.translation), [3.0, -2.0, 1.0])
+        self.assertEqual(self.round_vector(ob_xform_child.matrix_world.to_euler('XYZ')), [0.0, 1.5708, 0.0])
         self.assertEqual(self.round_vector(ob_shapekeys.dimensions), [0.1, 0.1, 0.1])
         self.assertEqual(self.round_vector(ob_arm.dimensions), [1.65545, 0.4, 2.38953])
         self.assertEqual(self.round_vector(ob_arm2_side_a.dimensions), [0.25, 0.0, 0.25])
@@ -1911,7 +1934,7 @@ def main():
     parser.add_argument('--testdir', required=True, type=pathlib.Path)
     args, remaining = parser.parse_known_args(argv)
 
-    unittest.main(argv=remaining)
+    unittest.main(argv=remaining, verbosity=0)
 
 
 if __name__ == "__main__":

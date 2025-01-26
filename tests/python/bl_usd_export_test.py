@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import math
+import os
 import pathlib
 import pprint
 import sys
@@ -11,6 +12,10 @@ import unittest
 from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade, UsdSkel, UsdUtils, UsdVol
 
 import bpy
+
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
+from modules.colored_print import (print_message, use_message_colors)
+
 
 args = None
 
@@ -21,16 +26,22 @@ class AbstractUSDTest(unittest.TestCase):
         cls._tempdir = tempfile.TemporaryDirectory()
         cls.testdir = args.testdir
         cls.tempdir = pathlib.Path(cls._tempdir.name)
-
-        return cls
+        if os.environ.get("BLENDER_TEST_COLOR") is not None:
+            use_message_colors()
 
     def setUp(self):
-        self.assertTrue(
-            self.testdir.exists(), "Test dir {0} should exist".format(self.testdir)
-        )
+        self.assertTrue(self.testdir.exists(), "Test dir {0} should exist".format(self.testdir))
+        print_message(self._testMethodName, 'SUCCESS', 'RUN')
 
     def tearDown(self):
         self._tempdir.cleanup()
+
+        result = self._outcome.result
+        ok = all(test != self for test, _ in result.errors + result.failures)
+        if not ok:
+            print_message(self._testMethodName, 'FAILURE', 'FAILED')
+        else:
+            print_message(self._testMethodName, 'SUCCESS', 'PASSED')
 
     def export_and_validate(self, **kwargs):
         """Export and validate the resulting USD file."""
@@ -926,6 +937,15 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(rot_samples, [1.0])
         self.assertEqual(scale_samples, [1.0])
 
+        prim = stage.GetPrimAtPath("/root/cube_anim_xform/cube_anim_child")
+        self.assertEqual(prim.GetTypeName(), "Xform")
+        loc_samples = UsdGeom.Xformable(prim).GetTranslateOp().GetTimeSamples()
+        rot_samples = UsdGeom.Xformable(prim).GetRotateXYZOp().GetTimeSamples()
+        scale_samples = UsdGeom.Xformable(prim).GetScaleOp().GetTimeSamples()
+        self.assertEqual(loc_samples, [1.0])
+        self.assertEqual(rot_samples, [1.0, 2.0, 3.0, 4.0])
+        self.assertEqual(scale_samples, [1.0])
+
         # Validate the armature animation
         prim = stage.GetPrimAtPath("/root/Armature/Armature")
         self.assertEqual(prim.GetTypeName(), "Skeleton")
@@ -1548,7 +1568,7 @@ def main():
     parser.add_argument("--testdir", required=True, type=pathlib.Path)
     args, remaining = parser.parse_known_args(argv)
 
-    unittest.main(argv=remaining)
+    unittest.main(argv=remaining, verbosity=0)
 
 
 if __name__ == "__main__":
