@@ -12,7 +12,6 @@
 
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.hh"
 #include "BKE_mask.h"
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
@@ -21,10 +20,10 @@
 #include "DNA_brush_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
-#include "ED_image.hh"
 #include "ED_view3d.hh"
 #include "GPU_capabilities.hh"
 
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 #include "draw_manager_text.hh"
 #include "overlay_next_base.hh"

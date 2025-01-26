@@ -68,9 +68,9 @@ void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode);
 void DRW_volume_batch_cache_validate(Volume *volume);
 void DRW_volume_batch_cache_free(Volume *volume);
 
-void DRW_grease_pencil_batch_cache_dirty_tag(GreasePencil *grase_pencil, int mode);
-void DRW_grease_pencil_batch_cache_validate(GreasePencil *grase_pencil);
-void DRW_grease_pencil_batch_cache_free(GreasePencil *grase_pencil);
+void DRW_grease_pencil_batch_cache_dirty_tag(GreasePencil *grease_pencil, int mode);
+void DRW_grease_pencil_batch_cache_validate(GreasePencil *grease_pencil);
+void DRW_grease_pencil_batch_cache_free(GreasePencil *grease_pencil);
 
 /** \} */
 

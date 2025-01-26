@@ -13,9 +13,12 @@
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 
-#include "draw_debug.hh"
 #include "draw_shader.hh"
 #include "draw_view.hh"
+
+#ifdef _DEBUG
+#  include "draw_debug.hh"
+#endif
 
 namespace blender::draw {
 

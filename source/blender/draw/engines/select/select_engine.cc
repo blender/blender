@@ -145,14 +145,14 @@ static void select_cache_init(void *vedata)
       auto &sub = inst.depth_only_ps.sub("DepthOnly");
       sub.shader_set(sh->select_id_uniform);
       sub.push_constant("retopologyOffset", retopology_offset);
-      sub.push_constant("select_id", int(0));
+      sub.push_constant("select_id", 0);
       inst.depth_only = &sub;
     }
     if (retopology_occlusion) {
       auto &sub = inst.depth_only_ps.sub("Occlusion");
       sub.shader_set(sh->select_id_uniform);
       sub.push_constant("retopologyOffset", 0.0f);
-      sub.push_constant("select_id", int(0));
+      sub.push_constant("select_id", 0);
       inst.depth_occlude = &sub;
     }
 
@@ -169,7 +169,7 @@ static void select_cache_init(void *vedata)
     else {
       auto &sub = inst.select_face_ps.sub("FaceNoSelect");
       sub.shader_set(sh->select_id_uniform);
-      sub.push_constant("select_id", int(0));
+      sub.push_constant("select_id", 0);
       sub.push_constant("retopologyOffset", retopology_offset);
       inst.select_face_uniform = &sub;
     }

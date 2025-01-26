@@ -30,11 +30,10 @@
 #include "GPU_compute.hh"
 #include "GPU_index_buffer.hh"
 #include "GPU_state.hh"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_vertex_buffer.hh"
 
-#include "opensubdiv_capi.hh"
 #include "opensubdiv_capi_type.hh"
-#include "opensubdiv_converter_capi.hh"
 #include "opensubdiv_evaluator_capi.hh"
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_evaluator.hh"

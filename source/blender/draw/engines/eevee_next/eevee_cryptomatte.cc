@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "BKE_cryptomatte.hh"
 
-#include "GPU_material.hh"
-
 #include "eevee_cryptomatte.hh"
 #include "eevee_instance.hh"
 #include "eevee_renderbuffers.hh"
@@ -13,10 +11,10 @@ namespace blender::eevee {
 
 void Cryptomatte::begin_sync()
 {
-  const eViewLayerEEVEEPassType enabled_passes = static_cast<eViewLayerEEVEEPassType>(
-      inst_.film.enabled_passes_get() &
-      (EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT | EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
-       EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL));
+  const eViewLayerEEVEEPassType enabled_passes = (inst_.film.enabled_passes_get() &
+                                                  (EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
+                                                   EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
+                                                   EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL));
 
   session_.reset();
   object_layer_ = nullptr;

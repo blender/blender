@@ -80,9 +80,7 @@ static void SELECT_next_draw_scene(void *vedata)
 static void SELECT_next_instance_free(void *instance_)
 {
   Instance *instance = (Instance *)instance_;
-  if (instance != nullptr) {
-    delete instance;
-  }
+  delete instance;
 }
 
 static const DrawEngineDataSize SELECT_next_data_size = DRW_VIEWPORT_DATA_SIZE(SELECT_NextData);

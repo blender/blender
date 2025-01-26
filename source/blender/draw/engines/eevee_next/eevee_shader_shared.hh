@@ -1279,12 +1279,10 @@ static inline int light_local_tilemap_count(LightData light)
   if (is_spot_light(light.type)) {
     return (light_spot_data_get(light).spot_tan > tanf(M_PI / 4.0)) ? 5 : 1;
   }
-  else if (is_area_light(light.type)) {
+  if (is_area_light(light.type)) {
     return 5;
   }
-  else {
-    return 6;
-  }
+  return 6;
 }
 
 /** \} */

@@ -80,7 +80,9 @@
 #include "draw_common_c.hh"
 #include "draw_manager_c.hh"
 #include "draw_manager_profiling.hh"
-#include "draw_manager_testing.hh"
+#ifdef WITH_GPU_DRAW_TESTS
+#  include "draw_manager_testing.hh"
+#endif
 #include "draw_manager_text.hh"
 #include "draw_shader.hh"
 #include "draw_subdivision.hh"
@@ -625,7 +627,7 @@ void **DRW_duplidata_get(void *vedata)
     return nullptr;
   }
   ViewportEngineData *ved = (ViewportEngineData *)vedata;
-  DRWRegisteredDrawEngine *engine_type = (DRWRegisteredDrawEngine *)ved->engine_type;
+  DRWRegisteredDrawEngine *engine_type = ved->engine_type;
   return &DST.dupli_datas[engine_type->index];
 }
 

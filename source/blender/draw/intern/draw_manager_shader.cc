@@ -16,6 +16,7 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_material.hh"
+#include "GPU_state.hh"
 
 #include "WM_api.hh"
 
@@ -69,7 +70,7 @@ static DRWShaderCompiler &compiler_data()
   return compiler_data_;
 }
 
-static void *drw_deferred_shader_compilation_exec(void *)
+static void *drw_deferred_shader_compilation_exec(void * /*unused*/)
 {
   using namespace blender;
 

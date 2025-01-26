@@ -8,6 +8,7 @@
  * \ingroup eevee
  */
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 
 #include "eevee_shader_shared.hh"

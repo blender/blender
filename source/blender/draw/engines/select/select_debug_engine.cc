@@ -11,13 +11,10 @@
 #include "BLT_translation.hh"
 
 #include "DNA_ID.h"
-#include "DNA_vec_types.h"
 
 #include "DRW_engine.hh"
-#include "DRW_select_buffer.hh"
 
 #include "draw_manager.hh"
-#include "draw_manager_c.hh"
 #include "draw_pass.hh"
 
 #include "select_engine.hh"

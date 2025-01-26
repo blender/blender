@@ -12,9 +12,6 @@
  * Input needs to be jittered so that the filter converges to the right result.
  */
 
-#include "BLI_rect.h"
-
-#include "GPU_framebuffer.hh"
 #include "GPU_texture.hh"
 
 #include "DRW_render.hh"
@@ -109,9 +106,8 @@ void RenderBuffers::acquire(int2 extent)
     cryptomatte_format = GPU_RGBA32F;
   }
   cryptomatte_tx.acquire(
-      pass_extent(static_cast<eViewLayerEEVEEPassType>(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
-                                                       EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
-                                                       EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL)),
+      pass_extent((EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT | EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
+                   EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL)),
       cryptomatte_format,
       GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE);
 }

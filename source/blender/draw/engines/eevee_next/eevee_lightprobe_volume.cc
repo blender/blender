@@ -241,16 +241,14 @@ void VolumeProbeModule::set_view(View & /*view*/)
           if (_a.x != _b.x) {
             return _a.x < _b.x;
           }
-          else if (_a.y != _b.y) {
+          if (_a.y != _b.y) {
             return _a.y < _b.y;
           }
-          else if (_a.z != _b.z) {
+          if (_a.z != _b.z) {
             return _a.z < _b.z;
           }
-          else {
-            /* Fallback to memory address, since there's no good alternative. */
-            return a < b;
-          }
+          /* Fallback to memory address, since there's no good alternative. */
+          return a < b;
         });
 
     /* Insert grids in UBO in sorted order. */
@@ -1166,7 +1164,7 @@ void IrradianceBake::raylists_build()
   using namespace blender::math;
 
   float2 rand_uv = inst_.sampling.rng_2d_get(eSamplingDimension::SAMPLING_LENS_U);
-  const float3 ray_direction = inst_.sampling.sample_sphere(rand_uv);
+  const float3 ray_direction = Sampling::sample_sphere(rand_uv);
   const float3 up = ray_direction;
   const float3 forward = cross(up, normalize(orthogonal(up)));
   const float4x4 viewinv = from_orthonormal_axes<float4x4>(float3(0.0f), forward, up);

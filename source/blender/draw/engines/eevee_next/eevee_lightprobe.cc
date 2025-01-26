@@ -11,12 +11,9 @@
  */
 
 #include "DNA_lightprobe_types.h"
-#include "WM_api.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_lightprobe.hh"
-
-#include "draw_debug.hh"
 
 #include <iostream>
 

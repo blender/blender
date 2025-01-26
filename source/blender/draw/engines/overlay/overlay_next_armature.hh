@@ -126,11 +126,9 @@ class Armatures : Overlay {
           return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWireStrip");
         });
       }
-      else {
-        return *custom_shape_wire.lookup_or_add_cb(geom, [this]() {
-          return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWire");
-        });
-      }
+      return *custom_shape_wire.lookup_or_add_cb(geom, [this]() {
+        return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWire");
+      });
     }
 
     BoneBuffers(const SelectionType selection_type) : selection_type_(selection_type){};
@@ -624,7 +622,6 @@ class Armatures : Overlay {
   }
 
   /* Public for the time of the Overlay Next port to avoid duplicated logic. */
- public:
   static void draw_armature_pose(Armatures::DrawContext *ctx);
   static void draw_armature_edit(Armatures::DrawContext *ctx);
 

@@ -118,7 +118,7 @@ static void extract_edge_factor_bm(const MeshRenderData &mr, MutableSpan<T> vbo_
   BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
     for (const int face_index : range) {
-      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+      const BMFace &face = *BM_face_at_index(&bm, face_index);
       const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
       for ([[maybe_unused]] const int i : IndexRange(face.len)) {
         const int index = BM_elem_index_get(loop);

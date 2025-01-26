@@ -8,7 +8,9 @@
 
 #pragma once
 
-#include "overlay_next_private.hh"
+#include "DNA_scene_types.h"
+
+#include "BKE_image.hh"
 
 namespace blender::draw::overlay {
 

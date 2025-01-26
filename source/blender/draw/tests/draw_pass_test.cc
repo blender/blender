@@ -4,6 +4,7 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 
 #include "draw_cache.hh"

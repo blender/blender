@@ -985,7 +985,7 @@ ShapeCache::ShapeCache()
   {
     Vector<Vertex> verts;
     for (const uint3 &tri : bone_box_solid_tris) {
-      for (const int i : IndexRange(tri.type_length)) {
+      for (const int i : IndexRange(uint3::type_length)) {
         const int v = tri[i];
         const float x = bone_box_verts[v][2];
         const float y = bone_box_verts[v][0];

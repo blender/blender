@@ -25,7 +25,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_material.hh"
 #include "BKE_object.hh"
 
 #include "GPU_batch.hh"

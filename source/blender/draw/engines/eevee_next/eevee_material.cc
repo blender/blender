@@ -15,8 +15,6 @@
 
 #include "NOD_shader.h"
 
-#include "draw_cache.hh"
-
 #include "eevee_instance.hh"
 #include "eevee_material.hh"
 

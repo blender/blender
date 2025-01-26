@@ -1954,12 +1954,12 @@ namespace {
  *
  * See the functions below.
  */
-static ArmatureBoneDrawStrategyOcta strat_octa;
-static ArmatureBoneDrawStrategyLine strat_line;
-static ArmatureBoneDrawStrategyBBone strat_b_bone;
-static ArmatureBoneDrawStrategyEnvelope strat_envelope;
-static ArmatureBoneDrawStrategyWire strat_wire;
-static ArmatureBoneDrawStrategyEmpty strat_empty;
+ArmatureBoneDrawStrategyOcta strat_octa;
+ArmatureBoneDrawStrategyLine strat_line;
+ArmatureBoneDrawStrategyBBone strat_b_bone;
+ArmatureBoneDrawStrategyEnvelope strat_envelope;
+ArmatureBoneDrawStrategyWire strat_wire;
+ArmatureBoneDrawStrategyEmpty strat_empty;
 };  // namespace
 
 /**

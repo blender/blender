@@ -279,12 +279,10 @@ PassType *volume_sub_pass_implementation(PassType &ps,
   if (ob == nullptr) {
     return volume_world_grids_init(ps, attrs);
   }
-  else if (ob->type == OB_VOLUME) {
+  if (ob->type == OB_VOLUME) {
     return volume_object_grids_init(ps, ob, attrs);
   }
-  else {
-    return drw_volume_object_mesh_init(ps, scene, ob, attrs);
-  }
+  return drw_volume_object_mesh_init(ps, scene, ob, attrs);
 }
 
 PassMain::Sub *volume_sub_pass(PassMain::Sub &ps,

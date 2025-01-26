@@ -92,7 +92,7 @@ void Camera::sync()
   int2 film_extent = inst_.film.film_extent_get();
   int2 film_offset = inst_.film.film_offset_get();
   /* Over-scan in film pixel. Not the same as `render_overscan_get`. */
-  int film_overscan = inst_.film.overscan_pixels_get(overscan_, film_extent);
+  int film_overscan = Film::overscan_pixels_get(overscan_, film_extent);
 
   rcti film_rect;
   BLI_rcti_init(&film_rect,
