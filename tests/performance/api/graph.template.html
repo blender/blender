@@ -119,6 +119,14 @@
           var chart = new google.charts.Bar(chart_div);
           chart.draw(transposeDataTable(data), options);
         }
+
+        /* Auto scale chart elements to display full SVG. */
+        google.visualization.events.addListener(chart, 'ready', function () {
+          var allSvg = document.getElementsByTagName("svg");
+          for (var index = 0; index < allSvg.length; index++) {
+            allSvg[index].setAttribute('height', allSvg[index].getBBox().height);
+          }
+        });
       }
     }
   </script>
