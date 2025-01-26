@@ -353,7 +353,7 @@ static void fcm_fn_generator_evaluate(const FCurve * /*fcu*/,
 
   /* execute function callback to set value if appropriate */
   if (fn) {
-    float value = float(data->amplitude * float(fn(arg)) + data->value_offset);
+    float value = (data->amplitude * float(fn(arg)) + data->value_offset);
 
     if (data->flag & FCM_GENERATOR_ADDITIVE) {
       *cvalue += value;
@@ -719,10 +719,10 @@ static float fcm_cycles_time(
     /* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
     if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
       if (side < 0) {
-        cycyofs = float(floor((evaltime - ofs) / cycdx));
+        cycyofs = floor((evaltime - ofs) / cycdx);
       }
       else {
-        cycyofs = float(ceil((evaltime - ofs) / cycdx));
+        cycyofs = ceil((evaltime - ofs) / cycdx);
       }
       cycyofs *= cycdy;
     }

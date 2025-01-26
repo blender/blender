@@ -33,6 +33,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_fileops.h"
 #include "BLI_math_rotation.h"

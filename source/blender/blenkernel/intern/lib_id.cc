@@ -1739,8 +1739,7 @@ ID *BKE_libblock_find_name_and_library_filepath(Main *bmain,
     if (id->lib == nullptr && lib_filepath_abs == nullptr) {
       return id;
     }
-    else if (id->lib && lib_filepath_abs && STREQ(id->lib->runtime.filepath_abs, lib_filepath_abs))
-    {
+    if (id->lib && lib_filepath_abs && STREQ(id->lib->runtime.filepath_abs, lib_filepath_abs)) {
       return id;
     }
   }

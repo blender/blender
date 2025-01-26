@@ -296,7 +296,7 @@ struct Main {
  * \note Always generate a non-global Main, use #BKE_blender_globals_main_replace to put a newly
  * created one in `G_MAIN`.
  */
-Main *BKE_main_new(void);
+Main *BKE_main_new();
 /**
  * Initialize a Main data-base.
  *

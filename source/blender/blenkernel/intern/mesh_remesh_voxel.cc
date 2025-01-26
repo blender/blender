@@ -13,8 +13,6 @@
 #include <cstring>
 #include <ctime>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"

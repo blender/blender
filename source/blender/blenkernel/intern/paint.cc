@@ -465,14 +465,14 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 {
   Scene *sce = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  SpaceImage *sima;
 
   if (sce && view_layer) {
     ToolSettings *ts = sce->toolsettings;
     BKE_view_layer_synced_ensure(sce, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
 
-    if ((sima = CTX_wm_space_image(C)) != nullptr) {
+    SpaceImage *sima = CTX_wm_space_image(C);
+    if (sima != nullptr) {
       if (obact && obact->mode == OB_MODE_EDIT) {
         if (sima->mode == SI_MODE_PAINT) {
           return &ts->imapaint.paint;
@@ -494,13 +494,13 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 {
   Scene *sce = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  SpaceImage *sima;
 
   if (sce && view_layer) {
     BKE_view_layer_synced_ensure(sce, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
 
-    if ((sima = CTX_wm_space_image(C)) != nullptr) {
+    SpaceImage *sima = CTX_wm_space_image(C);
+    if (sima != nullptr) {
       if (obact && obact->mode == OB_MODE_EDIT) {
         if (sima->mode == SI_MODE_PAINT) {
           return PaintMode::Texture2D;
@@ -1969,7 +1969,7 @@ static bool paint_rake_rotation_active(const MTex &mtex)
   return mtex.tex && mtex.brush_angle_mode & MTEX_ANGLE_RAKE;
 }
 
-static const bool paint_rake_rotation_active(const Brush &brush, PaintMode paint_mode)
+static bool paint_rake_rotation_active(const Brush &brush, PaintMode paint_mode)
 {
   return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex) ||
          BKE_brush_has_cube_tip(&brush, paint_mode);
@@ -2137,7 +2137,7 @@ void BKE_sculptsession_free(Object *ob)
   }
 }
 
-SculptSession::SculptSession() {}
+SculptSession::SculptSession() = default;
 
 SculptSession::~SculptSession()
 {

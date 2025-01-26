@@ -71,7 +71,7 @@
 
 #include "BKE_mask.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */
@@ -950,7 +950,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         face_coords = static_cast<float(*)[3]>(
             MEM_reallocN(face_coords, sizeof(float[3]) * (sf_vert_tot + sf_vert_tot_isect)));
 
-        cos = (float *)&face_coords[sf_vert_tot][0];
+        cos = (&face_coords[sf_vert_tot][0]);
 
         for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first); sf_vert;
              sf_vert = sf_vert->next)

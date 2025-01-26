@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -445,9 +446,7 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
 
       for (int i = 0; i < pf->size; i += sizeof(buf)) {
         int len = pf->size - i;
-        if (len > sizeof(buf)) {
-          len = sizeof(buf);
-        }
+        len = std::min<unsigned long>(len, sizeof(buf));
 
         if (BLI_read(file, buf, len) != len) {
           /* read error ... */

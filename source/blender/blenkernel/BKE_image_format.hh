@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 struct BlendDataReader;
 struct BlendWriter;

@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cwctype>
@@ -136,7 +135,8 @@ static VChar *vfont_char_ensure_with_lock(VFont *vfont, char32_t charcode)
        *
        * Such a check should not be a bottleneck since it wouldn't
        * happen often once all the chars are load. */
-      if ((che = vfont_char_find(vfd, charcode)) == nullptr) {
+      che = vfont_char_find(vfd, charcode);
+      if (che == nullptr) {
         che = BKE_vfontdata_char_from_freetypefont(vfont, charcode);
       }
       BLI_rw_mutex_unlock(&vfont_rwlock);
@@ -1265,12 +1265,8 @@ static bool vfont_to_curve(Object *ob,
       minx = maxx = ct->xof;
       ct++;
       for (i = 1; i <= slen; i++, ct++) {
-        if (minx > ct->xof) {
-          minx = ct->xof;
-        }
-        if (maxx < ct->xof) {
-          maxx = ct->xof;
-        }
+        minx = std::min(minx, ct->xof);
+        maxx = std::max(maxx, ct->xof);
       }
 
       /* We put the x-coordinate exact at the curve, the y is rotated. */

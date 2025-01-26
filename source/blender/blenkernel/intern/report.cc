@@ -363,7 +363,7 @@ bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)
   std::scoped_lock lock(*reports->lock);
 
   LISTBASE_FOREACH (Report *, report, &reports->list) {
-    fprintf((FILE *)fp, "%s  # %s\n", report->message, report->typestr);
+    fprintf(fp, "%s  # %s\n", report->message, report->typestr);
   }
 
   return true;

@@ -91,7 +91,7 @@ IDRemapperApplyResult IDRemapper::apply(ID **r_id_ptr,
   return ID_REMAP_RESULT_SOURCE_REMAPPED;
 }
 
-const StringRefNull IDRemapper::result_to_string(const IDRemapperApplyResult result)
+StringRefNull IDRemapper::result_to_string(const IDRemapperApplyResult result)
 {
   switch (result) {
     case ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE:

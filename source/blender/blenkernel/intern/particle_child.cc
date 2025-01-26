@@ -407,10 +407,10 @@ void do_kink(ParticleKey *state,
 
   if (shape != 0.0f && !ELEM(type, PART_KINK_BRAID)) {
     if (shape < 0.0f) {
-      time = float(pow(time, 1.0f + shape));
+      time = pow(time, 1.0f + shape);
     }
     else {
-      time = float(pow(time, 1.0f / (1.0f - shape)));
+      time = pow(time, 1.0f / (1.0f - shape));
     }
   }
 
@@ -834,12 +834,8 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
 
   if (part->flag & PART_CHILD_EFFECT) {
     /* state is safe to cast, since only co and vel are used */
-    guided = do_guides(sim->depsgraph,
-                       sim->psys->part,
-                       sim->psys->effectors,
-                       (ParticleKey *)state,
-                       cpa->parent,
-                       t);
+    guided = do_guides(
+        sim->depsgraph, sim->psys->part, sim->psys->effectors, state, cpa->parent, t);
   }
 
   if (guided == 0) {

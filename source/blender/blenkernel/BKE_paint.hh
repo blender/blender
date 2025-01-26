@@ -207,7 +207,7 @@ bool BKE_paint_use_unified_color(const ToolSettings *tool_settings, const Paint 
 
 Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *paint);
-Brush *BKE_paint_brush_from_essentials(Main *bmain, eObjectMode obmode, const char *name);
+Brush *BKE_paint_brush_from_essentials(Main *bmain, eObjectMode ob_mode, const char *name);
 
 /**
  * Check if brush \a brush may be set/activated for \a paint. Passing null for \a brush will return

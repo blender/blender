@@ -1073,8 +1073,8 @@ static void do_physical_effector(EffectorCache *eff,
       flow_falloff = 0;
 #ifdef WITH_FLUID
       if (pd->f_source) {
-        float density;
-        if ((density = BKE_fluid_get_velocity_at(pd->f_source, point->loc, force)) >= 0.0f) {
+        const float density = BKE_fluid_get_velocity_at(pd->f_source, point->loc, force);
+        if (density >= 0.0f) {
           float influence = strength * efd->falloff;
           if (pd->flag & PFIELD_SMOKE_DENSITY) {
             influence *= density;

@@ -8,8 +8,6 @@
  * Functions to evaluate mesh tangents.
  */
 
-#include <climits>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_geom.h"
@@ -26,7 +24,7 @@
 
 #include "mikktspace.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 using blender::float2;
 using blender::float3;

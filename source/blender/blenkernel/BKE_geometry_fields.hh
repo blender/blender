@@ -127,7 +127,7 @@ class GreasePencilLayerFieldContext : public fn::FieldContext {
 
   GVArray get_varray_for_input(const fn::FieldInput &field_input,
                                const IndexMask &mask,
-                               ResourceScope &scope) const;
+                               ResourceScope &scope) const override;
 };
 
 class InstancesFieldContext : public fn::FieldContext {

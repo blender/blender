@@ -9,6 +9,8 @@
  * eg: faces connected to verts, UVs connected to verts.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "atomic_ops.h"
@@ -27,7 +29,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BLI_memarena.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Connectivity Mapping
@@ -622,9 +624,7 @@ static void face_edge_loop_islands_calc(const int totedge,
 
         group_id_overflow = true;
       }
-      if (gid_bit > tot_group) {
-        tot_group = gid_bit;
-      }
+      tot_group = std::max(gid_bit, tot_group);
       /* And assign the final smooth group id to that face group! */
       for (i = ps_end_idx, p = face_stack; i--; p++) {
         face_groups[*p] = face_group_id;

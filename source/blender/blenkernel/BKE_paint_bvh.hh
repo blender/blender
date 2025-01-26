@@ -39,16 +39,15 @@ struct SubdivCCGCoord;
 struct Image;
 struct ImageUser;
 struct Object;
-namespace blender {
-namespace bke::pbvh {
+
+namespace blender::bke::pbvh {
 class Node;
 class Tree;
 namespace pixels {
 struct PBVHData;
 struct NodeData;
 }  // namespace pixels
-}  // namespace bke::pbvh
-}  // namespace blender
+}  // namespace blender::bke::pbvh
 
 namespace blender::bke::pbvh {
 
@@ -255,7 +254,6 @@ class Tree {
 
   std::unique_ptr<DrawCache> draw_data;
 
- public:
   Tree(const Tree &other) = delete;
   Tree(Tree &&other) = default;
   Tree &operator=(const Tree &other) = delete;
@@ -316,7 +314,7 @@ void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, Imag
  * hit first */
 
 void raycast(Tree &pbvh,
-             FunctionRef<void(Node &node, float *tmin)> cb,
+             FunctionRef<void(Node &node, float *tmin)> hit_fn,
              const float3 &ray_start,
              const float3 &ray_normal,
              bool original);
@@ -420,7 +418,7 @@ namespace blender::bke::pbvh {
 /**
  * Returns the number of visible quads in the nodes' grids.
  */
-int count_grid_quads(const BitGroupVector<> &grid_visibility,
+int count_grid_quads(const BitGroupVector<> &grid_hidden,
                      Span<int> grid_indices,
                      int gridsize,
                      int display_gridsize);

@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 
@@ -225,9 +226,7 @@ static void checker_board_color_fill(
   hsv[1] = 1.0;
 
   hue_step = power_of_2_max_i(width / 8);
-  if (hue_step < 8) {
-    hue_step = 8;
-  }
+  hue_step = std::max(hue_step, 8);
 
   for (y = offset; y < height + offset; y++) {
     /* Use a number lower than 1.0 else its too bright. */

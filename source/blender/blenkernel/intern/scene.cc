@@ -41,7 +41,6 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_callbacks.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -57,6 +56,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_bpath.hh"
+#include "BKE_callbacks.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
@@ -1839,7 +1839,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       /* In case root duplicated ID is linked, assume we want to get a local copy of it and
        * duplicate all expected linked data. */
       if (ID_IS_LINKED(sce)) {
-        duplicate_flags = (eDupli_ID_Flags)(duplicate_flags | USER_DUP_LINKED_ID);
+        duplicate_flags = (duplicate_flags | USER_DUP_LINKED_ID);
       }
     }
 

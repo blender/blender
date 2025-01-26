@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include <cmath>
 #include <cstring>
 #include <optional>
 
@@ -194,7 +193,7 @@ static void curves_evaluate_modifiers(Depsgraph *depsgraph,
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
   if (BKE_object_is_in_editmode(object)) {
-    required_mode = (ModifierMode)(int(required_mode) | eModifierMode_Editmode);
+    required_mode = (ModifierMode)(required_mode | eModifierMode_Editmode);
   }
   ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
   const ModifierEvalContext mectx = {depsgraph, object, apply_flag};

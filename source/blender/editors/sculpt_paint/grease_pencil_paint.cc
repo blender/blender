@@ -46,6 +46,7 @@
 
 #include "grease_pencil_intern.hh"
 
+#include <numeric>
 #include <optional>
 
 namespace blender::ed::sculpt_paint::greasepencil {

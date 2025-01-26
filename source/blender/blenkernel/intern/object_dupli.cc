@@ -777,8 +777,8 @@ static Object *find_family_object(
 {
   void *ch_key = POINTER_FROM_UINT(ch);
 
-  Object **ob_pt;
-  if ((ob_pt = (Object **)BLI_ghash_lookup_p(family_gh, ch_key))) {
+  Object **ob_pt = (Object **)BLI_ghash_lookup_p(family_gh, ch_key);
+  if (ob_pt) {
     return *ob_pt;
   }
 

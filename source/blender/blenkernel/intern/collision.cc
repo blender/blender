@@ -584,16 +584,10 @@ static void collision_compute_barycentric(const float pv[3],
   }
 
   w1[0] = float((e * c - b * f) / d);
-
-  if (w1[0] < 0) {
-    w1[0] = 0;
-  }
+  w1[0] = std::max<float>(w1[0], 0);
 
   w2[0] = float((f - b * double(w1[0])) / c);
-
-  if (w2[0] < 0) {
-    w2[0] = 0;
-  }
+  w2[0] = std::max<float>(w2[0], 0);
 
   w3[0] = 1.0f - w1[0] - w2[0];
 

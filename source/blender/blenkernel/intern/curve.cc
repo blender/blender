@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cmath> /* floor */
 #include <cstdlib>
 #include <cstring>
@@ -1209,9 +1210,7 @@ static void basisNurb(
     if (knots[i] != knots[i + 1] && t >= knots[i] && t <= knots[i + 1]) {
       basis[i] = 1.0;
       i1 = i - o2;
-      if (i1 < 0) {
-        i1 = 0;
-      }
+      i1 = std::max(i1, 0);
       i2 = i;
       i++;
       while (i < opp2) {
@@ -3145,12 +3144,8 @@ static void calchandleNurb_intern(BezTriple *bezt,
       bool leftviolate = false, rightviolate = false;
 
       if (!is_fcurve || fcurve_smoothing == FCURVE_SMOOTH_NONE) {
-        if (len_a > 5.0f * len_b) {
-          len_a = 5.0f * len_b;
-        }
-        if (len_b > 5.0f * len_a) {
-          len_b = 5.0f * len_a;
-        }
+        len_a = std::min(len_a, 5.0f * len_b);
+        len_b = std::min(len_b, 5.0f * len_a);
       }
 
       if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {

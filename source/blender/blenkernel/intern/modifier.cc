@@ -13,7 +13,6 @@
 
 #include <cfloat>
 #include <chrono>
-#include <cmath>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdlib>

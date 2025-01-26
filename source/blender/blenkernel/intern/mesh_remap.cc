@@ -8,8 +8,6 @@
  * Functions for mapping data between meshes.
  */
 
-#include <climits>
-
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -34,7 +32,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 static CLG_LogRef LOG = {"bke.mesh"};
 
@@ -315,7 +313,7 @@ void BKE_mesh_remap_init(MeshPairRemap *map, const int items_num)
 void BKE_mesh_remap_free(MeshPairRemap *map)
 {
   if (map->mem) {
-    BLI_memarena_free((MemArena *)map->mem);
+    BLI_memarena_free(map->mem);
   }
 
   map->items_num = 0;

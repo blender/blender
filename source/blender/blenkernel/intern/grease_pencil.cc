@@ -1293,7 +1293,7 @@ std::optional<int> Layer::start_frame_at(int frame_number) const
   const std::optional<FramesMapKeyT> frame_key = this->frame_key_at(frame_number);
   /* Return the frame number only if the frame key exists and if it's not an end frame. */
   if (frame_key && !this->frames().lookup_ptr(*frame_key)->is_end()) {
-    return *frame_key;
+    return frame_key;
   }
   return {};
 }
@@ -1693,7 +1693,7 @@ bool LayerGroup::unlink_node(TreeNode &link, const bool keep_children)
     this->tag_nodes_cache_dirty();
     return true;
   }
-  else if (BLI_remlink_safe(&this->children, &link)) {
+  if (BLI_remlink_safe(&this->children, &link)) {
     link.parent = nullptr;
     this->tag_nodes_cache_dirty();
     return true;
@@ -3043,7 +3043,7 @@ void GreasePencil::update_drawing_users_for_layer(const blender::bke::greasepenc
 void GreasePencil::move_frames(blender::bke::greasepencil::Layer &layer,
                                const blender::Map<int, int> &frame_number_destinations)
 {
-  return this->move_duplicate_frames(
+  this->move_duplicate_frames(
       layer, frame_number_destinations, blender::Map<int, GreasePencilFrame>());
 }
 

@@ -10,7 +10,7 @@
  * since its the main purpose of the API.
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include <optional>
 #include <string>

@@ -108,7 +108,7 @@ void CryptomatteSession::init(const ViewLayer *view_layer, bool build_meta_data)
   eViewLayerCryptomatteFlags cryptoflags = static_cast<eViewLayerCryptomatteFlags>(
       view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ALL);
   if (cryptoflags == 0) {
-    cryptoflags = static_cast<eViewLayerCryptomatteFlags>(VIEW_LAYER_CRYPTOMATTE_ALL);
+    cryptoflags = VIEW_LAYER_CRYPTOMATTE_ALL;
   }
 
   ListBase *object_bases = BKE_view_layer_object_bases_get(const_cast<ViewLayer *>(view_layer));

@@ -9,8 +9,6 @@
  * DNA level diffing for undo.
  */
 
-#include "DNA_userdef_types.h"
-
 #ifndef _WIN32
 #  include <unistd.h> /* for read close */
 #else
@@ -23,7 +21,7 @@
 #include <cstring>
 #include <fcntl.h> /* for open */
 
-#include "MEM_guardedalloc.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"

@@ -445,8 +445,6 @@ WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
                                                   const bScreen *screen,
                                                   WorkSpace **r_workspace)
 {
-  WorkSpaceLayout *layout;
-
   if (r_workspace) {
     *r_workspace = nullptr;
   }
@@ -454,7 +452,8 @@ WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
        workspace = static_cast<WorkSpace *>(workspace->id.next))
   {
-    if ((layout = workspace_layout_find_exec(workspace, screen))) {
+    WorkSpaceLayout *layout = workspace_layout_find_exec(workspace, screen);
+    if (layout) {
       if (r_workspace) {
         *r_workspace = workspace;
       }

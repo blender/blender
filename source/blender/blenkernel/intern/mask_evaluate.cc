@@ -357,14 +357,10 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
     }
 
     delta = fabsf(feather_points[i][0] - feather_points[next][0]);
-    if (delta > max_delta_x) {
-      max_delta_x = delta;
-    }
+    max_delta_x = std::max(delta, max_delta_x);
 
     delta = fabsf(feather_points[i][1] - feather_points[next][1]);
-    if (delta > max_delta_y) {
-      max_delta_y = delta;
-    }
+    max_delta_y = std::max(delta, max_delta_y);
   }
 
   /* Prevent divisions by zero by ensuring bounding box is not collapsed. */
@@ -844,10 +840,9 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
   /* animation if available */
   MaskLayerShape *masklay_shape_a;
   MaskLayerShape *masklay_shape_b;
-  int found;
-  if ((found = BKE_mask_layer_shape_find_frame_range(
-           masklay, ctime, &masklay_shape_a, &masklay_shape_b)))
-  {
+  int found = BKE_mask_layer_shape_find_frame_range(
+      masklay, ctime, &masklay_shape_a, &masklay_shape_b);
+  if (found) {
     if (found == 1) {
 #if 0
       printf("%s: exact %d %d (%d)\n",

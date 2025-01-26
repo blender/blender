@@ -17,6 +17,8 @@
 #include "grease_pencil_intern.hh"
 #include "paint_intern.hh"
 
+#include <numeric>
+
 namespace blender::ed::sculpt_paint::greasepencil {
 
 class CloneOperation : public GreasePencilStrokeOperationCommon {

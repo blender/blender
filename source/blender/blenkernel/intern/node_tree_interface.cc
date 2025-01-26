@@ -676,9 +676,7 @@ blender::ColorGeometry4f bNodeTreeInterfaceSocket::socket_color() const
     typeinfo->draw_color_simple(typeinfo, color);
     return blender::ColorGeometry4f(color);
   }
-  else {
-    return blender::ColorGeometry4f(1.0f, 0.0f, 1.0f, 1.0f);
-  }
+  return blender::ColorGeometry4f(1.0f, 0.0f, 1.0f, 1.0f);
 }
 
 bool bNodeTreeInterfaceSocket::set_socket_type(const StringRef new_socket_type)

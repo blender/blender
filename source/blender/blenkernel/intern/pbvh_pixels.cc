@@ -275,7 +275,7 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<MeshNode *> &r_nodes_to_upda
       continue;
     }
     r_nodes_to_update.append(&node);
-    node.flag_ = static_cast<Node::Flags>(node.flag_ | Node::RebuildPixels);
+    node.flag_ = (node.flag_ | Node::RebuildPixels);
 
     if (node.pixels_ == nullptr) {
       NodeData *node_data = MEM_new<NodeData>(__func__);

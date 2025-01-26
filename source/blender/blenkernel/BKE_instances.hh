@@ -237,7 +237,7 @@ const AttributeAccessorFunctions &instance_attribute_accessor_functions();
  * \{ */
 
 inline InstanceReference::InstanceReference(std::unique_ptr<GeometrySet> geometry_set)
-    : type_(Type::GeometrySet), data_(nullptr), geometry_set_(std::move(geometry_set))
+    : type_(Type::GeometrySet), geometry_set_(std::move(geometry_set))
 {
 }
 

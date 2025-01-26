@@ -7,7 +7,6 @@
  */
 
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -94,9 +93,9 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
     points2d[i][1] = dot_v3v3(loc, locy);
 
     /* Calculate cross product. */
-    co_curr = (float *)&points2d[i][0];
+    co_curr = (&points2d[i][0]);
     cross += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
-    co_prev = (float *)&points2d[i][0];
+    co_prev = (&points2d[i][0]);
   }
 
   /* Concave (-1), Convex (1) */

@@ -46,7 +46,6 @@
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 
-#include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
 #include "ANIM_action_legacy.hh"
 

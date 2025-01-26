@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <climits>
-#include <cstdio>
 #include <cstring>
 
 #include "CLG_log.h"

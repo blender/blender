@@ -26,9 +26,7 @@ extern "C" {
 struct PartialUpdateUser;
 }
 
-namespace blender::bke::image {
-
-namespace partial_update {
+namespace blender::bke::image::partial_update {
 
 /* --- image_partial_update.cc --- */
 /** Image partial updates. */
@@ -144,7 +142,7 @@ class ImageTileData : AbstractTileData {
    * The local copy is required so we don't change the image user of the caller.
    * We need to change it in order to request data for a specific tile.
    */
-  ImageUser image_user = {0};
+  ImageUser image_user = {nullptr};
 
   /**
    * \brief ImageTile associated with the loaded tile.
@@ -222,7 +220,7 @@ template<typename TileData = NoTileData> struct PartialUpdateChecker {
     {
     }
 
-    const ePartialUpdateCollectResult get_result_code() const
+    ePartialUpdateCollectResult get_result_code() const
     {
       return result_code;
     }
@@ -279,5 +277,4 @@ template<typename TileData = NoTileData> struct PartialUpdateChecker {
   }
 };
 
-}  // namespace partial_update
-}  // namespace blender::bke::image
+}  // namespace blender::bke::image::partial_update

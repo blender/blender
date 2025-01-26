@@ -364,7 +364,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
       done = 1;
     }
     else if (std::optional<int64_t> int_value = CTX_store_int_lookup(C->wm.store, member)) {
-      result->int_value = *int_value;
+      result->int_value = int_value;
       result->type = CTX_DATA_TYPE_INT64;
       done = 1;
     }

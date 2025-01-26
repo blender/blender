@@ -12,49 +12,49 @@
 extern "C" {
 #endif
 
-typedef void *CCGMeshHDL;
-typedef void *CCGVertHDL;
-typedef void *CCGEdgeHDL;
-typedef void *CCGFaceHDL;
+using CCGMeshHDL = void *;
+using CCGVertHDL = void *;
+using CCGEdgeHDL = void *;
+using CCGFaceHDL = void *;
 
-typedef struct CCGEdge CCGEdge;
-typedef struct CCGFace CCGFace;
-typedef struct CCGSubSurf CCGSubSurf;
-typedef struct CCGVert CCGVert;
+struct CCGEdge;
+struct CCGFace;
+struct CCGSubSurf;
+struct CCGVert;
 
-typedef struct CCGMeshIFC {
+struct CCGMeshIFC {
   int vertUserSize, edgeUserSize, faceUserSize;
   int numLayers;
   int vertDataSize;
   int simpleSubdiv;
-} CCGMeshIFC;
+};
 
 /***/
 
-typedef void *CCGAllocatorHDL;
+using CCGAllocatorHDL = void *;
 
-typedef struct CCGAllocatorIFC {
+struct CCGAllocatorIFC {
   void *(*alloc)(CCGAllocatorHDL a, int numBytes);
   void *(*realloc)(CCGAllocatorHDL a, void *ptr, int newSize, int oldSize);
   void (*free)(CCGAllocatorHDL a, void *ptr);
   void (*release)(CCGAllocatorHDL a);
-} CCGAllocatorIFC;
+};
 
 /* private, so we can allocate on the stack */
-typedef struct _EHashIterator {
-  struct _EHash *eh;
+struct EHashIterator {
+  struct EHash *eh;
   int curBucket;
-  struct _EHEntry *curEntry;
-} EHashIterator;
+  struct EHEntry *curEntry;
+};
 
 /***/
 
-typedef enum {
+enum CCGError {
   eCCGError_None = 0,
 
   eCCGError_InvalidSyncState,
   eCCGError_InvalidValue,
-} CCGError;
+};
 
 /***/
 
@@ -202,9 +202,9 @@ int ccgSubSurf_getNumFinalFaces(const CCGSubSurf *ss);
 
 /***/
 
-typedef struct _EHashIterator CCGEdgeIterator;
-typedef struct _EHashIterator CCGFaceIterator;
-typedef struct _EHashIterator CCGVertIterator;
+using CCGEdgeIterator = EHashIterator;
+using CCGFaceIterator = EHashIterator;
+using CCGVertIterator = EHashIterator;
 
 void ccgSubSurf_initVertIterator(CCGSubSurf *ss, CCGVertIterator *viter);
 void ccgSubSurf_initEdgeIterator(CCGSubSurf *ss, CCGEdgeIterator *eiter);

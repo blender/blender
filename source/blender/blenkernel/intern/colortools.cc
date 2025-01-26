@@ -554,14 +554,10 @@ static void calchandle_curvemap(BezTriple *bezt, const BezTriple *prev, const Be
           }
           else { /* handles should not be beyond y coord of two others */
             if (ydiff1 <= 0.0f) {
-              if (prev->vec[1][1] > bezt->vec[0][1]) {
-                bezt->vec[0][1] = prev->vec[1][1];
-              }
+              bezt->vec[0][1] = std::max(prev->vec[1][1], bezt->vec[0][1]);
             }
             else {
-              if (prev->vec[1][1] < bezt->vec[0][1]) {
-                bezt->vec[0][1] = prev->vec[1][1];
-              }
+              bezt->vec[0][1] = std::min(prev->vec[1][1], bezt->vec[0][1]);
             }
           }
         }
@@ -578,14 +574,10 @@ static void calchandle_curvemap(BezTriple *bezt, const BezTriple *prev, const Be
           }
           else { /* handles should not be beyond y coord of two others */
             if (ydiff1 <= 0.0f) {
-              if (next->vec[1][1] < bezt->vec[2][1]) {
-                bezt->vec[2][1] = next->vec[1][1];
-              }
+              bezt->vec[2][1] = std::min(next->vec[1][1], bezt->vec[2][1]);
             }
             else {
-              if (next->vec[1][1] > bezt->vec[2][1]) {
-                bezt->vec[2][1] = next->vec[1][1];
-              }
+              bezt->vec[2][1] = std::max(next->vec[1][1], bezt->vec[2][1]);
             }
           }
         }
@@ -763,9 +755,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
       hlen = len_v3v3(bezt[0].vec[1], bezt[0].vec[2]); /* original handle length */
       /* clip handle point */
       copy_v3_v3(vec, bezt[1].vec[0]);
-      if (vec[0] < bezt[0].vec[1][0]) {
-        vec[0] = bezt[0].vec[1][0];
-      }
+      vec[0] = std::max(vec[0], bezt[0].vec[1][0]);
 
       sub_v3_v3(vec, bezt[0].vec[1]);
       nlen = len_v3(vec);
@@ -781,9 +771,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
       hlen = len_v3v3(bezt[a].vec[1], bezt[a].vec[0]); /* original handle length */
       /* clip handle point */
       copy_v3_v3(vec, bezt[a - 1].vec[2]);
-      if (vec[0] > bezt[a].vec[1][0]) {
-        vec[0] = bezt[a].vec[1][0];
-      }
+      vec[0] = std::min(vec[0], bezt[a].vec[1][0]);
 
       sub_v3_v3(vec, bezt[a].vec[1]);
       nlen = len_v3(vec);
@@ -1702,12 +1690,8 @@ static void scopes_update_reduce(const void *__restrict /*userdata*/,
   }
 
   for (int c = 3; c--;) {
-    if (min[c] < join_chunk->min[c]) {
-      join_chunk->min[c] = min[c];
-    }
-    if (max[c] > join_chunk->max[c]) {
-      join_chunk->max[c] = max[c];
-    }
+    join_chunk->min[c] = std::min(min[c], join_chunk->min[c]);
+    join_chunk->max[c] = std::max(max[c], join_chunk->max[c]);
   }
 }
 
@@ -1835,21 +1819,11 @@ void BKE_scopes_update(Scopes *scopes,
   /* convert hist data to float (proportional to max count) */
   nl = na = nr = nb = ng = 0;
   for (a = 0; a < 256; a++) {
-    if (data_chunk.bin_lum[a] > nl) {
-      nl = data_chunk.bin_lum[a];
-    }
-    if (data_chunk.bin_r[a] > nr) {
-      nr = data_chunk.bin_r[a];
-    }
-    if (data_chunk.bin_g[a] > ng) {
-      ng = data_chunk.bin_g[a];
-    }
-    if (data_chunk.bin_b[a] > nb) {
-      nb = data_chunk.bin_b[a];
-    }
-    if (data_chunk.bin_a[a] > na) {
-      na = data_chunk.bin_a[a];
-    }
+    nl = std::max(data_chunk.bin_lum[a], nl);
+    nr = std::max(data_chunk.bin_r[a], nr);
+    ng = std::max(data_chunk.bin_g[a], ng);
+    nb = std::max(data_chunk.bin_b[a], nb);
+    na = std::max(data_chunk.bin_a[a], na);
   }
   divl = nl ? 1.0 / double(nl) : 1.0;
   diva = na ? 1.0 / double(na) : 1.0;

@@ -1014,12 +1014,12 @@ void copy_attributes(const AttributeAccessor src_attributes,
                      MutableAttributeAccessor dst_attributes)
 {
   BLI_assert(src_attributes.domain_size(src_domain) == dst_attributes.domain_size(dst_domain));
-  return gather_attributes(src_attributes,
-                           src_domain,
-                           dst_domain,
-                           attribute_filter,
-                           IndexMask(src_attributes.domain_size(src_domain)),
-                           dst_attributes);
+  gather_attributes(src_attributes,
+                    src_domain,
+                    dst_domain,
+                    attribute_filter,
+                    IndexMask(src_attributes.domain_size(src_domain)),
+                    dst_attributes);
 }
 
 void copy_attributes_group_to_group(const AttributeAccessor src_attributes,

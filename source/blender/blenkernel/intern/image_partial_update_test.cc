@@ -21,8 +21,6 @@
 
 #include "DNA_image_types.h"
 
-#include "MEM_guardedalloc.h"
-
 namespace blender::bke::image::partial_update {
 
 constexpr float black_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};

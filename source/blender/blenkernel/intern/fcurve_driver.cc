@@ -49,6 +49,7 @@
 #  include "BPY_extern.hh"
 #endif
 
+#include <algorithm>
 #include <cstring>
 
 #ifdef WITH_PYTHON
@@ -469,7 +470,7 @@ static float dvar_eval_rotDiff(const AnimationEvalContext * /*anim_eval_context*
   angle = 2.0f * safe_acosf(quat[0]);
   angle = fabsf(angle);
 
-  return (angle > float(M_PI)) ? float((2.0f * float(M_PI)) - angle) : float(angle);
+  return (angle > float(M_PI)) ? ((2.0f * float(M_PI)) - angle) : angle;
 }
 
 /**
@@ -1356,15 +1357,11 @@ static void evaluate_driver_min_max(const AnimationEvalContext *anim_eval_contex
       /* Check if greater/smaller than the baseline. */
       if (driver->type == DRIVER_TYPE_MAX) {
         /* Max? */
-        if (tmp_val > value) {
-          value = tmp_val;
-        }
+        value = std::max(tmp_val, value);
       }
       else {
         /* Min? */
-        if (tmp_val < value) {
-          value = tmp_val;
-        }
+        value = std::min(tmp_val, value);
       }
     }
     else {

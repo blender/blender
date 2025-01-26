@@ -180,7 +180,7 @@ void BKE_image_release_ibuf(Image *ima, ImBuf *ibuf, void *lock);
  */
 ImBuf *BKE_image_preview(Image *ima, short max_size, short *r_width, short *r_height);
 
-ImagePool *BKE_image_pool_new(void);
+ImagePool *BKE_image_pool_new();
 void BKE_image_pool_free(ImagePool *pool);
 ImBuf *BKE_image_pool_acquire_ibuf(Image *ima, ImageUser *iuser, ImagePool *pool);
 void BKE_image_pool_release_ibuf(Image *ima, ImBuf *ibuf, ImagePool *pool);
@@ -417,11 +417,11 @@ void BKE_image_sort_tiles(Image *ima);
 
 bool BKE_image_fill_tile(Image *ima, ImageTile *tile);
 
-typedef enum {
+enum eUDIM_TILE_FORMAT {
   UDIM_TILE_FORMAT_NONE = 0,
   UDIM_TILE_FORMAT_UDIM = 1,
   UDIM_TILE_FORMAT_UVTILE = 2
-} eUDIM_TILE_FORMAT;
+};
 
 /**
  * Checks if the filename portion of the path contains a UDIM token.
@@ -615,7 +615,7 @@ void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap);
 /**
  * Delayed free of OpenGL buffers by main thread.
  */
-void BKE_image_free_unused_gpu_textures(void);
+void BKE_image_free_unused_gpu_textures();
 
 RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name);
 bool BKE_image_remove_renderslot(Image *ima, ImageUser *iuser, int slot);

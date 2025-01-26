@@ -3013,9 +3013,7 @@ static int collision_response(ParticleSimulationData *sim,
    * because of high reversed sticky velocity. */
   if (v0_dot < 0.0f) {
     v0_dot += pd->pdef_stickness;
-    if (v0_dot > 0.0f) {
-      v0_dot = 0.0f;
-    }
+    v0_dot = std::min(v0_dot, 0.0f);
   }
 
   /* damping and flipping of velocity around normal */
@@ -3357,9 +3355,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
     if (!(pa->flag & PARS_UNEXIST)) {
       for (k = 1, key = pa->hair + 1; k < pa->totkey; k++, key++) {
         float length = len_v3v3(key->co, (key - 1)->co);
-        if (max_length < length) {
-          max_length = length;
-        }
+        max_length = std::max(max_length, length);
       }
     }
   }
@@ -3651,9 +3647,7 @@ static void update_courant_num(
   const float courant_num = len_v3(relative_vel) * dtime / sphdata->element_size;
   if (sim->courant_num < courant_num) {
     BLI_spin_lock(spin);
-    if (sim->courant_num < courant_num) {
-      sim->courant_num = courant_num;
-    }
+    sim->courant_num = std::max(sim->courant_num, courant_num);
     BLI_spin_unlock(spin);
   }
 }
@@ -4290,7 +4284,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
       realloc_particles(sim, part->totpart);
 
       /* Set some randomness when choosing which particles to display. */
-      sim->rng = BLI_rng_new_srandom(31415926 + int(cfra) + psys->seed);
+      sim->rng = BLI_rng_new_srandom(31415926 + cfra + psys->seed);
       double r, dispProb = double(part->disp) / 100.0;
 
       /* Loop over *all* particles. Will break out of loop before tottypepart amount exceeded. */
@@ -4777,7 +4771,7 @@ static int hair_needs_recalc(ParticleSystem *psys)
 static ParticleSettings *particle_settings_localize(ParticleSettings *particle_settings)
 {
   ParticleSettings *particle_settings_local = (ParticleSettings *)BKE_id_copy_ex(
-      nullptr, (ID *)&particle_settings->id, nullptr, LIB_ID_COPY_LOCALIZE);
+      nullptr, (&particle_settings->id), nullptr, LIB_ID_COPY_LOCALIZE);
   return particle_settings_local;
 }
 

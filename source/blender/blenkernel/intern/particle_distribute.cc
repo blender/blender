@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -347,9 +348,9 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
     return;
   }
 
-  rad1 = float(1.0f / sqrtf(float(num)));
-  rad2 = float(1.0f / float(num));
-  rad3 = float(sqrtf(float(num)) / float(num));
+  rad1 = (1.0f / sqrtf(float(num)));
+  rad2 = (1.0f / float(num));
+  rad3 = (sqrtf(float(num)) / float(num));
 
   rng = BLI_rng_new(31415926 + num + seed2);
   x = 0;
@@ -359,11 +360,11 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
     jit[i] = x + amount * rad1 * (0.5f - BLI_rng_get_float(rng));
     jit[i + 1] = i / (2.0f * num) + amount * rad1 * (0.5f - BLI_rng_get_float(rng));
 
-    jit[i] -= float(floor(jit[i]));
-    jit[i + 1] -= float(floor(jit[i + 1]));
+    jit[i] -= floor(jit[i]);
+    jit[i + 1] -= floor(jit[i + 1]);
 
     x += rad3;
-    x -= float(floor(x));
+    x -= floor(x);
   }
 
   jit2 = static_cast<float *>(MEM_mallocN(12 + sizeof(float[2]) * num, "initjit"));
@@ -1104,9 +1105,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
       cur = mf->v4 ? area_quad_v3(co1, co2, co3, co4) : area_tri_v3(co1, co2, co3);
 
-      if (cur > maxweight) {
-        maxweight = cur;
-      }
+      maxweight = std::max(cur, maxweight);
 
       element_weight[i] = cur;
       totarea += cur;
@@ -1287,9 +1286,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       if (part->flag & PART_EDISTR) {
         jitlevel *= 2; /* looks better in general, not very scientific */
       }
-      if (jitlevel < 3) {
-        jitlevel = 3;
-      }
+      jitlevel = std::max(jitlevel, 3);
     }
 
     jit = static_cast<float *>(MEM_callocN((2 + jitlevel * 2) * sizeof(float), "jit"));

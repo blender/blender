@@ -145,7 +145,7 @@ static void movie_clip_foreach_cache(ID *id,
   function_callback(id, &key, (void **)&movie_clip->cache, 0, user_data);
 
   key.identifier = offsetof(MovieClip, tracking.camera.intrinsics);
-  function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, 0, user_data);
+  function_callback(id, &key, (&movie_clip->tracking.camera.intrinsics), 0, user_data);
 }
 
 static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)

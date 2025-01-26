@@ -150,7 +150,7 @@ static void sculpt_kelvinet_integrate(kelvinlet_fn kelvinlet,
 static void kelvinlet_scale(float disp[3],
                             const float vertex_co[3],
                             const float location[3],
-                            const float[3] /*normal*/,
+                            const float /*normal*/[3],
                             const KelvinletParams *p)
 {
   float radius_vertex[3];

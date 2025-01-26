@@ -41,7 +41,7 @@ static CCGVert *_vert_new(CCGVertHDL vHDL, CCGSubSurf *ss)
   int num_vert_data = ss->subdivLevels + 1;
   CCGVert *v = static_cast<CCGVert *>(CCGSUBSURF_alloc(
       ss, sizeof(CCGVert) + ss->meshIFC.vertDataSize * num_vert_data + ss->meshIFC.vertUserSize));
-  byte *user_data;
+  uint8_t *user_data;
 
   v->vHDL = vHDL;
   v->edges = nullptr;
@@ -49,7 +49,7 @@ static CCGVert *_vert_new(CCGVertHDL vHDL, CCGSubSurf *ss)
   v->numEdges = v->numFaces = 0;
   v->flags = 0;
 
-  user_data = static_cast<byte *>(ccgSubSurf_getVertUserData(ss, v));
+  user_data = static_cast<uint8_t *>(ccgSubSurf_getVertUserData(ss, v));
   memset(user_data, 0, ss->meshIFC.vertUserSize);
   if (ss->useAgeCounts) {
     *((int *)&user_data[ss->vertUserAgeOffset]) = ss->currentAge;
@@ -117,7 +117,7 @@ static CCGEdge *_edge_new(CCGEdgeHDL eHDL, CCGVert *v0, CCGVert *v1, float creas
   int num_edge_data = ccg_edgebase(ss->subdivLevels + 1);
   CCGEdge *e = static_cast<CCGEdge *>(CCGSUBSURF_alloc(
       ss, sizeof(CCGEdge) + ss->meshIFC.vertDataSize * num_edge_data + ss->meshIFC.edgeUserSize));
-  byte *user_data;
+  uint8_t *user_data;
 
   e->eHDL = eHDL;
   e->v0 = v0;
@@ -129,7 +129,7 @@ static CCGEdge *_edge_new(CCGEdgeHDL eHDL, CCGVert *v0, CCGVert *v1, float creas
   _vert_addEdge(v0, e, ss);
   _vert_addEdge(v1, e, ss);
 
-  user_data = static_cast<byte *>(ccgSubSurf_getEdgeUserData(ss, e));
+  user_data = static_cast<uint8_t *>(ccgSubSurf_getEdgeUserData(ss, e));
   memset(user_data, 0, ss->meshIFC.edgeUserSize);
   if (ss->useAgeCounts) {
     *((int *)&user_data[ss->edgeUserAgeOffset]) = ss->currentAge;
@@ -187,7 +187,7 @@ static CCGFace *_face_new(
       ss,
       sizeof(CCGFace) + sizeof(CCGVert *) * numVerts + sizeof(CCGEdge *) * numVerts +
           ss->meshIFC.vertDataSize * num_face_data + ss->meshIFC.faceUserSize));
-  byte *user_data;
+  uint8_t *user_data;
 
   f->numVerts = numVerts;
   BLI_assert(numVerts > 2);
@@ -201,7 +201,7 @@ static CCGFace *_face_new(
     _edge_addFace(edges[i], f, ss);
   }
 
-  user_data = static_cast<byte *>(ccgSubSurf_getFaceUserData(ss, f));
+  user_data = static_cast<uint8_t *>(ccgSubSurf_getFaceUserData(ss, f));
   memset(user_data, 0, ss->meshIFC.faceUserSize);
   if (ss->useAgeCounts) {
     *((int *)&user_data[ss->faceUserAgeOffset]) = ss->currentAge;
@@ -1290,7 +1290,7 @@ CCGVertHDL ccgSubSurf_getVertVertHandle(CCGVert *v)
 int ccgSubSurf_getVertAge(CCGSubSurf *ss, CCGVert *v)
 {
   if (ss->useAgeCounts) {
-    byte *user_data = static_cast<byte *>(ccgSubSurf_getVertUserData(ss, v));
+    uint8_t *user_data = static_cast<uint8_t *>(ccgSubSurf_getVertUserData(ss, v));
     return ss->currentAge - *((int *)&user_data[ss->vertUserAgeOffset]);
   }
   return 0;
@@ -1342,7 +1342,7 @@ CCGEdgeHDL ccgSubSurf_getEdgeEdgeHandle(CCGEdge *e)
 int ccgSubSurf_getEdgeAge(CCGSubSurf *ss, CCGEdge *e)
 {
   if (ss->useAgeCounts) {
-    byte *user_data = static_cast<byte *>(ccgSubSurf_getEdgeUserData(ss, e));
+    uint8_t *user_data = static_cast<uint8_t *>(ccgSubSurf_getEdgeUserData(ss, e));
     return ss->currentAge - *((int *)&user_data[ss->edgeUserAgeOffset]);
   }
   return 0;
@@ -1399,7 +1399,7 @@ CCGFaceHDL ccgSubSurf_getFaceFaceHandle(CCGFace *f)
 int ccgSubSurf_getFaceAge(CCGSubSurf *ss, CCGFace *f)
 {
   if (ss->useAgeCounts) {
-    byte *user_data = static_cast<byte *>(ccgSubSurf_getFaceUserData(ss, f));
+    uint8_t *user_data = static_cast<uint8_t *>(ccgSubSurf_getFaceUserData(ss, f));
     return ss->currentAge - *((int *)&user_data[ss->faceUserAgeOffset]);
   }
   return 0;

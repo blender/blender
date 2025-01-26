@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
@@ -38,7 +39,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* for timing... */
 #if 0
@@ -731,12 +732,8 @@ static void target_project_tri_jacobian(void *userdata, const float x[3], float 
 /* Clamp barycentric weights to the triangle. */
 static void target_project_tri_clamp(float x[3])
 {
-  if (x[0] < 0.0f) {
-    x[0] = 0.0f;
-  }
-  if (x[1] < 0.0f) {
-    x[1] = 0.0f;
-  }
+  x[0] = std::max(x[0], 0.0f);
+  x[1] = std::max(x[1], 0.0f);
   if (x[0] + x[1] > 1.0f) {
     x[0] = x[0] / (x[0] + x[1]);
     x[1] = 1.0f - x[0];

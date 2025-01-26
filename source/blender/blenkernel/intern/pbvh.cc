@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include <climits>
+#include <cfloat>
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"

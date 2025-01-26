@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <deque>
@@ -306,8 +307,8 @@ static ID *lib_override_library_create_from(Main *bmain,
   /* NOTE: From liboverride perspective (and RNA one), shape keys are considered as local embedded
    * data-blocks, just like root node trees or master collections. Therefore, we never need to
    * create overrides for them. We need a way to mark them as overrides though. */
-  Key *reference_key;
-  if ((reference_key = BKE_key_from_id(reference_id)) != nullptr) {
+  Key *reference_key = BKE_key_from_id(reference_id);
+  if (reference_key != nullptr) {
     Key *local_key = BKE_key_from_id(local_id);
     BLI_assert(local_key != nullptr);
     local_key->id.flag |= ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
@@ -447,8 +448,9 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   local_id->override_library->hierarchy_root = local_id;
 
   if (do_tagged_remap) {
-    Key *reference_key, *local_key = nullptr;
-    if ((reference_key = BKE_key_from_id(reference_id)) != nullptr) {
+    Key *reference_key = BKE_key_from_id(reference_id);
+    Key *local_key = nullptr;
+    if (reference_key != nullptr) {
       local_key = BKE_key_from_id(local_id);
       BLI_assert(local_key != nullptr);
     }
@@ -512,8 +514,9 @@ static void lib_override_remapper_overrides_add(id::IDRemapper &id_remapper,
 {
   id_remapper.add(reference_id, local_id);
 
-  Key *reference_key, *local_key = nullptr;
-  if ((reference_key = BKE_key_from_id(reference_id)) != nullptr) {
+  Key *reference_key = BKE_key_from_id(reference_id);
+  Key *local_key = nullptr;
+  if (reference_key != nullptr) {
     if (reference_id->newid != nullptr) {
       local_key = BKE_key_from_id(reference_id->newid);
       BLI_assert(local_key != nullptr);
@@ -608,8 +611,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     /* We also tag the new IDs so that in next step we can remap their pointers too. */
     reference_id->newid->tag |= ID_TAG_DOIT;
 
-    Key *reference_key;
-    if ((reference_key = BKE_key_from_id(reference_id)) != nullptr) {
+    Key *reference_key = BKE_key_from_id(reference_id);
+    if (reference_key != nullptr) {
       reference_key->id.tag |= ID_TAG_DOIT;
 
       Key *local_key = BKE_key_from_id(reference_id->newid);
@@ -3669,9 +3672,7 @@ static int lib_override_libraries_index_define(Main *bmain)
 
   int library_indirect_level_max = 0;
   LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (library->runtime.temp_index > library_indirect_level_max) {
-      library_indirect_level_max = library->runtime.temp_index;
-    }
+    library_indirect_level_max = std::max(library->runtime.temp_index, library_indirect_level_max);
   }
   return library_indirect_level_max;
 }
@@ -4128,37 +4129,38 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
     }
   }
 
-  if ((opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
-           &liboverride_property->operations,
-           &subitem_locindex,
-           sizeof(subitem_locindex),
-           offsetof(IDOverrideLibraryPropertyOperation, subitem_local_index)))))
-  {
+  opop = static_cast<IDOverrideLibraryPropertyOperation *>(
+      BLI_listbase_bytes_find(&liboverride_property->operations,
+                              &subitem_locindex,
+                              sizeof(subitem_locindex),
+                              offsetof(IDOverrideLibraryPropertyOperation, subitem_local_index)));
+  if (opop) {
     return ELEM(subitem_refindex, -1, opop->subitem_reference_index) ? opop : nullptr;
   }
 
-  if ((opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
-           &liboverride_property->operations,
-           &subitem_refindex,
-           sizeof(subitem_refindex),
-           offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_index)))))
-  {
+  opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
+      &liboverride_property->operations,
+      &subitem_refindex,
+      sizeof(subitem_refindex),
+      offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_index)));
+  if (opop) {
     return ELEM(subitem_locindex, -1, opop->subitem_local_index) ? opop : nullptr;
   }
 
   /* `index == -1` means all indices, that is a valid fallback in case we requested specific index.
    */
-  if (!strict && (subitem_locindex != subitem_defindex) &&
-      (opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
-           &liboverride_property->operations,
-           &subitem_defindex,
-           sizeof(subitem_defindex),
-           offsetof(IDOverrideLibraryPropertyOperation, subitem_local_index)))))
-  {
-    if (r_strict) {
-      *r_strict = false;
+  if (!strict && (subitem_locindex != subitem_defindex)) {
+    opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
+        &liboverride_property->operations,
+        &subitem_defindex,
+        sizeof(subitem_defindex),
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_local_index)));
+    if (opop) {
+      if (r_strict) {
+        *r_strict = false;
+      }
+      return opop;
     }
-    return opop;
   }
 
   return nullptr;
@@ -4424,8 +4426,7 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
           nullptr,
           0,
           local->override_library,
-          (eRNAOverrideMatch)(RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE |
-                              RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN),
+          (RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE | RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN),
           nullptr))
   {
     local->tag &= ~ID_TAG_LIBOVERRIDE_REFOK;
@@ -4546,7 +4547,7 @@ static void lib_override_library_operations_create(Main *bmain,
   }
 
   if (r_report_flags != nullptr) {
-    *r_report_flags = static_cast<eRNAOverrideMatchResult>(*r_report_flags | local_report_flags);
+    *r_report_flags = (*r_report_flags | local_report_flags);
   }
 }
 void BKE_lib_override_library_operations_create(Main *bmain, ID *local, int *r_report_flags)
@@ -4554,7 +4555,7 @@ void BKE_lib_override_library_operations_create(Main *bmain, ID *local, int *r_r
   lib_override_library_operations_create(
       bmain,
       local,
-      static_cast<eRNAOverrideMatch>(RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_RESTORE),
+      (RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_RESTORE),
       reinterpret_cast<eRNAOverrideMatchResult *>(r_report_flags));
 }
 
@@ -4615,8 +4616,7 @@ static void lib_override_library_operations_create_cb(TaskPool *__restrict pool,
   lib_override_library_operations_create(
       create_data->bmain,
       id,
-      static_cast<eRNAOverrideMatch>(RNA_OVERRIDE_COMPARE_CREATE |
-                                     RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE),
+      (RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE),
       &report_flags);
   atomic_fetch_and_or_uint32(reinterpret_cast<uint32_t *>(&create_data->report_flags),
                              report_flags);
@@ -4719,8 +4719,8 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
   if (create_pool_data.report_flags & RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED) {
     BKE_lib_override_library_main_operations_restore(
         bmain, reinterpret_cast<int *>(&create_pool_data.report_flags));
-    create_pool_data.report_flags = static_cast<eRNAOverrideMatchResult>(
-        (create_pool_data.report_flags & ~RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED));
+    create_pool_data.report_flags = (create_pool_data.report_flags &
+                                     ~RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED);
   }
 
   if (r_report_flags != nullptr) {

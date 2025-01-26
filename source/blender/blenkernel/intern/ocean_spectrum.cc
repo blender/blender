@@ -9,6 +9,7 @@
 #include "BKE_ocean.h"
 #include "ocean_intern.h"
 
+#include <algorithm>
 #include <cmath>
 
 #ifdef WITH_OCEANSIM
@@ -91,12 +92,8 @@ static float jonswap(const Ocean *oc, const float k2)
   /* Strictly, this should be a random value from a Gaussian (mean 3.3, variance 0.67),
    * clamped 1.0 to 6.0. */
   float m_gamma = oc->_sharpen_peak_jonswap;
-  if (m_gamma < 1.0) {
-    m_gamma = 1.00;
-  }
-  if (m_gamma > 6.0) {
-    m_gamma = 6.0;
-  }
+  m_gamma = std::max<double>(m_gamma, 1.0);
+  m_gamma = std::min<double>(m_gamma, 6.0);
 
   const float m_windspeed = oc->_V;
 

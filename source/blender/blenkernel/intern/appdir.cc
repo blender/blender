@@ -17,7 +17,6 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_tempfile.h"
 #include "BLI_utildefines.h"
@@ -33,6 +32,7 @@
 #include "CLG_log.h"
 
 #ifdef WIN32
+#  include "BLI_string_utf8.h"
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
 #  include <io.h>

@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -108,7 +109,6 @@
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 
 using blender::Array;
 
@@ -253,9 +253,9 @@ static void image_foreach_cache(ID *id,
   function_callback(id, &key, (void **)&image->cache, 0, user_data);
 
   key.identifier = offsetof(Image, anims.first);
-  function_callback(id, &key, (void **)&image->anims.first, 0, user_data);
+  function_callback(id, &key, &image->anims.first, 0, user_data);
   key.identifier = offsetof(Image, anims.last);
-  function_callback(id, &key, (void **)&image->anims.last, 0, user_data);
+  function_callback(id, &key, &image->anims.last, 0, user_data);
 
   auto gputexture_offset = [image](int target, int eye) {
     constexpr size_t base_offset = offsetof(Image, gputexture);
@@ -4198,12 +4198,8 @@ static ImBuf *load_movie_single(Image *ima, ImageUser *iuser, int frame, const i
     int dur = MOV_get_duration_frames(ia->anim, IMB_TC_RECORD_RUN);
     int fra = frame - 1;
 
-    if (fra < 0) {
-      fra = 0;
-    }
-    if (fra > (dur - 1)) {
-      fra = dur - 1;
-    }
+    fra = std::max(fra, 0);
+    fra = std::min(fra, dur - 1);
     ibuf = IMB_makeSingleUser(MOV_decode_frame(ia->anim, fra, IMB_TC_RECORD_RUN, IMB_PROXY_NONE));
 
     if (ibuf) {
@@ -5183,9 +5179,7 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, bool *r_is_in_ran
 
   /* transform to images space */
   framenr = cfra;
-  if (framenr > iuser->frames) {
-    framenr = iuser->frames;
-  }
+  framenr = std::min(framenr, iuser->frames);
 
   if (iuser->cycl) {
     framenr = ((framenr) % len);

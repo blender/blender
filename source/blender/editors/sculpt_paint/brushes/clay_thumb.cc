@@ -29,6 +29,8 @@
 
 #include "bmesh.hh"
 
+#include <numeric>
+
 namespace blender::ed::sculpt_paint {
 
 inline namespace clay_thumb_cc {

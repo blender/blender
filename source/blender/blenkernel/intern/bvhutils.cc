@@ -247,7 +247,6 @@ static void mesh_verts_spherecast_do(int index,
                                      const BVHTreeRay *ray,
                                      BVHTreeRayHit *hit)
 {
-  float dist;
   const float *r1;
   float r2[3], i1[3];
   r1 = ray->origin;
@@ -256,10 +255,13 @@ static void mesh_verts_spherecast_do(int index,
   closest_to_line_segment_v3(i1, v, r1, r2);
 
   /* No hit if closest point is 'behind' the origin of the ray, or too far away from it. */
-  if ((dot_v3v3v3(r1, i1, r2) >= 0.0f) && ((dist = len_v3v3(r1, i1)) < hit->dist)) {
-    hit->index = index;
-    hit->dist = dist;
-    copy_v3_v3(hit->co, i1);
+  if (dot_v3v3v3(r1, i1, r2) >= 0.0f) {
+    const float dist = len_v3v3(r1, i1);
+    if (dist < hit->dist) {
+      hit->index = index;
+      hit->dist = dist;
+      copy_v3_v3(hit->co, i1);
+    }
   }
 }
 
@@ -296,7 +298,6 @@ static void mesh_edges_spherecast(void *userdata,
   const int2 edge = data->edges[index];
 
   const float radius_sq = square_f(ray->radius);
-  float dist;
   const float *v1, *v2, *r1;
   float r2[3], i1[3], i2[3];
   v1 = positions[edge[0]];
@@ -313,19 +314,22 @@ static void mesh_edges_spherecast(void *userdata,
 
   if (isect_line_line_v3(v1, v2, r1, r2, i1, i2)) {
     /* No hit if intersection point is 'behind' the origin of the ray, or too far away from it. */
-    if ((dot_v3v3v3(r1, i2, r2) >= 0.0f) && ((dist = len_v3v3(r1, i2)) < hit->dist)) {
-      const float e_fac = line_point_factor_v3(i1, v1, v2);
-      if (e_fac < 0.0f) {
-        copy_v3_v3(i1, v1);
-      }
-      else if (e_fac > 1.0f) {
-        copy_v3_v3(i1, v2);
-      }
-      /* Ensure ray is really close enough from edge! */
-      if (len_squared_v3v3(i1, i2) <= radius_sq) {
-        hit->index = index;
-        hit->dist = dist;
-        copy_v3_v3(hit->co, i2);
+    if (dot_v3v3v3(r1, i2, r2) >= 0.0f) {
+      const float dist = len_v3v3(r1, i2);
+      if (dist < hit->dist) {
+        const float e_fac = line_point_factor_v3(i1, v1, v2);
+        if (e_fac < 0.0f) {
+          copy_v3_v3(i1, v1);
+        }
+        else if (e_fac > 1.0f) {
+          copy_v3_v3(i1, v2);
+        }
+        /* Ensure ray is really close enough from edge! */
+        if (len_squared_v3v3(i1, i2) <= radius_sq) {
+          hit->index = index;
+          hit->dist = dist;
+          copy_v3_v3(hit->co, i2);
+        }
       }
     }
   }

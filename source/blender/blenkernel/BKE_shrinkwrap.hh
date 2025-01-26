@@ -53,7 +53,7 @@ class ShrinkwrapBoundaryData {
  public:
   /* Returns true if there is boundary information. If there is no boundary information, then the
    * mesh from which this data is created from has no boundaries. */
-  inline bool has_boundary() const
+  bool has_boundary() const
   {
     return !edge_is_boundary.is_empty();
   }

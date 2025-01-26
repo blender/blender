@@ -2555,21 +2555,29 @@ void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id)
   }
 
   printf("  - ADT flags:");
-  if (adt->flag & ADT_NLA_SOLO_TRACK)
+  if (adt->flag & ADT_NLA_SOLO_TRACK) {
     printf(" SOLO_TRACK");
-  if (adt->flag & ADT_NLA_EVAL_OFF)
+  }
+  if (adt->flag & ADT_NLA_EVAL_OFF) {
     printf(" EVAL_OFF");
-  if (adt->flag & ADT_NLA_EDIT_ON)
+  }
+  if (adt->flag & ADT_NLA_EDIT_ON) {
     printf(" EDIT_ON");
-  if (adt->flag & ADT_NLA_EDIT_NOMAP)
+  }
+  if (adt->flag & ADT_NLA_EDIT_NOMAP) {
     printf(" EDIT_NOMAP");
-  if (adt->flag & ADT_NLA_SKEYS_COLLAPSED)
+  }
+  if (adt->flag & ADT_NLA_SKEYS_COLLAPSED) {
     printf(" SKEYS_COLLAPSED");
-  if (adt->flag & ADT_NLA_EVAL_UPPER_TRACKS)
+  }
+  if (adt->flag & ADT_NLA_EVAL_UPPER_TRACKS) {
     printf(" EVAL_UPPER_TRACKS");
+  }
   if ((adt->flag & (ADT_NLA_SOLO_TRACK | ADT_NLA_EVAL_OFF | ADT_NLA_EDIT_ON | ADT_NLA_EDIT_NOMAP |
                     ADT_NLA_SKEYS_COLLAPSED | ADT_NLA_EVAL_UPPER_TRACKS)) == 0)
+  {
     printf(" -");
+  }
   printf("\n");
 
   if (BLI_listbase_is_empty(&adt->nla_tracks)) {
@@ -2583,54 +2591,76 @@ void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id)
 
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     printf("  - Track #%d %s: ", nlt->index, nlt->name);
-    if (nlt->flag & NLATRACK_ACTIVE)
+    if (nlt->flag & NLATRACK_ACTIVE) {
       printf("ACTIVE ");
-    if (nlt->flag & NLATRACK_SELECTED)
+    }
+    if (nlt->flag & NLATRACK_SELECTED) {
       printf("SELECTED ");
-    if (nlt->flag & NLATRACK_MUTED)
+    }
+    if (nlt->flag & NLATRACK_MUTED) {
       printf("MUTED ");
-    if (nlt->flag & NLATRACK_SOLO)
+    }
+    if (nlt->flag & NLATRACK_SOLO) {
       printf("SOLO ");
-    if (nlt->flag & NLATRACK_PROTECTED)
+    }
+    if (nlt->flag & NLATRACK_PROTECTED) {
       printf("PROTECTED ");
-    if (nlt->flag & NLATRACK_DISABLED)
+    }
+    if (nlt->flag & NLATRACK_DISABLED) {
       printf("DISABLED ");
-    if (nlt->flag & NLATRACK_TEMPORARILY_ADDED)
+    }
+    if (nlt->flag & NLATRACK_TEMPORARILY_ADDED) {
       printf("TEMPORARILY_ADDED ");
-    if (nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL)
+    }
+    if (nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) {
       printf("OVERRIDELIBRARY_LOCAL ");
+    }
     printf("\n");
 
     LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       printf("    - Strip %s: ", strip->name);
-      if (strip->flag & NLASTRIP_FLAG_ACTIVE)
+      if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
         printf("ACTIVE ");
-      if (strip->flag & NLASTRIP_FLAG_SELECT)
+      }
+      if (strip->flag & NLASTRIP_FLAG_SELECT) {
         printf("SELECT ");
-      if (strip->flag & NLASTRIP_FLAG_TWEAKUSER)
+      }
+      if (strip->flag & NLASTRIP_FLAG_TWEAKUSER) {
         printf("TWEAKUSER ");
-      if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE)
+      }
+      if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
         printf("USR_INFLUENCE ");
-      if (strip->flag & NLASTRIP_FLAG_USR_TIME)
+      }
+      if (strip->flag & NLASTRIP_FLAG_USR_TIME) {
         printf("USR_TIME ");
-      if (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC)
+      }
+      if (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC) {
         printf("USR_TIME_CYCLIC ");
-      if (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH)
+      }
+      if (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH) {
         printf("SYNC_LENGTH ");
-      if (strip->flag & NLASTRIP_FLAG_AUTO_BLENDS)
+      }
+      if (strip->flag & NLASTRIP_FLAG_AUTO_BLENDS) {
         printf("AUTO_BLENDS ");
-      if (strip->flag & NLASTRIP_FLAG_REVERSE)
+      }
+      if (strip->flag & NLASTRIP_FLAG_REVERSE) {
         printf("REVERSE ");
-      if (strip->flag & NLASTRIP_FLAG_MUTED)
+      }
+      if (strip->flag & NLASTRIP_FLAG_MUTED) {
         printf("MUTED ");
-      if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION)
+      }
+      if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION) {
         printf("INVALID_LOCATION ");
-      if (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP)
+      }
+      if (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP) {
         printf("NO_TIME_MAP ");
-      if (strip->flag & NLASTRIP_FLAG_TEMP_META)
+      }
+      if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
         printf("TEMP_META ");
-      if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED)
+      }
+      if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED) {
         printf("EDIT_TOUCHED ");
+      }
       printf("\n");
     }
   }

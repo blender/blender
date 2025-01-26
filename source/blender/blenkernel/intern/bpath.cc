@@ -45,7 +45,7 @@
 #include "CLG_log.h"
 
 #ifndef _MSC_VER
-#  include "BLI_strict_flags.h" /* Keep last. */
+#  include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 #endif
 
 static CLG_LogRef LOG = {"bke.bpath"};

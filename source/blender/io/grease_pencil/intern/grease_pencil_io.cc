@@ -34,6 +34,8 @@
 #include "UI_view2d.hh"
 
 #include "grease_pencil_io_intern.hh"
+
+#include <numeric>
 #include <optional>
 
 /** \file

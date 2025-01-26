@@ -6,12 +6,10 @@
  * \ingroup bke
  */
 
-#include "BLI_assert.h"
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
-#include <climits>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -411,7 +409,7 @@ static void node_foreach_cache(ID *id,
     for (bNode *node : nodetree->all_nodes()) {
       if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
         key.identifier = size_t(BLI_ghashutil_strhash_p(node->name));
-        function_callback(id, &key, static_cast<void **>(&node->storage), 0, user_data);
+        function_callback(id, &key, (&node->storage), 0, user_data);
       }
     }
   }
@@ -1317,13 +1315,13 @@ void node_update_asset_metadata(bNodeTree &node_tree)
   auto outputs = idprop::create_group("outputs");
   node_tree.ensure_interface_cache();
   for (const bNodeTreeInterfaceSocket *socket : node_tree.interface_inputs()) {
-    auto prop = idprop::create(socket->name ? socket->name : "", socket->socket_type).release();
+    auto *prop = idprop::create(socket->name ? socket->name : "", socket->socket_type).release();
     if (!IDP_AddToGroup(inputs.get(), prop)) {
       IDP_FreeProperty(prop);
     }
   }
   for (const bNodeTreeInterfaceSocket *socket : node_tree.interface_outputs()) {
-    auto prop = idprop::create(socket->name ? socket->name : "", socket->socket_type).release();
+    auto *prop = idprop::create(socket->name ? socket->name : "", socket->socket_type).release();
     if (!IDP_AddToGroup(outputs.get(), prop)) {
       IDP_FreeProperty(prop);
     }
@@ -4684,7 +4682,7 @@ void node_tree_iterator_init(NodeTreeIterStore *ntreeiter, Main *bmain)
 bool node_tree_iterator_step(NodeTreeIterStore *ntreeiter, bNodeTree **r_nodetree, ID **r_id)
 {
   if (ntreeiter->ngroup) {
-    bNodeTree &node_tree = *reinterpret_cast<bNodeTree *>(ntreeiter->ngroup);
+    bNodeTree &node_tree = *ntreeiter->ngroup;
     *r_nodetree = &node_tree;
     *r_id = &node_tree.id;
     ntreeiter->ngroup = reinterpret_cast<bNodeTree *>(node_tree.id.next);

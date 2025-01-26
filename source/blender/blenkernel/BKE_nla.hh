@@ -40,7 +40,7 @@ struct PropertyRNA;
  * Create new NLA Track.
  * The returned pointer is owned by the caller.
  */
-struct NlaTrack *BKE_nlatrack_new(void);
+struct NlaTrack *BKE_nlatrack_new();
 
 /**
  * Frees the given NLA strip, and calls #BKE_nlastrip_remove_and_free to

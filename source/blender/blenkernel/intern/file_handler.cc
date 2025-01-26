@@ -26,11 +26,11 @@ Span<std::unique_ptr<FileHandlerType>> file_handlers()
 
 FileHandlerType *file_handler_find(const StringRef idname)
 {
-  auto itr = std::find_if(file_handlers().begin(),
-                          file_handlers().end(),
-                          [idname](const std::unique_ptr<FileHandlerType> &file_handler) {
-                            return idname == file_handler->idname;
-                          });
+  const auto *itr = std::find_if(file_handlers().begin(),
+                                 file_handlers().end(),
+                                 [idname](const std::unique_ptr<FileHandlerType> &file_handler) {
+                                   return idname == file_handler->idname;
+                                 });
   if (itr != file_handlers().end()) {
     return itr->get();
   }

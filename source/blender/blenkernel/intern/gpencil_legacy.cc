@@ -8,7 +8,6 @@
 
 #include <cmath>
 #include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <optional>
@@ -26,12 +25,12 @@
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
+#include "DNA_scene_types.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -53,6 +52,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "BLI_math_color.h"
+#include "BLI_string_utf8.h"
 
 #include "BLO_read_write.hh"
 

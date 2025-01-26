@@ -11,7 +11,6 @@
 #include <cctype>
 #include <cfloat>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -339,19 +338,25 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
     uint j;
     for (j = dvert->totweight; j != 0; j--, dw++) {
       const uint index = dw->def_nr;
-      if (index < data->defbase_len && (pchan = data->pchan_from_defbase[index])) {
-        float weight = dw->weight;
-        const Bone *bone = pchan->bone;
-
-        deformed = 1;
-
-        if (bone && bone->flag & BONE_MULT_VG_ENV) {
-          weight *= distfactor_to_bone(
-              co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
-        }
-
-        pchan_bone_deform(pchan, weight, vec, dq, smat, co, full_deform, &contrib);
+      if (index >= data->defbase_len) {
+        continue;
       }
+      pchan = data->pchan_from_defbase[index];
+      if (pchan == nullptr) {
+        continue;
+      }
+
+      float weight = dw->weight;
+      const Bone *bone = pchan->bone;
+
+      deformed = 1;
+
+      if (bone && bone->flag & BONE_MULT_VG_ENV) {
+        weight *= distfactor_to_bone(
+            co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
+      }
+
+      pchan_bone_deform(pchan, weight, vec, dq, smat, co, full_deform, &contrib);
     }
     /* If there are vertex-groups but not groups with bones (like for soft-body groups). */
     if (deformed == 0 && use_envelope) {

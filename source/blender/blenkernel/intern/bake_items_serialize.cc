@@ -1316,7 +1316,7 @@ static std::shared_ptr<io::serialize::Value> serialize_primitive_value(
     }
     case CD_PROP_FLOAT4X4: {
       const float4x4 value = *static_cast<const float4x4 *>(value_ptr);
-      return serialize_float_array({value.base_ptr(), value.col_len * value.row_len});
+      return serialize_float_array({value.base_ptr(), float4x4::col_len * float4x4::row_len});
     }
     default:
       break;

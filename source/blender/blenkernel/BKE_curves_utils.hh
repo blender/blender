@@ -355,9 +355,7 @@ class IndexRangeCyclic {
     if (this->cycles_ > 0) {
       return this->size_before_loop() + this->end_ + (this->cycles_ - 1) * this->range_size_;
     }
-    else {
-      return int(this->end_ - this->start_);
-    }
+    return int(this->end_ - this->start_);
   }
 
   /**
@@ -415,10 +413,7 @@ class IndexRangeCyclic {
       BLI_assert(0 <= index && index <= range_end);
     }
 
-    constexpr CyclicIterator(const CyclicIterator &copy)
-        : index_(copy.index_), range_end_(copy.range_end_), cycles_(copy.cycles_)
-    {
-    }
+    constexpr CyclicIterator(const CyclicIterator &copy) = default;
     ~CyclicIterator() = default;
 
     constexpr CyclicIterator &operator=(const CyclicIterator &copy)
@@ -563,11 +558,9 @@ inline bool CurvePoint::operator<(const CurvePoint &other) const
   if (index == other.index) {
     return parameter < other.parameter;
   }
-  else {
-    /* Use next index for cyclic comparison due to loop segment < first segment. */
-    return next_index < other.next_index &&
-           !(next_index == other.index && parameter == 1.0 && other.parameter == 0.0);
-  }
+  /* Use next index for cyclic comparison due to loop segment < first segment. */
+  return next_index < other.next_index &&
+         !(next_index == other.index && parameter == 1.0 && other.parameter == 0.0);
 }
 
 /** \} */

@@ -150,7 +150,7 @@ class BaryWeightFromPositionFn : public mf::MultiFunction {
 
  public:
   BaryWeightFromPositionFn(GeometrySet geometry);
-  void call(const IndexMask &mask, mf::Params params, mf::Context context) const;
+  void call(const IndexMask &mask, mf::Params params, mf::Context context) const override;
 };
 
 /**
@@ -165,7 +165,7 @@ class CornerBaryWeightFromPositionFn : public mf::MultiFunction {
 
  public:
   CornerBaryWeightFromPositionFn(GeometrySet geometry);
-  void call(const IndexMask &mask, mf::Params params, mf::Context context) const;
+  void call(const IndexMask &mask, mf::Params params, mf::Context context) const override;
 };
 
 /**
@@ -185,7 +185,7 @@ class BaryWeightSampleFn : public mf::MultiFunction {
  public:
   BaryWeightSampleFn(GeometrySet geometry, fn::GField src_field);
 
-  void call(const IndexMask &mask, mf::Params params, mf::Context context) const;
+  void call(const IndexMask &mask, mf::Params params, mf::Context context) const override;
 
  private:
   void evaluate_source(fn::GField src_field);
