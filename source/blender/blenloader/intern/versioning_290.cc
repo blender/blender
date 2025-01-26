@@ -43,6 +43,7 @@
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_tracking_types.h"
+#include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
 #undef DNA_GENFILE_VERSIONING_MACROS
@@ -63,7 +64,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 
-#include "IMB_imbuf.hh"
+#include "IMB_imbuf_enums.h"
 #include "MEM_guardedalloc.h"
 
 #include "SEQ_proxy.hh"
@@ -1800,9 +1801,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Fix old scene with too many samples that were not being used.
        * Now they are properly used and might produce a huge slowdown.
        * So we clamp to what the old max actual was. */
-      if (scene->eevee.volumetric_shadow_samples > 32) {
-        scene->eevee.volumetric_shadow_samples = 32;
-      }
+      scene->eevee.volumetric_shadow_samples = std::min(scene->eevee.volumetric_shadow_samples,
+                                                        32);
     }
   }
 

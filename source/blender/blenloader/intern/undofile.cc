@@ -7,7 +7,6 @@
  */
 
 #include <cerrno>
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -24,7 +23,6 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_implicit_sharing.hh"
 
 #include "BLO_readfile.hh"
@@ -34,7 +32,7 @@
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* **************** support for memory-write, for undo buffers *************** */
 

@@ -6,11 +6,7 @@
  * \ingroup blenloader
  */
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
-
-/* for MinGW32 definition of NULL, could use BLI_blenlib.h instead too */
-#include <cstddef>
 
 #include <string>
 
@@ -41,6 +37,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "DNA_genfile.h"
 

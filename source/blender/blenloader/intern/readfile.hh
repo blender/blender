@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <cstdio> /* Include header using off_t before poisoning it below. */
+#include <cstdio> /* IWYU pragma: keep. Include header using off_t before poisoning it below. */
 #include <optional>
 
 #ifdef WIN32
@@ -21,7 +21,6 @@
 
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h" /* for eReportType */
 
 #include "BLO_readfile.hh"
 

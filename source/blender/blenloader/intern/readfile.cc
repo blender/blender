@@ -6,17 +6,15 @@
  * \ingroup blenloader
  */
 
+#include "fmt/core.h"
 #include <cctype> /* for isdigit. */
 #include <cerrno>
-#include <climits>
 #include <cstdarg> /* for va_start/end. */
 #include <cstddef> /* for offsetof. */
 #include <cstdlib> /* for atoi. */
 #include <ctime>   /* for gmtime. */
 #include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
 
-#include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
 #else
@@ -25,16 +23,14 @@
 #  include <io.h> /* for open close read */
 #endif
 
-#include "CLG_log.h"
+#include <fmt/format.h>
 
-#include "fmt/format.h"
+#include "CLG_log.h"
 
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
-#include "DNA_anim_types.h"
 #include "DNA_asset_types.h"
-#include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
@@ -43,24 +39,21 @@
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_sdna_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_volume_types.h"
-#include "DNA_workspace_types.h"
 
 #include "MEM_alloc_string_storage.hh"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
+#include "BLI_fileops.h"
 #include "BLI_ghash.h"
-#include "BLI_linklist.h"
 #include "BLI_map.hh"
 #include "BLI_memarena.h"
-#include "BLI_mempool.h"
+#include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_threads.h"
 #include "BLI_time.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 

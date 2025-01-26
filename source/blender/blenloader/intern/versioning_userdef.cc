@@ -10,7 +10,7 @@
 #define DNA_DEPRECATED_ALLOW
 #include <cstring>
 
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"

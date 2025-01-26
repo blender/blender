@@ -19,12 +19,9 @@
 
 #include "BLI_linklist.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_collection_types.h"
 #include "DNA_key_types.h"
 #include "DNA_node_types.h"
-#include "DNA_sdna_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_key.hh"

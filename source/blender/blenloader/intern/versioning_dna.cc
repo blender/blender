@@ -8,13 +8,8 @@
  * Apply edits to DNA at load time to behave as if old files were written with new names.
  */
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
-
 #include "DNA_genfile.h"
-#include "DNA_listBase.h"
 
-#include "BLO_readfile.hh"
 #include "readfile.hh"
 
 void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversionfile)
