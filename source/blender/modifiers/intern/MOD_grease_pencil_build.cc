@@ -7,17 +7,13 @@
  */
 
 #include "BLI_array.hh"
-#include "BLI_hash.h"
-#include "BLI_rand.h"
 #include "BLI_sort.hh"
-#include "BLI_task.h"
 
 #include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
 
 #include "DNA_defaults.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 

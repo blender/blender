@@ -12,8 +12,6 @@
  * - Review weight and vertex color interpolation.;
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
 #include "BLI_array.hh"
@@ -40,8 +38,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
@@ -187,9 +183,9 @@ ModifierTypeInfo modifierType_Weld = {
     /*srna*/ &RNA_WeldModifier,
     /*type*/ ModifierTypeType::Constructive,
     /*flags*/
-    (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-                       eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
-                       eModifierTypeFlag_AcceptsCVs),
+    (eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
+     eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
+     eModifierTypeFlag_AcceptsCVs),
     /*icon*/ ICON_AUTOMERGE_OFF, /* TODO: Use correct icon. */
 
     /*copy_data*/ BKE_modifier_copydata_generic,

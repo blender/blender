@@ -21,7 +21,6 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_query.hh"

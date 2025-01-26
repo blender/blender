@@ -7,8 +7,6 @@
  */
 
 #include "BLI_index_mask.hh"
-#include "BLI_math_rotation.hh"
-#include "BLI_string.h" /* For #STRNCPY. */
 
 #include "BLT_translation.hh"
 
@@ -25,7 +23,6 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
-#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
 
 #include "UI_interface.hh"

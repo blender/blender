@@ -7,6 +7,7 @@
  */
 
 /* Screw modifier: revolves the edges about an axis */
+#include <algorithm>
 #include <climits>
 
 #include "BLI_utildefines.h"
@@ -46,7 +47,7 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 using namespace blender;
 
@@ -376,9 +377,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
   else {
     close = false;
-    if (step_tot < 2) {
-      step_tot = 2;
-    }
+    step_tot = std::max<uint>(step_tot, 2);
 
     maxVerts = totvert * step_tot;          /* -1 because we're joining back up */
     maxEdges = (totvert * (step_tot - 1)) + /* these are the edges between new verts */
@@ -881,7 +880,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       /* Polygon */
       if (has_mpoly_orig) {
         CustomData_copy_data(
-            &mesh->face_data, &result->face_data, int(face_index_orig), int(face_index), 1);
+            &mesh->face_data, &result->face_data, int(face_index_orig), face_index, 1);
         origindex[face_index] = int(face_index_orig);
       }
       else {

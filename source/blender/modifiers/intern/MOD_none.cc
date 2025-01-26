@@ -6,8 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "BLI_utildefines.h"
-
 #include "MOD_modifiertypes.hh"
 
 #include "UI_resources.hh"

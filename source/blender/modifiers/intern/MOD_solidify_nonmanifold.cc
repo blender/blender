@@ -6,6 +6,8 @@
  * \ingroup modifiers
  */
 
+#include <algorithm>
+
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -21,7 +23,6 @@
 #include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_solidify_util.hh" /* Own include. */
 #include "MOD_util.hh"
 
@@ -711,7 +712,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   }
                   if (do_shell) {
                     new_faces_num -= 2;
-                    new_loops_num -= 2 * uint(del_loops);
+                    new_loops_num -= 2 * del_loops;
                   }
                   break;
                 }
@@ -1600,9 +1601,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   for (uint k = 0; k < 2; k++) {
                     for (uint m = 2; m < size; m++) {
                       float p = dot_v3v3(planes_queue[m], planes_queue[k]);
-                      if (p < greatest_angle_cos) {
-                        greatest_angle_cos = p;
-                      }
+                      greatest_angle_cos = std::min(p, greatest_angle_cos);
                     }
                   }
                   if (greatest_angle_cos > boundary_fix_threshold) {
@@ -1891,9 +1890,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   for (NewEdgeRef **p = g->edges; k < g->edges_len; k++, p++) {
                     float length = orig_edge_lengths[(*p)->old_edge];
                     float e_ang = (*p)->angle;
-                    if (e_ang > angle) {
-                      angle = e_ang;
-                    }
+                    angle = std::max(e_ang, angle);
                     if (length < min_length || k == 0) {
                       min_length = length;
                     }
@@ -2212,9 +2209,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 if (g->edges[k]->new_edge != MOD_SOLIDIFY_EMPTY_TAG) {
                   if (result_edge_bweight) {
                     float bweight = result_edge_bweight[g->edges[k]->new_edge];
-                    if (bweight > max_bweight) {
-                      max_bweight = bweight;
-                    }
+                    max_bweight = std::max(bweight, max_bweight);
                   }
                 }
               }

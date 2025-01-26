@@ -11,14 +11,11 @@
 #include "MOD_lineart.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.hh"
 #include "BLI_sort.hh"
-#include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
@@ -32,10 +29,8 @@
 #include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -46,7 +41,6 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -63,8 +57,6 @@
 #include "GEO_join_geometries.hh"
 
 #include "lineart_intern.hh"
-
-#include <algorithm> /* For `min/max`. */
 
 using blender::float3;
 using blender::int3;
@@ -2540,7 +2532,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
   copy_m4d_m4(obi->normal, imat);
 
   obi->original_me = use_mesh;
-  obi->original_ob = (ref_ob->id.orig_id ? (Object *)ref_ob->id.orig_id : (Object *)ref_ob);
+  obi->original_ob = (ref_ob->id.orig_id ? (Object *)ref_ob->id.orig_id : ref_ob);
   obi->original_ob_eval = DEG_get_evaluated_object(depsgraph, obi->original_ob);
   lineart_geometry_load_assign_thread(olti, obi, thread_count, use_mesh->faces_num);
 }
@@ -4458,12 +4450,8 @@ static bool lineart_get_triangle_bounding_areas(
   if ((*rowend) >= ld->qtree.count_y) {
     (*rowend) = ld->qtree.count_y - 1;
   }
-  if ((*colbegin) < 0) {
-    (*colbegin) = 0;
-  }
-  if ((*rowbegin) < 0) {
-    (*rowbegin) = 0;
-  }
+  *colbegin = std::max(*colbegin, 0);
+  *rowbegin = std::max(*rowbegin, 0);
 
   return true;
 }
@@ -4531,12 +4519,8 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartData *ld, doubl
   if (row >= ld->qtree.count_y) {
     row = ld->qtree.count_y - 1;
   }
-  if (col < 0) {
-    col = 0;
-  }
-  if (row < 0) {
-    row = 0;
-  }
+  col = std::max(col, 0);
+  row = std::max(row, 0);
 
   return &ld->qtree.initials[row * ld->qtree.count_x + col];
 }
@@ -4547,12 +4531,8 @@ static LineartBoundingArea *lineart_get_bounding_area(LineartData *ld, double x,
   double sp_w = ld->qtree.tile_width, sp_h = ld->qtree.tile_height;
   int c = int((x + 1.0) / sp_w);
   int r = ld->qtree.count_y - int((y + 1.0) / sp_h) - 1;
-  if (r < 0) {
-    r = 0;
-  }
-  if (c < 0) {
-    c = 0;
-  }
+  r = std::max(r, 0);
+  c = std::max(c, 0);
   if (r >= ld->qtree.count_y) {
     r = ld->qtree.count_y - 1;
   }
@@ -5226,10 +5206,10 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
   return true;
 }
 
-typedef struct LineartChainWriteInfo {
+struct LineartChainWriteInfo {
   LineartEdgeChain *chain;
   int point_count;
-} LineartChainWriteInfo;
+};
 
 void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
                                      const blender::float4x4 &inverse_mat,
@@ -5310,7 +5290,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
       continue;
     }
     if (orig_col && ec->object_ref) {
-      if (BKE_collection_has_object_recursive_instanced(orig_col, (Object *)ec->object_ref)) {
+      if (BKE_collection_has_object_recursive_instanced(orig_col, ec->object_ref)) {
         if (modifier_flags & MOD_LINEART_INVERT_COLLECTION) {
           continue;
         }

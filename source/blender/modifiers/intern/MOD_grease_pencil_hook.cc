@@ -7,8 +7,6 @@
  */
 
 #include "BLI_index_mask.hh"
-#include "BLI_math_rotation.hh"
-#include "BLI_string.h" /* For #STRNCPY. */
 
 #include "BLT_translation.hh"
 
@@ -123,7 +121,7 @@ static float hook_falloff(const float falloff,
   if (falloff_type == MOD_GREASE_PENCIL_HOOK_Falloff_Const) {
     return fac_orig;
   }
-  else if (falloff_type == MOD_GREASE_PENCIL_HOOK_Falloff_InvSquare) {
+  if (falloff_type == MOD_GREASE_PENCIL_HOOK_Falloff_InvSquare) {
     /* Avoid sqrt below. */
     return (1.0f - (len_sq / falloff_sq)) * fac_orig;
   }

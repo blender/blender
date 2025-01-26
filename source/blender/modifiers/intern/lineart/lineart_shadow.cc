@@ -144,8 +144,7 @@ void lineart_register_intersection_shadow_cuts(LineartData *ld, ListBase *shadow
    * #shadow_e in different threads. */
   for (int i = 0; i < eln_isect_original->element_count; i++) {
     LineartEdge *e = &((LineartEdge *)eln_isect_original->pointer)[i];
-    LineartEdge *shadow_e = lineart_find_matching_edge(eln_isect_shadow,
-                                                       uint64_t(e->edge_identifier));
+    LineartEdge *shadow_e = lineart_find_matching_edge(eln_isect_shadow, e->edge_identifier);
     if (shadow_e) {
       lineart_register_shadow_cuts(ld, e, shadow_e);
     }
@@ -163,7 +162,7 @@ static LineartShadowSegment *lineart_give_shadow_segment(LineartData *ld)
     LineartShadowSegment *es = (LineartShadowSegment *)BLI_pophead(&ld->wasted_shadow_cuts);
     BLI_spin_unlock(&ld->lock_cuts);
     memset(es, 0, sizeof(LineartShadowSegment));
-    return (LineartShadowSegment *)es;
+    return es;
   }
   BLI_spin_unlock(&ld->lock_cuts);
 
@@ -293,9 +292,9 @@ static bool lineart_do_closest_segment(bool is_persp,
     *r_new_at = 0;
     return false;
   }
-  else {
-    *r_new_at = is_persp ? s2_fb_co_2[3] * ga / ga_div : ga;
-  }
+
+  *r_new_at = is_persp ? s2_fb_co_2[3] * ga / ga_div : ga;
+
   interp_v3_v3v3_db(r_new_in_the_middle, s2_fb_co_1, s2_fb_co_2, *r_new_at);
   r_new_in_the_middle[3] = interpd(s2_fb_co_2[3], s2_fb_co_1[3], ga);
   interp_v3_v3v3_db(r_new_in_the_middle_global, s1_gloc_1, s1_gloc_2, ga);
@@ -388,7 +387,7 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
     LISTBASE_FOREACH (LineartEdgeSegment *, es, &e->segments) {
       DISCARD_NONSENSE_SEGMENTS
 
-      double next_at = es->next ? ((LineartEdgeSegment *)es->next)->ratio : 1.0f;
+      double next_at = es->next ? (es->next)->ratio : 1.0f;
       /* Get correct XYZ and W coordinates. */
       interp_v3_v3v3_db(sedge[i].fbc1, e->v1->fbcoord, e->v2->fbcoord, es->ratio);
       interp_v3_v3v3_db(sedge[i].fbc2, e->v1->fbcoord, e->v2->fbcoord, next_at);
@@ -1017,7 +1016,7 @@ static bool lineart_shadow_cast_generate_edges(LineartData *ld,
       BLI_addtail(&e->segments, &es[ei]);
       LineartVert *v1 = &vlist[ei * 2], *v2 = &vlist[ei * 2 + 1];
       copy_v3_v3_db(v1->gloc, sseg->g2);
-      copy_v3_v3_db(v2->gloc, ((LineartShadowSegment *)sseg->next)->g1);
+      copy_v3_v3_db(v2->gloc, (sseg->next)->g1);
       e->v1 = v1;
       e->v2 = v2;
       e->t1 = (LineartTriangle *)sedge->e_ref; /* See LineartEdge::t1 for usage. */
@@ -1103,7 +1102,7 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
       if (es->occlusion > 0) {
         continue;
       }
-      double next_at = es->next ? ((LineartEdgeSegment *)es->next)->ratio : 1.0f;
+      double next_at = es->next ? (es->next)->ratio : 1.0f;
       LineartEdge *orig_e = (LineartEdge *)e->t2;
 
       /* Shadow view space to global. */

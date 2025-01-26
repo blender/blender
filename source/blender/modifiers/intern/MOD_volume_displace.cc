@@ -26,8 +26,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "MOD_ui_common.hh"
 
 #include "RE_texture.h"

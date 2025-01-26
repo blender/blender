@@ -11,8 +11,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_utildefines.h"
-
 #include "BLI_fileops.h"
 #include "BLI_math_base.h"
 #ifdef __LITTLE_ENDIAN__

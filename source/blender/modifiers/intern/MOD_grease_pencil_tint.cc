@@ -275,7 +275,7 @@ static void modify_fill_color(Object &ob,
     if (points.is_empty() || (stroke_weight <= 0.0f)) {
       return 0.0f;
     }
-    else if (use_weight_as_factor) {
+    if (use_weight_as_factor) {
       return stroke_weight;
     }
     return tmd.factor * stroke_weight;

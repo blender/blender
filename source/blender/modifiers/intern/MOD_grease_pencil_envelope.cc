@@ -16,14 +16,11 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
-#include "BKE_lib_query.hh"
 #include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "BLO_read_write.hh"
-
-#include "GEO_realize_instances.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

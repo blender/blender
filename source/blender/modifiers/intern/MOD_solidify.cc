@@ -14,11 +14,9 @@
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_particle.h"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"

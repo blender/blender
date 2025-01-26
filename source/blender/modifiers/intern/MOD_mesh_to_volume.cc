@@ -27,13 +27,9 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "MOD_ui_common.hh"
 
-#include "BLI_index_range.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_span.hh"
 
 #include "RNA_prototypes.hh"
 

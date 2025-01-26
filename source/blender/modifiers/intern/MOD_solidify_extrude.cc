@@ -6,6 +6,8 @@
  * \ingroup modifiers
  */
 
+#include <algorithm>
+
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -24,7 +26,6 @@
 #include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_solidify_util.hh" /* own include */
 #include "MOD_util.hh"
 
@@ -748,9 +749,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         angle = angle_normalized_v3v3(nor_prev, nor_next);
 
         /* --- not related to angle calc --- */
-        if (angle < FLT_EPSILON) {
-          angle = FLT_EPSILON;
-        }
+        angle = std::max(angle, FLT_EPSILON);
 
         vidx = face_verts[i_curr];
         vert_accum[vidx] += angle;

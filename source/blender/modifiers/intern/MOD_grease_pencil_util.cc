@@ -191,9 +191,9 @@ static Vector<int> get_grease_pencil_material_passes(const Object *ob)
 {
   short *totcol = BKE_object_material_len_p(const_cast<Object *>(ob));
   Vector<int> result(*totcol, 0);
-  Material *ma = nullptr;
   for (short i = 0; i < *totcol; i++) {
-    if ((ma = BKE_object_material_get(const_cast<Object *>(ob), i + 1))) {
+    const Material *ma = BKE_object_material_get(const_cast<Object *>(ob), i + 1);
+    if (ma) {
       /* Pass index of the grease pencil material. */
       result[i] = ma->gp_style->index;
     }

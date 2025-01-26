@@ -42,12 +42,12 @@
 
 // #define DEBUG_TIME
 
-#include "BLI_time.h"
 #ifdef DEBUG_TIME
+#  include "BLI_time.h"
 #  include "BLI_time_utildefines.h"
 #endif
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 static void init_data(ModifierData *md)
 {

@@ -6,8 +6,6 @@
  * \ingroup modifiers
  */
 
-#include <vector>
-
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

@@ -8,6 +8,8 @@
  * Array modifier: duplicates the object multiple times along an axis.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -230,8 +232,8 @@ static void dm_mvert_map_doubles(int *doubles_map,
     while ((i_target < target_verts_num) && (sve_target->sum_co <= sve_source_sumco + dist3)) {
       /* Testing distance for candidate double in target */
       /* v_target is within dist3 of v_source in terms of sumco;  check real distance */
-      float dist_sq;
-      if ((dist_sq = len_squared_v3v3(sve_source->co, sve_target->co)) <= best_dist_sq) {
+      const float dist_sq = len_squared_v3v3(sve_source->co, sve_target->co);
+      if (dist_sq <= best_dist_sq) {
         /* Potential double found */
         best_dist_sq = dist_sq;
         best_target_vertex = sve_target->vertex_num;
@@ -546,9 +548,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                            "geometry it would require");
   }
 
-  if (count < 1) {
-    count = 1;
-  }
+  count = std::max(count, 1);
 
   /* The number of verts, edges, loops, faces, before eventually merging doubles */
   result_nverts = chunk_nverts * count + start_cap_nverts + end_cap_nverts;

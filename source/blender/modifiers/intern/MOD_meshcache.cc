@@ -6,8 +6,6 @@
  * \ingroup modifiers
  */
 
-#include <cstdio>
-
 #include "BLI_utildefines.h"
 
 #include "BLI_math_matrix.h"

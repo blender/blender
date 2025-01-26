@@ -89,7 +89,7 @@ static void deform_drawing(const ModifierData &md,
                            const Object &ob,
                            bke::greasepencil::Drawing &drawing)
 {
-  auto &mmd = reinterpret_cast<const GreasePencilSmoothModifierData &>(md);
+  const auto &mmd = reinterpret_cast<const GreasePencilSmoothModifierData &>(md);
 
   const int iterations = mmd.step;
   const float influence = mmd.factor;

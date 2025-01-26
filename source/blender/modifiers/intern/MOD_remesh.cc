@@ -86,9 +86,9 @@ struct DualConOutput {
 /* allocate and initialize a DualConOutput */
 static void *dualcon_alloc_output(int totvert, int totquad)
 {
-  DualConOutput *output;
+  DualConOutput *output = MEM_cnew<DualConOutput>(__func__);
 
-  if (!(output = MEM_cnew<DualConOutput>(__func__))) {
+  if (!output) {
     return nullptr;
   }
 

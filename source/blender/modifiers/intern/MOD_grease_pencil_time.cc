@@ -11,7 +11,6 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_vector_set.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
@@ -41,8 +40,6 @@
 
 #include "MOD_grease_pencil_util.hh"
 #include "MOD_ui_common.hh"
-
-#include <iostream>
 
 namespace blender {
 
@@ -134,7 +131,7 @@ struct FrameRange {
  * and after the interval. The extra keys are needed when frames are held at the beginning or when
  * reversing the direction.
  */
-static const IndexRange find_key_range(const Span<int> sorted_keys, const FrameRange &frame_range)
+static IndexRange find_key_range(const Span<int> sorted_keys, const FrameRange &frame_range)
 {
   IndexRange result = sorted_keys.index_range();
   for (const int i : result.index_range()) {

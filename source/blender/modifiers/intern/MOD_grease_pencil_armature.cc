@@ -6,19 +6,12 @@
  * \ingroup modifiers
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_array_utils.hh"
-#include "BLI_math_matrix.hh"
-
 #include "DNA_defaults.h"
-#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_armature.hh"
-#include "BKE_colorband.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
