@@ -10,8 +10,6 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "BLI_utildefines.h"
-
 namespace blender::deg {
 
 MovieClipBackup::MovieClipBackup(const Depsgraph * /*depsgraph*/)

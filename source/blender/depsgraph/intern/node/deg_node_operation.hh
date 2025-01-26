@@ -245,25 +245,25 @@ enum OperationFlag {
 struct OperationNode : public Node {
   OperationNode();
 
-  virtual string identifier() const override;
+  string identifier() const override;
   /**
    * Full node identifier, including owner name.
    * used for logging and debug prints.
    */
   string full_identifier() const;
 
-  virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
+  void tag_update(Depsgraph *graph, eUpdateSource source) override;
 
   bool is_noop() const
   {
     return (bool)evaluate == false;
   }
 
-  virtual OperationNode *get_entry_operation() override
+  OperationNode *get_entry_operation() override
   {
     return this;
   }
-  virtual OperationNode *get_exit_operation() override
+  OperationNode *get_exit_operation() override
   {
     return this;
   }

@@ -36,7 +36,6 @@ class DriverDescriptor {
   StringRef rna_prefix;
   StringRef rna_suffix;
 
- public:
   DriverDescriptor(PointerRNA *id_ptr, FCurve *fcu);
 
   bool driver_relations_needed() const;

@@ -8,8 +8,6 @@
 
 #include "intern/builder/deg_builder_remove_noop.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_operation.hh"
 
@@ -17,6 +15,8 @@
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
 #include "intern/depsgraph_type.hh"
+
+#include "DEG_depsgraph_debug.hh"
 
 namespace blender::deg {
 

@@ -8,8 +8,6 @@
 
 #include "intern/eval/deg_eval_runtime_backup_sound.h"
 
-#include "BLI_utildefines.h"
-
 #include "DNA_sound_types.h"
 
 namespace blender::deg {

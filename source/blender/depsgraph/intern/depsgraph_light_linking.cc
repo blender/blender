@@ -14,12 +14,8 @@
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_utildefines.h"
-
-#include "BKE_collection.hh"
 
 #include "DNA_collection_types.h"
-#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -53,7 +49,7 @@ void eval_runtime_data(const ::Depsgraph *depsgraph, Object &object_eval)
 namespace {
 
 /* TODO(sergey): Move to a public API, solving the const-correctness. */
-template<class T> static inline const T *get_original(const T *id)
+template<class T> inline const T *get_original(const T *id)
 {
   if (!id) {
     return nullptr;
@@ -323,10 +319,9 @@ namespace {
  * Note that if an object is reachable from multiple children collection the callback is invoked
  * for all of them. */
 template<class Proc>
-static void foreach_light_collection_object_inner(
-    const CollectionLightLinking &collection_light_linking,
-    const Collection &collection,
-    Proc &&callback)
+void foreach_light_collection_object_inner(const CollectionLightLinking &collection_light_linking,
+                                           const Collection &collection,
+                                           Proc &&callback)
 {
   LISTBASE_FOREACH (const CollectionChild *, collection_child, &collection.children) {
     foreach_light_collection_object_inner(
@@ -347,7 +342,7 @@ static void foreach_light_collection_object_inner(
  * Note that if an object is reachable from multiple children collection the callback is invoked
  * for all of them. */
 template<class Proc>
-static void foreach_light_collection_object(const Collection &collection, Proc &&callback)
+void foreach_light_collection_object(const Collection &collection, Proc &&callback)
 {
   LISTBASE_FOREACH (const CollectionChild *, collection_child, &collection.children) {
     foreach_light_collection_object_inner(

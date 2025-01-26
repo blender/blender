@@ -12,22 +12,16 @@
 
 #include <cstdio>
 #include <cstring> /* required for memset */
-#include <queue>
 
 #include "BLI_index_range.hh"
 #include "BLI_math_bits.h"
-#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_global.hh"
@@ -35,7 +29,6 @@
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.hh"
-#include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
@@ -53,7 +46,6 @@
 #include "intern/node/deg_node_factory.hh"
 #include "intern/node/deg_node_id.hh"
 #include "intern/node/deg_node_operation.hh"
-#include "intern/node/deg_node_time.hh"
 
 namespace deg = blender::deg;
 

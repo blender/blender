@@ -10,19 +10,11 @@
 
 #include "intern/builder/deg_builder_nodes.h"
 
-#include <cstdio>
 #include <cstdlib>
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_layer_types.h"
-#include "DNA_linestyle_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

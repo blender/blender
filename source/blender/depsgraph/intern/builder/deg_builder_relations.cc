@@ -15,10 +15,9 @@
 #include <cstring> /* required for STREQ later on. */
 #include <optional>
 
+#include "BKE_global.hh"
 #include "DNA_modifier_types.h"
-#include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
@@ -97,10 +96,10 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_debug.hh"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_pchanmap.h"
-#include "intern/builder/deg_builder_relations_drivers.h"
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph_physics.hh"
 #include "intern/depsgraph_tag.hh"
@@ -2180,7 +2179,7 @@ void DepsgraphRelationBuilder::build_driver_id_property(const PointerRNA &target
   if (ptr.owner_id) {
     build_id(ptr.owner_id);
   }
-  const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
+  const char *prop_identifier = RNA_property_identifier(prop);
   /* Custom properties of bones are placed in their components to improve granularity. */
   OperationKey id_property_key;
   if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {

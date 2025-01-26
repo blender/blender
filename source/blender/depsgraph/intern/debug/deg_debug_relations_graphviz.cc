@@ -11,9 +11,6 @@
 #include <cstdarg>
 
 #include "BLI_dot_export.hh"
-#include "BLI_utildefines.h"
-
-#include "DNA_listBase.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_debug.hh"

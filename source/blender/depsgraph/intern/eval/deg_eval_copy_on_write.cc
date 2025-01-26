@@ -21,18 +21,13 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_curve.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_mesh_types.hh"
-#include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
@@ -43,15 +38,11 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 
 #include "DRW_engine.hh"
 
@@ -68,12 +59,12 @@
 #  include "DNA_world_types.h"
 #endif
 
-#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"

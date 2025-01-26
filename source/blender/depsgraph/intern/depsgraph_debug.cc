@@ -8,11 +8,9 @@
  * Implementation of tools for debugging the depsgraph
  */
 
-#include "BLI_utildefines.h"
-
 #include "DNA_scene_types.h"
 
-#include "DNA_object_types.h"
+#include "BKE_global.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

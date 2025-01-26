@@ -8,11 +8,9 @@
 
 #pragma once
 
+#include "BKE_global.hh"  // IWYU pragma: keep
+
 #include "intern/depsgraph_type.hh"
-
-#include "BKE_global.hh"
-
-#include "DEG_depsgraph_debug.hh"
 
 namespace blender::deg {
 
@@ -63,8 +61,8 @@ class DepsgraphDebug {
     fflush(stderr); \
   } while (0)
 
-bool terminal_do_color(void);
+bool terminal_do_color();
 string color_for_pointer(const void *pointer);
-string color_end(void);
+string color_end();
 
 }  // namespace blender::deg

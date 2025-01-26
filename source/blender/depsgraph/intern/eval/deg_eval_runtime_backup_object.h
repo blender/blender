@@ -13,11 +13,10 @@
 
 #include "BKE_object_types.hh"
 
-#include "BLI_session_uid.h"
+#include "BLI_map.hh"
 
 #include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_runtime_backup_modifier.h"
-#include "intern/eval/deg_eval_runtime_backup_pose.h"
 
 struct Object;
 

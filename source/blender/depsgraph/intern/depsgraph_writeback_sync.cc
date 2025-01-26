@@ -7,8 +7,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_writeback_sync.hh"
 
-#include "BLI_map.hh"
-
 #include "depsgraph.hh"
 
 namespace blender::deg::sync_writeback {

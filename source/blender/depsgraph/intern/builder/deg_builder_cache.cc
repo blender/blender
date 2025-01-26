@@ -8,11 +8,7 @@
 
 #include "intern/builder/deg_builder_cache.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "BKE_anim_data.hh"
 

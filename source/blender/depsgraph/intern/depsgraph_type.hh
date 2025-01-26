@@ -15,21 +15,14 @@
 #pragma once
 
 #include <functional>
+#include <memory>
+#include <optional>
 
 /* TODO(sergey): Ideally we'll just use char* and statically allocated strings
  * to avoid any possible overhead caused by string (re)allocation/formatting. */
 #include <algorithm>
 #include <deque>
-#include <map>
-#include <set>
 #include <string>
-#include <vector>
-
-#include "BLI_map.hh"
-#include "BLI_set.hh"
-#include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 struct Depsgraph;
 struct CustomData_MeshMasks;

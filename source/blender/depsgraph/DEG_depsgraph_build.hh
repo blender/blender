@@ -11,7 +11,6 @@
 #pragma once
 
 #include "BLI_span.hh"
-#include "BLI_sys_types.h"
 
 /* ************************************************* */
 

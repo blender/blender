@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 struct ID;

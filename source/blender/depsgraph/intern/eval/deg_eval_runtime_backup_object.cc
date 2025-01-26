@@ -6,6 +6,8 @@
  * \ingroup depsgraph
  */
 
+#include "BLI_session_uid.h"
+
 #include "intern/eval/deg_eval_runtime_backup_object.h"
 
 #include <cstring>
@@ -16,6 +18,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_mesh_types.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 

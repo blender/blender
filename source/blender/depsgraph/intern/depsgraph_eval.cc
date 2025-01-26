@@ -8,14 +8,8 @@
  * Evaluation engine entry-points for Depsgraph Engine.
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
-
 #include "BKE_scene.hh"
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
@@ -27,7 +21,6 @@
 
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_operation.hh"
-#include "intern/node/deg_node_time.hh"
 
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_tag.hh"

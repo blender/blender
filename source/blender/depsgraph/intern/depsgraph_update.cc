@@ -10,8 +10,6 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "intern/depsgraph_type.hh"
-
 namespace deg = blender::deg;
 
 namespace blender::deg {

@@ -10,6 +10,7 @@
 
 #include "intern/builder/deg_builder_key.h"
 
+#include "RNA_access.hh"
 #include "RNA_path.hh"
 
 namespace blender::deg {

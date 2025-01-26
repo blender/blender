@@ -13,7 +13,6 @@
 #include <cstdlib>
 
 #include "BLI_stack.h"
-#include "BLI_utildefines.h"
 
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"

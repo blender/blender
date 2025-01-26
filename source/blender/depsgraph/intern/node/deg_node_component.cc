@@ -12,7 +12,6 @@
 #include <cstring> /* required for STREQ later on. */
 
 #include "BLI_ghash.h"
-#include "BLI_hash.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"

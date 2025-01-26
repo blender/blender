@@ -6,6 +6,8 @@
  * \ingroup depsgraph
  */
 
+#include "BLI_session_uid.h"
+
 #include "intern/eval/deg_eval_runtime_backup_sequencer.h"
 
 #include "DNA_scene_types.h"

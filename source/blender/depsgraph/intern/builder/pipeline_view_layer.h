@@ -17,8 +17,8 @@ class ViewLayerBuilderPipeline : public AbstractBuilderPipeline {
   ViewLayerBuilderPipeline(::Depsgraph *graph);
 
  protected:
-  virtual void build_nodes(DepsgraphNodeBuilder &node_builder) override;
-  virtual void build_relations(DepsgraphRelationBuilder &relation_builder) override;
+  void build_nodes(DepsgraphNodeBuilder &node_builder) override;
+  void build_relations(DepsgraphRelationBuilder &relation_builder) override;
 };
 
 }  // namespace blender::deg

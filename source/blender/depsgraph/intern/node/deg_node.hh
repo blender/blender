@@ -12,9 +12,9 @@
 
 #include "intern/depsgraph_type.hh"
 
-#include "BLI_utildefines.h"
-
 #include "DEG_depsgraph_build.hh"
+
+#include "BLI_vector.hh"
 
 struct ID;
 struct Scene;

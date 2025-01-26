@@ -8,7 +8,9 @@
 
 #pragma once
 
-#include "BKE_modifier.hh"
+#include "DNA_ID.h"
+
+#include "BLI_vector.hh"
 
 #include "intern/depsgraph_type.hh"
 

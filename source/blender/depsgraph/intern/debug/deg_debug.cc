@@ -11,12 +11,9 @@
 #include "BLI_console.h"
 #include "BLI_hash.h"
 #include "BLI_string.h"
-#include "BLI_time_utildefines.h"
-#include "BLI_utildefines.h"
+#include "BLI_time.h"
 
 #include "BKE_global.hh"
-
-#include "intern/depsgraph.hh"
 
 namespace blender::deg {
 

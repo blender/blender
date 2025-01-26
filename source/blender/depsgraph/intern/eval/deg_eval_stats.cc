@@ -8,8 +8,6 @@
 
 #include "intern/eval/deg_eval_stats.h"
 
-#include "BLI_utildefines.h"
-
 #include "intern/depsgraph.hh"
 
 #include "intern/node/deg_node.hh"

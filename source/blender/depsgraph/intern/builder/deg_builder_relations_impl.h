@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "intern/builder/deg_builder_relations.h"
 #include "intern/node/deg_node_id.hh"
 
 #include <iostream>
@@ -89,20 +90,19 @@ Relation *DepsgraphRelationBuilder::add_node_handle_relation(const KeyType &key_
   if (op_from != nullptr && op_to != nullptr) {
     return add_operation_relation(op_from, op_to, description, flags);
   }
-  else {
-    if (!op_from) {
-      fprintf(stderr,
-              "add_node_handle_relation(%s) - Could not find op_from (%s)\n",
-              description,
-              key_from.identifier().c_str());
-    }
-    if (!op_to) {
-      fprintf(stderr,
-              "add_node_handle_relation(%s) - Could not find op_to (%s)\n",
-              description,
-              key_from.identifier().c_str());
-    }
+  if (!op_from) {
+    fprintf(stderr,
+            "add_node_handle_relation(%s) - Could not find op_from (%s)\n",
+            description,
+            key_from.identifier().c_str());
   }
+  if (!op_to) {
+    fprintf(stderr,
+            "add_node_handle_relation(%s) - Could not find op_to (%s)\n",
+            description,
+            key_from.identifier().c_str());
+  }
+
   return nullptr;
 }
 

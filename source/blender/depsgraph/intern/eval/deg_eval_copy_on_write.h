@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "DNA_ID.h"
 
@@ -25,8 +25,6 @@ struct ID;
 #else
 #  define DEG_COW_PRINT(format, ...)
 #endif
-
-struct Depsgraph;
 
 namespace blender::deg {
 

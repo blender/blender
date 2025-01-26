@@ -16,7 +16,6 @@
 
 #include "DNA_ID.h"
 
-#include "RNA_access.hh"
 #include "RNA_types.hh"
 
 struct ID;
@@ -33,8 +32,7 @@ struct TimeSourceKey {
 struct ComponentKey {
   ComponentKey() = default;
 
-  inline ComponentKey(const ID *id, NodeType type, const char *name = "")
-      : id(id), type(type), name(name)
+  ComponentKey(const ID *id, NodeType type, const char *name = "") : id(id), type(type), name(name)
   {
   }
 
@@ -48,13 +46,8 @@ struct ComponentKey {
 struct OperationKey {
   OperationKey() = default;
 
-  inline OperationKey(const ID *id, NodeType component_type, const char *name, int name_tag = -1)
-      : id(id),
-        component_type(component_type),
-        component_name(""),
-        opcode(OperationCode::OPERATION),
-        name(name),
-        name_tag(name_tag)
+  OperationKey(const ID *id, NodeType component_type, const char *name, int name_tag = -1)
+      : id(id), component_type(component_type), name(name), name_tag(name_tag)
   {
   }
 
@@ -66,19 +59,13 @@ struct OperationKey {
       : id(id),
         component_type(component_type),
         component_name(component_name),
-        opcode(OperationCode::OPERATION),
         name(name),
         name_tag(name_tag)
   {
   }
 
   OperationKey(const ID *id, NodeType component_type, OperationCode opcode)
-      : id(id),
-        component_type(component_type),
-        component_name(""),
-        opcode(opcode),
-        name(""),
-        name_tag(-1)
+      : id(id), component_type(component_type), opcode(opcode)
   {
   }
 
@@ -86,12 +73,7 @@ struct OperationKey {
                NodeType component_type,
                const char *component_name,
                OperationCode opcode)
-      : id(id),
-        component_type(component_type),
-        component_name(component_name),
-        opcode(opcode),
-        name(""),
-        name_tag(-1)
+      : id(id), component_type(component_type), component_name(component_name), opcode(opcode)
   {
   }
 
@@ -100,15 +82,9 @@ struct OperationKey {
                OperationCode opcode,
                const char *name,
                int name_tag = -1)
-      : id(id),
-        component_type(component_type),
-        component_name(""),
-        opcode(opcode),
-        name(name),
-        name_tag(name_tag)
+      : id(id), component_type(component_type), opcode(opcode), name(name), name_tag(name_tag)
   {
   }
-
   OperationKey(const ID *id,
                NodeType component_type,
                const char *component_name,

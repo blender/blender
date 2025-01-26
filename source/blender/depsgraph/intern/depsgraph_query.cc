@@ -8,15 +8,11 @@
  * Implementation of Querying API
  */
 
-#include "MEM_guardedalloc.h"
-
 #include <cstring> /* XXX: `memcpy`. */
 
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_action.hh" /* XXX: BKE_pose_channel_find_name */
-#include "BKE_customdata.hh"
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"
 

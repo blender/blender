@@ -8,10 +8,6 @@
 
 #include "intern/node/deg_node_operation.hh"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_utildefines.h"
-
 #include "intern/depsgraph.hh"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_factory.hh"

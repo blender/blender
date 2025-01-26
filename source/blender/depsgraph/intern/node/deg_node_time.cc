@@ -8,8 +8,6 @@
 
 #include "intern/node/deg_node_time.hh"
 
-#include "DNA_scene_types.h"
-
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
 

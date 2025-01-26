@@ -15,9 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"
@@ -29,8 +27,6 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -38,7 +34,6 @@
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -1409,7 +1404,7 @@ void DepsgraphNodeBuilder::build_driver_id_property(const PointerRNA &target_pro
   if (ptr.owner_id) {
     build_id(ptr.owner_id);
   }
-  const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
+  const char *prop_identifier = RNA_property_identifier(prop);
   /* Custom properties of bones are placed in their components to improve granularity. */
   if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
@@ -1723,7 +1718,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
   }
   OperationNode *op_node;
   /* Make sure we've got an ID node before requesting evaluated pointer. */
-  (void)add_id_node((ID *)obdata);
+  (void)add_id_node(obdata);
   ID *obdata_cow = get_cow_id(obdata);
   build_idproperties(obdata->properties);
   /* Animation. */
