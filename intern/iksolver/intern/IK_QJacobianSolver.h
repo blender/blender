@@ -24,7 +24,7 @@
 class IK_QJacobianSolver {
  public:
   IK_QJacobianSolver();
-  ~IK_QJacobianSolver() {}
+  ~IK_QJacobianSolver() = default;
 
   // setup pole vector constraint
   void SetPoleVectorConstraint(
@@ -51,7 +51,6 @@ class IK_QJacobianSolver {
   double ComputeScale();
   void Scale(double scale, std::list<IK_QTask *> &tasks);
 
- private:
   IK_QJacobian m_jacobian;
   IK_QJacobian m_jacobian_sub;
 

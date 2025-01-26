@@ -11,6 +11,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <algorithm>
 #include <cmath>
 
 using Eigen::Affine3d;
@@ -59,12 +60,10 @@ static inline Eigen::Matrix3d RotationMatrix(double sine, double cosine, int axi
   if (axis == 0) {
     return CreateMatrix(1.0, 0.0, 0.0, 0.0, cosine, -sine, 0.0, sine, cosine);
   }
-  else if (axis == 1) {
+  if (axis == 1) {
     return CreateMatrix(cosine, 0.0, sine, 0.0, 1.0, 0.0, -sine, 0.0, cosine);
   }
-  else {
-    return CreateMatrix(cosine, -sine, 0.0, sine, cosine, 0.0, 0.0, 0.0, 1.0);
-  }
+  return CreateMatrix(cosine, -sine, 0.0, sine, cosine, 0.0, 0.0, 0.0, 1.0);
 }
 
 static inline Eigen::Matrix3d RotationMatrix(double angle, int axis)
@@ -80,24 +79,19 @@ static inline double EulerAngleFromMatrix(const Eigen::Matrix3d &R, int axis)
     if (axis == 0) {
       return -atan2(R(1, 2), R(2, 2));
     }
-    else if (axis == 1) {
+    if (axis == 1) {
       return atan2(-R(0, 2), t);
     }
-    else {
-      return -atan2(R(0, 1), R(0, 0));
-    }
+    return -atan2(R(0, 1), R(0, 0));
   }
-  else {
-    if (axis == 0) {
-      return -atan2(-R(2, 1), R(1, 1));
-    }
-    else if (axis == 1) {
-      return atan2(-R(0, 2), t);
-    }
-    else {
-      return 0.0f;
-    }
+
+  if (axis == 0) {
+    return -atan2(-R(2, 1), R(1, 1));
   }
+  if (axis == 1) {
+    return atan2(-R(0, 2), t);
+  }
+  return 0.0f;
 }
 
 static inline double safe_acos(double f)
@@ -106,12 +100,10 @@ static inline double safe_acos(double f)
   if (f <= -1.0) {
     return M_PI;
   }
-  else if (f >= 1.0) {
+  if (f >= 1.0) {
     return 0.0;
   }
-  else {
-    return acos(f);
-  }
+  return acos(f);
 }
 
 static inline Eigen::Vector3d normalize(const Eigen::Vector3d &v)
@@ -204,7 +196,7 @@ static inline Eigen::Vector3d MatrixToAxisAngle(const Eigen::Matrix3d &R)
   return delta;
 }
 
-static inline bool EllipseClamp(double &ax, double &az, double *amin, double *amax)
+static inline bool EllipseClamp(double &ax, double &az, const double *amin, const double *amax)
 {
   double xlim, zlim, x, z;
 
@@ -231,12 +223,8 @@ static inline bool EllipseClamp(double &ax, double &az, double *amin, double *am
       return false;
     }
 
-    if (x > xlim) {
-      x = xlim;
-    }
-    if (z > zlim) {
-      z = zlim;
-    }
+    x = std::min(x, xlim);
+    z = std::min(z, zlim);
   }
   else {
     double invx = 1.0 / (xlim * xlim);

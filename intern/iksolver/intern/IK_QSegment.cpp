@@ -11,10 +11,10 @@
 // IK_QSegment
 
 IK_QSegment::IK_QSegment(int num_DoF, bool translational)
-    : m_parent(NULL),
-      m_child(NULL),
-      m_sibling(NULL),
-      m_composite(NULL),
+    : m_parent(nullptr),
+      m_child(nullptr),
+      m_sibling(nullptr),
+      m_composite(nullptr),
       m_num_DoF(num_DoF),
       m_translational(translational)
 {
@@ -79,7 +79,7 @@ IK_QSegment::~IK_QSegment()
   }
 
   for (IK_QSegment *seg = m_child; seg; seg = seg->m_sibling) {
-    seg->m_parent = NULL;
+    seg->m_parent = nullptr;
   }
 }
 
@@ -108,10 +108,10 @@ void IK_QSegment::SetComposite(IK_QSegment *seg)
 
 void IK_QSegment::RemoveChild(IK_QSegment *child)
 {
-  if (m_child == NULL) {
+  if (m_child == nullptr) {
     return;
   }
-  else if (m_child == child) {
+  if (m_child == child) {
     m_child = m_child->m_sibling;
   }
   else {
@@ -381,7 +381,7 @@ void IK_QRevoluteSegment::SetBasis(const Matrix3d &basis)
   }
 }
 
-Vector3d IK_QRevoluteSegment::Axis(int) const
+Vector3d IK_QRevoluteSegment::Axis(int /*dof*/) const
 {
   return m_global_transform.linear().col(m_axis);
 }
@@ -416,7 +416,7 @@ bool IK_QRevoluteSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d &de
   return true;
 }
 
-void IK_QRevoluteSegment::Lock(int, IK_QJacobian &jacobian, Vector3d &delta)
+void IK_QRevoluteSegment::Lock(int /*dof*/, IK_QJacobian &jacobian, Vector3d &delta)
 {
   m_locked[0] = true;
   jacobian.Lock(m_DoF_id, delta[0]);
@@ -565,7 +565,7 @@ bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta
   return true;
 }
 
-void IK_QSwingSegment::Lock(int, IK_QJacobian &jacobian, Vector3d &delta)
+void IK_QSwingSegment::Lock(int /*dof*/, IK_QJacobian &jacobian, Vector3d &delta)
 {
   m_locked[0] = m_locked[1] = true;
   jacobian.Lock(m_DoF_id, delta[0]);
@@ -660,9 +660,7 @@ Vector3d IK_QElbowSegment::Axis(int dof) const
 
     return m_global_transform.linear() * v;
   }
-  else {
-    return m_global_transform.linear().col(1);
-  }
+  return m_global_transform.linear().col(1);
 }
 
 bool IK_QElbowSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp)

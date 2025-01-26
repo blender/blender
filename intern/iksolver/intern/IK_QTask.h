@@ -15,7 +15,7 @@
 class IK_QTask {
  public:
   IK_QTask(int size, bool primary, bool active, const IK_QSegment *segment);
-  virtual ~IK_QTask() {}
+  virtual ~IK_QTask() = default;
 
   int Id() const
   {
@@ -61,7 +61,7 @@ class IK_QTask {
     return false;
   }
 
-  virtual void Scale(double) {}
+  virtual void Scale(double /*scale*/) {}
 
  protected:
   int m_id;
@@ -76,15 +76,15 @@ class IK_QPositionTask : public IK_QTask {
  public:
   IK_QPositionTask(bool primary, const IK_QSegment *segment, const Vector3d &goal);
 
-  void ComputeJacobian(IK_QJacobian &jacobian);
+  void ComputeJacobian(IK_QJacobian &jacobian) override;
 
-  double Distance() const;
+  double Distance() const override;
 
-  bool PositionTask() const
+  bool PositionTask() const override
   {
     return true;
   }
-  void Scale(double scale)
+  void Scale(double scale) override
   {
     m_goal *= scale;
     m_clamp_length *= scale;
@@ -99,11 +99,11 @@ class IK_QOrientationTask : public IK_QTask {
  public:
   IK_QOrientationTask(bool primary, const IK_QSegment *segment, const Matrix3d &goal);
 
-  double Distance() const
+  double Distance() const override
   {
     return m_distance;
   }
-  void ComputeJacobian(IK_QJacobian &jacobian);
+  void ComputeJacobian(IK_QJacobian &jacobian) override;
 
  private:
   Matrix3d m_goal;
@@ -114,11 +114,11 @@ class IK_QCenterOfMassTask : public IK_QTask {
  public:
   IK_QCenterOfMassTask(bool primary, const IK_QSegment *segment, const Vector3d &center);
 
-  void ComputeJacobian(IK_QJacobian &jacobian);
+  void ComputeJacobian(IK_QJacobian &jacobian) override;
 
-  double Distance() const;
+  double Distance() const override;
 
-  void Scale(double scale)
+  void Scale(double scale) override
   {
     m_goal_center *= scale;
     m_distance *= scale;
