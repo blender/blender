@@ -224,15 +224,33 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     }
   }
 
-  if (!region) {
+  if (!region && win) {
     /* On a gap between editors. */
-    uiItemL(row, nullptr, ICON_MOUSE_LMB_DRAG);
-    uiItemL(row, IFACE_("Resize"), ICON_NONE);
-    uiItemS_ex(row, 0.7f);
-    uiItemL(row, nullptr, ICON_MOUSE_RMB);
-    uiItemS_ex(row, -0.5f);
-    uiItemL(row, IFACE_("Options"), ICON_NONE);
-    return;
+
+    rcti win_rect;
+    WM_window_rect_calc(win, &win_rect);
+    win_rect.xmax -= 1;
+    if (!BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
+      /* Blank the status past the edges (into window chrome). */
+      return;
+    }
+
+    WM_window_screen_rect_calc(win, &win_rect);
+    BLI_rcti_pad(&win_rect, int(-8.0f * U.pixelsize), 0);
+    if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
+      /* Show options but not along left and right edges. */
+      BLI_rcti_pad(&win_rect, 0, int(-8.0f * U.pixelsize));
+      if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
+        /* No resize at top and bottom. */
+        uiItemL(row, nullptr, ICON_MOUSE_LMB_DRAG);
+        uiItemL(row, IFACE_("Resize"), ICON_NONE);
+        uiItemS_ex(row, 0.7f);
+      }
+      uiItemL(row, nullptr, ICON_MOUSE_RMB);
+      uiItemS_ex(row, -0.5f);
+      uiItemL(row, IFACE_("Options"), ICON_NONE);
+      return;
+    }
   }
 
   /* Otherwise should cursor keymap status. */
