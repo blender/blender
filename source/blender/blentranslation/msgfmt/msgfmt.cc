@@ -49,9 +49,9 @@ enum eSectionType {
 };
 
 struct Message {
-  std::string ctxt = "";
-  std::string id = "";
-  std::string str = "";
+  std::string ctxt;
+  std::string id;
+  std::string str;
 
   bool is_fuzzy = false;
 };
@@ -127,13 +127,8 @@ static char *generate(blender::Map<std::string, std::string> &messages, size_t *
     blender::StringRef value;
 
     Item(const MapItem &other) : key(other.key), value(other.value) {}
-    Item(const Item &other) : key(other.key), value(other.value) {}
-    Item &operator=(const Item &other)
-    {
-      this->key = other.key;
-      this->value = other.value;
-      return *this;
-    }
+    Item(const Item &other) = default;
+    Item &operator=(const Item &other) = default;
   };
   const uint32_t num_keys = messages.size();
 

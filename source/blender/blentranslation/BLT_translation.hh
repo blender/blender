@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h" /* for bool type */
 
 #define TEXT_DOMAIN_NAME "blender"
 
