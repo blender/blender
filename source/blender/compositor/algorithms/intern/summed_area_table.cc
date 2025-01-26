@@ -4,18 +4,15 @@
 
 #include "BLI_assert.h"
 #include "BLI_index_range.hh"
-#include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 
 #include "GPU_compute.hh"
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_context.hh"
 #include "COM_result.hh"
-#include "COM_utilities.hh"
 
 #include "COM_algorithm_summed_area_table.hh"
 

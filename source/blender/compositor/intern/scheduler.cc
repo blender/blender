@@ -2,16 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 #include "NOD_derived_node_tree.hh"
 
 #include "BKE_node_legacy_types.hh"
-#include "BKE_node_runtime.hh"
 
 #include "COM_context.hh"
 #include "COM_scheduler.hh"
@@ -255,9 +255,8 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<DNode> &output_nodes
        * buffers needed by the dependencies, then update the latter to be the former. This is
        * computing the "d" in the aforementioned equation "max(n + m, d)". */
       const int buffers_needed_by_dependency = needed_buffers.lookup(doutput.node());
-      if (buffers_needed_by_dependency > buffers_needed_by_dependencies) {
-        buffers_needed_by_dependencies = buffers_needed_by_dependency;
-      }
+      buffers_needed_by_dependencies = std::max(buffers_needed_by_dependency,
+                                                buffers_needed_by_dependencies);
     }
 
     /* Compute the number of buffers that will be computed/output by this node. */

@@ -15,6 +15,7 @@
 
 #include "GPU_compute.hh"
 #include "GPU_shader.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
 
 #include "COM_context.hh"

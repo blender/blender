@@ -18,7 +18,6 @@
 #include "BKE_texture.h"
 
 #include "DNA_ID.h"
-#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "RE_texture.h"
@@ -26,7 +25,6 @@
 #include "COM_cached_texture.hh"
 #include "COM_context.hh"
 #include "COM_result.hh"
-#include "COM_utilities.hh"
 
 namespace blender::compositor {
 

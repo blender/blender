@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_assert.h"
-#include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 
 #include "GPU_shader.hh"

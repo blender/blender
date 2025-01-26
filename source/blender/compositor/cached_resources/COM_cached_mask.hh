@@ -12,7 +12,6 @@
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_mask_types.h"
-#include "DNA_scene_types.h"
 
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
@@ -55,7 +54,6 @@ class CachedMask : public CachedResource {
  public:
   Result result;
 
- public:
   CachedMask(Context &context,
              Mask *mask,
              int2 size,

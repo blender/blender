@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_base.hh"
-
 #include "GPU_shader.hh"
 
 #include "COM_context.hh"

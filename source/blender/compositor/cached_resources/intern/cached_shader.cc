@@ -9,7 +9,6 @@
 #include "BLI_hash.hh"
 
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_cached_shader.hh"
 #include "COM_result.hh"

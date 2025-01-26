@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <string>
-
 #include "DNA_node_types.h"
 
 #include "NOD_derived_node_tree.hh"

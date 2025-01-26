@@ -10,7 +10,6 @@
 
 #include "NOD_derived_node_tree.hh"
 
-#include "COM_context.hh"
 #include "COM_profiler.hh"
 
 namespace blender::compositor {

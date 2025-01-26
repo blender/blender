@@ -7,7 +7,6 @@
 
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
 
 #include "COM_context.hh"
 #include "COM_conversion_operation.hh"

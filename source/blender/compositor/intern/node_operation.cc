@@ -2,24 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <memory>
-
 #include "BLI_assert.h"
-#include "BLI_map.hh"
-#include "BLI_math_base.h"
-#include "BLI_math_base.hh"
-#include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_timeit.hh"
-#include "BLI_vector.hh"
-
-#include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "DNA_node_types.h"
 
 #include "NOD_derived_node_tree.hh"
-#include "NOD_node_declaration.hh"
 
 #include "BKE_node.hh"
 

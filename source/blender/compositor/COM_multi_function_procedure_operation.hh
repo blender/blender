@@ -7,9 +7,7 @@
 #include <memory>
 
 #include "BLI_map.hh"
-#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 #include "FN_multi_function_procedure.hh"
 #include "FN_multi_function_procedure_builder.hh"
@@ -19,7 +17,6 @@
 #include "NOD_multi_function.hh"
 
 #include "COM_context.hh"
-#include "COM_operation.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
 

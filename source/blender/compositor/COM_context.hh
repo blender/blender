@@ -12,7 +12,6 @@
 #include "DNA_vec_types.h"
 
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"

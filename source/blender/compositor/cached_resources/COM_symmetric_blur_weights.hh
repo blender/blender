@@ -47,7 +47,6 @@ class SymmetricBlurWeights : public CachedResource {
  public:
   Result result;
 
- public:
   SymmetricBlurWeights(Context &context, int type, float2 radius);
 
   ~SymmetricBlurWeights();

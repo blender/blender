@@ -45,7 +45,6 @@ class KeyingScreen : public CachedResource {
  public:
   Result result;
 
- public:
   KeyingScreen(Context &context,
                MovieClip *movie_clip,
                MovieTrackingObject *movie_tracking_object,

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "DNA_color_types.h"
 #include "DNA_node_types.h"
 
 namespace blender::compositor {

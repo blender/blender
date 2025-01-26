@@ -5,7 +5,6 @@
 #include "BLI_assert.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
 
@@ -15,7 +14,6 @@
 #include "GPU_compute.hh"
 #include "GPU_shader.hh"
 
-#include "COM_operation.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 

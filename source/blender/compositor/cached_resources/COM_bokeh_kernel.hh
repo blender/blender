@@ -46,7 +46,6 @@ class BokehKernel : public CachedResource {
  public:
   Result result;
 
- public:
   BokehKernel(Context &context,
               int2 size,
               int sides,

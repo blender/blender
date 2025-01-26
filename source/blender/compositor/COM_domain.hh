@@ -143,7 +143,6 @@ class Domain {
    * RealizationOptions struct for more information. */
   RealizationOptions realization_options;
 
- public:
   /* A size only constructor that sets the transformation to identity. */
   Domain(const int2 &size);
 

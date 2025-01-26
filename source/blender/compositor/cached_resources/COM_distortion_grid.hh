@@ -58,7 +58,6 @@ class DistortionGrid : public CachedResource {
  public:
   Result result;
 
- public:
   /* The calibration size is the size of the image where the tracking camera was calibrated, this
    * is the size of the movie clip in most cases. */
   DistortionGrid(Context &context,

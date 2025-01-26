@@ -12,6 +12,7 @@
 
 #  include "MEM_guardedalloc.h"
 
+#  include "GPU_state.hh"
 #  include "GPU_texture.hh"
 
 #  include "COM_context.hh"

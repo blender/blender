@@ -50,7 +50,6 @@ class CachedTexture : public CachedResource {
   Result color_result;
   Result value_result;
 
- public:
   CachedTexture(Context &context,
                 Tex *texture,
                 bool use_color_management,

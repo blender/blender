@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "BLI_assert.h"
-#include "BLI_math_base.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
@@ -178,7 +177,6 @@ class Result {
    * written to file. */
   MetaData meta_data;
 
- public:
   /* Construct a result within the given context. */
   Result(Context &context);
 

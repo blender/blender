@@ -28,7 +28,6 @@
 
 #include "NOD_derived_node_tree.hh"
 #include "NOD_multi_function.hh"
-#include "NOD_node_declaration.hh"
 
 #include "COM_context.hh"
 #include "COM_domain.hh"
