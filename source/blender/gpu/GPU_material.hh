@@ -400,7 +400,7 @@ struct GPULayerAttr {
   GPULayerAttr *next, *prev;
 
   /* Meaningful part of the attribute set key. */
-  char name[68]; /* MAX_CUSTOMDATA_LAYER_NAME */
+  char name[256]; /* Multiple MAX_CUSTOMDATA_LAYER_NAME */
   /** Hash of name[68]. */
   uint32_t hash_code;
 
