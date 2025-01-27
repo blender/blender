@@ -1769,6 +1769,24 @@ void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
 /** \name Object Shade Auto Smooth Operator
  * \{ */
 
+/**
+ * Does a shallow check for whether the node group could be the the Smooth by Angle node group.
+ * This should become unnecessary once we asset embedding (#132167).
+ */
+static bool is_valid_smooth_by_angle_group(const bNodeTree &ntree)
+{
+  if (ntree.type != NTREE_GEOMETRY) {
+    return false;
+  }
+  if (ntree.interface_inputs().size() != 3) {
+    return false;
+  }
+  if (ntree.interface_outputs().size() != 1) {
+    return false;
+  }
+  return true;
+}
+
 static int shade_auto_smooth_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
@@ -1792,15 +1810,25 @@ static int shade_auto_smooth_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    ID *node_group_id = asset::asset_local_id_ensure_imported(bmain, *asset_representation);
-    if (!node_group_id) {
-      return OPERATOR_CANCELLED;
+    bNodeTree *node_group = nullptr;
+    while (!node_group) {
+      ID *node_group_id = asset::asset_local_id_ensure_imported(bmain, *asset_representation);
+      if (!node_group_id) {
+        return OPERATOR_CANCELLED;
+      }
+      if (GS(node_group_id->name) != ID_NT) {
+        return OPERATOR_CANCELLED;
+      }
+      node_group = reinterpret_cast<bNodeTree *>(node_group_id);
+      node_group->ensure_topology_cache();
+      if (is_valid_smooth_by_angle_group(*node_group)) {
+        break;
+      }
+      /* Remove the weak library reference, since the already loaded group is not valid anymore. */
+      MEM_SAFE_FREE((node_group_id->library_weak_reference));
+      /* Stay in the loop and load the asset again. */
+      node_group = nullptr;
     }
-    if (GS(node_group_id->name) != ID_NT) {
-      return OPERATOR_CANCELLED;
-    }
-    bNodeTree *node_group = reinterpret_cast<bNodeTree *>(node_group_id);
-    node_group->ensure_topology_cache();
 
     const StringRefNull angle_identifier = node_group->interface_inputs()[1]->identifier;
 
