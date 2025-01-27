@@ -924,7 +924,7 @@ static void rna_def_uv_sculpt(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "UvSculpt", "Paint");
+  srna = RNA_def_struct(brna, "UvSculpt", nullptr);
   RNA_def_struct_path_func(srna, "rna_UvSculpt_path");
   RNA_def_struct_ui_text(srna, "UV Sculpting", "");
 

@@ -19,8 +19,6 @@ class TestRnaProperties(unittest.TestCase):
         # These paths are problematic to process, skip for the time being.
         SKIP_PROPERTIES = {
             bpy.types.Depsgraph.bl_rna.properties["object_instances"],
-            # XXX To be removed once #133551 is fixed.
-            bpy.types.ToolSettings.bl_rna.properties["uv_sculpt"],
         }
 
         if repr(struct) in self.processed_data:
