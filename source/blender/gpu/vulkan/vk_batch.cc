@@ -47,7 +47,7 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
     vao.bind(draw_indexed.node_data.vertex_buffers);
     context.update_pipeline_data(prim_type, vao, draw_indexed.node_data.pipeline_data);
 
-    context.render_graph.add_node(draw_indexed);
+    context.render_graph().add_node(draw_indexed);
   }
   else {
     render_graph::VKDrawNode::CreateInfo draw(resource_access_info);
@@ -58,7 +58,7 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
     vao.bind(draw.node_data.vertex_buffers);
     context.update_pipeline_data(prim_type, vao, draw.node_data.pipeline_data);
 
-    context.render_graph.add_node(draw);
+    context.render_graph().add_node(draw);
   }
 }
 
@@ -108,7 +108,7 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
     vao.bind(draw_indexed_indirect.node_data.vertex_buffers);
     context.update_pipeline_data(prim_type, vao, draw_indexed_indirect.node_data.pipeline_data);
 
-    context.render_graph.add_node(draw_indexed_indirect);
+    context.render_graph().add_node(draw_indexed_indirect);
   }
   else {
     render_graph::VKDrawIndirectNode::CreateInfo draw(resource_access_info);
@@ -119,7 +119,7 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
     vao.bind(draw.node_data.vertex_buffers);
     context.update_pipeline_data(prim_type, vao, draw.node_data.pipeline_data);
 
-    context.render_graph.add_node(draw);
+    context.render_graph().add_node(draw);
   }
 }
 

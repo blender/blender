@@ -88,7 +88,7 @@ void VKStorageBuffer::copy_sub(VertBuf *src, uint dst_offset, uint src_offset, u
   copy_buffer.region.size = copy_size;
 
   VKContext &context = *VKContext::get();
-  context.render_graph.add_node(copy_buffer);
+  context.render_graph().add_node(copy_buffer);
 }
 
 void VKStorageBuffer::async_flush_to_host()

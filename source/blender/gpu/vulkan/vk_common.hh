@@ -25,6 +25,8 @@
 
 namespace blender::gpu {
 
+using TimelineValue = uint64_t;
+
 /**
  * Based on the usage of an Image View a different image view type should be created.
  *

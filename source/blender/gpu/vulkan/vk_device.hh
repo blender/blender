@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <atomic>
+
+#include "BLI_task.h"
+#include "BLI_threads.h"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
@@ -148,6 +152,35 @@ class VKDevice : public NonCopyable {
   uint32_t vk_queue_family_ = 0;
   VkQueue vk_queue_ = VK_NULL_HANDLE;
   std::mutex *queue_mutex_ = nullptr;
+
+  /**
+   * Lifetime of the device.
+   *
+   * Used for deinitialization of the command builder thread.
+   */
+  enum Lifetime {
+    UNINITIALIZED,
+    RUNNING,
+    DEINITIALIZING,
+    DESTROYED,
+  };
+  Lifetime lifetime = Lifetime::UNINITIALIZED;
+  /**
+   * Task pool for render graph submission.
+   *
+   * Multiple threads in Blender can build a render graph. Building the command buffer for a render
+   * graph is faster when doing it in serial. Submission pool ensures that only one task is
+   * building at a time (background_serial).
+   */
+  TaskPool *submission_pool_ = nullptr;
+  /**
+   * All created render graphs.
+   */
+  Vector<render_graph::VKRenderGraph *> render_graphs_;
+  ThreadQueue *submitted_render_graphs_ = nullptr;
+  ThreadQueue *unused_render_graphs_ = nullptr;
+  VkSemaphore vk_timeline_semaphore_ = VK_NULL_HANDLE;
+  std::atomic<uint_least64_t> timeline_value_ = 0;
 
   VKSamplers samplers_;
   VKDescriptorSetLayouts descriptor_set_layouts_;
@@ -314,6 +347,31 @@ class VKDevice : public NonCopyable {
   void init_glsl_patch();
 
   /* -------------------------------------------------------------------- */
+  /** \name Render graph
+   * \{ */
+  static void submission_runner(TaskPool *__restrict pool, void *task_data);
+  render_graph::VKRenderGraph *render_graph_new();
+
+  TimelineValue render_graph_submit(render_graph::VKRenderGraph *render_graph,
+                                    VKDiscardPool &context_discard_pool,
+                                    bool submit_to_device,
+                                    bool wait_for_completion);
+  void wait_for_timeline(TimelineValue timeline);
+
+  /**
+   * Retrieve the last finished submission timeline.
+   */
+  TimelineValue submission_finished_timeline_get() const
+  {
+    BLI_assert(vk_timeline_semaphore_ != VK_NULL_HANDLE);
+    TimelineValue current_timeline;
+    vkGetSemaphoreCounterValue(vk_device_, vk_timeline_semaphore_, &current_timeline);
+    return current_timeline;
+  }
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
   /** \name Resource management
    * \{ */
 
@@ -322,6 +380,7 @@ class VKDevice : public NonCopyable {
    */
   VKThreadData &current_thread_data();
 
+#if 0
   /**
    * Get the discard pool for the current thread.
    *
@@ -337,6 +396,7 @@ class VKDevice : public NonCopyable {
    * function without trying to reacquire resources mutex making a deadlock.
    */
   VKDiscardPool &discard_pool_for_current_thread(bool thread_safe = false);
+#endif
 
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
@@ -345,8 +405,6 @@ class VKDevice : public NonCopyable {
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
   static void debug_print(std::ostream &os, const VKDiscardPool &discard_pool);
   void debug_print();
-
-  void free_command_pool_buffers(VkCommandPool vk_command_pool);
 
   /** \} */
 
@@ -357,6 +415,8 @@ class VKDevice : public NonCopyable {
   void init_physical_device_extensions();
   void init_debug_callbacks();
   void init_memory_allocator();
+  void init_submission_pool();
+  void deinit_submission_pool();
   /**
    * Initialize the functions struct with extension specific function pointer.
    */

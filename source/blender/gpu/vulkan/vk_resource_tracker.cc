@@ -12,7 +12,7 @@
 namespace blender::gpu {
 bool VKSubmissionTracker::is_changed(const VKContext &context)
 {
-  const VKSubmissionID &current_id = context.render_graph.submission_id;
+  const VKSubmissionID &current_id = context.render_graph().submission_id;
   if (last_known_id_ != current_id) {
     last_known_id_ = current_id;
     return true;

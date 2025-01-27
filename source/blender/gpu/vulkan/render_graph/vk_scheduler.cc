@@ -22,7 +22,6 @@ Span<NodeHandle> VKScheduler::select_nodes(const VKRenderGraph &render_graph)
   for (NodeHandle node_handle : render_graph.nodes_.index_range()) {
     result_.append(node_handle);
   }
-
   reorder_nodes(render_graph);
   return result_;
 }

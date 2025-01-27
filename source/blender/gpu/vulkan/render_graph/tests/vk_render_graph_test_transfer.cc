@@ -20,7 +20,7 @@ TEST_F(VKRenderGraphTestTransfer, fill_and_read_back)
   resources.add_buffer(buffer);
   VKFillBufferNode::CreateInfo fill_buffer = {buffer, 1024, 42};
   render_graph->add_node(fill_buffer);
-  render_graph->submit_for_read();
+  submit(render_graph, command_buffer);
 
   EXPECT_EQ(1, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=42)", log[0]);
@@ -47,7 +47,7 @@ TEST_F(VKRenderGraphTestTransfer, fill_transfer_and_read_back)
   copy_buffer.region.size = 1024;
   render_graph->add_node(copy_buffer);
 
-  render_graph->submit_for_read();
+  submit(render_graph, command_buffer);
 
   EXPECT_EQ(3, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=42)", log[0]);
@@ -79,7 +79,7 @@ TEST_F(VKRenderGraphTestTransfer, fill_fill_read_back)
   render_graph->add_node(fill_buffer_1);
   VKFillBufferNode::CreateInfo fill_buffer_2 = {buffer, 1024, 42};
   render_graph->add_node(fill_buffer_2);
-  render_graph->submit_for_read();
+  submit(render_graph, command_buffer);
 
   EXPECT_EQ(3, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=0)", log[0]);
@@ -142,7 +142,7 @@ TEST_F(VKRenderGraphTestTransfer, clear_clear_copy_and_read_back)
   render_graph->add_node(clear_color_image_dst);
   render_graph->add_node(copy_image);
   render_graph->add_node(copy_dst_image_to_buffer);
-  render_graph->submit_for_read();
+  submit(render_graph, command_buffer);
 
   EXPECT_EQ(8, log.size());
   EXPECT_EQ(
@@ -268,7 +268,7 @@ TEST_F(VKRenderGraphTestTransfer, clear_blit_copy_and_read_back)
   VKBlitImageNode::CreateInfo blit_image = {src_image, dst_image, vk_image_blit, VK_FILTER_LINEAR};
   render_graph->add_node(blit_image);
   render_graph->add_node(copy_dst_image_to_buffer);
-  render_graph->submit_for_read();
+  submit(render_graph, command_buffer);
 
   EXPECT_EQ(6, log.size());
   EXPECT_EQ(

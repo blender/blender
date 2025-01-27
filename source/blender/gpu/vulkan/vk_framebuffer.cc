@@ -47,13 +47,13 @@ VKFrameBuffer::~VKFrameBuffer()
 
 void VKFrameBuffer::render_pass_free()
 {
-  VKDevice &device = VKBackend::get().device;
+  VKDiscardPool &discard_pool = VKDiscardPool::discard_pool_get();
   if (vk_framebuffer != VK_NULL_HANDLE) {
-    device.discard_pool_for_current_thread().discard_framebuffer(vk_framebuffer);
+    discard_pool.discard_framebuffer(vk_framebuffer);
     vk_framebuffer = VK_NULL_HANDLE;
   }
   if (vk_render_pass != VK_NULL_HANDLE) {
-    device.discard_pool_for_current_thread().discard_render_pass(vk_render_pass);
+    discard_pool.discard_render_pass(vk_render_pass);
     vk_render_pass = VK_NULL_HANDLE;
   }
 }
@@ -202,7 +202,7 @@ void VKFrameBuffer::clear(render_graph::VKClearAttachmentsNode::CreateInfo &clea
 {
   VKContext &context = *VKContext::get();
   rendering_ensure(context);
-  context.render_graph.add_node(clear_attachments);
+  context.render_graph().add_node(clear_attachments);
 }
 
 void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
@@ -475,7 +475,7 @@ static void blit_aspect(VKContext &context,
                                   dst_texture.height_get());
   region.dstOffsets[1].z = 1;
 
-  context.render_graph.add_node(blit_image);
+  context.render_graph().add_node(blit_image);
 }
 
 void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
@@ -780,7 +780,7 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
   begin_info.framebuffer = vk_framebuffer;
   render_area_update(begin_info.renderArea);
 
-  context.render_graph.add_node(begin_rendering);
+  context.render_graph().add_node(begin_rendering);
 
   /* Load store operations are not supported inside a render pass.
    * It requires duplicating render passes and frame-buffers to support suspend/resume rendering.
@@ -813,7 +813,7 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
       render_area_update(clear_attachments.vk_clear_rect.rect);
       clear_attachments.vk_clear_rect.baseArrayLayer = 0;
       clear_attachments.vk_clear_rect.layerCount = 1;
-      context.render_graph.add_node(clear_attachments);
+      context.render_graph().add_node(clear_attachments);
     }
   }
 }
@@ -970,7 +970,7 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
     break;
   }
 
-  context.render_graph.add_node(begin_rendering);
+  context.render_graph().add_node(begin_rendering);
 }
 
 void VKFrameBuffer::rendering_ensure(VKContext &context)
@@ -1030,7 +1030,7 @@ void VKFrameBuffer::rendering_end(VKContext &context)
       BLI_assert(vk_render_pass);
       end_rendering.vk_render_pass = vk_render_pass;
     }
-    context.render_graph.add_node(end_rendering);
+    context.render_graph().add_node(end_rendering);
     is_rendering_ = false;
   }
 }

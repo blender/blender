@@ -117,7 +117,7 @@ void VKImmediate::end()
     vertex_attributes_.bind(draw.node_data.vertex_buffers);
     context.update_pipeline_data(prim_type, vertex_attributes_, draw.node_data.pipeline_data);
 
-    context.render_graph.add_node(draw);
+    context.render_graph().add_node(draw);
   }
 
   buffer_offset_ += current_subbuffer_len_;

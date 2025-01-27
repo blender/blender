@@ -54,7 +54,15 @@ TEST_P(VKRenderGraphTestScheduler, begin_rendering_copy_buffer_end_rendering)
     render_graph->add_node(end_rendering);
   }
 
-  render_graph->submit_for_present(image);
+  {
+    render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
+    synchronization.vk_image = image;
+    synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    render_graph->add_node(synchronization);
+  }
+
+  submit(render_graph, command_buffer);
   EXPECT_EQ(6, log.size());
 
   EXPECT_EQ(
@@ -169,7 +177,15 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_end)
     render_graph->add_node(end_rendering);
   }
 
-  render_graph->submit_for_present(image);
+  {
+    render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
+    synchronization.vk_image = image;
+    synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    render_graph->add_node(synchronization);
+  }
+
+  submit(render_graph, command_buffer);
   EXPECT_EQ(7, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
@@ -290,7 +306,15 @@ TEST_P(VKRenderGraphTestScheduler, begin_copy_buffer_clear_attachments_end)
     render_graph->add_node(end_rendering);
   }
 
-  render_graph->submit_for_present(image);
+  {
+    render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
+    synchronization.vk_image = image;
+    synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    render_graph->add_node(synchronization);
+  }
+
+  submit(render_graph, command_buffer);
   EXPECT_EQ(7, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
@@ -427,7 +451,15 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_clear_att
     render_graph->add_node(end_rendering);
   }
 
-  render_graph->submit_for_present(image);
+  {
+    render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
+    synchronization.vk_image = image;
+    synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    render_graph->add_node(synchronization);
+  }
+
+  submit(render_graph, command_buffer);
   ASSERT_EQ(8, log.size());
 
   EXPECT_EQ(
@@ -585,7 +617,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
     render_graph->add_node(end_rendering);
   }
 
-  render_graph->submit();
+  submit(render_graph, command_buffer);
   ASSERT_EQ(12, log.size());
 
   EXPECT_EQ(
@@ -800,7 +832,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
     render_graph->add_node(end_rendering);
   }
 
-  render_graph->submit();
+  submit(render_graph, command_buffer);
   ASSERT_EQ(17, log.size());
   EXPECT_EQ("update_buffer(dst_buffer=0x1, dst_offset=0, data_size=16)", log[0]);
   EXPECT_EQ("update_buffer(dst_buffer=0x2, dst_offset=0, data_size=24)", log[1]);
@@ -997,7 +1029,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
     render_graph->add_node(end_rendering);
   }
 
-  render_graph->submit();
+  submit(render_graph, command_buffer);
   ASSERT_EQ(11, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "

@@ -67,13 +67,13 @@ void VKQueryPool::begin_query()
     reset_query_pool.vk_query_pool = vk_query_pool;
     reset_query_pool.first_query = 0;
     reset_query_pool.query_count = query_chunk_len_;
-    context.render_graph.add_node(reset_query_pool);
+    context.render_graph().add_node(reset_query_pool);
   }
 
   render_graph::VKBeginQueryNode::Data begin_query = {};
   begin_query.vk_query_pool = vk_query_pool;
   begin_query.query_index = query_index_in_pool();
-  context.render_graph.add_node(begin_query);
+  context.render_graph().add_node(begin_query);
 }
 
 void VKQueryPool::end_query()
@@ -82,7 +82,7 @@ void VKQueryPool::end_query()
   render_graph::VKEndQueryNode::Data end_query = {};
   end_query.vk_query_pool = vk_query_pools_.last();
   end_query.query_index = query_index_in_pool();
-  context.render_graph.add_node(end_query);
+  context.render_graph().add_node(end_query);
   queries_issued_ += 1;
 }
 
@@ -93,7 +93,9 @@ void VKQueryPool::get_occlusion_result(MutableSpan<uint32_t> r_values)
    * ensure the END_RENDERING node */
   context.rendering_end();
   context.descriptor_set_get().upload_descriptor_sets();
-  context.render_graph.submit();
+  context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
+                             RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
+                             RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
 
   int queries_left = queries_issued_;
   int pool_index = 0;
