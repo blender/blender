@@ -26,28 +26,24 @@ static void node_declare(NodeDeclarationBuilder &b)
           "angles are negative. Computing this value is slower than the unsigned angle");
 }
 
-struct EdgeMapEntry {
-  int face_count;
-  int face_index_1;
-  int face_index_2;
-};
-
-static Array<EdgeMapEntry> create_edge_map(const OffsetIndices<int> faces,
-                                           const Span<int> corner_edges,
-                                           const int total_edges)
+static Array<int2> create_edge_map(const OffsetIndices<int> faces,
+                                   const Span<int> corner_edges,
+                                   const int total_edges)
 {
-  Array<EdgeMapEntry> edge_map(total_edges, {0, 0, 0});
+  Array<int2> edge_map(total_edges, int2(-1));
 
   for (const int i_face : faces.index_range()) {
     for (const int edge : corner_edges.slice(faces[i_face])) {
-      EdgeMapEntry &entry = edge_map[edge];
-      if (entry.face_count == 0) {
-        entry.face_index_1 = i_face;
+      int2 &entry = edge_map[edge];
+      if (entry[0] == -1) {
+        entry[0] = i_face;
       }
-      else if (entry.face_count == 1) {
-        entry.face_index_2 = i_face;
+      else if (entry[1] == -1) {
+        entry[1] = i_face;
       }
-      entry.face_count++;
+      else {
+        entry = int2(-2);
+      }
     }
   }
   return edge_map;
@@ -68,15 +64,15 @@ class AngleFieldInput final : public bke::MeshFieldInput {
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
+    Array<int2> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
 
     auto angle_fn =
         [edge_map = std::move(edge_map), positions, faces, corner_verts](const int i) -> float {
-      if (edge_map[i].face_count != 2) {
+      if (edge_map[i][0] < 0 || edge_map[i][1] < 0) {
         return 0.0f;
       }
-      const IndexRange face_1 = faces[edge_map[i].face_index_1];
-      const IndexRange face_2 = faces[edge_map[i].face_index_2];
+      const IndexRange face_1 = faces[edge_map[i][0]];
+      const IndexRange face_2 = faces[edge_map[i][1]];
       const float3 normal_1 = bke::mesh::face_normal_calc(positions, corner_verts.slice(face_1));
       const float3 normal_2 = bke::mesh::face_normal_calc(positions, corner_verts.slice(face_2));
       return angle_normalized_v3v3(normal_1, normal_2);
@@ -119,15 +115,17 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
+    Array<int2> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
 
     auto angle_fn = [edge_map = std::move(edge_map), positions, edges, faces, corner_verts](
                         const int i) -> float {
-      if (edge_map[i].face_count != 2) {
+      if (edge_map[i][0] < 0 || edge_map[i][1] < 0) {
         return 0.0f;
       }
-      const IndexRange face_1 = faces[edge_map[i].face_index_1];
-      const IndexRange face_2 = faces[edge_map[i].face_index_2];
+      const int face_index_1 = edge_map[i][0];
+      const int face_index_2 = edge_map[i][1];
+      const IndexRange face_1 = faces[face_index_1];
+      const IndexRange face_2 = faces[face_index_2];
 
       /* Find the normals of the 2 faces. */
       const float3 face_1_normal = bke::mesh::face_normal_calc(positions,
@@ -136,7 +134,8 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
                                                                corner_verts.slice(face_2));
 
       /* Find the centerpoint of the axis edge */
-      const float3 edge_centerpoint = (positions[edges[i][0]] + positions[edges[i][1]]) * 0.5f;
+      const float3 edge_centerpoint = math::midpoint(positions[edges[i][0]],
+                                                     positions[edges[i][1]]);
 
       /* Get the centerpoint of face 2 and subtract the edge centerpoint to get a tangent
        * normal for face 2. */
