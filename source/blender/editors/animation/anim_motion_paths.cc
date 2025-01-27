@@ -459,8 +459,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     mpt->keylist = ED_keylist_create();
 
     ListBase *fcurve_list = nullptr;
-    if (adt) {
-      /* get pointer to animviz settings for each target */
+    if (adt && adt->action) {
+      /* Get pointer to animviz settings for each target. */
       bAnimVizSettings *avs = animviz_target_settings_get(mpt);
 
       /* it is assumed that keyframes for bones are all grouped in a single group
