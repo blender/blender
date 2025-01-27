@@ -666,6 +666,45 @@ TEST_F(ActionLayersTest, generic_slot_for_autoassign)
             generic_slot_for_autoassign(cube->id, *this->action, cube->adt->last_slot_identifier));
 }
 
+TEST_F(ActionLayersTest, generic_slot_for_autoassign_untyped_wildcarding)
+{
+  /* Test the untyped slot "wildcard" behaviour, where OBSlot should be chosen when the last slot
+   * identifier was "XXSlot", and vice versa. */
+
+  /* ===
+   * Action has OBSlot, last-used slot is XXSlot. Should pick OBSlot. */
+  AnimData *adt = BKE_animdata_ensure_id(&cube->id);
+  STRNCPY_UTF8(adt->last_slot_identifier, "XXSlot");
+  Slot &ob_slot = action->slot_add_for_id_type(ID_OB);
+  action->slot_identifier_define(ob_slot, "OBSlot");
+
+  EXPECT_EQ(&ob_slot,
+            generic_slot_for_autoassign(cube->id, *this->action, adt->last_slot_identifier));
+
+  /* ===
+   * Action has OBSlot and XXSlot, last-used slot is XXSlot. Should pick OBSlot. */
+  Slot &xx_slot = action->slot_add();
+  action->slot_identifier_define(xx_slot, "XXSlot");
+  ASSERT_FALSE(xx_slot.has_idtype());
+  ASSERT_STREQ("XXSlot", xx_slot.identifier);
+  ASSERT_STREQ("XXSlot", adt->last_slot_identifier);
+  EXPECT_EQ(&ob_slot,
+            generic_slot_for_autoassign(cube->id, *this->action, adt->last_slot_identifier));
+
+  /* ===
+   * Action has OBSlot and XXSlot, last-used slot is OBSlot. Should pick OBSlot. */
+  STRNCPY_UTF8(adt->last_slot_identifier, "OBSlot");
+  EXPECT_EQ(&ob_slot,
+            generic_slot_for_autoassign(cube->id, *this->action, adt->last_slot_identifier));
+
+  /* ===
+   * Action has XXSlot, last-used slot is OBSlot. Should pick XXSlot. */
+  action->slot_remove(ob_slot);
+  ASSERT_STREQ("OBSlot", adt->last_slot_identifier);
+  EXPECT_EQ(&xx_slot,
+            generic_slot_for_autoassign(cube->id, *this->action, adt->last_slot_identifier));
+}
+
 TEST_F(ActionLayersTest, active_slot)
 {
   { /* Empty case, no slots exist yet. */

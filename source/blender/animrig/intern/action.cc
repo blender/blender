@@ -1351,9 +1351,48 @@ Slot *generic_slot_for_autoassign(const ID &animated_id,
 
   /* Try the slot identifier, if it is set. */
   if (!last_slot_identifier.is_empty()) {
+    /* If the last-used slot identifier was 'untyped', i.e. started with XX, see if something more
+     * specific to this ID type exists.
+     *
+     * If there is any choice in the matter, the more specific slot is chosen. In other words, in
+     * this case:
+     *
+     * - last_slot_identifier = `XXSlot`
+     * - both `XXSlot` and `OBSlot` exist on the Action (where `OB` represents the ID type of
+     *   `animated_id`).
+     *
+     * the `OBSlot` should be chosen. This means that `XXSlot` NOT being auto-assigned if there is
+     * an alternative. Since untyped slots are bound on assignment, this design keeps the Action
+     * as-is, which means that the `XXSlot` remains untyped and thus the user is free to assign
+     * this to another ID type if desired.  */
+
+    const bool last_used_identifier_is_typed = last_slot_identifier.substr(0, 2) !=
+                                               slot_untyped_prefix;
+    if (!last_used_identifier_is_typed) {
+      const std::string with_idtype_prefix = StringRef(animated_id.name, 2) +
+                                             last_slot_identifier.substr(2);
+      Slot *slot = action.slot_find_by_identifier(with_idtype_prefix);
+      if (slot && slot->is_suitable_for(animated_id)) {
+        return slot;
+      }
+    }
+
+    /* See if the actual last-used slot identifier can be matched. */
     Slot *slot = action.slot_find_by_identifier(last_slot_identifier);
     if (slot && slot->is_suitable_for(animated_id)) {
       return slot;
+    }
+
+    /* If the last-used slot identifier was IDSomething, and XXSomething exists (where ID = the
+     * ID code of the animated ID), fall back to the XX. If slot `IDSomething` existed, the code
+     * above would have already returned it. */
+    if (last_used_identifier_is_typed) {
+      const std::string with_untyped_prefix = StringRef(slot_untyped_prefix) +
+                                              last_slot_identifier.substr(2);
+      Slot *slot = action.slot_find_by_identifier(with_untyped_prefix);
+      if (slot && slot->is_suitable_for(animated_id)) {
+        return slot;
+      }
     }
   }
 
