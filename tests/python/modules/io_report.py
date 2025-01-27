@@ -343,10 +343,20 @@ class Report:
         if not tex or not tex.image:
             return ""
         # Get relative path of the image
-        try:
-            rel_path = pathlib.Path(tex.image.filepath).relative_to(self.input_dir).as_posix()
-        except ValueError:
-            rel_path = "<outside of test folder>"
+        tex_path = pathlib.Path(tex.image.filepath)
+        if tex.image.filepath.startswith('//'):  # already relative
+            rel_path = tex.image.filepath.replace('\\', '/')
+        elif tex_path.root == '':
+            rel_path = tex_path.as_posix()  # use just the filename
+        else:
+            try:
+                # note: we can't use Path.relative_to since walk_up parameter is only since Python 3.12
+                rel_path = pathlib.Path(os.path.relpath(tex_path, self.input_dir)).as_posix()
+            except ValueError:
+                rel_path = f"<outside of test folder>"
+        if rel_path.startswith('../../..'):  # if relative path is too high up, just emit filename
+            rel_path = tex_path.name
+
         desc = f" tex:'{tex.image.name}' ({rel_path}) a:{tex.use_alpha}"
         if str(tex.colorspace_is_data) == "True":  # unset value is "Ellipsis"
             desc += f" data"
@@ -540,6 +550,19 @@ class Report:
                 if (wrap.normalmap_texture and wrap.normalmap_texture.image):
                     desc.write(
                         f"  - normalmap {wrap.normalmap_strength:.3f}{self._node_shader_image_desc(wrap.normalmap_texture)}\n")
+                if mat.alpha_threshold != 0.5:
+                    desc.write(f"  - alpha_threshold {fmtf(mat.alpha_threshold)}\n")
+                if mat.surface_render_method != 'DITHERED':
+                    desc.write(f"  - surface_render_method {mat.surface_render_method}\n")
+                if mat.displacement_method != 'BUMP':
+                    desc.write(f"  - displacement {mat.displacement_method}\n")
+                desc.write(
+                    f"  - viewport diffuse ({fmtf(mat.diffuse_color[0])}, {fmtf(mat.diffuse_color[1])}, {fmtf(mat.diffuse_color[2])}, {fmtf(mat.diffuse_color[3])})\n")
+                desc.write(
+                    f"  - viewport specular ({fmtf(mat.specular_color[0])}, {fmtf(mat.specular_color[1])}, {fmtf(mat.specular_color[2])}), intensity {fmtf(mat.specular_intensity)}\n")
+                desc.write(f"  - viewport metallic {fmtf(mat.metallic)}, roughness {fmtf(mat.roughness)}\n")
+                desc.write(
+                    f"  - backface {mat.use_backface_culling} probe {mat.use_backface_culling_lightprobe_volume} shadow {mat.use_backface_culling_shadow}\n")
                 Report._write_animdata_desc(mat.animation_data, desc)
                 Report._write_custom_props(mat, desc)
                 desc.write(f"\n")
@@ -561,16 +584,26 @@ class Report:
         if len(bpy.data.armatures):
             desc.write(f"==== Armatures: {len(bpy.data.armatures)}\n")
             for arm in bpy.data.armatures:
-                desc.write(f"- Armature '{arm.name}' {len(arm.bones)} bones\n")
+                desc.write(f"- Armature '{arm.name}' {len(arm.bones)} bones")
+                if arm.display_type != 'OCTAHEDRAL':
+                    desc.write(f" display:{arm.display_type}")
+                desc.write("\n")
                 for bone in arm.bones:
                     desc.write(f"  - bone '{bone.name}'")
                     if bone.parent:
                         desc.write(f" parent:'{bone.parent.name}'")
                     desc.write(
-                        f" h:({fmtf(bone.head[0])}, {fmtf(bone.head[1])}, {fmtf(bone.head[2])}) t:({fmtf(bone.tail[0]):}, {fmtf(bone.tail[1])}, {fmtf(bone.tail[2])})")
+                        f" h:({fmtf(bone.head[0])}, {fmtf(bone.head[1])}, {fmtf(bone.head[2])}) t:({fmtf(bone.tail[0])}, {fmtf(bone.tail[1])}, {fmtf(bone.tail[2])})")
+                    if bone.inherit_scale != 'FULL':
+                        desc.write(f" inh_scale:{bone.inherit_scale}")
                     if bone.head_radius > 0.0 or bone.tail_radius > 0.0:
                         desc.write(f" radius h:{bone.head_radius:.3f} t:{bone.tail_radius:.3f}")
                     desc.write(f"\n")
+                    mtx = bone.matrix_local
+                    desc.write(f"      {fmtf(mtx[0][0])} {fmtf(mtx[0][1])} {fmtf(mtx[0][2])} {fmtf(mtx[0][3])}\n")
+                    desc.write(f"      {fmtf(mtx[1][0])} {fmtf(mtx[1][1])} {fmtf(mtx[1][2])} {fmtf(mtx[1][3])}\n")
+                    desc.write(f"      {fmtf(mtx[2][0])} {fmtf(mtx[2][1])} {fmtf(mtx[2][2])} {fmtf(mtx[2][3])}\n")
+                    # mtx[3] is always 0,0,0,1, not worth printing it
                 desc.write(f"\n")
 
         # images
