@@ -219,7 +219,6 @@ char *GPU_material_split_sub_function(GPUMaterial *material,
                                       eGPUType return_type,
                                       GPUNodeLink **link);
 
-bool GPU_material_sss_profile_create(GPUMaterial *material, float radii[3]);
 /**
  * High level functions to create and use GPU materials.
  */

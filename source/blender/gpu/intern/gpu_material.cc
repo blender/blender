@@ -133,11 +133,6 @@ struct GPUMaterial {
   bool has_surface_output;
   bool has_volume_output;
   bool has_displacement_output;
-  /** DEPRECATED: To remove. */
-  GPUUniformBuf *sss_profile;  /* UBO containing SSS profile. */
-  GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
-  bool sss_enabled;
-  float sss_radii[3];
 
   uint32_t refcount;
 
@@ -279,12 +274,6 @@ void GPU_material_free_single(GPUMaterial *material)
   if (material->sky_tex != nullptr) {
     GPU_texture_free(material->sky_tex);
   }
-  if (material->sss_profile != nullptr) {
-    GPU_uniformbuf_free(material->sss_profile);
-  }
-  if (material->sss_tex_profile != nullptr) {
-    GPU_texture_free(material->sss_tex_profile);
-  }
   MEM_freeN(material);
 }
 
@@ -371,43 +360,6 @@ const ListBase *GPU_material_layer_attributes(const GPUMaterial *material)
   const ListBase *attrs = &material->graph.layer_attrs;
   return !BLI_listbase_is_empty(attrs) ? attrs : nullptr;
 }
-
-#if 1 /* End of life code. */
-/* Eevee Subsurface scattering. */
-/* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */
-
-#  define SSS_SAMPLES 65
-#  define SSS_EXPONENT 2.0f /* Importance sampling exponent */
-
-struct GPUSssKernelData {
-  float kernel[SSS_SAMPLES][4];
-  float param[3], max_radius;
-  float avg_inv_radius;
-  int samples;
-  int pad[2];
-};
-
-BLI_STATIC_ASSERT_ALIGN(GPUSssKernelData, 16)
-
-bool GPU_material_sss_profile_create(GPUMaterial *material, float radii[3])
-{
-  /* Enable only once. */
-  if (material->sss_enabled) {
-    return false;
-  }
-  copy_v3_v3(material->sss_radii, radii);
-  material->sss_enabled = true;
-
-  /* Update / Create UBO */
-  if (material->sss_profile == nullptr) {
-    material->sss_profile = GPU_uniformbuf_create(sizeof(GPUSssKernelData));
-  }
-  return true;
-}
-
-#  undef SSS_EXPONENT
-#  undef SSS_SAMPLES
-#endif
 
 void GPU_material_output_surface(GPUMaterial *material, GPUNodeLink *link)
 {
