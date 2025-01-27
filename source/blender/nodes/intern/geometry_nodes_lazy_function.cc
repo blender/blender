@@ -4020,6 +4020,9 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
   if (btree.has_available_link_cycle()) {
     return nullptr;
   }
+  if (btree.type != NTREE_GEOMETRY) {
+    return nullptr;
+  }
   const bNodeTreeZones *tree_zones = btree.zones();
   if (tree_zones == nullptr) {
     return nullptr;
