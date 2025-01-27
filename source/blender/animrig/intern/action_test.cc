@@ -722,6 +722,63 @@ TEST_F(ActionLayersTest, active_slot)
   }
 }
 
+TEST_F(ActionLayersTest, assign_action_ensure_slot_for_keying)
+{
+  { /* Slotless Action, should create a typed slot. */
+    Action &action = action_add(*this->bmain, "ACEmpty");
+    Slot *chosen_slot = assign_action_ensure_slot_for_keying(action, cube->id);
+    ASSERT_NE(nullptr, chosen_slot);
+    EXPECT_EQ(ID_OB, chosen_slot->idtype);
+    EXPECT_STREQ("OBKüüübus", chosen_slot->identifier);
+  }
+
+  { /* Single slot with same name as ID, Action not yet assigned. Should assign the Action and the
+       slot. */
+    Action &action = action_add(*this->bmain, "ACAction");
+    const Slot &slot_for_id = action.slot_add_for_id(cube->id);
+    Slot *chosen_slot = assign_action_ensure_slot_for_keying(action, cube->id);
+    ASSERT_NE(nullptr, chosen_slot);
+    EXPECT_EQ(&slot_for_id, chosen_slot) << "The expected slot should be chosen";
+    EXPECT_EQ(cube->adt->action, &action) << "The Action should be assigned";
+    EXPECT_EQ(cube->adt->slot_handle, chosen_slot->handle) << "The chosen slot should be assigned";
+  }
+
+  { /* Single slot with same name as ID, Action already assigned but not the slot. Should create
+     * new slot. */
+    Action &action = action_add(*this->bmain, "ACAction");
+    const Slot &slot_for_id = action.slot_add_for_id(cube->id);
+    ASSERT_EQ(ActionSlotAssignmentResult::OK, assign_action_and_slot(&action, nullptr, cube->id));
+
+    Slot *chosen_slot = assign_action_ensure_slot_for_keying(action, cube->id);
+    ASSERT_NE(nullptr, chosen_slot);
+    EXPECT_NE(&slot_for_id, chosen_slot) << "A new slot should be chosen";
+    EXPECT_STREQ("OBKüüübus.001", chosen_slot->identifier);
+    EXPECT_EQ(cube->adt->action, &action) << "The Action should be assigned";
+    EXPECT_EQ(cube->adt->slot_handle, chosen_slot->handle) << "The chosen slot should be assigned";
+  }
+
+  { /* Single untyped slot, Action already assigned but not the slot. Should assign the untyped
+     * slot. */
+    Action &action = action_add(*this->bmain, "ACAction");
+
+    /* Assign the Action before adding the untyped slot, otherwise the slot gets assigned & thus
+     * typed. */
+    ASSERT_EQ(ActionSlotAssignmentResult::OK, assign_action_and_slot(&action, nullptr, cube->id));
+
+    Slot &untyped_slot = action.slot_add();
+    action.slot_identifier_define(untyped_slot, "XXJust A Slot");
+
+    Slot *chosen_slot = assign_action_ensure_slot_for_keying(action, cube->id);
+
+    ASSERT_NE(nullptr, chosen_slot);
+    EXPECT_EQ(&untyped_slot, chosen_slot) << "The untyped slot should be chosen";
+    EXPECT_TRUE(untyped_slot.has_idtype()) << "Slot should have gotten an ID type";
+    EXPECT_STREQ("OBJust A Slot", untyped_slot.identifier);
+    EXPECT_EQ(cube->adt->action, &action) << "The Action should be assigned";
+    EXPECT_EQ(cube->adt->slot_handle, chosen_slot->handle) << "The chosen slot should be assigned";
+  }
+}
+
 TEST_F(ActionLayersTest, strip)
 {
   constexpr float inf = std::numeric_limits<float>::infinity();

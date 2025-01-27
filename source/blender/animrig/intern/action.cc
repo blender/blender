@@ -1217,31 +1217,22 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
 
   /* Find a suitable slot, but be stricter about when to allow searching by name
    * than generic_slot_for_autoassign(...). */
-  {
-    if (adt && adt->action == &action) {
-      /* The slot handle is only valid when this action is already assigned.
-       * Otherwise it's meaningless. */
-      slot = action.slot_for_handle(adt->slot_handle);
+  if (adt && adt->action == &action) {
+    /* The slot handle is only valid when this action is already assigned.
+     * Otherwise it's meaningless. */
+    slot = action.slot_for_handle(adt->slot_handle);
 
-      /* If this Action is already assigned, a search by name is inappropriate, as it might
-       * re-assign an intentionally-unassigned slot. */
-    }
-    else {
-      /* Try the slot identifier from the AnimData, if it is set. */
-      if (adt && adt->last_slot_identifier[0]) {
-        slot = action.slot_find_by_identifier(adt->last_slot_identifier);
-      }
-      else {
-        /* Search for the ID name (which includes the ID type). */
-        slot = action.slot_find_by_identifier(animated_id.name);
-      }
-    }
+    /* If this Action is already assigned, a search by name is inappropriate, as it might
+     * re-assign an intentionally-unassigned slot. */
+  }
+  else {
+    /* In this case a by-name search is ok, so defer to generic_slot_for_autoassign(). */
+    slot = generic_slot_for_autoassign(animated_id, action, adt ? adt->last_slot_identifier : "");
   }
 
-  /* As a last resort, if there is only one slot and it has no ID type yet, use
-   * that. This is what gets created for the backwards compatibility RNA API,
-   * for example to allow `action.fcurves.new()`. Key insertion should use that
-   * slot as well. */
+  /* As a last resort, if there is only one slot and it has no ID type yet, use that. This is what
+   * gets created for the backwards compatibility RNA API, for example to allow
+   * `action.fcurves.new()`. Key insertion should use that slot as well. */
   if (!slot && action.slots().size() == 1) {
     Slot *first_slot = action.slot(0);
     if (!first_slot->has_idtype()) {
