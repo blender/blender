@@ -4110,7 +4110,6 @@ static void widget_pulldownbut(uiWidgetColors *wcol,
     if (state->but_flag & UI_HOVER) {
       copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
       copy_v3_v3_uchar(wcol->text, wcol->text_sel);
-      copy_v3_v3_uchar(wcol->outline, wcol->inner);
     }
     else {
       wcol->inner[3] *= 1.0f - back[3];
