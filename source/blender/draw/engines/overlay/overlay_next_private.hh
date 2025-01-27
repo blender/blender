@@ -790,7 +790,7 @@ struct Resources : public select::SelectMap {
   {
     if (state.v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD) {
       if (state.scene->world) {
-        return float4(float3(&state.scene->world->horr));
+        return float4(float3(&state.scene->world->horr), 0.0f);
       }
     }
     else if (state.v3d->shading.background_type == V3D_SHADING_BACKGROUND_VIEWPORT) {
