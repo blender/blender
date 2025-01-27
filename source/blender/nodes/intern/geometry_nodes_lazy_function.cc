@@ -4021,6 +4021,8 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
     return nullptr;
   }
   if (btree.type != NTREE_GEOMETRY) {
+    /* It's possible to get into this situation when localizing a linked node group that is
+     * missing (#133524). */
     return nullptr;
   }
   const bNodeTreeZones *tree_zones = btree.zones();
