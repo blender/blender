@@ -3572,8 +3572,8 @@ static void rna_def_object(BlenderRNA *brna)
   /* shape keys */
   prop = RNA_def_property(srna, "show_only_shape_key", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "shapeflag", OB_SHAPE_LOCK);
-  RNA_def_property_ui_text(prop, "Shape Key Lock", "Only show the active shape key at full value");
-  RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+  RNA_def_property_ui_text(prop, "Solo Active Shape Key", "Only show the active shape key at full value");
+  RNA_def_property_ui_icon(prop, ICON_SOLO_OFF, 1);
   RNA_def_property_update(prop, 0, "rna_Object_internal_update_data");
 
   prop = RNA_def_property(srna, "use_shape_key_edit_mode", PROP_BOOLEAN, PROP_NONE);

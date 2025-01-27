@@ -1300,7 +1300,7 @@ static void draw_selected_name(
     const View3D *v3d, Scene *scene, ViewLayer *view_layer, Object *ob, int xoffset, int *yoffset)
 {
   const int cfra = scene->r.cfra;
-  const char *msg_pin = " (Pinned)";
+  const char *msg_pin = " (Soloed)";
   const char *msg_sep = " : ";
   const char *msg_space = " ";
 
