@@ -450,7 +450,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     mpt->keylist = ED_keylist_create();
 
     ListBase *fcurve_list = NULL;
-    if (adt) {
+    if (adt && adt->action) {
       /* get pointer to animviz settings for each target */
       bAnimVizSettings *avs = animviz_target_settings_get(mpt);
 
