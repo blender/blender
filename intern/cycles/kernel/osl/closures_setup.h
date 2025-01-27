@@ -138,7 +138,7 @@ ccl_device void osl_closure_oren_nayar_diffuse_bsdf_setup(
   }
 
   ccl_private OrenNayarBsdf *bsdf = (ccl_private OrenNayarBsdf *)bsdf_alloc(
-      sd, sizeof(OrenNayarBsdf), rgb_to_spectrum(weight));
+      sd, sizeof(OrenNayarBsdf), rgb_to_spectrum(weight * closure->albedo));
   if (!bsdf) {
     return;
   }

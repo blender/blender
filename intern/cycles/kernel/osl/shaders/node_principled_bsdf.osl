@@ -80,7 +80,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     }
 
     if (diffuse_roughness > CLOSURE_WEIGHT_CUTOFF) {
-      BSDF = base_color * oren_nayar_diffuse_bsdf(Normal, base_color, diffuse_roughness);
+      BSDF = oren_nayar_diffuse_bsdf(Normal, base_color, diffuse_roughness);
     }
     else {
       BSDF = base_color * diffuse(Normal);
