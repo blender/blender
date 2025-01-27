@@ -3096,7 +3096,7 @@ static PointerRNA rna_FileBrowser_params_get(PointerRNA *ptr)
     return rna_pointer_inherit_refine(ptr, params_struct, params);
   }
 
-  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_FileBrowser_FSMenuEntry_path_get(PointerRNA *ptr, char *value)

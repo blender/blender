@@ -162,7 +162,7 @@ static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
     }
     id++;
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_DynamicPaintSurface, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_DynamicPaint_surfaces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

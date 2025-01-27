@@ -151,28 +151,28 @@ PointerRNA rna_BlendImportContextItem_id_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_ID, ctx_item->new_id);
+  return RNA_id_pointer_create(ctx_item->new_id);
 }
 
 PointerRNA rna_BlendImportContextItem_source_library_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_Library, ctx_item->source_library);
+  return RNA_id_pointer_create(&ctx_item->source_library->id);
 }
 
 PointerRNA rna_BlendImportContextItem_library_override_id_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_ID, ctx_item->liboverride_id);
+  return RNA_id_pointer_create(ctx_item->liboverride_id);
 }
 
 PointerRNA rna_BlendImportContextItem_reusable_local_id_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_ID, ctx_item->reusable_local_id);
+  return RNA_id_pointer_create(ctx_item->reusable_local_id);
 }
 
 struct RNABlendImportContextItemsIterator {

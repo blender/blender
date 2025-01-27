@@ -76,7 +76,7 @@ extern "C" DupliObject *rna_hack_DepsgraphObjectInstance_dupli_object_get(Pointe
 static PointerRNA rna_DepsgraphObjectInstance_object_get(PointerRNA *ptr)
 {
   RNA_DepsgraphIterator *di = static_cast<RNA_DepsgraphIterator *>(ptr->data);
-  return rna_pointer_inherit_refine(ptr, &RNA_Object, di->iter.current);
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(di->iter.current));
 }
 
 static bool rna_DepsgraphObjectInstance_is_instance_get(PointerRNA *ptr)
@@ -94,7 +94,7 @@ static PointerRNA rna_DepsgraphObjectInstance_instance_object_get(PointerRNA *pt
   if (deg_iter->dupli_object_current != nullptr) {
     instance_object = deg_iter->dupli_object_current->ob;
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_Object, instance_object);
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(instance_object));
 }
 
 static bool rna_DepsgraphObjectInstance_show_self_get(PointerRNA *ptr)
@@ -123,7 +123,7 @@ static PointerRNA rna_DepsgraphObjectInstance_parent_get(PointerRNA *ptr)
   if (deg_iter->dupli_object_current != nullptr) {
     dupli_parent = deg_iter->dupli_parent;
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_Object, dupli_parent);
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(dupli_parent));
 }
 
 static PointerRNA rna_DepsgraphObjectInstance_particle_system_get(PointerRNA *ptr)
@@ -214,7 +214,7 @@ static int rna_Depsgraph_mode_get(PointerRNA *ptr)
 
 static PointerRNA rna_DepsgraphUpdate_id_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_ID, ptr->data);
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(ptr->data));
 }
 
 static bool rna_DepsgraphUpdate_is_updated_transform_get(PointerRNA *ptr)
@@ -356,7 +356,7 @@ static void rna_Depsgraph_objects_end(CollectionPropertyIterator *iter)
 static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
 {
   Object *ob = static_cast<Object *>(((BLI_Iterator *)iter->internal.custom)->current);
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ob);
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(ob));
 }
 
 /* Iteration over objects, extended version
@@ -483,7 +483,7 @@ static void rna_Depsgraph_ids_end(CollectionPropertyIterator *iter)
 static PointerRNA rna_Depsgraph_ids_get(CollectionPropertyIterator *iter)
 {
   ID *id = static_cast<ID *>(((BLI_Iterator *)iter->internal.custom)->current);
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_ID, id);
+  return RNA_id_pointer_create(id);
 }
 
 static void rna_Depsgraph_updates_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -519,7 +519,7 @@ static PointerRNA rna_Depsgraph_scene_get(PointerRNA *ptr)
 {
   Depsgraph *depsgraph = (Depsgraph *)ptr->data;
   Scene *scene = DEG_get_input_scene(depsgraph);
-  PointerRNA newptr = RNA_pointer_create_discrete(&scene->id, &RNA_Scene, scene);
+  PointerRNA newptr = RNA_id_pointer_create(&scene->id);
   return newptr;
 }
 
@@ -536,7 +536,7 @@ static PointerRNA rna_Depsgraph_scene_eval_get(PointerRNA *ptr)
 {
   Depsgraph *depsgraph = (Depsgraph *)ptr->data;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  PointerRNA newptr = RNA_pointer_create_discrete(&scene_eval->id, &RNA_Scene, scene_eval);
+  PointerRNA newptr = RNA_id_pointer_create(&scene_eval->id);
   return newptr;
 }
 

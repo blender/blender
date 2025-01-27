@@ -65,7 +65,7 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
 static PointerRNA rna_Context_manager_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_WindowManager, CTX_wm_manager(C));
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(CTX_wm_manager(C)));
 }
 
 static PointerRNA rna_Context_window_get(PointerRNA *ptr)
@@ -77,13 +77,13 @@ static PointerRNA rna_Context_window_get(PointerRNA *ptr)
 static PointerRNA rna_Context_workspace_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_WorkSpace, CTX_wm_workspace(C));
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(CTX_wm_workspace(C)));
 }
 
 static PointerRNA rna_Context_screen_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_Screen, CTX_wm_screen(C));
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(CTX_wm_screen(C)));
 }
 
 static PointerRNA rna_Context_area_get(PointerRNA *ptr)
@@ -148,13 +148,13 @@ static PointerRNA rna_Context_asset_get(PointerRNA *ptr)
 static PointerRNA rna_Context_main_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_BlendData, CTX_data_main(C));
+  return RNA_main_pointer_create(CTX_data_main(C));
 }
 
 static PointerRNA rna_Context_scene_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_Scene, CTX_data_scene(C));
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(CTX_data_scene(C)));
 }
 
 static PointerRNA rna_Context_view_layer_get(PointerRNA *ptr)
@@ -183,7 +183,7 @@ static int rna_Context_engine_length(PointerRNA *ptr)
 static PointerRNA rna_Context_collection_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_Collection, CTX_data_collection(C));
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(CTX_data_collection(C)));
 }
 
 static PointerRNA rna_Context_layer_collection_get(PointerRNA *ptr)

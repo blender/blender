@@ -553,7 +553,7 @@ static PointerRNA rna_GreasePencil_active_layer_get(PointerRNA *ptr)
     return rna_pointer_inherit_refine(
         ptr, &RNA_GreasePencilLayer, static_cast<void *>(grease_pencil->get_active_layer()));
   }
-  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
@@ -585,7 +585,7 @@ static PointerRNA rna_GreasePencil_active_group_get(PointerRNA *ptr)
     return rna_pointer_inherit_refine(
         ptr, &RNA_GreasePencilLayerGroup, static_cast<void *>(grease_pencil->get_active_group()));
   }
-  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_GreasePencil_active_group_set(PointerRNA *ptr,

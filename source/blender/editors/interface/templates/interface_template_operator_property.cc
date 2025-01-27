@@ -415,8 +415,7 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
   }();
 
   /* Draw exporter list and controls. */
-  PointerRNA collection_ptr = RNA_pointer_create_discrete(
-      &collection->id, &RNA_Collection, collection);
+  PointerRNA collection_ptr = RNA_id_pointer_create(&collection->id);
   uiLayout *row = uiLayoutRow(layout, false);
   uiTemplateList(row,
                  C,

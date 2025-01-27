@@ -429,7 +429,7 @@ static int rna_AssetRepresentation_id_type_get(PointerRNA *ptr)
 static PointerRNA rna_AssetRepresentation_local_id_get(PointerRNA *ptr)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
-  return rna_pointer_inherit_refine(ptr, &RNA_ID, asset->local_id());
+  return RNA_id_pointer_create(asset->local_id());
 }
 
 static void rna_AssetRepresentation_full_library_path_get(PointerRNA *ptr, char *value)

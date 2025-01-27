@@ -869,8 +869,8 @@ static void rna_Window_scene_update(bContext *C, PointerRNA *ptr)
 static PointerRNA rna_Window_workspace_get(PointerRNA *ptr)
 {
   wmWindow *win = static_cast<wmWindow *>(ptr->data);
-  return rna_pointer_inherit_refine(
-      ptr, &RNA_WorkSpace, BKE_workspace_active_get(win->workspace_hook));
+  return RNA_id_pointer_create(
+      reinterpret_cast<ID *>(BKE_workspace_active_get(win->workspace_hook)));
 }
 
 static void rna_Window_workspace_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -907,8 +907,8 @@ static void rna_Window_workspace_update(bContext *C, PointerRNA *ptr)
 PointerRNA rna_Window_screen_get(PointerRNA *ptr)
 {
   wmWindow *win = static_cast<wmWindow *>(ptr->data);
-  return rna_pointer_inherit_refine(
-      ptr, &RNA_Screen, BKE_workspace_active_screen_get(win->workspace_hook));
+  return RNA_id_pointer_create(
+      reinterpret_cast<ID *>(BKE_workspace_active_screen_get(win->workspace_hook)));
 }
 
 static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)

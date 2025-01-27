@@ -151,9 +151,9 @@ static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ParticleBrush, brush);
 }
 
-static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
+static PointerRNA rna_ParticleBrush_curve_get(PointerRNA * /*ptr*/)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_ParticleEdit_redo(bContext *C, PointerRNA * /*ptr*/)

@@ -950,7 +950,7 @@ static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
   ParticleSettings *part = psys->part;
 
-  return rna_pointer_inherit_refine(ptr, &RNA_ParticleSettings, part);
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(part));
 }
 
 static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -1167,7 +1167,7 @@ static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
       return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, pt);
     }
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, nullptr);
+  return PointerRNA_NULL;
 }
 static void rna_ParticleSystem_active_particle_target_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
@@ -1308,7 +1308,7 @@ static PointerRNA rna_ParticleDupliWeight_active_get(PointerRNA *ptr)
       return rna_pointer_inherit_refine(ptr, &RNA_ParticleDupliWeight, dw);
     }
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, nullptr);
+  return PointerRNA_NULL;
 }
 static void rna_ParticleDupliWeight_active_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
@@ -1538,7 +1538,7 @@ static PointerRNA rna_ParticleSettings_active_texture_get(PointerRNA *ptr)
   Tex *tex;
 
   tex = give_current_particle_texture(part);
-  return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(tex));
 }
 
 static void rna_ParticleSettings_active_texture_set(PointerRNA *ptr,
