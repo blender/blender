@@ -1397,6 +1397,8 @@ def km_uv_editor(params):
          {"properties": [("clear", False)]}),
         ("uv.pin", {"type": 'P', "value": 'PRESS', "alt": True},
          {"properties": [("clear", True)]}),
+        ("uv.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
+        ("uv.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         op_menu("IMAGE_MT_uvs_unwrap", {"type": 'U', "value": 'PRESS'}),
         (
             op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'S', "value": 'PRESS', "shift": True})
