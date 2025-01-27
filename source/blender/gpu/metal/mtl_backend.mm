@@ -527,6 +527,17 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* Minimum per-vertex stride is 4 bytes in Metal.
    * A bound vertex buffer must contribute at least 4 bytes per vertex. */
   GCaps.minimum_per_vertex_stride = 4;
+
+  /* Force workarounds when starting blender with `--debug-gpu-force-workarounds`.
+   *
+   * Not all workarounds are listed here as some capabilities are currently assumed to be present
+   * on all devices. */
+  if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
+    /* Texture gather is supported on AMD, but results are non consistent with Apple Silicon GPUs
+     * and can be disabled. */
+    MTLBackend::capabilities.supports_texture_gather = false;
+    MTLBackend::capabilities.supports_texture_atomics = false;
+  }
 }
 
 /** \} */
