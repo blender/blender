@@ -2655,6 +2655,11 @@ static int rna_Node_color_tag_get(PointerRNA *ptr)
   return int(blender::bke::NodeColorTag::None);
 }
 
+static bool allow_adding_sockets(const bNode &node)
+{
+  return ELEM(node.type_legacy, NODE_CUSTOM, SH_NODE_SCRIPT);
+}
+
 static bool allow_changing_sockets(bNode *node)
 {
   return ELEM(node->type_legacy, NODE_CUSTOM, SH_NODE_SCRIPT, CMP_NODE_OUTPUT_FILE);
@@ -2669,7 +2674,7 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
                                         const char *identifier,
                                         const bool use_multi_input)
 {
-  if (!allow_changing_sockets(node)) {
+  if (!allow_adding_sockets(*node)) {
     BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
     return nullptr;
   }
@@ -2704,7 +2709,7 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
                                          const char *identifier,
                                          const bool use_multi_input)
 {
-  if (!allow_changing_sockets(node)) {
+  if (!allow_adding_sockets(*node)) {
     BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
     return nullptr;
   }
