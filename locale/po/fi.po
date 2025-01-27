@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -279,6 +279,10 @@ msgid "Active"
 msgstr "Aktiivinen"
 
 
+msgid "Show Expanded"
+msgstr "Näytä laajennettu"
+
+
 msgctxt "ID"
 msgid "Action"
 msgstr "Toiminto"
@@ -472,10 +476,6 @@ msgstr "Työtila"
 msgctxt "ID"
 msgid "World"
 msgstr "Maailma"
-
-
-msgid "Show Expanded"
-msgstr "Näytä laajennettu"
 
 
 msgid "Add-on"
@@ -7340,8 +7340,56 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "Names"
+msgstr "Nimet"
+
+
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Hooks"
+msgstr "Koukut"
 
 
 msgid "Random Mask"
@@ -7352,56 +7400,8 @@ msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Text"
 msgstr "Teksti"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
 
 
 msgid "Basic"
@@ -16249,16 +16249,16 @@ msgid "Variance"
 msgstr "Varianssi"
 
 
+msgid "Bake Items"
+msgstr "Paista esineet"
+
+
 msgid "Bake to Disk"
 msgstr "Paista levylle"
 
 
 msgid "Bake Packed"
 msgstr "Paista pakatut"
-
-
-msgid "Bake Items"
-msgstr "Paista esineet"
 
 
 msgid "Mesh 1"

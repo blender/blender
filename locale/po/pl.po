@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -295,6 +295,10 @@ msgid "Active"
 msgstr "Aktywny"
 
 
+msgid "Show Expanded"
+msgstr "Pokaż rozwinięty"
+
+
 msgctxt "ID"
 msgid "Action"
 msgstr "Akcja"
@@ -488,10 +492,6 @@ msgstr "Obszar roboczy"
 msgctxt "ID"
 msgid "World"
 msgstr "Świat"
-
-
-msgid "Show Expanded"
-msgstr "Pokaż rozwinięty"
 
 
 msgid "Add-on"
@@ -11181,8 +11181,12 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Local View"
-msgstr "Widok lokalny"
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
 
 
 msgid "Snap"
@@ -11193,84 +11197,80 @@ msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
-msgid "Apply"
-msgstr "Zastosuj"
-
-
 msgid "Mirror"
 msgstr "Odbicie lustrzane"
 
 
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
+msgid "Local View"
+msgstr "Widok lokalny"
 
 
-msgid "Convert"
-msgstr "Konwertuj"
-
-
-msgid "Asset"
-msgstr "Prefabrykat"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
-
-
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Merge"
-msgstr "Scal"
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
 
 
 msgid "Navigation"
 msgstr "Nawigacja"
 
 
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Asset"
+msgstr "Prefabrykat"
+
+
+msgid "Convert"
+msgstr "Konwertuj"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
+
+
+msgid "Merge"
+msgstr "Scal"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Catalog"
@@ -24545,10 +24545,6 @@ msgid "Action must have at least one keyframe or F-Modifier"
 msgstr "Akcja musi posiadać przynajmniej jedną klatkę kluczową lub modyfikator F"
 
 
-msgid "Action has already been stashed"
-msgstr "Akcja została już przytrzymana (stashed)"
-
-
 msgid "Keyframe pasting is not available for mask mode"
 msgstr "Wklejanie klatek kluczowych nie dostępne dla trybu maski"
 
@@ -24699,10 +24695,6 @@ msgstr "Nie zaznaczono plików do otwarcia"
 
 msgid "Cannot read '%s': %s"
 msgstr "Nie udało się odczytać '%s': %s"
-
-
-msgid "Use LMB click to define location where place the marker"
-msgstr "Użyj LPM klik do zdefiniowania pozycji markera"
 
 
 msgid "Delete selected tracks?"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
-"PO-Revision-Date: 2025-01-17 19:26+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"PO-Revision-Date: 2025-01-22 22:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -414,13 +414,32 @@ msgstr ""
 "Usado, por exemplo, numa ActionKeyframeStrip para procurar o ActionChannelbag deste Compartimento"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "Tipo de identificador raiz"
+msgid "Slot Identifier"
+msgstr "Identificador do compartimento"
 
 
-msgid "Type of data-block that can be animated by this slot"
-msgstr "Tipo de bloco-de-dados que pode ser animado por este compartimento"
+msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
+msgstr "Usado quando conectando uma Acção a um bloco-de-dados, para encontrar o identificador de compartimento certo. É este o nome de exibição, com o prefixo de dois caracteres determinado pelo tipo de ID do compartimento."
+
+
+msgid "Slot Display Name"
+msgstr "Nome de Exibição do Compartimento"
+
+
+msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
+msgstr "Nome do compartimento, para exibição no interface do utilizador. Este nome combinado com o tipo de bloco de dados do compartimento é único dentro da sua Acção"
+
+
+msgid "Selection state of the slot"
+msgstr "Estado de selecção do compartimento"
+
+
+msgid "Show Expanded"
+msgstr "Mostrar expandida"
+
+
+msgid "Expanded state of the slot"
+msgstr "Estando de expansão do compartimento"
 
 
 msgctxt "ID"
@@ -625,34 +644,6 @@ msgstr "Não Especificado"
 
 msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
 msgstr "Não especificado. Quando o compartimento é atribuído pela primeira vez a um bloco-de-dados, este valor será definido como o tipo desse bloco-de-dados"
-
-
-msgid "Slot Identifier"
-msgstr "Identificador do compartimento"
-
-
-msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
-msgstr "Usado quando conectando uma Acção a um bloco-de-dados, para encontrar o identificador de compartimento certo. É este o nome de exibição, com o prefixo de dois caracteres determinado pelo tipo de ID do compartimento."
-
-
-msgid "Slot Display Name"
-msgstr "Nome de Exibição do Compartimento"
-
-
-msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
-msgstr "Nome do compartimento, para exibição no interface do utilizador. Este nome combinado com o tipo de bloco de dados do compartimento é único dentro da sua Acção"
-
-
-msgid "Selection state of the slot"
-msgstr "Estado de selecção do compartimento"
-
-
-msgid "Show Expanded"
-msgstr "Mostrar expandida"
-
-
-msgid "Expanded state of the slot"
-msgstr "Estando de expansão do compartimento"
 
 
 msgid "Action Slots"
@@ -18154,6 +18145,11 @@ msgid "Convenient groupings of F-Curves"
 msgstr "Agrupamentos convenientes de curvas-f."
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "Tipo de identificador raiz"
+
+
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "Tipo de identificador de bloco em que a acção pode ser usada - NÃO ALTERE A MENOS QUE SAIBA O QUE ESTÁ FAZENDO."
 
@@ -22073,6 +22069,14 @@ msgstr "Domínio da Selecção"
 
 msgid "Mesh object that the curves can be attached to"
 msgstr "Objecto malha ao qual as curvas podem estar fixas"
+
+
+msgid "Collision distance"
+msgstr "Distância de colisão"
+
+
+msgid "Distance to keep the curves away from the surface"
+msgstr "Distância à qual manter as curvas da superfície"
 
 
 msgid "Surface UV Map"
@@ -33353,6 +33357,11 @@ msgid "Replace stroke backbone geometry by a Bézier curve approximation of the 
 msgstr "Substituir a geometria base do traço por uma aproximação dessa geometria usando uma curva Bézier"
 
 
+msgctxt "Amount"
+msgid "Error"
+msgstr "Erro"
+
+
 msgid "Maximum distance allowed between the new Bézier curve and the original backbone geometry"
 msgstr "Distância máxima permitida entre a nova curva Bézier e a geometria base original"
 
@@ -34288,8 +34297,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Local View"
-msgstr "Visão local"
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Pivot Point"
@@ -34320,204 +34341,192 @@ msgid "Vertex Group Locks"
 msgstr "Bloqueios de Grupos de Vértices"
 
 
-msgid "Set Face Strength"
-msgstr "Definir Força das Faces"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleccionar pela Força das Faces"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Bone Collections"
-msgstr "Colecções de Ossos"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Face Sets Init"
-msgstr "Inicialização de Conjuntos de Faces"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Definir Pivot de Escultura"
-
-
-msgid "Trim/Add"
-msgstr "Aparar/Adicionar"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de selecção de malhas"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Disable Bone Options"
-msgstr "Desativar as opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Ativar opções de ossos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
 msgstr "Mapeamento UV"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Local View"
+msgstr "Visão local"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Assign Material"
-msgstr "Aplicar Material"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Link/Transfer Data"
-msgstr "Vincular/Transferir Dados"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Make Single User"
-msgstr "Tornar utilizador único"
-
-
-msgid "Asset"
-msgstr "Recurso"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Light"
-msgstr "Leve"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar Anéis"
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
 
 
 msgid "Navigation"
 msgstr "Navegação"
 
 
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar Anéis"
+
+
+msgid "Assign Material"
+msgstr "Aplicar Material"
+
+
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
+msgid "Light"
+msgstr "Leve"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Asset"
+msgstr "Recurso"
+
+
+msgid "Make Single User"
+msgstr "Tornar utilizador único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Link/Transfer Data"
+msgstr "Vincular/Transferir Dados"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Trim/Add"
+msgstr "Aparar/Adicionar"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Definir Pivot de Escultura"
+
+
+msgid "Face Sets Init"
+msgstr "Inicialização de Conjuntos de Faces"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Bone Collections"
+msgstr "Colecções de Ossos"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Ativar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desativar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de selecção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleccionar pela Força das Faces"
+
+
+msgid "Set Face Strength"
+msgstr "Definir Força das Faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Texto"
 
 
 msgid "Keyframe Insert Pie"
@@ -34656,6 +34665,11 @@ msgstr "Ficheiros"
 
 msgid "Material Specials"
 msgstr "Especiais para materiais"
+
+
+msgctxt "Operator"
+msgid "Blend"
+msgstr "Mesclar"
 
 
 msgctxt "Operator"
@@ -35127,6 +35141,11 @@ msgstr "Especiais de Pincéis"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Parente"
+
+
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Vazio"
 
 
 msgctxt "Constraint"
@@ -36256,6 +36275,10 @@ msgstr "Gerar oscilação por ruído em traços de Grease Pencil"
 
 msgid "Change stroke location, rotation, or scale"
 msgstr "Alterar posição, rotação ou escala de traços"
+
+
+msgid "Smooth Grease Pencil strokes"
+msgstr "Suavizar traços de Grease Pencil"
 
 
 msgid "Change stroke thickness"
@@ -38205,12 +38228,27 @@ msgid "How strokes are being built"
 msgstr "Como os traços estão a ser construídos"
 
 
+msgctxt "GPencil"
+msgid "Sequential"
+msgstr "Sequencial"
+
+
 msgid "Strokes appear/disappear one after the other, but only a single one changes at a time"
 msgstr "Os traços aparecem/desaparecem um após o outro, mas apenas um se transforma de cada vez"
 
 
+msgctxt "GPencil"
+msgid "Concurrent"
+msgstr "Simultâneo"
+
+
 msgid "Multiple strokes appear/disappear at once"
 msgstr "Múltiplos traços aparecem/desaparecem de uma vez"
+
+
+msgctxt "GPencil"
+msgid "Additive"
+msgstr "Aditivo"
 
 
 msgid "Builds only new strokes (assuming 'additive' drawing)"
@@ -38740,8 +38778,18 @@ msgid "Represents the \"Orthographic Scale\" of an orthographic camera. If the c
 msgstr "Representa a \"Escala Ortogonal\" de uma câmara ortogonal. Se a câmara estiver posicionada na mesma localização da luz com esta escala, representa a cobertura da \"câmara\" sombra."
 
 
+msgctxt "GPencil"
+msgid "Shadow Region Filtering"
+msgstr "Filtragem de Região em Sombra"
+
+
 msgid "Select feature lines that comes from lit or shaded regions. Will not affect cast shadow and light contour since they are at the border."
 msgstr "Seleccionar linhas de feição que vêm de zonas iluminadas ou em sombra. Não afecta sombras projectadas e contornos luminosos, uma vez que estes estão na periferia."
+
+
+msgctxt "GPencil"
+msgid "None"
+msgstr "Nenhuma"
 
 
 msgid "Not filtering any lines based on illumination region"
@@ -43864,6 +43912,10 @@ msgid "Amount the strip contributes to the current result"
 msgstr "Define quanto a faixa contribui para o resultado actual."
 
 
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this strip, and its identifier is used to find the right slot when assigning an Action."
+msgstr "Identificador do compartimento de acção mais recentemente atribuído. O compartimento identifica que sub conjunto da Acção se considera ser para esta faixa, e o seu identificador é usado para encontrar o compartimento certo ao atribuir a Acção."
+
+
 msgid "Modifiers affecting all the F-Curves in the referenced Action"
 msgstr "Modificadores afetando todas as curvas-f dentro da acção referenciada."
 
@@ -44053,8 +44105,16 @@ msgid "Static Type"
 msgstr "Tipo estático"
 
 
+msgid "Legacy unique node type identifier, redundant with bl_idname property"
+msgstr "Identificador único de tipo de nó de legado, redundante com a propriedade bl_idname"
+
+
 msgid "Custom color of the node body"
 msgstr "Cor personalizada do corpo do nó."
+
+
+msgid "Node header color tag"
+msgstr "Etiquetas de cor do cabeçalho do nó"
 
 
 msgid "Absolute bounding box dimensions of the node"
@@ -44075,6 +44135,18 @@ msgstr "Conexões internas de entrada-para-saída para silenciamento."
 
 msgid "Optional custom node label"
 msgstr "Rótulo personalizado para o nó (opcional)."
+
+
+msgid "Location of the node within its parent frame"
+msgstr "Posição do nó dentro do seu fotograma pai"
+
+
+msgid "Absolute Location"
+msgstr "Posição Absoluta"
+
+
+msgid "Location of the node in the entire canvas"
+msgstr "Posição do nó na tela inteira"
 
 
 msgid "Unique node identifier"
@@ -44624,6 +44696,11 @@ msgid "The color which gets white gets mapped to (automatically converted to/fro
 msgstr "A cor para a qual o branco é mapeado (automaticamente convertida de/para temperatura e tonalidade)"
 
 
+msgctxt "MovieClip"
+msgid "Power"
+msgstr "Intensidade"
+
+
 msgid "Slope"
 msgstr "Inclinação"
 
@@ -44916,12 +44993,28 @@ msgid "Compensate all channels (differently) by hand"
 msgstr "Compensação manual (diferente) para todos os canais."
 
 
+msgid "Combine HSVA (Legacy)"
+msgstr "Combinar HSVA (Legado)"
+
+
+msgid "Combine RGBA (Legacy)"
+msgstr "Combinar RGBA (Legado)"
+
+
+msgid "Combine YCbCrA (Legacy)"
+msgstr "Combinar YCbCrA (Legado)"
+
+
 msgid "ITU 601"
 msgstr "ITU 601"
 
 
 msgid "ITU 709"
 msgstr "ITU 709"
+
+
+msgid "Combine YUVA (Legacy)"
+msgstr "Combinar YUVA (Legado)"
 
 
 msgid "Combine Color"
@@ -45304,8 +45397,28 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr "Usar pré-filtro em passagens guia com ruído antes de remoção de ruído da imagem. Melhora qualidade quando as passagens guia têm ruído usando tempo de processamento extra."
 
 
+msgid "Denoising quality"
+msgstr "Qualidade de Redução de Ruído"
+
+
+msgid "Use the scene's denoising quality setting"
+msgstr "Usar a definição de qualidade da redução de ruído da cena"
+
+
 msgid "High quality"
 msgstr "Alta qualidade."
+
+
+msgid "Balanced"
+msgstr "Equilibrado"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Equilibrado entre performance e qualidade"
+
+
+msgid "High perfomance"
+msgstr "Alta erformance"
 
 
 msgid "HDR"
@@ -45541,6 +45654,10 @@ msgid "Apply gamma correction"
 msgstr "Aplicar correcção gama"
 
 
+msgid "Glare "
+msgstr "Fulgor "
+
+
 msgid "Add lens flares, fog and glows around bright parts of the image"
 msgstr "Adicionar reflexos de lente, fulgor e auras luminosas em torno de partes com brilho intenso da imagem"
 
@@ -45549,8 +45666,16 @@ msgid "Angle Offset"
 msgstr "Deslocamento de ângulo"
 
 
+msgid "Streak angle offset. (Deprecated: Use Streaks Angle input instead)"
+msgstr "Afastamento de ângulo de raios. (Descontinuado: Usar entrada de Ângulo de Raios)"
+
+
 msgid "Color Modulation"
 msgstr "Modulação de cor"
+
+
+msgid "Amount of Color Modulation, modulates colors of streaks and ghosts for a spectral dispersion effect. (Deprecated: Use Color Modulation input instead)"
+msgstr "Quantidade de modulação de cor, modula as cores dos raios e fantasmas para um efeito de dispersão espectral."
 
 
 msgid "Glare Type"
@@ -91124,10 +91249,6 @@ msgid "Action must have at least one keyframe or F-Modifier"
 msgstr "A acção deve possuir ao menos um fotograma chave ou modificador-f."
 
 
-msgid "Action has already been stashed"
-msgstr "Ação já foi armazenada."
-
-
 msgid "Could not find current NLA Track"
 msgstr "Impossível encontrar faixar de animação não linear actual"
 
@@ -91322,10 +91443,6 @@ msgstr "Sem ficheiros seleccionados a ser abertos."
 
 msgid "Cannot read '%s': %s"
 msgstr "Não é possível ler '%s': %s"
-
-
-msgid "Use LMB click to define location where place the marker"
-msgstr "Usar o clique com BEM para definir a localização onde posicionar o marcador."
 
 
 msgid "Delete selected tracks?"
@@ -92496,10 +92613,6 @@ msgstr "Vértices UV"
 
 msgid "Cannot split selection when sync selection is enabled"
 msgstr "Não é possível dividir selecção quando a sincronização de selecção está ativa."
-
-
-msgid "Mode(TAB) %s, (S)nap %s, (M)idpoints %s, (L)imit %.2f (Alt Wheel adjust) %s, Switch (I)sland, shift select vertices"
-msgstr "Tab: Modo %s, (S): Atrair %s. (M): Pontos medianos %s, (L): Limitar  %.2f (Ajuste com Alt + esfera do rato) %s, (i): Alterar as ilhas, e Shift: Selecionar vértices."
 
 
 msgid "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh"

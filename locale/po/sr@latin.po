@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -8634,58 +8634,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
 msgid "Names"
 msgstr "Imena"
 
@@ -8694,24 +8642,36 @@ msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
 
-msgid "Hooks"
-msgstr "Udice"
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
 
 
-msgid "Quick Effects"
-msgstr "Brzi efekti"
+msgid "Snap"
+msgstr "Lepljenje"
 
 
-msgid "Track"
-msgstr "Staza"
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
-msgid "Rigid Body"
-msgstr "Kruto telo"
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
 
 
-msgid "Relations"
-msgstr "Odnosi"
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Metaball"
@@ -8722,24 +8682,64 @@ msgid "Light"
 msgstr "Svetlost"
 
 
-msgid "Special Characters"
-msgstr "Specijalni znaci"
+msgid "Relations"
+msgstr "Odnosi"
 
 
-msgid "Select Linked"
-msgstr "Izaberi povezano"
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Propagate"
+msgstr "Prenesi"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
 
 
 msgid "Merge"
 msgstr "Sjedini"
 
 
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
+msgid "Special Characters"
+msgstr "Specijalni znaci"
 
 
 msgid "Basic"

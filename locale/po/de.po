@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-12-08 20:56+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -307,9 +307,8 @@ msgid "Active"
 msgstr "Aktiv"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "ID-Stammtyp"
+msgid "Show Expanded"
+msgstr "Erweitertes anzeigen"
 
 
 msgctxt "ID"
@@ -495,10 +494,6 @@ msgstr "Arbeitsbereich"
 msgctxt "ID"
 msgid "World"
 msgstr "Welt"
-
-
-msgid "Show Expanded"
-msgstr "Erweitertes anzeigen"
 
 
 msgid "Keyframe"
@@ -11407,6 +11402,11 @@ msgid "Convenient groupings of F-Curves"
 msgstr "Beschränkung"
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "ID-Stammtyp"
+
+
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "Typ des ID-Blocks, für den die Aktion verwendet werden kann - NICHT ÄNDERN, ES SEI DENN, SIE WISSEN, WAS SIE TUN"
 
@@ -18900,8 +18900,16 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Local View"
-msgstr "Lokale Ansicht"
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
 
 
 msgid "Pivot Point"
@@ -18924,164 +18932,156 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
 msgid "Mirror"
 msgstr "Spiegeln"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
+msgid "Viewpoint"
+msgstr "Ansicht"
 
 
 msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "Viewpoint"
-msgstr "Ansicht"
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
+
+
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Assets"

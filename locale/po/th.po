@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1864,8 +1864,8 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
+msgid "Names"
+msgstr "ชื่อ"
 
 
 msgid "Pivot Point"
@@ -1884,68 +1884,68 @@ msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
 
 
-msgid "Names"
-msgstr "ชื่อ"
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
 
 
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Text"
-msgstr "ช้อความ"
-
-
-msgid "Light"
-msgstr "แสง"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
 
 
 msgid "Navigation"
 msgstr "การนำทาง"
 
 
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Text"
+msgstr "ช้อความ"
 
 
 msgid "Zoom"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -231,6 +231,10 @@ msgid "Active"
 msgstr "Aktiv"
 
 
+msgid "Show Expanded"
+msgstr "Visa utvikt"
+
+
 msgctxt "ID"
 msgid "Armature"
 msgstr "Armatur"
@@ -404,10 +408,6 @@ msgstr "Arbetsyta"
 msgctxt "ID"
 msgid "World"
 msgstr "Värld"
-
-
-msgid "Show Expanded"
-msgstr "Visa utvikt"
 
 
 msgid "Keyframe"
@@ -5205,16 +5205,8 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Show/Hide"
@@ -5225,64 +5217,72 @@ msgid "Clean Up"
 msgstr "Städa upp"
 
 
-msgid "Apply"
-msgstr "Applicera"
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "Snap"
+msgstr "Snäpp"
 
 
 msgid "Mirror"
 msgstr "Spegla"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Local View"
+msgstr "Lokal vy"
 
 
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
+msgid "Align View"
+msgstr "Justera vy"
 
 
 msgid "Align View to Active"
 msgstr "Justera vy till aktiv"
 
 
-msgid "Align View"
-msgstr "Justera vy"
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Catalog"

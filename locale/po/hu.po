@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6614,10 +6614,6 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6626,48 +6622,52 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
-
-
 msgid "Mirror"
 msgstr "Tükrözés"
 
 
-msgid "Track"
-msgstr "Nyom"
+msgid "Local View"
+msgstr "Helyi nézet"
 
 
-msgid "Rigid Body"
-msgstr "Szilárd test"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Text"
-msgstr "Szöveg"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Navigation"
+msgstr "Navigáció"
 
 
 msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Navigation"
-msgstr "Navigáció"
+msgid "Metaball"
+msgstr "Meta test"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
+
+
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Text"
+msgstr "Szöveg"
 
 
 msgctxt "MovieClip"

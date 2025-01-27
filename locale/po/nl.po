@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
-"PO-Revision-Date: 2024-12-30 14:39+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"PO-Revision-Date: 2025-01-27 09:56+0000\n"
 "Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
@@ -2735,12 +2735,8 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Show/Hide"
@@ -2751,52 +2747,56 @@ msgid "Mirror"
 msgstr "Spiegel"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Local View"
+msgstr "Lokale Scherm"
 
 
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
+msgid "Navigation"
+msgstr "Navigatie"
 
 
 msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
 
-msgid "Navigation"
-msgstr "Navigatie"
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgctxt "MovieClip"
@@ -8928,6 +8928,18 @@ msgstr "Geen randen geselecteerd"
 
 msgid "No vertex selected"
 msgstr "Geen punten geselecteerd"
+
+
+msgid "Use mouse"
+msgstr "Gebruik muis"
+
+
+msgid "Use Pivot"
+msgstr "Gebruik draaipunt"
+
+
+msgid "Set and use 3D cursor"
+msgstr "Plaats en gebruik 3D cursor"
 
 
 msgid "No edges selected"

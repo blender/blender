@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2025-01-17 23:14+0000\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -347,9 +347,16 @@ msgid "Slot Handle"
 msgstr "動作槽控制桿"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "ID 根基類型"
+msgid "Slot Identifier"
+msgstr "動作槽 ID"
+
+
+msgid "Slot Display Name"
+msgstr "動作槽顯示名稱"
+
+
+msgid "Show Expanded"
+msgstr "擴展顯示"
 
 
 msgctxt "ID"
@@ -545,18 +552,6 @@ msgstr "工作空間"
 msgctxt "ID"
 msgid "World"
 msgstr "世界"
-
-
-msgid "Slot Identifier"
-msgstr "動作槽 ID"
-
-
-msgid "Slot Display Name"
-msgstr "動作槽顯示名稱"
-
-
-msgid "Show Expanded"
-msgstr "擴展顯示"
 
 
 msgid "Action Strip"
@@ -12427,6 +12422,11 @@ msgid "Convenient groupings of F-Curves"
 msgstr "F 曲線方便群組處理"
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "ID 根基類型"
+
+
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "動作可使用的 ID 塊類型 -「不要更動，除非您知道您在做什麼」"
 
@@ -21538,8 +21538,20 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Local View"
-msgstr "區域檢視"
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -21562,160 +21574,148 @@ msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "設定樞紐點"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
+msgid "Mirror"
+msgstr "鏡像"
 
 
 msgid "UV Mapping"
 msgstr "UV 映射處理"
 
 
-msgid "Apply"
-msgstr "套用"
+msgid "Local View"
+msgstr "區域檢視"
 
 
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Hooks"
-msgstr "鉤"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Make Single User"
-msgstr "製作單一使用者"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Text"
-msgstr "文字"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Align View to Active"
-msgstr "對齊視圖至作用項"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Align View"
-msgstr "對齊視圖"
+msgid "Viewpoint"
+msgstr "視點"
 
 
 msgid "Navigation"
 msgstr "導覽"
 
 
-msgid "Viewpoint"
-msgstr "視點"
+msgid "Align View"
+msgstr "對齊視圖"
+
+
+msgid "Align View to Active"
+msgstr "對齊視圖至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "設定樞紐點"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Text"
+msgstr "文字"
 
 
 msgid "Basic"
@@ -62247,10 +62247,6 @@ msgid "Non-Assets"
 msgstr "非素材"
 
 
-msgid "Annotation Session: ESC/Enter to end   (or click outside this area)"
-msgstr "註解作業階段：按 ESC/Enter 鍵結束   (或點按此區域之外)"
-
-
 msgid "Cannot paint stroke"
 msgstr "無法繪製筆觸"
 
@@ -63940,10 +63936,6 @@ msgstr "選取檔案沒有要開啟"
 
 msgid "Cannot read '%s': %s"
 msgstr "無法讀取「%s」：%s"
-
-
-msgid "Use LMB click to define location where place the marker"
-msgstr "使用滑鼠左鍵點擊定義擺放標記的位置"
 
 
 msgid "No active track to join to"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -308,9 +308,8 @@ msgid "Active"
 msgstr "Ativo(a)"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "Tipo de identificador raiz"
+msgid "Show Expanded"
+msgstr "Mostrar expandida"
 
 
 msgctxt "ID"
@@ -496,10 +495,6 @@ msgstr "Espaço de Trabalho"
 msgctxt "ID"
 msgid "World"
 msgstr "Ambiente"
-
-
-msgid "Show Expanded"
-msgstr "Mostrar expandida"
 
 
 msgid "Keyframe"
@@ -11420,6 +11415,11 @@ msgid "Convenient groupings of F-Curves"
 msgstr "Agrupamentos convenientes de curvas-f."
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "Tipo de identificador raiz"
+
+
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "Tipo de identificador de bloco em que a ação pode ser usada - NÃO ALTERE A MENOS QUE SAIBA O QUE ESTÁ FAZENDO."
 
@@ -21336,8 +21336,20 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Local View"
-msgstr "Visão local"
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Pivot Point"
@@ -21352,164 +21364,152 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
 msgstr "Mapeamento UV"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Local View"
+msgstr "Visão local"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
 
 
 msgid "Navigation"
 msgstr "Navegação"
 
 
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Text"
+msgstr "Texto"
 
 
 msgid "Basic"
@@ -67845,10 +67845,6 @@ msgid "Action must have at least one keyframe or F-Modifier"
 msgstr "A ação deve possuir ao menos um quadro-chave ou modificador-f."
 
 
-msgid "Action has already been stashed"
-msgstr "Ação já foi armazenada."
-
-
 msgid "Could not find current NLA Track"
 msgstr "Não foi possível encontrar a trilha de animação não linear atual."
 
@@ -68043,10 +68039,6 @@ msgstr "Sem arquivos selecionados a ser abertos."
 
 msgid "Cannot read '%s': %s"
 msgstr "Não é possível ler '%s': %s"
-
-
-msgid "Use LMB click to define location where place the marker"
-msgstr "Usar o clique com BEM para definir a localização onde posicionar o marcador."
 
 
 msgid "No active track to join to"

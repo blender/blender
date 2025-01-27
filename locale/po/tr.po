@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -307,9 +307,8 @@ msgid "Active"
 msgstr "Etkin"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "Kimlik Kök Türü"
+msgid "Show Expanded"
+msgstr "Genişletilmiş Göster"
 
 
 msgctxt "ID"
@@ -505,10 +504,6 @@ msgstr "Çalışma Alanı"
 msgctxt "ID"
 msgid "World"
 msgstr "Dünya"
-
-
-msgid "Show Expanded"
-msgstr "Genişletilmiş Göster"
 
 
 msgid "Keyframe"
@@ -15141,6 +15136,11 @@ msgid "Convenient groupings of F-Curves"
 msgstr "F-Eğrilerinin kullanışlı gruplandırmaları"
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "Kimlik Kök Türü"
+
+
 msgid "Layers"
 msgstr "Katmanlar"
 
@@ -29250,8 +29250,20 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Local View"
-msgstr "Yerel Görünüm"
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
 
 
 msgid "Pivot Point"
@@ -29282,204 +29294,192 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
-msgid "Propagate"
-msgstr "Yaymak"
-
-
-msgid "In-Betweens"
-msgstr "Arada Kalanlar"
-
-
-msgid "Clear Transform"
-msgstr "Temizle Dönüşüm"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Random Mask"
-msgstr "Rastgele Maske"
-
-
-msgid "Face Sets Init"
-msgstr "Yüz Setleri Başlatma"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Heykel Seti Pivot"
-
-
-msgid "Trim/Add"
-msgstr "Kırp/Ekle"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "UV Mapping"
 msgstr "UV Haritalama"
 
 
-msgid "Apply"
-msgstr "Uygula"
+msgid "Local View"
+msgstr "Yerel Görünüm"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
-msgid "Hooks"
-msgstr "Kancalar"
-
-
-msgid "Link/Transfer Data"
-msgstr "Veriyi Bağlantıla/Aktar"
-
-
-msgid "Convert"
-msgstr "Çevir"
-
-
-msgid "Make Single User"
-msgstr "Tek Kullanıcı Yap"
-
-
-msgid "Asset"
-msgstr "Varlık"
-
-
-msgid "Quick Effects"
-msgstr "Hızlı Etkiler"
-
-
-msgid "Track"
-msgstr "İzlemek"
-
-
-msgid "Rigid Body"
-msgstr "Sert Gövde"
-
-
-msgid "Relations"
-msgstr "İlişkiler"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Light Probe"
-msgstr "Işık Sondası"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
-
-
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
+msgid "Viewpoint"
+msgstr "Bakış açısı"
 
 
 msgid "Navigation"
 msgstr "Navigasyon"
 
 
-msgid "Viewpoint"
-msgstr "Bakış açısı"
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
+
+
+msgid "Relations"
+msgstr "İlişkiler"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Track"
+msgstr "İzlemek"
+
+
+msgid "Quick Effects"
+msgstr "Hızlı Etkiler"
+
+
+msgid "Asset"
+msgstr "Varlık"
+
+
+msgid "Make Single User"
+msgstr "Tek Kullanıcı Yap"
+
+
+msgid "Convert"
+msgstr "Çevir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Veriyi Bağlantıla/Aktar"
+
+
+msgid "Hooks"
+msgstr "Kancalar"
+
+
+msgid "Trim/Add"
+msgstr "Kırp/Ekle"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Heykel Seti Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Yüz Setleri Başlatma"
+
+
+msgid "Random Mask"
+msgstr "Rastgele Maske"
+
+
+msgid "Clear Transform"
+msgstr "Temizle Dönüşüm"
+
+
+msgid "In-Betweens"
+msgstr "Arada Kalanlar"
+
+
+msgid "Propagate"
+msgstr "Yaymak"
+
+
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Text"
+msgstr "Metin"
 
 
 msgid "Keyframe Insert Pie"
@@ -79294,16 +79294,16 @@ msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
 
 
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
 msgid "glTF Variants"
 msgstr "glTF Çeşitleri"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
 
 
 msgid "Curves Sculpt Add Curve Options"
@@ -79374,16 +79374,16 @@ msgid "2D Cursor"
 msgstr "2B İmleç"
 
 
+msgid "Footage"
+msgstr "Görüntüler"
+
+
 msgid "Predefined tracking camera intrinsics"
 msgstr "Önceden tanımlanmış izleme kamerası iç özellikleri"
 
 
 msgid "Clip Display"
 msgstr "Klip Gösterimi"
-
-
-msgid "Footage"
-msgstr "Görüntüler"
 
 
 msgid "Footage Settings"
@@ -89227,14 +89227,6 @@ msgid "Retiming Key Selection Status"
 msgstr "Yeniden Zamanlama Anahtar Seçimi Durumu"
 
 
-msgid "Top-level strips only"
-msgstr "Yalnızca üst düzey şeritler"
-
-
-msgid "All strips, recursively including those inside metastrips"
-msgstr "Metastriplerin içindekiler de dahil olmak üzere tüm şeritler"
-
-
 msgid "Show Missing Media"
 msgstr "Eksik Medyayı Göster"
 
@@ -89249,6 +89241,14 @@ msgstr "Kaplamayı Göster"
 
 msgid "Partial overlay on top of the sequencer with a frame offset"
 msgstr "Sıralayıcının üstünde kare ofseti olan kısmi kaplama"
+
+
+msgid "Top-level strips only"
+msgstr "Yalnızca üst düzey şeritler"
+
+
+msgid "All strips, recursively including those inside metastrips"
+msgstr "Metastriplerin içindekiler de dahil olmak üzere tüm şeritler"
 
 
 msgid "Cache Composite"
@@ -113931,18 +113931,6 @@ msgid "Cannot pose libdata"
 msgstr "libdata pozlanamıyor"
 
 
-msgid "[Tab] - Show original pose"
-msgstr "[Tab] - Orijinal pozu göster"
-
-
-msgid "[Tab] - Show blended pose"
-msgstr "[Sekme] - Karma pozu göster"
-
-
-msgid "%s | %s | [Ctrl] - Flip Pose"
-msgstr "%s | %s | [Ctrl] - Pozu Çevir"
-
-
 msgid "Pose lib is only for armatures in pose mode"
 msgstr "Pose lib yalnızca poz modundaki armatürler içindir"
 
@@ -114381,10 +114369,6 @@ msgstr "Düğüm grubunun bir grup çıkış düğümü olması gerekir"
 
 msgid "Node group's first output must be a geometry"
 msgstr "Düğüm grubunun ilk çıktısı bir geometri olmalıdır"
-
-
-msgid "Annotation Session: ESC/Enter to end   (or click outside this area)"
-msgstr "Açıklama Oturumu: Bitirmek için ESC/Enter tuşuna basın (veya bu alanın dışına tıklayın)"
 
 
 msgid "Cannot paint stroke"
@@ -115797,10 +115781,6 @@ msgstr "Sertleştirmek"
 
 msgid "Outer"
 msgstr "Dış"
-
-
-msgid "Miter Shape"
-msgstr "Gönye şekli"
 
 
 msgid "Intersection Type"
@@ -118177,10 +118157,6 @@ msgid "Action must have at least one keyframe or F-Modifier"
 msgstr "Eylemin en az bir anahtar karesi veya F-Değiştiricisi olmalıdır"
 
 
-msgid "Action has already been stashed"
-msgstr "Eylem çoktan saklandı"
-
-
 msgid "Could not find current NLA Track"
 msgstr "Mevcut NLA Parçası bulunamadı"
 
@@ -118407,10 +118383,6 @@ msgstr "Açılacak dosya seçilmedi"
 
 msgid "Cannot read '%s': %s"
 msgstr "'%s' okunamıyor: %s"
-
-
-msgid "Use LMB click to define location where place the marker"
-msgstr "İşaretçinin yerleştirileceği konumu tanımlamak için LMB tıklamasını kullanın"
 
 
 msgid "Delete selected tracks?"
@@ -123087,6 +123059,10 @@ msgid "Cap Start"
 msgstr "Kapak Başlangıcı"
 
 
+msgid "Miter Shape"
+msgstr "Gönye şekli"
+
+
 msgid "Cannot execute, intersect only available using exact solver"
 msgstr "Yürütülemez, kesişim yalnızca kesin çözücü kullanılarak kullanılabilir"
 
@@ -123954,14 +123930,6 @@ msgid "Prefilter:"
 msgstr "Ön filtre:"
 
 
-msgid "Disabled, built without OpenImageDenoise"
-msgstr "Devre dışı bırakıldı, OpenImageDenoise olmadan oluşturuldu"
-
-
-msgid "Disabled, CPU with SSE4.2 is required"
-msgstr "Devre dışı, SSE4.2'li CPU gereklidir"
-
-
 msgid "Image 1"
 msgstr "Resim 1"
 
@@ -124028,10 +123996,6 @@ msgstr "Çizgi kaybolma faktörü"
 
 msgid "ID value"
 msgstr "Kimlik değeri"
-
-
-msgid "Render passes not supported in the Viewport compositor"
-msgstr "Viewport kompozitöründe render geçişleri desteklenmiyor"
 
 
 msgid "Viewport compositor setup not fully supported"
@@ -124345,16 +124309,16 @@ msgid "Variance"
 msgstr "Varyans"
 
 
+msgid "Bake Items"
+msgstr "Pişirme Ürünleri"
+
+
 msgid "Bake to Disk"
 msgstr "Diske Pişir"
 
 
 msgid "Bake Packed"
 msgstr "Paketlenmiş pişirme"
-
-
-msgid "Bake Items"
-msgstr "Pişirme Ürünleri"
 
 
 msgid "Data-Block References"
@@ -124879,12 +124843,12 @@ msgid "Top"
 msgstr "Tepe"
 
 
-msgid "For Each Element"
-msgstr "Her Element İçin"
-
-
 msgid "Input Fields"
 msgstr "Giriş Alanları"
+
+
+msgid "For Each Element"
+msgstr "Her Element İçin"
 
 
 msgid "Missing Geometry"

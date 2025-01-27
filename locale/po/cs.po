@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -303,6 +303,10 @@ msgid "Active"
 msgstr "Aktivní"
 
 
+msgid "Show Expanded"
+msgstr "Zobrazit rozbalené"
+
+
 msgctxt "ID"
 msgid "Action"
 msgstr "Akce"
@@ -481,10 +485,6 @@ msgstr "Pracovní prostor"
 msgctxt "ID"
 msgid "World"
 msgstr "Okolí"
-
-
-msgid "Show Expanded"
-msgstr "Zobrazit rozbalené"
 
 
 msgid "Keyframe"
@@ -13641,8 +13641,20 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Local View"
-msgstr "Lokální pohled"
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
 
 
 msgid "Pivot Point"
@@ -13657,108 +13669,96 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "UV Mapping"
 msgstr "UV mapování"
 
 
-msgid "Apply"
-msgstr "Použít"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Navigation"
+msgstr "Navigace"
 
 
 msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
-msgid "Navigation"
-msgstr "Navigace"
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Basic"
@@ -31310,16 +31310,16 @@ msgid "2D Cursor"
 msgstr "2D Kursor"
 
 
+msgid "Footage"
+msgstr "Záběr"
+
+
 msgid "Predefined tracking camera intrinsics"
 msgstr "Předdefinovaná vnitřní nastavení tracking kamery"
 
 
 msgid "Clip Display"
 msgstr "Zobrazení klipu"
-
-
-msgid "Footage"
-msgstr "Záběr"
 
 
 msgid "Footage Settings"

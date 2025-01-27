@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
-"PO-Revision-Date: 2024-10-26 01:56+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"PO-Revision-Date: 2025-01-24 02:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"X-Generator: Weblate 5.7.2\n"
+"X-Generator: Weblate 5.9.2\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,-1,-1,-1,4"
 
@@ -61,8 +61,36 @@ msgid "Collection of AOVs"
 msgstr "Koleksi AOVs"
 
 
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Koleksi saluran animasi, biasanya terkait dengan slot aksi"
+
+
 msgid "F-Curves"
 msgstr "Kurva-F"
+
+
+msgid "The individual F-Curves that animate the slot"
+msgstr "Kurva-F tersendiri yang dianimasi ke slot"
+
+
+msgid "F-Curve Groups"
+msgstr "Kelompok-kelompok Kurva-F"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "Pengelompokan Kurva-F bertujuan untuk penampilan, di e.g. dopesheet dan editor grafik"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "Koleksi Kurva-F untuk slot aksi spesifik, di strip spesifik"
+
+
+msgid "Animation Channels for Slots"
+msgstr "Saluran Animasi di Slot-slot"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "Untuk setiap slot aksi, ada daftar saluran animasi yang dimaksudkan untuk slot tersebut"
 
 
 msgid "Action F-Curves"
@@ -253,32 +281,64 @@ msgid "Influence"
 msgstr "Pengaruh"
 
 
+msgid "How much of this layer is used when blending into the lower layers"
+msgstr "Berapa banyak lapisan ini digunakan saat dicampur ke lapisan bawahnya"
+
+
 msgid "Mix Mode"
 msgstr "Mode Campur"
+
+
+msgid "How animation of this layer is blended into the lower layers"
+msgstr "Bagaimana animasi lapisan ini dicampur ke lapisan di bawahnya"
 
 
 msgid "Replace"
 msgstr "Menggantikan"
 
 
+msgid "Channels in this layer override the same channels from underlying layers"
+msgstr "Saluran di lapisan ini menimpa saluran sama dari lapisan yang mendasarinya"
+
+
 msgid "Offset"
 msgstr "Offset"
+
+
+msgid "Channels in this layer are added to underlying layers as sequential operations"
+msgstr "Saluran-saluran di lapisan ini ditambahkan ke lapisan yang mendasarinya sebagai operasi-operasi berurutan"
 
 
 msgid "Add"
 msgstr "Baru"
 
 
+msgid "Channels in this layer are added to underlying layers on a per-channel basis"
+msgstr "Saluran-saluran di lapisan ini ditambahkan ke lapisan yang mendasarinya dengan basis tiap-saluran"
+
+
 msgid "Subtract"
 msgstr "Mengurangi"
+
+
+msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
+msgstr "Saluran-saluran di lapisan ini dikurangi ke lapisan yang mendasarinya dengan basis tiap-saluran"
 
 
 msgid "Multiply"
 msgstr "Mengalikan/kalikan"
 
 
+msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
+msgstr "Saluran-saluran di lapisan ini dikalikan dengan lapisan yang mendasarinya dengan basis tiap-saluran"
+
+
 msgid "Strips"
 msgstr "Strip"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "Daftar strip-strip yang ada di lapisan animasi ini"
 
 
 msgid "Action Pose Markers"
@@ -305,13 +365,28 @@ msgid "Index of active pose marker"
 msgstr "Indeks penanda pose aktif"
 
 
+msgid "Action slot"
+msgstr "Slot aksi"
+
+
 msgid "Active"
 msgstr "Aktif"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "Tipe Akar ID"
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Entah ini adalah slot aksi, dapat ditetapkan dengan menugaskan ke action.slots.active"
+
+
+msgid "Slot Handle"
+msgstr "Pegangan Slot"
+
+
+msgid "Show Expanded"
+msgstr "Tampilkan yang Diekspansi"
+
+
+msgid "Expanded state of the slot"
+msgstr "Keadaan slot yang diperluas"
 
 
 msgctxt "ID"
@@ -518,12 +593,16 @@ msgid "Not yet specified. When this slot is first assigned to a data-block, this
 msgstr "Belum ditentukan. Saat slot ini ditetapkan untuk pertama kalinya ke data-blok, ini akan diset ke tipe data-blok tersebut"
 
 
-msgid "Show Expanded"
-msgstr "Tampilkan yang Diekspansi"
-
-
 msgid "Keyframe"
 msgstr "Frame Kunci"
+
+
+msgid "Strip with a set of F-Curves for each action slot"
+msgstr "Strip dengan set Kurva-F untuk setiap slot aksi"
+
+
+msgid "Keyframe Animation Strip"
+msgstr "Strip Animasi Bingkai Kunci"
 
 
 msgid "Add-on"
@@ -742,6 +821,10 @@ msgid "Show Principled naming tags"
 msgstr "Tampilkan Tag penamaan berprinsip"
 
 
+msgid "Expand this box into a list of all naming tags for principled texture setup"
+msgstr "Memperluas kotak ini ke sebuah daftar semua penanda penamaan untuk pengaturan tekstur yang berprinsip"
+
+
 msgid "Fribidi Library"
 msgstr "Perpustakaan Fribidi"
 
@@ -890,6 +973,18 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Jumlah Aksi Aktif berkontribusi ke hasil stack NLA"
 
 
+msgid "Action Slot Handle"
+msgstr "Pegangan Slot Aksi"
+
+
+msgid "Slots"
+msgstr "Slot-slot"
+
+
+msgid "The list of slots in this animation data-block"
+msgstr "Daftar slot-slot di data-blok animasi ini"
+
+
 msgid "Tweak Mode Action Storage"
 msgstr "Penyimpanan Tindakan Mode Tweak"
 
@@ -904,6 +999,10 @@ msgstr "Driver"
 
 msgid "The Drivers/Expressions for this data-block"
 msgstr "Driver/Ekspresi untuk data-blok ini"
+
+
+msgid "Last Action Slot Identifier"
+msgstr "Pengenal Slot Aksi Terakhir"
 
 
 msgid "NLA Tracks"
@@ -1995,6 +2094,10 @@ msgid "Active Attribute Index"
 msgstr "Indeks Atribut Aktif"
 
 
+msgid "Active attribute index or -1 when none are active"
+msgstr "Indeks atribut aktif atau -1 saat tidak ada yang aktif"
+
+
 msgid "Active Color"
 msgstr "Warna Aktif"
 
@@ -2533,6 +2636,10 @@ msgstr "Font vektor data-blok"
 
 msgid "Annotation"
 msgstr "Anotasi"
+
+
+msgid "Annotation data-blocks (legacy Grease Pencil)"
+msgstr "Anotasi data-blok (Pencil Grease warisan)"
 
 
 msgid "Grease Pencil"
@@ -3107,9 +3214,49 @@ msgid "Collection of worlds"
 msgstr "Koleksi dunia"
 
 
+msgid "Only link data, instead of appending it"
+msgstr "Hanya menghubungkan data, bukan menambahkannya"
+
+
+msgid "Automatically select imported objects"
+msgstr "Memilih secara otomatis benda-benda yang terimpor"
+
+
+msgid "Current stage of the import process"
+msgstr "Tahap sekarang proses impor"
+
+
+msgid "Append Action"
+msgstr "Menambah Aksi"
+
+
+msgid "Not yet defined"
+msgstr "Belum terdefinisikan"
+
+
+msgid "ID has been kept linked"
+msgstr "ID telah tetap terhubung"
+
+
 msgctxt "ID"
 msgid "ID Type"
 msgstr "Tipe ID"
+
+
+msgid "Import Info"
+msgstr "Info Impor"
+
+
+msgid "Various status info about an item after it has been imported"
+msgstr "Berbagai macam info status tentang sebuah item setelah item tersebut telah terimpor"
+
+
+msgid "Reusable Local ID"
+msgstr "ID Lokal yang dapat digunakan lagi"
+
+
+msgid "Source Library"
+msgstr "Sumber Pustaka"
 
 
 msgid "Blender RNA"
@@ -5000,6 +5147,10 @@ msgid "Limit to Viewport"
 msgstr "Batasi ke Viewport"
 
 
+msgid "Keep Caps"
+msgstr "Menetapkan Caps"
+
+
 msgid "Pin Material"
 msgstr "Pin Bahan"
 
@@ -5018,6 +5169,10 @@ msgstr "Gunakan Tekanan"
 
 msgid "Use tablet pressure"
 msgstr "Gunakan tekanan tablet"
+
+
+msgid "Use pressure to modulate randomness"
+msgstr "Gunakan tekanan untuk modulasi keacakan"
 
 
 msgid "Outline"
@@ -11159,6 +11314,11 @@ msgid "Groups"
 msgstr "Kelompok-kelompok"
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "Tipe Akar ID"
+
+
 msgid "Layers"
 msgstr "Layer"
 
@@ -14849,68 +15009,68 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Names"
+msgstr "Nama"
+
+
 msgid "Snap"
 msgstr "Jepret"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
 
 
 msgid "Mirror"
 msgstr "Cermin"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Text"
-msgstr "Teks"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Light"
-msgstr "Cahaya"
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
 
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
 msgid "Merge"
 msgstr "Menggabungkan"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
+msgid "Text"
+msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -25114,12 +25274,12 @@ msgid "Camera Presets"
 msgstr "Preset Kamera"
 
 
-msgid "Clip Display"
-msgstr "Tampilan Klip"
-
-
 msgid "Footage"
 msgstr "Rekaman"
+
+
+msgid "Clip Display"
+msgstr "Tampilan Klip"
 
 
 msgid "Footage Settings"

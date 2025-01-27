@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2100,20 +2100,20 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Apply"
-msgstr "Aplicare"
-
-
-msgid "Convert"
-msgstr "Convertire"
+msgid "Light"
+msgstr "Lumină"
 
 
 msgid "Add Image"
 msgstr "Adăugare Imagine"
 
 
-msgid "Light"
-msgstr "Lumină"
+msgid "Apply"
+msgstr "Aplicare"
+
+
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Marker"

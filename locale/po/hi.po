@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -2613,30 +2613,6 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
 msgid "Names"
 msgstr "नाम"
 
@@ -2645,36 +2621,60 @@ msgid "Bone Roll"
 msgstr "हड्डी पंजी"
 
 
-msgid "Hooks"
-msgstr "खूँटी"
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
+msgid "Snap"
+msgstr "स्नैप"
 
 
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Text"
-msgstr "पाठ"
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Light"
 msgstr "प्रकाश"
 
 
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
 msgid "Merge"
 msgstr "विलय करें"
+
+
+msgid "Text"
+msgstr "पाठ"
 
 
 msgid "Basic"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-01-27 10:58+0000\n"
 "PO-Revision-Date: 2024-11-08 04:56+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1140,40 +1140,40 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
-
-
 msgid "UV Mapping"
 msgstr "UV Картиране"
-
-
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Light"
 msgstr "Светлина"
 
 
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
+
+
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
+
+
 msgid "Merge"
 msgstr "Слей"
+
+
+msgid "Text"
+msgstr "Текст"
 
 
 msgid "Languages..."
