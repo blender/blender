@@ -509,7 +509,7 @@ void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
 
     if (from != to) {
       /* Special case that needs luminance coefficients as argument. */
-      if (from == GPU_VEC4 && to == GPU_FLOAT) {
+      if ((from == GPU_VEC4 || from == GPU_TEX_HANDLE) && to == GPU_FLOAT) {
         float coefficients[3];
         IMB_colormanagement_get_luminance_coefficients(coefficients);
         eval_ss << ", " << blender::Span<float>(coefficients, 3);

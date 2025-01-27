@@ -107,7 +107,7 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 #define float_from_vec4(v, luminance_coefficients) dot(v.rgb, luminance_coefficients)
 #define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0 / 3.0))
 #define float_from_vec2(v) v.r
-#define float_from_TextureHandle(t) float_from_vec4(TextureHandle_eval(t))
+#define float_from_TextureHandle(t, luminance_coefficients) float_from_vec4(TextureHandle_eval(t), luminance_coefficients)
 
 #define vec2_from_vec4(v) vec2(((v.r + v.g + v.b) * (1.0 / 3.0)), v.a)
 #define vec2_from_vec3(v) vec2(((v.r + v.g + v.b) * (1.0 / 3.0)), 1.0)
