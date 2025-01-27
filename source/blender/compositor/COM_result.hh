@@ -18,6 +18,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "COM_derived_resources.hh"
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
 
@@ -97,7 +98,11 @@ enum class ResultStorageType : uint8_t {
  *
  * A result can wrap an external texture that is not allocated nor managed by the result. This is
  * set up by a call to the wrap_external method. In that case, when the reference count eventually
- * reach zero, the texture will not be freed. */
+ * reach zero, the texture will not be freed.
+ *
+ * A result may store resources that are computed and cached in case they are needed by multiple
+ * operations. Those are called Derived Resources and can be accessed using the derived_resources
+ * method. */
 class Result {
  private:
   /* The context that the result was created within, this should be initialized during
@@ -163,6 +168,9 @@ class Result {
    * context and should be released back into the pool instead of being freed. For CPU storage,
    * this is irrelevant. */
   bool is_from_pool_ = false;
+  /* Stores resources that are derived from this result. Lazily allocated if needed. See the class
+   * description for more information. */
+  DerivedResources *derived_resources_ = nullptr;
 
  public:
   /* Stores extra information about the result such as image meta data that can eventually be
@@ -331,6 +339,10 @@ class Result {
    * computed if its reference count is not zero, that is, its result is used by at least one
    * operation. */
   bool should_compute();
+
+  /* Returns a reference to the derived resources of the result, which is allocated if it was not
+   * allocated already. */
+  DerivedResources &derived_resources();
 
   /* Returns the type of the result. */
   ResultType type() const;

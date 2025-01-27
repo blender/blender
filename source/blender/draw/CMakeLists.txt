@@ -14,6 +14,7 @@ set(INC
   ../compositor
   ../compositor/algorithms
   ../compositor/cached_resources
+  ../compositor/derived_resources
 
   ../../../intern/opensubdiv
 )

@@ -484,11 +484,22 @@ void Result::free()
       integer_texture_ = nullptr;
       break;
   }
+
+  delete derived_resources_;
+  derived_resources_ = nullptr;
 }
 
 bool Result::should_compute()
 {
   return initial_reference_count_ != 0;
+}
+
+DerivedResources &Result::derived_resources()
+{
+  if (!derived_resources_) {
+    derived_resources_ = new DerivedResources();
+  }
+  return *derived_resources_;
 }
 
 ResultType Result::type() const

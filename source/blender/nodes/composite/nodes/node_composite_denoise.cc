@@ -18,6 +18,7 @@
 
 #include "DNA_node_types.h"
 
+#include "COM_denoised_auxiliary_pass.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -131,14 +132,17 @@ class DenoiseOperation : public NodeOperation {
     const int pixel_stride = sizeof(float) * 4;
     const eGPUDataFormat data_format = GPU_DATA_FLOAT;
 
+    Vector<float *> temporary_buffers_to_free;
+
     float *input_color = nullptr;
     float *output_color = nullptr;
     if (this->context().use_gpu()) {
       /* Download the input texture and set it as both the input and output of the filter to
-       * denoise it in-place. */
+       * denoise it in-place. Make sure to track the downloaded buffer to be later freed. */
       GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
       input_color = static_cast<float *>(GPU_texture_read(input_image, data_format, 0));
       output_color = input_color;
+      temporary_buffers_to_free.append(input_color);
     }
     else {
       input_color = input_image.float_texture();
@@ -152,57 +156,56 @@ class DenoiseOperation : public NodeOperation {
     this->set_filter_quality(filter);
     filter.setProgressMonitorFunction(oidn_progress_monitor_function, &context());
 
-    /* If the albedo input is not a single value input, download the albedo texture, denoise it
-     * in-place if denoising auxiliary passes is needed, and set it to the main filter. */
-    float *albedo = nullptr;
-    Result &input_albedo = get_input("Albedo");
+    /* If the albedo input is not a single value input, set it to the albedo input of the filter,
+     * denoising it if needed. */
+    Result &input_albedo = this->get_input("Albedo");
     if (!input_albedo.is_single_value()) {
-      if (this->context().use_gpu()) {
-        albedo = static_cast<float *>(GPU_texture_read(input_albedo, data_format, 0));
+      float *albedo = nullptr;
+      if (this->should_denoise_auxiliary_passes()) {
+        albedo = input_albedo.derived_resources()
+                     .denoised_auxiliary_passes
+                     .get(this->context(),
+                          input_albedo,
+                          DenoisedAuxiliaryPassType::Albedo,
+                          this->get_quality())
+                     .denoised_buffer;
       }
       else {
-        albedo = input_albedo.float_texture();
-      }
-
-      if (should_denoise_auxiliary_passes()) {
-        oidn::FilterRef albedoFilter = device.newFilter("RT");
-        this->set_filter_quality(albedoFilter);
-        albedoFilter.setImage(
-            "albedo", albedo, oidn::Format::Float3, width, height, 0, pixel_stride);
-        albedoFilter.setImage(
-            "output", albedo, oidn::Format::Float3, width, height, 0, pixel_stride);
-        albedoFilter.setProgressMonitorFunction(oidn_progress_monitor_function, &context());
-        albedoFilter.commit();
-        albedoFilter.execute();
+        if (this->context().use_gpu()) {
+          albedo = static_cast<float *>(GPU_texture_read(input_albedo, data_format, 0));
+          temporary_buffers_to_free.append(albedo);
+        }
+        else {
+          albedo = input_albedo.float_texture();
+        }
       }
 
       filter.setImage("albedo", albedo, oidn::Format::Float3, width, height, 0, pixel_stride);
     }
 
-    /* If the albedo and normal inputs are not single value inputs, download the normal texture,
-     * denoise it in-place if denoising auxiliary passes is needed, and set it to the main filter.
-     * Notice that we also consider the albedo input because OIDN doesn't support denoising with
-     * only the normal auxiliary pass. */
-    float *normal = nullptr;
-    Result &input_normal = get_input("Normal");
-    if (albedo && !input_normal.is_single_value()) {
-      if (this->context().use_gpu()) {
-        normal = static_cast<float *>(GPU_texture_read(input_normal, data_format, 0));
+    /* If the albedo and normal inputs are not single value inputs, set the normal input to the
+     * albedo input of the filter, denoising it if needed. Notice that we also consider the albedo
+     * input because OIDN doesn't support denoising with only the normal auxiliary pass. */
+    Result &input_normal = this->get_input("Normal");
+    if (!input_albedo.is_single_value() && !input_normal.is_single_value()) {
+      float *normal = nullptr;
+      if (should_denoise_auxiliary_passes()) {
+        normal = input_normal.derived_resources()
+                     .denoised_auxiliary_passes
+                     .get(this->context(),
+                          input_normal,
+                          DenoisedAuxiliaryPassType::Normal,
+                          this->get_quality())
+                     .denoised_buffer;
       }
       else {
-        normal = input_normal.float_texture();
-      }
-
-      if (should_denoise_auxiliary_passes()) {
-        oidn::FilterRef normalFilter = device.newFilter("RT");
-        this->set_filter_quality(normalFilter);
-        normalFilter.setImage(
-            "normal", normal, oidn::Format::Float3, width, height, 0, pixel_stride);
-        normalFilter.setImage(
-            "output", normal, oidn::Format::Float3, width, height, 0, pixel_stride);
-        normalFilter.setProgressMonitorFunction(oidn_progress_monitor_function, &context());
-        normalFilter.commit();
-        normalFilter.execute();
+        if (this->context().use_gpu()) {
+          normal = static_cast<float *>(GPU_texture_read(input_normal, data_format, 0));
+          temporary_buffers_to_free.append(normal);
+        }
+        else {
+          normal = input_normal.float_texture();
+        }
       }
 
       filter.setImage("normal", normal, oidn::Format::Float3, width, height, 0, pixel_stride);
@@ -224,16 +227,8 @@ class DenoiseOperation : public NodeOperation {
       });
     }
 
-    /* Buffers for the CPU case are owned by the inputs, while for GPU, they are temporally read
-     * from the GPU texture, so they need to be freed if they were read. */
-    if (this->context().use_gpu()) {
-      MEM_freeN(input_color);
-      if (albedo) {
-        MEM_freeN(albedo);
-      }
-      if (normal) {
-        MEM_freeN(normal);
-      }
+    for (float *buffer : temporary_buffers_to_free) {
+      MEM_freeN(buffer);
     }
 #endif
   }
@@ -268,7 +263,7 @@ class DenoiseOperation : public NodeOperation {
 
 #ifdef WITH_OPENIMAGEDENOISE
 #  if OIDN_VERSION_MAJOR >= 2
-  OIDNQuality get_quality()
+  oidn::Quality get_quality()
   {
     const CMPNodeDenoiseQuality node_quality = static_cast<CMPNodeDenoiseQuality>(
         node_storage(bnode()).quality);
@@ -278,26 +273,26 @@ class DenoiseOperation : public NodeOperation {
       switch (scene_quality) {
 #    if OIDN_VERSION >= 20300
         case SCE_COMPOSITOR_DENOISE_FAST:
-          return OIDN_QUALITY_FAST;
+          return oidn::Quality::Fast;
 #    endif
         case SCE_COMPOSITOR_DENOISE_BALANCED:
-          return OIDN_QUALITY_BALANCED;
+          return oidn::Quality::Balanced;
         case SCE_COMPOSITOR_DENOISE_HIGH:
         default:
-          return OIDN_QUALITY_HIGH;
+          return oidn::Quality::High;
       }
     }
 
     switch (node_quality) {
 #    if OIDN_VERSION >= 20300
       case CMP_NODE_DENOISE_QUALITY_FAST:
-        return OIDN_QUALITY_FAST;
+        return oidn::Quality::Fast;
 #    endif
       case CMP_NODE_DENOISE_QUALITY_BALANCED:
-        return OIDN_QUALITY_BALANCED;
+        return oidn::Quality::Balanced;
       case CMP_NODE_DENOISE_QUALITY_HIGH:
       default:
-        return OIDN_QUALITY_HIGH;
+        return oidn::Quality::High;
     }
   }
 #  endif /* OIDN_VERSION_MAJOR >= 2 */
@@ -305,7 +300,7 @@ class DenoiseOperation : public NodeOperation {
   void set_filter_quality([[maybe_unused]] oidn::FilterRef &filter)
   {
 #  if OIDN_VERSION_MAJOR >= 2
-    OIDNQuality quality = this->get_quality();
+    oidn::Quality quality = this->get_quality();
     filter.set("quality", quality);
 #  endif
   }
