@@ -162,6 +162,59 @@ class ActionSlotAssignmentTest(unittest.TestCase):
             cube_adt.action_slot = slot
         self.assertEqual(cube_adt.action_slot, slot_cube, "The slot should not have changed")
 
+    def test_untyped_slot_assignment_local(self):
+        """Test untyped slot assignment, with a local Action."""
+
+        action = self._load_legacy_action(link=False)
+
+        # Assign the Action to a Mesh data-block. This should set the ID type of the Slot to 'MESH'.
+        mesh = bpy.data.meshes['Cube']
+        mesh.animation_data_create().action = action
+
+        slot = action.slots[0]
+        self.assertEqual('MESH', slot.target_id_type, "After assignment, the ID type should be specified.")
+        self.assertEqual("MELegacy Slot", slot.identifier)
+
+    def test_untyped_slot_assignment_linked(self):
+        """Test untyped slot assignment, with a linked Action."""
+
+        action = self._load_legacy_action(link=True)
+
+        # Assign the Action to a Mesh data-block. This should set the ID type of the Slot to 'MESH'.
+        mesh = bpy.data.meshes['Cube']
+        mesh.animation_data_create().action = action
+
+        slot = action.slots[0]
+        self.assertEqual(
+            'UNSPECIFIED',
+            slot.target_id_type,
+            "After assignment, the ID type should remain UNSPECIFIED when the Action is linked.")
+        self.assertEqual("XXLegacy Slot", slot.identifier)
+
+    @staticmethod
+    def _load_legacy_action(*, link: bool) -> bpy.types.Action:
+        # At the moment of writing, the only way to create an untyped slot is to
+        # load a legacy Action that has `id_root=0` and let the versioning code
+        # create the untyped slot.
+        blendpath = args.testdir / "legacy-action-without-idroot.blend"
+
+        # Append or link the one Action from the legacy file.
+        with bpy.data.libraries.load(str(blendpath), link=link) as (data_in, data_out):
+            data_out.actions = data_in.actions
+
+        # Using plain asserts here, because these are not part of the unit test.
+        # They're here to test that the test code itself is doing the right thing.
+        assert len(data_out.actions) == 1
+        assert isinstance(data_out.actions[0], bpy.types.Action)
+
+        # Check that the state of things is as expected.
+        action = data_out.actions[0]
+        slot = action.slots[0]
+        assert slot.target_id_type == 'UNSPECIFIED'
+        assert slot.identifier == "XXLegacy Slot"
+
+        return action
+
 
 class LimitationsTest(unittest.TestCase):
     """Test artificial limitations for the layered Action.

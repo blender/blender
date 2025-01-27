@@ -697,6 +697,13 @@ void Action::slot_identifier_ensure_prefix(Slot &slot)
 
 void Action::slot_setup_for_id(Slot &slot, const ID &animated_id)
 {
+  if (!ID_IS_EDITABLE(this) || ID_IS_OVERRIDE_LIBRARY(this)) {
+    /* Do not write to linked data. For now, also avoid changing the slot identifier on an
+     * override. Actions cannot have library overrides at the moment, and when they do, this should
+     * actually get designed. For now, it's better to avoid editing data than editing too much. */
+    return;
+  }
+
   if (slot.has_idtype()) {
     BLI_assert(slot.idtype == GS(animated_id.name));
     return;
