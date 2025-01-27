@@ -1838,6 +1838,9 @@ static void create_inspection_string_for_default_socket_value(const bNodeSocket 
 static std::optional<std::string> create_description_inspection_string(const bNodeSocket &socket)
 {
   if (socket.runtime->declaration == nullptr) {
+    if (socket.description[0]) {
+      return socket.description;
+    }
     return std::nullopt;
   }
   const blender::nodes::SocketDeclaration &socket_decl = *socket.runtime->declaration;
