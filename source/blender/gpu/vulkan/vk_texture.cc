@@ -196,8 +196,11 @@ void VKTexture::read_sub(
   staging_buffer.create(device_memory_size,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        VMA_ALLOCATION_CREATE_MAPPED_BIT);
+                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                        /* Although we are only reading, we need to set the host access random bit
+                           to improve the performance on AMD GPUs. */
+                        VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
+                            VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
   render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
   render_graph::VKCopyImageToBufferNode::Data &node_data = copy_image_to_buffer.node_data;
