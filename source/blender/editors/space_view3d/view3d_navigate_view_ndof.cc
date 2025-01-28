@@ -175,20 +175,28 @@ static void view3d_ndof_orbit(const wmNDOFMotionData *ndof,
     /* Turntable view code adapted for 3D mouse use. */
     float angle, quat[4];
     float xvec[3] = {1, 0, 0};
+    float yvec[3] = {0, 1, 0};
 
     /* only use XY, ignore Z */
     WM_event_ndof_rotate_get(ndof, rot);
 
-    /* Determine the direction of the x vector (for rotating up and down) */
+    /* Determine the direction of the X vector (for rotating up and down). */
     mul_qt_v3(view_inv, xvec);
+    /* Determine the direction of the Y vector (to check if the view is upside down). */
+    mul_qt_v3(view_inv, yvec);
 
     /* Perform the up/down rotation */
     angle = ndof->dt * rot[0];
     axis_angle_to_quat(quat, xvec, angle);
     mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 
-    /* Perform the orbital rotation */
+    /* Perform the Z rotation. */
     angle = ndof->dt * rot[1];
+
+    /* Flip the turntable angle when the view is upside down. */
+    if (yvec[2] < 0.0f) {
+      angle *= -1.0f;
+    }
 
     /* Update the onscreen axis-angle indicator. */
     rv3d->rot_angle = angle;
