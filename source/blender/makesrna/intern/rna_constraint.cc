@@ -788,6 +788,23 @@ static void rna_ActionConstraint_action_slot_handle_set(
                                      acon->last_slot_identifier);
 }
 
+/**
+ * Emit a 'diff' for the .action_slot_handle property whenever the .action property differs.
+ *
+ * \see rna_generic_action_slot_handle_override_diff()
+ */
+static void rna_ActionConstraint_action_slot_handle_override_diff(
+    Main *bmain, RNAPropertyOverrideDiffContext &rnadiff_ctx)
+{
+  const bConstraint *con_a = static_cast<bConstraint *>(rnadiff_ctx.prop_a->ptr->data);
+  const bConstraint *con_b = static_cast<bConstraint *>(rnadiff_ctx.prop_b->ptr->data);
+
+  const bActionConstraint *act_con_a = static_cast<bActionConstraint *>(con_a->data);
+  const bActionConstraint *act_con_b = static_cast<bActionConstraint *>(con_b->data);
+
+  rna_generic_action_slot_handle_override_diff(bmain, rnadiff_ctx, act_con_a->act, act_con_b->act);
+}
+
 static PointerRNA rna_ActionConstraint_action_slot_get(PointerRNA *ptr)
 {
   bConstraint *con = (bConstraint *)ptr->data;
@@ -1987,6 +2004,8 @@ static void rna_def_constraint_action(BlenderRNA *brna)
                            "A number that identifies which sub-set of the Action is considered "
                            "to be for this Action Constraint");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_funcs(
+      prop, "rna_ActionConstraint_action_slot_handle_override_diff", nullptr, nullptr);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "last_slot_identifier", PROP_STRING, PROP_NONE);
