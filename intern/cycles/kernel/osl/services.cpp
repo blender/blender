@@ -1006,51 +1006,39 @@ bool OSLRenderServices::get_background_attribute(
     const float f = sd->ray_length;
     return set_attribute_float(f, type, derivatives, val);
   }
+
+#define READ_PATH_STATE(elem) \
+  ((state != nullptr)        ? state->path.elem : \
+   (shadow_state != nullptr) ? shadow_state->shadow_path.elem : \
+                               0)
+
   if (name == u_path_ray_depth) {
     /* Ray Depth */
-    const IntegratorStateCPU *state = sd->osl_path_state;
-    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    const int f = (state)        ? state->path.bounce :
-                  (shadow_state) ? shadow_state->shadow_path.bounce :
-                                   0;
+    const int f = READ_PATH_STATE(bounce);
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_diffuse_depth) {
     /* Diffuse Ray Depth */
-    const IntegratorStateCPU *state = sd->osl_path_state;
-    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    const int f = (state)        ? state->path.diffuse_bounce :
-                  (shadow_state) ? shadow_state->shadow_path.diffuse_bounce :
-                                   0;
+    const int f = READ_PATH_STATE(diffuse_bounce);
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_glossy_depth) {
     /* Glossy Ray Depth */
-    const IntegratorStateCPU *state = sd->osl_path_state;
-    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    const int f = (state)        ? state->path.glossy_bounce :
-                  (shadow_state) ? shadow_state->shadow_path.glossy_bounce :
-                                   0;
+    const int f = READ_PATH_STATE(glossy_bounce);
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_transmission_depth) {
     /* Transmission Ray Depth */
-    const IntegratorStateCPU *state = sd->osl_path_state;
-    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    const int f = (state)        ? state->path.transmission_bounce :
-                  (shadow_state) ? shadow_state->shadow_path.transmission_bounce :
-                                   0;
+    const int f = READ_PATH_STATE(transmission_bounce);
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_transparent_depth) {
     /* Transparent Ray Depth */
-    const IntegratorStateCPU *state = sd->osl_path_state;
-    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    const int f = (state)        ? state->path.transparent_bounce :
-                  (shadow_state) ? shadow_state->shadow_path.transparent_bounce :
-                                   0;
+    const int f = READ_PATH_STATE(transparent_bounce);
     return set_attribute_int(f, type, derivatives, val);
   }
+#undef READ_PATH_STATE
+
   if (name == u_ndc) {
     /* NDC coordinates with special exception for orthographic projection. */
     float3 ndc[3];

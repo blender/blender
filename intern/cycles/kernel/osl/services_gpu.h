@@ -1028,6 +1028,30 @@ ccl_device_inline bool set_attribute_matrix(const ccl_private Transform &tfm,
 
   return false;
 }
+ccl_device_inline bool set_attribute_int(const int i,
+                                         const TypeDesc type,
+                                         bool derivatives,
+                                         void *val)
+{
+  const unsigned char type_basetype = type & 0xF;
+  const unsigned char type_aggregate = (type >> 8) & 0xF;
+  const int type_arraylen = type >> 32;
+
+  if ((type_basetype == 7 /* TypeDesc::INT */) && (type_aggregate == 1 /* TypeDesc::SCALAR */) &&
+      type_arraylen == 0)
+  {
+    static_cast<ccl_private int *>(val)[0] = i;
+
+    if (derivatives) {
+      static_cast<ccl_private int *>(val)[1] = 0;
+      static_cast<ccl_private int *>(val)[2] = 0;
+    }
+
+    return true;
+  }
+
+  return false;
+}
 
 ccl_device_inline bool get_background_attribute(KernelGlobals kg,
                                                 ccl_private ShaderGlobals *sg,
@@ -1037,11 +1061,46 @@ ccl_device_inline bool get_background_attribute(KernelGlobals kg,
                                                 bool derivatives,
                                                 ccl_private void *val)
 {
+  ConstIntegratorState state = (sg->shade_index > 0) ? (sg->shade_index - 1) : -1;
+  ConstIntegratorShadowState shadow_state = (sg->shade_index < 0) ? (-sg->shade_index - 1) : -1;
   if (name == DeviceStrings::u_path_ray_length) {
     /* Ray Length */
     float f = sd->ray_length;
     return set_attribute_float(f, type, derivatives, val);
   }
+
+#define READ_PATH_STATE(elem) \
+  ((state != -1)        ? INTEGRATOR_STATE(state, path, elem) : \
+   (shadow_state != -1) ? INTEGRATOR_STATE(shadow_state, shadow_path, elem) : \
+                          0)
+
+  if (name == DeviceStrings::u_path_ray_depth) {
+    /* Ray Depth */
+    const int f = READ_PATH_STATE(bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_diffuse_depth) {
+    /* Diffuse Ray Depth */
+    const int f = READ_PATH_STATE(diffuse_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_glossy_depth) {
+    /* Glossy Ray Depth */
+    const int f = READ_PATH_STATE(glossy_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_transmission_depth) {
+    /* Transmission Ray Depth */
+    const int f = READ_PATH_STATE(transmission_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_transparent_depth) {
+    /* Transparent Ray Depth */
+    const int f = READ_PATH_STATE(transparent_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+#undef READ_PATH_STATE
+
   else if (name == DeviceStrings::u_ndc) {
     /* NDC coordinates with special exception for orthographic projection. */
     float3 ndc[3];

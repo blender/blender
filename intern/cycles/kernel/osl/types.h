@@ -121,6 +121,10 @@ struct ShaderGlobals {
 #if OSL_LIBRARY_VERSION_CODE >= 11304
   void *shadingStateUniform;
   int thread_index;
+
+  /* We use this to encode the path state on GPUs.
+   * Zero means no state, positive means path_state, negative means shadow_path_state.
+   * On CPU, we use pointers in the Cycles-specific section below. */
   int shade_index;
 #endif
   void *renderer;
@@ -133,7 +137,12 @@ struct ShaderGlobals {
   int backfacing;
 
   /* This part is Cycles-specific and ignored by OSL itself. */
-#ifndef __KERNEL_GPU__
+#ifdef __KERNEL_GPU__
+#  if OSL_LIBRARY_VERSION_CODE < 11304
+  /* shade_index is not part of the regular OSL ShaderGlobals in old versions */
+  int shade_index;
+#  endif
+#else
   const struct IntegratorStateCPU *path_state;
   const struct IntegratorShadowStateCPU *shadow_path_state;
 #endif
