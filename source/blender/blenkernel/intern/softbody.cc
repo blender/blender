@@ -50,7 +50,6 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_collection.hh"
 #include "BKE_collision.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"

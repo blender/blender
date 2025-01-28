@@ -8,8 +8,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 
-#include "MEM_guardedalloc.h"
-
 namespace blender::bke::id {
 
 void IDRemapper::add(ID *old_id, ID *new_id)

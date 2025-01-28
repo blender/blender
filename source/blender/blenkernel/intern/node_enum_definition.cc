@@ -2,9 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string.h"
-#include "BLI_string_utils.hh"
-
 #include "DNA_array_utils.hh"
 #include "DNA_node_types.h"
 

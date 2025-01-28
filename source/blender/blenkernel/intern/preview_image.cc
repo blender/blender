@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include <iostream>
 #include <string>
 
 #include "DNA_ID.h"
@@ -25,7 +24,6 @@
 
 #include "BLI_ghash.h"
 #include "BLI_string.h"
-#include "BLI_string_ref.hh"
 #ifndef NDEBUG
 #  include "BLI_threads.h"
 #endif

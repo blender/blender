@@ -19,8 +19,6 @@
 
 #include "BKE_outliner_treehash.hh"
 
-#include "MEM_guardedalloc.h"
-
 namespace blender::bke::outliner::treehash {
 
 /* -------------------------------------------------------------------- */

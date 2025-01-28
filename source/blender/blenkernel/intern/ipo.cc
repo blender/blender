@@ -35,9 +35,9 @@
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_endian_switch.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 

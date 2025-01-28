@@ -23,6 +23,10 @@
 #include <string>
 
 #include "BLI_array.hh"
+#include "BLI_fileops.h"
+#include "BLI_path_utils.hh"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
 #include "CLG_log.h"
@@ -46,14 +50,12 @@
 #include "DNA_defaults.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
 #include "BLI_system.h"

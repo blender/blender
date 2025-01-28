@@ -11,12 +11,15 @@
 #include <cmath>
 #include <cstdio>
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_kdtree.h"
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -24,12 +27,7 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -40,7 +38,6 @@
 
 #include "BKE_armature.hh"
 #include "BKE_bvhutils.hh" /* bvh tree */
-#include "BKE_collection.hh"
 #include "BKE_collision.h"
 #include "BKE_colorband.hh"
 #include "BKE_constraint.h"

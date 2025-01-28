@@ -30,8 +30,6 @@
 
 #include "GHOST_Path-api.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "CLG_log.h"
 
 #ifdef WIN32

@@ -15,7 +15,6 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
@@ -24,7 +23,6 @@
 #include "BLI_sort.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
-#include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"

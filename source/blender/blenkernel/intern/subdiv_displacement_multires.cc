@@ -16,10 +16,9 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_offset_indices.hh"
 
 #include "BKE_customdata.hh"
-#include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_subdiv_eval.hh"
 

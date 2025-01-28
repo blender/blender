@@ -15,7 +15,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_map.hh"
 #include "BLI_ordered_edge.hh"
-#include "BLI_utildefines.h"
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag. */
 

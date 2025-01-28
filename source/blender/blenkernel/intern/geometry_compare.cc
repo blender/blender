@@ -7,6 +7,7 @@
 #include "BLI_ordered_edge.hh"
 #include "BLI_span.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.hh"

@@ -14,47 +14,38 @@
 #include "DNA_cloth_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_key_types.h"
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLI_task.h"
+#include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_bvhutils.hh"
-#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_geometry_set_instances.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_mesh_tangent.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
-#include "BKE_object_deform.h"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
-#include "BKE_subdiv_modifier.hh"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
@@ -62,10 +53,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "CLG_log.h"
-
 #ifdef WITH_OPENSUBDIV
-#  include "DNA_userdef_types.h"
+// #  include "DNA_userdef_types.h"
 #endif
 
 namespace blender::bke {

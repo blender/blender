@@ -25,6 +25,7 @@
 #include "BLI_span.hh"
 #include "BLI_virtual_array.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"

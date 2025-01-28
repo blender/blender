@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
+#include "BLI_rect.h"
+
 #include "CLG_log.h"
 
 #include "GHOST_Path-api.hh"

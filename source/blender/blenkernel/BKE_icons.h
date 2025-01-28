@@ -17,8 +17,6 @@
 
 #ifdef __cplusplus
 
-#  include <optional>
-
 extern "C" {
 #endif
 

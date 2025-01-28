@@ -14,15 +14,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_bit_vector.hh"
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -31,7 +30,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -50,7 +48,6 @@
 #include "BKE_material.hh"
 #include "BKE_nla.hh"
 #include "BKE_node.hh"
-#include "BKE_report.hh"
 #include "BKE_texture.h"
 
 #include "ANIM_action.hh"
@@ -67,8 +64,6 @@
 #include "BLO_read_write.hh"
 
 #include "nla_private.h"
-
-#include "atomic_ops.h"
 
 #include "CLG_log.h"
 

@@ -20,25 +20,21 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
-#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.hh" /* own include */
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 

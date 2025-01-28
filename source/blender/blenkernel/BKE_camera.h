@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BLI_rect.h"
+#include "DNA_vec_types.h"
 
 /** \file
  * \ingroup bke

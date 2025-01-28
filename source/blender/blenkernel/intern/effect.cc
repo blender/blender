@@ -23,7 +23,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
@@ -31,6 +30,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_noise.h"
 #include "BLI_rand.h"
+#include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 

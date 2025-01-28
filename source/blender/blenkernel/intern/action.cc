@@ -24,7 +24,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_math_color.h"
@@ -32,12 +31,12 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_session_uid.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
-
-#include "BLO_read_write.hh"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -64,7 +63,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
-#include "RNA_prototypes.hh"
 
 #include "BLO_read_write.hh"
 

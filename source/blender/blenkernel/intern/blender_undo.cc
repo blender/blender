@@ -9,6 +9,8 @@
  * DNA level diffing for undo.
  */
 
+#include "DNA_userdef_types.h"
+
 #ifndef _WIN32
 #  include <unistd.h> /* for read close */
 #else
@@ -16,7 +18,6 @@
 #endif
 
 #include <cerrno>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -24,11 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
-
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_undo.hh" /* own include */

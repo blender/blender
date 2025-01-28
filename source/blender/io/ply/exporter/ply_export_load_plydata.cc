@@ -10,6 +10,7 @@
 #include "IO_ply.hh"
 #include "ply_data.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"

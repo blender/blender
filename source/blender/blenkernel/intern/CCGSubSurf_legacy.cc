@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include "BLI_sys_types.h" /* for intptr_t support */
 #include "MEM_guardedalloc.h"
 
 #include "BLI_task.h"

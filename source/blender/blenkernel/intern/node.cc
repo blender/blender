@@ -15,20 +15,16 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <limits>
 #include <optional>
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -39,14 +35,11 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_rotation_types.hh"
-#include "BLI_path_utils.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
-#include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
-#include "BLI_threads.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -60,7 +53,6 @@
 #include "BKE_bpath.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_cryptomatte.h"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
@@ -75,7 +67,6 @@
 #include "BKE_node_tree_interface.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_node_tree_zones.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_type_conversions.hh"
 
@@ -93,7 +84,6 @@
 #include "NOD_geo_menu_switch.hh"
 #include "NOD_geo_repeat.hh"
 #include "NOD_geo_simulation.hh"
-#include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"

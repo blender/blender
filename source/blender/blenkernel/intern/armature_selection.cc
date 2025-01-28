@@ -6,14 +6,13 @@
  * \ingroup bke
  */
 
+#include "ANIM_bone_collections.hh"
+
 #include "BKE_armature.hh"
 
 #include "BLI_listbase.h"
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-
-#include "ANIM_bone_collections.hh"
 
 namespace blender::bke {
 

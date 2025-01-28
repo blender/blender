@@ -6,8 +6,6 @@
  * \ingroup bke
  */
 
-#include <mutex>
-
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 
@@ -15,7 +13,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"

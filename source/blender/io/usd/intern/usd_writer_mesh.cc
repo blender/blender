@@ -19,6 +19,7 @@
 #include "BLI_assert.h"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"

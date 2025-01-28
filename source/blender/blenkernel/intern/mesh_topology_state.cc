@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_attribute.hh"
-#include "BKE_mesh.hh"
 #include "BKE_mesh_topology_state.hh"
+#include "BKE_mesh_types.hh"
 
 namespace blender::bke {
 

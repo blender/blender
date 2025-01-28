@@ -27,7 +27,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 
 #include "BKE_action.hh"

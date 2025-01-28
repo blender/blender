@@ -14,9 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
 
-#include "BKE_global.hh"
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"
 

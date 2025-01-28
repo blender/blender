@@ -1,3 +1,4 @@
+
 /* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -6,17 +7,14 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
-#include "BKE_subsurf.hh"
 #include "BLI_math_vector.h"
 
 #include "multires_reshape.hh"

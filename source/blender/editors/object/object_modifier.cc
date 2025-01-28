@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"

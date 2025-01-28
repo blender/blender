@@ -16,7 +16,6 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_ghash.h"
-#include "BLI_listbase.h"
 
 #include "BKE_fcurve.hh"
 

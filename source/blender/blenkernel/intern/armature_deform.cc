@@ -22,10 +22,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
@@ -34,14 +32,11 @@
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
-#include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_lattice.hh"
 #include "BKE_mesh.hh"
-
-#include "DEG_depsgraph_build.hh"
 
 #include "CLG_log.h"
 

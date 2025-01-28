@@ -5,15 +5,12 @@
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_set.hh"
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 
 #include "BKE_curve_to_mesh.hh"

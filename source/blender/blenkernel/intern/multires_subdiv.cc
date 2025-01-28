@@ -6,10 +6,6 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_utildefines.h"
-
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_subdiv.hh"

@@ -8,10 +8,10 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <deque>
 #include <iostream>
 #include <map>
 #include <optional>
-#include <queue>
 
 #include "CLG_log.h"
 

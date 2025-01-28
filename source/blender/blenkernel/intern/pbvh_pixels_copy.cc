@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
-#include "BLI_bit_vector.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
@@ -17,7 +16,6 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
-#include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
 

@@ -38,8 +38,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_strict_flags.h" /* Keep last. */
 
 /* for timing... */

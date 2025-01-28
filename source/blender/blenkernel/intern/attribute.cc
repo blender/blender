@@ -35,8 +35,6 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 
-#include "RNA_access.hh"
-
 using blender::IndexRange;
 using blender::bke::AttrDomain;
 

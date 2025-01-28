@@ -8,7 +8,6 @@
 
 #include "BKE_action.hh"
 
-#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "DNA_action_types.h"
@@ -16,8 +15,6 @@
 #include "DNA_armature_types.h"
 
 #include "ANIM_action_legacy.hh"
-
-#include "MEM_guardedalloc.h"
 
 namespace blender::bke {
 

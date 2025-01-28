@@ -10,7 +10,6 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BLI_math_geom.h"
-#include "BLI_task.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"

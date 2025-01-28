@@ -12,10 +12,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_iterator.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "BLT_translation.hh"
@@ -31,7 +31,6 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
-#include "DNA_windowmanager_types.h"
 
 #ifdef WITH_AUDASPACE
 #  include "../../../intern/audaspace/intern/AUD_Set.h"

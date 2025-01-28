@@ -25,7 +25,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
-#include "DNA_collection_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"
@@ -35,10 +34,10 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_endian_switch.h"
+#include "BLI_fileops.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"

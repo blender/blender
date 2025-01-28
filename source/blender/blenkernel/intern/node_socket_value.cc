@@ -8,7 +8,6 @@
 
 #include <sstream>
 
-#include "BKE_customdata.hh"
 #include "BKE_node.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_volume_grid.hh"

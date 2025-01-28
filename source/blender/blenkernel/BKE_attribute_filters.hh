@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute_filter.hh"
 
 #include "BLI_set.hh"

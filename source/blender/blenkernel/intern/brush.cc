@@ -18,7 +18,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_rotation.h"
 #include "BLI_rand.h"
 
 #include "BLT_translation.hh"

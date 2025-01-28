@@ -15,19 +15,17 @@
 #include "MEM_guardedalloc.h"
 
 #include "ANIM_action.hh"
-#include "ANIM_animdata.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
-#include "DNA_object_types.h"
-#include "DNA_text_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_easing.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rect.h"
 #include "BLI_sort_utils.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 
@@ -43,7 +41,6 @@
 #include "BKE_idprop.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_nla.hh"
-#include "BKE_scene.hh"
 
 #include "BLO_read_write.hh"
 

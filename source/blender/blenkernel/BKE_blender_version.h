@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "BLI_utildefines.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

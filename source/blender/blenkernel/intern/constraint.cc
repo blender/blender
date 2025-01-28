@@ -18,13 +18,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_kdopbvh.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLT_translation.hh"
@@ -77,8 +77,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
-
-#include "ANIM_action.hh"
 
 #include "CLG_log.h"
 

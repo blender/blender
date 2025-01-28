@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_bake_items.hh"
 #include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"

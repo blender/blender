@@ -26,10 +26,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"

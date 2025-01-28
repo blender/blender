@@ -14,12 +14,13 @@
 #include <cstring>
 #include <optional>
 
-#include "BLI_blenlib.h"
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_threads.h"
+
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
@@ -33,7 +34,6 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_preview_image.hh"
-#include "BKE_report.hh"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.hh"
 

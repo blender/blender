@@ -16,9 +16,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_fair.hh"
 
-#include "bmesh.hh"
-
-#include "MEM_guardedalloc.h"
 #include "eigen_capi.h"
 
 using blender::Array;

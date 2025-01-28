@@ -9,7 +9,6 @@
  */
 
 #include <algorithm> /* For `min/max`. */
-#include <cstddef>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -21,7 +20,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_object_types.h"
 
 #include "BKE_curve.hh"
 #include "BKE_mask.h"

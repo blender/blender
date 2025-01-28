@@ -27,6 +27,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_task.h"

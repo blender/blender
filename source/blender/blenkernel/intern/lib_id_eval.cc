@@ -12,8 +12,6 @@
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 

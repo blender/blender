@@ -32,7 +32,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_kdopbvh.hh"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
@@ -42,6 +41,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
+#include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"

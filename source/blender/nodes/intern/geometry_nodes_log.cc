@@ -5,6 +5,7 @@
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_log.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"

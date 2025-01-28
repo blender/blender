@@ -18,11 +18,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_fileops.h"
 #include "BLI_function_ref.hh"

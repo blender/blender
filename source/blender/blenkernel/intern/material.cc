@@ -7,7 +7,6 @@
  */
 
 #include <cmath>
-#include <cstddef>
 #include <cstring>
 #include <optional>
 
@@ -19,8 +18,6 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
@@ -46,7 +43,6 @@
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
-#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"

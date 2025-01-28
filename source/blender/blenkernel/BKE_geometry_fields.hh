@@ -10,6 +10,7 @@
  * Common field utilities and field definitions for geometry components.
  */
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_geometry_set.hh"
 
 #include "FN_field.hh"

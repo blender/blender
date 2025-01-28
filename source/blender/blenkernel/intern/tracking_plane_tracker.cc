@@ -10,11 +10,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_movieclip_types.h"
+#include "DNA_tracking_types.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_tracking.h"
 

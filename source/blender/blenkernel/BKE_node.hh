@@ -48,7 +48,6 @@ struct bNode;
 struct bNodeExecContext;
 struct bNodeTreeExec;
 struct bNodeExecData;
-struct bNodeInstanceHash;
 struct bNodeLink;
 struct bNodeSocket;
 struct bNodeStack;

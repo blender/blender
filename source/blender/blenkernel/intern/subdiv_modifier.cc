@@ -12,7 +12,6 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_subdiv.hh"

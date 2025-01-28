@@ -6,8 +6,6 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_bounds.hh"
 #include "BLI_ghash.h"
 #include "BLI_heap_simple.h"
@@ -19,7 +17,6 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_ccg.hh"
 #include "BKE_paint_bvh.hh"
 
 #include "bmesh.hh"

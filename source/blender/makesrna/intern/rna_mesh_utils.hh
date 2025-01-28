@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_anonymous_attribute_id.hh"  // IWYU pragma: export
+
 /* Macros to help reduce code clutter in rna_mesh.cc */
 
 /* Define the accessors for a basic CustomDataLayer collection, skipping anonymous layers */

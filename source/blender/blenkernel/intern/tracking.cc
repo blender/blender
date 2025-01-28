@@ -32,18 +32,15 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
 #include "BKE_fcurve.hh"
-#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
@@ -53,7 +50,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
 #include "libmv-capi.h"

@@ -13,7 +13,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"

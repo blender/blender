@@ -27,7 +27,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
 #include "BLI_string.h"
-#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLT_translation.hh"
 
@@ -51,7 +50,6 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 
 #include "ANIM_bone_collections.hh"
@@ -60,11 +58,8 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "BIK_api.h"
-#include "BLI_math_base_safe.h"
 
 #include "BLO_read_write.hh"
-
-#include "CLG_log.h"
 
 using namespace blender;
 

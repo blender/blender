@@ -10,12 +10,6 @@
 
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_userdef_types.h"
-
-#include "BLI_utildefines.h"
-
 #include "BKE_blender_copybuffer.hh" /* own include */
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"

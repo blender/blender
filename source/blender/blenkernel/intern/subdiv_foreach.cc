@@ -6,19 +6,18 @@
  * \ingroup bke
  */
 
-#include "BKE_subdiv_foreach.hh"
-
-#include "atomic_ops.h"
-
 #include "BLI_bitmap.h"
 #include "BLI_task.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_mesh.hh"
 #include "BKE_subdiv.hh"
+#include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
 
+#include "DNA_mesh_types.h"
 #include "MEM_guardedalloc.h"
+
+#include "atomic_ops.h"
 
 namespace blender::bke::subdiv {
 

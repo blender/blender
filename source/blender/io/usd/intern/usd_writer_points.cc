@@ -6,6 +6,7 @@
 #include "usd_attribute_utils.hh"
 #include "usd_utils.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_report.hh"
 

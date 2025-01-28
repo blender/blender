@@ -6,8 +6,6 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 
@@ -16,8 +14,6 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
-#include "BKE_subsurf.hh"
-#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.hh"
 

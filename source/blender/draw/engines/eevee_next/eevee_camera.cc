@@ -7,6 +7,7 @@
  */
 
 #include "BLI_bounds.hh"
+#include "BLI_rect.h"
 
 #include "DRW_render.hh"
 

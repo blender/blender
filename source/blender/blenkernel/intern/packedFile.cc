@@ -26,7 +26,8 @@
 #include "DNA_vfont_types.h"
 #include "DNA_volume_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
@@ -43,9 +44,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
-
-#include "MOD_nodes.hh"
 
 #include "BLO_read_write.hh"
 

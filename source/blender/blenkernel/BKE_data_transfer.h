@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "BLI_compiler_compat.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

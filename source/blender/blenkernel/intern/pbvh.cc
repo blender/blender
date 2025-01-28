@@ -6,25 +6,17 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include <climits>
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
-#include "BLI_bitmap.h"
 #include "BLI_bounds.hh"
-#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_rand.h"
 #include "BLI_stack.hh"
-#include "BLI_task.h"
 #include "BLI_task.hh"
-#include "BLI_time.h"
-#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -34,7 +26,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_ccg.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
@@ -43,8 +34,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "bmesh.hh"
-
-#include "atomic_ops.h"
 
 #include "pbvh_intern.hh"
 

@@ -9,7 +9,6 @@
 #include <algorithm> /* For `min/max`. */
 #include <cfloat>
 #include <cmath>
-#include <cstddef>
 #include <cstdio>
 #include <cstring>
 
@@ -22,15 +21,13 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_noise.h"
 #include "BLI_noise.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_fcurve.hh"
-#include "BKE_idprop.hh"
 
 static CLG_LogRef LOG = {"bke.fmodifier"};
 

@@ -14,7 +14,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"

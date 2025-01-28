@@ -24,20 +24,19 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_node_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BLI_utildefines.h"
 
-#include "BLI_alloca.h"
-#include "BLI_array.hh"
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
