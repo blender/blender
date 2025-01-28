@@ -400,6 +400,15 @@ typedef enum eArmature_PathFlag {
 
 /* bone->flag */
 typedef enum eBone_Flag {
+  /**
+   * Bone selection, must only be set when the bone is not hidden
+   * (#BONE_HIDDEN_A / #BONE_HIDDEN_P flags must not be enabled as well).
+   *
+   * However the bone may not be visible to the user since the bones collection
+   * may be hidden.
+   * In most cases the #EBONE_VISIBLE, #PBONE_VISIBLE macros should be used to check
+   * if the bone is visible to the user before operating on them.
+   */
   BONE_SELECTED = (1 << 0),
   BONE_ROOTSEL = (1 << 1),
   BONE_TIPSEL = (1 << 2),
@@ -408,7 +417,10 @@ typedef enum eBone_Flag {
   /** When bone has a parent, connect head of bone to parent's tail. */
   BONE_CONNECTED = (1 << 4),
   /* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
-  /** hidden Bones when drawing PoseChannels */
+  /**
+   * Hidden Bones when drawing PoseChannels.
+   * When set #BONE_SELECTED must be cleared.
+   */
   BONE_HIDDEN_P = (1 << 6),
   /** For detecting cyclic dependencies */
   BONE_DONE = (1 << 7),
@@ -416,7 +428,10 @@ typedef enum eBone_Flag {
   BONE_DRAW_ACTIVE = (1 << 8),
   /** No parent rotation or scale */
   BONE_HINGE = (1 << 9),
-  /** hidden Bones when drawing Armature Editmode */
+  /**
+   * Hidden Bones when drawing Armature edit-mode.
+   * When set, selection flags (#BONE_SELECTED, #BONE_ROOTSEL & BONE_TIPSEL) must be cleared.
+   */
   BONE_HIDDEN_A = (1 << 10),
   /** multiplies vgroup with envelope */
   BONE_MULT_VG_ENV = (1 << 11),
