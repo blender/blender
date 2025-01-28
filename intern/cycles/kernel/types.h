@@ -1187,16 +1187,6 @@ struct ccl_align(16) ShaderData
   float3 ray_P;
   float ray_dP;
 
-#ifdef __OSL__
-#  ifdef __KERNEL_GPU__
-  ccl_private uint8_t *osl_closure_pool;
-#  else
-  const struct ThreadKernelGlobalsCPU *osl_globals;
-  const struct IntegratorStateCPU *osl_path_state;
-  const struct IntegratorShadowStateCPU *osl_shadow_path_state;
-#  endif
-#endif
-
   /* LCG state for closures that require additional random numbers. */
   uint lcg_state;
 

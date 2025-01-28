@@ -154,14 +154,12 @@ ccl_device_extern ccl_private OSLClosure *osl_mul_closure_color(ccl_private Shad
     return a;
   }
 
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureMul) - 1) &
       (-alignof(OSLClosureMul)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureMul);
+  sg->closure_pool = closure_pool + sizeof(OSLClosureMul);
 
   ccl_private OSLClosureMul *const closure = reinterpret_cast<ccl_private OSLClosureMul *>(
       closure_pool);
@@ -183,14 +181,12 @@ ccl_device_extern ccl_private OSLClosure *osl_mul_closure_float(ccl_private Shad
     return a;
   }
 
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureMul) - 1) &
       (-alignof(OSLClosureMul)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureMul);
+  sg->closure_pool = closure_pool + sizeof(OSLClosureMul);
 
   ccl_private OSLClosureMul *const closure = reinterpret_cast<ccl_private OSLClosureMul *>(
       closure_pool);
@@ -212,14 +208,12 @@ ccl_device_extern ccl_private OSLClosure *osl_add_closure_closure(ccl_private Sh
     return a;
   }
 
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureAdd) - 1) &
       (-alignof(OSLClosureAdd)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureAdd);
+  sg->closure_pool = closure_pool + sizeof(OSLClosureAdd);
 
   ccl_private OSLClosureAdd *const closure = reinterpret_cast<ccl_private OSLClosureAdd *>(
       closure_pool);
@@ -233,14 +227,12 @@ ccl_device_extern ccl_private OSLClosure *osl_add_closure_closure(ccl_private Sh
 ccl_device_extern ccl_private OSLClosure *osl_allocate_closure_component(
     ccl_private ShaderGlobals *sg, const int id, const int size)
 {
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureComponent) - 1) &
       (-alignof(OSLClosureComponent)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
+  sg->closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
 
   ccl_private OSLClosureComponent *const closure =
       reinterpret_cast<ccl_private OSLClosureComponent *>(closure_pool);
@@ -253,14 +245,12 @@ ccl_device_extern ccl_private OSLClosure *osl_allocate_closure_component(
 ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_component(
     ccl_private ShaderGlobals *sg, const int id, const int size, const ccl_private float3 *weight)
 {
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureComponent) - 1) &
       (-alignof(OSLClosureComponent)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
+  sg->closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
 
   ccl_private OSLClosureComponent *const closure =
       reinterpret_cast<ccl_private OSLClosureComponent *>(closure_pool);
@@ -624,7 +614,7 @@ ccl_device_extern bool osl_get_matrix(ccl_private ShaderGlobals *sg,
   }
   if (from == DeviceStrings::u_shader || from == DeviceStrings::u_object) {
     KernelGlobals kg = nullptr;
-    ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+    ccl_private ShaderData *const sd = sg->sd;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -668,7 +658,7 @@ ccl_device_extern bool osl_get_inverse_matrix(ccl_private ShaderGlobals *sg,
   }
   if (to == DeviceStrings::u_shader || to == DeviceStrings::u_object) {
     KernelGlobals kg = nullptr;
-    ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+    ccl_private ShaderData *const sd = sg->sd;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -1318,7 +1308,7 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
                                          ccl_private void *res)
 {
   KernelGlobals kg = nullptr;
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+  ccl_private ShaderData *const sd = sg->sd;
   int object;
 
   if (object_name != DeviceStrings::_emptystring_) {

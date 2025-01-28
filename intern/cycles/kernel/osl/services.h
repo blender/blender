@@ -123,12 +123,6 @@ class OSLRenderServices : public OSL::RendererServices {
                      const TypeDesc type,
                      OSLUStringHash name,
                      void *val) override;
-  bool get_attribute(ShaderData *sd,
-                     bool derivatives,
-                     OSLUStringHash object_name,
-                     const TypeDesc type,
-                     OSLUStringHash name,
-                     void *val);
 
   bool get_userdata(bool derivatives,
                     OSLUStringHash name,
@@ -280,14 +274,12 @@ class OSLRenderServices : public OSL::RendererServices {
                         void *data) override;
 #endif
 
-  static bool get_background_attribute(const ThreadKernelGlobalsCPU *kg,
-                                       ShaderData *sd,
+  static bool get_background_attribute(ShaderGlobals *globals,
                                        OSLUStringHash name,
                                        const TypeDesc type,
                                        bool derivatives,
                                        void *val);
-  static bool get_object_standard_attribute(const ThreadKernelGlobalsCPU *kg,
-                                            ShaderData *sd,
+  static bool get_object_standard_attribute(ShaderGlobals *globals,
                                             OSLUStringHash name,
                                             const TypeDesc type,
                                             bool derivatives,

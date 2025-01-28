@@ -32,8 +32,8 @@ static_assert(sizeof(OSLClosure) == sizeof(OSL::ClosureColor) &&
               sizeof(OSLClosureAdd) == sizeof(OSL::ClosureAdd) &&
               sizeof(OSLClosureMul) == sizeof(OSL::ClosureMul) &&
               sizeof(OSLClosureComponent) == sizeof(OSL::ClosureComponent));
-static_assert(sizeof(ShaderGlobals) == sizeof(OSL::ShaderGlobals) &&
-              offsetof(ShaderGlobals, Ci) == offsetof(OSL::ShaderGlobals, Ci));
+static_assert(sizeof(ShaderGlobals) >= sizeof(OSL::ShaderGlobals) &&
+              offsetof(ShaderGlobals, backfacing) == offsetof(OSL::ShaderGlobals, backfacing));
 
 /* Registration */
 
@@ -82,26 +82,25 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                                          const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
+  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
-  sd->osl_globals = kg;
+  kg->osl.shader_globals.kg = kg;
   if (path_flag & PATH_RAY_SHADOW) {
-    sd->osl_path_state = nullptr;
-    sd->osl_shadow_path_state = (const IntegratorShadowStateCPU *)state;
+    kg->osl.shader_globals.path_state = nullptr;
+    kg->osl.shader_globals.shadow_path_state = (const IntegratorShadowStateCPU *)state;
   }
   else {
-    sd->osl_path_state = (const IntegratorStateCPU *)state;
-    sd->osl_shadow_path_state = nullptr;
+    kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
   }
 
   /* execute shader for this point */
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
-  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShaderGlobals *globals = reinterpret_cast<OSL::ShaderGlobals *>(&kg->osl.shader_globals);
   OSL::ShadingContext *octx = kg->osl.context;
   const int shader = sd->shader & SHADER_MASK;
 
@@ -134,7 +133,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
       if (sd->flag & SD_HAS_DISPLACEMENT) {
         float data[9];
         const bool found = kg->osl.globals->services->get_attribute(
-            sd,
+            globals,
             true,
             OSLRenderServices::u_empty,
             TypeVector,
@@ -198,8 +197,8 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
   }
 
   /* flatten closure tree */
-  if (globals->Ci) {
-    flatten_closure_tree(kg, sd, path_flag, reinterpret_cast<OSLClosure *>(globals->Ci));
+  if (kg->osl.shader_globals.Ci) {
+    flatten_closure_tree(kg, sd, path_flag, kg->osl.shader_globals.Ci);
   }
 }
 
@@ -212,26 +211,25 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const ThreadKernelGlobalsCPU *kg,
                                         const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
+  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
-  sd->osl_globals = kg;
+  kg->osl.shader_globals.kg = kg;
   if (path_flag & PATH_RAY_SHADOW) {
-    sd->osl_path_state = nullptr;
-    sd->osl_shadow_path_state = (const IntegratorShadowStateCPU *)state;
+    kg->osl.shader_globals.path_state = nullptr;
+    kg->osl.shader_globals.shadow_path_state = (const IntegratorShadowStateCPU *)state;
   }
   else {
-    sd->osl_path_state = (const IntegratorStateCPU *)state;
-    sd->osl_shadow_path_state = nullptr;
+    kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
   }
 
   /* execute shader */
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
-  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShaderGlobals *globals = reinterpret_cast<OSL::ShaderGlobals *>(&kg->osl.shader_globals);
   OSL::ShadingContext *octx = kg->osl.context;
   const int shader = sd->shader & SHADER_MASK;
 
@@ -250,8 +248,8 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const ThreadKernelGlobalsCPU *kg,
   }
 
   /* flatten closure tree */
-  if (globals->Ci) {
-    flatten_closure_tree(kg, sd, path_flag, reinterpret_cast<OSLClosure *>(globals->Ci));
+  if (kg->osl.shader_globals.Ci) {
+    flatten_closure_tree(kg, sd, path_flag, kg->osl.shader_globals.Ci);
   }
 }
 
@@ -264,20 +262,19 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const ThreadKernelGlobalsCPU *kg,
                                               const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
+  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
-  sd->osl_globals = kg;
-  sd->osl_path_state = (const IntegratorStateCPU *)state;
-  sd->osl_shadow_path_state = nullptr;
+  kg->osl.shader_globals.kg = kg;
+  kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
+  kg->osl.shader_globals.shadow_path_state = nullptr;
 
   /* execute shader */
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
-  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShaderGlobals *globals = reinterpret_cast<OSL::ShaderGlobals *>(&kg->osl.shader_globals);
   OSL::ShadingContext *octx = kg->osl.context;
   const int shader = sd->shader & SHADER_MASK;
 

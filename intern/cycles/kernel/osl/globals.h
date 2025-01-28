@@ -8,12 +8,14 @@
 
 #  include <OSL/oslexec.h>
 
-#  include "kernel/osl/compat.h"
-#  include "kernel/types.h"
-
 #  include "util/map.h"
 #  include "util/param.h"
 #  include "util/vector.h"
+
+#  include "kernel/types.h"
+
+#  include "kernel/osl/compat.h"
+#  include "kernel/osl/types.h"
 
 #  ifndef WIN32
 using std::isfinite;
@@ -80,7 +82,7 @@ struct OSLThreadData {
   /* Per-thread data. */
   int thread_index = -1;
 
-  mutable OSL::ShaderGlobals shader_globals;
+  mutable ShaderGlobals shader_globals;
   mutable OSLTraceData tracedata;
 
   OSL::PerThreadInfo *osl_thread_info = nullptr;
