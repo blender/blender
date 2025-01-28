@@ -460,6 +460,11 @@ bool BKE_previewimg_is_finished(const PreviewImage *prv, const int size)
   return (prv->flag[size] & PRV_RENDERING) == 0;
 }
 
+bool BKE_previewimg_is_invalid(const PreviewImage *prv)
+{
+  return (prv->runtime->tag & PRV_TAG_DEFFERED_INVALID) != 0;
+}
+
 void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
 {
   /* Note we write previews also for undo steps. It takes up some memory,

@@ -118,6 +118,11 @@ ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, int size);
 
 void BKE_previewimg_finish(PreviewImage *prv, int size);
 bool BKE_previewimg_is_finished(const PreviewImage *prv, int size);
+/**
+ * Deferred preview images may fail to load, e.g. because the image couldn't be found on disk.
+ * \return true of a deferred preview image could not be loaded.
+ */
+bool BKE_previewimg_is_invalid(const PreviewImage *prv);
 
 PreviewImage *BKE_previewimg_cached_get(const char *name);
 

@@ -1727,7 +1727,11 @@ class PreviewLoadJob {
     PreviewImage *preview;
     /** Requested size. */
     eIconSizes icon_size;
+    /** Set to true by if the request was fully handled. */
     std::atomic<bool> done = false;
+    /** Set to true if the request was handled but didn't result in a valid preview.
+     * #PRV_TAG_DEFFERED_INVALID will be set in response. */
+    std::atomic<bool> failure = false;
 
     RequestedPreview(PreviewImage *preview, eIconSizes icon_size)
         : preview(preview), icon_size(icon_size)
@@ -1855,6 +1859,9 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
       }
       IMB_freeImBuf(thumb);
     }
+    else {
+      request->failure = true;
+    }
 
     request->done = true;
     worker_status->do_update = true;
@@ -1869,6 +1876,9 @@ void PreviewLoadJob::finish_request(RequestedPreview &request)
   PreviewImage *preview = request.preview;
 
   preview->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+  if (request.failure) {
+    preview->runtime->tag |= PRV_TAG_DEFFERED_INVALID;
+  }
   BKE_previewimg_finish(preview, request.icon_size);
 
   BLI_assert_msg(BLI_thread_is_main(),

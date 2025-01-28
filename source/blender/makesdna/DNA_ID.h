@@ -592,6 +592,8 @@ enum {
   PRV_TAG_DEFFERED_RENDERING = (1 << 1),
   /** Deferred preview should be deleted asap. */
   PRV_TAG_DEFFERED_DELETE = (1 << 2),
+  /** This deferred preview could not be loaded (e.g. not found on disk). */
+  PRV_TAG_DEFFERED_INVALID = (1 << 3),
 };
 
 /**
