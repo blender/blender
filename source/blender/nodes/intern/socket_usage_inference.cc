@@ -492,6 +492,10 @@ struct SocketUsageInferencer {
         this->value_task__output__group_input_node(socket);
         return;
       }
+      case NODE_REROUTE: {
+        this->value_task__output__reroute_node(socket);
+        return;
+      }
       case GEO_NODE_SWITCH: {
         this->value_task__output__generic_switch(socket, switch__is_socket_selected);
         return;
@@ -560,6 +564,17 @@ struct SocketUsageInferencer {
     const std::optional<const void *> value = all_socket_values_.lookup_try(group_node_input);
     if (!value.has_value()) {
       this->push_value_task(group_node_input);
+      return;
+    }
+    all_socket_values_.add_new(socket, *value);
+  }
+
+  void value_task__output__reroute_node(const SocketInContext &socket)
+  {
+    const SocketInContext input_socket = socket.owner_node().input_socket(0);
+    const std::optional<const void *> value = all_socket_values_.lookup_try(input_socket);
+    if (!value.has_value()) {
+      this->push_value_task(input_socket);
       return;
     }
     all_socket_values_.add_new(socket, *value);
