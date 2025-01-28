@@ -27,7 +27,8 @@ static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .compositor_domain_priority(0)
+      .compositor_realization_options(CompositorInputRealizationOptions::None);
   b.add_input<decl::Float>("X")
       .default_value(0.0f)
       .min(-10000.0f)
@@ -63,6 +64,12 @@ class TranslateOperation : public NodeOperation {
   void execute() override
   {
     Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
+
+    if (input.is_single_value()) {
+      input.pass_through(output);
+      return;
+    }
 
     float x = this->get_input("X").get_single_value_default(0.0f);
     float y = this->get_input("Y").get_single_value_default(0.0f);
@@ -77,7 +84,6 @@ class TranslateOperation : public NodeOperation {
       this->execute_wrapped(translation);
     }
     else {
-      Result &output = this->get_result("Image");
       input.pass_through(output);
       output.transform(math::from_location<float3x3>(translation));
       output.get_realization_options().interpolation = this->get_interpolation();
