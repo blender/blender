@@ -683,8 +683,7 @@ void sculpt_apply_texture(const SculptSession &ss,
  */
 void SCULPT_calc_vertex_displacement(const SculptSession &ss,
                                      const Brush &brush,
-                                     float rgba[3],
-                                     float r_offset[3]);
+                                     float translation[3]);
 
 /**
  * Tilts a normal by the x and y tilt values using the view axis.
