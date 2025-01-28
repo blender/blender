@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_vector.h"
+#include "BLI_ordered_edge.hh"
 
 #include "BKE_mesh.hh"
 
@@ -99,6 +100,30 @@ class AngleFieldInput final : public bke::MeshFieldInput {
   }
 };
 
+static int find_other_vert_of_edge_triangle(const OffsetIndices<int> faces,
+                                            const Span<int> corner_verts,
+                                            const Span<int3> corner_tris,
+                                            const int face_index,
+                                            const int2 edge)
+{
+  const OrderedEdge ordered_edge(edge);
+  for (const int tri_index : bke::mesh::face_triangles_range(faces, face_index)) {
+    const int3 &tri = corner_tris[tri_index];
+    const int3 vert_tri(corner_verts[tri[0]], corner_verts[tri[1]], corner_verts[tri[2]]);
+    if (ordered_edge == OrderedEdge(vert_tri[0], vert_tri[1])) {
+      return vert_tri[2];
+    }
+    if (ordered_edge == OrderedEdge(vert_tri[1], vert_tri[2])) {
+      return vert_tri[0];
+    }
+    if (ordered_edge == OrderedEdge(vert_tri[2], vert_tri[0])) {
+      return vert_tri[1];
+    }
+  }
+  BLI_assert_unreachable();
+  return -1;
+}
+
 class SignedAngleFieldInput final : public bke::MeshFieldInput {
  public:
   SignedAngleFieldInput() : bke::MeshFieldInput(CPPType::get<float>(), "Signed Angle Field")
@@ -115,10 +140,12 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
+    const Span<int3> corner_tris = mesh.corner_tris();
     Array<int2> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
 
-    auto angle_fn = [edge_map = std::move(edge_map), positions, edges, faces, corner_verts](
-                        const int i) -> float {
+    auto angle_fn =
+        [edge_map = std::move(edge_map), positions, edges, faces, corner_verts, corner_tris](
+            const int i) -> float {
       if (edge_map[i][0] < 0 || edge_map[i][1] < 0) {
         return 0.0f;
       }
@@ -137,11 +164,11 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
       const float3 edge_centerpoint = math::midpoint(positions[edges[i][0]],
                                                      positions[edges[i][1]]);
 
-      /* Get the centerpoint of face 2 and subtract the edge centerpoint to get a tangent
-       * normal for face 2. */
-      const float3 face_center_2 = bke::mesh::face_center_calc(positions,
-                                                               corner_verts.slice(face_2));
-      const float3 face_2_tangent = math::normalize(face_center_2 - edge_centerpoint);
+      /* Use the third point of the triangle connected to the edge in face 2 to determine a
+       * reference point for the concavity test. */
+      const int tri_other_vert = find_other_vert_of_edge_triangle(
+          faces, corner_verts, corner_tris, face_index_2, edges[i]);
+      const float3 face_2_tangent = math::normalize(positions[tri_other_vert] - edge_centerpoint);
       const float concavity = math::dot(face_1_normal, face_2_tangent);
 
       /* Get the unsigned angle between the two faces */
