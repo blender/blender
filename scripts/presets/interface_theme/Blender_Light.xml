@@ -29,7 +29,7 @@
         icon_modifier="#84b8ffff"
         icon_shading="#ea7581ff"
         icon_folder="#e3c16eff"
-        icon_border_intensity="1"
+        icon_border_intensity="0.7"
         >
         <wcol_regular>
           <ThemeWidgetColors
