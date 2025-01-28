@@ -319,6 +319,15 @@ class Action : public ::bAction {
   bool slot_remove(Slot &slot_to_remove);
 
   /**
+   * Move the given slot to position `to_slot_index` among the slots of the
+   * action.
+   *
+   * `slot` must belong to this action, and `to_slot_index` must be a
+   * valid index in the slot array.
+   */
+  void slot_move(Slot &slot, int to_slot_index);
+
+  /**
    * Set the active Slot, ensuring only one Slot is flagged as the Active one.
    *
    * \param slot_handle: if #Slot::unassigned, there will not be any active slot.

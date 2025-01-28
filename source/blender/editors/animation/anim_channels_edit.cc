@@ -1394,13 +1394,15 @@ static void rearrange_animchannel_flatten_islands(ListBase *islands, ListBase *s
 /* ............................. */
 
 /* get a list of all bAnimListElem's of a certain type which are currently visible */
-static void rearrange_animchannels_filter_visible(ListBase *anim_data_visible,
-                                                  bAnimContext *ac,
-                                                  eAnim_ChannelType type)
+static void rearrange_animchannels_filter_visible(
+    ListBase *anim_data_visible,
+    bAnimContext *ac,
+    const eAnim_ChannelType type,
+    const eAnimFilter_Flags additional_filters = eAnimFilter_Flags(0))
 {
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                              ANIMFILTER_LIST_CHANNELS);
+                              ANIMFILTER_LIST_CHANNELS | additional_filters);
 
   /* get all visible channels */
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
@@ -1685,6 +1687,115 @@ static void join_groups_action_temp(bAction *act)
 }
 
 /**
+ * Move selected, visible action slots in the channel list according to `mode`.
+ *
+ * Returns true if any rearranging happened, false otherwise.
+ */
+static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAnimChan_Mode mode)
+{
+  /* TODO: the general stucture of this function is basically the same as
+   * `rearrange_layered_action_channel_groups()` and
+   * `rearrange_layered_action_fcurves()`. It would be nice to DRY them at some
+   * point if we can. */
+
+  ListBase anim_data_selected_visible = {nullptr, nullptr};
+  rearrange_animchannels_filter_visible(
+      &anim_data_selected_visible, ac, ANIMTYPE_ACTION_SLOT, ANIMFILTER_SEL);
+
+  int total_moved = 0;
+
+  switch (mode) {
+    case REARRANGE_ANIMCHAN_UP: {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data_selected_visible) {
+        BLI_assert(ale->type == ANIMTYPE_ACTION_SLOT);
+        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale->data)->wrap();
+        blender::animrig::Action &action =
+            reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+
+        const int current_index = action.slots().first_index_try(&slot);
+        const int to_index = current_index - 1;
+        BLI_assert(current_index >= 0);
+
+        /* We skip moving when the destination is also selected because that
+         * would swap two selected slots rather than moving them all in the
+         * same direction. This happens when multiple selected slots are
+         * already packed together at the top. */
+        if (to_index < 0 || action.slot(to_index)->is_selected()) {
+          continue;
+        }
+
+        action.slot_move(slot, to_index);
+        total_moved++;
+      }
+      break;
+    }
+
+    case REARRANGE_ANIMCHAN_TOP: {
+      LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data_selected_visible) {
+        BLI_assert(ale->type == ANIMTYPE_ACTION_SLOT);
+        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale->data)->wrap();
+        blender::animrig::Action &action =
+            reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+
+        const int current_index = action.slots().first_index_try(&slot);
+        const int to_index = 0;
+        if (current_index != to_index) {
+          action.slot_move(slot, to_index);
+          total_moved++;
+        }
+      }
+      break;
+    }
+
+    case REARRANGE_ANIMCHAN_DOWN: {
+      LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data_selected_visible) {
+        BLI_assert(ale->type == ANIMTYPE_ACTION_SLOT);
+        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale->data)->wrap();
+        blender::animrig::Action &action =
+            reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+
+        const int current_index = action.slots().first_index_try(&slot);
+        const int to_index = current_index + 1;
+        BLI_assert(current_index >= 0);
+
+        /* We skip moving when the destination is also selected because that
+         * would swap two selected slots rather than moving them all in the
+         * same direction. This happens when multiple selected slots are
+         * already packed together at the bottom. */
+        if (to_index >= action.slots().size() || action.slot(to_index)->is_selected()) {
+          continue;
+        }
+
+        action.slot_move(slot, to_index);
+        total_moved++;
+      }
+      break;
+    }
+
+    case REARRANGE_ANIMCHAN_BOTTOM: {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data_selected_visible) {
+        BLI_assert(ale->type == ANIMTYPE_ACTION_SLOT);
+        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale->data)->wrap();
+        blender::animrig::Action &action =
+            reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+
+        const int current_index = action.slots().first_index_try(&slot);
+        const int to_index = action.slots().size() - 1;
+        if (current_index != to_index) {
+          action.slot_move(slot, to_index);
+          total_moved++;
+        }
+      }
+      break;
+    }
+  }
+
+  BLI_freelistN(&anim_data_selected_visible);
+
+  return total_moved > 0;
+}
+
+/**
  * Move selected, visible channel groups in the channel list according to
  * `mode`.
  *
@@ -1963,6 +2074,10 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
 
   /* Layered actions. */
   if (!blender::animrig::legacy::action_treat_as_legacy(*act)) {
+    if (rearrange_layered_action_slots(ac, mode)) {
+      /* Only rearrange other channels if no slot rearranging happened. */
+      return;
+    }
     rearrange_layered_action_channel_groups(ac, mode);
     rearrange_layered_action_fcurves(ac, act->wrap(), mode);
     return;

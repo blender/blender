@@ -448,6 +448,96 @@ TEST_F(ActionLayersTest, slot_remove)
   }
 }
 
+TEST_F(ActionLayersTest, slot_move)
+{
+  Slot &slot_a = action->slot_add_for_id_type(ID_ME);
+  Slot &slot_b = action->slot_add_for_id_type(ID_CA);
+  Slot &slot_cube = action->slot_add_for_id(cube->id);
+  Slot &slot_suzanne = action->slot_add_for_id(suzanne->id);
+
+  assign_action_and_slot(action, &slot_cube, cube->id);
+  assign_action_and_slot(action, &slot_suzanne, suzanne->id);
+
+  const slot_handle_t handle_a = slot_a.handle;
+  const slot_handle_t handle_b = slot_b.handle;
+  const slot_handle_t handle_cube = slot_cube.handle;
+  const slot_handle_t handle_suzanne = slot_suzanne.handle;
+
+  ASSERT_EQ(action->slot(0)->handle, handle_a);
+  ASSERT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "ME");
+  ASSERT_EQ(action->slot(1)->handle, handle_b);
+  ASSERT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "CA");
+  ASSERT_EQ(action->slot(2)->handle, handle_cube);
+  ASSERT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "OB");
+  ASSERT_EQ(action->slot(2)->users(*bmain)[0], &cube->id);
+  ASSERT_EQ(action->slot(3)->handle, handle_suzanne);
+  ASSERT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  ASSERT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
+
+  /* First "move" a slot to its own location, which should do nothing. */
+  action->slot_move(slot_b, 1);
+  EXPECT_EQ(action->slot(0)->handle, handle_a);
+  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(1)->handle, handle_b);
+  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(2)->handle, handle_cube);
+  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(2)->users(*bmain)[0], &cube->id);
+  EXPECT_EQ(action->slot(3)->handle, handle_suzanne);
+  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
+
+  /* Then move slots around in various ways. */
+
+  action->slot_move(slot_a, 2);
+  EXPECT_EQ(action->slot(0)->handle, handle_b);
+  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(1)->handle, handle_cube);
+  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(1)->users(*bmain)[0], &cube->id);
+  EXPECT_EQ(action->slot(2)->handle, handle_a);
+  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(3)->handle, handle_suzanne);
+  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
+
+  action->slot_move(slot_suzanne, 1);
+  EXPECT_EQ(action->slot(0)->handle, handle_b);
+  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(1)->handle, handle_suzanne);
+  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(1)->users(*bmain)[0], &suzanne->id);
+  EXPECT_EQ(action->slot(2)->handle, handle_cube);
+  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(2)->users(*bmain)[0], &cube->id);
+  EXPECT_EQ(action->slot(3)->handle, handle_a);
+  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "ME");
+
+  action->slot_move(slot_cube, 3);
+  EXPECT_EQ(action->slot(0)->handle, handle_b);
+  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(1)->handle, handle_suzanne);
+  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(1)->users(*bmain)[0], &suzanne->id);
+  EXPECT_EQ(action->slot(2)->handle, handle_a);
+  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(3)->handle, handle_cube);
+  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->users(*bmain)[0], &cube->id);
+
+  action->slot_move(slot_suzanne, 0);
+  EXPECT_EQ(action->slot(0)->handle, handle_suzanne);
+  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(0)->users(*bmain)[0], &suzanne->id);
+  EXPECT_EQ(action->slot(1)->handle, handle_b);
+  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(2)->handle, handle_a);
+  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(3)->handle, handle_cube);
+  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->users(*bmain)[0], &cube->id);
+}
+
 TEST_F(ActionLayersTest, action_assign_id)
 {
   /* Assign to the only, 'virgin' Slot, should always work. */

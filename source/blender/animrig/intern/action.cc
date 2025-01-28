@@ -586,6 +586,17 @@ bool Action::slot_remove(Slot &slot_to_remove)
   return true;
 }
 
+void Action::slot_move(Slot &slot, const int to_slot_index)
+{
+  BLI_assert(this->slots().index_range().contains(to_slot_index));
+
+  const int from_slot_index = this->slots().first_index_try(&slot);
+  BLI_assert_msg(from_slot_index >= 0, "Slot not in this action.");
+
+  array_shift_range(
+      this->slot_array, this->slot_array_num, from_slot_index, from_slot_index + 1, to_slot_index);
+}
+
 void Action::slot_active_set(const slot_handle_t slot_handle)
 {
   for (Slot *slot : slots()) {
