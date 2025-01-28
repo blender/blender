@@ -105,6 +105,10 @@ class MultiFunctionProcedureOperation : public PixelOperation {
   /* Populate an output to the operator/procedure for the given output socket whose value is stored
    * in the given variable. */
   void populate_operation_result(DOutputSocket output_socket, mf::Variable *variable);
+
+  /* Returns true if the operation operates on single values, that is, all of its inputs are single
+   * values. Assumes the procedure is already build. */
+  bool is_single_value_operation();
 };
 
 }  // namespace blender::compositor
