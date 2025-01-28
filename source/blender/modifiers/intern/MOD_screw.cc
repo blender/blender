@@ -1021,6 +1021,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 #endif
 
   sharp_faces.finish();
+  dst_material_index.finish();
 
   if (edge_face_map) {
     MEM_freeN(edge_face_map);
@@ -1039,8 +1040,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                                          ob_axis != nullptr ? mtx_tx[3] : nullptr,
                                          ltmd->merge_dist);
   }
-
-  dst_material_index.finish();
 
   return result;
 }
