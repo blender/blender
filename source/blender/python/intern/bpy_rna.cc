@@ -9710,7 +9710,8 @@ void BPY_free_srna_pytype(StructRNA *srna)
   ":class:`bpy.types.RenderEngine` | " \
   ":class:`bpy.types.AssetShelf` | " \
   ":class:`bpy.types.FileHandler` | " \
-  ":class:`bpy.types.PropertyGroup`" \
+  ":class:`bpy.types.PropertyGroup` | " \
+  ":class:`bpy.types.AddonPreferences`" \
   "]"
 
 /**
