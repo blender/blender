@@ -674,8 +674,7 @@ static void cursor_set_by_mouse_position(const bContext *C, const wmEvent *event
   /* Convert cursor coordinates to domain of CharInfo::position. */
   const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
-  blender::float4x4 transform_mat;
-  SEQ_image_transform_matrix_get(CTX_data_scene(C), strip, transform_mat.ptr());
+  blender::float4x4 transform_mat = SEQ_image_transform_matrix_get(CTX_data_scene(C), strip);
   transform_mat = blender::math::invert(transform_mat);
 
   mouse_loc.x /= view_aspect;

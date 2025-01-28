@@ -21,7 +21,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
-#include "BLI_math_rotation.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
@@ -297,13 +297,12 @@ StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Strip 
   const int y = context->recty;
   float2 offset{x * 0.5f, y * 0.5f};
 
-  float quad[4][2];
-  SEQ_image_transform_final_quad_get(scene, strip, quad);
+  Array<float2> quad = SEQ_image_transform_final_quad_get(scene, strip);
   const float scale = SEQ_rendersize_to_scale_factor(context->preview_render_size);
-  return StripScreenQuad{float2(quad[0]) * scale + offset,
-                         float2(quad[1]) * scale + offset,
-                         float2(quad[2]) * scale + offset,
-                         float2(quad[3]) * scale + offset};
+  return StripScreenQuad{quad[0] * scale + offset,
+                         quad[1] * scale + offset,
+                         quad[2] * scale + offset,
+                         quad[3] * scale + offset};
 }
 
 /* Is quad `a` fully contained (i.e. covered by) quad `b`? For that to happen,
@@ -459,30 +458,30 @@ static bool seq_need_scale_to_render_size(const Strip *strip, bool is_proxy_imag
   return false;
 }
 
-static void sequencer_image_crop_transform_matrix(const Strip *strip,
-                                                  const ImBuf *in,
-                                                  const ImBuf *out,
-                                                  const float image_scale_factor,
-                                                  const float preview_scale_factor,
-                                                  float r_transform_matrix[4][4])
+static float4x4 sequencer_image_crop_transform_matrix(const Strip *strip,
+                                                      const ImBuf *in,
+                                                      const ImBuf *out,
+                                                      const float image_scale_factor,
+                                                      const float preview_scale_factor)
 {
   const StripTransform *transform = strip->data->transform;
-  const float scale_x = transform->scale_x * image_scale_factor;
-  const float scale_y = transform->scale_y * image_scale_factor;
-  const float image_center_offs_x = (out->x - in->x) / 2;
-  const float image_center_offs_y = (out->y - in->y) / 2;
-  const float translate_x = transform->xofs * preview_scale_factor + image_center_offs_x;
-  const float translate_y = transform->yofs * preview_scale_factor + image_center_offs_y;
-  const float pivot[3] = {in->x * transform->origin[0], in->y * transform->origin[1], 0.0f};
 
-  float rotation_matrix[3][3];
-  axis_angle_to_mat3_single(rotation_matrix, 'Z', transform->rotation);
-  loc_rot_size_to_mat4(r_transform_matrix,
-                       float3{translate_x, translate_y, 0.0f},
-                       rotation_matrix,
-                       float3{scale_x, scale_y, 1.0f});
-  transform_pivot_set_m4(r_transform_matrix, pivot);
-  invert_m4(r_transform_matrix);
+  /* This value is intentionally kept as integer. Otherwise images with odd dimensions would
+   * be translated to center of canvas by non-integer value, which would cause it to be
+   * interpolated. Interpolation with 0 user defined translation is unwanted behavior. */
+  const int3 image_center_offs((out->x - in->x) / 2, (out->y - in->y) / 2, 0);
+
+  const float3 translation(
+      transform->xofs * preview_scale_factor, transform->yofs * preview_scale_factor, 0.0f);
+  const float3 rotation(0.0f, 0.0f, transform->rotation);
+  const float2 scale(transform->scale_x * image_scale_factor,
+                     transform->scale_y * image_scale_factor);
+  const float3 pivot(in->x * transform->origin[0], in->y * transform->origin[1], 0.0f);
+
+  const float4x4 matrix = math::from_loc_rot_scale<float4x4>(
+      translation + float3(image_center_offs), rotation, scale);
+  const float4x4 mat_pivot = math::from_origin_transform(matrix, pivot);
+  return math::invert(mat_pivot);
 }
 
 static void sequencer_image_crop_init(const Strip *strip,
@@ -558,9 +557,8 @@ static void sequencer_preprocess_transform_crop(
   const bool do_scale_to_render_size = seq_need_scale_to_render_size(strip, is_proxy_image);
   const float image_scale_factor = do_scale_to_render_size ? 1.0f : preview_scale_factor;
 
-  float transform_matrix[4][4];
-  sequencer_image_crop_transform_matrix(
-      strip, in, out, image_scale_factor, preview_scale_factor, transform_matrix);
+  float4x4 matrix = sequencer_image_crop_transform_matrix(
+      strip, in, out, image_scale_factor, preview_scale_factor);
 
   /* Proxy image is smaller, so crop values must be corrected by proxy scale factor.
    * Proxy scale factor always matches preview_scale_factor. */
@@ -591,7 +589,12 @@ static void sequencer_preprocess_transform_crop(
       break;
   }
 
-  IMB_transform(in, out, IMB_TRANSFORM_MODE_CROP_SRC, filter, transform_matrix, &source_crop);
+  IMB_transform(in,
+                out,
+                IMB_TRANSFORM_MODE_CROP_SRC,
+                filter,
+                (float(*)[4])(matrix.base_ptr()),
+                &source_crop);
 
   if (is_strip_covering_screen(context, strip)) {
     out->planes = in->planes;
