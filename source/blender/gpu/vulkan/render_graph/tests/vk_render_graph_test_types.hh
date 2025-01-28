@@ -27,7 +27,6 @@ BLI_INLINE std::string &endl()
 class CommandBufferLog : public VKCommandBufferInterface {
   Vector<std::string> &log_;
   bool is_recording_ = false;
-  bool is_cpu_synchronizing_ = false;
 
  public:
   CommandBufferLog(Vector<std::string> &log,
