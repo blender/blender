@@ -258,9 +258,14 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             "ctrl": "ctrl",
             "alt": "alt",
             "shift": "shift",
-            "cmd": "oskey",
             "oskey": "oskey",
             "any": "any",
+
+            # macOS specific modifiers names
+            "control": "ctrl",
+            "option": "alt",
+            "cmd": "oskey",
+            "command": "oskey",
         }
         # KeyMapItem like dict, use for comparing against
         # attr: {states, ...}
