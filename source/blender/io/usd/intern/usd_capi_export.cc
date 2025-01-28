@@ -8,6 +8,7 @@
 #include "usd.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
+#include "usd_instancing_utils.hh"
 #include "usd_light_convert.hh"
 #include "usd_private.hh"
 
@@ -499,6 +500,10 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
       usd_stage->SetDefaultPrim(prim);
       break;
     }
+  }
+
+  if (params.use_instancing) {
+    process_scene_graph_instances(params, usd_stage);
   }
 
   call_export_hooks(usd_stage, depsgraph, params.worker_status->reports);

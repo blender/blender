@@ -209,8 +209,19 @@ pxr::SdfPath USDAbstractWriter::get_material_library_path() const
   return pxr::SdfPath(material_library_path);
 }
 
-pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
-                                                             Material *material) const
+pxr::SdfPath USDAbstractWriter::get_proto_material_root_path(const HierarchyContext &context) const
+{
+  static std::string material_library_path("/_materials");
+
+  std::string path_prefix(usd_export_context_.export_params.root_prim_path);
+
+  path_prefix += context.higher_up_export_path;
+
+  return pxr::SdfPath(path_prefix + material_library_path);
+}
+
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material_created(
+    const HierarchyContext &context, Material *material) const
 {
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
@@ -234,6 +245,42 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   write_id_properties(prim, material->id, get_export_time_code());
 
   return usd_material;
+}
+
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
+                                                             Material *material) const
+{
+  pxr::UsdShadeMaterial library_material = ensure_usd_material_created(context, material);
+
+  /* If instancing is enabled and the object is an instancing prototype, create a material
+   * under the prototype root referencing the library material. This is considered a best
+   * practice and is required for certain renderers (e.g., karma). */
+
+  if (!(usd_export_context_.export_params.use_instancing && context.is_prototype())) {
+    /* We don't need to handle the material for the prototype. */
+    return library_material;
+  }
+
+  /* Create the prototype material. */
+
+  pxr::UsdStageRefPtr stage = usd_export_context_.stage;
+
+  pxr::SdfPath usd_path = pxr::UsdGeomScope::Define(stage, get_proto_material_root_path(context))
+                              .GetPath()
+                              .AppendChild(library_material.GetPath().GetNameToken());
+
+  pxr::UsdShadeMaterial proto_material = pxr::UsdShadeMaterial::Define(stage, usd_path);
+
+  if (!proto_material.GetPrim().GetReferences().AddInternalReference(library_material.GetPath())) {
+    CLOG_WARN(&LOG,
+              "Unable to add a material reference from %s to %s for prototype %s",
+              proto_material.GetPath().GetAsString().c_str(),
+              library_material.GetPath().GetAsString().c_str(),
+              context.export_path.c_str());
+    return library_material;
+  }
+
+  return proto_material;
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,
@@ -283,6 +330,8 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
               context.original_export_path.c_str());
     return false;
   }
+
+  prim.SetInstanceable(true);
 
   return true;
 }

@@ -329,22 +329,6 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
   BKE_mesh_wrapper_ensure_mdata(mesh);
   get_geometry_data(mesh, usd_mesh_data);
 
-  if (usd_export_context_.export_params.use_instancing && context.is_instance()) {
-    if (!mark_as_instance(context, usd_mesh.GetPrim())) {
-      return;
-    }
-
-    /* The material path will be of the form </_materials/{material name}>, which is outside the
-     * sub-tree pointed to by ref_path. As a result, the referenced data is not allowed to point
-     * out of its own sub-tree. It does work when we override the material with exactly the same
-     * path, though. */
-    if (usd_export_context_.export_params.export_materials) {
-      assign_materials(context, usd_mesh, usd_mesh_data.face_groups);
-    }
-
-    return;
-  }
-
   pxr::UsdAttribute attr_points = usd_mesh.CreatePointsAttr(pxr::VtValue(), true);
   pxr::UsdAttribute attr_face_vertex_counts = usd_mesh.CreateFaceVertexCountsAttr(pxr::VtValue(),
                                                                                   true);

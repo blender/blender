@@ -69,6 +69,7 @@ set(SRC
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_hook.cc
+  intern/usd_instancing_utils.cc
   intern/usd_light_convert.cc
   intern/usd_mesh_utils.cc
   intern/usd_utils.cc
@@ -117,6 +118,7 @@ set(SRC
   intern/usd_hash_types.hh
   intern/usd_hierarchy_iterator.hh
   intern/usd_hook.hh
+  intern/usd_instancing_utils.hh
   intern/usd_light_convert.hh
   intern/usd_mesh_utils.hh
   intern/usd_utils.hh

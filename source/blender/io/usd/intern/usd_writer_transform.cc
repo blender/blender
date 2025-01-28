@@ -113,6 +113,10 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     set_xform_ops(parent_relative_matrix, xform);
   }
 
+  if (usd_export_context_.export_params.use_instancing && context.is_instance()) {
+    mark_as_instance(context, xform.GetPrim());
+  }
+
   if (context.object) {
     auto prim = xform.GetPrim();
     write_id_properties(prim, context.object->id, get_export_time_code());

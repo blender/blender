@@ -80,6 +80,9 @@ struct HierarchyContext {
    */
   bool is_parent;
 
+  /* When true this is duplisource object. This flag is used to identify instance prototypes. */
+  bool is_duplisource;
+
   /*********** Determined during writer creation: ***************/
   float parent_matrix_inv_world[4][4]; /* Inverse of the parent's world matrix. */
   std::string export_path; /* Hierarchical path, such as "/grandparent/parent/object_name". */
@@ -107,6 +110,7 @@ struct HierarchyContext {
   bool is_instance() const;
   void mark_as_instance_of(const std::string &reference_export_path);
   void mark_as_not_instanced();
+  bool is_prototype() const;
 
   bool is_object_visible(enum eEvaluationMode evaluation_mode) const;
 };
@@ -213,6 +217,8 @@ class AbstractHierarchyIterator {
   /* Mapping from ID to its export path. This is used for instancing; given an
    * instanced datablock, the export path of the original can be looked up. */
   typedef std::map<ID *, std::string> ExportPathMap;
+  /* IDs of all duplisource objects, used to identify instance prototypes. */
+  typedef std::set<ID *> DupliSources;
 
  protected:
   ExportGraph export_graph_;
@@ -221,6 +227,7 @@ class AbstractHierarchyIterator {
   Depsgraph *depsgraph_;
   WriterMap writers_;
   ExportSubset export_subset_;
+  DupliSources duplisources_;
 
  public:
   explicit AbstractHierarchyIterator(Main *bmain, Depsgraph *depsgraph);
@@ -344,8 +351,28 @@ class AbstractHierarchyIterator {
   /* Called by release_writers() to free what the create_XXX_writer() functions allocated. */
   virtual void release_writer(AbstractHierarchyWriter *writer) = 0;
 
+  /* Return true if data writers should be created for this context. */
+  virtual bool include_data_writers(const HierarchyContext *) const
+  {
+    return true;
+  }
+
+  /* Return true if children of the context should be converted to writers. */
+  virtual bool include_child_writers(const HierarchyContext *) const
+  {
+    return true;
+  }
+
   AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
   ExportChildren &graph_children(const HierarchyContext *context);
+
+  /* Return true if duplication references should be resolved for the children of the given
+   * context. */
+  virtual bool should_determine_duplication_references(
+      const HierarchyContext *parent_context) const
+  {
+    return parent_context != nullptr;
+  }
 };
 
 }  // namespace blender::io

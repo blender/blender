@@ -1361,6 +1361,72 @@ class USDExportTest(AbstractUSDTest):
         mpu = UsdGeom.GetStageMetersPerUnit(stage)
         self.assertAlmostEqual(mpu, 0.1)
 
+    def test_export_native_instancing_true(self):
+        """Test exporting instanced objects to native (scne graph) instances."""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
+
+        export_path = self.tempdir / "usd_export_nested_instancing_true.usda"
+        self.export_and_validate(
+            filepath=str(export_path),
+            use_instancing=True
+        )
+
+        # The USD should contain two instances of a plane which has two
+        # instances of a point cloud as children.
+        stage = Usd.Stage.Open(str(export_path))
+
+        stats = UsdUtils.ComputeUsdStageStats(stage)
+        self.assertEqual(stats['totalInstanceCount'], 6, "Unexpected number of instances")
+        self.assertEqual(stats['prototypeCount'], 2, "Unexpected number of prototypes")
+        self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 1, "Unexpected number of primary meshes")
+        self.assertEqual(stats['primary']['primCountsByType']['Points'], 1, "Unexpected number of primary point clouds")
+        self.assertEqual(stats['prototypes']['primCountsByType']['Mesh'], 1, "Unexpected number of prototype meshes")
+        self.assertEqual(stats['prototypes']['primCountsByType']['Points'],
+                         1, "Unexpected number of prototype point clouds")
+
+        # Get the prototypes root.
+        protos_root_path = Sdf.Path("/root/prototypes")
+        prim = stage.GetPrimAtPath(protos_root_path)
+        assert prim
+        self.assertTrue(prim.IsAbstract())
+
+        # Get the first plane instance.
+        prim = stage.GetPrimAtPath("/root/plane_001/Plane_0")
+        assert prim
+        assert prim.IsInstance()
+
+        # Get the second plane instance.
+        prim = stage.GetPrimAtPath("/root/plane/Plane_0")
+        assert prim
+        assert prim.IsInstance()
+
+        # Ensure all the prototype paths are under the pototypes root.
+        for prim in stage.Traverse():
+            if prim.IsInstance():
+                arcs = Usd.PrimCompositionQuery.GetDirectReferences(prim).GetCompositionArcs()
+                for arc in arcs:
+                    target_path = arc.GetTargetPrimPath()
+                    self.assertTrue(target_path.HasPrefix(protos_root_path))
+
+    def test_export_native_instancing_false(self):
+        """Test exporting instanced objects with instancing disabled."""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
+
+        export_path = self.tempdir / "usd_export_nested_instancing_false.usda"
+        self.export_and_validate(
+            filepath=str(export_path),
+            use_instancing=False
+        )
+
+        # The USD should contain no instances.
+        stage = Usd.Stage.Open(str(export_path))
+
+        stats = UsdUtils.ComputeUsdStageStats(stage)
+        self.assertEqual(stats['totalInstanceCount'], 0, "Unexpected number of instances")
+        self.assertEqual(stats['prototypeCount'], 0, "Unexpected number of prototypes")
+        self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 2, "Unexpected number of primary meshes")
+        self.assertEqual(stats['primary']['primCountsByType']['Points'], 4, "Unexpected number of primary point clouds")
+
     def test_texture_export_hook(self):
         """Exporting textures from on_material_export USD hook."""
 

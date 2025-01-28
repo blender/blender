@@ -116,6 +116,10 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
       can_merge_with_xform = false;
     }
 
+    if (params_.use_instancing && (context->is_prototype() || context->is_instance())) {
+      can_merge_with_xform = false;
+    }
+
     if (can_merge_with_xform) {
       path = path.GetParentPath();
     }
@@ -245,6 +249,24 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_particle_writer(
     const HierarchyContext * /*context*/)
 {
   return nullptr;
+}
+
+/* Don't generate data writers for instances. */
+bool USDHierarchyIterator::include_data_writers(const HierarchyContext *context) const
+{
+  return !(params_.use_instancing && context->is_instance());
+}
+
+/* Don't generate writers for children of instances. */
+bool USDHierarchyIterator::include_child_writers(const HierarchyContext *context) const
+{
+  return !(params_.use_instancing && context->is_instance());
+}
+
+bool USDHierarchyIterator::should_determine_duplication_references(
+    const HierarchyContext *parent_context) const
+{
+  return !(params_.use_instancing && parent_context->is_instance());
 }
 
 void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &path)
