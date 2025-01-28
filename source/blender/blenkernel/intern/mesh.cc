@@ -1351,15 +1351,29 @@ void BKE_mesh_transform(Mesh *mesh, const float mat[4][4], bool do_keys)
 std::optional<int> Mesh::material_index_max() const
 {
   this->runtime->max_material_index.ensure([&](std::optional<int> &value) {
+    if (this->runtime->edit_mesh && this->runtime->edit_mesh->bm) {
+      BMesh *bm = this->runtime->edit_mesh->bm;
+      if (bm->totface == 0) {
+        value = std::nullopt;
+        return;
+      }
+      int max_material_index = 0;
+      BMFace *efa;
+      BMIter iter;
+      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        max_material_index = std::max<int>(max_material_index, efa->mat_nr);
+      }
+      value = max_material_index;
+      return;
+    }
     if (this->faces_num == 0) {
       value = std::nullopt;
+      return;
     }
-    else {
-      value = blender::bounds::max<int>(
-          this->attributes()
-              .lookup_or_default<int>("material_index", blender::bke::AttrDomain::Face, 0)
-              .varray);
-    }
+    value = blender::bounds::max<int>(
+        this->attributes()
+            .lookup_or_default<int>("material_index", blender::bke::AttrDomain::Face, 0)
+            .varray);
   });
   return this->runtime->max_material_index.data();
 }
