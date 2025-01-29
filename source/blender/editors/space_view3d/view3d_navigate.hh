@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
@@ -377,6 +380,27 @@ void ED_view3d_smooth_view_force_finish_no_camera_lock(const Depsgraph *depsgrap
 void VIEW3D_OT_smoothview(wmOperatorType *ot);
 
 /* view3d_navigate_view_all.cc */
+
+/**
+ * Return the bounds of visible contents of the 3D viewport.
+ *
+ * \param clip_bounds: Clip the bounds by the viewport clipping.
+ */
+std::optional<blender::Bounds<blender::float3>> view3d_calc_minmax_visible(
+    bContext *C, ScrArea *area, ARegion *region, bool use_all_regions, bool clip_bounds);
+/**
+ * Return the bounds of selected contents of the 3D viewport.
+ *
+ * \param clip_bounds: Clip the bounds by the viewport clipping.
+ * \param r_do_zoom: When false, the bounds should be treated as a point
+ * (don't zoom to view the point).
+ */
+std::optional<blender::Bounds<blender::float3>> view3d_calc_minmax_selected(bContext *C,
+                                                                            ScrArea *area,
+                                                                            ARegion *region,
+                                                                            bool use_all_regions,
+                                                                            bool clip_bounds,
+                                                                            bool *r_do_zoom);
 
 void VIEW3D_OT_view_all(wmOperatorType *ot);
 void VIEW3D_OT_view_selected(wmOperatorType *ot);
