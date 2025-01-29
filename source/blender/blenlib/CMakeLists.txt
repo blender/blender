@@ -196,7 +196,6 @@ set(SRC
   BLI_bit_vector.hh
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
-  BLI_blenlib.h
   BLI_bounds.hh
   BLI_bounds_types.hh
   BLI_boxpack_2d.h
