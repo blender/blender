@@ -342,7 +342,7 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
    * eg. from 3d viewport. */
 
   /* no layer check, correct mirror is more important */
-  if (!check_select || ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
+  if (!check_select || (EBONE_VISIBLE(arm, ebo) && (ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL)))) {
     EditBone *eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
     if (eboflip) {
       /* We assume X-axis flipping for now. */
