@@ -64,6 +64,8 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator * /*op*/)
   ED_view3d_context_user_region(C, &v3d, &region);
   rv3d = static_cast<RegionView3D *>(region->regiondata);
 
+  ED_view3d_smooth_view_force_finish(C, v3d, region);
+
   ED_view3d_lastview_store(rv3d);
 
   BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
@@ -233,6 +235,8 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
   /* no nullptr check is needed, poll checks */
   ED_view3d_context_user_region(C, &v3d, &region);
   rv3d = static_cast<RegionView3D *>(region->regiondata);
+
+  ED_view3d_smooth_view_force_finish(C, v3d, region);
 
   if (ob) {
     Object *camera_old = (rv3d->persp == RV3D_CAMOB) ? V3D_CAMERA_SCENE(scene, v3d) : nullptr;

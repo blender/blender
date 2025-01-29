@@ -182,6 +182,8 @@ static int viewroll_exec(bContext *C, wmOperator *op)
     vod->rv3d = static_cast<RegionView3D *>(vod->region->regiondata);
   }
 
+  ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
+
   const bool is_camera_lock = ED_view3d_camera_lock_check(vod->v3d, vod->rv3d);
   if (vod->rv3d->persp == RV3D_CAMOB && !is_camera_lock) {
     viewops_data_free(C, vod);

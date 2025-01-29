@@ -63,6 +63,8 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
     /* no nullptr check is needed, poll checks */
     ED_view3d_context_user_region(C, &vod.v3d, &vod.region);
     vod.rv3d = static_cast<RegionView3D *>(vod.region->regiondata);
+
+    ED_view3d_smooth_view_force_finish(C, vod.v3d, vod.region);
   }
 
   if ((RV3D_LOCK_FLAGS(vod.rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {
