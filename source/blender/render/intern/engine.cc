@@ -849,6 +849,16 @@ bool RE_bake_engine(Render *re,
 
 /* Render */
 
+static bool possibly_using_gpu_compositor(const Render *re)
+{
+  if (re->r.compositor_device != SCE_COMPOSITOR_DEVICE_GPU) {
+    return false;
+  }
+
+  const Scene *scene = re->pipeline_scene_eval;
+  return (scene->nodetree && scene->use_nodes && (scene->r.scemode & R_DOCOMP));
+}
+
 static void engine_render_view_layer(Render *re,
                                      RenderEngine *engine,
                                      ViewLayer *view_layer_iter,
@@ -873,7 +883,9 @@ static void engine_render_view_layer(Render *re,
     if (use_gpu_context) {
       DRW_render_context_enable(engine->re);
     }
-    else if (engine->has_grease_pencil && use_grease_pencil && G.background) {
+    else if (G.background && ((engine->has_grease_pencil && use_grease_pencil) ||
+                              possibly_using_gpu_compositor(re)))
+    {
       /* Workaround for specific NVidia drivers which crash on Linux when OptiX context is
        * initialized prior to OpenGL context. This affects driver versions 545.29.06, 550.54.14,
        * and 550.67 running on kernel 6.8.
