@@ -314,7 +314,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
   const int global_up = RNA_enum_get(op->ptr, "export_global_up_selection");
 
-  const bool convert_world_material = RNA_boolean_get(op->ptr, "convert_world_material");
+  const bool convert_world_material = RNA_boolean_get(op->ptr, "convert_world_material") &&
+                                      export_lights;
 
   const eUSDXformOpMode xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
 
@@ -486,6 +487,12 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiLayout *col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "export_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "export_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+
+    uiLayout *row = uiLayoutRow(col, true);
+    uiItemR(row, ptr, "convert_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    const bool export_lights = RNA_boolean_get(ptr, "export_lights");
+    uiLayoutSetActive(row, export_lights);
+
     uiItemR(col, ptr, "export_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "export_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "export_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -533,8 +540,6 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       uiLayout *col = uiLayoutColumn(panel.body, false);
       uiItemR(col, ptr, "generate_preview_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       uiItemR(col, ptr, "generate_materialx_network", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(col, ptr, "convert_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-
       col = uiLayoutColumn(panel.body, true);
       uiLayoutSetPropSep(col, true);
 
@@ -822,7 +827,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
       ot->srna,
       "convert_world_material",
       true,
-      "Convert World Material",
+      "World Dome Light",
       "Convert the world material to a USD dome light. "
       "Currently works for simple materials, consisting of an environment texture "
       "connected to a background shader, with an optional vector multiply of the texture color");
@@ -999,7 +1004,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
 
-  const bool create_world_material = RNA_boolean_get(op->ptr, "create_world_material");
+  const bool create_world_material = RNA_boolean_get(op->ptr, "create_world_material") &&
+                                     import_lights;
 
   const bool merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
 
@@ -1122,6 +1128,12 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     uiItemR(col, ptr, "import_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+
+    uiLayout *row = uiLayoutRow(col, true);
+    uiItemR(row, ptr, "create_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    const bool import_lights = RNA_boolean_get(ptr, "import_lights");
+    uiLayoutSetActive(row, import_lights);
+
     uiItemR(col, ptr, "import_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_volumes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1162,7 +1174,6 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
 
     uiItemR(col, ptr, "import_all_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_usd_preview", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "create_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
 
     uiLayout *row = uiLayoutRow(col, true);
@@ -1388,7 +1399,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "create_world_material",
                   true,
-                  "Create World Material",
+                  "World Dome Light",
                   "Convert the first discovered USD dome light to a world background shader");
 
   RNA_def_boolean(ot->srna,
