@@ -6,8 +6,9 @@
   <style type="text/css">
     body                    { margin: 20px; font-size: 16px; color: #333; }
     a                       { text-decoration: none; color: #06b; }
-    h2                      { color: #222; font-size: 1.2em; }
-    h3                      { color: #889; font-size: 1.2em; }
+    h2                      { color: #222; font-size: 1.4em; }
+    h3                      { color: #555; font-size: 1.2em; }
+    h4                      { color: #888; font-size: 1.0em; }
     .nav-tabs               { font-size: 1.2em; }
     .tab-content            { margin: 20px 20px; }
     /* Tricks to make chart load with proper width while hidden. */
@@ -95,8 +96,11 @@
 
         /* Create title. */
         subtitle_h3 = document.createElement('h3');
-        subtitle_h3.appendChild(document.createTextNode(benchmark['device']));
+        subtitle_h3.appendChild(document.createTextNode(benchmark['name']));
         tab_div.appendChild(subtitle_h3);
+        subtitle_h4 = document.createElement('h4');
+        subtitle_h4.appendChild(document.createTextNode(benchmark['device']));
+        tab_div.appendChild(subtitle_h4);
 
         /* Create chart div. */
         chart_div = document.createElement('div');
