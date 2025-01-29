@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2009-2015 Artyom Beilis (Tonkikh)
  * SPDX-FileCopyrightText: 2021-2023 Alexander Grund
  * SPDX-FileCopyrightText: 2025 Blender Authors
+ *
  * SPDX-License-Identifier: BSL-1.0
  *
  * Adapted from boost::locale */
