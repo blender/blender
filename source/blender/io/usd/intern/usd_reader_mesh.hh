@@ -19,7 +19,6 @@ class USDMeshReader : public USDGeomReader {
  private:
   pxr::UsdGeomMesh mesh_prim_;
 
-  blender::Map<std::string, pxr::TfToken> uv_token_map_;
   blender::Map<const pxr::TfToken, bool> primvar_varying_map_;
 
   /* TODO(makowalski): Is it the best strategy to cache the
