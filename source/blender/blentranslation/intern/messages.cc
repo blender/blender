@@ -229,7 +229,7 @@ class Info {
     if (end >= input.size()) {
       return true;
     }
-    if (input[end] == '-' || input[end] == '_') {
+    if (ELEM(input[end], '-', '_')) {
       return parse_from_country(input.substr(end + 1));
     }
     if (input[end] == '.') {
@@ -251,14 +251,14 @@ class Info {
         return false;
       }
     }
-    if (tmp != "c" && tmp != "posix") { /* Keep default if C or POSIX. */
+    if (!ELEM(tmp, "c", "posix")) { /* Keep default if C or POSIX. */
       language = tmp;
     }
 
     if (end >= input.size()) {
       return true;
     }
-    if (input[end] == '-' || input[end] == '_') {
+    if (ELEM(input[end], '-', '_')) {
       return parse_from_script(input.substr(end + 1));
     }
     if (input[end] == '.') {

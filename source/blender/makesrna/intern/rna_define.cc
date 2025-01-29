@@ -666,7 +666,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 static bool rna_range_from_int_type(const char *dnatype, int r_range[2])
 {
   /* Type `char` is unsigned too. */
-  if (STREQ(dnatype, "char") || STREQ(dnatype, "uchar")) {
+  if (STR_ELEM(dnatype, "char", "uchar")) {
     r_range[0] = CHAR_MIN;
     r_range[1] = CHAR_MAX;
     return true;
