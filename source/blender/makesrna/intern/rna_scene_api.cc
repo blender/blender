@@ -263,7 +263,8 @@ void RNA_api_scene(StructRNA *srna)
   PropertyRNA *parm;
 
   func = RNA_def_function(srna, "frame_set", "rna_Scene_frame_set");
-  RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately");
+  RNA_def_function_ui_description(
+      func, "Set scene frame updating all objects and view layers immediately");
   parm = RNA_def_int(
       func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set", MINAFRAME, MAXFRAME);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
