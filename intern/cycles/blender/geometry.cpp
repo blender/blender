@@ -209,6 +209,20 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
+  /* If the geometry already has motion blur from a velocity attribute, don't
+   * set the geometry motion steps again.
+   *
+   * Otherwise, setting geometry motion steps is done here to avoid concurrency issues.
+   * - It can't be done earlier in sync_object_motion_init because sync_geometry
+   *   runs in parallel, and has_motion_blur would check attributes while
+   *   sync_geometry is potentially creating the attribute from velocity.
+   * - It needs to happen before the parallel motion sync that happens right after
+   *   this, because that can create the attribute from neighboring frames.
+   * Copying the motion steps from the object here solves this. */
+  if (!geom->has_motion_blur()) {
+    geom->set_motion_steps(object->get_motion().size());
+  }
+
   /* Find time matching motion step required by geometry. */
   const int motion_step = geom->motion_step(motion_time);
   if (motion_step < 0) {

@@ -212,9 +212,7 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
   /* Update original sockets. */
   for (const SocketType &socket : new_pointcloud.type->inputs) {
     /* Those sockets are updated in sync_object, so do not modify them. */
-    if (socket.name == "use_motion_blur" || socket.name == "motion_steps" ||
-        socket.name == "used_shaders")
-    {
+    if (socket.name == "use_motion_blur" || socket.name == "used_shaders") {
       continue;
     }
     pointcloud->set_value(socket, new_pointcloud, socket);
