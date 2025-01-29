@@ -321,7 +321,7 @@ typedef struct Curve {
   void *batch_cache;
 
 #ifdef __cplusplus
-  /** Get the largest material index used by the curves or nullopt if there are none. */
+  /** Get the largest material index used by the curves or `nullopt` if there are none. */
   std::optional<int> material_index_max() const;
 #endif
 } Curve;

@@ -758,7 +758,7 @@ TEST_F(ActionLayersTest, generic_slot_for_autoassign)
 
 TEST_F(ActionLayersTest, generic_slot_for_autoassign_untyped_wildcarding)
 {
-  /* Test the untyped slot "wildcard" behaviour, where OBSlot should be chosen when the last slot
+  /* Test the untyped slot "wildcard" behavior, where OBSlot should be chosen when the last slot
    * identifier was "XXSlot", and vice versa. */
 
   /* ===

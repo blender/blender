@@ -300,7 +300,7 @@ struct SocketUsageInferencer {
     }
     this->ensure_animation_data_processed(*group);
 
-    /* The group node input is used iff any of the matching group inputs within the group is
+    /* The group node input is used if any of the matching group inputs within the group is
      * used. */
     const ComputeContext &group_context = scope_.construct<bke::GroupNodeComputeContext>(
         socket.context, *node, node->owner_tree());
@@ -319,7 +319,7 @@ struct SocketUsageInferencer {
       all_socket_usages_.add_new(socket, true);
       return;
     }
-    /* The group output node is used iff the matching output of the parent group node is used. */
+    /* The group output node is used if the matching output of the parent group node is used. */
     const bke::GroupNodeComputeContext &group_context =
         *static_cast<const bke::GroupNodeComputeContext *>(socket.context);
     const bNodeSocket &group_node_output = group_context.caller_group_node()->output_socket(

@@ -156,7 +156,7 @@ class VKDevice : public NonCopyable {
   /**
    * Lifetime of the device.
    *
-   * Used for deinitialization of the command builder thread.
+   * Used for de-initialization of the command builder thread.
    */
   enum Lifetime {
     UNINITIALIZED,

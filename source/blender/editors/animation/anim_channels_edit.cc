@@ -1693,7 +1693,7 @@ static void join_groups_action_temp(bAction *act)
  */
 static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAnimChan_Mode mode)
 {
-  /* TODO: the general stucture of this function is basically the same as
+  /* TODO: the general structure of this function is basically the same as
    * `rearrange_layered_action_channel_groups()` and
    * `rearrange_layered_action_fcurves()`. It would be nice to DRY them at some
    * point if we can. */

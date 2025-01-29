@@ -308,7 +308,7 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void count_memory(MemoryCounter &memory) const;
 
-  /** Get the largest material index used by the curves or nullopt if there are none. */
+  /** Get the largest material index used by the curves or `nullopt` if there are none. */
   std::optional<int> material_index_max() const;
 
  private:

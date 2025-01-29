@@ -104,13 +104,13 @@ struct ShaderGlobals {
   packed_float3 dPdtime;
   packed_float3 Ps, dPsdx, dPsdy;
 
-  /* In OSL this is an opaque pointer named renderstate */
+  /* In OSL this is an opaque pointer named render-state. */
   ccl_private ShaderData *sd;
 
   /* In OSL this is an opaque pointer */
   ccl_private OSLTraceData *tracedata;
 
-  /* In OSL this is an opaque pointer named objdata */
+  /* In OSL this is an opaque pointer named `objdata`. */
 #ifdef __KERNEL_GPU__
   ccl_private uint8_t *closure_pool;
 #else

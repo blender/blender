@@ -616,7 +616,7 @@ static bool rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
 }
 
 /**
- * Return the identifier for an enum which is defined in "RNA_enum_items.hh".
+ * Return the identifier for an enum which is defined in `RNA_enum_items.hh`.
  *
  * Prevents expanding duplicate enums bloating the binary size.
  */

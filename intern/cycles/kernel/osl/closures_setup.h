@@ -804,7 +804,7 @@ ccl_device void osl_closure_background_setup(KernelGlobals kg,
 /* Uniform EDF
  *
  * This is a duplicate of emission above except an emittance value can be passed to the weight.
- * This is for MaterialX closure compatibility found in stdosl.h.
+ * This is for MaterialX closure compatibility found in `stdosl.h`.
  */
 ccl_device void osl_closure_uniform_edf_setup(KernelGlobals kg,
                                               ccl_private ShaderData *sd,

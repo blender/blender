@@ -456,7 +456,9 @@ static bool compute_auto_flip(const Span<float3> from_positions, const Span<floa
   return math::dot(from_last - from_first, to_last - to_first) < 0.0f;
 }
 
-/* Copy existing sample positions and insert new samples inbetween to reach the final count. */
+/**
+ * Copy existing sample positions and insert new samples in between to reach the final count.
+ */
 static void sample_curve_padded(const bke::CurvesGeometry &curves,
                                 const int curve_index,
                                 const bool cyclic,
