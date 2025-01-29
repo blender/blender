@@ -1213,6 +1213,11 @@ static int object_image_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!ED_operator_objectmode(C)) {
+    BKE_report(op->reports, RPT_ERROR, "Image objects can only be added in Object Mode");
+    return OPERATOR_CANCELLED;
+  }
+
   /* Add new empty. */
   ushort local_view_bits;
   float loc[3], rot[3];
@@ -1299,7 +1304,7 @@ static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 static bool object_image_add_poll(bContext *C)
 {
-  return ED_operator_objectmode(C) && CTX_wm_region_view3d(C);
+  return CTX_wm_region_view3d(C);
 }
 
 void OBJECT_OT_empty_image_add(wmOperatorType *ot)
