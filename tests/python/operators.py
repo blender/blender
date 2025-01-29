@@ -107,8 +107,13 @@ def main():
 
         # dissolve edges
         SpecMeshTest(
-            "CylinderDissolveEdges", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges",
-            [OperatorSpecEditMode("dissolve_edges", {}, "EDGE", {0, 5, 6, 9})],
+            "CylinderDissolveEdges.UseVertsFalse", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges.DissolveNoVerts",
+            [OperatorSpecEditMode("dissolve_edges", {"use_verts": False}, "EDGE", {0, 5, 6, 9})],
+        ),
+
+        SpecMeshTest(
+            "CylinderDissolveEdges.UseVertsTrue", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges.DissolveAllVerts",
+            [OperatorSpecEditMode("dissolve_edges", {"use_verts": True}, "EDGE", {0, 5, 6, 9})],
         ),
 
         # dissolve faces
