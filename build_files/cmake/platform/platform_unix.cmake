@@ -383,7 +383,7 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
       set(OSL_ROOT ${CYCLES_OSL})
     endif()
   endif()
-  find_package_wrapper(OSL)
+  find_package_wrapper(OSL 1.13.4)
   set_and_warn_library_found("OSL" OSL_FOUND WITH_CYCLES_OSL)
 
   if(OSL_FOUND)

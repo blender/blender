@@ -98,12 +98,7 @@ find_path(OSL_SHADER_DIR
     shaders
 )
 
-# handle the QUIETLY and REQUIRED arguments and set OSL_FOUND to TRUE if
-# all listed variables are TRUE
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(OSL DEFAULT_MSG _osl_LIBRARIES OSL_INCLUDE_DIR OSL_COMPILER)
-
-if(OSL_FOUND)
+if(OSL_INCLUDE_DIR)
   set(OSL_LIBRARIES ${_osl_LIBRARIES})
   set(OSL_INCLUDE_DIRS ${OSL_INCLUDE_DIR})
 
@@ -119,7 +114,20 @@ if(OSL_FOUND)
          "\\1" OSL_LIBRARY_VERSION_MINOR ${OSL_LIBRARY_VERSION_MINOR})
   string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+([.0-9]+).*"
          "\\1" OSL_LIBRARY_VERSION_PATCH ${OSL_LIBRARY_VERSION_PATCH})
+  set(OSL_VERSION "${OSL_LIBRARY_VERSION_MAJOR}.${OSL_LIBRARY_VERSION_MINOR}.${OSL_LIBRARY_VERSION_PATCH}")
 endif()
+
+# handle the QUIETLY and REQUIRED arguments and set OSL_FOUND to TRUE if
+# all listed variables are TRUE
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OSL
+  REQUIRED_VARS
+    OSL_LIBRARIES
+    OSL_INCLUDE_DIRS
+    OSL_COMPILER
+  VERSION_VAR
+    OSL_VERSION
+)
 
 mark_as_advanced(
   OSL_INCLUDE_DIR

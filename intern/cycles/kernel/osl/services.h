@@ -181,19 +181,12 @@ class OSLRenderServices : public OSL::RendererServices {
                   void *val,
                   bool derivatives) override;
 
-#if OSL_LIBRARY_VERSION_CODE >= 11304
   OSL::TextureSystem::TextureHandle *get_texture_handle(OSL::ustring filename,
                                                         OSL::ShadingContext *context,
                                                         const OSL::TextureOpt *options) override;
   OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
                                                         OSL::ShadingContext *context,
                                                         const OSL::TextureOpt *options) override;
-#elif OSL_LIBRARY_VERSION_CODE >= 11100
-  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
-                                                        OSL::ShadingContext *context) override;
-#else
-  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename) override;
-#endif
 
   bool good(OSL::TextureSystem::TextureHandle *texture_handle) override;
 
@@ -244,7 +237,6 @@ class OSLRenderServices : public OSL::RendererServices {
                    float *dresultdt,
                    OSLUStringHash *errormessage) override;
 
-#if OSL_LIBRARY_VERSION_CODE >= 11304
   bool get_texture_info(OSLUStringHash filename,
                         TextureHandle *texture_handle,
                         TexturePerthread *texture_thread_info,
@@ -254,25 +246,6 @@ class OSLRenderServices : public OSL::RendererServices {
                         const TypeDesc datatype,
                         void *data,
                         OSLUStringHash *errormessage) override;
-#elif OSL_LIBRARY_VERSION_CODE >= 11100
-  bool get_texture_info(OSLUStringHash filename,
-                        TextureHandle *texture_handle,
-                        TexturePerthread *texture_thread_info,
-                        OSL::ShadingContext *shading_context,
-                        const int subimage,
-                        OSLUStringHash dataname,
-                        const TypeDesc datatype,
-                        void *data,
-                        OSLUStringHash *errormessage) override;
-#else
-  bool get_texture_info(OSL::ShaderGlobals *sg,
-                        OSLUStringHash filename,
-                        TextureHandle *texture_handle,
-                        const int subimage,
-                        OSLUStringHash dataname,
-                        const TypeDesc datatype,
-                        void *data) override;
-#endif
 
   static bool get_background_attribute(ShaderGlobals *globals,
                                        OSLUStringHash name,

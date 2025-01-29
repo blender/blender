@@ -42,13 +42,11 @@ set(SRC_KERNEL_DEVICE_OPTIX
 if(WITH_CYCLES_OSL)
   math(EXPR OSL_LIBRARY_VERSION_CODE "${OSL_LIBRARY_VERSION_MAJOR} * 10000 + ${OSL_LIBRARY_VERSION_MINOR} * 100 + ${OSL_LIBRARY_VERSION_PATCH}")
 
-  if(OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
-    set(SRC_KERNEL_DEVICE_OPTIX
-      ${SRC_KERNEL_DEVICE_OPTIX}
-      osl/services_optix.cu
-      device/optix/kernel_osl.cu
-    )
-  endif()
+  set(SRC_KERNEL_DEVICE_OPTIX
+    ${SRC_KERNEL_DEVICE_OPTIX}
+    osl/services_optix.cu
+    device/optix/kernel_osl.cu
+  )
 endif()
 
 set(SRC_KERNEL_DEVICE_ONEAPI
@@ -1002,7 +1000,7 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     kernel_optix_shader_raytrace
     "device/optix/kernel_shader_raytrace.cu"
     "--keep-device-functions")
-  if(WITH_CYCLES_OSL AND OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
+  if(WITH_CYCLES_OSL)
     cycles_optix_kernel_add(
       kernel_optix_osl
       "device/optix/kernel_osl.cu"

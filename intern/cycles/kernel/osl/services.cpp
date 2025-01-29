@@ -1118,7 +1118,6 @@ bool OSLRenderServices::get_userdata(
   return false; /* disabled by lockgeom */
 }
 
-#if OSL_LIBRARY_VERSION_CODE >= 11304
 OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
     OSLUStringHash filename, OSL::ShadingContext *context, const OSL::TextureOpt *opt)
 {
@@ -1127,13 +1126,6 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
 
 OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
     OSL::ustring filename, OSL::ShadingContext * /*context*/, const OSL::TextureOpt * /*options*/)
-#elif OSL_LIBRARY_VERSION_CODE >= 11100
-OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename,
-                                                                         OSL::ShadingContext *)
-#else
-
-OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename)
-#endif
 {
   OSLTextureHandleMap::iterator it = textures.find(filename);
 
@@ -1573,7 +1565,6 @@ bool OSLRenderServices::environment(OSLUStringHash filename,
   return status;
 }
 
-#if OSL_LIBRARY_VERSION_CODE >= 11304
 bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
                                          TextureHandle *texture_handle,
                                          TexturePerthread *texture_thread_info,
@@ -1583,25 +1574,6 @@ bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
                                          const TypeDesc datatype,
                                          void *data,
                                          OSLUStringHash * /*errormessage*/)
-#elif OSL_LIBRARY_VERSION_CODE >= 11100
-bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
-                                         TextureHandle *texture_handle,
-                                         TexturePerthread *texture_thread_info,
-                                         OSL::ShadingContext *,
-                                         const int subimage,
-                                         OSLUStringHash dataname,
-                                         const TypeDesc datatype,
-                                         void *data,
-                                         OSLUStringHash *)
-#else
-bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *,
-                                         OSLUStringHash filename,
-                                         TextureHandle *texture_handle,
-                                         const int subimage,
-                                         OSLUStringHash dataname,
-                                         const TypeDesc datatype,
-                                         void *data)
-#endif
 {
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
 
@@ -1612,13 +1584,11 @@ bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *,
 
   /* Get texture info from OpenImageIO. */
   OSL::TextureSystem *ts = m_texturesys;
-#if OSL_LIBRARY_VERSION_CODE >= 11100
   if (handle->oiio_handle) {
     return ts->get_texture_info(
         handle->oiio_handle, texture_thread_info, subimage, to_ustring(dataname), datatype, data);
   }
 
-#endif
   return ts->get_texture_info(
       to_ustring(filename), subimage, to_ustring(dataname), datatype, data);
 }

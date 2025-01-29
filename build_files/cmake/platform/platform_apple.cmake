@@ -326,7 +326,7 @@ if(WITH_LLVM)
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_OSL)
-  find_package(OSL REQUIRED)
+  find_package(OSL 1.13.4 REQUIRED)
 endif()
 add_bundled_libraries(osl/lib)
 
