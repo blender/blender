@@ -4940,7 +4940,7 @@ static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int ali
 
 static void ui_layout_heading_set(uiLayout *layout, const StringRef heading)
 {
-  heading.copy(layout->heading);
+  heading.copy_utf8_truncated(layout->heading);
 }
 
 uiLayout *uiLayoutRow(uiLayout *layout, bool align)

@@ -188,7 +188,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
          blender::bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session))
     {
       CryptomatteLayer *layer = MEM_cnew<CryptomatteLayer>(__func__);
-      layer_name.copy(layer->name);
+      layer_name.copy_utf8_truncated(layer->name);
       BLI_addtail(&n->runtime.layers, layer);
     }
   }

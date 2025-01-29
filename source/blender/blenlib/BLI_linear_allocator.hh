@@ -161,7 +161,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   {
     const int64_t alloc_size = str.size() + 1;
     char *buffer = static_cast<char *>(this->allocate(alloc_size, 1));
-    str.copy(buffer, alloc_size);
+    str.copy_unsafe(buffer);
     return StringRefNull(static_cast<const char *>(buffer));
   }
 

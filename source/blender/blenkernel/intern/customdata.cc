@@ -3165,7 +3165,7 @@ static CustomDataLayer *customData_add_layer__internal(
   }
 
   if (!name.is_empty()) {
-    name.copy(new_layer.name);
+    name.copy_utf8_truncated(new_layer.name);
     CustomData_set_layer_unique_name(data, index);
   }
   else {
@@ -3790,7 +3790,7 @@ bool CustomData_set_layer_name(CustomData *data,
     return false;
   }
 
-  name.copy(data->layers[layer_index].name);
+  name.copy_utf8_truncated(data->layers[layer_index].name);
 
   return true;
 }
@@ -4570,9 +4570,7 @@ void CustomData_validate_layer_name(const CustomData *data,
     BLI_strncpy_utf8(outname, data->layers[index].name, MAX_CUSTOMDATA_LAYER_NAME);
   }
   else {
-    char name_c_str[MAX_CUSTOMDATA_LAYER_NAME];
-    name.copy(name_c_str);
-    BLI_strncpy_utf8(outname, name_c_str, MAX_CUSTOMDATA_LAYER_NAME);
+    name.copy_utf8_truncated(outname, MAX_CUSTOMDATA_LAYER_NAME);
   }
 }
 

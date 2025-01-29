@@ -214,7 +214,7 @@ class Context : public compositor::Context {
 
   void set_info_message(StringRef message) const override
   {
-    message.copy(info_message_, GPU_INFO_SIZE);
+    message.copy_utf8_truncated(info_message_, GPU_INFO_SIZE);
   }
 
   IDRecalcFlag query_id_recalc_flag(ID *id) const override

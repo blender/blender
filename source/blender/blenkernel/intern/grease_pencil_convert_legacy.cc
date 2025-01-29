@@ -1592,7 +1592,7 @@ static void legacy_object_modifier_influence(GreasePencilModifierInfluenceData &
 {
   influence.flag = 0;
 
-  layername.copy(influence.layer_name);
+  layername.copy_utf8_truncated(influence.layer_name);
   if (invert_layer) {
     influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_LAYER_FILTER;
   }
@@ -1619,7 +1619,7 @@ static void legacy_object_modifier_influence(GreasePencilModifierInfluenceData &
     influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_PASS_FILTER;
   }
 
-  vertex_group_name.copy(influence.vertex_group_name);
+  vertex_group_name.copy_utf8_truncated(influence.vertex_group_name);
   if (invert_vertex_group) {
     influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP;
   }

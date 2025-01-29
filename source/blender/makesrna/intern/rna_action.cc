@@ -304,7 +304,7 @@ int rna_ActionSlot_target_id_type_icon_get(PointerRNA *ptr)
 void rna_ActionSlot_name_display_get(PointerRNA *ptr, char *value)
 {
   animrig::Slot &slot = rna_data_slot(ptr);
-  slot.identifier_without_prefix().unsafe_copy(value);
+  slot.identifier_without_prefix().copy_unsafe(value);
 }
 
 int rna_ActionSlot_name_display_length(PointerRNA *ptr)

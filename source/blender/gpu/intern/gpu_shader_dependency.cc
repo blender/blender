@@ -299,7 +299,7 @@ struct GPUSource {
     StringRef name = pop_token(line);
 
     GPUFunction *func = MEM_new<GPUFunction>(__func__);
-    name.copy(func->name, sizeof(func->name));
+    name.copy_utf8_truncated(func->name, sizeof(func->name));
     func->source = reinterpret_cast<void *>(this);
     func->totparam = 0;
     while (1) {

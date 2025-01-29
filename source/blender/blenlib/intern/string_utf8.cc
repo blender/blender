@@ -312,15 +312,20 @@ int BLI_str_utf8_invalid_strip(char *str, size_t length)
  *
  * Compatible with #BLI_strncpy, but ensure no partial UTF8 chars.
  *
+ * \param dst_maxncpy: The maximum number of bytes to copy. This does not include the null
+ *   terminator.
+ *
  * \note currently we don't attempt to deal with invalid utf8 chars.
  * See #BLI_str_utf8_invalid_strip for if that is needed.
+ *
+ * \note the caller is responsible for null terminating the string.
  */
 BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t dst_maxncpy)
 {
   /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning.
    * No need to check `src` points to a nil byte as this will return from the switch statement. */
   size_t utf8_size;
-  while ((utf8_size = size_t(utf8_char_compute_skip(*src))) < dst_maxncpy) {
+  while ((utf8_size = size_t(utf8_char_compute_skip(*src))) <= dst_maxncpy) {
     dst_maxncpy -= utf8_size;
     /* Prefer more compact block. */
     /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
@@ -336,7 +341,6 @@ BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t
     /* clang-format on */
     /* NOLINTEND: bugprone-assignment-in-if-condition */
   }
-  *dst = '\0';
   return dst;
 }
 
@@ -345,13 +349,27 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  str_utf8_copy_max_bytes_impl(dst, src, dst_maxncpy);
+  char *dst_end = str_utf8_copy_max_bytes_impl(dst, src, dst_maxncpy - 1);
+  *dst_end = '\0';
   return dst;
 }
 
 size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
 {
   BLI_assert(dst_maxncpy != 0);
+  BLI_string_debug_size(dst, dst_maxncpy);
+
+  char *r_dst = dst;
+  dst = str_utf8_copy_max_bytes_impl(dst, src, dst_maxncpy - 1);
+  *dst = '\0';
+
+  return size_t(dst - r_dst);
+}
+
+size_t BLI_strncpy_utf8_rlen_unterminated(char *__restrict dst,
+                                          const char *__restrict src,
+                                          size_t dst_maxncpy)
+{
   BLI_string_debug_size(dst, dst_maxncpy);
 
   char *r_dst = dst;

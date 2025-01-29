@@ -699,7 +699,7 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
     const int reroute_index = reroute_nodes[reroute_i];
     bNode &reroute_node = *all_nodes[reroute_index];
     NodeReroute *storage = static_cast<NodeReroute *>(reroute_node.storage);
-    StringRef(reroute_type->idname).copy(storage->type_idname);
+    StringRef(reroute_type->idname).copy_utf8_truncated(storage->type_idname);
     nodes::update_node_declaration_and_sockets(*ntree, reroute_node);
   }
 }

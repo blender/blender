@@ -219,7 +219,7 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
 
   indexer_entry.idcode = GS(idcode_name.data());
 
-  idcode_name.substr(2).copy(indexer_entry.datablock_info.name);
+  idcode_name.substr(2).copy_utf8_truncated(indexer_entry.datablock_info.name);
 
   AssetMetaData *asset_data = BKE_asset_metadata_create();
   indexer_entry.datablock_info.asset_data = asset_data;

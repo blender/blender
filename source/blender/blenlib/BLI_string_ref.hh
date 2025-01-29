@@ -70,9 +70,20 @@ class StringRefBase {
 
   constexpr IndexRange index_range() const;
 
-  void unsafe_copy(char *dst) const;
-  void copy(char *dst, int64_t dst_size) const;
-  template<size_t N> void copy(char (&dst)[N]) const;
+  /**
+   * Copy the string into a char array. The copied string will be null-terminated. If it does not
+   * fit, it will be truncated while keeping it valid utf-8 (assuming the #StringRef itself is
+   * valid utf-8).
+   */
+  void copy_utf8_truncated(char *dst, int64_t dst_size) const;
+  template<size_t N> void copy_utf8_truncated(char (&dst)[N]) const;
+
+  /**
+   * Copy the string into a buffer. The buffer has to be one byte larger than the size of the
+   * string, because the copied string will be null-terminated. Only use this when you are
+   * absolutely sure that the buffer is large enough.
+   */
+  void copy_unsafe(char *dst) const;
 
   constexpr bool startswith(StringRef prefix) const;
   constexpr bool endswith(StringRef suffix) const;
@@ -207,12 +218,7 @@ constexpr IndexRange StringRefBase::index_range() const
   return IndexRange(size_);
 }
 
-/**
- * Copy the string into a buffer. The buffer has to be one byte larger than the size of the
- * string, because the copied string will be null-terminated. Only use this when you are
- * absolutely sure that the buffer is large enough.
- */
-inline void StringRefBase::unsafe_copy(char *dst) const
+inline void StringRefBase::copy_unsafe(char *dst) const
 {
   if (size_ > 0) {
     memcpy(dst, data_, size_t(size_));
@@ -220,28 +226,9 @@ inline void StringRefBase::unsafe_copy(char *dst) const
   dst[size_] = '\0';
 }
 
-/**
- * Copy the string into a buffer. The copied string will be null-terminated. This invokes
- * undefined behavior when dst_size is too small. (Should we define the behavior?)
- */
-inline void StringRefBase::copy(char *dst, const int64_t dst_size) const
+template<size_t N> inline void StringRefBase::copy_utf8_truncated(char (&dst)[N]) const
 {
-  if (size_ < dst_size) {
-    this->unsafe_copy(dst);
-  }
-  else {
-    BLI_assert(false);
-    dst[0] = '\0';
-  }
-}
-
-/**
- * Copy the string into a char array. The copied string will be null-terminated. This invokes
- * undefined behavior when dst is too small.
- */
-template<size_t N> inline void StringRefBase::copy(char (&dst)[N]) const
-{
-  this->copy(dst, N);
+  this->copy_utf8_truncated(dst, N);
 }
 
 /**

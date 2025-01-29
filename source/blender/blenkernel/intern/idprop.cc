@@ -71,7 +71,7 @@ IDProperty *IDP_NewIDPArray(const blender::StringRef name)
       MEM_callocN(sizeof(IDProperty), "IDProperty prop array"));
   prop->type = IDP_IDPARRAY;
   prop->len = 0;
-  name.copy(prop->name);
+  name.copy_utf8_truncated(prop->name);
 
   return prop;
 }
@@ -383,7 +383,7 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
   }
 
   prop->type = IDP_STRING;
-  name.copy(prop->name);
+  name.copy_utf8_truncated(prop->name);
   prop->flag = short(flags);
 
   return prop;
@@ -1087,7 +1087,7 @@ IDProperty *IDP_New(const char type,
   }
 
   prop->type = type;
-  name.copy(prop->name);
+  name.copy_utf8_truncated(prop->name);
   prop->flag = short(flags);
 
   return prop;
