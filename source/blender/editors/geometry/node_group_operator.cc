@@ -19,7 +19,6 @@
 #include "WM_api.hh"
 
 #include "BKE_asset.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
