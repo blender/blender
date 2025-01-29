@@ -3152,13 +3152,10 @@ void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, blender::StringRef name, int
 /**
  * Menu.
  */
-void uiItemM_ptr(uiLayout *layout,
-                 MenuType *mt,
-                 std::optional<blender::StringRefNull> name,
-                 int icon);
+void uiItemM_ptr(uiLayout *layout, MenuType *mt, std::optional<blender::StringRef> name, int icon);
 void uiItemM(uiLayout *layout,
              blender::StringRefNull menuname,
-             std::optional<blender::StringRefNull> name,
+             std::optional<blender::StringRef> name,
              int icon);
 /**
  * Menu contents.
