@@ -564,13 +564,19 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     }
   }
 
-  switch (value) {
-    case TFM_MODAL_CANCEL: {
-      /* TODO: Canceling with LMB is not possible when the operator is activated
-       * through tweak and the LMB is pressed.
-       * Therefore, this item should not appear in the status bar. */
-      break;
+  /* You cannot cancel or confirm a "release on confirm" operation by clicking the same mouse
+   * button that you started it with. In this case the item should not appear on the status bar. */
+  if (t->flag & T_RELEASE_CONFIRM && ISMOUSE_BUTTON(t->launch_event) &&
+      ELEM(value, TFM_MODAL_CANCEL, TFM_MODAL_CONFIRM))
+  {
+    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &t->keymap->items) {
+      if (kmi->propvalue == value && kmi->type == t->launch_event && kmi->val == KM_PRESS) {
+        return false;
+      }
     }
+  }
+
+  switch (value) {
     case TFM_MODAL_PROPSIZE:
     case TFM_MODAL_PROPSIZE_UP:
     case TFM_MODAL_PROPSIZE_DOWN: {
