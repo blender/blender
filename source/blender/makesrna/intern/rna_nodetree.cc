@@ -1356,6 +1356,20 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
   }
 }
 
+static void rna_Node_shortcut_node_set(PointerRNA *ptr, int value)
+{
+  bNode *curr_node = static_cast<bNode *>(ptr->data);
+  bNodeTree &ntree = curr_node->owner_tree();
+
+  /* Avoid having two nodes with the same shortcut. */
+  for (bNode *node : ntree.all_nodes()) {
+    if (node->is_type("CompositorNodeViewer") && node->custom1 == value) {
+      node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
+    }
+  }
+  curr_node->custom1 = value;
+}
+
 static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
                                         Main *bmain,
                                         ReportList *reports,
@@ -9125,6 +9139,14 @@ static void def_cmp_viewer(BlenderRNA * /*brna*/, StructRNA *srna)
       "Use Alpha",
       "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "ui_shortcut", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "custom1");
+  RNA_def_property_int_funcs(prop, nullptr, "rna_Node_shortcut_node_set", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_int_default(prop, NODE_VIEWER_SHORTCUT_NONE);
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, nullptr);
 }
 
 static void def_cmp_composite(BlenderRNA * /*brna*/, StructRNA *srna)

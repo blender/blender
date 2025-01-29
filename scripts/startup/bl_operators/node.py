@@ -16,6 +16,7 @@ from bpy.props import (
     EnumProperty,
     FloatVectorProperty,
     StringProperty,
+    IntProperty,
 )
 from mathutils import (
     Vector,
@@ -408,6 +409,104 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
         return {'FINISHED'}
 
 
+class NODE_OT_viewer_shortcut_set(Operator):
+    """Create a compositor viewer shortcut for the selected node by pressing ctrl+1,2,..9"""
+    bl_idname = "node.viewer_shortcut_set"
+    bl_label = "Fast Preview"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    viewer_index: IntProperty(
+        name="Viewer Index",
+        description="Index corresponding to the shortcut, e.g. number key 1 corresponds to index 1 etc..")
+
+    def get_connected_viewer(self, node):
+        for out in node.outputs:
+            for link in out.links:
+                nv = link.to_node
+                if nv.type == 'VIEWER':
+                    return nv
+        return None
+
+    @classmethod
+    def poll(self, context):
+        return context.space_data.tree_type == 'CompositorNodeTree'
+
+    def execute(self, context):
+        nodes = context.space_data.edit_tree.nodes
+        links = context.space_data.edit_tree.links
+        selected_nodes = context.selected_nodes
+
+        if len(selected_nodes) == 0:
+            self.report({'ERROR'}, "Select a node to assign a shortcut")
+            return {'CANCELLED'}
+
+        fav_node = selected_nodes[0]
+
+        # Only viewer nodes can be set to favorites. However, the user can
+        # create a new favorite viewer by selecting any node and pressing ctrl+1.
+        old_active = nodes.active
+        if fav_node.type == 'VIEWER':
+            viewer_node = fav_node
+        else:
+            viewer_node = self.get_connected_viewer(fav_node)
+            if not viewer_node:
+                # Calling link_viewer() if a viewer node is connected will connect the next available socket to the viewer node.
+                # This behavior is not desired as we want to create a shortcut to the exisiting connected viewer node.
+                # Therefore link_viewer() is called only when no viewer node is connected.
+                bpy.ops.node.link_viewer()
+                viewer_node = self.get_connected_viewer(fav_node)
+
+        if not viewer_node:
+            self.report({'ERROR'}, "Unable to set shortcut, selected node is not a viewer node or does not support viewing")
+            return {'CANCELLED'}
+
+        # Use the node active status to enable this viewer node and disable others.
+        nodes.active = viewer_node
+        if old_active.type != 'VIEWER':
+            nodes.active = old_active
+
+        viewer_node.ui_shortcut = self.viewer_index
+        self.report({'INFO'}, "Assigned shortcut %i to %s" % (self.viewer_index, viewer_node.name))
+
+        return {'FINISHED'}
+
+
+class NODE_OT_viewer_shortcut_get(Operator):
+    """Activate a specific compositor viewer node using 1,2,..,9 keys"""
+    bl_idname = "node.viewer_shortcut_get"
+    bl_label = "Fast Preview"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    viewer_index: IntProperty(
+        name="Viewer Index",
+        description="Index corresponding to the shortcut, e.g. number key 1 corresponds to index 1 etc..")
+
+    @classmethod
+    def poll(self, context):
+        return context.space_data.tree_type == 'CompositorNodeTree'
+
+    def execute(self, context):
+        nodes = context.space_data.edit_tree.nodes
+
+        # Get viewer node with exisiting shortcut.
+        viewer_node = None
+        for n in nodes:
+            if n.type == 'VIEWER' and n.ui_shortcut == self.viewer_index:
+                viewer_node = n
+
+        if not viewer_node:
+            self.report({'INFO'}, "Shortcut %i is not assigned to a Viewer node yet" % self.viewer_index)
+            return {'CANCELLED'}
+
+        # Use the node active status to enable this viewer node and disable others.
+        old_active = nodes.active
+        nodes.active = viewer_node
+        if old_active.type != "VIEWER":
+            nodes.active = old_active
+
+        return {'FINISHED'}
+
+
 class NODE_FH_image_node(FileHandler):
     bl_idname = "NODE_FH_image_node"
     bl_label = "Image node"
@@ -438,4 +537,6 @@ classes = (
     NODE_OT_interface_item_duplicate,
     NODE_OT_interface_item_remove,
     NODE_OT_tree_path_parent,
+    NODE_OT_viewer_shortcut_get,
+    NODE_OT_viewer_shortcut_set,
 )

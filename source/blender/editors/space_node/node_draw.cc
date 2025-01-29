@@ -3268,6 +3268,36 @@ static void node_draw_extra_info_panel(const bContext &C,
   }
 }
 
+static short get_viewer_shortcut_icon(const bNode &node)
+{
+  BLI_assert(node.is_type("CompositorNodeViewer"));
+  switch (node.custom1) {
+    case NODE_VIEWER_SHORTCUT_NONE:
+      /* No change by default. */
+      return node.typeinfo->ui_icon;
+    case NODE_VIEWER_SHORCTUT_SLOT_1:
+      return ICON_EVENT_ONEKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_2:
+      return ICON_EVENT_TWOKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_3:
+      return ICON_EVENT_THREEKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_4:
+      return ICON_EVENT_FOURKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_5:
+      return ICON_EVENT_FIVEKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_6:
+      return ICON_EVENT_SIXKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_7:
+      return ICON_EVENT_SEVENKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_8:
+      return ICON_EVENT_EIGHTKEY;
+    case NODE_VIEWER_SHORCTUT_SLOT_9:
+      return ICON_EVENT_NINEKEY;
+  }
+
+  return node.typeinfo->ui_icon;
+}
+
 static void node_draw_basis(const bContext &C,
                             TreeDrawContext &tree_draw_ctx,
                             const View2D &v2d,
@@ -3459,6 +3489,25 @@ static void node_draw_basis(const bContext &C,
     const char *operator_idname = is_active ? "NODE_OT_deactivate_viewer" : "NODE_OT_select";
     UI_but_func_set(
         but, node_toggle_button_cb, POINTER_FROM_INT(node.identifier), (void *)operator_idname);
+    UI_block_emboss_set(&block, UI_EMBOSS);
+  }
+  /* Viewer node shortcuts. */
+  if (node.is_type("CompositorNodeViewer")) {
+    short shortcut_icon = get_viewer_shortcut_icon(node);
+    iconofs -= iconbutw;
+    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
+    uiDefIconBut(&block,
+                 UI_BTYPE_BUT,
+                 0,
+                 shortcut_icon,
+                 iconofs,
+                 rct.ymax - NODE_DY,
+                 iconbutw,
+                 UI_UNIT_Y,
+                 nullptr,
+                 0,
+                 0,
+                 "");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
 

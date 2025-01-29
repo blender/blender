@@ -353,6 +353,21 @@ typedef struct bNodePanelState {
 #endif
 } bNodePanelState;
 
+typedef enum eViewerNodeShortcut {
+  NODE_VIEWER_SHORTCUT_NONE = 0,
+  /* Users can set custom keys to shortcuts,
+   * but shortcuts should always be referred to as enums. */
+  NODE_VIEWER_SHORCTUT_SLOT_1 = 1,
+  NODE_VIEWER_SHORCTUT_SLOT_2 = 2,
+  NODE_VIEWER_SHORCTUT_SLOT_3 = 3,
+  NODE_VIEWER_SHORCTUT_SLOT_4 = 4,
+  NODE_VIEWER_SHORCTUT_SLOT_5 = 5,
+  NODE_VIEWER_SHORCTUT_SLOT_6 = 6,
+  NODE_VIEWER_SHORCTUT_SLOT_7 = 7,
+  NODE_VIEWER_SHORCTUT_SLOT_8 = 8,
+  NODE_VIEWER_SHORCTUT_SLOT_9 = 9
+} eViewerNodeShortcut;
+
 typedef enum NodeWarningPropagation {
   NODE_WARNING_PROPAGATION_ALL = 0,
   NODE_WARNING_PROPAGATION_NONE = 1,

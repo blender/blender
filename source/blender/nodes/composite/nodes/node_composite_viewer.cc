@@ -40,6 +40,7 @@ static void node_composit_init_viewer(bNodeTree * /*ntree*/, bNode *node)
   ImageUser *iuser = MEM_cnew<ImageUser>(__func__);
   node->storage = iuser;
   iuser->sfra = 1;
+  node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
 
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
