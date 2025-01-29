@@ -41,10 +41,6 @@
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
 
-namespace usdtokens {
-static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
-}  // namespace usdtokens
-
 namespace blender::io::usd {
 
 USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)

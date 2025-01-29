@@ -54,7 +54,6 @@ static CLG_LogRef LOG = {"io.usd"};
 namespace usdtokens {
 /* Materials */
 static const pxr::TfToken st("st", pxr::TfToken::Immortal);
-static const pxr::TfToken UVMap("UVMap", pxr::TfToken::Immortal);
 static const pxr::TfToken normalsPrimvar("normals", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 

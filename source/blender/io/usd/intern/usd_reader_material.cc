@@ -56,7 +56,6 @@ static const pxr::TfToken occlusion("occlusion", pxr::TfToken::Immortal);
 static const pxr::TfToken opacity("opacity", pxr::TfToken::Immortal);
 static const pxr::TfToken opacityThreshold("opacityThreshold", pxr::TfToken::Immortal);
 static const pxr::TfToken r("r", pxr::TfToken::Immortal);
-static const pxr::TfToken result("result", pxr::TfToken::Immortal);
 static const pxr::TfToken rgb("rgb", pxr::TfToken::Immortal);
 static const pxr::TfToken rgba("rgba", pxr::TfToken::Immortal);
 static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);

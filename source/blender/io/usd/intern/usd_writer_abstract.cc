@@ -22,13 +22,6 @@ static CLG_LogRef LOG = {"io.usd"};
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
-/* Materials */
-static const pxr::TfToken diffuse_color("diffuseColor", pxr::TfToken::Immortal);
-static const pxr::TfToken metallic("metallic", pxr::TfToken::Immortal);
-static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal);
-static const pxr::TfToken preview_surface("UsdPreviewSurface", pxr::TfToken::Immortal);
-static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
-static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
 static const pxr::TfToken blender_ns("userProperties:blender", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
