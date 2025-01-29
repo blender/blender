@@ -31,17 +31,6 @@ PixelOperation::PixelOperation(Context &context,
 {
 }
 
-PixelOperation *PixelOperation::create_operation(Context &context,
-                                                 PixelCompileUnit &compile_unit,
-                                                 const Schedule &schedule)
-{
-  if (context.use_gpu()) {
-    return new ShaderOperation(context, compile_unit, schedule);
-  }
-
-  return new MultiFunctionProcedureOperation(context, compile_unit, schedule);
-}
-
 int PixelOperation::maximum_number_of_outputs(Context &context)
 {
   if (context.use_gpu()) {

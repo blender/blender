@@ -60,10 +60,16 @@ void CompileState::add_node_to_pixel_compile_unit(DNode node)
 {
   pixel_compile_unit_.add_new(node);
 
-  /* If the domain of the pixel compile unit is not yet determined or was determined to be
-   * an identity domain, update it to be the computed domain of the node. */
-  if (pixel_compile_unit_domain_ == Domain::identity()) {
-    pixel_compile_unit_domain_ = compute_pixel_node_domain(node);
+  /* If this is the first node in the compile unit, then we should initialize the single value
+   * type, as well as the domain in case the node was not single value. */
+  const bool is_first_node_in_operation = pixel_compile_unit_.size() == 1;
+  if (is_first_node_in_operation) {
+    is_pixel_compile_unit_single_value_ = this->is_pixel_node_single_value(node);
+
+    /* If the node was not a single value, compute and initialize the domain. */
+    if (!is_pixel_compile_unit_single_value_) {
+      pixel_compile_unit_domain_ = this->compute_pixel_node_domain(node);
+    }
   }
 }
 
@@ -72,10 +78,15 @@ PixelCompileUnit &CompileState::get_pixel_compile_unit()
   return pixel_compile_unit_;
 }
 
+bool CompileState::is_pixel_compile_unit_single_value()
+{
+  return is_pixel_compile_unit_single_value_;
+}
+
 void CompileState::reset_pixel_compile_unit()
 {
   pixel_compile_unit_.clear();
-  pixel_compile_unit_domain_ = Domain::identity();
+  pixel_compile_unit_domain_.reset();
 }
 
 bool CompileState::should_compile_pixel_compile_unit(DNode node)
@@ -91,14 +102,20 @@ bool CompileState::should_compile_pixel_compile_unit(DNode node)
     return true;
   }
 
-  /* If the computed domain of the node doesn't matches the domain of the pixel compile unit, then
-   * it can't be added to the pixel compile unit and the pixel compile unit is considered
-   * complete and should be compiled. Identity domains are an exception as they are always
-   * compatible because they represents single values. */
-  if (pixel_compile_unit_domain_ != Domain::identity() &&
-      pixel_compile_unit_domain_ != compute_pixel_node_domain(node))
-  {
+  /* If the compile unit is single value and the given node is not or vice versa, then it can't be
+   * added to the pixel compile unit and the pixel compile unit is considered complete and should
+   * be compiled. */
+  if (is_pixel_compile_unit_single_value_ != this->is_pixel_node_single_value(node)) {
     return true;
+  }
+
+  /* For non single value compile units, if the computed domain of the node doesn't matches the
+   * domain of the pixel compile unit, then it can't be added to the pixel compile unit and the
+   * pixel compile unit is considered complete and should be compiled. */
+  if (!is_pixel_compile_unit_single_value_) {
+    if (pixel_compile_unit_domain_.value() != this->compute_pixel_node_domain(node)) {
+      return true;
+    }
   }
 
   /* Otherwise, the node is compatible and can be added to the compile unit and it shouldn't be
@@ -132,6 +149,37 @@ int CompileState::compute_pixel_node_operation_outputs_count(DNode node)
   return outputs_count;
 }
 
+bool CompileState::is_pixel_node_single_value(DNode node)
+{
+  /* The pixel node is single value when all of its inputs are single values. */
+  for (const bNodeSocket *input : node->input_sockets()) {
+    const DInputSocket dinput{node.context(), input};
+
+    /* Get the output linked to the input. If it is null, that means the input is unlinked, and is
+     * thus single value. */
+    const DOutputSocket output = get_output_linked_to_input(dinput);
+    if (!output) {
+      continue;
+    }
+
+    /* If the output belongs to a node that is part of the pixel compile unit and that compile unit
+     * is not single value, then the node is not single value. */
+    if (pixel_compile_unit_.contains(output.node())) {
+      if (is_pixel_compile_unit_single_value_) {
+        continue;
+      }
+      return false;
+    }
+
+    const Result &result = get_result_from_output_socket(output);
+    if (!result.is_single_value()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 Domain CompileState::compute_pixel_node_domain(DNode node)
 {
   /* Default to an identity domain in case no domain input was found, most likely because all
@@ -156,15 +204,10 @@ Domain CompileState::compute_pixel_node_domain(DNode node)
     /* If the output belongs to a node that is part of the pixel compile unit, then the domain of
      * the input is the domain of the compile unit itself. */
     if (pixel_compile_unit_.contains(output.node())) {
-      /* Single value inputs can't be domain inputs. */
-      if (pixel_compile_unit_domain_.size == int2(1)) {
-        continue;
-      }
-
       /* Notice that the lower the domain priority value is, the higher the priority is, hence the
        * less than comparison. */
       if (input_descriptor.domain_priority < current_domain_priority) {
-        node_domain = pixel_compile_unit_domain_;
+        node_domain = pixel_compile_unit_domain_.value();
         current_domain_priority = input_descriptor.domain_priority;
       }
       continue;

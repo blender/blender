@@ -12,6 +12,7 @@
 #include "COM_context.hh"
 #include "COM_evaluator.hh"
 #include "COM_input_single_value_operation.hh"
+#include "COM_multi_function_procedure_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_operation.hh"
 #include "COM_result.hh"
@@ -159,6 +160,22 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
   }
 }
 
+/* Create one of the concrete subclasses of the PixelOperation based on the context and compile
+ * state. Deleting the operation is the caller's responsibility. */
+PixelOperation *create_pixel_operation(Context &context, CompileState &compile_state)
+{
+  const Schedule &schedule = compile_state.get_schedule();
+  PixelCompileUnit &compile_unit = compile_state.get_pixel_compile_unit();
+
+  /* Use multi-function procedure to execute the pixel compile unit for CPU contexts or if the
+   * compile unit is single value and would thus be more efficient to execute on the CPU. */
+  if (!context.use_gpu() || compile_state.is_pixel_compile_unit_single_value()) {
+    return new MultiFunctionProcedureOperation(context, compile_unit, schedule);
+  }
+
+  return new ShaderOperation(context, compile_unit, schedule);
+}
+
 void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_state)
 {
   PixelCompileUnit &compile_unit = compile_state.get_pixel_compile_unit();
@@ -199,8 +216,7 @@ void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_st
     return;
   }
 
-  const Schedule &schedule = compile_state.get_schedule();
-  PixelOperation *operation = PixelOperation::create_operation(context_, compile_unit, schedule);
+  PixelOperation *operation = create_pixel_operation(context_, compile_state);
 
   for (DNode node : compile_unit) {
     compile_state.map_node_to_pixel_operation(node, operation);
