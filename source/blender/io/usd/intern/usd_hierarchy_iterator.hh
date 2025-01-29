@@ -60,11 +60,6 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   virtual bool include_data_writers(const HierarchyContext *context) const override;
   virtual bool include_child_writers(const HierarchyContext *context) const override;
 
-  /* Return true if duplication references should be resolved for the children of the given
-   * context. */
-  virtual bool should_determine_duplication_references(
-      const HierarchyContext *parent_context) const override;
-
  private:
   USDExporterContext create_usd_export_context(const HierarchyContext *context);
 

@@ -543,10 +543,14 @@ void AbstractHierarchyIterator::determine_export_paths(const HierarchyContext *p
   }
 }
 
-void AbstractHierarchyIterator::determine_duplication_references(
+bool AbstractHierarchyIterator::determine_duplication_references(
     const HierarchyContext *parent_context, const std::string &indent)
 {
   ExportChildren children = graph_children(parent_context);
+
+  /* Will be set to true if any child contexts are instances that were designated
+   * as proxies for the original prototype.*/
+  bool contains_proxy_prototype = false;
 
   for (HierarchyContext *context : children) {
     if (context->duplicator != nullptr) {
@@ -557,6 +561,7 @@ void AbstractHierarchyIterator::determine_duplication_references(
         /* The original was not found, so mark this instance as "the original". */
         context->mark_as_not_instanced();
         duplisource_export_path_[source_id] = context->export_path;
+        contains_proxy_prototype = true;
       }
       else {
         context->mark_as_instance_of(it->second);
@@ -583,10 +588,18 @@ void AbstractHierarchyIterator::determine_duplication_references(
       }
     }
 
-    if (should_determine_duplication_references(context)) {
-      determine_duplication_references(context, indent + "  ");
+    if (determine_duplication_references(context, indent + "  ")) {
+      /* A descendant was designated a prototype proxy. If the current context
+       * is an instance, we must change it to a prototype proxy as well. */
+      if (context->is_instance()) {
+        context->mark_as_not_instanced();
+        ID *source_id = &context->object->id;
+        duplisource_export_path_[source_id] = context->export_path;
+      }
+      contains_proxy_prototype = true;
     }
   }
+  return contains_proxy_prototype;
 }
 
 void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_context)
