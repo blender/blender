@@ -429,7 +429,10 @@ class NODE_OT_viewer_shortcut_set(Operator):
 
     @classmethod
     def poll(self, context):
-        return context.space_data.tree_type == 'CompositorNodeTree'
+        space = context.space_data
+        return (space.type == 'NODE_EDITOR' and
+                space.node_tree is not None and
+                space.tree_type == 'CompositorNodeTree')
 
     def execute(self, context):
         nodes = context.space_data.edit_tree.nodes
@@ -483,7 +486,10 @@ class NODE_OT_viewer_shortcut_get(Operator):
 
     @classmethod
     def poll(self, context):
-        return context.space_data.tree_type == 'CompositorNodeTree'
+        space = context.space_data
+        return (space.type == 'NODE_EDITOR' and
+                space.node_tree is not None and
+                space.tree_type == 'CompositorNodeTree')
 
     def execute(self, context):
         nodes = context.space_data.edit_tree.nodes
