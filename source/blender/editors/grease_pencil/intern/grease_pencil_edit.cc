@@ -3331,6 +3331,7 @@ static int grease_pencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
       index_mask::masked_fill(positions, cursor_layer, selected_points);
     }
 
+    curves.calculate_bezier_auto_handles();
     drawing_info.drawing.tag_positions_changed();
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     DEG_id_tag_update(&object.id, ID_RECALC_SYNC_TO_EVAL);
