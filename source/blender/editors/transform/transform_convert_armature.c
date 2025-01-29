@@ -1210,8 +1210,8 @@ static void recalcData_edit_armature(TransInfo *t)
       ebo_parent = (ebo->flag & BONE_CONNECTED) ? ebo->parent : NULL;
 
       if (ebo_parent) {
-        /* If this bone has a parent tip that has been moved */
-        if (ebo_parent->flag & BONE_TIPSEL) {
+        /* If this bone has a parent tip that has been moved. */
+        if (EBONE_VISIBLE(arm, ebo_parent) && (ebo_parent->flag & BONE_TIPSEL)) {
           copy_v3_v3(ebo->head, ebo_parent->tail);
           if (t->mode == TFM_BONE_ENVELOPE) {
             ebo->rad_head = ebo_parent->rad_tail;
