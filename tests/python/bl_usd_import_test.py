@@ -1749,6 +1749,36 @@ class USDImportTest(AbstractUSDTest):
         root = bpy.data.objects["root"]
         self.assertEqual(self.round_vector(root.scale), [1.0, 1.0, 1.0])
 
+    def test_import_native_instancing(self):
+        """Test importing USD files with scene instancing."""
+
+        # Use the existing instancing test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
+
+        testfile = str(self.tempdir / "usd_export_nested_instancing_true.usda")
+        res = bpy.ops.wm.usd_export(filepath=testfile, use_instancing=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # If instancing is working there should only be 1 real mesh and 1 real point cloud
+        self.assertEqual(len(bpy.data.meshes), 1)
+        self.assertEqual(len(bpy.data.pointclouds), 1)
+        real_names = [bpy.data.meshes[0].name, bpy.data.pointclouds[0].name]
+
+        # There should be 6 instances found for the above real objects (not counting empties etc.)
+        instance_count = 0
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        for object_instance in depsgraph.object_instances:
+            if object_instance.is_instance and object_instance.object.name in real_names:
+                instance_count += 1
+
+        self.assertEqual(instance_count, 6, "Unexpected number of instances found")
+
     def test_material_import_usd_hook(self):
         """Test importing color from an mtlx shader."""
 
