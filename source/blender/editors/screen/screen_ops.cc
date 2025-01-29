@@ -4761,6 +4761,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
   }
   else if (region->alignment == RGN_ALIGN_QSPLIT) {
     /* Exit quad-view */
+    bScreen *screen = CTX_wm_screen(C);
     ScrArea *area = CTX_wm_area(C);
 
     /* keep current region */
@@ -4801,6 +4802,9 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH_MUTABLE (ARegion *, region_iter, &area->regionbase) {
       if (region_iter->alignment == RGN_ALIGN_QSPLIT) {
         ED_region_remove(C, area, region_iter);
+        if (region_iter == screen->active_region) {
+          screen->active_region = nullptr;
+        }
       }
     }
     ED_area_tag_redraw(area);
