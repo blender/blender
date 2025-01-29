@@ -192,6 +192,7 @@ struct USDImportParams {
   char *prim_path_mask;
   float scale;
   float light_intensity_scale;
+  bool apply_unit_conversion_scale;
 
   char mesh_read_flag;
   bool set_frame_range;
@@ -236,8 +237,6 @@ struct USDImportParams {
   char import_textures_dir[768]; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   eUSDAttrImportMode attr_import_mode;
-
-  bool apply_unit_conversion_scale;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used
@@ -336,6 +335,6 @@ void USD_register_hook(std::unique_ptr<USDHook> hook);
 void USD_unregister_hook(USDHook *hook);
 USDHook *USD_find_hook_name(const char idname[]);
 
-double get_meters_per_unit(const USDExportParams *params);
+double get_meters_per_unit(const USDExportParams &params);
 
 };  // namespace blender::io::usd

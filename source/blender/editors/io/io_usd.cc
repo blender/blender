@@ -943,6 +943,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   MEM_SAFE_FREE(op->customdata);
 
   const float scale = RNA_float_get(op->ptr, "scale");
+  const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
+  const bool apply_unit_conversion_scale = RNA_boolean_get(op->ptr, "apply_unit_conversion_scale");
 
   const bool set_frame_range = RNA_boolean_get(op->ptr, "set_frame_range");
 
@@ -993,8 +995,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const bool import_usd_preview = RNA_boolean_get(op->ptr, "import_usd_preview");
   const bool set_material_blend = RNA_boolean_get(op->ptr, "set_material_blend");
 
-  const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
-
   const eUSDMtlPurpose mtl_purpose = eUSDMtlPurpose(RNA_enum_get(op->ptr, "mtl_purpose"));
   const eUSDMtlNameCollisionMode mtl_name_collision_mode = eUSDMtlNameCollisionMode(
       RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
@@ -1023,12 +1023,11 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const eUSDTexNameCollisionMode tex_name_collision_mode = eUSDTexNameCollisionMode(
       RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
-  const bool apply_unit_conversion_scale = RNA_boolean_get(op->ptr, "apply_unit_conversion_scale");
-
   USDImportParams params{};
   params.prim_path_mask = prim_path_mask;
   params.scale = scale;
   params.light_intensity_scale = light_intensity_scale;
+  params.apply_unit_conversion_scale = apply_unit_conversion_scale;
 
   params.mesh_read_flag = mesh_read_flag;
   params.set_frame_range = set_frame_range;
@@ -1074,8 +1073,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   params.attr_import_mode = attr_import_mode;
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
-
-  params.apply_unit_conversion_scale = apply_unit_conversion_scale;
 
   /* Switch out of edit mode to avoid being stuck in it (#54326). */
   Object *obedit = CTX_data_edit_object(C);

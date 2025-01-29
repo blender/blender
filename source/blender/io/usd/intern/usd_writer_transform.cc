@@ -98,7 +98,7 @@ void USDTransformWriter::do_write(HierarchyContext &context)
         eUSDSceneUnits::USD_SCENE_UNITS_METERS)
     {
       float scale_mat[4][4];
-      scale_m4_fl(scale_mat, float(1.0 / get_meters_per_unit(&usd_export_context_.export_params)));
+      scale_m4_fl(scale_mat, float(1.0 / get_meters_per_unit(usd_export_context_.export_params)));
       mul_m4_m4m4(matrix_world, scale_mat, matrix_world);
     }
 

@@ -58,7 +58,7 @@ static void camera_sensor_size_for_render(const Camera *camera,
 
 void USDCameraWriter::do_write(HierarchyContext &context)
 {
-  const double meters_per_unit = get_meters_per_unit(&usd_export_context_.export_params);
+  const double meters_per_unit = get_meters_per_unit(usd_export_context_.export_params);
   const float unit_scale = float(1.0 / meters_per_unit);
 
   pxr::UsdTimeCode timecode = get_export_time_code();
