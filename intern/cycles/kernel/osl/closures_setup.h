@@ -920,7 +920,6 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals kg,
 
   bssrdf->radius = closure->radius;
 
-  /* create one closure per color channel */
   bssrdf->albedo = closure->albedo;
   bssrdf->N = maybe_ensure_valid_specular_reflection(sd,
                                                      safe_normalize_fallback(closure->N, sd->N));
@@ -929,6 +928,36 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals kg,
   bssrdf->anisotropy = closure->anisotropy;
 
   sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, type);
+}
+
+/* MaterialX-compatible subsurface_bssrdf */
+ccl_device void osl_closure_subsurface_bssrdf_setup(
+    KernelGlobals kg,
+    ccl_private ShaderData *sd,
+    const uint32_t path_flag,
+    const float3 weight,
+    const ccl_private SubsurfaceBSSRDFClosure *closure,
+    float3 *layer_albedo)
+{
+  ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, rgb_to_spectrum(weight));
+  if (!bssrdf) {
+    return;
+  }
+
+#if OSL_LIBRARY_VERSION_CODE >= 11401
+  bssrdf->radius = closure->radius;
+#else
+  bssrdf->radius = closure->transmission_depth * closure->transmission_color;
+#endif
+
+  bssrdf->albedo = closure->albedo;
+  bssrdf->N = maybe_ensure_valid_specular_reflection(sd,
+                                                     safe_normalize_fallback(closure->N, sd->N));
+  bssrdf->alpha = 1.0f;
+  bssrdf->ior = 1.4f;
+  bssrdf->anisotropy = closure->anisotropy;
+
+  sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, CLOSURE_BSSRDF_RANDOM_WALK_ID);
 }
 
 /* Hair */

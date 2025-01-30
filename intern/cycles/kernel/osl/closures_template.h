@@ -184,6 +184,18 @@ OSL_CLOSURE_STRUCT_BEGIN(BSSRDF, bssrdf)
   OSL_CLOSURE_STRUCT_MEMBER(BSSRDF, FLOAT, float, anisotropy, "anisotropy")
 OSL_CLOSURE_STRUCT_END(BSSRDF, bssrdf)
 
+OSL_CLOSURE_STRUCT_BEGIN(SubsurfaceBSSRDF, subsurface_bssrdf)
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, N, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, albedo, nullptr)
+#if OSL_LIBRARY_VERSION_CODE >= 11401
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, radius, nullptr)
+#else
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, FLOAT, float, transmission_depth, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, transmission_color, nullptr)
+#endif
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, FLOAT, float, anisotropy, nullptr)
+OSL_CLOSURE_STRUCT_END(SubsurfaceBSSRDF, subsurface_bssrdf)
+
 OSL_CLOSURE_STRUCT_BEGIN(HairReflection, hair_reflection)
   OSL_CLOSURE_STRUCT_MEMBER(HairReflection, VECTOR, packed_float3, N, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(HairReflection, FLOAT, float, roughness1, nullptr)
