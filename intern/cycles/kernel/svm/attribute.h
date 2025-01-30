@@ -157,16 +157,19 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
   }
 }
 
+/* Position offsetted in x direction. */
 ccl_device_forceinline float3 svm_node_bump_P_dx(const ccl_private ShaderData *sd)
 {
   return sd->P + differential_from_compact(sd->Ng, sd->dP).dx;
 }
 
+/* Position offsetted in y direction. */
 ccl_device_forceinline float3 svm_node_bump_P_dy(const ccl_private ShaderData *sd)
 {
   return sd->P + differential_from_compact(sd->Ng, sd->dP).dy;
 }
 
+/* Evaluate attributes at a position shifted in x direction. */
 ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
@@ -194,15 +197,15 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
 
   if (node.y == ATTR_STD_GENERATED && desc.element == ATTR_ELEMENT_NONE) {
     /* No generated attribute, fall back to object coordinates. */
-    float3 f = svm_node_bump_P_dx(sd);
+    float3 f_x = svm_node_bump_P_dx(sd);
     if (sd->object != OBJECT_NONE) {
-      object_inverse_position_transform(kg, sd, &f);
+      object_inverse_position_transform(kg, sd, &f_x);
     }
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(f));
+      stack_store_float(stack, out_offset, average(f_x));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, f);
+      stack_store_float3(stack, out_offset, f_x);
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);
@@ -212,52 +215,56 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
 
   /* Surface */
   if (desc.type == NODE_ATTR_FLOAT) {
-    float dx;
-    const float f = primitive_surface_attribute_float(kg, sd, desc, &dx, nullptr);
+    float dfdx;
+    const float f = primitive_surface_attribute_float(kg, sd, desc, &dfdx, nullptr);
+    const float f_x = f + dfdx;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, f + dx);
+      stack_store_float(stack, out_offset, f_x);
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, make_float3(f + dx, f + dx, f + dx));
+      stack_store_float3(stack, out_offset, make_float3(f_x));
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
-    float2 dx;
-    const float2 f = primitive_surface_attribute_float2(kg, sd, desc, &dx, nullptr);
+    float2 dfdx;
+    const float2 f = primitive_surface_attribute_float2(kg, sd, desc, &dfdx, nullptr);
+    const float2 f_x = f + dfdx;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, f.x + dx.x);
+      stack_store_float(stack, out_offset, f_x.x);
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, make_float3(f.x + dx.x, f.y + dx.y, 0.0f));
+      stack_store_float3(stack, out_offset, make_float3(f_x));
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
-    float4 dx;
-    const float4 f = primitive_surface_attribute_float4(kg, sd, desc, &dx, nullptr);
+    float4 dfdx;
+    const float4 f = primitive_surface_attribute_float4(kg, sd, desc, &dfdx, nullptr);
+    const float4 f_x = f + dfdx;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(make_float3(f + dx)));
+      stack_store_float(stack, out_offset, average(make_float3(f_x)));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, make_float3(f + dx));
+      stack_store_float3(stack, out_offset, make_float3(f_x));
     }
     else {
-      stack_store_float(stack, out_offset, f.w + dx.w);
+      stack_store_float(stack, out_offset, f_x.w);
     }
   }
   else {
-    float3 dx;
-    const float3 f = primitive_surface_attribute_float3(kg, sd, desc, &dx, nullptr);
+    float3 dfdx;
+    const float3 f = primitive_surface_attribute_float3(kg, sd, desc, &dfdx, nullptr);
+    const float3 f_x = f + dfdx;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(f + dx));
+      stack_store_float(stack, out_offset, average(f_x));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, f + dx);
+      stack_store_float3(stack, out_offset, f_x);
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);
@@ -265,6 +272,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   }
 }
 
+/* Evaluate attributes at a position shifted in y direction. */
 ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
@@ -292,15 +300,15 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
 
   if (node.y == ATTR_STD_GENERATED && desc.element == ATTR_ELEMENT_NONE) {
     /* No generated attribute, fall back to object coordinates. */
-    float3 f = svm_node_bump_P_dy(sd);
+    float3 f_y = svm_node_bump_P_dy(sd);
     if (sd->object != OBJECT_NONE) {
-      object_inverse_position_transform(kg, sd, &f);
+      object_inverse_position_transform(kg, sd, &f_y);
     }
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(f));
+      stack_store_float(stack, out_offset, average(f_y));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, f);
+      stack_store_float3(stack, out_offset, f_y);
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);
@@ -310,52 +318,56 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
 
   /* Surface */
   if (desc.type == NODE_ATTR_FLOAT) {
-    float dy;
-    const float f = primitive_surface_attribute_float(kg, sd, desc, nullptr, &dy);
+    float dfdy;
+    const float f = primitive_surface_attribute_float(kg, sd, desc, nullptr, &dfdy);
+    const float f_y = f + dfdy;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, f + dy);
+      stack_store_float(stack, out_offset, f_y);
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, make_float3(f + dy, f + dy, f + dy));
+      stack_store_float3(stack, out_offset, make_float3(f_y));
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
-    float2 dy;
-    const float2 f = primitive_surface_attribute_float2(kg, sd, desc, nullptr, &dy);
+    float2 dfdy;
+    const float2 f = primitive_surface_attribute_float2(kg, sd, desc, nullptr, &dfdy);
+    const float2 f_y = f + dfdy;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, f.x + dy.x);
+      stack_store_float(stack, out_offset, f_y.x);
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, make_float3(f.x + dy.x, f.y + dy.y, 0.0f));
+      stack_store_float3(stack, out_offset, make_float3(f_y));
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
-    float4 dy;
-    const float4 f = primitive_surface_attribute_float4(kg, sd, desc, nullptr, &dy);
+    float4 dfdy;
+    const float4 f = primitive_surface_attribute_float4(kg, sd, desc, nullptr, &dfdy);
+    const float4 f_y = f + dfdy;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(make_float3(f + dy)));
+      stack_store_float(stack, out_offset, average(make_float3(f_y)));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, make_float3(f + dy));
+      stack_store_float3(stack, out_offset, make_float3(f_y));
     }
     else {
-      stack_store_float(stack, out_offset, f.w + dy.w);
+      stack_store_float(stack, out_offset, f_y.w);
     }
   }
   else {
-    float3 dy;
-    const float3 f = primitive_surface_attribute_float3(kg, sd, desc, nullptr, &dy);
+    float3 dfdy;
+    const float3 f = primitive_surface_attribute_float3(kg, sd, desc, nullptr, &dfdy);
+    const float3 f_y = f + dfdy;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(f + dy));
+      stack_store_float(stack, out_offset, average(f_y));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, f + dy);
+      stack_store_float3(stack, out_offset, f_y);
     }
     else {
       stack_store_float(stack, out_offset, 1.0f);

@@ -154,13 +154,42 @@ ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
   *dPdv = (p2 - p0);
 }
 
-/* Reading attributes on various triangle elements */
+/* Partial derivative of f w.r.t. x, namely ∂f/∂x.
+ * f is a function of barycentric coordinates u, v, given by
+ *       f(u, v) = f1 * u + f2 * v + f0 * (1 - u - v),
+ * the derivatives are
+ *           ∂f/∂u = (f1 - f0), ∂f/∂v = (f2 - f0).
+ * The partial derivative in x is
+ *    ∂f/∂x = ∂f/∂u * ∂u/∂x + ∂f/∂v * ∂v/∂x
+ *          = (f1 - f0) * du.dx + (f2 - f0) * dv.dx. */
+template<typename T>
+ccl_device_inline T triangle_attribute_dfdx(const ccl_private differential &du,
+                                            const ccl_private differential &dv,
+                                            const ccl_private T &f0,
+                                            const ccl_private T &f1,
+                                            const ccl_private T &f2)
+{
+  return du.dx * f1 + dv.dx * f2 - (du.dx + dv.dx) * f0;
+}
 
+/* Partial derivative of f w.r.t. in x, namely ∂f/∂y, similarly computed as ∂f/∂x above. */
+template<typename T>
+ccl_device_inline T triangle_attribute_dfdy(const ccl_private differential &du,
+                                            const ccl_private differential &dv,
+                                            const ccl_private T &f0,
+                                            const ccl_private T &f1,
+                                            const ccl_private T &f2)
+{
+  return du.dy * f1 + dv.dy * f2 - (du.dy + dv.dy) * f0;
+}
+
+/* Read attributes on various triangle elements, and compute the partial derivatives if requested.
+ */
 ccl_device float triangle_attribute_float(KernelGlobals kg,
                                           const ccl_private ShaderData *sd,
                                           const AttributeDescriptor desc,
-                                          ccl_private float *dx,
-                                          ccl_private float *dy)
+                                          ccl_private float *dfdx,
+                                          ccl_private float *dfdy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
     float f0;
@@ -182,22 +211,22 @@ ccl_device float triangle_attribute_float(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx) {
-      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
+    if (dfdx) {
+      *dfdx = triangle_attribute_dfdx(sd->du, sd->dv, f0, f1, f2);
     }
-    if (dy) {
-      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    if (dfdy) {
+      *dfdy = triangle_attribute_dfdy(sd->du, sd->dv, f0, f1, f2);
     }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
 #ifdef __RAY_DIFFERENTIALS__
-  if (dx) {
-    *dx = 0.0f;
+  if (dfdx) {
+    *dfdx = 0.0f;
   }
-  if (dy) {
-    *dy = 0.0f;
+  if (dfdy) {
+    *dfdy = 0.0f;
   }
 #endif
 
@@ -211,8 +240,8 @@ ccl_device float triangle_attribute_float(KernelGlobals kg,
 ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
                                             const ccl_private ShaderData *sd,
                                             const AttributeDescriptor desc,
-                                            ccl_private float2 *dx,
-                                            ccl_private float2 *dy)
+                                            ccl_private float2 *dfdx,
+                                            ccl_private float2 *dfdy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
     float2 f0;
@@ -234,22 +263,22 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx) {
-      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
+    if (dfdx) {
+      *dfdx = triangle_attribute_dfdx(sd->du, sd->dv, f0, f1, f2);
     }
-    if (dy) {
-      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    if (dfdy) {
+      *dfdy = triangle_attribute_dfdy(sd->du, sd->dv, f0, f1, f2);
     }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
 #ifdef __RAY_DIFFERENTIALS__
-  if (dx) {
-    *dx = make_float2(0.0f, 0.0f);
+  if (dfdx) {
+    *dfdx = zero_float2();
   }
-  if (dy) {
-    *dy = make_float2(0.0f, 0.0f);
+  if (dfdy) {
+    *dfdy = zero_float2();
   }
 #endif
 
@@ -257,14 +286,14 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
     const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
     return kernel_data_fetch(attributes_float2, offset);
   }
-  return make_float2(0.0f, 0.0f);
+  return zero_float2();
 }
 
 ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
                                             const ccl_private ShaderData *sd,
                                             const AttributeDescriptor desc,
-                                            ccl_private float3 *dx,
-                                            ccl_private float3 *dy)
+                                            ccl_private float3 *dfdx,
+                                            ccl_private float3 *dfdy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
     float3 f0;
@@ -286,22 +315,22 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx) {
-      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
+    if (dfdx) {
+      *dfdx = triangle_attribute_dfdx(sd->du, sd->dv, f0, f1, f2);
     }
-    if (dy) {
-      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    if (dfdy) {
+      *dfdy = triangle_attribute_dfdy(sd->du, sd->dv, f0, f1, f2);
     }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
 #ifdef __RAY_DIFFERENTIALS__
-  if (dx) {
-    *dx = make_float3(0.0f, 0.0f, 0.0f);
+  if (dfdx) {
+    *dfdx = zero_float3();
   }
-  if (dy) {
-    *dy = make_float3(0.0f, 0.0f, 0.0f);
+  if (dfdy) {
+    *dfdy = zero_float3();
   }
 #endif
 
@@ -309,14 +338,14 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
     const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
     return kernel_data_fetch(attributes_float3, offset);
   }
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_float3();
 }
 
 ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
                                             const ccl_private ShaderData *sd,
                                             const AttributeDescriptor desc,
-                                            ccl_private float4 *dx,
-                                            ccl_private float4 *dy)
+                                            ccl_private float4 *dfdx,
+                                            ccl_private float4 *dfdy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER |
                       ATTR_ELEMENT_CORNER_BYTE))
@@ -350,22 +379,22 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx) {
-      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
+    if (dfdx) {
+      *dfdx = triangle_attribute_dfdx(sd->du, sd->dv, f0, f1, f2);
     }
-    if (dy) {
-      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    if (dfdy) {
+      *dfdy = triangle_attribute_dfdy(sd->du, sd->dv, f0, f1, f2);
     }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
 #ifdef __RAY_DIFFERENTIALS__
-  if (dx) {
-    *dx = zero_float4();
+  if (dfdx) {
+    *dfdx = zero_float4();
   }
-  if (dy) {
-    *dy = zero_float4();
+  if (dfdy) {
+    *dfdy = zero_float4();
   }
 #endif
 
