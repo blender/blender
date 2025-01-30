@@ -14,12 +14,12 @@ try:
     from modules import render_report
 
     class EEVEEReport(render_report.Report):
-        def __init__(self, title, output_dir, oiiotool, device=None, blocklist=[]):
-            super().__init__(title, output_dir, oiiotool, device=device, blocklist=blocklist)
-            self.gpu_backend = device
+        def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
+            super().__init__(title, output_dir, oiiotool, variation=variation, blocklist=blocklist)
+            self.gpu_backend = variation
 
         def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
-            return arguments_cb(filepath, base_output_filepath, gpu_backend=self.device)
+            return arguments_cb(filepath, base_output_filepath, gpu_backend=self.gpu_backend)
 
 except ImportError:
     # render_report can only be loaded when running the render tests. It errors when
@@ -229,7 +229,7 @@ def main():
     if args.gpu_backend == "metal":
         blocklist += BLOCKLIST_METAL
 
-    report = EEVEEReport("Eevee Next", args.outdir, args.oiiotool, device=args.gpu_backend, blocklist=blocklist)
+    report = EEVEEReport("Eevee Next", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
         report.set_compare_engine('eevee_next', 'opengl')
     else:
