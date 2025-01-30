@@ -28,35 +28,15 @@
 
 using blender::StringRef;
 
-struct MenuTypePointerHash {
-  uint64_t operator()(const MenuType *value) const
-  {
-    return get_default_hash(StringRef(value->idname));
-  }
-  uint64_t operator()(const StringRef name) const
-  {
-    return get_default_hash(name);
-  }
-};
-
-struct MenuTypePointerNameEqual {
-  bool operator()(const MenuType *a, const MenuType *b) const
-  {
-    return STREQ(a->idname, b->idname);
-  }
-  bool operator()(const StringRef idname, const MenuType *a) const
-  {
-    return a->idname == idname;
-  }
-};
-
 static auto &get_menu_type_map()
 {
-  static blender::VectorSet<MenuType *,
-                            blender::DefaultProbingStrategy,
-                            MenuTypePointerHash,
-                            MenuTypePointerNameEqual>
-      map;
+  struct IDNameGetter {
+    StringRef operator()(const MenuType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<MenuType *, IDNameGetter> map;
   return map;
 }
 

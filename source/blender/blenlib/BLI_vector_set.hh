@@ -926,4 +926,45 @@ template<typename Key,
          typename Slot = typename DefaultVectorSetSlot<Key>::type>
 using RawVectorSet = VectorSet<Key, ProbingStrategy, Hash, IsEqual, Slot, RawAllocator>;
 
+template<typename T, typename GetIDFn> struct CustomIDHash {
+  using CustomIDType = decltype(GetIDFn{}(std::declval<T>()));
+
+  uint64_t operator()(const T &value) const
+  {
+    return get_default_hash(GetIDFn{}(value));
+  }
+  uint64_t operator()(const CustomIDType &value) const
+  {
+    return get_default_hash(value);
+  }
+};
+
+template<typename T, typename GetIDFn> struct CustomIDEqual {
+  using CustomIDType = decltype(GetIDFn{}(std::declval<T>()));
+
+  bool operator()(const T &a, const T &b) const
+  {
+    return GetIDFn{}(a) == GetIDFn{}(b);
+  }
+  bool operator()(const CustomIDType &a, const T &b) const
+  {
+    return a == GetIDFn{}(b);
+  }
+  bool operator()(const T &a, const CustomIDType &b) const
+  {
+    return GetIDFn{}(a) == b;
+  }
+};
+
+/**
+ * Used for a set where the key itself isn't used for the hash or equality but some part of the
+ * key instead. For example the string identifiers of node types.
+ *
+ * #GetIDFn should have an implementation that returns a hashable and equality comparable type,
+ * i.e. `StringRef operator()(const bNode *value) { return value->idname; }`.
+ */
+template<typename T, typename GetIDFn>
+using CustomIDVectorSet =
+    VectorSet<T, DefaultProbingStrategy, CustomIDHash<T, GetIDFn>, CustomIDEqual<T, GetIDFn>>;
+
 }  // namespace blender

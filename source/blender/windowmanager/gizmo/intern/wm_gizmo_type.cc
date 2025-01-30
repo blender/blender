@@ -39,35 +39,15 @@
 
 using blender::StringRef;
 
-struct GizmoTypePointerHash {
-  uint64_t operator()(const wmGizmoType *value) const
-  {
-    return get_default_hash(StringRef(value->idname));
-  }
-  uint64_t operator()(const StringRef name) const
-  {
-    return get_default_hash(name);
-  }
-};
-
-struct GizmoTypePointerNameEqual {
-  bool operator()(const wmGizmoType *a, const wmGizmoType *b) const
-  {
-    return STREQ(a->idname, b->idname);
-  }
-  bool operator()(const StringRef idname, const wmGizmoType *a) const
-  {
-    return a->idname == idname;
-  }
-};
-
 static auto &get_gizmo_type_map()
 {
-  static blender::VectorSet<wmGizmoType *,
-                            blender::DefaultProbingStrategy,
-                            GizmoTypePointerHash,
-                            GizmoTypePointerNameEqual>
-      map;
+  struct IDNameGetter {
+    StringRef operator()(const wmGizmoType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<wmGizmoType *, IDNameGetter> map;
   return map;
 }
 

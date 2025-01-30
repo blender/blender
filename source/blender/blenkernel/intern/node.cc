@@ -1620,45 +1620,22 @@ void node_tree_set_type(const bContext *C, bNodeTree *ntree)
   }
 }
 
-template<typename T> struct StructPointerIDNameHash {
-  uint64_t operator()(const T *value) const
+template<typename T> struct NodeStructIDNameGetter {
+  StringRef operator()(const T *value) const
   {
-    return get_default_hash(value->idname);
-  }
-  uint64_t operator()(const StringRef name) const
-  {
-    return get_default_hash(name);
-  }
-};
-
-template<typename T> struct StructPointerNameEqual {
-  bool operator()(const T *a, const T *b) const
-  {
-    return a->idname == b->idname;
-  }
-  bool operator()(const StringRef idname, const T *a) const
-  {
-    return a->idname == idname;
+    return StringRef(value->idname);
   }
 };
 
 static auto &get_node_tree_type_map()
 {
-  static VectorSet<bNodeTreeType *,
-                   DefaultProbingStrategy,
-                   StructPointerIDNameHash<bNodeTreeType>,
-                   StructPointerNameEqual<bNodeTreeType>>
-      map;
+  static CustomIDVectorSet<bNodeTreeType *, NodeStructIDNameGetter<bNodeTreeType>> map;
   return map;
 }
 
 static auto &get_node_type_map()
 {
-  static VectorSet<bNodeType *,
-                   DefaultProbingStrategy,
-                   StructPointerIDNameHash<bNodeType>,
-                   StructPointerNameEqual<bNodeType>>
-      map;
+  static CustomIDVectorSet<bNodeType *, NodeStructIDNameGetter<bNodeType>> map;
   return map;
 }
 
@@ -1670,11 +1647,7 @@ static auto &get_node_type_alias_map()
 
 static auto &get_socket_type_map()
 {
-  static VectorSet<bNodeSocketType *,
-                   DefaultProbingStrategy,
-                   StructPointerIDNameHash<bNodeSocketType>,
-                   StructPointerNameEqual<bNodeSocketType>>
-      map;
+  static CustomIDVectorSet<bNodeSocketType *, NodeStructIDNameGetter<bNodeSocketType>> map;
   return map;
 }
 

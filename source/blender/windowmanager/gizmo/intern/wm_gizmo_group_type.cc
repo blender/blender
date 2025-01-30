@@ -30,35 +30,15 @@
 
 using blender::StringRef;
 
-struct GizmoGroupTypePointerHash {
-  uint64_t operator()(const wmGizmoGroupType *value) const
-  {
-    return get_default_hash(StringRef(value->idname));
-  }
-  uint64_t operator()(const StringRef name) const
-  {
-    return get_default_hash(name);
-  }
-};
-
-struct GizmoGroupTypePointerNameEqual {
-  bool operator()(const wmGizmoGroupType *a, const wmGizmoGroupType *b) const
-  {
-    return STREQ(a->idname, b->idname);
-  }
-  bool operator()(const StringRef idname, const wmGizmoGroupType *a) const
-  {
-    return a->idname == idname;
-  }
-};
-
 static auto &get_gizmo_group_type_map()
 {
-  static blender::VectorSet<wmGizmoGroupType *,
-                            blender::DefaultProbingStrategy,
-                            GizmoGroupTypePointerHash,
-                            GizmoGroupTypePointerNameEqual>
-      map;
+  struct IDNameGetter {
+    StringRef operator()(const wmGizmoGroupType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<wmGizmoGroupType *, IDNameGetter> map;
   return map;
 }
 

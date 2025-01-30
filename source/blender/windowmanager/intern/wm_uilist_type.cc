@@ -32,35 +32,15 @@
 
 using blender::StringRef;
 
-struct ListTypePointerHash {
-  uint64_t operator()(const uiListType *value) const
-  {
-    return get_default_hash(StringRef(value->idname));
-  }
-  uint64_t operator()(const StringRef name) const
-  {
-    return get_default_hash(name);
-  }
-};
-
-struct ListTypePointerNameEqual {
-  bool operator()(const uiListType *a, const uiListType *b) const
-  {
-    return STREQ(a->idname, b->idname);
-  }
-  bool operator()(const StringRef idname, const uiListType *a) const
-  {
-    return a->idname == idname;
-  }
-};
-
 static auto &get_list_type_map()
 {
-  static blender::VectorSet<uiListType *,
-                            blender::DefaultProbingStrategy,
-                            ListTypePointerHash,
-                            ListTypePointerNameEqual>
-      map;
+  struct IDNameGetter {
+    StringRef operator()(const uiListType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<uiListType *, IDNameGetter> map;
   return map;
 }
 

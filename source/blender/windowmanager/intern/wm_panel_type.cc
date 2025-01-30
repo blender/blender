@@ -25,35 +25,15 @@
 
 using blender::StringRef;
 
-struct PanelTypePointerHash {
-  uint64_t operator()(const PanelType *value) const
-  {
-    return get_default_hash(StringRef(value->idname));
-  }
-  uint64_t operator()(const StringRef name) const
-  {
-    return get_default_hash(name);
-  }
-};
-
-struct PanelTypePointerNameEqual {
-  bool operator()(const PanelType *a, const PanelType *b) const
-  {
-    return STREQ(a->idname, b->idname);
-  }
-  bool operator()(const StringRef idname, const PanelType *a) const
-  {
-    return a->idname == idname;
-  }
-};
-
 static auto &get_panel_type_map()
 {
-  static blender::VectorSet<PanelType *,
-                            blender::DefaultProbingStrategy,
-                            PanelTypePointerHash,
-                            PanelTypePointerNameEqual>
-      map;
+  struct IDNameGetter {
+    StringRef operator()(const PanelType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<PanelType *, IDNameGetter> map;
   return map;
 }
 
