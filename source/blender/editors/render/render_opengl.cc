@@ -141,6 +141,8 @@ struct OGLRender : public RenderJobBase {
   std::condition_variable task_condition;
 
   wmJob *wm_job = nullptr;
+
+  bool ended = false;
 };
 
 static bool screen_opengl_is_multiview(OGLRender *oglrender)
@@ -852,6 +854,11 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
 static void screen_opengl_render_end(OGLRender *oglrender)
 {
+  /* Ensure we don't call this both from the job and operator callbacks. */
+  if (oglrender->ended) {
+    return;
+  }
+
   if (oglrender->task_pool) {
     /* Trickery part for movie output:
      *
@@ -909,6 +916,7 @@ static void screen_opengl_render_end(OGLRender *oglrender)
 
   WM_main_add_notifier(NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
   G.is_rendering = false;
+  oglrender->ended = true;
 }
 
 static void screen_opengl_render_cancel(bContext *C, wmOperator *op)
@@ -1229,9 +1237,11 @@ static void opengl_render_startjob(void *customdata, wmJobWorkerStatus *worker_s
   }
 }
 
-static void opengl_render_freejob(void * /*customdata*/)
+static void opengl_render_freejob(void *customdata)
 {
-  /* Freed by operator. */
+  /* End the render here, as the modal handler might be called with the window out of focus. */
+  OGLRender *oglrender = static_cast<OGLRender *>(customdata);
+  screen_opengl_render_end(oglrender);
 }
 
 static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEvent *event)
