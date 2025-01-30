@@ -7920,6 +7920,8 @@ def km_grease_pencil_primitive_tool_modal_map(params):
         ("SCALE", {"type": 'S', "value": 'PRESS'}, None),
         ("INCREASE_SUBDIVISION", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("DECREASE_SUBDIVISION", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
+        ("CHANGE_RADIUS", {"type": 'F', "value": 'PRESS'}, None),
+        ("CHANGE_OPACITY", {"type": 'F', "value": 'PRESS', "shift": True}, None),
     ])
 
     return keymap
