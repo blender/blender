@@ -426,6 +426,10 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       mi->apply = InputCustomRatioFlip;
       t->helpline = HLP_CARROW;
       break;
+    case INPUT_ERROR:
+      mi->apply = nullptr;
+      t->helpline = HLP_ERROR;
+      break;
     case INPUT_NONE:
     default:
       mi->apply = nullptr;
@@ -466,6 +470,10 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
         t->flag |= T_MODAL_CURSOR_SET;
         WM_cursor_modal_set(win, WM_CURSOR_NONE);
       }
+      break;
+    case HLP_ERROR:
+      t->flag |= T_MODAL_CURSOR_SET;
+      WM_cursor_modal_set(win, WM_CURSOR_STOP);
       break;
     default:
       break;

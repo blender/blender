@@ -13,8 +13,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 
+#include "BKE_context.hh"
 #include "BKE_report.hh"
 #include "BKE_unit.hh"
+
+#include "BLT_translation.hh"
 
 #include "ED_screen.hh"
 
@@ -408,7 +411,18 @@ static void initRotation(TransInfo *t, wmOperator * /*op*/)
 
   t->mode = TFM_ROTATION;
 
-  initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
+  const bool only_location = (t->flag & T_V3D_ALIGN) && (t->options & CTX_OBJECT) &&
+                             (t->settings->transform_pivot_point != V3D_AROUND_CURSOR) &&
+                             t->context &&
+                             (CTX_DATA_COUNT(t->context, selected_editable_objects) == 1);
+  if (only_location) {
+    WorkspaceStatus status(t->context);
+    status.item(TIP_("Transform is set to only affect location"), ICON_ERROR);
+    initMouseInputMode(t, &t->mouse, INPUT_ERROR);
+  }
+  else {
+    initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
+  }
 
   t->idx_max = 0;
   t->num.idx_max = 0;
