@@ -146,8 +146,32 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   {
     int object_defgroup_nr = BKE_object_defgroup_active_index_get(this->object) - 1;
     if (object_defgroup_nr == -1) {
-      BKE_object_defgroup_add(this->object);
-      object_defgroup_nr = 0;
+      const ListBase *defbase = BKE_object_defgroup_list(this->object);
+      if (const Object *modob = BKE_modifiers_is_deformed_by_armature(this->object)) {
+        /* This happens on a Bone select, when no vgroup existed yet. */
+        const Bone *actbone = static_cast<bArmature *>(modob->data)->act_bone;
+        if (actbone) {
+          const bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
+
+          if (pchan) {
+            bDeformGroup *dg = BKE_object_defgroup_find_name(this->object, pchan->name);
+            if (dg == nullptr) {
+              dg = BKE_object_defgroup_add_name(this->object, pchan->name);
+              object_defgroup_nr = BLI_findindex(defbase, dg);
+            }
+            else {
+              const int actdef = BLI_findindex(defbase, dg);
+              BLI_assert(actdef >= 0);
+              this->grease_pencil->vertex_group_active_index = actdef + 1;
+              object_defgroup_nr = actdef;
+            }
+          }
+        }
+      }
+      if (BLI_listbase_is_empty(defbase)) {
+        BKE_object_defgroup_add(this->object);
+        object_defgroup_nr = 0;
+      }
     }
     this->object_defgroup = static_cast<bDeformGroup *>(
         BLI_findlink(BKE_object_defgroup_list(this->object), object_defgroup_nr));
