@@ -18,6 +18,7 @@
 #include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
+#include "BLI_vector_set.hh"
 
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
@@ -45,10 +46,38 @@ static void wm_operatortype_free_macro(wmOperatorType *ot);
 /** \name Operator Type Registry
  * \{ */
 
-static wmOperatorTypeMap &get_operators_map()
+using blender::StringRef;
+
+struct OperatorTypePointerHash {
+  uint64_t operator()(const wmOperatorType *value) const
+  {
+    return get_default_hash(StringRef(value->idname));
+  }
+  uint64_t operator()(const StringRef name) const
+  {
+    return get_default_hash(name);
+  }
+};
+
+struct OperatorTypePointerNameEqual {
+  bool operator()(const wmOperatorType *a, const wmOperatorType *b) const
+  {
+    return STREQ(a->idname, b->idname);
+  }
+  bool operator()(const StringRef idname, const wmOperatorType *a) const
+  {
+    return a->idname == idname;
+  }
+};
+
+static auto &get_operators_map()
 {
-  static wmOperatorTypeMap map = []() {
-    wmOperatorTypeMap map;
+  static auto map = []() {
+    blender::VectorSet<wmOperatorType *,
+                       blender::DefaultProbingStrategy,
+                       OperatorTypePointerHash,
+                       OperatorTypePointerNameEqual>
+        map;
     /* Reserve size is set based on blender default setup. */
     map.reserve(2048);
     return map;
@@ -56,7 +85,7 @@ static wmOperatorTypeMap &get_operators_map()
   return map;
 }
 
-const wmOperatorTypeMap &WM_operatortype_map()
+blender::Span<wmOperatorType *> WM_operatortypes_registered_get()
 {
   return get_operators_map();
 }
@@ -67,15 +96,12 @@ static int ot_prop_basic_count = -1;
 wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
 {
   if (idname[0]) {
-    wmOperatorType *ot;
-
     /* Needed to support python style names without the `_OT_` syntax. */
     char idname_bl[OP_MAX_TYPENAME];
     WM_operator_bl_idname(idname_bl, idname);
 
-    ot = get_operators_map().lookup_default_as(idname_bl, nullptr);
-    if (ot) {
-      return ot;
+    if (wmOperatorType *const *ot = get_operators_map().lookup_key_ptr_as(StringRef(idname_bl))) {
+      return *ot;
     }
 
     if (!quiet) {
@@ -128,7 +154,7 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
   BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
-  get_operators_map().add_new(ot->idname, ot);
+  get_operators_map().add_new(ot);
 }
 
 /* All ops in 1 list (for time being... needs evaluation later). */
@@ -171,7 +197,7 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
     wm_operatortype_free_macro(ot);
   }
 
-  get_operators_map().remove(ot->idname);
+  get_operators_map().remove(ot);
 
   WM_keyconfig_update_operatortype();
 
@@ -211,11 +237,10 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
 
 void wm_operatortype_free()
 {
-  wmOperatorTypeMap &map = get_operators_map();
-  for (wmOperatorType *ot : map.values()) {
+  for (wmOperatorType *ot : get_operators_map()) {
     operatortype_ghash_free_cb(ot);
   }
-  map.clear();
+  get_operators_map().clear();
 }
 
 void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
@@ -251,7 +276,7 @@ void WM_operatortype_props_advanced_end(wmOperatorType *ot)
 
 void WM_operatortype_last_properties_clear_all()
 {
-  for (wmOperatorType *ot : get_operators_map().values()) {
+  for (wmOperatorType *ot : get_operators_map()) {
     if (ot->last_properties) {
       IDP_FreeProperty(ot->last_properties);
       ot->last_properties = nullptr;
@@ -266,7 +291,7 @@ void WM_operatortype_idname_visit_for_search(
     const char * /*edit_text*/,
     blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
-  for (wmOperatorType *ot : get_operators_map().values()) {
+  for (wmOperatorType *ot : get_operators_map()) {
     char idname_py[OP_MAX_TYPENAME];
     WM_operator_py_idname(idname_py, ot->idname);
 
@@ -511,7 +536,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   ot->translation_context = i18n_context;
 
   BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
-  get_operators_map().add_new(ot->idname, ot);
+  get_operators_map().add_new(ot);
 
   return ot;
 }
@@ -544,7 +569,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
   BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
-  get_operators_map().add_new(ot->idname, ot);
+  get_operators_map().add_new(ot);
 }
 
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)

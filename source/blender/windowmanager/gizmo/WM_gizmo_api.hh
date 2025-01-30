@@ -15,7 +15,6 @@
 
 struct ARegion;
 struct bContext;
-struct GHashIterator;
 struct IDProperty;
 struct ListBase;
 struct Main;
@@ -189,10 +188,6 @@ void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *gzt);
  * Free but don't remove from #GHash.
  */
 void WM_gizmotype_free_ptr(wmGizmoType *gzt);
-/**
- * Caller must free.
- */
-void WM_gizmotype_iter(GHashIterator *ghi);
 
 /* `wm_gizmo_group_type.cc` */
 
@@ -200,10 +195,6 @@ wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet);
 wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(wmGizmoGroupType *));
 wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(wmGizmoGroupType *, void *),
                                                void *userdata);
-/**
- * Caller must free.
- */
-void WM_gizmogrouptype_iter(GHashIterator *ghi);
 
 /**
  * Append and insert into a gizmo type-map.

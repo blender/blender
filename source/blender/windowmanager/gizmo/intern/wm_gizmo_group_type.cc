@@ -8,7 +8,7 @@
 
 #include <cstdio>
 
-#include "BLI_ghash.h"
+#include "BLI_vector_set.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -28,16 +28,47 @@
  * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.
  * \{ */
 
-static GHash *global_gizmogrouptype_hash = nullptr;
+using blender::StringRef;
+
+struct GizmoGroupTypePointerHash {
+  uint64_t operator()(const wmGizmoGroupType *value) const
+  {
+    return get_default_hash(StringRef(value->idname));
+  }
+  uint64_t operator()(const StringRef name) const
+  {
+    return get_default_hash(name);
+  }
+};
+
+struct GizmoGroupTypePointerNameEqual {
+  bool operator()(const wmGizmoGroupType *a, const wmGizmoGroupType *b) const
+  {
+    return STREQ(a->idname, b->idname);
+  }
+  bool operator()(const StringRef idname, const wmGizmoGroupType *a) const
+  {
+    return a->idname == idname;
+  }
+};
+
+static auto &get_gizmo_group_type_map()
+{
+  static blender::VectorSet<wmGizmoGroupType *,
+                            blender::DefaultProbingStrategy,
+                            GizmoGroupTypePointerHash,
+                            GizmoGroupTypePointerNameEqual>
+      map;
+  return map;
+}
 
 wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet)
 {
   if (idname[0]) {
-    wmGizmoGroupType *gzgt;
-
-    gzgt = static_cast<wmGizmoGroupType *>(BLI_ghash_lookup(global_gizmogrouptype_hash, idname));
-    if (gzgt) {
-      return gzgt;
+    if (wmGizmoGroupType *const *gzgt = get_gizmo_group_type_map().lookup_key_ptr_as(
+            StringRef(idname)))
+    {
+      return *gzgt;
     }
 
     if (!quiet) {
@@ -51,11 +82,6 @@ wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet)
   }
 
   return nullptr;
-}
-
-void WM_gizmogrouptype_iter(GHashIterator *ghi)
-{
-  BLI_ghashIterator_init(ghi, global_gizmogrouptype_hash);
 }
 
 static wmGizmoGroupType *wm_gizmogrouptype_append__begin()
@@ -89,7 +115,7 @@ static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
     }
   }
 
-  BLI_ghash_insert(global_gizmogrouptype_hash, (void *)gzgt->idname, gzgt);
+  get_gizmo_group_type_map().add(gzgt);
 }
 
 wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(wmGizmoGroupType *))
@@ -137,7 +163,7 @@ void WM_gizmo_group_type_free_ptr(wmGizmoGroupType *gzgt)
 {
   BLI_assert(gzgt == WM_gizmogrouptype_find(gzgt->idname, false));
 
-  BLI_ghash_remove(global_gizmogrouptype_hash, gzgt->idname, nullptr, nullptr);
+  get_gizmo_group_type_map().remove(gzgt);
 
   gizmogrouptype_free(gzgt);
 
@@ -146,34 +172,28 @@ void WM_gizmo_group_type_free_ptr(wmGizmoGroupType *gzgt)
 
 bool WM_gizmo_group_type_free(const char *idname)
 {
-  wmGizmoGroupType *gzgt = static_cast<wmGizmoGroupType *>(
-      BLI_ghash_lookup(global_gizmogrouptype_hash, idname));
-
+  wmGizmoGroupType *const *gzgt = get_gizmo_group_type_map().lookup_key_ptr_as(StringRef(idname));
   if (gzgt == nullptr) {
     return false;
   }
 
-  WM_gizmo_group_type_free_ptr(gzgt);
+  WM_gizmo_group_type_free_ptr(*gzgt);
 
   return true;
 }
 
-static void wm_gizmogrouptype_ghash_free_cb(wmGizmoGroupType *gzgt)
-{
-  gizmogrouptype_free(gzgt);
-}
-
 void wm_gizmogrouptype_free()
 {
-  BLI_ghash_free(
-      global_gizmogrouptype_hash, nullptr, (GHashValFreeFP)wm_gizmogrouptype_ghash_free_cb);
-  global_gizmogrouptype_hash = nullptr;
+  for (wmGizmoGroupType *gzgt : get_gizmo_group_type_map()) {
+    gizmogrouptype_free(gzgt);
+  }
+  get_gizmo_group_type_map().clear();
 }
 
 void wm_gizmogrouptype_init()
 {
   /* Reserve size is set based on blender default setup. */
-  global_gizmogrouptype_hash = BLI_ghash_str_new_ex("wm_gizmogrouptype_init gh", 128);
+  get_gizmo_group_type_map().reserve(128);
 }
 
 /** \} */

@@ -393,11 +393,11 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
 
 static PyObject *pyop_dir(PyObject * /*self*/)
 {
-  const wmOperatorTypeMap &map = WM_operatortype_map();
-  PyObject *list = PyList_New(map.size());
+  const blender::Span<wmOperatorType *> types = WM_operatortypes_registered_get();
+  PyObject *list = PyList_New(types.size());
 
   int i = 0;
-  for (wmOperatorType *ot : map.values()) {
+  for (wmOperatorType *ot : types) {
     PyList_SET_ITEM(list, i, PyUnicode_FromString(ot->idname));
     i++;
   }

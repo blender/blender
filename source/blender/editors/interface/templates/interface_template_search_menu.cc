@@ -381,7 +381,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
   ListBase operator_items = {nullptr, nullptr};
 
   MemArena *memarena = data->memarena;
-  for (wmOperatorType *ot : WM_operatortype_map().values()) {
+  for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
     if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {
       continue;
     }
@@ -476,10 +476,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
      *   (exact number of items selected for example). See design doc #74158.
      * There is one exception,
      * as the outliner only exposes functionality via the context menu. */
-    GHashIterator iter;
-
-    for (WM_menutype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
-      MenuType *mt = (MenuType *)BLI_ghashIterator_getValue(&iter);
+    for (MenuType *mt : WM_menutypes_registered_get()) {
       if (BLI_str_endswith(mt->idname, "_context_menu")) {
         menu_tagged.add(mt);
       }

@@ -16,21 +16,52 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "BKE_screen.hh"
 
 #include "WM_api.hh"
 
-static GHash *g_paneltypes_hash = nullptr;
+using blender::StringRef;
+
+struct PanelTypePointerHash {
+  uint64_t operator()(const PanelType *value) const
+  {
+    return get_default_hash(StringRef(value->idname));
+  }
+  uint64_t operator()(const StringRef name) const
+  {
+    return get_default_hash(name);
+  }
+};
+
+struct PanelTypePointerNameEqual {
+  bool operator()(const PanelType *a, const PanelType *b) const
+  {
+    return STREQ(a->idname, b->idname);
+  }
+  bool operator()(const StringRef idname, const PanelType *a) const
+  {
+    return a->idname == idname;
+  }
+};
+
+static auto &get_panel_type_map()
+{
+  static blender::VectorSet<PanelType *,
+                            blender::DefaultProbingStrategy,
+                            PanelTypePointerHash,
+                            PanelTypePointerNameEqual>
+      map;
+  return map;
+}
 
 PanelType *WM_paneltype_find(const char *idname, bool quiet)
 {
   if (idname[0]) {
-    PanelType *pt = static_cast<PanelType *>(BLI_ghash_lookup(g_paneltypes_hash, idname));
-    if (pt) {
-      return pt;
+    if (PanelType *const *pt = get_panel_type_map().lookup_key_ptr_as(StringRef(idname))) {
+      return *pt;
     }
   }
 
@@ -43,14 +74,13 @@ PanelType *WM_paneltype_find(const char *idname, bool quiet)
 
 bool WM_paneltype_add(PanelType *pt)
 {
-  BLI_ghash_insert(g_paneltypes_hash, pt->idname, pt);
+  get_panel_type_map().add(pt);
   return true;
 }
 
 void WM_paneltype_remove(PanelType *pt)
 {
-  const bool ok = BLI_ghash_remove(g_paneltypes_hash, pt->idname, nullptr, nullptr);
-
+  const bool ok = get_panel_type_map().remove(pt);
   BLI_assert(ok);
   UNUSED_VARS_NDEBUG(ok);
 }
@@ -58,12 +88,12 @@ void WM_paneltype_remove(PanelType *pt)
 void WM_paneltype_init()
 {
   /* Reserve size is set based on blender default setup. */
-  g_paneltypes_hash = BLI_ghash_str_new_ex("g_paneltypes_hash gh", 512);
+  get_panel_type_map().reserve(512);
 }
 
 void WM_paneltype_clear()
 {
-  BLI_ghash_free(g_paneltypes_hash, nullptr, nullptr);
+  get_panel_type_map().clear();
 }
 
 void WM_paneltype_idname_visit_for_search(
@@ -73,10 +103,7 @@ void WM_paneltype_idname_visit_for_search(
     const char * /*edit_text*/,
     blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, g_paneltypes_hash) {
-    PanelType *pt = static_cast<PanelType *>(BLI_ghashIterator_getValue(&gh_iter));
-
+  for (PanelType *pt : get_panel_type_map()) {
     StringPropertySearchVisitParams visit_params{};
     visit_params.text = pt->idname;
     visit_params.info = pt->label;
