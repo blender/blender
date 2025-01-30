@@ -134,4 +134,16 @@ TEST(std430, simple_lighting)
   EXPECT_EQ(offset, 112);
 }
 
+TEST(std430, compositor_cryptomatte_matte_compute)
+{
+  uint32_t offset = 0;
+
+  def_attr<Std430>(shader::Type::VEC2, 0, 0, 8, &offset);
+  def_attr<Std430>(shader::Type::FLOAT, 0, 8, 12, &offset);
+  def_attr<Std430>(shader::Type::FLOAT, 32, 12, 140, &offset);
+
+  align_end_of_struct<Std430>(&offset);
+  EXPECT_EQ(offset, 144);
+}
+
 }  // namespace blender::gpu
