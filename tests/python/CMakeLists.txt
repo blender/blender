@@ -898,31 +898,29 @@ else()
   message(STATUS "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/ not found, disabling tests")
 endif()
 
-
 if(WITH_GPU_RENDER_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
-    message(STATUS "Disabling OpenGL draw tests because OIIO oiiotool does not exist")
-  elseif(NOT EXISTS "${TEST_SRC_DIR}/opengl")
-    message(
-      STATUS "Disabling OpenGL draw tests because tests directory doesn't exist at ${TEST_SRC_DIR}"
-    )
+    message(STATUS "Disabling screenshot tests because OIIO oiiotool does not exist")
   else()
-    # Use all subdirectories of the `opengl` directory.
-    file(GLOB children RELATIVE ${TEST_SRC_DIR}/opengl ${TEST_SRC_DIR}/opengl/*)
-    foreach(child ${children})
-      # Resolve symlinks, useful to test production files with linked libraries.
-      get_filename_component(child_path ${TEST_SRC_DIR}/opengl/${child} REALPATH)
-      if(IS_DIRECTORY ${child_path})
-        file(GLOB_RECURSE blends "${child_path}/*.blend")
-        if(blends)
-          add_render_test(
-            opengl_draw_${child}
-            ${CMAKE_CURRENT_LIST_DIR}/opengl_draw_tests.py
-            --testdir "${child_path}"
-            --outdir "${TEST_OUT_DIR}/opengl_draw"
-          )
-        endif()
-      endif()
+    set(render_tests
+    )
+
+    if(USE_EXPERIMENTAL_TESTS)
+      # The viewport tests are flakey and difficult to keep up to date for use
+      # in a CI environment due to constantly changing UI, but may still be helpful
+      # for local development.
+      #
+      # Additionally, they do not currently succeed in an ASAN build. (2025-01-29)
+      list(APPEND render_tests viewport)
+    endif()
+
+    foreach(render_test ${render_tests})
+      add_render_test(
+        screenshot_${render_test}
+        ${CMAKE_CURRENT_LIST_DIR}/ui_screenshot_tests.py
+        --testdir "${TEST_SRC_DIR}/screenshot/${render_test}"
+        --outdir "${TEST_OUT_DIR}/screenshot"
+      )
     endforeach()
   endif()
 endif()
