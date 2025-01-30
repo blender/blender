@@ -1524,7 +1524,7 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
         if strip.color_tag == 'NONE':
             sub.popover(panel="SEQUENCER_PT_color_tag_picker", text="", icon='COLOR')
         else:
-            icon = 'SEQUENCE_' + strip.color_tag
+            icon = 'STRIP_' + strip.color_tag
             sub.popover(panel="SEQUENCER_PT_color_tag_picker", text="", icon=icon)
 
         row.separator()
