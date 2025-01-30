@@ -321,7 +321,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* Cleanup geometry.  Remove any edges that are garbage collectable and that have became
+  /* Cleanup geometry. Remove any edges that are garbage collectible and that have became
    * irrelevant (no loops) because of face merges. */
   BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
     if ((e->l == nullptr) && BMO_edge_flag_test(bm, e, EDGE_ISGC)) {
@@ -329,7 +329,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* Cleanup geometry.  Remove any verts that are garbage collectable and that that have became
+  /* Cleanup geometry. Remove any verts that are garbage collectible and that that have became
    * isolated verts (no edges) because of edge dissolves. */
   BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
     if ((v->e == nullptr) && BMO_vert_flag_test(bm, v, VERT_ISGC)) {

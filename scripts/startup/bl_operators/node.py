@@ -454,7 +454,7 @@ class NODE_OT_viewer_shortcut_set(Operator):
             viewer_node = self.get_connected_viewer(fav_node)
             if not viewer_node:
                 # Calling link_viewer() if a viewer node is connected will connect the next available socket to the viewer node.
-                # This behavior is not desired as we want to create a shortcut to the exisiting connected viewer node.
+                # This behavior is not desired as we want to create a shortcut to the existing connected viewer node.
                 # Therefore link_viewer() is called only when no viewer node is connected.
                 bpy.ops.node.link_viewer()
                 viewer_node = self.get_connected_viewer(fav_node)
@@ -494,7 +494,7 @@ class NODE_OT_viewer_shortcut_get(Operator):
     def execute(self, context):
         nodes = context.space_data.edit_tree.nodes
 
-        # Get viewer node with exisiting shortcut.
+        # Get viewer node with existing shortcut.
         viewer_node = None
         for n in nodes:
             if n.type == 'VIEWER' and n.ui_shortcut == self.viewer_index:
