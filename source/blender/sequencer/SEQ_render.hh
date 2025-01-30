@@ -70,8 +70,8 @@ void SEQ_render_new_render_data(Main *bmain,
                                 SeqRenderData *r_context);
 StripElem *SEQ_render_give_stripelem(const Scene *scene, const Strip *strip, int timeline_frame);
 
-void SEQ_render_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf);
-void SEQ_render_pixel_from_sequencer_space_v4(Scene *scene, float pixel[4]);
+void SEQ_render_imbuf_from_sequencer_space(const Scene *scene, ImBuf *ibuf);
+void SEQ_render_pixel_from_sequencer_space_v4(const Scene *scene, float pixel[4]);
 /**
  * Check if `strip` is muted for rendering.
  * This function also checks `SeqTimelineChannel` flag.

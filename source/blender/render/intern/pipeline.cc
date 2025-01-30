@@ -1456,6 +1456,47 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
   return false;
 }
 
+static bool seq_result_needs_float(const ImageFormatData &im_format)
+{
+  return ELEM(im_format.depth, R_IMF_CHAN_DEPTH_10, R_IMF_CHAN_DEPTH_12);
+}
+
+static ImBuf *seq_process_render_image(ImBuf *src,
+                                       const ImageFormatData &im_format,
+                                       const Scene *scene)
+{
+  if (src == nullptr) {
+    return nullptr;
+  }
+
+  ImBuf *dst = nullptr;
+  if (seq_result_needs_float(im_format) && src->float_buffer.data == nullptr) {
+    /* If render output needs >8 bpp input and we only have 8pp, convert to float. */
+    dst = IMB_allocImBuf(src->x, src->y, src->planes, 0);
+    imb_addrectfloatImBuf(dst, src->channels, false);
+    /* Transform from sequencer space to scene linear. */
+    const char *from_colorspace = IMB_colormanagement_get_rect_colorspace(src);
+    const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
+        COLOR_ROLE_SCENE_LINEAR);
+    IMB_colormanagement_transform_from_byte_threaded(dst->float_buffer.data,
+                                                     src->byte_buffer.data,
+                                                     src->x,
+                                                     src->y,
+                                                     src->channels,
+                                                     from_colorspace,
+                                                     to_colorspace);
+  }
+  else {
+    /* Duplicate sequencer output and ensure it is in needed color space. */
+    dst = IMB_dupImBuf(src);
+    SEQ_render_imbuf_from_sequencer_space(scene, dst);
+  }
+  IMB_metadata_copy(dst, src);
+  IMB_freeImBuf(src);
+
+  return dst;
+}
+
 /* Render sequencer strips into render result. */
 static void do_render_sequencer(Render *re)
 {
@@ -1500,16 +1541,7 @@ static void do_render_sequencer(Render *re)
   for (view_id = 0; view_id < tot_views; view_id++) {
     context.view_id = view_id;
     out = SEQ_render_give_ibuf(&context, cfra, 0);
-
-    if (out) {
-      ibuf_arr[view_id] = IMB_dupImBuf(out);
-      IMB_metadata_copy(ibuf_arr[view_id], out);
-      IMB_freeImBuf(out);
-      SEQ_render_imbuf_from_sequencer_space(re->pipeline_scene_eval, ibuf_arr[view_id]);
-    }
-    else {
-      ibuf_arr[view_id] = nullptr;
-    }
+    ibuf_arr[view_id] = seq_process_render_image(out, re->r.im_format, re->pipeline_scene_eval);
   }
 
   rr = re->result;
