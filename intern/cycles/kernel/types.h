@@ -1523,7 +1523,8 @@ typedef struct KernelObject {
   float dupli_uv[2];
 
   int numkeys;
-  int numsteps;
+  int num_geom_steps;
+  int num_tfm_steps;
   int numverts;
 
   uint patch_map_offset;
@@ -1545,6 +1546,8 @@ typedef struct KernelObject {
 
   /* Volume velocity scale. */
   float velocity_scale;
+
+  int pad[3];
 
   /* TODO: separate array to avoid memory overhead when not used. */
   uint64_t light_set_membership;

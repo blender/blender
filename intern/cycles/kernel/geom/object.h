@@ -67,8 +67,8 @@ ccl_device_inline Transform object_fetch_motion_pass_transform(KernelGlobals kg,
 ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals kg, int object, float time)
 {
   const uint motion_offset = kernel_data_fetch(objects, object).motion_offset;
-  ccl_global const DecomposedTransform *motion = &kernel_data_fetch(object_motion, motion_offset);
-  const uint num_steps = kernel_data_fetch(objects, object).numsteps * 2 + 1;
+  const ccl_global DecomposedTransform *motion = &kernel_data_fetch(object_motion, motion_offset);
+  const uint num_steps = kernel_data_fetch(objects, object).num_tfm_steps;
 
   Transform tfm;
   transform_motion_array_interpolate(&tfm, motion, num_steps, time);
