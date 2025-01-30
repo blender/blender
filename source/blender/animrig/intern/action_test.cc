@@ -448,7 +448,7 @@ TEST_F(ActionLayersTest, slot_remove)
   }
 }
 
-TEST_F(ActionLayersTest, slot_move)
+TEST_F(ActionLayersTest, slot_move_to_index)
 {
   Slot &slot_a = action->slot_add_for_id_type(ID_ME);
   Slot &slot_b = action->slot_add_for_id_type(ID_CA);
@@ -475,7 +475,7 @@ TEST_F(ActionLayersTest, slot_move)
   ASSERT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
 
   /* First "move" a slot to its own location, which should do nothing. */
-  action->slot_move(slot_b, 1);
+  action->slot_move_to_index(slot_b, 1);
   EXPECT_EQ(action->slot(0)->handle, handle_a);
   EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "ME");
   EXPECT_EQ(action->slot(1)->handle, handle_b);
@@ -489,7 +489,7 @@ TEST_F(ActionLayersTest, slot_move)
 
   /* Then move slots around in various ways. */
 
-  action->slot_move(slot_a, 2);
+  action->slot_move_to_index(slot_a, 2);
   EXPECT_EQ(action->slot(0)->handle, handle_b);
   EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
   EXPECT_EQ(action->slot(1)->handle, handle_cube);
@@ -501,7 +501,7 @@ TEST_F(ActionLayersTest, slot_move)
   EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
   EXPECT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
 
-  action->slot_move(slot_suzanne, 1);
+  action->slot_move_to_index(slot_suzanne, 1);
   EXPECT_EQ(action->slot(0)->handle, handle_b);
   EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
   EXPECT_EQ(action->slot(1)->handle, handle_suzanne);
@@ -513,7 +513,7 @@ TEST_F(ActionLayersTest, slot_move)
   EXPECT_EQ(action->slot(3)->handle, handle_a);
   EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "ME");
 
-  action->slot_move(slot_cube, 3);
+  action->slot_move_to_index(slot_cube, 3);
   EXPECT_EQ(action->slot(0)->handle, handle_b);
   EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
   EXPECT_EQ(action->slot(1)->handle, handle_suzanne);
@@ -525,7 +525,7 @@ TEST_F(ActionLayersTest, slot_move)
   EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
   EXPECT_EQ(action->slot(3)->users(*bmain)[0], &cube->id);
 
-  action->slot_move(slot_suzanne, 0);
+  action->slot_move_to_index(slot_suzanne, 0);
   EXPECT_EQ(action->slot(0)->handle, handle_suzanne);
   EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "OB");
   EXPECT_EQ(action->slot(0)->users(*bmain)[0], &suzanne->id);
@@ -1391,7 +1391,7 @@ class ChannelbagTest : public testing::Test {
   }
 };
 
-TEST_F(ChannelbagTest, fcurve_move)
+TEST_F(ChannelbagTest, fcurve_move_to_index)
 {
   FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "group0"});
   FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "group0"});
@@ -1406,7 +1406,7 @@ TEST_F(ChannelbagTest, fcurve_move)
   bActionGroup &group1 = *channelbag->channel_group(1);
 
   /* Moving an fcurve to where it already is should be fine. */
-  channelbag->fcurve_move(fcu0, 0);
+  channelbag->fcurve_move_to_index(fcu0, 0);
   EXPECT_EQ(&fcu0, channelbag->fcurve(0));
   EXPECT_EQ(&fcu1, channelbag->fcurve(1));
   EXPECT_EQ(&fcu2, channelbag->fcurve(2));
@@ -1419,7 +1419,7 @@ TEST_F(ChannelbagTest, fcurve_move)
   EXPECT_EQ(nullptr, fcu4.grp);
 
   /* Move to first. */
-  channelbag->fcurve_move(fcu4, 0);
+  channelbag->fcurve_move_to_index(fcu4, 0);
   EXPECT_EQ(0, group0.fcurve_range_start);
   EXPECT_EQ(2, group0.fcurve_range_length);
   EXPECT_EQ(2, group1.fcurve_range_start);
@@ -1436,7 +1436,7 @@ TEST_F(ChannelbagTest, fcurve_move)
   EXPECT_EQ(nullptr, fcu3.grp);
 
   /* Move to last. */
-  channelbag->fcurve_move(fcu1, 4);
+  channelbag->fcurve_move_to_index(fcu1, 4);
   EXPECT_EQ(0, group0.fcurve_range_start);
   EXPECT_EQ(2, group0.fcurve_range_length);
   EXPECT_EQ(2, group1.fcurve_range_start);
@@ -1453,7 +1453,7 @@ TEST_F(ChannelbagTest, fcurve_move)
   EXPECT_EQ(nullptr, fcu1.grp);
 
   /* Move to middle. */
-  channelbag->fcurve_move(fcu4, 2);
+  channelbag->fcurve_move_to_index(fcu4, 2);
   EXPECT_EQ(0, group0.fcurve_range_start);
   EXPECT_EQ(2, group0.fcurve_range_length);
   EXPECT_EQ(2, group1.fcurve_range_start);
@@ -1789,7 +1789,7 @@ TEST_F(ChannelbagTest, channel_group_fcurve_removal)
   ASSERT_EQ(0, channelbag->channel_groups().size());
 }
 
-TEST_F(ChannelbagTest, channel_group_move)
+TEST_F(ChannelbagTest, channel_group_move_to_index)
 {
   FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "group0"});
   FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "group1"});
@@ -1804,7 +1804,7 @@ TEST_F(ChannelbagTest, channel_group_move)
   bActionGroup &group1 = *channelbag->channel_group(1);
   bActionGroup &group2 = *channelbag->channel_group(2);
 
-  channelbag->channel_group_move(group0, 2);
+  channelbag->channel_group_move_to_index(group0, 2);
   EXPECT_EQ(&group1, channelbag->channel_group(0));
   EXPECT_EQ(&group2, channelbag->channel_group(1));
   EXPECT_EQ(&group0, channelbag->channel_group(2));
@@ -1825,7 +1825,7 @@ TEST_F(ChannelbagTest, channel_group_move)
   EXPECT_EQ(&group0, fcu0.grp);
   EXPECT_EQ(nullptr, fcu4.grp);
 
-  channelbag->channel_group_move(group1, 1);
+  channelbag->channel_group_move_to_index(group1, 1);
   EXPECT_EQ(&group2, channelbag->channel_group(0));
   EXPECT_EQ(&group1, channelbag->channel_group(1));
   EXPECT_EQ(&group0, channelbag->channel_group(2));
@@ -1846,7 +1846,7 @@ TEST_F(ChannelbagTest, channel_group_move)
   EXPECT_EQ(&group0, fcu0.grp);
   EXPECT_EQ(nullptr, fcu4.grp);
 
-  channelbag->channel_group_move(group0, 0);
+  channelbag->channel_group_move_to_index(group0, 0);
   EXPECT_EQ(&group0, channelbag->channel_group(0));
   EXPECT_EQ(&group2, channelbag->channel_group(1));
   EXPECT_EQ(&group1, channelbag->channel_group(2));

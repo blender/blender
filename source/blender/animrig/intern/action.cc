@@ -586,7 +586,7 @@ bool Action::slot_remove(Slot &slot_to_remove)
   return true;
 }
 
-void Action::slot_move(Slot &slot, const int to_slot_index)
+void Action::slot_move_to_index(Slot &slot, const int to_slot_index)
 {
   BLI_assert(this->slots().index_range().contains(to_slot_index));
 
@@ -1936,7 +1936,7 @@ void Channelbag::fcurve_detach_by_index(const int64_t fcurve_index)
    * depsgraph evaluation results though. */
 }
 
-void Channelbag::fcurve_move(FCurve &fcurve, int to_fcurve_index)
+void Channelbag::fcurve_move_to_index(FCurve &fcurve, int to_fcurve_index)
 {
   BLI_assert(to_fcurve_index >= 0 && to_fcurve_index < this->fcurves().size());
 
@@ -2288,7 +2288,7 @@ bool Channelbag::channel_group_remove(bActionGroup &group)
   return true;
 }
 
-void Channelbag::channel_group_move(bActionGroup &group, const int to_group_index)
+void Channelbag::channel_group_move_to_index(bActionGroup &group, const int to_group_index)
 {
   BLI_assert(to_group_index >= 0 && to_group_index < this->channel_groups().size());
 
