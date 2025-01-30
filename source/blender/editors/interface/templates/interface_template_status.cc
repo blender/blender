@@ -218,27 +218,31 @@ static bool uiTemplateInputStatusHeader(ARegion *region, uiLayout *row)
 
 static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
 {
-  const ViewLayer *view_layer = CTX_data_view_layer(C);
-  const Object *ob = BKE_view_layer_active_object_get(view_layer);
-  if (ob && is_negative_m4(ob->object_to_world().ptr())) {
+  const Object *ob = CTX_data_active_object(C);
+  if (!ob) {
+    return false;
+  }
+
+  if (is_negative_m4(ob->object_to_world().ptr())) {
     uiItemS_ex(row, 1.0f);
     uiItemL(row, "", ICON_ERROR);
     uiItemS_ex(row, -0.2f);
     uiItemL(row, IFACE_("Active object has negative scale"), ICON_NONE);
-    uiItemS_ex(row, 1.0f, LayoutSeparatorType::Line);
-    uiItemS_ex(row, 0.5f);
+    uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
+    uiItemS_ex(row, 0.8f);
+    /* Return false to allow other items to be added after. */
     return false;
   }
 
-  if (ob &&
-      !(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f && fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f))
+  if (!(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f && fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f))
   {
     uiItemS_ex(row, 1.0f);
     uiItemL(row, "", ICON_ERROR);
     uiItemS_ex(row, -0.2f);
-    uiItemL(row, IFACE_("Active Object has non-uniform scale"), ICON_NONE);
-    uiItemS_ex(row, 1.0f, LayoutSeparatorType::Line);
-    uiItemS_ex(row, 0.5f);
+    uiItemL(row, IFACE_("Active object has non-uniform scale"), ICON_NONE);
+    uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
+    uiItemS_ex(row, 0.8f);
+    /* Return false to allow other items to be added after. */
     return false;
   }
 
