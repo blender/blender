@@ -2471,8 +2471,14 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 box.separator()
                 sub_col = box.column(align=True)
                 sub_col.label(text=addon_name + ":")
-                sub_col.label(text="    " + addon_file)
-                sub_col.label(text="    " + addon_path)
+
+                sub_row = sub_col.row()
+                sub_row.label(text="    " + addon_file)
+                sub_row.operator("wm.path_open", text="", icon='FILE_FOLDER').filepath = os.path.dirname(addon_file)
+
+                sub_row = sub_col.row()
+                sub_row.label(text="    " + addon_path)
+                sub_row.operator("wm.path_open", text="", icon='FILE_FOLDER').filepath = os.path.dirname(addon_path)
 
         if addon_utils.error_encoding:
             self.draw_error(
