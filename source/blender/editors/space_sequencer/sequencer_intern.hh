@@ -277,10 +277,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot);
 void SEQUENCER_OT_select_box(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
-Strip *find_nearest_seq(const Scene *scene,
-                        const View2D *v2d,
-                        const int mval[2],
-                        eSeqHandle *r_hand);
+
 bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
 
 /* `sequencer_add.cc` */

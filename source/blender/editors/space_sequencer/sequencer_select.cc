@@ -311,77 +311,6 @@ Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel)
   return nullptr;
 }
 
-Strip *find_nearest_seq(const Scene *scene,
-                        const View2D *v2d,
-                        const int mval[2],
-                        eSeqHandle *r_hand)
-{
-  Strip *strip;
-  Editing *ed = SEQ_editing_get(scene);
-  float x, y;
-  float pixelx;
-  float handsize;
-  float displen;
-  *r_hand = SEQ_HANDLE_NONE;
-
-  if (ed == nullptr) {
-    return nullptr;
-  }
-
-  pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
-
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-
-  strip = static_cast<Strip *>(ed->seqbasep->first);
-
-  while (strip) {
-    if (strip->machine == int(y)) {
-      /* Check for both normal strips, and strips that have been flipped horizontally. */
-      if (((SEQ_time_left_handle_frame_get(scene, strip) <
-            SEQ_time_right_handle_frame_get(scene, strip)) &&
-           (SEQ_time_left_handle_frame_get(scene, strip) <= x &&
-            SEQ_time_right_handle_frame_get(scene, strip) >= x)) ||
-          ((SEQ_time_left_handle_frame_get(scene, strip) >
-            SEQ_time_right_handle_frame_get(scene, strip)) &&
-           (SEQ_time_left_handle_frame_get(scene, strip) >= x &&
-            SEQ_time_right_handle_frame_get(scene, strip) <= x)))
-      {
-        if (SEQ_transform_sequence_can_be_translated(strip)) {
-
-          /* Clamp handles to defined size in pixel space. */
-          handsize = 4.0f * sequence_handle_size_get_clamped(scene, strip, pixelx);
-          displen = float(abs(SEQ_time_left_handle_frame_get(scene, strip) -
-                              SEQ_time_right_handle_frame_get(scene, strip)));
-
-          /* Don't even try to grab the handles of small strips. */
-          if (displen / pixelx > 16) {
-
-            /* Set the max value to handle to 1/3 of the total len when its
-             * less than 28. This is important because otherwise selecting
-             * handles happens even when you click in the middle. */
-            if ((displen / 3) < 30 * pixelx) {
-              handsize = displen / 3;
-            }
-            else {
-              CLAMP(handsize, 7 * pixelx, 30 * pixelx);
-            }
-
-            if (handsize + SEQ_time_left_handle_frame_get(scene, strip) >= x) {
-              *r_hand = SEQ_HANDLE_LEFT;
-            }
-            else if (-handsize + SEQ_time_right_handle_frame_get(scene, strip) <= x) {
-              *r_hand = SEQ_HANDLE_RIGHT;
-            }
-          }
-        }
-        return strip;
-      }
-    }
-    strip = static_cast<Strip *>(strip->next);
-  }
-  return nullptr;
-}
-
 #if 0
 static void select_neighbor_from_last(Scene *scene, int lr)
 {
@@ -1041,7 +970,8 @@ static float strip_to_frame_distance(const Scene *scene,
   return BLI_rctf_length_x(&body, timeline_frame);
 }
 
-/* Get strips that can be selected by click. */
+/* Get strips that can be selected by a click from `mouse_co` in viewspace.
+ * The area considered includes padded handles past strip bounds. */
 static blender::Vector<Strip *> mouseover_strips_sorted_get(const Scene *scene,
                                                             const View2D *v2d,
                                                             float mouse_co[2])
@@ -1663,17 +1593,16 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = UI_view2d_fromcontext(C);
 
   bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  Strip *mouse_seq;
-  eSeqHandle hand;
-  int selected;
+  float mouse_co[2];
+  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouse_co[0], &mouse_co[1]);
 
   /* This works like UV, not mesh. */
-  mouse_seq = find_nearest_seq(scene, v2d, event->mval, &hand);
-  if (!mouse_seq) {
+  StripSelection mouse_selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
+  if (!mouse_selection.seq1) {
     return OPERATOR_FINISHED; /* User error as with mesh?? */
   }
 
@@ -1681,10 +1610,10 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, cons
     ED_sequencer_deselect_all(scene);
   }
 
-  mouse_seq->flag |= SELECT;
-  recurs_sel_seq(mouse_seq);
+  mouse_selection.seq1->flag |= SELECT;
+  recurs_sel_seq(mouse_selection.seq1);
 
-  selected = 1;
+  bool selected = true;
   while (selected) {
     selected = select_linked_internal(scene);
   }
