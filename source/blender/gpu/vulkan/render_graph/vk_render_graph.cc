@@ -29,6 +29,8 @@ void VKRenderGraph::reset()
 
   debug_.node_group_map.clear();
   debug_.used_groups.clear();
+  debug_.group_stack.clear();
+  debug_.groups.clear();
 }
 
 /** \} */
