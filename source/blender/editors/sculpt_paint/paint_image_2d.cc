@@ -1880,7 +1880,6 @@ void paint_2d_bucket_fill(const bContext *C,
     BLI_bitmap *touched;
     size_t coordinate;
     int width = ibuf->x;
-    int minx = ibuf->x, miny = ibuf->y, maxx = 0, maxy = 0;
     float pixel_color[4];
     /* We are comparing to sum of three squared values
      * (assumed in range [0,1]), so need to multiply... */
@@ -1943,13 +1942,6 @@ void paint_2d_bucket_fill(const bContext *C,
             x_px + 1, y_px, ibuf, stack, touched, pixel_color, threshold_sq);
         paint_2d_fill_add_pixel_float(
             x_px + 1, y_px + 1, ibuf, stack, touched, pixel_color, threshold_sq);
-
-        maxx = std::max(x_px, maxx);
-        minx = std::min(x_px, minx);
-        maxy = std::max(y_px, maxy);
-        if (x_px > miny) {
-          miny = y_px;
-        }
       }
     }
     else {
@@ -1981,13 +1973,6 @@ void paint_2d_bucket_fill(const bContext *C,
             x_px + 1, y_px, ibuf, stack, touched, pixel_color, threshold_sq);
         paint_2d_fill_add_pixel_byte(
             x_px + 1, y_px + 1, ibuf, stack, touched, pixel_color, threshold_sq);
-
-        maxx = std::max(x_px, maxx);
-        minx = std::min(x_px, minx);
-        maxy = std::max(y_px, maxy);
-        if (x_px > miny) {
-          miny = y_px;
-        }
       }
     }
 
