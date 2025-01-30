@@ -568,7 +568,7 @@ void ED_slider_status_get(const tSlider *slider, WorkspaceStatus &status)
   status.item_bool(IFACE_("Precision"), slider->precision, ICON_EVENT_SHIFT);
 
   if (slider->allow_increments) {
-    status.item_bool(IFACE_("Increments"), slider->increments, ICON_EVENT_CTRL);
+    status.item_bool(IFACE_("Snap"), slider->increments, ICON_EVENT_CTRL);
   }
 }
 

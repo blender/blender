@@ -44,6 +44,8 @@
 
 #include "ANIM_fcurve.hh"
 
+#include <fmt/format.h>
+
 #include "graph_intern.hh"
 
 /* -------------------------------------------------------------------- */
@@ -121,28 +123,20 @@ static void apply_fcu_segment_function(bAnimContext *ac,
   ANIM_animdata_freelist(&anim_data);
 }
 
-static void common_draw_status_header(bContext *C, tGraphSliderOp *gso, const char *operator_name)
+static void common_draw_status_header(bContext *C, tGraphSliderOp *gso)
 {
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  STRNCPY(mode_str, IFACE_(operator_name));
-
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+  status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
-
     outputNumInput(&gso->num, str_ofs, gso->scene->unit);
-
-    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+    status.item(str_ofs, ICON_NONE);
   }
   else {
-    SNPRINTF(status_str, "%s: %s", mode_str, slider_string);
+    ED_slider_status_get(gso->slider, status);
   }
-
-  ED_workspace_status_text(C, status_str);
 }
 
 /**
@@ -307,6 +301,12 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   const bool has_numinput = hasNumInput(&gso->num);
 
+  ED_slider_property_label_set(gso->slider,
+                               fmt::format("{} ({})",
+                                           WM_operatortype_name(op->type, op->ptr),
+                                           RNA_property_ui_name(gso->factor_prop))
+                                   .c_str());
+
   ED_slider_modal(gso->slider, event);
 
   switch (event->type) {
@@ -356,17 +356,20 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
       break;
     }
     default: {
-      if ((event->val == KM_PRESS) && handleNumInput(C, &gso->num, event)) {
-        float value;
-        applyNumInput(&gso->num, &value);
+      if ((event->val == KM_PRESS) || (ISKEYMODIFIER(event->type) && event->val == KM_RELEASE)) {
 
-        /* Grab percentage from numeric input, and store this new value for redo
-         * NOTE: users see ints, while internally we use a 0-1 float. */
-        if (ED_slider_mode_get(gso->slider) == SLIDER_MODE_PERCENT) {
-          value = value / 100.0f;
+        if (handleNumInput(C, &gso->num, event)) {
+          float value;
+          applyNumInput(&gso->num, &value);
+
+          /* Grab percentage from numeric input, and store this new value for redo
+           * NOTE: users see ints, while internally we use a 0-1 float. */
+          if (ED_slider_mode_get(gso->slider) == SLIDER_MODE_PERCENT) {
+            value = value / 100.0f;
+          }
+          ED_slider_factor_set(gso->slider, value);
+          RNA_property_float_set(op->ptr, gso->factor_prop, value);
         }
-        ED_slider_factor_set(gso->slider, value);
-        RNA_property_float_set(op->ptr, gso->factor_prop, value);
 
         gso->modal_update(C, op);
         break;
@@ -453,26 +456,18 @@ static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_m
 /* Draw a percentage indicator in workspace footer. */
 static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 {
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  STRNCPY(mode_str, IFACE_("Decimate Keyframes"));
-
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+  status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
-
     outputNumInput(&gso->num, str_ofs, gso->scene->unit);
-
-    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+    status.item(str_ofs, ICON_NONE);
   }
   else {
-    SNPRINTF(status_str, "%s: %s", mode_str, slider_string);
+    ED_slider_status_get(gso->slider, status);
   }
-
-  ED_workspace_status_text(C, status_str);
 }
 
 static void decimate_modal_update(bContext *C, wmOperator *op)
@@ -656,7 +651,7 @@ static void blend_to_neighbor_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
-  common_draw_status_header(C, gso, "Blend to Neighbor");
+  common_draw_status_header(C, gso);
 
   /* Reset keyframe data to the state at invoke. */
   reset_bezts(gso);
@@ -678,7 +673,7 @@ static int blend_to_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   gso->modal_update = blend_to_neighbor_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  common_draw_status_header(C, gso, "Blend to Neighbor");
+  common_draw_status_header(C, gso);
   ED_slider_factor_bounds_set(gso->slider, -1, 1);
   ED_slider_factor_set(gso->slider, 0.0f);
 
@@ -745,7 +740,7 @@ static void breakdown_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
-  common_draw_status_header(C, gso, "Breakdown");
+  common_draw_status_header(C, gso);
 
   /* Reset keyframe data to the state at invoke. */
   reset_bezts(gso);
@@ -765,7 +760,7 @@ static int breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   gso->modal_update = breakdown_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  common_draw_status_header(C, gso, "Breakdown");
+  common_draw_status_header(C, gso);
   ED_slider_factor_bounds_set(gso->slider, -1, 1);
   ED_slider_factor_set(gso->slider, 0.0f);
 
@@ -851,7 +846,7 @@ static void blend_to_default_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
-  common_draw_status_header(C, gso, "Blend to Default Value");
+  common_draw_status_header(C, gso);
 
   /* Set notifier that keyframes have changed. */
   reset_bezts(gso);
@@ -872,7 +867,7 @@ static int blend_to_default_invoke(bContext *C, wmOperator *op, const wmEvent *e
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   gso->modal_update = blend_to_default_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  common_draw_status_header(C, gso, "Blend to Default Value");
+  common_draw_status_header(C, gso);
   ED_slider_factor_set(gso->slider, 0.0f);
 
   return invoke_result;
@@ -952,36 +947,26 @@ static void ease_graph_keys(bAnimContext *ac, const float factor, const float wi
 
 static void ease_draw_status_header(bContext *C, wmOperator *op)
 {
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  /* Operator specific functionality that extends beyond the slider. */
-  char op_slider_string[UI_MAX_DRAW_STR];
-  if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
-    SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[TAB] - Modify Sharpness"));
-  }
-  else {
-    SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[TAB] - Modify Curve Bend"));
-  }
-
-  STRNCPY(mode_str, IFACE_("Ease Keys"));
-
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+  status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
-
     outputNumInput(&gso->num, str_ofs, gso->scene->unit);
-
-    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+    status.item(str_ofs, ICON_NONE);
   }
   else {
-    SNPRINTF(status_str, "%s: %s", mode_str, op_slider_string);
+    ED_slider_status_get(gso->slider, status);
+    /* Operator specific functionality that extends beyond the slider. */
+    if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
+      status.item(IFACE_("Modify Sharpness"), ICON_EVENT_TAB);
+    }
+    else {
+      status.item(IFACE_("Modify Curve Bend"), ICON_EVENT_TAB);
+    }
   }
-
-  ED_workspace_status_text(C, status_str);
 }
 
 static void ease_modal_update(bContext *C, wmOperator *op)
@@ -1034,7 +1019,6 @@ static int ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_slider_unit_set(gso->slider, "%");
         gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
       }
-      ED_slider_property_label_set(gso->slider, RNA_property_ui_name(gso->factor_prop));
       ease_modal_update(C, op);
       break;
     }
@@ -1133,7 +1117,7 @@ static void blend_offset_graph_keys(bAnimContext *ac, const float factor)
 
 static void blend_offset_draw_status_header(bContext *C, tGraphSliderOp *gso)
 {
-  common_draw_status_header(C, gso, "Blend Offset Keys");
+  common_draw_status_header(C, gso);
 }
 
 static void blend_offset_modal_update(bContext *C, wmOperator *op)
@@ -1226,7 +1210,7 @@ static void blend_to_ease_graph_keys(bAnimContext *ac, const float factor)
 
 static void blend_to_ease_draw_status_header(bContext *C, tGraphSliderOp *gso)
 {
-  common_draw_status_header(C, gso, "Blend to Ease Keys");
+  common_draw_status_header(C, gso);
 }
 
 static void blend_to_ease_modal_update(bContext *C, wmOperator *op)
@@ -1348,7 +1332,7 @@ static void match_slope_graph_keys(bAnimContext *ac, const float factor)
 
 static void match_slope_draw_status_header(bContext *C, tGraphSliderOp *gso)
 {
-  common_draw_status_header(C, gso, "Match Slope");
+  common_draw_status_header(C, gso);
 }
 
 static void match_slope_modal_update(bContext *C, wmOperator *op)
@@ -1440,7 +1424,7 @@ static void time_offset_graph_keys(bAnimContext *ac, const float factor)
 
 static void time_offset_draw_status_header(bContext *C, tGraphSliderOp *gso)
 {
-  common_draw_status_header(C, gso, "Time Offset Keys");
+  common_draw_status_header(C, gso);
 }
 
 static void time_offset_modal_update(bContext *C, wmOperator *op)
@@ -1565,40 +1549,37 @@ static void shear_graph_keys(bAnimContext *ac, const float factor, tShearDirecti
   ANIM_animdata_freelist(&anim_data);
 }
 
-static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
+static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso, tShearDirection direction)
 {
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  STRNCPY(mode_str, IFACE_("Shear Keys"));
-
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+  status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
-
     outputNumInput(&gso->num, str_ofs, gso->scene->unit);
-
-    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+    status.item(str_ofs, ICON_NONE);
   }
   else {
-    const char *operator_string = IFACE_("D - Toggle Direction");
-    SNPRINTF(status_str, "%s: %s | %s", mode_str, slider_string, operator_string);
+    ED_slider_status_get(gso->slider, status);
+    status.item(
+        fmt::format("{} ({})",
+                    IFACE_("Direction"),
+                    direction == SHEAR_FROM_LEFT ? IFACE_("From Left") : IFACE_("From Right")),
+        ICON_EVENT_D);
   }
-
-  ED_workspace_status_text(C, status_str);
 }
 
 static void shear_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
-  shear_draw_status_header(C, gso);
-
   /* Reset keyframes to the state at invoke. */
   reset_bezts(gso);
   const float factor = slider_factor_get_and_remember(op);
   const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+
+  shear_draw_status_header(C, gso, direction);
 
   shear_graph_keys(&gso->ac, factor, direction);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
@@ -1638,7 +1619,9 @@ static int shear_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   gso->modal_update = shear_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  shear_draw_status_header(C, gso);
+  const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+
+  shear_draw_status_header(C, gso, direction);
   ED_slider_factor_bounds_set(gso->slider, -1, 1);
   ED_slider_factor_set(gso->slider, 0.0f);
 
@@ -1714,7 +1697,7 @@ static void scale_average_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
-  common_draw_status_header(C, gso, "Scale to Average");
+  common_draw_status_header(C, gso);
 
   /* Reset keyframes to the state at invoke. */
   reset_bezts(gso);
@@ -1734,7 +1717,7 @@ static int scale_average_invoke(bContext *C, wmOperator *op, const wmEvent *even
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   gso->modal_update = scale_average_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  common_draw_status_header(C, gso, "Scale to Average");
+  common_draw_status_header(C, gso);
   ED_slider_factor_bounds_set(gso->slider, 0, 2);
   ED_slider_factor_set(gso->slider, 1.0f);
 
@@ -1876,7 +1859,7 @@ static void gaussian_smooth_modal_update(bContext *C, wmOperator *op)
     return;
   }
 
-  common_draw_status_header(C, gso, "Gaussian Smooth");
+  common_draw_status_header(C, gso);
 
   const float factor = slider_factor_get_and_remember(op);
   tGaussOperatorData *operator_data = (tGaussOperatorData *)gso->operator_data;
@@ -1919,7 +1902,7 @@ static int gaussian_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   ED_slider_allow_overshoot_set(gso->slider, false, false);
   ED_slider_factor_set(gso->slider, 0.0f);
-  common_draw_status_header(C, gso, "Gaussian Smooth");
+  common_draw_status_header(C, gso);
 
   return invoke_result;
 }
@@ -2120,7 +2103,7 @@ static void btw_smooth_modal_update(bContext *C, wmOperator *op)
     return;
   }
 
-  common_draw_status_header(C, gso, "Butterworth Smooth");
+  common_draw_status_header(C, gso);
 
   tBtwOperatorData *operator_data = (tBtwOperatorData *)gso->operator_data;
 
@@ -2179,7 +2162,7 @@ static int btw_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   ED_slider_allow_overshoot_set(gso->slider, false, false);
   ED_slider_mode_set(gso->slider, SLIDER_MODE_FLOAT);
   ED_slider_unit_set(gso->slider, "Hz");
-  common_draw_status_header(C, gso, "Butterworth Smooth");
+  common_draw_status_header(C, gso);
 
   return invoke_result;
 }
@@ -2332,7 +2315,7 @@ static void push_pull_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
-  common_draw_status_header(C, gso, "Push Pull Keys");
+  common_draw_status_header(C, gso);
 
   /* Reset keyframes to the state at invoke. */
   reset_bezts(gso);
@@ -2354,7 +2337,7 @@ static int push_pull_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
   ED_slider_factor_bounds_set(gso->slider, 0, 2);
   ED_slider_factor_set(gso->slider, 1);
-  common_draw_status_header(C, gso, "Push Pull Keys");
+  common_draw_status_header(C, gso);
 
   return invoke_result;
 }
@@ -2442,40 +2425,28 @@ static void scale_from_neighbor_graph_keys(bAnimContext *ac,
 
 static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
 {
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  /* Operator specific functionality that extends beyond the slider. */
-  char op_slider_string[UI_MAX_DRAW_STR];
-  const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
-  switch (anchor) {
-    case FCurveSegmentAnchor::LEFT:
-      SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[D] - Scale From Right End"));
-      break;
-
-    case FCurveSegmentAnchor::RIGHT:
-      SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[D] - Scale From Left End"));
-      break;
-  }
-
-  STRNCPY(mode_str, IFACE_("Scale from Neighbor Keys"));
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+  status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
-
     outputNumInput(&gso->num, str_ofs, gso->scene->unit);
-
-    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+    status.item(str_ofs, ICON_NONE);
   }
   else {
-    SNPRINTF(status_str, "%s: %s", mode_str, op_slider_string);
+    ED_slider_status_get(gso->slider, status);
+    /* Operator specific functionality that extends beyond the slider. */
+    const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+    ED_slider_status_get(gso->slider, status);
+    status.item(fmt::format("{} ({})",
+                            IFACE_("Direction"),
+                            anchor == FCurveSegmentAnchor::LEFT ? IFACE_("From Left") :
+                                                                  IFACE_("From Right")),
+                ICON_EVENT_D);
   }
-
-  ED_workspace_status_text(C, status_str);
 }
 
 static void scale_from_neighbor_modal_update(bContext *C, wmOperator *op)
