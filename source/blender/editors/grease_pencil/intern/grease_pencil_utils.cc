@@ -1027,9 +1027,6 @@ IndexMask retrieve_editable_strokes_by_material(Object &object,
 
   /* Get all the editable material indices */
   VectorSet<int> locked_material_indices = get_locked_material_indices(object);
-  if (locked_material_indices.is_empty()) {
-    return curves_range;
-  }
 
   const bke::AttributeAccessor attributes = curves.attributes();
 
