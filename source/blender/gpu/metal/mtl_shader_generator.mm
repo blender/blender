@@ -2284,9 +2284,9 @@ std::string MSLGeneratorInterface::generate_msl_fragment_tile_input_population()
                                  "ivec2(v_in._default_position_.xy)";
 
       out << "\t" << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "."
-          << tile_input.name << " = texelFetch("
+          << tile_input.name << " = imageLoad("
           << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "." << tile_input.name
-          << "_subpass_img, " << texel_co << ", 0)." << swizzle << ";\n";
+          << "_subpass_img, " << texel_co << ")." << swizzle << ";\n";
     }
   }
   return out.str();
