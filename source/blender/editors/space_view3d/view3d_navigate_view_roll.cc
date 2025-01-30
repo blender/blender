@@ -238,8 +238,26 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     viewroll_exec(C, op);
   }
   else {
+    /* The equivalent functionality for orbiting the view: VIEW3D_OT_orbit & VIEW3D_OT_rotate are
+     * separate operators with different poll functions [which are only permissive for non-locked
+     * views]. This operator however mixes modal-interaction & instant-stepping into the same
+     * operator and its current poll function permissively finds the non-locked region in quad
+     * view. For instant-stepping into the operator via keyboard shortcuts, forwarding to the
+     * non-locked view (when in a locked view) makes sense, but modal-interaction with the locked
+     * view forwarding to a different view doesn't (hence the check). */
+    {
+      ARegion *region = CTX_wm_region(C);
+      if (region->regiontype == RGN_TYPE_WINDOW) {
+        const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
+        if (rv3d->viewlock & RV3D_LOCK_ROTATION) {
+          return OPERATOR_PASS_THROUGH;
+        }
+      }
+    }
+
     /* makes op->customdata */
     vod = viewops_data_create(C, event, &ViewOpsType_roll, false);
+
     const float start_position[2] = {float(BLI_rcti_cent_x(&vod->region->winrct)),
                                      float(BLI_rcti_cent_y(&vod->region->winrct))};
     vod->init.dial = BLI_dial_init(start_position, FLT_EPSILON);
