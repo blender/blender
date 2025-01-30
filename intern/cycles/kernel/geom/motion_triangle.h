@@ -87,7 +87,7 @@ ccl_device_inline void motion_triangle_compute_info(KernelGlobals kg,
                                                     ccl_private float *t)
 {
   /* Get object motion info. */
-  *numsteps = kernel_data_fetch(objects, object).numsteps;
+  *numsteps = kernel_data_fetch(objects, object).num_geom_steps;
 
   /* Figure out which steps we need to fetch and their interpolation factor. */
   const int maxstep = *numsteps * 2;
