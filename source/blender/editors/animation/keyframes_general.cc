@@ -36,6 +36,7 @@
 
 #include "ED_keyframes_edit.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
@@ -1235,142 +1236,258 @@ void smooth_fcurve(FCurve *fcu)
  * - The earliest frame is calculated per copy operation.
  * \{ */
 
-/* globals for copy/paste data (like for other copy/paste buffers) */
-static ListBase animcopybuf = {nullptr, nullptr};
-static float animcopy_firstframe = 999999999.0f;
-static float animcopy_lastframe = -999999999.0f;
-static float animcopy_cfra = 0.0;
+namespace blender::ed::animation {
+
+KeyframeCopyBuffer *keyframe_copy_buffer = nullptr;
+
+bool KeyframeCopyBuffer::is_empty() const
+{
+  /* No need to check the channelbags for having F-Curves, as they are only
+   * added when an F-Curve needs to be stored. */
+  return this->keyframe_data.channelbags().is_empty();
+}
+
+bool KeyframeCopyBuffer::is_single_fcurve() const
+{
+  if (this->keyframe_data.channelbags().size() != 1) {
+    return false;
+  }
+
+  const animrig::Channelbag *channelbag = this->keyframe_data.channelbag(0);
+  return channelbag->fcurves().size() == 1;
+}
+
+bool KeyframeCopyBuffer::is_bone(const FCurve &fcurve) const
+{
+  return this->bone_fcurves.contains(&fcurve);
+}
+
+void KeyframeCopyBuffer::debug_print() const
+{
+  using namespace blender::animrig;
+
+  printf("KeyframeCopyBuffer contents:\n");
+  printf("  frame range: %f - %f\n", this->first_frame, this->last_frame);
+  printf("  scene frame: %f\n", this->current_frame);
+
+  if (is_empty()) {
+    printf("  buffer is empty\n");
+  }
+
+  if (is_single_fcurve()) {
+    printf("  buffer has single F-Curve\n");
+  }
+
+  const StripKeyframeData &keyframe_data = this->keyframe_data;
+  printf("  channelbags: %ld\n", keyframe_data.channelbags().size());
+  for (const Channelbag *channelbag : keyframe_data.channelbags()) {
+
+    printf("  - Channelbag for slot \"%s\":\n",
+           this->slot_identifiers.lookup(channelbag->slot_handle).c_str());
+    for (const FCurve *fcurve : channelbag->fcurves()) {
+      const bool is_bone = this->is_bone(*fcurve);
+      printf("      %s[%d] %s\n", fcurve->rna_path, fcurve->array_index, is_bone ? "bone" : "");
+    }
+  }
+}
+
+}  // namespace blender::ed::animation
+
+void ANIM_fcurves_copybuf_reset()
+{
+  using namespace blender::ed::animation;
+  ANIM_fcurves_copybuf_free();
+  keyframe_copy_buffer = MEM_new<KeyframeCopyBuffer>(__func__);
+}
 
 void ANIM_fcurves_copybuf_free()
 {
-  LISTBASE_FOREACH_MUTABLE (tAnimCopybufItem *, aci, &animcopybuf) {
-    tAnimCopybufItem_free(aci);
+  using namespace blender::ed::animation;
+  if (keyframe_copy_buffer) {
+    MEM_delete(keyframe_copy_buffer);
   }
-
-  /* restore initial state */
-  BLI_listbase_clear(&animcopybuf);
-  animcopy_firstframe = 999999999.0f;
-  animcopy_lastframe = -999999999.0f;
-}
-
-void tAnimCopybufItem_free(tAnimCopybufItem *aci)
-{
-  MEM_SAFE_FREE(aci->bezt);
-  MEM_SAFE_FREE(aci->rna_path);
-  MEM_freeN(aci);
 }
 
 /* ------------------- */
 
-short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
+static bool is_animating_bone(const bAnimListElem *ale)
 {
-  Scene *scene = ac->scene;
+  BLI_assert(ale->datatype == ALE_FCURVE);
 
-  /* clear buffer first */
-  ANIM_fcurves_copybuf_free();
+  if (!ale->id || GS(ale->id->name) != ID_OB) {
+    return false;
+  }
 
-  /* assume that each of these is an F-Curve */
-  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-    tAnimCopybufItem *aci;
-    BezTriple *bezt, *nbezt, *newbuf;
-    int i;
+  Object *ob = reinterpret_cast<Object *>(ale->id);
+  if (ob->type != OB_ARMATURE) {
+    return false;
+  }
 
-    /* firstly, check if F-Curve has any selected keyframes
-     * - skip if no selected keyframes found (so no need to create unnecessary copy-buffer data)
-     * - this check should also eliminate any problems associated with using sample-data
-     */
+  FCurve *fcurve = (FCurve *)ale->key_data;
+  if (!fcurve->rna_path) {
+    return false;
+  }
+
+  char bone_name[sizeof(bPoseChannel::name)];
+  if (!BLI_str_quoted_substr(fcurve->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
+    return false;
+  }
+
+  bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+  return pchan != nullptr;
+};
+
+namespace {
+
+using namespace blender;
+using namespace blender::animrig;
+using namespace blender::ed::animation;
+
+/**
+ * Utility class to help map slots from the Actions data was copied from, to the slots used by the
+ * copy-paste buffer.
+ *
+ * To the caller, this mapping is implicit, and is just reflected in the returned `Channelbag` for
+ * some `bAnimListElem`. There is a 1:1 mapping in the copy-paste buffer between slots and their
+ * channelbags,
+ */
+class SlotMapper {
+ public:
+  KeyframeCopyBuffer &buffer;
+
+  /** Mapping from action + slot handle to the buffer's internal slot handle. */
+  Map<std::pair<const Action *, slot_handle_t>, slot_handle_t> orig_to_buffer_slots;
+
+  /**
+   * Ensure a Channelbag exists in the keyframe copy buffer for the F-Curve this 'ale' points to.
+   */
+  Channelbag &channelbag_for_ale(const bAnimListElem *ale)
+  {
+    /* Copying keyframes really only works with F-Curves from Actions. */
+    BLI_assert(GS(ale->fcurve_owner_id->name) == ID_AC);
+
+    const Action &ale_action = reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+    const auto orig_action_slot_pair = std::make_pair(&ale_action, ale->slot_handle);
+
+    if (const std::optional<slot_handle_t> opt_internal_slot_handle =
+            this->orig_to_buffer_slots.lookup_try(orig_action_slot_pair))
+    {
+      /* There already is a slot for this, and that means there is a channelbag too. */
+      const slot_handle_t internal_slot_handle = *opt_internal_slot_handle;
+      BLI_assert(this->buffer.slot_identifiers.contains(internal_slot_handle));
+
+      Channelbag *channelbag = this->buffer.keyframe_data.channelbag_for_slot(
+          internal_slot_handle);
+      BLI_assert_msg(channelbag, "If the slot exists, so should the channelbag");
+
+      return *channelbag;
+    }
+
+    /* Create a new Channelbag for this F-Curve. */
+    const slot_handle_t internal_slot_handle = ++this->buffer.last_used_slot_handle;
+    Channelbag &channelbag = this->buffer.keyframe_data.channelbag_for_slot_add(
+        internal_slot_handle);
+    this->orig_to_buffer_slots.add_new(orig_action_slot_pair, internal_slot_handle);
+
+    /* Copy some data from the Action slot to our internal bookkeeping. */
+    const Slot *ale_slot = ale_action.slot_for_handle(ale->slot_handle);
+    BLI_assert_msg(ale_slot, "Slot for copied keyframes is expected to exist.");
+
+    this->buffer.slot_identifiers.add_new(internal_slot_handle, ale_slot->identifier);
+
+    /* ale->id might be nullptr on unassigned slots. */
+    this->buffer.slot_animated_ids.add_new(internal_slot_handle, ale->id);
+
+    return channelbag;
+  }
+};
+
+}  // namespace
+
+bool copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
+{
+  using namespace blender::ed::animation;
+  using namespace blender::animrig;
+
+  ANIM_fcurves_copybuf_reset();
+
+  SlotMapper slot_mapper{*keyframe_copy_buffer};
+
+  LISTBASE_FOREACH (const bAnimListElem *, ale, anim_data) {
+    BLI_assert(ale->datatype == ALE_FCURVE);
+    const FCurve *fcu = static_cast<const FCurve *>(ale->key_data);
+
+    /* Firstly, check if F-Curve has any selected keyframes. Skip if no selected
+     * keyframes found (so no need to create unnecessary copy-buffer data). This
+     * check should also eliminate any problems associated with using
+     * sample-data. */
     if (ANIM_fcurve_keyframes_loop(
-            nullptr, fcu, nullptr, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), nullptr) == 0)
+            nullptr,
+            /* The const-cast is because I (Sybren) want to have `fcu` as `const` in as much of
+             * this LISTBASE_FOREACH as possible. The code is alternating between the to-be-copied
+             * F-Curve and the copy, and I want the compiler to help distinguish those. */
+            const_cast<FCurve *>(fcu),
+            nullptr,
+            ANIM_editkeyframes_ok(BEZT_OK_SELECTED),
+            nullptr) == 0)
     {
       continue;
     }
 
-    /* init copybuf item info */
-    aci = static_cast<tAnimCopybufItem *>(
-        MEM_callocN(sizeof(tAnimCopybufItem), "AnimCopybufItem"));
-    aci->id = ale->id;
-    aci->id_type = GS(ale->id->name);
-    aci->grp = fcu->grp;
-    aci->rna_path = static_cast<char *>(MEM_dupallocN(fcu->rna_path));
-    aci->array_index = fcu->array_index;
+    Channelbag &channelbag = slot_mapper.channelbag_for_ale(ale);
 
-    /* Detect if this is a bone. We do that here rather than during pasting because ID pointers
-     * will get invalidated if we undo.
-     * Storing the relevant information here helps avoiding crashes if we undo-repaste. */
-    if ((aci->id_type == ID_OB) && (((Object *)aci->id)->type == OB_ARMATURE) && aci->rna_path) {
-      Object *ob = (Object *)aci->id;
+    /* Create an F-Curve on this ChannelBag. */
+    FCurve &fcurve_copy = *BKE_fcurve_create();
+    fcurve_copy.rna_path = BLI_strdup(fcu->rna_path);
+    fcurve_copy.array_index = fcu->array_index;
+    channelbag.fcurve_append(fcurve_copy);
 
-      bPoseChannel *pchan;
-      char bone_name[sizeof(pchan->name)];
-      if (BLI_str_quoted_substr(aci->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
-        pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-        if (pchan) {
-          aci->is_bone = true;
-        }
-      }
+    if (fcu->grp) {
+      bActionGroup &group = channelbag.channel_group_ensure(fcu->grp->name);
+      channelbag.fcurve_assign_to_channel_group(fcurve_copy, group);
     }
 
-    BLI_addtail(&animcopybuf, aci);
+    /* Detect if this is a bone. We do that here rather than during pasting
+     * because ID pointers will get invalidated on undo / loading another file. */
+    if (is_animating_bone(ale)) {
+      keyframe_copy_buffer->bone_fcurves.add(&fcurve_copy);
+    }
 
-    /* add selected keyframes to buffer */
-    /* TODO: currently, we resize array every time we add a new vert -
-     * this works ok as long as it is assumed only a few keys are copied */
-    for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-      if (BEZT_ISSEL_ANY(bezt)) {
-        /* add to buffer */
-        newbuf = static_cast<BezTriple *>(
-            MEM_callocN(sizeof(BezTriple) * (aci->totvert + 1), "copybuf beztriple"));
-
-        /* assume that since we are just re-sizing the array, just copy all existing data across */
-        if (aci->bezt) {
-          memcpy(newbuf, aci->bezt, sizeof(BezTriple) * (aci->totvert));
-        }
-
-        /* copy current beztriple across too */
-        nbezt = &newbuf[aci->totvert];
-        *nbezt = *bezt;
-
-        /* ensure copy buffer is selected so pasted keys are selected */
-        BEZT_SEL_ALL(nbezt);
-
-        /* free old array and set the new */
-        if (aci->bezt) {
-          MEM_freeN(aci->bezt);
-        }
-        aci->bezt = newbuf;
-        aci->totvert++;
-
-        /* check if this is the earliest frame encountered so far */
-        if (bezt->vec[1][0] < animcopy_firstframe) {
-          animcopy_firstframe = bezt->vec[1][0];
-        }
-        if (bezt->vec[1][0] > animcopy_lastframe) {
-          animcopy_lastframe = bezt->vec[1][0];
-        }
+    /* Add selected keyframes to the buffer F-Curve. */
+    int bezt_index = 0;
+    BezTriple *bezt = fcu->bezt;
+    for (; bezt_index < fcu->totvert; bezt_index++, bezt++) {
+      if (!BEZT_ISSEL_ANY(bezt)) {
+        continue;
       }
+
+      /* Use INSERTKEY_FAST as that avoids recalculating handles. They should
+       * remain as-is in the buffer. */
+      animrig::insert_bezt_fcurve(&fcurve_copy, bezt, INSERTKEY_OVERWRITE_FULL | INSERTKEY_FAST);
+
+      /* Keep track of the extremities. */
+      const float bezt_frame = bezt->vec[1][0];
+      keyframe_copy_buffer->first_frame = std::min(keyframe_copy_buffer->first_frame, bezt_frame);
+      keyframe_copy_buffer->last_frame = std::max(keyframe_copy_buffer->last_frame, bezt_frame);
     }
   }
 
-  /* check if anything ended up in the buffer */
-  if (ELEM(nullptr, animcopybuf.first, animcopybuf.last)) {
-    return -1;
-  }
+  keyframe_copy_buffer->current_frame = ac->scene->r.cfra;
 
-  /* in case 'relative' paste method is used */
-  animcopy_cfra = scene->r.cfra;
+#ifndef NDEBUG
+  /* TODO: remove this call completely when slot-aware copy-pasting has been implemented. */
+  keyframe_copy_buffer->debug_print();
+#endif
 
-  /* everything went fine */
-  return 0;
+  return !keyframe_copy_buffer->is_empty();
 }
 
-std::optional<std::string> flip_names(const tAnimCopybufItem *aci)
+namespace blender::ed::animation {
+
+std::optional<std::string> flip_names(const blender::StringRefNull rna_path)
 {
-  if (!aci->is_bone) {
-    return {};
-  }
   int ofs_start, ofs_end;
-  if (!BLI_str_quoted_substr_range(aci->rna_path, "pose.bones[", &ofs_start, &ofs_end)) {
+  if (!BLI_str_quoted_substr_range(rna_path.c_str(), "pose.bones[", &ofs_start, &ofs_end)) {
     return {};
   }
 
@@ -1378,18 +1495,18 @@ std::optional<std::string> flip_names(const tAnimCopybufItem *aci)
    * However the buffer does need to be twice the size. */
   char bname_new[MAX_VGROUP_NAME * 2];
 
-  const std::string bone_name(aci->rna_path + ofs_start, aci->rna_path + ofs_end);
+  /* Take a copy so it's 0-terminated. */
+  const std::string bone_name = rna_path.substr(ofs_start, ofs_end - ofs_start);
+
   BLI_string_flip_side_name(bname_new, bone_name.c_str(), false, sizeof(bname_new));
 
-  return blender::StringRef(aci->rna_path, aci->rna_path + ofs_start) + bname_new +
-         blender::StringRef(aci->rna_path + ofs_end);
+  return rna_path.substr(0, ofs_start) + bname_new + rna_path.substr(ofs_end);
 }
 
-/* ------------------- */
-
 using pastebuf_match_func = bool (*)(Main *bmain,
-                                     const FCurve *fcurve_to_match,
-                                     const tAnimCopybufItem *aci,
+                                     const FCurve &fcurve_to_match,
+                                     const FCurve &fcurve_in_copy_buffer,
+                                     blender::animrig::slot_handle_t slot_handle_in_copy_buffer,
                                      bool from_single,
                                      bool to_single,
                                      bool flip);
@@ -1397,29 +1514,41 @@ using pastebuf_match_func = bool (*)(Main *bmain,
 /**
  * Return the first item in the copy buffer that matches the given F-Curve.
  */
-static tAnimCopybufItem *pastebuf_find_matching_copybuf_item(const pastebuf_match_func strategy,
-                                                             Main *bmain,
-                                                             const FCurve *fcurve_to_match,
-                                                             const bool from_single,
-                                                             const bool to_single,
-                                                             const bool flip)
+static const FCurve *pastebuf_find_matching_copybuf_item(const pastebuf_match_func strategy,
+                                                         Main *bmain,
+                                                         const FCurve &fcurve_to_match,
+                                                         const bool from_single,
+                                                         const bool to_single,
+                                                         const bool flip)
 {
-  LISTBASE_FOREACH (tAnimCopybufItem *, aci, &animcopybuf) {
-    if (strategy(bmain, fcurve_to_match, aci, from_single, to_single, flip)) {
-      return aci;
+  using namespace blender::animrig;
+
+  for (const Channelbag *channelbag : keyframe_copy_buffer->keyframe_data.channelbags()) {
+    for (const FCurve *fcurve : channelbag->fcurves()) {
+      if (strategy(bmain,
+                   fcurve_to_match,
+                   *fcurve,
+                   channelbag->slot_handle,
+                   from_single,
+                   to_single,
+                   flip))
+      {
+        return fcurve;
+      }
     }
   }
   return nullptr;
 }
 
 bool pastebuf_match_path_full(Main * /*bmain*/,
-                              const FCurve *fcu,
-                              const tAnimCopybufItem *aci,
+                              const FCurve &fcurve_to_match,
+                              const FCurve &fcurve_in_copy_buffer,
+                              blender::animrig::slot_handle_t /*slot_handle_in_copy_buffer*/,
                               const bool from_single,
                               const bool to_single,
                               const bool flip)
 {
-  if (!fcu->rna_path || !aci->rna_path) {
+  if (!fcurve_to_match.rna_path || !fcurve_in_copy_buffer.rna_path) {
     /* No paths to compare to, so only ok if pasting to a single F-Curve. */
     return to_single;
   }
@@ -1427,35 +1556,38 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
   /* The 'source' of the copy data is considered 'ok' if either we're copying a single F-Curve, or
    * the array index matches (so [location X,Y,Z] can be copied to a single 'scale' property, and
    * it'll pick up the right X/Y/Z component). */
-  const bool is_source_ok = from_single || aci->array_index == fcu->array_index;
+  const bool is_source_ok = from_single ||
+                            fcurve_in_copy_buffer.array_index == fcurve_to_match.array_index;
   if (!is_source_ok) {
     return false;
   }
 
-  if (!to_single && flip && aci->is_bone) {
-    const std::optional<std::string> with_flipped_name = flip_names(
-        const_cast<tAnimCopybufItem *>(aci));
-    return with_flipped_name && with_flipped_name == fcu->rna_path;
+  if (!to_single && flip && keyframe_copy_buffer->is_bone(fcurve_in_copy_buffer)) {
+    const std::optional<std::string> with_flipped_name = blender::ed::animation::flip_names(
+        fcurve_in_copy_buffer.rna_path);
+    return with_flipped_name && with_flipped_name == fcurve_to_match.rna_path;
   }
 
-  return to_single || STREQ(aci->rna_path, fcu->rna_path);
+  return to_single || STREQ(fcurve_in_copy_buffer.rna_path, fcurve_to_match.rna_path);
 }
 
 bool pastebuf_match_path_property(Main *bmain,
-                                  const FCurve *fcu,
-                                  const tAnimCopybufItem *aci,
+                                  const FCurve &fcurve_to_match,
+                                  const FCurve &fcurve_in_copy_buffer,
+                                  blender::animrig::slot_handle_t slot_handle_in_copy_buffer,
                                   const bool from_single,
                                   const bool /*to_single*/,
                                   const bool /*flip*/)
 {
-  if (!aci->rna_path || !fcu->rna_path) {
+  if (!fcurve_in_copy_buffer.rna_path || !fcurve_to_match.rna_path) {
     return false;
   }
 
   /* The 'source' of the copy data is considered 'ok' if either we're copying a single F-Curve, or
    * the array index matches (so [location X,Y,Z] can be copied to a single 'scale' property, and
    * it'll pick up the right X/Y/Z component). */
-  const bool is_source_ok = from_single || aci->array_index == fcu->array_index;
+  const bool is_source_ok = from_single ||
+                            fcurve_in_copy_buffer.array_index == fcurve_to_match.array_index;
   if (!is_source_ok) {
     return false;
   }
@@ -1466,7 +1598,18 @@ bool pastebuf_match_path_property(Main *bmain,
    * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
    * this should work out ok.
    */
-  if (BLI_findindex(which_libbase(bmain, aci->id_type), aci->id) == -1) {
+  const std::optional<ID *> optional_id = keyframe_copy_buffer->slot_animated_ids.lookup_try(
+      slot_handle_in_copy_buffer);
+  if (!optional_id) {
+    printf(
+        "paste_animedit_keys: no idea which ID was animated by \"%s\" in slot \"%s\", so cannot "
+        "match by property name\n",
+        fcurve_in_copy_buffer.rna_path,
+        keyframe_copy_buffer->slot_identifiers.lookup(slot_handle_in_copy_buffer).c_str());
+    return false;
+  }
+  ID *animated_id = optional_id.value();
+  if (BLI_findindex(which_libbase(bmain, GS(animated_id->name)), animated_id) == -1) {
     /* The ID could have been removed after copying the keys. This function
      * needs it to resolve the property & get the name. */
     printf("paste_animedit_keys: error ID has been removed!\n");
@@ -1475,67 +1618,76 @@ bool pastebuf_match_path_property(Main *bmain,
 
   PointerRNA rptr;
   PropertyRNA *prop;
-  PointerRNA id_ptr = RNA_id_pointer_create(aci->id);
+  PointerRNA id_ptr = RNA_id_pointer_create(animated_id);
 
-  if (!RNA_path_resolve_property(&id_ptr, aci->rna_path, &rptr, &prop)) {
+  if (!RNA_path_resolve_property(&id_ptr, fcurve_in_copy_buffer.rna_path, &rptr, &prop)) {
     printf("paste_animedit_keys: failed to resolve path id:%s, '%s'!\n",
-           aci->id->name,
-           aci->rna_path);
+           animated_id->name,
+           fcurve_in_copy_buffer.rna_path);
     return false;
   }
 
   const char *identifier = RNA_property_identifier(prop);
   /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
-  return blender::StringRef(fcu->rna_path).endswith(identifier);
+  return blender::StringRef(fcurve_to_match.rna_path).endswith(identifier);
 }
 
 bool pastebuf_match_index_only(Main * /*bmain*/,
-                               const FCurve *fcu,
-                               const tAnimCopybufItem *aci,
+                               const FCurve &fcurve_to_match,
+                               const FCurve &fcurve_in_copy_buffer,
+                               blender::animrig::slot_handle_t /* slot_handle_in_copy_buffer */,
                                const bool from_single,
                                const bool /*to_single*/,
                                const bool /*flip*/)
 {
-  return from_single || aci->array_index == fcu->array_index;
+  return from_single || fcurve_in_copy_buffer.array_index == fcurve_to_match.array_index;
 }
 
 /* ................ */
 
-static void do_curve_mirror_flippping(tAnimCopybufItem *aci, BezTriple *bezt)
+static void do_curve_mirror_flippping(const FCurve &fcurve, BezTriple &bezt)
 {
-  if (aci->is_bone) {
-    const size_t slength = strlen(aci->rna_path);
-    bool flip = false;
-    if (BLI_strn_endswith(aci->rna_path, "location", slength) && aci->array_index == 0) {
-      flip = true;
-    }
-    else if (BLI_strn_endswith(aci->rna_path, "rotation_quaternion", slength) &&
-             ELEM(aci->array_index, 2, 3))
-    {
-      flip = true;
-    }
-    else if (BLI_strn_endswith(aci->rna_path, "rotation_euler", slength) &&
-             ELEM(aci->array_index, 1, 2))
-    {
-      flip = true;
-    }
-    else if (BLI_strn_endswith(aci->rna_path, "rotation_axis_angle", slength) &&
-             ELEM(aci->array_index, 2, 3))
-    {
-      flip = true;
-    }
+  if (!keyframe_copy_buffer->is_bone(fcurve)) {
+    return;
+  }
 
-    if (flip) {
-      bezt->vec[0][1] = -bezt->vec[0][1];
-      bezt->vec[1][1] = -bezt->vec[1][1];
-      bezt->vec[2][1] = -bezt->vec[2][1];
-    }
+  /* TODO: pull the investigation of the RNA path out of this function, and out of the loop over
+   * all keys of the F-Curve. It only has to be done once per F-Curve, and not for every single
+   * key. */
+  const size_t slength = strlen(fcurve.rna_path);
+  bool flip = false;
+  if (BLI_strn_endswith(fcurve.rna_path, "location", slength) && fcurve.array_index == 0) {
+    flip = true;
+  }
+  else if (BLI_strn_endswith(fcurve.rna_path, "rotation_quaternion", slength) &&
+           ELEM(fcurve.array_index, 2, 3))
+  {
+    flip = true;
+  }
+  else if (BLI_strn_endswith(fcurve.rna_path, "rotation_euler", slength) &&
+           ELEM(fcurve.array_index, 1, 2))
+  {
+    flip = true;
+  }
+  else if (BLI_strn_endswith(fcurve.rna_path, "rotation_axis_angle", slength) &&
+           ELEM(fcurve.array_index, 2, 3))
+  {
+    flip = true;
+  }
+
+  if (flip) {
+    bezt.vec[0][1] = -bezt.vec[0][1];
+    bezt.vec[1][1] = -bezt.vec[1][1];
+    bezt.vec[2][1] = -bezt.vec[2][1];
   }
 }
 
 /* helper for paste_animedit_keys() - performs the actual pasting */
-static void paste_animedit_keys_fcurve(
-    FCurve *fcu, tAnimCopybufItem *aci, float offset[2], const eKeyMergeMode merge_mode, bool flip)
+static void paste_animedit_keys_fcurve(FCurve *fcu,
+                                       const FCurve &fcurve_in_copy_buffer,
+                                       float offset[2],
+                                       const eKeyMergeMode merge_mode,
+                                       bool flip)
 {
   BezTriple *bezt;
   int i;
@@ -1562,12 +1714,13 @@ static void paste_animedit_keys_fcurve(
       float f_max;
 
       if (merge_mode == KEYFRAME_PASTE_MERGE_OVER_RANGE) {
-        f_min = aci->bezt[0].vec[1][0] + offset[0];
-        f_max = aci->bezt[aci->totvert - 1].vec[1][0] + offset[0];
+        f_min = fcurve_in_copy_buffer.bezt[0].vec[1][0] + offset[0];
+        f_max = fcurve_in_copy_buffer.bezt[fcurve_in_copy_buffer.totvert - 1].vec[1][0] +
+                offset[0];
       }
       else { /* Entire Range */
-        f_min = animcopy_firstframe + offset[0];
-        f_max = animcopy_lastframe + offset[0];
+        f_min = keyframe_copy_buffer->first_frame + offset[0];
+        f_max = keyframe_copy_buffer->last_frame + offset[0];
       }
 
       /* remove keys in range */
@@ -1587,35 +1740,32 @@ static void paste_animedit_keys_fcurve(
   }
 
   /* just start pasting, with the first keyframe on the current frame, and so on */
-  for (i = 0, bezt = aci->bezt; i < aci->totvert; i++, bezt++) {
-    /* temporarily apply offset to src beztriple while copying */
-    if (flip) {
-      do_curve_mirror_flippping(aci, bezt);
-    }
-
-    add_v2_v2(bezt->vec[0], offset);
-    add_v2_v2(bezt->vec[1], offset);
-    add_v2_v2(bezt->vec[2], offset);
-
-    /* insert the keyframe
-     * NOTE: we do not want to inherit handles from existing keyframes in this case!
-     */
-
-    blender::animrig::insert_bezt_fcurve(fcu, bezt, INSERTKEY_OVERWRITE_FULL);
-
-    /* un-apply offset from src beztriple after copying */
-    sub_v2_v2(bezt->vec[0], offset);
-    sub_v2_v2(bezt->vec[1], offset);
-    sub_v2_v2(bezt->vec[2], offset);
+  for (i = 0, bezt = fcurve_in_copy_buffer.bezt; i < fcurve_in_copy_buffer.totvert; i++, bezt++) {
+    /* Create a copy to modify, before inserting it into the F-Curve. The
+     * applied offset also determines the frame number of the pasted BezTriple.
+     * If the insertion is done before the offset is applied, it will replace
+     * the original key and _then_ move it to the new position. */
+    BezTriple bezt_copy = *bezt;
 
     if (flip) {
-      do_curve_mirror_flippping(aci, bezt);
+      do_curve_mirror_flippping(*fcu, bezt_copy);
     }
+
+    add_v2_v2(bezt_copy.vec[0], offset);
+    add_v2_v2(bezt_copy.vec[1], offset);
+    add_v2_v2(bezt_copy.vec[2], offset);
+
+    /* Ensure that all pasted data is selected. */
+    BEZT_SEL_ALL(&bezt_copy);
+
+    /* Only now that it has the right values, do the pasting into the F-Curve. */
+    blender::animrig::insert_bezt_fcurve(fcu, &bezt_copy, INSERTKEY_OVERWRITE_FULL);
   }
 
   /* recalculate F-Curve's handles? */
   BKE_fcurve_handles_recalc(fcu);
 }
+}  // namespace blender::ed::animation
 
 const EnumPropertyItem rna_enum_keyframe_paste_offset_items[] = {
     {KEYFRAME_PASTE_OFFSET_CFRA_START,
@@ -1678,24 +1828,25 @@ const EnumPropertyItem rna_enum_keyframe_paste_merge_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static float paste_get_y_offset(bAnimContext *ac,
-                                tAnimCopybufItem *aci,
-                                bAnimListElem *ale,
+static float paste_get_y_offset(const bAnimContext *ac,
+                                const FCurve &fcurve_in_copy_buffer,
+                                const bAnimListElem *ale,
                                 const eKeyPasteValueOffset value_offset_mode)
 {
-  FCurve *fcu = (FCurve *)ale->data;
+  BLI_assert(ale->datatype == ALE_FCURVE);
+  const FCurve *fcu = static_cast<const FCurve *>(ale->data);
   const float cfra = BKE_scene_frame_get(ac->scene);
 
   switch (value_offset_mode) {
     case KEYFRAME_PASTE_VALUE_OFFSET_CURSOR: {
-      SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-      const float offset = sipo->cursorVal - aci->bezt[0].vec[1][1];
+      const SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+      const float offset = sipo->cursorVal - fcurve_in_copy_buffer.bezt[0].vec[1][1];
       return offset;
     }
 
     case KEYFRAME_PASTE_VALUE_OFFSET_CFRA: {
       const float cfra_y = evaluate_fcurve(fcu, cfra);
-      const float offset = cfra_y - aci->bezt[0].vec[1][1];
+      const float offset = cfra_y - fcurve_in_copy_buffer.bezt[0].vec[1][1];
       return offset;
     }
 
@@ -1703,8 +1854,8 @@ static float paste_get_y_offset(bAnimContext *ac,
       bool replace;
       const int fcu_index = BKE_fcurve_bezt_binarysearch_index(
           fcu->bezt, cfra, fcu->totvert, &replace);
-      BezTriple left_key = fcu->bezt[max_ii(fcu_index - 1, 0)];
-      const float offset = left_key.vec[1][1] - aci->bezt[0].vec[1][1];
+      const BezTriple left_key = fcu->bezt[max_ii(fcu_index - 1, 0)];
+      const float offset = left_key.vec[1][1] - fcurve_in_copy_buffer.bezt[0].vec[1][1];
       return offset;
     }
 
@@ -1712,8 +1863,9 @@ static float paste_get_y_offset(bAnimContext *ac,
       bool replace;
       const int fcu_index = BKE_fcurve_bezt_binarysearch_index(
           fcu->bezt, cfra, fcu->totvert, &replace);
-      BezTriple right_key = fcu->bezt[min_ii(fcu_index, fcu->totvert - 1)];
-      const float offset = right_key.vec[1][1] - aci->bezt[aci->totvert - 1].vec[1][1];
+      const BezTriple right_key = fcu->bezt[min_ii(fcu_index, fcu->totvert - 1)];
+      const float offset = right_key.vec[1][1] -
+                           fcurve_in_copy_buffer.bezt[fcurve_in_copy_buffer.totvert - 1].vec[1][1];
       return offset;
     }
 
@@ -1729,37 +1881,32 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
                                    const eKeyPasteOffset offset_mode,
                                    const eKeyPasteValueOffset value_offset_mode,
                                    const eKeyMergeMode merge_mode,
-                                   bool flip)
+                                   const bool flip)
 {
-  bAnimListElem *ale;
+  using namespace blender::ed::animation;
 
-  const Scene *scene = (ac->scene);
-
-  const bool from_single = BLI_listbase_is_single(&animcopybuf);
-  const bool to_single = BLI_listbase_is_single(anim_data);
-
-  float offset[2];
-  int pass;
-
-  /* check if buffer is empty */
-  if (BLI_listbase_is_empty(&animcopybuf)) {
+  if (!keyframe_copy_buffer || keyframe_copy_buffer->is_empty()) {
     return KEYFRAME_PASTE_NOTHING_TO_PASTE;
   }
-
   if (BLI_listbase_is_empty(anim_data)) {
     return KEYFRAME_PASTE_NOWHERE_TO_PASTE;
   }
 
+  const Scene *scene = (ac->scene);
+  const bool from_single = keyframe_copy_buffer->is_single_fcurve();
+  const bool to_single = BLI_listbase_is_single(anim_data);
+  float offset[2] = {0, 0};
+
   /* methods of offset */
   switch (offset_mode) {
     case KEYFRAME_PASTE_OFFSET_CFRA_START:
-      offset[0] = float(scene->r.cfra - animcopy_firstframe);
+      offset[0] = float(scene->r.cfra - keyframe_copy_buffer->first_frame);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_END:
-      offset[0] = float(scene->r.cfra - animcopy_lastframe);
+      offset[0] = float(scene->r.cfra - keyframe_copy_buffer->last_frame);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE:
-      offset[0] = float(scene->r.cfra - animcopy_cfra);
+      offset[0] = float(scene->r.cfra - keyframe_copy_buffer->current_frame);
       break;
     case KEYFRAME_PASTE_OFFSET_NONE:
       offset[0] = 0.0f;
@@ -1767,75 +1914,76 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   }
 
   if (from_single && to_single) {
-    /* 1:1 match, no tricky checking, just paste */
-    FCurve *fcu;
-    tAnimCopybufItem *aci;
+    /* 1:1 match, no tricky checking, just paste. */
+    bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data->first);
+    FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
+    const FCurve &fcurve_in_copy_buffer =
+        *keyframe_copy_buffer->keyframe_data.channelbag(0)->fcurve(0);
 
-    ale = static_cast<bAnimListElem *>(anim_data->first);
-    fcu = (FCurve *)ale->data; /* destination F-Curve */
-    aci = static_cast<tAnimCopybufItem *>(animcopybuf.first);
-
-    offset[1] = paste_get_y_offset(ac, aci, ale, value_offset_mode);
-    paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, false);
+    offset[1] = paste_get_y_offset(ac, fcurve_in_copy_buffer, ale, value_offset_mode);
+    paste_animedit_keys_fcurve(fcu, fcurve_in_copy_buffer, offset, merge_mode, false);
     ale->update |= ANIM_UPDATE_DEFAULT;
+
+    ANIM_animdata_update(ac, anim_data);
+
+    return KEYFRAME_PASTE_OK;
   }
-  else {
-    /* from selected channels
-     * This "passes" system aims to try to find "matching" channels to paste keyframes
-     * into with increasingly loose matching heuristics. The process finishes when at least
-     * one F-Curve has been pasted into.
-     */
-    for (pass = 0; pass < 3; pass++) {
-      uint totmatch = 0;
 
-      pastebuf_match_func matcher;
-      switch (pass) {
-        case 0:
-          matcher = pastebuf_match_path_full;
-          break;
-        case 1:
-          matcher = pastebuf_match_path_property;
-          break;
-        case 2:
-          matcher = pastebuf_match_index_only;
-          break;
-        default:
-          BLI_assert_unreachable();
-          continue;
-      }
+  /* from selected channels
+   * This "passes" system aims to try to find "matching" channels to paste keyframes
+   * into with increasingly loose matching heuristics. The process finishes when at least
+   * one F-Curve has been pasted into.
+   */
+  for (int pass = 0; pass < 3; pass++) {
+    uint totmatch = 0;
 
-      LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
-        /* Find buffer item to paste from:
-         * - If names don't matter (i.e. only 1 channel in buffer), don't check id/group
-         * - If names do matter, only check if id-type is ok for now
-         *   (group check is not that important).
-         * - Most importantly, rna-paths should match (array indices are unimportant for now)
-         */
-        FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
-
-        tAnimCopybufItem *aci = pastebuf_find_matching_copybuf_item(
-            matcher, ac->bmain, fcu, from_single, to_single, flip);
-
-        /* copy the relevant data from the matching buffer curve */
-        if (aci) {
-          totmatch++;
-
-          offset[1] = paste_get_y_offset(ac, aci, ale, value_offset_mode);
-
-          ANIM_nla_mapping_apply_if_needed_fcurve(
-              ale, static_cast<FCurve *>(ale->key_data), false, false);
-          paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
-          ANIM_nla_mapping_apply_if_needed_fcurve(
-              ale, static_cast<FCurve *>(ale->key_data), true, false);
-        }
-
-        ale->update |= ANIM_UPDATE_DEFAULT;
-      }
-
-      /* don't continue if some fcurves were pasted */
-      if (totmatch) {
+    pastebuf_match_func matcher;
+    switch (pass) {
+      case 0:
+        matcher = pastebuf_match_path_full;
         break;
+      case 1:
+        matcher = pastebuf_match_path_property;
+        break;
+      case 2:
+        matcher = pastebuf_match_index_only;
+        break;
+      default:
+        BLI_assert_unreachable();
+        continue;
+    }
+
+    LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
+      /* Find buffer item to paste from:
+       * - If names don't matter (i.e. only 1 channel in buffer), don't check id/group
+       * - If names do matter, only check if id-type is ok for now
+       *   (group check is not that important).
+       * - Most importantly, rna-paths should match (array indices are unimportant for now)
+       */
+      FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
+
+      const FCurve *fcurve_in_copy_buffer = pastebuf_find_matching_copybuf_item(
+          matcher, ac->bmain, *fcu, from_single, to_single, flip);
+
+      /* copy the relevant data from the matching buffer curve */
+      if (fcurve_in_copy_buffer) {
+        totmatch++;
+
+        offset[1] = paste_get_y_offset(ac, *fcurve_in_copy_buffer, ale, value_offset_mode);
+
+        ANIM_nla_mapping_apply_if_needed_fcurve(
+            ale, static_cast<FCurve *>(ale->key_data), false, false);
+        paste_animedit_keys_fcurve(fcu, *fcurve_in_copy_buffer, offset, merge_mode, flip);
+        ANIM_nla_mapping_apply_if_needed_fcurve(
+            ale, static_cast<FCurve *>(ale->key_data), true, false);
       }
+
+      ale->update |= ANIM_UPDATE_DEFAULT;
+    }
+
+    /* don't continue if some fcurves were pasted */
+    if (totmatch) {
+      break;
     }
   }
 

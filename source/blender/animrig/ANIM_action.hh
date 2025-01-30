@@ -965,6 +965,7 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
    * Should only be called when there is no `Channelbag` for this slot yet.
    */
   Channelbag &channelbag_for_slot_add(const Slot &slot);
+  Channelbag &channelbag_for_slot_add(slot_handle_t slot_handle);
 
   /**
    * Find the channelbag for the given slot, or if none exists, create it.

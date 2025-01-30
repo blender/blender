@@ -8,66 +8,139 @@
 
 #pragma once
 
-struct bActionGroup;
-struct BezTriple;
-struct FCurve;
+#include "BLI_map.hh"
+#include "BLI_set.hh"
+#include "BLI_string_ref.hh"
+
+#include "ANIM_action.hh"
+
+#include <limits>
+
 struct ID;
 struct Main;
 
+namespace blender::ed::animation {
+
 /**
- * Datatype for use in the keyframe copy/paste buffer.
+ * Global copy/paste buffer for multi-slotted keyframe data.
+ *
+ * All the animation data managed by this struct is copied into it, and thus
+ * owned by this struct.
  */
-struct tAnimCopybufItem {
-  tAnimCopybufItem *next, *prev;
+struct KeyframeCopyBuffer {
+  /**
+   * The copied keyframes, in a ChannelBag per slot.
+   *
+   * Note that the slot handles are arbitrary, and are likely different from the
+   * handles of the original slots (i.e. the ones that the copied F-Curves were
+   * for). This is to make it possible to copy from different Actions (like is
+   * possible on the dope sheet) and still distinguish between their slots.
+   */
+  animrig::StripKeyframeData keyframe_data;
 
-  ID *id;            /* ID which owns the curve */
-  bActionGroup *grp; /* Action Group */
-  char *rna_path;    /* RNA-Path */
-  int array_index;   /* array index */
+  /**
+   * Just a more-or-less randomly chosen number to start at.
+   *
+   * Having this distinctly different from DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE
+   * makes it easier to spot bugs.
+   */
+  static constexpr animrig::slot_handle_t DEFAULT_LAST_USED_SLOT_HANDLE = 0x1acca;
+  animrig::slot_handle_t last_used_slot_handle = DEFAULT_LAST_USED_SLOT_HANDLE;
 
-  int totvert;     /* number of keyframes stored for this channel */
-  BezTriple *bezt; /* keyframes in buffer */
+  /**
+   * Mapping from slot handles to their identifiers.
+   *
+   * Since the StripKeyframeData only stores slot handles, and not their
+   * identifiers, this has to be stored here. An alternative would be to store
+   * the copied data into an Action, but that would allow for multi-layer,
+   * multi-strip data which is overkill for the functionality needed here.
+   */
+  Map<animrig::slot_handle_t, std::string> slot_identifiers;
 
-  short id_type; /* Result of `GS(id->name)`. */
-  bool is_bone;  /* special flag for armature bones */
+  /**
+   * Mapping from slot handles to the ID that they were copied from.
+   *
+   * Multiple IDs can be animated by a single slot, in which case an arbitrary
+   * one is stored here. This pointer is only used to resolve RNA paths to find the
+   * property name, and thus the exact ID doens't matter much.
+   *
+   * TODO: it would be better to track the ID name here, instead of the pointer.
+   * That'll make it safer to work with when pasting into another file, or after
+   * the copied-from ID has been deleted. For now I (Sybren) am trying to keep
+   * things feature-par with the original code this is replacing.
+   */
+  Map<animrig::slot_handle_t, ID *> slot_animated_ids;
+
+  /**
+   * Pointers to F-Curves in this->keyframe_data that animate bones.
+   *
+   * This is mostly to indicate which F-Curves are flipped when pasting flipped.
+   */
+  Set<const FCurve *> bone_fcurves;
+
+  /* The first and last frames that got copied. */
+  float first_frame = std::numeric_limits<float>::infinity();
+  float last_frame = -std::numeric_limits<float>::infinity();
+
+  /** The current scene frame when copying. Used for the 'relative' paste method. */
+  float current_frame = 0.0f;
+
+  KeyframeCopyBuffer() = default;
+  KeyframeCopyBuffer(const KeyframeCopyBuffer &other) = delete;
+  ~KeyframeCopyBuffer() = default;
+
+  bool is_empty() const;
+  bool is_single_fcurve() const;
+  bool is_bone(const FCurve &fcurve) const;
+
+  /**
+   * Print the contents of the copy buffer to stdout.
+   */
+  void debug_print() const;
 };
 
-void tAnimCopybufItem_free(tAnimCopybufItem *aci);
+extern KeyframeCopyBuffer *keyframe_copy_buffer;
 
 /**
  * Flip bone names in the RNA path, returning the flipped path.
  *
- * Returns empty optional if the aci is not a bone (is_bone=false or RNA path
- * has an unexpected prefix).
+ * Returns empty optional if the aci is not animating a bone, i.e. doesn't have
+ * the 'pose.bones["' prefix.
  */
-std::optional<std::string> flip_names(const tAnimCopybufItem *aci);
+std::optional<std::string> flip_names(StringRefNull rna_path);
 
 /**
- * Most strict paste buffer matching method: exact matches only.
+ * Most strict paste buffer matching method: exact matches on RNA path and array index only.
  */
 bool pastebuf_match_path_full(Main *bmain,
-                              const FCurve *fcu,
-                              const tAnimCopybufItem *aci,
+                              const FCurve &fcurve_to_match,
+                              const FCurve &fcurve_in_copy_buffer,
+                              animrig::slot_handle_t slot_handle_in_copy_buffer,
                               bool from_single,
                               bool to_single,
                               bool flip);
 
 /**
- * Medium strict paste buffer matching method: match the property name only.
+ * Medium strict paste buffer matching method: match the property name (so not the entire RNA path)
+ * and the array index.
  */
 bool pastebuf_match_path_property(Main *bmain,
-                                  const FCurve *fcu,
-                                  const tAnimCopybufItem *aci,
+                                  const FCurve &fcurve_to_match,
+                                  const FCurve &fcurve_in_copy_buffer,
+                                  animrig::slot_handle_t slot_handle_in_copy_buffer,
                                   bool from_single,
                                   bool to_single,
                                   bool flip);
 
 /**
- * Least strict paste buffer matching method: indices only.
+ * Least strict paste buffer matching method: array indices only.
  */
 bool pastebuf_match_index_only(Main *bmain,
-                               const FCurve *fcu,
-                               const tAnimCopybufItem *aci,
+                               const FCurve &fcurve_to_match,
+                               const FCurve &fcurve_in_copy_buffer,
+                               animrig::slot_handle_t slot_handle_in_copy_buffer,
                                bool from_single,
                                bool to_single,
                                bool flip);
+
+}  // namespace blender::ed::animation
