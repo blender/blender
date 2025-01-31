@@ -25,13 +25,15 @@
 #  include "messages.hh"
 #endif /* WITH_INTERNATIONAL */
 
-bool BLT_is_default_context(const char *msgctxt)
+using blender::StringRef;
+
+bool BLT_is_default_context(const StringRef msgctxt)
 {
   /* We use the "short" test, a more complete one could be:
    * return (!msgctxt || !msgctxt[0] || STREQ(msgctxt, BLT_I18NCONTEXT_DEFAULT_BPYRNA))
    */
   /* NOTE: trying without the void string check for now, it *should* not be necessary... */
-  return (!msgctxt || msgctxt[0] == BLT_I18NCONTEXT_DEFAULT_BPYRNA[0]);
+  return (msgctxt.is_empty() || msgctxt[0] == BLT_I18NCONTEXT_DEFAULT_BPYRNA[0]);
 }
 
 const char *BLT_pgettext(const char *msgctxt, const char *msgid)
