@@ -334,21 +334,27 @@ vec3 dF_impl(vec3 v)
 
 void dF_branch(float fn, out vec2 result)
 {
+  /* NOTE: this function is currently unused, once it is used we need to check if `BUMP_DX/BUMP_DY`
+   * needs to be applied. */
   result.x = dFdx(fn);
   result.y = dFdy(fn);
 }
 
 #else
+/* Offset of coordinates for evaluating bump node. Unit in pixel. */
+#  define BUMP_DX 0.1
+#  define BUMP_DY BUMP_DX
+
 /* Precise derivatives */
 int g_derivative_flag = 0;
 
 vec3 dF_impl(vec3 v)
 {
   if (g_derivative_flag > 0) {
-    return dFdx(v);
+    return dFdx(v) * BUMP_DX;
   }
   else if (g_derivative_flag < 0) {
-    return dFdy(v);
+    return dFdy(v) * BUMP_DY;
   }
   return vec3(0.0);
 }

@@ -86,8 +86,16 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
 
     strength = max(strength, 0.0f);
 
-    /* compute and output perturbed normal */
-    float3 normal_out = safe_normalize(absdet * normal_in - scale * signf(det) * surfgrad);
+    /* Compute and output perturbed normal.
+     * dP'dx = dPdx + scale * (h_x - h_c) / BUMP_DX * normal
+     * dP'dy = dPdy + scale * (h_y - h_c) / BUMP_DY * normal
+     * N' = cross(dP'dx, dP'dy)
+     *    = cross(dPdx, dPdy) - scale * ((h_y - h_c) / BUMP_DY * Ry + (h_x - h_c) / BUMP_DX * Rx)
+     *    ≈ det * normal_in - scale * surfgrad / BUMP_DX
+     */
+    kernel_assert(BUMP_DX == BUMP_DY);
+    float3 normal_out = safe_normalize(BUMP_DX * absdet * normal_in -
+                                       scale * signf(det) * surfgrad);
     if (is_zero(normal_out)) {
       normal_out = normal_in;
     }

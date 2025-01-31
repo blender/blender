@@ -98,10 +98,10 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
 
   float3 P = sd->P;
   if (bump_offset == NODE_BUMP_OFFSET_DX) {
-    P += dP.dx;
+    P += dP.dx * BUMP_DX;
   }
   else if (bump_offset == NODE_BUMP_OFFSET_DY) {
-    P += dP.dy;
+    P += dP.dy * BUMP_DY;
   }
 
   const float f = wireframe(kg, sd, dP, size, pixel_size, &P);

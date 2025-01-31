@@ -74,21 +74,21 @@ shader node_texture_coordinate(
 
   if (bump_offset == "dx") {
     if (!from_dupli) {
-      Generated += Dx(Generated);
-      UV += Dx(UV);
+      Generated += Dx(Generated) * BUMP_DX;
+      UV += Dx(UV) * BUMP_DX;
     }
-    Object += Dx(Object);
-    Camera += Dx(Camera);
-    Window += Dx(Window);
+    Object += Dx(Object) * BUMP_DX;
+    Camera += Dx(Camera) * BUMP_DX;
+    Window += Dx(Window) * BUMP_DX;
   }
   else if (bump_offset == "dy") {
     if (!from_dupli) {
-      Generated += Dy(Generated);
-      UV += Dy(UV);
+      Generated += Dy(Generated) * BUMP_DY;
+      UV += Dy(UV) * BUMP_DY;
     }
-    Object += Dy(Object);
-    Camera += Dy(Camera);
-    Window += Dy(Window);
+    Object += Dy(Object) * BUMP_DY;
+    Camera += Dy(Camera) * BUMP_DY;
+    Window += Dy(Window) * BUMP_DY;
   }
 
   Window[2] = 0.0;
