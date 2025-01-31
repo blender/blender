@@ -42,8 +42,8 @@ NODE_STORAGE_FUNCS(NodePlaneTrackDeformData)
 
 static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_realization_options(
-      CompositorInputRealizationOptions::None);
+  b.add_input<decl::Color>("Image").compositor_realization_mode(
+      CompositorInputRealizationMode::Transforms);
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Plane");
 }

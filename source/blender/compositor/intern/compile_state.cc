@@ -221,7 +221,7 @@ Domain CompileState::compute_pixel_node_domain(DNode node)
     }
 
     /* An input that skips operation domain realization can't be a domain input. */
-    if (!input_descriptor.realization_options.realize_on_operation_domain) {
+    if (input_descriptor.realization_mode != InputRealizationMode::OperationDomain) {
       continue;
     }
 

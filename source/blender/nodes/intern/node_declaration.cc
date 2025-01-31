@@ -690,10 +690,10 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all()
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::compositor_realization_options(
-    CompositorInputRealizationOptions value)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::compositor_realization_mode(
+    CompositorInputRealizationMode value)
 {
-  decl_base_->compositor_realization_options_ = value;
+  decl_base_->compositor_realization_mode_ = value;
   return *this;
 }
 
@@ -788,9 +788,9 @@ Span<int> OutputFieldDependency::linked_input_indices() const
   return linked_input_indices_;
 }
 
-const CompositorInputRealizationOptions &SocketDeclaration::compositor_realization_options() const
+const CompositorInputRealizationMode &SocketDeclaration::compositor_realization_mode() const
 {
-  return compositor_realization_options_;
+  return compositor_realization_mode_;
 }
 
 int SocketDeclaration::compositor_domain_priority() const

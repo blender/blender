@@ -4,18 +4,25 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "COM_result.hh"
 
 namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
- * Input Realization Options
+ * Input Realization Mode
  *
- * A bit-field that specifies how the input should be realized before execution. See the discussion
- * in COM_domain.hh for more information on what realization mean. */
-struct InputRealizationOptions {
-  /* The input should be realized on the operation domain of the operation. */
-  bool realize_on_operation_domain : 1;
+ * Specifies how the input should be realized before execution. See the discussion in COM_domain.hh
+ * for more information on what realization mean. */
+enum class InputRealizationMode : uint8_t {
+  /* The input should not be realized in any way.  */
+  None,
+  /* The rotation and scale transforms of the input should be realized. */
+  Transforms,
+  /* The input should be realized on the operation domain, noting that the operation domain have
+   * its transforms realized. */
+  OperationDomain,
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -28,8 +35,8 @@ class InputDescriptor {
    * receive for the input, in which case, an implicit conversion operation will be added as an
    * input processor to convert it to the required type. */
   ResultType type;
-  /* The options that specify how the input should be realized. */
-  InputRealizationOptions realization_options = {true};
+  /* Specify how the input should be realized. */
+  InputRealizationMode realization_mode = InputRealizationMode::OperationDomain;
   /* The priority of the input for determining the operation domain. The non-single value input
    * with the highest priority will be used to infer the operation domain, the highest priority
    * being zero. See the discussion in COM_domain.hh for more information. */

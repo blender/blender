@@ -25,7 +25,7 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_realization_options(CompositorInputRealizationOptions::None)
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
       .compositor_domain_priority(0);
   b.add_input<decl::Float>("Degr")
       .default_value(0.0f)

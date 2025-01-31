@@ -513,7 +513,9 @@ class FileOutputOperation : public NodeOperation {
       InputDescriptor &descriptor = this->get_input_descriptor(input->identifier);
       /* Inputs for multi-layer files need to be the same size, while they can be different for
        * individual file outputs. */
-      descriptor.realization_options.realize_on_operation_domain = this->is_multi_layer();
+      descriptor.realization_mode = this->is_multi_layer() ?
+                                        InputRealizationMode::OperationDomain :
+                                        InputRealizationMode::Transforms;
     }
   }
 

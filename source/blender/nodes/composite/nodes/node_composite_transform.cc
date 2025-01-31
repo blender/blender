@@ -27,7 +27,7 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .compositor_domain_priority(0)
-      .compositor_realization_options(CompositorInputRealizationOptions::None);
+      .compositor_realization_mode(CompositorInputRealizationMode::None);
   b.add_input<decl::Float>("X")
       .default_value(0.0f)
       .min(-10000.0f)

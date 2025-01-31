@@ -48,14 +48,13 @@ enum class OutputSocketFieldType {
 };
 
 /**
- * A bit-field that maps to the #compositor::InputRealizationOptions.
+ * An enum that maps to the #compositor::InputRealizationMode.
  */
-enum class CompositorInputRealizationOptions : uint8_t {
-  None = 0,
-  RealizeOnOperationDomain = (1 << 0),
+enum class CompositorInputRealizationMode : uint8_t {
+  None,
+  Transforms,
+  OperationDomain,
 };
-ENUM_OPERATORS(CompositorInputRealizationOptions,
-               CompositorInputRealizationOptions::RealizeOnOperationDomain)
 
 /**
  * Contains information about how a node output's field state depends on inputs of the same node.
@@ -197,8 +196,8 @@ class SocketDeclaration : public ItemDeclaration {
   OutputFieldDependency output_field_dependency;
 
  private:
-  CompositorInputRealizationOptions compositor_realization_options_ =
-      CompositorInputRealizationOptions::RealizeOnOperationDomain;
+  CompositorInputRealizationMode compositor_realization_mode_ =
+      CompositorInputRealizationMode::OperationDomain;
 
   /** The priority of the input for determining the domain of the node. See
    * compositor::InputDescriptor for more information. */
@@ -245,7 +244,7 @@ class SocketDeclaration : public ItemDeclaration {
    */
   void make_available(bNode &node) const;
 
-  const CompositorInputRealizationOptions &compositor_realization_options() const;
+  const CompositorInputRealizationMode &compositor_realization_mode() const;
   int compositor_domain_priority() const;
   bool compositor_expects_single_value() const;
 
@@ -352,8 +351,7 @@ class BaseSocketDeclarationBuilder {
   /** Attributes from the all geometry inputs can be propagated. */
   BaseSocketDeclarationBuilder &propagate_all();
 
-  BaseSocketDeclarationBuilder &compositor_realization_options(
-      CompositorInputRealizationOptions value);
+  BaseSocketDeclarationBuilder &compositor_realization_mode(CompositorInputRealizationMode value);
 
   /**
    * The priority of the input for determining the domain of the node. See
