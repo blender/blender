@@ -127,6 +127,32 @@ static void add_single_value_output_parameter(mf::ParamsBuilder &parameter_build
   }
 }
 
+/* Upload the single value output value to the GPU. The set_single_value method already does that,
+ * so we can call it on its own value. */
+static void upload_single_value_output_to_gpu(Result &output)
+{
+  switch (output.type()) {
+    case ResultType::Float:
+      output.set_single_value(output.get_single_value<float>());
+      return;
+    case ResultType::Int:
+      output.set_single_value(output.get_single_value<int>());
+      return;
+    case ResultType::Color:
+      output.set_single_value(output.get_single_value<float4>());
+      return;
+    case ResultType::Vector:
+      output.set_single_value(output.get_single_value<float4>());
+      return;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
 void MultiFunctionProcedureOperation::execute()
 {
   const Domain domain = compute_domain();
@@ -164,6 +190,16 @@ void MultiFunctionProcedureOperation::execute()
 
   mf::ContextBuilder context_builder;
   procedure_executor_->call_auto(mask, parameter_builder, context_builder);
+
+  /* In case of single value GPU execution, the single values need to be uploaded to the GPU. */
+  if (is_single_value && this->context().use_gpu()) {
+    for (int i = 0; i < procedure_.params().size(); i++) {
+      if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Output) {
+        Result &output = get_result(parameter_identifiers_[i]);
+        upload_single_value_output_to_gpu(output);
+      }
+    }
+  }
 }
 
 void MultiFunctionProcedureOperation::build_procedure()
