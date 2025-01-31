@@ -44,7 +44,7 @@ def main():
 
         print("Download:")
         for platform in platforms:
-            # Download from buildbot.
+            # Download from build-bot.
             version = args.version
             version_tokens = version.split(".")
             short_version = version_tokens[0] + version_tokens[1]

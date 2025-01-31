@@ -22,8 +22,7 @@ some missing commits), but it's significantly better than nothing.
 - Make sure the list `LIST_OF_OFFICIAL_BLENDER_VERSIONS` is up to date.
 - Open a terminal in your Blender source code folder and make sure the
   branches you're interested in are up to date.
-- Launch `main.py` with relevant launch arguments. The required arguments
-are:
+- Launch `main.py` with relevant launch arguments. The required arguments are:
   - --current-version (-cv)
   - --previous-version (-pv)
   - --current-release-tag (-ct)
@@ -80,7 +79,7 @@ are not included in the output of this script.
   can't sort it and so it's ignored.
 - If a user puts weird version numbers in their "Broken" or "Working"
 fields on their bug report, then this script could accidentally sorted
-the assocaiated fix commit into the wrong catagory.
+the associated fix commit into the wrong category.
   - This is a consequence of the simple nature of the system the script
   uses to extract Blender versions from a bug report.
   - The triaging team will do their best to remove problematic
@@ -112,7 +111,7 @@ information required.
 The script is looking for `Major.Minor` Blender versions on lines
 that start with either "Broken" or "Working". So all the important
 information should go on these lines. So if a report says:
-"It worked in 4.3", then it needs to be rephased to "Worked: 4.3"
+"It worked in 4.3", then it needs to be rephrased to "Worked: 4.3"
 for the script to find it.
 
 The amount and type of information you put on each report will vary.
@@ -193,9 +192,9 @@ PATH_TO_OVERRIDES = dir_of_script.joinpath('overrides.json')
 PATH_TO_CACHED_COMMITS = dir_of_script.joinpath('cached_commits.json')
 del dir_of_script
 
-# Add recent Blender versions to this list, including indevelopment versions.
+# Add recent Blender versions to this list, including in-development versions.
 # This list is used to identify if a version number found in a report is a valid version number.
-# This is to help elimintate dates and other weird information people put
+# This is to help eliminate dates and other weird information people put
 # in their reports in the format of a version number.
 
 LIST_OF_OFFICIAL_BLENDER_VERSIONS = (
@@ -301,7 +300,7 @@ class CommitInfo():
         self.report_title = UNKNOWN
         self.classification = UNKNOWN
 
-        # Varibales below this point should not be saved to the cache.
+        # Variables below this point should not be saved to the cache.
         self.needs_update = True
         self.has_been_overwritten = False
 
@@ -315,7 +314,7 @@ class CommitInfo():
             self.fixed_reports = match
 
     def get_backports(self, dict_of_backports: dict[str, list[str]]) -> None:
-        # Figures out if the commit was backported, and to what verion(s).
+        # Figures out if the commit was back-ported, and to what version(s).
         if self.needs_update:
             for version_number in dict_of_backports:
                 for backported_commit in dict_of_backports[version_number]:
@@ -324,7 +323,7 @@ class CommitInfo():
                         break
 
         if len(self.backport_list) > 0:
-            # If the fix was backported to a old release, then it fixed a old issue.
+            # If the fix was back-ported to a old release, then it fixed a old issue.
             self.classification = FIXED_OLD_ISSUE
 
     def override_report_info(self, new_classification: str, new_title: str, new_module: str) -> None:
@@ -536,10 +535,10 @@ def version_extraction(report_body: str) -> tuple[list[str], list[str]]:
         lower_line = line.lower()
         example_in_line = 'example' in lower_line
         if lower_line.startswith('brok') and not example_in_line:
-            # Use "brok" to be able to detect different variations of "broken".
+            # Use `brok` to be able to detect different variations of "broken".
             broken_lines += f'{line}\n'
         if lower_line.startswith('work'):
-            # Use "work" to be able to detect both "worked" and "working".
+            # Use `work` to be able to detect both "worked" and "working".
             if not example_in_line:
                 working_lines += f'{line}\n'
 
@@ -818,7 +817,7 @@ def cached_commits_store(list_of_commits: list[CommitInfo]) -> None:
     # Cache information for commits that have been sorted.
     # Commits that still need sorting are not cached.
     # This is done so if a user is repeatably running this script so they can sort
-    # the "needs sorting" section, they don't have to wait for information requests to Gitea
+    # the "needs sorting" section, they don't have to wait for information requests to GITEA
     # on commits that are already sorted (and they're not interested in).
     data_to_cache = {}
     for commit in list_of_commits:
