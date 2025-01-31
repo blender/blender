@@ -1964,8 +1964,9 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
           curves_src, selected_strokes, {});
       Curves *selected_curves = bke::curves_new_nomain(std::move(selected_elems));
       Curves *layer_curves = bke::curves_new_nomain(std::move(drawing_dst->strokes_for_write()));
-      std::array<bke::GeometrySet, 2> geometry_sets{bke::GeometrySet::from_curves(selected_curves),
-                                                    bke::GeometrySet::from_curves(layer_curves)};
+      std::array<bke::GeometrySet, 2> geometry_sets{
+          bke::GeometrySet::from_curves(layer_curves),
+          bke::GeometrySet::from_curves(selected_curves)};
       bke::GeometrySet joined = geometry::join_geometries(geometry_sets, {});
       drawing_dst->strokes_for_write() = std::move(joined.get_curves_for_write()->geometry.wrap());
 
