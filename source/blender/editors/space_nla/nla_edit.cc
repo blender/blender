@@ -69,6 +69,9 @@ void ED_nla_postop_refresh(bAnimContext *ac)
     if (!ale->adt) {
       continue;
     }
+    if (ale->type != ANIMTYPE_ANIMDATA) {
+      continue;
+    }
     /* performing auto-blending, extend-mode validation, etc. */
     BKE_nla_validate_state(static_cast<AnimData *>(ale->data));
 
