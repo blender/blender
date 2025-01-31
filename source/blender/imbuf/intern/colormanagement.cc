@@ -1769,13 +1769,13 @@ static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
   }
 }
 
-static void *do_display_buffer_apply_thread(void *handle_v)
+static void do_display_buffer_apply_thread(void *handle_v)
 {
   DisplayBufferThread *handle = (DisplayBufferThread *)handle_v;
   ColormanageProcessor *cm_processor = handle->cm_processor;
   if (cm_processor == nullptr) {
     do_display_buffer_apply_no_processor(handle);
-    return nullptr;
+    return;
   }
 
   float *display_buffer = handle->display_buffer;
@@ -1828,8 +1828,6 @@ static void *do_display_buffer_apply_thread(void *handle_v)
   }
 
   MEM_freeN(linear_buffer);
-
-  return nullptr;
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf,
@@ -2010,7 +2008,7 @@ static void processor_transform_init_handle(void *handle_v,
   handle->float_from_byte = float_from_byte;
 }
 
-static void *do_processor_transform_thread(void *handle_v)
+static void do_processor_transform_thread(void *handle_v)
 {
   ProcessorTransformThread *handle = (ProcessorTransformThread *)handle_v;
   uchar *byte_buffer = handle->byte_buffer;
@@ -2045,8 +2043,6 @@ static void *do_processor_transform_thread(void *handle_v)
           handle->cm_processor, float_buffer, width, height, channels, predivide);
     }
   }
-
-  return nullptr;
 }
 
 static void processor_transform_apply_threaded(uchar *byte_buffer,
