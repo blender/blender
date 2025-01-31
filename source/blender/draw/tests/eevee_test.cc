@@ -7,7 +7,9 @@
 #include "GPU_batch.hh"
 #include "draw_shader.hh"
 #include "draw_testing.hh"
+#include "engines/eevee_next/eevee_lut.hh"
 #include "engines/eevee_next/eevee_precompute.hh"
+#include "engines/eevee_next/eevee_shadow.hh"
 
 namespace blender::draw {
 
@@ -1884,7 +1886,7 @@ static void test_eevee_surfel_list()
   Vector<int> expect_link_prev = {+3, -1, +1, +2, -1, -1};
 
   Vector<int> link_next, link_prev;
-  for (auto &surfel : Span<Surfel>(surfel_buf.data(), surfel_buf.size())) {
+  for (const auto &surfel : Span<Surfel>(surfel_buf.data(), surfel_buf.size())) {
     link_next.append(surfel.next);
     link_prev.append(surfel.prev);
   }
