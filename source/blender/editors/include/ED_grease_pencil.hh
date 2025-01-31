@@ -928,4 +928,16 @@ bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &curves,
 /* Make sure selection domain is updated to match the current selection mode. */
 bool ensure_selection_domain(ToolSettings *ts, Object *object);
 
+/**
+ * Creates a new curve with one point at the beginning or end.
+ * \note Does not initialize the new curve or points.
+ */
+void add_single_curve(bke::CurvesGeometry &curves, bool at_end);
+
+/**
+ * Resize the first or last curve to `new_points_num` number of points.
+ * \note Does not initialize the new points.
+ */
+void resize_single_curve(bke::CurvesGeometry &curves, bool at_end, int new_points_num);
+
 }  // namespace blender::ed::greasepencil
