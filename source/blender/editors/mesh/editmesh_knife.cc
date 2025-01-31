@@ -4200,8 +4200,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         knife_recalc_ortho(kcd);
         knife_update_active(kcd);
-        knife_update_header(C, op, kcd);
-        ED_region_tag_redraw(kcd->region);
         do_refresh = true;
         handled = true;
         break;
@@ -4210,22 +4208,16 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         knife_recalc_ortho(kcd);
         knife_update_active(kcd);
-        knife_update_header(C, op, kcd);
-        ED_region_tag_redraw(kcd->region);
         do_refresh = true;
         handled = true;
         break;
       case KNF_MODAL_IGNORE_SNAP_ON:
-        ED_region_tag_redraw(kcd->region);
         kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = true;
-        knife_update_header(C, op, kcd);
         do_refresh = true;
         handled = true;
         break;
       case KNF_MODAL_IGNORE_SNAP_OFF:
-        ED_region_tag_redraw(kcd->region);
         kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = false;
-        knife_update_header(C, op, kcd);
         do_refresh = true;
         handled = true;
         break;
@@ -4244,8 +4236,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         knifetool_disable_orientation_locking(kcd);
         knife_reset_snap_angle_input(kcd);
         knife_update_active(kcd);
-        knife_update_header(C, op, kcd);
-        ED_region_tag_redraw(kcd->region);
         do_refresh = true;
         handled = true;
         break;
@@ -4261,7 +4251,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
       case KNF_MODAL_CUT_THROUGH_TOGGLE:
         kcd->cut_through = !kcd->cut_through;
-        knife_update_header(C, op, kcd);
         do_refresh = true;
         handled = true;
         break;
@@ -4273,14 +4262,11 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
           kcd->dist_angle_mode = KNF_MEASUREMENT_NONE;
         }
         kcd->show_dist_angle = (kcd->dist_angle_mode != KNF_MEASUREMENT_NONE);
-        knife_update_header(C, op, kcd);
         do_refresh = true;
         handled = true;
         break;
       case KNF_MODAL_DEPTH_TEST_TOGGLE:
         kcd->depth_test = !kcd->depth_test;
-        ED_region_tag_redraw(kcd->region);
-        knife_update_header(C, op, kcd);
         do_refresh = true;
         handled = true;
         break;
@@ -4385,7 +4371,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case MOUSEMOVE: /* Mouse moved somewhere to select another loop. */
         if (kcd->mode != MODE_PANNING) {
           knifetool_update_mval_i(kcd, event->mval);
-          knife_update_header(C, op, kcd);
+          do_refresh = true;
 
           if (kcd->is_drag_hold) {
             if (kcd->linehits.size() >= 2) {
@@ -4453,8 +4439,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       kcd->axis_constrained = (kcd->constrain_axis != KNF_CONSTRAIN_AXIS_NONE);
       knifetool_disable_angle_snapping(kcd);
-      knife_update_header(C, op, kcd);
-      ED_region_tag_redraw(kcd->region);
       do_refresh = true;
     }
   }
@@ -4467,9 +4451,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (do_refresh) {
-    /* We don't really need to update mval,
-     * but this happens to be the best way to refresh at the moment. */
-    knifetool_update_mval_i(kcd, event->mval);
+    ED_region_tag_redraw(kcd->region);
     knife_update_header(C, op, kcd);
   }
 
