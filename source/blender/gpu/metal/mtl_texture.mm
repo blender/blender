@@ -1353,13 +1353,14 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
   /* If texture is buffer-backed, clear directly on buffer.
    * NOTE: This us currently only true for fallback atomic textures. */
   if (backing_buffer_ != nullptr) {
-    uint num_channels = to_component_len(format_);
-    bool fast_buf_clear_to_zero = true;
-    const uint *val = reinterpret_cast<const uint *>(data);
-    for (int i = 0; i < num_channels; i++) {
-      fast_buf_clear_to_zero = fast_buf_clear_to_zero && (val[i] == 0);
+    uint channel_len = to_component_len(format_);
+    uint channel_size = to_bytesize(data_format);
+    bool fast_buf_clear = true;
+    const uchar *val = reinterpret_cast<const uchar *>(data);
+    for (int i = 1; i < channel_size * channel_len; i++) {
+      fast_buf_clear = fast_buf_clear && (val[i] == val[0]);
     }
-    if (fast_buf_clear_to_zero) {
+    if (fast_buf_clear) {
       /* Fetch active context. */
       MTLContext *ctx = MTLContext::get();
       BLI_assert(ctx);
@@ -1369,10 +1370,11 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
           ctx->main_command_buffer.ensure_begin_blit_encoder();
       [blit_encoder fillBuffer:backing_buffer_->get_metal_buffer()
                          range:NSMakeRange(0, backing_buffer_->get_size())
-                         value:0];
+                         value:val[0]];
     }
     else {
-      BLI_assert_msg(false, "Non-zero buffer-backed texture clear not supported!");
+      BLI_assert_msg(false,
+                     "Non-repeating-byte-pattern clear for buffer-backed textures not supported!");
     }
     return;
   }
