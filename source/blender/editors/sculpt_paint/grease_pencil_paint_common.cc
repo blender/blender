@@ -590,8 +590,6 @@ void GreasePencilStrokeOperationCommon::init_auto_masking(const bContext &C,
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
-  Paint &paint = *BKE_paint_get_active_from_context(&C);
-  const Brush &brush = *BKE_paint_brush(&paint);
 
   const eGP_Sculpt_SelectMaskFlag sculpt_selection_flag = eGP_Sculpt_SelectMaskFlag(
       scene.toolsettings->gpencil_selectmode_sculpt);
@@ -610,7 +608,7 @@ void GreasePencilStrokeOperationCommon::init_auto_masking(const bContext &C,
   const bool use_auto_mask_active_material = (sculpt_settings_flag &
                                               GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_ACTIVE);
 
-  const float radius = brush_radius(scene, brush);
+  const float stroke_distance_threshold = 20.0f;
   const int2 mval_i = int2(math::round(start_sample.mouse_position));
   const int active_material_index = math::max(object.actcol - 1, 0);
 
@@ -667,7 +665,7 @@ void GreasePencilStrokeOperationCommon::init_auto_masking(const bContext &C,
           stroke_selection, GrainSize(512), memory, [&](const int curve_i) {
             for (const int point_i : points_by_curve[curve_i]) {
               const float distance = math::distance(mval_i, int2(view_positions[point_i]));
-              if (distance <= radius) {
+              if (distance <= stroke_distance_threshold) {
                 return true;
               }
             }
