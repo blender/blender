@@ -666,30 +666,51 @@ void imageStoreFast(SamplerT texture, IntCoord coord, DataVec data)
 
 IMAGE_FN AtomicT imageAtomicMin(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_min(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicMax(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_max(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicAdd(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_add(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicAnd(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_and(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicOr(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_or(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicXor(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_xor(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicExchange(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_exchange(coord, data);
 }
 
