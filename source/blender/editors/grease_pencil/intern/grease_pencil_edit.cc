@@ -3027,10 +3027,10 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const float offset = RNA_float_get(op->ptr, "offset");
 
-  ViewDepths *view_depths = nullptr;
+  /* Init snap context for geometry projection. */
+  SnapObjectContext *snap_context = nullptr;
   if (mode == ReprojectMode::Surface) {
-    ED_view3d_depth_override(
-        depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, false, &view_depths);
+    snap_context = ED_transform_snap_object_context_create(&scene, 0);
   }
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
@@ -3083,29 +3083,64 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
         return;
       }
 
-      const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-      /* Pass in a copy of view_depths, DrawingPlacement fully owns (and frees) them. */
-      ViewDepths *view_depths_copy = nullptr;
-      if (view_depths != nullptr) {
-        view_depths_copy = static_cast<ViewDepths *>(MEM_dupallocN(view_depths));
-        view_depths_copy->depths = static_cast<float *>(MEM_dupallocN(view_depths->depths));
-      }
-      const DrawingPlacement drawing_placement(
-          scene, *region, *v3d, *object, &layer, mode, offset, view_depths_copy);
-
       MutableSpan<float3> positions = curves.positions_for_write();
-      points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
-        positions[point_i] = drawing_placement.reproject(positions[point_i]);
-      });
-      info.drawing.tag_positions_changed();
+      const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
+      if (mode == ReprojectMode::Surface) {
+        const float4x4 layer_space_to_world_space = layer.to_world_space(*object);
+        points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
+          float3 &position = positions[point_i];
+          const float3 world_pos = math::transform_point(layer_space_to_world_space, position);
+          float2 screen_co;
+          if (ED_view3d_project_float_global(region, world_pos, screen_co, V3D_PROJ_TEST_NOP) !=
+              eV3DProjStatus::V3D_PROJ_RET_OK)
+          {
+            return;
+          }
 
+          float3 ray_start, ray_direction;
+          if (!ED_view3d_win_to_ray_clipped(
+                  depsgraph, region, v3d, screen_co, ray_start, ray_direction, true))
+          {
+            return;
+          }
+
+          float hit_depth = std::numeric_limits<float>::max();
+          float3 hit_position(0.0f);
+          float3 hit_normal(0.0f);
+
+          SnapObjectParams params{};
+          params.snap_target_select = SCE_SNAP_TARGET_ALL;
+          if (ED_transform_snap_object_project_ray(snap_context,
+                                                   depsgraph,
+                                                   v3d,
+                                                   &params,
+                                                   ray_start,
+                                                   ray_direction,
+                                                   &hit_depth,
+                                                   hit_position,
+                                                   hit_normal))
+          {
+            /* Apply offset over surface. */
+            position = hit_position + math::normalize(ray_start - hit_position) * offset;
+          }
+        });
+      }
+      else {
+        const DrawingPlacement drawing_placement(
+            scene, *region, *v3d, *object, &layer, mode, offset, nullptr);
+        points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
+          positions[point_i] = drawing_placement.reproject(positions[point_i]);
+        });
+      }
+
+      info.drawing.tag_positions_changed();
       changed.store(true, std::memory_order_relaxed);
     });
   }
 
-  if (view_depths != nullptr) {
-    ED_view3d_depths_free(view_depths);
+  if (snap_context != nullptr) {
+    ED_transform_snap_object_context_destroy(snap_context);
   }
 
   if (mode == ReprojectMode::Surface) {
