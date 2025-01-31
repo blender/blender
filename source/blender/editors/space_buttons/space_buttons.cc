@@ -1031,6 +1031,7 @@ void ED_spacetype_buttons()
   art->draw = ED_region_panels_draw;
   art->listener = buttons_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+  art->lock = true;
   buttons_context_register(art);
   BLI_addhead(&st->regiontypes, art);
 
