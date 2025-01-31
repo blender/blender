@@ -475,7 +475,7 @@ class NODE_OT_viewer_shortcut_set(Operator):
             nodes.active = old_active
 
         viewer_node.ui_shortcut = self.viewer_index
-        self.report({'INFO'}, "Assigned shortcut %i to %s" % (self.viewer_index, viewer_node.name))
+        self.report({'INFO'}, "Assigned shortcut {:d} to {:s}".format(self.viewer_index, viewer_node.name))
 
         return {'FINISHED'}
 
@@ -510,7 +510,7 @@ class NODE_OT_viewer_shortcut_get(Operator):
                 viewer_node = n
 
         if not viewer_node:
-            self.report({'INFO'}, "Shortcut %i is not assigned to a Viewer node yet" % self.viewer_index)
+            self.report({'INFO'}, "Shortcut {:d} is not assigned to a Viewer node yet".format(self.viewer_index))
             return {'CANCELLED'}
 
         # Use the node active status to enable this viewer node and disable others.

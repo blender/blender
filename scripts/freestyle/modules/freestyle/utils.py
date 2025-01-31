@@ -283,7 +283,7 @@ class BoundingBox:
         self.corners = (minimum, maximum)
 
     def __repr__(self):
-        return "BoundingBox(%r, %r)" % (self.minimum, self.maximum)
+        return "BoundingBox({!r}, {!r})".format(self.minimum, self.maximum)
 
     @classmethod
     def from_sequence(cls, sequence):
