@@ -36,6 +36,7 @@ void VKDiscardPool::deinit(VKDevice &device)
 void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
 {
   std::scoped_lock mutex(mutex_);
+  src_pool.buffer_views_.update_timeline(timeline);
   src_pool.buffers_.update_timeline(timeline);
   src_pool.image_views_.update_timeline(timeline);
   src_pool.images_.update_timeline(timeline);
@@ -43,6 +44,7 @@ void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
   src_pool.pipeline_layouts_.update_timeline(timeline);
   src_pool.framebuffers_.update_timeline(timeline);
   src_pool.render_passes_.update_timeline(timeline);
+  buffer_views_.extend(std::move(src_pool.buffer_views_));
   buffers_.extend(std::move(src_pool.buffers_));
   image_views_.extend(std::move(src_pool.image_views_));
   images_.extend(std::move(src_pool.images_));
@@ -68,6 +70,12 @@ void VKDiscardPool::discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocat
 {
   std::scoped_lock mutex(mutex_);
   buffers_.append_timeline(timeline_, std::pair(vk_buffer, vma_allocation));
+}
+
+void VKDiscardPool::discard_buffer_view(VkBufferView vk_buffer_view)
+{
+  std::scoped_lock mutex(mutex_);
+  buffer_views_.append_timeline(timeline_, vk_buffer_view);
 }
 
 void VKDiscardPool::discard_shader_module(VkShaderModule vk_shader_module)
@@ -106,6 +114,10 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
     device.resources.remove_image(image_allocation.first);
     vmaDestroyImage(device.mem_allocator_get(), image_allocation.first, image_allocation.second);
   });
+  buffer_views_.remove_old(current_timeline, [&](VkBufferView vk_buffer_view) {
+    vkDestroyBufferView(device.vk_handle(), vk_buffer_view, nullptr);
+  });
+
   buffers_.remove_old(current_timeline, [&](std::pair<VkBuffer, VmaAllocation> buffer_allocation) {
     device.resources.remove_buffer(buffer_allocation.first);
     vmaDestroyBuffer(
