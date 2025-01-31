@@ -306,7 +306,6 @@ blender::Span<blender::float3> Mesh::corner_normals() const
                                    this->corner_verts(),
                                    this->corner_edges(),
                                    this->corner_to_face_map(),
-                                   this->vert_normals(),
                                    this->face_normals(),
                                    sharp_edges,
                                    sharp_faces,
@@ -649,7 +648,6 @@ struct CornerSplitTaskDataCommon {
   Span<int2> edge_to_corners;
   Span<int> corner_to_face;
   Span<float3> face_normals;
-  Span<float3> vert_normals;
   Span<short2> clnors_data;
 };
 
@@ -1181,7 +1179,6 @@ void normals_calc_corners(const Span<float3> vert_positions,
                           const Span<int> corner_verts,
                           const Span<int> corner_edges,
                           const Span<int> corner_to_face_map,
-                          const Span<float3> vert_normals,
                           const Span<float3> face_normals,
                           const Span<bool> sharp_edges,
                           const Span<bool> sharp_faces,
@@ -1229,11 +1226,6 @@ void normals_calc_corners(const Span<float3> vert_positions,
   common_data.edge_to_corners = edge_to_corners;
   common_data.corner_to_face = corner_to_face_map;
   common_data.face_normals = face_normals;
-  common_data.vert_normals = vert_normals;
-
-  /* Pre-populate all corner normals as if their verts were all smooth.
-   * This way we don't have to compute those later! */
-  array_utils::gather(vert_normals, corner_verts, r_corner_normals, 1024);
 
   /* This first corner check which edges are actually smooth, and compute edge vectors. */
   build_edge_to_corner_map_with_flip_and_sharp(
@@ -1314,7 +1306,6 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
                        corner_verts,
                        corner_edges,
                        corner_to_face,
-                       vert_normals,
                        face_normals,
                        sharp_edges,
                        sharp_faces,
@@ -1435,7 +1426,6 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
                          corner_verts,
                          corner_edges,
                          corner_to_face,
-                         vert_normals,
                          face_normals,
                          sharp_edges,
                          sharp_faces,
