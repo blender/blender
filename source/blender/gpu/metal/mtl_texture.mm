@@ -458,9 +458,8 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mi
       /* DEPTH TEX */
       GPU_framebuffer_ensure_config(
           &blit_fb_,
-          {GPU_ATTACHMENT_TEXTURE_LAYER_MIP(wrap(static_cast<Texture *>(this)),
-                                            static_cast<int>(dst_slice),
-                                            static_cast<int>(dst_mip)),
+          {GPU_ATTACHMENT_TEXTURE_LAYER_MIP(
+               wrap(static_cast<Texture *>(this)), int(dst_slice), int(dst_mip)),
            GPU_ATTACHMENT_NONE});
     }
     else {
@@ -468,9 +467,8 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mi
       GPU_framebuffer_ensure_config(
           &blit_fb_,
           {GPU_ATTACHMENT_NONE,
-           GPU_ATTACHMENT_TEXTURE_LAYER_MIP(wrap(static_cast<Texture *>(this)),
-                                            static_cast<int>(dst_slice),
-                                            static_cast<int>(dst_mip))});
+           GPU_ATTACHMENT_TEXTURE_LAYER_MIP(
+               wrap(static_cast<Texture *>(this)), int(dst_slice), int(dst_mip))});
     }
     blit_fb_slice_ = dst_slice;
     blit_fb_mip_ = dst_mip;
@@ -2078,7 +2076,7 @@ bool gpu::MTLTexture::init_internal(VertBuf *vbo)
   size_t bytes_per_row = bytes_per_pixel * w_;
 
   MTLContext *mtl_ctx = MTLContext::get();
-  uint32_t align_requirement = static_cast<uint32_t>(
+  uint32_t align_requirement = uint32_t(
       [mtl_ctx->device minimumLinearTextureAlignmentForPixelFormat:mtl_format]);
 
   /* If stride is larger than bytes per pixel, but format has multiple attributes,
@@ -2455,7 +2453,7 @@ void gpu::MTLTexture::ensure_baked()
 
       /* Texture allocation with buffer as backing storage. Bytes per row must satisfy alignment
        * rules for device. */
-      uint32_t align_requirement = static_cast<uint32_t>(
+      uint32_t align_requirement = uint32_t(
           [ctx->device minimumLinearTextureAlignmentForPixelFormat:mtl_format]);
       size_t aligned_bytes_per_row = ceil_to_multiple_ul(bytes_per_row, align_requirement);
       texture_ = [backing_buffer_->get_metal_buffer()
