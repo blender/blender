@@ -1257,6 +1257,9 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
   }
   /* NLA strips contain actions. */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+    if (nlt->flag & NLATRACK_MUTED) {
+      continue;
+    }
     build_animdata_nlastrip_targets(&nlt->strips);
   }
   /* Drivers. */

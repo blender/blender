@@ -1617,6 +1617,9 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
     build_animdata_action_targets(id, adt->slot_handle, adt_key, operation_from, adt->action);
   }
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+    if (nlt->flag & NLATRACK_MUTED) {
+      continue;
+    }
     build_animdata_nlastrip_targets(id, adt_key, operation_from, &nlt->strips);
   }
 }
