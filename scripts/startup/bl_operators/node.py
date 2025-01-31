@@ -428,15 +428,17 @@ class NODE_OT_viewer_shortcut_set(Operator):
         return None
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
+        del cls
         space = context.space_data
-        return (space.type == 'NODE_EDITOR' and
-                space.node_tree is not None and
-                space.tree_type == 'CompositorNodeTree')
+        return (
+            space.type == 'NODE_EDITOR' and
+            space.node_tree is not None and
+            space.tree_type == 'CompositorNodeTree'
+        )
 
     def execute(self, context):
         nodes = context.space_data.edit_tree.nodes
-        links = context.space_data.edit_tree.links
         selected_nodes = context.selected_nodes
 
         if len(selected_nodes) == 0:
@@ -453,14 +455,18 @@ class NODE_OT_viewer_shortcut_set(Operator):
         else:
             viewer_node = self.get_connected_viewer(fav_node)
             if not viewer_node:
-                # Calling link_viewer() if a viewer node is connected will connect the next available socket to the viewer node.
+                # Calling `link_viewer()` if a viewer node is connected
+                # will connect the next available socket to the viewer node.
                 # This behavior is not desired as we want to create a shortcut to the existing connected viewer node.
-                # Therefore link_viewer() is called only when no viewer node is connected.
+                # Therefore `link_viewer()` is called only when no viewer node is connected.
                 bpy.ops.node.link_viewer()
                 viewer_node = self.get_connected_viewer(fav_node)
 
         if not viewer_node:
-            self.report({'ERROR'}, "Unable to set shortcut, selected node is not a viewer node or does not support viewing")
+            self.report(
+                {'ERROR'},
+                "Unable to set shortcut, selected node is not a viewer node or does not support viewing",
+            )
             return {'CANCELLED'}
 
         # Use the node active status to enable this viewer node and disable others.
@@ -485,11 +491,14 @@ class NODE_OT_viewer_shortcut_get(Operator):
         description="Index corresponding to the shortcut, e.g. number key 1 corresponds to index 1 etc..")
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
+        del cls
         space = context.space_data
-        return (space.type == 'NODE_EDITOR' and
-                space.node_tree is not None and
-                space.tree_type == 'CompositorNodeTree')
+        return (
+            space.type == 'NODE_EDITOR' and
+            space.node_tree is not None and
+            space.tree_type == 'CompositorNodeTree'
+        )
 
     def execute(self, context):
         nodes = context.space_data.edit_tree.nodes
