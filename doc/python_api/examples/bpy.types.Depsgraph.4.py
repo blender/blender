@@ -13,7 +13,7 @@ animation or modifiers into account:
 
 - For meshes this is similar to duplicating the source mesh.
 - For curves this disables own modifiers, and modifiers of objects used as bevel and taper.
-- For metaballs this produces an empty mesh since polygonization is done as a modifier evaluation.
+- For meta-balls this produces an empty mesh since polygonization is done as a modifier evaluation.
 
 When is used on evaluated object all modifiers are taken into account.
 

@@ -535,8 +535,8 @@ DEPS_OPTIONAL_SUBPACKAGES = (
 )
 
 
-# Python packages that should be available for Blender pyscripts.
-# Suse uses names like `python310-Cython` for its python module packages...
+# Python packages that should be available for Blender Pythons-scripts.
+# SUSE uses names like `python310-Cython` for its python module packages...
 def suse_pypackages_name_gen(name):
     def _gen(package, parent_packages):
         pp = parent_packages[-1]
@@ -871,9 +871,9 @@ PACKAGES_ALL = (
                                     ),
                             Package(name="NanoVDB Library", is_mandatory=False,
                                     distro_package_names={DISTRO_ID_DEBIAN: "libnanovdb-dev",
-                                                          DISTRO_ID_FEDORA: ...,  # Part of openvdb package.
+                                                          DISTRO_ID_FEDORA: ...,  # Part of OpenVDB package.
                                                           DISTRO_ID_SUSE: None,
-                                                          DISTRO_ID_ARCH: ...,   # Part of openvdb package.
+                                                          DISTRO_ID_ARCH: ...,   # Part of OpenVDB package.
                                                           },
                                     ),
                         ),
