@@ -30,6 +30,10 @@ RenderTaskDelegate::RenderTaskDelegate(pxr::HdRenderIndex *parent_index,
   task_params_.enableLighting = true;
   task_params_.alphaThreshold = 0.1f;
 
+  /* Disable this so Metal and OpenGL match in Storm render tests, only
+   * the former seems to use multisample. */
+  task_params_.useAovMultiSample = false;
+
   CLOG_INFO(LOG_HYDRA_RENDER, 1, "%s", task_id_.GetText());
 }
 
