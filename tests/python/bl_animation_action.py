@@ -395,6 +395,10 @@ class ChannelbagsTest(unittest.TestCase):
         self.strip.channelbags.remove(channelbag)
         self.assertEqual([], list(self.strip.channelbags))
 
+    def test_ensure_channelbag(self):
+        channelbag = self.strip.channels(self.slot.handle, ensure=True)
+        self.assertEqual([channelbag], list(self.strip.channelbags))
+
     def test_create_remove_fcurves(self):
         channelbag = self.strip.channelbags.new(self.slot)
 

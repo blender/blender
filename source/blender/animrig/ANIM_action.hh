@@ -971,6 +971,7 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
    * Find the channelbag for the given slot, or if none exists, create it.
    */
   Channelbag &channelbag_for_slot_ensure(const Slot &slot);
+  Channelbag &channelbag_for_slot_ensure(slot_handle_t slot_handle);
 
   /**
    * Remove the given channelbag from this strip data.

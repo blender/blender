@@ -1774,11 +1774,16 @@ Channelbag &StripKeyframeData::channelbag_for_slot_add(const slot_handle_t slot_
 
 Channelbag &StripKeyframeData::channelbag_for_slot_ensure(const Slot &slot)
 {
-  Channelbag *channelbag = this->channelbag_for_slot(slot);
+  return this->channelbag_for_slot_ensure(slot.handle);
+}
+
+Channelbag &StripKeyframeData::channelbag_for_slot_ensure(const slot_handle_t slot_handle)
+{
+  Channelbag *channelbag = this->channelbag_for_slot(slot_handle);
   if (channelbag != nullptr) {
     return *channelbag;
   }
-  return this->channelbag_for_slot_add(slot);
+  return this->channelbag_for_slot_add(slot_handle);
 }
 
 static void channelbag_ptr_destructor(ActionChannelbag **dna_channelbag_ptr)
