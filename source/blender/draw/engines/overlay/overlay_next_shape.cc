@@ -867,20 +867,23 @@ ShapeCache::ShapeCache()
        * Fractional part of Z is a positive offset at axis unit position. */
       int flag = VCLASS_EMPTY_AXES | VCLASS_SCREENALIGNED;
       /* Center to axis line. */
+      /* NOTE: overlay_armature_shape_wire_vert.glsl expects the axis verts at the origin to be the
+       * only ones with this coordinates (it derives the VCLASS from it). */
+      float pos_on_axis = float(axis) + 1e-8f;
       verts.append({{0.0f, 0.0f, 0.0f}, 0});
-      verts.append({{0.0f, 0.0f, float(axis)}, flag});
+      verts.append({{0.0f, 0.0f, pos_on_axis}, flag});
       /* Axis end marker. */
       constexpr int marker_fill_layer = 6;
       for (int j = 1; j < marker_fill_layer + 1; j++) {
         for (float2 axis_marker_vert : axis_marker) {
-          verts.append({{axis_marker_vert * ((4.0f * j) / marker_fill_layer), float(axis)}, flag});
+          verts.append({{axis_marker_vert * ((4.0f * j) / marker_fill_layer), pos_on_axis}, flag});
         }
       }
       /* Axis name. */
       const Vector<float2> *axis_names[3] = {&x_axis_name, &y_axis_name, &z_axis_name};
       for (float2 axis_name_vert : *(axis_names[axis])) {
         int flag = VCLASS_EMPTY_AXES | VCLASS_EMPTY_AXES_NAME | VCLASS_SCREENALIGNED;
-        verts.append({{axis_name_vert * 4.0f, axis + 0.25f}, flag});
+        verts.append({{axis_name_vert * 4.0f, pos_on_axis + 0.25f}, flag});
       }
     }
     arrows = BatchPtr(

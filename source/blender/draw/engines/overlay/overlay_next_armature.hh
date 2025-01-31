@@ -288,6 +288,7 @@ class Armatures : Overlay {
         sub.shader_set(res.shaders.armature_shape_wire.get());
         sub.push_constant("alpha", 1.0f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
         opaque_.shape_wire = &sub;
       }
       if (use_wire_alpha) {
@@ -297,6 +298,7 @@ class Armatures : Overlay {
         sub.bind_texture("depthTex", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
         transparent_.shape_wire = &sub;
       }
       else {
@@ -309,6 +311,7 @@ class Armatures : Overlay {
         sub.shader_set(res.shaders.armature_shape_wire_strip.get());
         sub.push_constant("alpha", 1.0f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
         opaque_.shape_wire_strip = &sub;
       }
       if (use_wire_alpha) {
@@ -318,6 +321,7 @@ class Armatures : Overlay {
         sub.bind_texture("depthTex", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
         transparent_.shape_wire_strip = &sub;
       }
       else {
@@ -593,6 +597,7 @@ class Armatures : Overlay {
 
       using CustomShapeBuf = MutableMapItem<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>>;
 
+      gpu::Batch *arrow_batch = res.shapes.arrows.get();
       for (CustomShapeBuf item : bb.custom_shape_fill.items()) {
         item.value->end_sync(*bb.shape_fill, item.key);
       }
@@ -600,7 +605,19 @@ class Armatures : Overlay {
         item.value->end_sync(*bb.shape_outline, item.key, GPU_PRIM_LINES, 1);
       }
       for (CustomShapeBuf item : bb.custom_shape_wire.items()) {
+        /* WORKAROUND: This shape needs a special vertex shader path that should be triggered by
+         * its vclass attribute. However, to avoid many changes in the primitive expansion API,
+         * we create a specific path inside the shader only for this shape batch and infer the
+         * value of the `vclass` attribute based on the vertex index. */
+        if (item.key == arrow_batch) {
+          bb.shape_wire->push_constant("use_arrow_drawing", true);
+        }
+
         item.value->end_sync(*bb.shape_wire, item.key, GPU_PRIM_TRIS, 2);
+
+        if (item.key == arrow_batch) {
+          bb.shape_wire->push_constant("use_arrow_drawing", false);
+        }
       }
       for (CustomShapeBuf item : bb.custom_shape_wire_strip.items()) {
         item.value->end_sync(*bb.shape_wire_strip, item.key, GPU_PRIM_TRIS, 2);
