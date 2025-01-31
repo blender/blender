@@ -228,11 +228,6 @@ class Context : public compositor::Context {
     return this->render_context() == nullptr;
   }
 
-  bool use_composite_output() const override
-  {
-    return true;
-  }
-
   const RenderData &get_render_data() const override
   {
     return *(input_data_.render_data);

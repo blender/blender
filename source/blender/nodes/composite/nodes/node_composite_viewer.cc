@@ -58,8 +58,9 @@ class ViewerOperation : public NodeOperation {
 
   void execute() override
   {
-    /* See the compute_domain method for more information on the first condition. */
-    if (!context().use_composite_output() && !context().is_valid_compositing_region()) {
+    /* Viewers are treated as composite outputs that should be in the bounds of the compositing
+     * region, so do nothing if the compositing region is invalid. */
+    if (context().treat_viewer_as_composite_output() && !context().is_valid_compositing_region()) {
       return;
     }
 
@@ -273,19 +274,20 @@ class ViewerOperation : public NodeOperation {
     });
   }
 
-  /* Returns the bounds of the area of the compositing region. If the context can use the composite
-   * output and thus has a dedicated viewer of an arbitrary size, then use the input in its
-   * entirety. Otherwise, no dedicated viewer exist so only write into the compositing region,
-   * which might be limited to a smaller region of the output texture. */
+  /* Returns the bounds of the area of the viewer, which might be limited to a smaller region of
+   * the output. */
   Bounds<int2> get_output_bounds()
   {
-    if (context().use_composite_output()) {
-      return Bounds<int2>(int2(0), compute_domain().size);
+    /* Viewers are treated as composite outputs that should be in the bounds of the compositing
+     * region. */
+    if (context().treat_viewer_as_composite_output()) {
+      const rcti compositing_region = context().get_compositing_region();
+      return Bounds<int2>(int2(compositing_region.xmin, compositing_region.ymin),
+                          int2(compositing_region.xmax, compositing_region.ymax));
     }
 
-    const rcti compositing_region = context().get_compositing_region();
-    return Bounds<int2>(int2(compositing_region.xmin, compositing_region.ymin),
-                        int2(compositing_region.xmax, compositing_region.ymax));
+    /* Otherwise, use the bounds of the input as is. */
+    return Bounds<int2>(int2(0), compute_domain().size);
   }
 
   /* If true, the alpha channel of the image is set to 1, that is, it becomes opaque. If false, the
@@ -298,17 +300,16 @@ class ViewerOperation : public NodeOperation {
 
   Domain compute_domain() override
   {
-    /* The context can use the composite output and thus has a dedicated viewer of an arbitrary
-     * size, so use the input directly. Otherwise, no dedicated viewer exist so the input should be
-     * in the domain of the compositing region. */
-    if (context().use_composite_output()) {
-      const Domain domain = NodeOperation::compute_domain();
-      /* Fallback to the compositing region size in case of a single value domain. */
-      return domain.size == int2(1) ? Domain(context().get_compositing_region_size()) : domain;
-    }
-    else {
+    /* Viewers are treated as composite outputs that should be in the domain of the compositing
+     * region. */
+    if (context().treat_viewer_as_composite_output()) {
       return Domain(context().get_compositing_region_size());
     }
+
+    /* Otherwise, use the domain of the input as is. */
+    const Domain domain = NodeOperation::compute_domain();
+    /* Fallback to the compositing region size in case of a single value domain. */
+    return domain.size == int2(1) ? Domain(context().get_compositing_region_size()) : domain;
   }
 };
 
