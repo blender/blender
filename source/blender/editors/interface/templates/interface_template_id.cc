@@ -784,6 +784,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
   if (undo_push_label != nullptr) {
     ED_undo_push(C, undo_push_label);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
   }
 }
 
