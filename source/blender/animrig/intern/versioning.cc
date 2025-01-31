@@ -35,6 +35,14 @@ constexpr const char *DEFAULT_VERSIONED_LAYER_NAME = "Legacy Layer";
 
 bool action_is_layered(const bAction &dna_action)
 {
+  /* NOTE: due to how forward-compatibility is handled when writing Actions to
+   * blend files, it is important that this function does NOT check
+   * `Action.idroot` as part of its determination of whether this is a layered
+   * action or not.
+   *
+   * See: `action_blend_write()` and `action_blend_read_data()`
+   */
+
   const animrig::Action &action = dna_action.wrap();
 
   const bool has_layered_data = action.layer_array_num > 0 || action.slot_array_num > 0;
