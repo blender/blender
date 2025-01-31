@@ -285,13 +285,13 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
 
   Mesh *mesh = BKE_mesh_copy_for_eval(*tmpmesh);
 
+  /* Ensure data exists if currently in edit mode. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
+
   if (triangulate) {
     bc_triangulate_mesh(mesh);
   }
   BKE_mesh_tessface_ensure(mesh);
-
-  /* Ensure data exists if currently in edit mode. */
-  BKE_mesh_wrapper_ensure_mdata(mesh);
 
   return mesh;
 }
