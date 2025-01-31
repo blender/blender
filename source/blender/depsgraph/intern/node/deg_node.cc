@@ -296,9 +296,9 @@ Node::~Node()
   }
 }
 
-string Node::identifier() const
+std::string Node::identifier() const
 {
-  return string(nodeTypeAsString(type)) + " : " + name;
+  return std::string(nodeTypeAsString(type)) + " : " + name;
 }
 
 NodeClass Node::get_class() const

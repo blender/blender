@@ -27,6 +27,7 @@
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 
+#include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
 #include "DEG_depsgraph.hh"

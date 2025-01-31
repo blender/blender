@@ -71,7 +71,7 @@ class RNANodeQuery {
   DepsgraphBuilder *builder_;
 
   /* Indexed by an ID, returns RNANodeQueryIDData associated with that ID. */
-  Map<const ID *, unique_ptr<RNANodeQueryIDData>> id_data_map_;
+  Map<const ID *, std::unique_ptr<RNANodeQueryIDData>> id_data_map_;
 
   /* Construct identifier of the node which corresponds given configuration
    * of RNA property. */

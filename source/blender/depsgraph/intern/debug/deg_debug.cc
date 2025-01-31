@@ -57,7 +57,7 @@ bool terminal_do_color()
   return (G.debug & G_DEBUG_DEPSGRAPH_PRETTY) != 0;
 }
 
-string color_for_pointer(const void *pointer)
+std::string color_for_pointer(const void *pointer)
 {
   if (!terminal_do_color()) {
     return "";
@@ -66,15 +66,15 @@ string color_for_pointer(const void *pointer)
   BLI_hash_pointer_to_color(pointer, &r, &g, &b);
   char buffer[64];
   SNPRINTF(buffer, TRUECOLOR_ANSI_COLOR_FORMAT, r, g, b);
-  return string(buffer);
+  return std::string(buffer);
 }
 
-string color_end()
+std::string color_end()
 {
   if (!terminal_do_color()) {
     return "";
   }
-  return string(TRUECOLOR_ANSI_COLOR_FINISH);
+  return std::string(TRUECOLOR_ANSI_COLOR_FINISH);
 }
 
 }  // namespace blender::deg

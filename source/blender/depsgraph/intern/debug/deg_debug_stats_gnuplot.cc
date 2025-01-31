@@ -60,14 +60,14 @@ bool stat_entry_comparator(const StatsEntry &a, const StatsEntry &b)
   return a.time > b.time;
 }
 
-string gnuplotify_id_code(const string &name)
+std::string gnuplotify_id_code(const std::string &name)
 {
-  return string("") + name[0] + name[1];
+  return std::string("") + name[0] + name[1];
 }
 
-string gnuplotify_name(const string &name)
+std::string gnuplotify_name(const std::string &name)
 {
-  string result;
+  std::string result;
   const int length = name.length();
   for (int i = 0; i < length; i++) {
     const char ch = name[i];

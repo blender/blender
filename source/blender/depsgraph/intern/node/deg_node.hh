@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "MEM_guardedalloc.h"
 
 #include "intern/depsgraph_type.hh"
@@ -175,7 +177,7 @@ struct Node {
    * have relationships between these nodes. */
   using Relations = Vector<Relation *>;
 
-  string name;        /* Identifier - mainly for debugging purposes. */
+  std::string name;   /* Identifier - mainly for debugging purposes. */
   NodeType type;      /* Structural type of node. */
   Relations inlinks;  /* Nodes which this one depends on. */
   Relations outlinks; /* Nodes which depend on this one. */
@@ -192,7 +194,7 @@ struct Node {
   virtual ~Node();
 
   /** Generic identifier for Depsgraph Nodes. */
-  virtual string identifier() const;
+  virtual std::string identifier() const;
 
   virtual void init(const ID * /*id*/, const char * /*subdata*/) {}
 

@@ -328,7 +328,7 @@ static void deg_debug_graphviz_node_single(DotExportContext &ctx,
                                            const Node *node,
                                            dot::Cluster *parent_cluster)
 {
-  string name = node->identifier();
+  std::string name = node->identifier();
 
   dot::Node &dot_node = ctx.digraph.new_node(name);
   ctx.nodes_map.add_new(node, &dot_node);
@@ -347,7 +347,7 @@ static dot::Cluster &deg_debug_graphviz_node_cluster_create(DotExportContext &ct
                                                             const Node *node,
                                                             dot::Cluster *parent_cluster)
 {
-  string name = node->identifier();
+  std::string name = node->identifier();
   dot::Cluster &cluster = ctx.digraph.new_cluster(name);
   cluster.set_parent_cluster(parent_cluster);
   cluster.attributes.set("fontname", deg_debug_graphviz_fontname);

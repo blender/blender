@@ -50,7 +50,7 @@ struct IDNode : public Node {
   ~IDNode() override;
   void destroy();
 
-  string identifier() const override;
+  std::string identifier() const override;
 
   ComponentNode *find_component(NodeType type, const char *name = "") const;
   ComponentNode *add_component(NodeType type, const char *name = "");

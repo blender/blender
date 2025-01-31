@@ -149,7 +149,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
-    optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(
+    std::optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(
         modifier_data->persistent_uid);
     if (backup.has_value()) {
       modifier_data->runtime = backup->runtime;
@@ -177,7 +177,7 @@ void ObjectRuntimeBackup::restore_pose_channel_runtime_data(Object *object)
   if (object->pose != nullptr) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
       const SessionUID &session_uid = pchan->runtime.session_uid;
-      optional<bPoseChannel_Runtime> runtime = pose_channel_runtime_data.pop_try(session_uid);
+      std::optional<bPoseChannel_Runtime> runtime = pose_channel_runtime_data.pop_try(session_uid);
       if (runtime.has_value()) {
         pchan->runtime = *runtime;
       }

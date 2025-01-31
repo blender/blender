@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "BKE_global.hh"  // IWYU pragma: keep
+#include <string>
 
-#include "intern/depsgraph_type.hh"
+#include "BKE_global.hh"  // IWYU pragma: keep
 
 namespace blender::deg {
 
@@ -28,7 +28,7 @@ class DepsgraphDebug {
 
   /* Name of this dependency graph (is used for debug prints, helping to distinguish graphs
    * created for different view layer). */
-  string name;
+  std::string name;
 
  protected:
   /* Maximum number of counters used to calculate frame rate of depsgraph update. */
@@ -62,7 +62,7 @@ class DepsgraphDebug {
   } while (0)
 
 bool terminal_do_color();
-string color_for_pointer(const void *pointer);
-string color_end();
+std::string color_for_pointer(const void *pointer);
+std::string color_end();
 
 }  // namespace blender::deg

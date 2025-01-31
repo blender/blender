@@ -14,7 +14,6 @@
 #include <iostream>
 
 #include "DNA_ID.h"
-#include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 
 namespace blender::deg {

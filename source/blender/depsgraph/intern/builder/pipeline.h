@@ -10,8 +10,6 @@
 
 #include "deg_builder_cache.h"
 
-#include "intern/depsgraph_type.hh"
-
 struct Depsgraph;
 struct Main;
 struct Scene;
@@ -45,8 +43,8 @@ class AbstractBuilderPipeline {
   ViewLayer *view_layer_;
   DepsgraphBuilderCache builder_cache_;
 
-  virtual unique_ptr<DepsgraphNodeBuilder> construct_node_builder();
-  virtual unique_ptr<DepsgraphRelationBuilder> construct_relation_builder();
+  virtual std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder();
+  virtual std::unique_ptr<DepsgraphRelationBuilder> construct_relation_builder();
 
   virtual void build_step_sanity_check();
   void build_step_nodes();

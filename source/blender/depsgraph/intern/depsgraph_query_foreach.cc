@@ -8,6 +8,8 @@
  * Implementation of Querying and Filtering API's
  */
 
+#include <deque>
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
@@ -25,7 +27,7 @@ namespace deg = blender::deg;
 namespace blender::deg {
 namespace {
 
-using TraversalQueue = deque<OperationNode *>;
+using TraversalQueue = std::deque<OperationNode *>;
 
 using DEGForeachOperation = void (*)(OperationNode *, void *);
 

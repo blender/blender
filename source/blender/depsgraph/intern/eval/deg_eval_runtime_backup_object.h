@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "DNA_object_types.h"
 #include "DNA_session_uid_types.h"
 
@@ -15,7 +17,6 @@
 
 #include "BLI_map.hh"
 
-#include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_runtime_backup_modifier.h"
 
 struct Object;
@@ -42,7 +43,7 @@ class ObjectRuntimeBackup {
   void restore_pose_channel_runtime_data(Object *object);
 
   bke::ObjectRuntime runtime;
-  optional<LightLinkingRuntime> light_linking_runtime;
+  std::optional<LightLinkingRuntime> light_linking_runtime;
   short base_flag;
   unsigned short base_local_view_bits;
   Map<int, ModifierDataBackup> modifier_runtime_data;

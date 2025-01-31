@@ -6,6 +6,8 @@
  * \ingroup depsgraph
  */
 
+#include <deque>
+
 #include "intern/builder/deg_builder_remove_noop.h"
 
 #include "intern/node/deg_node.hh"
@@ -14,7 +16,6 @@
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
-#include "intern/depsgraph_type.hh"
 
 #include "DEG_depsgraph_debug.hh"
 
@@ -53,7 +54,7 @@ static inline bool is_removable_relation(const Relation *relation)
 
 void deg_graph_remove_unused_noops(Depsgraph *graph)
 {
-  deque<OperationNode *> queue;
+  std::deque<OperationNode *> queue;
 
   for (OperationNode *node : graph->operations) {
     if (is_unused_noop(node)) {

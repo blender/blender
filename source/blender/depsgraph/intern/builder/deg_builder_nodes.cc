@@ -10,6 +10,7 @@
 
 #include "intern/builder/deg_builder_nodes.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 
@@ -760,7 +761,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
       build_object_flags(base_index, object, linked_state);
     }
-    id_node->linked_state = max(id_node->linked_state, linked_state);
+    id_node->linked_state = std::max(id_node->linked_state, linked_state);
     id_node->is_visible_on_build |= is_visible;
     id_node->has_base |= (base_index != -1);
 

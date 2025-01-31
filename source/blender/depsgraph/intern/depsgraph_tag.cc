@@ -399,13 +399,13 @@ void graph_id_tag_update_single_flag(Main *bmain,
   deg_graph_id_tag_legacy_compat(bmain, graph, id, tag, update_source);
 }
 
-string stringify_append_bit(const string &str, IDRecalcFlag tag)
+std::string stringify_append_bit(const std::string &str, IDRecalcFlag tag)
 {
   const char *tag_name = DEG_update_tag_as_string(tag);
   if (tag_name == nullptr) {
     return str;
   }
-  string result = str;
+  std::string result = str;
   if (!result.empty()) {
     result += ", ";
   }
@@ -413,12 +413,12 @@ string stringify_append_bit(const string &str, IDRecalcFlag tag)
   return result;
 }
 
-string stringify_update_bitfield(uint flags)
+std::string stringify_update_bitfield(uint flags)
 {
   if (flags == 0) {
     return "LEGACY_0";
   }
-  string result;
+  std::string result;
   uint current_flag = flags;
   /* Special cases to avoid ALL flags form being split into
    * individual bits. */

@@ -11,6 +11,7 @@
 #include "intern/builder/deg_builder_relations_drivers.h"
 
 #include <cstring>
+#include <deque>
 
 #include "BLI_listbase.h"
 
@@ -116,7 +117,7 @@ static bool is_reachable(const Node *const from, const Node *const to)
 
   /* Perform a graph walk from 'to' towards its incoming connections.
    * Walking from 'from' towards its outgoing connections is 10x slower on the Spring rig. */
-  deque<const Node *> queue;
+  std::deque<const Node *> queue;
   Set<const Node *> seen;
   queue.push_back(to);
   while (!queue.empty()) {
@@ -167,7 +168,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
   }
 
   /* Mapping from RNA prefix -> set of driver descriptors: */
-  Map<string, Vector<DriverDescriptor>> driver_groups;
+  Map<std::string, Vector<DriverDescriptor>> driver_groups;
 
   PointerRNA id_ptr = RNA_id_pointer_create(id_orig);
 

@@ -52,7 +52,7 @@ void AbstractBuilderPipeline::build_step_sanity_check()
 void AbstractBuilderPipeline::build_step_nodes()
 {
   /* Generate all the nodes in the graph first */
-  unique_ptr<DepsgraphNodeBuilder> node_builder = construct_node_builder();
+  std::unique_ptr<DepsgraphNodeBuilder> node_builder = construct_node_builder();
   node_builder->begin_build();
   build_nodes(*node_builder);
   node_builder->end_build();
@@ -61,7 +61,7 @@ void AbstractBuilderPipeline::build_step_nodes()
 void AbstractBuilderPipeline::build_step_relations()
 {
   /* Hook up relationships between operations - to determine evaluation order. */
-  unique_ptr<DepsgraphRelationBuilder> relation_builder = construct_relation_builder();
+  std::unique_ptr<DepsgraphRelationBuilder> relation_builder = construct_relation_builder();
   relation_builder->begin_build();
   build_relations(*relation_builder);
   relation_builder->build_copy_on_write_relations();
@@ -94,12 +94,12 @@ void AbstractBuilderPipeline::build_step_finalize()
   deg_graph_->need_update_relations = false;
 }
 
-unique_ptr<DepsgraphNodeBuilder> AbstractBuilderPipeline::construct_node_builder()
+std::unique_ptr<DepsgraphNodeBuilder> AbstractBuilderPipeline::construct_node_builder()
 {
   return std::make_unique<DepsgraphNodeBuilder>(bmain_, deg_graph_, &builder_cache_);
 }
 
-unique_ptr<DepsgraphRelationBuilder> AbstractBuilderPipeline::construct_relation_builder()
+std::unique_ptr<DepsgraphRelationBuilder> AbstractBuilderPipeline::construct_relation_builder()
 {
   return std::make_unique<DepsgraphRelationBuilder>(bmain_, deg_graph_, &builder_cache_);
 }

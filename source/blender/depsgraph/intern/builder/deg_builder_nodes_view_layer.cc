@@ -28,7 +28,6 @@
 
 #include "intern/builder/deg_builder.h"
 #include "intern/depsgraph.hh"
-#include "intern/depsgraph_type.hh"
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_operation.hh"

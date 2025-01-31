@@ -12,6 +12,7 @@
 
 #include "BKE_anim_data.hh"
 
+#include "RNA_access.hh"
 #include "RNA_path.hh"
 
 namespace blender::deg {
