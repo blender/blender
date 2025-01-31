@@ -1471,7 +1471,7 @@ static ImBuf *seq_process_render_image(ImBuf *src,
 
   ImBuf *dst = nullptr;
   if (seq_result_needs_float(im_format) && src->float_buffer.data == nullptr) {
-    /* If render output needs >8 bpp input and we only have 8pp, convert to float. */
+    /* If render output needs >8-BPP input and we only have 8-BPP, convert to float. */
     dst = IMB_allocImBuf(src->x, src->y, src->planes, 0);
     imb_addrectfloatImBuf(dst, src->channels, false);
     /* Transform from sequencer space to scene linear. */

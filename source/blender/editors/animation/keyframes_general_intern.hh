@@ -62,11 +62,11 @@ struct KeyframeCopyBuffer {
    *
    * Multiple IDs can be animated by a single slot, in which case an arbitrary
    * one is stored here. This pointer is only used to resolve RNA paths to find the
-   * property name, and thus the exact ID doens't matter much.
+   * property name, and thus the exact ID doesn't matter much.
    *
-   * TODO: it would be better to track the ID name here, instead of the pointer.
+   * TODO(@sybren): it would be better to track the ID name here, instead of the pointer.
    * That'll make it safer to work with when pasting into another file, or after
-   * the copied-from ID has been deleted. For now I (Sybren) am trying to keep
+   * the copied-from ID has been deleted. For now I am trying to keep
    * things feature-par with the original code this is replacing.
    */
   Map<animrig::slot_handle_t, ID *> slot_animated_ids;
@@ -104,8 +104,8 @@ extern KeyframeCopyBuffer *keyframe_copy_buffer;
 /**
  * Flip bone names in the RNA path, returning the flipped path.
  *
- * Returns empty optional if the aci is not animating a bone, i.e. doesn't have
- * the 'pose.bones["' prefix.
+ * Returns empty optional if the `rna_path` is not animating a bone,
+ * i.e. doesn't have the `pose.bones["` prefix.
  */
 std::optional<std::string> flip_names(StringRefNull rna_path);
 

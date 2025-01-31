@@ -970,8 +970,10 @@ static float strip_to_frame_distance(const Scene *scene,
   return BLI_rctf_length_x(&body, timeline_frame);
 }
 
-/* Get strips that can be selected by a click from `mouse_co` in viewspace.
- * The area considered includes padded handles past strip bounds. */
+/**
+ * Get strips that can be selected by a click from `mouse_co` in view-space.
+ * The area considered includes padded handles past strip bounds.
+ */
 static blender::Vector<Strip *> mouseover_strips_sorted_get(const Scene *scene,
                                                             const View2D *v2d,
                                                             float mouse_co[2])

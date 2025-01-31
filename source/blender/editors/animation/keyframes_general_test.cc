@@ -122,8 +122,8 @@ TEST_F(keyframes_paste, pastebuf_match_path_full)
     FCurvePtr fcurve_target = fake_fcurve(nullptr, 0);
     FCurvePtr fcurve_in_buffer = fake_fcurve_in_buffer(nullptr, 0, false);
 
-    /* Little wrapper for pastebuf_match_path_full() to make it easier to see
-     * the differences between the testcases. */
+    /* Little wrapper for #pastebuf_match_path_full() to make it easier to see
+     * the differences between the test-cases. */
     auto call = [&](const bool from_single, const bool to_single, const bool flip) {
       return pastebuf_match_path_full(
           nullptr, *fcurve_target, *fcurve_in_buffer, unassigned, from_single, to_single, flip);
