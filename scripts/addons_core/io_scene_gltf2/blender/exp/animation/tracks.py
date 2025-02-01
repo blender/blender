@@ -366,15 +366,18 @@ def __get_nla_tracks_obj(obj_uuid: str, export_settings):
         # Start a new stack
         current_exported_tracks.append(stored_track)
 
-    # End of loop. Keep the last one(s)
-    exported_tracks.append(current_exported_tracks)
-    # Store data for the last one
-    track_data = TrackData(
-        current_exported_tracks,
-        obj.animation_data.nla_tracks[exported_tracks[-1][0].idx].name,
-        "OBJECT"
-    )
-    tracks_data.add(track_data)
+    # End of loop. Keep the last one(s), if any
+    if len(current_exported_tracks) != 0:
+        exported_tracks.append(current_exported_tracks)
+
+    if len(exported_tracks) != 0:
+        # Store data for the last one
+        track_data = TrackData(
+            current_exported_tracks,
+            obj.animation_data.nla_tracks[exported_tracks[-1][0].idx].name,
+            "OBJECT"
+        )
+        tracks_data.add(track_data)
 
     return tracks_data
 
