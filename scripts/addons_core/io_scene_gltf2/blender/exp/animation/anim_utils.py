@@ -269,7 +269,7 @@ def bake_animation(obj_uuid: str, animation_key: str, export_settings, mode=None
                 name=export_settings['vtree'].nodes[obj_uuid].blender_object.name if obj_uuid == animation_key else animation_key,
                 samplers=[]
             )
-        link_samplers(animation, export_settings)
+            link_samplers(animation, export_settings)
         if animation is not None:
             return animation
     return None
