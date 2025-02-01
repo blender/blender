@@ -485,7 +485,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* tex->extend and tex->imageflag have changed: */
     Tex *tex = static_cast<Tex *>(bmain->textures.first);
     while (tex) {
-      if (BLO_readfile_id_runtime_tags(tex->id).needs_linking) {
+      if (tex->id.tag & ID_TAG_NEED_LINK) {
+
         if (tex->extend == 0) {
           if (tex->xrepeat || tex->yrepeat) {
             tex->extend = TEX_REPEAT;
@@ -2269,8 +2270,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         part->id.lib = ob->id.lib;
 
         part->id.us--;
-        BLO_readfile_id_runtime_tags_for_write(part->id).needs_linking =
-            BLO_readfile_id_runtime_tags(ob->id).needs_linking;
+        part->id.tag |= (ob->id.tag & ID_TAG_NEED_LINK);
 
         psys->totpart = 0;
         psys->flag = PSYS_CURRENT;
