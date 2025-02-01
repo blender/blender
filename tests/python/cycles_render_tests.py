@@ -63,8 +63,8 @@ BLOCKLIST_OSL = [
 
 BLOCKLIST_OPTIX = [
     # Ray intersection precision issues
-    'T50164.blend',
-    'T43865.blend',
+    'big_triangles_50164.blend',
+    'big_plane_43865.blend',
 ]
 
 BLOCKLIST_OPTIX_OSL = [
@@ -109,8 +109,8 @@ if platform.system() == "Darwin":
 BLOCKLIST_GPU = [
     # Uninvestigated differences with GPU.
     'image_log.blend',
-    'T40964.blend',
-    'T45609.blend',
+    'glass_mix_40964.blend',
+    'filter_glossy_refraction_45609.blend',
     'smoke_color.blend',
     'bevel_mblur.blend',
     # Inconsistency between Embree and Hair primitive on GPU.
@@ -124,7 +124,7 @@ BLOCKLIST_GPU = [
     'transparent_shadow_hair.*.blend',
     "microfacet_hair_orientation.blend",
     # Inconsistent handling of overlapping objects.
-    "T41143.blend",
+    "sobol_uniform_41143.blend",
     "visibility_particles.blend",
     # No path guiding on GPU.
     "guiding*.blend",
