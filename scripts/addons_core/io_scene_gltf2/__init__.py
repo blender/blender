@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 4, 35),
+    "version": (4, 4, 36),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1087,6 +1087,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         import os
         import datetime
         import logging
+        from .io.exp.user_extensions import export_user_extensions
         from .io.com.debug import Log
         from .blender.exp import export as gltf2_blender_export
         from .io.com.path import path_to_uri
@@ -1337,6 +1338,9 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         # Initialize logging for export
         export_settings['log'] = Log(export_settings['loglevel'])
 
+        # Pre-export hook
+        export_user_extensions('pre_export_hook', export_settings)
+
         profile = bpy.app.debug_value == 102
         if profile:
             import cProfile
@@ -1360,6 +1364,9 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             self.report({message_type}, message)
 
         export_settings['log'].flush()
+
+        # Post-export hook
+        export_user_extensions('post_export_hook', export_settings)
 
         return res
 
