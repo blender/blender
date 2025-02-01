@@ -489,7 +489,8 @@ using BLOExpandDoitCallback = void (*)(void *fdhandle, Main *mainvar, void *idv)
 
 /**
  * Loop over all ID data in Main to mark relations.
- * Set (id->tag & ID_TAG_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
+ * Set #ID_Readfile_Data::Tags.needs_expanding to mark expanding. Flags get
+ * cleared after expanding.
  *
  * \param fdhandle: usually file-data, or own handle. May be nullptr.
  * \param mainvar: the Main database to expand.
@@ -545,7 +546,24 @@ short BLO_version_from_file(const char *filepath);
  */
 struct ID_Readfile_Data {
   struct Tags {
-    bool is_id_link_placeholder : 1;
+    /* General ID reading related tags. */
+
+    /**
+     * Mark ID placeholders for linked data-blocks needing to be read from their library
+     * blendfiles.
+     */
+    bool is_link_placeholder : 1;
+    /**
+     * Mark IDs needing to be expanded (only done once). See #BLO_expand_main.
+     */
+    bool needs_expanding : 1;
+    /**
+     * Mark IDs needing to be 'lib-linked', i.e. to get their pointers to other data-blocks
+     * updated from the 'UID' values stored in `.blend` files to the new, actual pointers.
+     */
+    bool needs_linking : 1;
+
+    /* Specific ID-type reading/versioning related tags. */
 
     /**
      * Set when this ID used a legacy Action, in which case it also should pick
@@ -562,6 +580,13 @@ struct ID_Readfile_Data {
  * otherwise return an all-zero set of tags.
  */
 ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id);
+
+/**
+ * Create the `readfile_data` if needed, and return `id->runtime.readfile_data->tags`.
+ *
+ * Use it instead of #BLO_readfile_id_runtime_tags when tags need to be set.
+ */
+ID_Readfile_Data::Tags &BLO_readfile_id_runtime_tags_for_write(ID &id);
 
 /**
  * Free the ID_Readfile_Data of all IDs in this bmain and all their embedded IDs.

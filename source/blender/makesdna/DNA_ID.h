@@ -875,20 +875,6 @@ enum {
   ID_TAG_PRE_EXISTING = 1 << 13,
 
   /**
-   * Tag used internally in `readfile.cc`, to mark IDs needing to be expanded (only done once).
-   *
-   * RESET_AFTER_USE
-   */
-  ID_TAG_NEED_EXPAND = 1 << 14,
-  /**
-   * Tag used internally in `readfile.cc`, to mark IDs needing to be 'lib-linked', i.e. to get
-   * their pointers to other data-blocks updated from the 'UID' values stored in `.blend` files to
-   * the new, actual pointers.
-   *
-   * RESET_AFTER_USE
-   */
-  ID_TAG_NEED_LINK = 1 << 16,
-  /**
    * ID is being re-used from the old Main (instead of read from memfile), during memfile undo
    * processing, because it was detected as unchanged.
    *

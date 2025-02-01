@@ -2133,6 +2133,12 @@ ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id)
   return id.runtime.readfile_data->tags;
 }
 
+ID_Readfile_Data::Tags &BLO_readfile_id_runtime_tags_for_write(ID &id)
+{
+  readfile_id_runtime_data_ensure(id);
+  return id.runtime.readfile_data->tags;
+}
+
 void BLO_readfile_id_runtime_data_free(ID &id)
 {
   MEM_SAFE_FREE(id.runtime.readfile_data);
@@ -2193,6 +2199,14 @@ static void direct_link_id_common(BlendDataReader *reader,
     id->tag = id_tag;
   }
 
+  if (!BLO_read_data_is_undo(reader)) {
+    /* Reset the runtime data, as there were versions of Blender that did not do
+     * this before writing to disk. */
+    memset(&id->runtime, 0, sizeof(id->runtime));
+  }
+  readfile_id_runtime_data_ensure(*id);
+  id->runtime.readfile_data->tags = id_read_tags;
+
   if ((id_tag & ID_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uid_ensure(id);
   }
@@ -2204,18 +2218,7 @@ static void direct_link_id_common(BlendDataReader *reader,
     BLO_read_struct(reader, LibraryWeakReference, &id->library_weak_reference);
   }
 
-  if (!BLO_read_data_is_undo(reader)) {
-    /* Reset the runtime data, as there were versions of Blender that did not do
-     * this before writing to disk. */
-    memset(&id->runtime, 0, sizeof(id->runtime));
-
-    /* Only track the readfile tags when loading from disk. During 'undo' there is no versioning,
-     * no linking, etc. so there is no need for these flags. */
-    readfile_id_runtime_data_ensure(*id);
-    id->runtime.readfile_data->tags = id_read_tags;
-  }
-
-  if (BLO_readfile_id_runtime_tags(*id).is_id_link_placeholder) {
+  if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
     /* For placeholder we only need to set the tag and properly initialize generic ID fields above,
      * no further data to read. */
     return;
@@ -2322,8 +2325,8 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
     /* This runs per library (before each libraries #Main has been joined),
      * so we can't step into other libraries since `totscene` is only for this library.
      *
-     * Also, other libraries may not have been linked yet,
-     * while we could check #ID_TAG_NEED_LINK the library pointer check is sufficient. */
+     * Also, other libraries may not have been linked yet, while we could check for
+     * #ID_Readfile_Data::Tags.needs_linking the library pointer check is sufficient. */
     if (sce->id.lib != sce_iter->id.lib) {
       return true;
     }
@@ -2527,7 +2530,7 @@ static bool direct_link_id(FileData *fd,
   /* Read part of datablock that is common between real and embedded datablocks. */
   direct_link_id_common(&reader, main->curlib, id, id_old, tag, id_read_tags);
 
-  if (BLO_readfile_id_runtime_tags(*id).is_id_link_placeholder) {
+  if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
     /* For placeholder we only need to set the tag, no further data to read. */
     id->tag = tag;
     return true;
@@ -2782,8 +2785,8 @@ static void read_libblock_undo_restore_identical(
   /* Do not add ID_TAG_NEW here, this should not be needed/used in undo case anyway (as
    * this is only for do_version-like code), but for sake of consistency, and also because
    * it will tell us which ID is re-used from old Main, and which one is actually newly read. */
-  /* Also do not add ID_TAG_NEED_LINK, this ID will never be re-liblinked, hence that tag will
-   * never be cleared, leading to critical issue in link/append code. */
+  /* Also do not set #ID_Readfile_Data::Tags.needs_linking, this ID will never be re-liblinked,
+   * hence that tag will never be cleared, leading to critical issue in link/append code. */
   /* Some tags need to be preserved here. */
   id_old->tag = ((id_tag | ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) & ~ID_TAG_KEEP_ON_UNDO) |
                 (id_old->tag & ID_TAG_KEEP_ON_UNDO);
@@ -2856,7 +2859,8 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
    * lib-linking to restore some data that should never be affected by undo, e.g. the 3D cursor of
    * #Scene. */
   id_old->orig_id = id;
-  id_old->tag |= ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE | ID_TAG_NEED_LINK;
+  id_old->tag |= ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE;
+  BLO_readfile_id_runtime_tags_for_write(*id_old).needs_linking = true;
 
   BLI_addtail(new_lb, id_old);
   BLI_addtail(old_lb, id);
@@ -2967,6 +2971,7 @@ static BHead *read_libblock(FileData *fd,
                             Main *main,
                             BHead *bhead,
                             int id_tag,
+                            ID_Readfile_Data::Tags id_read_tags,
                             const bool placeholder_set_indirect_extern,
                             ID **r_id)
 {
@@ -3035,13 +3040,12 @@ static BHead *read_libblock(FileData *fd,
 
   /* Set tag for new datablock to indicate lib linking and versioning needs
    * to be done still. */
-  id_tag |= (ID_TAG_NEED_LINK | ID_TAG_NEW);
-
-  ID_Readfile_Data::Tags id_read_tags{};
+  id_tag |= ID_TAG_NEW;
+  id_read_tags.needs_linking = true;
 
   if (bhead->code == ID_LINK_PLACEHOLDER) {
     /* Read placeholder for linked datablock. */
-    id_read_tags.is_id_link_placeholder = true;
+    id_read_tags.is_link_placeholder = true;
 
     if (placeholder_set_indirect_extern) {
       if (id->flag & ID_FLAG_INDIRECT_WEAK_LINK) {
@@ -3355,7 +3359,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink
        * it at all. */
-      BLI_assert((id->tag & ID_TAG_NEED_LINK) == 0);
+      BLI_assert(!BLO_readfile_id_runtime_tags(*id).needs_linking);
 
       /* Some data that should be persistent, like the 3DCursor or the tool settings, are
        * stored in IDs affected by undo, like Scene. So this requires some specific handling. */
@@ -3369,7 +3373,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       continue;
     }
 
-    if ((id->tag & ID_TAG_NEED_LINK) != 0) {
+    if (BLO_readfile_id_runtime_tags(*id).needs_linking) {
       /* Not all original pointer values can be considered as valid.
        * Handling of DNA deprecated data should never be needed in undo case. */
       const LibraryForeachIDFlag flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
@@ -3380,7 +3384,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
 
       after_liblink_id_process(&reader, id);
 
-      id->tag &= ~ID_TAG_NEED_LINK;
+      BLO_readfile_id_runtime_tags_for_write(*id).needs_linking = false;
     }
 
     /* Some data that should be persistent, like the 3DCursor or the tool settings, are
@@ -3402,7 +3406,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
   /* Double check we do not have any 'need link' tag remaining, this should never be the case once
    * this function has run. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    BLI_assert((id->tag & ID_TAG_NEED_LINK) == 0);
+    BLI_assert(!BLO_readfile_id_runtime_tags(*id).needs_linking);
   }
   FOREACH_MAIN_ID_END;
 #endif
@@ -3717,7 +3721,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
            * to the file format definition. So we can use the entry at the
            * end of mainlist, added in direct_link_library. */
           Main *libmain = static_cast<Main *>(mainlist.last);
-          bhead = read_libblock(fd, libmain, bhead, 0, true, nullptr);
+          bhead = read_libblock(fd, libmain, bhead, 0, {}, true, nullptr);
         }
         break;
         /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -3733,7 +3737,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
             bhead = blo_bhead_next(fd, bhead);
           }
           else {
-            bhead = read_libblock(fd, bfd->main, bhead, ID_TAG_LOCAL, false, nullptr);
+            bhead = read_libblock(fd, bfd->main, bhead, ID_TAG_LOCAL, {}, false, nullptr);
           }
         }
         else {
@@ -4141,7 +4145,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     if (id == nullptr) {
       /* ID has not been read yet, add placeholder to the main of the
        * library it belongs to, so that it will be read later. */
-      read_libblock(fd, libmain, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, false, &id);
+      read_libblock(fd, libmain, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, {}, false, &id);
       BLI_assert(id != nullptr);
       id_sort_by_name(which_libbase(libmain, GS(id->name)), id, static_cast<ID *>(id->prev));
 
@@ -4154,7 +4158,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     else {
       /* Convert any previously read weak link to regular link
        * to signal that we want to read this data-block. */
-      if (BLO_readfile_id_runtime_tags(*id).is_id_link_placeholder) {
+      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
         id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
       }
 
@@ -4185,8 +4189,10 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     /* Data-block in same library. */
     ID *id = library_id_is_yet_read(fd, mainvar, bhead);
     if (id == nullptr) {
+      ID_Readfile_Data::Tags id_read_tags{};
+      id_read_tags.needs_expanding = true;
       read_libblock(
-          fd, mainvar, bhead, fd->id_tag_extra | ID_TAG_NEED_EXPAND | ID_TAG_INDIRECT, false, &id);
+          fd, mainvar, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, id_read_tags, false, &id);
       BLI_assert(id != nullptr);
       id_sort_by_name(which_libbase(mainvar, GS(id->name)), id, static_cast<ID *>(id->prev));
     }
@@ -4194,7 +4200,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       /* Convert any previously read weak link to regular link to signal that we want to read this
        * data-block. Note that this function also visits already-loaded data-blocks, and thus their
        * `readfile_data` field might already have been freed. */
-      if (BLO_readfile_id_runtime_tags(*id).is_id_link_placeholder) {
+      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
         id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
       }
 
@@ -4248,7 +4254,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callba
     ID *id_iter;
 
     FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
-      if ((id_iter->tag & ID_TAG_NEED_EXPAND) == 0) {
+      if (!BLO_readfile_id_runtime_tags(*id_iter).needs_expanding) {
         continue;
       }
 
@@ -4264,7 +4270,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callba
       BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
 
       do_it = true;
-      id_iter->tag &= ~ID_TAG_NEED_EXPAND;
+      BLO_readfile_id_runtime_tags_for_write(*id_iter).needs_expanding = false;
     }
     FOREACH_MAIN_ID_END;
   }
@@ -4294,7 +4300,9 @@ static ID *link_named_part(
     if (id == nullptr) {
       /* not read yet */
       const int tag = ((force_indirect ? ID_TAG_INDIRECT : ID_TAG_EXTERN) | fd->id_tag_extra);
-      read_libblock(fd, mainl, bhead, tag | ID_TAG_NEED_EXPAND, false, &id);
+      ID_Readfile_Data::Tags id_read_tags{};
+      id_read_tags.needs_expanding = true;
+      read_libblock(fd, mainl, bhead, tag, id_read_tags, false, &id);
 
       if (id) {
         /* sort by name in list */
@@ -4608,7 +4616,7 @@ static int has_linked_ids_to_read(Main *mainvar)
 
   while (a--) {
     LISTBASE_FOREACH (ID *, id, lbarray[a]) {
-      if (BLO_readfile_id_runtime_tags(*id).is_id_link_placeholder &&
+      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder &&
           !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
       {
         return true;
@@ -4641,13 +4649,13 @@ static void read_library_linked_id(
                      library_parent_filepath(mainvar->curlib));
   }
 
-  id->runtime.readfile_data->tags.is_id_link_placeholder = false;
+  BLO_readfile_id_runtime_tags_for_write(*id).is_link_placeholder = false;
   id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
 
   if (bhead) {
-    id->tag |= ID_TAG_NEED_EXPAND;
+    BLO_readfile_id_runtime_tags_for_write(*id).needs_expanding = true;
     // printf("read lib block %s\n", id->name);
-    read_libblock(fd, mainvar, bhead, id->tag, false, r_id);
+    read_libblock(fd, mainvar, bhead, id->tag, BLO_readfile_id_runtime_tags(*id), false, r_id);
   }
   else {
     CLOG_INFO(&LOG,
@@ -4686,7 +4694,7 @@ static void read_library_linked_ids(FileData *basefd,
 
     while (id) {
       ID *id_next = static_cast<ID *>(id->next);
-      if (BLO_readfile_id_runtime_tags(*id).is_id_link_placeholder &&
+      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder &&
           !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
       {
         BLI_remlink(lbarray[a], id);
@@ -4750,7 +4758,7 @@ static void read_library_clear_weak_links(FileData *basefd, ListBase *mainlist, 
 
       /* This function also visits already-loaded data-blocks, and thus their
        * `readfile_data` field might already have been freed. */
-      if (BLO_readfile_id_runtime_tags(*id).is_id_link_placeholder &&
+      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder &&
           (id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
       {
         CLOG_INFO(&LOG, 3, "Dropping weak link to '%s'", id->name);
