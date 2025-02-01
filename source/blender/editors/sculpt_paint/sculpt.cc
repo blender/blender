@@ -3041,7 +3041,7 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
   else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
     undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Mask);
   }
-  else if (SCULPT_brush_type_is_paint(brush.sculpt_brush_type)) {
+  else if (brush_type_is_paint(brush.sculpt_brush_type)) {
     undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Color);
   }
   else {
@@ -3192,9 +3192,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
   /* Apply one type of brush action. */
   switch (brush.sculpt_brush_type) {
     case SCULPT_BRUSH_TYPE_DRAW: {
-      const bool use_vector_displacement = (brush.flag2 & BRUSH_USE_COLOR_AS_DISPLACEMENT &&
-                                            (brush.mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
-      if (use_vector_displacement) {
+      if (brush_uses_vector_displacement(brush)) {
         do_draw_vector_displacement_brush(depsgraph, sd, ob, node_mask);
       }
       else {
@@ -4385,7 +4383,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt &sd,
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) ||
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) ||
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SLIDE_RELAX) ||
-          SCULPT_brush_type_is_paint(brush.sculpt_brush_type) ||
+          brush_type_is_paint(brush.sculpt_brush_type) ||
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) ||
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMEAR) ||
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) ||
@@ -4408,7 +4406,7 @@ void SCULPT_stroke_modifiers_check(const bContext *C, Object &ob, const Brush &b
   {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     BKE_sculpt_update_object_for_edit(
-        depsgraph, &ob, SCULPT_brush_type_is_paint(brush.sculpt_brush_type));
+        depsgraph, &ob, brush_type_is_paint(brush.sculpt_brush_type));
   }
 }
 
@@ -4929,7 +4927,8 @@ static void brush_stroke_init(bContext *C)
   }
   brush_init_tex(sd, ss);
 
-  const bool needs_colors = SCULPT_brush_type_is_paint(brush->sculpt_brush_type) &&
+  const bool needs_colors = blender::ed::sculpt_paint::brush_type_is_paint(
+                                brush->sculpt_brush_type) &&
                             !SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob);
 
   if (needs_colors) {
@@ -4940,7 +4939,7 @@ static void brush_stroke_init(bContext *C)
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BKE_sculpt_update_object_for_edit(
-      depsgraph, &ob, SCULPT_brush_type_is_paint(brush->sculpt_brush_type));
+      depsgraph, &ob, blender::ed::sculpt_paint::brush_type_is_paint(brush->sculpt_brush_type));
 
   ED_image_paint_brush_type_update_sticky_shading_color(C, &ob);
 }
@@ -5260,7 +5259,7 @@ static bool stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
 
     /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
      * canvas it is painting on. (ref. use_sculpt_texture_paint). */
-    if (brush && SCULPT_brush_type_is_paint(brush->sculpt_brush_type) &&
+    if (brush && brush_type_is_paint(brush->sculpt_brush_type) &&
         !SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob))
     {
       View3D *v3d = CTX_wm_view3d(C);
@@ -5321,7 +5320,7 @@ static void stroke_update_step(bContext *C,
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
     flush_update_step(C, UpdateType::Mask);
   }
-  else if (SCULPT_brush_type_is_paint(brush.sculpt_brush_type)) {
+  else if (brush_type_is_paint(brush.sculpt_brush_type)) {
     if (SCULPT_use_image_paint_brush(tool_settings.paint_mode, ob)) {
       flush_update_step(C, UpdateType::Image);
     }
@@ -5416,16 +5415,16 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   Brush &brush = *BKE_paint_brush(&sd.paint);
 
-  if (SCULPT_brush_type_is_paint(brush.sculpt_brush_type) &&
+  if (brush_type_is_paint(brush.sculpt_brush_type) &&
       !color_supported_check(scene, ob, op->reports))
   {
     return OPERATOR_CANCELLED;
   }
-  if (SCULPT_brush_type_is_mask(brush.sculpt_brush_type)) {
+  if (brush_type_is_mask(brush.sculpt_brush_type)) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
     BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
   }
-  if (!SCULPT_brush_type_is_attribute_only(brush.sculpt_brush_type) &&
+  if (!brush_type_is_attribute_only(brush.sculpt_brush_type) &&
       report_if_shape_key_is_locked(ob, op->reports))
   {
     return OPERATOR_CANCELLED;
