@@ -40,12 +40,12 @@ VertOut vertex_main(VertIn v_in)
   VertOut v_out;
 
   /* WORKAROUND: This shape needs a special vertex shader path that should be triggered by
-   * its vclass attribute. However, to avoid many changes in the primitive expansion API,
+   * its `vclass` attribute. However, to avoid many changes in the primitive expansion API,
    * we create a specific path inside the shader only for this shape batch and infer the
    * value of the `vclass` attribute based on the vertex index. */
   if (use_arrow_drawing) {
     /* Keep in sync with the arrows shape batch creation. */
-    /* Adapted from overlay_extra_vert.glsl. */
+    /* Adapted from `overlay_extra_vert.glsl`. */
     vec3 vpos = v_in.lP;
     vec3 vofs = vec3(0.0);
     uint axis = uint(vpos.z);

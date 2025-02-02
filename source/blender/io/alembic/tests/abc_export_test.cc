@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-/* Keep first since utildefines defines AT which conflicts with STL */
+/* Keep first since `BLI_utildefines.h` defines `AT` which conflicts with STL. */
 #include "exporter/abc_archive.h"
 
 #include "BKE_main.hh"

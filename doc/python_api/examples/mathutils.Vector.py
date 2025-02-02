@@ -12,7 +12,7 @@ vec2d = mathutils.Vector((1.0, 2.0))
 vec3d = mathutils.Vector((1.0, 0.0, 0.0))
 vec4d = vec_a.to_4d()
 
-# other mathutuls types
+# Other `mathutils` types.
 quat = mathutils.Quaternion()
 matrix = mathutils.Matrix()
 

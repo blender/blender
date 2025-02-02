@@ -199,10 +199,12 @@ struct _mtl_sampler {
      * it for linear storage.
      * For instance, for a [2,2,2] texture store in a [6x4] backing texture:
      *
+     * \code{.unparsed}
      * 001122
      * 334455
      * 667788
      * xxxxxx
+     * \endcode
      *
      * The numbers are rows in the 3D texture.
      */
@@ -216,7 +218,7 @@ struct _mtl_sampler {
     /* Convert 3D coordinates to the backing 2D texture coordinates. */
     int2 to_internal_coord(thread TextureT *texture, IntCoord coord) const
     {
-      /* Index of a pixel in the data array. Assuming data layout is scanline. */
+      /* Index of a pixel in the data array. Assuming data layout is scan-line. */
       uint linear_pixel = uint(coord.x) + uint(coord.y) * texture_size.x +
                           uint(coord.z) * (texture_size.x * texture_size.y);
 

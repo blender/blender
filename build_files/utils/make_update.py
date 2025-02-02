@@ -266,7 +266,7 @@ def use_upstream_workflow(args: argparse.Namespace) -> bool:
 
 def work_tree_update_upstream_workflow(args: argparse.Namespace, use_fetch: bool = True) -> str:
     """
-    Update the Blender repository using the Github style of fork organization
+    Update the Blender repository using the GitHub style of fork organization
 
     Returns true if the current local branch has been updated to the upstream state.
     Otherwise false is returned.

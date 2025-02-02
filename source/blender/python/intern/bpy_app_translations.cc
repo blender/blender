@@ -139,7 +139,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
   BLT_lang_locale_explode(
       locale, &language, nullptr, nullptr, &language_country, &language_variant);
 
-  /* Clear the cached ghash if needed, and create a new one. */
+  /* Clear the cached #blender::Map if needed, and create a new one. */
   _clear_translations_cache();
   get_translations_cache() = std::make_unique<blender::Map<MessageKey, std::string>>();
 
@@ -185,7 +185,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
         continue;
       }
 
-      /* Iterate over all translations of the found language dict, and populate our ghash cache. */
+      /* Iterate over all translations of the found language dict and populate our cache. */
       while (PyDict_Next(lang_dict, &ppos, &pykey, &trans)) {
         const char *msgctxt = nullptr, *msgid = nullptr;
         bool invalid_key = false;
@@ -389,7 +389,7 @@ static PyObject *app_translations_py_messages_unregister(BlenderAppTranslations 
 
   if (PyDict_Contains(self->py_messages, module_name)) {
     PyDict_DelItem(self->py_messages, module_name);
-    /* Clear cached messages ghash! */
+    /* Clear cached messages map. */
     _clear_translations_cache();
   }
 #else

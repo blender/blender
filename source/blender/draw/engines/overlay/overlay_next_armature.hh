@@ -606,7 +606,7 @@ class Armatures : Overlay {
       }
       for (CustomShapeBuf item : bb.custom_shape_wire.items()) {
         /* WORKAROUND: This shape needs a special vertex shader path that should be triggered by
-         * its vclass attribute. However, to avoid many changes in the primitive expansion API,
+         * its `vclass` attribute. However, to avoid many changes in the primitive expansion API,
          * we create a specific path inside the shader only for this shape batch and infer the
          * value of the `vclass` attribute based on the vertex index. */
         if (item.key == arrow_batch) {

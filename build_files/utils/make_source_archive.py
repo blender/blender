@@ -89,11 +89,11 @@ def manifest_path(tarball: Path) -> Path:
     """Return the manifest path for the given tarball path.
 
     >>> from pathlib import Path
-    >>> tarball = Path("/home/sybren/workspace/blender-git/blender-test.tar.gz")
+    >>> tarball = Path("/home/user/workspace/blender-git/blender-test.tar.gz")
     >>> manifest_path(tarball).as_posix()
-    '/home/sybren/workspace/blender-git/blender-test-manifest.txt'
+    '/home/user/workspace/blender-git/blender-test-manifest.txt'
     """
-    # ".tar.gz" is seen as two suffixes.
+    # Note that `.tar.gz` is seen as two suffixes.
     without_suffix = tarball.with_suffix("").with_suffix("")
     name = without_suffix.name
     return without_suffix.with_name(f"{name}-manifest.txt")
@@ -105,8 +105,8 @@ def packages_path(current_directory: Path, cli_args: Any) -> Union[Path, None]:
 
     abspath = cli_args.include_packages.absolute()
 
-    # os.path.relpath() can return paths like "../../packages", where
-    # Path.relative_to() will not go up directories (so its return value never
+    # `os.path.relpath()` can return paths like "../../packages", where
+    # `Path.relative_to()` will not go up directories (so its return value never
     # has "../" in there).
     relpath = os.path.relpath(abspath, current_directory)
 

@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-/* Keep first since utildefines defines AT which conflicts with STL. */
+/* Keep first since `BLI_utildefines.h` defines `AT` which conflicts with STL. */
 #include "intern/abc_axis_conversion.h"
 
 #include "BLI_math_base.h"
