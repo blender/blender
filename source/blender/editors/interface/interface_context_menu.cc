@@ -417,7 +417,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
           }
         }
 #else
-        STRNCPY(drawstr, idname);
+        drawstr = idname;
 #endif
       }
       else if (but->tip_label_func) {

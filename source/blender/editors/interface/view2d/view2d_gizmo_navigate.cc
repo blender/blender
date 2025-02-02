@@ -189,8 +189,13 @@ static void WIDGETGROUP_navigate_setup(const bContext * /*C*/, wmGizmoGroup *gzg
           gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_OUTLINE | ED_GIZMO_BUTTON_SHOW_BACKDROP);
     }
 
-    wmOperatorType *ot = WM_operatortype_find(info->opname, true);
-    WM_gizmo_operator_set(gz, 0, ot, nullptr);
+    wmOperatorType *ot = WM_operatortype_find(info->opname, false);
+#ifdef WITH_PYTHON
+    if (ot != nullptr)
+#endif
+    {
+      WM_gizmo_operator_set(gz, 0, ot, nullptr);
+    }
   }
 
   /* Modal operators, don't use initial mouse location since we're clicking on a button. */
