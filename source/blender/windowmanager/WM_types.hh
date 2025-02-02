@@ -156,7 +156,17 @@ struct wmGenericCallback {
 
 /** #wmOperatorType.flag */
 enum {
-  /** Register operators in stack after finishing (needed for redo). */
+  /**
+   * Register operators in stack after finishing (needed for redo).
+   *
+   * \note Typically this flag should be enabled along with #OPTYPE_UNDO.
+   * There is an exception to this, some operators can perform an undo push indirectly.
+   * (`UI_OT_reset_default_button` for example).
+   *
+   * In this case, register needs to be enabled so as not to clear the "Redo" panel, see #133761.
+   * Unless otherwise stated, any operators that register without the undo flag
+   * can be assumed to be creating undo steps indirectly (potentially at least).
+   */
   OPTYPE_REGISTER = (1 << 0),
   /** Do an undo push after the operator runs. */
   OPTYPE_UNDO = (1 << 1),
