@@ -1795,7 +1795,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
   ParticleSpring *spring = nullptr;
   SPHRangeData pfr;
   SPHNeighbor *pfn;
-  float *gravity = sphdata->gravity;
+  const float *gravity = sphdata->gravity;
   const std::optional<blender::Map<blender::OrderedEdge, int>> &springhash = sphdata->eh;
 
   float q, u, rij, dv[3];
@@ -1996,7 +1996,7 @@ static void sphclassical_force_cb(void *sphdata_v,
   SPHFluidSettings *fluid = psys[0]->part->fluid;
   SPHRangeData pfr;
   SPHNeighbor *pfn;
-  float *gravity = sphdata->gravity;
+  const float *gravity = sphdata->gravity;
 
   float dq, u, rij, dv[3];
   float pressure, npressure;

@@ -89,7 +89,10 @@ typedef struct SPHData {
   ParticleData *pa;
   float mass;
   std::optional<blender::Map<blender::OrderedEdge, int>> eh;
-  float *gravity;
+
+  /** The gravity as a `float[3]`, may also be null when the simulation doesn't use gravity. */
+  const float *gravity;
+
   float hfac;
   /* Average distance to neighbors (other particles in the support domain),
    * for calculating the Courant number (adaptive time step). */
