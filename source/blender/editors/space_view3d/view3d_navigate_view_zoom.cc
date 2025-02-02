@@ -519,9 +519,9 @@ static int viewzoom_invoke_impl(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* viewdolly_invoke() copied this function, changes here may apply there */
 static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  /* Near duplicate logic in #viewdolly_invoke(), changes here may apply there too. */
   return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_zoom);
 }
 

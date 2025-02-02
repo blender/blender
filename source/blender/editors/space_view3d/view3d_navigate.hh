@@ -204,6 +204,7 @@ struct ViewOpsData {
 bool view3d_location_poll(bContext *C);
 bool view3d_rotation_poll(bContext *C);
 bool view3d_zoom_or_dolly_poll(bContext *C);
+bool view3d_zoom_or_dolly_or_rotation_poll(bContext *C);
 
 int view3d_navigate_invoke_impl(bContext *C,
                                 wmOperator *op,

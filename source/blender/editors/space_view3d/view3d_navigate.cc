@@ -593,6 +593,13 @@ bool view3d_zoom_or_dolly_poll(bContext *C)
   return view3d_navigation_poll_impl(C, RV3D_LOCK_ZOOM_AND_DOLLY);
 }
 
+bool view3d_zoom_or_dolly_or_rotation_poll(bContext *C)
+{
+  /* This combination of flags is needed for the dolly operator,
+   * see code-comments there for details. */
+  return view3d_navigation_poll_impl(C, RV3D_LOCK_ZOOM_AND_DOLLY | RV3D_LOCK_ROTATION);
+}
+
 int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
