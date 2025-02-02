@@ -30,6 +30,8 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
+#include "BLT_translation.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -44,6 +46,8 @@
 
 #include "view3d_intern.hh" /* own include */
 #include "view3d_navigate.hh"
+
+#include <fmt/format.h>
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
@@ -666,6 +670,8 @@ static int walkEnd(bContext *C, WalkInfo *walk)
 
   win = CTX_wm_window(C);
   rv3d = walk->rv3d;
+
+  ED_workspace_status_text(C, nullptr);
 
   WM_event_timer_remove(CTX_wm_manager(C), win, walk->timer);
 
@@ -1461,6 +1467,65 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm)
 /** \name Walk Operator
  * \{ */
 
+static void walk_draw_status(bContext *C, wmOperator *op)
+{
+  WalkInfo *walk = static_cast<WalkInfo *>(op->customdata);
+
+  WorkspaceStatus status(C);
+
+  status.opmodal(IFACE_("Confirm"), op->type, WALK_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, WALK_MODAL_CANCEL);
+
+  status.opmodal(
+      "", op->type, WALK_MODAL_DIR_FORWARD, walk->active_directions & WALK_BIT_LOCAL_FORWARD);
+  status.opmodal("", op->type, WALK_MODAL_DIR_LEFT, walk->active_directions & WALK_BIT_LOCAL_LEFT);
+  status.opmodal(
+      "", op->type, WALK_MODAL_DIR_BACKWARD, walk->active_directions & WALK_BIT_LOCAL_BACKWARD);
+  status.opmodal(
+      "", op->type, WALK_MODAL_DIR_RIGHT, walk->active_directions & WALK_BIT_LOCAL_RIGHT);
+  status.item(IFACE_("Move"), ICON_NONE);
+
+  status.opmodal("", op->type, WALK_MODAL_DIR_UP, walk->active_directions & WALK_BIT_GLOBAL_UP);
+  status.opmodal(
+      "", op->type, WALK_MODAL_DIR_DOWN, walk->active_directions & WALK_BIT_GLOBAL_DOWN);
+  status.item(IFACE_("Up/Down"), ICON_NONE);
+
+  status.opmodal(
+      "", op->type, WALK_MODAL_DIR_LOCAL_UP, walk->active_directions & WALK_BIT_LOCAL_UP);
+  status.opmodal(
+      "", op->type, WALK_MODAL_DIR_LOCAL_DOWN, walk->active_directions & WALK_BIT_LOCAL_DOWN);
+  status.item(IFACE_("Local Up/Down"), ICON_NONE);
+
+  status.opmodal(
+      IFACE_("Jump"), op->type, WALK_MODAL_JUMP, walk->gravity_state == WALK_GRAVITY_STATE_JUMP);
+
+  status.opmodal(IFACE_("Teleport"),
+                 op->type,
+                 WALK_MODAL_TELEPORT,
+                 walk->teleport.state == WALK_TELEPORT_STATE_ON);
+
+  status.opmodal(IFACE_("Fast"), op->type, WALK_MODAL_FAST_ENABLE, walk->is_fast);
+  status.opmodal(IFACE_("Slow"), op->type, WALK_MODAL_SLOW_ENABLE, walk->is_slow);
+
+  status.opmodal(IFACE_("Gravity"),
+                 op->type,
+                 WALK_MODAL_GRAVITY_TOGGLE,
+                 walk->navigation_mode == WALK_MODE_GRAVITY);
+
+  status.opmodal("", op->type, WALK_MODAL_ACCELERATE);
+  status.opmodal("", op->type, WALK_MODAL_DECELERATE);
+  status.item(fmt::format("{} ({:.2f})", IFACE_("Acceleration"), g_walk.base_speed), ICON_NONE);
+
+  status.opmodal("", op->type, WALK_MODAL_INCREASE_JUMP);
+  status.opmodal("", op->type, WALK_MODAL_DECREASE_JUMP);
+  status.item(fmt::format("{} ({:.2f})", IFACE_("Jump Height"), g_walk.jump_height), ICON_NONE);
+
+  status.opmodal(IFACE_("Z Axis Correction"),
+                 op->type,
+                 WALK_MODAL_AXIS_LOCK_Z,
+                 walk->zlock != WALK_AXISLOCK_STATE_OFF);
+}
+
 static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -1478,6 +1543,8 @@ static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   walkEvent(walk, event);
+
+  walk_draw_status(C, op);
 
   WM_event_add_modal_handler(C, op);
 
@@ -1504,6 +1571,8 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   walk->redraw = false;
 
   walkEvent(walk, event);
+
+  walk_draw_status(C, op);
 
 #ifdef WITH_INPUT_NDOF
   if (walk->ndof) { /* 3D mouse overrules [2D mouse + timer]. */
