@@ -658,7 +658,12 @@ void OneapiDevice::tex_alloc(device_texture &mem)
 
 void OneapiDevice::tex_copy_to(device_texture &mem)
 {
-  generic_copy_to(mem);
+  if (!mem.device_pointer) {
+    tex_alloc(mem);
+  }
+  else {
+    generic_copy_to(mem);
+  }
 }
 
 void OneapiDevice::tex_free(device_texture &mem)
