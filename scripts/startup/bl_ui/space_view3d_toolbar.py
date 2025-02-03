@@ -607,7 +607,20 @@ class VIEW3D_PT_slots_paint_canvas(SelectPaintSlotHelper, View3DPanel, Panel):
         tool = ToolSelectPanelHelper.tool_active_from_context(context)
         if tool is None:
             return False
-        return tool.use_paint_canvas
+
+        is_paint_tool = False
+        if tool.use_brushes:
+            brush = context.tool_settings.sculpt.brush
+            if brush:
+                is_paint_tool = brush.sculpt_tool in {'PAINT', 'SMEAR'}
+        else:
+            # TODO: The property use_paint_canvas doesn't work anymore since its associated
+            # C++ function 'rna_WorkSpaceTool_use_paint_canvas_get' passes in a nullptr for
+            # the bContext. This property should be fixed in the future, but will require
+            # some extensive refactoring. For now, use the workaround above.
+            is_paint_tool = tool.use_paint_canvas
+
+        return is_paint_tool
 
     def get_mode_settings(self, context):
         return context.tool_settings.paint_mode
