@@ -8112,8 +8112,8 @@ static void point_normals_update_statusbar(bContext *C, wmOperator *op)
 {
   WorkspaceStatus status(C);
 
-  status.opmodal(IFACE_("Cancel"), op->type, EDBM_CLNOR_MODAL_CANCEL);
   status.opmodal(IFACE_("Confirm"), op->type, EDBM_CLNOR_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, EDBM_CLNOR_MODAL_CANCEL);
   status.opmodal(IFACE_("Reset"), op->type, EDBM_CLNOR_MODAL_POINTTO_RESET);
 
   status.opmodal(IFACE_("Invert"),

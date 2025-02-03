@@ -126,8 +126,8 @@ static void apply_fcu_segment_function(bAnimContext *ac,
 static void common_draw_status_header(bContext *C, tGraphSliderOp *gso)
 {
   WorkspaceStatus status(C);
-  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -457,8 +457,8 @@ static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_m
 static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 {
   WorkspaceStatus status(C);
-  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -949,8 +949,8 @@ static void ease_draw_status_header(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   WorkspaceStatus status(C);
-  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -1552,8 +1552,8 @@ static void shear_graph_keys(bAnimContext *ac, const float factor, tShearDirecti
 static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso, tShearDirection direction)
 {
   WorkspaceStatus status(C);
-  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -2427,8 +2427,8 @@ static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   WorkspaceStatus status(C);
-  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
 
   if (hasNumInput(&gso->num)) {

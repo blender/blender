@@ -911,8 +911,8 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
   WorkspaceStatus status(C);
 
-  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
 
   status.item_bool("", pso->channels == PS_TFM_LOC, ICON_EVENT_G);

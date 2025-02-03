@@ -272,8 +272,8 @@ static void stitch_preview_delete(StitchPreviewer *stitch_preview)
 static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
 {
   WorkspaceStatus status(C);
-  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
   status.item(fmt::format("{} {}",
                           IFACE_("Select"),
                           (ssc->mode == STITCH_VERT ? IFACE_("Vertices") : IFACE_("Edges"))),
