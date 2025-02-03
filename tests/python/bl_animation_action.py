@@ -191,6 +191,60 @@ class ActionSlotAssignmentTest(unittest.TestCase):
             "After assignment, the ID type should remain UNSPECIFIED when the Action is linked.")
         self.assertEqual("XXLegacy Slot", slot.identifier)
 
+    def test_untyped_slot_target_id_writing(self):
+        """Test writing to the target id type of an untyped slot."""
+
+        action = self._load_legacy_action(link=False)
+
+        slot = action.slots[0]
+        self.assertEqual('UNSPECIFIED', slot.target_id_type)
+        self.assertEqual("XXLegacy Slot", slot.identifier)
+
+        slot.target_id_type = 'OBJECT'
+
+        self.assertEqual(
+            'OBJECT',
+            slot.target_id_type,
+            "Should be able to write to target_id_type of a slot when not yet specified.")
+        self.assertEqual("OBLegacy Slot", slot.identifier)
+
+        slot.target_id_type = 'MATERIAL'
+
+        self.assertEqual(
+            'OBJECT',
+            slot.target_id_type,
+            "Should NOT be able to write to target_id_type of a slot when already specified.")
+        self.assertEqual("OBLegacy Slot", slot.identifier)
+
+    def test_untyped_slot_target_id_writing_with_duplicate_identifier(self):
+        """Test that writing to the target id type a slot appropriately renames
+        it when that would otherwise cause its identifier to collide with an
+        already existing slot."""
+
+        action = self._load_legacy_action(link=False)
+
+        slot = action.slots[0]
+
+        # Create soon-to-collide slot.
+        other_slot = action.slots.new('OBJECT', "Legacy Slot")
+
+        # Ensure the setup is correct.
+        self.assertEqual('UNSPECIFIED', slot.target_id_type)
+        self.assertEqual("XXLegacy Slot", slot.identifier)
+        self.assertEqual('OBJECT', other_slot.target_id_type)
+        self.assertEqual("OBLegacy Slot", other_slot.identifier)
+
+        # Assign the colliding target id type.
+        slot.target_id_type = 'OBJECT'
+
+        self.assertEqual('OBJECT', slot.target_id_type)
+        self.assertEqual(
+            "OBLegacy Slot.001",
+            slot.identifier,
+            "Should get renamed to not conflict with existing slots.")
+        self.assertEqual('OBJECT', other_slot.target_id_type)
+        self.assertEqual("OBLegacy Slot", other_slot.identifier)
+
     @staticmethod
     def _load_legacy_action(*, link: bool) -> bpy.types.Action:
         # At the moment of writing, the only way to create an untyped slot is to

@@ -410,6 +410,13 @@ void Action::slot_display_name_set(Main &bmain, Slot &slot, StringRefNull new_di
   this->slot_identifier_propagate(bmain, slot);
 }
 
+void Action::slot_idtype_define(Slot &slot, ID_Type idtype)
+{
+  slot.idtype = idtype;
+  slot.identifier_ensure_prefix();
+  slot_identifier_ensure_unique(*this, slot);
+}
+
 void Action::slot_identifier_set(Main &bmain, Slot &slot, const StringRefNull new_identifier)
 {
   /* TODO: maybe this function should only set the 'identifier without prefix' aka the 'display
