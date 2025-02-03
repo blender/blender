@@ -591,12 +591,12 @@ static int grease_pencil_layer_lock_all_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
   const bool lock_value = RNA_boolean_get(op->ptr, "lock");
 
-  if (grease_pencil.layers().is_empty()) {
+  if (grease_pencil.nodes().is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  for (Layer *layer : grease_pencil.layers_for_write()) {
-    layer->set_locked(lock_value);
+  for (TreeNode *node : grease_pencil.nodes_for_write()) {
+    node->set_locked(lock_value);
   }
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
@@ -616,7 +616,7 @@ static void GREASE_PENCIL_OT_layer_lock_all(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_lock_all_exec;
-  ot->poll = active_grease_pencil_layer_poll;
+  ot->poll = grease_pencil_context_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
