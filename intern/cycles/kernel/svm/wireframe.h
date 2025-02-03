@@ -95,17 +95,16 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
 
   /* Calculate wireframe */
   const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
-  float f = wireframe(kg, sd, dP, size, pixel_size, &sd->P);
 
-  /* TODO(sergey): Think of faster way to calculate derivatives. */
+  float3 P = sd->P;
   if (bump_offset == NODE_BUMP_OFFSET_DX) {
-    float3 Px = sd->P - dP.dx;
-    f += (f - wireframe(kg, sd, dP, size, pixel_size, &Px)) / len(dP.dx);
+    P += dP.dx;
   }
   else if (bump_offset == NODE_BUMP_OFFSET_DY) {
-    float3 Py = sd->P - dP.dy;
-    f += (f - wireframe(kg, sd, dP, size, pixel_size, &Py)) / len(dP.dy);
+    P += dP.dy;
   }
+
+  const float f = wireframe(kg, sd, dP, size, pixel_size, &P);
 
   if (stack_valid(out_fac)) {
     stack_store_float(stack, out_fac, f);
