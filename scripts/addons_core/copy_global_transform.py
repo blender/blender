@@ -235,12 +235,12 @@ def _channelbag_for_id(animated_id: ID) -> ActionChannelbag | None:
     if action is None:
         return None
 
-    slot_handle = adt.action_slot_handle
+    slot = adt.action_slot
 
     for layer in action.layers:
         for strip in layer.strips:
             assert strip.type == 'KEYFRAME'
-            channelbag = strip.channels(slot_handle)
+            channelbag = strip.channelbag(slot)
             return channelbag
 
     return None
