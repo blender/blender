@@ -1299,16 +1299,6 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
     fragment_outputs.append(mtl_frag_out);
   }
 
-  /** Identify support for tile inputs. */
-  const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
-  if (is_tile_based_arch) {
-    supports_native_tile_inputs = true;
-  }
-  else {
-    /* NOTE: If emulating tile input reads, we must ensure we also expose position data. */
-    supports_native_tile_inputs = false;
-  }
-
   /* Fragment tile inputs. */
   for (const shader::ShaderCreateInfo::SubpassIn &frag_tile_in : create_info_->subpass_inputs_) {
 
@@ -1329,7 +1319,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
     fragment_tile_inputs.append(mtl_frag_in);
 
     /* If we do not support native tile inputs, generate an image-binding per input. */
-    if (!supports_native_tile_inputs) {
+    if (!MTLBackend::capabilities.supports_native_tile_inputs) {
       /* Determine type: */
       bool is_layered_fb = bool(create_info_->builtins_ & BuiltinBits::LAYER);
       /* Start with invalid value to detect failure cases. */
@@ -2265,7 +2255,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_tile_input_population()
   std::stringstream out;
 
   /* Native tile read is supported on tile-based architectures (Apple Silicon). */
-  if (supports_native_tile_inputs) {
+  if (MTLBackend::capabilities.supports_native_tile_inputs) {
     for (const MSLFragmentTileInputAttribute &tile_input : this->fragment_tile_inputs) {
       out << "\t" << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "."
           << tile_input.name << " = "

@@ -49,6 +49,7 @@ struct MTLCapabilities {
   bool supports_argument_buffers_tier2 = false;
   bool supports_texture_gather = false;
   bool supports_texture_atomics = false;
+  bool supports_native_tile_inputs = false;
 
   /* GPU Family */
   bool supports_family_mac1 = false;

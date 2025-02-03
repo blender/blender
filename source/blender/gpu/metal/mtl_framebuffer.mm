@@ -476,8 +476,7 @@ void MTLFrameBuffer::clear_attachment(GPUAttachmentType type,
 void MTLFrameBuffer::subpass_transition_impl(const GPUAttachmentState /*depth_attachment_state*/,
                                              Span<GPUAttachmentState> color_attachment_states)
 {
-  const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
-  if (!is_tile_based_arch) {
+  if (!MTLBackend::capabilities.supports_native_tile_inputs) {
     /* Break render-pass if tile memory is unsupported to ensure current frame-buffer results are
      * stored. */
     context_->main_command_buffer.end_active_command_encoder();
