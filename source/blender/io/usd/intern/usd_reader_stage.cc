@@ -613,8 +613,7 @@ void USDStageReader::import_all_materials(Main *bmain)
   }
 
   USDMaterialReader mtl_reader(params_, bmain);
-
-  for (const pxr::SdfPath mtl_path : material_paths_) {
+  for (const pxr::SdfPath &mtl_path : material_paths_) {
     pxr::UsdPrim prim = stage_->GetPrimAtPath(mtl_path);
 
     pxr::UsdShadeMaterial usd_mtl(prim);

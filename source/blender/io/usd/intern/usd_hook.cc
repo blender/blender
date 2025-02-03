@@ -159,7 +159,7 @@ struct USDSceneImportContext {
     if (!prim_map_dict) {
       prim_map_dict = new PYTHON_NS::dict;
 
-      prim_map.foreach_item([&](pxr::SdfPath path, const Vector<PointerRNA> &ids) {
+      prim_map.foreach_item([&](const pxr::SdfPath &path, const Vector<PointerRNA> &ids) {
         if (!prim_map_dict->has_key(path)) {
           (*prim_map_dict)[path] = PYTHON_NS::list();
         }
@@ -634,7 +634,7 @@ void call_import_hooks(USDStageReader *archive, ReportList *reports)
     }
   }
 
-  settings.usd_path_to_mat.foreach_item([&prim_map](pxr::SdfPath path, Material *mat) {
+  settings.usd_path_to_mat.foreach_item([&prim_map](const pxr::SdfPath &path, Material *mat) {
     prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
   });
 
