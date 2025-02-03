@@ -54,11 +54,6 @@ endif()
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# Global compile definitions since add_definitions() adds for all.
-# _DEBUG is a Visual Studio define, enabled for all platforms.
-set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-  $<$<CONFIG:Debug>:_DEBUG>
-)
 # -----------------------------------------------------------------------------
 # Set policy
 
