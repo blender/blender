@@ -551,10 +551,10 @@ typedef struct GreasePencil {
       blender::bke::greasepencil::LayerGroup &parent_group,
       blender::StringRef name,
       bool check_name_is_unique = true);
-  /** Duplicates the given layer to the top of the root group. */
+  /** Duplicates a layer from the same object to the top of the root group. */
   blender::bke::greasepencil::Layer &duplicate_layer(
       const blender::bke::greasepencil::Layer &duplicate_layer);
-  /** Duplicates the given layer to the top of the given group. */
+  /** Duplicates a layer from the same object to the top of the given group. */
   blender::bke::greasepencil::Layer &duplicate_layer(
       blender::bke::greasepencil::LayerGroup &parent_group,
       const blender::bke::greasepencil::Layer &duplicate_layer);
@@ -632,6 +632,10 @@ typedef struct GreasePencil {
    */
   bool remove_frames(blender::bke::greasepencil::Layer &layer, blender::Span<int> frame_numbers);
 
+  void copy_frames_from_layer(blender::bke::greasepencil::Layer &dst_layer,
+                              const GreasePencil &src_grease_pencil,
+                              const blender::bke::greasepencil::Layer &src_layer,
+                              const std::optional<int> frame_select = std::nullopt);
   /**
    * Adds multiple layers each with its own empty drawing. This can be more efficient than adding
    * every layer and drawing one by one.

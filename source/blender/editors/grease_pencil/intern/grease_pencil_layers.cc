@@ -10,6 +10,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_string.h"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_object.hh"
@@ -1061,24 +1062,65 @@ static void duplicate_layer_and_frames(GreasePencil &dst_grease_pencil,
                                        const int current_frame)
 {
   using namespace blender::bke::greasepencil;
-  Layer &dst_layer = dst_grease_pencil.duplicate_layer(src_layer);
 
-  dst_layer.frames_for_write().clear();
-  for (const auto [frame_number, frame] : src_layer.frames().items()) {
-    if ((copy_frame_mode == DuplicateCopyMode::Active) &&
-        (&frame != src_layer.frame_at(current_frame)))
-    {
-      continue;
-    }
-    const int duration = src_layer.get_frame_duration_at(frame_number);
+  if (&dst_grease_pencil == &src_grease_pencil) {
+    /* Duplicating frames is valid if copying from the same object.
+     * The resulting frames will reference existing drawings, which is more efficient than making
+     * full copies. */
+    Layer &dst_layer = dst_grease_pencil.duplicate_layer(src_layer);
 
-    Drawing *dst_drawing = dst_grease_pencil.insert_frame(
-        dst_layer, frame_number, duration, eBezTriple_KeyframeType(frame.type));
-    if (dst_drawing != nullptr) {
-      /* Duplicate drawing. */
-      const Drawing &src_drawing = *src_grease_pencil.get_drawing_at(src_layer, frame_number);
-      *dst_drawing = src_drawing;
+    dst_layer.frames_for_write().clear();
+    for (const auto [frame_number, frame] : src_layer.frames().items()) {
+      if ((copy_frame_mode == DuplicateCopyMode::Active) &&
+          (&frame != src_layer.frame_at(current_frame)))
+      {
+        continue;
+      }
+      const int duration = src_layer.get_frame_duration_at(frame_number);
+
+      Drawing *dst_drawing = dst_grease_pencil.insert_frame(
+          dst_layer, frame_number, duration, eBezTriple_KeyframeType(frame.type));
+      if (dst_drawing != nullptr) {
+        /* Duplicate drawing. */
+        const Drawing &src_drawing = *src_grease_pencil.get_drawing_at(src_layer, frame_number);
+        *dst_drawing = src_drawing;
+      }
     }
+  }
+  else {
+    /* When copying from another object a new layer is created and all drawings are copied. */
+    const int src_layer_index = *src_grease_pencil.get_layer_index(src_layer);
+
+    Layer &dst_layer = dst_grease_pencil.add_layer(src_layer.name());
+    const int dst_layer_index = dst_grease_pencil.layers().size() - 1;
+
+    BKE_grease_pencil_copy_layer_parameters(src_layer, dst_layer);
+
+    const bke::AttributeAccessor src_attributes = src_grease_pencil.attributes();
+    bke::MutableAttributeAccessor dst_attributes = dst_grease_pencil.attributes_for_write();
+    src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.domain != bke::AttrDomain::Layer) {
+        return;
+      }
+      bke::GAttributeReader reader = src_attributes.lookup(iter.name, iter.domain, iter.data_type);
+      BLI_assert(reader);
+      bke::GAttributeWriter writer = dst_attributes.lookup_or_add_for_write(
+          iter.name, iter.domain, iter.data_type);
+      if (writer) {
+        const CPPType &cpptype = *bke::custom_data_type_to_cpp_type(iter.data_type);
+        BUFFER_FOR_CPP_TYPE_VALUE(cpptype, buffer);
+        reader.varray.get(src_layer_index, buffer);
+        writer.varray.set_by_copy(dst_layer_index, buffer);
+      }
+      writer.finish();
+    });
+
+    std::optional<int> frame_select = std::nullopt;
+    if (copy_frame_mode == DuplicateCopyMode::Active) {
+      frame_select = current_frame;
+    }
+    dst_grease_pencil.copy_frames_from_layer(
+        dst_layer, src_grease_pencil, src_layer, frame_select);
   }
 }
 
