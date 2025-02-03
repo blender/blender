@@ -33,7 +33,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-inline namespace flatten_cc {
+inline namespace plane_legacy_cc {
 
 using IndexedFilterFn =
     FunctionRef<void(Span<float3>, Span<int>, const float4 &, MutableSpan<float>)>;
@@ -244,7 +244,7 @@ static void do_plane_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
-}  // namespace flatten_cc
+}  // namespace plane_legacy_cc
 
 void do_flatten_brush(const Depsgraph &depsgraph,
                       const Sculpt &sd,
