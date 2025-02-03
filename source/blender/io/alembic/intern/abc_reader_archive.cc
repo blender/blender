@@ -8,6 +8,8 @@
 
 #include "abc_reader_archive.h"
 
+#include "Alembic/Abc/ArchiveInfo.h"
+#include "Alembic/AbcCoreAbstract/MetaData.h"
 #include "Alembic/AbcCoreLayer/Read.h"
 #include "Alembic/AbcCoreOgawa/ReadWrite.h"
 
@@ -27,6 +29,7 @@ using Alembic::Abc::ErrorHandler;
 using Alembic::Abc::Exception;
 using Alembic::Abc::IArchive;
 using Alembic::Abc::kWrapExisting;
+using Alembic::Abc::MetaData;
 
 namespace blender::io::alembic {
 
@@ -140,6 +143,18 @@ bool ArchiveReader::valid() const
 Alembic::Abc::IObject ArchiveReader::getTop()
 {
   return m_archive.getTop();
+}
+
+bool ArchiveReader::is_blender_archive_version_prior_44()
+{
+  const MetaData &abc_metadata = m_archive.getPtr()->getMetaData();
+
+  /* Was the incoming Archive written by Blender? If so, make the version check. */
+  if (abc_metadata.get(Alembic::Abc::kApplicationNameKey) == "Blender") {
+    return abc_metadata.get("blender_version") < "v4.4";
+  }
+
+  return false;
 }
 
 }  // namespace blender::io::alembic

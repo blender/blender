@@ -177,11 +177,26 @@ static void find_prefix_to_skip(pxr::UsdStageRefPtr stage, ImportSettings &setti
   settings.skip_prefix = path;
 }
 
+/**
+ * Set compatibility flags if the Stage was written by Blender.
+ */
+static void determine_blender_compat(pxr::UsdStageRefPtr stage, ImportSettings &settings)
+{
+  const std::string doc = stage->GetRootLayer()->GetDocumentation();
+
+  /* Was the incoming Stage written by Blender? If so, set some broad compatibility flags. */
+  if (doc.find("Blender v", 0) == 0) {
+    /* Set flag if the Blender Stage was from before version 4.4. */
+    settings.blender_stage_version_prior_44 = doc < "Blender v4.4";
+  }
+}
+
 USDStageReader::USDStageReader(pxr::UsdStageRefPtr stage,
                                const USDImportParams &params,
                                const std::function<CacheFile *()> &get_cache_file_fn)
     : stage_(stage), params_(params)
 {
+  determine_blender_compat(stage_, settings_);
   convert_to_z_up(stage_, settings_);
   find_prefix_to_skip(stage_, settings_);
   settings_.get_cache_file = get_cache_file_fn;

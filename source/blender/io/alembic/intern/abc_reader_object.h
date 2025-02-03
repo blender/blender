@@ -30,6 +30,8 @@ using Alembic::AbcCoreAbstract::chrono_t;
 namespace blender::io::alembic {
 
 struct ImportSettings {
+  bool blender_archive_version_prior_44 = false;
+
   bool do_convert_mat = false;
   float conversion_mat[4][4];
 

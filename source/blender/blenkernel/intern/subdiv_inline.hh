@@ -13,6 +13,8 @@
 
 #include "BKE_subdiv.hh"
 
+#include <cmath>
+
 namespace blender::bke::subdiv {
 
 BLI_INLINE void ptex_face_uv_to_grid_uv(const float ptex_u,
@@ -90,9 +92,14 @@ BLI_INLINE void rotate_grid_to_quad(
   }
 }
 
-BLI_INLINE float crease_to_sharpness(float edge_crease)
+BLI_INLINE float crease_to_sharpness(float crease)
 {
-  return edge_crease * edge_crease * 10.0f;
+  return crease * crease * 10.0f;
+}
+
+BLI_INLINE float sharpness_to_crease(float sharpness)
+{
+  return sqrt(sharpness * 0.1f);
 }
 
 }  // namespace blender::bke::subdiv

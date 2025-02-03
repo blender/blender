@@ -28,6 +28,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
+#include "BKE_subdiv.hh"
 
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
@@ -529,17 +530,14 @@ static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
   const VArraySpan creases(*attribute);
   const Span<int2> edges = mesh->edges();
   for (const int i : edges.index_range()) {
-    const float crease = creases[i];
-    if (crease == 0.0f) {
-      continue;
+    const float crease = std::clamp(creases[i], 0.0f, 1.0f);
+
+    if (crease != 0.0f) {
+      usd_mesh_data.crease_vertex_indices.push_back(edges[i][0]);
+      usd_mesh_data.crease_vertex_indices.push_back(edges[i][1]);
+      usd_mesh_data.crease_lengths.push_back(2);
+      usd_mesh_data.crease_sharpnesses.push_back(bke::subdiv::crease_to_sharpness(crease));
     }
-
-    const float sharpness = crease >= 1.0f ? pxr::UsdGeomMesh::SHARPNESS_INFINITE : crease;
-
-    usd_mesh_data.crease_vertex_indices.push_back(edges[i][0]);
-    usd_mesh_data.crease_vertex_indices.push_back(edges[i][1]);
-    usd_mesh_data.crease_lengths.push_back(2);
-    usd_mesh_data.crease_sharpnesses.push_back(sharpness);
   }
 }
 
@@ -553,12 +551,11 @@ static void get_vert_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
   }
   const VArraySpan creases(*attribute);
   for (const int i : creases.index_range()) {
-    const float crease = creases[i];
+    const float crease = std::clamp(creases[i], 0.0f, 1.0f);
 
-    if (crease > 0.0f) {
-      const float sharpness = crease >= 1.0f ? pxr::UsdGeomMesh::SHARPNESS_INFINITE : crease;
+    if (crease != 0.0f) {
       usd_mesh_data.corner_indices.push_back(i);
-      usd_mesh_data.corner_sharpnesses.push_back(sharpness);
+      usd_mesh_data.corner_sharpnesses.push_back(bke::subdiv::crease_to_sharpness(crease));
     }
   }
 }

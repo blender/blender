@@ -16,6 +16,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
+#include "BKE_subdiv.hh"
 
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
@@ -481,12 +482,12 @@ static void get_edge_creases(Mesh *mesh,
   const VArraySpan creases(*attribute);
   const Span<int2> edges = mesh->edges();
   for (const int i : edges.index_range()) {
-    const float sharpness = creases[i];
+    const float crease = std::clamp(creases[i], 0.0f, 1.0f);
 
-    if (sharpness != 0.0f) {
+    if (crease != 0.0f) {
       indices.push_back(edges[i][0]);
       indices.push_back(edges[i][1]);
-      sharpnesses.push_back(sharpness);
+      sharpnesses.push_back(bke::subdiv::crease_to_sharpness(crease));
     }
   }
 
@@ -508,11 +509,11 @@ static void get_vert_creases(Mesh *mesh,
   }
   const VArraySpan creases(*attribute);
   for (const int i : creases.index_range()) {
-    const float sharpness = creases[i];
+    const float crease = std::clamp(creases[i], 0.0f, 1.0f);
 
-    if (sharpness != 0.0f) {
+    if (crease != 0.0f) {
       indices.push_back(i);
-      sharpnesses.push_back(sharpness);
+      sharpnesses.push_back(bke::subdiv::crease_to_sharpness(crease));
     }
   }
 }

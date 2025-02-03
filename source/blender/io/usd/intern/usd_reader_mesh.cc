@@ -22,6 +22,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
+#include "BKE_subdiv.hh"
 
 #include "BLI_array.hh"
 #include "BLI_map.hh"
@@ -430,7 +431,10 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   creases.span.fill(0.0f);
 
   for (size_t i = 0; i < corner_indices.size(); i++) {
-    creases.span[corner_indices[i]] = std::clamp(corner_sharpnesses[i], 0.0f, 1.0f);
+    const float crease = settings_->blender_stage_version_prior_44 ?
+                             corner_sharpnesses[i] :
+                             bke::subdiv::sharpness_to_crease(corner_sharpnesses[i]);
+    creases.span[corner_indices[i]] = std::clamp(crease, 0.0f, 1.0f);
   }
   creases.finish();
 }
@@ -490,7 +494,10 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
       break;
     }
 
-    const float sharpness = std::clamp(crease_sharpness[i], 0.0f, 1.0f);
+    float crease = settings_->blender_stage_version_prior_44 ?
+                       crease_sharpness[i] :
+                       bke::subdiv::sharpness_to_crease(crease_sharpness[i]);
+    crease = std::clamp(crease, 0.0f, 1.0f);
     for (size_t j = 0; j < length - 1; j++) {
       const int v1 = crease_indices[index_start + j];
       const int v2 = crease_indices[index_start + j + 1];
@@ -499,7 +506,7 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
         continue;
       }
 
-      creases.span[edge_i] = sharpness;
+      creases.span[edge_i] = crease;
     }
 
     index_start += length;

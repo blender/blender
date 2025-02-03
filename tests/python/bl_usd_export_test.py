@@ -784,7 +784,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(usd_vert_sharpness), 7)
         # A 1.0 crease is INFINITE (10) in USD
         self.assertAlmostEqual(min(usd_vert_sharpness), 0.1, 5)
-        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp < 1]), 6)
+        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp < 10]), 6)
         self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp == 10]), 1)
 
         mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/crease_edge/crease_edge"))
@@ -799,7 +799,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(usd_crease_sharpness), 10)
         # A 1.0 crease is INFINITE (10) in USD
         self.assertAlmostEqual(min(usd_crease_sharpness), 0.1, 5)
-        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 1]), 9)
+        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 10]), 9)
         self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp == 10]), 1)
 
     def test_export_mesh_triangulate(self):

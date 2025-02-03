@@ -41,6 +41,9 @@ class ArchiveReader {
   bool valid() const;
 
   Alembic::Abc::IObject getTop();
+
+  /* Detect if the Archive was written by Blender prior to 4.4. */
+  bool is_blender_archive_version_prior_44();
 };
 
 }  // namespace blender::io::alembic
