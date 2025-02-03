@@ -3061,7 +3061,7 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 struct ClosestCurveDataBlock {
   blender::StringRef selection_attribute_name;
   Curves *curves_id = nullptr;
-  blender::ed::curves::FindClosestData elem = {};
+  blender::ed::curves::FindClosestData elem;
 };
 
 /**
@@ -3198,7 +3198,7 @@ struct ClosestGreasePencilDrawing {
   blender::StringRef selection_attribute_name;
   int info_index = -1;
   blender::bke::greasepencil::Drawing *drawing = nullptr;
-  blender::ed::curves::FindClosestData elem = {};
+  blender::ed::curves::FindClosestData elem;
 };
 
 /**

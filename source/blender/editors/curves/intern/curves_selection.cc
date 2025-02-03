@@ -400,7 +400,7 @@ static bool contains(const VArray<bool> &varray,
           const int64_t size = end - start;
           const IndexMask sliced_mask = indices_to_check.slice(start, size);
           std::array<bool, MaxChunkSize> values;
-          auto values_end = values.begin() + size;
+          auto *values_end = values.begin() + size;
           varray.materialize_compressed(sliced_mask, values);
           if (std::find(values.begin(), values_end, value) != values_end) {
             return true;
