@@ -140,7 +140,10 @@ void main()
   }
 #endif
 
+  /* Curves do not need the offset since they *are* the curve geometry. */
+#if !defined(CURVES)
   gl_Position.z -= ndc_offset_factor * 0.5;
+#endif
 
   vec3 rim_col, wire_col;
   if (colorType == V3D_SHADING_OBJECT_COLOR || colorType == V3D_SHADING_RANDOM_COLOR) {
