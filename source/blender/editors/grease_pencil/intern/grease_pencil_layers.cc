@@ -445,21 +445,36 @@ static int grease_pencil_layer_hide_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 
-  if (!grease_pencil.has_active_layer()) {
+  TreeNode *active_node = grease_pencil.get_active_node();
+
+  if (!active_node) {
     return OPERATOR_CANCELLED;
   }
 
   if (unselected) {
-    /* hide unselected */
-    for (Layer *layer : grease_pencil.layers_for_write()) {
-      const bool is_active = grease_pencil.is_layer_active(layer);
-      layer->set_visible(is_active);
+    /* If active node is a layer group, only show parent layer groups and child nodes.
+     *  If active node is a layer, only show parent layer groups and active node. */
+
+    for (TreeNode *node : grease_pencil.nodes_for_write()) {
+      bool should_be_visible = false;
+
+      if (active_node->is_group()) {
+        should_be_visible = node->is_child_of(active_node->as_group());
+        if (node->is_group()) {
+          should_be_visible |= active_node->is_child_of(node->as_group());
+        }
+      }
+      else if (node->is_group()) {
+        should_be_visible = active_node->is_child_of(node->as_group());
+      }
+
+      node->set_visible(should_be_visible);
     }
+    active_node->set_visible(true);
   }
   else {
     /* hide selected/active */
-    Layer &active_layer = *grease_pencil.get_active_layer();
-    active_layer.set_visible(false);
+    active_node->set_visible(false);
   }
 
   /* notifiers */
