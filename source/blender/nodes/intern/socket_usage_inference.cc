@@ -949,8 +949,14 @@ struct SocketUsageInferencer {
     if (!animated_inputs_by_node_name.is_empty()) {
       for (const bNode *node : tree.all_nodes()) {
         const Span<int> animated_inputs = animated_inputs_by_node_name.lookup(node->name);
+        const Span<const bNodeSocket *> input_sockets = node->input_sockets();
         for (const int socket_index : animated_inputs) {
-          const bNodeSocket &socket = node->input_socket(socket_index);
+          if (socket_index < 0 || socket_index >= input_sockets.size()) {
+            /* This can happen when the animation data is not immediately updated after a socket is
+             * removed. */
+            continue;
+          }
+          const bNodeSocket &socket = *input_sockets[socket_index];
           animated_sockets_.add(&socket);
         }
       }
