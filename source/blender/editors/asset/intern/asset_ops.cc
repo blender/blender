@@ -836,7 +836,7 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
                                                                  PropertyRNA * /*prop*/,
                                                                  bool *r_free)
 {
-  const EnumPropertyItem *items = library_reference_to_rna_enum_itemf(false);
+  const EnumPropertyItem *items = custom_libraries_rna_enum_itemf();
   if (!items) {
     *r_free = false;
     return nullptr;

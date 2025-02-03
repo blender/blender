@@ -465,7 +465,10 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(true);
+  const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(
+      /* Include all valid libraries for the user to choose from. */
+      /*include_readonly=*/true,
+      /*include_current_file=*/true);
   if (!items) {
     *r_free = false;
     return rna_enum_dummy_NULL_items;

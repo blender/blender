@@ -256,7 +256,11 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
                                                                  PropertyRNA * /*prop*/,
                                                                  bool *r_free)
 {
-  const EnumPropertyItem *items = asset::library_reference_to_rna_enum_itemf(false);
+  const EnumPropertyItem *items = asset::library_reference_to_rna_enum_itemf(
+      /* Only get writable libraries. */
+      /*include_readonly=*/false,
+      /* Saving brushes to the current file isn't working correctly yet. */
+      /*include_current_file=*/false);
   if (!items) {
     *r_free = false;
     return nullptr;

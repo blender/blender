@@ -75,29 +75,8 @@ AssetLibraryReference library_reference_from_enum_value(int value)
   return library;
 }
 
-const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_generated)
+static void rna_enum_add_custom_libraries(EnumPropertyItem **item, int *totitem)
 {
-  EnumPropertyItem *item = nullptr;
-  int totitem = 0;
-
-  if (include_generated) {
-    /* Add predefined libraries that are generated and not simple directories that can be written
-     * to. */
-    BLI_assert(rna_enum_asset_library_type_items[0].value == ASSET_LIBRARY_ALL);
-    RNA_enum_item_add(&item, &totitem, &rna_enum_asset_library_type_items[0]);
-    RNA_enum_item_add_separator(&item, &totitem);
-
-    BLI_assert(rna_enum_asset_library_type_items[1].value == ASSET_LIBRARY_LOCAL);
-    RNA_enum_item_add(&item, &totitem, &rna_enum_asset_library_type_items[1]);
-    BLI_assert(rna_enum_asset_library_type_items[2].value == ASSET_LIBRARY_ESSENTIALS);
-    RNA_enum_item_add(&item, &totitem, &rna_enum_asset_library_type_items[2]);
-  }
-
-  /* Add separator if needed. */
-  if (!BLI_listbase_is_empty(&U.asset_libraries)) {
-    RNA_enum_item_add_separator(&item, &totitem);
-  }
-
   int i;
   LISTBASE_FOREACH_INDEX (bUserAssetLibrary *, user_library, &U.asset_libraries, i) {
     /* Note that the path itself isn't checked for validity here. If an invalid library path is
@@ -115,8 +94,46 @@ const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_g
     /* Use library path as description, it's a nice hint for users. */
     EnumPropertyItem tmp = {
         enum_value, user_library->name, ICON_NONE, user_library->name, user_library->dirpath};
-    RNA_enum_item_add(&item, &totitem, &tmp);
+    RNA_enum_item_add(item, totitem, &tmp);
   }
+}
+
+const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_readonly,
+                                                            const bool include_current_file)
+{
+  EnumPropertyItem *item = nullptr;
+  int totitem = 0;
+
+  if (include_readonly) {
+    BLI_assert(rna_enum_asset_library_type_items[0].value == ASSET_LIBRARY_ALL);
+    RNA_enum_item_add(&item, &totitem, &rna_enum_asset_library_type_items[0]);
+    RNA_enum_item_add_separator(&item, &totitem);
+  }
+  if (include_current_file) {
+    BLI_assert(rna_enum_asset_library_type_items[1].value == ASSET_LIBRARY_LOCAL);
+    RNA_enum_item_add(&item, &totitem, &rna_enum_asset_library_type_items[1]);
+  }
+  if (include_readonly) {
+    BLI_assert(rna_enum_asset_library_type_items[2].value == ASSET_LIBRARY_ESSENTIALS);
+    RNA_enum_item_add(&item, &totitem, &rna_enum_asset_library_type_items[2]);
+  }
+
+  /* Add separator if needed. */
+  if (!BLI_listbase_is_empty(&U.asset_libraries) && (include_readonly || include_current_file)) {
+    RNA_enum_item_add_separator(&item, &totitem);
+  }
+  rna_enum_add_custom_libraries(&item, &totitem);
+
+  RNA_enum_item_end(&item, &totitem);
+  return item;
+}
+
+const EnumPropertyItem *custom_libraries_rna_enum_itemf()
+{
+  EnumPropertyItem *item = nullptr;
+  int totitem = 0;
+
+  rna_enum_add_custom_libraries(&item, &totitem);
 
   RNA_enum_item_end(&item, &totitem);
   return item;
