@@ -256,7 +256,7 @@ class Prepass : Overlay {
         pass = curves_ps_;
         break;
       case OB_GREASE_PENCIL:
-        if (!res.is_selection()) {
+        if (!res.is_selection() && state.is_render_depth_available) {
           /* Disable during display, only enable for selection.
            * The grease pencil engine already renders it properly. */
           return;

@@ -59,6 +59,12 @@ void Instance::init()
     state.xray_opacity = state.xray_enabled ? XRAY_ALPHA(state.v3d) : 1.0f;
     state.xray_flag_enabled = SHADING_XRAY_FLAG_ENABLED(state.v3d->shading) &&
                               !state.is_depth_only_drawing;
+    /* Only workbench ensures the depth buffer is matching overlays.
+     * Force depth prepass for other render engines.
+     * EEVEE is an exception (if not using mixed resolution) to avoid a significant overhead. */
+    state.is_render_depth_available = state.v3d->shading.type <= OB_SOLID ||
+                                      (BKE_scene_uses_blender_eevee(state.scene) &&
+                                       BKE_render_preview_pixel_size(&state.scene->r) == 1);
 
     if (!state.hide_overlays) {
       state.overlay = state.v3d->overlay;
@@ -88,6 +94,8 @@ void Instance::init()
     state.is_wireframe_mode = false;
     state.hide_overlays = (space_image->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) == 0;
     state.xray_enabled = false;
+    /* Avoid triggering the depth prepass. */
+    state.is_render_depth_available = true;
 
     /* During engine initialization phase the `space_image` isn't locked and we are able to
      * retrieve the needed data. During cache_init the image engine locks the `space_image` and
@@ -520,7 +528,14 @@ void Instance::draw_v3d(Manager &manager, View &view)
       GPU_framebuffer_clear_color_depth(resources.overlay_line_fb, clear_color, 1.0f);
     }
     else {
-      GPU_framebuffer_clear_color(resources.overlay_line_fb, clear_color);
+      if (!state.is_render_depth_available) {
+        /* If the render engine is not outputing correct depth,
+         * clear the depth and render a depth prepass. */
+        GPU_framebuffer_clear_color_depth(resources.overlay_line_fb, clear_color, 1.0f);
+      }
+      else {
+        GPU_framebuffer_clear_color(resources.overlay_line_fb, clear_color);
+      }
     }
 
     /* TODO(fclem): Split overlay and rename draw functions. */
@@ -719,10 +734,8 @@ bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
   }
 
   if (!state.xray_enabled) {
-    /* Only workbench ensures the depth buffer is matching overlays.
-     * Force depth prepass for other render engines. */
-    /* TODO(fclem): Make an exception for EEVEE if not using mixed resolution. */
-    return state.v3d && (state.v3d->shading.type > OB_SOLID) && (ob_ref.object->dt >= OB_SOLID);
+    /* Force depth prepass if depth buffer form render engine is not available. */
+    return !state.is_render_depth_available && (ob_ref.object->dt >= OB_SOLID);
   }
 
   return false;

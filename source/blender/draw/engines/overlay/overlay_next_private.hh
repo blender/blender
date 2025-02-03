@@ -144,6 +144,8 @@ struct State {
   bool is_material_select = false;
   /** Whether we should render the background or leave it transparent. */
   bool draw_background = false;
+  /** True if the render engine outputs satisfactory depth information to the depth buffer. */
+  bool is_render_depth_available = false;
   /** Should text draw in this mode? */
   bool show_text = false;
   bool hide_overlays = false;
