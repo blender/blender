@@ -226,9 +226,6 @@ class Tree {
   /** Memory backing for #Node::prim_indices. Without an inline buffer to make #Tree movable. */
   Array<int, 0> prim_indices_;
 
- public:
-  std::variant<Vector<MeshNode>, Vector<GridsNode>, Vector<BMeshNode>> nodes_;
-
   /**
    * If true, the bounds for the corresponding node index is out of date.
    * \note Values are only meaningful for leaf nodes.
@@ -249,6 +246,9 @@ class Tree {
    * \note The vector's size may not match the size of the nodes array.
    */
   BitVector<> visibility_dirty_;
+
+ public:
+  std::variant<Vector<MeshNode>, Vector<GridsNode>, Vector<BMeshNode>> nodes_;
 
   pixels::PBVHData *pixels_ = nullptr;
 
@@ -273,7 +273,7 @@ class Tree {
 
   Type type() const
   {
-    return this->type_;
+    return type_;
   }
 
   /**
@@ -301,6 +301,26 @@ class Tree {
    * Tag nodes where generic attribute data has changed (not positions, masks, or face sets).
    */
   void tag_attribute_changed(const IndexMask &node_mask, StringRef attribute_name);
+
+  /**
+   * Run the last step of the BVH bounds recalculation process, propagating updated leaf node
+   * bounds to their parent/ancestor inner nodes. This is meant to be used after leaf node bounds
+   * have been computed separately.
+   */
+  void flush_bounds_to_parents();
+
+  /**
+   * Recalculate node bounding boxes based on the current coordinates. Calculation is only done for
+   * affected nodes that have been tagged by #PBVH::tag_positions_changed().
+   */
+  void update_bounds(const Depsgraph &depsgraph, const Object &object);
+  void update_bounds_mesh(Span<float3> vert_positions);
+  void update_bounds_grids(Span<float3> positions, int grid_area);
+  void update_bounds_bmesh(const BMesh &bm);
+
+  void update_normals(Object &object_orig, Object &object_eval);
+
+  void update_visibility(const Object &object);
 
  private:
   explicit Tree(Type type);
@@ -506,15 +526,6 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh);
 namespace blender::bke::pbvh {
 
 /**
- * Recalculate node bounding boxes based on the current coordinates. Calculation is only done for
- * affected nodes that have been tagged by #PBVH::tag_positions_changed().
- */
-void update_bounds(const Depsgraph &depsgraph, const Object &object, Tree &pbvh);
-void update_bounds_mesh(Span<float3> vert_positions, Tree &pbvh);
-void update_bounds_grids(const CCGKey &key, Span<float3> positions, Tree &pbvh);
-void update_bounds_bmesh(const BMesh &bm, Tree &pbvh);
-
-/**
  * Copy all current node bounds to the original bounds. "Original" bounds are typically from before
  * a brush stroke started (while the "regular" bounds update on every change of positions). These
  * are stored to optimize the BVH traversal for original coordinates enabled by various "use
@@ -527,7 +538,6 @@ void update_mask_mesh(const Mesh &mesh, const IndexMask &node_mask, Tree &pbvh);
 void update_mask_grids(const SubdivCCG &subdiv_ccg, const IndexMask &node_mask, Tree &pbvh);
 void update_mask_bmesh(const BMesh &bm, const IndexMask &node_mask, Tree &pbvh);
 
-void update_visibility(const Object &object, Tree &pbvh);
 void update_normals(const Depsgraph &depsgraph, Object &object_orig, Tree &pbvh);
 /** Update geometry normals (potentially on the original object geometry). */
 void update_normals_from_eval(Object &object_eval, Tree &pbvh);
@@ -601,13 +611,6 @@ void node_update_visibility_bmesh(BMeshNode &node);
 void update_node_bounds_mesh(Span<float3> positions, MeshNode &node);
 void update_node_bounds_grids(int grid_area, Span<float3> positions, GridsNode &node);
 void update_node_bounds_bmesh(BMeshNode &node);
-
-/**
- * Run the last step of the BVH bounds recalculation process, propagating updated leaf node bounds
- * to their parent/ancestor inner nodes. This is meant to be used after leaf node bounds have been
- * computed separately.
- */
-void flush_bounds_to_parents(Tree &pbvh);
 
 inline Span<int> MeshNode::faces() const
 {

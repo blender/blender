@@ -540,7 +540,7 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
   cache->radius_squared = cache->radius * cache->radius;
 
   if (bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob)) {
-    bke::pbvh::update_bounds(depsgraph, ob, *pbvh);
+    pbvh->update_bounds(depsgraph, ob);
   }
 }
 

@@ -726,7 +726,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 void multiplane_scrape_preview_draw(const uint gpuattr,

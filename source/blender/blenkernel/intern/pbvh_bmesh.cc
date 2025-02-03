@@ -2262,7 +2262,7 @@ Tree Tree::from_bmesh(BMesh &bm)
       nodes, cd_vert_node_offset, cd_face_node_offset, nodeinfo, face_bounds, &rootnode, 0);
 
   pbvh.tag_positions_changed(nodes.index_range());
-  update_bounds_bmesh(bm, pbvh);
+  pbvh.update_bounds_bmesh(bm);
   store_bounds_orig(pbvh);
 
   threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {

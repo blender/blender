@@ -257,7 +257,7 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 float clay_thumb_get_stabilized_pressure(const StrokeCache &cache)

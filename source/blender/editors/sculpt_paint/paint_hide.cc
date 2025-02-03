@@ -143,7 +143,7 @@ void mesh_show_all(const Depsgraph &depsgraph, Object &object, const IndexMask &
 
   attributes.remove(".hide_vert");
   bke::mesh_hide_vert_flush(mesh);
-  bke::pbvh::update_visibility(object, pbvh);
+  pbvh.update_visibility(object);
 }
 
 void grids_show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_mask)
@@ -171,7 +171,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_
 
   BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg);
   BKE_pbvh_sync_visibility_from_verts(object);
-  bke::pbvh::update_visibility(object, pbvh);
+  pbvh.update_visibility(object);
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
 }
 
@@ -443,7 +443,7 @@ static void partialvis_update_bmesh_nodes(const Depsgraph &depsgraph,
   });
 
   pbvh.tag_visibility_changed(node_mask);
-  bke::pbvh::update_visibility(ob, pbvh);
+  pbvh.update_visibility(ob);
 }
 
 /** \} */
@@ -735,7 +735,7 @@ static void invert_visibility_mesh(const Depsgraph &depsgraph,
   hide_poly.finish();
   bke::mesh_hide_face_flush(mesh);
   pbvh.tag_visibility_changed(node_mask);
-  bke::pbvh::update_visibility(object, *bke::object::pbvh_get(object));
+  pbvh.update_visibility(object);
 }
 
 static void invert_visibility_grids(Depsgraph &depsgraph,
@@ -1074,7 +1074,7 @@ static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
   grid_hidden = std::move(last_buffer);
 
   pbvh.tag_visibility_changed(node_mask);
-  bke::pbvh::update_visibility(object, pbvh);
+  pbvh.update_visibility(object);
 
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
   BKE_pbvh_sync_visibility_from_verts(object);

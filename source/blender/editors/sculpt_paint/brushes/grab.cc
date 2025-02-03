@@ -223,7 +223,7 @@ void do_grab_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 void geometry_preview_lines_update(Depsgraph &depsgraph,
