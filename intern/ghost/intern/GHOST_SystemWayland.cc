@@ -7411,11 +7411,21 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   bool libdecor_required = false;
-  if (const char *xdg_current_desktop = getenv("XDG_CURRENT_DESKTOP")) {
-    /* See the free-desktop specifications for details on `XDG_CURRENT_DESKTOP`.
-     * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html */
-    if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
-      libdecor_required = true;
+  {
+    const char *xdg_current_desktop = [] {
+      /* Account for VSCode overriding this value (tsk!), see: #133921. */
+      const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
+      const char *value = getenv(key);
+      return value ? value : getenv(key + 9);
+    }();
+
+    if (xdg_current_desktop) {
+      /* See the free-desktop specifications for details on `XDG_CURRENT_DESKTOP`.
+       * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
+       */
+      if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
+        libdecor_required = true;
+      }
     }
   }
 
