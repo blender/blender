@@ -188,6 +188,7 @@ class Report:
 
     def _engine_path(self, path, variation):
         if variation:
+            variation = variation.replace(' ', '_')
             return os.path.join(path, variation.lower())
         else:
             return path
