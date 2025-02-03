@@ -124,8 +124,7 @@ static void assign_materials(Main *bmain,
         continue;
       }
 
-      const bool have_import_hook = settings.mat_import_hook_sources.contains(
-          item.key.GetAsString());
+      const bool have_import_hook = settings.mat_import_hook_sources.contains(item.key);
 
       /* Add the Blender material. If we have an import hook which can handle this material
        * we don't import USD Preview Surface shaders. */
@@ -139,18 +138,17 @@ static void assign_materials(Main *bmain,
       }
 
       const std::string mat_name = make_safe_name(assigned_mat->id.name + 2, true);
-      settings.mat_name_to_mat.lookup_or_add_default(mat_name) = assigned_mat;
+      settings.mat_name_to_mat.add_new(mat_name, assigned_mat);
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the Blender material we created for the USD material with the given path. */
-        settings.usd_path_to_mat.lookup_or_add_default(item.key.GetAsString()) = assigned_mat;
+        settings.usd_path_to_mat.add_new(item.key, assigned_mat);
       }
 
       if (have_import_hook) {
         /* Defer invoking the hook to convert the material till we can do so from
          * the main thread. */
-        settings.usd_path_to_mat_for_hook.lookup_or_add_default(
-            item.key.GetAsString()) = assigned_mat;
+        settings.usd_path_to_mat_for_hook.add_new(item.key, assigned_mat);
       }
     }
 
@@ -416,12 +414,14 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
 
   /* It is fine to have fewer indices than vertices, but never the other way other. */
   if (corner_indices.size() > mesh->verts_num) {
-    CLOG_WARN(&LOG, "Too many vertex creases for mesh %s", prim_path_.c_str());
+    CLOG_WARN(&LOG, "Too many vertex creases for mesh %s", prim_path_.GetAsString().c_str());
     return;
   }
 
   if (corner_indices.size() != corner_sharpnesses.size()) {
-    CLOG_WARN(&LOG, "Vertex crease and sharpness count mismatch for mesh %s", prim_path_.c_str());
+    CLOG_WARN(&LOG,
+              "Vertex crease and sharpness count mismatch for mesh %s",
+              prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -455,7 +455,9 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
 
   /* There should be as many sharpness values as lengths. */
   if (crease_lengths.size() != crease_sharpness.size()) {
-    CLOG_WARN(&LOG, "Edge crease and sharpness count mismatch for mesh %s", prim_path_.c_str());
+    CLOG_WARN(&LOG,
+              "Edge crease and sharpness count mismatch for mesh %s",
+              prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -485,12 +487,17 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
     if (length < 2) {
       /* Since each crease must be at least one edge long, each element of this array must be at
        * least two. If this is not the case it would not be safe to continue. */
-      CLOG_WARN(&LOG, "Edge crease length %d is invalid for mesh %s", length, prim_path_.c_str());
+      CLOG_WARN(&LOG,
+                "Edge crease length %d is invalid for mesh %s",
+                length,
+                prim_path_.GetAsString().c_str());
       break;
     }
 
     if (index_start + length > crease_indices.size()) {
-      CLOG_WARN(&LOG, "Edge crease lengths are out of bounds for mesh %s", prim_path_.c_str());
+      CLOG_WARN(&LOG,
+                "Edge crease lengths are out of bounds for mesh %s",
+                prim_path_.GetAsString().c_str());
       break;
     }
 
@@ -538,7 +545,9 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
   }
 
   if (normals_.size() != mesh->verts_num) {
-    CLOG_WARN(&LOG, "Vertex varying normals count mismatch for mesh '%s'", prim_path_.c_str());
+    CLOG_WARN(&LOG,
+              "Vertex varying normals count mismatch for mesh '%s'",
+              prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -555,7 +564,7 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh) const
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->corners_num) {
-    CLOG_WARN(&LOG, "Loop normal count mismatch for mesh '%s'", prim_path_.c_str());
+    CLOG_WARN(&LOG, "Loop normal count mismatch for mesh '%s'", prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -590,7 +599,8 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh) const
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->faces_num) {
-    CLOG_WARN(&LOG, "Uniform normal count mismatch for mesh '%s'", prim_path_.c_str());
+    CLOG_WARN(
+        &LOG, "Uniform normal count mismatch for mesh '%s'", prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -853,7 +863,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   material_indices.finish();
   /* Build material name map if it's not built yet. */
   if (this->settings_->mat_name_to_mat.is_empty()) {
-    build_material_map(bmain, &this->settings_->mat_name_to_mat);
+    build_material_map(bmain, this->settings_->mat_name_to_mat);
   }
   utils::assign_materials(
       bmain, object_, mat_map, this->import_params_, this->prim_.GetStage(), *this->settings_);
@@ -922,22 +932,22 @@ void USDMeshReader::read_geometry(bke::GeometrySet &geometry_set,
   }
 }
 
-std::string USDMeshReader::get_skeleton_path() const
+pxr::SdfPath USDMeshReader::get_skeleton_path() const
 {
   /* Make sure we can apply UsdSkelBindingAPI to the prim.
    * Attempting to apply the API to instance proxies generates
    * a USD error. */
   if (!prim_ || prim_.IsInstanceProxy()) {
-    return "";
+    return {};
   }
 
   pxr::UsdSkelBindingAPI skel_api(prim_);
 
   if (pxr::UsdSkelSkeleton skel = skel_api.GetInheritedSkeleton()) {
-    return skel.GetPath().GetAsString();
+    return skel.GetPath();
   }
 
-  return "";
+  return {};
 }
 
 std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) const

@@ -4,6 +4,7 @@
 
 #include "usd_reader_material.hh"
 #include "usd_asset_utils.hh"
+#include "usd_hash_types.hh"
 #include "usd_reader_utils.hh"
 #include "usd_utils.hh"
 
@@ -1482,24 +1483,24 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(const pxr::UsdShadeSha
   link_nodes(ntree, uv_map, "UV", dest_node, dest_socket_name);
 }
 
-void build_material_map(const Main *bmain, blender::Map<std::string, Material *> *r_mat_map)
+void build_material_map(const Main *bmain, blender::Map<std::string, Material *> &r_mat_map)
 {
-  BLI_assert_msg(r_mat_map, "...");
+  BLI_assert_msg(r_mat_map.is_empty(), "The incoming material map should be empty");
 
   LISTBASE_FOREACH (Material *, material, &bmain->materials) {
     std::string usd_name = make_safe_name(material->id.name + 2, true);
-    r_mat_map->lookup_or_add_default(usd_name) = material;
+    r_mat_map.add_new(usd_name, material);
   }
 }
 
 Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
                                  const USDImportParams &params,
                                  const blender::Map<std::string, Material *> &mat_map,
-                                 const blender::Map<std::string, Material *> &usd_path_to_mat)
+                                 const blender::Map<pxr::SdfPath, Material *> &usd_path_to_mat)
 {
   if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
     /* Check if we've already created the Blender material with a modified name. */
-    return usd_path_to_mat.lookup_default(usd_mat_path.GetAsString(), nullptr);
+    return usd_path_to_mat.lookup_default(usd_mat_path, nullptr);
   }
 
   return mat_map.lookup_default(usd_mat_path.GetName(), nullptr);

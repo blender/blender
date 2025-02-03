@@ -1698,13 +1698,13 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
-            "/Cube": [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
-            "/XformThenCube": [bpy.data.objects["XformThenCube"]],
-            "/XformThenCube/Cube": [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
-            "/XformThenXformCube": [bpy.data.objects["XformThenXformCube"]],
-            "/XformThenXformCube/XformIntermediate": [bpy.data.objects["XformIntermediate"]],
-            "/XformThenXformCube/XformIntermediate/Cube": [bpy.data.objects["Cube.001"], bpy.data.meshes["Cube.001"]],
-            "/Material": [bpy.data.materials["Material"]],
+            Sdf.Path('/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
+            Sdf.Path('/XformThenCube'): [bpy.data.objects["XformThenCube"]],
+            Sdf.Path('/XformThenCube/Cube'): [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
+            Sdf.Path('/XformThenXformCube'): [bpy.data.objects["XformThenXformCube"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["XformIntermediate"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.objects["Cube.001"], bpy.data.meshes["Cube.001"]],
+            Sdf.Path('/Material'): [bpy.data.materials["Material"]],
         }
 
         self.assertDictEqual(prim_map, expected_prim_map)
@@ -1716,13 +1716,13 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
-            "/Cube": [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
-            "/XformThenCube": [bpy.data.objects["Cube"]],
-            "/XformThenCube/Cube": [bpy.data.meshes["Cube"]],
-            "/XformThenXformCube": [bpy.data.objects["XformThenXformCube"]],
-            "/XformThenXformCube/XformIntermediate": [bpy.data.objects["Cube.001"]],
-            "/XformThenXformCube/XformIntermediate/Cube": [bpy.data.meshes["Cube.001"]],
-            "/Material": [bpy.data.materials["Material"]],
+            Sdf.Path('/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
+            Sdf.Path('/XformThenCube'): [bpy.data.objects["Cube"]],
+            Sdf.Path('/XformThenCube/Cube'): [bpy.data.meshes["Cube"]],
+            Sdf.Path('/XformThenXformCube'): [bpy.data.objects["XformThenXformCube"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["Cube.001"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.meshes["Cube.001"]],
+            Sdf.Path('/Material'): [bpy.data.materials["Material"]],
         }
 
         self.assertDictEqual(prim_map, expected_prim_map)

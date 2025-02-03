@@ -69,7 +69,7 @@ class USDMeshReader : public USDGeomReader {
    * The returned path is currently used to match armature modifiers with armature
    * objects during import.
    */
-  std::string get_skeleton_path() const;
+  pxr::SdfPath get_skeleton_path() const;
 
  private:
   void process_normals_vertex_varying(Mesh *mesh);
