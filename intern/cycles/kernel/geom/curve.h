@@ -20,6 +20,29 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __HAIR__
 
+/* Partial derivative of f w.r.t. x, namely ∂f/∂x
+ * f is a function of u (along the curve)
+ *       f(u) = f0 * (1 - u) + f1 * u,
+ * The partial derivative in x is
+ *    ∂f/∂x = ∂f/∂u * ∂u/∂x
+ *          = (f1 - f0) * du.dx. */
+template<typename T>
+ccl_device_inline T curve_attribute_dfdx(const ccl_private differential &du,
+                                         const ccl_private T &f0,
+                                         const ccl_private T &f1)
+{
+  return du.dx * (f1 - f0);
+}
+
+/* Partial derivative of f w.r.t. in x, namely ∂f/∂y, similarly computed as ∂f/∂x above. */
+template<typename T>
+ccl_device_inline T curve_attribute_dfdy(const ccl_private differential &du,
+                                         const ccl_private T &f0,
+                                         const ccl_private T &f1)
+{
+  return du.dy * (f1 - f0);
+}
+
 /* Reading attributes on various curve elements */
 
 ccl_device float curve_attribute_float(KernelGlobals kg,
@@ -38,10 +61,10 @@ ccl_device float curve_attribute_float(KernelGlobals kg,
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx) {
-      *dx = sd->du.dx * (f1 - f0);
+      *dx = curve_attribute_dfdx(sd->du, f0, f1);
     }
     if (dy) {
-      *dy = 0.0f;
+      *dy = curve_attribute_dfdy(sd->du, f0, f1);
     }
 #  endif
 
@@ -79,10 +102,10 @@ ccl_device float2 curve_attribute_float2(KernelGlobals kg,
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx) {
-      *dx = sd->du.dx * (f1 - f0);
+      *dx = curve_attribute_dfdx(sd->du, f0, f1);
     }
     if (dy) {
-      *dy = make_float2(0.0f, 0.0f);
+      *dy = curve_attribute_dfdy(sd->du, f0, f1);
     }
 #  endif
 
@@ -125,10 +148,10 @@ ccl_device float3 curve_attribute_float3(KernelGlobals kg,
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx) {
-      *dx = sd->du.dx * (f1 - f0);
+      *dx = curve_attribute_dfdx(sd->du, f0, f1);
     }
     if (dy) {
-      *dy = make_float3(0.0f, 0.0f, 0.0f);
+      *dy = curve_attribute_dfdy(sd->du, f0, f1);
     }
 #  endif
 
@@ -167,10 +190,10 @@ ccl_device float4 curve_attribute_float4(KernelGlobals kg,
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx) {
-      *dx = sd->du.dx * (f1 - f0);
+      *dx = curve_attribute_dfdx(sd->du, f0, f1);
     }
     if (dy) {
-      *dy = zero_float4();
+      *dy = curve_attribute_dfdy(sd->du, f0, f1);
     }
 #  endif
 
