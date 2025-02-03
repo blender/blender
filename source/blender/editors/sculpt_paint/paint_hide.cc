@@ -918,12 +918,13 @@ static void update_undo_state(const Depsgraph &depsgraph,
   });
 }
 
-static void update_node_visibility_from_face_changes(MutableSpan<bke::pbvh::MeshNode> nodes,
+static void update_node_visibility_from_face_changes(bke::pbvh::Tree &pbvh,
                                                      const IndexMask &node_mask,
                                                      const Span<bool> orig_hide_poly,
                                                      const Span<bool> new_hide_poly,
                                                      const Span<bool> hide_vert)
 {
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -942,7 +943,12 @@ static void update_node_visibility_from_face_changes(MutableSpan<bke::pbvh::Mesh
     }
   });
 
-  // TODO
+  IndexMaskMemory memory;
+  const IndexMask changed_nodes = IndexMask::from_bools(node_changed, memory);
+  if (pbvh.draw_data) {
+    /* Only tag draw data. Nodes have already been updated above. */
+    pbvh.draw_data->tag_visibility_changed(changed_nodes);
+  }
 }
 
 static void grow_shrink_visibility_mesh(const Depsgraph &depsgraph,
@@ -981,11 +987,7 @@ static void grow_shrink_visibility_mesh(const Depsgraph &depsgraph,
   flush_edge_changes(mesh, last_buffer);
 
   update_node_visibility_from_face_changes(
-      bke::object::pbvh_get(object)->nodes<bke::pbvh::MeshNode>(),
-      node_mask,
-      orig_hide_poly,
-      hide_poly,
-      last_buffer);
+      *bke::object::pbvh_get(object), node_mask, orig_hide_poly, hide_poly, last_buffer);
   array_utils::copy(last_buffer, hide_vert.span);
   hide_vert.finish();
 }
