@@ -1225,24 +1225,6 @@ static float widget_alpha_factor(const uiWidgetStateInfo *state)
   return 1.0f;
 }
 
-static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
-{
-  if (icon == ICON_NONE) {
-    return;
-  }
-
-  const int w = BLI_rcti_size_x(rect);
-  const int h = BLI_rcti_size_y(rect);
-  const int size = std::min(w, h) - PREVIEW_PAD * 2;
-
-  if (size > 0) {
-    const int x = rect->xmin + w / 2 - size / 2;
-    const int y = rect->ymin + h / 2 - size / 2;
-
-    UI_icon_draw_preview(x, y, icon, 1.0f, alpha, size);
-  }
-}
-
 static void widget_draw_icon_centered(const BIFIconID icon,
                                       const float aspect,
                                       const float alpha,
@@ -1270,6 +1252,39 @@ static void widget_draw_icon_centered(const BIFIconID icon,
   }
 }
 
+/**
+ * \param mono_color: Only for drawing monochrome icons.
+ */
+static void widget_draw_preview_icon(
+    BIFIconID icon, float alpha, float aspect, const rcti *rect, const uchar mono_color[4])
+{
+  if (icon == ICON_NONE) {
+    return;
+  }
+
+  if (icon < BIFICONID_LAST_STATIC) {
+    const bool is_loading_icon = icon == ICON_TEMP;
+    /* Special handling: Previews often want to show a loading icon while the preview is being
+     * loaded. Draw this with reduced opacity. */
+    if (is_loading_icon) {
+      alpha *= 0.5f;
+    }
+    widget_draw_icon_centered(icon, aspect, alpha, rect, mono_color);
+    return;
+  }
+
+  const int w = BLI_rcti_size_x(rect);
+  const int h = BLI_rcti_size_y(rect);
+  const int size = std::min(w, h) - PREVIEW_PAD * 2;
+
+  if (size > 0) {
+    const int x = rect->xmin + w / 2 - size / 2;
+    const int y = rect->ymin + h / 2 - size / 2;
+
+    UI_icon_draw_preview(x, y, icon, 1.0f, alpha, size);
+  }
+}
+
 static int ui_but_draw_menu_icon(const uiBut *but)
 {
   return (but->flag & UI_BUT_ICON_SUBMENU) && (but->emboss == UI_EMBOSS_PULLDOWN);
@@ -1280,9 +1295,11 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 static void widget_draw_icon(
     const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const uchar mono_color[4])
 {
+  const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
+
   if (but->flag & UI_BUT_ICON_PREVIEW) {
     GPU_blend(GPU_BLEND_ALPHA);
-    widget_draw_preview(icon, alpha, rect);
+    widget_draw_preview_icon(icon, alpha, aspect, rect, mono_color);
     GPU_blend(GPU_BLEND_NONE);
     return;
   }
@@ -1292,7 +1309,6 @@ static void widget_draw_icon(
     return;
   }
 
-  const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
   const float height = ICON_DEFAULT_HEIGHT / aspect;
 
   /* calculate blend color */
@@ -2251,11 +2267,14 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     widget_draw_node_link_socket(wcol, &temp, but, alpha);
   }
 
+  const uchar *icon_color = (but->col[3] != 0) ? but->col : wcol->text;
+
   /* If there's an icon too (made with uiDefIconTextBut) then draw the icon
    * and offset the text label to accommodate it */
 
   /* Big previews with optional text label below */
   if (but->flag & UI_BUT_ICON_PREVIEW && ui_block_is_menu(but->block)) {
+    const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
     const BIFIconID icon = ui_but_icon(but);
     int icon_size = BLI_rcti_size_y(rect);
     int text_size = 0;
@@ -2270,7 +2289,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     /* draw icon in rect above the space reserved for the label */
     rect->ymin += text_size;
     GPU_blend(GPU_BLEND_ALPHA);
-    widget_draw_preview(icon, alpha, rect);
+    widget_draw_preview_icon(icon, alpha, aspect, rect, icon_color);
     GPU_blend(GPU_BLEND_NONE);
 
     /* offset rect to draw label in */
@@ -2322,7 +2341,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     }
 
     /* By default icon is the color of text, but can optionally override with but->col. */
-    widget_draw_icon(but, icon, alpha, rect, (but->col[3] != 0) ? but->col : wcol->text);
+    widget_draw_icon(but, icon, alpha, rect, icon_color);
 
     if (show_menu_icon) {
       BLI_assert(but->block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT);
@@ -4241,17 +4260,9 @@ static void widget_preview_tile(uiBut *but,
     widget_list_itembut(but, wcol, rect, state, roundboxalign, zoom);
   }
 
-  /* When the button is not tagged as having a preview icon, do regular icon drawing with the
-   * standard icon size. */
-  const bool draw_as_icon = !(but->flag & UI_BUT_ICON_PREVIEW);
-
-  ui_draw_preview_item_stateless(&UI_style_get()->widget,
-                                 rect,
-                                 but->drawstr,
-                                 but->icon,
-                                 wcol->text,
-                                 UI_STYLE_TEXT_CENTER,
-                                 draw_as_icon);
+  const BIFIconID icon = ui_but_icon(but);
+  ui_draw_preview_item_stateless(
+      &UI_style_get()->widget, rect, but->drawstr, icon, wcol->text, UI_STYLE_TEXT_CENTER);
 }
 
 static void widget_optionbut(uiWidgetColors *wcol,
@@ -5637,8 +5648,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     const blender::StringRef name,
                                     int iconid,
                                     const uchar text_col[4],
-                                    eFontStyle_Align text_align,
-                                    bool draw_as_icon)
+                                    eFontStyle_Align text_align)
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
@@ -5646,27 +5656,12 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 
   float alpha = 1.0f;
 
-  {
-    /* Special handling: Previews often want to show a loading icon while the preview is being
-     * loaded. Draw this with reduced opacity. */
-    const bool is_loading_icon = iconid == ICON_TEMP;
-    if (is_loading_icon) {
-      alpha *= 0.5f;
-      draw_as_icon = true;
-    }
-  }
-
   if (has_text) {
     /* draw icon in rect above the space reserved for the label */
     rect->ymin += text_size;
   }
   GPU_blend(GPU_BLEND_ALPHA);
-  if (draw_as_icon) {
-    widget_draw_icon_centered(iconid, 1.0f, alpha, rect, text_col);
-  }
-  else {
-    widget_draw_preview(iconid, alpha, rect);
-  }
+  widget_draw_preview_icon(iconid, alpha, 1.0f, rect, text_col);
   GPU_blend(GPU_BLEND_NONE);
 
   if (!has_text) {

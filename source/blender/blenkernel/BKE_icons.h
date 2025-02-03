@@ -108,9 +108,6 @@ struct ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
  */
 struct Icon *BKE_icon_get(int icon_id);
 
-bool BKE_icon_is_preview(int icon_id);
-bool BKE_icon_is_image(int icon_id);
-
 /**
  * Set icon for id if not already defined.
  * Used for inserting the internal icons.
