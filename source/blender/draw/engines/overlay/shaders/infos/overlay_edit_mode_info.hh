@@ -241,6 +241,22 @@ GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_CLIP_VARIATION(overlay_mesh_vert_normal)
 
+GPU_SHADER_CREATE_INFO(overlay_mesh_vert_normal_subdiv)
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_edit_mesh_normal)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_modelmat_new)
+ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_globals)
+ADDITIONAL_INFO(gpu_index_buffer_load)
+STORAGE_BUF_FREQ(1, READ, float, pos[], GEOMETRY)
+DEFINE("VERT_NORMAL")
+DEFINE("FLOAT_NORMAL")
+STORAGE_BUF_FREQ(0, READ, float, vnor[], GEOMETRY)
+GPU_SHADER_CREATE_END()
+
+OVERLAY_INFO_CLIP_VARIATION(overlay_mesh_vert_normal_subdiv)
+
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_analysis_iface)
 SMOOTH(VEC4, weightColor)
 GPU_SHADER_INTERFACE_END()

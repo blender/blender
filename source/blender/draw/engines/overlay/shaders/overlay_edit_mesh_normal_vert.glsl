@@ -65,7 +65,12 @@ void main()
   finalColor = colorNormal;
 
 #elif defined(VERT_NORMAL)
+#  if defined(FLOAT_NORMAL)
+  /* Path for opensubdiv. To be phased out at some point. */
+  nor = gpu_attr_load_float3(vnor, gpu_attr_0, vert_i);
+#  else
   nor = gpu_attr_load_uint_1010102_snorm(vnor, gpu_attr_0, vert_i).xyz;
+#  endif
   finalColor = colorVNormal;
 
 #elif defined(LOOP_NORMAL)

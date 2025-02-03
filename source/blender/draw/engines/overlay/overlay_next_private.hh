@@ -416,6 +416,7 @@ class ShaderModule {
   ShaderPtr mesh_loop_normal = shader_clippable("overlay_mesh_loop_normal");
   ShaderPtr mesh_loop_normal_subdiv = shader_clippable("overlay_mesh_loop_normal_subdiv");
   ShaderPtr mesh_vert_normal = shader_clippable("overlay_mesh_vert_normal");
+  ShaderPtr mesh_vert_normal_subdiv = shader_clippable("overlay_mesh_vert_normal_subdiv");
   ShaderPtr motion_path_line = shader_clippable("overlay_motion_path_line");
   ShaderPtr motion_path_vert = shader_clippable("overlay_motion_path_point");
   ShaderPtr outline_detect = shader("overlay_outline_detect");

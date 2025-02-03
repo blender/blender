@@ -45,6 +45,7 @@ class Meshes : Overlay {
   PassSimple::Sub *loop_normals_ = nullptr;
   PassSimple::Sub *loop_normals_subdiv_ = nullptr;
   PassSimple::Sub *vert_normals_ = nullptr;
+  PassSimple::Sub *vert_normals_subdiv_ = nullptr;
 
   PassSimple edit_mesh_analysis_ps_ = {"Mesh Analysis"};
   PassSimple edit_mesh_weight_ps_ = {"Edit Weight"};
@@ -177,6 +178,7 @@ class Meshes : Overlay {
         loop_normals_ = shader_pass(res.shaders.mesh_loop_normal.get(), "LoopNor");
       }
       if (show_vert_nor) {
+        vert_normals_subdiv_ = shader_pass(res.shaders.mesh_vert_normal_subdiv.get(), "SubdVNor");
         vert_normals_ = shader_pass(res.shaders.mesh_vert_normal.get(), "VertexNor");
       }
     }
@@ -299,6 +301,7 @@ class Meshes : Overlay {
      * refactored. */
     const bool use_gpu_subdiv = BKE_subsurf_modifier_has_gpu_subdiv(static_cast<Mesh *>(ob->data));
     const bool draw_as_solid = (ob->dt > OB_WIRE) && !state.xray_enabled;
+    const bool has_edit_cage = mesh_has_edit_cage(ob);
 
     if (show_retopology_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
@@ -321,17 +324,18 @@ class Meshes : Overlay {
 
     if (face_normals_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_facedots(mesh);
-      (use_gpu_subdiv ? face_normals_subdiv_ : face_normals_)
+      (use_gpu_subdiv && !has_edit_cage ? face_normals_subdiv_ : face_normals_)
           ->draw_expand(geom, GPU_PRIM_LINES, 1, 1, res_handle);
     }
     if (loop_normals_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_loop_normals(mesh);
-      (use_gpu_subdiv ? loop_normals_subdiv_ : loop_normals_)
+      (use_gpu_subdiv && !has_edit_cage ? loop_normals_subdiv_ : loop_normals_)
           ->draw_expand(geom, GPU_PRIM_LINES, 1, 1, res_handle);
     }
     if (vert_normals_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_vert_normals(mesh);
-      vert_normals_->draw_expand(geom, GPU_PRIM_LINES, 1, 1, res_handle);
+      ((use_gpu_subdiv && !has_edit_cage) ? vert_normals_subdiv_ : vert_normals_)
+          ->draw_expand(geom, GPU_PRIM_LINES, 1, 1, res_handle);
     }
 
     {
@@ -340,8 +344,7 @@ class Meshes : Overlay {
     }
     {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
-      (mesh_has_edit_cage(ob) ? &edit_mesh_cages_ps_ : &edit_mesh_faces_ps_)
-          ->draw(geom, res_handle);
+      (has_edit_cage ? &edit_mesh_cages_ps_ : &edit_mesh_faces_ps_)->draw(geom, res_handle);
     }
     if (select_vert_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_vertices(mesh);
