@@ -1719,7 +1719,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     if (edit_mapping_valid) {
       DRW_ibo_request(cache.batch.edit_vnor, &mbuflist->ibo.points);
       DRW_vbo_request(cache.batch.edit_vnor, &mbuflist->vbo.pos);
-      if (!do_subdivision) {
+      if (!do_subdivision || do_cage) {
         /* For GPU subdivision, vertex normals are included in the `pos` VBO. */
         DRW_vbo_request(cache.batch.edit_vnor, &mbuflist->vbo.vnor);
       }
