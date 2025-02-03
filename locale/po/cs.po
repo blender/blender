@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -10466,10 +10466,6 @@ msgid "Display the object's name"
 msgstr "Zobrazit aktivní objekt se všemi možnými hranami"
 
 
-msgid "Shape Key Lock"
-msgstr "Samochytavé Klíče"
-
-
 msgid "Display the object's texture space"
 msgstr "Zobrazit koncový frame animované textury"
 
@@ -13641,16 +13637,20 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
 msgid "Names"
 msgstr "Názvy"
 
 
 msgid "Bone Roll"
 msgstr "Kost"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
 
 
 msgid "Clean Up"
@@ -13695,10 +13695,6 @@ msgstr "Vybrat Propojené"
 
 msgid "Assign Material"
 msgstr "Přiřadit Materiál"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
 
 
 msgid "Light"
@@ -16689,10 +16685,6 @@ msgid "Channel Key"
 msgstr "Kanál"
 
 
-msgid "RGB color space"
-msgstr "Barevný prostor RGB"
-
-
 msgid "High"
 msgstr "Výška"
 
@@ -17047,6 +17039,10 @@ msgstr "Ostatní"
 
 msgid "Distance Key"
 msgstr "Vzdálenost"
+
+
+msgid "RGB color space"
+msgstr "Barevný prostor RGB"
 
 
 msgid "Double Edge Mask"
@@ -17431,10 +17427,6 @@ msgstr "Metoda, která se má použít k filtrování transformace"
 
 msgid "Translate"
 msgstr "Posunout"
-
-
-msgid "Wrapping"
-msgstr "Mapování"
 
 
 msgid "X Axis"
@@ -31218,10 +31210,6 @@ msgid "Use Deform Only"
 msgstr "Použít Pouze Deformace"
 
 
-msgid "UV Sculpting"
-msgstr "UV sochařství"
-
-
 msgid "Properties of vertex and weight paint mode"
 msgstr "Textový editor"
 
@@ -37685,6 +37673,10 @@ msgid "Solid Light"
 msgstr "Barva speculární složky difůzního světla"
 
 
+msgid "UV Sculpting"
+msgstr "UV sochařství"
+
+
 msgid "Index number of the vertex group"
 msgstr "Odstranit skupinu vertexů"
 
@@ -41760,8 +41752,8 @@ msgid "Relax Pose"
 msgstr "Relaxovat pózu"
 
 
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - Pouze vlastní vlastnosti (C k vymazání) | %s"
+msgid "Cancel"
+msgstr "Zrušit"
 
 
 msgid "No keyframes to slide between"
@@ -41894,10 +41886,6 @@ msgstr "Vrstva již byla přidána"
 
 msgid "Unable to find layer to add"
 msgstr "Nelze najít vrstvu, která by se přidala"
-
-
-msgid "Cancel"
-msgstr "Zrušit"
 
 
 msgid "Failed to set value"
@@ -44008,10 +43996,6 @@ msgstr "Vlastní Kamera"
 
 msgid "Bisect"
 msgstr "Půlit"
-
-
-msgid "Level Viewport"
-msgstr "Výchozí 3D Pohled"
 
 
 msgid "Unsubdivide"

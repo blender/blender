@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -8634,16 +8634,20 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
 msgid "Names"
 msgstr "Имена"
 
 
 msgid "Bone Roll"
 msgstr "Ролна костију"
-
-
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
 
 
 msgid "Snap"
@@ -8672,10 +8676,6 @@ msgstr "Поравнај поглед"
 
 msgid "Select Linked"
 msgstr "Изабери повезано"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
 
 
 msgid "Light"
@@ -19852,10 +19852,6 @@ msgid "Use only deformation modifiers (temporary disable all constructive modifi
 msgstr "Користи само деформационе модификаторе (привремено искључује све конструктивне модификаторе осим више-резолуција)"
 
 
-msgid "UV Sculpting"
-msgstr "UV вајање"
-
-
 msgid "Properties of vertex and weight paint mode"
 msgstr "Подешавање темена и мода бојења тежине"
 
@@ -23191,6 +23187,10 @@ msgid "Solid Light"
 msgstr "Основна светла"
 
 
+msgid "UV Sculpting"
+msgstr "UV вајање"
+
+
 msgid "Group Index"
 msgstr "Груписано"
 
@@ -24969,6 +24969,10 @@ msgid "Cannot remove built in keying set"
 msgstr "Не могу да уклоним уграђену збирку кључева"
 
 
+msgid "Cancel"
+msgstr "Одустани"
+
+
 msgid "No keyframes to slide between"
 msgstr "Кључни кадрови"
 
@@ -25031,10 +25035,6 @@ msgstr "Модификатор вредности F-криве"
 
 msgid "Nothing selected"
 msgstr "Ништа није изабрано"
-
-
-msgid "Cancel"
-msgstr "Одустани"
 
 
 msgid "Pin"

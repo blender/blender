@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
-"PO-Revision-Date: 2025-01-22 22:56+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"PO-Revision-Date: 2025-01-31 18:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -440,6 +440,11 @@ msgstr "Mostrar expandida"
 
 msgid "Expanded state of the slot"
 msgstr "Estando de expansão do compartimento"
+
+
+msgctxt "ID"
+msgid "Target ID Type"
+msgstr "Tipo de ID Alvo"
 
 
 msgctxt "ID"
@@ -25969,10 +25974,6 @@ msgid "Display the object's name"
 msgstr "Mostra o nome do objecto."
 
 
-msgid "Shape Key Lock"
-msgstr "Trancar Forma Chave"
-
-
 msgid "Only show the active shape key at full value"
 msgstr "Mostrar apenas a Forma Chave activa no valor máximo"
 
@@ -32427,6 +32428,16 @@ msgstr "Fotograma Chave"
 
 
 msgctxt "Action"
+msgid "Breakdown"
+msgstr "Decomposição"
+
+
+msgctxt "Action"
+msgid "Moving Hold"
+msgstr "Imobilidade"
+
+
+msgctxt "Action"
 msgid "Extreme"
 msgstr "Extremos"
 
@@ -34297,16 +34308,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
 msgid "Names"
 msgstr "Nomes"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem do osso"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
 
 
 msgid "Clean Up"
@@ -34395,10 +34410,6 @@ msgstr "Seleccionar Anéis"
 
 msgid "Assign Material"
 msgstr "Aplicar Material"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
 
 
 msgid "Light"
@@ -44482,28 +44493,12 @@ msgid "Create matte based on differences in color channels"
 msgstr "Criar máscara com base nas diferenças entre canais de cor"
 
 
-msgid "RGB color space"
-msgstr "Espaço de cores (RGB)"
-
-
-msgid "HSV color space"
-msgstr "Espaço de cor HSV"
-
-
 msgid "YUV"
 msgstr "YUV"
 
 
-msgid "YUV color space"
-msgstr "Espaço de cor YUV"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "YCbCr color space"
-msgstr "Espaço de cor YCbCr"
 
 
 msgctxt "Color"
@@ -45029,26 +45024,6 @@ msgid "Mode of color processing"
 msgstr "Modo de processamento de cor"
 
 
-msgid "Use RGB color processing"
-msgstr "Usar processamento de cor RGB"
-
-
-msgid "Use HSV color processing"
-msgstr "Usar processamento de cor HSV"
-
-
-msgid "Use HSL color processing"
-msgstr "Usar processamento de cor HSL"
-
-
-msgid "Use YCbCr color processing"
-msgstr "Usar processamento de cor YCbCr"
-
-
-msgid "Use YUV color processing"
-msgstr "Usar processamento de cor YUV"
-
-
 msgid "Color space used for YCbCrA processing"
 msgstr "Espaço de cor usado para processamento YCbCrA"
 
@@ -45506,6 +45481,10 @@ msgid "Create matte based on 3D distance between colors"
 msgstr "Criar máscara com base na distância 3D entre cores"
 
 
+msgid "RGB color space"
+msgstr "Espaço de cores (RGB)"
+
+
 msgid "YCbCr suppression"
 msgstr "Supressão YCbCr"
 
@@ -45678,6 +45657,10 @@ msgid "Amount of Color Modulation, modulates colors of streaks and ghosts for a 
 msgstr "Quantidade de modulação de cor, modula as cores dos raios e fantasmas para um efeito de dispersão espectral."
 
 
+msgid "Streak fade-out factor. (Deprecated: Use Fade input instead)"
+msgstr "Factor de desvanecimento dos raios. (Descontinuado: Usar entrada de Desvanecimento)"
+
+
 msgid "Glare Type"
 msgstr "Tipo de ofuscamento"
 
@@ -45702,8 +45685,28 @@ msgid "Simple Star"
 msgstr "Estrelas simples"
 
 
+msgid "(Deprecated: Use Iterations input instead)"
+msgstr "(Descontinuado: Usar entrada de Iterações)"
+
+
+msgid "1 is original image only, 0 is exact 50/50 mix, 1 is processed image only. (Deprecated: Use Strength input instead)"
+msgstr "Valor -1 apenas imagem original, valor 0 é uma mistura exacta de 50/50, 1 apenas imagem processada.(Descontinuado: Usar entrada de Força)"
+
+
 msgid "If not set to high quality, the effect will be applied to a low-res copy of the source image"
 msgstr "Caso não definido para alta qualidade, o efeito será aplicado para uma cópia de baixa-resolução da imagem fonte."
+
+
+msgid "Glow/glare size (not actual size; relative to initial size of bright area of pixels). (Deprecated: Use Size input instead)"
+msgstr "Tamanho da incandescência ou ofuscamento (não o tamanho actual; relativo ao tamanho inicial das áreas brilhantes dos pixeis). (Descontinuado: Usar entrada de Tamanho)"
+
+
+msgid "Total number of streaks. (Deprecated: Use Streaks input instead)"
+msgstr "Número total de raios. (Descontinuado: Usar entrada de Raios)"
+
+
+msgid "The glare filter will only be applied to pixels brighter than this value. (Deprecated: Use Threshold input instead)"
+msgstr "O filtro de ofuscamento será aplicado apenas para os pixeis mais brilhantes que este valor. (Descontinuado: Usar entrada de Limite)"
 
 
 msgid "Rotate 45"
@@ -46580,6 +46583,10 @@ msgid "Plane Track Deform"
 msgstr "Deformação de rastreamento de plano"
 
 
+msgid "Replace flat planes in footage by another image, detected by plane tracks from motion tracking"
+msgstr "Substituir superfícies planas na filmagem por outra imagem, detectadas por rastreamentos planares do rastreamento de movimento"
+
+
 msgid "Posterize"
 msgstr "Posterizar"
 
@@ -46648,6 +46655,18 @@ msgid "Method to use to filter rotation"
 msgstr "Método usado para filtrar a rotação."
 
 
+msgid "Use Nearest interpolation"
+msgstr "Usar interpolação Mais Próximo"
+
+
+msgid "Use Bilinear interpolation"
+msgstr "Usar interpolação Bilinear"
+
+
+msgid "Use Cubic B-Spline interpolation"
+msgstr "Usar interpolação B"
+
+
 msgid "Change the size of the image"
 msgstr "Alterar o tamanho da imagem"
 
@@ -46670,6 +46689,22 @@ msgstr "Tempo de Cena"
 
 msgid "Input the current scene time in seconds or frames"
 msgstr "Introduzir o tempo da cena actual en segundos ou fotogramas"
+
+
+msgid "Separate HSVA (Legacy)"
+msgstr "Separar HSVA (Legado)"
+
+
+msgid "Separate RGBA (Legacy)"
+msgstr "Separar RGBA (Legado)"
+
+
+msgid "Separate YCbCrA (Legacy)"
+msgstr "Separar YCbCrA (Legado)"
+
+
+msgid "Separate YUVA (Legacy)"
+msgstr "Separar YUVA (Legado)"
 
 
 msgid "Separate Color"
@@ -46916,40 +46951,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Usa valores relativos (em frações do tamanho da imagem de entrada) para definir o movimento."
 
 
-msgid "Wrapping"
-msgstr "Envolver"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Envolve a imagem em um eixo específico."
-
-
-msgid "No wrapping on X and Y"
-msgstr "Sem envolvimento em X e Y."
-
-
 msgid "X Axis"
 msgstr "Eixo X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Envolve todos os pixeis no eixo X."
 
 
 msgid "Y Axis"
 msgstr "Eixo Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Envolve todos os pixeis no eixo Y."
-
-
 msgid "Both Axes"
 msgstr "Ambos os eixos"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Envolve todos os pixeis em ambos os eixos."
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -47278,6 +47289,10 @@ msgstr "Verdadeiro quando o primeiro valor de entrada é mais escuro"
 
 msgid "Euler to Rotation"
 msgstr "Euler em Rotação"
+
+
+msgid "Find in String"
+msgstr "Encontrar em Texto"
 
 
 msgid "Float to Integer"
@@ -47901,6 +47916,10 @@ msgid "Whether to update left and right handles"
 msgstr "Se deve actualizar os manípulos direitos e esquerdos"
 
 
+msgid "Spiral"
+msgstr "Espiral"
+
+
 msgid "Generate a poly spline in a spiral shape"
 msgstr "Gerar uma spline poly em forma espiral"
 
@@ -48293,6 +48312,26 @@ msgid "Show a linear gizmo in the viewport for a value"
 msgstr "Mostrar um manipulador linear na janela de visualizção"
 
 
+msgctxt "NodeTree"
+msgid "Draw Style"
+msgstr "Estilo de Representação"
+
+
+msgctxt "NodeTree"
+msgid "Arrow"
+msgstr "Seta"
+
+
+msgctxt "NodeTree"
+msgid "Cross"
+msgstr "Cruz"
+
+
+msgctxt "NodeTree"
+msgid "Box"
+msgstr "Paralelepípedo"
+
+
 msgid "Transform Gizmo"
 msgstr "Manipulador de Transformações"
 
@@ -48434,6 +48473,10 @@ msgid "Retrieve the scene's active camera"
 msgstr "Obter a câmara activa da cena"
 
 
+msgid "Output a single collection"
+msgstr "Produzir uma única collecção"
+
+
 msgid "Curve Handle Positions"
 msgstr "Posições dos Manípulos da Curva"
 
@@ -48460,6 +48503,10 @@ msgstr "Verificar se cada aresta está marcada como suave ou com normais dividid
 
 msgid "Retrieve a stable random identifier value from the \"id\" attribute on the point domain, or the index if the attribute does not exist"
 msgstr "Obter um identificador aleatório estável a partir do atributo \"ID\" no domínio dos pontos, ou o índice se o atributo não existir"
+
+
+msgid "Input an image data-block"
+msgstr "Introduzir um blocos-de-dados de imagem"
 
 
 msgid "Retrieve an integer value indicating the position of each element in the list, starting at zero"
@@ -48566,8 +48613,24 @@ msgid "Named Layer Selection"
 msgstr "Selecção de Camada com Nome"
 
 
+msgid "Output a selection of a Grease Pencil layer"
+msgstr "Gerar uma selecção de camadas Grease Pencil"
+
+
 msgid "Retrieve a unit length vector indicating the direction pointing away from the geometry at each element"
 msgstr "Obter um vector de comprimento unitário indicando a direcção oposta à geometria a cada elemento"
+
+
+msgid "Flat Corner Normals"
+msgstr "Normais de Esquina Planas"
+
+
+msgid "Always use face normals for the face corner domain, matching old behavior of the node"
+msgstr "Usar sempre normais de faces para domínio de esquinas de faces"
+
+
+msgid "Output a single object"
+msgstr "Gerar um objecto único"
 
 
 msgid "Retrieve a vector indicating the location of each element"
@@ -48724,6 +48787,10 @@ msgstr "Fundir apenas vértices de malha ao longo de arestas existentes. Método
 
 msgid "Merge Layers"
 msgstr "Fundir Camadas"
+
+
+msgid "Join groups of Grease Pencil layers into one"
+msgstr "Juntar grupos de camadas Grease Pencil numa só"
 
 
 msgid "Determines how to choose which layers are merged"
@@ -50327,6 +50394,14 @@ msgid "Create a color from individual components using multiple models"
 msgstr "Criar uma cor a partir de componentes individuais usando vários modelos"
 
 
+msgid "Combine HSV (Legacy)"
+msgstr "Combinar HSV (Legado)"
+
+
+msgid "Combine RGB (Legacy)"
+msgstr "Combinar RGB (Legado)"
+
+
 msgid "Create a vector from X, Y, and Z components"
 msgstr "Criar um vector dos seus componentes X, Y e Z"
 
@@ -50551,6 +50626,10 @@ msgid "Per component factor"
 msgstr "Factor por componente"
 
 
+msgid "Mix (Legacy)"
+msgstr "Misturar (Legado)"
+
+
 msgid "Mix two input colors"
 msgstr "Misturar duas cores introduzidas"
 
@@ -50763,6 +50842,14 @@ msgid "Split a color into its individual components using multiple models"
 msgstr "Separar uma cor nos seus componentes individuais usando múltiplos modelos"
 
 
+msgid "Separate HSV (Legacy)"
+msgstr "Separa HSV (Legado)"
+
+
+msgid "Separate RGB (Legacy)"
+msgstr "Separa RGB (Legado)"
+
+
 msgid "Split a vector into its X, Y, and Z components"
 msgstr "Separar um vector nos seus componentes X, Y e Z"
 
@@ -50777,6 +50864,10 @@ msgid ""
 msgstr ""
 "Converter efeito de renderização (como luz e sombra) em cor. Tipicamente usado para renderização não fotorrealista, para aplicar efeitos adicionais na saída de BSDF.\n"
 "Apenas suportado no EEVEE"
+
+
+msgid "Squeeze Value (Legacy)"
+msgstr "Valor de Aperto (Legado)"
 
 
 msgid "Subsurface Scattering"
@@ -55051,6 +55142,10 @@ msgid "Add Grease Pencil Brush Preset"
 msgstr "Adicionar Predefinição De Pincel Grease Pencil"
 
 
+msgid "Add or remove Grease Pencil material preset"
+msgstr "Adicionar ou remover uma pré definição de material Grease Pencil"
+
+
 msgctxt "Operator"
 msgid "Add Grease Pencil Material Preset"
 msgstr "Adicionar Predefinição de Material Grease Pencil"
@@ -56874,6 +56969,15 @@ msgstr "Copia o controlador para o botão realçado."
 
 
 msgctxt "Operator"
+msgid "Debug Channel List"
+msgstr "Lista de Canais de Depuração"
+
+
+msgid "Log the channel list info in the terminal. This operator is only available in debug builds of Blender"
+msgstr "Registar a informação da lista de canais no terminal. Este operador está disponível apenas em versões de depuração de erros do Blender"
+
+
+msgctxt "Operator"
 msgid "Add Driver"
 msgstr "Adicionar controlador"
 
@@ -57145,6 +57249,24 @@ msgstr "Enquadrar Cena/Intervalo de Pré Visualização"
 
 msgid "Reset the horizontal view to the current scene frame range, taking the preview range into account if it is active"
 msgstr "Repor o campo de visão horizontal de modo a enquadrar o actual intervalo de fotogramas, tendo em conta o intervalo de pré-visualização, se activo"
+
+
+msgctxt "Operator"
+msgid "Separate Slots"
+msgstr "Separar Compartimentos"
+
+
+msgid "Move all slots of the action on the active object into newly created, separate actions. All users of those slots will be reassigned to the new actions. The current action won't be deleted but will be empty and might end up having zero users"
+msgstr "Mover todos os compartimentos da acção no objecto activo para novas acções separadas. Todos os utilizadores desses compartimentos serão reatribuídos às novas acções. A actual acção não será apagada mas ficará vazia e pode ficar sem utilizadores."
+
+
+msgctxt "Operator"
+msgid "Move Slots to new Action"
+msgstr "Mover Compartimentos para Nova Acção"
+
+
+msgid "Move the selected slots into a newly created action"
+msgstr "Mover os compartimentos seleccionados para uma nova acção"
 
 
 msgid "Create a new action slot for this data-block, to hold its animation"
@@ -59560,6 +59682,15 @@ msgid "Remove Exporter"
 msgstr "Remover Exportador"
 
 
+msgctxt "Operator"
+msgid "Add Selected to Active Objects Collection"
+msgstr "Adicionar Seleccionado à Colecção de Objectos Activa"
+
+
+msgid "Add selected objects to one of the collections the active-object is part of. Optionally add to \"All Collections\" to ensure selected objects are included in the same collections as the active object"
+msgstr "Adicionar objectos seleccionados a uma das colecções da qual o objecto-activo faz parte. Opcionalmente adicionar a \"Todas as Colecções\" para assegurar que os objectos seleccionados são incluídos nas mesmas colecções que o objecto activo."
+
+
 msgid "The collection to add other selected objects to"
 msgstr "A colecção à qual adicionar outros objectos seleccionados"
 
@@ -60781,6 +60912,10 @@ msgid "Select Control Point Row"
 msgstr "Selecionar coluna de pontos de controlo"
 
 
+msgid "Select a row of control points including active one. Successive use on the same point switches between U/V directions"
+msgstr "Seleccionar uma linha de pontos de pontos de controle incluindo o activo. Utilização sucessiva no mesmo ponto alterna entre direcções U/V."
+
+
 msgid "Select similar curve points by property type"
 msgstr "Seleciona os pontos similares das curvas pelos tipos de propriedades."
 
@@ -61048,6 +61183,11 @@ msgstr "Alternar Editável por Revogação de Biblioteca"
 
 msgid "Set if this library override data-block can be edited"
 msgstr "Definir se este bloco-de-dados de revogação de biblioteca pode ser editado"
+
+
+msgctxt "Operator"
+msgid "Remove Preview"
+msgstr "Remover Pré-Visualização"
 
 
 msgctxt "Operator"
@@ -66537,6 +66677,14 @@ msgstr "Redefine a área visível para mostrar o intervalo completo das faixas."
 
 msgid "Reset viewable area to show selected strips range"
 msgstr "Redefine a área visível para mostrar o intervalo de faixas seleccionada."
+
+
+msgid "Source color"
+msgstr "A cor fonte"
+
+
+msgid "Gamma Corrected"
+msgstr "Usar correção de gama"
 
 
 msgctxt "Operator"
@@ -72822,14 +72970,6 @@ msgid "Drop colors to buttons"
 msgstr "Permite o despejo de cores para os botões."
 
 
-msgid "Source color"
-msgstr "A cor fonte"
-
-
-msgid "Gamma Corrected"
-msgstr "Usar correção de gama"
-
-
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "Editar fonte"
@@ -75457,10 +75597,6 @@ msgstr "Usar somente deformação"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Usa somente modificadores de deformação (desativar temporariamente todos os modificadores construtivos exceto multirresolução)."
-
-
-msgid "UV Sculpting"
-msgstr "Escultura de UVs"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -85282,6 +85418,10 @@ msgid "Color of the light's specular highlight"
 msgstr "Cor do realce especular da lâmpada."
 
 
+msgid "UV Sculpting"
+msgstr "Escultura de UVs"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Grupo de vértices, usado para a deformação por armações de ossos dentre outras finalidades."
 
@@ -89365,6 +89505,10 @@ msgid "Keying Set does not contain any paths"
 msgstr "O conjunto de inserção de chaves não possui quaisquer caminhos."
 
 
+msgid "Cancel"
+msgstr "Cancelar"
+
+
 msgid "No keyframes to slide between"
 msgstr "Sem fotogramas chave por entre os quais deslizar."
 
@@ -89533,10 +89677,6 @@ msgstr "Nenhum fotograma activo para apagar."
 
 msgid "Nothing selected"
 msgstr "Nada seleccionado."
-
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 
 msgid "Could not resolve path '%s'"
@@ -91099,14 +91239,6 @@ msgstr "Uma região da janela de visualização 3D e edição de curvas era espe
 
 msgid "File not found '%s'"
 msgstr "Ficheiro não encontrado: '%s'"
-
-
-msgid "ON"
-msgstr "LIGADO"
-
-
-msgid "OFF"
-msgstr "DESLIGADO"
 
 
 msgid "Active group is locked, aborting"
@@ -93639,6 +93771,14 @@ msgstr "Tentando recarregar ou realocar a biblioteca  '%s' por conta do caminho 
 
 msgid "dbl-"
 msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "LIGADO"
+
+
+msgid "OFF"
+msgstr "DESLIGADO"
 
 
 msgid "unsupported format"

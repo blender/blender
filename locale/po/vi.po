@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-12-30 20:42+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -25576,10 +25576,6 @@ msgid "Display the object's name"
 msgstr "Hiển thị tên của đối tượng"
 
 
-msgid "Shape Key Lock"
-msgstr "Khóa Hình Mẫu"
-
-
 msgid "Only show the active shape key at full value"
 msgstr "Duy hiển thị hình mẫu đang hoạt động ở giá trị toàn phần"
 
@@ -33589,16 +33585,20 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
+
+
 msgid "Names"
 msgstr "Tên"
 
 
 msgid "Bone Roll"
 msgstr "Lăn Xương"
-
-
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
 
 
 msgid "Clean Up"
@@ -33687,10 +33687,6 @@ msgstr "Chọn Vòng Mạch"
 
 msgid "Assign Material"
 msgstr "Ấn Định Nguyên Vật Liệu"
-
-
-msgid "Metaball"
-msgstr "Siêu Cầu"
 
 
 msgid "Light"
@@ -43668,24 +43664,8 @@ msgid "Create matte based on differences in color channels"
 msgstr "Tạo màn chắn vẽ lồng dựa trên sự khác biệt trong các kênh màu"
 
 
-msgid "RGB color space"
-msgstr "Không gian RGB"
-
-
-msgid "HSV color space"
-msgstr "Không gian HSV"
-
-
 msgid "YUV"
 msgstr "YUV"
-
-
-msgid "YUV color space"
-msgstr "Không gian YUV"
-
-
-msgid "YCbCr color space"
-msgstr "Không Gian YCbCr"
 
 
 msgctxt "Color"
@@ -44190,26 +44170,6 @@ msgid "Mode of color processing"
 msgstr "Chế độ xử lý màu"
 
 
-msgid "Use RGB color processing"
-msgstr "Sử dụng xử lý màu RGB"
-
-
-msgid "Use HSV color processing"
-msgstr "Sử dụng xử lý màu HSV"
-
-
-msgid "Use HSL color processing"
-msgstr "Sử dụng xử lý màu HSL"
-
-
-msgid "Use YCbCr color processing"
-msgstr "Sử dụng xử lý màu YCbCr"
-
-
-msgid "Use YUV color processing"
-msgstr "Sử dụng xử lý màu YUV"
-
-
 msgid "Color space used for YCbCrA processing"
 msgstr "Không gian màu được sử dụng để xử lý YCbCrA"
 
@@ -44665,6 +44625,10 @@ msgstr "Khoảng Cách Khóa"
 
 msgid "Create matte based on 3D distance between colors"
 msgstr "Tạo màn chắn vẽ lồng dựa trên khoảng cách 3D giữa các màu"
+
+
+msgid "RGB color space"
+msgstr "Không gian RGB"
 
 
 msgid "YCbCr suppression"
@@ -46012,40 +45976,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Sử dụng các giá trị tương đối (phân số kích thước của hình ảnh cung cấp) để định nghĩa sự dịch chuyển"
 
 
-msgid "Wrapping"
-msgstr "Lặp Lại"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Nhắc lại hình ảnh trên một trục chỉ định"
-
-
-msgid "No wrapping on X and Y"
-msgstr "Không nhắc lại trên X và Y"
-
-
 msgid "X Axis"
 msgstr "Trục X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Nhắc lại toàn bộ các điểm ảnh trên trục X"
 
 
 msgid "Y Axis"
 msgstr "Trục Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Nhắc lại toàn bộ các điểm ảnh trên trục Y"
-
-
 msgid "Both Axes"
 msgstr "Cả Hai Trục"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Nhắc lại toàn bộ các điểm ảnh trên cả hai trục"
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -70300,6 +70240,22 @@ msgid "Add a collection info node to the current node editor"
 msgstr "Thêm một nút thông tin bộ sưu tập vào trình biên soạn nút hiện tại"
 
 
+msgid "Source color"
+msgstr "Màu nguồn"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma Đã Chỉnh Sửa"
+
+
+msgid "The source color is gamma corrected"
+msgstr "Màu sắc nguồn đã được chỉnh gamma"
+
+
+msgid "Has Alpha"
+msgstr "Có Alpha Hay Không"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Thêm Nút Tập Tin"
@@ -82989,18 +82945,6 @@ msgid "Drop colors to buttons"
 msgstr "Nhỏ màu vào các nút bấm"
 
 
-msgid "Source color"
-msgstr "Màu nguồn"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma Đã Chỉnh Sửa"
-
-
-msgid "The source color is gamma corrected"
-msgstr "Màu sắc nguồn đã được chỉnh gamma"
-
-
 msgctxt "Operator"
 msgid "Drop Material in Material slots"
 msgstr "Thả Nguyên Vật Liệu vào các khe Nguyên Vật Liệu"
@@ -87576,10 +87520,6 @@ msgid "Feet"
 msgstr "Phóng thích/Thả/Tự Do/Miễn Phí"
 
 
-msgid "Convert World Material"
-msgstr "Chuyển Đổi Nguyên Vật Liệu Thế Giới"
-
-
 msgid "Convert the world material to a USD dome light. Currently works for simple materials, consisting of an environment texture connected to a background shader, with an optional vector multiply of the texture color"
 msgstr "Chuyển đổi nguyên vật liệu thế giới thành đèn vòm USD. Hiện chỉ hoạt động với các vật liệu đơn giản, bao gồm chất liệu môi trường kết nối với bộ tô bóng nền sau, với véctơ tùy chọn nhân màu chất liệu lên"
 
@@ -87911,10 +87851,6 @@ msgstr "Kiến Tạo Bộ Sưu Tập"
 
 msgid "Add all imported objects to a new collection"
 msgstr "Thêm toàn bộ các đối tượng đã nhập khẩu vào bộ sưu tập mới"
-
-
-msgid "Create World Material"
-msgstr "Tạo Nguyên Vật Liệu Thế Giới"
 
 
 msgid "Convert the first discovered USD dome light to a world background shader"
@@ -88948,14 +88884,6 @@ msgstr "Duy Sử Dụng Biến Dạng"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Chỉ sử dụng những bộ điều chỉnh biến dạng mà thôi (tạm thời tắt toàn bộ các bộ điều chỉnh có tính xây dựng ngoại trừ đa phân giải)"
-
-
-msgid "UV Sculpting"
-msgstr "Điêu Khắc UV"
-
-
-msgid "Strength Curve"
-msgstr "Đường Cong Cường Độ"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -109088,6 +109016,14 @@ msgid "Enable this light in solid shading mode"
 msgstr "Bật nguồn sáng này trong chế độ chuyển sắc lập thể (Solid)"
 
 
+msgid "UV Sculpting"
+msgstr "Điêu Khắc UV"
+
+
+msgid "Strength Curve"
+msgstr "Đường Cong Cường Độ"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Nhóm điểm đỉnh, dùng để biến dạng khung rối và các mục đích khác"
 
@@ -127050,48 +126986,8 @@ msgid "Sliding-Tool"
 msgstr "Công Cụ Trượt Đẩy"
 
 
-msgid "[X]/Y/Z axis only (X to clear)"
-msgstr "Duy trục [X]/Y/Z mà thôi (X để xóa)"
-
-
-msgid "X/[Y]/Z axis only (Y to clear)"
-msgstr "Duy trục X/[Y]/Z mà thôi (Y để xóa)"
-
-
-msgid "X/Y/[Z] axis only (Z to clear)"
-msgstr "Duy trục X/Y/[Z] mà thôi (Z để xóa)"
-
-
-msgid "X/Y/Z = Axis Constraint"
-msgstr "X/Y/Z = Ràng Buộc của Trục"
-
-
-msgid "[G]/R/S/B/C - Location only (G to clear) | %s"
-msgstr "[G]/R/S/B/C - Duy vị trí (G để xóa) | %s"
-
-
-msgid "G/[R]/S/B/C - Rotation only (R to clear) | %s"
-msgstr "G/[R]/S/B/C - Duy xoay chiều (R để xóa) | %s"
-
-
-msgid "G/R/[S]/B/C - Scale only (S to clear) | %s"
-msgstr "G/R/[S]/B/C - Duy đổi tỷ lệ (S để xóa) | %s"
-
-
-msgid "G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"
-msgstr "G/R/S/[B]/C - Duy tính chất của Xương Dẻo (B để xóa) | %s"
-
-
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - Duy các Tính Chất Tùy Chỉnh mà thôi (C để xóa) | %s"
-
-
-msgid "G/R/S/B/C - Limit to Transform/Property Set"
-msgstr "G/R/S/B/C - Giới hạn trong Bộ Biến Hóa/Tính Chất mà thôi"
-
-
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] - Bật/Tắt tầm nhìn của xương"
+msgid "Cancel"
+msgstr "Hủy"
 
 
 msgid "No keyframes to slide between"
@@ -127673,10 +127569,6 @@ msgstr "Các nét nướng đã được xóa hết rồi"
 
 msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "Không có đối tượng nào là đang hoạt động, hoặc đối tượng đang hoạt động không phải là đối tượng Bút Chì Dầu"
-
-
-msgid "Cancel"
-msgstr "Hủy"
 
 
 msgid "Active Vertex Group is locked"
@@ -131490,18 +131382,6 @@ msgid "UV map or surface attachment is invalid"
 msgstr "Ánh xạ UV hoặc bề mặt đính kèm bất hợp lệ"
 
 
-msgid "Fill: ESC/RMB cancel, LMB Fill, MMB Adjust Extension, S: Switch Mode, D: Stroke Collision | Mode: {}, Collision {}, Length: {:.3f}"
-msgstr "TPhủKín: ESC/NCP hủy, NCT TPhủKín, NCG Điều Chỉnh Nới Rộng, S: Đổi Chế Độ, D: Nét Vẽ Va Chạm | Chế Độ: {}, Va Chạm {}, Chiều Dài: {:.3f}"
-
-
-msgid "ON"
-msgstr "BẬT"
-
-
-msgid "OFF"
-msgstr "TẮT"
-
-
 msgid "No Grease Pencil frame to draw weight on"
 msgstr "Không có khung hình Bút Chì Dầu nào để vẽ trọng lượng lên cả"
 
@@ -132572,42 +132452,6 @@ msgstr "Không có trình điều vận nào bị xóa cả"
 
 msgid "Deleted %u drivers"
 msgstr "Đã xóa %u trình điều vận"
-
-
-msgid "Decimate Keyframes"
-msgstr "Tiêu Hao Khung Khóa"
-
-
-msgid "[TAB] - Modify Sharpness"
-msgstr "[TAB] - Sửa Đổi Độ Sắc Nét"
-
-
-msgid "[TAB] - Modify Curve Bend"
-msgstr "[TAB] - Sửa Đổi Độ Uốn của Đường Cong"
-
-
-msgid "Ease Keys"
-msgstr "Chậm Rãi Hóa các Khóa"
-
-
-msgid "Shear Keys"
-msgstr "Xô Nghiêng Khóa"
-
-
-msgid "D - Toggle Direction"
-msgstr "D - Chuyển Hướng"
-
-
-msgid "[D] - Scale From Right End"
-msgstr "[D] - Đổi Tỷ Lệ Từ Đầu Bên Phải"
-
-
-msgid "[D] - Scale From Left End"
-msgstr "[D] - Đổi Tỷ Lệ Từ Đầu Bên Trái"
-
-
-msgid "Scale from Neighbor Keys"
-msgstr "Đổi tỷ lệ từ các Khóa Hàng Xóm"
 
 
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
@@ -137993,7 +137837,7 @@ msgid "Clipping"
 msgstr "Cắt Xén"
 
 
-msgid "Level Viewport"
+msgid "Levels Viewport"
 msgstr "Mức Cổng Nhìn"
 
 
@@ -138210,10 +138054,6 @@ msgstr "Lỗi Nội Bộ: kích thước của mảng vòng mạch không đúng
 
 msgid "Adaptive Subdivision"
 msgstr "Phân Hóa Tùy Ứng"
-
-
-msgid "Levels Viewport"
-msgstr "Mức Cổng Nhìn"
 
 
 msgid "Final Scale: Render %.2f px, Viewport %.2f px"
@@ -138593,10 +138433,6 @@ msgstr "Đến Tối Đa"
 
 msgid "Offset Y"
 msgstr "Dịch Chuyển Y"
-
-
-msgid "Undistortion"
-msgstr "Không Biến Dạng"
 
 
 msgid "Dot"
@@ -139640,10 +139476,6 @@ msgstr "Tạo một thực thể đường cong riêng biệt cho mỗi tầng l
 
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Các giá trị lớn hơn ngưỡng nằm sẽ nằm trong khung lưới sinh tạo"
-
-
-msgid "Has Alpha"
-msgstr "Có Alpha Hay Không"
 
 
 msgid "Frame Count"
@@ -142455,6 +142287,14 @@ msgstr "nháy kép-"
 
 msgid "drag-"
 msgstr "kéo rê-"
+
+
+msgid "ON"
+msgstr "BẬT"
+
+
+msgid "OFF"
+msgstr "TẮT"
 
 
 msgid "Set Debug Value"

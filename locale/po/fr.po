@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2025-01-21 01:42+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -25966,10 +25966,6 @@ msgid "Display the object's name"
 msgstr "Afficher le nom de l’objet"
 
 
-msgid "Shape Key Lock"
-msgstr "Verrouiller la clé de forme"
-
-
 msgid "Only show the active shape key at full value"
 msgstr "N’afficher que la clé de forme active, avec son effet au maximum"
 
@@ -34304,16 +34300,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
+
+
 msgid "Names"
 msgstr "Noms"
 
 
 msgid "Bone Roll"
 msgstr "Roulis de l’os"
-
-
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
 
 
 msgid "Clean Up"
@@ -34402,10 +34402,6 @@ msgstr "Sélectionner les boucles"
 
 msgid "Assign Material"
 msgstr "Assigner un matériau"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
 
 
 msgid "Light"
@@ -44491,28 +44487,12 @@ msgid "Create matte based on differences in color channels"
 msgstr "Créer un masque d’après les différences entre les canaux de couleur"
 
 
-msgid "RGB color space"
-msgstr "Espace de couleur RVB"
-
-
-msgid "HSV color space"
-msgstr "Espace de couleur TSV"
-
-
 msgid "YUV"
 msgstr "YUV"
 
 
-msgid "YUV color space"
-msgstr "Espace de couleur YUV"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "YCbCr color space"
-msgstr "Espace de couleur YCbCr"
 
 
 msgctxt "Color"
@@ -45038,26 +45018,6 @@ msgid "Mode of color processing"
 msgstr "Mode de traitement de la couleur"
 
 
-msgid "Use RGB color processing"
-msgstr "Traiter la couleur en RVB"
-
-
-msgid "Use HSV color processing"
-msgstr "Traiter la couleur en TSV"
-
-
-msgid "Use HSL color processing"
-msgstr "Traiter la couleur en TSL"
-
-
-msgid "Use YCbCr color processing"
-msgstr "Traiter la couleur en YCbCr"
-
-
-msgid "Use YUV color processing"
-msgstr "Traiter la couleur en YCbCr"
-
-
 msgid "Color space used for YCbCrA processing"
 msgstr "Espace de couleur utilisé pour le traitement YCbCrA"
 
@@ -45513,6 +45473,10 @@ msgstr "Incrustation par distance"
 
 msgid "Create matte based on 3D distance between colors"
 msgstr "Créer un masque d’après la distance 3D entre les couleurs"
+
+
+msgid "RGB color space"
+msgstr "Espace de couleur RVB"
 
 
 msgid "YCbCr suppression"
@@ -46981,40 +46945,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Utiliser des valeurs relatives à la taille de l’image d’entrée pour définir la translation"
 
 
-msgid "Wrapping"
-msgstr "Répéter"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Répéter l’image le long d’un axe donné"
-
-
-msgid "No wrapping on X and Y"
-msgstr "Pas de répétition, ni en X ni en Y"
-
-
 msgid "X Axis"
 msgstr "Axe X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Répéter tous les pixels sur l’axe Y"
 
 
 msgid "Y Axis"
 msgstr "Axe Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Répéter tous les pixels sur l’axe Y"
-
-
 msgid "Both Axes"
 msgstr "Les deux axes"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Répéter tous les pixels sur les deux axes"
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -71617,6 +71557,22 @@ msgid "Add a collection info node to the current node editor"
 msgstr "Ajouter un nœud d’infos de collection à l’éditeur de nœuds actuel"
 
 
+msgid "Source color"
+msgstr "Couleur source"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma-corrigée"
+
+
+msgid "The source color is gamma corrected"
+msgstr "La couleur source est gamma-corrigée"
+
+
+msgid "Has Alpha"
+msgstr "A un alpha"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Ajouter un nœud Fichier"
@@ -84441,18 +84397,6 @@ msgid "Drop colors to buttons"
 msgstr "Déposer la couleur sur les boutons"
 
 
-msgid "Source color"
-msgstr "Couleur source"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma-corrigée"
-
-
-msgid "The source color is gamma corrected"
-msgstr "La couleur source est gamma-corrigée"
-
-
 msgctxt "Operator"
 msgid "Drop Material in Material slots"
 msgstr "Déposer le matériau dans les emplacements de matériaux"
@@ -89167,10 +89111,6 @@ msgid "Specify a custom scene meters per unit value"
 msgstr "Choisir une valeur personnalisée pour le nombre de mètres par unité de la scène"
 
 
-msgid "Convert World Material"
-msgstr "Convertir le matériau du monde"
-
-
 msgid "Convert the world material to a USD dome light. Currently works for simple materials, consisting of an environment texture connected to a background shader, with an optional vector multiply of the texture color"
 msgstr "Convertir le matériau du monde en dome light USD. Fonctionne actuellement pour les matériaux simples consistant en une texture d’environnement connectée à un shader d’arrière-plan, avec éventuellement une multiplication scalaire de la couleur de texture"
 
@@ -89522,10 +89462,6 @@ msgstr "Créer une collection"
 
 msgid "Add all imported objects to a new collection"
 msgstr "Ajouter tous les objets importés à une nouvelle collection"
-
-
-msgid "Create World Material"
-msgstr "Créer un matériau du monde"
 
 
 msgid "Convert the first discovered USD dome light to a world background shader"
@@ -90629,19 +90565,6 @@ msgstr "Utiliser déformation uniquement"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "N’utiliser que les modificateurs de déformation (désactiver temporairement tous les modificateurs constructifs, exceptée la multirésolutions)"
-
-
-msgid "UV Sculpting"
-msgstr "Sculpture UV"
-
-
-msgctxt "Curve"
-msgid "Strength Curve Preset"
-msgstr "Préréglage de courbe d’intensité"
-
-
-msgid "Strength Curve"
-msgstr "Courbe d’intensité"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -111315,6 +111238,19 @@ msgid "Enable this light in solid shading mode"
 msgstr "Activer cet éclairage en mode d’affichage solide"
 
 
+msgid "UV Sculpting"
+msgstr "Sculpture UV"
+
+
+msgctxt "Curve"
+msgid "Strength Curve Preset"
+msgstr "Préréglage de courbe d’intensité"
+
+
+msgid "Strength Curve"
+msgstr "Courbe d’intensité"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Groupe de sommets, utilisé pour la déformation de l’armature et d’autres usages"
 
@@ -129618,48 +129554,8 @@ msgid "Sliding-Tool"
 msgstr "Outil glisser"
 
 
-msgid "[X]/Y/Z axis only (X to clear)"
-msgstr "Axe [X]/Y/Z uniquement (X pour effacer)"
-
-
-msgid "X/[Y]/Z axis only (Y to clear)"
-msgstr "Axe X/[Y]/Z uniquement (Y pour effacer)"
-
-
-msgid "X/Y/[Z] axis only (Z to clear)"
-msgstr "Axe X/Y/[Z] uniquement (Z pour effacer)"
-
-
-msgid "X/Y/Z = Axis Constraint"
-msgstr "X/Y/Z = contrainte d’axe"
-
-
-msgid "[G]/R/S/B/C - Location only (G to clear) | %s"
-msgstr "[G]/R/S/B/C - Position uniquement (G pour effacer) | %s"
-
-
-msgid "G/[R]/S/B/C - Rotation only (R to clear) | %s"
-msgstr "G/[R]/S/B/C - Rotation uniquement (R pour effacer) | %s"
-
-
-msgid "G/R/[S]/B/C - Scale only (S to clear) | %s"
-msgstr "G/R/[S]/B/C - Échelle uniquement (S pour effacer) | %s"
-
-
-msgid "G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"
-msgstr "G/R/S/[B]/C - Propriétés d’os souples uniquement (B pour effacer) | %s"
-
-
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - Propriétés personnalisées uniquement (C pour effacer) | %s"
-
-
-msgid "G/R/S/B/C - Limit to Transform/Property Set"
-msgstr "G/R/S/B/C - Limiter à un ensemble de transformations ou propriétés"
-
-
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] -(Dés)activer la visibilité d’os"
+msgid "Cancel"
+msgstr "Annuler"
 
 
 msgid "No keyframes to slide between"
@@ -130241,10 +130137,6 @@ msgstr "Les traits précalculés ont été effacés"
 
 msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "Aucun object actif, ou l’objet actif n’est pas un Grease Pencil"
-
-
-msgid "Cancel"
-msgstr "Annuler"
 
 
 msgid "Panning"
@@ -134124,18 +134016,6 @@ msgid "UV map or surface attachment is invalid"
 msgstr "La carte UV ou l’attachement de surface est invalide"
 
 
-msgid "Fill: ESC/RMB cancel, LMB Fill, MMB Adjust Extension, S: Switch Mode, D: Stroke Collision | Mode: {}, Collision {}, Length: {:.3f}"
-msgstr "Remplir : Échap/ClicD : Annuler, ClicG : Remplir, ClicM : Ajuster l’extension, S : Changer de mode, D : Collision des traits | Mode : {}, Collision : {}, Longueur : {:.3f}"
-
-
-msgid "ON"
-msgstr "ON"
-
-
-msgid "OFF"
-msgstr "OFF"
-
-
 msgid "No Grease Pencil frame to draw weight on"
 msgstr "Aucune frame de Grease Pencil sur laquelle dessiner les poids"
 
@@ -135222,42 +135102,6 @@ msgstr "Aucun contrôleur supprimé"
 
 msgid "Deleted %u drivers"
 msgstr "%u contrôleurs supprimés"
-
-
-msgid "Decimate Keyframes"
-msgstr "Supprimer les images clés"
-
-
-msgid "[TAB] - Modify Sharpness"
-msgstr "[TAB] - Modifier la netteté"
-
-
-msgid "[TAB] - Modify Curve Bend"
-msgstr "[TAB] - Modifier la courbure de la courbe"
-
-
-msgid "Ease Keys"
-msgstr "Amortir les clés"
-
-
-msgid "Shear Keys"
-msgstr "Cisailler les clés"
-
-
-msgid "D - Toggle Direction"
-msgstr "D - Changer de direction"
-
-
-msgid "[D] - Scale From Right End"
-msgstr "[D] - Redimensionner depuis la droite"
-
-
-msgid "[D] - Scale From Left End"
-msgstr "[D] - Redimensionner depuis la gauche"
-
-
-msgid "Scale from Neighbor Keys"
-msgstr "Redimensionner depuis les clés voisines"
 
 
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
@@ -140766,8 +140610,8 @@ msgid "Clipping"
 msgstr "Coller au miroir"
 
 
-msgid "Level Viewport"
-msgstr "Niveau vue"
+msgid "Levels Viewport"
+msgstr "Niveaux vue 3D"
 
 
 msgid "Unsubdivide"
@@ -140983,10 +140827,6 @@ msgstr "Erreur interne : mauvaise taille pour le tableau de boucles : %u au li
 
 msgid "Adaptive Subdivision"
 msgstr "Subdivision adaptative"
-
-
-msgid "Levels Viewport"
-msgstr "Niveaux vue 3D"
 
 
 msgid "Final Scale: Render %.2f px, Viewport %.2f px"
@@ -141398,10 +141238,6 @@ msgstr "Vers max"
 
 msgid "Offset Y"
 msgstr "Décalage Y"
-
-
-msgid "Undistortion"
-msgstr "Dé-distorsion"
 
 
 msgid "Dot"
@@ -142445,10 +142281,6 @@ msgstr "Créer une instance de courbe séparée pour chaque calque"
 
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Les valeurs plus élevées que le seuil sont à l’intérieur du maillage généré"
-
-
-msgid "Has Alpha"
-msgstr "A un alpha"
 
 
 msgid "Frame Count"
@@ -145270,6 +145102,14 @@ msgstr "dbl-"
 
 msgid "drag-"
 msgstr "glisser-"
+
+
+msgid "ON"
+msgstr "ON"
+
+
+msgid "OFF"
+msgstr "OFF"
 
 
 msgid "Set Debug Value"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -777,10 +777,6 @@ msgid "Export Vertex Colors"
 msgstr "דוקדוק יעבצ אציי"
 
 
-msgid "UV Sculpting"
-msgstr "UV לוסיפ"
-
-
 msgid "Color Picker"
 msgstr "םיעבצ רחוב"
 
@@ -821,6 +817,10 @@ msgstr "Grease Pencil לוסיפ"
 
 msgid "Sort by Name"
 msgstr "םש יפל ןיימ"
+
+
+msgid "UV Sculpting"
+msgstr "UV לוסיפ"
 
 
 msgid "Error Message"
@@ -895,12 +895,12 @@ msgid "AOV"
 msgstr "AOV"
 
 
-msgid "Nothing selected"
-msgstr "רבד רחבנ אל"
-
-
 msgid "Cancel"
 msgstr "לוטיב"
+
+
+msgid "Nothing selected"
+msgstr "רבד רחבנ אל"
 
 
 msgctxt "Operator"

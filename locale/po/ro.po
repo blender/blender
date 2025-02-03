@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2575,10 +2575,6 @@ msgid "New Window"
 msgstr "Fereastră Nouă"
 
 
-msgid "UV Sculpting"
-msgstr "Sculptare UV"
-
-
 msgid "Motion Tracking"
 msgstr "Urmărirea mișcării"
 
@@ -2701,6 +2697,10 @@ msgstr "Rezumat"
 msgctxt "Unit"
 msgid "Nearest Marker"
 msgstr "Cel mai apropriat Marker"
+
+
+msgid "UV Sculpting"
+msgstr "Sculptare UV"
 
 
 msgid "Error Message"
@@ -3076,6 +3076,10 @@ msgid "Out"
 msgstr "Ieșire"
 
 
+msgid "Cancel"
+msgstr "Anulare"
+
+
 msgid "Cannot paint stroke"
 msgstr "Nu se poate picta cursa"
 
@@ -3086,10 +3090,6 @@ msgstr "Niciun cadru activ de șters"
 
 msgid "Nothing selected"
 msgstr "Nimic selectat"
-
-
-msgid "Cancel"
-msgstr "Anulare"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-12-08 20:56+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -14657,10 +14657,6 @@ msgid "Display the object's name"
 msgstr "Namen des Objekts anzeigen"
 
 
-msgid "Shape Key Lock"
-msgstr "Formschlüssel sperren"
-
-
 msgid "Display Texture Space"
 msgstr "Texturraum anzeigen"
 
@@ -18900,12 +18896,16 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Clean Up"
@@ -18982,10 +18982,6 @@ msgstr "Schleifen auswählen"
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -23221,28 +23217,12 @@ msgid "Channel Key"
 msgstr "Schlüsselkanal"
 
 
-msgid "RGB color space"
-msgstr "RGB Farbraum"
-
-
-msgid "HSV color space"
-msgstr "HSV Farbraum"
-
-
 msgid "YUV"
 msgstr "YUV"
 
 
-msgid "YUV color space"
-msgstr "YUV Farbraum"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "YCbCr color space"
-msgstr "YCbCr Farbraum"
 
 
 msgid "Limit by this channel's value"
@@ -23811,6 +23791,10 @@ msgstr "Feder"
 
 msgid "Distance Key"
 msgstr "Abstand"
+
+
+msgid "RGB color space"
+msgstr "RGB Farbraum"
 
 
 msgid "YCbCr suppression"
@@ -24434,40 +24418,16 @@ msgid "Translate"
 msgstr "Übersetzten"
 
 
-msgid "Wrapping"
-msgstr "Verpacken"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Wickle ein Bild um eine spezifische Achse"
-
-
-msgid "No wrapping on X and Y"
-msgstr "Kein verpacken bei X und Y"
-
-
 msgid "X Axis"
 msgstr "X-Achse"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Verpacke alle Pixel an der X Achse"
 
 
 msgid "Y Axis"
 msgstr "Y-Achse"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Verpacke alle Pixel an der Y Achse"
-
-
 msgid "Both Axes"
 msgstr "Beide Achsen"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Verpacke alle Pixel an beiden Achsen"
 
 
 msgid "Vector Blur"
@@ -33247,6 +33207,14 @@ msgid "Add Node Collection"
 msgstr "Knotensammlung hinzufügen"
 
 
+msgid "Source color"
+msgstr "Quellfarbe"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma korrigiert"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Dateiknoten hinzufügen"
@@ -38299,14 +38267,6 @@ msgstr "Kopieren in Ausgewähltes"
 msgctxt "Operator"
 msgid "Drop Color"
 msgstr "Farbe verwerfen"
-
-
-msgid "Source color"
-msgstr "Quellfarbe"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma korrigiert"
 
 
 msgctxt "Operator"
@@ -56048,8 +56008,8 @@ msgid "Create"
 msgstr "Erstellen"
 
 
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] - Knochensichtbarkeit umschalten"
+msgid "Cancel"
+msgstr "Abbrechen"
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -56196,10 +56156,6 @@ msgstr "Kein aktives Einzelbild zum Löschen"
 
 msgid "Nothing selected"
 msgstr "Nichts ausgewählt"
-
-
-msgid "Cancel"
-msgstr "Abbrechen"
 
 
 msgid "Could not resolve path '%s'"
@@ -57802,14 +57758,6 @@ msgid "File not found '%s'"
 msgstr "Datei nicht gefunden '%s'"
 
 
-msgid "ON"
-msgstr "AN"
-
-
-msgid "OFF"
-msgstr "AUS"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Aktive Gruppe ist gesperrt, abbrechen"
 
@@ -58164,10 +58112,6 @@ msgstr "Nicht unterstütztes Audioformat"
 
 msgid "No F-Modifiers to paste"
 msgstr "Kein F-Modifikator zum Einfügen"
-
-
-msgid "Decimate Keyframes"
-msgstr "Dezimierte Schlüsselbilder"
 
 
 msgid "Discard"
@@ -59554,10 +59498,6 @@ msgid "Offset Y"
 msgstr "Y-Versatz"
 
 
-msgid "Undistortion"
-msgstr "Entzerren"
-
-
 msgid "Dot"
 msgstr "Punkt"
 
@@ -60299,6 +60239,14 @@ msgstr "Rück"
 
 msgid "dbl-"
 msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "AN"
+
+
+msgid "OFF"
+msgstr "AUS"
 
 
 msgid "unsupported format"

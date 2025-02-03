@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7340,12 +7340,16 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "Names"
-msgstr "Nimet"
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
+
+
+msgid "Names"
+msgstr "Nimet"
 
 
 msgid "UV Mapping"
@@ -7366,10 +7370,6 @@ msgstr "Valitse kaikki piirteen mukaan"
 
 msgid "Select Loops"
 msgstr "Valitse silmukat"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
 
 
 msgid "Light"
@@ -13999,6 +13999,10 @@ msgid "Create"
 msgstr "Luo"
 
 
+msgid "Cancel"
+msgstr "Peruuta"
+
+
 msgid "No pose to copy"
 msgstr "Ei kopioitavaa asentoa"
 
@@ -14035,10 +14039,6 @@ msgstr "Pupillit"
 
 msgid "Nothing selected"
 msgstr "Mitään ei ole valittu"
-
-
-msgid "Cancel"
-msgstr "Peruuta"
 
 
 msgctxt "Operator"
@@ -14824,14 +14824,6 @@ msgstr "näyttö"
 
 msgid "Missing surface mesh"
 msgstr "Pinnan muoto puuttuu"
-
-
-msgid "ON"
-msgstr "Päällä"
-
-
-msgid "OFF"
-msgstr "Pois päältä"
 
 
 msgid "Trace"
@@ -17190,6 +17182,14 @@ msgstr "Bksp"
 
 msgid "dbl-"
 msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "Päällä"
+
+
+msgid "OFF"
+msgstr "Pois päältä"
 
 
 msgid "unsupported format"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5205,12 +5205,16 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Metaball"
+msgstr "Metaboll"
 
 
 msgid "Show/Hide"
 msgstr "Visa/dölj"
+
+
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Clean Up"
@@ -5243,10 +5247,6 @@ msgstr "Justera vy till aktiv"
 
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
 
 
 msgid "Light"
@@ -11601,10 +11601,6 @@ msgid "Dither"
 msgstr "Rastrering"
 
 
-msgid "UV Sculpting"
-msgstr "UV-skulptering"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -13217,6 +13213,10 @@ msgstr "Lägg till & ersätt"
 
 msgid "Select Mode"
 msgstr "Markeringsläge"
+
+
+msgid "UV Sculpting"
+msgstr "UV-skulptering"
 
 
 msgid "Weight value of a vertex in a vertex group"
@@ -15909,6 +15909,10 @@ msgid "Sculpting"
 msgstr "Skulptering"
 
 
+msgid "Cancel"
+msgstr "Avbryt"
+
+
 msgid "Path is empty, cannot save"
 msgstr "Sökvägen är tom, kan inte spara"
 
@@ -15923,10 +15927,6 @@ msgstr "Kan inte spara katalog med tillgångar innan Blender-filen har sparats"
 
 msgid "No changes to be saved"
 msgstr "Inga ändringar att spara"
-
-
-msgid "Cancel"
-msgstr "Avbryt"
 
 
 msgctxt "WindowManager"

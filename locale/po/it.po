@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2025-01-12 22:56+0000\n"
 "Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -18283,10 +18283,6 @@ msgid "Display the object's name"
 msgstr "Mostra il nome dell'oggetto"
 
 
-msgid "Shape Key Lock"
-msgstr "Blocco Chiave Forma"
-
-
 msgid "Display Texture Space"
 msgstr "Mostra Spazio Texture"
 
@@ -23438,16 +23434,20 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
 msgid "Names"
 msgstr "Nomi"
 
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
 
 
 msgid "Clean Up"
@@ -23520,10 +23520,6 @@ msgstr "Seleziona Anelli"
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -29066,10 +29062,6 @@ msgid "Channel Key"
 msgstr "Canale Chiave"
 
 
-msgid "RGB color space"
-msgstr "Spazio Colore RGB"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
 
@@ -29558,6 +29550,10 @@ msgid "Distance Key"
 msgstr "Chiave Distanza"
 
 
+msgid "RGB color space"
+msgstr "Spazio Colore RGB"
+
+
 msgid "Double Edge Mask"
 msgstr "Maschera Doppio Lato"
 
@@ -29980,10 +29976,6 @@ msgstr "Fotogramma Assoluto"
 
 msgid "Translate"
 msgstr "Trasla"
-
-
-msgid "Wrapping"
-msgstr "Mappatura"
 
 
 msgid "X Axis"
@@ -39460,6 +39452,14 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "Ripristina l'area visibile per mostrare gli spezzoni selezionati"
 
 
+msgid "Source color"
+msgstr "Colore sorgente"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma Corretto"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Aggiungi Nodo File"
@@ -45320,14 +45320,6 @@ msgid "Drop colors to buttons"
 msgstr "Assegna colori ai bottoni"
 
 
-msgid "Source color"
-msgstr "Colore sorgente"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma Corretto"
-
-
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "Modifica Sorgente"
@@ -47635,10 +47627,6 @@ msgstr "Utilizza Solo Deformazioni"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Utilizza solo modificatori di deformazione (disabilita temporaneamente i modificatori di generazione salvo Multi-Risoluzione)"
-
-
-msgid "UV Sculpting"
-msgstr "Scultura UV"
 
 
 msgid "Restrict"
@@ -56335,6 +56323,10 @@ msgid "Color of the light's specular highlight"
 msgstr "Colore della luce speculare brillante"
 
 
+msgid "UV Sculpting"
+msgstr "Scultura UV"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Gruppo di vertici, utilizzato per deformare l'armatura e per altri usi"
 
@@ -61188,6 +61180,10 @@ msgid "No active Keying Set to use"
 msgstr "Nessun Gruppo Chiavi attivo da utilizzare"
 
 
+msgid "Cancel"
+msgstr "Annulla"
+
+
 msgid "No keyframes to slide between"
 msgstr "Nessun keyframe tra cui scorrere"
 
@@ -61326,10 +61322,6 @@ msgstr "Nessun fotogramma da cancellare"
 
 msgid "Nothing selected"
 msgstr "Nessuna selezione"
-
-
-msgid "Cancel"
-msgstr "Annulla"
 
 
 msgid "Could not resolve path '%s'"
@@ -62841,14 +62833,6 @@ msgid "File not found '%s'"
 msgstr "File non trovato '%s'"
 
 
-msgid "ON"
-msgstr "ON"
-
-
-msgid "OFF"
-msgstr "OFF"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Il gruppo attivo è bloccato, comando annullato"
 
@@ -63244,14 +63228,6 @@ msgstr "Formato audio non supportato"
 
 msgid "No F-Modifiers to paste"
 msgstr "Nessun Modificatore-F da incollare"
-
-
-msgid "Decimate Keyframes"
-msgstr "Decima Keyframes"
-
-
-msgid "Ease Keys"
-msgstr "Allevia Chiavi (Keys)"
 
 
 msgid "Select Slot"
@@ -65312,6 +65288,14 @@ msgstr "Win"
 
 msgid "dbl-"
 msgstr "doppio-"
+
+
+msgid "ON"
+msgstr "ON"
+
+
+msgid "OFF"
+msgstr "OFF"
 
 
 msgid "unsupported format"

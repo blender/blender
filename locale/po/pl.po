@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11181,6 +11181,10 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Metaball"
+msgstr "Metakula"
+
+
 msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
 
@@ -11219,10 +11223,6 @@ msgstr "Zaznacz powiązane"
 
 msgid "Assign Material"
 msgstr "Przypisanie materiału"
-
-
-msgid "Metaball"
-msgstr "Metakula"
 
 
 msgid "Light"
@@ -16595,10 +16595,6 @@ msgid "Transform Mode"
 msgstr "Tryb transformacji"
 
 
-msgid "UV Sculpting"
-msgstr "Rzeźbienie UV"
-
-
 msgid "Palette Color"
 msgstr "Kolor palety"
 
@@ -18868,6 +18864,10 @@ msgstr "Sortuj według nazwy"
 
 msgid "Radius of the brush"
 msgstr "Promień pędzla"
+
+
+msgid "UV Sculpting"
+msgstr "Rzeźbienie UV"
 
 
 msgid "Face Orientation"
@@ -22405,6 +22405,10 @@ msgid "Keying Set does not contain any paths"
 msgstr "Zestaw Kluczowania nie zawiera żadnych ścieżek"
 
 
+msgid "Cancel"
+msgstr "Anuluj"
+
+
 msgid "No keyframes to slide between"
 msgstr "Brak klatek kluczowych między którymi można ślizgać"
 
@@ -22565,10 +22569,6 @@ msgstr "Brak aktywnej warstwy Grease Pencil"
 
 msgid "No Grease Pencil frame to draw on"
 msgstr "Brak ramki Grease Pencil, na której można rysować"
-
-
-msgid "Cancel"
-msgstr "Anuluj"
 
 
 msgid "Could not resolve path '%s'"
@@ -24392,14 +24392,6 @@ msgstr "ekran"
 msgctxt "Operator"
 msgid "Duplicate Current"
 msgstr "Duplikuj bieżący"
-
-
-msgid "ON"
-msgstr "WŁ"
-
-
-msgid "OFF"
-msgstr "WYŁ"
 
 
 msgid "Active group is locked, aborting"
@@ -26523,6 +26515,10 @@ msgid "Collection Masks"
 msgstr "Kolekcja masek"
 
 
+msgid "Levels Viewport"
+msgstr "Poziomy rzutni"
+
+
 msgid "Bake Path"
 msgstr "Wypal ścieżkę"
 
@@ -26533,10 +26529,6 @@ msgstr "Usuń przeliczenie"
 
 msgid "Create Armature"
 msgstr "Utwórz szkielet"
-
-
-msgid "Levels Viewport"
-msgstr "Poziomy rzutni"
 
 
 msgid "VertexWeightEdit"
@@ -27111,6 +27103,14 @@ msgstr "To nie jest biblioteka"
 
 msgid "Nothing indicated"
 msgstr "Nic nie wskazano"
+
+
+msgid "ON"
+msgstr "WŁ"
+
+
+msgid "OFF"
+msgstr "WYŁ"
 
 
 msgid "unsupported format"

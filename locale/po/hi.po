@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -2613,16 +2613,16 @@ msgid "Mask"
 msgstr "आवरण"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
 msgid "Names"
 msgstr "नाम"
 
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
 
 
 msgid "Snap"
@@ -5975,13 +5975,13 @@ msgid "Same bone selected..."
 msgstr "एक ही हड्डी का चयन किया..."
 
 
+msgid "Cancel"
+msgstr "रद्द करें"
+
+
 msgctxt "Curve"
 msgid "Surface"
 msgstr "सतह"
-
-
-msgid "Cancel"
-msgstr "रद्द करें"
 
 
 msgctxt "Operator"
@@ -6396,14 +6396,6 @@ msgid "Blender Render"
 msgstr "ब्लेंडर  प्रतिपादन"
 
 
-msgid "ON"
-msgstr "ऑन"
-
-
-msgid "OFF"
-msgstr "बंद"
-
-
 msgid "No active camera set"
 msgstr "कोई सक्रिय प्रतिबिंबक नहीं"
 
@@ -6712,6 +6704,14 @@ msgstr "रिम"
 
 msgid "Blender File View"
 msgstr "ब्लेंडर संचिका दृश्य"
+
+
+msgid "ON"
+msgstr "ऑन"
+
+
+msgid "OFF"
+msgstr "बंद"
 
 
 msgctxt "Operator"

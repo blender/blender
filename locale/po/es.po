@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
-"PO-Revision-Date: 2025-01-26 09:56+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"PO-Revision-Date: 2025-02-02 08:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -437,6 +437,11 @@ msgstr "Mostrar expandido"
 
 msgid "Expanded state of the slot"
 msgstr "Estado expandido del contenedor"
+
+
+msgctxt "ID"
+msgid "Target ID Type"
+msgstr "Tipo de ID objetivo"
 
 
 msgctxt "ID"
@@ -5928,7 +5933,7 @@ msgstr "Invertir horizontalmente"
 
 
 msgid "Flip the background image horizontally"
-msgstr "Invierte la imagen de fondo en sentido horizontal"
+msgstr "Voltea la imagen de fondo en sentido horizontal"
 
 
 msgid "Flip Vertically"
@@ -5936,7 +5941,7 @@ msgstr "Invertir verticalmente"
 
 
 msgid "Flip the background image vertically"
-msgstr "Invierte la imagen de fondo en sentido vertical"
+msgstr "Voltea la imagen de fondo en sentido vertical"
 
 
 msgid "Background Images"
@@ -8029,7 +8034,7 @@ msgstr "Acción del objeto"
 
 
 msgid "Bones only: apply the object's transformation channels of the action to the constrained bone, instead of bone's channels"
-msgstr "Sólo para huesos: Aplica los canales de transformación de la acción del objeto al hueso restringido, en vez de los canales del propio hueso"
+msgstr "(Sólo para huesos) Aplica al hueso restringido los canales de la acción correspondientes a las transformaciones del objeto, en vez de los canales correspondientes al propio hueso"
 
 
 msgid "Use Evaluation Time"
@@ -25966,10 +25971,6 @@ msgid "Display the object's name"
 msgstr "Muestra el nombre del objeto"
 
 
-msgid "Shape Key Lock"
-msgstr "Fijar Forma clave activa"
-
-
 msgid "Only show the active shape key at full value"
 msgstr "Muestra únicamente la forma clave activa, a máxima intensidad"
 
@@ -34304,16 +34305,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
 msgid "Names"
 msgstr "Nombres"
 
 
 msgid "Bone Roll"
 msgstr "Giro de huesos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
 
 
 msgid "Clean Up"
@@ -34402,10 +34407,6 @@ msgstr "Seleccionar bucles"
 
 msgid "Assign Material"
 msgstr "Asignar material"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Light"
@@ -44489,28 +44490,12 @@ msgid "Create matte based on differences in color channels"
 msgstr "Permite crear un mate basado en las diferencias en los canales de color"
 
 
-msgid "RGB color space"
-msgstr "Espacio de color RVA"
-
-
-msgid "HSV color space"
-msgstr "Espacio de color TSV"
-
-
 msgid "YUV"
 msgstr "YUV"
 
 
-msgid "YUV color space"
-msgstr "Espacio de color YUV"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "YCbCr color space"
-msgstr "Espacio de color YCbCr"
 
 
 msgctxt "Color"
@@ -45036,26 +45021,6 @@ msgid "Mode of color processing"
 msgstr "Modo de procesamiento del color"
 
 
-msgid "Use RGB color processing"
-msgstr "Usar procesamiento de color RVA"
-
-
-msgid "Use HSV color processing"
-msgstr "Usar procesamiento de color TSV"
-
-
-msgid "Use HSL color processing"
-msgstr "Usar procesamiento de color TSL"
-
-
-msgid "Use YCbCr color processing"
-msgstr "Usar procesamiento de color YCbCr"
-
-
-msgid "Use YUV color processing"
-msgstr "Usar procesamiento de color YUV"
-
-
 msgid "Color space used for YCbCrA processing"
 msgstr "Espacio de color usado para el procesamiento YCbCr α"
 
@@ -45511,6 +45476,10 @@ msgstr "Recortar por distancia"
 
 msgid "Create matte based on 3D distance between colors"
 msgstr "Permite crear un mate basado en la distancia, en espacio tridimensional, entre los colores de la imagen y del fondo"
+
+
+msgid "RGB color space"
+msgstr "Espacio de color RVA"
 
 
 msgid "YCbCr suppression"
@@ -46979,40 +46948,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Usar valores relativos (como fracción del tamaño de la imagen original) para definir la traslación"
 
 
-msgid "Wrapping"
-msgstr "Ciclo"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Repite cíclicamente la imagen en un eje específico"
-
-
-msgid "No wrapping on X and Y"
-msgstr "No repetir en X ni en Y"
-
-
 msgid "X Axis"
 msgstr "Eje X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Repetir todos los píxeles en el eje X"
 
 
 msgid "Y Axis"
 msgstr "Eje Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Repetir todos los píxeles en el eje Y"
-
-
 msgid "Both Axes"
 msgstr "Ambos ejes"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Repetir todos los píxeles en ambos ejes"
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -48671,6 +48616,14 @@ msgstr "Permite realizar una selección a partir de una capa de Grease Pencil"
 
 msgid "Retrieve a unit length vector indicating the direction pointing away from the geometry at each element"
 msgstr "Proporciona un versor que indica la dirección que apunta hacia afuera de una geometría, en cada elemento"
+
+
+msgid "Flat Corner Normals"
+msgstr "Normales planas de esquina"
+
+
+msgid "Always use face normals for the face corner domain, matching old behavior of the node"
+msgstr "Siempre usar normales de caras para el dominio Esquinas de caras, coincidiendo con el comportamiento antiguo del nodo"
 
 
 msgid "Output a single object"
@@ -60052,20 +60005,20 @@ msgstr "Crear una notificación luego de la operación"
 
 msgctxt "Operator"
 msgid "Clear Inverse"
-msgstr "Eliminar inversión"
+msgstr "Eliminar compensación"
 
 
 msgid "Clear inverse correction for Child Of constraint"
-msgstr "Elimina la inversión correctiva de la restricción Subordinar"
+msgstr "Elimina la compensación correctiva de la restricción Subordinar"
 
 
 msgctxt "Operator"
 msgid "Set Inverse"
-msgstr "Activar inversión"
+msgstr "Activar compensación"
 
 
 msgid "Set inverse correction for Child Of constraint"
-msgstr "Activa una inversión correctiva para la restricción Subordinar"
+msgstr "Activa una compensación correctiva para la restricción Subordinar"
 
 
 msgctxt "Operator"
@@ -60153,11 +60106,11 @@ msgstr "Mueve la restricción hacia arriba en la lista de modificadores"
 
 
 msgid "Clear inverse correction for Object Solver constraint"
-msgstr "Elimina la inversión correctiva de la restricción Resolver objeto"
+msgstr "Elimina la compensación correctiva de la restricción Resolver objeto"
 
 
 msgid "Set inverse correction for Object Solver constraint"
-msgstr "Activa una inversión correctiva para la restricción Resolver objeto"
+msgstr "Activa una compensación correctiva para la restricción Resolver objeto"
 
 
 msgctxt "Operator"
@@ -62561,6 +62514,22 @@ msgstr "Usar posición reposo esqueleto"
 
 msgid "Export armatures using rest position as joints' rest pose. When off, current frame pose is used as rest pose"
 msgstr "Exportar esqueletos usando su posición de reposo como pose de reposo de sus huesos. Si está desactivado, la pose del fotograma actual será usada como reposo"
+
+
+msgid "Sampling Interpolation Fallback"
+msgstr "Interpolación alternativa muestreadas"
+
+
+msgid "Interpolation fallback for sampled animations, when the property is not keyed"
+msgstr "Interpolación alternativa para animaciones muestreadas, cuando la propiedad no esté animada"
+
+
+msgid "Linear interpolation between keyframes"
+msgstr "Interpolación lineal entre claves"
+
+
+msgid "No interpolation between keyframes"
+msgstr "Sin interpolación entre claves"
 
 
 msgid "Shared Accessors"
@@ -70973,11 +70942,11 @@ msgstr "Límite para adherir los vértices centrales al eje de simetría"
 
 msgctxt "Operator"
 msgid "Snap to Symmetry"
-msgstr "Adherir a simetría"
+msgstr "Adherir a simétrico"
 
 
 msgid "Snap vertex pairs to their mirrored locations"
-msgstr "Adhiere pares de vértices a sus ubicaciones simétricas"
+msgstr "Adhiere los vértices seleccionados a la posición de sus pares simétricos"
 
 
 msgid "Mix factor of the locations of the vertices"
@@ -71617,6 +71586,22 @@ msgstr "Agregar colección de nodos"
 
 msgid "Add a collection info node to the current node editor"
 msgstr "Agrega un nodo de información de colección al editor de nodos actual"
+
+
+msgid "Source color"
+msgstr "Color original"
+
+
+msgid "Gamma Corrected"
+msgstr "Con gama corregido"
+
+
+msgid "The source color is gamma corrected"
+msgstr "El color original tiene su gama corregido"
+
+
+msgid "Has Alpha"
+msgstr "Tiene alfa"
 
 
 msgctxt "Operator"
@@ -75654,11 +75639,11 @@ msgstr "Desbloquear todas las Formas clave"
 
 msgctxt "Operator"
 msgid "Mirror Shape Key"
-msgstr "Simetrizar Forma clave"
+msgstr "Voltear Forma clave"
 
 
 msgid "Mirror the current shape key along the local X axis"
-msgstr "Permite simetrizar la Forma clave actual con respecto al eje local X"
+msgstr "Permite voltear la Forma clave actual, con respecto al eje local X"
 
 
 msgctxt "Operator"
@@ -84451,18 +84436,6 @@ msgid "Drop colors to buttons"
 msgstr "Soltar colores sobre botones"
 
 
-msgid "Source color"
-msgstr "Color original"
-
-
-msgid "Gamma Corrected"
-msgstr "Con gama corregido"
-
-
-msgid "The source color is gamma corrected"
-msgstr "El color original tiene su gama corregido"
-
-
 msgctxt "Operator"
 msgid "Drop Material in Material slots"
 msgstr "Arrastrar material a contenedores"
@@ -87160,6 +87133,11 @@ msgstr "Jaulas"
 
 
 msgctxt "ID"
+msgid "Lights"
+msgstr "Luces"
+
+
+msgctxt "ID"
 msgid "Light Probes"
 msgstr "Sondas de luz"
 
@@ -89177,10 +89155,6 @@ msgid "Specify a custom scene meters per unit value"
 msgstr "Especificar un valor personalizado de metros por unidad de la escena"
 
 
-msgid "Convert World Material"
-msgstr "Convertir material del entorno"
-
-
 msgid "Convert the world material to a USD dome light. Currently works for simple materials, consisting of an environment texture connected to a background shader, with an optional vector multiply of the texture color"
 msgstr "Convierte el material del entorno a una luz de tipo cúpula de USD. Actualmente funciona para materiales simples, consiste en una textura de entorno conectada a un sombreador de fondo, con una multiplicación vectorial opcional para el color de la textura"
 
@@ -89532,10 +89506,6 @@ msgstr "Crear colección"
 
 msgid "Add all imported objects to a new collection"
 msgstr "Agregar todos los objetos importados a una nueva colección"
-
-
-msgid "Create World Material"
-msgstr "Crear material de entorno"
 
 
 msgid "Convert the first discovered USD dome light to a world background shader"
@@ -90639,19 +90609,6 @@ msgstr "Usar sólo deformadores"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Usar sólo modificadores de deformación (deshabilita temporalmente todos los modificadores de construcción excepto el Multi-resolución)"
-
-
-msgid "UV Sculpting"
-msgstr "Esculpido de UV"
-
-
-msgctxt "Curve"
-msgid "Strength Curve Preset"
-msgstr "Preajuste curva de intensidad"
-
-
-msgid "Strength Curve"
-msgstr "Curva de intensidad"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -102429,8 +102386,16 @@ msgid "Retiming Key Selection Status"
 msgstr "Estado de selección clave retemporización"
 
 
+msgid "(Deprecated: Replaced by '.strips') Top-level strips only"
+msgstr "(Obsoleto: Reemplazado por '.strips') Sólo para clips de nivel superior"
+
+
 msgid "All Strips"
 msgstr "Todos los clips"
+
+
+msgid "(Deprecated: Replaced by '.strips_all') All strips, recursively including those inside metastrips"
+msgstr "(Obsoleto: Reemplazado por '.strips_all') Para todos los clips, incluyendo recursivamente a aquellos dentro de meta-clips"
 
 
 msgid "Show Missing Media"
@@ -107173,6 +107138,10 @@ msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "Clip de secuencia que agrupará a varios clips en uno solo"
 
 
+msgid "(Deprecated: Replaced by '.strips') Strips nested in meta strip"
+msgstr "(Obsoleto: Reemplazado por '.strips') Sólo para clips anidados en meta-clips"
+
+
 msgid "Strips nested in meta strip"
 msgstr "Clips anidados en el meta-clip"
 
@@ -111347,6 +111316,19 @@ msgstr "Color del brillo especular de la luz"
 
 msgid "Enable this light in solid shading mode"
 msgstr "Habilitar esta luz en el modo de visualización Sólido"
+
+
+msgid "UV Sculpting"
+msgstr "Esculpido de UV"
+
+
+msgctxt "Curve"
+msgid "Strength Curve Preset"
+msgstr "Preajuste curva de intensidad"
+
+
+msgid "Strength Curve"
+msgstr "Curva de intensidad"
 
 
 msgid "Group of vertices, used for armature deform and other purposes"
@@ -117107,6 +117089,10 @@ msgid "Work Relative to some Object"
 msgstr "Relativo a un objeto"
 
 
+msgid "No 'Relative To' object found, set one explicitly or make sure there is an active object"
+msgstr "No se encontró un objeto en el subpanel 'Relativo', definir uno de manera explícita o asegurarse de que exista un objeto activo"
+
+
 msgid "Select an object or pose bone"
 msgstr "Selecciona un objeto o hueso de pose"
 
@@ -117722,6 +117708,10 @@ msgstr "Agregar variante de material"
 
 msgid "No glTF Animation"
 msgstr "No existe ninguna animación glTF"
+
+
+msgid "Please disable/enable 'action filter' to refresh the list"
+msgstr "Alternar el interruptor 'Filtrar acciones' para refrescar la lista"
 
 
 msgid "No Actions in .blend file"
@@ -120253,7 +120243,7 @@ msgstr "Foco en hueso"
 
 msgctxt "Image"
 msgid "Flip"
-msgstr "Invertir"
+msgstr "Voltear"
 
 
 msgid "Not Set"
@@ -120507,7 +120497,7 @@ msgstr "Ordenar por jerarquía de huesos"
 
 msgctxt "Operator"
 msgid "Mirror Vertex Group (Topology)"
-msgstr "Simetrizar grupo de vértices (Topología)"
+msgstr "Simetrizar grupo de vértices (topología)"
 
 
 msgctxt "Operator"
@@ -120537,7 +120527,7 @@ msgstr "Nueva Forma clave a partir de mezcla"
 
 msgctxt "Operator"
 msgid "Mirror Shape Key (Topology)"
-msgstr "Simetrizar Forma clave (Topología)"
+msgstr "Voltear Forma clave (topología)"
 
 
 msgctxt "Operator"
@@ -121885,6 +121875,10 @@ msgstr "Grupo de curvas-f"
 msgctxt "Operator"
 msgid "Bake All Light Probe Volumes"
 msgstr "Capturar todas las sondas de luz (volumen)"
+
+
+msgid "Compositing Node Tree"
+msgstr "Árbol de nodos de composición"
 
 
 msgctxt "Operator"
@@ -127913,6 +127907,10 @@ msgid "Render error (%s) cannot save: '%s'"
 msgstr "Error de procesamiento (%s) no es posible guardar: '%s'"
 
 
+msgid "Failed to create stereo image buffer"
+msgstr "Error al crear buffer de imagen estéreo"
+
+
 msgid "ipos"
 msgstr "ipos"
 
@@ -129616,6 +129614,18 @@ msgid "Cannot pose libdata"
 msgstr "No es posible posar los datos de la biblioteca"
 
 
+msgid "Show Original Pose"
+msgstr "Mostrar pose original"
+
+
+msgid "Show Blended Pose"
+msgstr "Mostrar pose fundida"
+
+
+msgid "Flip Pose"
+msgstr "Voltear pose"
+
+
 msgid "Pose lib is only for armatures in pose mode"
 msgstr "La biblioteca de poses es sólo para esqueletos en modo Pose"
 
@@ -129652,48 +129662,8 @@ msgid "Sliding-Tool"
 msgstr "Deslizar"
 
 
-msgid "[X]/Y/Z axis only (X to clear)"
-msgstr "Sólo eje [X]/Y/Z (X para restablecer)"
-
-
-msgid "X/[Y]/Z axis only (Y to clear)"
-msgstr "Sólo eje X/[Y]/Z (Y para restablecer)"
-
-
-msgid "X/Y/[Z] axis only (Z to clear)"
-msgstr "Sólo eje X/Y/[Z] (Z para restablecer)"
-
-
-msgid "X/Y/Z = Axis Constraint"
-msgstr "X/Y/Z = restringir eje"
-
-
-msgid "[G]/R/S/B/C - Location only (G to clear) | %s"
-msgstr "[G]/R/S/B/C - sólo posición (G para restablecer) | %s"
-
-
-msgid "G/[R]/S/B/C - Rotation only (R to clear) | %s"
-msgstr "G/[R]/S/B/C - sólo rotación (R para restablecer) | %s"
-
-
-msgid "G/R/[S]/B/C - Scale only (S to clear) | %s"
-msgstr "G/R/[S]/B/C - sólo escala (S para restablecer) | %s"
-
-
-msgid "G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"
-msgstr "G/R/S/[B]/C - sólo propiedades de hueso flexible (B para restablecer) | %s"
-
-
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - sólo propiedades personalizadas (C para restablecer) | %s"
-
-
-msgid "G/R/S/B/C - Limit to Transform/Property Set"
-msgstr "G/R/S/B/C - limitar a transformación / grupo de propiedades"
-
-
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] - alternar visibilidad de huesos"
+msgid "Cancel"
+msgstr "Cancelar"
 
 
 msgid "No keyframes to slide between"
@@ -130117,6 +130087,10 @@ msgid "Node group's first output must be a geometry"
 msgstr "La primera salida del grupo de nodos debe ser una geometría"
 
 
+msgid "Place Next Stroke Vertex"
+msgstr "Colocar siguiente vértice del trazo"
+
+
 msgid "Erase"
 msgstr "Borrador"
 
@@ -130275,10 +130249,6 @@ msgstr "Los trazos capturados fueron liberados"
 
 msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "No hay ningún objeto activo o el objeto activo no es un objeto de Grease Pencil"
-
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 
 msgid "Panning"
@@ -131743,12 +131713,20 @@ msgid "Icosphere"
 msgstr "Esfera geodésica"
 
 
+msgid "Profile Shape"
+msgstr "Forma del perfil"
+
+
 msgid "Harden"
 msgstr "Endurecer"
 
 
 msgid "Outer"
 msgstr "Exterior"
+
+
+msgid "Miter Profile Shape"
+msgstr "Forma del perfil de ingletes"
 
 
 msgid "Intersection Type"
@@ -132448,6 +132426,18 @@ msgid "No UV layer named \"%s\" found in the object \"%s\""
 msgstr "No se encontró ninguna capa UV llamada \"%s\" en el objeto \"%s\""
 
 
+msgid "Cage object \"%s\" not found in evaluated scene, it may be hidden"
+msgstr "Objeto jaula \"%s\" no encontrado en la escena evaluada, podría estar oculto"
+
+
+msgid "Object \"%s\" not found in evaluated scene, it may be hidden"
+msgstr "Objeto \"%s\" no encontrado en la escena evaluada, podría estar oculto"
+
+
+msgid "Failed to access mesh from object \"%s\", ensure it's visible while rendering"
+msgstr "No fue posible acceder a la malla del objeto \"%s\", asegurarse de que esté visible al procesar"
+
+
 msgid "Error baking from object \"%s\""
 msgstr "Problema al capturar desde el objeto \"%s\""
 
@@ -132569,7 +132559,7 @@ msgstr "Sin objetivos"
 
 
 msgid "Could not find constraint data for Child-Of Set Inverse"
-msgstr "No fue posible encontrar datos para 'Activar inversión' de la restricción Subordinar"
+msgstr "No fue posible encontrar datos para 'Activar compensación' de la restricción Subordinar"
 
 
 msgid "Child Of constraint not found"
@@ -132585,7 +132575,7 @@ msgstr "La trayectoria ya está animada"
 
 
 msgid "Could not find constraint data for ObjectSolver Set Inverse"
-msgstr "No fue posible encontrar datos de restricción para 'Activar inversión' de la restricción Resolver objeto"
+msgstr "No fue posible encontrar datos de restricción para 'Activar compensación' de la restricción Resolver objeto"
 
 
 msgid "Applied constraint was not first, result may not be as expected"
@@ -134158,18 +134148,6 @@ msgid "UV map or surface attachment is invalid"
 msgstr "El anclaje al mapa UV o la superficie es inválido"
 
 
-msgid "Fill: ESC/RMB cancel, LMB Fill, MMB Adjust Extension, S: Switch Mode, D: Stroke Collision | Mode: {}, Collision {}, Length: {:.3f}"
-msgstr "Rellenar: ESC/RMB cancelar, LMB rellenar, MMB ajustar extensión, S: cambiar modo, D: colisión de trazos | Modo: {}, Colisión {}, Longitud: {:.3f}"
-
-
-msgid "ON"
-msgstr "ACTIVADO"
-
-
-msgid "OFF"
-msgstr "DESACTIVADO"
-
-
 msgid "No Grease Pencil frame to draw weight on"
 msgstr "No hay ningún fotograma de Grease Pencil sobre el cual pintar influencias"
 
@@ -134465,6 +134443,10 @@ msgid "Action must have at least one keyframe or F-Modifier"
 msgstr "La acción debe contener al menos un fotograma clave o modificador-f"
 
 
+msgid "Action+Slot has already been stashed"
+msgstr "La acción+contenedor ya han sido escondidos"
+
+
 msgid "Could not find current NLA Track"
 msgstr "No fue posible encontrar la pista actual de ANL"
 
@@ -134699,6 +134681,10 @@ msgstr "Ningún archivo seleccionado para abrir"
 
 msgid "Cannot read '%s': %s"
 msgstr "No es posible leer '%s': %s"
+
+
+msgid "Place Marker"
+msgstr "Colocar marcador"
 
 
 msgid "Delete selected tracks?"
@@ -135256,42 +135242,6 @@ msgstr "No se borró ningún controlador"
 
 msgid "Deleted %u drivers"
 msgstr "Se borraron %u controladores"
-
-
-msgid "Decimate Keyframes"
-msgstr "Diezmar claves"
-
-
-msgid "[TAB] - Modify Sharpness"
-msgstr "[TAB] - Modificar definición"
-
-
-msgid "[TAB] - Modify Curve Bend"
-msgstr "[TAB] - Modificar flexión de la curva"
-
-
-msgid "Ease Keys"
-msgstr "Suavizar claves"
-
-
-msgid "Shear Keys"
-msgstr "Sesgar claves"
-
-
-msgid "D - Toggle Direction"
-msgstr "D - Alternar dirección"
-
-
-msgid "[D] - Scale From Right End"
-msgstr "[D] - Escalar desde extremo derecho"
-
-
-msgid "[D] - Scale From Left End"
-msgstr "[D] - Escalar desde extremo izquierdo"
-
-
-msgid "Scale from Neighbor Keys"
-msgstr "Escalar según claves cercanos"
 
 
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
@@ -137907,6 +137857,14 @@ msgid " | Ctrl - Hold for increments"
 msgstr " | Ctrl - Mantener para incrementos"
 
 
+msgid "Overshoot"
+msgstr "Extensión"
+
+
+msgid "Overshoot Disabled"
+msgstr "Extensión deshabilitada"
+
+
 msgid "Unpack File"
 msgstr "Desempacar archivo"
 
@@ -137998,6 +137956,14 @@ msgstr "No es posible dividir la selección si está habilitada la selección si
 
 msgid "Pinned vertices can be selected in Vertex Mode only"
 msgstr "Sólo es posible seleccionar vértices fijos en modo de Vértices"
+
+
+msgid "Switch Island"
+msgstr "Intercambiar isla"
+
+
+msgid "Midpoints"
+msgstr "Puntos medios"
 
 
 msgid "Could not initialize stitching on any selected object"
@@ -140864,8 +140830,8 @@ msgid "Clipping"
 msgstr "Limitar"
 
 
-msgid "Level Viewport"
-msgstr "Niveles      Vista"
+msgid "Levels Viewport"
+msgstr "Nivel       Vistas"
 
 
 msgid "Unsubdivide"
@@ -141002,6 +140968,14 @@ msgid "Built without Remesh modifier"
 msgstr "Construido sin el modificador Rehacer malla"
 
 
+msgid "Zero voxel size cannot be solved"
+msgstr "No es posible calcular con un tamaño de vóxel de cero"
+
+
+msgid "Zero scale cannot be solved"
+msgstr "No es posible calcular con un tamaño de escala de cero"
+
+
 msgid "Axis Object"
 msgstr "Eje de objeto"
 
@@ -141081,10 +141055,6 @@ msgstr "Error interno: vector de bucles de tamaño incorrecto: %u en vez de %u"
 
 msgid "Adaptive Subdivision"
 msgstr "Subdivisión adaptativa"
-
-
-msgid "Levels Viewport"
-msgstr "Nivel       Vistas"
 
 
 msgid "Final Scale: Render %.2f px, Viewport %.2f px"
@@ -141358,6 +141328,14 @@ msgid "Quality:"
 msgstr "Calidad:"
 
 
+msgid "Disabled. Built without OpenImageDenoise"
+msgstr "Deshabilitado, compilado sin soporte para OpenImageDenoise"
+
+
+msgid "Disabled. Platform not supported"
+msgstr "Deshabilitado. Plataforma no soportada"
+
+
 msgid "Image 1"
 msgstr "Imagen 1"
 
@@ -141486,6 +141464,10 @@ msgid "ID value"
 msgstr "Valor de ID"
 
 
+msgid "Render passes in the Viewport compositor are only supported in EEVEE"
+msgstr "Al usar el compositor en las vistas, las pasadas de procesamiento sólo se soportan en EEVEE"
+
+
 msgid "Viewport compositor setup not fully supported"
 msgstr "Configuración de composición en el visor no soportada en forma completa"
 
@@ -141524,10 +141506,6 @@ msgstr "Hasta máx"
 
 msgid "Offset Y"
 msgstr "Desplazamiento Y"
-
-
-msgid "Undistortion"
-msgstr "Revertir distorsión"
 
 
 msgid "Dot"
@@ -142571,10 +142549,6 @@ msgstr "Crear una instancia separada de la curva para cada capa"
 
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Valores más grandes que el umbral se encontrarán dentro de la malla generada"
-
-
-msgid "Has Alpha"
-msgstr "Tiene alfa"
 
 
 msgid "Frame Count"
@@ -145396,6 +145370,14 @@ msgstr "doble-"
 
 msgid "drag-"
 msgstr "arrast-"
+
+
+msgid "ON"
+msgstr "ACTIVADO"
+
+
+msgid "OFF"
+msgstr "DESACTIVADO"
 
 
 msgid "Set Debug Value"

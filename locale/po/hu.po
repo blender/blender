@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -5240,10 +5240,6 @@ msgid "Display the object's name"
 msgstr "Az objektum nevének megjelenítése"
 
 
-msgid "Shape Key Lock"
-msgstr "Formakulcs lezárása"
-
-
 msgid "Display the object's texture space"
 msgstr "Az objektum textúraterének megjelenítése"
 
@@ -6614,6 +6610,10 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Metaball"
+msgstr "Meta test"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6636,10 +6636,6 @@ msgstr "Navigáció"
 
 msgid "Align View"
 msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
 
 
 msgid "Light"
@@ -9301,10 +9297,6 @@ msgstr "Forgatás"
 
 msgid "Translate"
 msgstr "Áthelyez"
-
-
-msgid "Wrapping"
-msgstr "Borítás/csomagolás"
 
 
 msgid "X Axis"
@@ -16513,6 +16505,10 @@ msgid "Operation requires an active bone"
 msgstr "A művelet aktív csontot igényel"
 
 
+msgid "Cancel"
+msgstr "Mégsem"
+
+
 msgid "Cannot spin"
 msgstr "Nem lehet forgatni"
 
@@ -16538,10 +16534,6 @@ msgstr "Nem lehet vonást festeni"
 
 msgid "No active frame to delete"
 msgstr "Nincs törölhető aktív képkocka"
-
-
-msgid "Cancel"
-msgstr "Mégsem"
 
 
 msgctxt "Operator"
@@ -17101,10 +17093,6 @@ msgstr "Interpoláció:"
 
 msgid "Value:"
 msgstr "Érték:"
-
-
-msgid "Decimate Keyframes"
-msgstr "Kulcs-képkockák tizedelése"
 
 
 msgid "Select Layer"

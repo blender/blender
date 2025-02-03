@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -15289,10 +15289,6 @@ msgid "Display the object's name"
 msgstr "Mostra o nome do objeto."
 
 
-msgid "Shape Key Lock"
-msgstr "Travar as chaves de formato"
-
-
 msgid "Display the object's texture space"
 msgstr "Mostra o espaço de textura do objeto."
 
@@ -21336,16 +21332,20 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
 msgid "Names"
 msgstr "Nomes"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
 
 
 msgid "Clean Up"
@@ -21414,10 +21414,6 @@ msgstr "Selecionar vinculados(as)"
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -27109,10 +27105,6 @@ msgid "Channel Key"
 msgstr "Chave de canal"
 
 
-msgid "RGB color space"
-msgstr "Espaço de cores (RGB)"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
 
@@ -27711,6 +27703,10 @@ msgstr "Plumas"
 
 msgid "Distance Key"
 msgstr "Chave de distância"
+
+
+msgid "RGB color space"
+msgstr "Espaço de cores (RGB)"
 
 
 msgid "Double Edge Mask"
@@ -28386,40 +28382,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Usa valores relativos (em frações do tamanho da imagem de entrada) para definir o movimento."
 
 
-msgid "Wrapping"
-msgstr "Envolver"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Envolve a imagem em um eixo específico."
-
-
-msgid "No wrapping on X and Y"
-msgstr "Sem envolvimento em X e Y."
-
-
 msgid "X Axis"
 msgstr "Eixo X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Envolve todos os pixeis no eixo X."
 
 
 msgid "Y Axis"
 msgstr "Eixo Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Envolve todos os pixeis no eixo Y."
-
-
 msgid "Both Axes"
 msgstr "Ambos os eixos"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Envolve todos os pixeis em ambos os eixos."
 
 
 msgid "Vector Blur"
@@ -40119,6 +40091,14 @@ msgid "Add Node Collection"
 msgstr "Adicionar Coleção de Nós"
 
 
+msgid "Source color"
+msgstr "A cor fonte"
+
+
+msgid "Gamma Corrected"
+msgstr "Usar correção de gama"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Adicionar nó de arquivo"
@@ -47217,14 +47197,6 @@ msgid "Drop colors to buttons"
 msgstr "Permite o despejo de cores para os botões."
 
 
-msgid "Source color"
-msgstr "A cor fonte"
-
-
-msgid "Gamma Corrected"
-msgstr "Usar correção de gama"
-
-
 msgctxt "Operator"
 msgid "Drop Name"
 msgstr "Soltar Nome"
@@ -50066,10 +50038,6 @@ msgstr "Usar somente deformação"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Usa somente modificadores de deformação (desabilitar temporariamente todos os modificadores construtivos exceto multirresolução)."
-
-
-msgid "UV Sculpting"
-msgstr "Escultura de UVs"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -60710,6 +60678,10 @@ msgid "Color of the light's specular highlight"
 msgstr "Cor do realce especular da lâmpada."
 
 
+msgid "UV Sculpting"
+msgstr "Escultura de UVs"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Grupo de vértices, usado para a deformação por armações de ossos dentre outras finalidades."
 
@@ -65768,8 +65740,8 @@ msgid "Relax Pose"
 msgstr "Relaxar Pose"
 
 
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] - Alterar visibilidade do osso"
+msgid "Cancel"
+msgstr "Cancelar"
 
 
 msgid "No keyframes to slide between"
@@ -65936,10 +65908,6 @@ msgstr "Nenhum quadro ativo para apagar."
 
 msgid "Nothing selected"
 msgstr "Nada selecionado."
-
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 
 msgid "Could not resolve path '%s'"
@@ -67675,14 +67643,6 @@ msgstr "Duplicar Atual"
 
 msgid "File not found '%s'"
 msgstr "Arquivo não encontrado: '%s'"
-
-
-msgid "ON"
-msgstr "LIGADO"
-
-
-msgid "OFF"
-msgstr "DESLIGADO"
 
 
 msgid "Active group is locked, aborting"
@@ -69949,10 +69909,6 @@ msgid "Streak fade-out factor"
 msgstr "Fator de saída para o esmaecimento das listras."
 
 
-msgid "Undistortion"
-msgstr "Sem distorções"
-
-
 msgid "Dot"
 msgstr "Ponto"
 
@@ -70460,6 +70416,14 @@ msgstr "Win"
 
 msgid "dbl-"
 msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "LIGADO"
+
+
+msgid "OFF"
+msgstr "DESLIGADO"
 
 
 msgid "unsupported format"

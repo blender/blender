@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -22229,10 +22229,6 @@ msgid "Display the object's name"
 msgstr "Onyesha jina la kitu"
 
 
-msgid "Shape Key Lock"
-msgstr "Kufuli ya Ufunguo wa Umbo"
-
-
 msgid "Only show the active shape key at full value"
 msgstr "Onyesha tu kitufe amilifu cha umbo kwa thamani kamili"
 
@@ -28817,6 +28813,10 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
@@ -28843,10 +28843,6 @@ msgstr "Urambazaji"
 
 msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
 
 
 msgid "Light"
@@ -37758,22 +37754,6 @@ msgid "Channel Key"
 msgstr "Kitufe cha Chaneli"
 
 
-msgid "RGB color space"
-msgstr "Nafasi ya rangi ya RGB"
-
-
-msgid "HSV color space"
-msgstr "Nafasi ya rangi ya HSV"
-
-
-msgid "YUV color space"
-msgstr "Nafasi ya rangi ya YUV"
-
-
-msgid "YCbCr color space"
-msgstr "nafasi ya rangi ya YCbCr"
-
-
 msgid "Limit by this channel's value"
 msgstr "Kikomo kwa thamani ya kituo hiki"
 
@@ -38170,26 +38150,6 @@ msgid "Mode of color processing"
 msgstr "Njia ya usindikaji wa rangi"
 
 
-msgid "Use RGB color processing"
-msgstr "Tumia usindikaji wa rangi ya RGB"
-
-
-msgid "Use HSV color processing"
-msgstr "Tumia usindikaji wa rangi wa HSV"
-
-
-msgid "Use HSL color processing"
-msgstr "Tumia usindikaji wa rangi wa HSL"
-
-
-msgid "Use YCbCr color processing"
-msgstr "Tumia usindikaji wa rangi wa YCbCr"
-
-
-msgid "Use YUV color processing"
-msgstr "Tumia usindikaji wa rangi ya YUV"
-
-
 msgid "Color space used for YCbCrA processing"
 msgstr "Nafasi ya rangi inayotumika kwa usindikaji wa YCbCrA"
 
@@ -38501,6 +38461,10 @@ msgstr "Unyoya"
 
 msgid "Distance Key"
 msgstr "Ufunguo wa Umbali"
+
+
+msgid "RGB color space"
+msgstr "Nafasi ya rangi ya RGB"
 
 
 msgid "YCbCr suppression"
@@ -39470,40 +39434,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Tumia thamani zinazohusiana (sehemu ya saizi ya picha ingizo) ili kufafanua tafsiri"
 
 
-msgid "Wrapping"
-msgstr "Kufunga"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Funga picha kwenye mhimili maalum"
-
-
-msgid "No wrapping on X and Y"
-msgstr "Hakuna kufunga X na Y"
-
-
 msgid "X Axis"
 msgstr "Mhimili wa X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Funga saizi zote kwenye mhimili wa X"
 
 
 msgid "Y Axis"
 msgstr "Mhimili wa Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Funga saizi zote kwenye mhimili wa Y"
-
-
 msgid "Both Axes"
 msgstr "Shoka zote mbili"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Funga saizi zote kwenye shoka zote mbili"
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -60086,6 +60026,22 @@ msgid "Add a collection info node to the current node editor"
 msgstr "Ongeza nodi ya maelezo ya mkusanyiko kwa kihariri cha nodi ya sasa"
 
 
+msgid "Source color"
+msgstr "Rangi ya chanzo"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma Imesahihishwa"
+
+
+msgid "The source color is gamma corrected"
+msgstr "Rangi ya chanzo imerekebishwa kwa gamma"
+
+
+msgid "Has Alpha"
+msgstr "Ina Alfa"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Ongeza Nodi ya Faili"
@@ -70702,18 +70658,6 @@ msgid "Drop colors to buttons"
 msgstr "dondosha rangi kwenye vitufe"
 
 
-msgid "Source color"
-msgstr "Rangi ya chanzo"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma Imesahihishwa"
-
-
-msgid "The source color is gamma corrected"
-msgstr "Rangi ya chanzo imerekebishwa kwa gamma"
-
-
 msgctxt "Operator"
 msgid "Drop Material in Material slots"
 msgstr "Achia Nyenzo katika nafasi za Nyenzo"
@@ -75853,10 +75797,6 @@ msgstr "Tumia Urekebishaji Pekee"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Tumia virekebisha urekebishaji pekee (lemaza kwa muda virekebishaji vyote vya kujenga isipokuwa maazimio mengi)"
-
-
-msgid "UV Sculpting"
-msgstr "Uchongaji wa UV"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -91971,6 +91911,10 @@ msgid "Enable this light in solid shading mode"
 msgstr "Washa mwangaza huu katika hali ya kivuli dhabiti"
 
 
+msgid "UV Sculpting"
+msgstr "Uchongaji wa UV"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Kundi la vipeo, linalotumika kwa ulemavu wa silaha na madhumuni mengine"
 
@@ -105517,28 +105461,8 @@ msgid "Sliding-Tool"
 msgstr "Zana ya Kutelezesha"
 
 
-msgid "[X]/Y/Z axis only (X to clear)"
-msgstr "[X]/Y/Z mhimili pekee (X ili kufuta)"
-
-
-msgid "X/[Y]/Z axis only (Y to clear)"
-msgstr "Mhimili wa X/[Y]/Z pekee (Y kufuta)"
-
-
-msgid "X/Y/[Z] axis only (Z to clear)"
-msgstr "mhimili wa X/Y/[Z] pekee (Z kufuta)"
-
-
-msgid "X/Y/Z = Axis Constraint"
-msgstr "X/Y/Z = Kizuizi cha Mhimili"
-
-
-msgid "G/R/S/B/C - Limit to Transform/Property Set"
-msgstr "G/R/S/B/C - Kikomo cha Kubadilisha/Kuweka Mali"
-
-
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] - Geuza mwonekano wa mfupa"
+msgid "Cancel"
+msgstr "Ghairi"
 
 
 msgid "No keyframes to slide between"
@@ -105970,10 +105894,6 @@ msgstr "Tabaka tayari limeongezwa"
 
 msgid "Unable to find layer to add"
 msgstr "Haijaweza kupata safu ya kuongeza"
-
-
-msgid "Cancel"
-msgstr "Ghairi"
 
 
 msgid "Could not resolve path '%s'"
@@ -109008,14 +108928,6 @@ msgid "UV map or surface attachment is invalid"
 msgstr "Ramani ya UV au kiambatisho cha uso ni batili"
 
 
-msgid "ON"
-msgstr "ILIYO"
-
-
-msgid "OFF"
-msgstr "ZIMA"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Kikundi kinachoendelea kimefungwa, kinatoa mimba"
 
@@ -109990,30 +109902,6 @@ msgstr "Hakuna viendeshaji vilivyofutwa"
 
 msgid "Deleted %u drivers"
 msgstr "Viendeshaji %u vimefutwa"
-
-
-msgid "Decimate Keyframes"
-msgstr "Tambua Fremu Muhimu"
-
-
-msgid "Shear Keys"
-msgstr "Funguo za kunyoa"
-
-
-msgid "D - Toggle Direction"
-msgstr "D - Geuza Mwelekeo"
-
-
-msgid "[D] - Scale From Right End"
-msgstr "[D] - Mizani Kutoka Mwisho wa Kulia"
-
-
-msgid "[D] - Scale From Left End"
-msgstr "[D] - Mizani Kutoka Mwisho wa Kushoto"
-
-
-msgid "Scale from Neighbor Keys"
-msgstr "Mizani kutoka kwa Funguo za Jirani"
 
 
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
@@ -114199,8 +114087,8 @@ msgid "Clipping"
 msgstr "Kunakili"
 
 
-msgid "Level Viewport"
-msgstr "Kiwango cha kutazama cha kiwango"
+msgid "Levels Viewport"
+msgstr "Mtazamo wa Viwango"
 
 
 msgid "Unsubdivide"
@@ -114391,10 +114279,6 @@ msgstr "Hitilafu ya Ndani: misururu ya vitanzi huwa na ukubwa usio sahihi: %u ba
 
 msgid "Adaptive Subdivision"
 msgstr "Ugawanyiko Unaobadilika"
-
-
-msgid "Levels Viewport"
-msgstr "Mtazamo wa Viwango"
 
 
 msgid "Final Scale: Render %.2f px, Viewport %.2f px"
@@ -114669,10 +114553,6 @@ msgstr "Hadi Max"
 
 msgid "Offset Y"
 msgstr "Kupunguza Y"
-
-
-msgid "Undistortion"
-msgstr "Upotoshaji"
 
 
 msgid "Dot"
@@ -115364,10 +115244,6 @@ msgstr "Juu"
 
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Thamani kubwa kuliko kizingiti ziko ndani ya wavu uliozalishwa"
-
-
-msgid "Has Alpha"
-msgstr "Ina Alfa"
 
 
 msgid "Frame Count"
@@ -117253,6 +117129,14 @@ msgstr "Shinda"
 
 msgid "drag-"
 msgstr "buruta-"
+
+
+msgid "ON"
+msgstr "ILIYO"
+
+
+msgid "OFF"
+msgstr "ZIMA"
 
 
 msgid "unsupported format"

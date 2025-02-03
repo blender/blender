@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
-"PO-Revision-Date: 2025-01-26 00:56+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"PO-Revision-Date: 2025-01-30 15:41+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -11799,8 +11799,16 @@ msgid "Location of tail end of the bone"
 msgstr "Lega repa kosti"
 
 
+msgid "All effector's weight"
+msgstr "Vse vplivnikove uteži"
+
+
 msgid "Use For Growing Hair"
 msgstr "Uporabi za rast dlake"
+
+
+msgid "Use force fields when growing hair"
+msgstr "Pri razraščanju dlak uporabi polja sil"
 
 
 msgid "Boid"
@@ -11811,8 +11819,16 @@ msgid "Charge"
 msgstr "Naboj"
 
 
+msgid "Charge effector weight"
+msgstr "Spremeni utež vplivnika"
+
+
 msgid "Effector Collection"
 msgstr "Zbirka vplivnikov"
+
+
+msgid "Limit effectors to this collection"
+msgstr "Omeji vplivnike na to zbirko"
 
 
 msgid "Curve Guide"
@@ -11823,24 +11839,56 @@ msgid "Drag"
 msgstr "Vleka"
 
 
+msgid "Drag effector weight"
+msgstr "Utež upornega vplivnika"
+
+
 msgid "Force"
 msgstr "Sila"
+
+
+msgid "Force effector weight"
+msgstr "Utež vplivnika sil"
+
+
+msgid "Global gravity weight"
+msgstr "Utež globalne težnosti"
 
 
 msgid "Harmonic"
 msgstr "Harmonično nihanje"
 
 
+msgid "Harmonic effector weight"
+msgstr "Utež harmoničnega vplivnika"
+
+
 msgid "Lennard-Jones"
 msgstr "Lennard-Jones"
+
+
+msgid "Lennard-Jones effector weight"
+msgstr "Utež Lennard-Jonesovega vplivnika"
 
 
 msgid "Magnetic"
 msgstr "Magnet"
 
 
+msgid "Magnetic effector weight"
+msgstr "Utež magnetnega vplivnika"
+
+
 msgid "Fluid Flow"
 msgstr "Kapljevinski tok"
+
+
+msgid "Fluid Flow effector weight"
+msgstr "Utež vplivnika pretoka kapljevine"
+
+
+msgid "Texture effector weight"
+msgstr "Utež vplivnika teksture"
 
 
 msgid "Turbulence"
@@ -11859,12 +11907,32 @@ msgid "Enum Item Definition"
 msgstr "Definicija elementa naštevne strukture"
 
 
+msgid "Description of the item's purpose"
+msgstr "Opis namena elementa"
+
+
 msgid "Identifier"
 msgstr "Identifikator"
 
 
+msgid "Unique name used in the code and scripting"
+msgstr "Edinstveno ime, uporabljeno v kodi in programih"
+
+
+msgid "Human readable name"
+msgstr "Človeku razumljivo ime"
+
+
+msgid "Value of the item"
+msgstr "Vrednost elementa"
+
+
 msgid "F-Curve"
 msgstr "F-krivulja"
+
+
+msgid "F-Curve defining values of a period of time"
+msgstr "F-krivulja, ki definira vrednosti po času"
 
 
 msgid "RNA Array Index"
@@ -12717,12 +12785,32 @@ msgid "Size"
 msgstr "Velikost"
 
 
+msgid "Size of the turbulence"
+msgstr "Velikost turbulence"
+
+
 msgid "Domain Object"
 msgstr "Domenski objekt"
 
 
+msgid "Select domain object of the smoke simulation"
+msgstr "Izbere domenski objekt simulacije dima"
+
+
+msgid "Strength of force field"
+msgstr "Moč polja sil"
+
+
+msgid "Texture to use as force"
+msgstr "Tekstura, ki jo uporabi za silo"
+
+
 msgid "Texture Mode"
 msgstr "Teksturni način"
+
+
+msgid "How the texture effect is calculated (RGB and Curl need a RGB texture, else Gradient will be used instead)"
+msgstr "Kako se računa učinek teksture (RGB in Kodranje delujeta le za barvno teksturo, drugače je uporabljen Gradient)"
 
 
 msgid "Curl"
@@ -12737,8 +12825,36 @@ msgid "Nabla"
 msgstr "Nabla"
 
 
+msgid "Defines size of derivative offset used for calculating gradient and curl"
+msgstr "Definira velikost odvodnega odmika za računanje gradienta in kodranja"
+
+
 msgid "Type of field"
 msgstr "Vrsta polja"
+
+
+msgid "Create a force that acts as a boid's predators or target"
+msgstr "Ustvari silo, ki članu jate predstavlja plenilca ali tarčo"
+
+
+msgid "Create a force that dampens motion"
+msgstr "Ustvari silo, ki zaduši gibanje"
+
+
+msgid "Create a force based on fluid simulation velocities"
+msgstr "Ustvari silo, ki temelji na hitrostih simulacije kapljevine"
+
+
+msgid "Radial field toward the center of object"
+msgstr "Radialno polje proti središču objekta"
+
+
+msgid "Forcefield based on the Lennard-Jones potential"
+msgstr "Polje sil, ki temelji na Lennard-Jonesovem potencialu"
+
+
+msgid "Forcefield depends on the speed of the particles"
+msgstr "Polje sil je odvisno od hitrosti delcev"
 
 
 msgid "2D"
@@ -13832,6 +13948,22 @@ msgstr "Skupina oglišč"
 
 msgid "Flow Behavior"
 msgstr "Obnašanje pretoka"
+
+
+msgid "Add fluid to simulation"
+msgstr "Simulaciji doda kapljevino"
+
+
+msgid "Delete fluid from simulation"
+msgstr "Izbriše kapljevino iz simulacije"
+
+
+msgid "Only use given geometry for fluid"
+msgstr "Za kapljevino uporabi zgolj dano geometrijo"
+
+
+msgid "Change how fluid is emitted"
+msgstr "Spremeni način oddajanja tekočine"
 
 
 msgid "Flow Type"
@@ -15851,7 +15983,7 @@ msgstr "Rotiranje/zvijanje"
 
 
 msgid "Scale/Translate"
-msgstr "Skaliranje/premestitev"
+msgstr "Skaliraj / premesti"
 
 
 msgid "Squash & Stretch"
@@ -20485,7 +20617,7 @@ msgstr "Minimum korakov"
 
 
 msgid "Translate Roots"
-msgstr "Premakni korene"
+msgstr "Premesti korene"
 
 
 msgid "Auto Step"
@@ -22927,16 +23059,20 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
+
+
 msgid "Names"
 msgstr "Imena"
 
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
-
-
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
 
 
 msgid "Clean Up"
@@ -23013,10 +23149,6 @@ msgstr "Izberi zanke"
 
 msgid "Assign Material"
 msgstr "Dodeli material"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
 
 
 msgid "Light"
@@ -26273,76 +26405,220 @@ msgid "Render Undistorted"
 msgstr "Upodobi nepopačeno"
 
 
+msgid "Movie tracking data"
+msgstr "Podatki o obrisovanju posnetkov"
+
+
+msgid "Active Object Index"
+msgstr "Indeks aktivnega objekta"
+
+
+msgid "Index of active object"
+msgstr "Indeks aktivnega objekta"
+
+
+msgid "Collection of objects in this tracking data object"
+msgstr "Zbirka objektov v tem objektu obrisovalnih podatkov"
+
+
 msgid "Plane Tracks"
 msgstr "Ravninski obrisi"
+
+
+msgid "Collection of plane tracks in this tracking data object. Deprecated, use objects[name].plane_tracks"
+msgstr "Zbirka ravninskih obrisov v tem objektu obrisovalnih podatkov. Zastarelo, namesto tega uporabite objects[name].plane_tracks"
 
 
 msgid "Tracks"
 msgstr "Obrisi"
 
 
+msgid "Collection of tracks in this tracking data object. Deprecated, use objects[name].tracks"
+msgstr "Zbirka obrisov v tem objektu obrisovalnih podatkov. Zastarelo, namesto tega uporabite objects[name].tracks"
+
+
+msgid "Movie tracking camera data"
+msgstr "Obrisovalni podatki o kameri"
+
+
 msgid "K1"
 msgstr "K1"
+
+
+msgid "First coefficient of fourth order Brown-Conrady radial distortion"
+msgstr "Prvi koeficient Brown-Conradyjevega radialnega popačenja četrtega reda"
 
 
 msgid "K2"
 msgstr "K2"
 
 
+msgid "Second coefficient of fourth order Brown-Conrady radial distortion"
+msgstr "Drugi koeficient Brown-Conradyjevega radialnega popačenja četrtega reda"
+
+
 msgid "K3"
 msgstr "K3"
+
+
+msgid "Third coefficient of fourth order Brown-Conrady radial distortion"
+msgstr "Tretji koeficient Brown-Conradyjevega radialnega popačenja četrtega reda"
 
 
 msgid "K4"
 msgstr "K4"
 
 
+msgid "Fourth coefficient of fourth order Brown-Conrady radial distortion"
+msgstr "Četrti koeficient Brown-Conradyjevega radialnega popačenja četrtega reda"
+
+
 msgid "P1"
 msgstr "P1"
+
+
+msgid "First coefficient of second order Brown-Conrady tangential distortion"
+msgstr "Prvi koeficient Brown-Conradyjevega tangencialnega popačenja drugega reda"
 
 
 msgid "P2"
 msgstr "P2"
 
 
+msgid "Second coefficient of second order Brown-Conrady tangential distortion"
+msgstr "Drugi koeficient Brown-Conradyjevega tangencialnega popačenja drugega reda"
+
+
 msgid "Distortion Model"
 msgstr "Model popačenja"
+
+
+msgid "Distortion model used for camera lenses"
+msgstr "Model popačenja za leče na kameri"
 
 
 msgid "Polynomial"
 msgstr "Polinomsko"
 
 
+msgid "Radial distortion model which fits common cameras"
+msgstr "Model radialnega popačenja, ki ustreza običajnim kameram"
+
+
 msgid "Divisions"
 msgstr "Delitve"
+
+
+msgid "Division distortion model which better represents wide-angle cameras"
+msgstr "Model delitvenega popačenja, ki bolje zastopa širokokotne objektive"
 
 
 msgid "Nuke"
 msgstr "Nuke"
 
 
+msgid "Nuke distortion model"
+msgstr "Model popačenja Nuke"
+
+
 msgid "Brown"
 msgstr "Brownovo"
+
+
+msgid "Brown-Conrady distortion model"
+msgstr "Brown-Conradyjev model popačenja"
+
+
+msgid "First coefficient of second order division distortion"
+msgstr "Prvi koeficient delitvenega popačenja drugega reda"
+
+
+msgid "Second coefficient of second order division distortion"
+msgstr "Drugi koeficient delitvenega popačenja drugega reda"
+
+
+msgid "Camera's focal length"
+msgstr "Goriščna razdalja kamere"
+
+
+msgid "First coefficient of third order polynomial radial distortion"
+msgstr "Prvi koeficient polinomskega radialnega popačenja tretjega reda"
+
+
+msgid "Second coefficient of third order polynomial radial distortion"
+msgstr "Drugi koeficient polinomskega radialnega popačenja tretjega reda"
+
+
+msgid "Third coefficient of third order polynomial radial distortion"
+msgstr "Tretji koeficient polinomskega radialnega popačenja tretjega reda"
+
+
+msgid "First coefficient of second order Nuke distortion"
+msgstr "Prvi koeficient popačenja Nuke drugega reda"
+
+
+msgid "Second coefficient of second order Nuke distortion"
+msgstr "Drugi koeficient popačenja Nuke drugega reda"
+
+
+msgid "Pixel Aspect Ratio"
+msgstr "Prikazno razmerje piksla"
+
+
+msgid "Pixel aspect ratio"
+msgstr "Prikazno razmerje piksla"
 
 
 msgid "Principal Point"
 msgstr "Glavna točka"
 
 
+msgid "Optical center of lens"
+msgstr "Optično središče leče"
+
+
+msgid "Optical center of lens in pixels"
+msgstr "Optično središče leče v pikslih"
+
+
 msgid "Sensor"
 msgstr "Senzor"
+
+
+msgid "Width of CCD sensor in millimeters"
+msgstr "Širina senzorja CCD v milimetrih"
 
 
 msgid "Units"
 msgstr "Enote"
 
 
+msgid "Units used for camera focal length"
+msgstr "Enote za goriščno razdaljo kamere"
+
+
 msgid "px"
 msgstr "px"
 
 
+msgid "Use pixels for units of focal length"
+msgstr "Uporabi piksle kot enoto goriščne razdalje"
+
+
 msgid "mm"
 msgstr "mm"
+
+
+msgid "Use millimeters for units of focal length"
+msgstr "Uporabi milimetre kot enoto goriščne razdalje"
+
+
+msgid "Movie Tracking Dopesheet"
+msgstr "Obrisovalni animacijski načrt"
+
+
+msgid "Match-moving dopesheet data"
+msgstr "Obrisovalni podatki v animacijskem načrtu"
 
 
 msgid "Display Hidden"
@@ -26353,12 +26629,48 @@ msgid "Dopesheet Sort Field"
 msgstr "Razvrščanje"
 
 
+msgid "Method to be used to sort channels in dopesheet view"
+msgstr "Metoda razvrstitve kanalov v urejevalniku animacijskega načrta"
+
+
+msgid "Sort channels by their names"
+msgstr "Razvrsti kanale po imenih"
+
+
 msgid "Longest"
 msgstr "Najdlje trajajoče"
 
 
+msgid "Sort channels by longest tracked segment"
+msgstr "Razvrsti kanale po najdlje obrisanem segmentu"
+
+
 msgid "Total"
 msgstr "Skupaj"
+
+
+msgid "Sort channels by overall amount of tracked segments"
+msgstr "Razvrsti kanale po skupni količini obrisanih segmentov"
+
+
+msgid "Sort channels by average reprojection error of tracks after solve"
+msgstr "Razvrsti kanale glede na povprečno napako ponovne projekcije obrisov po izračunani rešitvi"
+
+
+msgid "Sort channels by first frame number"
+msgstr "Razvrsti kanale po številki prvega okvirja"
+
+
+msgid "Sort channels by last frame number"
+msgstr "Razvrsti kanale po številki zadnjega okvirja"
+
+
+msgid "Invert Dopesheet Sort"
+msgstr "Obrni razvrščanje v načrtu"
+
+
+msgid "Invert sort order of dopesheet channels"
+msgstr "Obrne razvrstitev kanalov v animacijskem načrtu"
 
 
 msgid "Keyframed"
@@ -28370,7 +28682,7 @@ msgstr "Absolutni okvir"
 
 
 msgid "Translate"
-msgstr "Premik"
+msgstr "Premesti"
 
 
 msgid "Offset an image"
@@ -28381,40 +28693,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Premestitev definiraj z relativnimi vrednostmi (delež velikosti vhodne slike)"
 
 
-msgid "Wrapping"
-msgstr "Ovijanje"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Ovije sliko na podani osi"
-
-
-msgid "No wrapping on X and Y"
-msgstr "Brez ovijanja na X in Y"
-
-
 msgid "X Axis"
 msgstr "Os X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Ovije vse piksle na osi X"
 
 
 msgid "Y Axis"
 msgstr "Os Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Ovije vse piksle na osi Y"
-
-
 msgid "Both Axes"
 msgstr "Obe osi"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Ovije vse piksle na obeh oseh"
 
 
 msgid "Vector Blur"
@@ -29568,7 +29856,7 @@ msgstr "Komponente"
 
 
 msgid "Translate Instances"
-msgstr "Premakni primerke"
+msgstr "Premesti primerke"
 
 
 msgid "Trim Curve"
@@ -37372,6 +37660,18 @@ msgid "Add Node Collection"
 msgstr "Dodaj zbirko vozlišč"
 
 
+msgid "Source color"
+msgstr "Izvorna barva"
+
+
+msgid "Gamma Corrected"
+msgstr "Gama korigirano"
+
+
+msgid "Has Alpha"
+msgstr "Ima prosojnost"
+
+
 msgctxt "Operator"
 msgid "Add Material"
 msgstr "Dodaj material"
@@ -41696,14 +41996,6 @@ msgid "Copy to Selected"
 msgstr "Kopiraj na izbor"
 
 
-msgid "Source color"
-msgstr "Izvorna barva"
-
-
-msgid "Gamma Corrected"
-msgstr "Gama korigirano"
-
-
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "Uredi izvor"
@@ -43646,10 +43938,6 @@ msgid "Yards"
 msgstr "Jardi"
 
 
-msgid "Convert World Material"
-msgstr "Pretvori material sveta"
-
-
 msgid "Namespace"
 msgstr "Imenski prostor"
 
@@ -44278,14 +44566,6 @@ msgstr "Način transformiranja"
 
 msgid "Use Deform Only"
 msgstr "Uporabi samo deformacije"
-
-
-msgid "UV Sculpting"
-msgstr "Kiparjenje UV"
-
-
-msgid "Strength Curve"
-msgstr "Krivulja moči"
 
 
 msgid "Restrict"
@@ -49140,8 +49420,20 @@ msgid "Live Edit"
 msgstr "Urejaj v živo"
 
 
+msgid "3D View far clipping distance"
+msgstr "Prirez elementov v 3D pogledu od te razdalje proti neskončnosti"
+
+
+msgid "3D View near clipping distance (perspective view only)"
+msgstr "Prirez elementov v 3D pogledu od gledišča do podane razdalje (velja samo za perspektivno projekcijo)"
+
+
 msgid "Lens"
 msgstr "Leča"
+
+
+msgid "Viewport lens angle"
+msgstr "Krivina glediščne leče v 3D pogledu"
 
 
 msgid "3D View center is locked to the cursor's position"
@@ -49358,6 +49650,10 @@ msgstr "Način, kako so obrisi prikazani v 3D pogledu"
 
 msgid "Use Local Camera"
 msgstr "Uporabi lokalno kamero"
+
+
+msgid "Use a local camera in this view, rather than scene's active camera"
+msgstr "V tem pogledu uporabi lokalno kamero namesto aktivne kamere na sceni"
 
 
 msgid "Local Collections"
@@ -50060,6 +50356,14 @@ msgstr "URL"
 
 msgid "Clean Files After Install"
 msgstr "Počisti datoteke po namestitvi"
+
+
+msgid "UV Sculpting"
+msgstr "Kiparjenje UV"
+
+
+msgid "Strength Curve"
+msgstr "Krivulja moči"
 
 
 msgid "Group Index"
@@ -60382,6 +60686,10 @@ msgid "Blend to Neighbor"
 msgstr "Preliv v soseda"
 
 
+msgid "Cancel"
+msgstr "Prekliči"
+
+
 msgid "Asset Shelf Panel"
 msgstr "Plošča police s sredstvi"
 
@@ -60451,10 +60759,6 @@ msgstr "Zenice"
 
 msgid "No active layer"
 msgstr "Ni aktivne plasti"
-
-
-msgid "Cancel"
-msgstr "Prekliči"
 
 
 msgid "Active vertex group is locked"
@@ -61646,14 +61950,6 @@ msgstr "Priljubljeno"
 
 msgid "screen"
 msgstr "zaslon"
-
-
-msgid "ON"
-msgstr "VKLOP"
-
-
-msgid "OFF"
-msgstr "IZKLOP"
 
 
 msgctxt "GPencil"
@@ -63025,7 +63321,7 @@ msgid "Clipping"
 msgstr "Rezanje"
 
 
-msgid "Level Viewport"
+msgid "Levels Viewport"
 msgstr "Nivoji za 3D pogled"
 
 
@@ -63154,10 +63450,6 @@ msgstr "Obrez debeline"
 
 msgid "Output Vertex Groups"
 msgstr "Izhodne skupine oglišč"
-
-
-msgid "Levels Viewport"
-msgstr "Nivoji za 3D pogled"
 
 
 msgid "Out of memory"
@@ -63312,10 +63604,6 @@ msgstr "Razklon"
 
 msgid "Offset Y"
 msgstr "Odmik Y"
-
-
-msgid "Undistortion"
-msgstr "Odpopačenje"
 
 
 msgid "Dot"
@@ -63627,10 +63915,6 @@ msgstr "Glavna geometrija"
 
 msgid "Element"
 msgstr "Element"
-
-
-msgid "Has Alpha"
-msgstr "Ima prosojnost"
 
 
 msgid "Frame Count"
@@ -64166,6 +64450,14 @@ msgstr "dvo-"
 
 msgid "drag-"
 msgstr "vleci-"
+
+
+msgid "ON"
+msgstr "VKLOP"
+
+
+msgid "OFF"
+msgstr "IZKLOP"
 
 
 msgid "Toggle System Console"

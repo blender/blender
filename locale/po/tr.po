@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -21713,10 +21713,6 @@ msgid "Display the object's name"
 msgstr "Nesnenin adını görüntüle"
 
 
-msgid "Shape Key Lock"
-msgstr "Şekil Anahtar Kilidi"
-
-
 msgid "Only show the active shape key at full value"
 msgstr "Yalnızca etkin şekil anahtarını tam değerde göster"
 
@@ -29250,16 +29246,20 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
 msgid "Names"
 msgstr "Adlar"
 
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
 
 
 msgid "Clean Up"
@@ -29348,10 +29348,6 @@ msgstr "Döngüleri Seç"
 
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
-
-
-msgid "Metaball"
-msgstr "Metabol"
 
 
 msgid "Light"
@@ -38368,28 +38364,12 @@ msgid "Create matte based on differences in color channels"
 msgstr "Renk kanallarındaki farklılıklara dayalı mat yaratın"
 
 
-msgid "RGB color space"
-msgstr "RGB renk uzayı"
-
-
-msgid "HSV color space"
-msgstr "HSV renk uzayı"
-
-
 msgid "YUV"
 msgstr "YUV"
 
 
-msgid "YUV color space"
-msgstr "YUV renk uzayı"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "YCbCr color space"
-msgstr "YCbCr renk uzayı"
 
 
 msgctxt "Color"
@@ -38865,26 +38845,6 @@ msgid "Mode of color processing"
 msgstr "Renk işleme modu"
 
 
-msgid "Use RGB color processing"
-msgstr "RGB renk işlemeyi kullan"
-
-
-msgid "Use HSV color processing"
-msgstr "HSV renk işlemeyi kullanın"
-
-
-msgid "Use HSL color processing"
-msgstr "HSL renk işlemeyi kullanın"
-
-
-msgid "Use YCbCr color processing"
-msgstr "YCbCr renk işlemeyi kullanın"
-
-
-msgid "Use YUV color processing"
-msgstr "YUV renk işlemeyi kullanın"
-
-
 msgid "Color space used for YCbCrA processing"
 msgstr "YCbCrA işleme için kullanılan renk uzayı"
 
@@ -39276,6 +39236,10 @@ msgstr "Mesafe Anahtarı"
 
 msgid "Create matte based on 3D distance between colors"
 msgstr "Renkler arasındaki 3B mesafeye dayalı mat oluşturun"
+
+
+msgid "RGB color space"
+msgstr "RGB renk uzayı"
 
 
 msgid "YCbCr suppression"
@@ -40552,40 +40516,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Çeviriyi tanımlamak için bağıl (giriş görüntü boyutunun kesri) değerleri kullanın"
 
 
-msgid "Wrapping"
-msgstr "Sarma"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Resmi belirli bir eksende sarın"
-
-
-msgid "No wrapping on X and Y"
-msgstr "X ve Y'de sarma yok"
-
-
 msgid "X Axis"
 msgstr "X Eks"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "X eksenindeki tüm pikselleri sarın"
 
 
 msgid "Y Axis"
 msgstr "Y Eks"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Y eksenindeki tüm pikselleri sarın"
-
-
 msgid "Both Axes"
 msgstr "Her iki eksen"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Her iki eksendeki tüm pikselleri sar"
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -62194,6 +62134,22 @@ msgid "Add a collection info node to the current node editor"
 msgstr "Mevcut düğüm düzenleyicisine bir koleksiyon bilgi düğümü ekleyin"
 
 
+msgid "Source color"
+msgstr "Kaynak renk"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma Düzeltildi"
+
+
+msgid "The source color is gamma corrected"
+msgstr "Kaynak renk gama düzeltmelidir"
+
+
+msgid "Has Alpha"
+msgstr "Alfa var"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Dosya Düğümü Ekle"
@@ -73784,18 +73740,6 @@ msgid "Drop colors to buttons"
 msgstr "Düğmelere renk bırak"
 
 
-msgid "Source color"
-msgstr "Kaynak renk"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma Düzeltildi"
-
-
-msgid "The source color is gamma corrected"
-msgstr "Kaynak renk gama düzeltmelidir"
-
-
 msgctxt "Operator"
 msgid "Drop Material in Material slots"
 msgstr "Malzeme yuvalarına Malzeme Bırak"
@@ -77980,10 +77924,6 @@ msgid "Yards"
 msgstr "Metre"
 
 
-msgid "Convert World Material"
-msgstr "Dünya Malzemesini Dönüştür"
-
-
 msgid "Use Settings for"
 msgstr "Ayarları Kullan"
 
@@ -78223,10 +78163,6 @@ msgstr "Koleksiyon Oluştur"
 
 msgid "Add all imported objects to a new collection"
 msgstr "Tüm içe aktarılan nesneleri yeni bir koleksiyona ekle"
-
-
-msgid "Create World Material"
-msgstr "Dünya Malzemesi Yarat"
 
 
 msgid "Import All Materials"
@@ -79148,14 +79084,6 @@ msgstr "Yalnızca Deform'u kullan"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Yalnızca deformasyon değiştiricileri kullan (çoklu çözünürlük hariç tüm yapıcı değiştiricileri geçici olarak devre dışı bırak)"
-
-
-msgid "UV Sculpting"
-msgstr "UV Yontması"
-
-
-msgid "Strength Curve"
-msgstr "Güç Eğrisi"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -97528,6 +97456,14 @@ msgid "Enable this light in solid shading mode"
 msgstr "Bu ışığı katı gölgeleme modunda etkinleştirin"
 
 
+msgid "UV Sculpting"
+msgstr "UV Yontması"
+
+
+msgid "Strength Curve"
+msgstr "Güç Eğrisi"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Armatür deformasyonu ve diğer amaçlar için kullanılan köşe grubu"
 
@@ -113963,48 +113899,8 @@ msgid "Sliding-Tool"
 msgstr "Kayan Alet"
 
 
-msgid "[X]/Y/Z axis only (X to clear)"
-msgstr "Yalnızca [X]/Y/Z ekseni (temizlemek için X)"
-
-
-msgid "X/[Y]/Z axis only (Y to clear)"
-msgstr "Yalnızca X/[Y]/Z ekseni (temizlemek için Y)"
-
-
-msgid "X/Y/[Z] axis only (Z to clear)"
-msgstr "Yalnızca X/Y/[Z] ekseni (temizlemek için Z)"
-
-
-msgid "X/Y/Z = Axis Constraint"
-msgstr "X/Y/Z = Eksen Kısıtlaması"
-
-
-msgid "[G]/R/S/B/C - Location only (G to clear) | %s"
-msgstr "[G]/R/S/B/C - Yalnızca konum (temizlemek için G) | %s"
-
-
-msgid "G/[R]/S/B/C - Rotation only (R to clear) | %s"
-msgstr "G/[R]/S/B/C - Yalnızca döndürme (temizlemek için R) | %s"
-
-
-msgid "G/R/[S]/B/C - Scale only (S to clear) | %s"
-msgstr "G/R/[S]/B/C - Yalnızca ölçek (temizlemek için S) | %s"
-
-
-msgid "G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"
-msgstr "G/R/S/[B]/C - Yalnızca Bendy Bone özellikleri (temizlemek için B) | %s"
-
-
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - Yalnızca Özel Özellikler (temizlemek için C) | %s"
-
-
-msgid "G/R/S/B/C - Limit to Transform/Property Set"
-msgstr "G/R/S/B/C - Dönüştürme/Özellik Kümesi Sınırı"
-
-
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] - Kemik görünürlüğünü değiştir"
+msgid "Cancel"
+msgstr "İptal"
 
 
 msgid "No keyframes to slide between"
@@ -114493,10 +114389,6 @@ msgstr "Tüm Çizgi Sanatı nesneleri artık pişirmelerden temizlendi"
 
 msgid "Baked strokes are cleared"
 msgstr "Pişmiş vuruşlar temizlendi"
-
-
-msgid "Cancel"
-msgstr "İptal"
 
 
 msgid "Active Vertex Group is locked"
@@ -117882,14 +117774,6 @@ msgid "UV map or surface attachment is invalid"
 msgstr "UV haritası veya yüzey eki geçersiz"
 
 
-msgid "ON"
-msgstr "AÇIK"
-
-
-msgid "OFF"
-msgstr "KAPALI"
-
-
 msgid "No Grease Pencil frame to draw weight on"
 msgstr "Üzerine ağırlık çizmek için Grease Kalem çerçevesi yok"
 
@@ -118876,42 +118760,6 @@ msgstr "Hiçbir sürücü silinmedi"
 
 msgid "Deleted %u drivers"
 msgstr "%u sürücü silindi"
-
-
-msgid "Decimate Keyframes"
-msgstr "Anahtar Kareleri Azalt"
-
-
-msgid "[TAB] - Modify Sharpness"
-msgstr "[TAB] - Keskinliği Değiştir"
-
-
-msgid "[TAB] - Modify Curve Bend"
-msgstr "[TAB] - Eğri Bükülmesini Değiştir"
-
-
-msgid "Ease Keys"
-msgstr "Kolaylaştırma Tuşları"
-
-
-msgid "Shear Keys"
-msgstr "Anahtarları Kırk"
-
-
-msgid "D - Toggle Direction"
-msgstr "D - Yön Değiştirme"
-
-
-msgid "[D] - Scale From Right End"
-msgstr "[D] - Sağ Uçtan Ölçek"
-
-
-msgid "[D] - Scale From Left End"
-msgstr "[D] - Sol Uçtan Ölçek"
-
-
-msgid "Scale from Neighbor Keys"
-msgstr "Komşu Anahtarlardan Ölçek"
 
 
 msgid "Cannot find keys to operate on"
@@ -123457,8 +123305,8 @@ msgid "Clipping"
 msgstr "Kırpma"
 
 
-msgid "Level Viewport"
-msgstr "Seviye Görünümü"
+msgid "Levels Viewport"
+msgstr "Seviyeler Görünümü"
 
 
 msgid "Unsubdivide"
@@ -123666,10 +123514,6 @@ msgstr "Dahili Hata: döngü dizisi yanlış boyutta: %u yerine %u"
 
 msgid "Adaptive Subdivision"
 msgstr "Uyarlanabilir Alt Bölüm"
-
-
-msgid "Levels Viewport"
-msgstr "Seviyeler Görünümü"
 
 
 msgid "Final Scale: Render %.2f px, Viewport %.2f px"
@@ -124036,10 +123880,6 @@ msgstr "Maksimuma"
 
 msgid "Offset Y"
 msgstr "Ofset Y"
-
-
-msgid "Undistortion"
-msgstr "Bozulmama"
 
 
 msgid "Dot"
@@ -124893,10 +124733,6 @@ msgstr "Her katman için ayrı bir eğri örneği oluşturun"
 
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Eşik değerinden büyük değerler oluşturulan ağın içindedir"
-
-
-msgid "Has Alpha"
-msgstr "Alfa var"
 
 
 msgid "Frame Count"
@@ -127046,6 +126882,14 @@ msgstr "çift-"
 
 msgid "drag-"
 msgstr "sürüklemek-"
+
+
+msgid "ON"
+msgstr "AÇIK"
+
+
+msgid "OFF"
+msgstr "KAPALI"
 
 
 msgid "unsupported format"

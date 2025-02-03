@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -19983,10 +19983,6 @@ msgid "Display the object's name"
 msgstr "Показувати назву об'єкта"
 
 
-msgid "Shape Key Lock"
-msgstr "Зафіксувати ключ форми"
-
-
 msgid "Display Texture Space"
 msgstr "Показ Простору Текстур"
 
@@ -26664,16 +26660,20 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
 msgid "Names"
 msgstr "Назви"
 
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
-
-
-msgid "Show/Hide"
-msgstr "Показати/приховати"
 
 
 msgid "Clean Up"
@@ -26762,10 +26762,6 @@ msgstr "Виділити петлі"
 
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
 
 
 msgid "Light"
@@ -34369,24 +34365,8 @@ msgid "Channel Key"
 msgstr "Ключ каналу"
 
 
-msgid "RGB color space"
-msgstr "Колірний простір RGB"
-
-
-msgid "HSV color space"
-msgstr "Колірний простір HSV"
-
-
-msgid "YUV color space"
-msgstr "Колірний простір YUV"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "YCbCr color space"
-msgstr "Колірний простір YCbCr"
 
 
 msgid "Limit by this channel's value"
@@ -35087,6 +35067,10 @@ msgstr "Розтушовка"
 
 msgid "Distance Key"
 msgstr "Ключ відстані"
+
+
+msgid "RGB color space"
+msgstr "Колірний простір RGB"
 
 
 msgid "YCbCr suppression"
@@ -35930,40 +35914,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Використати відносні (частина від розміру вхідного зображення) значення для визначення переміщення"
 
 
-msgid "Wrapping"
-msgstr "Обгортання"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Обгортати зображення за вказаними осями"
-
-
-msgid "No wrapping on X and Y"
-msgstr "Не обгортати за X та Y"
-
-
 msgid "X Axis"
 msgstr "Вісь X"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Обгортати всі пікселі за віссю X"
 
 
 msgid "Y Axis"
 msgstr "Вісь Y"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Обгортати всі пікселі за віссю Y"
-
-
 msgid "Both Axes"
 msgstr "Обидві осі"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Обгортати усі пікселі за обома осями"
 
 
 msgid "Vector Blur"
@@ -50472,6 +50432,18 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "Скинути видиму область, щоб показати діапазон вибраних смужок"
 
 
+msgid "Source color"
+msgstr "Колір джерела"
+
+
+msgid "Gamma Corrected"
+msgstr "Гамму виправлено"
+
+
+msgid "The source color is gamma corrected"
+msgstr "Джерельний колір є з корекцією гамми"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Додати вузол файлу"
@@ -59666,18 +59638,6 @@ msgid "Drop colors to buttons"
 msgstr "Перетягти кольори на кнопки"
 
 
-msgid "Source color"
-msgstr "Колір джерела"
-
-
-msgid "Gamma Corrected"
-msgstr "Гамму виправлено"
-
-
-msgid "The source color is gamma corrected"
-msgstr "Джерельний колір є з корекцією гамми"
-
-
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "Джерело редагування"
@@ -63499,10 +63459,6 @@ msgstr "Вжити лише деформацію"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "Використати лише модифікатори деформації (тимчасове відключення всіх модифікаторів конструювання, за винятком мультироздільності)"
-
-
-msgid "UV Sculpting"
-msgstr "UV-ліплення"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -77978,6 +77934,10 @@ msgid "Color of the light's specular highlight"
 msgstr "Колір дзеркального підсвічування"
 
 
+msgid "UV Sculpting"
+msgstr "UV-ліплення"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Група вершин, що використовується для арматурного деформування та інших цілей"
 
@@ -86677,44 +86637,8 @@ msgid "Sliding-Tool"
 msgstr "Засіб Ковзання"
 
 
-msgid "[X]/Y/Z axis only (X to clear)"
-msgstr "[X]/Y/Z вісь лише (X для зчищення)"
-
-
-msgid "X/[Y]/Z axis only (Y to clear)"
-msgstr "X/[Y]/Z вісь лише (Y для зчищення)"
-
-
-msgid "X/Y/[Z] axis only (Z to clear)"
-msgstr "X/Y/[Z] вісь лише (Z для зчищення)"
-
-
-msgid "X/Y/Z = Axis Constraint"
-msgstr "X/Y/Z = Примус за віссю"
-
-
-msgid "[G]/R/S/B/C - Location only (G to clear) | %s"
-msgstr "[G]/R/S/B/C - лише положення (G для зчищення) | %s"
-
-
-msgid "G/[R]/S/B/C - Rotation only (R to clear) | %s"
-msgstr "G/[R]/S/B/C - лише обертання (R для зчищення) | %s"
-
-
-msgid "G/R/[S]/B/C - Scale only (S to clear) | %s"
-msgstr "G/R/[S]/B/C - лише масштаб (S для зчищення) | %s"
-
-
-msgid "G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"
-msgstr "G/R/S/[B]/C - лише властивості гнутих кісток (B для зчищення) | %s"
-
-
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - лише власні властивості (C для зчищення) | %s"
-
-
-msgid "G/R/S/B/C - Limit to Transform/Property Set"
-msgstr "G/R/S/B/C - обмежити набором трансформ/властивостей"
+msgid "Cancel"
+msgstr "Скасувати"
 
 
 msgid "No keyframes to slide between"
@@ -86925,10 +86849,6 @@ msgstr "Шар вже додано"
 
 msgid "Unable to find layer to add"
 msgstr "Неможливо знайти шар для додання"
-
-
-msgid "Cancel"
-msgstr "Скасувати"
 
 
 msgid "Could not resolve path '%s'"
@@ -89222,14 +89142,6 @@ msgid "File not found '%s'"
 msgstr "Файл не знайдено '%s'"
 
 
-msgid "ON"
-msgstr "Увімкн."
-
-
-msgid "OFF"
-msgstr "Вимкн."
-
-
 msgid "Active group is locked, aborting"
 msgstr "Активна група заблокована, припинено"
 
@@ -89933,10 +89845,6 @@ msgstr "%d з %d каналів обертання було фільтрован
 
 msgid "All %d rotation channels were filtered"
 msgstr "Усі %d каналів обертання було фільтровано"
-
-
-msgid "Decimate Keyframes"
-msgstr "Спростити Ключкадри"
 
 
 msgid "Discard"
@@ -92141,7 +92049,7 @@ msgid "Flip UDIM"
 msgstr "Переверт UDIM"
 
 
-msgid "Level Viewport"
+msgid "Levels Viewport"
 msgstr "Рівні Оглядвікно"
 
 
@@ -92243,10 +92151,6 @@ msgstr "Оболонка"
 
 msgid "Adaptive Subdivision"
 msgstr "Адаптивне Підподілення"
-
-
-msgid "Levels Viewport"
-msgstr "Рівні Оглядвікно"
 
 
 msgid "External library data"
@@ -92878,6 +92782,14 @@ msgstr "Bksp"
 
 msgid "dbl-"
 msgstr "2х-"
+
+
+msgid "ON"
+msgstr "Увімкн."
+
+
+msgid "OFF"
+msgstr "Вимкн."
 
 
 msgid "unsupported format"

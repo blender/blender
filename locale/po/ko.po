@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'efff379ea583')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 10:58+0000\n"
+"POT-Creation-Date: 2025-02-03 14:39+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -17657,10 +17657,6 @@ msgid "Display the object's name"
 msgstr "오브젝트의 이름을 표시"
 
 
-msgid "Shape Key Lock"
-msgstr "셰이프 키를 잠금"
-
-
 msgid "Display Texture Space"
 msgstr "텍스처 공간을 표시"
 
@@ -23906,16 +23902,20 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
 msgid "Names"
 msgstr "이름"
 
 
 msgid "Bone Roll"
 msgstr "본 롤"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
 
 
 msgid "Clean Up"
@@ -23992,10 +23992,6 @@ msgstr "루프를 선택"
 
 msgid "Assign Material"
 msgstr "매테리얼을 할당"
-
-
-msgid "Metaball"
-msgstr "메타볼"
 
 
 msgid "Light"
@@ -30587,10 +30583,6 @@ msgid "Channel Key"
 msgstr "채널 키"
 
 
-msgid "RGB color space"
-msgstr "RGB 컬러 공간"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
 
@@ -31229,6 +31221,10 @@ msgstr "패더"
 
 msgid "Distance Key"
 msgstr "거리 키"
+
+
+msgid "RGB color space"
+msgstr "RGB 컬러 공간"
 
 
 msgid "Double Edge Mask"
@@ -32020,40 +32016,16 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "상대적인 (입력 이미지 크기의 소수) 값을 사용하여 옮기기을 정의"
 
 
-msgid "Wrapping"
-msgstr "감싸기"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "지정된 축에 이미지를 감싸기"
-
-
-msgid "No wrapping on X and Y"
-msgstr "X 및 Y에 감싸기가 없음"
-
-
 msgid "X Axis"
 msgstr "X 축"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "X 축에 있는 모든 픽셀을 감싸기"
 
 
 msgid "Y Axis"
 msgstr "Y 축"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Y 축에 있는 모든 픽셀을 감싸기"
-
-
 msgid "Both Axes"
 msgstr "양쪽 축"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "두 축 에있는 모든 픽셀을 감싸기"
 
 
 msgid "Vector Blur"
@@ -44574,6 +44546,14 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "선택된 스트립 범위를 표시하는 가시 영역을 재설정"
 
 
+msgid "Source color"
+msgstr "소스 컬러"
+
+
+msgid "Gamma Corrected"
+msgstr "감마 보정됨"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "파일 노드를 추가"
@@ -52111,14 +52091,6 @@ msgid "Drop colors to buttons"
 msgstr "버튼에 컬러를 드롭"
 
 
-msgid "Source color"
-msgstr "소스 컬러"
-
-
-msgid "Gamma Corrected"
-msgstr "감마 보정됨"
-
-
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "소스를 편집"
@@ -55433,10 +55405,6 @@ msgstr "변형 만을 사용"
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
 msgstr "변형 모디파이어 만을 사용 (멀티리솔루션를 제외한 모든 구조적인 모디파이어를 임시로 사용 중지)"
-
-
-msgid "UV Sculpting"
-msgstr "UV 스컬프트하기"
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -68313,6 +68281,10 @@ msgid "Color of the light's specular highlight"
 msgstr "라이트 반사 강조의 컬러"
 
 
+msgid "UV Sculpting"
+msgstr "UV 스컬프트하기"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "버텍스의 그룹, 아마튜어 변형 및 기타 목적을 위해 사용"
 
@@ -75157,44 +75129,8 @@ msgid "Sliding-Tool"
 msgstr "슬라이딩 도구"
 
 
-msgid "[X]/Y/Z axis only (X to clear)"
-msgstr "[X]/Y/Z축 만 (X 지우기)"
-
-
-msgid "X/[Y]/Z axis only (Y to clear)"
-msgstr "X/[Y]/Z축 만 (Y 지우기)"
-
-
-msgid "X/Y/[Z] axis only (Z to clear)"
-msgstr "X/Y/[Z]축 만 (Z 지우기)"
-
-
-msgid "X/Y/Z = Axis Constraint"
-msgstr "X/Y/Z = 축 제약"
-
-
-msgid "[G]/R/S/B/C - Location only (G to clear) | %s"
-msgstr "[G]/R/S/B/C - 위치 만 (G 지우기) | %s"
-
-
-msgid "G/[R]/S/B/C - Rotation only (R to clear) | %s"
-msgstr "G/[R]/S/B/C - 회전 만 (R 지우기) | %s"
-
-
-msgid "G/R/[S]/B/C - Scale only (S to clear) | %s"
-msgstr "G/R/[S]/B/C - 축적 만 (S 지우기) | %s"
-
-
-msgid "G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"
-msgstr "G/R/S/[B]/C - 벤디 본 속성 만 (B 지우기) | %s"
-
-
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - 사용자 정의 등록 정보 만 (C 지우기) | %s"
-
-
-msgid "G/R/S/B/C - Limit to Transform/Property Set"
-msgstr "G/R/S/B/C - 변형/속성 설정으로 제한"
+msgid "Cancel"
+msgstr "취소"
 
 
 msgid "No keyframes to slide between"
@@ -75389,10 +75325,6 @@ msgstr "아무 것도 선택되지 않음"
 
 msgid "Active layer is locked or hidden"
 msgstr "활성 레이어가 잠겨 있거나 숨겨져 있습니다"
-
-
-msgid "Cancel"
-msgstr "취소"
 
 
 msgid "Could not resolve path '%s'"
@@ -77348,14 +77280,6 @@ msgid "File not found '%s'"
 msgstr "파일을 찾을 수 없는 '%s'"
 
 
-msgid "ON"
-msgstr "ON"
-
-
-msgid "OFF"
-msgstr "OFF"
-
-
 msgid "Active group is locked, aborting"
 msgstr "활성 그룹은 잠김, 중단"
 
@@ -77975,10 +77899,6 @@ msgstr "오일러 회전 F-커브의 인덱스가 잘못되었습니다 (ID = '%
 
 msgid "Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%s'"
 msgstr "오일러 회전의 누락된 %s%s%s 구성 요소(들), ID = '%s' 및 RNA 경로 = '%s'에 대한"
-
-
-msgid "Decimate Keyframes"
-msgstr "키 프레임을 데시메이트"
 
 
 msgid "Discard"
@@ -80398,6 +80318,14 @@ msgstr "Bksp"
 
 msgid "dbl-"
 msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "ON"
+
+
+msgid "OFF"
+msgstr "OFF"
 
 
 msgid "unsupported format"
