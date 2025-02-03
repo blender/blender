@@ -18,13 +18,13 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
-#include "COM_derived_resources.hh"
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
 
 namespace blender::compositor {
 
 class Context;
+class DerivedResources;
 
 /* Make sure to update the format related static methods in the Result class. */
 enum class ResultType : uint8_t {

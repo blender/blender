@@ -13,6 +13,7 @@
 #include "GPU_texture.hh"
 
 #include "COM_context.hh"
+#include "COM_derived_resources.hh"
 #include "COM_domain.hh"
 #include "COM_result.hh"
 
