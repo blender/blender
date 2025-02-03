@@ -12,7 +12,7 @@ from .channels import gather_sk_sampled_channels
 
 def gather_action_sk_sampled(object_uuid: str,
                              blender_action: typing.Optional[bpy.types.Action],
-                             slot_handle: int,
+                             slot_identifier: str,
                              cache_key: str,
                              export_settings):
 
@@ -20,7 +20,7 @@ def gather_action_sk_sampled(object_uuid: str,
     if len(bpy.data.actions) == 0:
         return None
 
-    channels = __gather_channels(object_uuid, blender_action.name if blender_action else cache_key, slot_handle if blender_action else None, export_settings)
+    channels = __gather_channels(object_uuid, blender_action.name if blender_action else cache_key, slot_identifier if blender_action else None, export_settings)
 
     if not channels:
         return None
@@ -32,12 +32,12 @@ def gather_action_sk_sampled(object_uuid: str,
         channels,
         blender_object,
         blender_action,
-        slot_handle,
+        slot_identifier,
         cache_key)
 
     return channels
 
 
-def __gather_channels(object_uuid: str, blender_action_name: str, slot_handle: int,
+def __gather_channels(object_uuid: str, blender_action_name: str, slot_identifier: str,
                       export_settings) -> typing.List[gltf2_io.AnimationChannel]:
-    return gather_sk_sampled_channels(object_uuid, blender_action_name, slot_handle, export_settings)
+    return gather_sk_sampled_channels(object_uuid, blender_action_name, slot_identifier, export_settings)

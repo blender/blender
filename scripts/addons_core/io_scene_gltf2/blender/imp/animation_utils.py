@@ -4,6 +4,7 @@
 
 import bpy
 from .vnode import VNode
+from ..com.data_path import get_channelbag_for_slot
 
 # Here data can be object, object.data, material, material.node_tree, camera, light
 
@@ -83,17 +84,6 @@ def make_fcurve(action, slot, co, data_path, index=0, group_name='', interpolati
     fcurve.update()  # force updating tangents (this may change when tangent will be managed)
 
     return fcurve
-
-
-def get_channelbag_for_slot(action, slot):
-    # This is on purpose limited to the first layer and strip. To support more
-    # than 1 layer, a rewrite of this operator is needed which ideally would
-    # happen in C++.
-    for layer in action.layers:
-        for strip in layer.strips:
-            channelbag = strip.channels(slot.handle)
-            return channelbag
-    return None
 
 # This is use for TRS & weights animations
 # For pointers, see the same function in animation_pointer.py

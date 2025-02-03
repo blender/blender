@@ -97,3 +97,14 @@ def get_object_from_datapath(blender_object, data_path: str):
         # path_attr = data_path
 
     return prop
+
+
+def get_channelbag_for_slot(action, slot):
+    # This is on purpose limited to the first layer and strip. To support more
+    # than 1 layer, a rewrite of this operator is needed which ideally would
+    # happen in C++.
+    for layer in action.layers:
+        for strip in layer.strips:
+            channelbag = strip.channelbag(slot)
+            return channelbag
+    return None

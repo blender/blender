@@ -12,7 +12,7 @@ from .sampler import gather_sk_sampled_animation_sampler
 def gather_sk_sampled_channels(
         object_uuid: str,
         blender_action_name: str,
-        slot_handle: int,
+        slot_identifier: str,
         export_settings):
 
     # Only 1 channel when exporting shape keys
@@ -22,7 +22,7 @@ def gather_sk_sampled_channels(
     channel = gather_sampled_sk_channel(
         object_uuid,
         blender_action_name,
-        slot_handle,
+        slot_identifier,
         export_settings
     )
 
@@ -39,13 +39,13 @@ def gather_sk_sampled_channels(
 def gather_sampled_sk_channel(
         obj_uuid: str,
         action_name: str,
-        slot_handle: int,
+        slot_identifier: str,
         export_settings
 ):
 
     __target = __gather_target(obj_uuid, export_settings)
     if __target.path is not None:
-        sampler = __gather_sampler(obj_uuid, action_name, slot_handle, export_settings)
+        sampler = __gather_sampler(obj_uuid, action_name, slot_identifier, export_settings)
 
         if sampler is None:
             # After check, no need to animate this node for this channel
@@ -70,10 +70,10 @@ def __gather_target(obj_uuid: str, export_settings):
         obj_uuid, export_settings)
 
 
-def __gather_sampler(obj_uuid: str, action_name: str, slot_handle: int, export_settings):
+def __gather_sampler(obj_uuid: str, action_name: str, slot_identifier: str, export_settings):
     return gather_sk_sampled_animation_sampler(
         obj_uuid,
         action_name,
-        slot_handle,
+        slot_identifier,
         export_settings
     )

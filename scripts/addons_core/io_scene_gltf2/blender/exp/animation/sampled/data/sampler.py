@@ -18,7 +18,7 @@ def gather_data_sampled_animation_sampler(
         blender_id: str,
         channel: str,
         action_name: str,
-        slot_handle: int,
+        slot_identifier: str,
         node_channel_is_animated: bool,
         node_channel_interpolation: str,
         additional_key: str,  # Used to differentiate between material / material node_tree
@@ -30,7 +30,7 @@ def gather_data_sampled_animation_sampler(
         blender_id,
         channel,
         action_name,
-        slot_handle,
+        slot_identifier,
         node_channel_is_animated,
         additional_key,
         export_settings)
@@ -53,7 +53,7 @@ def __gather_keyframes(
         blender_id,
         channel,
         action_name,
-        slot_handle,
+        slot_identifier,
         node_channel_is_animated,
         additional_key,  # Used to differentiate between material / material node_tree
         export_settings):
@@ -63,7 +63,7 @@ def __gather_keyframes(
         blender_id,
         channel,
         action_name,
-        slot_handle,
+        slot_identifier,
         node_channel_is_animated,
         additional_key,
         export_settings
