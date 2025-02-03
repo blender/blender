@@ -3088,6 +3088,7 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
       const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
       if (mode == ReprojectMode::Surface) {
         const float4x4 layer_space_to_world_space = layer.to_world_space(*object);
+        const float4x4 world_space_to_layer_space = math::invert(layer_space_to_world_space);
         points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
           float3 &position = positions[point_i];
           const float3 world_pos = math::transform_point(layer_space_to_world_space, position);
@@ -3122,7 +3123,9 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
                                                    hit_normal))
           {
             /* Apply offset over surface. */
-            position = hit_position + math::normalize(ray_start - hit_position) * offset;
+            position = math::transform_point(
+                world_space_to_layer_space,
+                hit_position + math::normalize(ray_start - hit_position) * offset);
           }
         });
       }
