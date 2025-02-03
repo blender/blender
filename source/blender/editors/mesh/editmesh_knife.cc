@@ -2736,7 +2736,8 @@ static bool knife_linehit_face_test(KnifeTool_OpData *kcd,
  */
 static void knife_find_line_hits(KnifeTool_OpData *kcd)
 {
-  float v1[3], v2[3], v3[3], v4[3], s1[2], s2[2];
+  float3 v1, v2;
+  float2 s1, s2;
   int *results, *result;
   ListBase *list;
   KnifeLineHit hit;
@@ -2768,31 +2769,17 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     }
   }
 
-  /* Unproject screen line. */
-  ED_view3d_win_to_segment_clipped(kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, s1, v1, v3, true);
-  ED_view3d_win_to_segment_clipped(kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, s2, v2, v4, true);
-
-  /* Numeric error, 'v1' -> 'v2', 'v2' -> 'v4'
-   * can end up being ~2000 units apart with an orthogonal perspective.
-   *
-   * (from ED_view3d_win_to_segment_clipped() above)
-   * This gives precision error; rather than solving properly
-   * (which may involve using doubles everywhere!),
-   * limit the distance between these points. */
-  if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
-    if (kcd->ortho_extent == 0.0f) {
-      calc_ortho_extent(kcd);
-    }
-    clip_to_ortho_planes(v1, v3, kcd->ortho_extent_center, kcd->ortho_extent + 10.0f);
-    clip_to_ortho_planes(v2, v4, kcd->ortho_extent_center, kcd->ortho_extent + 10.0f);
-  }
-
-  float plane[4];
+  float4 plane;
   {
-    float v1_v2[3], v1_v3[3];
-    sub_v3_v3v3(v1_v2, v2, v1);
-    sub_v3_v3v3(v1_v3, v3, v1);
-    cross_v3_v3v3(plane, v1_v2, v1_v3);
+    if (kcd->is_ortho) {
+      cross_v3_v3v3(plane, v2 - v1, kcd->vc.rv3d->viewinv[2]);
+    }
+    else {
+      float3 orig = kcd->vc.rv3d->viewinv[3];
+      float3 o_v1 = v1 - orig;
+      float3 o_v2 = v2 - orig;
+      cross_v3_v3v3(plane, o_v1, o_v2);
+    }
     plane_from_point_normal_v3(plane, v1, plane);
   }
 
@@ -2958,24 +2945,20 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
         d1 = len_v2v2(p_cage_ss, se1);
         d2 = len_v2v2(se2, se1);
         if (!(d1 <= line_tol || d2 <= line_tol || fabsf(d1 - d2) <= line_tol)) {
-          float3 r1, r2;
-          float3 p_cage_dummy;
           /* Can't just interpolate between ends of `kfe` because
-           * that doesn't work with perspective transformation.
-           * Need to find 3d intersection of ray through `p_cage_ss`. */
-          knife_input_ray_segment(kcd, p_cage_ss, r1, r2);
-
-          isect_kind = isect_line_line_v3(
-              kfe->v1->cageco, kfe->v2->cageco, r1, r2, p_cage, p_cage_dummy);
-          if (isect_kind >= 1 &&
-              point_is_visible(kcd, p_cage, p_cage_ss, bm_elem_from_knife_edge(kfe)))
-          {
-            if (kcd->snap_midpoints) {
-              /* Choose intermediate point snap too. */
-              mid_v3_v3v3(p_cage, kfe->v1->cageco, kfe->v2->cageco);
-              mid_v2_v2v2(p_cage_ss, se1, se2);
+           * that doesn't work with perspective transformation. */
+          float lambda;
+          float3 kfe_dir = kfe->v2->cageco - kfe->v1->cageco;
+          if (isect_ray_plane_v3(kfe->v1->cageco, kfe_dir, plane, &lambda, false)) {
+            p_cage = kfe->v1->cageco + kfe_dir * lambda;
+            if (point_is_visible(kcd, p_cage, p_cage_ss, bm_elem_from_knife_edge(kfe))) {
+              if (kcd->snap_midpoints) {
+                /* Choose intermediate point snap too. */
+                mid_v3_v3v3(p_cage, kfe->v1->cageco, kfe->v2->cageco);
+                mid_v2_v2v2(p_cage_ss, se1, se2);
+              }
+              kfe_is_in_cut = true;
             }
-            kfe_is_in_cut = true;
           }
         }
       }
@@ -2991,6 +2974,29 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   const bool use_hit_curr = (kcd->curr.vert == nullptr) && (kcd->curr.edge == nullptr) &&
                             !kcd->is_drag_hold;
   if (use_hit_prev || use_hit_curr) {
+    float3 v3, v4;
+
+    /* Unproject screen line. */
+    ED_view3d_win_to_segment_clipped(
+        kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, s1, v1, v3, true);
+    ED_view3d_win_to_segment_clipped(
+        kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, s2, v2, v4, true);
+
+    /* Numeric error, 'v1' -> 'v2', 'v2' -> 'v4'
+     * can end up being ~2000 units apart with an orthogonal perspective.
+     *
+     * (from ED_view3d_win_to_segment_clipped() above)
+     * This gives precision error; rather than solving properly
+     * (which may involve using doubles everywhere!),
+     * limit the distance between these points. */
+    if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
+      if (kcd->ortho_extent == 0.0f) {
+        calc_ortho_extent(kcd);
+      }
+      clip_to_ortho_planes(v1, v3, kcd->ortho_extent_center, kcd->ortho_extent + 10.0f);
+      clip_to_ortho_planes(v2, v4, kcd->ortho_extent_center, kcd->ortho_extent + 10.0f);
+    }
+
     for (BMFace *f : faces) {
       int ob_index = fobs.lookup(f);
       if (use_hit_prev &&
