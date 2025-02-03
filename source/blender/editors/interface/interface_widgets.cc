@@ -2750,6 +2750,12 @@ static void widget_state_menu_item(uiWidgetType *wt,
     wt->wcol.inner[3] = 255;
     wt->wcol.text[3] = 255;
   }
+  /* Subtle background for larger preview buttons, so text and icons feel connected (esp. for while
+   * previews are loading still and a loading icon is displayed). */
+  else if (state->but_flag & UI_BUT_ICON_PREVIEW) {
+    copy_v3_v3_uchar(wt->wcol.inner, wt->wcol.text);
+    wt->wcol.inner[3] = 11;
+  }
 }
 
 /** \} */
