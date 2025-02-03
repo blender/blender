@@ -338,6 +338,11 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!ID_IS_EDITABLE(id)) {
+    BKE_report(op->reports, RPT_WARNING, "Data-block using this packed file is not editable");
+    return OPERATOR_CANCELLED;
+  }
+
   if (method != PF_KEEP) {
     WM_cursor_wait(true);
     BKE_packedfile_id_unpack(bmain, id, op->reports, method); /* XXX PF_ASK can't work here */
