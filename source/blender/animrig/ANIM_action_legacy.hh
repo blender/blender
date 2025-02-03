@@ -18,6 +18,9 @@
 
 namespace blender::animrig::legacy {
 
+constexpr const char *DEFAULT_LEGACY_SLOT_NAME = "Legacy Slot";
+constexpr const char *DEFAULT_LEGACY_LAYER_NAME = "Legacy Layer";
+
 /**
  * Return the Channelbag for compatibility with the legacy Python API.
  *

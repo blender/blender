@@ -388,6 +388,9 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         slot = self.action.slots[0]
         layer = self.action.layers[0]
 
+        self.assertEqual("Legacy Slot", slot.name_display)
+        self.assertEqual("Legacy Layer", layer.name)
+
         self.assertEqual(1, len(layer.strips))
         strip = layer.strips[0]
         self.assertEqual('KEYFRAME', strip.type)
@@ -424,6 +427,28 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.action.groups.remove(group)
         self.assertNotIn(group, self.action.groups[:], "A group should be removable via the legacy API")
         self.assertNotIn(group, channelbag.groups[:], "A group should be removable via the legacy API")
+
+    def test_groups_new_on_empty_action(self) -> None:
+        # Create new group via legacy API, this should create a layer+strip+Channelbag.
+        group = self.action.groups.new("foo")
+
+        self.assertEqual(1, len(self.action.slots))
+        self.assertEqual(1, len(self.action.layers))
+
+        slot = self.action.slots[0]
+        layer = self.action.layers[0]
+
+        self.assertEqual("Legacy Slot", slot.name_display)
+        self.assertEqual("Legacy Layer", layer.name)
+
+        self.assertEqual(1, len(layer.strips))
+        strip = layer.strips[0]
+        self.assertEqual('KEYFRAME', strip.type)
+        self.assertEqual(1, len(strip.channelbags))
+        channelbag = strip.channelbags[0]
+        self.assertEqual(channelbag.slot_handle, slot.handle)
+
+        self.assertEqual([group], channelbag.groups[:])
 
 
 class ChannelbagsTest(unittest.TestCase):

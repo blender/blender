@@ -326,9 +326,7 @@ static void rna_ActionSlot_name_display_set(PointerRNA *ptr, const char *name)
     return;
   }
 
-  /* Construct the new internal name, from the slot's type and the given name. */
-  const std::string internal_name = slot.identifier_prefix_for_idtype() + name_ref;
-  action.slot_identifier_define(slot, internal_name);
+  action.slot_display_name_define(slot, name);
 }
 
 static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifier)

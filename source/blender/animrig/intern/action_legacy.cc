@@ -9,6 +9,8 @@
 
 #include "BKE_fcurve.hh"
 
+#include "BLT_translation.hh"
+
 namespace blender::animrig::legacy {
 
 static Strip *first_keyframe_strip(Action &action)
@@ -46,13 +48,23 @@ Channelbag &channelbag_ensure(Action &action)
   Slot *slot;
   if (action.slots().is_empty()) {
     slot = &action.slot_add();
+    action.slot_display_name_define(*slot, DATA_(DEFAULT_LEGACY_SLOT_NAME));
   }
   else {
     slot = action.slot(0);
   }
 
-  /* Ensure a Layer + keyframe Strip. */
-  action.layer_keystrip_ensure();
+  /* Ensure a Layer + keyframe Strip.
+   *
+   * Normally we would use `Action::layer_keystrip_ensure()` for this, but that
+   * doesn't let us specify the name of the layer if newly created. */
+  if (action.layers().is_empty()) {
+    action.layer_add(DATA_(DEFAULT_LEGACY_LAYER_NAME));
+  }
+  if (action.layer(0)->strips().is_empty()) {
+    action.layer(0)->strip_add(action, Strip::Type::Keyframe);
+  }
+
   Strip &keystrip = *action.layer(0)->strip(0);
 
   /* Ensure a Channelbag. */

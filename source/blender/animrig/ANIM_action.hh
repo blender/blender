@@ -221,6 +221,21 @@ class Action : public ::bAction {
   void slot_display_name_set(Main &bmain, Slot &slot, StringRefNull new_display_name);
 
   /**
+   * Set the slot display name (the part of the identifier after the two-letter
+   * ID prefix), and ensure the resulting identifier is unique.
+   *
+   * This has to be done on the Action level to ensure each slot has a unique
+   * identifier within the Action.
+   *
+   * \note This does NOT propagate the resulting slot identifier to the slot's
+   * users.
+   *
+   * \see #Action::slot_display_name_set
+   * \see #Action::slot_identifier_propagate
+   */
+  void slot_display_name_define(Slot &slot, StringRefNull new_display_name);
+
+  /**
    * Set the slot's target ID type, updating the identifier prefix to match and
    * ensuring that the resulting identifier is unique.
    *
