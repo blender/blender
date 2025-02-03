@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include "DNA_asset_types.h"
-
 struct AssetHandle;
 namespace blender::asset_system {
 class AssetRepresentation;
@@ -24,7 +22,5 @@ class AssetRepresentation;
 namespace blender::ed::asset {
 
 asset_system::AssetRepresentation *handle_get_representation(const AssetHandle *asset);
-int handle_get_preview_icon_id(const AssetHandle *asset);
-int handle_get_preview_or_type_icon_id(const AssetHandle *asset);
 
 }  // namespace blender::ed::asset

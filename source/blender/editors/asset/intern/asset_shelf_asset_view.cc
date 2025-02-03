@@ -206,7 +206,7 @@ static std::optional<wmOperatorCallParams> create_activate_operator_params(
   return wmOperatorCallParams{ot, op_props, WM_OP_INVOKE_REGION_WIN};
 }
 
-void AssetViewItem::build_grid_tile(const bContext &C, uiLayout &layout) const
+void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) const
 {
   const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
@@ -254,13 +254,17 @@ void AssetViewItem::build_grid_tile(const bContext &C, uiLayout &layout) const
   /* Request preview when drawing. Grid views have an optimization to only draw items that are
    * actually visible, so only previews scrolled into view will be loaded this way. This reduces
    * total loading time and memory footprint. */
-  list::asset_preview_ensure_requested(C, &asset_view.library_ref_, &asset_handle);
+  asset_.ensure_previewable();
 
   const int preview_id = [&]() -> int {
-    if (list::asset_image_is_loading(&asset_view.library_ref_, &asset_handle)) {
+    /* Show loading icon while list is loading still. Previews might get pushed out of view again
+     * while the list grows, which can cause a lot of flickering. Note that this also means the
+     * actual loading of previews is delayed, because that only happens when a preview icon-ID is
+     * attached to a button. */
+    if (!list::is_loaded(&asset_view.library_ref_)) {
       return ICON_TEMP;
     }
-    return handle_get_preview_or_type_icon_id(&asset_handle);
+    return asset_preview_or_icon(asset_);
   }();
 
   ui::PreviewGridItem::build_grid_tile_button(layout, preview_id);
@@ -337,7 +341,6 @@ void build_asset_view(uiLayout &layout,
                       const bContext &C)
 {
   list::storage_fetch(&library_ref, &C);
-  list::previews_fetch(&library_ref, &C);
 
   const asset_system::AssetLibrary *library = list::library_get_once_available(library_ref);
   if (!library) {

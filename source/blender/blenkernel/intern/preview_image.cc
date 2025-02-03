@@ -354,6 +354,10 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
 void BKE_previewimg_cached_release(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
+  if (!gCachedPreviews) {
+    /* Static cache was already freed including all contained previews. Can happen on shutdown. */
+    return;
+  }
 
   PreviewImage *prv = (PreviewImage *)BLI_ghash_popkey(gCachedPreviews, name, MEM_freeN);
 

@@ -304,12 +304,6 @@ enum {
   FL_NEED_SORTING = 1 << 4,
   FL_NEED_FILTERING = 1 << 5,
   FL_SORT_INVERT = 1 << 6,
-  /**
-   * By default, #filelist_file_cache_block() will attempt to load previews around the visible
-   * "window" of visible files. When this flag is set it won't do so, and each preview has to be
-   * queried through a #filelist_cache_previews_push() call.
-   */
-  FL_PREVIEWS_NO_AUTO_CACHE = 1 << 7,
 };
 
 /** #FileList.tags */
@@ -360,8 +354,6 @@ static int groupname_to_code(const char *group);
 
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
 static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry);
-static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry, const int index);
-static bool filelist_file_preview_load_poll(const FileDirEntry *entry);
 
 /* ********** Sort helpers ********** */
 
@@ -1164,35 +1156,6 @@ bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEnt
    * with #FILE_ENTRY_PREVIEW_LOADING yet. */
   const bool filelist_ready = filelist_is_ready(filelist);
   return !filelist_ready || file->flags & FILE_ENTRY_PREVIEW_LOADING;
-}
-
-bool filelist_file_ensure_preview_requested(FileList *filelist, FileDirEntry *file)
-{
-  if (file->preview_icon_id) {
-    /* Already loaded. */
-    return false;
-  }
-
-  /* Wait with requests until file list reading is done, and previews may be loaded. */
-  if (!filelist_cache_previews_enabled(filelist)) {
-    return false;
-  }
-  /* #filelist_cache_previews_push() will repeat this, do here already to avoid lookup below. */
-  if (!filelist_file_preview_load_poll(file)) {
-    return false;
-  }
-
-  const int numfiles = filelist_files_ensure(filelist);
-  for (int i = 0; i < numfiles; i++) {
-    if (filelist->filelist_intern.filtered[i]->uid == file->uid) {
-      if (filelist_cache_previews_push(filelist, file, i)) {
-        return true;
-      }
-      break;
-    }
-  }
-
-  return false;
 }
 
 static FileDirEntry *filelist_geticon_get_file(FileList *filelist, const int index)
@@ -2115,11 +2078,6 @@ void filelist_setrecursion(FileList *filelist, const int recursion_level)
   }
 }
 
-void filelist_set_no_preview_auto_cache(FileList *filelist)
-{
-  filelist->flags |= FL_PREVIEWS_NO_AUTO_CACHE;
-}
-
 bool filelist_needs_force_reset(const FileList *filelist)
 {
   return (filelist->flags & (FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES)) != 0;
@@ -2618,7 +2576,7 @@ bool filelist_file_cache_block(FileList *filelist, const int index)
 
   //  printf("Re-queueing previews...\n");
 
-  if ((cache->flags & FLC_PREVIEWS_ACTIVE) && !(filelist->flags & FL_PREVIEWS_NO_AUTO_CACHE)) {
+  if (cache->flags & FLC_PREVIEWS_ACTIVE) {
     /* Note we try to preview first images around given index - i.e. assumed visible ones. */
     int block_index = cache->block_cursor + (index - start_index);
     int offs_max = max_ii(end_index - index, index - start_index);
@@ -2639,11 +2597,6 @@ bool filelist_file_cache_block(FileList *filelist, const int index)
   //  printf("%s Finished!\n", __func__);
 
   return true;
-}
-
-bool filelist_cache_previews_enabled(const FileList *filelist)
-{
-  return (filelist->filelist_cache.flags & FLC_PREVIEWS_ACTIVE) != 0;
 }
 
 void filelist_cache_previews_set(FileList *filelist, const bool use_previews)
@@ -2669,11 +2622,6 @@ void filelist_cache_previews_set(FileList *filelist, const bool use_previews)
 
     filelist_cache_previews_free(cache);
   }
-}
-
-void filelist_cache_previews_ensure_running(FileList *filelist)
-{
-  filelist_cache_preview_ensure_running(&filelist->filelist_cache);
 }
 
 bool filelist_cache_previews_update(FileList *filelist)

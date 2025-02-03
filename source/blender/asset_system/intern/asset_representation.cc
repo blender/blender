@@ -11,9 +11,13 @@
 #include "BLI_path_utils.hh"
 
 #include "BKE_blendfile.hh"
+#include "BKE_icons.h"
+#include "BKE_preview_image.hh"
 
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
+
+#include "IMB_thumbs.hh"
 
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
@@ -27,7 +31,7 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          const AssetLibrary &owner_asset_library)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
-      asset_(AssetRepresentation::ExternalAsset{name, id_type, std::move(metadata)})
+      asset_(AssetRepresentation::ExternalAsset{name, id_type, std::move(metadata), nullptr})
 {
 }
 
@@ -43,9 +47,44 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
   }
 }
 
+AssetRepresentation::~AssetRepresentation()
+{
+  if (const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+      extern_asset && extern_asset->preview_)
+  {
+    BKE_previewimg_cached_release(this->full_path().c_str());
+  }
+}
+
 AssetWeakReference AssetRepresentation::make_weak_reference() const
 {
   return AssetWeakReference::make_reference(owner_asset_library_, relative_identifier_);
+}
+
+void AssetRepresentation::ensure_previewable()
+{
+  if (ID *id = this->local_id()) {
+    BKE_previewimg_id_ensure(id);
+  }
+
+  ExternalAsset &extern_asset = std::get<ExternalAsset>(asset_);
+
+  /* Use the full path as preview name, it's the only unique identifier we have. */
+  const std::string full_path = this->full_path();
+  /* Doesn't do the actual reading, just allocates and attaches the derrived load info. */
+  extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
+      full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false);
+
+  BKE_icon_preview_ensure(nullptr, extern_asset.preview_);
+}
+
+PreviewImage *AssetRepresentation::get_preview() const
+{
+  if (const ID *id = this->local_id()) {
+    return BKE_previewimg_id_get(id);
+  }
+
+  return std::get<ExternalAsset>(asset_).preview_;
 }
 
 StringRefNull AssetRepresentation::get_name() const
