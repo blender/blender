@@ -837,7 +837,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
               return;
             }
 
-            best_match = {curve, std::sqrt(distance_proj_sq)};
+            best_match = {curve, distance_proj_sq};
             return;
           }
 
@@ -853,7 +853,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
               return;
             }
 
-            best_match = {curve, std::sqrt(distance_proj_sq)};
+            best_match = {curve, distance_proj_sq};
           };
           for (const int segment_i : points.drop_back(1)) {
             process_segment(segment_i, segment_i + 1);
