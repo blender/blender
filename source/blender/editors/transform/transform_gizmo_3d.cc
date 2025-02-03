@@ -758,7 +758,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
         GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_iter->data);
 
-        float4x4 mat_local;
+        float4x4 mat_local = float4x4::identity();
         if (use_mat_local) {
           mat_local = obedit->world_to_object() * ob_iter->object_to_world();
         }
@@ -773,13 +773,16 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                   bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
                       *depsgraph, *ob, info.layer_index, info.frame_number);
 
+              const float4x4 layer_transform =
+                  mat_local * grease_pencil.layer(info.layer_index).to_object_space(*ob_iter);
+
               IndexMaskMemory memory;
               const IndexMask selected_points = ed::curves::retrieve_selected_points(curves,
                                                                                      memory);
               const Span<float3> positions = deformation.positions;
               totsel += selected_points.size();
               selected_points.foreach_index([&](const int point_i) {
-                run_coord_with_matrix(positions[point_i], use_mat_local, mat_local.ptr());
+                run_coord_with_matrix(positions[point_i], true, layer_transform.ptr());
               });
             });
       }
