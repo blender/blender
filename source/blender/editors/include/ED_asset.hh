@@ -44,6 +44,10 @@ void operatortypes_asset();
  * The PointerRNA is expected to have an enum called "asset_library_reference".
  */
 const bUserAssetLibrary *get_asset_library_from_opptr(PointerRNA &ptr);
+/**
+ * The PointerRNA is expected to have an enum called "asset_library_reference".
+ */
+AssetLibraryReference get_asset_library_ref_from_opptr(PointerRNA &ptr);
 
 /**
  * For each catalog of the given bUserAssetLibrary call `visit_fn`.

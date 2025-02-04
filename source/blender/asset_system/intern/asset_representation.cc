@@ -28,7 +28,7 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          StringRef name,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
-                                         const AssetLibrary &owner_asset_library)
+                                         AssetLibrary &owner_asset_library)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
       asset_(AssetRepresentation::ExternalAsset{name, id_type, std::move(metadata), nullptr})
@@ -37,7 +37,7 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
 
 AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          ID &id,
-                                         const AssetLibrary &owner_asset_library)
+                                         AssetLibrary &owner_asset_library)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
       asset_(&id)
@@ -168,7 +168,7 @@ bool AssetRepresentation::is_local_id() const
   return std::holds_alternative<ID *>(asset_);
 }
 
-const AssetLibrary &AssetRepresentation::owner_asset_library() const
+AssetLibrary &AssetRepresentation::owner_asset_library() const
 {
   return owner_asset_library_;
 }

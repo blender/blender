@@ -6,6 +6,8 @@
  * \ingroup edasset
  */
 
+#include "AS_asset_representation.hh"
+
 #include "BKE_context.hh"
 
 #include "ED_asset_library.hh"
@@ -65,15 +67,6 @@ AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_
   return library_ref;
 }
 
-const bUserAssetLibrary *library_ref_to_user_library(const AssetLibraryReference &library_ref)
-{
-  if (library_ref.type != ASSET_LIBRARY_CUSTOM) {
-    return nullptr;
-  }
-  return static_cast<const bUserAssetLibrary *>(
-      BLI_findlink(&U.asset_libraries, library_ref.custom_library_index));
-}
-
 void refresh_asset_library(const bContext *C, const AssetLibraryReference &library_ref)
 {
   asset::list::clear(&library_ref, C);
@@ -85,6 +78,16 @@ void refresh_asset_library(const bContext *C, const AssetLibraryReference &libra
 void refresh_asset_library(const bContext *C, const bUserAssetLibrary &user_library)
 {
   refresh_asset_library(C, user_library_to_library_ref(user_library));
+}
+
+void refresh_asset_library_from_asset(const bContext *C,
+                                      const asset_system::AssetRepresentation &asset)
+{
+  if (std::optional<AssetLibraryReference> library_ref =
+          asset.owner_asset_library().library_reference())
+  {
+    refresh_asset_library(C, *library_ref);
+  }
 }
 
 }  // namespace blender::ed::asset

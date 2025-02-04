@@ -15,4 +15,12 @@ RuntimeAssetLibrary::RuntimeAssetLibrary() : AssetLibrary(ASSET_LIBRARY_LOCAL)
   this->on_blend_save_handler_register();
 }
 
+std::optional<AssetLibraryReference> RuntimeAssetLibrary::library_reference() const
+{
+  AssetLibraryReference library_ref{};
+  library_ref.type = ASSET_LIBRARY_LOCAL;
+  library_ref.custom_library_index = -1;
+  return library_ref;
+}
+
 }  // namespace blender::asset_system

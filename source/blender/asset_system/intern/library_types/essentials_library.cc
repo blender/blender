@@ -23,6 +23,14 @@ EssentialsAssetLibrary::EssentialsAssetLibrary()
   import_method_ = ASSET_IMPORT_APPEND_REUSE;
 }
 
+std::optional<AssetLibraryReference> EssentialsAssetLibrary::library_reference() const
+{
+  AssetLibraryReference library_ref{};
+  library_ref.custom_library_index = -1;
+  library_ref.type = ASSET_LIBRARY_ESSENTIALS;
+  return library_ref;
+}
+
 StringRefNull essentials_directory_path()
 {
   static std::string path = []() {

@@ -69,6 +69,12 @@ const bUserAssetLibrary *get_asset_library_from_opptr(PointerRNA &ptr)
   return BKE_preferences_asset_library_find_index(&U, lib_ref.custom_library_index);
 }
 
+AssetLibraryReference get_asset_library_ref_from_opptr(PointerRNA &ptr)
+{
+  const int enum_value = RNA_enum_get(&ptr, "asset_library_reference");
+  return asset::library_reference_from_enum_value(enum_value);
+}
+
 void visit_library_catalogs_catalog_for_search(
     const Main &bmain,
     const AssetLibraryReference lib,
