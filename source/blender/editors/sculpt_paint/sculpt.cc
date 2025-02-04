@@ -2088,7 +2088,11 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
  */
 static float brush_flip(const Brush &brush, const blender::ed::sculpt_paint::StrokeCache &cache)
 {
-  if (brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+  /* The Fill and Scrape brushes do not invert direction when this flag is set. The behavior of
+   * the brush completely changes. */
+  if (ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_FILL, SCULPT_BRUSH_TYPE_SCRAPE) &&
+      brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL)
+  {
     return 1.0f;
   }
 
