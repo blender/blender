@@ -1710,7 +1710,7 @@ static const FCurve *pastebuf_find_matching_copybuf_item(const pastebuf_match_fu
       if (!ale_slot->is_selected()) {
         return nullptr;
       }
-      /* FALLTHROUGH */
+      ATTR_FALLTHROUGH;
 
     case SlotMatchMethod::NONE:
       /* Just search through all channelbags in the copy buffer. */
@@ -1721,7 +1721,7 @@ static const FCurve *pastebuf_find_matching_copybuf_item(const pastebuf_match_fu
       if (!ale_slot->is_selected()) {
         return nullptr;
       }
-      /* FALLTHROUGH */
+      ATTR_FALLTHROUGH;
 
     case SlotMatchMethod::IDENTIFIER: {
       /* See if we copied from a slot whose identifier matches this ALE. */
