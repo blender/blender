@@ -632,8 +632,8 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
    * NOTE: screen may be null. In which case, only the window is used as a theme provider. */
   GHOST_WindowDecorationStyleSettings decoration_settings = {};
 
-  /* Colored Titlebar Decoration. */
-  /* For main windows, use the topbar color. */
+  /* Colored TitleBar Decoration. */
+  /* For main windows, use the top-bar color. */
   if (WM_window_is_main_top_level(win)) {
     UI_SetTheme(SPACE_TOPBAR, RGN_TYPE_HEADER);
   }
@@ -2887,7 +2887,7 @@ bool WM_window_is_main_top_level(const wmWindow *win)
 {
   /**
    * Return whether the window is a main/top-level window. In which case it is expected to contain
-   * global areas (topbar/statusbar).
+   * global areas (top-bar/status-bar).
    */
   const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
   if ((win->parent != nullptr) || screen->temp) {

@@ -379,12 +379,15 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check);
 
 /* Window Decoration Styles. */
 
-/* Flags for #WM_window_decoration_set_style().
- * NOTE: To be kept in sync with #GHOST_TWindowDecorationFlags. */
+/**
+ * Flags for #WM_window_decoration_set_style().
+ *
+ * \note To be kept in sync with #GHOST_TWindowDecorationFlags.
+ */
 enum eWM_WindowDecorationStyleFlag {
   /** No decoration styling. */
   WM_WINDOW_DECORATION_STYLE_NONE = 0,
-  /** Colored Titlebar. */
+  /** Colored TitleBar. */
   WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR = (1 << 0),
 };
 ENUM_OPERATORS(eWM_WindowDecorationStyleFlag, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR)
@@ -393,10 +396,12 @@ ENUM_OPERATORS(eWM_WindowDecorationStyleFlag, WM_WINDOW_DECORATION_STYLE_COLORED
 eWM_WindowDecorationStyleFlag WM_window_get_decoration_style_flags(const wmWindow *win);
 void WM_window_set_decoration_style_flags(const wmWindow *win,
                                           eWM_WindowDecorationStyleFlag style_flags);
-/* Apply the window decoration style using the current style flags and by parsing style
+/**
+ * Apply the window decoration style using the current style flags and by parsing style
  * settings from the current Blender theme.
  * The screen parameter is optional, and can be passed for enhanced theme parsing.
- * NOTE: Avoid calling this function directly, prefer sending an NC_WINDOW WM notification instead.
+ *
+ * \note Avoid calling this function directly, prefer sending an NC_WINDOW WM notification instead.
  */
 void WM_window_apply_decoration_style(const wmWindow *win, const bScreen *screen = nullptr);
 

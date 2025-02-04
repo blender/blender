@@ -571,15 +571,15 @@ GHOST_TSuccess GHOST_WindowCocoa::applyWindowDecorationStyle()
     if (m_windowDecorationStyleFlags & GHOST_kDecorationColoredTitleBar) {
       const float *background_color = m_windowDecorationStyleSettings.colored_titlebar_bg_color;
 
-      /* Titlebar background color. */
+      /* Title-bar background color. */
       m_window.backgroundColor = [NSColor colorWithRed:background_color[0]
                                                  green:background_color[1]
                                                   blue:background_color[2]
                                                  alpha:1.0];
 
-      /* Titlebar foreground color.
-       * Use the value component of the titlebar background's HSV representation to determine
-       * whether we should use the macOS dark or light titlebar text appearance. With values below
+      /* Title-bar foreground color.
+       * Use the value component of the title-bar background's HSV representation to determine
+       * whether we should use the macOS dark or light title-bar text appearance. With values below
        * 0.5 considered as dark themes, and values above 0.5 considered as light themes.
        */
       const float hsv_v = MAX(background_color[0], MAX(background_color[1], background_color[2]));

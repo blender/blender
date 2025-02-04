@@ -1363,8 +1363,10 @@ static void rna_Action_deselect_keys(bAction *act)
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-/* Used to check if an action (value pointer)
- * is suitable to be assigned to the ID-block that is ptr. */
+/**
+ * Used to check if an action (value pointer)
+ * is suitable to be assigned to the ID-block that is ptr.
+ */
 bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 {
   ID *srcId = ptr->owner_id;
@@ -1393,8 +1395,10 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
   return true;
 }
 
-/* Used to check if an action (value pointer)
- * can be assigned to Action Editor given current mode. */
+/**
+ * Used to check if an action (value pointer)
+ * can be assigned to Action Editor given current mode.
+ */
 bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
 {
   SpaceAction *saction = (SpaceAction *)ptr->data;
@@ -1426,8 +1430,10 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
   return false;
 }
 
-/** Iterate the FCurves of the given bAnimContext and validate the RNA path. Sets the flag
- * FCURVE_DISABLED if the path can't be resolved. */
+/**
+ * Iterate the FCurves of the given bAnimContext and validate the RNA path. Sets the flag
+ * #FCURVE_DISABLED if the path can't be resolved.
+ */
 static void reevaluate_fcurve_errors(bAnimContext *ac)
 {
   /* Need to take off the flag before filtering, else the filter code would skip the FCurves, which
@@ -1582,7 +1588,8 @@ static void rna_ActionSlot_target_id_type_set(PointerRNA *ptr, int value)
   action.slot_idtype_define(slot, ID_Type(value));
 }
 
-/* For API backwards compatability with pre-layered-actions (Blender 4.3 and
+/**
+ * For API backwards compatibility with pre-layered-actions (Blender 4.3 and
  * earlier), we treat `Action.id_root` as a proxy for the `target_id_type`
  * property (`idtype` in DNA) of the Action's first Slot.
  *
@@ -1599,12 +1606,14 @@ static int rna_Action_id_root_get(PointerRNA *ptr)
   return action.slot(0)->idtype;
 }
 
-/* For API backwards compatability with pre-layered-actions (Blender 4.3 and
+/**
+ * For API backwards compatibility with pre-layered-actions (Blender 4.3 and
  * earlier), we treat `Action.id_root` as a proxy for the `target_id_type`
  * property (`idtype` in DNA) of the Action's first Slot.
  *
  * If the Action has no slots, then a legacy slot is created and its
- * `target_id_type` is set. */
+ * `target_id_type` is set.
+ */
 static void rna_Action_id_root_set(PointerRNA *ptr, int value)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(ptr->owner_id)->wrap();
