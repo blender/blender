@@ -64,7 +64,8 @@ AssetWeakReference AssetRepresentation::make_weak_reference() const
 void AssetRepresentation::ensure_previewable()
 {
   if (ID *id = this->local_id()) {
-    BKE_previewimg_id_ensure(id);
+    PreviewImage *preview = BKE_previewimg_id_ensure(id);
+    BKE_icon_preview_ensure(id, preview);
     return;
   }
 
