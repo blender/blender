@@ -559,6 +559,7 @@ class ChannelbagsTest(unittest.TestCase):
         self.strip.key_insert(self.slot, "location", 1, 47.0, 327.0)
         self.assertEqual("location", channelbag.fcurves[0].data_path,
                          "Keys for the channelbag's slot should go into the channelbag")
+        self.assertEqual(self.slot, channelbag.slot)
 
         self.strip.channelbags.remove(channelbag)
         self.assertEqual([], list(self.strip.channelbags))
@@ -570,6 +571,7 @@ class ChannelbagsTest(unittest.TestCase):
 
         channelbag = self.strip.channelbag(self.slot, ensure=True)
         self.assertEqual([channelbag], list(self.strip.channelbags))
+        self.assertEqual(self.slot, channelbag.slot)
 
     def test_create_remove_fcurves(self):
         channelbag = self.strip.channelbags.new(self.slot)
@@ -675,6 +677,24 @@ class ChannelbagsTest(unittest.TestCase):
         self.assertEquals([group1], channelbag.groups[:])
         self.assertEquals([fcurve5, fcurve3], group1.channels[:])
         self.assertEquals([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
+
+    def test_channelbag_slot_properties(self):
+        slot_1 = self.slot
+        slot_2 = self.action.slots.new('MATERIAL', "Test2")
+        slot_3 = self.action.slots.new('CAMERA', "Test3")
+
+        channelbag_1 = self.strip.channelbags.new(slot_1)
+        channelbag_2 = self.strip.channelbags.new(slot_2)
+        channelbag_3 = self.strip.channelbags.new(slot_3)
+
+        self.assertEqual(slot_1.handle, channelbag_1.slot_handle)
+        self.assertEqual(slot_1, channelbag_1.slot)
+
+        self.assertEqual(slot_2.handle, channelbag_2.slot_handle)
+        self.assertEqual(slot_2, channelbag_2.slot)
+
+        self.assertEqual(slot_3.handle, channelbag_3.slot_handle)
+        self.assertEqual(slot_3, channelbag_3.slot)
 
 
 class DataPathTest(unittest.TestCase):

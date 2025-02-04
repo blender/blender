@@ -601,6 +601,16 @@ static std::optional<std::string> rna_Channelbag_path(const PointerRNA *ptr)
   return std::nullopt;
 }
 
+static PointerRNA rna_Channelbag_slot_get(PointerRNA *ptr)
+{
+  animrig::Action &action = rna_action(ptr);
+  animrig::Channelbag &channelbag = rna_data_channelbag(ptr);
+  animrig::Slot *slot = action.slot_for_handle(channelbag.slot_handle);
+  BLI_assert(slot);
+
+  return rna_pointer_inherit_refine(ptr, &RNA_ActionSlot, slot);
+}
+
 static void rna_iterator_Channelbag_fcurves_begin(CollectionPropertyIterator *iter,
                                                   PointerRNA *ptr)
 {
@@ -2492,6 +2502,12 @@ static void rna_def_action_channelbag(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "slot_handle", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ActionSlot");
+  RNA_def_property_ui_text(prop, "Slot", "The Slot that the Channelbag's animation data is for");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, "rna_Channelbag_slot_get", nullptr, nullptr, nullptr);
 
   /* Channelbag.fcurves */
   prop = RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
