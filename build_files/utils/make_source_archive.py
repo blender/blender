@@ -141,7 +141,7 @@ def main_files_to_manifest(blender_srcdir: Path, outfile: TextIO) -> None:
 def assets_to_manifest(blender_srcdir: Path, outfile: TextIO) -> None:
     assert not blender_srcdir.is_absolute()
 
-    assets_dir = blender_srcdir.parent / "lib" / "assets"
+    assets_dir = blender_srcdir / "release" / "datafiles" / "assets"
     for path in assets_dir.glob("*"):
         if path.name == "working":
             continue
