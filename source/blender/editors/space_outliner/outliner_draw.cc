@@ -3273,7 +3273,7 @@ static bool element_should_draw_faded(const TreeViewContext &tvc,
                                BKE_view_layer_base_find((ViewLayer *)tvc.view_layer, (Object *)ob);
         const bool is_visible = (base != nullptr) &&
                                 (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) &&
-                                !BLI_listbase_is_empty(&te->subtree);
+                                !(te->flag & TE_CHILD_NOT_IN_COLLECTION);
 
         return !is_visible;
       }
