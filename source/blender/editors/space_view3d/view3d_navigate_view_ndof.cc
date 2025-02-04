@@ -199,10 +199,10 @@ static void view3d_ndof_orbit(const wmNDOFMotionData *ndof,
     }
 
     /* Update the onscreen axis-angle indicator. */
-    rv3d->rot_angle = angle;
-    rv3d->rot_axis[0] = 0;
-    rv3d->rot_axis[1] = 0;
-    rv3d->rot_axis[2] = 1;
+    rv3d->ndof_rot_angle = angle;
+    rv3d->ndof_rot_axis[0] = 0;
+    rv3d->ndof_rot_axis[1] = 0;
+    rv3d->ndof_rot_axis[2] = 1;
 
     axis_angle_to_quat_single(quat, 'Z', angle);
     mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
@@ -216,8 +216,8 @@ static void view3d_ndof_orbit(const wmNDOFMotionData *ndof,
     mul_qt_v3(view_inv, axis);
 
     /* Update the onscreen axis-angle indicator. */
-    rv3d->rot_angle = angle;
-    copy_v3_v3(rv3d->rot_axis, axis);
+    rv3d->ndof_rot_angle = angle;
+    copy_v3_v3(rv3d->ndof_rot_axis, axis);
 
     axis_angle_to_quat(quat, axis, angle);
 
@@ -244,7 +244,7 @@ void view3d_ndof_fly(const wmNDOFMotionData *ndof,
   float view_inv[4];
   invert_qt_qt_normalized(view_inv, rv3d->viewquat);
 
-  rv3d->rot_angle = 0.0f; /* Disable onscreen rotation indicator. */
+  rv3d->ndof_rot_angle = 0.0f; /* Disable onscreen rotation indicator. */
 
   if (has_translate) {
     /* ignore real 'dist' since fly has its own speed settings,
@@ -442,7 +442,7 @@ static int ndof_orbit_invoke_impl(bContext *C,
   const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
 
   /* off by default, until changed later this function */
-  rv3d->rot_angle = 0.0f;
+  rv3d->ndof_rot_angle = 0.0f;
 
   if (ndof->progress != P_FINISHING) {
     const bool has_rotation = ndof_has_rotate(ndof, rv3d);
@@ -526,7 +526,7 @@ static int ndof_orbit_zoom_invoke_impl(bContext *C,
   char xform_flag = 0;
 
   /* off by default, until changed later this function */
-  rv3d->rot_angle = 0.0f;
+  rv3d->ndof_rot_angle = 0.0f;
 
   if (ndof->progress == P_FINISHING) {
     /* pass */
@@ -649,7 +649,7 @@ static int ndof_pan_invoke_impl(bContext *C,
   const bool has_zoom = (ndof->tvec[2] != 0.0f) && !rv3d->is_persp;
 
   /* we're panning here! so erase any leftover rotation from other operators */
-  rv3d->rot_angle = 0.0f;
+  rv3d->ndof_rot_angle = 0.0f;
 
   if (!(has_translate || has_zoom)) {
     return OPERATOR_CANCELLED;
