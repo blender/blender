@@ -65,6 +65,7 @@ void AssetRepresentation::ensure_previewable()
 {
   if (ID *id = this->local_id()) {
     BKE_previewimg_id_ensure(id);
+    return;
   }
 
   ExternalAsset &extern_asset = std::get<ExternalAsset>(asset_);
