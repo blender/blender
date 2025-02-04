@@ -104,6 +104,14 @@ class Package:
         self.sub_packages = sub_packages
         self.distro_package_names = distro_package_names
 
+    def __repr__(self):
+        is_mandatory_repr = "[mandatory]" if self.is_mandatory else ""
+        is_group_repr = "[group]" if self.is_group else ""
+        return (
+            f"{self.name} ({self.version_short}) {is_mandatory_repr}{is_group_repr}:\n"
+            f"\t{self.version} ({self.version_min} ... {self.version_mex}) ==> {self.version_installed}"
+        )
+
 
 # Absolute minimal required tools to build Blender.
 BUILD_MANDATORY_SUBPACKAGES = (
@@ -1461,6 +1469,13 @@ class PackageInstallerDebian(PackageInstaller):
         return version["version"] if version is not None else None
 
     def package_query_version_get_impl(self, package_distro_name):
+        # `apt-cache policy` will do partial matching (so e.g. `python3.11` will also match `libpython3.11-stdlib`).
+        # Use `apt show` first to ensure exact package name is available (stdout will be empty if no package of
+        # requested name is known).
+        cmd = ["apt", "show", package_distro_name]
+        result = self.run_command(cmd)
+        if not result.stdout:
+            return None
         cmd = ["apt-cache", "policy", package_distro_name]
         result = self.run_command(cmd)
         version = self._re_version_candidate.search(str(result.stdout))
