@@ -81,8 +81,6 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * to the preview but doesn't actually load it. To load it, attach its
    * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
    * #BKE_previewimg_ensure() (not asynchronous).
-   *
-   * \returns the prepared preview, same as calling #get_preview().
    */
   void ensure_previewable();
   /**
