@@ -684,7 +684,7 @@ static int rectf_curve_zone_y(const FCurve *fcu,
                               const float unit_scale,
                               const float eval_x)
 {
-  const float fcurve_y = (evaluate_fcurve(fcu, eval_x) + offset) * unit_scale;
+  const float fcurve_y = (evaluate_fcurve_only_curve(fcu, eval_x) + offset) * unit_scale;
   return fcurve_y < rectf->ymin ? BELOW : fcurve_y <= rectf->ymax ? INSIDE : ABOVE;
 }
 
