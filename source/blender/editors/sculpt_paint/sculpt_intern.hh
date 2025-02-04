@@ -153,6 +153,8 @@ enum class TransformDisplacementMode {
 
 namespace blender::ed::sculpt_paint {
 
+static constexpr int plane_brush_max_rolling_average_num = 20;
+
 /**
  * This structure contains all the temporary data
  * needed for individual brush strokes.
@@ -322,6 +324,26 @@ struct StrokeCache {
     int stabilizer_index;
 
   } clay_thumb_brush;
+
+  /* Plane Brush */
+  struct {
+    std::optional<float3> last_normal;
+    std::optional<float3> last_center;
+    Array<float3> normals;
+    Array<float3> centers;
+    int normal_index;
+    int center_index;
+
+    /**
+     * True if the current step is the first time the Plane brush is being evaluated.
+     *
+     * We cannot use the generic `first_time` variable used by other brushes because
+     * the Plane brush uses `grab_delta` to compute its local matrix. Since `grab_delta` requires
+     * at least two stroke steps, the first step (and successive steps if the user does not move
+     * the cursor) of the Plane brush is always skipped.
+     */
+    bool first_time;
+  } plane_brush;
 
   /* Cloth brush */
   std::unique_ptr<cloth::SimulationData> cloth_sim;

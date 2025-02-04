@@ -161,6 +161,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_brush_type_items[] = {
     {SCULPT_BRUSH_TYPE_FLATTEN, "FLATTEN", 0, "Flatten", ""},
     {SCULPT_BRUSH_TYPE_FILL, "FILL", 0, "Fill", ""},
     {SCULPT_BRUSH_TYPE_SCRAPE, "SCRAPE", 0, "Scrape", ""},
+    {SCULPT_BRUSH_TYPE_PLANE, "PLANE", 0, "Plane", ""},
     {SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE, "MULTIPLANE_SCRAPE", 0, "Multi-plane Scrape", ""},
     {SCULPT_BRUSH_TYPE_PINCH, "PINCH", 0, "Pinch", ""},
     RNA_ENUM_ITEM_SEPR,
@@ -423,6 +424,18 @@ static bool rna_BrushCapabilitiesSculpt_has_height_get(PointerRNA *ptr)
   return br->sculpt_brush_type == SCULPT_BRUSH_TYPE_LAYER;
 }
 
+static bool rna_BrushCapabilitiesSculpt_has_plane_height_get(PointerRNA *ptr)
+{
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_PLANE);
+}
+
+static bool rna_BrushCapabilitiesSculpt_has_plane_depth_get(PointerRNA *ptr)
+{
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_PLANE);
+}
+
 static bool rna_BrushCapabilitiesSculpt_has_jitter_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
@@ -475,6 +488,7 @@ static bool rna_BrushCapabilitiesSculpt_has_plane_offset_get(PointerRNA *ptr)
               SCULPT_BRUSH_TYPE_CLAY,
               SCULPT_BRUSH_TYPE_CLAY_STRIPS,
               SCULPT_BRUSH_TYPE_CLAY_THUMB,
+              SCULPT_BRUSH_TYPE_PLANE,
               SCULPT_BRUSH_TYPE_FILL,
               SCULPT_BRUSH_TYPE_FLATTEN,
               SCULPT_BRUSH_TYPE_SCRAPE);
@@ -610,6 +624,7 @@ static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
                SCULPT_BRUSH_TYPE_INFLATE,
                SCULPT_BRUSH_TYPE_BLOB,
                SCULPT_BRUSH_TYPE_CREASE,
+               SCULPT_BRUSH_TYPE_PLANE,
                SCULPT_BRUSH_TYPE_FLATTEN,
                SCULPT_BRUSH_TYPE_FILL,
                SCULPT_BRUSH_TYPE_SCRAPE,
@@ -909,6 +924,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case SCULPT_BRUSH_TYPE_LAYER:
         case SCULPT_BRUSH_TYPE_CLAY:
         case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
+        case SCULPT_BRUSH_TYPE_PLANE:
           return prop_direction_items;
         case SCULPT_BRUSH_TYPE_SMOOTH:
           return prop_smooth_direction_items;
@@ -1253,6 +1269,8 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
   SCULPT_BRUSH_CAPABILITY(has_auto_smooth, "Has Auto Smooth");
   SCULPT_BRUSH_CAPABILITY(has_topology_rake, "Has Topology Rake");
   SCULPT_BRUSH_CAPABILITY(has_height, "Has Height");
+  SCULPT_BRUSH_CAPABILITY(has_plane_depth, "Has Plane Depth");
+  SCULPT_BRUSH_CAPABILITY(has_plane_height, "Has Plane Height");
   SCULPT_BRUSH_CAPABILITY(has_jitter, "Has Jitter");
   SCULPT_BRUSH_CAPABILITY(has_normal_weight, "Has Crease/Pinch Factor");
   SCULPT_BRUSH_CAPABILITY(has_rake_factor, "Has Rake Factor");
@@ -2394,6 +2412,20 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem brush_plane_inversion_mode_items[] = {
+      {BRUSH_PLANE_INVERT_DISPLACEMENT,
+       "INVERT_DISPLACEMENT",
+       0,
+       "Invert Displacement",
+       "Displace the vertices away from the plane."},
+      {BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH,
+       "SWAP_DEPTH_AND_HEIGHT",
+       0,
+       "Swap Height and Depth",
+       "Swap the roles of Height and Depth."},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem brush_cloth_deform_type_items[] = {
       {BRUSH_CLOTH_DEFORM_DRAG, "DRAG", 0, "Drag", ""},
       {BRUSH_CLOTH_DEFORM_PUSH, "PUSH", 0, "Push", ""},
@@ -2658,6 +2690,11 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "snake_hook_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_snake_hook_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "plane_inversion_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_plane_inversion_mode_items);
+  RNA_def_property_ui_text(prop, "Inversion Mode", "Inversion Mode");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "cloth_deform_type", PROP_ENUM, PROP_NONE);
@@ -3000,6 +3037,45 @@ static void rna_def_brush(BlenderRNA *brna)
       prop,
       "Brush Height",
       "Affectable height of brush (i.e. the layer height for the layer tool)");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "plane_depth", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "plane_depth");
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1.0f, 1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Depth",
+                           "The maximum distance below the plane for affected vertices. "
+                           "Increasing the depth affects vertices farther below the plane.");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "plane_height", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "plane_height");
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1.0f, 1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Height",
+                           "The maximum distance above the plane for affected vertices. "
+                           "Increasing the height affects vertices farther above the plane.");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "stabilize_normal", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "stabilize_normal");
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1.0f, 1, 3);
+  RNA_def_property_ui_text(
+      prop, "Stabilize Normal", "Stabilize the orientation of the brush plane.");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "stabilize_plane", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "stabilize_plane");
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1.0f, 1, 3);
+  RNA_def_property_ui_text(prop, "Stabilize Plane", "Stabilize the center of the brush plane.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "texture_sample_bias", PROP_FLOAT, PROP_DISTANCE);

@@ -154,6 +154,7 @@ set(SRC
   brushes/multires_displacement_smear.cc
   brushes/pinch.cc
   brushes/plane_legacy.cc
+  brushes/plane.cc
   brushes/relax.cc
   brushes/rotate.cc
   brushes/smooth.cc
