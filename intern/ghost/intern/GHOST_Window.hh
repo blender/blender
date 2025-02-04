@@ -90,6 +90,33 @@ class GHOST_Window : public GHOST_IWindow {
   }
 
   /**
+   * Return the current window decoration style flags.
+   */
+  virtual GHOST_TWindowDecorationStyleFlags getWindowDecorationStyleFlags() override;
+
+  /**
+   * Set the window decoration style flags.
+   * \param styleFlags: Window decoration style flags.
+   */
+  virtual void setWindowDecorationStyleFlags(
+      GHOST_TWindowDecorationStyleFlags styleFlags) override;
+
+  /**
+   * Set the window decoration style settings.
+   * \param decorationSettings: Window decoration style settings.
+   */
+  virtual void setWindowDecorationStyleSettings(
+      GHOST_WindowDecorationStyleSettings decorationSettings) override;
+
+  /**
+   * Apply the window decoration style using the current flags and settings.
+   */
+  virtual GHOST_TSuccess applyWindowDecorationStyle() override
+  {
+    return GHOST_kSuccess;
+  }
+
+  /**
    * Returns the current cursor shape.
    * \return The current cursor shape.
    */
@@ -409,6 +436,10 @@ class GHOST_Window : public GHOST_IWindow {
 
   /** Stores whether this is a full screen window. */
   bool m_fullScreen;
+
+  /** Window Decoration Styles. */
+  GHOST_TWindowDecorationStyleFlags m_windowDecorationStyleFlags;
+  GHOST_WindowDecorationStyleSettings m_windowDecorationStyleSettings;
 
   /** Whether to attempt to initialize a context with a stereo frame-buffer. */
   bool m_wantStereoVisual;

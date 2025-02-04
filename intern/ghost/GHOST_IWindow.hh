@@ -88,6 +88,29 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess setPath(const char *filepath) = 0;
 
   /**
+   * Return the current window decoration style flags.
+   */
+  virtual GHOST_TWindowDecorationStyleFlags getWindowDecorationStyleFlags() = 0;
+
+  /**
+   * Set the window decoration style flags.
+   * \param styleFlags: Window decoration style flags.
+   */
+  virtual void setWindowDecorationStyleFlags(GHOST_TWindowDecorationStyleFlags styleFlags) = 0;
+
+  /**
+   * Set the window decoration style settings.
+   * \param decorationSettings: Window decoration style settings.
+   */
+  virtual void setWindowDecorationStyleSettings(
+      GHOST_WindowDecorationStyleSettings decorationSettings) = 0;
+
+  /**
+   * Apply the window decoration style using the current flags and settings.
+   */
+  virtual GHOST_TSuccess applyWindowDecorationStyle() = 0;
+
+  /**
    * Returns the window rectangle dimensions.
    * These are screen coordinates.
    * \param bounds: The bounding rectangle of the window.

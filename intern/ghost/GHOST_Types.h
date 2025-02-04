@@ -119,6 +119,10 @@ typedef enum {
    * Support detecting the physical trackpad direction.
    */
   GHOST_kCapabilityTrackpadPhysicalDirection = (1 << 7),
+  /**
+   * Support for window decoration styles.
+   */
+  GHOST_kCapabilityWindowDecorationStyles = (1 << 8),
 } GHOST_TCapabilityFlag;
 
 /**
@@ -129,7 +133,8 @@ typedef enum {
   (GHOST_kCapabilityCursorWarp | GHOST_kCapabilityWindowPosition | \
    GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer | \
    GHOST_kCapabilityClipboardImages | GHOST_kCapabilityDesktopSample | \
-   GHOST_kCapabilityInputIME | GHOST_kCapabilityTrackpadPhysicalDirection)
+   GHOST_kCapabilityInputIME | GHOST_kCapabilityTrackpadPhysicalDirection | \
+   GHOST_kCapabilityWindowDecorationStyles)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
@@ -694,6 +699,11 @@ typedef enum {
   /* Can be extended as needed. */
 } GHOST_TUserSpecialDirTypes;
 
+typedef enum {
+  GHOST_kDecorationNone = 0,
+  GHOST_kDecorationColoredTitleBar = (1 << 0),
+} GHOST_TWindowDecorationStyleFlags;
+
 typedef struct {
   /** Number of pixels on a line. */
   uint32_t xPixels;
@@ -719,6 +729,11 @@ typedef struct {
   GHOST_TDrawingContextType context_type;
   GHOST_GPUDevice preferred_device;
 } GHOST_GPUSettings;
+
+typedef struct {
+  float colored_titlebar_bg_color[3];
+  float colored_titlebar_fg_color[3];
+} GHOST_WindowDecorationStyleSettings;
 
 #ifdef WITH_VULKAN_BACKEND
 typedef struct {

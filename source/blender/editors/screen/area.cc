@@ -2720,6 +2720,13 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
     WM_window_title(CTX_wm_manager(C), CTX_wm_window(C));
   }
 
+  /* If window decoration styles are supported, send a notification to re-apply them. */
+  /* TODO: The `bl_animation_keyframing` test fails here if WM_capabilities_flags is called in
+   *       background mode. Remove the !G.background check once the test has been fixed. */
+  if (!G.background && WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES) {
+    WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  }
+
   /* also redraw when re-used */
   ED_area_tag_redraw(area);
 }

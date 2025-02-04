@@ -185,10 +185,12 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_INPUT_IME = (1 << 6),
   /** Trackpad physical scroll detection. */
   WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION = (1 << 7),
+  /** Support for window decoration styles. */
+  WM_CAPABILITY_WINDOW_DECORATION_STYLES = (1 << 8),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
-ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION)
+ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_WINDOW_DECORATION_STYLES)
 
 eWM_CapabilitiesFlag WM_capabilities_flag();
 
@@ -284,6 +286,7 @@ void WM_window_rect_calc(const wmWindow *win, rcti *r_rect);
  * \note Depends on #UI_SCALE_FAC. Should that be outdated, call #WM_window_set_dpi first.
  */
 void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect);
+bool WM_window_is_main_top_level(const wmWindow *win);
 bool WM_window_is_fullscreen(const wmWindow *win);
 bool WM_window_is_maximized(const wmWindow *win);
 
@@ -373,6 +376,29 @@ void WM_window_set_dpi(const wmWindow *win);
 void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title = nullptr);
 
 bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check);
+
+/* Window Decoration Styles. */
+
+/* Flags for #WM_window_decoration_set_style().
+ * NOTE: To be kept in sync with #GHOST_TWindowDecorationFlags. */
+enum eWM_WindowDecorationStyleFlag {
+  /** No decoration styling. */
+  WM_WINDOW_DECORATION_STYLE_NONE = 0,
+  /** Colored Titlebar. */
+  WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR = (1 << 0),
+};
+ENUM_OPERATORS(eWM_WindowDecorationStyleFlag, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR)
+
+/* Get/set window decoration style flags. */
+eWM_WindowDecorationStyleFlag WM_window_get_decoration_style_flags(const wmWindow *win);
+void WM_window_set_decoration_style_flags(const wmWindow *win,
+                                          eWM_WindowDecorationStyleFlag style_flags);
+/* Apply the window decoration style using the current style flags and by parsing style
+ * settings from the current Blender theme.
+ * The screen parameter is optional, and can be passed for enhanced theme parsing.
+ * NOTE: Avoid calling this function directly, prefer sending an NC_WINDOW WM notification instead.
+ */
+void WM_window_apply_decoration_style(const wmWindow *win, const bScreen *screen = nullptr);
 
 /* `wm_files.cc`. */
 

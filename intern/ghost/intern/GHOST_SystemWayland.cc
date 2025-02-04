@@ -8730,6 +8730,10 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
           GHOST_kCapabilityGPUReadFrontBuffer |
           /* This WAYLAND back-end has not yet implemented desktop color sample. */
           GHOST_kCapabilityDesktopSample |
+          /* This WAYLAND back-end doesn't have support for window decoration styles.
+           * In all likelihood, this back-end will eventually need to support client-side
+           * decorations, see #113795. */
+          GHOST_kCapabilityWindowDecorationStyles |
           /* This flag will eventually be removed. */
           ((has_wl_trackpad_physical_direction == 1) ?
                0 :

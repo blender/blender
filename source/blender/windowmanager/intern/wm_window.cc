@@ -598,6 +598,72 @@ void WM_window_set_dpi(const wmWindow *win)
   U.widget_unit = int(roundf(18.0f * U.scale_factor)) + (2 * pixelsize);
 }
 
+eWM_WindowDecorationStyleFlag WM_window_get_decoration_style_flags(const wmWindow *win)
+{
+  const GHOST_TWindowDecorationStyleFlags ghost_style_flags = GHOST_GetWindowDecorationStyleFlags(
+      static_cast<GHOST_WindowHandle>(win->ghostwin));
+
+  eWM_WindowDecorationStyleFlag wm_style_flags = WM_WINDOW_DECORATION_STYLE_NONE;
+
+  if (ghost_style_flags & GHOST_kDecorationColoredTitleBar) {
+    wm_style_flags |= WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR;
+  }
+
+  return wm_style_flags;
+}
+
+void WM_window_set_decoration_style_flags(const wmWindow *win,
+                                          eWM_WindowDecorationStyleFlag style_flags)
+{
+  unsigned int ghost_style_flags = GHOST_kDecorationNone;
+
+  if (style_flags & WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR) {
+    ghost_style_flags |= GHOST_kDecorationColoredTitleBar;
+  }
+
+  GHOST_SetWindowDecorationStyleFlags(
+      static_cast<GHOST_WindowHandle>(win->ghostwin),
+      static_cast<GHOST_TWindowDecorationStyleFlags>(ghost_style_flags));
+}
+
+static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const bScreen *screen)
+{
+  /* Set the decoration style settings from the current theme colors.
+   * NOTE: screen may be null. In which case, only the window is used as a theme provider. */
+  GHOST_WindowDecorationStyleSettings decoration_settings = {};
+
+  /* Colored Titlebar Decoration. */
+  /* For main windows, use the topbar color. */
+  if (WM_window_is_main_top_level(win)) {
+    UI_SetTheme(SPACE_TOPBAR, RGN_TYPE_HEADER);
+  }
+  /* For single editor floating windows, use the editor header color. */
+  else if (screen && BLI_listbase_is_single(&screen->areabase)) {
+    const ScrArea *main_area = static_cast<ScrArea *>(screen->areabase.first);
+    UI_SetTheme(main_area->spacetype, RGN_TYPE_HEADER);
+  }
+  /* For floating window with multiple editors/areas, use the default space color. */
+  else {
+    UI_SetTheme(0, RGN_TYPE_WINDOW);
+  }
+
+  float titlebar_bg_color[3], titlebar_fg_color[3];
+  UI_GetThemeColor3fv(TH_BACK, titlebar_bg_color);
+  UI_GetThemeColor3fv(TH_BUTBACK_TEXT, titlebar_fg_color);
+  copy_v3_v3(decoration_settings.colored_titlebar_bg_color, titlebar_bg_color);
+  copy_v3_v3(decoration_settings.colored_titlebar_fg_color, titlebar_fg_color);
+
+  GHOST_SetWindowDecorationStyleSettings(static_cast<GHOST_WindowHandle>(win->ghostwin),
+                                         decoration_settings);
+}
+
+void WM_window_apply_decoration_style(const wmWindow *win, const bScreen *screen)
+{
+  BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES);
+  wm_window_decoration_style_set_from_theme(win, screen);
+  GHOST_ApplyWindowDecorationStyle(static_cast<GHOST_WindowHandle>(win->ghostwin));
+}
+
 /**
  * When windows are activated, simulate modifier press/release to match the current state of
  * held modifier keys, see #40317.
@@ -857,6 +923,12 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
     wm_window_ensure_eventstate(win);
 
     WM_window_set_dpi(win);
+
+    if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES) {
+      /* Only decoration style we have for now. */
+      WM_window_set_decoration_style_flags(win, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR);
+      WM_window_apply_decoration_style(win);
+    }
   }
 
   /* Add key-map handlers (1 handler for all keys in map!). */
@@ -2174,6 +2246,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityTrackpadPhysicalDirection) {
     flag |= WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION;
   }
+  if (ghost_flag & GHOST_kCapabilityWindowDecorationStyles) {
+    flag |= WM_CAPABILITY_WINDOW_DECORATION_STYLES;
+  }
 
   return flag;
 }
@@ -2806,6 +2881,19 @@ bool WM_window_is_fullscreen(const wmWindow *win)
 bool WM_window_is_maximized(const wmWindow *win)
 {
   return win->windowstate == GHOST_kWindowStateMaximized;
+}
+
+bool WM_window_is_main_top_level(const wmWindow *win)
+{
+  /**
+   * Return whether the window is a main/top-level window. In which case it is expected to contain
+   * global areas (topbar/statusbar).
+   */
+  const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+  if ((win->parent != nullptr) || screen->temp) {
+    return false;
+  }
+  return true;
 }
 
 /** \} */

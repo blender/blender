@@ -606,6 +606,33 @@ GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepa
   return window->setPath(filepath);
 }
 
+GHOST_TWindowDecorationStyleFlags GHOST_GetWindowDecorationStyleFlags(
+    GHOST_WindowHandle windowhandle)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  return window->getWindowDecorationStyleFlags();
+}
+
+void GHOST_SetWindowDecorationStyleFlags(GHOST_WindowHandle windowhandle,
+                                         GHOST_TWindowDecorationStyleFlags styleFlags)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  window->setWindowDecorationStyleFlags(styleFlags);
+}
+
+void GHOST_SetWindowDecorationStyleSettings(GHOST_WindowHandle windowhandle,
+                                            GHOST_WindowDecorationStyleSettings decorationSettings)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  window->setWindowDecorationStyleSettings(decorationSettings);
+}
+
+GHOST_TSuccess GHOST_ApplyWindowDecorationStyle(GHOST_WindowHandle windowhandle)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  return window->applyWindowDecorationStyle();
+}
+
 GHOST_RectangleHandle GHOST_GetWindowBounds(GHOST_WindowHandle windowhandle)
 {
   const GHOST_IWindow *window = (const GHOST_IWindow *)windowhandle;
