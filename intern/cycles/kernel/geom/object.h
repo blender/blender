@@ -496,7 +496,7 @@ ccl_device_inline float3 bvh_clamp_direction(const float3 dir)
 
 ccl_device_inline float3 bvh_inverse_direction(const float3 dir)
 {
-  return rcp(dir);
+  return reciprocal(dir);
 }
 
 /* Transform ray into object space to enter static object in BVH */

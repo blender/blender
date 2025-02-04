@@ -401,16 +401,6 @@ ccl_device_inline float distance(const float4 a, const float4 b)
   return len(a - b);
 }
 
-ccl_device_inline float4 rcp(const float4 a)
-{
-#  ifdef __KERNEL_SSE__
-  /* Don't use _mm_rcp_ps due to poor precision. */
-  return float4(_mm_div_ps(_mm_set_ps1(1.0f), a.m128));
-#  else
-  return make_float4(1.0f / a.x, 1.0f / a.y, 1.0f / a.z, 1.0f / a.w);
-#  endif
-}
-
 ccl_device_inline float4 sqrt(const float4 a)
 {
 #  ifdef __KERNEL_SSE__
