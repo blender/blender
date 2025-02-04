@@ -2704,6 +2704,169 @@ static void tag_update_animation_element(bAnimListElem *ale)
   DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 }
 
+/**
+ * Delete container-like channels.
+ *
+ * This function may not delete everything in one run. Once an action slot has been deleted, it
+ * will refuse to delete any groups; because deleting a slot deletes its channelbags, which in turn
+ * contain the groups, any previously-selected group may be deleted along with the slot.
+ *
+ * \return true when another run is necessary after this one.
+ */
+static bool animchannels_delete_containers(const bContext *C, bAnimContext *ac)
+{
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_SEL | ANIMFILTER_LIST_CHANNELS |
+                                    ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+  ListBase anim_data = {nullptr, nullptr};
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  bool must_skip_groups = false;
+  bool has_skipped_group = false;
+
+  /* Delete selected container-like channels and their underlying data. */
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    switch (ale->type) {
+      case ANIMTYPE_ACTION_SLOT: {
+        BLI_assert(ale->fcurve_owner_id);
+        BLI_assert(ale->data);
+        BLI_assert_msg(GS(ale->fcurve_owner_id->name) == ID_AC,
+                       "fcurve_owner_id should be an Action");
+
+        blender::animrig::Action &action =
+            reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+        blender::animrig::Slot &slot_to_remove = static_cast<ActionSlot *>(ale->data)->wrap();
+
+        action.slot_remove(slot_to_remove);
+
+        tag_update_animation_element(ale);
+
+        /* Subsequent groups should be skipped, and their deletion kept for
+         * another run (if they even exist after this slot was deleted). */
+        must_skip_groups = true;
+        break;
+      }
+
+      case ANIMTYPE_GROUP: {
+        if (must_skip_groups) {
+          /* Another run of this function is needed to see if this group still
+           * exists, and thus still needs deleting. */
+          has_skipped_group = true;
+          break;
+        }
+
+        bActionGroup *agrp = (bActionGroup *)ale->data;
+        AnimData *adt = ale->adt;
+        FCurve *fcu, *fcn;
+
+        /* Groups should always be part of an action. */
+        if (adt == nullptr || adt->action == nullptr) {
+          BLI_assert_unreachable();
+          continue;
+        }
+
+        blender::animrig::Action &action = adt->action->wrap();
+
+        /* Legacy actions */
+        if (!action.is_action_layered()) {
+          /* delete all of the Group's F-Curves, but no others */
+          for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
+               fcu = fcn)
+          {
+            fcn = fcu->next;
+
+            /* remove from group and action, then free */
+            action_groups_remove_channel(adt->action, fcu);
+            BKE_fcurve_free(fcu);
+          }
+
+          /* free the group itself */
+          BLI_freelinkN(&adt->action->groups, agrp);
+          DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_ANIMATION);
+
+          break;
+        }
+
+        /* Layered actions.
+         *
+         * Note that the behavior here is different from deleting groups via
+         * the Python API: in the Python API the fcurves that belonged to the
+         * group remain, and just get ungrouped, whereas here they are deleted
+         * along with the group. This difference in behavior is replicated
+         * from legacy actions. */
+
+        blender::animrig::Channelbag &channelbag = agrp->channelbag->wrap();
+
+        /* Remove all the fcurves in the group, which also automatically
+         * deletes the group when the last fcurve is deleted. Since the group
+         * is automatically deleted, we store the fcurve range ahead of time
+         * so we don't have to worry about the memory disappearing out from
+         * under us. */
+        const int fcurve_range_start = agrp->fcurve_range_start;
+        const int fcurve_range_length = agrp->fcurve_range_length;
+        for (int i = 0; i < fcurve_range_length; i++) {
+          channelbag.fcurve_remove(*channelbag.fcurve(fcurve_range_start));
+        }
+
+        DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_ANIMATION);
+
+        break;
+      }
+
+      case ANIMTYPE_NONE:
+      case ANIMTYPE_ANIMDATA:
+      case ANIMTYPE_SPECIALDATA__UNUSED:
+      case ANIMTYPE_SUMMARY:
+      case ANIMTYPE_SCENE:
+      case ANIMTYPE_OBJECT:
+      case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACONTROLS:
+      case ANIMTYPE_NLACURVE:
+      case ANIMTYPE_FILLACT_LAYERED:
+      case ANIMTYPE_FILLACTD:
+      case ANIMTYPE_FILLDRIVERS:
+      case ANIMTYPE_DSMAT:
+      case ANIMTYPE_DSLAM:
+      case ANIMTYPE_DSCAM:
+      case ANIMTYPE_DSCACHEFILE:
+      case ANIMTYPE_DSCUR:
+      case ANIMTYPE_DSSKEY:
+      case ANIMTYPE_DSWOR:
+      case ANIMTYPE_DSNTREE:
+      case ANIMTYPE_DSPART:
+      case ANIMTYPE_DSMBALL:
+      case ANIMTYPE_DSARM:
+      case ANIMTYPE_DSMESH:
+      case ANIMTYPE_DSTEX:
+      case ANIMTYPE_DSLAT:
+      case ANIMTYPE_DSLINESTYLE:
+      case ANIMTYPE_DSSPK:
+      case ANIMTYPE_DSGPENCIL:
+      case ANIMTYPE_DSMCLIP:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME:
+      case ANIMTYPE_SHAPEKEY:
+      case ANIMTYPE_GPDATABLOCK:
+      case ANIMTYPE_GPLAYER:
+      case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+      case ANIMTYPE_GREASE_PENCIL_LAYER:
+      case ANIMTYPE_MASKDATABLOCK:
+      case ANIMTYPE_MASKLAYER:
+      case ANIMTYPE_NLATRACK:
+      case ANIMTYPE_NLAACTION:
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_NUM_TYPES:
+        break;
+    }
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+
+  return has_skipped_group;
+}
+
 static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
@@ -2725,140 +2888,9 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
    * or slot will delete the channels they contain as well, so better avoid looping over those in
    * the same loop. */
   if (ac.datatype != ANIMCONT_DRIVERS) {
-    /* filter data */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
-              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-    ANIM_animdata_filter(
-        &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
-
-    /* delete selected groups and their associated channels */
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      switch (ale->type) {
-        case ANIMTYPE_ACTION_SLOT: {
-          BLI_assert(ale->fcurve_owner_id);
-          BLI_assert(ale->data);
-          BLI_assert_msg(GS(ale->fcurve_owner_id->name) == ID_AC,
-                         "fcurve_owner_id should be an Action");
-
-          blender::animrig::Action &action =
-              reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
-          blender::animrig::Slot &slot_to_remove = static_cast<ActionSlot *>(ale->data)->wrap();
-
-          action.slot_remove(slot_to_remove);
-
-          tag_update_animation_element(ale);
-          break;
-        }
-        case ANIMTYPE_GROUP: {
-          bActionGroup *agrp = (bActionGroup *)ale->data;
-          AnimData *adt = ale->adt;
-          FCurve *fcu, *fcn;
-
-          /* Groups should always be part of an action. */
-          if (adt == nullptr || adt->action == nullptr) {
-            BLI_assert_unreachable();
-            continue;
-          }
-
-          blender::animrig::Action &action = adt->action->wrap();
-
-          /* Legacy actions */
-          if (!action.is_action_layered()) {
-            /* delete all of the Group's F-Curves, but no others */
-            for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
-                 fcu = fcn)
-            {
-              fcn = fcu->next;
-
-              /* remove from group and action, then free */
-              action_groups_remove_channel(adt->action, fcu);
-              BKE_fcurve_free(fcu);
-            }
-
-            /* free the group itself */
-            BLI_freelinkN(&adt->action->groups, agrp);
-            DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_ANIMATION);
-
-            break;
-          }
-
-          /* Layered actions.
-           *
-           * Note that the behavior here is different from deleting groups via
-           * the Python API: in the Python API the fcurves that belonged to the
-           * group remain, and just get ungrouped, whereas here they are deleted
-           * along with the group. This difference in behavior is replicated
-           * from legacy actions. */
-
-          blender::animrig::Channelbag &channelbag = agrp->channelbag->wrap();
-
-          /* Remove all the fcurves in the group, which also automatically
-           * deletes the group when the last fcurve is deleted. Since the group
-           * is automatically deleted, we store the fcurve range ahead of time
-           * so we don't have to worry about the memory disappearing out from
-           * under us. */
-          const int fcurve_range_start = agrp->fcurve_range_start;
-          const int fcurve_range_length = agrp->fcurve_range_length;
-          for (int i = 0; i < fcurve_range_length; i++) {
-            channelbag.fcurve_remove(*channelbag.fcurve(fcurve_range_start));
-          }
-
-          DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_ANIMATION);
-
-          break;
-        }
-
-        case ANIMTYPE_NONE:
-        case ANIMTYPE_ANIMDATA:
-        case ANIMTYPE_SPECIALDATA__UNUSED:
-        case ANIMTYPE_SUMMARY:
-        case ANIMTYPE_SCENE:
-        case ANIMTYPE_OBJECT:
-        case ANIMTYPE_FCURVE:
-        case ANIMTYPE_NLACONTROLS:
-        case ANIMTYPE_NLACURVE:
-        case ANIMTYPE_FILLACT_LAYERED:
-        case ANIMTYPE_FILLACTD:
-        case ANIMTYPE_FILLDRIVERS:
-        case ANIMTYPE_DSMAT:
-        case ANIMTYPE_DSLAM:
-        case ANIMTYPE_DSCAM:
-        case ANIMTYPE_DSCACHEFILE:
-        case ANIMTYPE_DSCUR:
-        case ANIMTYPE_DSSKEY:
-        case ANIMTYPE_DSWOR:
-        case ANIMTYPE_DSNTREE:
-        case ANIMTYPE_DSPART:
-        case ANIMTYPE_DSMBALL:
-        case ANIMTYPE_DSARM:
-        case ANIMTYPE_DSMESH:
-        case ANIMTYPE_DSTEX:
-        case ANIMTYPE_DSLAT:
-        case ANIMTYPE_DSLINESTYLE:
-        case ANIMTYPE_DSSPK:
-        case ANIMTYPE_DSGPENCIL:
-        case ANIMTYPE_DSMCLIP:
-        case ANIMTYPE_DSHAIR:
-        case ANIMTYPE_DSPOINTCLOUD:
-        case ANIMTYPE_DSVOLUME:
-        case ANIMTYPE_SHAPEKEY:
-        case ANIMTYPE_GPDATABLOCK:
-        case ANIMTYPE_GPLAYER:
-        case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
-        case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
-        case ANIMTYPE_GREASE_PENCIL_LAYER:
-        case ANIMTYPE_MASKDATABLOCK:
-        case ANIMTYPE_MASKLAYER:
-        case ANIMTYPE_NLATRACK:
-        case ANIMTYPE_NLAACTION:
-        case ANIMTYPE_PALETTE:
-        case ANIMTYPE_NUM_TYPES:
-          break;
-      }
-    }
-
-    /* cleanup */
-    ANIM_animdata_freelist(&anim_data);
+    /* Keep deleting container-like channels until there are no more to delete. */
+    while (animchannels_delete_containers(C, &ac))
+      ;
   }
 
   /* filter data */
