@@ -324,7 +324,7 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
     - curve_frame_range
     - fcurves
     - groups
-    - id_root (should always be 0 for layered Actions)
+    - id_root
     - flip_with_pose(object)
     """
 
@@ -449,6 +449,68 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.assertEqual(channelbag.slot_handle, slot.handle)
 
         self.assertEqual([group], channelbag.groups[:])
+
+    def test_id_root_on_layered_action(self) -> None:
+        # When there's at least one slot, action.id_root should simply act as a
+        # proxy for the first slot's target_id_type. This should work for both
+        # reading and writing.
+
+        slot_1 = self.action.slots.new('OBJECT', "Slot 1")
+        slot_2 = self.action.slots.new('CAMERA', "Slot 2")
+        bpy.data.objects['Cube'].animation_data_create()
+        bpy.data.objects['Cube'].animation_data.action = self.action
+        bpy.data.objects['Cube'].animation_data.action_slot = slot_1
+
+        self.assertEqual(self.action.id_root, 'OBJECT')
+        self.assertEqual(self.action.slots[0].target_id_type, 'OBJECT')
+        self.assertEqual(self.action.slots[0].identifier, 'OBSlot 1')
+        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
+        self.assertEqual(self.action.slots[1].identifier, 'CASlot 2')
+        self.assertEqual(bpy.data.objects['Cube'].animation_data.last_slot_identifier, 'OBSlot 1')
+
+        self.action.id_root = 'MATERIAL'
+
+        self.assertEqual(self.action.id_root, 'MATERIAL')
+        self.assertEqual(self.action.slots[0].target_id_type, 'MATERIAL')
+        self.assertEqual(self.action.slots[0].identifier, 'MASlot 1')
+        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
+        self.assertEqual(self.action.slots[1].identifier, 'CASlot 2')
+        self.assertEqual(bpy.data.objects['Cube'].animation_data.last_slot_identifier, 'MASlot 1')
+
+    def test_id_root_on_layered_action_for_identifier_uniqueness(self) -> None:
+        # When setting id_root such that the first slot's identifier would
+        # become a duplicate, the name portion of the identifier should be
+        # automatically renamed to be unique.
+
+        slot_1 = self.action.slots.new('OBJECT', "Foo")
+        slot_2 = self.action.slots.new('CAMERA', "Foo")
+
+        self.assertEqual(self.action.id_root, 'OBJECT')
+        self.assertEqual(self.action.slots[0].target_id_type, 'OBJECT')
+        self.assertEqual(self.action.slots[0].identifier, 'OBFoo')
+        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
+        self.assertEqual(self.action.slots[1].identifier, 'CAFoo')
+
+        self.action.id_root = 'CAMERA'
+
+        self.assertEqual(self.action.id_root, 'CAMERA')
+        self.assertEqual(self.action.slots[0].target_id_type, 'CAMERA')
+        self.assertEqual(self.action.slots[0].identifier, 'CAFoo.001')
+        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
+        self.assertEqual(self.action.slots[1].identifier, 'CAFoo')
+
+    def test_id_root_on_empty_action(self) -> None:
+        # When there are no slots, setting action.id_root should create a legacy
+        # slot and set its target_id_type.
+
+        self.assertEqual(self.action.id_root, 'UNSPECIFIED')
+        self.assertEqual(len(self.action.slots), 0)
+
+        self.action.id_root = 'OBJECT'
+
+        self.assertEqual(self.action.id_root, 'OBJECT')
+        self.assertEqual(len(self.action.slots), 1)
+        self.assertEqual(self.action.slots[0].target_id_type, 'OBJECT')
 
 
 class ChannelbagsTest(unittest.TestCase):

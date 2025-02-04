@@ -22,6 +22,14 @@ constexpr const char *DEFAULT_LEGACY_SLOT_NAME = "Legacy Slot";
 constexpr const char *DEFAULT_LEGACY_LAYER_NAME = "Legacy Layer";
 
 /**
+ * Ensure that a Slot exists, for legacy Python API shims that need one.
+ *
+ * \return The first Slot if one already exists, or a newly created "Legacy
+ * Slot" otherwise.
+ */
+Slot &slot_ensure(Action &action);
+
+/**
  * Return the Channelbag for compatibility with the legacy Python API.
  *
  * \return the Channelbag for the first slot, of the first keyframe Strip on the
