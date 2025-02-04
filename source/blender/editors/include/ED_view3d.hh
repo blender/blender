@@ -1012,7 +1012,7 @@ void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact);
  * event system doesn't set for each event the OpenGL drawing context.
  */
 void view3d_operator_needs_opengl(const bContext *C);
-void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *region);
+void view3d_region_operator_needs_opengl(ARegion *region);
 
 /** XXX: should move to BLI_math */
 bool edge_inside_circle(const float cent[2],

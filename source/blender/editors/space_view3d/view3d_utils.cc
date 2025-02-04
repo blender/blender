@@ -220,13 +220,12 @@ bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
 
 void view3d_operator_needs_opengl(const bContext *C)
 {
-  wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
 
-  view3d_region_operator_needs_opengl(win, region);
+  view3d_region_operator_needs_opengl(region);
 }
 
-void view3d_region_operator_needs_opengl(wmWindow * /*win*/, ARegion *region)
+void view3d_region_operator_needs_opengl(ARegion *region)
 {
   /* for debugging purpose, context should always be OK */
   if ((region == nullptr) || (region->regiontype != RGN_TYPE_WINDOW)) {
