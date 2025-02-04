@@ -91,21 +91,27 @@ static void add_output_nodes(const Context &context,
   const DTreeContext &root_context = tree.root_context();
 
   /* Only add File Output nodes if the context supports them. */
-  if (context.use_file_output()) {
+  if (bool(context.needed_outputs() & OutputTypes::FileOutput)) {
     add_file_output_nodes(root_context, node_stack);
   }
 
-  /* Add the active composite node in the root tree, but only if we are not treating viewer outputs
-   * as composite ones. That's because in cases where viewer nodes will be treated as composite
-   * outputs, viewer nodes will take precedence, so this is handled as a special case in the
-   * add_viewer_nodes_in_context function instead and no need to add it here. */
-  if (!context.treat_viewer_as_composite_output()) {
-    for (const bNode *node : root_context.btree().nodes_by_type("CompositorNodeComposite")) {
-      if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
-        node_stack.push(DNode(&root_context, node));
-        break;
+  /* Add the active composite node in the root tree if needed, but only if we are not treating
+   * viewer outputs as composite ones. That's because in cases where viewer nodes will be treated
+   * as composite outputs, viewer nodes will take precedence, so this is handled as a special case
+   * in the add_viewer_nodes_in_context function instead and no need to add it here. */
+  if (bool(context.needed_outputs() & OutputTypes::Composite)) {
+    if (!context.treat_viewer_as_composite_output()) {
+      for (const bNode *node : root_context.btree().nodes_by_type("CompositorNodeComposite")) {
+        if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
+          node_stack.push(DNode(&root_context, node));
+          break;
+        }
       }
     }
+  }
+
+  if (!bool(context.needed_outputs() & OutputTypes::Viewer)) {
+    return;
   }
 
   const DTreeContext &active_context = tree.active_context();

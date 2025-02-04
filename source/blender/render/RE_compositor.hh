@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace blender::compositor {
 class RenderContext;
 class Profiler;
+enum class OutputTypes : uint8_t;
 }  // namespace blender::compositor
 
 struct bNodeTree;
@@ -32,7 +35,8 @@ void RE_compositor_execute(Render &render,
                            const bNodeTree &node_tree,
                            const char *view_name,
                            blender::compositor::RenderContext *render_context,
-                           blender::compositor::Profiler *profiler);
+                           blender::compositor::Profiler *profiler,
+                           blender::compositor::OutputTypes needed_outputs);
 
 /* Free compositor caches. */
 void RE_compositor_free(Render &render);

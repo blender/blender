@@ -82,14 +82,9 @@ class Context : public compositor::Context {
         this->get_render_data().compositor_denoise_preview_quality);
   }
 
-  bool use_file_output() const override
+  compositor::OutputTypes needed_outputs() const override
   {
-    return false;
-  }
-
-  bool should_compute_node_previews() const override
-  {
-    return false;
+    return compositor::OutputTypes::Composite | compositor::OutputTypes::Viewer;
   }
 
   /* The viewport compositor does not support viewer outputs, so treat viewers as composite

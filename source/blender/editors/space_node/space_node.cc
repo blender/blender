@@ -669,28 +669,6 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-/* Returns true if an image editor exists that views the compositor result. */
-static bool is_compositor_viewer_image_visible(const bContext *C)
-{
-  wmWindowManager *window_manager = CTX_wm_manager(C);
-  LISTBASE_FOREACH (wmWindow *, window, &window_manager->windows) {
-    bScreen *screen = WM_window_get_active_screen(window);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *space_link = static_cast<SpaceLink *>(area->spacedata.first);
-      if (!space_link || space_link->spacetype != SPACE_IMAGE) {
-        continue;
-      }
-      const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(space_link);
-      Image *image = ED_space_image(space_image);
-      if (image && image->source == IMA_SRC_VIEWER) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 static void node_area_refresh(const bContext *C, ScrArea *area)
 {
   /* default now: refresh node is starting preview */
@@ -704,11 +682,7 @@ static void node_area_refresh(const bContext *C, ScrArea *area)
       if (scene->use_nodes) {
         if (snode->runtime->recalc_regular_compositing) {
           snode->runtime->recalc_regular_compositing = false;
-          /* Only start compositing if its result will be visible either in the backdrop or in a
-           * viewer image. */
-          if (snode->flag & SNODE_BACKDRAW || is_compositor_viewer_image_visible(C)) {
-            ED_node_composite_job(C, snode->nodetree, scene);
-          }
+          ED_node_composite_job(C, snode->nodetree, scene);
         }
       }
     }

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
@@ -22,6 +24,16 @@
 #include "COM_texture_pool.hh"
 
 namespace blender::compositor {
+
+/* Enumerates the possible outputs that the compositor can compute. */
+enum class OutputTypes : uint8_t {
+  None = 0,
+  Composite = 1 << 0,
+  Viewer = 1 << 1,
+  FileOutput = 1 << 2,
+  Previews = 1 << 3,
+};
+ENUM_OPERATORS(OutputTypes, OutputTypes::Previews)
 
 /* ------------------------------------------------------------------------------------------------
  * Context
@@ -57,11 +69,8 @@ class Context {
    * denoising quality on a node. */
   virtual eCompositorDenoiseQaulity get_denoise_quality() const = 0;
 
-  /* True if the compositor should write file outputs, false otherwise. */
-  virtual bool use_file_output() const = 0;
-
-  /* True if the compositor should compute node previews, false otherwise. */
-  virtual bool should_compute_node_previews() const = 0;
+  /* Returns all output types that should be computed. */
+  virtual OutputTypes needed_outputs() const = 0;
 
   /* Get the render settings for compositing. */
   virtual const RenderData &get_render_data() const = 0;

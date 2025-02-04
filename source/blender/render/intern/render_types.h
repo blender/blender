@@ -26,6 +26,7 @@
 namespace blender::compositor {
 class RenderContext;
 class Profiler;
+enum class OutputTypes : uint8_t;
 }  // namespace blender::compositor
 
 struct bNodeTree;
@@ -50,7 +51,8 @@ struct BaseRender {
                                   const bNodeTree &node_tree,
                                   const char *view_name,
                                   blender::compositor::RenderContext *render_context,
-                                  blender::compositor::Profiler *profiler) = 0;
+                                  blender::compositor::Profiler *profiler,
+                                  blender::compositor::OutputTypes needed_outputs) = 0;
   virtual void compositor_free() = 0;
 
   virtual void display_init(RenderResult *render_result) = 0;
@@ -102,7 +104,8 @@ struct ViewRender : public BaseRender {
                           const bNodeTree & /*node_tree*/,
                           const char * /*view_name*/,
                           blender::compositor::RenderContext * /*render_context*/,
-                          blender::compositor::Profiler * /*profiler*/) override
+                          blender::compositor::Profiler * /*profiler*/,
+                          blender::compositor::OutputTypes /*needed_outputs*/) override
   {
   }
   void compositor_free() override {}
@@ -147,7 +150,8 @@ struct Render : public BaseRender {
                           const bNodeTree &node_tree,
                           const char *view_name,
                           blender::compositor::RenderContext *render_context,
-                          blender::compositor::Profiler *profiler) override;
+                          blender::compositor::Profiler *profiler,
+                          blender::compositor::OutputTypes needed_outputs) override;
   void compositor_free() override;
 
   void display_init(RenderResult *render_result) override;

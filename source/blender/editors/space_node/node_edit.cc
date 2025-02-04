@@ -75,6 +75,7 @@
 #include "node_intern.hh" /* own include */
 
 #include "COM_compositor.hh"
+#include "COM_context.hh"
 #include "COM_profiler.hh"
 
 namespace blender::ed::space_node {
@@ -109,6 +110,7 @@ struct CompoJob {
   bool cancelled;
 
   compositor::Profiler profiler;
+  compositor::OutputTypes needed_outputs;
 };
 
 float node_socket_calculate_height(const bNodeSocket &socket)
@@ -308,14 +310,15 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
-    COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler);
+    COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      COM_execute(cj->re, &scene->r, scene, ntree, srv->name, nullptr, &cj->profiler);
+      COM_execute(
+          cj->re, &scene->r, scene, ntree, srv->name, nullptr, &cj->profiler, cj->needed_outputs);
     }
   }
 
@@ -378,8 +381,63 @@ static bool is_compositing_possible(const bContext *C)
   return true;
 }
 
+/* Returns the compositor outputs that need to be computed because their result is visible to the
+ * user. */
+static blender::compositor::OutputTypes get_compositor_needed_outputs(const bContext *C)
+{
+  blender::compositor::OutputTypes needed_outputs = blender::compositor::OutputTypes::None;
+
+  wmWindowManager *window_manager = CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, window, &window_manager->windows) {
+    bScreen *screen = WM_window_get_active_screen(window);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      SpaceLink *space_link = static_cast<SpaceLink *>(area->spacedata.first);
+      if (!space_link || !ELEM(space_link->spacetype, SPACE_NODE, SPACE_IMAGE)) {
+        continue;
+      }
+      if (space_link->spacetype == SPACE_NODE) {
+        const SpaceNode *space_node = reinterpret_cast<const SpaceNode *>(space_link);
+        if (space_node->flag & SNODE_BACKDRAW) {
+          needed_outputs |= blender::compositor::OutputTypes::Viewer;
+        }
+        if (space_node->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) {
+          needed_outputs |= blender::compositor::OutputTypes::Previews;
+        }
+      }
+      else if (space_link->spacetype == SPACE_IMAGE) {
+        const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(space_link);
+        Image *image = ED_space_image(space_image);
+        if (!image || image->source != IMA_SRC_VIEWER) {
+          continue;
+        }
+        if (image->type == IMA_TYPE_R_RESULT) {
+          needed_outputs |= blender::compositor::OutputTypes::Composite;
+        }
+        else if (image->type == IMA_TYPE_COMPOSITE) {
+          needed_outputs |= blender::compositor::OutputTypes::Viewer;
+        }
+      }
+
+      /* All outputs are already needed, return early. */
+      if (needed_outputs ==
+          (blender::compositor::OutputTypes::Composite | blender::compositor::OutputTypes::Viewer |
+           blender::compositor::OutputTypes::Previews))
+      {
+        return needed_outputs;
+      }
+    }
+  }
+
+  return needed_outputs;
+}
+
 void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner)
 {
+  blender::compositor::OutputTypes needed_outputs = get_compositor_needed_outputs(C);
+  if (needed_outputs == blender::compositor::OutputTypes::None) {
+    return;
+  }
+
   using namespace blender::ed::space_node;
 
   Main *bmain = CTX_data_main(C);
@@ -416,6 +474,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   cj->view_layer = view_layer;
   cj->ntree = nodetree;
   cj->recalc_flags = compo_get_recalc_flags(C);
+  cj->needed_outputs = needed_outputs;
 
   /* Set up job. */
   WM_jobs_customdata_set(wm_job, cj, compo_freejob);

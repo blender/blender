@@ -50,7 +50,7 @@ void NodeOperation::evaluate()
 
 void NodeOperation::compute_preview()
 {
-  if (context().should_compute_node_previews() && is_node_preview_needed(node())) {
+  if (bool(context().needed_outputs() & OutputTypes::Previews) && is_node_preview_needed(node())) {
     compositor::compute_preview(context(), node(), *get_preview_result());
   }
 }
