@@ -192,6 +192,12 @@ enum eWM_CapabilitiesFlag {
 };
 ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_WINDOW_DECORATION_STYLES)
 
+/**
+ * Return the capabilities of the windowing system.
+ *
+ * \note Some callers need to check `G.background == false` before this function.
+ * See inline code-comments for details.
+ */
 eWM_CapabilitiesFlag WM_capabilities_flag();
 
 void WM_check(bContext *C);
@@ -392,18 +398,25 @@ enum eWM_WindowDecorationStyleFlag {
 };
 ENUM_OPERATORS(eWM_WindowDecorationStyleFlag, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR)
 
-/* Get/set window decoration style flags. */
-eWM_WindowDecorationStyleFlag WM_window_get_decoration_style_flags(const wmWindow *win);
-void WM_window_set_decoration_style_flags(const wmWindow *win,
+/**
+ * Get the window decoration style flags.
+ */
+eWM_WindowDecorationStyleFlag WM_window_decoration_style_flags_get(const wmWindow *win);
+/**
+ * Set window decoration style flags.
+ * Use before calling #WM_window_decoration_style_apply.
+ */
+void WM_window_decoration_style_flags_set(const wmWindow *win,
                                           eWM_WindowDecorationStyleFlag style_flags);
 /**
  * Apply the window decoration style using the current style flags and by parsing style
  * settings from the current Blender theme.
  * The screen parameter is optional, and can be passed for enhanced theme parsing.
  *
- * \note Avoid calling this function directly, prefer sending an NC_WINDOW WM notification instead.
+ * \note Avoid calling this function directly, prefer sending an #NC_WINDOW
+ * notification when #WM_CAPABILITY_WINDOW_DECORATION_STYLES is supported instead.
  */
-void WM_window_apply_decoration_style(const wmWindow *win, const bScreen *screen = nullptr);
+void WM_window_decoration_style_apply(const wmWindow *win, const bScreen *screen = nullptr);
 
 /* `wm_files.cc`. */
 

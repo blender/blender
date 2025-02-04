@@ -598,7 +598,13 @@ void WM_window_set_dpi(const wmWindow *win)
   U.widget_unit = int(roundf(18.0f * U.scale_factor)) + (2 * pixelsize);
 }
 
-eWM_WindowDecorationStyleFlag WM_window_get_decoration_style_flags(const wmWindow *win)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window Decoration Style
+ * \{ */
+
+eWM_WindowDecorationStyleFlag WM_window_decoration_style_flags_get(const wmWindow *win)
 {
   const GHOST_TWindowDecorationStyleFlags ghost_style_flags = GHOST_GetWindowDecorationStyleFlags(
       static_cast<GHOST_WindowHandle>(win->ghostwin));
@@ -612,9 +618,10 @@ eWM_WindowDecorationStyleFlag WM_window_get_decoration_style_flags(const wmWindo
   return wm_style_flags;
 }
 
-void WM_window_set_decoration_style_flags(const wmWindow *win,
+void WM_window_decoration_style_flags_set(const wmWindow *win,
                                           eWM_WindowDecorationStyleFlag style_flags)
 {
+  BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES);
   unsigned int ghost_style_flags = GHOST_kDecorationNone;
 
   if (style_flags & WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR) {
@@ -657,7 +664,7 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
                                          decoration_settings);
 }
 
-void WM_window_apply_decoration_style(const wmWindow *win, const bScreen *screen)
+void WM_window_decoration_style_apply(const wmWindow *win, const bScreen *screen)
 {
   BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES);
   wm_window_decoration_style_set_from_theme(win, screen);
@@ -926,8 +933,8 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
 
     if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES) {
       /* Only decoration style we have for now. */
-      WM_window_set_decoration_style_flags(win, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR);
-      WM_window_apply_decoration_style(win);
+      WM_window_decoration_style_flags_set(win, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR);
+      WM_window_decoration_style_apply(win);
     }
   }
 
@@ -2220,6 +2227,15 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
     return flag;
   }
   flag |= WM_CAPABILITY_INITIALIZED;
+
+  /* NOTE(@ideasman42): Regarding tests.
+   * Some callers of this function may run from tests where GHOST's hasn't been initialized.
+   * In such cases it may be necessary to check `!G.background` which is acceptable in most cases.
+   * At time of writing this is the case for `bl_animation_keyframing`.
+   *
+   * While this function *could* early-exit when in background mode, don't do this as GHOST
+   * may be initialized in background mode for GPU rendering and in this case we may want to
+   * query GHOST/GPU related capabilities. */
 
   const GHOST_TCapabilityFlag ghost_flag = GHOST_GetCapabilities();
   if (ghost_flag & GHOST_kCapabilityCursorWarp) {
