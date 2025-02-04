@@ -264,7 +264,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   }
   else if (STRPREFIX(opname, "OBJECT_OT")) {
     /* Exception, this needs to work outside object mode too. */
-    if (STRPREFIX(opname, "OBJECT_OT_mode_set")) {
+    if (STRPREFIX(opname, "OBJECT_OT_mode_set") || STRPREFIX(opname, "OBJECT_OT_transfer_mode")) {
       km = WM_keymap_find_all(wm, "Object Non-modal", SPACE_EMPTY, RGN_TYPE_WINDOW);
     }
     else {
