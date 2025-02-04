@@ -873,6 +873,8 @@ static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gp
                                                    MutableSpan<float3>();
   MutableSpan<float> radii = drawing.radii_for_write();
   MutableSpan<float> opacities = drawing.opacities_for_write();
+  /* Note: Since we *know* the drawing are created from scratch, we assume that the following
+   * `lookup_or_add_for_write_span` calls always return valid writers. */
   SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
       "delta_time", AttrDomain::Point);
   SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
