@@ -51,15 +51,15 @@ static auto &get_gizmo_type_map()
   return map;
 }
 
-const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet)
+const wmGizmoType *WM_gizmotype_find(const StringRef idname, bool quiet)
 {
-  if (idname[0]) {
-    if (wmGizmoType *const *gzt = get_gizmo_type_map().lookup_key_ptr_as(StringRef(idname))) {
+  if (!idname.is_empty()) {
+    if (wmGizmoType *const *gzt = get_gizmo_type_map().lookup_key_ptr_as(idname)) {
       return *gzt;
     }
 
     if (!quiet) {
-      printf("search for unknown gizmo '%s'\n", idname);
+      printf("search for unknown gizmo '%s'\n", std::string(idname).c_str());
     }
   }
   else {
@@ -159,9 +159,9 @@ void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *gzt)
   gizmotype_unlink(C, bmain, gzt);
 }
 
-bool WM_gizmotype_remove(bContext *C, Main *bmain, const char *idname)
+bool WM_gizmotype_remove(bContext *C, Main *bmain, const StringRef idname)
 {
-  wmGizmoType *const *gzt = get_gizmo_type_map().lookup_key_ptr_as(StringRef(idname));
+  wmGizmoType *const *gzt = get_gizmo_type_map().lookup_key_ptr_as(idname);
   if (gzt == nullptr) {
     return false;
   }

@@ -16,6 +16,8 @@
 #include "WM_gizmo_types.hh"
 #include "wm_gizmo_fn.hh"
 
+#include "BLI_string_ref.hh"
+
 struct ARegion;
 struct bContext;
 struct IDProperty;
@@ -52,7 +54,7 @@ wmGizmo *WM_gizmo_new_ptr(const wmGizmoType *gzt, wmGizmoGroup *gzgroup, Pointer
  * if you need to check it exists use #WM_gizmo_new_ptr
  * because callers of this function don't NULL check the return value.
  */
-wmGizmo *WM_gizmo_new(const char *idname, wmGizmoGroup *gzgroup, PointerRNA *properties);
+wmGizmo *WM_gizmo_new(blender::StringRef idname, wmGizmoGroup *gzgroup, PointerRNA *properties);
 /**
  * \warning this doesn't check #wmGizmoMap (highlight, selection etc).
  * Typical use is when freeing the windowing data,
@@ -155,12 +157,14 @@ void WM_gizmo_calc_matrix_final(const wmGizmo *gz, float r_mat[4][4]);
 /* Properties. */
 
 void WM_gizmo_properties_create_ptr(PointerRNA *ptr, wmGizmoType *gzt);
-void WM_gizmo_properties_create(PointerRNA *ptr, const char *gtstring);
+void WM_gizmo_properties_create(PointerRNA *ptr, blender::StringRef gtstring);
 /**
  * Similar to #WM_gizmo_properties_create
  * except its uses ID properties used for key-maps and macros.
  */
-void WM_gizmo_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *gtstring);
+void WM_gizmo_properties_alloc(PointerRNA **ptr,
+                               IDProperty **properties,
+                               blender::StringRef gtstring);
 void WM_gizmo_properties_sanitize(PointerRNA *ptr, bool no_context);
 /**
  * Set all props to their default.
@@ -180,10 +184,10 @@ void WM_gizmo_properties_free(PointerRNA *ptr);
 
 /* `wm_gizmo_type.cc` */
 
-const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet);
+const wmGizmoType *WM_gizmotype_find(blender::StringRef idname, bool quiet);
 void WM_gizmotype_append(void (*gtfunc)(wmGizmoType *));
 void WM_gizmotype_append_ptr(void (*gtfunc)(wmGizmoType *, void *), void *userdata);
-bool WM_gizmotype_remove(bContext *C, Main *bmain, const char *idname);
+bool WM_gizmotype_remove(bContext *C, Main *bmain, blender::StringRef idname);
 void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *gzt);
 /**
  * Free but don't remove from #GHash.
@@ -192,7 +196,7 @@ void WM_gizmotype_free_ptr(wmGizmoType *gzt);
 
 /* `wm_gizmo_group_type.cc` */
 
-wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet);
+wmGizmoGroupType *WM_gizmogrouptype_find(blender::StringRef idname, bool quiet);
 wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(wmGizmoGroupType *));
 wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(wmGizmoGroupType *, void *),
                                                void *userdata);
@@ -380,14 +384,16 @@ ARegion *WM_gizmomap_tooltip_init(
 wmGizmoMapType *WM_gizmomaptype_find(const wmGizmoMapType_Params *gzmap_params);
 wmGizmoMapType *WM_gizmomaptype_ensure(const wmGizmoMapType_Params *gzmap_params);
 
-wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(wmGizmoMapType *gzmap_type, const char *idname);
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(wmGizmoMapType *gzmap_type,
+                                                blender::StringRef idname);
 wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(wmGizmoMapType *gzmap_type,
                                                     const wmGizmoGroupType *gzgt);
 /**
  * Use this for registering gizmos on startup.
  * For runtime, use #WM_gizmomaptype_group_link_runtime.
  */
-wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(wmGizmoMapType *gzmap_type, const char *idname);
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(wmGizmoMapType *gzmap_type,
+                                                blender::StringRef idname);
 wmGizmoGroupTypeRef *WM_gizmomaptype_group_link_ptr(wmGizmoMapType *gzmap_type,
                                                     wmGizmoGroupType *gzgt);
 
@@ -415,11 +421,11 @@ void WM_gizmomaptype_group_free(wmGizmoGroupTypeRef *gzgt_ref);
 
 void WM_gizmo_group_type_add_ptr_ex(wmGizmoGroupType *gzgt, wmGizmoMapType *gzmap_type);
 void WM_gizmo_group_type_add_ptr(wmGizmoGroupType *gzgt);
-void WM_gizmo_group_type_add(const char *idname);
+void WM_gizmo_group_type_add(blender::StringRef idname);
 
 bool WM_gizmo_group_type_ensure_ptr_ex(wmGizmoGroupType *gzgt, wmGizmoMapType *gzmap_type);
 bool WM_gizmo_group_type_ensure_ptr(wmGizmoGroupType *gzgt);
-bool WM_gizmo_group_type_ensure(const char *idname);
+bool WM_gizmo_group_type_ensure(blender::StringRef idname);
 
 /**
  * Call #WM_gizmo_group_type_free_ptr after to remove & free.
@@ -428,18 +434,18 @@ void WM_gizmo_group_type_remove_ptr_ex(Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type);
 void WM_gizmo_group_type_remove_ptr(Main *bmain, wmGizmoGroupType *gzgt);
-void WM_gizmo_group_type_remove(Main *bmain, const char *idname);
+void WM_gizmo_group_type_remove(Main *bmain, blender::StringRef idname);
 
 void WM_gizmo_group_type_unlink_delayed_ptr_ex(wmGizmoGroupType *gzgt, wmGizmoMapType *gzmap_type);
 void WM_gizmo_group_type_unlink_delayed_ptr(wmGizmoGroupType *gzgt);
-void WM_gizmo_group_type_unlink_delayed(const char *idname);
+void WM_gizmo_group_type_unlink_delayed(blender::StringRef idname);
 
 void WM_gizmo_group_unlink_delayed_ptr_from_space(wmGizmoGroupType *gzgt,
                                                   wmGizmoMapType *gzmap_type,
                                                   ScrArea *area);
 
 void WM_gizmo_group_type_free_ptr(wmGizmoGroupType *gzgt);
-bool WM_gizmo_group_type_free(const char *idname);
+bool WM_gizmo_group_type_free(blender::StringRef idname);
 
 /**
  * Has the result of unlinking and linking (re-initializes gizmo's).
@@ -448,7 +454,7 @@ void WM_gizmo_group_type_reinit_ptr_ex(Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type);
 void WM_gizmo_group_type_reinit_ptr(Main *bmain, wmGizmoGroupType *gzgt);
-void WM_gizmo_group_type_reinit(Main *bmain, const char *idname);
+void WM_gizmo_group_type_reinit(Main *bmain, blender::StringRef idname);
 
 /* Utilities. */
 

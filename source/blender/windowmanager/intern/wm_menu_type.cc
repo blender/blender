@@ -38,16 +38,16 @@ static auto &get_menu_type_map()
   return map;
 }
 
-MenuType *WM_menutype_find(const char *idname, bool quiet)
+MenuType *WM_menutype_find(const StringRef idname, bool quiet)
 {
-  if (idname[0]) {
-    if (MenuType *const *mt = get_menu_type_map().lookup_key_ptr_as(StringRef(idname))) {
+  if (!idname.is_empty()) {
+    if (MenuType *const *mt = get_menu_type_map().lookup_key_ptr_as(idname)) {
       return *mt;
     }
   }
 
   if (!quiet) {
-    printf("search for unknown menutype %s\n", idname);
+    printf("search for unknown menutype %s\n", std::string(idname).c_str());
   }
 
   return nullptr;

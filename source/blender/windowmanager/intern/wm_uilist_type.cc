@@ -44,16 +44,16 @@ static auto &get_list_type_map()
   return map;
 }
 
-uiListType *WM_uilisttype_find(const char *idname, bool quiet)
+uiListType *WM_uilisttype_find(const StringRef idname, bool quiet)
 {
-  if (idname[0]) {
-    if (uiListType *const *ult = get_list_type_map().lookup_key_ptr_as(StringRef(idname))) {
+  if (!idname.is_empty()) {
+    if (uiListType *const *ult = get_list_type_map().lookup_key_ptr_as(idname)) {
       return *ult;
     }
   }
 
   if (!quiet) {
-    printf("search for unknown uilisttype %s\n", idname);
+    printf("search for unknown uilisttype %s\n", std::string(idname).c_str());
   }
 
   return nullptr;

@@ -37,16 +37,16 @@ static auto &get_panel_type_map()
   return map;
 }
 
-PanelType *WM_paneltype_find(const char *idname, bool quiet)
+PanelType *WM_paneltype_find(const StringRef idname, bool quiet)
 {
-  if (idname[0]) {
-    if (PanelType *const *pt = get_panel_type_map().lookup_key_ptr_as(StringRef(idname))) {
+  if (!idname.is_empty()) {
+    if (PanelType *const *pt = get_panel_type_map().lookup_key_ptr_as(idname)) {
       return *pt;
     }
   }
 
   if (!quiet) {
-    printf("search for unknown paneltype %s\n", idname);
+    printf("search for unknown paneltype %s\n", std::string(idname).c_str());
   }
 
   return nullptr;

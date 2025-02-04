@@ -1269,7 +1269,7 @@ void WM_operator_type_modal_from_exec_for_object_edit_coords(wmOperatorType *ot)
  * Called on initialize #WM_init()
  */
 void WM_uilisttype_init();
-uiListType *WM_uilisttype_find(const char *idname, bool quiet);
+uiListType *WM_uilisttype_find(blender::StringRef idname, bool quiet);
 bool WM_uilisttype_add(uiListType *ult);
 void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult);
 void WM_uilisttype_free();
@@ -1300,7 +1300,7 @@ const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list);
  * \note Called on initialize #WM_init().
  */
 void WM_menutype_init();
-MenuType *WM_menutype_find(const char *idname, bool quiet);
+MenuType *WM_menutype_find(blender::StringRef idname, bool quiet);
 blender::Span<MenuType *> WM_menutypes_registered_get();
 bool WM_menutype_add(MenuType *mt);
 void WM_menutype_freelink(MenuType *mt);
@@ -1321,7 +1321,7 @@ void WM_menutype_idname_visit_for_search(
  */
 void WM_paneltype_init();
 void WM_paneltype_clear();
-PanelType *WM_paneltype_find(const char *idname, bool quiet);
+PanelType *WM_paneltype_find(blender::StringRef idname, bool quiet);
 bool WM_paneltype_add(PanelType *pt);
 void WM_paneltype_remove(PanelType *pt);
 

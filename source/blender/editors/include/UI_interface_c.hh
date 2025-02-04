@@ -2885,11 +2885,8 @@ void uiTemplateAssetView(uiLayout *layout,
 
 namespace blender::ui {
 
-void template_asset_shelf_popover(uiLayout &layout,
-                                  const bContext &C,
-                                  StringRefNull asset_shelf_id,
-                                  StringRefNull name,
-                                  int icon);
+void template_asset_shelf_popover(
+    uiLayout &layout, const bContext &C, StringRefNull asset_shelf_id, StringRef name, int icon);
 
 }
 
@@ -3154,13 +3151,13 @@ void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, blender::StringRef name, int
  */
 void uiItemM_ptr(uiLayout *layout, MenuType *mt, std::optional<blender::StringRef> name, int icon);
 void uiItemM(uiLayout *layout,
-             blender::StringRefNull menuname,
+             blender::StringRef menuname,
              std::optional<blender::StringRef> name,
              int icon);
 /**
  * Menu contents.
  */
-void uiItemMContents(uiLayout *layout, blender::StringRefNull menuname);
+void uiItemMContents(uiLayout *layout, blender::StringRef menuname);
 
 /* Decorators. */
 
@@ -3195,12 +3192,12 @@ void uiItemProgressIndicator(uiLayout *layout,
 void uiItemPopoverPanel_ptr(uiLayout *layout,
                             const bContext *C,
                             PanelType *pt,
-                            std::optional<blender::StringRefNull> name_opt,
+                            std::optional<blender::StringRef> name_opt,
                             int icon);
 void uiItemPopoverPanel(uiLayout *layout,
                         const bContext *C,
-                        blender::StringRefNull panel_type,
-                        std::optional<blender::StringRefNull> name_opt,
+                        blender::StringRef panel_type,
+                        std::optional<blender::StringRef> name_opt,
                         int icon);
 void uiItemPopoverPanelFromGroup(uiLayout *layout,
                                  bContext *C,

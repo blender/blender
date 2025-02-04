@@ -44,6 +44,8 @@
 #  include "BPY_extern.hh"
 #endif
 
+using blender::StringRef;
+
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroup
  * \{ */
@@ -939,18 +941,18 @@ wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(wmGizmoMapType *gzmap_type,
   return nullptr;
 }
 
-wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(wmGizmoMapType *gzmap_type, const char *idname)
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(wmGizmoMapType *gzmap_type, const StringRef idname)
 {
   /* Could use hash lookups as operator types do, for now simple search. */
   LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
-    if (STREQ(idname, gzgt_ref->type->idname)) {
+    if (idname == gzgt_ref->type->idname) {
       return gzgt_ref;
     }
   }
   return nullptr;
 }
 
-wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(wmGizmoMapType *gzmap_type, const char *idname)
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(wmGizmoMapType *gzmap_type, const StringRef idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != nullptr);
@@ -1119,7 +1121,7 @@ void WM_gizmo_group_type_add_ptr(wmGizmoGroupType *gzgt)
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   WM_gizmo_group_type_add_ptr_ex(gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_add(const char *idname)
+void WM_gizmo_group_type_add(const StringRef idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != nullptr);
@@ -1140,7 +1142,7 @@ bool WM_gizmo_group_type_ensure_ptr(wmGizmoGroupType *gzgt)
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   return WM_gizmo_group_type_ensure_ptr_ex(gzgt, gzmap_type);
 }
-bool WM_gizmo_group_type_ensure(const char *idname)
+bool WM_gizmo_group_type_ensure(const StringRef idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != nullptr);
@@ -1158,7 +1160,7 @@ void WM_gizmo_group_type_remove_ptr(Main *bmain, wmGizmoGroupType *gzgt)
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   WM_gizmo_group_type_remove_ptr_ex(bmain, gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_remove(Main *bmain, const char *idname)
+void WM_gizmo_group_type_remove(Main *bmain, const StringRef idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != nullptr);
@@ -1180,7 +1182,7 @@ void WM_gizmo_group_type_reinit_ptr(Main *bmain, wmGizmoGroupType *gzgt)
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   WM_gizmo_group_type_reinit_ptr_ex(bmain, gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_reinit(Main *bmain, const char *idname)
+void WM_gizmo_group_type_reinit(Main *bmain, const StringRef idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != nullptr);
@@ -1200,7 +1202,7 @@ void WM_gizmo_group_type_unlink_delayed_ptr(wmGizmoGroupType *gzgt)
   WM_gizmo_group_type_unlink_delayed_ptr_ex(gzgt, gzmap_type);
 }
 
-void WM_gizmo_group_type_unlink_delayed(const char *idname)
+void WM_gizmo_group_type_unlink_delayed(const StringRef idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != nullptr);
