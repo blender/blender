@@ -779,7 +779,7 @@ PACKAGES_ALL = (
                                   },
             ),
     Package(name="OpenColorIO Library", is_mandatory=False,
-            version="2.3.2", version_short="2.3", version_min="2.0", version_mex="3.0",
+            version="2.4.1", version_short="2.4", version_min="2.0", version_mex="3.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libopencolorio-dev",
                                   DISTRO_ID_FEDORA: "OpenColorIO-devel",
@@ -797,7 +797,7 @@ PACKAGES_ALL = (
                                   },
             ),
     Package(name="OpenEXR Library", is_mandatory=False,
-            version="3.2.4", version_short="3.2", version_min="3.0", version_mex="4.0",
+            version="3.3.2", version_short="3.3", version_min="3.0", version_mex="4.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libopenexr-dev",
                                   DISTRO_ID_FEDORA: "openexr-devel",
@@ -865,7 +865,7 @@ PACKAGES_ALL = (
                                   },
             ),
     Package(name="OpenVDB Library", is_mandatory=False,
-            version="11.0.0", version_short="11.0", version_min="10.0", version_mex="12.0",
+            version="12.0.0", version_short="12.0", version_min="11.0", version_mex="13.0",
             sub_packages=(
                 # Assume packaged versions of the dependencies are compatible with OpenVDB package.
                 Package(name="OpenVDB Dependencies", is_mandatory=False, is_group=True,
@@ -974,7 +974,7 @@ PACKAGES_ALL = (
                                   },
             ),
     Package(name="FFMPEG Library", is_mandatory=False,
-            version="6.0", version_short="6.0", version_min="4.0", version_mex="7.0",
+            version="6.1.1", version_short="6.0", version_min="4.0", version_mex="8.0",
             sub_packages=(
                 Package(name="AVDevice FFMPEG Library", is_mandatory=False,
                         distro_package_names={DISTRO_ID_DEBIAN: "libavdevice-dev",
