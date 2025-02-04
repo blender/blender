@@ -887,7 +887,7 @@ PyDoc_STRVAR(
     "\n");
 static PyTypeObject BlenderAppTranslationsType = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "bpy.app._translations_type",
+    /*tp_name*/ "bpy_app_translations",
     /*tp_basicsize*/ sizeof(BlenderAppTranslations),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
