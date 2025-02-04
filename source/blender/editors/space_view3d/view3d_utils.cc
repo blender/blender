@@ -218,18 +218,18 @@ bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
 /** \name View State/Context Utilities
  * \{ */
 
-void view3d_operator_needs_opengl(const bContext *C)
+void view3d_operator_needs_gpu(const bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
-  view3d_region_operator_needs_opengl(region);
+  view3d_region_operator_needs_gpu(region);
 }
 
-void view3d_region_operator_needs_opengl(ARegion *region)
+void view3d_region_operator_needs_gpu(ARegion *region)
 {
   /* for debugging purpose, context should always be OK */
   if ((region == nullptr) || (region->regiontype != RGN_TYPE_WINDOW)) {
-    printf("view3d_region_operator_needs_opengl error, wrong region\n");
+    printf("view3d_region_operator_needs_gpu error, wrong region\n");
   }
   else {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);

@@ -180,7 +180,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
     int v_idx_best = -1;
     uint index;
 
-    view3d_operator_needs_opengl(C);
+    view3d_operator_needs_gpu(C);
     ED_view3d_init_mats_rv3d(vc.obact, vc.rv3d);
 
     if (use_vert_sel) {
@@ -330,7 +330,7 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
 
   bool found = false;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   ED_view3d_init_mats_rv3d(vc.obact, vc.rv3d);
 
   if (use_vert_sel) {

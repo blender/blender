@@ -394,7 +394,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (is_interactive) {
-    view3d_operator_needs_opengl(C);
+    view3d_operator_needs_gpu(C);
   }
 
   /* for re-execution, check edge index is in range before we setup ringsel */
@@ -555,7 +555,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
   lcd->vc = em_setup_viewcontext(C);
   lcd->region = lcd->vc.region;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   /* using the keyboard to input the number of cuts */
   /* Modal numinput active, try to handle numeric inputs first... */

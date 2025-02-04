@@ -8304,7 +8304,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 
       case EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED: {
         new_mode = EDBM_CLNOR_POINTTO_MODE_COORDINATES;
-        view3d_operator_needs_opengl(C);
+        view3d_operator_needs_gpu(C);
         SelectPick_Params params{};
         params.sel_op = SEL_OP_SET;
         if (EDBM_select_pick(C, event->mval, &params)) {

@@ -424,7 +424,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
   Bone *bone, *curBone, *next = nullptr;
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   Base *base = nullptr;
   bone = ED_armature_pick_bone(C, event->mval, !extend, &base);

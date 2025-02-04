@@ -4840,7 +4840,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   short hand;
   bool changed = false;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 

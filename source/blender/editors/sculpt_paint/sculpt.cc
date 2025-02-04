@@ -4927,7 +4927,7 @@ static void brush_stroke_init(bContext *C)
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   if (!G.background) {
-    view3d_operator_needs_opengl(C);
+    view3d_operator_needs_gpu(C);
   }
   brush_init_tex(sd, ss);
 

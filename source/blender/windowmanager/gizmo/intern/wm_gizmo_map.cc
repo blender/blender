@@ -661,7 +661,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
   *r_part = 0;
 
   /* Set up view matrices. */
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   /* Search for 3D gizmo's that use the 2D callback for checking intersections. */
   bool has_3d = false;

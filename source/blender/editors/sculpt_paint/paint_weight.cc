@@ -1816,7 +1816,7 @@ static void wpaint_stroke_update_step(bContext *C,
   vc = &wpd->vc;
   ob = vc->obact;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());

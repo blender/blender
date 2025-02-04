@@ -266,7 +266,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
         /* Unfortunately it's necessary to always draw otherwise we leave stale text. */
         ED_region_tag_redraw(region);
 
-        view3d_operator_needs_opengl(C);
+        view3d_operator_needs_gpu(C);
 
         /* Ensure the depth buffer is updated for #ED_view3d_autodist. */
         ED_view3d_depth_override(

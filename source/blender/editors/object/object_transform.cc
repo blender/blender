@@ -2145,7 +2145,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
   XFormAxisData *xfd = static_cast<XFormAxisData *>(op->customdata);
   ARegion *region = xfd->vc.region;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   const bool is_translate = event->modifier & KM_CTRL;
   const bool is_translate_init = is_translate && (xfd->is_translate != is_translate);

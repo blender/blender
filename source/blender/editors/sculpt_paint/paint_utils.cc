@@ -571,7 +571,7 @@ void PAINT_OT_face_select_linked(wmOperatorType *ot)
 static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   paintface_select_linked(C, CTX_data_active_object(C), event->mval, select);
   ED_region_tag_redraw(CTX_wm_region(C));
   return OPERATOR_FINISHED;
@@ -684,7 +684,7 @@ static int paintface_select_loop_invoke(bContext *C, wmOperator *op, const wmEve
   if (!extend) {
     paintface_deselect_all_visible(C, CTX_data_active_object(C), SEL_DESELECT, false);
   }
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   paintface_select_loop(C, CTX_data_active_object(C), event->mval, select);
   ED_region_tag_redraw(CTX_wm_region(C));
   return OPERATOR_FINISHED;
@@ -783,7 +783,7 @@ void PAINT_OT_vert_select_linked(wmOperatorType *ot)
 static int paintvert_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool select = RNA_boolean_get(op->ptr, "select");
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   paintvert_select_linked_pick(C, CTX_data_active_object(C), event->mval, select);
   ED_region_tag_redraw(CTX_wm_region(C));

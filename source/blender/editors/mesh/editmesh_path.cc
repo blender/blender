@@ -727,7 +727,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
   Base *basact = BKE_view_layer_active_base_get(vc.view_layer);
   BMEditMesh *em = vc.em;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   {
     int base_index = -1;

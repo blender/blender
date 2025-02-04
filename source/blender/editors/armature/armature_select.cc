@@ -325,7 +325,7 @@ static void *ed_armature_pick_bone_impl(
   /* Don't use hits with this ID, (armature drawing uses this). */
   const int select_id_ignore = -1;
 
-  hits = view3d_opengl_select_with_id_filter(
+  hits = view3d_gpu_select_with_id_filter(
       &vc, &buffer, &rect, VIEW3D_SELECT_PICK_NEAREST, VIEW3D_SELECT_FILTER_NOP, select_id_ignore);
 
   *r_base = nullptr;
@@ -556,7 +556,7 @@ static int armature_select_linked_pick_invoke(bContext *C, wmOperator *op, const
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
   const bool all_forks = RNA_boolean_get(op->ptr, "all_forks");
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   BKE_object_update_select_id(CTX_data_main(C));
 
   Base *base = nullptr;
@@ -673,7 +673,7 @@ static EditBone *get_nearest_editbonepoint(
   const int select_id_ignore = -1;
 
   /* we _must_ end cache before return, use 'goto cache_end' */
-  view3d_opengl_select_cache_begin();
+  view3d_gpu_select_cache_begin();
 
   {
     const eV3DSelectObjectFilter select_filter = VIEW3D_SELECT_FILTER_NOP;
@@ -683,7 +683,7 @@ static EditBone *get_nearest_editbonepoint(
     BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
     /* VIEW3D_SELECT_PICK_ALL needs to be used or unselectable bones can block selectability of
      * bones further back. See #123963.  */
-    const int hits12 = view3d_opengl_select_with_id_filter(
+    const int hits12 = view3d_gpu_select_with_id_filter(
         vc, &buffer, &rect, VIEW3D_SELECT_PICK_ALL, select_filter, select_id_ignore);
 
     if (hits12 == 1) {
@@ -692,7 +692,7 @@ static EditBone *get_nearest_editbonepoint(
     }
     else if (hits12 > 0) {
       BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
-      const int hits5 = view3d_opengl_select_with_id_filter(
+      const int hits5 = view3d_gpu_select_with_id_filter(
           vc, &buffer, &rect, VIEW3D_SELECT_PICK_ALL, select_filter, select_id_ignore);
 
       if (hits5 == 1) {
@@ -712,7 +712,7 @@ static EditBone *get_nearest_editbonepoint(
   }
 
 cache_end:
-  view3d_opengl_select_cache_end();
+  view3d_gpu_select_cache_end();
 
   Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc->scene, vc->view_layer, vc->v3d);
@@ -2261,7 +2261,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
   bool changed;
   Base *base_dst = nullptr;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   BKE_object_update_select_id(CTX_data_main(C));
 
   ebone_src = arm->act_edbone;
