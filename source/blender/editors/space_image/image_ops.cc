@@ -3356,19 +3356,19 @@ void IMAGE_OT_resize(wmOperatorType *ot)
 /** \name Pack Operator
  * \{ */
 
-static bool image_pack_test(Image *ima, const char *error_message)
+static bool image_pack_test(Image *ima, const char **r_error_message)
 {
   if (!ima) {
     return false;
   }
 
   if (!ID_IS_EDITABLE(&ima->id)) {
-    error_message = "Image is not editable";
+    *r_error_message = "Image is not editable";
     return false;
   }
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-    error_message = "Movies or image sequences do not support packing";
+    *r_error_message = "Movies or image sequences do not support packing";
     return false;
   }
 
@@ -3380,7 +3380,7 @@ static bool image_pack_poll(bContext *C)
   Image *ima = image_from_context(C);
   const char *error_message = nullptr;
 
-  if (image_pack_test(ima, error_message)) {
+  if (image_pack_test(ima, &error_message)) {
     return true;
   }
 
@@ -3396,7 +3396,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
   Image *ima = image_from_context(C);
 
   const char *error_message = nullptr;
-  if (!image_pack_test(ima, error_message)) {
+  if (!image_pack_test(ima, &error_message)) {
     if (error_message) {
       BKE_report(op->reports, RPT_ERROR, error_message);
     }
