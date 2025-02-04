@@ -2510,7 +2510,7 @@ static void placeholders_ensure_valid(Main *bmain)
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     ID *obdata = static_cast<ID *>(ob->data);
     if (obdata != nullptr && obdata->tag & ID_TAG_MISSING) {
-      BKE_object_materials_test(bmain, ob, obdata);
+      BKE_object_materials_sync_length(bmain, ob, obdata);
     }
   }
 }

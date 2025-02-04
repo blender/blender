@@ -1163,7 +1163,7 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *mesh)
     id_us_plus((ID *)mesh);
   }
 
-  BKE_object_materials_test(bmain, ob, (ID *)mesh);
+  BKE_object_materials_sync_length(bmain, ob, (ID *)mesh);
 
   BKE_modifiers_test_object(ob);
 }

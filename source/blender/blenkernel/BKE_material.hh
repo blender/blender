@@ -33,8 +33,12 @@ void BKE_materials_exit();
 /** \name Materials
  * \{ */
 
-void BKE_object_materials_test(Main *bmain, Object *ob, ID *id);
-void BKE_objects_materials_test_all(Main *bmain, ID *id);
+/** Make the object's material array the same size as its data ID's material array. */
+void BKE_object_materials_sync_length(Main *bmain, Object *ob, ID *id);
+
+/** Ensure that every object using this data has a material array of the correct size. */
+void BKE_objects_materials_sync_length_all(Main *bmain, ID *id);
+
 void BKE_object_material_resize(Main *bmain, Object *ob, short totcol, bool do_id_user);
 void BKE_object_material_remap(Object *ob, const unsigned int *remap);
 /**

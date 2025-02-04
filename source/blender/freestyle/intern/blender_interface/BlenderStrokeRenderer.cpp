@@ -807,7 +807,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
     }    // loop over strips
   }      // loop over strokes
 
-  BKE_object_materials_test(freestyle_bmain, object_mesh, (ID *)mesh);
+  BKE_object_materials_sync_length(freestyle_bmain, object_mesh, (ID *)mesh);
 
 #if 0  // XXX
   BLI_assert(mesh->verts_num == vertex_index);
