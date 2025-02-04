@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_function_ref.hh"
+#include "BLI_string_ref.hh"
 #include "DNA_asset_types.h"
 
 struct bUserAssetLibrary;

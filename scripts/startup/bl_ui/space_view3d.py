@@ -4151,6 +4151,9 @@ class VIEW3D_MT_pose(Menu):
         layout.menu("VIEW3D_MT_pose_showhide")
         layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
 
+        layout.separator()
+        layout.operator("POSELIB.create_pose_asset")
+
 
 class VIEW3D_MT_pose_transform(Menu):
     bl_label = "Clear Transform"

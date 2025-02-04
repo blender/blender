@@ -17,10 +17,8 @@
 #include "BLT_translation.hh"
 
 #include "DNA_ID.h"
-#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_action.hh"
@@ -63,7 +61,6 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-#include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
 #include "anim_intern.hh"
@@ -227,53 +224,18 @@ static int insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
   return OPERATOR_FINISHED;
 }
 
-static bool is_idproperty_keyable(IDProperty *id_prop, PointerRNA *ptr, PropertyRNA *prop)
-{
-  /* While you can cast the IDProperty* to a PropertyRNA* and pass it to the functions, this
-   * does not work because it will not have the right flags set. Instead the resolved
-   * PointerRNA and PropertyRNA need to be passed. */
-  if (!RNA_property_anim_editable(ptr, prop)) {
-    return false;
-  }
-
-  if (ELEM(id_prop->type,
-           eIDPropertyType::IDP_BOOLEAN,
-           eIDPropertyType::IDP_INT,
-           eIDPropertyType::IDP_FLOAT,
-           eIDPropertyType::IDP_DOUBLE))
-  {
-    return true;
-  }
-
-  if (id_prop->type == eIDPropertyType::IDP_ARRAY) {
-    if (ELEM(id_prop->subtype,
-             eIDPropertyType::IDP_BOOLEAN,
-             eIDPropertyType::IDP_INT,
-             eIDPropertyType::IDP_FLOAT,
-             eIDPropertyType::IDP_DOUBLE))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 static blender::Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
 {
   eRotationModes rotation_mode;
-  IDProperty *properties;
   blender::Vector<RNAPath> paths;
 
   if (ptr->type == &RNA_PoseBone) {
     bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
     rotation_mode = eRotationModes(pchan->rotmode);
-    properties = pchan->prop;
   }
   else if (ptr->type == &RNA_Object) {
     Object *ob = static_cast<Object *>(ptr->data);
     rotation_mode = eRotationModes(ob->rotmode);
-    properties = ob->id.properties;
   }
   else {
     /* Pointer type not supported. */
@@ -309,33 +271,9 @@ static blender::Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_ROTATION_MODE) {
     paths.append({"rotation_mode"});
   }
+
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES) {
-    if (properties) {
-      LISTBASE_FOREACH (IDProperty *, id_prop, &properties->data.group) {
-        PointerRNA resolved_ptr;
-        PropertyRNA *resolved_prop;
-        std::string path = id_prop->name;
-        /* Resolving the path twice, once as RNA property (without brackets, `"propname"`),
-         * and once as ID property (with brackets, `["propname"]`).
-         * This is required to support IDProperties that have been defined as part of an add-on.
-         * Those need to be animated through an RNA path without the brackets. */
-        bool is_resolved = RNA_path_resolve_property(
-            ptr, path.c_str(), &resolved_ptr, &resolved_prop);
-        if (!is_resolved) {
-          char name_escaped[MAX_IDPROP_NAME * 2];
-          BLI_str_escape(name_escaped, id_prop->name, sizeof(name_escaped));
-          path = fmt::format("[\"{}\"]", name_escaped);
-          is_resolved = RNA_path_resolve_property(
-              ptr, path.c_str(), &resolved_ptr, &resolved_prop);
-        }
-        if (!is_resolved) {
-          continue;
-        }
-        if (is_idproperty_keyable(id_prop, &resolved_ptr, resolved_prop)) {
-          paths.append({path});
-        }
-      }
-    }
+    paths.extend(blender::animrig::get_keyable_id_property_paths(*ptr));
   }
   return paths;
 }

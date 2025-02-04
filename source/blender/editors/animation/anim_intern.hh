@@ -98,3 +98,17 @@ void ANIM_OT_copy_driver_button(wmOperatorType *ot);
 void ANIM_OT_paste_driver_button(wmOperatorType *ot);
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Asset operators
+ * \{ */
+
+namespace blender::ed::animrig {
+
+void POSELIB_OT_create_pose_asset(wmOperatorType *ot);
+void POSELIB_OT_asset_modify(wmOperatorType *ot);
+void POSELIB_OT_asset_delete(wmOperatorType *ot);
+void POSELIB_OT_screenshot_preview(wmOperatorType *ot);
+}  // namespace blender::ed::animrig
+
+/** \} */
