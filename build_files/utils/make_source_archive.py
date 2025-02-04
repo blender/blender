@@ -185,8 +185,6 @@ def create_tarball(
     command += [
         "--transform",
         f"s,^{blender_srcdir.name}/,blender-{version}/,g",
-        "--transform",
-        f"s,^lib/assets/,blender-{version}/release/datafiles/assets/,g",
         "--use-compress-program=xz -1",
         "--create",
         f"--file={tarball}",
