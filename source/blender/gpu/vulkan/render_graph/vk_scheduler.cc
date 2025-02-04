@@ -156,9 +156,8 @@ void VKScheduler::move_transfer_and_dispatch_outside_rendering_scope(
        * is done in the VKNodeType::UPDATE_BUFFER branch. */
       bool add_to_rendering_scope = !rendering_scope.is_empty();
       if (node.type == VKNodeType::UPDATE_BUFFER) {
-        if (!used_buffers.contains(
-                render_graph.resources_.buffer_resources_.lookup(node.update_buffer.dst_buffer)))
-        {
+        /* Checking the node links to reduce potential locking the resource mutex. */
+        if (!used_buffers.contains(render_graph.links_[node_handle].outputs[0].resource.handle)) {
           /* Buffer isn't used by this rendering scope so we can safely move it before the
            * rendering scope begins. */
           pre_rendering_scope.append(node_handle);
@@ -181,16 +180,12 @@ void VKScheduler::move_transfer_and_dispatch_outside_rendering_scope(
        * it is safe to move a node before the rendering scope. */
       const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
       for (const VKRenderGraphLink &input : links.inputs) {
-        if (render_graph.resources_.resource_type_get(input.resource.handle) ==
-            VKResourceType::BUFFER)
-        {
+        if (input.is_link_to_buffer()) {
           used_buffers.add(input.resource.handle);
         }
       }
       for (const VKRenderGraphLink &output : links.outputs) {
-        if (render_graph.resources_.resource_type_get(output.resource.handle) ==
-            VKResourceType::BUFFER)
-        {
+        if (output.is_link_to_buffer()) {
           used_buffers.add(output.resource.handle);
         }
       }

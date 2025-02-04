@@ -483,10 +483,9 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
     BLI_assert(vk_command_buffer != VK_NULL_HANDLE);
 
     render_graph::VKRenderGraph &render_graph = *submit_task->render_graph;
-    Span<render_graph::NodeHandle> node_handles;
+    Span<render_graph::NodeHandle> node_handles = scheduler.select_nodes(render_graph);
     {
       std::scoped_lock lock_resources(device->resources.mutex);
-      node_handles = scheduler.select_nodes(render_graph);
       command_builder.build_nodes(render_graph, *command_buffer, node_handles);
     }
     command_builder.record_commands(render_graph, *command_buffer, node_handles);
