@@ -8804,7 +8804,7 @@ class View3DAssetShelf(BrushAssetShelf):
     bl_space_type = "VIEW_3D"
 
 
-class AssetShelfHiddenByDefault():
+class AssetShelfHiddenByDefault:
     # Take #BrushAssetShelf.bl_options but remove the 'DEFAULT_VISIBLE' flag.
     bl_options = {option for option in BrushAssetShelf.bl_options if option != 'DEFAULT_VISIBLE'}
 

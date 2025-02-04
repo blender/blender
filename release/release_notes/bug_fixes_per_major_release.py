@@ -262,7 +262,7 @@ def url_json_get(url: str) -> Any:
 # -----------------------------------------------------------------------------
 # Commit Info Class
 
-class CommitInfo():
+class CommitInfo:
     __slots__ = (
         "hash",
         "commit_title",

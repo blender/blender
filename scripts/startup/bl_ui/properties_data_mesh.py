@@ -610,7 +610,7 @@ def draw_attribute_warnings(context, layout):
     layout.label(text=rpt_("Name collisions: ") + ", ".join(set(colliding_names)), icon='ERROR', translate=False)
 
 
-class ColorAttributesListBase():
+class ColorAttributesListBase:
     display_domain_names = {
         'POINT': "Vertex",
         'EDGE': "Edge",

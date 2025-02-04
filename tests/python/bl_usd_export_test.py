@@ -1491,7 +1491,7 @@ class USDExportTest(AbstractUSDTest):
                             f"Exported texture {tex_path} doesn't exist")
 
 
-class USDHookBase():
+class USDHookBase:
     instructions = {}
     responses = {}
 

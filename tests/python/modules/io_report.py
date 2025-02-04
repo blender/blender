@@ -242,7 +242,7 @@ class Report:
         if isinstance(val, bpy.types.MeshLoop):
             return f"{val.vertex_index}"
         if isinstance(val, bpy.types.MeshEdge):
-            return f"{min(val.vertices[0],val.vertices[1])}/{max(val.vertices[0],val.vertices[1])}"
+            return f"{min(val.vertices[0], val.vertices[1])}/{max(val.vertices[0], val.vertices[1])}"
         if isinstance(val, bpy.types.MaterialSlot):
             return f"('{val.name}', {val.link})"
         if isinstance(val, bpy.types.VertexGroup):

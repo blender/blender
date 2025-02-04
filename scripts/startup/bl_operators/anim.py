@@ -736,7 +736,7 @@ class ANIM_OT_slot_unassign_from_id(Operator):
         return {'FINISHED'}
 
 
-class generic_slot_unassign_mixin():
+class generic_slot_unassign_mixin:
     context_property_name = ""
     """Which context attribute to use to get the to-be-manipulated data-block."""
 
