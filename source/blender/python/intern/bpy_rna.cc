@@ -4506,8 +4506,8 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
               std::optional<std::string> path_str;
 
               if (newptr.owner_id) {
+                path_str = RNA_path_from_ID_to_property(&newptr, newprop);
                 idptr = RNA_id_pointer_create(newptr.owner_id);
-                path_str = RNA_path_from_ID_to_property(&idptr, newprop);
                 base_ptr = &idptr;
               }
               else {
