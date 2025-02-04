@@ -150,14 +150,6 @@ bool remove_from_vertex_group(Drawing &drawing, const StringRef name, const bool
       MDeformVert *dv = &dverts[i];
       MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
       BKE_defvert_remove_group(dv, dw);
-
-      /* Adjust remaining vertex group indices. */
-      for (const int j : IndexRange(dv->totweight)) {
-        if (dv->dw[j].def_nr > def_nr) {
-          dv->dw[j].def_nr--;
-        }
-      }
-
       changed = true;
     }
   }
