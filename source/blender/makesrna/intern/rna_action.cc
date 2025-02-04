@@ -341,9 +341,9 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
   }
 
   /* Sanity check. These should never be out of sync in higher-level code. */
-  BLI_assert(slot.identifier_prefix_for_idtype() == slot.identifier_prefix());
+  BLI_assert(slot.idtype_string() == slot.identifier_prefix());
 
-  const std::string identifier_with_correct_prefix = slot.identifier_prefix_for_idtype() +
+  const std::string identifier_with_correct_prefix = slot.idtype_string() +
                                                      identifier_ref.substr(2);
 
   if (identifier_with_correct_prefix != identifier_ref) {
@@ -351,7 +351,7 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
                "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the "
                "slot's 'target_id_type' \"%s\". Setting to \"%s\" instead.\n",
                identifier,
-               slot.identifier_prefix_for_idtype().c_str(),
+               slot.idtype_string().c_str(),
                identifier_with_correct_prefix.c_str());
   }
 

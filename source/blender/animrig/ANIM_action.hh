@@ -825,7 +825,7 @@ class Slot : public ::ActionSlot {
    * \see identifier_prefix()
    * \see identifier_ensure_prefix()
    */
-  std::string identifier_prefix_for_idtype() const;
+  std::string idtype_string() const;
 
   /**
    * Return the two-character type prefix of this Slot's identifier.
@@ -833,10 +833,10 @@ class Slot : public ::ActionSlot {
    * This corresponds to the intended ID type of the slot, e.g "OB" for object,
    * "CA" for camera, etc.
    *
-   * This is subtly different from `identifier_prefix_for_idtype()`. See its documentation for
+   * This is subtly different from `idtype_string()`. See its documentation for
    * details.
    *
-   * \see identifier_prefix_for_idtype()
+   * \see idtype_string()
    * \see identifier_ensure_prefix()
    */
   StringRef identifier_prefix() const;
@@ -870,7 +870,7 @@ class Slot : public ::ActionSlot {
    * method returning `false` should NOT be taken as a guarantee that this Slot
    * will never be used by the given ID or other IDs of the same type.
    *
-   * \see identifier_prefix_for_idtype()
+   * \see idtype_string()
    * \see has_idtype()
    */
   bool is_suitable_for(const ID &animated_id) const;
@@ -878,7 +878,7 @@ class Slot : public ::ActionSlot {
   /**
    * Return whether this Slot has a specified intended ID type (`idtype`) set.
    *
-   * \see identifier_prefix_for_idtype()
+   * \see idtype_string()
    * \see is_suitable_for()
    */
   bool has_idtype() const;

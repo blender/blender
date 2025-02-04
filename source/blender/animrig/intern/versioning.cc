@@ -102,7 +102,7 @@ void convert_legacy_animato_action(bAction &dna_action)
   Slot &slot = action.slot_add();
   slot.idtype = idtype;
 
-  const std::string slot_identifier{slot.identifier_prefix_for_idtype() +
+  const std::string slot_identifier{slot.idtype_string() +
                                     DATA_(legacy::DEFAULT_LEGACY_SLOT_NAME)};
   action.slot_identifier_define(slot, slot_identifier);
 
@@ -271,9 +271,9 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
             "this type mismatch. This likely indicates something odd about the blend file.\n",
             action.id.name + 2,
             animated_id.name,
-            slot_to_assign->identifier_prefix_for_idtype().c_str(),
+            slot_to_assign->idtype_string().c_str(),
             slot_to_assign->identifier_without_prefix().c_str(),
-            slot_to_assign->identifier_prefix_for_idtype().c_str(),
+            slot_to_assign->idtype_string().c_str(),
             animated_id.name);
         break;
       case ActionSlotAssignmentResult::SlotNotFromAction:

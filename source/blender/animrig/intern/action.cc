@@ -1140,7 +1140,7 @@ void Slot::users_invalidate(Main &bmain)
   bmain.is_action_slot_to_id_map_dirty = true;
 }
 
-std::string Slot::identifier_prefix_for_idtype() const
+std::string Slot::idtype_string() const
 {
   if (!this->has_idtype()) {
     return slot_untyped_prefix;

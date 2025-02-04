@@ -464,77 +464,77 @@ TEST_F(ActionLayersTest, slot_move_to_index)
   const slot_handle_t handle_suzanne = slot_suzanne.handle;
 
   ASSERT_EQ(action->slot(0)->handle, handle_a);
-  ASSERT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "ME");
+  ASSERT_EQ(action->slot(0)->idtype_string(), "ME");
   ASSERT_EQ(action->slot(1)->handle, handle_b);
-  ASSERT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "CA");
+  ASSERT_EQ(action->slot(1)->idtype_string(), "CA");
   ASSERT_EQ(action->slot(2)->handle, handle_cube);
-  ASSERT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "OB");
+  ASSERT_EQ(action->slot(2)->idtype_string(), "OB");
   ASSERT_EQ(action->slot(2)->users(*bmain)[0], &cube->id);
   ASSERT_EQ(action->slot(3)->handle, handle_suzanne);
-  ASSERT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  ASSERT_EQ(action->slot(3)->idtype_string(), "OB");
   ASSERT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
 
   /* First "move" a slot to its own location, which should do nothing. */
   action->slot_move_to_index(slot_b, 1);
   EXPECT_EQ(action->slot(0)->handle, handle_a);
-  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(0)->idtype_string(), "ME");
   EXPECT_EQ(action->slot(1)->handle, handle_b);
-  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(1)->idtype_string(), "CA");
   EXPECT_EQ(action->slot(2)->handle, handle_cube);
-  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(2)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(2)->users(*bmain)[0], &cube->id);
   EXPECT_EQ(action->slot(3)->handle, handle_suzanne);
-  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
 
   /* Then move slots around in various ways. */
 
   action->slot_move_to_index(slot_a, 2);
   EXPECT_EQ(action->slot(0)->handle, handle_b);
-  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(0)->idtype_string(), "CA");
   EXPECT_EQ(action->slot(1)->handle, handle_cube);
-  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(1)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(1)->users(*bmain)[0], &cube->id);
   EXPECT_EQ(action->slot(2)->handle, handle_a);
-  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(2)->idtype_string(), "ME");
   EXPECT_EQ(action->slot(3)->handle, handle_suzanne);
-  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(3)->users(*bmain)[0], &suzanne->id);
 
   action->slot_move_to_index(slot_suzanne, 1);
   EXPECT_EQ(action->slot(0)->handle, handle_b);
-  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(0)->idtype_string(), "CA");
   EXPECT_EQ(action->slot(1)->handle, handle_suzanne);
-  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(1)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(1)->users(*bmain)[0], &suzanne->id);
   EXPECT_EQ(action->slot(2)->handle, handle_cube);
-  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(2)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(2)->users(*bmain)[0], &cube->id);
   EXPECT_EQ(action->slot(3)->handle, handle_a);
-  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(3)->idtype_string(), "ME");
 
   action->slot_move_to_index(slot_cube, 3);
   EXPECT_EQ(action->slot(0)->handle, handle_b);
-  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(0)->idtype_string(), "CA");
   EXPECT_EQ(action->slot(1)->handle, handle_suzanne);
-  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(1)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(1)->users(*bmain)[0], &suzanne->id);
   EXPECT_EQ(action->slot(2)->handle, handle_a);
-  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(2)->idtype_string(), "ME");
   EXPECT_EQ(action->slot(3)->handle, handle_cube);
-  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(3)->users(*bmain)[0], &cube->id);
 
   action->slot_move_to_index(slot_suzanne, 0);
   EXPECT_EQ(action->slot(0)->handle, handle_suzanne);
-  EXPECT_EQ(action->slot(0)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(0)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(0)->users(*bmain)[0], &suzanne->id);
   EXPECT_EQ(action->slot(1)->handle, handle_b);
-  EXPECT_EQ(action->slot(1)->identifier_prefix_for_idtype(), "CA");
+  EXPECT_EQ(action->slot(1)->idtype_string(), "CA");
   EXPECT_EQ(action->slot(2)->handle, handle_a);
-  EXPECT_EQ(action->slot(2)->identifier_prefix_for_idtype(), "ME");
+  EXPECT_EQ(action->slot(2)->idtype_string(), "ME");
   EXPECT_EQ(action->slot(3)->handle, handle_cube);
-  EXPECT_EQ(action->slot(3)->identifier_prefix_for_idtype(), "OB");
+  EXPECT_EQ(action->slot(3)->idtype_string(), "OB");
   EXPECT_EQ(action->slot(3)->users(*bmain)[0], &cube->id);
 }
 
@@ -697,15 +697,15 @@ TEST_F(ActionLayersTest, slot_identifier_ensure_prefix)
 TEST_F(ActionLayersTest, slot_identifier_prefix)
 {
   Slot &slot = action->slot_add();
-  EXPECT_EQ("XX", slot.identifier_prefix_for_idtype());
+  EXPECT_EQ("XX", slot.idtype_string());
   EXPECT_EQ("XX", slot.identifier_prefix());
 
   slot.idtype = ID_CA;
-  EXPECT_EQ("CA", slot.identifier_prefix_for_idtype());
+  EXPECT_EQ("CA", slot.idtype_string());
   EXPECT_EQ("XX", slot.identifier_prefix());
 
   slot.identifier_ensure_prefix();
-  EXPECT_EQ("CA", slot.identifier_prefix_for_idtype());
+  EXPECT_EQ("CA", slot.idtype_string());
   EXPECT_EQ("CA", slot.identifier_prefix());
 }
 
