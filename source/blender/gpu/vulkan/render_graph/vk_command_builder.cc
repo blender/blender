@@ -512,13 +512,12 @@ void VKCommandBuilder::add_buffer_read_barriers(VKRenderGraph &render_graph,
                                                 Barrier &r_barrier)
 {
   for (const VKRenderGraphLink &link : render_graph.links_[node_handle].inputs) {
+    if (!link.is_link_to_buffer()) {
+      continue;
+    }
     const ResourceWithStamp &versioned_resource = link.resource;
     VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
         versioned_resource.handle);
-    if (resource.type == VKResourceType::IMAGE) {
-      /* Ignore image resources. */
-      continue;
-    }
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const bool is_first_read = resource_state.is_new_stamp();
     if (!is_first_read &&
@@ -553,13 +552,12 @@ void VKCommandBuilder::add_buffer_write_barriers(VKRenderGraph &render_graph,
                                                  Barrier &r_barrier)
 {
   for (const VKRenderGraphLink link : render_graph.links_[node_handle].outputs) {
+    if (!link.is_link_to_buffer()) {
+      continue;
+    }
     const ResourceWithStamp &versioned_resource = link.resource;
     VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
         versioned_resource.handle);
-    if (resource.type == VKResourceType::IMAGE) {
-      /* Ignore image resources. */
-      continue;
-    }
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const VkAccessFlags wait_access = resource_state.vk_access;
 
@@ -636,13 +634,12 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                                                bool within_rendering)
 {
   for (const VKRenderGraphLink &link : render_graph.links_[node_handle].inputs) {
+    if (link.is_link_to_buffer()) {
+      continue;
+    }
     const ResourceWithStamp &versioned_resource = link.resource;
     VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
         versioned_resource.handle);
-    if (resource.type == VKResourceType::BUFFER) {
-      /* Ignore buffer resources. */
-      continue;
-    }
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const bool is_first_read = resource_state.is_new_stamp();
     if ((!is_first_read) &&
@@ -703,13 +700,12 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                                                 bool within_rendering)
 {
   for (const VKRenderGraphLink link : render_graph.links_[node_handle].outputs) {
+    if (link.is_link_to_buffer()) {
+      continue;
+    }
     const ResourceWithStamp &versioned_resource = link.resource;
     VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
         versioned_resource.handle);
-    if (resource.type == VKResourceType::BUFFER) {
-      /* Ignore buffer resources. */
-      continue;
-    }
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const VkAccessFlags wait_access = resource_state.vk_access;
     if (within_rendering && link.vk_image_layout != VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR) {
