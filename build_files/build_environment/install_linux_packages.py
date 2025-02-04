@@ -982,6 +982,15 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "ffmpeg",
                                   },
             ),
+    Package(name="harfbuzz", is_mandatory=False,
+            version="10.0.1", version_short="10", version_min="5.1.0", version_mex="20.0.0",
+            sub_packages=(),
+            distro_package_names={DISTRO_ID_DEBIAN: "libharfbuzz-dev",
+                                  DISTRO_ID_FEDORA: "harfbuzz-devel",
+                                  DISTRO_ID_SUSE: "harfbuzz-devel",
+                                  DISTRO_ID_ARCH: "harfbuzz",
+                                  },
+            ),
 )
 
 
