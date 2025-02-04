@@ -1151,6 +1151,14 @@ std::string Slot::identifier_prefix_for_idtype() const
   return name;
 }
 
+StringRef Slot::identifier_prefix() const
+{
+  StringRef identifier(this->identifier);
+  BLI_assert(identifier.size() >= 2);
+
+  return identifier.substr(0, 2);
+}
+
 StringRefNull Slot::identifier_without_prefix() const
 {
   BLI_assert(StringRef(this->identifier).size() >= identifier_length_min);

@@ -340,21 +340,22 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
     return;
   }
 
-  if (slot.has_idtype()) {
-    /* Check if the new identifier is going to be compatible with the already-established ID type.
-     */
-    const std::string expect_prefix = slot.identifier_prefix_for_idtype();
+  /* Sanity check. These should never be out of sync in higher-level code. */
+  BLI_assert(slot.identifier_prefix_for_idtype() == slot.identifier_prefix());
 
-    if (!identifier_ref.startswith(expect_prefix)) {
-      const std::string new_prefix = identifier_ref.substr(0, 2);
-      WM_reportf(RPT_WARNING,
-                 "Action slot identifier set with unexpected prefix \"%s\" (expected \"%s\").\n",
-                 new_prefix.c_str(),
-                 expect_prefix.c_str());
-    }
+  const std::string identifier_with_correct_prefix = slot.identifier_prefix_for_idtype() +
+                                                     identifier_ref.substr(2);
+
+  if (identifier_with_correct_prefix != identifier_ref) {
+    WM_reportf(RPT_WARNING,
+               "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the "
+               "slot's 'target_id_type' \"%s\". Setting to \"%s\" instead.\n",
+               identifier,
+               slot.identifier_prefix_for_idtype().c_str(),
+               identifier_with_correct_prefix.c_str());
   }
 
-  action.slot_identifier_define(slot, identifier);
+  action.slot_identifier_define(slot, identifier_with_correct_prefix);
 }
 
 static void rna_ActionSlot_identifier_update(Main *bmain, Scene *, PointerRNA *ptr)
