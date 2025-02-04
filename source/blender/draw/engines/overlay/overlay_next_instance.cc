@@ -529,7 +529,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
     }
     else {
       if (!state.is_render_depth_available) {
-        /* If the render engine is not outputing correct depth,
+        /* If the render engine is not outputting correct depth,
          * clear the depth and render a depth prepass. */
         GPU_framebuffer_clear_color_depth(resources.overlay_line_fb, clear_color, 1.0f);
       }

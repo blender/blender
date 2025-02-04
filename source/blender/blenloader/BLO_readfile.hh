@@ -550,7 +550,7 @@ struct ID_Readfile_Data {
 
     /**
      * Mark ID placeholders for linked data-blocks needing to be read from their library
-     * blendfiles.
+     * blend-files.
      */
     bool is_link_placeholder : 1;
     /**

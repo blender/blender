@@ -71,7 +71,7 @@ void AssetRepresentation::ensure_previewable()
 
   /* Use the full path as preview name, it's the only unique identifier we have. */
   const std::string full_path = this->full_path();
-  /* Doesn't do the actual reading, just allocates and attaches the derrived load info. */
+  /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
   extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
       full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false);
 

@@ -7413,7 +7413,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   bool libdecor_required = false;
   {
     const char *xdg_current_desktop = [] {
-      /* Account for VSCode overriding this value (tsk!), see: #133921. */
+      /* Account for VSCode overriding this value (TSK!), see: #133921. */
       const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
       const char *value = getenv(key);
       return value ? value : getenv(key + 9);

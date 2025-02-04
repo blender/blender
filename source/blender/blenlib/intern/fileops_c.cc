@@ -1213,7 +1213,7 @@ int BLI_delete_soft(const char *filepath, const char **r_error_message)
   /* May contain `:` delimiter characters according to version 1.5 of the spec:
    * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html */
   const char *xdg_current_desktop = [] {
-    /* Account for VSCode overriding this value (tsk!), see: #133921. */
+    /* Account for VSCode overriding this value (TSK!), see: #133921. */
     const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
     const char *value = getenv(key);
     return value ? value : getenv(key + 9);
