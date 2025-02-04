@@ -61,8 +61,13 @@ vec3 hsv_to_rgb(vec3 hsv)
 
 void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
 {
+#ifdef OBINFO_NEW
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  bool is_selected = flag_test(ob_flag, OBJECT_SELECTED);
+#else
   int flag = int(abs(ObjectInfo.w));
   bool is_selected = (flag & DRW_BASE_SELECTED) != 0;
+#endif
 
   if (colorType == V3D_SHADING_OBJECT_COLOR) {
     rim_col = wire_col = ObjectColor.rgb * 0.5;
