@@ -144,6 +144,7 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/alloc.h
   closure/bsdf.h
   closure/bsdf_ashikhmin_velvet.h
+  closure/bsdf_burley.h
   closure/bsdf_diffuse.h
   closure/bsdf_diffuse_ramp.h
   closure/bsdf_microfacet.h

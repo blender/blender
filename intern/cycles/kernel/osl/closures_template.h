@@ -31,6 +31,12 @@ OSL_CLOSURE_STRUCT_BEGIN(OrenNayarDiffuseBSDF, oren_nayar_diffuse_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(OrenNayarDiffuseBSDF, FLOAT, float, roughness, nullptr)
 OSL_CLOSURE_STRUCT_END(OrenNayarDiffuseBSDF, oren_nayar_diffuse_bsdf)
 
+OSL_CLOSURE_STRUCT_BEGIN(BurleyDiffuseBSDF, burley_diffuse_bsdf)
+  OSL_CLOSURE_STRUCT_MEMBER(BurleyDiffuseBSDF, VECTOR, packed_float3, N, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(BurleyDiffuseBSDF, VECTOR, packed_float3, albedo, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(BurleyDiffuseBSDF, FLOAT, float, roughness, NULL)
+OSL_CLOSURE_STRUCT_END(BurleyDiffuseBSDF, burley_diffuse_bsdf)
+
 OSL_CLOSURE_STRUCT_BEGIN(Translucent, translucent)
   OSL_CLOSURE_STRUCT_MEMBER(Translucent, VECTOR, packed_float3, N, nullptr)
 OSL_CLOSURE_STRUCT_END(Translucent, translucent)

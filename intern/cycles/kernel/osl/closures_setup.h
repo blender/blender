@@ -149,6 +149,29 @@ ccl_device void osl_closure_oren_nayar_diffuse_bsdf_setup(
   sd->flag |= bsdf_oren_nayar_setup(sd, bsdf, rgb_to_spectrum(closure->albedo));
 }
 
+ccl_device void osl_closure_burley_diffuse_bsdf_setup(
+    KernelGlobals kg,
+    ccl_private ShaderData *sd,
+    uint32_t path_flag,
+    float3 weight,
+    ccl_private const BurleyDiffuseBSDFClosure *closure,
+    float3 *layer_albedo)
+{
+  if (osl_closure_skip(kg, sd, path_flag, LABEL_DIFFUSE)) {
+    return;
+  }
+
+  ccl_private BurleyBsdf *bsdf = (ccl_private BurleyBsdf *)bsdf_alloc(
+      sd, sizeof(BurleyBsdf), rgb_to_spectrum(weight * closure->albedo));
+  if (!bsdf) {
+    return;
+  }
+
+  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
+
+  sd->flag |= bsdf_burley_setup(bsdf, closure->roughness);
+}
+
 ccl_device void osl_closure_translucent_setup(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
                                               const uint32_t path_flag,
