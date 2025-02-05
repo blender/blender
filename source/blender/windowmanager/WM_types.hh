@@ -160,12 +160,22 @@ enum {
    * Register operators in stack after finishing (needed for redo).
    *
    * \note Typically this flag should be enabled along with #OPTYPE_UNDO.
-   * There is an exception to this, some operators can perform an undo push indirectly.
-   * (`UI_OT_reset_default_button` for example).
+   * There are some exceptions to this:
    *
-   * In this case, register needs to be enabled so as not to clear the "Redo" panel, see #133761.
-   * Unless otherwise stated, any operators that register without the undo flag
-   * can be assumed to be creating undo steps indirectly (potentially at least).
+   * - Operators can conditionally perform an undo push,
+   *   Examples include operators that may modify "screen" data
+   *   (which the undo system doesn't track), or data-blocks such as objects, meshes etc.
+   *   In this case the undo push depends on the operators internal logic.
+   *
+   *   We could support this as part of the operator return flag,
+   *   currently it requires explicit calls to undo push.
+   *
+   * - Operators can perform an undo push indirectly.
+   *   (`UI_OT_reset_default_button` for example).
+   *
+   *   In this case, register needs to be enabled so as not to clear the "Redo" panel, see #133761.
+   *   Unless otherwise stated, any operators that register without the undo flag
+   *   can be assumed to be creating undo steps indirectly (potentially at least).
    */
   OPTYPE_REGISTER = (1 << 0),
   /** Do an undo push after the operator runs. */
