@@ -1234,9 +1234,6 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
           else if (cam->type == CAM_ORTHO) {
             name = IFACE_("Camera Orthographic");
           }
-          else if (cam->type == CAM_ORTHODOX) {
-            name = IFACE_("Camera Orthodox");
-          }
           else {
             BLI_assert(cam->type == CAM_PANO);
             name = IFACE_("Camera Panoramic");
@@ -1349,14 +1346,6 @@ static void draw_selected_name(
   if (ob) {
     info_array[i++] = msg_space;
     info_array[i++] = ob->id.name + 2;
-
-    /* Show object data name when not in object mode. */
-    if (ob->mode != OB_MODE_OBJECT) {
-      if (const ID *data_id = static_cast<const ID *>(ob->data)) {
-        info_array[i++] = " | ";
-        info_array[i++] = data_id->name + 2;
-      }
-    }
 
     /* name(s) to display depends on type of object */
     if (ob->type == OB_ARMATURE) {
@@ -1980,35 +1969,17 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   else {
     rctf viewplane;
     float clip_start, clipend;
-    float orthodox_distance, orthodox_factor, orthodox_shift_x, orthodox_shift_y, orthodox_tilt_x, orthodox_tilt_y;
-    int sub_type;
 
     is_ortho = ED_view3d_viewplane_get(
-        depsgraph, v3d, rv3d, sizex, sizey, &viewplane, &clip_start, &clipend, nullptr, &sub_type, &orthodox_distance, &orthodox_factor, &orthodox_shift_x, &orthodox_shift_y, &orthodox_tilt_x, &orthodox_tilt_y);
+        depsgraph, v3d, rv3d, sizex, sizey, &viewplane, &clip_start, &clipend, nullptr);
     if (is_ortho) {
-      if( sub_type == CAM_ORTHODOX ) {
-        orthodox_m4(winmat,
+      orthographic_m4(winmat,
                       viewplane.xmin,
                       viewplane.xmax,
                       viewplane.ymin,
                       viewplane.ymax,
                       -clipend,
-                      clipend,
-                      orthodox_distance,
-                      orthodox_factor,
-                      orthodox_shift_x,
-                      orthodox_shift_y,
-                      orthodox_tilt_x,
-                      orthodox_tilt_y);
-        } else {
-        orthographic_m4(winmat,
-                       viewplane.xmin,
-                       viewplane.xmax,
-                       viewplane.ymin,
-                       viewplane.ymax,
-                       -clipend,
-                       clipend);
-        }
+                      clipend);
     }
     else {
       perspective_m4(winmat,
@@ -2660,8 +2631,6 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
 
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
-  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
-
   SceneFPS_State state;
   if (!ED_scene_fps_average_calc(scene, &state)) {
     return;
@@ -2688,6 +2657,8 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   else {
     SNPRINTF(printable, IFACE_("fps: %i"), int(state.fps_average + 0.5f));
   }
+
+  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
 
   BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
 }

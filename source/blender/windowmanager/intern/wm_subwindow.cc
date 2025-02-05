@@ -122,6 +122,7 @@ void wmGetProjectionMatrix(float mat[4][4], const rcti *winrct)
 {
   int width = BLI_rcti_size_x(winrct) + 1;
   int height = BLI_rcti_size_y(winrct) + 1;
+  // Orthodox vs Orthographics
   orthographic_m4(mat,
                   -GLA_PIXEL_OFS,
                   float(width) - GLA_PIXEL_OFS,
@@ -129,4 +130,17 @@ void wmGetProjectionMatrix(float mat[4][4], const rcti *winrct)
                   float(height) - GLA_PIXEL_OFS,
                   GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT,
                   GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT);
+  // orthodox_m4(mat,
+                  // -GLA_PIXEL_OFS,
+                  // float(width) - GLA_PIXEL_OFS,
+                  // -GLA_PIXEL_OFS,
+                  // float(height) - GLA_PIXEL_OFS,
+                  // GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT,
+                  // GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT,
+                  // 1.0,
+                  // 0.0,
+                  // 0.0,
+                  // 0.0,
+                  // 0.0,
+                  // 0.0);
 }

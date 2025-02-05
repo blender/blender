@@ -110,6 +110,15 @@ typedef struct Camera {
   float central_cylindrical_radius;
   float _pad2;
 
+  /* Orthodox camera properties. */
+  struct Object *orthodox_object;
+  float orthodox_distance;
+  float orthodox_factor;
+  float orthodox_tilt_x;
+  float orthodox_tilt_y;
+  float orthodox_shift_x;
+  float orthodox_shift_y;
+
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
 
@@ -134,6 +143,7 @@ enum {
   CAM_PERSP = 0,
   CAM_ORTHO = 1,
   CAM_PANO = 2,
+  CAM_ORTHODOX = 3,
 };
 
 /* panorama_type */

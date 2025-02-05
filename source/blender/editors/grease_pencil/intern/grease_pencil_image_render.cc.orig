@@ -141,9 +141,6 @@ void compute_view_matrices(const ViewContext &view_context,
 {
   rctf viewplane;
   float clip_start, clip_end;
-  float orthodox_distance, orthodox_factor, orthodox_shift_x, orthodox_shift_y, orthodox_tilt_x, orthodox_tilt_y;
-  int sub_type;
-  
   const bool is_ortho = ED_view3d_viewplane_get(view_context.depsgraph,
                                                 view_context.v3d,
                                                 view_context.rv3d,
@@ -152,14 +149,8 @@ void compute_view_matrices(const ViewContext &view_context,
                                                 &viewplane,
                                                 &clip_start,
                                                 &clip_end,
-                                                nullptr,
-                                                &sub_type,
-                                                &orthodox_distance,
-                                                &orthodox_factor,
-                                                &orthodox_shift_x,
-                                                &orthodox_shift_y,
-                                                &orthodox_tilt_x,
-                                                &orthodox_tilt_y);
+                                                nullptr);
+
   /* Rescale `viewplane` to fit all strokes. */
   const float2 view_min = float2(viewplane.xmin, viewplane.ymin);
   const float2 view_max = float2(viewplane.xmax, viewplane.ymax);
@@ -175,31 +166,13 @@ void compute_view_matrices(const ViewContext &view_context,
 
   float4x4 winmat;
   if (is_ortho) {
-    if( sub_type == 1 /*CAM_ORTHO*/ ) {
-      orthographic_m4(winmat.ptr(),
-                      viewplane.xmin,
-                      viewplane.xmax,
-                      viewplane.ymin,
-                      viewplane.ymax,
-                      -clip_end,
-                      clip_end);
-    }
-    else {
-      orthodox_m4(winmat.ptr(),
-                      viewplane.xmin,
-                      viewplane.xmax,
-                      viewplane.ymin,
-                      viewplane.ymax,
-                      -clip_end,
-                      clip_end,
-                      orthodox_distance,
-                      orthodox_factor,
-                      orthodox_shift_x,
-                      orthodox_shift_y,
-                      orthodox_tilt_x,
-                      orthodox_tilt_y
-        );
-    }
+    orthographic_m4(winmat.ptr(),
+                    viewplane.xmin,
+                    viewplane.xmax,
+                    viewplane.ymin,
+                    viewplane.ymax,
+                    -clip_end,
+                    clip_end);
   }
   else {
     perspective_m4(winmat.ptr(),

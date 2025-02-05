@@ -784,7 +784,15 @@ bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
                              rctf *r_viewplane,
                              float *r_clip_start,
                              float *r_clip_end,
-                             float *r_pixsize);
+                             float *r_pixsize,
+                             int *sub_type,
+                             float *orthodox_distance,
+                             float *orthodox_factor,
+                             float *orthodox_shift_x,
+                             float *orthodox_shift_y,
+                             float *orthodox_tilt_x,
+                             float *orthodox_tilt_y);
+
 
 /**
  * Use instead of: `GPU_polygon_offset(rv3d->dist, ...)` see bug #37727.

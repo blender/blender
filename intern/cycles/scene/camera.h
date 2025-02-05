@@ -86,6 +86,13 @@ class Camera : public Node {
   NODE_SOCKET_API(float, fisheye_polynomial_k3)
   NODE_SOCKET_API(float, fisheye_polynomial_k4)
 
+  NODE_SOCKET_API(float, orthodox_tilt_x)
+  NODE_SOCKET_API(float, orthodox_tilt_y)
+  NODE_SOCKET_API(float, orthodox_shift_x)
+  NODE_SOCKET_API(float, orthodox_shift_y)
+  NODE_SOCKET_API(float, orthodox_factor)
+  NODE_SOCKET_API(float, orthodox_distance)
+
   NODE_SOCKET_API(float, central_cylindrical_range_u_min)
   NODE_SOCKET_API(float, central_cylindrical_range_u_max)
   NODE_SOCKET_API(float, central_cylindrical_range_v_min)
@@ -142,7 +149,7 @@ class Camera : public Node {
 
   /* motion */
   NODE_SOCKET_API_ARRAY(array<Transform>, motion)
-  NODE_SOCKET_API(bool, use_perspective_motion)
+  // NODE_SOCKET_API(bool, use_perspective_motion)
   NODE_SOCKET_API(float, fov_pre)
   NODE_SOCKET_API(float, fov_post)
 

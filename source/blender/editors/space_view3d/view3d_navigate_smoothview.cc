@@ -330,10 +330,11 @@ void ED_view3d_smooth_view_ex(
     if (sms.to_camera) {
       /* Use orthographic if we move from an orthographic view to an orthographic camera. */
       Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
-      rv3d->persp = ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
-                     (static_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
-                        RV3D_ORTHO :
-                        RV3D_PERSP;
+      rv3d->persp =
+          ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
+           ELEM(static_cast<Camera *>(ob_camera_eval->data)->type, CAM_ORTHO, CAM_ORTHODOX)) ?
+              RV3D_ORTHO :
+              RV3D_PERSP;
     }
 
     rv3d->rflag |= RV3D_NAVIGATING;

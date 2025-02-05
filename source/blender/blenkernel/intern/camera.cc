@@ -268,6 +268,21 @@ Camera *BKE_camera_add(Main *bmain, const char *name)
   return cam;
 }
 
+float BKE_camera_object_orthodox_distance(const Object *ob)
+{
+  const Camera *cam = (const Camera *)ob->data;
+  if (ob->type != OB_CAMERA) {
+    return 0.0f;
+  }
+  if (cam->orthodox_object) {
+    float view_dir[3], obj_dir[3];
+    normalize_v3_v3(view_dir, ob->object_to_world().ptr()[2]);
+    sub_v3_v3v3(obj_dir, ob->object_to_world().location(), cam->orthodox_object->object_to_world().location());
+    return fmax(fabsf(dot_v3v3(view_dir, obj_dir)), 1e-5f);
+  }
+  return fmax(cam->orthodox_distance, 1e-5f);
+}
+
 float BKE_camera_object_dof_distance(const Object *ob)
 {
   const Camera *cam = (const Camera *)ob->data;
@@ -337,6 +352,13 @@ void BKE_camera_params_init(CameraParams *params)
   /* fallback for non camera objects */
   params->clip_start = 0.1f;
   params->clip_end = 100.0f;
+
+  params->orthodox_distance = 1.0f;
+  params->orthodox_factor = 0.0f;
+  params->orthodox_shift_x = 0.0f;
+  params->orthodox_shift_y = 0.0f;
+  params->orthodox_tilt_x = 0.0f;
+  params->orthodox_tilt_y = 0.0f;
 }
 
 void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
@@ -349,8 +371,9 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
     /* camera object */
     const Camera *cam = static_cast<const Camera *>(cam_ob->data);
 
-    if (cam->type == CAM_ORTHO) {
+    if (ELEM(cam->type, CAM_ORTHO, CAM_ORTHODOX)) {
       params->is_ortho = true;
+      params->sub_type = cam->type;
     }
     params->lens = cam->lens;
     params->ortho_scale = cam->ortho_scale;
@@ -364,6 +387,15 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
 
     params->clip_start = cam->clip_start;
     params->clip_end = cam->clip_end;
+
+    /* set orthodox eevee */
+    params->orthodox_tilt_x = cam->orthodox_tilt_x;
+    params->orthodox_tilt_y = cam->orthodox_tilt_y;
+    params->orthodox_shift_x = cam->orthodox_shift_x;
+    params->orthodox_shift_y = cam->orthodox_shift_y;
+    params->orthodox_factor = cam->orthodox_factor;
+    params->orthodox_distance = BKE_camera_object_orthodox_distance(cam_ob);
+
   }
   else if (cam_ob->type == OB_LAMP) {
     /* light object */
@@ -502,13 +534,29 @@ void BKE_camera_params_compute_matrix(CameraParams *params)
 
   /* compute projection matrix */
   if (params->is_ortho) {
-    orthographic_m4(params->winmat,
-                    viewplane.xmin,
-                    viewplane.xmax,
-                    viewplane.ymin,
-                    viewplane.ymax,
-                    params->clip_start,
-                    params->clip_end);
+    if (params->sub_type == CAM_ORTHODOX ) {
+        orthodox_m4(params->winmat,
+                      viewplane.xmin,
+                      viewplane.xmax,
+                      viewplane.ymin,
+                      viewplane.ymax,
+                      params->clip_start,
+                      params->clip_end,
+                      params->orthodox_distance,
+                      params->orthodox_factor,
+                      params->orthodox_shift_x,
+                      params->orthodox_shift_y,
+                      params->orthodox_tilt_x,
+                      params->orthodox_tilt_y);
+     } else {
+        orthographic_m4(params->winmat,
+                       viewplane.xmin,
+                       viewplane.xmax,
+                       viewplane.ymin,
+                       viewplane.ymax,
+                       params->clip_start,
+                       params->clip_end);
+      }
   }
   else {
     perspective_m4(params->winmat,

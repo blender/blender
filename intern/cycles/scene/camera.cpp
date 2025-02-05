@@ -75,6 +75,7 @@ NODE_DEFINE(Camera)
   type_enum.insert("perspective", CAMERA_PERSPECTIVE);
   type_enum.insert("orthograph", CAMERA_ORTHOGRAPHIC);
   type_enum.insert("panorama", CAMERA_PANORAMA);
+  type_enum.insert("orthodox", CAMERA_ORTHODOX);
   SOCKET_ENUM(camera_type, "Type", type_enum, CAMERA_PERSPECTIVE);
 
   static NodeEnum panorama_type_enum;
@@ -107,6 +108,13 @@ NODE_DEFINE(Camera)
   SOCKET_FLOAT(central_cylindrical_range_u_max, "Central Cylindrical Range U Max", M_PI_F);
   SOCKET_FLOAT(central_cylindrical_range_v_min, "Central Cylindrical Range V Min", -1.0f);
   SOCKET_FLOAT(central_cylindrical_range_v_max, "Central Cylindrical Range V Max", 1.0f);
+
+  SOCKET_FLOAT(orthodox_tilt_x, "Orthodox Tilt X", 0.0f);
+  SOCKET_FLOAT(orthodox_tilt_y, "Orthodox Tilt Y", 0.0f);
+  SOCKET_FLOAT(orthodox_shift_x, "Orthodox Shift X", 0.0f);
+  SOCKET_FLOAT(orthodox_shift_y, "Orthodox Shift Y", 0.0f);
+  SOCKET_FLOAT(orthodox_factor, "Orthodox Factor", 0.0f);
+  SOCKET_FLOAT(orthodox_distance, "Orthodox Distance", 1.0f);
 
   static NodeEnum stereo_eye_enum;
   stereo_eye_enum.insert("none", STEREO_NONE);
@@ -149,7 +157,7 @@ NODE_DEFINE(Camera)
   SOCKET_INT(full_width, "Full Width", 1024);
   SOCKET_INT(full_height, "Full Height", 512);
 
-  SOCKET_BOOLEAN(use_perspective_motion, "Use Perspective Motion", false);
+  // ***** SOCKET_BOOLEAN(use_perspective_motion, "Use Perspective Motion", false);
 
   return type;
 }
@@ -161,7 +169,7 @@ Camera::Camera() : Node(get_node_type())
   width = 1024;
   height = 512;
 
-  use_perspective_motion = false;
+ /* use_perspective_motion = false; */
 
   shutter_curve.resize(RAMP_TABLE_SIZE);
   for (int i = 0; i < shutter_curve.size(); ++i) {
@@ -258,7 +266,7 @@ void Camera::update(Scene *scene)
   if (camera_type == CAMERA_PERSPECTIVE) {
     cameratoscreen = projection_perspective(fov, nearclip, farclip);
   }
-  else if (camera_type == CAMERA_ORTHOGRAPHIC) {
+  else if (camera_type == CAMERA_ORTHOGRAPHIC || camera_type == CAMERA_ORTHODOX) {
     cameratoscreen = projection_orthographic(nearclip, farclip);
   }
   else {
@@ -284,7 +292,7 @@ void Camera::update(Scene *scene)
   worldtoraster = ndctoraster * worldtondc;
 
   /* differentials */
-  if (camera_type == CAMERA_ORTHOGRAPHIC) {
+  if (camera_type == CAMERA_ORTHOGRAPHIC || camera_type == CAMERA_ORTHODOX) {
     dx = transform_perspective_direction(&rastertocamera, make_float3(1, 0, 0));
     dy = transform_perspective_direction(&rastertocamera, make_float3(0, 1, 0));
     full_dx = transform_perspective_direction(&full_rastertocamera, make_float3(1, 0, 0));
@@ -386,7 +394,7 @@ void Camera::update(Scene *scene)
     }
 
     /* TODO(sergey): Support other types of camera. */
-    if (use_perspective_motion && camera_type == CAMERA_PERSPECTIVE) {
+    if (/*use_perspective_motion &&*/ camera_type == CAMERA_PERSPECTIVE) {
       const ProjectionTransform screentocamera_pre = projection_inverse(
           projection_perspective(fov_pre, nearclip, farclip));
       const ProjectionTransform screentocamera_post = projection_inverse(
@@ -413,6 +421,14 @@ void Camera::update(Scene *scene)
 
   /* anamorphic lens bokeh */
   kcam->inv_aperture_ratio = 1.0f / aperture_ratio;
+
+  /* cycles orhodox */
+  kcam->orthodox_tilt_x = orthodox_tilt_x;
+  kcam->orthodox_tilt_y = orthodox_tilt_y;
+  kcam->orthodox_shift_x = orthodox_shift_x;
+  kcam->orthodox_shift_y = orthodox_shift_y;
+  kcam->orthodox_factor = orthodox_factor;
+  kcam->orthodox_distance = orthodox_distance;
 
   /* panorama */
   kcam->panorama_type = panorama_type;
@@ -585,7 +601,7 @@ float3 Camera::transform_raster_to_world(const float raster_x, const float raste
      */
     P += nearclip * D / Pclip.z;
   }
-  else if (camera_type == CAMERA_ORTHOGRAPHIC) {
+  else if (camera_type == CAMERA_ORTHOGRAPHIC || camera_type == CAMERA_ORTHODOX) {
     D = make_float3(0.0f, 0.0f, 1.0f);
     /* TODO(sergey): Aperture support? */
     P = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
@@ -677,7 +693,7 @@ float Camera::world_to_raster_size(const float3 P)
 {
   float res = 1.0f;
 
-  if (camera_type == CAMERA_ORTHOGRAPHIC) {
+  if (camera_type == CAMERA_ORTHOGRAPHIC || camera_type == CAMERA_ORTHODOX) {
     res = min(len(full_dx), len(full_dy));
 
     if (offscreen_dicing_scale > 1.0f) {

@@ -188,14 +188,7 @@ bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
                              rctf *r_viewplane,
                              float *r_clip_start,
                              float *r_clip_end,
-                             float *r_pixsize,
-                             int *sub_type,
-                             float *orthodox_distance,
-                             float *orthodox_factor,
-                             float *orthodox_shift_x,
-                             float *orthodox_shift_y,
-                             float *orthodox_tilt_x,
-                             float *orthodox_tilt_y)
+                             float *r_pixsize)
 {
   CameraParams params;
 
@@ -214,34 +207,6 @@ bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
   }
   if (r_pixsize) {
     *r_pixsize = params.viewdx;
-  }
-
-  if (sub_type) {
-    *sub_type = params.sub_type;
-  }
-
-  if (orthodox_distance) {
-    *orthodox_distance = params.orthodox_distance;
-  }
-
-  if (orthodox_factor) {
-    *orthodox_factor = params.orthodox_factor;
-  }
-
-  if (orthodox_shift_x) {
-    *orthodox_shift_x = params.orthodox_shift_x;
-  }
-
-  if (orthodox_shift_y) {
-    *orthodox_shift_y = params.orthodox_shift_y;
-  }
-
-  if (orthodox_tilt_x) {
-    *orthodox_tilt_x = params.orthodox_tilt_x;
-  }
-
-  if (orthodox_shift_y) {
-    *orthodox_tilt_y = params.orthodox_tilt_y;
   }
 
   return params.is_ortho;
@@ -1711,7 +1676,7 @@ static bool view3d_camera_to_view_selected_impl(Main *bmain,
     bool is_ortho_camera = false;
 
     if ((camera_ob_eval->type == OB_CAMERA) &&
-        ELEM(((Camera *)camera_ob_eval->data)->type, CAM_ORTHO, CAM_ORTHODOX))
+        (((Camera *)camera_ob_eval->data)->type == CAM_ORTHO))
     {
       ((Camera *)camera_ob->data)->ortho_scale = scale;
       is_ortho_camera = true;

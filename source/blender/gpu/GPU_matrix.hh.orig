@@ -88,7 +88,6 @@ void GPU_matrix_projection_set(const float m[4][4]);
 
 void GPU_matrix_ortho_set(float left, float right, float bottom, float top, float near, float far);
 void GPU_matrix_ortho_set_z(float near, float far);
-void GPU_matrix_orthodox_set(float left, float right, float bottom, float top, float near, float far, float orthodox_distance, float orthodox_factor, float orthodox_shift_x, float orthodox_shift_y, float orthodox_tilt_x, float orthodox_tilt_y);
 
 void GPU_matrix_frustum_set(
     float left, float right, float bottom, float top, float near, float far);

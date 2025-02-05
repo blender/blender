@@ -95,7 +95,22 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
             col.prop(cam, "lens_unit")
 
         elif cam.type == 'ORTHO':
+             col.prop(cam, "ortho_scale")
+
+        elif cam.type == 'ORTHODOX':
             col.prop(cam, "ortho_scale")
+            engine = context.engine
+            if  engine in {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}:
+                sub = col.column()
+                sub.active = (cam.orthodox_object is None)
+                sub.prop(cam, "orthodox_distance", text="Distance")
+                col.prop(cam, "orthodox_factor", text="Orthodox Factor")
+                col.prop(cam, "orthodox_shift_x", text="Orthodox Shift X")
+                col.prop(cam, "orthodox_shift_y", text="Orthodox Shift Y")
+                col.prop(cam, "orthodox_object", text="Object")
+            if  engine in {'CYCLES'}:
+                col.prop(cam, "orthodox_tilt_x", text="Orthodox Tilt X")
+                col.prop(cam, "orthodox_tilt_y", text="Orthodox Tilt Y")
 
         elif cam.type == 'PANO':
             engine = context.engine
