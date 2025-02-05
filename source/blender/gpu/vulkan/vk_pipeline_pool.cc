@@ -683,7 +683,7 @@ struct VKPipelineCachePrefixHeader {
   /* 'B'lender 'C'ache + 2 bytes for file versioning. */
   uint32_t magic = 0xBC00;
   uint32_t blender_version = BLENDER_VERSION;
-  uint32_t blender_subversion = BLENDER_VERSION_PATCH;
+  uint32_t blender_version_patch = BLENDER_VERSION_PATCH;
   char commit_hash[8];
   uint32_t data_size;
   uint32_t vendor_id;
