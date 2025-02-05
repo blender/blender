@@ -953,7 +953,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
                                                       wmOperatorCallContext opcontext,
                                                       PointerRNA *properties,
                                                       const wmEvent *event,
-                                                      const char *drawstr);
+                                                      blender::StringRef drawstr);
 
 /**
  * Similar to the function above except its uses ID properties used for key-maps and macros.

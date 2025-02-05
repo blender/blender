@@ -343,7 +343,7 @@ static void link_drag_search_update_fn(
   const Vector<SocketLinkOperation *> filtered_items = search.query(string);
 
   for (SocketLinkOperation *item : filtered_items) {
-    if (!UI_search_item_add(items, item->name.c_str(), item, ICON_NONE, 0, 0)) {
+    if (!UI_search_item_add(items, item->name, item, ICON_NONE, 0, 0)) {
       break;
     }
   }

@@ -1062,7 +1062,7 @@ static void ui_apply_but_funcs_after(bContext *C)
                                                        after.opcontext,
                                                        (after.opptr) ? &opptr : nullptr,
                                                        nullptr,
-                                                       after.drawstr.c_str());
+                                                       after.drawstr);
     }
 
     if (after.opptr) {
@@ -4342,7 +4342,7 @@ static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtra
                                                    op_icon->optype_params->opcontext,
                                                    op_icon->optype_params->opptr,
                                                    nullptr,
-                                                   nullptr);
+                                                   "");
 
   /* Force recreation of extra operator icons (pseudo update). */
   ui_but_extra_operator_icons_free(but);

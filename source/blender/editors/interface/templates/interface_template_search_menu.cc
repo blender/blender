@@ -74,16 +74,15 @@ struct MenuSearch_Context {
 
 struct MenuSearch_Parent {
   MenuSearch_Parent *parent;
-  const char *drawstr;
+  StringRef drawstr;
 
   /** Set while writing menu items only. */
   MenuSearch_Parent *temp_child;
 };
 
 struct MenuSearch_Item {
-  MenuSearch_Item *next = nullptr, *prev = nullptr;
-  const char *drawstr = nullptr;
-  const char *drawwstr_full = nullptr;
+  StringRef drawstr;
+  StringRef drawwstr_full;
   int icon = 0;
   int state = 0;
   float weight = 0.0f;
@@ -120,7 +119,7 @@ struct MenuSearch_Item {
 
 struct MenuSearch_Data {
   /** MenuSearch_Item */
-  ListBase items;
+  blender::Vector<std::reference_wrapper<MenuSearch_Item>> items;
   /** Use for all small allocations. */
   blender::ResourceScope scope;
 
@@ -131,11 +130,10 @@ struct MenuSearch_Data {
   } context_menu_data;
 };
 
-static int menu_item_sort_by_drawstr_full(const void *menu_item_a_v, const void *menu_item_b_v)
+static bool menu_item_sort_by_drawstr_full(const MenuSearch_Item &menu_item_a,
+                                           const MenuSearch_Item &menu_item_b)
 {
-  const MenuSearch_Item *menu_item_a = (MenuSearch_Item *)menu_item_a_v;
-  const MenuSearch_Item *menu_item_b = (MenuSearch_Item *)menu_item_b_v;
-  return strcmp(menu_item_a->drawwstr_full, menu_item_b->drawwstr_full);
+  return menu_item_a.drawwstr_full < menu_item_b.drawwstr_full;
 }
 
 static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
@@ -226,10 +224,10 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                            "" :
                                            StringRef(but->drawstr).drop_prefix(sep_index);
       std::string drawstr = std::string("(") + drawstr_override + ")" + drawstr_suffix;
-      item->drawstr = scope.linear_allocator().copy_string(drawstr).c_str();
+      item->drawstr = scope.linear_allocator().copy_string(drawstr);
     }
     else {
-      item->drawstr = scope.linear_allocator().copy_string(but->drawstr).c_str();
+      item->drawstr = scope.linear_allocator().copy_string(but->drawstr);
     }
 
     item->icon = ui_but_icon(but);
@@ -240,7 +238,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
     item->wm_context = wm_context;
     item->menu_parent = menu_parent;
 
-    BLI_addtail(&data->items, item);
+    data->items.append(*item);
     return true;
   }
 
@@ -363,7 +361,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
 static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
 {
   /* Add to temporary list so we can sort them separately. */
-  ListBase operator_items = {nullptr, nullptr};
+  blender::Vector<std::reference_wrapper<MenuSearch_Item>> operator_items;
 
   ResourceScope &scope = data->scope;
   for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
@@ -374,9 +372,9 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
     if (WM_operator_poll(C, ot)) {
       const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
 
-      MenuSearch_Item *item = &scope.construct<MenuSearch_Item>();
-      item->data = MenuSearch_Item::OperatorData();
-      auto &op_data = std::get<MenuSearch_Item::OperatorData>(item->data);
+      MenuSearch_Item &item = scope.construct<MenuSearch_Item>();
+      item.data = MenuSearch_Item::OperatorData();
+      auto &op_data = std::get<MenuSearch_Item::OperatorData>(item.data);
       op_data.type = ot;
       op_data.opcontext = WM_OP_INVOKE_DEFAULT;
       op_data.context = nullptr;
@@ -387,18 +385,18 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
 
       SNPRINTF(uiname, "%s " UI_MENU_ARROW_SEP "%s", idname_as_py, ot_ui_name);
 
-      item->drawwstr_full = scope.linear_allocator().copy_string(uiname).c_str();
-      item->drawstr = ot_ui_name;
+      item.drawwstr_full = scope.linear_allocator().copy_string(uiname);
+      item.drawstr = ot_ui_name;
 
-      item->wm_context = nullptr;
+      item.wm_context = nullptr;
 
-      BLI_addtail(&operator_items, item);
+      operator_items.append(item);
     }
   }
 
-  BLI_listbase_sort(&operator_items, menu_item_sort_by_drawstr_full);
+  std::sort(operator_items.begin(), operator_items.end(), menu_item_sort_by_drawstr_full);
 
-  BLI_movelisttolist(&data->items, &operator_items);
+  data->items.extend(data->items);
 }
 
 /**
@@ -724,9 +722,8 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
               }
               str_buf.append(StringRef(drawstr, drawstr_len));
               fmt::format_to(fmt::appender(str_buf), " ({})", drawstr_sep + 1);
-              menu_parent->drawstr = scope.linear_allocator()
-                                         .copy_string(StringRef(str_buf.data(), str_buf.size()))
-                                         .c_str();
+              menu_parent->drawstr = scope.linear_allocator().copy_string(
+                  StringRef(str_buf.data(), str_buf.size()));
               str_buf.clear();
             }
             else {
@@ -737,7 +734,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
                   drawstr_is_empty = true;
                 }
               }
-              menu_parent->drawstr = scope.linear_allocator().copy_string(drawstr).c_str();
+              menu_parent->drawstr = scope.linear_allocator().copy_string(drawstr);
             }
             menu_parent->parent = current_menu.self_as_parent;
 
@@ -786,7 +783,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
           if (poll_success) {
             MenuSearch_Parent *menu_parent = &scope.construct<MenuSearch_Parent>();
-            menu_parent->drawstr = scope.linear_allocator().copy_string(but->drawstr).c_str();
+            menu_parent->drawstr = scope.linear_allocator().copy_string(but->drawstr);
             menu_parent->parent = current_menu.self_as_parent;
 
             LISTBASE_FOREACH (uiBut *, sub_but, &sub_block->buttons) {
@@ -824,38 +821,38 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
    * that could be moved into the parent menu. */
 
   /* Set names as full paths. */
-  LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
+  for (MenuSearch_Item &item : data->items) {
     BLI_assert(str_buf.size() == 0);
 
     if (include_all_areas) {
       fmt::format_to(fmt::appender(str_buf),
                      "{}: ",
-                     (item->wm_context != nullptr) ?
-                         space_type_ui_items[item->wm_context->space_type_ui_index].name :
+                     (item.wm_context != nullptr) ?
+                         space_type_ui_items[item.wm_context->space_type_ui_index].name :
                          global_menu_prefix);
     }
 
-    if (item->menu_parent != nullptr) {
-      MenuSearch_Parent *menu_parent = item->menu_parent;
+    if (item.menu_parent != nullptr) {
+      MenuSearch_Parent *menu_parent = item.menu_parent;
       menu_parent->temp_child = nullptr;
       while (menu_parent && menu_parent->parent) {
         menu_parent->parent->temp_child = menu_parent;
         menu_parent = menu_parent->parent;
       }
       while (menu_parent) {
-        str_buf.append(StringRef(menu_parent->drawstr));
+        str_buf.append(menu_parent->drawstr);
         str_buf.append(StringRef(" " UI_MENU_ARROW_SEP " "));
         menu_parent = menu_parent->temp_child;
       }
     }
     else {
-      const char *drawstr = menu_display_name_map.lookup_default(item->mt, nullptr);
+      const char *drawstr = menu_display_name_map.lookup_default(item.mt, nullptr);
       if (drawstr == nullptr) {
-        drawstr = CTX_IFACE_(item->mt->translation_context, item->mt->label);
+        drawstr = CTX_IFACE_(item.mt->translation_context, item.mt->label);
       }
       str_buf.append(StringRef(drawstr));
 
-      wmKeyMapItem *kmi = menu_to_kmi.lookup_default(item->mt, nullptr);
+      wmKeyMapItem *kmi = menu_to_kmi.lookup_default(item.mt, nullptr);
       if (kmi != nullptr) {
         std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
         fmt::format_to(fmt::appender(str_buf), " ({})", kmi_str);
@@ -864,17 +861,17 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       str_buf.append(StringRef(" " UI_MENU_ARROW_SEP " "));
     }
 
-    str_buf.append(StringRef(item->drawstr));
+    str_buf.append(item.drawstr);
 
-    item->drawwstr_full =
-        scope.linear_allocator().copy_string(StringRef(str_buf.data(), str_buf.size())).c_str();
+    item.drawwstr_full = scope.linear_allocator().copy_string(
+        StringRef(str_buf.data(), str_buf.size()));
     str_buf.clear();
   }
 
   /* Finally sort menu items.
    *
    * NOTE: we might want to keep the in-menu order, for now sort all. */
-  BLI_listbase_sort(&data->items, menu_item_sort_by_drawstr_full);
+  std::sort(data->items.begin(), data->items.end(), menu_item_sort_by_drawstr_full);
 
   if (include_all_areas) {
     CTX_wm_area_set(C, area_init);
@@ -977,8 +974,8 @@ static void menu_search_update_fn(const bContext * /*C*/,
 
   blender::ui::string_search::StringSearch<MenuSearch_Item> search;
 
-  LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
-    search.add(item->drawwstr_full, item, item->weight);
+  for (MenuSearch_Item &item : data->items) {
+    search.add(item.drawwstr_full, &item, item.weight);
   }
 
   const blender::Vector<MenuSearch_Item *> filtered_items = search.query(str);

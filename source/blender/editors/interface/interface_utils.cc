@@ -396,7 +396,7 @@ static bool add_collection_search_item(CollItemSearch &cis,
   }
 
   return UI_search_item_add(items,
-                            cis.name.c_str(),
+                            cis.name,
                             cis.data,
                             cis.iconid,
                             cis.has_sep_char ? int(UI_BUT_HAS_SEP_CHAR) : 0,

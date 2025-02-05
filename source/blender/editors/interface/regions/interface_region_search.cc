@@ -41,6 +41,8 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
+using blender::StringRef;
+
 #define MENU_BORDER int(0.3f * U.widget_unit)
 
 /* -------------------------------------------------------------------- */
@@ -96,7 +98,7 @@ struct uiSearchboxData {
 #define SEARCH_ITEMS 10
 
 bool UI_search_item_add(uiSearchItems *items,
-                        const char *name,
+                        const StringRef name,
                         void *poin,
                         int iconid,
                         const int but_flag,
@@ -104,7 +106,7 @@ bool UI_search_item_add(uiSearchItems *items,
 {
   /* hijack for autocomplete */
   if (items->autocpl) {
-    UI_autocomplete_update_name(items->autocpl, name + name_prefix_offset);
+    UI_autocomplete_update_name(items->autocpl, name.drop_prefix(name_prefix_offset));
     return true;
   }
 
@@ -133,7 +135,7 @@ bool UI_search_item_add(uiSearchItems *items,
   }
 
   if (items->names) {
-    BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
+    name.copy_utf8_truncated(items->names[items->totitem], items->maxstrlen);
   }
   if (items->pointers) {
     items->pointers[items->totitem] = poin;

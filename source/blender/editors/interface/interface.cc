@@ -5107,7 +5107,7 @@ AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxncpy)
   return autocpl;
 }
 
-void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name)
+void UI_autocomplete_update_name(AutoComplete *autocpl, const StringRef name)
 {
   char *truncate = autocpl->truncate;
   const char *startname = autocpl->startname;
@@ -5124,7 +5124,7 @@ void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name)
     autocpl->matches++;
     /* first match */
     if (truncate[0] == 0) {
-      BLI_strncpy(truncate, name, autocpl->maxncpy);
+      name.copy_utf8_truncated(truncate, autocpl->maxncpy);
     }
     else {
       /* remove from truncate what is not in bone->name */

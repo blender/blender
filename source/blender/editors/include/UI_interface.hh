@@ -85,7 +85,7 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
 
 void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path);
 
-void attribute_search_add_items(StringRefNull str,
+void attribute_search_add_items(StringRef str,
                                 bool can_create_attribute,
                                 Span<const nodes::geo_eval_log::GeometryAttributeInfo *> infos,
                                 uiSearchItems *items,

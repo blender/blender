@@ -69,7 +69,7 @@ static void operator_search_update_fn(const bContext *C,
           name += *kmi_str;
         }
 
-        if (!UI_search_item_add(items, name.c_str(), ot, ICON_NONE, 0, 0)) {
+        if (!UI_search_item_add(items, name, ot, ICON_NONE, 0, 0)) {
           break;
         }
       }
