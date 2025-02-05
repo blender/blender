@@ -2639,6 +2639,8 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
 
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
+  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
+
   SceneFPS_State state;
   if (!ED_scene_fps_average_calc(scene, &state)) {
     return;
@@ -2665,8 +2667,6 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   else {
     SNPRINTF(printable, IFACE_("fps: %i"), int(state.fps_average + 0.5f));
   }
-
-  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
 
   BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
 }
