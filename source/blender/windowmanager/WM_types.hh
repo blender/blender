@@ -829,9 +829,12 @@ struct wmEvent {
  */
 #define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * UI_SCALE_FAC)
 
-/** Motion progress, for modal handlers. */
+/**
+ * Motion progress, for modal handlers,
+ * a copy of #GHOST_TProgress (keep in sync).
+ */
 enum wmProgress {
-  P_NOT_STARTED,
+  P_NOT_STARTED = 0,
   P_STARTING,    /* <-- */
   P_IN_PROGRESS, /* <-- only these are sent for NDOF motion. */
   P_FINISHING,   /* <-- */

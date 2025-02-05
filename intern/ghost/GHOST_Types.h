@@ -637,6 +637,9 @@ typedef struct {
   uint8_t **strings;
 } GHOST_TStringArray;
 
+/**
+ * Keep in sync with #wmProgress.
+ */
 typedef enum {
   GHOST_kNotStarted = 0,
   GHOST_kStarting,
