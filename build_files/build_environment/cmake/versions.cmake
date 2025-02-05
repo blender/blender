@@ -1152,15 +1152,15 @@ set(UNIFIED_MEMORY_FRAMEWORK_COPYRIGHT "Copyright (C) 2023-2024 Intel Corporatio
 # compiler, the versions used are taken from the following location
 # https://github.com/intel/intel-graphics-compiler/releases
 
-set(IGC_VERSION 1.0.17384.29)
-set(IGC_URI https://github.com/intel/intel-graphics-compiler/archive/refs/tags/igc-${IGC_VERSION}.tar.gz)
-set(IGC_HASH de7b1ba9cb1369f9aa26343bb4ad1ac7e5cb5f9f4517071f25d853e46cae6195)
+set(IGC_VERSION 2.1.14)
+set(IGC_URI https://github.com/intel/intel-graphics-compiler/archive/refs/tags/v${IGC_VERSION}.tar.gz)
+set(IGC_HASH ebc39f8238dec2983c227d9db204db333b439ba5cd100e0a819a0208ac8066ca)
 set(IGC_HASH_TYPE SHA256)
-set(IGC_FILE igc-${IGC_VERSION}.tar.gz)
+set(IGC_FILE ${IGC_VERSION}.tar.gz)
 set(IGC_NAME IGC)
 set(IGC_HOMEPAGE https://github.com/intel/intel-graphics-compiler)
 set(IGC_LICENSE SPDX:MIT)
-set(IGC_COPYRIGHT "Copyright (C) 2019-2021 Intel Corporation")
+set(IGC_COPYRIGHT "Copyright (C) 2019-2024 Intel Corporation")
 
 set(IGC_LLVM_VERSION llvmorg-14.0.5)
 set(IGC_LLVM_URI https://github.com/llvm/llvm-project/archive/refs/tags/${IGC_LLVM_VERSION}.tar.gz)
@@ -1181,24 +1181,24 @@ set(IGC_LLVM_COPYRIGHT "Copyright (c) 2003-2019 University of Illinois at Urbana
 #
 # WARNING WARNING WARNING
 
-set(IGC_OPENCL_CLANG_VERSION 470cf0018e1ef6fc92eda1356f5f31f7da452abc)
+set(IGC_OPENCL_CLANG_VERSION v14.0.1)
 set(IGC_OPENCL_CLANG_URI https://github.com/intel/opencl-clang/archive/${IGC_OPENCL_CLANG_VERSION}.tar.gz)
-set(IGC_OPENCL_CLANG_HASH fa410e0b4cc5b3fc3262e3b6aaace3543207a20ecd004f48dfec9a970f1fe4e2)
+set(IGC_OPENCL_CLANG_HASH 77a023e311f825bbdc242fe9b397bd68bac23a88e68142b4919fa322c6c70392)
 set(IGC_OPENCL_CLANG_HASH_TYPE SHA256)
 set(IGC_OPENCL_CLANG_FILE opencl-clang-${IGC_OPENCL_CLANG_VERSION}.tar.gz)
 set(IGC_OPENCL_CLANG_HOMEPAGE https://github.com/intel/opencl-clang/)
 set(IGC_OPENCL_CLANG_LICENSE SPDX:Apache-2.0 WITH LLVM-exception)
 set(IGC_OPENCL_CLANG_COPYRIGHT "Copyright (c) Intel Corporation (2009-2017).")
 
-set(IGC_VCINTRINSICS_VERSION v0.19.0)
-set(IGC_VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/refs/tags/${IGC_VCINTRINSICS_VERSION}.tar.gz)
-set(IGC_VCINTRINSICS_HASH b708df2fddc9fcb2cac5d6f26870f2e105f8395c0208ecd8acc38cbf175aee52)
+set(IGC_VCINTRINSICS_VERSION 0.20.1)
+set(IGC_VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/refs/tags/v${IGC_VCINTRINSICS_VERSION}.tar.gz)
+set(IGC_VCINTRINSICS_HASH 01a68a3c8299075ad2b094264bef5109d660f1d53faf614f4f95745ad05f4e3e)
 set(IGC_VCINTRINSICS_HASH_TYPE SHA256)
 set(IGC_VCINTRINSICS_FILE vc-intrinsics-${IGC_VCINTRINSICS_VERSION}.tar.gz)
 set(IGC_VCINTRINSICS_NAME "VC Intrinsics")
 set(IGC_VCINTRINSICS_HOMEPAGE https://github.com/intel/vc-intrinsics)
 set(IGC_VCINTRINSICS_LICENSE SPDX:MIT)
-set(IGC_VCINTRINSICS_COPYRIGHT "Copyright (c) 2019 Intel Corporation")
+set(IGC_VCINTRINSICS_COPYRIGHT "Copyright (C) 2020-2021 Intel Corporation")
 
 set(IGC_SPIRV_HEADERS_VERSION vulkan-sdk-1.3.275.0)
 set(IGC_SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/${IGC_SPIRV_HEADERS_VERSION}.tar.gz)
@@ -1220,9 +1220,9 @@ set(IGC_SPIRV_TOOLS_HOMEPAGE https://github.com/KhronosGroup/SPIRV-Tools/)
 set(IGC_SPIRV_TOOLS_LICENSE SPDX:Apache-2.0)
 set(IGC_SPIRV_TOOLS_COPYRIGHT "Copyright (c) 2015-2016 The Khronos Group Inc.")
 
-set(IGC_SPIRV_TRANSLATOR_VERSION 2823e7052b7999c10fff63bc8089e5aa205716f4)
+set(IGC_SPIRV_TRANSLATOR_VERSION 1cfcf1b5ec2ec9c52fd56dc7cb47dcf12125e8db)
 set(IGC_SPIRV_TRANSLATOR_URI https://github.com/KhronosGroup/SPIRV-LLVM-Translator/archive/${IGC_SPIRV_TRANSLATOR_VERSION}.tar.gz)
-set(IGC_SPIRV_TRANSLATOR_HASH 39eb3e033a0a1f5c69622d6a0b87e296b4e090d2f613f1014ee6fedcc2d3ca83)
+set(IGC_SPIRV_TRANSLATOR_HASH 5384344b47b67e3811419599c138284de5490304030096f3bc10271915a8ad76)
 set(IGC_SPIRV_TRANSLATOR_HASH_TYPE SHA256)
 set(IGC_SPIRV_TRANSLATOR_FILE SPIR-V-Translator-${IGC_SPIRV_TRANSLATOR_VERSION}.tar.gz)
 set(IGC_SPIRV_TRANSLATOR_NAME "LLVM/SPIR-V Bi-Directional Translator")
@@ -1243,9 +1243,9 @@ http://llvm.org
 ### Intel Graphics Compiler DEPS END ###
 ########################################
 
-set(GMMLIB_VERSION intel-gmmlib-22.4.1)
+set(GMMLIB_VERSION intel-gmmlib-22.5.3)
 set(GMMLIB_URI https://github.com/intel/gmmlib/archive/refs/tags/${GMMLIB_VERSION}.tar.gz)
-set(GMMLIB_HASH 451fbe2eac26533a896ca0da0356354ecc38680f273fce7d121c6a22251ed21e)
+set(GMMLIB_HASH a8ccba4a71319b66a901df016998a76745ce9624032b6555517607c5bbb2b4e8)
 set(GMMLIB_HASH_TYPE SHA256)
 set(GMMLIB_NAME "Intel(R) Graphics Memory Management Library")
 set(GMMLIB_FILE ${GMMLIB_VERSION}.tar.gz)
@@ -1257,14 +1257,14 @@ Copyright (c) 2016 Gabi Melman.
 Copyright 2008, Google Inc. All rights reserved.
 ]=])
 
-set(OCLOC_VERSION 24.31.30508.9)
+set(OCLOC_VERSION 24.45.31740.15)
 set(OCLOC_URI https://github.com/intel/compute-runtime/archive/refs/tags/${OCLOC_VERSION}.tar.gz)
-set(OCLOC_HASH 7c2b5708e996fc9e61997f1821d9be1e0fd43c9f29cfe3fea383a01d9aa92868)
+set(OCLOC_HASH f0e3b3b038b585753530a8f1b00a8e71b045ee007b8392aaa986ccad92cf5123)
 set(OCLOC_HASH_TYPE SHA256)
 set(OCLOC_FILE ocloc-${OCLOC_VERSION}.tar.gz)
 set(OCLOC_HOMEPAGE https://github.com/intel/compute-runtime)
 set(OCLOC_LICENSE SPDX:MIT)
-set(OCLOC_COPYRIGHT "Copyright (C) 2021 Intel Corporation")
+set(OCLOC_COPYRIGHT "Copyright (C) 2018-2023 Intel Corporation")
 
 set(AOM_VERSION 3.4.0)
 set(AOM_URI https://storage.googleapis.com/aom-releases/libaom-${AOM_VERSION}.tar.gz)
