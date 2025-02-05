@@ -857,7 +857,7 @@ static void rna_RigidBodyWorld_convex_sweep_test(RigidBodyWorld *rbw,
 static PointerRNA rna_RigidBodyWorld_PointCache_get(PointerRNA *ptr)
 {
   RigidBodyWorld *rbw = static_cast<RigidBodyWorld *>(ptr->data);
-  return rna_pointer_inherit_refine(ptr, &RNA_PointCache, rbw->shared->pointcache);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_PointCache, rbw->shared->pointcache);
 }
 
 #else

@@ -522,7 +522,7 @@ static void rna_iterator_nlastrip_action_suitable_slots_begin(CollectionProperty
                                                               PointerRNA *ptr)
 {
   NlaStrip *strip = (NlaStrip *)ptr->data;
-  rna_iterator_generic_action_suitable_slots_begin(iter, strip->act);
+  rna_iterator_generic_action_suitable_slots_begin(iter, ptr, strip->act);
 }
 
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)

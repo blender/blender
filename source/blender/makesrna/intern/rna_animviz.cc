@@ -63,7 +63,7 @@ const EnumPropertyItem rna_enum_motionpath_range_items[] = {
 
 static PointerRNA rna_AnimViz_motion_paths_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_AnimVizMotionPaths, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_AnimVizMotionPaths, ptr->data);
 }
 
 static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)

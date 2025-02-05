@@ -84,7 +84,7 @@ static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
     static void rna_Main_##_listbase_name##_begin(CollectionPropertyIterator *iter, \
                                                   PointerRNA *ptr) \
     { \
-      rna_iterator_listbase_begin(iter, &((Main *)ptr->data)->_listbase_name, nullptr); \
+      rna_iterator_listbase_begin(iter, ptr, &((Main *)ptr->data)->_listbase_name, nullptr); \
     }
 
 RNA_MAIN_LISTBASE_FUNCS_DEF(actions)

@@ -175,10 +175,10 @@ static PointerRNA rna_BoidState_active_boid_rule_get(PointerRNA *ptr)
 
   for (; rule; rule = rule->next) {
     if (rule->flag & BOIDRULE_CURRENT) {
-      return rna_pointer_inherit_refine(ptr, &RNA_BoidRule, rule);
+      return RNA_pointer_create_with_parent(*ptr, &RNA_BoidRule, rule);
     }
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_BoidRule, nullptr);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_BoidRule, nullptr);
 }
 static void rna_BoidState_active_boid_rule_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
@@ -246,10 +246,10 @@ static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)
 
   for (; state; state = state->next) {
     if (state->flag & BOIDSTATE_CURRENT) {
-      return rna_pointer_inherit_refine(ptr, &RNA_BoidState, state);
+      return RNA_pointer_create_with_parent(*ptr, &RNA_BoidState, state);
     }
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_BoidState, nullptr);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_BoidState, nullptr);
 }
 static void rna_BoidSettings_active_boid_state_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)

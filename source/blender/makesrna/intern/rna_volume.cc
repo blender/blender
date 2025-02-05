@@ -177,7 +177,7 @@ static PointerRNA rna_Volume_grids_get(CollectionPropertyIterator *iter)
   Volume *volume = static_cast<Volume *>(iter->internal.count.ptr);
   const blender::bke::VolumeGridData *grid = BKE_volume_grid_get(volume,
                                                                  iter->internal.count.item);
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_VolumeGrid, (void *)grid);
+  return RNA_pointer_create_with_parent(iter->parent, &RNA_VolumeGrid, (void *)grid);
 }
 
 static int rna_Volume_grids_length(PointerRNA *ptr)

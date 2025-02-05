@@ -274,7 +274,7 @@ static void rna_SequenceEditor_strips_all_next(CollectionPropertyIterator *iter)
 static PointerRNA rna_SequenceEditor_strips_all_get(CollectionPropertyIterator *iter)
 {
   Strip *strip = static_cast<Strip *>(((BLI_Iterator *)iter->internal.custom)->current);
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_Strip, strip);
+  return RNA_pointer_create_with_parent(iter->parent, &RNA_Strip, strip);
 }
 
 static void rna_SequenceEditor_strips_all_end(CollectionPropertyIterator *iter)
@@ -295,7 +295,7 @@ static bool rna_SequenceEditor_strips_all_lookup_string(PointerRNA *ptr,
 
   Strip *strip = SEQ_lookup_strip_by_name(scene, key);
   if (strip) {
-    *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Strip, strip);
+    rna_pointer_create_with_ancestors(*ptr, &RNA_Strip, strip, *r_ptr);
     return true;
   }
   return false;
@@ -326,6 +326,7 @@ static void rna_Strip_elements_begin(CollectionPropertyIterator *iter, PointerRN
 {
   Strip *strip = (Strip *)ptr->data;
   rna_iterator_array_begin(iter,
+                           ptr,
                            (void *)strip->data->stripdata,
                            sizeof(StripElem),
                            rna_Strip_elements_length(ptr),
@@ -342,6 +343,7 @@ static void rna_Strip_retiming_keys_begin(CollectionPropertyIterator *iter, Poin
 {
   Strip *strip = (Strip *)ptr->data;
   rna_iterator_array_begin(iter,
+                           ptr,
                            (void *)strip->retiming_keys,
                            sizeof(SeqRetimingKey),
                            SEQ_retiming_keys_count(strip),
@@ -889,7 +891,7 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
   ListBaseIterator *internal = &iter->internal.listbase;
   MetaStack *ms = (MetaStack *)internal->link;
 
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_Strip, ms->parseq);
+  return RNA_pointer_create_with_parent(iter->parent, &RNA_Strip, ms->parseq);
 }
 
 /* TODO: expose strip path setting as a higher level sequencer BKE function. */

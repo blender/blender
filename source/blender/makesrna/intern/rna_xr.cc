@@ -143,7 +143,7 @@ static void rna_XrActionMapBinding_component_paths_begin(CollectionPropertyItera
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = (XrActionMapBinding *)ptr->data;
-  rna_iterator_listbase_begin(iter, &amb->component_paths, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &amb->component_paths, nullptr);
 #  else
   UNUSED_VARS(iter, ptr);
 #  endif
@@ -326,7 +326,7 @@ static void rna_XrActionMapItem_user_paths_begin(CollectionPropertyIterator *ite
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
-  rna_iterator_listbase_begin(iter, &ami->user_paths, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &ami->user_paths, nullptr);
 #  else
   UNUSED_VARS(iter, ptr);
 #  endif
@@ -520,7 +520,7 @@ static void rna_XrActionMapItem_bindings_begin(CollectionPropertyIterator *iter,
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
-  rna_iterator_listbase_begin(iter, &ami->bindings, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &ami->bindings, nullptr);
 #  else
   UNUSED_VARS(iter, ptr);
 #  endif
@@ -617,7 +617,7 @@ static void rna_XrActionMap_items_begin(CollectionPropertyIterator *iter, Pointe
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMap *actionmap = (XrActionMap *)ptr->data;
-  rna_iterator_listbase_begin(iter, &actionmap->items, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &actionmap->items, nullptr);
 #  else
   UNUSED_VARS(iter, ptr);
 #  endif
@@ -1091,7 +1091,7 @@ static void rna_XrSessionState_actionmaps_begin(CollectionPropertyIterator *iter
 #  ifdef WITH_XR_OPENXR
   wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   ListBase *lb = WM_xr_actionmaps_get(xr->runtime);
-  rna_iterator_listbase_begin(iter, lb, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, lb, nullptr);
 #  else
   UNUSED_VARS(iter, ptr);
 #  endif

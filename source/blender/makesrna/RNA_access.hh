@@ -46,6 +46,12 @@ extern BlenderRNA BLENDER_RNA;
  */
 
 PointerRNA RNA_main_pointer_create(Main *main);
+/**
+ * Create a PointerRNA for an ID.
+ *
+ * \note By definition, currently these are always 'discrete' (have no ancestors). See
+ * #PointerRNA::ancestors for details.
+ */
 PointerRNA RNA_id_pointer_create(ID *id);
 /**
  * Create a 'discrete', isolated PointerRNA of some data. It won't have any ancestor information
@@ -55,6 +61,33 @@ PointerRNA RNA_id_pointer_create(ID *id);
  * information at all.
  */
 PointerRNA RNA_pointer_create_discrete(ID *id, StructRNA *type, void *data);
+/**
+ * Create a PointerRNA of some data, using the given `parent` as immediate ancestor.
+ *
+ * This allows the PointerRNA to know to which data it belongs, all the way up to the root owner
+ * ID.
+ */
+PointerRNA RNA_pointer_create_with_parent(const PointerRNA &parent, StructRNA *type, void *data);
+/**
+ * Create a PointerRNA of some data, with the given `id` data-block as single ancestor.
+ *
+ * This assumes that given `data` is an immediate (RNA-wise) child of the relevant RNA ID struct,
+ * and is a shortcut for:
+ *
+ *    PointerRNA id_ptr = RNA_id_pointer_create(id);
+ *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, &RNA_Type, data);
+ */
+PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
+
+/**
+ * Create a PointerRNA representing the N'th ancestor of the given PointerRNA, where `0` is the
+ * root.
+ *
+ * \note: Typically, the root ancestor should be an ID. But depending on how the PointerRNA and its
+ * ancestors have been created, only part of the ancestor chain may be available, see
+ * #PointerRNA::ancestors for details.
+ */
+PointerRNA RNA_pointer_create_from_ancestor(const PointerRNA &ptr, const int ancestor_idx);
 
 bool RNA_pointer_is_null(const PointerRNA *ptr);
 

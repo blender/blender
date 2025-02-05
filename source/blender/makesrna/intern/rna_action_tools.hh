@@ -51,6 +51,7 @@ void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_han
  * "rna_iterator_array_end", "rna_iterator_array_dereference_get".
  */
 void rna_iterator_generic_action_suitable_slots_begin(CollectionPropertyIterator *iter,
+                                                      PointerRNA *owner_ptr,
                                                       bAction *assigned_action);
 
 /**

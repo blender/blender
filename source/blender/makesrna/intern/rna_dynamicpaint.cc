@@ -157,7 +157,7 @@ static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
 
   for (; surface; surface = surface->next) {
     if (id == canvas->active_sur) {
-      return rna_pointer_inherit_refine(ptr, &RNA_DynamicPaintSurface, surface);
+      return RNA_pointer_create_with_parent(*ptr, &RNA_DynamicPaintSurface, surface);
     }
     id++;
   }
@@ -169,9 +169,9 @@ static void rna_DynamicPaint_surfaces_begin(CollectionPropertyIterator *iter, Po
   DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
 #  if 0
   rna_iterator_array_begin(
-      iter, (void *)canvas->surfaces, sizeof(PaintSurface), canvas->totsur, 0, 0);
+      iter, ptr,(void *)canvas->surfaces, sizeof(PaintSurface), canvas->totsur, 0, 0);
 #  endif
-  rna_iterator_listbase_begin(iter, &canvas->surfaces, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &canvas->surfaces, nullptr);
 }
 
 static int rna_Surface_active_point_index_get(PointerRNA *ptr)

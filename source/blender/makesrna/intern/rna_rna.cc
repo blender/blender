@@ -307,17 +307,18 @@ static int rna_Struct_translation_context_length(PointerRNA *ptr)
 
 static PointerRNA rna_Struct_base_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((StructRNA *)ptr->data)->base);
+  return RNA_pointer_create_discrete(nullptr, &RNA_Struct, ((StructRNA *)ptr->data)->base);
 }
 
 static PointerRNA rna_Struct_nested_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((StructRNA *)ptr->data)->nested);
+  return RNA_pointer_create_discrete(nullptr, &RNA_Struct, ((StructRNA *)ptr->data)->nested);
 }
 
 static PointerRNA rna_Struct_name_property_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_Property, ((StructRNA *)ptr->data)->nameproperty);
+  return RNA_pointer_create_discrete(
+      nullptr, &RNA_Property, ((StructRNA *)ptr->data)->nameproperty);
 }
 
 /* Struct property iteration. This is quite complicated, the purpose is to
@@ -369,6 +370,7 @@ static bool rna_function_builtin(CollectionPropertyIterator * /*iter*/, void *da
 }
 
 static void rna_inheritance_next_level_restart(CollectionPropertyIterator *iter,
+                                               PointerRNA *ptr,
                                                IteratorSkipFunc skip,
                                                int funcs)
 {
@@ -386,42 +388,44 @@ static void rna_inheritance_next_level_restart(CollectionPropertyIterator *iter,
     rna_iterator_listbase_end(iter);
 
     if (funcs) {
-      rna_iterator_listbase_begin(iter, &srna->functions, skip);
+      rna_iterator_listbase_begin(iter, ptr, &srna->functions, skip);
     }
     else {
-      rna_iterator_listbase_begin(iter, &srna->cont.properties, skip);
+      rna_iterator_listbase_begin(iter, ptr, &srna->cont.properties, skip);
     }
   }
 }
 
 static void rna_inheritance_properties_listbase_begin(CollectionPropertyIterator *iter,
+                                                      PointerRNA *ptr,
                                                       ListBase *lb,
                                                       IteratorSkipFunc skip)
 {
-  rna_iterator_listbase_begin(iter, lb, skip);
-  rna_inheritance_next_level_restart(iter, skip, 0);
+  rna_iterator_listbase_begin(iter, ptr, lb, skip);
+  rna_inheritance_next_level_restart(iter, ptr, skip, 0);
 }
 
 static void rna_inheritance_properties_listbase_next(CollectionPropertyIterator *iter,
                                                      IteratorSkipFunc skip)
 {
   rna_iterator_listbase_next(iter);
-  rna_inheritance_next_level_restart(iter, skip, 0);
+  rna_inheritance_next_level_restart(iter, &iter->parent, skip, 0);
 }
 
 static void rna_inheritance_functions_listbase_begin(CollectionPropertyIterator *iter,
+                                                     PointerRNA *ptr,
                                                      ListBase *lb,
                                                      IteratorSkipFunc skip)
 {
-  rna_iterator_listbase_begin(iter, lb, skip);
-  rna_inheritance_next_level_restart(iter, skip, 1);
+  rna_iterator_listbase_begin(iter, ptr, lb, skip);
+  rna_inheritance_next_level_restart(iter, ptr, skip, 1);
 }
 
 static void rna_inheritance_functions_listbase_next(CollectionPropertyIterator *iter,
                                                     IteratorSkipFunc skip)
 {
   rna_iterator_listbase_next(iter);
-  rna_inheritance_next_level_restart(iter, skip, 1);
+  rna_inheritance_next_level_restart(iter, &iter->parent, skip, 1);
 }
 
 static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
@@ -443,7 +447,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
       if (group) {
         rna_iterator_listbase_end(iter);
-        rna_iterator_listbase_begin(iter, &group->data.group, rna_idproperty_known);
+        rna_iterator_listbase_begin(iter, &iter->parent, &group->data.group, rna_idproperty_known);
         internal = &iter->internal.listbase;
         internal->flag = 1;
       }
@@ -463,7 +467,8 @@ static void rna_Struct_properties_begin(CollectionPropertyIterator *iter, Pointe
     srna = srna->base;
   }
 
-  rna_inheritance_properties_listbase_begin(iter, &srna->cont.properties, rna_property_builtin);
+  rna_inheritance_properties_listbase_begin(
+      iter, ptr, &srna->cont.properties, rna_property_builtin);
 }
 
 static PointerRNA rna_Struct_properties_get(CollectionPropertyIterator *iter)
@@ -472,7 +477,7 @@ static PointerRNA rna_Struct_properties_get(CollectionPropertyIterator *iter)
 
   /* we return either PropertyRNA* or IDProperty*, the rna_access.cc
    * functions can handle both as PropertyRNA* with some tricks */
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_Property, internal->link);
+  return RNA_pointer_create_discrete(nullptr, &RNA_Property, internal->link);
 }
 
 static void rna_Struct_functions_next(CollectionPropertyIterator *iter)
@@ -492,7 +497,7 @@ static void rna_Struct_functions_begin(CollectionPropertyIterator *iter, Pointer
     srna = srna->base;
   }
 
-  rna_inheritance_functions_listbase_begin(iter, &srna->functions, rna_function_builtin);
+  rna_inheritance_functions_listbase_begin(iter, ptr, &srna->functions, rna_function_builtin);
 }
 
 static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
@@ -501,7 +506,7 @@ static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
 
   /* we return either PropertyRNA* or IDProperty*, the rna_access.cc
    * functions can handle both as PropertyRNA* with some tricks */
-  return rna_pointer_inherit_refine(&iter->parent, &RNA_Function, internal->link);
+  return RNA_pointer_create_discrete(nullptr, &RNA_Function, internal->link);
 }
 
 static void rna_Struct_property_tags_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -512,7 +517,7 @@ static void rna_Struct_property_tags_begin(CollectionPropertyIterator *iter, Poi
   uint tag_count = tag_defines ? RNA_enum_items_count(tag_defines) : 0;
 
   rna_iterator_array_begin(
-      iter, (void *)tag_defines, sizeof(EnumPropertyItem), tag_count, 0, nullptr);
+      iter, ptr, (void *)tag_defines, sizeof(EnumPropertyItem), tag_count, 0, nullptr);
 }
 
 /* Builtin properties iterator re-uses the Struct properties iterator, only
@@ -554,7 +559,6 @@ bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Poin
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  PointerRNA propptr = {};
 
   srna = ptr->type;
 
@@ -563,10 +567,7 @@ bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Poin
       prop = static_cast<PropertyRNA *>(BLI_ghash_lookup(srna->cont.prophash, (void *)key));
 
       if (prop) {
-        propptr.type = &RNA_Property;
-        propptr.data = prop;
-
-        *r_ptr = propptr;
+        *r_ptr = {nullptr, &RNA_Property, prop};
         return true;
       }
     }
@@ -574,21 +575,20 @@ bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Poin
       for (prop = static_cast<PropertyRNA *>(srna->cont.properties.first); prop; prop = prop->next)
       {
         if (!(prop->flag_internal & PROP_INTERN_BUILTIN) && STREQ(prop->identifier, key)) {
-          propptr.type = &RNA_Property;
-          propptr.data = prop;
-
-          *r_ptr = propptr;
+          *r_ptr = {nullptr, &RNA_Property, prop};
           return true;
         }
       }
     }
   } while ((srna = srna->base));
+
+  *r_ptr = {};
   return false;
 }
 
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_Struct, ptr->type);
+  return RNA_pointer_create_discrete(nullptr, &RNA_Struct, ptr->type);
 }
 
 /* Property */
@@ -684,7 +684,7 @@ static PointerRNA rna_Property_srna_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   prop = rna_ensure_property(prop);
-  return rna_pointer_inherit_refine(ptr, &RNA_Struct, prop->srna);
+  return RNA_pointer_create_discrete(nullptr, &RNA_Struct, prop->srna);
 }
 
 static int rna_Property_unit_get(PointerRNA *ptr)
@@ -1084,7 +1084,8 @@ static void rna_EnumProperty_items_begin_impl(CollectionPropertyIterator *iter,
                              &item,
                              &totitem,
                              &free);
-  rna_iterator_array_begin(iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, skip_fn);
+  rna_iterator_array_begin(
+      iter, ptr, (void *)item, sizeof(EnumPropertyItem), totitem, free, skip_fn);
 }
 
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1166,14 +1167,15 @@ static PointerRNA rna_PointerProperty_fixed_type_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   prop = rna_ensure_property(prop);
-  return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((PointerPropertyRNA *)prop)->type);
+  return RNA_pointer_create_discrete(nullptr, &RNA_Struct, ((PointerPropertyRNA *)prop)->type);
 }
 
 static PointerRNA rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   prop = rna_ensure_property(prop);
-  return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((CollectionPropertyRNA *)prop)->item_type);
+  return RNA_pointer_create_discrete(
+      nullptr, &RNA_Struct, ((CollectionPropertyRNA *)prop)->item_type);
 }
 
 /* Function */
@@ -1201,7 +1203,7 @@ static int rna_Function_description_length(PointerRNA *ptr)
 static void rna_Function_parameters_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   rna_iterator_listbase_begin(
-      iter, &((FunctionRNA *)ptr->data)->cont.properties, rna_property_builtin);
+      iter, ptr, &((FunctionRNA *)ptr->data)->cont.properties, rna_property_builtin);
 }
 
 static bool rna_Function_registered_get(PointerRNA *ptr)
@@ -1240,7 +1242,7 @@ static bool rna_struct_is_publc(CollectionPropertyIterator * /*iter*/, void *dat
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
-  rna_iterator_listbase_begin(iter, &brna->structs, rna_struct_is_publc);
+  rna_iterator_listbase_begin(iter, ptr, &brna->structs, rna_struct_is_publc);
 }
 
 /* optional, for faster lookups */

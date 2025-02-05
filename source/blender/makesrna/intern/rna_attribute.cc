@@ -395,7 +395,7 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
   const size_t struct_size = CustomData_get_elem_size(layer);
   CustomData_ensure_data_is_mutable(layer, length);
 
-  rna_iterator_array_begin(iter, layer->data, struct_size, length, 0, nullptr);
+  rna_iterator_array_begin(iter, ptr, layer->data, struct_size, length, 0, nullptr);
 }
 
 static int rna_Attribute_data_length(PointerRNA *ptr)
@@ -553,6 +553,7 @@ static bool rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter,
  * array iterators to loop over all. */
 static void rna_AttributeGroup_next_domain(AttributeOwner &owner,
                                            CollectionPropertyIterator *iter,
+                                           PointerRNA *ptr,
                                            bool(skip)(CollectionPropertyIterator *iter,
                                                       void *data))
 {
@@ -566,7 +567,7 @@ static void rna_AttributeGroup_next_domain(AttributeOwner &owner,
       return;
     }
     rna_iterator_array_begin(
-        iter, customdata->layers, sizeof(CustomDataLayer), customdata->totlayer, false, skip);
+        iter, ptr, customdata->layers, sizeof(CustomDataLayer), customdata->totlayer, false, skip);
   } while (!iter->valid);
 }
 
@@ -574,7 +575,7 @@ void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, Pointer
 {
   memset(&iter->internal.array, 0, sizeof(iter->internal.array));
   AttributeOwner owner = owner_from_pointer_rna(ptr);
-  rna_AttributeGroup_next_domain(owner, iter, rna_Attributes_layer_skip);
+  rna_AttributeGroup_next_domain(owner, iter, ptr, rna_Attributes_layer_skip);
 }
 
 void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter)
@@ -583,7 +584,7 @@ void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter)
 
   if (!iter->valid) {
     AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
-    rna_AttributeGroup_next_domain(owner, iter, rna_Attributes_layer_skip);
+    rna_AttributeGroup_next_domain(owner, iter, &iter->parent, rna_Attributes_layer_skip);
   }
 }
 
@@ -595,14 +596,14 @@ PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter)
   if (type == nullptr) {
     return PointerRNA_NULL;
   }
-  return rna_pointer_inherit_refine(&iter->parent, type, layer);
+  return RNA_pointer_create_with_parent(iter->parent, type, layer);
 }
 
 void rna_AttributeGroup_color_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   memset(&iter->internal.array, 0, sizeof(iter->internal.array));
   AttributeOwner owner = owner_from_pointer_rna(ptr);
-  rna_AttributeGroup_next_domain(owner, iter, rna_Attributes_noncolor_layer_skip);
+  rna_AttributeGroup_next_domain(owner, iter, ptr, rna_Attributes_noncolor_layer_skip);
 }
 
 void rna_AttributeGroup_color_iterator_next(CollectionPropertyIterator *iter)
@@ -611,7 +612,7 @@ void rna_AttributeGroup_color_iterator_next(CollectionPropertyIterator *iter)
 
   if (!iter->valid) {
     AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
-    rna_AttributeGroup_next_domain(owner, iter, rna_Attributes_noncolor_layer_skip);
+    rna_AttributeGroup_next_domain(owner, iter, &iter->parent, rna_Attributes_noncolor_layer_skip);
   }
 }
 
@@ -623,7 +624,7 @@ PointerRNA rna_AttributeGroup_color_iterator_get(CollectionPropertyIterator *ite
   if (type == nullptr) {
     return PointerRNA_NULL;
   }
-  return rna_pointer_inherit_refine(&iter->parent, type, layer);
+  return RNA_pointer_create_with_parent(iter->parent, type, layer);
 }
 
 int rna_AttributeGroup_color_length(PointerRNA *ptr)
@@ -645,7 +646,7 @@ bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerR
   if (CustomDataLayer *layer = BKE_attribute_search_for_write(
           owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
   {
-    *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
+    rna_pointer_create_with_ancestors(*ptr, &RNA_Attribute, layer, *r_ptr);
     return true;
   }
 
@@ -655,7 +656,7 @@ bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerR
     if (CustomDataLayer *layer = BKE_attribute_search_for_write(
             owner, "uv_seam", CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
     {
-      *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
+      rna_pointer_create_with_ancestors(*ptr, &RNA_Attribute, layer, *r_ptr);
       return true;
     }
   }
@@ -675,7 +676,7 @@ static PointerRNA rna_AttributeGroupID_active_get(PointerRNA *ptr)
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   CustomDataLayer *layer = BKE_attributes_active_get(owner);
 
-  PointerRNA attribute_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
+  PointerRNA attribute_ptr = RNA_pointer_create_with_parent(*ptr, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 

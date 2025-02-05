@@ -880,7 +880,7 @@ static void rna_Object_vertex_groups_begin(CollectionPropertyIterator *iter, Poi
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
   iter->valid = defbase != nullptr;
 
-  rna_iterator_listbase_begin(iter, defbase, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, defbase, nullptr);
 }
 
 static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
@@ -914,8 +914,8 @@ static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 
   const ListBase *defbase = BKE_object_defgroup_list(ob);
 
-  return rna_pointer_inherit_refine(
-      ptr, &RNA_VertexGroup, BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
+  return RNA_pointer_create_with_parent(
+      *ptr, &RNA_VertexGroup, BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
 }
 
 static void rna_Object_active_vertex_group_set(PointerRNA *ptr,
@@ -1480,6 +1480,7 @@ static int rna_Object_material_slots_length(PointerRNA *ptr)
 static void rna_Object_material_slots_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   const int length = rna_Object_material_slots_length(ptr);
+  iter->parent = *ptr;
   iter->internal.count.item = 0;
   iter->internal.count.ptr = ptr->owner_id;
   iter->valid = length > 0;
@@ -1495,8 +1496,8 @@ static void rna_Object_material_slots_next(CollectionPropertyIterator *iter)
 static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter)
 {
   ID *id = static_cast<ID *>(iter->internal.count.ptr);
-  PointerRNA ptr = RNA_pointer_create_discrete(
-      id,
+  PointerRNA ptr = RNA_pointer_create_with_parent(
+      iter->parent,
       &RNA_MaterialSlot,
       /* Add offset, so that `ptr->data` is not null and unique across IDs. */
       (void *)(iter->internal.count.item + uintptr_t(id)));
@@ -1507,7 +1508,7 @@ static void rna_Object_material_slots_end(CollectionPropertyIterator * /*iter*/)
 
 static PointerRNA rna_Object_display_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_ObjectDisplay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_ObjectDisplay, ptr->data);
 }
 
 static std::optional<std::string> rna_ObjectDisplay_path(const PointerRNA * /*ptr*/)
@@ -1519,7 +1520,7 @@ static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   ParticleSystem *psys = psys_get_current(ob);
-  return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem, psys);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_ParticleSystem, psys);
 }
 
 static void rna_Object_active_shape_key_index_range(
@@ -1573,7 +1574,7 @@ static PointerRNA rna_Object_field_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
 
-  return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, ob->pd);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_FieldSettings, ob->pd);
 }
 
 static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
@@ -1584,14 +1585,14 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
     return PointerRNA_NULL;
   }
 
-  return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_CollisionSettings, ob->pd);
 }
 
 static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   bConstraint *con = BKE_constraints_active_get(&ob->constraints);
-  return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_Constraint, con);
 }
 
 static void rna_Object_active_constraint_set(PointerRNA *ptr,
@@ -1775,7 +1776,7 @@ static PointerRNA rna_Object_active_modifier_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   ModifierData *md = BKE_object_active_modifier(ob);
-  return rna_pointer_inherit_refine(ptr, &RNA_Modifier, md);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_Modifier, md);
 }
 
 static void rna_Object_active_modifier_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
@@ -2199,7 +2200,7 @@ void rna_Object_lightgroup_set(PointerRNA *ptr, const char *value)
 
 static PointerRNA rna_Object_light_linking_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_ObjectLightLinking, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_ObjectLightLinking, ptr->data);
 }
 
 static std::optional<std::string> rna_ObjectLightLinking_path(const PointerRNA * /*ptr*/)

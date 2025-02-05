@@ -77,6 +77,70 @@ class TestRnaPaths(unittest.TestCase):
             process_rna_struct(self, data_block, "")
 
 
+# Walk over all exposed RNA Collection and Pointer properties in factory startup file, and compare generated RNA
+# ancestors to 'actual' ones.
+class TestRnaAncestors(unittest.TestCase):
+    def process_rna_struct(self, struct, ancestors):
+        def filter_prop_iter(struct):
+            # These paths are problematic to process, skip for the time being.
+            SKIP_PROPERTIES = {
+                bpy.types.Depsgraph.bl_rna.properties["object_instances"],
+                # XXX To be removed once #133551 is fixed.
+                bpy.types.ToolSettings.bl_rna.properties["uv_sculpt"],
+            }
+
+            for p in struct.bl_rna.properties:
+                # Internal rna meta-data, not expected to support RNA paths generation.
+                if p.identifier in {"bl_rna", "rna_type"}:
+                    continue
+                if p in SKIP_PROPERTIES:
+                    continue
+                # Only these types can point to sub-structs.
+                if p.type not in {'POINTER', 'COLLECTION'}:
+                    continue
+                # TODO: Dynamic typed pointer/collection properties are ignored for now.
+                if not p.fixed_type:
+                    continue
+                if bpy.types.ID.bl_rna in {p.fixed_type, p.fixed_type.base}:
+                    continue
+                yield p
+
+        def process_pointer_property(self, p_data, ancestors_sub):
+            if not p_data:
+                return
+            rna_ancestors = p_data.rna_ancestors()
+            if not rna_ancestors:
+                # Do not error for now. Only ensure that if there is a rna_ancestors array, it is valid.
+                return
+            if repr(rna_ancestors[0]) != ancestors_sub[0]:
+                # Do not error for now. There are valid cases wher the data is 'rebased' on a new 'root' ID.
+                return
+            if repr(p_data) in ancestors_sub:
+                # Loop back onto itself, skip.
+                # E.g. `Scene.view_layer.depsgraph.view_layer`.
+                return
+            self.process_rna_struct(p_data, ancestors_sub)
+
+        print(struct, "from", ancestors)
+        self.assertEqual([repr(a) for a in struct.rna_ancestors()], ancestors)
+
+        ancestors_sub = ancestors + [repr(struct)]
+
+        for p in filter_prop_iter(struct):
+            if p.type == 'COLLECTION':
+                for p_key, p_data in getattr(struct, p.identifier).items():
+                    process_pointer_property(self, p_data, ancestors_sub)
+            else:
+                assert (p.type == 'POINTER')
+                p_data = getattr(struct, p.identifier)
+                process_pointer_property(self, p_data, ancestors_sub)
+
+    def test_ancestors(self):
+        bpy.ops.wm.read_factory_settings()
+        for data_block in bpy.data.user_map().keys():
+            self.process_rna_struct(data_block, [])
+
+
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
