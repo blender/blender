@@ -6769,7 +6769,12 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   /* TODO: update description when fly-mode visuals are in place
    * ("projected position in fly mode"). */
   RNA_def_property_ui_text(
-      prop, "Show Navigation Guide", "Display the center and axis during rotation");
+      prop, "Show Orbit Axis Guide", "Display the center and axis during rotation");
+
+  prop = RNA_def_property(srna, "ndof_show_guide_orbit_center", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_SHOW_GUIDE_ORBIT_CENTER);
+  RNA_def_property_ui_text(
+      prop, "Show Orbit Center Guide", "Display the orbit center during rotation");
 
   /* 3D view */
   prop = RNA_def_property(srna, "ndof_view_navigate_method", PROP_ENUM, PROP_NONE);
@@ -6781,6 +6786,23 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "ndof_flag");
   RNA_def_property_enum_items(prop, ndof_view_rotation_items);
   RNA_def_property_ui_text(prop, "NDOF View Rotation", "Rotation style in the viewport");
+
+  prop = RNA_def_property(srna, "ndof_orbit_center_auto", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_ORBIT_CENTER_AUTO);
+  RNA_def_property_ui_text(prop,
+                           "Auto",
+                           "Auto sets the orbit center dynamically. "
+                           "When the complete model is in view, the center of "
+                           "volume of the whole model is used as the rotation point. "
+                           "When you move closer, the orbit center will be set "
+                           "on an object close to your center of the view.");
+
+  prop = RNA_def_property(srna, "ndof_orbit_center_selected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_ORBIT_CENTER_SELECTED);
+  RNA_def_property_ui_text(prop,
+                           "Use Selected Items",
+                           "Use selected item forces the orbit center "
+                           "to only take the currently selected objects into account.");
 
   /* 3D view: yaw */
   prop = RNA_def_property(srna, "ndof_rotx_invert_axis", PROP_BOOLEAN, PROP_NONE);

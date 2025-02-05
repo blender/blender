@@ -2087,9 +2087,20 @@ class USERPREF_PT_ndof_settings(Panel):
 
             layout.separator()
 
-        col = layout.column()
         if show_3dview_settings:
-            col.prop(props, "ndof_show_guide_orbit_axis")
+            col = layout.column(heading="Show Guides")
+            col.prop(props, "ndof_show_guide_orbit_axis", text="Orbit Axis")
+            col.prop(props, "ndof_show_guide_orbit_center", text="Orbit Center")
+
+            col = layout.column(heading="Orbit Center")
+            col.prop(props, "ndof_orbit_center_auto")
+            colsub = col.column()
+            colsub.prop(props, "ndof_orbit_center_selected")
+            colsub.enabled = props.ndof_orbit_center_auto
+            del colsub
+            col.separator()
+
+        col = layout.column(heading="Zoom")
         col.prop(props, "ndof_zoom_invert")
         col.prop(props, "ndof_lock_camera_pan_zoom")
         row = col.row(heading="Pan")
