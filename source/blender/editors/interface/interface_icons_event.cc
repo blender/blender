@@ -85,7 +85,12 @@ static void icon_draw_rect_input_text(const rctf *rect,
 {
   icon_draw_icon(rect, icon_bg, aspect, alpha, inverted);
 
-  const float available_width = BLI_rctf_size_x(rect) - (2.0f * UI_SCALE_FAC);
+  /* Margin to allow room between outer icon and text. */
+  const float margin = BLI_rctf_size_y(rect) * 0.09f;
+
+  const float available_height = BLI_rctf_size_y(rect) - (2.0f * margin);
+  const float available_width = BLI_rctf_size_x(rect) - (2.0f * margin);
+
   const int font_id = BLF_default();
   float color[4];
   UI_GetThemeColor4fv(inverted ? TH_BACK : TH_TEXT, color);
@@ -94,24 +99,23 @@ static void icon_draw_rect_input_text(const rctf *rect,
   }
   BLF_color4fv(font_id, color);
 
-  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  float font_size = std::min(15.0f, fstyle->points) * UI_SCALE_FAC;
+  float font_size = available_height;
   BLF_size(font_id, font_size);
 
   rcti str_bounds;
   BLF_boundbox(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &str_bounds);
   float width = float(BLI_rcti_size_x(&str_bounds));
   float height = float(BLI_rcti_size_y(&str_bounds));
-  if (width > (available_width - (2.0f * UI_SCALE_FAC))) {
-    font_size *= (available_width - (2.0f * UI_SCALE_FAC)) / width;
+  if (width > available_width) {
+    font_size *= available_width / width;
     BLF_size(font_id, font_size);
     BLF_boundbox(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &str_bounds);
     width = float(BLI_rcti_size_x(&str_bounds));
     height = float(BLI_rcti_size_y(&str_bounds));
   }
 
-  const float x = rect->xmin + UI_SCALE_FAC + ((available_width - width) / 2.0f);
-  const float v_offset = (BLI_rctf_size_y(rect) - height) * 0.5f - str_bounds.ymin;
+  const float x = rect->xmin + margin + ((available_width - width) / 2.0f);
+  const float v_offset = ((available_height - height) / 2.0f) - str_bounds.ymin + margin;
   BLF_position(font_id, x, rect->ymin + v_offset, 0.0f);
   BLF_draw(font_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
