@@ -9261,7 +9261,7 @@ bool GHOST_SystemWayland::output_unref(wl_output *wl_output)
 void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
 {
   /* NOTE: keep in sync with `output_unref`. */
-  GHOST_WindowManager *window_manager = getWindowManager();
+  const GHOST_WindowManager *window_manager = getWindowManager();
   if (window_manager) {
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);

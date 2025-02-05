@@ -120,7 +120,7 @@ void BKE_fcurve_pathcache_destroy(FCurvePathCache *fcache)
   MEM_freeN(fcache);
 }
 
-FCurve *BKE_fcurve_pathcache_find(FCurvePathCache *fcache,
+FCurve *BKE_fcurve_pathcache_find(const FCurvePathCache *fcache,
                                   const char *rna_path,
                                   const int array_index)
 {
@@ -144,7 +144,7 @@ FCurve *BKE_fcurve_pathcache_find(FCurvePathCache *fcache,
   return nullptr;
 }
 
-int BKE_fcurve_pathcache_find_array(FCurvePathCache *fcache,
+int BKE_fcurve_pathcache_find_array(const FCurvePathCache *fcache,
                                     const char *rna_path,
                                     FCurve **fcurve_result,
                                     int fcurve_result_len)

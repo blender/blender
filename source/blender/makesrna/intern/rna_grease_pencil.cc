@@ -1263,7 +1263,7 @@ static void rna_def_grease_pencil_onion_skinning(StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  static EnumPropertyItem prop_enum_onion_modes_items[] = {
+  static const EnumPropertyItem prop_enum_onion_modes_items[] = {
       {GP_ONION_SKINNING_MODE_ABSOLUTE,
        "ABSOLUTE",
        0,
@@ -1278,7 +1278,7 @@ static void rna_def_grease_pencil_onion_skinning(StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem prop_enum_onion_keyframe_type_items[] = {
+  static const EnumPropertyItem prop_enum_onion_keyframe_type_items[] = {
       {GREASE_PENCIL_ONION_SKINNING_FILTER_ALL, "ALL", 0, "All", "Include all Keyframe types"},
       {GP_ONION_SKINNING_FILTER_KEYTYPE_KEYFRAME,
        "KEYFRAME",
@@ -1404,7 +1404,7 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static EnumPropertyItem prop_stroke_depth_order_items[] = {
+  static const EnumPropertyItem prop_stroke_depth_order_items[] = {
       {0, "2D", 0, "2D Layers", "Display strokes using Grease Pencil layers to define order"},
       {GREASE_PENCIL_STROKE_ORDER_3D,
        "3D",

@@ -484,8 +484,8 @@ static void font_select_update_primary_clipboard(Object *obedit)
 static bool font_paste_wchar(Object *obedit,
                              const char32_t *str,
                              const size_t str_len,
-                             /* optional */
-                             CharInfo *str_info)
+                             /* Optional. */
+                             const CharInfo *str_info)
 {
   Curve *cu = static_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
@@ -558,7 +558,7 @@ static char *font_select_to_buffer(Object *obedit)
   }
   Curve *cu = static_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
-  char32_t *text_buf = ef->textbuf + selstart;
+  const char32_t *text_buf = ef->textbuf + selstart;
   const size_t text_buf_len = selend - selstart;
 
   const size_t len_utf8 = BLI_str_utf32_as_utf8_len_ex(text_buf, text_buf_len + 1);
