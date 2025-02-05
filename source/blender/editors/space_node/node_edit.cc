@@ -740,7 +740,6 @@ void snode_set_context(const bContext &C)
 void ED_node_set_active(
     Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed)
 {
-  const bool was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE) != 0;
   if (r_active_texture_changed) {
     *r_active_texture_changed = false;
   }
@@ -788,7 +787,7 @@ void ED_node_set_active(
 
     BKE_main_ensure_invariants(*bmain, ntree->id);
 
-    if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+    if (node->flag & NODE_ACTIVE_TEXTURE) {
       /* If active texture changed, free GLSL materials. */
       LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
         if (ma->nodetree && ma->use_nodes &&
