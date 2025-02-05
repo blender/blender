@@ -347,36 +347,6 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
   paintface_flush_flags(C, ob, true, false);
 }
 
-static int find_closest_edge_in_poly(ARegion *region,
-                                     blender::Span<blender::int2> edges,
-                                     blender::Span<int> face_edges,
-                                     blender::Span<blender::float3> vert_positions,
-                                     const int mval[2])
-{
-  using namespace blender;
-  int closest_edge_index = -1;
-
-  const float2 mval_f = {float(mval[0]), float(mval[1])};
-  float min_distance = FLT_MAX;
-  for (const int i : face_edges) {
-    float2 screen_coordinate;
-    const int2 edge = edges[i];
-    const float3 edge_vert_average = math::midpoint(vert_positions[edge[0]],
-                                                    vert_positions[edge[1]]);
-    eV3DProjStatus status = ED_view3d_project_float_object(
-        region, edge_vert_average, screen_coordinate, V3D_PROJ_TEST_CLIP_DEFAULT);
-    if (status != V3D_PROJ_RET_OK) {
-      continue;
-    }
-    const float distance = math::distance_squared(mval_f, screen_coordinate);
-    if (distance < min_distance) {
-      min_distance = distance;
-      closest_edge_index = i;
-    }
-  }
-  return closest_edge_index;
-}
-
 static int get_opposing_edge_index(const blender::IndexRange face,
                                    const blender::Span<int> corner_edges,
                                    const int current_edge_index)
@@ -458,8 +428,12 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
     return;
   }
 
-  uint poly_pick_index = uint(-1);
-  if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &poly_pick_index)) {
+  uint closest_edge_index = uint(-1);
+  if (!ED_mesh_pick_edge(C, ob, mval, ED_MESH_PICK_DEFAULT_VERT_DIST, &closest_edge_index)) {
+    return;
+  }
+
+  if (closest_edge_index == -1) {
     return;
   }
 
@@ -469,16 +443,7 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
 
   Mesh *mesh = BKE_mesh_from_object(ob);
   const Span<int> corner_edges = mesh->corner_edges();
-  const Span<float3> verts = mesh->vert_positions();
   const OffsetIndices faces = mesh->faces();
-  const Span<int2> edges = mesh->edges();
-
-  const IndexRange face = faces[poly_pick_index];
-  const int closest_edge_index = find_closest_edge_in_poly(
-      region, edges, corner_edges.slice(face), verts, mval);
-  if (closest_edge_index == -1) {
-    return;
-  }
 
   Array<int> edge_to_face_offsets;
   Array<int> edge_to_face_indices;
@@ -492,6 +457,12 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
       ".hide_poly", bke::AttrDomain::Face, false);
 
   const Span<int> faces_to_closest_edge = edge_to_face_map[closest_edge_index];
+
+  /* Picked edge may not be linked to a face (loose edge). */
+  if (faces_to_closest_edge.is_empty()) {
+    return;
+  }
+
   const bool traced_full_loop = follow_face_loop(faces_to_closest_edge[0],
                                                  closest_edge_index,
                                                  faces,
