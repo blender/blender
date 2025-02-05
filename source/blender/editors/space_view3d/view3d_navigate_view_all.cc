@@ -15,7 +15,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_bounds_types.hh"
+#include "BLI_bounds.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 
