@@ -29,8 +29,11 @@ some missing commits), but it's significantly better than nothing.
   - --previous-release-tag (-pt)
   - --backport-tasks (-bpt) (Optional but highly recommended)
 - Here is an example if you wish to collect the list for Blender 4.4 during
-the alpha stage of development for 4.4:
-  - `python bug_fixes_per_major_release.py -cv 4.4 -pv 4.3 -ct main -pt v4.3.2 -bpt 109399 124452 130221`
+the Beta and onwards stage of development:
+  - `python bug_fixes_per_major_release.py -cv 4.4 -pv 4.3 -ct blender-v4.4-release -pt v4.3.2 -bpt 109399 124452 130221`
+- Here is an example if you wish to collect the list for Blender 4.5 during
+the Alpha stage of development.
+  - `python bug_fixes_per_major_release.py -cv 4.5 -pv 4.4 -ct main -pt blender-v4.4-release -bpt 109399 124452`
 - Wait for the script to finish (This can take upwards of 20 minutes).
 - Follow the guide printed to terminal.
 
@@ -221,7 +224,7 @@ LIST_OF_OFFICIAL_BLENDER_VERSIONS = (
     # 3.x.
     '3.0', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '4.0',
     # 4.x.
-    '4.1', '4.2', '4.3', '4.4',
+    '4.1', '4.2', '4.3', '4.4', '4.5'
 )
 
 # Catch duplicates
