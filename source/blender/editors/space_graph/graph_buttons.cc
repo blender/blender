@@ -707,8 +707,6 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * 
 /* callback to reset the driver's flags */
 static void driver_update_flags_cb(bContext * /*C*/, void *fcu_v, void * /*arg*/)
 {
-  return;
-
   FCurve *fcu = (FCurve *)fcu_v;
   ChannelDriver *driver = fcu->driver;
 
