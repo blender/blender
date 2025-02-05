@@ -2896,8 +2896,8 @@ static void ui_get_but_string_unit(
 static float ui_get_but_step_unit(uiBut *but, float step_default)
 {
   const int unit_type = RNA_SUBTYPE_UNIT_VALUE(UI_but_unit_type_get(but));
-  const double step_orig = step_default * UI_PRECISION_FLOAT_SCALE;
-  /* Scaling up 'step_origg ' here is a bit arbitrary,
+  const double step_orig = double(step_default) * double(UI_PRECISION_FLOAT_SCALE);
+  /* Scaling up 'step_orig ' here is a bit arbitrary,
    * its just giving better scales from user POV */
   const double scale_step = ui_get_but_scale_unit(but, step_orig * 10);
   const double step = BKE_unit_closest_scalar(scale_step, but->block->unit->system, unit_type);

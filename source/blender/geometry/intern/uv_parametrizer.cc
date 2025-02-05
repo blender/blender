@@ -297,7 +297,7 @@ static void fix_large_angle(const float v_fix[3],
                             double *r_a1,
                             double *r_a2)
 {
-  const double max_angle = DEG2RADF(179.0);
+  const double max_angle = DEG2RAD(179.0);
   const double fix_amount = *r_fix - max_angle;
   if (fix_amount < 0.0f) {
     return; /* angle is reasonable, i.e. less than 179 degrees. */
@@ -5101,7 +5101,7 @@ static void slim_transfer_faces(const PChart *chart, slim::MatrixTransferChart *
 static void slim_convert_blender(ParamHandle *phandle, slim::MatrixTransfer *mt)
 {
   static const float SLIM_CORR_MIN_AREA = 1.0e-8;
-  static const float SLIM_CORR_MIN_ANGLE = DEG2RADF(1.0);
+  static const float SLIM_CORR_MIN_ANGLE = DEG2RADF(1.0f);
 
   mt->charts.resize(phandle->ncharts);
 

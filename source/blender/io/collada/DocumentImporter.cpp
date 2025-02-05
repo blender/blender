@@ -879,7 +879,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
     case COLLADAFW::Camera::X_AND_Y: {
       switch (cam->type) {
         case CAM_ORTHO:
-          cam->ortho_scale = float(camera->getXMag().getValue()) * 2;
+          cam->ortho_scale = float(camera->getXMag().getValue() * 2.0);
           break;
         case CAM_PERSP:
         default: {
