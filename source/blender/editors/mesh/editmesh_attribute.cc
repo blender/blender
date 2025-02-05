@@ -137,9 +137,9 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
 
-  Mesh *mesh = ED_mesh_context(C);
-  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
+  Mesh *active_mesh = ED_mesh_context(C);
+  AttributeOwner active_owner = AttributeOwner::from_id(&active_mesh->id);
+  CustomDataLayer *active_attribute = BKE_attributes_active_get(active_owner);
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
   const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
 
@@ -155,7 +155,7 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
     Mesh *mesh = static_cast<Mesh *>(object->data);
     BMEditMesh *em = BKE_editmesh_from_object(object);
     BMesh *bm = em->bm;
-
+    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
     CustomDataLayer *layer = BKE_attributes_active_get(owner);
     if (!layer) {
       continue;
