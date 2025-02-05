@@ -33,6 +33,7 @@
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -1282,6 +1283,49 @@ bool ED_mesh_pick_face_vert(
       *r_index = v_idx_best;
       return true;
     }
+  }
+
+  return false;
+}
+
+bool ED_mesh_pick_edge(bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+
+  BLI_assert(mesh && GS(mesh->id.name) == ID_ME);
+
+  if (!mesh || mesh->edges_num == 0) {
+    return false;
+  }
+
+  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ED_view3d_select_id_validate(&vc);
+  Base *base = BKE_view_layer_base_find(vc.view_layer, vc.obact);
+  DRW_select_buffer_context_create(vc.depsgraph, {base}, SCE_SELECT_EDGE);
+
+  uint edge_idx_best = ORIGINDEX_NONE;
+
+  if (dist_px) {
+    /* Sample rect to increase chances of selecting, so that when clicking
+     * on an edge in the back-buffer, we can still select a face. */
+    edge_idx_best = DRW_select_buffer_find_nearest_to_point(
+        vc.depsgraph, vc.region, vc.v3d, mval, 1, mesh->edges_num + 1, &dist_px);
+  }
+  else {
+    /* sample only on the exact position */
+    edge_idx_best = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
+  }
+
+  if (edge_idx_best == 0 || edge_idx_best > uint(mesh->edges_num)) {
+    return false;
+  }
+
+  edge_idx_best--;
+
+  if ((edge_idx_best != ORIGINDEX_NONE)) {
+    *r_index = edge_idx_best;
+    return true;
   }
 
   return false;
