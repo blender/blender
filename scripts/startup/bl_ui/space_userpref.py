@@ -2089,7 +2089,7 @@ class USERPREF_PT_ndof_settings(Panel):
 
         col = layout.column()
         if show_3dview_settings:
-            col.prop(props, "ndof_show_guide")
+            col.prop(props, "ndof_show_guide_orbit_axis")
         col.prop(props, "ndof_zoom_invert")
         col.prop(props, "ndof_lock_camera_pan_zoom")
         row = col.row(heading="Pan")
