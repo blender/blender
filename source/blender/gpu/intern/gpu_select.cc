@@ -29,12 +29,12 @@ enum eGPUSelectAlgo {
    * `glBegin/EndQuery(GL_SAMPLES_PASSED... )`, `gpu_select_query.c`
    * Only sets 4th component (ID) correctly.
    */
-  ALGO_GL_QUERY = 1,
+  ALGO_SAMPLE_QUERY = 1,
   /**
    * Read depth buffer for every drawing pass and extract depths, `gpu_select_pick.cc`
    * Only sets 4th component (ID) correctly.
    */
-  ALGO_GL_PICK = 2,
+  ALGO_DEPTH_PICK = 2,
   /** Use Select-Next draw engine. */
   ALGO_SELECT_NEXT = 3,
 };
@@ -87,10 +87,10 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
     g_select_state.algorithm = ALGO_SELECT_NEXT;
   }
   else if (ELEM(g_select_state.mode, GPU_SELECT_PICK_ALL, GPU_SELECT_PICK_NEAREST)) {
-    g_select_state.algorithm = ALGO_GL_PICK;
+    g_select_state.algorithm = ALGO_DEPTH_PICK;
   }
   else {
-    g_select_state.algorithm = ALGO_GL_QUERY;
+    g_select_state.algorithm = ALGO_SAMPLE_QUERY;
   }
 
   /* This function is called when cache has already been initialized,
@@ -100,7 +100,7 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
 
     switch (g_select_state.algorithm) {
       case ALGO_SELECT_NEXT:
-      case ALGO_GL_QUERY: {
+      case ALGO_SAMPLE_QUERY: {
         g_select_state.use_cache = false;
         break;
       }
@@ -117,11 +117,11 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
       gpu_select_next_begin(buffer, input, mode);
       break;
     }
-    case ALGO_GL_QUERY: {
+    case ALGO_SAMPLE_QUERY: {
       gpu_select_query_begin(buffer, input, mode, oldhits);
       break;
     }
-    default: /* ALGO_GL_PICK */
+    default: /* ALGO_DEPTH_PICK */
     {
       gpu_select_pick_begin(buffer, input, mode);
       break;
@@ -155,10 +155,10 @@ bool GPU_select_load_id(uint id)
       BLI_assert_unreachable();
       return false;
 
-    case ALGO_GL_QUERY: {
+    case ALGO_SAMPLE_QUERY: {
       return gpu_select_query_load_id(id);
     }
-    default: /* ALGO_GL_PICK */
+    default: /* ALGO_DEPTH_PICK */
     {
       return gpu_select_pick_load_id(id, false);
     }
@@ -174,11 +174,11 @@ uint GPU_select_end()
       hits = gpu_select_next_end();
       break;
     }
-    case ALGO_GL_QUERY: {
+    case ALGO_SAMPLE_QUERY: {
       hits = gpu_select_query_end();
       break;
     }
-    default: /* ALGO_GL_PICK */
+    default: /* ALGO_DEPTH_PICK */
     {
       hits = gpu_select_pick_end();
       break;
@@ -196,7 +196,7 @@ uint GPU_select_end()
 /** \name Caching
  *
  * Support multiple begin/end's as long as they are within the initial region.
- * Currently only used by #ALGO_GL_PICK.
+ * Currently only used by #ALGO_DEPTH_PICK.
  * \{ */
 
 void GPU_select_cache_begin()
@@ -213,14 +213,14 @@ void GPU_select_cache_begin()
 void GPU_select_cache_load_id()
 {
   BLI_assert(g_select_state.use_cache == true);
-  if (g_select_state.algorithm == ALGO_GL_PICK) {
+  if (g_select_state.algorithm == ALGO_DEPTH_PICK) {
     gpu_select_pick_cache_load_id();
   }
 }
 
 void GPU_select_cache_end()
 {
-  if (g_select_state.algorithm == ALGO_GL_PICK) {
+  if (g_select_state.algorithm == ALGO_DEPTH_PICK) {
     BLI_assert(g_select_state.use_cache == true);
     gpu_select_pick_cache_end();
   }
