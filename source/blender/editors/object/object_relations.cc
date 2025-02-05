@@ -715,6 +715,12 @@ bool parent_set(ReportList *reports,
 
     copy_v3_v3(ob->loc, vec);
   }
+  else if (is_armature_parent && (ob->type == OB_LATTICE) && (par->type == OB_ARMATURE) &&
+           (partype == PAR_ARMATURE_NAME))
+  {
+    ED_object_vgroup_calc_from_armature(
+        reports, depsgraph, scene, ob, par, ARM_GROUPS_NAME, false);
+  }
   else if (is_armature_parent && (ob->type == OB_MESH) && (par->type == OB_ARMATURE)) {
     if (partype == PAR_ARMATURE_NAME) {
       ED_object_vgroup_calc_from_armature(
@@ -948,30 +954,48 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
                  1);
 
   struct {
-    bool mesh, gpencil, curves;
-  } has_children_of_type = {false};
+    bool armature_deform, empty_groups, envelope_weights, automatic_weights, attach_surface;
+  } can_support = {false};
 
   CTX_DATA_BEGIN (C, Object *, child, selected_editable_objects) {
     if (child == parent) {
       continue;
     }
-    if (child->type == OB_MESH) {
-      has_children_of_type.mesh = true;
+    if (ELEM(child->type,
+             OB_MESH,
+             OB_CURVES_LEGACY,
+             OB_SURF,
+             OB_FONT,
+             OB_GREASE_PENCIL,
+             OB_LATTICE))
+    {
+      can_support.armature_deform = true;
+      can_support.envelope_weights = true;
     }
-    if (ELEM(child->type, OB_GREASE_PENCIL)) {
-      has_children_of_type.gpencil = true;
+    if (ELEM(child->type, OB_MESH, OB_GREASE_PENCIL, OB_LATTICE)) {
+      can_support.empty_groups = true;
+    }
+    if (ELEM(child->type, OB_MESH, OB_GREASE_PENCIL)) {
+      can_support.automatic_weights = true;
     }
     if (child->type == OB_CURVES) {
-      has_children_of_type.curves = true;
+      can_support.attach_surface = true;
     }
   }
   CTX_DATA_END;
 
   if (parent->type == OB_ARMATURE) {
-    uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_ARMATURE);
-    uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_ARMATURE_NAME);
-    uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_ARMATURE_ENVELOPE);
-    if (has_children_of_type.mesh || has_children_of_type.gpencil) {
+
+    if (can_support.armature_deform) {
+      uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_ARMATURE);
+    }
+    if (can_support.empty_groups) {
+      uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_ARMATURE_NAME);
+    }
+    if (can_support.envelope_weights) {
+      uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_ARMATURE_ENVELOPE);
+    }
+    if (can_support.automatic_weights) {
       uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_ARMATURE_AUTO);
     }
     uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_BONE);
@@ -986,7 +1010,7 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_LATTICE);
   }
   else if (parent->type == OB_MESH) {
-    if (has_children_of_type.curves) {
+    if (can_support.attach_surface) {
       uiItemO(
           layout, IFACE_("Object (Attach Curves to Surface)"), ICON_NONE, "CURVES_OT_surface_set");
     }
