@@ -1030,8 +1030,11 @@ void WM_reportf(eReportType type, const char *format, ...)
   va_list args;
 
   format = RPT_(format);
+
   va_start(args, format);
   char *str = BLI_vsprintfN(format, args);
+  va_end(args);
+
   WM_report(type, str);
   MEM_freeN(str);
 }
