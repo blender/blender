@@ -95,16 +95,18 @@ void main()
 {
   select_id_set(drw_CustomID);
 
+  /* If no attribute is available, use a fixed facing value depending on the coloring mode.
+   * This allow to keep most of the contrast between unselected and selected color
+   * while keeping object coloring mode working (see #134011). */
+  float no_nor_facing = (colorType == V3D_SHADING_SINGLE_COLOR) ? 0.0 : 0.5;
+
   vec3 wpos = drw_point_object_to_world(pos);
 #if defined(POINTS)
   gl_PointSize = sizeVertex * 2.0;
 #elif defined(CURVES)
-  /* Noop */
+  float facing = no_nor_facing;
 #else
-  bool no_attr = all(equal(nor, vec3(0)));
-  /* If no attribute is available, use a direction perpendicular
-   * to the view to have full brightness. */
-  vec3 wnor = no_attr ? drw_view.viewinv[1].xyz : normalize(drw_normal_object_to_world(nor));
+  vec3 wnor = normalize(drw_normal_object_to_world(nor));
 
   if (isHair) {
     mat4 obmat = hairDupliMatrix;
@@ -115,7 +117,8 @@ void main()
   bool is_persp = (drw_view.winmat[3][3] == 0.0);
   vec3 V = (is_persp) ? normalize(drw_view.viewinv[3].xyz - wpos) : drw_view.viewinv[2].xyz;
 
-  float facing = dot(wnor, V);
+  bool no_attr = all(equal(nor, vec3(0)));
+  float facing = no_attr ? no_nor_facing : dot(wnor, V);
 #endif
 
   gl_Position = drw_point_world_to_homogenous(wpos);
@@ -167,9 +170,7 @@ void main()
   edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
   edgePos = edgeStart;
 
-#  if defined(CURVES)
-  finalColor.rgb = rim_col;
-#  elif !defined(SELECT_ENABLE)
+#  if !defined(SELECT_ENABLE)
   facing = clamp(abs(facing), 0.0, 1.0);
   /* Do interpolation in a non-linear space to have a better visual result. */
   rim_col = pow(rim_col, vec3(1.0 / 2.2));
