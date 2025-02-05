@@ -1147,6 +1147,42 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
         min=0.001, max=1000.0, soft_min=0.1, soft_max=10.0, precision=4
     )
 
+    orthodox_tilt_x: FloatProperty(
+        name="Orthodox Tilt X",
+        description="Orthodox Tilt X",
+        default=0.0,
+    )
+
+    orthodox_tilt_y: FloatProperty(
+        name="Orthodox Tilt Y",
+       description="Orthodox Tilt Y",
+        default=0.0,
+    )
+
+    orthodox_shift_x: FloatProperty(
+        name="Orthodox Shift X",
+        description="Orthodox Shift X",
+        default=0.0,
+    )
+
+    orthodox_shift_y: FloatProperty(
+        name="Orthodox Shift Y",
+        description="Orthodox Shift Y",
+        default=0.0,
+    )
+
+    orthodox_factor: FloatProperty(
+        name="Orthodox Factor",
+        description="Orthodox Factor",
+        default=0.0,
+    )
+
+    orthodox_distance: FloatProperty(
+        name="Orthodox Distance",
+        description="Orthodox Distance",
+        default=0.0,
+    )
+
     @classmethod
     def register(cls):
         bpy.types.Material.cycles = PointerProperty(

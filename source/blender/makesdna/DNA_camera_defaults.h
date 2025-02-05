@@ -59,6 +59,12 @@
     .central_cylindrical_range_v_min = -1.0f,\
     .central_cylindrical_range_v_max = 1.0f,\
     .central_cylindrical_radius = 1.0f,\
+    .orthodox_distance = 1.0f,\
+    .orthodox_factor = 0.0f,\
+    .orthodox_shift_x = 0.0f,\
+    .orthodox_shift_y = 0.0f,\
+    .orthodox_tilt_x = 0.0f,\
+    .orthodox_tilt_y = 0.0f,\
  \
     .dof = _DNA_DEFAULT_CameraDOFSettings, \
  \

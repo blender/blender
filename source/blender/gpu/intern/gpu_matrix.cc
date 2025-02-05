@@ -420,6 +420,13 @@ void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top)
   gpu_matrix_state_active_set_dirty(true);
 }
 
+void GPU_matrix_orthodox_set(float left, float right, float bottom, float top, float near, float far, float orthodox_distance, float orthodox_factor, float orthodox_shift_x, float orthodox_shift_y, float orthodox_tilt_x, float orthodox_tilt_y)
+{
+  orthodox_m4(Projection, left, right, bottom, top, near, far, orthodox_distance, orthodox_factor, orthodox_shift_x, orthodox_shift_y, orthodox_tilt_x, orthodox_tilt_y);
+  CHECKMAT(Projection);
+  gpu_matrix_state_active_set_dirty(true);
+}
+
 void GPU_matrix_frustum_set(
     float left, float right, float bottom, float top, float near, float far)
 {

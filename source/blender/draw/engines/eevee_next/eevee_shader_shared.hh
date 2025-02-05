@@ -338,6 +338,8 @@ struct CameraData {
   /** Clipping distances. */
   float clip_near;
   float clip_far;
+  float orhodox_distance;
+  float orhodox_factor;
   eCameraType type;
   /** World space distance between view corners at unit distance from camera. */
   float screen_diagonal_length;

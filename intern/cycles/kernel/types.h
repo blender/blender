@@ -668,7 +668,7 @@ enum GuidingDirectionalSamplingType {
 
 /* Camera Type */
 
-enum CameraType { CAMERA_PERSPECTIVE, CAMERA_ORTHOGRAPHIC, CAMERA_PANORAMA };
+enum CameraType { CAMERA_PERSPECTIVE, CAMERA_ORTHOGRAPHIC, CAMERA_PANORAMA, CAMERA_ORTHODOX };
 
 /* Panorama Type */
 
@@ -1290,6 +1290,14 @@ struct KernelCamera {
   float4 equirectangular_range;
   float4 fisheye_lens_polynomial_coefficients;
   float4 central_cylindrical_range;
+
+  /* orthodox */
+  float orthodox_tilt_x;
+  float orthodox_tilt_y;
+  float orthodox_shift_x;
+  float orthodox_shift_y;
+  float orthodox_factor;
+  float orthodox_distance;
 
   /* stereo */
   float interocular_offset;

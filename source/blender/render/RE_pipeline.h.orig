@@ -484,19 +484,11 @@ void RE_GetCameraModelMatrix(const struct Render *re,
                              float r_modelmat[4][4]);
 
 void RE_GetWindowMatrixWithOverscan(bool is_ortho,
-                                    int sub_type,
                                     float clip_start,
                                     float clip_end,
                                     rctf viewplane,
                                     float overscan,
-                                    float r_winmat[4][4],
-                                    float orthodox_distance,
-                                    float orthodox_factor,
-                                    float orthodox_shift_x,
-                                    float orthodox_shift_y,
-                                    float orthodox_tilt_x,
-                                    float orthodox_tilt_y
-                                    );
+                                    float r_winmat[4][4]);
 
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);

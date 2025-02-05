@@ -1113,6 +1113,21 @@ void perspective_m4_fov(float mat[4][4],
 /**
  * Matches `glOrtho` result.
  */
+
+void orthodox_m4(float mat[4][4],
+                     const float left,
+                     const float right,
+                     const float bottom,
+                     const float top,
+                     const float nearClip,
+                     const float farClip,
+                     const float orthodox_distance,
+                     const float orthodox_factor,
+                     const float orthodox_shift_x,
+                     const float orthodox_shift_y,
+                     const float orthodox_tilt_x,
+                     const float orthodox_tilt_y);
+
 void orthographic_m4(float mat[4][4],
                      float left,
                      float right,

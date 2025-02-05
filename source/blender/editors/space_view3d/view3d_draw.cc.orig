@@ -1234,9 +1234,6 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
           else if (cam->type == CAM_ORTHO) {
             name = IFACE_("Camera Orthographic");
           }
-          else if (cam->type == CAM_ORTHODOX) {
-            name = IFACE_("Camera Orthodox");
-          }
           else {
             BLI_assert(cam->type == CAM_PANO);
             name = IFACE_("Camera Panoramic");
@@ -1972,35 +1969,17 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   else {
     rctf viewplane;
     float clip_start, clipend;
-    float orthodox_distance, orthodox_factor, orthodox_shift_x, orthodox_shift_y, orthodox_tilt_x, orthodox_tilt_y;
-    int sub_type;
 
     is_ortho = ED_view3d_viewplane_get(
-        depsgraph, v3d, rv3d, sizex, sizey, &viewplane, &clip_start, &clipend, nullptr, &sub_type, &orthodox_distance, &orthodox_factor, &orthodox_shift_x, &orthodox_shift_y, &orthodox_tilt_x, &orthodox_tilt_y);
+        depsgraph, v3d, rv3d, sizex, sizey, &viewplane, &clip_start, &clipend, nullptr);
     if (is_ortho) {
-      if( sub_type == CAM_ORTHODOX ) {
-        orthodox_m4(winmat,
+      orthographic_m4(winmat,
                       viewplane.xmin,
                       viewplane.xmax,
                       viewplane.ymin,
                       viewplane.ymax,
                       -clipend,
-                      clipend,
-                      orthodox_distance,
-                      orthodox_factor,
-                      orthodox_shift_x,
-                      orthodox_shift_y,
-                      orthodox_tilt_x,
-                      orthodox_tilt_y);
-        } else {
-        orthographic_m4(winmat,
-                       viewplane.xmin,
-                       viewplane.xmax,
-                       viewplane.ymin,
-                       viewplane.ymax,
-                       -clipend,
-                       clipend);
-        }
+                      clipend);
     }
     else {
       perspective_m4(winmat,

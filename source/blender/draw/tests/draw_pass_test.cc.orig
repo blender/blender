@@ -290,7 +290,6 @@ static void test_draw_resource_id_gen()
 
   float4x4 win_mat;
   orthographic_m4(win_mat.ptr(), -1, 1, -1, 1, -1, 1);
-  // orthodox_m4(win_mat.ptr(), -1, 1, -1, 1, -1, 1, 1, 0, 0, 0, 0, 0);
 
   View view("test_view");
   view.sync(float4x4::identity(), win_mat);
@@ -380,7 +379,6 @@ static void test_draw_visibility()
 
   float4x4 win_mat;
   orthographic_m4(win_mat.ptr(), -1, 1, -1, 1, -1, 1);
-  // orthodox_m4(win_mat.ptr(), -1, 1, -1, 1, -1, 1, 1, 0, 0, 0, 0, 0);
 
   View view("test_view");
   view.sync(float4x4::identity(), win_mat);

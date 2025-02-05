@@ -185,7 +185,7 @@ void RE_GetCameraWindow(Render *re, const Object *camera, float r_winmat[4][4])
 void RE_GetCameraWindowWithOverscan(const Render *re, float overscan, float r_winmat[4][4])
 {
   RE_GetWindowMatrixWithOverscan(
-      re->winmat[3][3] != 0.0f, 0, re->clip_start, re->clip_end, re->viewplane, overscan, r_winmat, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+      re->winmat[3][3] != 0.0f, re->clip_start, re->clip_end, re->viewplane, overscan, r_winmat);
 }
 
 void RE_GetCameraModelMatrix(const Render *re, const Object *camera, float r_modelmat[4][4])
@@ -194,22 +194,14 @@ void RE_GetCameraModelMatrix(const Render *re, const Object *camera, float r_mod
 }
 
 void RE_GetWindowMatrixWithOverscan(bool is_ortho,
-                                    int sub_type,
                                     float clip_start,
                                     float clip_end,
                                     rctf viewplane,
                                     float overscan,
-                                    float r_winmat[4][4],
-                                    float orthodox_distance,
-                                    float orthodox_factor,
-                                    float orthodox_shift_x,
-                                    float orthodox_shift_y,
-                                    float orthodox_tilt_x,
-                                    float orthodox_tilt_y)
+                                    float r_winmat[4][4])
 {
   CameraParams params;
   params.is_ortho = is_ortho;
-  params.sub_type = sub_type;
   params.clip_start = clip_start;
   params.clip_end = clip_end;
   params.viewplane = viewplane;
@@ -220,13 +212,6 @@ void RE_GetWindowMatrixWithOverscan(bool is_ortho,
   params.viewplane.xmax += overscan;
   params.viewplane.ymin -= overscan;
   params.viewplane.ymax += overscan;
-  params.orthodox_distance = orthodox_distance;
-  params.orthodox_factor = orthodox_factor;
-  params.orthodox_shift_x = orthodox_shift_x;
-  params.orthodox_shift_y = orthodox_shift_y;
-  params.orthodox_tilt_x = orthodox_tilt_x;
-  params.orthodox_tilt_y = orthodox_tilt_y;
-
   BKE_camera_params_compute_matrix(&params);
   copy_m4_m4(r_winmat, params.winmat);
 }

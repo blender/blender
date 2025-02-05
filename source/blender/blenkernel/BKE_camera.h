@@ -46,6 +46,7 @@ float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
 typedef struct CameraParams {
   /* lens */
   bool is_ortho;
+  int sub_type;
   float lens;
   float ortho_scale;
   float zoom;
@@ -69,6 +70,14 @@ typedef struct CameraParams {
   float viewdx;
   float viewdy;
   rctf viewplane;
+
+  /* set orthodox */
+  float orthodox_tilt_x;
+  float orthodox_tilt_y;
+  float orthodox_shift_x;
+  float orthodox_shift_y;
+  float orthodox_factor;
+  float orthodox_distance;
 
   /* computed matrix */
   float winmat[4][4];

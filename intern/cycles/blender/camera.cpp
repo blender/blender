@@ -77,6 +77,14 @@ class BlenderCamera {
   float central_cylindrical_range_v_max = 1.0f;
   float central_cylindrical_radius = 1.0f;
 
+  /* Orthodox properties. */
+  float orthodox_distance = 1.0f;
+  float orthodox_factor = 0.0f;
+  float orthodox_tilt_x = 0.0f;
+  float orthodox_tilt_y = 0.0f;
+  float orthodox_shift_x = 0.0f;
+  float orthodox_shift_y = 0.0f;
+  
   enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit = AUTO;
   float sensor_width = 36.0f;
   float sensor_height = 24.0f;
@@ -131,6 +139,26 @@ static float blender_camera_focal_distance(BL::RenderEngine &b_engine,
   return fabsf(dot(view_dir, dof_dir));
 }
 
+static float blender_camera_orthodox_distance(BL::RenderEngine &b_engine,
+                                           BL::Object &b_ob,
+                                           BL::Camera &b_camera,
+                                           BlenderCamera *bcam)
+{
+  BL::Object obj = b_camera.orthodox_object();
+
+  if (!obj) {
+    return b_camera.orthodox_distance();
+  }
+
+  Transform obj_mat = get_transform(obj.matrix_world());
+  BL::Array<float, 16> b_ob_matrix;
+  b_engine.camera_model_matrix(b_ob, bcam->use_spherical_stereo, b_ob_matrix);
+  const Transform obmat = transform_clear_scale(get_transform(b_ob_matrix));
+  const float3 view_dir = normalize(transform_get_column(&obmat, 2));
+  const float3 orth_dir = transform_get_column(&obmat, 3) - transform_get_column(&obj_mat, 3);
+  return fabsf(dot(view_dir, orth_dir));
+}
+
 static PanoramaType blender_panorama_type_to_cycles(const BL::Camera::panorama_type_enum type)
 {
   switch (type) {
@@ -167,6 +195,9 @@ static void blender_camera_from_object(BlenderCamera *bcam,
     bcam->farclip = b_camera.clip_end();
 
     switch (b_camera.type()) {
+      case BL::Camera::type_ORTHODOX:
+        bcam->type = CAMERA_ORTHODOX;
+        break;
       case BL::Camera::type_ORTHO:
         bcam->type = CAMERA_ORTHOGRAPHIC;
         break;
@@ -203,6 +234,13 @@ static void blender_camera_from_object(BlenderCamera *bcam,
     bcam->central_cylindrical_range_v_min = b_camera.central_cylindrical_range_v_min();
     bcam->central_cylindrical_range_v_max = b_camera.central_cylindrical_range_v_max();
     bcam->central_cylindrical_radius = b_camera.central_cylindrical_radius();
+
+    bcam->orthodox_tilt_x = b_camera.orthodox_tilt_x();
+    bcam->orthodox_tilt_y = b_camera.orthodox_tilt_y();
+    bcam->orthodox_shift_x = b_camera.orthodox_shift_x();
+    bcam->orthodox_shift_y = b_camera.orthodox_shift_y();
+    bcam->orthodox_factor = b_camera.orthodox_factor();
+    bcam->orthodox_distance = blender_camera_orthodox_distance(b_engine, b_ob, b_camera, bcam);
 
     bcam->interocular_distance = b_camera.stereo().interocular_distance();
     if (b_camera.stereo().convergence_mode() == BL::CameraStereoData::convergence_mode_PARALLEL) {
@@ -361,7 +399,7 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
   }
 
   /* modify aspect for orthographic scale */
-  if (bcam->type == CAMERA_ORTHOGRAPHIC) {
+  if (bcam->type == CAMERA_ORTHOGRAPHIC || bcam->type == CAMERA_ORTHODOX) {
     xaspect = xaspect * bcam->ortho_scale / (*aspectratio * 2.0f);
     yaspect = yaspect * bcam->ortho_scale / (*aspectratio * 2.0f);
     if (aspectratio != nullptr) {
@@ -484,6 +522,13 @@ static void blender_camera_sync(Camera *cam,
   cam->set_fisheye_polynomial_k3(bcam->fisheye_polynomial_k3);
   cam->set_fisheye_polynomial_k4(bcam->fisheye_polynomial_k4);
 
+  cam->set_orthodox_tilt_x(bcam->orthodox_tilt_x);
+  cam->set_orthodox_tilt_y(bcam->orthodox_tilt_y);
+  cam->set_orthodox_shift_x(bcam->orthodox_shift_x);
+  cam->set_orthodox_shift_y(bcam->orthodox_shift_y);
+  cam->set_orthodox_factor(bcam->orthodox_factor);
+  cam->set_orthodox_distance(bcam->orthodox_distance);
+
   cam->set_longitude_min(bcam->longitude_min);
   cam->set_longitude_max(bcam->longitude_max);
 
@@ -531,7 +576,7 @@ static void blender_camera_sync(Camera *cam,
   array<Transform> motion;
   motion.resize(bcam->motion_steps, cam->get_matrix());
   cam->set_motion(motion);
-  cam->set_use_perspective_motion(false);
+  // cam->set_use_perspective_motion(false);
 
   cam->set_shuttertime(bcam->shuttertime);
   cam->set_fov_pre(cam->get_fov());
@@ -696,11 +741,11 @@ void BlenderSync::sync_camera_motion(BL::RenderSettings &b_render,
       }
       else if (motion_time == -1.0f) {
         cam->set_fov_pre(fov);
-        cam->set_use_perspective_motion(true);
+        // cam->set_use_perspective_motion(true);
       }
       else if (motion_time == 1.0f) {
         cam->set_fov_post(fov);
-        cam->set_use_perspective_motion(true);
+        // cam->set_use_perspective_motion(true);
       }
     }
   }

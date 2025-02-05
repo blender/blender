@@ -42,6 +42,7 @@ void Camera::init()
       case CAM_PERSP:
         data.type = CAMERA_PERSP;
         break;
+      case CAM_ORTHODOX:
       case CAM_ORTHO:
         data.type = CAMERA_ORTHO;
         break;
@@ -85,6 +86,7 @@ void Camera::init()
 void Camera::sync()
 {
   const Object *camera_eval = inst_.camera_eval_object;
+  const ::Camera *cam_data = camera_eval ? (::Camera *)camera_eval->data : nullptr;
 
   CameraData &data = data_;
 
@@ -150,11 +152,18 @@ void Camera::sync()
     BKE_camera_params_crop_viewplane(&params.viewplane, UNPACK2(display_extent), &film_rect);
 
     RE_GetWindowMatrixWithOverscan(params.is_ortho,
+                                   params.sub_type,
                                    params.clip_start,
                                    params.clip_end,
                                    params.viewplane,
                                    overscan_,
-                                   data.winmat.ptr());
+                                   data.winmat.ptr(),
+                                   params.orthodox_distance,
+                                   params.orthodox_factor,
+                                   params.orthodox_shift_x,
+                                   params.orthodox_shift_y,
+                                   params.orthodox_tilt_x,
+                                   params.orthodox_tilt_y);
 
     if (params.lens == 0.0f) {
       /* Can happen for the case of XR.
@@ -173,17 +182,26 @@ void Camera::sync()
     rctf viewplane = re->viewplane;
     BKE_camera_params_crop_viewplane(&viewplane, UNPACK2(display_extent), &film_rect);
 
-    RE_GetWindowMatrixWithOverscan(this->is_orthographic(),
-                                   re->clip_start,
-                                   re->clip_end,
-                                   viewplane,
-                                   overscan_,
-                                   data.winmat.ptr());
+    // RE_GetWindowMatrixWithOverscan(this->is_orthographic(),
+    //                                re->clip_start,
+    //                                re->clip_end,
+    //                                viewplane,
+    //                                overscan_,
+    //                                data.winmat.ptr(),
+    //                                params.orthodox_distance,
+    //                                params.orthodox_factor,
+    //                                params.orthodox_shift_x,
+    //                                params.orthodox_shift_y,
+    //                                params.orthodox_tilt_x,
+    //                                params.orthodox_tilt_y);
   }
   else {
     data.viewmat = float4x4::identity();
     data.viewinv = float4x4::identity();
     data.winmat = math::projection::perspective(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
+  }
+
+  if (cam_data && cam_data->type == CAM_ORTHODOX) {
   }
 
   data.wininv = math::invert(data.winmat);
@@ -195,6 +213,8 @@ void Camera::sync()
     const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
     data.clip_near = cam->clip_start;
     data.clip_far = cam->clip_end;
+    data.orhodox_distance = cam->orthodox_distance;
+    data.orhodox_factor = cam->orthodox_factor;
 #if 0 /* TODO(fclem): Make fisheye properties inside blender. */
     data.fisheye_fov = cam->fisheye_fov;
     data.fisheye_lens = cam->fisheye_lens;

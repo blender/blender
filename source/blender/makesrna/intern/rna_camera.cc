@@ -578,6 +578,7 @@ void RNA_def_camera(BlenderRNA *brna)
       {CAM_PERSP, "PERSP", 0, "Perspective", ""},
       {CAM_ORTHO, "ORTHO", 0, "Orthographic", ""},
       {CAM_PANO, "PANO", 0, "Panoramic", ""},
+      {CAM_ORTHODOX, "ORTHODOX", 0, "Orthodox", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
   static const EnumPropertyItem prop_lens_unit_items[] = {
@@ -963,6 +964,47 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.00001f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.00001f, 10.0f, 0.1f, 3);
   RNA_def_property_ui_text(prop, "Cylinder Radius", "Radius of the virtual cylinder");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
+
+  /* orthodox */
+  prop = RNA_def_property(srna, "orthodox_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_pointer_sdna(prop, nullptr, "orthodox_object");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text( prop, "Orthodox Object", "Use this object to define the depth of orthodox");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dependency_update");
+
+  prop = RNA_def_property(srna, "orthodox_distance", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "orthodox_distance");
+  RNA_def_property_ui_range(prop, -80, 80, 1, 3);
+  RNA_def_property_ui_text(prop, "Orthodox factor", "Orthodox distance");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
+
+  prop = RNA_def_property(srna, "orthodox_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "orthodox_factor");
+  RNA_def_property_ui_range(prop, -10, 10, 1, 3);
+  RNA_def_property_ui_text(prop, "Orthodox factor", "Orthodox factor");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
+
+  prop = RNA_def_property(srna, "orthodox_shift_x", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "orthodox_shift_x");
+  RNA_def_property_ui_text(prop, "Orthodox shift x", "Orthodox horizontal shift");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
+
+  prop = RNA_def_property(srna, "orthodox_shift_y", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "orthodox_shift_y");
+  RNA_def_property_ui_text(prop, "Orthodox shift y", "Orthodox vertical shift");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
+
+  prop = RNA_def_property(srna, "orthodox_tilt_x", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "orthodox_tilt_x");
+  RNA_def_property_ui_text(prop, "Orthodox tilt x", "Orthodox horizontal tilt");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
+
+  prop = RNA_def_property(srna, "orthodox_tilt_y", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "orthodox_tilt_y");
+  RNA_def_property_ui_text(prop, "Orthodox tilt y", "Orthodox vertical tilt");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
   /* pointers */

@@ -228,6 +228,106 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
   ray->tmax = kernel_data.cam.cliplength;
 }
 
+/* Orthodox Camera */
+ccl_device void camera_sample_orthodox(KernelGlobals kg,
+                                           const float2 raster_xy,
+                                           const float2 rand_lens,
+                                           ccl_private Ray *ray)
+{
+  /* create ray form raster position */
+  const ProjectionTransform rastertocamera = kernel_data.cam.rastertocamera;
+
+  float3 Pcam = transform_perspective(&rastertocamera, make_float3(raster_xy.x, raster_xy.y, 0.0f));
+  /* orthodox cycles transform */
+  float orthodox_tilt_x = kernel_data.cam.orthodox_tilt_x;
+  float orthodox_tilt_y = kernel_data.cam.orthodox_tilt_y;
+  float orthodox_shift_x = kernel_data.cam.orthodox_shift_x;
+  float orthodox_shift_y = kernel_data.cam.orthodox_shift_y;
+  float orthodox_factor = kernel_data.cam.orthodox_factor;
+  float orthodox_distance = kernel_data.cam.orthodox_distance;
+  float nearClip = kernel_data.cam.nearclip;
+  float farClip = kernel_data.cam.cliplength + nearClip;
+  //  float width = kernel_data.cam.sensorwidth;
+
+  float Zf = -farClip;
+  float Zn = -nearClip;
+  float Zb = -orthodox_distance;
+  // float Xr = right - orthodox_shift_x;
+  // float Xl = left - orthodox_shift_x;
+  // float Yb = bottom - orthodox_shift_y;
+  // float Yt = top - orthodox_shift_y;
+  float Zq = 0.0f;
+  float Kf = 1.0f - orthodox_factor;
+  float tmax = farClip;
+  float tmin = nearClip;
+
+  if (orthodox_factor != 0.0f) {
+    Zq = Zb * (orthodox_factor - 1.0f) / orthodox_factor;
+    if (orthodox_factor > 0.0f) {
+      if (Zn > Zq - 0.001f)
+        Zn = Zq - 0.001f;
+      tmin = -Zn;
+    }
+    else {
+      if (Zf < Zq + 0.001f)
+        Zf = Zq + 0.001f;
+      tmax = -Zf - nearClip;
+    }
+  }
+
+  Pcam.z = 0.0f;
+
+  /* modify ray for depth of field */
+  const float aperturesize = kernel_data.cam.aperturesize;
+  
+  float3 aperture_offset = make_float3(0.0f, 0.0f, 0.0f);
+
+
+  if (aperturesize > 0.0f) {
+    float2 offset = camera_sample_aperture(&kernel_data.cam, rand_lens) * aperturesize;
+    aperture_offset = make_float3(offset.x, offset.y, 0.0f);
+  }
+
+    /* compute point on plane of focus */
+
+  float3 orthodox_offset = make_float3(0.0f, 0.0f, orthodox_distance);
+  float3 shift_tilt_offset = make_float3(-orthodox_shift_x, -orthodox_shift_y, orthodox_tilt_x * Pcam.x + orthodox_tilt_y * Pcam.y);
+  float3 V = Pcam + orthodox_offset + shift_tilt_offset;
+
+  float3 P = (Pcam + shift_tilt_offset) * Kf + aperture_offset;
+  float3 D = normalize(V - P);
+
+  /* transform ray from camera to world */
+  Transform cameratoworld = kernel_data.cam.cameratoworld;
+
+  if (kernel_data.cam.num_motion_steps) {
+    transform_motion_array_interpolate(&cameratoworld,
+                                       kernel_data_array(camera_motion),
+                                       kernel_data.cam.num_motion_steps,
+                                       ray->time);
+  }
+
+  ray->P = transform_point(&cameratoworld, P);
+  ray->D = normalize(transform_direction(&cameratoworld, D));
+
+#ifdef __RAY_DIFFERENTIALS__
+  /* ray differential */
+  differential3 dP;
+  dP.dx = make_float3(kernel_data.cam.dx);
+  dP.dy = make_float3(kernel_data.cam.dx);
+
+  ray->dP = differential_make_compact(dP);
+  ray->dD = differential_zero_compact();
+#endif
+
+  /* clipping */
+  // ray->tmin = 0.0f;
+  ray->tmax = kernel_data.cam.cliplength;
+  ray->tmin = kernel_data.cam.nearclip;
+  // ray->tmin = tmin;
+  // ray->tmax = tmax;
+}
+
 /* Panorama Camera */
 
 ccl_device_inline float3 camera_panorama_direction(ccl_constant KernelCamera *cam,
@@ -401,8 +501,11 @@ ccl_device_inline void camera_sample(KernelGlobals kg,
   if (kernel_data.cam.type == CAMERA_PERSPECTIVE) {
     camera_sample_perspective(kg, raster, lens_uv, ray);
   }
-  else if (kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+  else if (kernel_data.cam.type == CAMERA_ORTHOGRAPHIC ) {
     camera_sample_orthographic(kg, raster, lens_uv, ray);
+  }
+  else if (kernel_data.cam.type == CAMERA_ORTHODOX ) {
+    camera_sample_orthodox(kg, raster, lens_uv, ray);
   }
   else {
     const ccl_global DecomposedTransform *cam_motion = kernel_data_array(camera_motion);
@@ -423,7 +526,7 @@ ccl_device_inline float camera_distance(KernelGlobals kg, const float3 P)
   const Transform cameratoworld = kernel_data.cam.cameratoworld;
   const float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
 
-  if (kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+  if (kernel_data.cam.type == CAMERA_ORTHOGRAPHIC || kernel_data.cam.type == CAMERA_ORTHODOX) {
     const float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
     return fabsf(dot((P - camP), camD));
   }
@@ -445,7 +548,7 @@ ccl_device_inline float3 camera_direction_from_point(KernelGlobals kg, const flo
 {
   const Transform cameratoworld = kernel_data.cam.cameratoworld;
 
-  if (kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+  if (kernel_data.cam.type == CAMERA_ORTHOGRAPHIC || kernel_data.cam.type == CAMERA_ORTHODOX) {
     const float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
     return -camD;
   }
