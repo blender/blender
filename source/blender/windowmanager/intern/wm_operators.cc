@@ -2516,21 +2516,29 @@ struct RadialControl {
   PropertySubType subtype;
   PointerRNA ptr, col_ptr, fill_col_ptr, rot_ptr, zoom_ptr, image_id_ptr;
   PointerRNA fill_col_override_ptr, fill_col_override_test_ptr;
-  PropertyRNA *prop, *col_prop, *fill_col_prop, *rot_prop, *zoom_prop;
-  PropertyRNA *fill_col_override_prop, *fill_col_override_test_prop;
-  StructRNA *image_id_srna;
-  float initial_value, current_value, min_value, max_value;
-  int initial_mouse[2];
-  int initial_co[2];
-  int slow_mouse[2];
-  bool slow_mode;
-  Dial *dial;
-  GPUTexture *texture;
-  ListBase orig_paintcursors;
-  bool use_secondary_tex;
-  void *cursor;
-  NumInput num_input;
-  int init_event;
+  PropertyRNA *prop = nullptr;
+  PropertyRNA *col_prop = nullptr;
+  PropertyRNA *fill_col_prop = nullptr;
+  PropertyRNA *rot_prop = nullptr;
+  PropertyRNA *zoom_prop = nullptr;
+  PropertyRNA *fill_col_override_prop = nullptr;
+  PropertyRNA *fill_col_override_test_prop = nullptr;
+  StructRNA *image_id_srna = nullptr;
+  float initial_value = 0.0f;
+  float current_value = 0.0f;
+  float min_value = 0.0f;
+  float max_value = 0.0f;
+  int initial_mouse[2] = {};
+  int initial_co[2] = {};
+  int slow_mouse[2] = {};
+  bool slow_mode = false;
+  Dial *dial = nullptr;
+  GPUTexture *texture = nullptr;
+  ListBase orig_paintcursors = {};
+  bool use_secondary_tex = false;
+  void *cursor = nullptr;
+  NumInput num_input = {};
+  int init_event = 0;
 };
 
 static void radial_control_update_header(wmOperator *op, bContext *C)
@@ -3088,17 +3096,15 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 
 static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  wmWindowManager *wm;
-  RadialControl *rc;
-
-  if (!(op->customdata = rc = static_cast<RadialControl *>(
-            MEM_callocN(sizeof(RadialControl), "RadialControl"))))
-  {
+  op->customdata = MEM_new<RadialControl>(__func__);
+  if (!op->customdata) {
     return OPERATOR_CANCELLED;
   }
+  RadialControl *rc = static_cast<RadialControl *>(op->customdata);
+  rc = {};
 
   if (!radial_control_get_properties(C, op)) {
-    MEM_freeN(rc);
+    MEM_delete(rc);
     return OPERATOR_CANCELLED;
   }
 
@@ -3128,7 +3134,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     }
     default:
       BKE_report(op->reports, RPT_ERROR, "Property must be an integer or a float");
-      MEM_freeN(rc);
+      MEM_delete(rc);
       return OPERATOR_CANCELLED;
   }
 
@@ -3152,7 +3158,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     BKE_report(op->reports,
                RPT_ERROR,
                "Property must be a none, distance, factor, percentage, angle, or pixel");
-    MEM_freeN(rc);
+    MEM_delete(rc);
     return OPERATOR_CANCELLED;
   }
 
@@ -3163,7 +3169,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   rc->init_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   /* Temporarily disable other paint cursors. */
-  wm = CTX_wm_manager(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
   rc->orig_paintcursors = wm->paintcursors;
   BLI_listbase_clear(&wm->paintcursors);
 
@@ -3214,7 +3220,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
     GPU_texture_free(rc->texture);
   }
 
-  MEM_freeN(rc);
+  MEM_delete(rc);
 }
 
 static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *event)
