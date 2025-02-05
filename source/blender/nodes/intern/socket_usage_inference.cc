@@ -6,6 +6,7 @@
 
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_multi_function.hh"
+#include "NOD_node_declaration.hh"
 #include "NOD_node_in_compute_context.hh"
 #include "NOD_socket_usage_inference.hh"
 
@@ -763,6 +764,13 @@ struct SocketUsageInferencer {
       /* The value of animated sockets is not known statically. */
       all_socket_values_.add_new(socket, nullptr);
       return;
+    }
+    if (const SocketDeclaration *socket_decl = socket.socket->runtime->declaration) {
+      if (socket_decl->input_field_type == InputSocketFieldType::Implicit) {
+        /* Implicit fields inputs don't have a single static value. */
+        all_socket_values_.add_new(socket, nullptr);
+        return;
+      }
     }
 
     const CPPType &base_type = *socket->typeinfo->base_cpp_type;
