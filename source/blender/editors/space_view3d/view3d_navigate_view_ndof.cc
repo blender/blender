@@ -5,9 +5,16 @@
 /** \file
  * \ingroup spview3d
  */
-
+#include "BLI_bounds.hh"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
+
+#include "BKE_layer.hh"
+
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 
@@ -16,11 +23,30 @@
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* own include */
 
+using blender::Bounds;
+using blender::float3;
+
+#ifdef WITH_INPUT_NDOF
+static bool ndof_orbit_center_is_valid(const RegionView3D *rv3d, const float3 &center);
+static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d);
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name NDOF Utility Functions
  * \{ */
 
 #ifdef WITH_INPUT_NDOF
+
+/** Test if the bounding box is in view3d camera frustum. */
+static bool is_bounding_box_in_frustum(const float projmat[4][4],
+                                       const Bounds<float3> &bounding_box)
+{
+  float planes[4][4];
+  planes_from_projmat(projmat, planes[0], planes[1], planes[2], planes[3], nullptr, nullptr);
+  int ret = isect_aabb_planes_v3(planes, 4, bounding_box.min, bounding_box.max);
+
+  return ret == ISECT_AABB_PLANE_IN_FRONT_ALL;
+}
 
 enum {
   HAS_TRANSLATE = (1 << 0),
@@ -226,6 +252,18 @@ static void view3d_ndof_orbit(const wmNDOFMotionData *ndof,
   }
 
   if (apply_dyn_ofs) {
+    /* Use NDOF center as a dynamic offset. */
+    if (ndof_orbit_center_is_auto(v3d, rv3d)) {
+      if (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID) {
+        if (ndof_orbit_center_is_valid(vod->rv3d, -float3(rv3d->ndof_ofs))) {
+          vod->use_dyn_ofs = true;
+          copy_v3_v3(vod->dyn_ofs, rv3d->ndof_ofs);
+        }
+        else {
+          rv3d->ndof_flag &= ~RV3D_NDOF_OFS_IS_VALID;
+        }
+      }
+    }
     viewrotate_apply_dyn_ofs(vod, rv3d->viewquat);
   }
 }
@@ -349,6 +387,181 @@ void view3d_ndof_fly(const wmNDOFMotionData *ndof,
 
   *r_has_translate = has_translate;
   *r_has_rotate = has_rotate;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Orbit Center Calculation
+ * \{ */
+
+static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d)
+{
+  if ((U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) == 0) {
+    return false;
+  }
+  if (v3d->ob_center_cursor || v3d->ob_center) {
+    return false;
+  }
+
+  /* Check the caller is not calculating auto-center when there is no reason to do so. */
+  BLI_assert_msg(
+      !((rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA) == 0),
+      "This test should not run from a camera view unless the camera is locked to the viewport");
+  UNUSED_VARS_NDEBUG(rv3d);
+
+  return true;
+}
+
+/**
+ * Return true when `center` should not be used.
+ */
+static bool ndof_orbit_center_is_valid(const RegionView3D *rv3d, const float3 &center)
+{
+  /* NOTE: this is a fairly arbitrary check mainly to avoid obvious problems
+   * where the orbit center is going to seem buggy/unusable.
+   *
+   * Other cases could also be counted as invalid:
+   * - It's beyond the clip-end.
+   * - It's not inside the viewport frustum (with some margin perhaps).
+   *
+   * The value could also be clamped to make it valid however when function
+   * returns false the #RegionView3D::ofs is used instead, so it's not necessary
+   * to go to great lengths to attempt to use the value.
+   */
+  if (rv3d->is_persp) {
+    const float zfac = mul_project_m4_v3_zfac(rv3d->persmat, center);
+    if (zfac <= 0.0f) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static std::optional<float3> ndof_orbit_center_calc_from_bounds(Depsgraph *depsgraph,
+                                                                ScrArea *area,
+                                                                ARegion *region)
+{
+  std::optional<Bounds<float3>> bounding_box = std::nullopt;
+
+  if (U.ndof_flag & NDOF_ORBIT_CENTER_SELECTED) {
+    bool do_zoom = false;
+    bounding_box = view3d_calc_minmax_selected(depsgraph, area, region, false, false, &do_zoom);
+  }
+  else {
+    bounding_box = view3d_calc_minmax_visible(depsgraph, area, region, false, false);
+  }
+
+  if (bounding_box.has_value()) {
+    const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+
+    /* Scale down the bounding box to provide some offset */
+    bounding_box->scale_from_center(float3(0.8));
+
+    if (is_bounding_box_in_frustum(rv3d->persmat, *bounding_box)) {
+      /* TODO: for perspective views it would be good to clip the bounds by the
+       * view-point's plane, so the only the portion of the bounds in front of the
+       * view-point is taken into account when calculating the center. */
+      const float3 center = bounding_box->center();
+      if (ndof_orbit_center_is_valid(rv3d, center)) {
+        return center;
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+static float ndof_read_zbuf(ARegion *region)
+{
+  view3d_region_operator_needs_gpu(region);
+
+  /* Avoid allocating the whole depth buffer. */
+  ViewDepths depth_temp = {0};
+  {
+    /* Some small rectangle in the middle of the view3d region. */
+    rcti rect;
+    const int region_center[2] = {region->winx / 2, region->winy / 2};
+    BLI_rcti_init_pt_radius(&rect, region_center, 2);
+    view3d_depths_rect_create(region, &rect, &depth_temp);
+  }
+
+  /* Find the closest Z pixel. */
+  const float depth_near = view3d_depth_near(&depth_temp);
+
+  MEM_SAFE_FREE(depth_temp.depths);
+
+  return depth_near;
+}
+
+static std::optional<float3> ndof_orbit_center_calc_from_zbuf(Depsgraph *depsgraph,
+                                                              ScrArea *area,
+                                                              ARegion *region)
+{
+
+  const float depth_near = ndof_read_zbuf(region);
+  if (depth_near == FLT_MAX) {
+    return std::nullopt;
+  }
+  float region_center_x = region->winx / 2.0f;
+  float region_center_y = region->winy / 2.0f;
+  blender::float3 zbuf_center{};
+
+  if (!ED_view3d_unproject_v3(region, region_center_x, region_center_y, depth_near, zbuf_center)) {
+    return std::nullopt;
+  }
+
+  /* Since the center found with Z-buffer might be in some small distance from the mesh
+   * it's safer to scale the bounding box a little before testing if it contains that center. */
+  const float scale_margin = 1.05f;
+
+  /* Use the found center if either #NDOF_ORBIT_CENTER_SELECTED is not enabled,
+   * there are no selected objects center is within bounding box of selected objects. */
+  if ((U.ndof_flag & NDOF_ORBIT_CENTER_SELECTED) == 0) {
+    return zbuf_center;
+  }
+
+  Scene *scene = DEG_get_input_scene(depsgraph);
+  ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+
+  if (!BKE_layer_collection_has_selected_objects(scene, view_layer, view_layer->active_collection))
+  {
+    return zbuf_center;
+  }
+
+  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  if (view3d_calc_point_in_selected_bounds(depsgraph, view_layer, v3d, zbuf_center, scale_margin))
+  {
+    return zbuf_center;
+  }
+
+  return std::nullopt;
+}
+
+static std::optional<float3> ndof_orbit_center_calc(Depsgraph *depsgraph,
+                                                    ScrArea *area,
+                                                    ARegion *region)
+{
+  /* Auto orbit-center implements an intelligent way to dynamically choose the orbit-center
+   * based on objects on the scene and how close to the particular object is the camera.
+   *
+   * Auto center calculation algorithm works as following:
+   * 1) Calculate the bounding box of all objects in the scene
+   * 2) If at least 80% of that box is contained in view-port's camera frustum then:
+   *    2a) Store the center of that bounding box as the orbit-center.
+   * 3) Use Z buffer to find the depth under the middle of the view3d region
+   * 4) If some finite depth value was found then:
+   *    4a) Use that depth to unproject a point from the middle of the region to the 3D space
+   *    4b) Store that point as the Center of Rotation
+   * 5) Since no candidates were found, use the last stored value
+   *    (when #RV3D_NDOF_OFS_IS_VALID is set).
+   */
+
+  std::optional<float3> center_test = ndof_orbit_center_calc_from_bounds(depsgraph, area, region);
+  if (!center_test.has_value()) {
+    center_test = ndof_orbit_center_calc_from_zbuf(depsgraph, area, region);
+  }
+  return center_test;
 }
 
 /** \} */
@@ -530,6 +743,17 @@ static int ndof_orbit_zoom_invoke_impl(bContext *C,
 
   if (ndof->progress == P_FINISHING) {
     /* pass */
+  }
+  else if (ndof->progress == P_STARTING) {
+    if (ndof_orbit_center_is_auto(v3d, rv3d)) {
+      /* If center was recalculated then update the point location for drawing. */
+      if (std::optional<float3> center_test = ndof_orbit_center_calc(
+              vod->depsgraph, vod->area, vod->region))
+      {
+        negate_v3_v3(rv3d->ndof_ofs, center_test.value());
+        rv3d->ndof_flag |= RV3D_NDOF_OFS_IS_VALID;
+      }
+    }
   }
   else if ((rv3d->persp == RV3D_ORTHO) && RV3D_VIEW_IS_AXIS(rv3d->view)) {
     /* if we can't rotate, fallback to translate (locked axis views) */

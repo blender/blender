@@ -41,6 +41,7 @@ struct wmOperatorType;
 struct wmTimer;
 struct wmWindow;
 struct wmWindowManager;
+struct ViewLayer;
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
@@ -403,6 +404,15 @@ std::optional<blender::Bounds<blender::float3>> view3d_calc_minmax_selected(Deps
                                                                             bool use_all_regions,
                                                                             bool clip_bounds,
                                                                             bool *r_do_zoom);
+
+/**
+ * Iterate over objects and check if `point` might is inside any of them.
+ */
+bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
+                                          struct ViewLayer *view_layer_eval,
+                                          const View3D *v3d,
+                                          const blender::float3 &point,
+                                          const float scale_margin);
 
 void VIEW3D_OT_view_all(wmOperatorType *ot);
 void VIEW3D_OT_view_selected(wmOperatorType *ot);

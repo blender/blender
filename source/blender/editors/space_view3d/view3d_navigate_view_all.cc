@@ -16,6 +16,7 @@
 #include "BKE_screen.hh"
 
 #include "BLI_bounds_types.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -368,6 +369,40 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     return std::nullopt;
   }
   return blender::Bounds<float3>(min, max);
+}
+
+bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
+                                          ViewLayer *view_layer,
+                                          const View3D *v3d,
+                                          const blender::float3 &point,
+                                          const float scale_margin)
+{
+  Scene *scene = DEG_get_input_scene(depsgraph);
+
+  LISTBASE_FOREACH (const Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+    if (!BASE_SELECTED(v3d, base)) {
+      continue;
+    }
+    Object *ob = base->object;
+    BLI_assert(!DEG_is_original_id(&ob->id));
+
+    float3 min, max;
+    view3d_object_calc_minmax(depsgraph, scene, ob, false, min, max);
+
+    blender::Bounds<float3> bounds{min, max};
+
+    bounds.scale_from_center(float3(scale_margin));
+
+    float3 local_min = blender::math::transform_point(ob->object_to_world(), bounds.min);
+    float3 local_max = blender::math::transform_point(ob->object_to_world(), bounds.max);
+
+    if (point[0] >= local_min[0] && point[1] >= local_min[1] && point[2] >= local_min[2] &&
+        point[0] <= local_max[0] && point[1] <= local_max[1] && point[2] <= local_max[2])
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** \} */

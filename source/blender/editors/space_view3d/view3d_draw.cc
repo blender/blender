@@ -1133,6 +1133,32 @@ static void draw_ndof_guide_orbit_axis(const RegionView3D *rv3d)
   GPU_blend(GPU_BLEND_NONE);
   GPU_depth_mask(true);
 }
+
+static void draw_ndof_guide_orbit_center(const RegionView3D *rv3d)
+{
+  uchar color[4] = {0, 108, 255, 255}; /* bright blue so it matches device LEDs */
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_depth_mask(false); /* Don't overwrite the Z-buffer. */
+
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+  immUniform1f("size", 7.0f);
+  immUniform4fv("color", float4(color));
+  immBegin(GPU_PRIM_POINTS, 1);
+  immAttr4ubv(col, color);
+  float center[3];
+  negate_v3_v3(center, rv3d->ndof_ofs);
+  immVertex3fv(pos, center);
+  immEnd();
+  immUnbindProgram();
+
+  GPU_blend(GPU_BLEND_NONE);
+  GPU_depth_mask(true);
+}
+
 #endif /* WITH_INPUT_NDOF */
 
 /**
@@ -1458,9 +1484,27 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
 
 #ifdef WITH_INPUT_NDOF
   if (U.ndof_flag & NDOF_SHOW_GUIDE_ORBIT_AXIS) {
-    if (((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) && (rv3d->persp != RV3D_CAMOB)) {
-      /* TODO: draw something else (but not this) during fly mode. */
-      draw_ndof_guide_orbit_axis(rv3d);
+    if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
+      /* It only makes sense to show when orbiting. */
+      if (rv3d->ndof_rot_angle != 0.0f) {
+        /* TODO: draw something else (but not this) during fly mode. */
+        draw_ndof_guide_orbit_axis(rv3d);
+      }
+    }
+  }
+
+  if (U.ndof_flag & NDOF_SHOW_GUIDE_ORBIT_CENTER) {
+    /* Draw this only when orbiting and auto orbit-center is enabled */
+    if ((U.ndof_flag & NDOF_MODE_ORBIT) && (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO)) {
+      if (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID) {
+        /* When the center is locked, the auto-center is not used. */
+        if (!(v3d->ob_center_cursor || v3d->ob_center)) {
+          /* It only makes sense to show when orbiting. */
+          if (rv3d->ndof_rot_angle != 0.0f) {
+            draw_ndof_guide_orbit_center(rv3d);
+          }
+        }
+      }
     }
   }
 #endif
