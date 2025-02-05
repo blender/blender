@@ -160,6 +160,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     Curves *curves_id = static_cast<Curves *>(obedit->data);
     blender::bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     curves.tag_positions_changed();
+    curves.calculate_bezier_auto_handles();
   }
 }
 
