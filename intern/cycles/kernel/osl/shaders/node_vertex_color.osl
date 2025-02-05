@@ -24,12 +24,12 @@ shader node_vertex_color(string bump_offset = "center",
     Alpha = vertex_color[3];
 
     if (bump_offset == "dx") {
-      Color += Dx(Color);
-      Alpha += Dx(Alpha);
+      Color += Dx(Color) * BUMP_DX;
+      Alpha += Dx(Alpha) * BUMP_DX;
     }
     else if (bump_offset == "dy") {
-      Color += Dy(Color);
-      Alpha += Dy(Alpha);
+      Color += Dy(Color) * BUMP_DY;
+      Alpha += Dy(Alpha) * BUMP_DY;
     }
   }
   else {

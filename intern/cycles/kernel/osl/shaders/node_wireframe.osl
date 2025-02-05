@@ -11,10 +11,10 @@ shader node_wireframe(string bump_offset = "center",
                       output float Fac = 0.0)
 {
   if (bump_offset == "dx") {
-    P += Dx(P);
+    P += Dx(P) * BUMP_DX;
   }
   else if (bump_offset == "dy") {
-    P += Dy(P);
+    P += Dy(P) * BUMP_DY;
   }
 
   Fac = wireframe("triangles", Size, use_pixel_size);

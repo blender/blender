@@ -21,12 +21,12 @@ shader node_uv_map(int from_dupli = 0,
 
   if (bump_offset == "dx") {
     if (!from_dupli) {
-      UV += Dx(UV);
+      UV += Dx(UV) * BUMP_DX;
     }
   }
   else if (bump_offset == "dy") {
     if (!from_dupli) {
-      UV += Dy(UV);
+      UV += Dy(UV) * BUMP_DY;
     }
   }
 }

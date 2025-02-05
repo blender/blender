@@ -135,6 +135,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_NORMAL: {
+      /* TODO(weizhen): implement. */
       data = sd->N;
       object_inverse_normal_transform(kg, sd, &data);
       break;
@@ -228,6 +229,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_NORMAL: {
+      /* TODO(weizhen): implement. */
       data = sd->N;
       object_inverse_normal_transform(kg, sd, &data);
       break;

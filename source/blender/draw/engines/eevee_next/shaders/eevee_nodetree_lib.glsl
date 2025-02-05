@@ -637,7 +637,9 @@ vec3 displacement_bump()
   vec3 surfgrad = dHd.x * Rx + dHd.y * Ry;
 
   float facing = FrontFacing ? 1.0 : -1.0;
-  return normalize(abs(det) * g_data.N - facing * sign(det) * surfgrad);
+  /* NOTE: keep the same as defined `BUMP_DX`. */
+  const float bump_dx = 0.1;
+  return normalize(bump_dx * abs(det) * g_data.N - facing * sign(det) * surfgrad);
 #  else
   return g_data.N;
 #  endif

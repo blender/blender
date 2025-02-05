@@ -518,5 +518,8 @@ enum ClosureType {
 #define CLOSURE_WEIGHT_CUTOFF 1e-5f
 /* Treat closure as singular if the squared roughness is below this threshold. */
 #define BSDF_ROUGHNESS_SQ_THRESH 2e-10f
+/* Offset of coordinates for evaluating bump node. Unit in pixel. */
+#define BUMP_DX 0.1f
+#define BUMP_DY BUMP_DX
 
 CCL_NAMESPACE_END

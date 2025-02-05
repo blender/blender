@@ -24,12 +24,12 @@ shader node_geometry(string bump_offset = "center",
   Backfacing = backfacing();
 
   if (bump_offset == "dx") {
-    Position += Dx(Position);
-    Parametric += Dx(Parametric);
+    Position += Dx(Position) * BUMP_DX;
+    Parametric += Dx(Parametric) * BUMP_DX;
   }
   else if (bump_offset == "dy") {
-    Position += Dy(Position);
-    Parametric += Dy(Parametric);
+    Position += Dy(Position) * BUMP_DY;
+    Parametric += Dy(Parametric) * BUMP_DY;
   }
 
   point generated;
@@ -52,10 +52,10 @@ shader node_geometry(string bump_offset = "center",
 
   getattribute("geom:pointiness", Pointiness);
   if (bump_offset == "dx") {
-    Pointiness += Dx(Pointiness);
+    Pointiness += Dx(Pointiness) * BUMP_DX;
   }
   else if (bump_offset == "dy") {
-    Pointiness += Dy(Pointiness);
+    Pointiness += Dy(Pointiness) * BUMP_DY;
   }
 
   getattribute("geom:random_per_island", RandomPerIsland);

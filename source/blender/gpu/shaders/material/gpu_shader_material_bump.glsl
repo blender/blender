@@ -42,7 +42,9 @@ void node_bump(float strength,
 
   strength = max(strength, 0.0);
 
-  result = normalize(abs(det) * N - dist * sign(det) * surfgrad);
+  /* NOTE: keep the same as defined `BUMP_DX`. */
+  const float bump_dx = 0.1;
+  result = normalize(bump_dx * abs(det) * N - dist * sign(det) * surfgrad);
   result = normalize(mix(N, result, strength));
 #else
   result = N;
