@@ -27,6 +27,7 @@ using blender::Bounds;
 using blender::float3;
 
 static bool ndof_orbit_center_is_valid(const RegionView3D *rv3d, const float3 &center);
+static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d);
 
 /* -------------------------------------------------------------------- */
 /** \name NDOF Utility Functions
@@ -250,7 +251,7 @@ static void view3d_ndof_orbit(const wmNDOFMotionData *ndof,
 
   if (apply_dyn_ofs) {
     /* Use NDOF center as a dynamic offset. */
-    if (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) {
+    if (ndof_orbit_center_is_auto(v3d, rv3d)) {
       if (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID) {
         if (ndof_orbit_center_is_valid(vod->rv3d, -float3(rv3d->ndof_ofs))) {
           vod->use_dyn_ofs = true;
@@ -391,6 +392,24 @@ void view3d_ndof_fly(const wmNDOFMotionData *ndof,
 /* -------------------------------------------------------------------- */
 /** \name NDOF Orbit Center Calculation
  * \{ */
+
+static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d)
+{
+  if ((U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) == 0) {
+    return false;
+  }
+  if (v3d->ob_center_cursor || v3d->ob_center) {
+    return false;
+  }
+
+  /* Check the caller is not calculating auto-center when there is no reason to do so. */
+  BLI_assert_msg(
+      !((rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA) == 0),
+      "This test should not run from a camera view unless the camera is locked to the viewport");
+  UNUSED_VARS_NDEBUG(rv3d);
+
+  return true;
+}
 
 /**
  * Return true when `center` should not be used.
@@ -724,7 +743,7 @@ static int ndof_orbit_zoom_invoke_impl(bContext *C,
     /* pass */
   }
   else if (ndof->progress == P_STARTING) {
-    if (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) {
+    if (ndof_orbit_center_is_auto(v3d, rv3d)) {
       /* If center was recalculated then update the point location for drawing. */
       if (std::optional<float3> center_test = ndof_orbit_center_calc(
               vod->depsgraph, vod->area, vod->region))
