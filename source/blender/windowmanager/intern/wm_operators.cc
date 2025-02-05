@@ -3101,7 +3101,6 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     return OPERATOR_CANCELLED;
   }
   RadialControl *rc = static_cast<RadialControl *>(op->customdata);
-  rc = {};
 
   if (!radial_control_get_properties(C, op)) {
     MEM_delete(rc);
