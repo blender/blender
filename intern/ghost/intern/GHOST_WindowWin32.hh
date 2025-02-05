@@ -128,6 +128,11 @@ class GHOST_WindowWin32 : public GHOST_Window {
   std::string getTitle() const;
 
   /**
+   * Apply the window decoration style using the current flags and settings.
+   */
+  GHOST_TSuccess applyWindowDecorationStyle() override;
+
+  /**
    * Returns the window rectangle dimensions.
    * The dimensions are given in screen coordinates that are
    * relative to the upper-left corner of the screen.
