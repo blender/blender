@@ -108,7 +108,7 @@ BLI_STATIC_ASSERT(sizeof(GHOST_TEventImeData) == sizeof(wmIMEData),
 /**
  * Return value of handler-operator call.
  */
-using eHandlerActionFlag = enum eHandlerActionFlag {
+enum eHandlerActionFlag {
   WM_HANDLER_BREAK = 1 << 0,
   WM_HANDLER_HANDLED = 1 << 1,
   /** `WM_HANDLER_MODAL | WM_HANDLER_BREAK` means unhandled. */

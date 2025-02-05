@@ -19,8 +19,6 @@ struct BMVert;
 struct BMesh;
 struct BVHTree;
 
-using BMBVHTree = struct BMBVHTree;
-
 typedef bool (*BMBVHTree_FaceFilter)(struct BMFace *f, void *userdata);
 
 BMBVHTree *BKE_bmbvh_new_from_editmesh(struct BMEditMesh *em,

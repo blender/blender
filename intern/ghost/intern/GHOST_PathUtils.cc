@@ -18,7 +18,7 @@
 
 /* Based on: https://stackoverflow.com/a/2766963/432509 */
 
-using DecodeState_e = enum DecodeState_e {
+enum DecodeState_e {
   /** Searching for an ampersand to convert. */
   STATE_SEARCH = 0,
   /** Convert the two proceeding characters from hex. */

@@ -143,7 +143,7 @@ TEST(task, MempoolIter)
 
 /* *** Parallel iterations over mempool items with TLS. *** */
 
-using TaskMemPool_Chunk = struct TaskMemPool_Chunk {
+struct TaskMemPool_Chunk {
   ListBase *accumulate_items;
 };
 

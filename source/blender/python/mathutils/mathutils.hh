@@ -89,8 +89,6 @@ PyMODINIT_FUNC PyInit_mathutils();
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff);
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);
 
-using Mathutils_Callback = struct Mathutils_Callback;
-
 /** Checks the user is still valid. */
 using BaseMathCheckFunc = int (*)(BaseMathObject *);
 /** Gets the vector from the user. */
