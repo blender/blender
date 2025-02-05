@@ -4833,10 +4833,6 @@ static bool compositor_is_in_use(const bContext &context)
     return false;
   }
 
-  if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
-    return true;
-  }
-
   wmWindowManager *wm = CTX_wm_manager(&context);
   LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(win);
