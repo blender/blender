@@ -187,7 +187,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
             const map<void *, set<BL::ID>>::const_iterator instance_geometries =
                 instance_geometries_by_object.find(b_ob.ptr.data);
             if (instance_geometries != instance_geometries_by_object.end()) {
-              for (BL::ID const geometry : instance_geometries->second) {
+              for (BL::ID const &geometry : instance_geometries->second) {
                 geometry_map.set_recalc(geometry);
               }
             }
