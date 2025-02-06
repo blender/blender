@@ -11,6 +11,7 @@
 
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/curve.h"
+#include "kernel/geom/motion_triangle.h"
 #include "kernel/geom/object.h"
 #include "kernel/geom/point.h"
 #include "kernel/geom/primitive.h"
@@ -27,6 +28,7 @@
 #include "util/transform.h"
 
 #include "kernel/osl/osl.h"
+#include "kernel/osl/services_shared.h"
 
 namespace DeviceStrings {
 
@@ -68,6 +70,8 @@ ccl_device_constant DeviceString u_object_alpha = 11165053919428293151ull;
 ccl_device_constant DeviceString u_object_index = 6588325838217472556ull;
 /* "object:is_light" */
 ccl_device_constant DeviceString u_object_is_light = 13979755312845091842ull;
+/* "geom:bump_map_normal" */
+ccl_device_constant DeviceString u_bump_map_normal = 9592102745179132106ull;
 /* "geom:dupli_generated" */
 ccl_device_constant DeviceString u_geom_dupli_generated = 6715607178003388908ull;
 /* "geom:dupli_uv" */
@@ -1352,6 +1356,13 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
     else {
       return false;
     }
+  }
+  if (name == DeviceStrings::u_bump_map_normal) {
+    float3 f[3];
+    if (!attribute_bump_map_normal(kg, sd, f)) {
+      return false;
+    }
+    return set_attribute_float3(f, type, derivatives, val);
   }
 
   return get_background_attribute(kg, sg, sd, name, type, derivatives, val);

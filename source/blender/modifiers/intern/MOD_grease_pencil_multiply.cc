@@ -89,13 +89,15 @@ static bke::CurvesGeometry duplicate_strokes(const bke::CurvesGeometry &curves,
                                              const IndexMask curves_mask,
                                              const IndexMask unselected_mask,
                                              const int count,
-                                             int &r_original_point_count)
+                                             int &r_original_point_count,
+                                             int &r_original_curve_count)
 {
   bke::CurvesGeometry masked_curves = bke::curves_copy_curve_selection(curves, curves_mask, {});
   bke::CurvesGeometry unselected_curves = bke::curves_copy_curve_selection(
       curves, unselected_mask, {});
 
   r_original_point_count = masked_curves.points_num();
+  r_original_curve_count = masked_curves.curves_num();
 
   Curves *masked_curves_id = bke::curves_new_nomain(masked_curves);
   Curves *unselected_curves_id = bke::curves_new_nomain(unselected_curves);
@@ -136,9 +138,9 @@ static void generate_curves(GreasePencilMultiModifierData &mmd,
 
   const IndexMask unselected_mask = curves_mask.complement(curves.curves_range(), mask_memory);
 
-  int src_point_count;
-  bke::CurvesGeometry duplicated_strokes = duplicate_strokes(
-      curves, curves_mask, unselected_mask, mmd.duplications, src_point_count);
+  int src_point_count, src_curve_count;
+  curves = duplicate_strokes(
+      curves, curves_mask, unselected_mask, mmd.duplications, src_point_count, src_curve_count);
 
   const float offset = math::length(math::to_scale(ctx.object->object_to_world())) * mmd.offset;
   const float distance = mmd.distance;
@@ -147,11 +149,11 @@ static void generate_curves(GreasePencilMultiModifierData &mmd,
   const float fading_opacity = mmd.fading_opacity;
   const float fading_center = mmd.fading_center;
 
-  MutableSpan<float3> positions = duplicated_strokes.positions_for_write();
-  const Span<float3> tangents = duplicated_strokes.evaluated_tangents();
+  MutableSpan<float3> positions = curves.positions_for_write();
+  const Span<float3> tangents = curves.evaluated_tangents();
   const Span<float3> normals = drawing.curve_plane_normals();
 
-  bke::MutableAttributeAccessor attributes = duplicated_strokes.attributes_for_write();
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
       "opacity", bke::AttrDomain::Point);
   bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
@@ -162,15 +164,15 @@ static void generate_curves(GreasePencilMultiModifierData &mmd,
   Array<float3> pos_l(src_point_count);
   Array<float3> pos_r(src_point_count);
 
-  threading::parallel_for(curves.curves_range(), 128, [&](const IndexRange range) {
-    for (const int curve : range) {
-      for (const int point : points_by_curve[curve]) {
-        const float3 miter = math::cross(normals[curve], tangents[point]) * distance;
-        pos_l[point] = positions[point] + miter;
-        pos_r[point] = positions[point] - miter;
-      }
+  int src_point_i = 0;
+  for (const int src_curve_i : IndexRange(src_curve_count)) {
+    for (const int point : points_by_curve[src_curve_i]) {
+      const float3 miter = math::cross(normals[src_curve_i], tangents[point]) * distance;
+      pos_l[src_point_i] = positions[point] + miter;
+      pos_r[src_point_i] = positions[point] - miter;
+      src_point_i++;
     }
-  });
+  }
 
   const Span<float3> stroke_pos_l = pos_l.as_span();
   const Span<float3> stroke_pos_r = pos_r.as_span();
@@ -202,7 +204,6 @@ static void generate_curves(GreasePencilMultiModifierData &mmd,
   radii.finish();
   opacities.finish();
 
-  curves = std::move(duplicated_strokes);
   drawing.tag_topology_changed();
 }
 
