@@ -56,7 +56,7 @@ static std::optional<StringRefNull> pgettext(StringRef msgctxt, const StringRef 
   return BPY_app_translations_py_pgettext(msgctxt, msgid);
 #  endif
 #else
-  (void)msgctxt;
+  UNUSED_VARS(msgctxt, msgid);
   return std::nullopt;
 #endif
 }
