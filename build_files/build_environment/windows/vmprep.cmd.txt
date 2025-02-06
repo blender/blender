@@ -27,7 +27,7 @@ echo # - Meson 1.6.0
 echo # - Visual Studio 2010 X64 redist (required for the yaml binary) 
 echo # - Git 2.38.0
 echo # - CMake 3.24.2
-echo # - Cuda 12.3.2
+echo # - Cuda 12.8.0
 echo # - HIP 5.7.1
 echo #
 echo # Additionally this will also create and populate the following folders :
@@ -92,18 +92,18 @@ curl https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE65
 echo Installing Visual studio 2010 x64 redist
 start /wait c:\install\vcredist_x64.exe /passive /norestart
 
-echo Obtaining cuda 12.3.2
-curl https://developer.download.nvidia.com/compute/cuda/12.3.2/local_installers/cuda_12.3.2_546.12_windows.exe  -o c:\install\cuda_12.3.2_546.12_windows.exe
-echo Installing  cuda 12.3.2
+echo Obtaining cuda 12.8.0
+curl https://developer.download.nvidia.com/compute/cuda/12.8.0/local_installers/cuda_12.8.0_571.96_windows.exe  -o c:\install\cuda_12.8.0_571.96_windows.exe
+echo Installing  cuda 12.8.0
 echo *********************************************************************
 echo ** CUDA is a bit of a pain to install due to it lacking features   **
 echo ** for unattended installs, the installer should have just started **
-echo ** manually install it to c:\tools\cuda\12.3.2\ this HAS to be the **
+echo ** manually install it to c:\tools\cuda\12.8.0\ this HAS to be the **
 echo ** place, don't use anything else, This folder has been created    **
 echo ** so you should be able to just browse to it in the installer     **
 echo *********************************************************************
-mkdir c:\tools\cuda\12.3.2\
-start /wait c:\install\cuda_12.3.2_546.12_windows.exe 
+mkdir c:\tools\cuda\12.8.0\
+start /wait c:\install\cuda_12.8.0_571.96_windows.exe
 
 echo Obtaining Hip SDK 5.7.1
 curl https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe  -o c:\install\AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe

@@ -67,7 +67,10 @@ endif()
 set(ODIN_PATCH_COMMAND
   ${PATCH_CMD} --verbose -p 1 -N -d
   ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
-  ${PATCH_DIR}/oidn.diff
+  ${PATCH_DIR}/oidn.diff &&
+  ${PATCH_CMD} --verbose -p 1 -N -d
+  ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+  ${PATCH_DIR}/oidn_blackwell.diff
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
