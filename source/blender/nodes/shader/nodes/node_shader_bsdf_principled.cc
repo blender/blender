@@ -98,7 +98,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(100.0f)
       .short_label("Radius")
-      .description("Scattering radius to use for subsurface component (multiplied with Scale)");
+      .description("Scattering radius per color channel (RGB), multiplied with Scale");
 #define SOCK_SUBSURFACE_RADIUS_ID 9
   sss.add_input<decl::Float>("Subsurface Scale")
       .default_value(0.05f)
@@ -106,7 +106,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(10.0f)
       .subtype(PROP_DISTANCE)
       .short_label("Scale")
-      .description("Scale of the subsurface scattering (multiplied with Radius)");
+      .description("Scale factor of the subsurface scattering radius");
 #define SOCK_SUBSURFACE_SCALE_ID 10
   sss.add_input<decl::Float>("Subsurface IOR")
       .default_value(1.4f)
