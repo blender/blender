@@ -18,6 +18,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Evaluate a quantity at barycentric coordinates u, v, given the values at three triangle
+ * vertices. */
+template<typename T>
+ccl_device_inline T
+triangle_interpolate(const float u, const float v, const T f0, const T f1, const T f2)
+{
+  return (1.0f - u - v) * f0 + u * f1 + v * f2;
+}
+
 /* Normal on triangle. */
 ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderData *sd)
 {
@@ -107,6 +116,34 @@ triangle_smooth_normal(KernelGlobals kg, const float3 Ng, const int prim, const 
 
   const float3 N = safe_normalize((1.0f - u - v) * n0 + u * n1 + v * n2);
 
+  return is_zero(N) ? Ng : N;
+}
+
+/* Compute triangle normals at the hit position, and offsetted positions in x and y direction for
+ * bump mapping. */
+ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
+                                                const float3 Ng,
+                                                const int prim,
+                                                const float u,
+                                                float v,
+                                                const differential du,
+                                                const differential dv,
+                                                ccl_private float3 &N_x,
+                                                ccl_private float3 &N_y)
+{
+  /* Load triangle vertices. */
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+
+  const float3 n0 = kernel_data_fetch(tri_vnormal, tri_vindex.x);
+  const float3 n1 = kernel_data_fetch(tri_vnormal, tri_vindex.y);
+  const float3 n2 = kernel_data_fetch(tri_vnormal, tri_vindex.z);
+
+  const float3 N = safe_normalize(triangle_interpolate(u, v, n0, n1, n2));
+  N_x = safe_normalize(triangle_interpolate(u + du.dx * BUMP_DX, v + dv.dx * BUMP_DX, n0, n1, n2));
+  N_y = safe_normalize(triangle_interpolate(u + du.dy * BUMP_DY, v + dv.dy * BUMP_DY, n0, n1, n2));
+
+  N_x = is_zero(N_x) ? Ng : N_x;
+  N_y = is_zero(N_y) ? Ng : N_y;
   return is_zero(N) ? Ng : N;
 }
 

@@ -23,6 +23,7 @@
 
 #include "kernel/osl/globals.h"
 #include "kernel/osl/services.h"
+#include "kernel/osl/services_shared.h"
 #include "kernel/osl/types.h"
 
 #include "kernel/integrator/state.h"
@@ -69,6 +70,7 @@ ustring OSLRenderServices::u_object_color("object:color");
 ustring OSLRenderServices::u_object_alpha("object:alpha");
 ustring OSLRenderServices::u_object_index("object:index");
 ustring OSLRenderServices::u_object_is_light("object:is_light");
+ustring OSLRenderServices::u_bump_map_normal("geom:bump_map_normal");
 ustring OSLRenderServices::u_geom_dupli_generated("geom:dupli_generated");
 ustring OSLRenderServices::u_geom_dupli_uv("geom:dupli_uv");
 ustring OSLRenderServices::u_material_index("material:index");
@@ -990,6 +992,13 @@ bool OSLRenderServices::get_object_standard_attribute(
       return set_attribute_float3(f, type, derivatives, val);
     }
     return false;
+  }
+  if (name == u_bump_map_normal) {
+    float3 f[3];
+    if (!attribute_bump_map_normal(kg, sd, f)) {
+      return false;
+    }
+    return set_attribute_float3(f, type, derivatives, val);
   }
   return get_background_attribute(globals, name, type, derivatives, val);
 }
