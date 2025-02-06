@@ -26,8 +26,10 @@
 using blender::Bounds;
 using blender::float3;
 
+#ifdef WITH_INPUT_NDOF
 static bool ndof_orbit_center_is_valid(const RegionView3D *rv3d, const float3 &center);
 static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d);
+#endif
 
 /* -------------------------------------------------------------------- */
 /** \name NDOF Utility Functions
