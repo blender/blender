@@ -396,7 +396,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
 
   std::sort(operator_items.begin(), operator_items.end(), menu_item_sort_by_drawstr_full);
 
-  data->items.extend(data->items);
+  data->items.extend(operator_items);
 }
 
 /**
