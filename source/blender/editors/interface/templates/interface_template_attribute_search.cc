@@ -62,7 +62,7 @@ void attribute_search_add_items(StringRef str,
   static GeometryAttributeInfo dummy_info;
 
   /* Any string may be valid, so add the current search string along with the hints. */
-  if (str[0] != '\0') {
+  if (!str.is_empty()) {
     bool contained = false;
     for (const GeometryAttributeInfo *attribute_info : infos) {
       if (attribute_info->name == str) {
@@ -77,7 +77,7 @@ void attribute_search_add_items(StringRef str,
     }
   }
 
-  if (str[0] == '\0' && !is_first) {
+  if (str.is_empty() && !is_first) {
     /* Allow clearing the text field when the string is empty, but not on the first pass,
      * or opening an attribute field for the first time would show this search item. */
     dummy_info.name = str;
