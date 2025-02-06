@@ -330,6 +330,7 @@ dict_custom = {
     "recursing",
     "recursivity",
     "redefinitions",
+    "rederive",
     "redisplay",
     "redistributions",
     "registerable",

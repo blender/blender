@@ -1724,8 +1724,8 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   if (viewmat) {
     /* WORKAROUND: Disable camera view to avoid EEVEE being confused and try to
      * get the projection matrix from the camera.
-     * Set the `lens` parameter to 0 to make EEVEE prefer the winmat from the rv3d instead of
-     * trying to redirive it. Note that this produces incorrect result with overscan. */
+     * Set the `lens` parameter to 0 to make EEVEE prefer the `winmat` from the rv3d instead of
+     * trying to rederive it. Note that this produces incorrect result with over-scan. */
     rv3d->persp = (winmat[3][3] == 0.0f) ? RV3D_PERSP : RV3D_ORTHO;
     v3d->camera = nullptr;
     v3d->lens = 0.0f;
