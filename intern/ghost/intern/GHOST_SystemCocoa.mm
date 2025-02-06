@@ -1478,7 +1478,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 
       ct.Pressure = event.pressure;
       ct.Xtilt = event.tilt.x;
-      ct.Ytilt = event.tilt.y;
+      /* On macOS, the y tilt behavior is inverted; an increase in the tilt
+       * value corresponds to tilting the device away from the user. */
+      ct.Ytilt = -event.tilt.y;
       break;
 
     case NSEventTypeTabletProximity:
