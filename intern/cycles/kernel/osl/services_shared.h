@@ -13,7 +13,9 @@ CCL_NAMESPACE_BEGIN
 
 /* TODO: deduplicate function `set_attribute_float3()` in CPU and GPU. */
 
-bool attribute_bump_map_normal(KernelGlobals kg, ccl_private const ShaderData *sd, float3 f[3])
+ccl_device bool attribute_bump_map_normal(KernelGlobals kg,
+                                          ccl_private const ShaderData *sd,
+                                          float3 f[3])
 {
   if (!(sd->type & PRIMITIVE_TRIANGLE) || !(sd->shader & SHADER_SMOOTH_NORMAL)) {
     /* TODO: implement for curve. */
