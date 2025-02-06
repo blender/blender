@@ -6789,7 +6789,7 @@ std::string UI_but_context_menu_title_from_button(uiBut &but)
       return "";
     }
     const blender::ui::AbstractView &tree_view = view_item_but.view_item->get_view();
-    return IFACE_(tree_view.get_context_menu_title().c_str());
+    return IFACE_(tree_view.get_context_menu_title());
   }
   return UI_but_string_get_label(but);
 }

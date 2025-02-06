@@ -1459,7 +1459,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
    *     Data have their own translation option!
    *     This solution may be a bit rougher than nodeLabel()'s returned string, but it's simpler
    *     than adding "do_translate" flags to this func (and labelfunc() as well). */
-  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name.c_str()));
+  DATA_(ntype->ui_name).copy_utf8_truncated(node->name);
   node_unique_name(ntree, node);
 
   /* Generally sockets should be added after the initialization, because the set of sockets might

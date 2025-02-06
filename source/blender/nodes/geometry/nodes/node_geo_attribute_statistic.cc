@@ -92,7 +92,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     for (const StringRefNull name :
          {"Mean", "Median", "Sum", "Min", "Max", "Range", "Standard Deviation", "Variance"})
     {
-      params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
+      params.add_item(IFACE_(name), [node_type, name, type](LinkSearchOpParams &params) {
         bNode &node = params.add_node(node_type);
         node.custom1 = *type;
         params.update_and_connect_available_socket(node, name);

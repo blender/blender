@@ -213,7 +213,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
   blender::bke::node_unique_id(&ntree, node);
 
   STRNCPY(node->idname, idname);
-  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name.c_str()));
+  DATA_(ntype->ui_name).copy_utf8_truncated(node->name);
   blender::bke::node_unique_name(&ntree, node);
 
   node->flag = NODE_SELECT | NODE_OPTIONS | NODE_INIT;

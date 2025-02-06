@@ -10,6 +10,14 @@
 
 #include "BLI_sys_types.h"
 
+#ifdef WITH_INTERNATIONAL
+
+#  include <optional>
+
+#  include "BLI_string_ref.hh"
+
+#endif
+
 struct ARegionType;
 struct AnimationEvalContext;
 struct ChannelDriver; /* DNA_anim_types.h */
@@ -142,5 +150,6 @@ void BPY_callback_wm_free(wmWindowManager *wm);
 
 /* I18n for addons */
 #ifdef WITH_INTERNATIONAL
-const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid);
+std::optional<blender::StringRefNull> BPY_app_translations_py_pgettext(blender::StringRef msgctxt,
+                                                                       blender::StringRef msgid);
 #endif

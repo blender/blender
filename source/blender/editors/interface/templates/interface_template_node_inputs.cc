@@ -107,7 +107,7 @@ static void draw_node_inputs_recursive(bContext *C,
   PanelLayout panel = uiLayoutPanel(C, layout, panel_idname.c_str(), panel_decl.default_collapsed);
   const bool has_used_inputs = panel_has_input_affecting_node_output(node, panel_decl);
   uiLayoutSetActive(panel.header, has_used_inputs);
-  uiItemL(panel.header, IFACE_(panel_decl.name.c_str()), ICON_NONE);
+  uiItemL(panel.header, IFACE_(panel_decl.name), ICON_NONE);
   if (!panel.body) {
     return;
   }
