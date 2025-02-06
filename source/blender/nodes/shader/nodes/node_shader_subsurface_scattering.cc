@@ -89,7 +89,11 @@ NODE_SHADER_MATERIALX_BEGIN
 
   NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
+#  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
   NodeItem radius = get_input_value("Radius", NodeItem::Type::Vector3);
+#  else
+  NodeItem radius = get_input_value("Radius", NodeItem::Type::Color3);
+#  endif
   NodeItem anisotropy = get_input_value("Anisotropy", NodeItem::Type::Float);
   NodeItem normal = get_input_link("Normal", NodeItem::Type::Vector3);
 
