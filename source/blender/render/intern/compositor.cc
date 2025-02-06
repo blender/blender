@@ -507,7 +507,7 @@ class Context : public compositor::Context {
             MEM_malloc_arrayN(rr->rectx * rr->recty, 4 * sizeof(float), __func__));
         IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
         std::memcpy(
-            data, output_result_.float_texture(), rr->rectx * rr->recty * 4 * sizeof(float));
+            data, output_result_.cpu_data().data(), rr->rectx * rr->recty * 4 * sizeof(float));
       }
     }
 
@@ -580,7 +580,7 @@ class Context : public compositor::Context {
     }
     else {
       std::memcpy(image_buffer->float_buffer.data,
-                  viewer_output_result_.float_texture(),
+                  viewer_output_result_.cpu_data().data(),
                   size.x * size.y * 4 * sizeof(float));
     }
 

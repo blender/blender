@@ -2,11 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <cstdint>
+#include <variant>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_assert.h"
+#include "BLI_cpp_type.hh"
+#include "BLI_generic_span.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_utildefines.h"
 
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
@@ -212,8 +218,30 @@ ResultType Result::float_type(const int channels_count)
 
 Result::operator GPUTexture *() const
 {
-  BLI_assert(storage_type_ == ResultStorageType::GPU);
-  return gpu_texture_;
+  return this->gpu_texture();
+}
+
+const CPPType &Result::get_cpp_type() const
+{
+  switch (this->type()) {
+    case ResultType::Float:
+      return CPPType::get<float>();
+    case ResultType::Int:
+      return CPPType::get<int>();
+    case ResultType::Vector:
+      return CPPType::get<float4>();
+    case ResultType::Color:
+      return CPPType::get<float4>();
+    case ResultType::Float2:
+      return CPPType::get<float2>();
+    case ResultType::Float3:
+      return CPPType::get<float3>();
+    case ResultType::Int2:
+      return CPPType::get<int2>();
+  }
+
+  BLI_assert_unreachable();
+  return CPPType::get<float>();
 }
 
 eGPUTextureFormat Result::get_gpu_texture_format() const
@@ -238,39 +266,42 @@ void Result::allocate_texture(Domain domain, bool from_pool)
 
 void Result::allocate_single_value()
 {
-  /* Single values are stored in 1x1 textures as well as the single value members. Further, they
+  /* Single values are stored in 1x1 image as well as the single value members. Further, they
    * are always allocated from the pool. */
   is_single_value_ = true;
   this->allocate_data(int2(1), true);
   domain_ = Domain::identity();
+
+  /* It is important that we initialize single values because the variant member that stores single
+   * values need to have its type initialized. */
+  switch (type_) {
+    case ResultType::Float:
+      this->set_single_value(0.0f);
+      break;
+    case ResultType::Vector:
+      this->set_single_value(float4(0.0f));
+      break;
+    case ResultType::Color:
+      this->set_single_value(float4(0.0f));
+      break;
+    case ResultType::Float2:
+      this->set_single_value(float2(0.0f));
+      break;
+    case ResultType::Float3:
+      this->set_single_value(float3(0.0f));
+      break;
+    case ResultType::Int:
+      this->set_single_value(0);
+      break;
+    case ResultType::Int2:
+      this->set_single_value(int2(0));
+      break;
+  }
 }
 
 void Result::allocate_invalid()
 {
-  allocate_single_value();
-  switch (type_) {
-    case ResultType::Float:
-      set_single_value(0.0f);
-      break;
-    case ResultType::Vector:
-      set_single_value(float4(0.0f));
-      break;
-    case ResultType::Color:
-      set_single_value(float4(0.0f));
-      break;
-    case ResultType::Float2:
-      set_single_value(float2(0.0f));
-      break;
-    case ResultType::Float3:
-      set_single_value(float3(0.0f));
-      break;
-    case ResultType::Int:
-      set_single_value(0);
-      break;
-    case ResultType::Int2:
-      set_single_value(int2(0));
-      break;
-  }
+  this->allocate_single_value();
 }
 
 void Result::bind_as_texture(GPUShader *shader, const char *texture_name) const
@@ -281,7 +312,7 @@ void Result::bind_as_texture(GPUShader *shader, const char *texture_name) const
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
 
   const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
-  GPU_texture_bind(gpu_texture_, texture_image_unit);
+  GPU_texture_bind(this->gpu_texture(), texture_image_unit);
 }
 
 void Result::bind_as_image(GPUShader *shader, const char *image_name, bool read) const
@@ -294,19 +325,19 @@ void Result::bind_as_image(GPUShader *shader, const char *image_name, bool read)
   }
 
   const int image_unit = GPU_shader_get_sampler_binding(shader, image_name);
-  GPU_texture_image_bind(gpu_texture_, image_unit);
+  GPU_texture_image_bind(this->gpu_texture(), image_unit);
 }
 
 void Result::unbind_as_texture() const
 {
   BLI_assert(storage_type_ == ResultStorageType::GPU);
-  GPU_texture_unbind(gpu_texture_);
+  GPU_texture_unbind(this->gpu_texture());
 }
 
 void Result::unbind_as_image() const
 {
   BLI_assert(storage_type_ == ResultStorageType::GPU);
-  GPU_texture_image_unbind(gpu_texture_);
+  GPU_texture_image_unbind(this->gpu_texture());
 }
 
 void Result::pass_through(Result &target)
@@ -354,24 +385,14 @@ void Result::wrap_external(GPUTexture *texture)
   domain_ = Domain(int2(GPU_texture_width(texture), GPU_texture_height(texture)));
 }
 
-void Result::wrap_external(float *texture, int2 size)
+void Result::wrap_external(void *data, int2 size)
 {
   BLI_assert(!this->is_allocated());
   BLI_assert(!master_);
 
-  float_texture_ = texture;
-  storage_type_ = ResultStorageType::FloatCPU;
-  is_external_ = true;
-  domain_ = Domain(size);
-}
-
-void Result::wrap_external(int *texture, int2 size)
-{
-  BLI_assert(!this->is_allocated());
-  BLI_assert(!master_);
-
-  integer_texture_ = texture;
-  storage_type_ = ResultStorageType::IntegerCPU;
+  const int64_t array_size = int64_t(size.x) * int64_t(size.y);
+  cpu_data_ = GMutableSpan(this->get_cpp_type(), data, array_size);
+  storage_type_ = ResultStorageType::CPU;
   is_external_ = true;
   domain_ = Domain(size);
 }
@@ -468,20 +489,16 @@ void Result::free()
   switch (storage_type_) {
     case ResultStorageType::GPU:
       if (is_from_pool_) {
-        context_->texture_pool().release(gpu_texture_);
+        context_->texture_pool().release(this->gpu_texture());
       }
       else {
-        GPU_texture_free(gpu_texture_);
+        GPU_texture_free(this->gpu_texture());
       }
       gpu_texture_ = nullptr;
       break;
-    case ResultStorageType::FloatCPU:
-      MEM_freeN(float_texture_);
-      float_texture_ = nullptr;
-      break;
-    case ResultStorageType::IntegerCPU:
-      MEM_freeN(integer_texture_);
-      integer_texture_ = nullptr;
+    case ResultStorageType::CPU:
+      MEM_freeN(this->cpu_data().data());
+      cpu_data_ = GMutableSpan();
       break;
   }
 
@@ -535,11 +552,9 @@ bool Result::is_allocated() const
 {
   switch (storage_type_) {
     case ResultStorageType::GPU:
-      return gpu_texture_ != nullptr;
-    case ResultStorageType::FloatCPU:
-      return float_texture_ != nullptr;
-    case ResultStorageType::IntegerCPU:
-      return integer_texture_ != nullptr;
+      return this->gpu_texture();
+    case ResultStorageType::CPU:
+      return this->cpu_data().data();
   }
 
   return false;
@@ -557,6 +572,7 @@ int Result::reference_count() const
 void Result::allocate_data(int2 size, bool from_pool)
 {
   if (context_->use_gpu()) {
+    storage_type_ = ResultStorageType::GPU;
     is_from_pool_ = from_pool;
     if (from_pool) {
       gpu_texture_ = context_->texture_pool().acquire(size, this->get_gpu_texture_format());
@@ -572,23 +588,18 @@ void Result::allocate_data(int2 size, bool from_pool)
     }
   }
   else {
-    switch (type_) {
-      case ResultType::Float:
-      case ResultType::Vector:
-      case ResultType::Color:
-      case ResultType::Float2:
-      case ResultType::Float3:
-        float_texture_ = static_cast<float *>(MEM_malloc_arrayN(
-            int64_t(size.x) * int64_t(size.y), this->channels_count() * sizeof(float), __func__));
-        storage_type_ = ResultStorageType::FloatCPU;
-        break;
-      case ResultType::Int:
-      case ResultType::Int2:
-        integer_texture_ = static_cast<int *>(MEM_malloc_arrayN(
-            int64_t(size.x) * int64_t(size.y), this->channels_count() * sizeof(int), __func__));
-        storage_type_ = ResultStorageType::IntegerCPU;
-        break;
-    }
+    storage_type_ = ResultStorageType::CPU;
+
+    const CPPType &cpp_type = this->get_cpp_type();
+    const int64_t item_size = cpp_type.size();
+    const int64_t alignment = cpp_type.alignment();
+    const int64_t array_size = int64_t(size.x) * int64_t(size.y);
+    const int64_t memory_size = array_size * item_size;
+
+    void *data = MEM_mallocN_aligned(memory_size, alignment, AT);
+    cpp_type.default_construct_n(data, array_size);
+
+    cpu_data_ = GMutableSpan(cpp_type, data, array_size);
   }
 }
 

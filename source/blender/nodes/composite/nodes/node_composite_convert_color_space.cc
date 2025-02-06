@@ -140,7 +140,7 @@ class ConvertColorSpaceOperation : public NodeOperation {
     });
 
     IMB_colormanagement_processor_apply(color_processor,
-                                        output_image.float_texture(),
+                                        static_cast<float *>(output_image.cpu_data().data()),
                                         domain.size.x,
                                         domain.size.y,
                                         input_image.channels_count(),

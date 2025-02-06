@@ -1982,7 +1982,7 @@ class GlareOperation : public NodeOperation {
       highlights_buffer = static_cast<float *>(GPU_texture_read(highlights, GPU_DATA_FLOAT, 0));
     }
     else {
-      highlights_buffer = highlights.float_texture();
+      highlights_buffer = static_cast<float *>(highlights.cpu_data().data());
     }
 
     /* Zero pad the image to the required spatial domain size, storing each channel in planar
@@ -2060,8 +2060,9 @@ class GlareOperation : public NodeOperation {
 
     /* For GPU, write the output to the exist highlights_buffer then upload to the result after,
      * while for CPU, write to the result directly. */
-    float *output = this->context().use_gpu() ? highlights_buffer :
-                                                fog_glow_result.float_texture();
+    float *output = this->context().use_gpu() ?
+                        highlights_buffer :
+                        static_cast<float *>(fog_glow_result.cpu_data().data());
 
     /* Copy the result to the output. */
     threading::parallel_for(IndexRange(image_size.y), 1, [&](const IndexRange sub_y_range) {

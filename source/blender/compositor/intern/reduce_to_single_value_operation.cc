@@ -38,7 +38,7 @@ void ReduceToSingleValueOperation::execute()
     need_to_free_pixel = true;
   }
   else {
-    pixel = input.float_texture();
+    pixel = input.cpu_data().data();
   }
 
   Result &result = get_result();

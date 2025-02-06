@@ -170,8 +170,7 @@ void MultiFunctionProcedureOperation::execute()
         add_single_value_input_parameter(parameter_builder, input);
       }
       else {
-        const GSpan span{get_cpp_type(input.type()), input.data(), size};
-        parameter_builder.add_readonly_single_input(span);
+        parameter_builder.add_readonly_single_input(input.cpu_data());
       }
     }
     else {
@@ -181,8 +180,7 @@ void MultiFunctionProcedureOperation::execute()
       }
       else {
         output.allocate_texture(domain);
-        const GMutableSpan span{get_cpp_type(output.type()), output.data(), size};
-        parameter_builder.add_uninitialized_single_output(span);
+        parameter_builder.add_uninitialized_single_output(output.cpu_data());
       }
     }
   }

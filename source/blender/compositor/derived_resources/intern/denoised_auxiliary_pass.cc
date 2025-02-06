@@ -81,7 +81,7 @@ DenoisedAuxiliaryPass::DenoisedAuxiliaryPass(Context &context,
     this->denoised_buffer = static_cast<float *>(GPU_texture_read(pass, GPU_DATA_FLOAT, 0));
   }
   else {
-    this->denoised_buffer = static_cast<float *>(MEM_dupallocN(pass.float_texture()));
+    this->denoised_buffer = static_cast<float *>(MEM_dupallocN(pass.cpu_data().data()));
   }
 
   const int width = pass.domain().size.x;
