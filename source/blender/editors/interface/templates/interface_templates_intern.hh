@@ -27,7 +27,7 @@ struct bContext;
 #define TEMPLATE_SEARCH_TEXTBUT_HEIGHT UI_UNIT_Y
 
 struct RNAUpdateCb {
-  PointerRNA ptr;
+  PointerRNA ptr = {};
   PropertyRNA *prop;
 };
 
