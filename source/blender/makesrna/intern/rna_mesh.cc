@@ -65,6 +65,8 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include "rna_mesh_utils.hh"
 
+using blender::StringRef;
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Helpers
  * \{ */
@@ -951,7 +953,7 @@ static int rna_MeshUVLoopLayer_data_length(PointerRNA *ptr)
   return (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num;
 }
 
-static MBoolProperty *MeshUVLoopLayer_get_bool_layer(Mesh *mesh, char const *name)
+static MBoolProperty *MeshUVLoopLayer_get_bool_layer(Mesh *mesh, const StringRef name)
 {
   void *layer = CustomData_get_layer_named_for_write(
       &mesh->corner_data, CD_PROP_BOOL, name, mesh->corners_num);
@@ -967,16 +969,16 @@ static MBoolProperty *MeshUVLoopLayer_get_bool_layer(Mesh *mesh, char const *nam
 
 static void bool_layer_begin(CollectionPropertyIterator *iter,
                              PointerRNA *ptr,
-                             const char *(*layername_func)(const char *uv_name, char *name))
+                             StringRef (*layername_func)(const StringRef uv_name, char *buffer))
 {
-  char bool_layer_name[MAX_CUSTOMDATA_LAYER_NAME];
+  char buffer[MAX_CUSTOMDATA_LAYER_NAME];
   Mesh *mesh = rna_mesh(ptr);
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  layername_func(layer->name, bool_layer_name);
+  const StringRef name = layername_func(layer->name, buffer);
 
   rna_iterator_array_begin(iter,
                            ptr,
-                           MeshUVLoopLayer_get_bool_layer(mesh, bool_layer_name),
+                           MeshUVLoopLayer_get_bool_layer(mesh, name),
                            sizeof(MBoolProperty),
                            (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num,
                            0,
@@ -986,19 +988,18 @@ static void bool_layer_begin(CollectionPropertyIterator *iter,
 static bool bool_layer_lookup_int(PointerRNA *ptr,
                                   int index,
                                   PointerRNA *r_ptr,
-                                  const char *(*layername_func)(const char *uv_name, char *name))
+                                  StringRef (*layername_func)(const StringRef uv_name,
+                                                              char *buffer))
 {
-  char bool_layer_name[MAX_CUSTOMDATA_LAYER_NAME];
+  char buffer[MAX_CUSTOMDATA_LAYER_NAME];
   Mesh *mesh = rna_mesh(ptr);
   if (mesh->runtime->edit_mesh || index < 0 || index >= mesh->corners_num) {
     return 0;
   }
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  layername_func(layer->name, bool_layer_name);
-  rna_pointer_create_with_ancestors(*ptr,
-                                    &RNA_BoolAttributeValue,
-                                    MeshUVLoopLayer_get_bool_layer(mesh, bool_layer_name) + index,
-                                    *r_ptr);
+  const StringRef name = layername_func(layer->name, buffer);
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_BoolAttributeValue, MeshUVLoopLayer_get_bool_layer(mesh, name) + index, *r_ptr);
   return 1;
 }
 

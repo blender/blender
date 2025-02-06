@@ -281,7 +281,8 @@ static void attr_create_generic(Scene *scene,
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   static const ustring u_velocity("velocity");
-  const ustring default_color_name{BKE_id_attributes_default_color_name(&b_mesh.id)};
+  const ustring default_color_name{
+      std::string_view(BKE_id_attributes_default_color_name(&b_mesh.id).value_or(""))};
 
   b_attributes.foreach_attribute([&](const blender::bke::AttributeIter &iter) {
     const ustring name{std::string_view(iter.name)};

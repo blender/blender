@@ -1774,29 +1774,27 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
         &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name, nullptr);
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
     if (vert_selection) {
-      CustomData_add_layer_named_with_data(
-          &mesh->corner_data,
-          CD_PROP_BOOL,
-          vert_selection,
-          mesh->corners_num,
-          BKE_uv_map_vert_select_name_get(new_name.c_str(), buffer),
-          nullptr);
+      CustomData_add_layer_named_with_data(&mesh->corner_data,
+                                           CD_PROP_BOOL,
+                                           vert_selection,
+                                           mesh->corners_num,
+                                           BKE_uv_map_vert_select_name_get(new_name, buffer),
+                                           nullptr);
     }
     if (edge_selection) {
-      CustomData_add_layer_named_with_data(
-          &mesh->corner_data,
-          CD_PROP_BOOL,
-          edge_selection,
-          mesh->corners_num,
-          BKE_uv_map_edge_select_name_get(new_name.c_str(), buffer),
-          nullptr);
+      CustomData_add_layer_named_with_data(&mesh->corner_data,
+                                           CD_PROP_BOOL,
+                                           edge_selection,
+                                           mesh->corners_num,
+                                           BKE_uv_map_edge_select_name_get(new_name, buffer),
+                                           nullptr);
     }
     if (pin) {
       CustomData_add_layer_named_with_data(&mesh->corner_data,
                                            CD_PROP_BOOL,
                                            pin,
                                            mesh->corners_num,
-                                           BKE_uv_map_pin_name_get(new_name.c_str(), buffer),
+                                           BKE_uv_map_pin_name_get(new_name, buffer),
                                            nullptr);
     }
   }

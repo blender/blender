@@ -237,27 +237,33 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   for (const int layer_index :
        IndexRange(CustomData_number_of_layers(&mesh_ldata, CD_PROP_FLOAT2)))
   {
-    char name[MAX_CUSTOMDATA_LAYER_NAME];
-    BKE_uv_map_vert_select_name_get(
-        CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), name);
-    if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
-      CustomData_add_layer_named(
-          &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
-      temporary_layers_to_delete.append(std::string(name));
+    char buffer[MAX_CUSTOMDATA_LAYER_NAME];
+    {
+      const StringRef name = BKE_uv_map_vert_select_name_get(
+          CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), buffer);
+      if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
+        CustomData_add_layer_named(
+            &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
+        temporary_layers_to_delete.append(std::string(name));
+      }
     }
-    BKE_uv_map_edge_select_name_get(
-        CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), name);
-    if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
-      CustomData_add_layer_named(
-          &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
-      temporary_layers_to_delete.append(std::string(name));
+    {
+      const StringRef name = BKE_uv_map_edge_select_name_get(
+          CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), buffer);
+      if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
+        CustomData_add_layer_named(
+            &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
+        temporary_layers_to_delete.append(std::string(name));
+      }
     }
-    BKE_uv_map_pin_name_get(CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index),
-                            name);
-    if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
-      CustomData_add_layer_named(
-          &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
-      temporary_layers_to_delete.append(std::string(name));
+    {
+      const StringRef name = BKE_uv_map_pin_name_get(
+          CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), buffer);
+      if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
+        CustomData_add_layer_named(
+            &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
+        temporary_layers_to_delete.append(std::string(name));
+      }
     }
   }
 
@@ -1155,7 +1161,7 @@ static void bm_face_loop_table_build(BMesh &bm,
   for (const int i : IndexRange(CustomData_number_of_layers(&ldata, CD_PROP_FLOAT2))) {
     char const *layer_name = CustomData_get_layer_name(&ldata, CD_PROP_FLOAT2, i);
     char sub_layer_name[MAX_CUSTOMDATA_LAYER_NAME];
-    auto add_bool_layer = [&](Vector<int> &layers, const char *name) {
+    auto add_bool_layer = [&](Vector<int> &layers, const StringRef name) {
       const int layer_index = CustomData_get_named_layer_index(&ldata, CD_PROP_BOOL, name);
       if (layer_index != -1) {
         layers.append(layer_index);

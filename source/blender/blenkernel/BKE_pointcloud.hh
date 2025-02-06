@@ -12,6 +12,7 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_pointcloud_types.h"
 
@@ -53,7 +54,7 @@ PointCloud *BKE_pointcloud_add_default(Main *bmain, const char *name);
 PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud *pointcloud_dst);
 
-bool BKE_pointcloud_attribute_required(const PointCloud *pointcloud, const char *name);
+bool BKE_pointcloud_attribute_required(const PointCloud *pointcloud, blender::StringRef name);
 
 /* Dependency Graph */
 

@@ -10,6 +10,7 @@
 #include <cstdint>
 
 #include "BLI_array.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -137,7 +138,7 @@ Mesh *BKE_mesh_copy_for_eval(const Mesh &source);
 Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob);
 Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *dispbase);
 
-bool BKE_mesh_attribute_required(const char *name);
+bool BKE_mesh_attribute_required(blender::StringRef name);
 
 blender::Array<blender::float3> BKE_mesh_orco_verts_get(const Object *ob);
 void BKE_mesh_orco_verts_transform(Mesh *mesh,

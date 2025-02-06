@@ -2201,8 +2201,7 @@ static void fill_mesh_color(Mesh &mesh,
 {
   if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
     BMesh *bm = em->bm;
-    const std::string name = attribute_name;
-    const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh.id, name.c_str());
+    const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh.id, attribute_name);
     AttributeOwner owner = AttributeOwner::from_id(&mesh.id);
     const AttrDomain domain = BKE_attribute_domain(owner, layer);
     if (layer->type == CD_PROP_COLOR) {

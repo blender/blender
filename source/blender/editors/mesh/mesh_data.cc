@@ -45,6 +45,7 @@ using blender::float2;
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
+using blender::StringRef;
 
 static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r_tot)
 {
@@ -290,7 +291,8 @@ int ED_mesh_uv_add(
   return layernum_dst;
 }
 
-static const bool *mesh_loop_boolean_custom_data_get_by_name(const Mesh &mesh, const char *name)
+static const bool *mesh_loop_boolean_custom_data_get_by_name(const Mesh &mesh,
+                                                             const StringRef name)
 {
   return static_cast<const bool *>(
       CustomData_get_layer_named(&mesh.corner_data, CD_PROP_BOOL, name));
@@ -325,7 +327,7 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
                                                    BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
-static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRefNull name)
+static bool *ensure_corner_boolean_attribute(Mesh &mesh, const StringRef name)
 {
   bool *data = static_cast<bool *>(CustomData_get_layer_named_for_write(
       &mesh.corner_data, CD_PROP_BOOL, name, mesh.corners_num));
@@ -436,8 +438,8 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
     return false;
   }
 
-  BKE_id_attributes_active_color_set(&mesh->id, unique_name.c_str());
-  BKE_id_attributes_default_color_set(&mesh->id, unique_name.c_str());
+  BKE_id_attributes_active_color_set(&mesh->id, unique_name);
+  BKE_id_attributes_default_color_set(&mesh->id, unique_name);
   BKE_mesh_tessface_clear(mesh);
   DEG_id_tag_update(&mesh->id, 0);
 

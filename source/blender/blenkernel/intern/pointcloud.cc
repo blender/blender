@@ -305,9 +305,10 @@ blender::bke::MutableAttributeAccessor PointCloud::attributes_for_write()
       this, blender::bke::pointcloud_attribute_accessor_functions());
 }
 
-bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const char *name)
+bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/,
+                                       const blender::StringRef name)
 {
-  return STREQ(name, POINTCLOUD_ATTR_POSITION);
+  return name == POINTCLOUD_ATTR_POSITION;
 }
 
 /* Dependency Graph */

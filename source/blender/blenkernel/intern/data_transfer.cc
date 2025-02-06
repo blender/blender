@@ -35,6 +35,8 @@
 
 #include "data_transfer_intern.hh"
 
+using blender::StringRef;
+
 void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
                                                 CustomData_MeshMasks *r_data_masks)
 {
@@ -259,7 +261,8 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
   const AttributeOwner owner_src = AttributeOwner::from_id(const_cast<ID *>(&mesh_src->id));
   AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
 
-  const char *active_color_src = BKE_id_attributes_active_color_name(&mesh_src->id);
+  const StringRef active_color_src =
+      BKE_id_attributes_active_color_name(&mesh_src->id).value_or("");
 
   if ((data_type == CD_PROP_COLOR) &&
       !BKE_attribute_search(
@@ -278,13 +281,15 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
       BKE_attribute_search(
           owner_dst, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
   {
-    mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
+    mesh_dst->active_color_attribute = BLI_strdupn(active_color_src.data(),
+                                                   active_color_src.size());
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
            BKE_attribute_search(
                owner_dst, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
   {
-    mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
+    mesh_dst->active_color_attribute = BLI_strdupn(active_color_src.data(),
+                                                   active_color_src.size());
   }
   else {
     CustomDataLayer *first_color_layer = BKE_attribute_from_index(
@@ -310,7 +315,8 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
   const AttributeOwner owner_src = AttributeOwner::from_id(const_cast<ID *>(&mesh_src->id));
   AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
 
-  const char *default_color_src = BKE_id_attributes_default_color_name(&mesh_src->id);
+  const StringRef default_color_src =
+      BKE_id_attributes_default_color_name(&mesh_src->id).value_or("");
 
   if ((data_type == CD_PROP_COLOR) &&
       !BKE_attribute_search(
@@ -329,13 +335,15 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
       BKE_attribute_search(
           owner_dst, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
   {
-    mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
+    mesh_dst->default_color_attribute = BLI_strdupn(default_color_src.data(),
+                                                    default_color_src.size());
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
            BKE_attribute_search(
                owner_dst, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
   {
-    mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
+    mesh_dst->default_color_attribute = BLI_strdupn(default_color_src.data(),
+                                                    default_color_src.size());
   }
   else {
     CustomDataLayer *first_color_layer = BKE_attribute_from_index(

@@ -173,9 +173,9 @@ Curves *BKE_curves_add(Main *bmain, const char *name)
   return curves;
 }
 
-bool BKE_curves_attribute_required(const Curves * /*curves*/, const char *name)
+bool BKE_curves_attribute_required(const Curves * /*curves*/, const blender::StringRef name)
 {
-  return STREQ(name, ATTR_POSITION);
+  return name == ATTR_POSITION;
 }
 
 Curves *BKE_curves_copy_for_eval(const Curves *curves_src)
