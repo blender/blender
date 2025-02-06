@@ -141,6 +141,7 @@ add_dependencies(
   external_spirvheaders
   external_unifiedruntime
   external_unifiedmemoryframework
+  external_zstd
 )
 
 if(WIN32)

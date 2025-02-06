@@ -464,6 +464,18 @@ if(WITH_MATERIALX)
 endif()
 add_bundled_libraries(materialx/lib)
 
+# With Blender 4.4 libraries there is no more Boost. But Linux distros may have
+# older versions of libs like USD with a header dependency on Boost, so can't
+# remove this entirely yet.
+if(WITH_BOOST)
+  if(DEFINED LIBDIR AND NOT EXISTS "${LIBDIR}/boost")
+    set(WITH_BOOST OFF)
+    set(BOOST_LIBRARIES)
+    set(BOOST_PYTHON_LIBRARIES)
+    set(BOOST_INCLUDE_DIR)
+  endif()
+endif()
+
 if(WITH_BOOST)
   # uses in build instructions to override include and library variables
   if(NOT BOOST_CUSTOM)

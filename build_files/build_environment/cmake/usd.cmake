@@ -17,7 +17,6 @@ if(WIN32)
   set(USD_PLATFORM_FLAGS
     ${USD_OIIO_CMAKE_DEFINES}
     -DCMAKE_CXX_FLAGS=${USD_CXX_FLAGS}
-    -D_PXR_CXX_DEFINITIONS=/DBOOST_ALL_NO_LIB
     -DCMAKE_SHARED_LINKER_FLAGS_INIT=/LIBPATH:${LIBDIR}/tbb/lib
     -DPython_FIND_REGISTRY=NEVER
     -DPython3_EXECUTABLE=${PYTHON_BINARY}
@@ -46,6 +45,11 @@ elseif(UNIX)
     list(APPEND USD_PLATFORM_FLAGS
       -DCMAKE_SHARED_LINKER_FLAGS=${USD_SHARED_LINKER_FLAGS}
     )
+    # Metal only patch for MaterialX 1.39 issues.
+    set(USD_EXTRA_PATCHES
+      ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_3519.diff &&)
   endif()
 endif()
 
@@ -54,14 +58,14 @@ endif()
 string(REPLACE "." "_" USD_NAMESPACE "pxrBlender_v${USD_VERSION}")
 
 set(USD_EXTRA_ARGS
-  ${DEFAULT_BOOST_FLAGS}
   ${USD_PLATFORM_FLAGS}
   -DOPENSUBDIV_ROOT_DIR=${LIBDIR}/opensubdiv
   -DOpenImageIO_ROOT=${LIBDIR}/openimageio
+  -DVulkan_ROOT=${LIBDIR}/vulkan_loader
   -DMaterialX_ROOT=${LIBDIR}/materialx
   -DOPENEXR_LIBRARIES=${LIBDIR}/imath/lib/${LIBPREFIX}Imath${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
   -DOPENEXR_INCLUDE_DIR=${LIBDIR}/imath/include
-  -DImath_DIR=${LIBDIR}/imath
+  -DImath_DIR=${LIBDIR}/imath/lib/cmake/Imath
   -DOPENVDB_LOCATION=${LIBDIR}/openvdb
   -DPXR_SET_INTERNAL_NAMESPACE=${USD_NAMESPACE}
   -DPXR_ENABLE_PYTHON_SUPPORT=ON
@@ -92,14 +96,17 @@ set(USD_EXTRA_ARGS
   # USD 22.03 does not support OCIO 2.x
   # Tracking ticket https://github.com/PixarAnimationStudios/USD/issues/1386
   -DPXR_BUILD_OPENCOLORIO_PLUGIN=OFF
+  # We'd like Vulkan support on, but it has trouble not finding the SDK since we have
+  # the invididual components in the deps builder.
+  -DPXR_ENABLE_VULKAN_SUPPORT=OFF
   -DPXR_ENABLE_PTEX_SUPPORT=OFF
   -DPXR_BUILD_USD_TOOLS=OFF
   -DCMAKE_DEBUG_POSTFIX=_d
   -DBUILD_SHARED_LIBS=ON
   -DTBB_INCLUDE_DIRS=${LIBDIR}/tbb/include
   -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
-  -DTbb_TBB_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
-  -DTBB_tbb_LIBRARY_RELEASE=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
+  -DTBB_LIBRARIES_DEBUG=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
+  -DTBB_LIBRARIES_RELEASE=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
 )
 
 # Ray: I'm not sure if the other platforms relied on this or not but this is no longer
@@ -121,6 +128,7 @@ ExternalProject_Add(external_usd
   LIST_SEPARATOR ^^
 
   PATCH_COMMAND
+    ${USD_EXTRA_PATCHES}
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd.diff &&
@@ -129,11 +137,16 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_core_profile.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_metal_edf.diff &&
+      ${PATCH_DIR}/usd_ctor.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_ctor.diff
-
+      ${PATCH_DIR}/usd_3243.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_forward_compat.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_noboost.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
     -Wno-dev
@@ -146,7 +159,6 @@ ExternalProject_Add(external_usd
 add_dependencies(
   external_usd
   external_tbb
-  external_boost
   external_opensubdiv
   external_python
   external_openimageio

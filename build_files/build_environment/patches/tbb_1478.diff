@@ -1,7 +1,8 @@
-diff -Naur orig/src/tbbmalloc/proxy.cpp external_tbb/src/tbbmalloc/proxy.cpp
---- orig/src/tbbmalloc/proxy.cpp	2024-10-08 14:43:58 -0600
-+++ external_tbb/src/tbbmalloc/proxy.cpp	2024-10-08 14:48:26 -0600
-@@ -452,14 +452,12 @@
+diff --git a/src/tbbmalloc_proxy/proxy.cpp b/src/tbbmalloc_proxy/proxy.cpp
+index a6d3dea06f..954583ba5f 100644
+--- a/src/tbbmalloc_proxy/proxy.cpp
++++ b/src/tbbmalloc_proxy/proxy.cpp
+@@ -431,14 +431,12 @@ void __TBB_malloc__free_base(void *ptr)
  const char* known_bytecodes[] = {
  #if _WIN64
  //  "========================================================" - 56 symbols

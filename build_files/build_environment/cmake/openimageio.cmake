@@ -50,17 +50,12 @@ endif()
 set(OPENIMAGEIO_EXTRA_ARGS
   -DBUILD_SHARED_LIBS=ON
   ${OPENIMAGEIO_LINKSTATIC}
-  ${DEFAULT_BOOST_FLAGS}
-  -DREQUIRED_DEPS=WebP$<SEMICOLON>JPEGTurbo$<SEMICOLON>TIFF$<SEMICOLON>OpenEXR$<SEMICOLON>PNG$<SEMICOLON>OpenJPEG$<SEMICOLON>fmt$<SEMICOLON>Robinmap$<SEMICOLON>ZLIB$<SEMICOLON>pugixml$<SEMICOLON>Python
-  -DUSE_LIBSQUISH=OFF
-  -DUSE_QT5=OFF
+  -DOpenImageIO_REQUIRED_DEPS=WebP$<SEMICOLON>JPEGTurbo$<SEMICOLON>TIFF$<SEMICOLON>OpenEXR$<SEMICOLON>PNG$<SEMICOLON>OpenJPEG$<SEMICOLON>fmt$<SEMICOLON>Robinmap$<SEMICOLON>ZLIB$<SEMICOLON>pugixml$<SEMICOLON>Python
   -DUSE_NUKE=OFF
   -DUSE_OPENVDB=OFF
-  -DUSE_BZIP2=OFF
   -DUSE_FREETYPE=OFF
   -DUSE_DCMTK=OFF
   -DUSE_LIBHEIF=OFF
-  -DUSE_OPENGL=OFF
   -DUSE_TBB=ON
   -DUSE_QT=OFF
   -DUSE_PYTHON=ON
@@ -71,7 +66,8 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DUSE_PTEX=OFF
   -DUSE_FREETYPE=OFF
   -DUSE_LIBRAW=OFF
-  -DUSE_OPENCOLORIO=OFF
+  -DUSE_JXL=OFF
+  -DUSE_OPENCOLORIO=ON
   -DUSE_WEBP=ON
   -DOIIO_BUILD_TOOLS=${OIIO_TOOLS}
   -DOIIO_BUILD_TESTS=OFF
@@ -93,8 +89,8 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DPUGIXML_LIBRARY=${LIBDIR}/pugixml/lib/${LIBPREFIX}pugixml${LIBEXT}
   -DPUGIXML_INCLUDE_DIR=${LIBDIR}/pugixml/include/
   -Dpugixml_DIR=${LIBDIR}/pugixml/lib/cmake/pugixml
-  -DBUILD_MISSING_ROBINMAP=OFF
-  -DBUILD_MISSING_FMT=OFF
+  -DOpenColorIO_DIR=${LIBDIR}/opencolorio/lib/cmake/OpenColorIO
+  -DOpenImageIO_BUILD_MISSING_DEPS=""
   -DFMT_INCLUDE_DIR=${LIBDIR}/fmt/include/
   -DRobinmap_ROOT=${LIBDIR}/robinmap
   -DWebP_ROOT=${LIBDIR}/webp
@@ -103,6 +99,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DImath_ROOT=${LIBDIR}/imath
   -Dpybind11_ROOT=${LIBDIR}/pybind11
   -DPython_EXECUTABLE=${PYTHON_BINARY}
+  -DPython3_EXECUTABLE=${PYTHON_BINARY}
   -DTBB_ROOT=${LIBDIR}/tbb
   -Dlibdeflate_ROOT=${LIBDIR}/deflate
   -Dfmt_ROOT=${LIBDIR}/fmt
@@ -136,15 +133,6 @@ ExternalProject_Add(external_openimageio
       ${PATCH_DIR}/openimageio.diff &&
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/oiio_webp.diff &&
-    ${PATCH_CMD} -p 1 -N -d
-      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/oiio_4062.diff &&
-    ${PATCH_CMD} -p 1 -N -d
-      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/oiio_4302.diff &&
-    ${PATCH_CMD} -p 1 -N -d
-      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
       ${PATCH_DIR}/oiio_windows_arm64.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio
@@ -156,12 +144,12 @@ ExternalProject_Add(external_openimageio
 
 add_dependencies(
   external_openimageio
+  external_opencolorio
   external_png
   external_zlib
   external_openexr
   external_imath
   external_jpeg
-  external_boost
   external_tiff
   external_pugixml
   external_fmt
