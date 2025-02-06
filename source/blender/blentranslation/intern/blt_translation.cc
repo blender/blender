@@ -11,6 +11,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "BLT_translation.hh"
 
