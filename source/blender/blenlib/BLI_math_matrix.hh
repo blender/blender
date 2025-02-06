@@ -491,13 +491,10 @@ template<typename T>
 /**
  * Returns true if matrix has inverted handedness.
  *
- * \note It doesn't use determinant(mat4x4) as only the 3x3 components are needed
- * when the matrix is used as a transformation to represent location/scale/rotation.
+ * \note It doesn't use determinant(mat4x4) as only the 3x3 components are needed assuming
+ * the matrix is used as a transformation to represent 3D location/scale/rotation.
  */
-template<typename T, int Size> [[nodiscard]] bool is_negative(const MatBase<T, Size, Size> &mat)
-{
-  return determinant(mat) < T(0);
-}
+template<typename T> [[nodiscard]] bool is_negative(const MatBase<T, 3, 3> &mat);
 template<typename T> [[nodiscard]] bool is_negative(const MatBase<T, 4, 4> &mat);
 
 /**
