@@ -1,3 +1,15 @@
+# SPDX-FileCopyrightText: 2025 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+"""
+blender -b --factory-startup --python tests/python/bl_pose_assets.py -- --testdir /path/to/tests/data/animation
+"""
+
+__all__ = (
+    "main",
+)
+
 import unittest
 import bpy
 import pathlib
@@ -5,9 +17,6 @@ import sys
 import tempfile
 import os
 
-"""
-blender -b --factory-startup --python tests/python/bl_pose_assets.py -- --testdir /path/to/tests/data/animation
-"""
 
 _BONE_NAME_1 = "bone"
 _BONE_NAME_2 = "bone_2"
