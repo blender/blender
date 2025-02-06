@@ -6586,9 +6586,21 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     }
     if (kmi) {
       wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
-      const std::string operator_name = WM_operatortype_name(ot, kmi->ptr);
-      const char *name = (ot) ? operator_name.c_str() : kmi->idname;
-      STRNCPY(cd->text[button_index][type_index], name);
+      std::string name;
+
+      if (kmi->type == RIGHTMOUSE && kmi->val == KM_PRESS &&
+          STR_ELEM(kmi->idname, "WM_OT_call_menu", "WM_OT_call_menu_pie", "WM_OT_call_panel"))
+      {
+        name = TIP_("Options");
+      }
+      else if (ot) {
+        name = WM_operatortype_name(ot, kmi->ptr);
+      }
+      else {
+        name = kmi->idname;
+      }
+
+      STRNCPY(cd->text[button_index][type_index], name.c_str());
     }
   }
 
