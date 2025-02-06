@@ -260,6 +260,11 @@ struct SelectMap {
     }
 
     GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
+    /* This flush call should not be required. Still, on non-unified mem arch apple devices this is
+     * needed for the result to be host visible. This is likely to be a bug in the GPU backend. So
+     * it should eventually be transformed into a backend workaround instead of being fixed in user
+     * code. */
+    select_output_buf.async_flush_to_host();
     select_output_buf.read();
 
     Vector<GPUSelectResult> hit_results;
