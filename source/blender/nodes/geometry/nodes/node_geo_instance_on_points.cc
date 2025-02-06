@@ -228,17 +228,19 @@ static void node_geo_exec(GeoNodeExecParams params)
       const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
       bke::Instances *instances = new bke::Instances();
       for (const int layer_index : grease_pencil.layers().index_range()) {
-        const Drawing *drawing = grease_pencil.get_eval_drawing(grease_pencil.layer(layer_index));
+        const Layer &layer = grease_pencil.layer(layer_index);
+        const Drawing *drawing = grease_pencil.get_eval_drawing(layer);
         if (drawing == nullptr) {
           continue;
         }
+        const float4x4 &layer_transform = layer.local_transform();
         const bke::CurvesGeometry &src_curves = drawing->strokes();
         if (src_curves.is_empty()) {
           /* Add an empty reference so the number of layers and instances match.
            * This makes it easy to reconstruct the layers afterwards and keep their attributes.
            * Although in this particular case we don't propagate the attributes. */
           const int handle = instances->add_reference(bke::InstanceReference());
-          instances->add_instance(handle, float4x4::identity());
+          instances->add_instance(handle, layer_transform);
           continue;
         }
         /* TODO: Attributes are not propagating from the curves or the points. */
@@ -253,7 +255,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                      attributes_to_propagate);
         GeometrySet temp_set = GeometrySet::from_instances(layer_instances);
         const int handle = instances->add_reference(bke::InstanceReference{temp_set});
-        instances->add_instance(handle, float4x4::identity());
+        instances->add_instance(handle, layer_transform);
       }
 
       bke::copy_attributes(geometry_set.get_grease_pencil()->attributes(),
