@@ -1396,7 +1396,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  if (!USER_VERSION_ATLEAST(405, 1)) {
+  if (!USER_VERSION_ATLEAST(404, 28)) {
     userdef->ndof_flag |= NDOF_SHOW_GUIDE_ORBIT_CENTER | NDOF_ORBIT_CENTER_AUTO;
   }
 
