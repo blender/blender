@@ -6,6 +6,8 @@ vendor,product,version,cve_number,remarks,comment
 @PYTHON_ID@,CVE-2009-3720,NotAffected,already fixed in libexpat version used
 @PYTHON_ID@,CVE-2023-36632,NotAffected,not used in blender and not considered a bug upstream
 @PYTHON_ID@,CVE-2023-27043,NotAffected,not used in blender
+@PYTHON_ID@,CVE-2024-6232,FalsePositive,fixed in 3.11.10 upstream fix gh-121285
+@PYTHON_ID@,CVE-2024-7592,FalsePositive,fixed in 3.11.10 upstream fix gh-123067
 @PYTHON_PIP_ID@,CVE-2018-20225,NotAffected,not a blender specific issue and pip is inherently affected by malicious packages
 @SSL_ID@,CVE-2009-1390,NotAffected,issue in mutt not used by blender
 @SSL_ID@,CVE-2009-3765,NotAffected,issue in mutt not used by blender
@@ -36,4 +38,6 @@ vendor,product,version,cve_number,remarks,comment
 @SQLITE_ID@,CVE-2023-7104,NotAffected,does not affect blender use of sqlite
 @SQLITE_ID@,CVE-2024-0232,NotAffected,does not affect blender use of sqlite
 @ZLIB_ID@,CVE-2023-45853,NotAffected,only affects minizip not used by blender
+@SNDFILE_ID@,CVE-2024-50612,Mitigated,patched using upstream PR 1045
+@SNDFILE_ID@,CVE-2024-50613,NotAffected,all mp3 handling in blender goes through ffmpeg
 @SBOMCONTENTS@

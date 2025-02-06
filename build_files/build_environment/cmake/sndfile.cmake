@@ -41,6 +41,11 @@ ExternalProject_Add(external_sndfile
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${SNDFILE_HASH_TYPE}=${SNDFILE_HASH}
   PREFIX ${BUILD_DIR}/sndfile
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
+
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
+    ${BUILD_DIR}/sndfile/src/external_sndfile <
+    ${PATCH_DIR}/sndfile_1045.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/sndfile

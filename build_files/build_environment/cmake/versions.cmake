@@ -38,15 +38,15 @@ set(RELEASE_HIP_VERSION 5.7.*)
 #  Note that multi-line strings *must* use [=[...]=] bounds.
 
 
-set(ZLIB_VERSION 1.2.13)
+set(ZLIB_VERSION 1.3.1)
 set(ZLIB_URI https://github.com/madler/zlib/releases/download/v${ZLIB_VERSION}/zlib-${ZLIB_VERSION}.tar.gz)
-set(ZLIB_HASH 9b8aa094c4e5765dabf4da391f00d15c)
+set(ZLIB_HASH 9855b6d802d7fe5b7bd5b196a2271655)
 set(ZLIB_HASH_TYPE MD5)
 set(ZLIB_FILE zlib-${ZLIB_VERSION}.tar.gz)
 set(ZLIB_CPE "cpe:2.3:a:zlib:zlib:${ZLIB_VERSION}:*:*:*:*:*:*:*")
 set(ZLIB_HOMEPAGE https://zlib.net)
 set(ZLIB_LICENSE SPDX:Zlib)
-set(ZLIB_COPYRIGHT "Copyright (C) 1995-2017 Jean-loup Gailly")
+set(ZLIB_COPYRIGHT "Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler")
 
 set(OPENAL_VERSION 1.23.1)
 set(OPENAL_URI https://github.com/kcat/openal-soft/releases/download/${OPENAL_VERSION}/openal-soft-${OPENAL_VERSION}.tar.bz2)
@@ -92,20 +92,6 @@ Copyright (C)2009-2020 D. R. Commander. All Rights Reserved.
 Copyright (C)2015 Viktor Szathmáry. All Rights Reserved.
 ]=])
 
-set(BOOST_VERSION 1.82.0)
-set(BOOST_VERSION_SHORT 1.82)
-set(BOOST_VERSION_NODOTS 1_82_0)
-set(BOOST_VERSION_NODOTS_SHORT 1_82)
-set(BOOST_URI https://archives.boost.io/release/${BOOST_VERSION}/source/boost_${BOOST_VERSION_NODOTS}.tar.gz)
-set(BOOST_HASH f7050f554a65f6a42ece221eaeec1660)
-set(BOOST_HASH_TYPE MD5)
-set(BOOST_FILE boost_${BOOST_VERSION_NODOTS}.tar.gz)
-set(BOOST_CPE "cpe:2.3:a:boost:boost:${BOOST_VERSION}:*:*:*:*:*:*:*")
-set(BOOST_HOMEPAGE https://www.boost.org/)
-set(BOOST_NAME Boost)
-set(BOOST_LICENSE SPDX:BSL-1.0)
-set(BOOST_COPYRIGHT "The Boost license encourages both commercial and non-commercial use and does not require attribution for binary use.")
-
 set(BLOSC_VERSION 1.21.1)
 set(BLOSC_URI https://github.com/Blosc/c-blosc/archive/v${BLOSC_VERSION}.tar.gz)
 set(BLOSC_HASH 134b55813b1dca57019d2a2dc1f7a923)
@@ -141,9 +127,9 @@ set(DEFLATE_HOMEPAGE https://github.com/ebiggers/libdeflate)
 set(DEFLATE_LICENSE SPDX:MIT)
 set(DEFLATE_COPYRIGHT "Copyright 2016 Eric Biggers")
 
-set(OPENEXR_VERSION 3.2.4)
+set(OPENEXR_VERSION 3.3.2)
 set(OPENEXR_URI https://github.com/AcademySoftwareFoundation/openexr/archive/v${OPENEXR_VERSION}.tar.gz)
-set(OPENEXR_HASH 83b23b937b3a76fd37680422f41b81b7)
+set(OPENEXR_HASH 0ca7b46575537ff495d9914166aafa65)
 set(OPENEXR_HASH_TYPE MD5)
 set(OPENEXR_FILE openexr-${OPENEXR_VERSION}.tar.gz)
 set(OPENEXR_CPE "cpe:2.3:a:openexr:openexr:${OPENEXR_VERSION}:*:*:*:*:*:*:*")
@@ -254,9 +240,9 @@ set(OPENCOLLADA_FILE opencollada-${OPENCOLLADA_VERSION}.tar.gz)
 set(OPENCOLLADA_LICENSE SPDX:MIT)
 set(OPENCOLLADA_COPYRIGHT "Copyright (c) 2008-2009 NetAllied Systems GmbH")
 
-set(OPENCOLORIO_VERSION 2.3.2)
+set(OPENCOLORIO_VERSION 2.4.1)
 set(OPENCOLORIO_URI https://github.com/AcademySoftwareFoundation/OpenColorIO/archive/v${OPENCOLORIO_VERSION}.tar.gz)
-set(OPENCOLORIO_HASH 8af74fcb8c4820ab21204463a06ba490)
+set(OPENCOLORIO_HASH a11368ef8f001837f29b7dd18dbd2290)
 set(OPENCOLORIO_HASH_TYPE MD5)
 set(OPENCOLORIO_FILE OpenColorIO-${OPENCOLORIO_VERSION}.tar.gz)
 set(OPENCOLORIO_NAME OpenColorIO)
@@ -301,10 +287,10 @@ set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${
 set(OPENMP_HASH_TYPE MD5)
 set(OPENMP_FILE openmp-${OPENMP_VERSION}.src.tar.xz)
 
-set(OPENIMAGEIO_VERSION v2.5.11.0)
+set(OPENIMAGEIO_VERSION v3.0.3.1)
 set(OPENIMAGEIO_NAME OpenImageIO)
 set(OPENIMAGEIO_URI https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/${OPENIMAGEIO_VERSION}.tar.gz)
-set(OPENIMAGEIO_HASH 691e9364d25e2878e042d48980fad593)
+set(OPENIMAGEIO_HASH d2d50bfe58e302c26dc7e24b86cb75fd)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
 set(OPENIMAGEIO_HOMEPAGE https://github.com/AcademySoftwareFoundation/OpenImageIO)
@@ -325,18 +311,18 @@ set(FMT_COPYRIGHT "Copyright (c) 2012 - present, Victor Zverovich and {fmt} cont
 
 # 0.6.2 is currently oiio's preferred version although never versions may be available.
 # the preferred version can be found in oiio's externalpackages.cmake
-set(ROBINMAP_VERSION v0.6.2)
+set(ROBINMAP_VERSION v1.3.0)
 set(ROBINMAP_URI https://github.com/Tessil/robin-map/archive/refs/tags/${ROBINMAP_VERSION}.tar.gz)
-set(ROBINMAP_HASH c08ec4b1bf1c85eb0d6432244a6a89862229da1cb834f3f90fba8dc35d8c8ef1)
+set(ROBINMAP_HASH a8424ad3b0affd4c57ed26f0f3d8a29604f0e1f2ef2089f497f614b1c94c7236)
 set(ROBINMAP_HASH_TYPE SHA256)
 set(ROBINMAP_FILE robinmap-${ROBINMAP_VERSION}.tar.gz)
 set(ROBINMAP_HOMEPAGE https://github.com/Tessil/robin-map)
 set(ROBINMAP_LICENSE SPDX:MIT)
 set(ROBINMAP_COPYRIGHT "Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>")
 
-set(TIFF_VERSION 4.6.0)
+set(TIFF_VERSION 4.7.0)
 set(TIFF_URI http://download.osgeo.org/libtiff/tiff-${TIFF_VERSION}.tar.gz)
-set(TIFF_HASH fc7d49a9348b890b29f91a4ecadd5b49)
+set(TIFF_HASH 3a0fa4a270a4a192b08913f88d0cfbdd)
 set(TIFF_HASH_TYPE MD5)
 set(TIFF_FILE tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_CPE "cpe:2.3:a:libtiff:libtiff:${TIFF_VERSION}:*:*:*:*:*:*:*")
@@ -348,13 +334,12 @@ Copyright © 1988-1997 Sam Leffler.
 Copyright © 1991-1997 Silicon Graphics, Inc.
 ]=])
 
-# Recent commit from 1.13.5.0 under development, which includes string table
-# changes that make the Cycles OptiX implementation work. Official 1.12 OSL
-# releases should also build but without OptiX support.
-set(OSL_VERSION 1.13.7.0)
+# Latest 1.14 (beta) main, that is compatible with OIIO 3.0
+set(OSL_VERSION 1.14.3.0-beta)
+set(OSL_COMMIT "b795e3e92ae1f2c5da5024b61295b0eb41486a65")
 set(OSL_NAME "Open Shading Language")
-set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/refs/tags/v${OSL_VERSION}.tar.gz)
-set(OSL_HASH 769ae444a7df0e6561b3e745fd2eb50d)
+set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/${OSL_COMMIT}.tar.gz)
+set(OSL_HASH dbfe1a34249959f2d66296bf04317c1c)
 set(OSL_HASH_TYPE MD5)
 set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 set(OSL_HOMEPAGE https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/)
@@ -368,18 +353,18 @@ set(OSL_COPYRIGHT "Copyright Contributors to the Open Shading Language project."
 # Additionally, keep the PYTHON_PIP_VERSION in sync with the pip version bundled
 # into Python.
 
-set(PYTHON_VERSION 3.11.9)
+set(PYTHON_VERSION 3.11.11)
 set(PYTHON_SHORT_VERSION 3.11)
 set(PYTHON_SHORT_VERSION_NO_DOTS 311)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
-set(PYTHON_HASH 22ea467e7d915477152e99d5da856ddc)
+set(PYTHON_HASH 3e497037b170fe4be5f462c4964596f2)
 set(PYTHON_HASH_TYPE MD5)
 set(PYTHON_FILE Python-${PYTHON_VERSION}.tar.xz)
 set(PYTHON_CPE "cpe:2.3:a:python:python:${PYTHON_VERSION}:-:*:*:*:*:*:*")
 set(PYTHON_HOMEPAGE https://www.python.org/)
 set(PYTHON_NAME Python)
 set(PYTHON_LICENSE SPDX:Python-2.0)
-set(PYTHON_COPYRIGHT "Copyright (c) 2001-2021 Python Software Foundation. All rights reserved.")
+set(PYTHON_COPYRIGHT "Copyright (c) 2001-2023 Python Software Foundation. All rights reserved.")
 
 # Python bundles pip wheel, and does not track CVEs from it. Add an explicit CPE
 # identifier for pip, so that cve_check can detect vulnerabilities in it.
@@ -390,11 +375,11 @@ set(PYTHON_COPYRIGHT "Copyright (c) 2001-2021 Python Software Foundation. All ri
 set(PYTHON_PIP_VERSION 24.0)
 set(PYTHON_PIP_CPE "cpe:2.3:a:pypa:pip:${PYTHON_PIP_VERSION}:*:*:*:*:*:*:*")
 
-set(TBB_YEAR 2020)
+set(TBB_YEAR 2021)
 set(TBB_NAME oneTBB)
-set(TBB_VERSION ${TBB_YEAR}_U3)
-set(TBB_URI https://github.com/oneapi-src/oneTBB/archive/${TBB_VERSION}.tar.gz)
-set(TBB_HASH 55ec8df6eae5ed6364a47f0e671e460c)
+set(TBB_VERSION v2021.13.0)
+set(TBB_URI https://github.com/uxlfoundation/oneTBB/archive/refs/tags/${TBB_VERSION}.tar.gz)
+set(TBB_HASH f287cd007240a838286ff13e7deaee12)
 set(TBB_HASH_TYPE MD5)
 set(TBB_FILE oneTBB-${TBB_VERSION}.tar.gz)
 set(TBB_CPE "cpe:2.3:a:intel:threading_building_blocks:${TBB_YEAR}:*:*:*:*:*:*:*")
@@ -402,10 +387,20 @@ set(TBB_HOMEPAGE https://software.intel.com/en-us/oneapi/onetbb)
 set(TBB_LICENSE SPDX:Apache-2.0)
 set(TBB_COPYRIGHT "Copyright (c) 2005-2020 Intel Corporation")
 
-set(OPENVDB_VERSION 11.0.0)
+set(NANOBIND_VERSION v2.1.0)
+set(NANOBIND_NAME NanoBind)
+set(NANOBIND_URI https://github.com/wjakob/nanobind/archive/refs/tags/${NANOBIND_VERSION}.tar.gz)
+set(NANOBIND_HASH 363e96957741869bb16ff983c042e72f)
+set(NANOBIND_HASH_TYPE MD5)
+set(NANOBIND_FILE nanobind-${NANOBIND_VERSION}.tar.gz)
+set(NANOBIND_HOMEPAGE https://github.com/wjakob/nanobind)
+set(NANOBIND_LICENSE SPDX:BSD-3-Clause)
+set(NANOBIND_COPYRIGHT "2023, Wenzel Jakob")
+
+set(OPENVDB_VERSION 12.0.0)
 set(OPENVDB_NAME OpenVDB)
 set(OPENVDB_URI https://github.com/AcademySoftwareFoundation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz)
-set(OPENVDB_HASH 025f4fc4db58419341a4991f1a16174a)
+set(OPENVDB_HASH c5cd16784b6b42aaa956b574042f374d)
 set(OPENVDB_HASH_TYPE MD5)
 set(OPENVDB_FILE openvdb-${OPENVDB_VERSION}.tar.gz)
 set(OPENVDB_HOMEPAGE http://www.openvdb.org/)
@@ -427,7 +422,7 @@ set(CERTIFI_VERSION 2021.10.8)
 # Needed by: Some of Blender's add-ons (to support convenient interaction with online services).
 set(REQUESTS_VERSION 2.27.1)
 # Needed by: Python's `numpy` module (used by some add-ons).
-set(CYTHON_VERSION 0.29.30)
+set(CYTHON_VERSION 3.0.11)
 # Needed by: Python scripts that read `.blend` files, as files may use Z-standard compression.
 # The version of the ZSTD library used to build the Python package should match ZSTD_VERSION
 # defined below. At this time of writing, 0.17.0 was already released,
@@ -440,10 +435,10 @@ set(PYCODESTYLE_VERSION 2.12.1)
 # Build system for other packages (not used by Blender at run-time).
 set(MESON_VERSION 0.63.0)
 
-set(NUMPY_VERSION 1.24.3)
-set(NUMPY_SHORT_VERSION 1.24)
+set(NUMPY_VERSION 1.26.4)
+set(NUMPY_SHORT_VERSION 1.26)
 set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz)
-set(NUMPY_HASH 89e5e2e78407032290ae6acf6dcaea46)
+set(NUMPY_HASH 19550cbe7bedd96a928da9d4ad69509d)
 set(NUMPY_HASH_TYPE MD5)
 set(NUMPY_FILE numpy-${NUMPY_VERSION}.tar.gz)
 set(NUMPY_CPE "cpe:2.3:a:numpy:numpy:${NUMPY_VERSION}:*:*:*:*:*:*:*")
@@ -652,9 +647,9 @@ Copyright (C) 2009-2013 Facebook, Inc.  All rights reserved.
 Copyright (C) 2013 Jason Evans <jasone@canonware.com>.
 ]=])
 
-set(XML2_VERSION 2.12.3)
-set(XML2_URI https://download.gnome.org/sources/libxml2/2.12/libxml2-${XML2_VERSION}.tar.xz)
-set(XML2_HASH 13871e7cf2137b4b9b9da753ffef538c)
+set(XML2_VERSION 2.13.5)
+set(XML2_URI https://download.gnome.org/sources/libxml2/2.13/libxml2-${XML2_VERSION}.tar.xz)
+set(XML2_HASH 0b919be8edff97ade9c946e1a83bdecd)
 set(XML2_HASH_TYPE MD5)
 set(XML2_FILE libxml2-${XML2_VERSION}.tar.xz)
 set(XML2_CPE "cpe:2.3:a:xmlsoft:libxml2:${XML2_VERSION}:*:*:*:*:*:*:*")
@@ -681,10 +676,10 @@ set(PYSTRING_HOMEPAGE https://github.com/imageworks/pystring)
 set(PYSTRING_LICENSE SPDX:BSD-3-Clause)
 set(PYSTRING_COPYRIGHT "Copyright (c) 2008-2010, Sony Pictures Imageworks Inc; All rights reserved.")
 
-set(EXPAT_VERSION 2_5_0)
-set(EXPAT_VERSION_DOTS 2.5.0)
+set(EXPAT_VERSION 2_6_4)
+set(EXPAT_VERSION_DOTS 2.6.4)
 set(EXPAT_URI https://github.com/libexpat/libexpat/archive/R_${EXPAT_VERSION}.tar.gz)
-set(EXPAT_HASH d375fa3571c0abb945873f5061a8f2e2)
+set(EXPAT_HASH f2f8d61e2bd71d1118e1258ed9f4c0b7)
 set(EXPAT_HASH_TYPE MD5)
 set(EXPAT_FILE libexpat-${EXPAT_VERSION}.tar.gz)
 set(EXPAT_HOMEPAGE https://github.com/libexpat/libexpat/)
@@ -799,10 +794,10 @@ set(EMBREE_HOMEPAGE https://github.com/embree/embree)
 set(EMBREE_LICENSE SPDX:Apache-2.0)
 set(EMBREE_COPYRIGHT "Copyright 2009-2020 Intel Corporation")
 
-set(USD_VERSION 24.05)
+set(USD_VERSION 25.02)
 set(USD_NAME USD)
 set(USD_URI https://github.com/PixarAnimationStudios/OpenUSD/archive/v${USD_VERSION}.tar.gz)
-set(USD_HASH 44a5b976a76588b485a652f08a55e91f)
+set(USD_HASH 76ee61270e67002ddb2fc76dda6a498d)
 set(USD_HASH_TYPE MD5)
 set(USD_FILE usd-v${USD_VERSION}.tar.gz)
 set(USD_HOMEPAGE https://openusd.org/)
@@ -815,10 +810,10 @@ This product includes software developed at:
 Pixar (http://www.pixar.com/).
 ]=])
 
-set(MATERIALX_VERSION 1.38.8)
+set(MATERIALX_VERSION 1.39.2)
 set(MATERIALX_NAME MaterialX)
 set(MATERIALX_URI https://github.com/AcademySoftwareFoundation/MaterialX/archive/refs/tags/v${MATERIALX_VERSION}.tar.gz)
-set(MATERIALX_HASH fad8f4e19305fb2ee920cbff638f3560)
+set(MATERIALX_HASH e3e413755f525aec96c60af631753044)
 set(MATERIALX_HASH_TYPE MD5)
 set(MATERIALX_FILE materialx-v${MATERIALX_VERSION}.tar.gz)
 set(MATERIALX_HOMEPAGE https://github.com/AcademySoftwareFoundation/MaterialX)
@@ -964,9 +959,9 @@ set(ISPC_HASH_TYPE MD5)
 set(ISPC_FILE ispc-${ISPC_VERSION}.tar.gz)
 set(ISPC_DEPSBUILDTIMEONLY "Blender ships the produced artifact, but doesn't ship/link with any binary")
 
-set(GMP_VERSION 6.2.1)
+set(GMP_VERSION 6.3.0)
 set(GMP_URI https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz)
-set(GMP_HASH 0b82665c4a92fd2ade7440c13fcaa42b)
+set(GMP_HASH 956dc04e864001a9c22429f761f2c283)
 set(GMP_HASH_TYPE MD5)
 set(GMP_FILE gmp-${GMP_VERSION}.tar.xz)
 set(GMP_CPE "cpe:2.3:a:gmplib:gmp:${GMP_VERSION}:*:*:*:*:*:*:*")
@@ -1100,8 +1095,7 @@ set(ICDLOADER_LICENSE SPDX:Apache-2.0)
 set(ICDLOADER_COPYRIGHT " Copyright (c) 2020 The Khronos Group Inc.")
 
 # Source sycl/cmake/modules/AddBoostMp11Headers.cmake
-# Using external MP11 here, getting AddBoostMp11Headers.cmake to recognize
-# our copy in boost directly was more trouble than it was worth.
+# Using external MP11 here so we don't have to pull in all of Boost.
 set(MP11_VERSION 863d8b8d2b20f2acd0b5870f23e553df9ce90e6c)
 set(MP11_URI https://github.com/boostorg/mp11/archive/${MP11_VERSION}.tar.gz)
 set(MP11_HASH 525692267abb8086bb9cc2fe81fb96d73ac645dfa6825cb5114686aafe244e9f)

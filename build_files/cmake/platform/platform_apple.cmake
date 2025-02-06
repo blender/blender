@@ -251,6 +251,17 @@ if(WITH_IMAGE_WEBP)
   find_package(WebP REQUIRED)
 endif()
 
+# With Blender 4.4 libraries there is no more Boost. This code is only
+# here until we can reasonably assume everyone has upgraded to them.
+if(WITH_BOOST)
+  if(DEFINED LIBDIR AND NOT EXISTS "${LIBDIR}/boost")
+    set(WITH_BOOST OFF)
+    set(BOOST_LIBRARIES)
+    set(BOOST_PYTHON_LIBRARIES)
+    set(BOOST_INCLUDE_DIR)
+  endif()
+endif()
+
 if(WITH_BOOST)
   set(Boost_NO_BOOST_CMAKE ON)
   set(Boost_ROOT ${LIBDIR}/boost)

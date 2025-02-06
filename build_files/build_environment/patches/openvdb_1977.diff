@@ -1,0 +1,44 @@
+diff --git a/nanovdb/nanovdb/tools/GridBuilder.h b/nanovdb/nanovdb/tools/GridBuilder.h
+index 30385661d0..428215ba65 100644
+--- a/nanovdb/nanovdb/tools/GridBuilder.h
++++ b/nanovdb/nanovdb/tools/GridBuilder.h
+@@ -1158,7 +1158,7 @@ struct LeafNode
+         ValueIterator& operator=(const ValueIterator&) = default;
+         ValueType operator*() const { NANOVDB_ASSERT(*this); return mParent->mValues[mPos];}
+         Coord getCoord() const { NANOVDB_ASSERT(*this); return mParent->offsetToGlobalCoord(mPos);}
+-        bool isActive() const { NANOVDB_ASSERT(*this); return mParent->isActive(mPos);}
++        bool isActive() const { NANOVDB_ASSERT(*this); return mParent->mValueMask.isOn(mPos);}
+         operator bool() const {return mPos < SIZE;}
+         ValueIterator& operator++() {++mPos; return *this;}
+         ValueIterator operator++(int) {
+diff --git a/openvdb/openvdb/tree/NodeManager.h b/openvdb/openvdb/tree/NodeManager.h
+index 27a3f82012..1023c00748 100644
+--- a/openvdb/openvdb/tree/NodeManager.h
++++ b/openvdb/openvdb/tree/NodeManager.h
+@@ -328,7 +328,7 @@ class NodeList
+         void operator()(const NodeRange& range) const
+         {
+             for (typename NodeRange::Iterator it = range.begin(); it; ++it) {
+-                OpT::template eval(mNodeOp, it);
++                OpT::eval(mNodeOp, it);
+             }
+         }
+         const NodeOp mNodeOp;
+@@ -348,7 +348,7 @@ class NodeList
+         void operator()(const NodeRange& range) const
+         {
+             for (typename NodeRange::Iterator it = range.begin(); it; ++it) {
+-                OpT::template eval(mNodeOp, it);
++                OpT::eval(mNodeOp, it);
+             }
+         }
+         const NodeOp& mNodeOp;
+@@ -373,7 +373,7 @@ class NodeList
+         void operator()(const NodeRange& range)
+         {
+             for (typename NodeRange::Iterator it = range.begin(); it; ++it) {
+-                OpT::template eval(*mNodeOp, it);
++                OpT::eval(*mNodeOp, it);
+             }
+         }
+         void join(const NodeReducer& other)
