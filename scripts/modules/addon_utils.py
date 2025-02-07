@@ -348,7 +348,10 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
 
     if (is_extension := module_name.startswith(_ext_base_pkg_idname_with_dot)):
         if not refresh_handled:
-            extensions_refresh(addon_modules_pending=[module_name])
+            extensions_refresh(
+                addon_modules_pending=[module_name],
+                handle_error=handle_error,
+            )
 
         # Ensure the extensions are compatible.
         if _extensions_incompatible:
@@ -390,7 +393,7 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
                 print("Exception in module unregister():", (mod_file or module_name))
                 handle_error(ex)
                 if is_extension and not refresh_handled:
-                    extensions_refresh()
+                    extensions_refresh(handle_error=handle_error)
                 return None
 
         mod.__addon_enabled__ = False
@@ -406,7 +409,7 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
                 del sys.modules[module_name]
 
                 if is_extension and not refresh_handled:
-                    extensions_refresh()
+                    extensions_refresh(handle_error=handle_error)
                 return None
             mod.__addon_enabled__ = False
 
@@ -478,7 +481,7 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
             if default_set:
                 _addon_remove(module_name)
             if is_extension and not refresh_handled:
-                extensions_refresh()
+                extensions_refresh(handle_error=handle_error)
             return None
 
         if is_extension:
@@ -517,7 +520,7 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
             if default_set:
                 _addon_remove(module_name)
             if is_extension and not refresh_handled:
-                extensions_refresh()
+                extensions_refresh(handle_error=handle_error)
             return None
         finally:
             _bl_owner_id_set(owner_id_prev)
@@ -579,7 +582,7 @@ def disable(module_name, *, default_set=False, refresh_handled=False, handle_err
         _addon_remove(module_name)
 
     if not refresh_handled:
-        extensions_refresh()
+        extensions_refresh(handle_error=handle_error)
 
     if _bpy.app.debug_python:
         print("\taddon_utils.disable", module_name)
@@ -1145,12 +1148,13 @@ def _initialize_extensions_compat_ensure_up_to_date(extensions_directory, extens
     return updated, wheel_list
 
 
-def _initialize_extensions_compat_ensure_up_to_date_wheels(extensions_directory, wheel_list, debug):
+def _initialize_extensions_compat_ensure_up_to_date_wheels(extensions_directory, wheel_list, debug, error_fn):
     import os
     _extension_sync_wheels(
         local_dir=os.path.join(extensions_directory, ".local"),
         wheel_list=wheel_list,
         debug=debug,
+        error_fn=error_fn,
     )
 
 
@@ -1160,6 +1164,7 @@ def _initialize_extensions_compat_data(
         ensure_wheels,  # `bool`
         addon_modules_pending,  # `Sequence[str] | None`
         use_startup_fastpath,  # `bool`
+        error_fn,  # `Callable[[Exception], None] | None`
 ):
     # WARNING: this function must *never* raise an exception because it would interfere with low level initialization.
     # As the function deals with file IO, use what are typically over zealous exception checks so as to rule out
@@ -1213,8 +1218,17 @@ def _initialize_extensions_compat_data(
 
     if ensure_wheels:
         if updated:
+            if error_fn is None:
+                def error_fn(ex):
+                    print("Error:", str(ex))
+
             try:
-                _initialize_extensions_compat_ensure_up_to_date_wheels(extensions_directory, wheel_list, debug)
+                _initialize_extensions_compat_ensure_up_to_date_wheels(
+                    extensions_directory,
+                    wheel_list,
+                    debug,
+                    error_fn=error_fn,
+                )
             except Exception:
                 print("Extension: unexpected error updating wheels, this is is a bug!")
                 import traceback
@@ -1337,6 +1351,7 @@ def _extension_sync_wheels(
         local_dir,  # `str`
         wheel_list,  # `list[WheelSource]`
         debug,           # `bool`
+        error_fn,  # `Callable[[Exception], None]`
 ):  # `-> None`
     import os
     import sys
@@ -1358,6 +1373,7 @@ def _extension_sync_wheels(
         local_dir=local_dir,
         local_dir_site_packages=local_dir_site_packages,
         wheel_list=wheel_list,
+        error_fn=error_fn,
         remove_error_fn=remove_error_fn,
         debug=debug,
     )
@@ -1804,6 +1820,8 @@ def _initialize_extensions_repos_once():
         ensure_wheels=True,
         addon_modules_pending=None,
         use_startup_fastpath=True,
+        # Runs on startup, fall back to printing.
+        error_fn=None,
     )
 
     # Setup repositories for the first time.
@@ -1819,7 +1837,11 @@ def _initialize_extensions_repos_once():
 # -----------------------------------------------------------------------------
 # Extension Public API
 
-def extensions_refresh(ensure_wheels=True, addon_modules_pending=None):
+def extensions_refresh(
+        ensure_wheels=True,
+        addon_modules_pending=None,
+        handle_error=None,
+):
     """
     Ensure data relating to extensions is up to date.
     This should be called after extensions on the file-system have changed.
@@ -1829,6 +1851,8 @@ def extensions_refresh(ensure_wheels=True, addon_modules_pending=None):
     :arg addon_modules_pending: Refresh these add-ons by listing their package names, as if they are enabled.
        This is needed so wheels can be setup before the add-on is enabled.
     :type addon_modules_pending: Sequence[str] | None
+    :arg handle_error: Called in the case of an error, taking an exception argument.
+    :type handle_error: Callable[[Exception], None] | None
     """
 
     # Ensure any changes to extensions refresh `_extensions_incompatible`.
@@ -1837,6 +1861,7 @@ def extensions_refresh(ensure_wheels=True, addon_modules_pending=None):
         ensure_wheels=ensure_wheels,
         addon_modules_pending=addon_modules_pending,
         use_startup_fastpath=False,
+        error_fn=handle_error,
     )
 
 
