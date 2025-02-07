@@ -906,7 +906,7 @@ static void GREASE_PENCIL_OT_active_frame_delete(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "all", false, "Delete all", "Delete active keyframes of all layers");
 }
 
-bool grease_pencil_active_breakdown_frame_poll(bContext *C)
+static bool grease_pencil_active_breakdown_frame_poll(bContext *C)
 {
   if (!active_grease_pencil_poll(C)) {
     return false;
