@@ -38,10 +38,4 @@ bool remove_from_vertex_group(Drawing &drawing, StringRef name, bool use_selecti
 /** Remove vertices from all vertex groups. */
 void clear_vertex_groups(GreasePencil &grease_pencil);
 
-/** Select or deselect vertices assigned to this group. */
-void select_from_group(Drawing &drawing,
-                       const AttrDomain selection_domain,
-                       StringRef name,
-                       bool select);
-
 }  // namespace blender::bke::greasepencil
