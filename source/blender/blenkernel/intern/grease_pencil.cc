@@ -12,6 +12,7 @@
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
+#include "BKE_asset_edit.hh"
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
@@ -2465,6 +2466,11 @@ static Material *grease_pencil_object_material_ensure_from_brush_pinned(Main *bm
 {
   Material *ma = (brush->gpencil_settings) ? brush->gpencil_settings->material : nullptr;
 
+  if (ma) {
+    /* Ensure we assign a local datablock if this is an editable asset. */
+    ma = reinterpret_cast<Material *>(blender::bke::asset_edit_id_ensure_local(*bmain, ma->id));
+  }
+
   /* check if the material is already on object material slots and add it if missing */
   if (ma && BKE_object_material_index_get(ob, ma) < 0) {
     /* The object's active material is what's used for the unpinned material. Do not touch it
@@ -2509,8 +2515,12 @@ Material *BKE_grease_pencil_object_material_alt_ensure_from_brush(Main *bmain,
 {
   Material *material_alt = (brush->gpencil_settings) ? brush->gpencil_settings->material_alt :
                                                        nullptr;
-  if (material_alt && BKE_object_material_slot_find_index(ob, material_alt) != -1) {
-    return material_alt;
+  if (material_alt) {
+    material_alt = reinterpret_cast<Material *>(
+        blender::bke::asset_edit_id_find_local(*bmain, material_alt->id));
+    if (material_alt && BKE_object_material_slot_find_index(ob, material_alt) != -1) {
+      return material_alt;
+    }
   }
 
   return BKE_grease_pencil_object_material_ensure_from_brush(bmain, ob, brush);

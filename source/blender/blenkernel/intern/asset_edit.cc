@@ -10,6 +10,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
+#include "DNA_ID.h"
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
@@ -384,6 +385,38 @@ bool asset_edit_id_is_editable(const ID &id)
 bool asset_edit_id_is_writable(const ID &id)
 {
   return asset_edit_id_is_editable(id) && (id.lib->runtime.tag & LIBRARY_ASSET_FILE_WRITABLE);
+}
+
+ID *asset_edit_id_find_local(Main &global_main, ID &id)
+{
+  if (!asset_edit_id_is_editable(id)) {
+    return &id;
+  }
+
+  /* Make filepath relative to match weak ref, it might not be if Library datablock is new. */
+  char lib_filepath[FILE_MAX];
+  STRNCPY(lib_filepath, id.lib->filepath);
+  BLI_path_rel(lib_filepath, BKE_main_blendfile_path(&global_main));
+
+  return BKE_main_library_weak_reference_find(&global_main, lib_filepath, id.name);
+}
+
+ID *asset_edit_id_ensure_local(Main &global_main, ID &id)
+{
+  ID *local_id = asset_edit_id_find_local(global_main, id);
+  if (local_id) {
+    return local_id;
+  }
+
+  /* Make local and create weak library reference for reuse. */
+  BKE_lib_id_make_local(&global_main,
+                        &id,
+                        LIB_ID_MAKELOCAL_FORCE_COPY | LIB_ID_MAKELOCAL_INDIRECT |
+                            LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR);
+  BLI_assert(id.newid != nullptr);
+  BKE_main_library_weak_reference_add(id.newid, id.lib->filepath, id.name);
+
+  return id.newid;
 }
 
 }  // namespace blender::bke
