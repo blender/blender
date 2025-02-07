@@ -22,9 +22,10 @@
     .gen_y = 1024, \
     .gen_type = IMA_GENTYPE_GRID, \
  \
-    .gpuframenr = INT_MAX, \
-    .gpu_pass = SHRT_MAX, \
-    .gpu_layer = SHRT_MAX, \
+    .gpuframenr = IMAGE_GPU_FRAME_NONE, \
+    .gpu_pass = IMAGE_GPU_PASS_NONE, \
+    .gpu_layer = IMAGE_GPU_LAYER_NONE, \
+    .gpu_view = IMAGE_GPU_VIEW_NONE, \
     .seam_margin = 8, \
   }
 
