@@ -170,9 +170,9 @@ void BUTTONS_OT_context_menu(wmOperatorType *ot)
 
 struct FileBrowseOp {
   PointerRNA ptr;
-  PropertyRNA *prop;
-  bool is_undo;
-  bool is_userdef;
+  PropertyRNA *prop = nullptr;
+  bool is_undo = false;
+  bool is_userdef = false;
 };
 
 static int file_browse_exec(bContext *C, wmOperator *op)
@@ -185,7 +185,11 @@ static int file_browse_exec(bContext *C, wmOperator *op)
   const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
                                                                            "filepath";
 
-  if (RNA_struct_property_is_set(op->ptr, path_prop) == 0 || fbo == nullptr) {
+  if (fbo == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  if (RNA_struct_property_is_set(op->ptr, path_prop) == 0) {
+    MEM_delete(fbo);
     return OPERATOR_CANCELLED;
   }
 
@@ -245,14 +249,16 @@ static int file_browse_exec(bContext *C, wmOperator *op)
     U.runtime.is_dirty = true;
   }
 
-  MEM_freeN(op->customdata);
+  BLI_assert(fbo == op->customdata);
+  MEM_delete(fbo);
 
   return OPERATOR_FINISHED;
 }
 
 static void file_browse_cancel(bContext * /*C*/, wmOperator *op)
 {
-  MEM_freeN(op->customdata);
+  FileBrowseOp *fbo = static_cast<FileBrowseOp *>(op->customdata);
+  MEM_delete(fbo);
   op->customdata = nullptr;
 }
 
@@ -262,7 +268,6 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   PropertyRNA *prop;
   bool is_undo;
   bool is_userdef;
-  FileBrowseOp *fbo;
   char *path;
 
   const SpaceFile *sfile = CTX_wm_space_file(C);
@@ -318,7 +323,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   PropertyRNA *prop_relpath;
   const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
                                                                            "filepath";
-  fbo = static_cast<FileBrowseOp *>(MEM_callocN(sizeof(FileBrowseOp), "FileBrowseOp"));
+  FileBrowseOp *fbo = MEM_new<FileBrowseOp>(__func__);
   fbo->ptr = ptr;
   fbo->prop = prop;
   fbo->is_undo = is_undo;
