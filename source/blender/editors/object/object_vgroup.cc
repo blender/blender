@@ -29,6 +29,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
+#include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
@@ -54,6 +55,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
@@ -1001,6 +1003,75 @@ void vgroup_select_by_name(Object *ob, const char *name)
 /** \name Operator Function Implementations
  * \{ */
 
+static void vgroup_grease_pencil_select_verts(const Scene &scene,
+                                              const ToolSettings &tool_settings,
+                                              const bDeformGroup *def_group,
+                                              const bool select,
+                                              Object &object)
+{
+  using namespace bke;
+  using namespace ed::greasepencil;
+  const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
+      &tool_settings);
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object.data);
+
+  Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, *grease_pencil);
+  for (MutableDrawingInfo &info : drawings) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    ListBase &vertex_group_names = curves.vertex_group_names;
+
+    const int def_nr = BKE_defgroup_name_index(&vertex_group_names, def_group->name);
+    if (def_nr < 0) {
+      /* No vertices assigned to the group in this drawing. */
+      return;
+    }
+
+    const Span<MDeformVert> dverts = curves.deform_verts();
+    if (dverts.is_empty()) {
+      return;
+    }
+
+    GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+        curves, selection_domain, CD_PROP_BOOL);
+    switch (selection_domain) {
+      case AttrDomain::Point:
+        threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange range) {
+          for (const int point_i : range) {
+            if (BKE_defvert_find_index(&dverts[point_i], def_nr)) {
+              selection.span.typed<bool>()[point_i] = select;
+            }
+          }
+        });
+        break;
+      case AttrDomain::Curve: {
+        const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+        threading::parallel_for(curves.curves_range(), 1024, [&](const IndexRange range) {
+          for (const int curve_i : range) {
+            const IndexRange points = points_by_curve[curve_i];
+            bool any_point_in_group = false;
+            for (const int point_i : points) {
+              if (BKE_defvert_find_index(&dverts[point_i], def_nr)) {
+                any_point_in_group = true;
+                break;
+              }
+            }
+            if (any_point_in_group) {
+              selection.span.typed<bool>()[curve_i] = select;
+            }
+          }
+        });
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+    selection.finish();
+  }
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+}
+
 /* only in editmode */
 static void vgroup_select_verts(const ToolSettings &tool_settings,
                                 Object *ob,
@@ -1094,18 +1165,7 @@ static void vgroup_select_verts(const ToolSettings &tool_settings,
     }
   }
   else if (ob->type == OB_GREASE_PENCIL) {
-    const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
-        &tool_settings);
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
-    {
-      using namespace ed::greasepencil;
-      Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, *grease_pencil);
-      for (MutableDrawingInfo info : drawings) {
-        bke::greasepencil::select_from_group(
-            info.drawing, selection_domain, def_group->name, bool(select));
-      }
-    }
-    DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+    vgroup_grease_pencil_select_verts(scene, tool_settings, def_group, select, *ob);
   }
 }
 
