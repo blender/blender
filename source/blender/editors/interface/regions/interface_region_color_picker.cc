@@ -20,6 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
@@ -835,11 +836,18 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const
   /* Increase/Decrease the Color HSV Value component using the mouse wheel. */
   float add = 0.0f;
 
-  if (event->type == WHEELUPMOUSE) {
-    add = 0.05f;
-  }
-  else if (event->type == WHEELDOWNMOUSE) {
-    add = -0.05f;
+  switch (event->type) {
+    case WHEELUPMOUSE:
+      add = 0.05f;
+      break;
+    case WHEELDOWNMOUSE:
+      add = -0.05f;
+      break;
+    case MOUSEPAN:
+      add = 0.005f * WM_event_absolute_delta_y(event) / UI_SCALE_FAC;
+      break;
+    default:
+      break;
   }
 
   if (add != 0.0f) {
