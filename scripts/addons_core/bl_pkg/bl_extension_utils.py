@@ -232,7 +232,13 @@ def command_output_from_json_0(
     # Note that the context-manager isn't used to wait until the process is finished as
     # the function only finishes when `poll()` is not none, it's just use to ensure file-handles
     # are closed before this function exits, this only seems to be a problem on WIN32.
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE) as ps:
+
+    # WIN32 needs to use a separate process-group else Blender will recieve the "break", see #131947.
+    creationflags = 0
+    if sys.platform == "win32":
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, creationflags=creationflags) as ps:
         stdout = ps.stdout
         assert stdout is not None
 
@@ -291,7 +297,11 @@ def command_output_from_json_0(
             # It also means a request to exit might not be responded to soon enough.
             request_exit = yield json_messages
             if request_exit and not request_exit_signal_sent:
-                ps.send_signal(signal.SIGINT)
+                if sys.platform == "win32":
+                    # Caught by the `signal.SIGBREAK` signal handler.
+                    ps.send_signal(signal.CTRL_BREAK_EVENT)
+                else:
+                    ps.send_signal(signal.SIGINT)
                 request_exit_signal_sent = True
 
 
