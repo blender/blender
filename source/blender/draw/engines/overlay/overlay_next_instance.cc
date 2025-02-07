@@ -183,7 +183,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   const bool in_particle_edit_mode = object_is_particle_edit_mode(ob_ref);
   const bool in_edit_paint_mode = object_is_edit_paint_mode(
       ob_ref, in_edit_mode, in_paint_mode, in_sculpt_mode);
-  const bool needs_prepass = object_needs_prepass(ob_ref, in_paint_mode);
+  const bool needs_prepass = object_needs_prepass(ob_ref, in_paint_mode || in_sculpt_mode);
 
   OverlayLayer &layer = object_is_in_front(ob_ref.object, state) ? infront : regular;
 
@@ -715,7 +715,7 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
   }
 }
 
-bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
+bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_or_sculpt_mode)
 {
   if (resources.is_selection() && state.is_wireframe_mode && !state.is_solid()) {
     /* Selection in wireframe mode only use wires unless xray opacity is 1. */
@@ -728,7 +728,7 @@ bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
     return true;
   }
 
-  if (in_paint_mode) {
+  if (in_paint_or_sculpt_mode && state.is_solid() && ob_ref.object->dt >= OB_SOLID) {
     /* Allow paint overlays to draw with depth equal test. */
     return object_is_rendered_transparent(ob_ref.object, state);
   }
@@ -747,7 +747,7 @@ bool Instance::object_is_rendered_transparent(const Object *object, const State 
     return false;
   }
 
-  if (state.xray_enabled) {
+  if (!state.is_solid()) {
     return true;
   }
 
