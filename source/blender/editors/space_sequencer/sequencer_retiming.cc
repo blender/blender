@@ -654,7 +654,7 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
       continue;
     }
     /* TODO: it would be nice to multiply speed with complex retiming by a factor. */
-    SEQ_retiming_key_speed_set(scene, strip, key, RNA_float_get(op->ptr, "speed"), false);
+    SEQ_retiming_key_speed_set(scene, strip, key, RNA_float_get(op->ptr, "speed") / 100.0f, false);
 
     ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
     if (SEQ_transform_test_overlap(scene, seqbase, strip)) {
@@ -679,7 +679,7 @@ static int segment_speed_set_exec(const bContext *C,
     SEQ_retiming_key_speed_set(scene,
                                item.value,
                                item.key,
-                               RNA_float_get(op->ptr, "speed"),
+                               RNA_float_get(op->ptr, "speed") / 100.0f,
                                RNA_boolean_get(op->ptr, "keep_retiming"));
 
     if (SEQ_transform_test_overlap(scene, seqbase, item.value)) {
