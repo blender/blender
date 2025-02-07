@@ -387,8 +387,7 @@ void TEXT_OT_new(wmOperatorType *ot)
 
 static void text_open_init(bContext *C, wmOperator *op)
 {
-  PropertyPointerRNA *pprop = static_cast<PropertyPointerRNA *>(
-      MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA"));
+  PropertyPointerRNA *pprop = MEM_new<PropertyPointerRNA>(__func__);
 
   op->customdata = pprop;
   UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
@@ -442,7 +441,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
   space_text_drawcache_tag_update(st, true);
   WM_event_add_notifier(C, NC_TEXT | NA_ADDED, text);
 
-  MEM_freeN(op->customdata);
+  MEM_delete(pprop);
 
   return OPERATOR_FINISHED;
 }

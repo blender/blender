@@ -100,7 +100,7 @@ extern const PointerRNA PointerRNA_NULL;
 
 struct PropertyPointerRNA {
   PointerRNA ptr;
-  PropertyRNA *prop;
+  PropertyRNA *prop = nullptr;
 };
 
 /**

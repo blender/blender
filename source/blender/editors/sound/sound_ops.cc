@@ -64,8 +64,7 @@ static void sound_open_init(bContext *C, wmOperator *op)
 {
   PropertyPointerRNA *pprop;
 
-  op->customdata = pprop = static_cast<PropertyPointerRNA *>(
-      MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA"));
+  op->customdata = pprop = MEM_new<PropertyPointerRNA>(__func__);
   UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
@@ -107,7 +106,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 
   DEG_relations_tag_update(bmain);
 
-  MEM_freeN(op->customdata);
+  MEM_delete(pprop);
   return OPERATOR_FINISHED;
 }
 
