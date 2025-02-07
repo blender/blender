@@ -1124,18 +1124,15 @@ Material *BKE_grease_pencil_object_material_ensure_by_name(Main *bmain,
                                                            Object *ob,
                                                            const char *name,
                                                            int *r_index);
-Material *BKE_grease_pencil_brush_material_get(Brush *brush);
 Material *BKE_grease_pencil_object_material_ensure_from_brush(Main *bmain,
                                                               Object *ob,
                                                               Brush *brush);
-Material *BKE_grease_pencil_object_material_ensure_from_active_input_brush(Main *bmain,
-                                                                           Object *ob,
-                                                                           Brush *brush);
-Material *BKE_grease_pencil_object_material_ensure_from_active_input_material(Object *ob);
-Material *BKE_grease_pencil_object_material_ensure_active(Object *ob);
+Material *BKE_grease_pencil_object_material_alt_ensure_from_brush(Main *bmain,
+                                                                  Object *ob,
+                                                                  Brush *brush);
 void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *remap, int totcol);
 void BKE_grease_pencil_material_index_remove(GreasePencil *grease_pencil, int index);
+bool BKE_grease_pencil_material_index_used(GreasePencil *grease_pencil, int index);
 
 bool BKE_grease_pencil_references_cyclic_check(const GreasePencil *id_reference,
                                                const GreasePencil *grease_pencil);
-bool BKE_grease_pencil_material_index_used(GreasePencil *grease_pencil, int index);

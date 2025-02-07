@@ -1243,7 +1243,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
     stroke_random_val_factor_ = rng_.get_float() * 2.0f - 1.0f;
   }
 
-  Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
+  Material *material = BKE_grease_pencil_object_material_ensure_from_brush(
       CTX_data_main(&C), object, brush);
   const int material_index = BKE_object_material_index_get(object, material);
   const bool use_fill = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
@@ -1736,14 +1736,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
     if ((settings->flag & GP_BRUSH_OUTLINE_STROKE) != 0) {
       const float outline_radius = brush->unprojected_radius * settings->outline_fac * 0.5f;
       const int material_index = [&]() {
-        Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
+        Material *material = BKE_grease_pencil_object_material_alt_ensure_from_brush(
             CTX_data_main(&C), object, brush);
-        const int active_index = BKE_object_material_index_get(object, material);
-        if (settings->material_alt == nullptr) {
-          return active_index;
-        }
-        const int alt_index = BKE_object_material_slot_find_index(object, settings->material_alt);
-        return (alt_index > -1) ? alt_index - 1 : active_index;
+        return BKE_object_material_index_get(object, material);
       }();
       outline_stroke(drawing,
                      active_curve,
