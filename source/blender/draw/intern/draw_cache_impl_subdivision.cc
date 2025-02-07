@@ -45,18 +45,18 @@
 #include "draw_cache_inline.hh"
 #include "mesh_extractors/extract_mesh.hh"
 
-extern "C" char datatoc_common_subdiv_custom_data_interp_comp_glsl[];
-extern "C" char datatoc_common_subdiv_ibo_lines_comp_glsl[];
-extern "C" char datatoc_common_subdiv_ibo_tris_comp_glsl[];
-extern "C" char datatoc_common_subdiv_lib_glsl[];
-extern "C" char datatoc_common_subdiv_normals_accumulate_comp_glsl[];
-extern "C" char datatoc_common_subdiv_normals_finalize_comp_glsl[];
-extern "C" char datatoc_common_subdiv_patch_evaluation_comp_glsl[];
-extern "C" char datatoc_common_subdiv_vbo_edge_fac_comp_glsl[];
-extern "C" char datatoc_common_subdiv_vbo_lnor_comp_glsl[];
-extern "C" char datatoc_common_subdiv_vbo_sculpt_data_comp_glsl[];
-extern "C" char datatoc_common_subdiv_vbo_edituv_strech_angle_comp_glsl[];
-extern "C" char datatoc_common_subdiv_vbo_edituv_strech_area_comp_glsl[];
+extern "C" char datatoc_subdiv_custom_data_interp_comp_glsl[];
+extern "C" char datatoc_subdiv_ibo_lines_comp_glsl[];
+extern "C" char datatoc_subdiv_ibo_tris_comp_glsl[];
+extern "C" char datatoc_subdiv_lib_glsl[];
+extern "C" char datatoc_subdiv_normals_accumulate_comp_glsl[];
+extern "C" char datatoc_subdiv_normals_finalize_comp_glsl[];
+extern "C" char datatoc_subdiv_patch_evaluation_comp_glsl[];
+extern "C" char datatoc_subdiv_vbo_edge_fac_comp_glsl[];
+extern "C" char datatoc_subdiv_vbo_lnor_comp_glsl[];
+extern "C" char datatoc_subdiv_vbo_sculpt_data_comp_glsl[];
+extern "C" char datatoc_subdiv_vbo_edituv_strech_angle_comp_glsl[];
+extern "C" char datatoc_subdiv_vbo_edituv_strech_area_comp_glsl[];
 
 namespace blender::draw {
 
@@ -96,46 +96,46 @@ static StringRefNull get_shader_code(SubdivShaderType shader_type)
   switch (shader_type) {
     case SHADER_BUFFER_LINES:
     case SHADER_BUFFER_LINES_LOOSE: {
-      return datatoc_common_subdiv_ibo_lines_comp_glsl;
+      return datatoc_subdiv_ibo_lines_comp_glsl;
     }
     case SHADER_BUFFER_EDGE_FAC: {
-      return datatoc_common_subdiv_vbo_edge_fac_comp_glsl;
+      return datatoc_subdiv_vbo_edge_fac_comp_glsl;
     }
     case SHADER_BUFFER_LNOR: {
-      return datatoc_common_subdiv_vbo_lnor_comp_glsl;
+      return datatoc_subdiv_vbo_lnor_comp_glsl;
     }
     case SHADER_BUFFER_TRIS:
     case SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS: {
-      return datatoc_common_subdiv_ibo_tris_comp_glsl;
+      return datatoc_subdiv_ibo_tris_comp_glsl;
     }
     case SHADER_BUFFER_NORMALS_ACCUMULATE: {
-      return datatoc_common_subdiv_normals_accumulate_comp_glsl;
+      return datatoc_subdiv_normals_accumulate_comp_glsl;
     }
     case SHADER_BUFFER_NORMALS_FINALIZE:
     case SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE: {
-      return datatoc_common_subdiv_normals_finalize_comp_glsl;
+      return datatoc_subdiv_normals_finalize_comp_glsl;
     }
     case SHADER_PATCH_EVALUATION:
     case SHADER_PATCH_EVALUATION_FVAR:
     case SHADER_PATCH_EVALUATION_FACE_DOTS:
     case SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS:
     case SHADER_PATCH_EVALUATION_ORCO: {
-      return datatoc_common_subdiv_patch_evaluation_comp_glsl;
+      return datatoc_subdiv_patch_evaluation_comp_glsl;
     }
     case SHADER_COMP_CUSTOM_DATA_INTERP_1D:
     case SHADER_COMP_CUSTOM_DATA_INTERP_2D:
     case SHADER_COMP_CUSTOM_DATA_INTERP_3D:
     case SHADER_COMP_CUSTOM_DATA_INTERP_4D: {
-      return datatoc_common_subdiv_custom_data_interp_comp_glsl;
+      return datatoc_subdiv_custom_data_interp_comp_glsl;
     }
     case SHADER_BUFFER_SCULPT_DATA: {
-      return datatoc_common_subdiv_vbo_sculpt_data_comp_glsl;
+      return datatoc_subdiv_vbo_sculpt_data_comp_glsl;
     }
     case SHADER_BUFFER_UV_STRETCH_ANGLE: {
-      return datatoc_common_subdiv_vbo_edituv_strech_angle_comp_glsl;
+      return datatoc_subdiv_vbo_edituv_strech_angle_comp_glsl;
     }
     case SHADER_BUFFER_UV_STRETCH_AREA: {
-      return datatoc_common_subdiv_vbo_edituv_strech_area_comp_glsl;
+      return datatoc_subdiv_vbo_edituv_strech_area_comp_glsl;
     }
   }
   BLI_assert_unreachable();
@@ -253,7 +253,7 @@ static GPUShader *get_patch_evaluation_shader(SubdivShaderType shader_type)
 
     /* Merge OpenSubdiv library code with our own library code. */
     const StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
-    const StringRefNull subdiv_lib_code = datatoc_common_subdiv_lib_glsl;
+    const StringRefNull subdiv_lib_code = datatoc_subdiv_lib_glsl;
     std::string library_code = patch_basis_source + subdiv_lib_code;
     g_subdiv_shaders[shader_type] = GPU_shader_create_compute(
         compute_code, library_code, defines, get_shader_name(shader_type));
@@ -311,7 +311,7 @@ static GPUShader *get_subdiv_shader(SubdivShaderType shader_type)
     }
 
     g_subdiv_shaders[shader_type] = GPU_shader_create_compute(
-        compute_code, datatoc_common_subdiv_lib_glsl, defines, get_shader_name(shader_type));
+        compute_code, datatoc_subdiv_lib_glsl, defines, get_shader_name(shader_type));
   }
   return g_subdiv_shaders[shader_type];
 }
@@ -348,7 +348,7 @@ static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
     }
 
     shader = GPU_shader_create_compute(
-        compute_code, datatoc_common_subdiv_lib_glsl, defines, get_shader_name(shader_type));
+        compute_code, datatoc_subdiv_lib_glsl, defines, get_shader_name(shader_type));
   }
   return shader;
 }

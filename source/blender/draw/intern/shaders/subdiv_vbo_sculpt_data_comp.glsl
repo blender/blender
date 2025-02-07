@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with common_subdiv_lib.glsl */
+/* To be compiled with subdiv_lib.glsl */
 
 struct SculptData {
   uint face_set_color;

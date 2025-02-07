@@ -27,7 +27,7 @@ struct MEdgeDataPrev {
 
 /**
  * Calculates a factor that is used to identify the minimum angle in the shader to display an edge.
- * NOTE: Keep in sync with `common_subdiv_vbo_edge_fac_comp.glsl`.
+ * NOTE: Keep in sync with `subdiv_vbo_edge_fac_comp.glsl`.
  */
 template<typename T> T edge_factor_calc(const float3 &a, const float3 &b);
 

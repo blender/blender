@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with common_subdiv_lib.glsl */
+/* To be compiled with subdiv_lib.glsl */
 
 layout(std430, binding = 0) readonly buffer inputVerts
 {
