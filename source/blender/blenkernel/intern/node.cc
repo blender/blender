@@ -863,7 +863,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         BLO_write_struct(writer, NodeGeometryAttributeCapture, node->storage);
         nodes::socket_items::blend_write<nodes::CaptureAttributeItemsAccessor>(writer, *node);
       }
-      else if (node->typeinfo != &NodeTypeUndefined) {
+      else if (!node->is_undefined()) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
     }

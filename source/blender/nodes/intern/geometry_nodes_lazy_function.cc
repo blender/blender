@@ -2796,7 +2796,7 @@ struct GeometryNodesLazyFunctionBuilder {
           this->build_multi_function_node(bnode, fn_item, graph_params);
           break;
         }
-        if (node_type == &bke::NodeTypeUndefined) {
+        if (bnode.is_undefined()) {
           this->build_undefined_node(bnode, graph_params);
           break;
         }
