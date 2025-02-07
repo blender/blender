@@ -76,6 +76,7 @@
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -1048,7 +1049,7 @@ static void image_abs_path(Main *bmain,
 {
   BLI_strncpy(r_filepath_abs, filepath, FILE_MAX);
   if (owner_library) {
-    BLI_path_abs(r_filepath_abs, owner_library->runtime.filepath_abs);
+    BLI_path_abs(r_filepath_abs, owner_library->runtime->filepath_abs);
   }
   else {
     BLI_path_abs(r_filepath_abs, BKE_main_blendfile_path(bmain));

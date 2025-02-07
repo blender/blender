@@ -36,6 +36,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "BKE_idtype.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
@@ -231,7 +232,7 @@ static bool check_missing_files_foreach_path_cb(BPathForeachPathData *bpath_data
                     "Path '%s' not found, from linked data-block '%s' (from library '%s')",
                     path_src,
                     owner_id->name,
-                    owner_id->lib->runtime.filepath_abs);
+                    owner_id->lib->runtime->filepath_abs);
       }
       else {
         BKE_reportf(reports,

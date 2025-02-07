@@ -22,6 +22,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_context.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"

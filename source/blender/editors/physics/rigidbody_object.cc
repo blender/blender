@@ -17,6 +17,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_library.hh"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
 

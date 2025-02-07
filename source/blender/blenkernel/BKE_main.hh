@@ -600,8 +600,8 @@ int set_listbasepointers(Main *bmain, ListBase *lb[]);
    ((main)->versionfile == (ver) && (main)->subversionfile <= (subver)))
 
 #define LIBRARY_VERSION_FILE_ATLEAST(lib, ver, subver) \
-  ((lib)->runtime.versionfile > (ver) || \
-   ((lib)->runtime.versionfile == (ver) && (lib)->runtime.subversionfile >= (subver)))
+  ((lib)->runtime->versionfile > (ver) || \
+   ((lib)->runtime->versionfile == (ver) && (lib)->runtime->subversionfile >= (subver)))
 
 /**
  * The size of thumbnails (optionally) stored in the `.blend` files header.

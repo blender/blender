@@ -25,6 +25,7 @@
 #include "BKE_ipo.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_mesh_legacy_convert.hh"

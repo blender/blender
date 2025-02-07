@@ -13,13 +13,19 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+/** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 namespace blender::bke {
 struct PreviewImageRuntime;
 }
+namespace blender::bke::library {
+struct LibraryRuntime;
+}
 using PreviewImageRuntimeHandle = blender::bke::PreviewImageRuntime;
+using LibraryRuntimeHandle = blender::bke::library::LibraryRuntime;
 #else
 typedef struct PreviewImageRuntimeHandle PreviewImageRuntimeHandle;
+typedef struct LibraryRuntimeHandle LibraryRuntimeHandle;
 #endif
 
 #ifdef __cplusplus
@@ -493,36 +499,6 @@ typedef struct ID {
   struct ID_Runtime runtime;
 } ID;
 
-typedef struct Library_Runtime {
-  /* Used for efficient calculations of unique names. */
-  struct UniqueName_Map *name_map;
-
-  struct FileData *filedata;
-
-  /**
-   * Run-time only, absolute file-path (set on read).
-   * This is only for convenience, `filepath` is the real path
-   * used on file read but in some cases its useful to access the absolute one.
-   *
-   * Use #BKE_library_filepath_set() rather than setting `filepath`
-   * directly and it will be kept in sync - campbell
-   */
-  char filepath_abs[1024];
-
-  /** Set for indirectly linked libraries, used in the outliner and while reading. */
-  struct Library *parent;
-
-  /** #eLibrary_Tag. */
-  ushort tag;
-  char _pad[6];
-
-  /** Temp data needed by read/write code, and lib-override recursive re-synchronized. */
-  int temp_index;
-
-  /** See BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION, needed for do_versions. */
-  short versionfile, subversionfile;
-} Library_Runtime;
-
 /**
  * For each library file used, a Library struct is added to Main.
  */
@@ -533,29 +509,13 @@ typedef struct Library {
 
   struct PackedFile *packedfile;
 
-  struct Library_Runtime runtime;
+  /**
+   * Runtime only data, never written in blendfile.
+   *
+   * Typically allocated when creating a new Library or reading it from a blendfile.
+   */
+  LibraryRuntimeHandle *runtime;
 } Library;
-
-/** #Library.runtime.tag */
-enum eLibrary_Tag {
-  /** Automatic recursive re-synchronize was needed when linking/loading data from that library. */
-  LIBRARY_TAG_RESYNC_REQUIRED = 1 << 0,
-  /**
-   * Data-blocks from this library are editable in the UI despite being linked.
-   * Used for asset that can be temporarily or permanently edited.
-   * Currently all data-blocks from this library will be edited. In the future this
-   * may need to become per data-block to handle cases where a library is both used
-   * for editable assets and linked into the blend file for other reasons.
-   */
-  LIBRARY_ASSET_EDITABLE = 1 << 1,
-  /** The blend file of this library is writable for asset editing. */
-  LIBRARY_ASSET_FILE_WRITABLE = 1 << 2,
-  /**
-   * The blend file of this library has the #G_FILE_ASSET_EDIT_FILE flag set (refer to it for more
-   * info).
-   */
-  LIBRARY_IS_ASSET_EDIT_FILE = 1 << 3,
-};
 
 /**
  * A weak library/ID reference for local data that has been appended, to allow re-using that local
@@ -648,9 +608,9 @@ typedef struct PreviewImage {
   ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS))
 
 #define ID_BLEND_PATH(_bmain, _id) \
-  ((_id)->lib ? (_id)->lib->runtime.filepath_abs : BKE_main_blendfile_path((_bmain)))
+  ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path((_bmain)))
 #define ID_BLEND_PATH_FROM_GLOBAL(_id) \
-  ((_id)->lib ? (_id)->lib->runtime.filepath_abs : BKE_main_blendfile_path_from_global())
+  ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path_from_global())
 
 #define ID_MISSING(_id) ((((const ID *)(_id))->tag & ID_TAG_MISSING) != 0)
 
@@ -660,7 +620,7 @@ typedef struct PreviewImage {
 
 #define ID_IS_EDITABLE(_id) \
   ((((const ID *)(_id))->lib == NULL) || \
-   ((((const ID *)(_id))->lib->runtime.tag & LIBRARY_ASSET_EDITABLE) && \
+   ((((const ID *)(_id))->lib->runtime->tag & LIBRARY_ASSET_EDITABLE) && \
     ID_TYPE_SUPPORTS_ASSET_EDITABLE(GS((((const ID *)(_id))->name)))))
 
 /* Note that these are fairly high-level checks, should be used at user interaction level, not in

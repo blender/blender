@@ -10,6 +10,7 @@
 #include "BLI_listbase_wrapper.hh"
 
 #include "BKE_collection.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 
 #include "DNA_collection_types.h"
@@ -66,11 +67,11 @@ ListBase TreeDisplayLibraries::build_tree(const TreeSourceData &source_data)
     TreeStoreElem *tselem = TREESTORE(ten);
     Library *lib = (Library *)tselem->id;
     BLI_assert(!lib || (GS(lib->id.name) == ID_LI));
-    if (!lib || !lib->runtime.parent) {
+    if (!lib || !lib->runtime->parent) {
       continue;
     }
 
-    TreeElement *parent = (TreeElement *)lib->runtime.parent->id.newid;
+    TreeElement *parent = (TreeElement *)lib->runtime->parent->id.newid;
 
     if (tselem->id->tag & ID_TAG_INDIRECT) {
       /* Only remove from 'first level' if lib is not also directly used. */

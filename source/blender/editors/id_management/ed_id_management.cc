@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 
 #include "WM_api.hh"

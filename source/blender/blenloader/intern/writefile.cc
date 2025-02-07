@@ -110,6 +110,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_node.hh"
@@ -1066,6 +1067,21 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
+/**
+ * Writes ID and all its direct data to the file.
+ */
+static void write_id(WriteData *wd, ID *id)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+  mywrite_id_begin(wd, id);
+  if (id_type->blend_write != nullptr) {
+    BlendWriter writer = {wd};
+    BLO_Write_IDBuffer id_buffer{*id, &writer};
+    id_type->blend_write(&writer, id_buffer.get(), id);
+  }
+  mywrite_id_end(wd, id);
+}
+
 /** Keep it last of `write_*_data` functions. */
 static void write_libraries(WriteData *wd, Main *bmain)
 {
@@ -1121,17 +1137,7 @@ static void write_libraries(WriteData *wd, Main *bmain)
       continue;
     }
 
-    BlendWriter writer = {wd};
-    writestruct(wd, ID_LI, Library, 1, &library);
-    BKE_id_blend_write(&writer, &library.id);
-
-    /* Write packed file if necessary. */
-    if (library.packedfile) {
-      BKE_packedfile_blend_write(&writer, library.packedfile);
-      if (!wd->use_memfile) {
-        CLOG_INFO(&LOG, 2, "Write packed .blend: %s", library.filepath);
-      }
-    }
+    write_id(wd, &library.id);
 
     /* Write placeholders for linked data-blocks that are used. */
     for (const ID *id : ids_used_from_library) {
@@ -1140,7 +1146,7 @@ static void write_libraries(WriteData *wd, Main *bmain)
                    "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
                    "directly linked",
                    id->name,
-                   library.runtime.filepath_abs);
+                   library.runtime->filepath_abs);
       }
       writestruct(wd, ID_LINK_PLACEHOLDER, ID, 1, id);
     }
@@ -1314,21 +1320,6 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
   }
 
   return IDWALK_RET_NOP;
-}
-
-/**
- * Writes ID and all its direct data to the file.
- */
-static void write_id(WriteData *wd, ID *id)
-{
-  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
-  mywrite_id_begin(wd, id);
-  if (id_type->blend_write != nullptr) {
-    BlendWriter writer = {wd};
-    BLO_Write_IDBuffer id_buffer{*id, &writer};
-    id_type->blend_write(&writer, id_buffer.get(), id);
-  }
-  mywrite_id_end(wd, id);
 }
 
 static void write_blend_file_header(WriteData *wd)

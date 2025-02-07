@@ -52,6 +52,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
@@ -275,7 +276,7 @@ static id::IDRemapper &reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse
   LISTBASE_FOREACH (Library *, old_lib_iter, &old_bmain->libraries) {
     /* In case newly opened `new_bmain` is a library of the `old_bmain`, remap it to null, since a
      * file should never ever have linked data from itself. */
-    if (STREQ(old_lib_iter->runtime.filepath_abs, new_bmain->filepath)) {
+    if (STREQ(old_lib_iter->runtime->filepath_abs, new_bmain->filepath)) {
       remapper.add(&old_lib_iter->id, nullptr);
       continue;
     }
@@ -285,7 +286,7 @@ static id::IDRemapper &reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse
      *  - This code is only executed once for every file reading (not on undos).
      */
     LISTBASE_FOREACH (Library *, new_lib_iter, &new_bmain->libraries) {
-      if (!STREQ(old_lib_iter->runtime.filepath_abs, new_lib_iter->runtime.filepath_abs)) {
+      if (!STREQ(old_lib_iter->runtime->filepath_abs, new_lib_iter->runtime->filepath_abs)) {
         continue;
       }
 
@@ -381,8 +382,8 @@ static Library *reuse_bmain_data_dependencies_new_library_get(ReuseOldBMainData 
     }
     case ID_REMAP_RESULT_SOURCE_REMAPPED: {
       /* Already in new bmain, only transfer flags. */
-      new_lib->runtime.tag |= old_lib->runtime.tag &
-                              (LIBRARY_ASSET_EDITABLE | LIBRARY_ASSET_FILE_WRITABLE);
+      new_lib->runtime->tag |= old_lib->runtime->tag &
+                               (LIBRARY_ASSET_EDITABLE | LIBRARY_ASSET_FILE_WRITABLE);
       return new_lib;
     }
     case ID_REMAP_RESULT_SOURCE_UNASSIGNED: {
@@ -450,7 +451,7 @@ static bool reuse_editable_asset_needed(ReuseOldBMainData *reuse_data)
 {
   Main *old_bmain = reuse_data->old_bmain;
   LISTBASE_FOREACH (Library *, lib, &old_bmain->libraries) {
-    if (lib->runtime.tag & LIBRARY_ASSET_EDITABLE) {
+    if (lib->runtime->tag & LIBRARY_ASSET_EDITABLE) {
       return true;
     }
   }
@@ -483,7 +484,7 @@ static void reuse_editable_asset_bmain_data_for_blendfile(ReuseOldBMainData *reu
 
   FOREACH_MAIN_LISTBASE_ID_BEGIN (old_lb, old_id_iter) {
     /* Keep any datablocks from libraries marked as LIBRARY_ASSET_EDITABLE. */
-    if (!(ID_IS_LINKED(old_id_iter) && old_id_iter->lib->runtime.tag & LIBRARY_ASSET_EDITABLE)) {
+    if (!(ID_IS_LINKED(old_id_iter) && old_id_iter->lib->runtime->tag & LIBRARY_ASSET_EDITABLE)) {
       continue;
     }
 
@@ -1232,9 +1233,9 @@ static void setup_app_data(bContext *C,
                          RPT_("LIB: %s: '%s' missing from '%s', parent '%s'"),
                          BKE_idtype_idcode_to_name(GS(id_iter->name)),
                          id_iter->name + 2,
-                         id_iter->lib->runtime.filepath_abs,
-                         id_iter->lib->runtime.parent ?
-                             id_iter->lib->runtime.parent->runtime.filepath_abs :
+                         id_iter->lib->runtime->filepath_abs,
+                         id_iter->lib->runtime->parent ?
+                             id_iter->lib->runtime->parent->runtime->filepath_abs :
                              "<direct>");
       }
     }
@@ -1847,7 +1848,7 @@ Library *PartialWriteContext::ensure_library(ID *ctx_id)
   if (!ID_IS_LINKED(ctx_id)) {
     return nullptr;
   }
-  blender::StringRefNull lib_path = ctx_id->lib->runtime.filepath_abs;
+  blender::StringRefNull lib_path = ctx_id->lib->runtime->filepath_abs;
   Library *ctx_lib = this->libraries_map_.lookup_default(lib_path, nullptr);
   if (!ctx_lib) {
     ctx_lib = reinterpret_cast<Library *>(id_add_copy(&ctx_id->lib->id, true));
@@ -2036,7 +2037,7 @@ ID *PartialWriteContext::id_create(const short id_type,
 {
   Library *ctx_library = nullptr;
   if (library) {
-    ctx_library = this->ensure_library(library->runtime.filepath_abs);
+    ctx_library = this->ensure_library(library->runtime->filepath_abs);
   }
   ID *ctx_id = static_cast<ID *>(
       BKE_id_new_in_lib(&this->bmain, ctx_library, id_type, id_name.c_str()));
@@ -2166,7 +2167,7 @@ bool PartialWriteContext::write(const char *write_filepath,
    * library local, and delete it (and all of its potentially remaining linked data). */
   blender::Vector<Library *> make_local_libs;
   LISTBASE_FOREACH (Library *, library, &this->bmain.libraries) {
-    if (STREQ(write_filepath, library->runtime.filepath_abs)) {
+    if (STREQ(write_filepath, library->runtime->filepath_abs)) {
       make_local_libs.append(library);
     }
   }

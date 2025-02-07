@@ -8,6 +8,8 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_library.hh"
+
 #include "DNA_ID.h"
 
 #include "../outliner_intern.hh"
@@ -26,7 +28,7 @@ StringRefNull TreeElementIDLibrary::get_warning() const
 {
   Library &library = reinterpret_cast<Library &>(id_);
 
-  if (library.runtime.tag & LIBRARY_TAG_RESYNC_REQUIRED) {
+  if (library.runtime->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
     return RPT_(
         "Contains linked library overrides that need to be resynced, updating the library is "
         "recommended");

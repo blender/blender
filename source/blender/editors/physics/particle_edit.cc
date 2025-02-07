@@ -37,6 +37,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"

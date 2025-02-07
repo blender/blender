@@ -17,6 +17,7 @@
 #include "BKE_duplilist.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
+#include "BKE_library.hh"
 #include "BKE_pointcache.h"
 
 #include "DEG_depsgraph.hh"

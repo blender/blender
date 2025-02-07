@@ -35,6 +35,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_lattice.hh"
+#include "BKE_library.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.hh"

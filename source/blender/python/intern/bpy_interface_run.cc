@@ -18,6 +18,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_text.h"

@@ -18,8 +18,10 @@
 
 #  include "DNA_brush_types.h"
 
+#  include "BKE_library.hh"
 #  include "BKE_paint.hh"
 #  include "BKE_report.hh"
+
 static PaletteColor *rna_Palette_color_new(Palette *palette)
 {
   if (!ID_IS_EDITABLE(palette) || ID_IS_OVERRIDE_LIBRARY(palette)) {

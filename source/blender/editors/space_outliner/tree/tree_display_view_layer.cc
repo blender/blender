@@ -11,6 +11,7 @@
 #include "DNA_space_types.h"
 
 #include "BKE_layer.hh"
+#include "BKE_library.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"

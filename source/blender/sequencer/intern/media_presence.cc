@@ -6,15 +6,19 @@
  * \ingroup sequencer
  */
 
-#include "BKE_main.hh"
 #include "BLI_fileops.h"
 #include "BLI_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
+
+#include "BKE_library.hh"
+#include "BKE_main.hh"
+
 #include "SEQ_utils.hh"
 
 namespace blender::seq {

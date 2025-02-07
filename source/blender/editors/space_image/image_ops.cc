@@ -44,6 +44,7 @@
 #include "BKE_image_save.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
@@ -1352,7 +1353,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
   ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
   ID *owner_id = iod->pprop.ptr.owner_id;
   Library *owner_library = owner_id ? owner_id->lib : nullptr;
-  blender::StringRefNull root_path = owner_library ? owner_library->runtime.filepath_abs :
+  blender::StringRefNull root_path = owner_library ? owner_library->runtime->filepath_abs :
                                                      BKE_main_blendfile_path(bmain);
 
   ListBase ranges = ED_image_filesel_detect_sequences(root_path, op, use_udim);
@@ -1606,7 +1607,7 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
     /* TODO: make this a BKE_lib_id helper (already a static function in BKE_image too), we likely
      * need this in more places in the future. ~~mont29 */
     BLI_path_rel(filepath,
-                 ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime.filepath_abs :
+                 ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime->filepath_abs :
                                           BKE_main_blendfile_path(CTX_data_main(C)));
   }
 
@@ -1635,7 +1636,7 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
   char filepath[FILE_MAX];
   STRNCPY(filepath, ima->filepath);
   BLI_path_abs(filepath,
-               ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime.filepath_abs :
+               ID_IS_LINKED(&ima->id) ? ima->id.lib->runtime->filepath_abs :
                                         BKE_main_blendfile_path(CTX_data_main(C)));
 
   /* Shift+Click to open the file, Alt+Click to browse a folder in the OS's browser. */

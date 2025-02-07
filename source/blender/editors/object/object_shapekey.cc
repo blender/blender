@@ -29,6 +29,7 @@
 #include "BKE_context.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
+#include "BKE_library.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 

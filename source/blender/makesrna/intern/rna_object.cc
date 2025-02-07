@@ -315,6 +315,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_global.hh"
 #  include "BKE_key.hh"
 #  include "BKE_layer.hh"
+#  include "BKE_library.hh"
 #  include "BKE_light_linking.h"
 #  include "BKE_material.hh"
 #  include "BKE_mesh.hh"

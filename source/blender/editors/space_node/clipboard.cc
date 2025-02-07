@@ -8,6 +8,7 @@
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
 #include "BKE_main_invariants.hh"
@@ -113,9 +114,7 @@ struct NodeClipboard {
       if (!id_info.library_path.empty() && !libraries_path_to_id.contains(id_info.library_path)) {
         libraries_path_to_id.add(
             id_info.library_path,
-            static_cast<Library *>(BLI_findstring(&bmain.libraries,
-                                                  id_info.library_path.c_str(),
-                                                  offsetof(Library, runtime.filepath_abs))));
+            blender::bke::library::search_filepath_abs(&bmain.libraries, id_info.library_path));
       }
     }
 
@@ -243,7 +242,7 @@ struct NodeClipboard {
       if (old_id) {
         id_info.id_name = old_id->name;
         if (ID_IS_LINKED(old_id)) {
-          id_info.library_path = old_id->lib->runtime.filepath_abs;
+          id_info.library_path = old_id->lib->runtime->filepath_abs;
         }
       }
       this->old_ids_to_idinfo.add(old_id, std::move(id_info));

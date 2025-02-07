@@ -16,6 +16,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_library.hh"
 #include "BKE_report.hh"
 
 #include "transform.hh"

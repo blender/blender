@@ -19,6 +19,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "BKE_library.hh"
 #include "BKE_screen.hh"
 
 #include "WM_api.hh"

@@ -13,6 +13,7 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
+#include "BKE_library.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"

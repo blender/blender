@@ -14,6 +14,7 @@
 
 #include "BLO_read_write.hh"
 
+#include "BKE_library.hh"
 #include "BKE_screen.hh"
 
 #include "node_geometry_util.hh"

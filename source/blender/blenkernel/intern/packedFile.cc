@@ -35,6 +35,7 @@
 #include "BKE_bake_geometry_nodes_modifier_pack.hh"
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
@@ -774,8 +775,8 @@ int BKE_packedfile_unpack_all_libraries(Main *bmain, ReportList *reports)
 
       newname = BKE_packedfile_unpack_to_file(reports,
                                               BKE_main_blendfile_path(bmain),
-                                              lib->runtime.filepath_abs,
-                                              lib->runtime.filepath_abs,
+                                              lib->runtime->filepath_abs,
+                                              lib->runtime->filepath_abs,
                                               lib->packedfile,
                                               PF_WRITE_ORIGINAL);
       if (newname != nullptr) {

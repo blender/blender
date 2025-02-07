@@ -27,6 +27,7 @@
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 
@@ -136,7 +137,7 @@ static void undosys_id_ref_store(void * /*user_data*/, UndoRefID *id_ref)
   if (id_ref->ptr) {
     STRNCPY(id_ref->name, id_ref->ptr->name);
     if (id_ref->ptr->lib) {
-      STRNCPY(id_ref->library_filepath_abs, id_ref->ptr->lib->runtime.filepath_abs);
+      STRNCPY(id_ref->library_filepath_abs, id_ref->ptr->lib->runtime->filepath_abs);
     }
     else {
       id_ref->library_filepath_abs[0] = '\0';

@@ -70,14 +70,14 @@ static ID *asset_link_id(Main &global_main,
 
   /* Tag library as being editable. */
   if (local_asset && local_asset->lib) {
-    local_asset->lib->runtime.tag |= LIBRARY_ASSET_EDITABLE;
+    local_asset->lib->runtime->tag |= LIBRARY_ASSET_EDITABLE;
 
-    if ((local_asset->lib->runtime.tag & LIBRARY_IS_ASSET_EDIT_FILE) &&
+    if ((local_asset->lib->runtime->tag & LIBRARY_IS_ASSET_EDIT_FILE) &&
         StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX) &&
         BKE_preferences_asset_library_containing_path(&U, filepath) &&
         BLI_file_is_writable(filepath))
     {
-      local_asset->lib->runtime.tag |= LIBRARY_ASSET_FILE_WRITABLE;
+      local_asset->lib->runtime->tag |= LIBRARY_ASSET_FILE_WRITABLE;
     }
   }
 
@@ -182,7 +182,7 @@ static ID *asset_reload(Main &global_main, ID &id, ReportList *reports)
   BLI_assert(ID_IS_LINKED(&id));
 
   const std::string name = BKE_id_name(id);
-  const std::string filepath = id.lib->runtime.filepath_abs;
+  const std::string filepath = id.lib->runtime->filepath_abs;
   const ID_Type id_type = GS(id.name);
 
   /* TODO: There's no API to reload a single data block (and its dependencies) yet. For now
@@ -273,7 +273,7 @@ bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
   const bool success = asset_write_in_library(global_main,
                                               id,
                                               id.name + 2,
-                                              id.lib->runtime.filepath_abs,
+                                              id.lib->runtime->filepath_abs,
                                               final_full_asset_filepath,
                                               reports);
 
@@ -297,7 +297,7 @@ ID *asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
 bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports)
 {
   if (asset_edit_id_is_editable(id)) {
-    if (BLI_delete(id.lib->runtime.filepath_abs, false, false) != 0) {
+    if (BLI_delete(id.lib->runtime->filepath_abs, false, false) != 0) {
       BKE_report(&reports, RPT_ERROR, "Failed to delete asset library file");
       return false;
     }
@@ -364,26 +364,26 @@ std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id
   }
 
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_containing_path(
-      &U, id.lib->runtime.filepath_abs);
+      &U, id.lib->runtime->filepath_abs);
 
   const short idcode = GS(id.name);
 
   if (user_library && user_library->dirpath[0]) {
     return asset_weak_reference_for_user_library(
-        *user_library, idcode, id.name + 2, id.lib->runtime.filepath_abs);
+        *user_library, idcode, id.name + 2, id.lib->runtime->filepath_abs);
   }
 
-  return asset_weak_reference_for_essentials(idcode, id.name + 2, id.lib->runtime.filepath_abs);
+  return asset_weak_reference_for_essentials(idcode, id.name + 2, id.lib->runtime->filepath_abs);
 }
 
 bool asset_edit_id_is_editable(const ID &id)
 {
-  return (id.lib && (id.lib->runtime.tag & LIBRARY_ASSET_EDITABLE));
+  return (id.lib && (id.lib->runtime->tag & LIBRARY_ASSET_EDITABLE));
 }
 
 bool asset_edit_id_is_writable(const ID &id)
 {
-  return asset_edit_id_is_editable(id) && (id.lib->runtime.tag & LIBRARY_ASSET_FILE_WRITABLE);
+  return asset_edit_id_is_editable(id) && (id.lib->runtime->tag & LIBRARY_ASSET_FILE_WRITABLE);
 }
 
 }  // namespace blender::bke
