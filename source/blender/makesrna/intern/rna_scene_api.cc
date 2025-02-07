@@ -276,7 +276,7 @@ void RNA_api_scene(StructRNA *srna)
 
   /* Ray Cast */
   func = RNA_def_function(srna, "ray_cast", "rna_Scene_ray_cast");
-  RNA_def_function_ui_description(func, "Cast a ray onto in object space");
+  RNA_def_function_ui_description(func, "Cast a ray onto evaluated geometry in world-space");
 
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "The current dependency graph");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
