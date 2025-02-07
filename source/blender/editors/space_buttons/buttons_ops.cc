@@ -185,7 +185,11 @@ static int file_browse_exec(bContext *C, wmOperator *op)
   const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
                                                                            "filepath";
 
-  if (RNA_struct_property_is_set(op->ptr, path_prop) == 0 || fbo == nullptr) {
+  if (fbo == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  if (RNA_struct_property_is_set(op->ptr, path_prop) == 0) {
+    MEM_delete(fbo);
     return OPERATOR_CANCELLED;
   }
 
