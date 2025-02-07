@@ -561,19 +561,15 @@ void add_armature_envelope_weights(Scene &scene, Object &object, const Object &o
 void add_armature_automatic_weights(Scene &scene, Object &object, const Object &ob_armature);
 
 void clipboard_free();
-const bke::CurvesGeometry &clipboard_curves();
 /**
- * Paste curves from the clipboard into the drawing.
- * \param paste_back: Render behind existing curves by inserting curves at the front.
- * \param keep_world_transform: Keep the world transform of clipboard strokes unchanged.
- * \return Index range of the new curves in the drawing after pasting.
+ * Paste all the strokes in the clipboard layers into \a drawing.
  */
-IndexRange clipboard_paste_strokes(Main &bmain,
-                                   Object &object,
-                                   bke::greasepencil::Drawing &drawing,
-                                   const float4x4 &transform,
-                                   bool keep_world_transform,
-                                   bool paste_back);
+IndexRange paste_all_strokes_from_clipboard(Main &bmain,
+                                            Object &object,
+                                            const float4x4 &object_to_paste_layer,
+                                            bool keep_world_transform,
+                                            bool paste_back,
+                                            bke::greasepencil::Drawing &drawing);
 
 /**
  * Method used by the Fill tool to fit the render buffer to strokes.
