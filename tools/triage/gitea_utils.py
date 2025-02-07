@@ -162,7 +162,7 @@ def gitea_json_issue_events_filter(
         date_end: datetime.datetime | None = None,
         username: str | None = None,
         labels: set[str] | None = None,
-        event_type: set[str] = set(),
+        event_type: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     """
     Filter all comments and events on the issue list.
@@ -189,12 +189,12 @@ def gitea_json_issue_events_filter(
         if not event:
             continue
 
-        if not event["user"] or event["user"]["username"] != username:
+        if username and (not event["user"] or event["user"]["username"] != username):
             continue
 
         if labels and event["type"] == "label" and event["label"]["name"] in labels:
             pass
-        elif event["type"] in event_type:
+        elif not event_type or event["type"] in event_type:
             pass
         else:
             continue
