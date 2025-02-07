@@ -1310,13 +1310,51 @@ static void collection_gobject_assert_internal_consistency(Collection *collectio
   }
 }
 
+/**
+ * Check if a collection is editable, i.e. if its lists of objects and sub-collections can be
+ * modified.
+ *
+ * \note LibOverride collections are currently not editable in that sense.
+ * \note If a view layer is given, then the colleection must also belong to it and not be excluded
+ * from it to be considered as editable.
+ */
+static bool collection_is_editable_in_viewlayer(const ViewLayer *view_layer,
+                                                Collection *collection,
+                                                bool &r_is_in_viewlayer)
+{
+  LayerCollection *layer_collection = view_layer ?
+                                          BKE_layer_collection_first_from_scene_collection(
+                                              view_layer, collection) :
+                                          nullptr;
+  r_is_in_viewlayer = layer_collection != nullptr;
+
+  if (!ID_IS_EDITABLE(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
+    return false;
+  }
+  if (!view_layer) {
+    return true;
+  }
+
+  if (!layer_collection) {
+    return false;
+  }
+  if (layer_collection->flag & LAYER_COLLECTION_EXCLUDE) {
+    return false;
+  }
+  return true;
+}
+
 Collection *BKE_collection_parent_editable_find_recursive(const ViewLayer *view_layer,
                                                           Collection *collection)
 {
-  if (ID_IS_EDITABLE(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-      (view_layer == nullptr || BKE_view_layer_has_collection(view_layer, collection)))
-  {
+  bool is_in_viewlayer = false;
+  if (collection_is_editable_in_viewlayer(view_layer, collection, is_in_viewlayer)) {
     return collection;
+  }
+  if (view_layer && !is_in_viewlayer) {
+    /* In case the collection is not in given view_layer, there is no point in searching in its
+     * ancestors either. */
+    return nullptr;
   }
 
   if (collection->flag & COLLECTION_IS_MASTER) {
@@ -1324,21 +1362,9 @@ Collection *BKE_collection_parent_editable_find_recursive(const ViewLayer *view_
   }
 
   LISTBASE_FOREACH (CollectionParent *, collection_parent, &collection->runtime.parents) {
-    if (!ID_IS_LINKED(collection_parent->collection) &&
-        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection))
-    {
-      if (view_layer != nullptr &&
-          !BKE_view_layer_has_collection(view_layer, collection_parent->collection))
-      {
-        /* In case this parent collection is not in given view_layer, there is no point in
-         * searching in its ancestors either, we can skip that whole parenting branch. */
-        continue;
-      }
-      return collection_parent->collection;
-    }
     Collection *editable_collection = BKE_collection_parent_editable_find_recursive(
         view_layer, collection_parent->collection);
-    if (editable_collection != nullptr) {
+    if (editable_collection) {
       return editable_collection;
     }
   }
