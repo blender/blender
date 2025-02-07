@@ -80,6 +80,8 @@ ccl_device_constant DeviceString u_geom_dupli_uv = 1294253317490155849ull;
 ccl_device_constant DeviceString u_material_index = 741770758159634623ull;
 /* "object:random" */
 ccl_device_constant DeviceString u_object_random = 15789063994977955884ull;
+/* "light:random" */
+ccl_device_constant DeviceString u_light_random = 1743557801140685447ull;
 /* "particle:index" */
 ccl_device_constant DeviceString u_particle_index = 9489711748229903784ull;
 /* "particle:random" */
@@ -1236,7 +1238,13 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
     return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_object_random) {
-    float f = object_random_number(kg, sd->object);
+    const float f = object_random_number(kg, sd->object);
+
+    return set_attribute_float(f, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_light_random) {
+    const float f = lamp_random_number(kg, sd->lamp);
+
     return set_attribute_float(f, type, derivatives, val);
   }
 

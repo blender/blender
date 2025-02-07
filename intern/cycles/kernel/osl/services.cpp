@@ -75,6 +75,7 @@ ustring OSLRenderServices::u_geom_dupli_generated("geom:dupli_generated");
 ustring OSLRenderServices::u_geom_dupli_uv("geom:dupli_uv");
 ustring OSLRenderServices::u_material_index("material:index");
 ustring OSLRenderServices::u_object_random("object:random");
+ustring OSLRenderServices::u_light_random("light:random");
 ustring OSLRenderServices::u_particle_index("particle:index");
 ustring OSLRenderServices::u_particle_random("particle:random");
 ustring OSLRenderServices::u_particle_age("particle:age");
@@ -864,6 +865,10 @@ bool OSLRenderServices::get_object_standard_attribute(
   }
   if (name == u_object_random) {
     const float f = object_random_number(kg, sd->object);
+    return set_attribute_float(f, type, derivatives, val);
+  }
+  if (name == u_light_random) {
+    const float f = lamp_random_number(kg, sd->lamp);
     return set_attribute_float(f, type, derivatives, val);
   }
 
