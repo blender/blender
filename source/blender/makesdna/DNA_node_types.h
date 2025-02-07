@@ -492,6 +492,7 @@ typedef struct bNode {
   bool is_group() const;
   bool is_group_input() const;
   bool is_group_output() const;
+  bool is_undefined() const;
 
   /**
    * Check if the node has the given idname.
