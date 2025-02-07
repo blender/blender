@@ -822,6 +822,11 @@ inline bool bNode::is_group_output() const
   return this->type_legacy == NODE_GROUP_OUTPUT;
 }
 
+inline bool bNode::is_undefined() const
+{
+  return this->typeinfo == &blender::bke::NodeTypeUndefined;
+}
+
 inline bool bNode::is_type(const blender::StringRef query_idname) const
 {
   return this->typeinfo->is_type(query_idname);

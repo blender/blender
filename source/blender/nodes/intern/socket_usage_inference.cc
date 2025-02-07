@@ -148,6 +148,10 @@ struct SocketUsageInferencer {
     if (all_socket_usages_.contains(socket)) {
       return;
     }
+    if (socket->owner_node().is_undefined()) {
+      all_socket_usages_.add_new(socket, false);
+      return;
+    }
     if (socket->is_input()) {
       this->usage_task__input(socket);
     }
@@ -479,6 +483,10 @@ struct SocketUsageInferencer {
   {
     if (all_socket_values_.contains(socket)) {
       /* Task is done already. */
+      return;
+    }
+    if (socket->owner_node().is_undefined()) {
+      all_socket_values_.add_new(socket, nullptr);
       return;
     }
     const CPPType *base_type = socket->typeinfo->base_cpp_type;
