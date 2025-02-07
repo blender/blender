@@ -59,11 +59,11 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
           return false;
         }
 
-        /* TODO Could become a tool setting. */
+        /* TODO: Could become a tool setting. */
         const bool keep_world_transform = false;
-        const float4x4 clipboard_to_layer = math::invert(params.layer.to_world_space(object));
-        const IndexRange pasted_curves = ed::greasepencil::clipboard_paste_strokes(
-            bmain, object, params.drawing, clipboard_to_layer, keep_world_transform, false);
+        const float4x4 object_to_layer = math::invert(params.layer.to_object_space(object));
+        const IndexRange pasted_curves = ed::greasepencil::paste_all_strokes_from_clipboard(
+            bmain, object, object_to_layer, keep_world_transform, false, params.drawing);
         if (pasted_curves.is_empty()) {
           return false;
         }
