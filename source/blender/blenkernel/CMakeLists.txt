@@ -11,7 +11,6 @@ set(INC
   ../shader_fx
   ../simulation
   ../windowmanager
-  ../editors/include
   ../../../intern/eigen
   ../../../intern/ghost
   ../../../intern/iksolver/extern
@@ -837,9 +836,12 @@ if(WITH_GTESTS)
     intern/tracking_test.cc
     intern/volume_test.cc
   )
+  set(TEST_INC
+    ../editors/include
+  )
   set(TEST_LIB
     ${LIB}
     bf_rna  # RNA_prototypes.hh
   )
-  blender_add_test_suite_lib(blenkernel "${TEST_SRC}" "${INC}" "${INC_SYS}" "${TEST_LIB}")
+  blender_add_test_suite_lib(blenkernel "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()

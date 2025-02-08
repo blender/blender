@@ -1912,27 +1912,6 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws)
   }
 }
 
-void ED_screen_animation_timer_reset(bScreen *screen, wmWindowManager *wm)
-{
-  BLI_assert(screen);
-  BLI_assert(screen->animtimer);
-  wmTimer *old_timer = screen->animtimer;
-  /* Simply recreate the timer as we will otherwise run into race condition issues as other
-   * timer functions will write to most of the timer variables.
-   */
-  wmWindow *win = old_timer->win;
-  const double time_step = old_timer->time_step;
-  const int event_type = old_timer->event_type;
-  ScreenAnimData *sad = static_cast<ScreenAnimData *>(
-      MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData"));
-  memcpy(sad, old_timer->customdata, sizeof(ScreenAnimData));
-
-  WM_event_timer_remove(wm, win, old_timer);
-
-  screen->animtimer = WM_event_timer_add(wm, win, event_type, time_step);
-  screen->animtimer->customdata = sad;
-}
-
 void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
