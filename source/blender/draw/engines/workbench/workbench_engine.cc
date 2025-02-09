@@ -792,8 +792,6 @@ static void workbench_render_update_passes(RenderEngine *engine,
   }
 }
 
-extern "C" {
-
 DrawEngineType draw_engine_workbench = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
@@ -834,6 +832,5 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
         /*call*/ nullptr,
     },
 };
-}
 
 /** \} */

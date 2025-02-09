@@ -183,8 +183,6 @@ static void eevee_render_update_passes(RenderEngine *engine, Scene *scene, ViewL
   eevee::Instance::update_passes(engine, scene, view_layer);
 }
 
-extern "C" {
-
 DrawEngineType draw_engine_eevee_next_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
@@ -225,4 +223,3 @@ RenderEngineType DRW_engine_viewport_eevee_next_type = {
         /*call*/ nullptr,
     },
 };
-}

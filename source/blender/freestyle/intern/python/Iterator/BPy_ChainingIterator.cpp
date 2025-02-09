@@ -13,10 +13,6 @@
 #include "../Interface1D/BPy_ViewEdge.h"
 #include "BPy_AdjacencyIterator.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -295,7 +291,3 @@ PyTypeObject ChainingIterator_Type = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

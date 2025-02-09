@@ -26,10 +26,6 @@
 #  define PATHSEP_CHAR '/'
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * Image structure
  */
@@ -270,7 +266,3 @@ BLI_INLINE unsigned int float_uint(float value, unsigned int max)
   }
   return (unsigned int)(((float)max * value) + 0.5f);
 }
-
-#ifdef __cplusplus
-}
-#endif

@@ -325,8 +325,6 @@ static void compositor_engine_update(void *data)
   }
 }
 
-extern "C" {
-
 DrawEngineType draw_engine_compositor_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
@@ -343,4 +341,3 @@ DrawEngineType draw_engine_compositor_type = {
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
 };
-}

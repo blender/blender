@@ -12,10 +12,6 @@
 
 #include "../../geometry/Geom.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject UnaryFunction1DVec2f_Type;
@@ -33,7 +29,3 @@ typedef struct {
 int UnaryFunction1DVec2f_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

@@ -6,10 +6,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** \file
  * \ingroup imbuf
  */
@@ -56,7 +52,3 @@ enum IMB_Proxy_Size {
   IMB_PROXY_MAX_SLOT = 4,
 };
 ENUM_OPERATORS(IMB_Proxy_Size, IMB_PROXY_100);
-
-#ifdef __cplusplus
-}
-#endif

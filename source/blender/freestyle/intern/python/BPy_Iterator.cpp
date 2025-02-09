@@ -20,10 +20,6 @@
 #include "Iterator/BPy_ViewEdgeIterator.h"
 #include "Iterator/BPy_orientedViewEdgeIterator.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -258,7 +254,3 @@ PyTypeObject Iterator_Type = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

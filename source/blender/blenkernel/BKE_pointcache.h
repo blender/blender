@@ -15,10 +15,6 @@
 
 #include <stdio.h> /* for #FILE */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non-inclusive (they won't remove the cfra) */
 #define PTCACHE_CLEAR_ALL 0
@@ -416,7 +412,3 @@ void BKE_ptcache_blend_read_data(struct BlendDataReader *reader,
                                  struct ListBase *ptcaches,
                                  struct PointCache **ocache,
                                  int force_disk);
-
-#ifdef __cplusplus
-}
-#endif

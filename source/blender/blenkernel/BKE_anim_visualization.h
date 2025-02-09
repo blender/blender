@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlendDataReader;
 struct BlendWriter;
 struct Object;
@@ -59,7 +55,3 @@ struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports,
 
 void animviz_motionpath_blend_write(struct BlendWriter *writer, struct bMotionPath *mpath);
 void animviz_motionpath_blend_read_data(struct BlendDataReader *reader, struct bMotionPath *mpath);
-
-#ifdef __cplusplus
-}
-#endif

@@ -11,10 +11,6 @@
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct RigidBodyOb;
 struct RigidBodyWorld;
 
@@ -234,7 +230,3 @@ void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
                                           struct Object *ob);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

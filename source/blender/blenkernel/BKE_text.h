@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Main;
 struct Text;
 struct TextLine;
@@ -158,7 +154,3 @@ char *txt_to_buf_for_undo(struct Text *text, size_t *r_buf_len)
  * Decode a buffer from #txt_to_buf_for_undo.
  */
 void txt_from_buf_for_undo(struct Text *text, const char *buf, size_t buf_len) ATTR_NONNULL(1, 2);
-
-#ifdef __cplusplus
-}
-#endif

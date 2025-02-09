@@ -11,10 +11,6 @@
 #include "../../stroke/AdvancedStrokeShaders.h"
 #include "../BPy_Convert.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +120,3 @@ PyTypeObject SpatialNoiseShader_Type = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

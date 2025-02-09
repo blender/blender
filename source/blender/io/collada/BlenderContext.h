@@ -17,10 +17,6 @@
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static const BC_global_forward_axis BC_DEFAULT_FORWARD = BC_GLOBAL_FORWARD_Y;
 static const BC_global_up_axis BC_DEFAULT_UP = BC_GLOBAL_UP_Z;
 
@@ -43,9 +39,6 @@ int bc_is_marked(Object *ob);
 void bc_remove_mark(Object *ob);
 void bc_set_mark(Object *ob);
 
-#ifdef __cplusplus
-}
-
 class BlenderContext {
  private:
   bContext *context;
@@ -64,4 +57,3 @@ class BlenderContext {
   ViewLayer *get_view_layer();
   Main *get_main();
 };
-#endif

@@ -12,10 +12,6 @@
 
 #include "../../stroke/ChainingIterators.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject ChainSilhouetteIterator_Type;
@@ -30,7 +26,3 @@ typedef struct {
 } BPy_ChainSilhouetteIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

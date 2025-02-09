@@ -10,10 +10,6 @@
 
 #include "../BPy_UnaryPredicate1D.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject QuantitativeInvisibilityUP1D_Type;
@@ -28,7 +24,3 @@ typedef struct {
 } BPy_QuantitativeInvisibilityUP1D;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

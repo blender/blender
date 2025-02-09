@@ -12,9 +12,7 @@
 #include <python/PyAPI.h>
 #include <python/PySound.h>
 
-extern "C" {
 extern void *BKE_sound_get_factory(void *sound);
-}
 
 static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
 {

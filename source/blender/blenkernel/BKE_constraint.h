@@ -20,9 +20,6 @@ struct bConstraintTarget;
 struct bPoseChannel;
 
 /* ---------------------------------------------------------------------------- */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* special struct for use in constraint evaluation */
 typedef struct bConstraintOb {
@@ -375,7 +372,3 @@ void BKE_constraint_blend_write(struct BlendWriter *writer, struct ListBase *con
 void BKE_constraint_blend_read_data(struct BlendDataReader *reader,
                                     struct ID *id_owner,
                                     struct ListBase *lb);
-
-#ifdef __cplusplus
-}
-#endif

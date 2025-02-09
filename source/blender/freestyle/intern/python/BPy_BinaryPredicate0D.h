@@ -14,10 +14,6 @@ extern "C" {
 
 #include "../stroke/Predicates0D.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject BinaryPredicate0D_Type;
@@ -36,7 +32,3 @@ typedef struct {
 int BinaryPredicate0D_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

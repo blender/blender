@@ -10,10 +10,6 @@
 
 #include "../BPy_UnaryFunction1DVoid.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject IncrementChainingTimeStampF1D_Type;
@@ -28,7 +24,3 @@ typedef struct {
 } BPy_IncrementChainingTimeStampF1D;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

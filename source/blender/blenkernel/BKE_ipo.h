@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Main;
 
 /**
@@ -37,7 +33,3 @@ struct Main;
 void do_versions_ipos_to_layered_actions(struct Main *bmain);
 
 /* --------------------- xxx stuff ------------------------ */
-
-#ifdef __cplusplus
-};
-#endif

@@ -15,11 +15,6 @@
  * different design need to be introduced.
  */
 
-#ifdef __cplusplus
-
-extern "C" {
-#endif
-
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
@@ -152,7 +147,3 @@ void BKE_icon_geom_invert_lightness(struct Icon_Geom *geom);
 int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
-
-#ifdef __cplusplus
-}
-#endif

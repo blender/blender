@@ -10,10 +10,6 @@
 
 #include "BKE_shader_fx.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* ****************** Type structures for all effects ****************** */
 
 extern ShaderFxTypeInfo shaderfx_Type_None;
@@ -30,7 +26,3 @@ extern ShaderFxTypeInfo shaderfx_Type_Wave;
 /* FX_shaderfx_util.c */
 
 void shaderfx_type_init(ShaderFxTypeInfo *types[]);
-
-#ifdef __cplusplus
-}
-#endif

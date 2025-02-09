@@ -12,10 +12,6 @@
 
 #include "../../view_map/ViewMapIterators.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject orientedViewEdgeIterator_Type;
@@ -32,7 +28,3 @@ typedef struct {
 } BPy_orientedViewEdgeIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

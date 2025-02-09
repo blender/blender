@@ -12,10 +12,6 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.h" /* for bool */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct BlendDataReader;
 struct BlendWriter;
@@ -348,7 +344,3 @@ void BKE_animsys_eval_driver(struct Depsgraph *depsgraph,
 void BKE_animsys_update_driver_array(struct ID *id);
 
 /* ************************************* */
-
-#ifdef __cplusplus
-}
-#endif

@@ -10,10 +10,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Camera;
 struct ImBuf;
 struct ListBase;
@@ -828,7 +824,3 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 
 #define PLANE_TRACK_VIEW_SELECTED(plane_track) \
   ((((plane_track)->flag & PLANE_TRACK_HIDDEN) == 0) && ((plane_track)->flag & SELECT))
-
-#ifdef __cplusplus
-}
-#endif

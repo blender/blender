@@ -10,10 +10,6 @@
 
 #include "../BPy_UnaryFunction1DUnsigned.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject QuantitativeInvisibilityF1D_Type;
@@ -28,7 +24,3 @@ typedef struct {
 } BPy_QuantitativeInvisibilityF1D;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

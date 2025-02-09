@@ -10,10 +10,6 @@
 
 #include "BKE_node.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct blender::bke::bNodeTreeType *ntreeType_Texture;
 
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
@@ -31,7 +27,3 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
                      int cfra,
                      int preview,
                      struct MTex *mtex);
-
-#ifdef __cplusplus
-}
-#endif

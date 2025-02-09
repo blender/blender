@@ -30,10 +30,6 @@
 #include "StrokeShader/BPy_ThicknessNoiseShader.h"
 #include "StrokeShader/BPy_TipRemoverShader.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -300,7 +296,3 @@ PyTypeObject StrokeShader_Type = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

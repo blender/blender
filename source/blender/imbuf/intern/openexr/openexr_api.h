@@ -10,10 +10,6 @@
 
 #include <cstdio>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void imb_initopenexr(void);
 void imb_exitopenexr(void);
 
@@ -33,7 +29,3 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
                                                   char colorspace[],
                                                   size_t *r_width,
                                                   size_t *r_height);
-
-#ifdef __cplusplus
-}
-#endif

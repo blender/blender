@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** Span fill in method, is also used to localize data for Z-buffering. */
 struct ZSpan {
   int rectx, recty; /* range for clipping */
@@ -37,7 +33,3 @@ void zspan_scanconvert(struct ZSpan *zspan,
                        float *v2,
                        float *v3,
                        void (*func)(void *, int, int, float, float));
-
-#ifdef __cplusplus
-}
-#endif

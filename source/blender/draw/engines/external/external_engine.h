@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct DrawEngineType;
 struct RenderEngineType;
 
@@ -24,7 +20,3 @@ extern RenderEngineType DRW_engine_viewport_external_type;
  *
  * NOTE: Released by the draw engine when it is done drawing. */
 bool DRW_engine_external_acquire_for_image_editor(void);
-
-#ifdef __cplusplus
-}
-#endif

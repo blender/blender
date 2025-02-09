@@ -12,10 +12,6 @@
 #include "../Interface1D/BPy_Stroke.h"
 #include "BPy_Interface0DIterator.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -338,7 +334,3 @@ PyTypeObject StrokeVertexIterator_Type = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif
