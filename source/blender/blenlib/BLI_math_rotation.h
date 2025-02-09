@@ -8,7 +8,8 @@
  * \ingroup bli
  */
 
-#include "BLI_math_base.h"  // IWYU pragma: keep
+#include "BLI_math_base.h"       // IWYU pragma: keep
+#include "BLI_math_constants.h"  // IWYU pragma: keep
 #include "BLI_utildefines.h"
 #include "DNA_vec_types.h"
 

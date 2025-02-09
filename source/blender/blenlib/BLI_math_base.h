@@ -45,17 +45,10 @@
  * - R = result matrix
  */
 
-#if defined(_MSC_VER) && !defined(_USE_MATH_DEFINES)
-#  define _USE_MATH_DEFINES
-#endif
-
 #include "BLI_assert.h"
-#include "BLI_math_inline.h"  // IWYU pragma: export
-#include "BLI_sys_types.h"
-
-#include <math.h>  // IWYU pragma: export
-
 #include "BLI_math_constants.h"  // IWYU pragma: export
+#include "BLI_math_inline.h"     // IWYU pragma: export
+#include "BLI_sys_types.h"
 
 #if defined(__GNUC__)
 #  define NAN_FLT __builtin_nanf("")
