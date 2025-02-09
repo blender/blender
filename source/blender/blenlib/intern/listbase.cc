@@ -17,6 +17,7 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_assert.h"
 #include "BLI_listbase.h"
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */

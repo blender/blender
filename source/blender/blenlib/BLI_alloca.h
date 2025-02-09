@@ -12,16 +12,8 @@
 
 /* BLI_array_alloca / alloca */
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <type_traits> /* IWYU pragma: keep */
 
-#if defined(__cplusplus)
-#  include <type_traits>
-#  define BLI_array_alloca(arr, realsize) \
-    (std::remove_reference_t<decltype(arr)>)alloca(sizeof(*arr) * (realsize))
-#else
-#  if defined(__GNUC__) || defined(__clang__)
-#    define BLI_array_alloca(arr, realsize) (typeof(arr))alloca(sizeof(*arr) * (realsize))
-#  else
-#    define BLI_array_alloca(arr, realsize) alloca(sizeof(*arr) * (realsize))
-#  endif
-#endif
+#define BLI_array_alloca(arr, realsize) \
+  (std::remove_reference_t<decltype(arr)>)alloca(sizeof(*arr) * (realsize))

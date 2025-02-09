@@ -18,10 +18,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct DynStr;
 
 /** The abstract DynStr type. */
@@ -104,7 +100,3 @@ void BLI_dynstr_clear(DynStr *ds) ATTR_NONNULL();
  * \param ds: The DynStr to free.
  */
 void BLI_dynstr_free(DynStr *ds) ATTR_NONNULL();
-
-#ifdef __cplusplus
-}
-#endif

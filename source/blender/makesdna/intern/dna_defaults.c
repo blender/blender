@@ -72,7 +72,6 @@
 #include "BLI_endian_switch.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
-#include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf_enums.h"

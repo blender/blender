@@ -562,9 +562,9 @@ void *BLI_gzopen(const char *filepath, const char *mode)
   /* XXX: Creates file before transcribing the path. */
   if (mode[0] == 'w') {
     FILE *file = ufopen(filepath, "a");
-    if (file == NULL) {
+    if (file == nullptr) {
       /* File couldn't be opened, e.g. due to permission error. */
-      return NULL;
+      return nullptr;
     }
     fclose(file);
   }
@@ -609,14 +609,14 @@ static bool delete_soft(const wchar_t *path_16, const char **r_error_message)
   IFileOperation *pfo;
   IShellItem *psi;
 
-  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   if (SUCCEEDED(hr)) {
     /* This is also the case when COM was previously initialized and CoInitializeEx returns
      * S_FALSE, which is not an error. Both HRESULT values S_OK and S_FALSE indicate success. */
 
     hr = CoCreateInstance(
-        CLSID_FileOperation, NULL, CLSCTX_ALL, IID_IFileOperation, (void **)&pfo);
+        CLSID_FileOperation, nullptr, CLSCTX_ALL, IID_IFileOperation, (void **)&pfo);
 
     if (SUCCEEDED(hr)) {
       /* Flags for deletion:
@@ -626,10 +626,10 @@ static bool delete_soft(const wchar_t *path_16, const char **r_error_message)
       hr = pfo->SetOperationFlags(FOF_ALLOWUNDO | FOF_SILENT | FOF_WANTNUKEWARNING);
 
       if (SUCCEEDED(hr)) {
-        hr = SHCreateItemFromParsingName(path_16, NULL, IID_IShellItem, (void **)&psi);
+        hr = SHCreateItemFromParsingName(path_16, nullptr, IID_IShellItem, (void **)&psi);
 
         if (SUCCEEDED(hr)) {
-          hr = pfo->DeleteItem(psi, NULL);
+          hr = pfo->DeleteItem(psi, nullptr);
 
           if (SUCCEEDED(hr)) {
             hr = pfo->PerformOperations();
@@ -870,7 +870,7 @@ enum {
   RecursiveOp_Callback_Error = 2,
 };
 
-typedef int (*RecursiveOp_Callback)(const char *from, const char *to);
+using RecursiveOp_Callback = int (*)(const char *from, const char *to);
 
 [[maybe_unused]] static bool path_has_trailing_slash(const char *path)
 {

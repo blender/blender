@@ -11,10 +11,6 @@
 
 #include <sys/stat.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(WIN32)
 typedef unsigned int mode_t;
 #endif
@@ -44,7 +40,3 @@ struct dirlink {
   struct dirlink *next, *prev;
   char *name;
 };
-
-#ifdef __cplusplus
-}
-#endif

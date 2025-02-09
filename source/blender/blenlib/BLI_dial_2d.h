@@ -33,16 +33,8 @@
  * \endcode
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct Dial Dial;
 
 Dial *BLI_dial_init(const float start_position[2], float threshold);
 
 float BLI_dial_angle(Dial *dial, const float current_position[2]);
-
-#ifdef __cplusplus
-}
-#endif

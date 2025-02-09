@@ -6,10 +6,6 @@
 
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** \file
  * \ingroup bli
  */
@@ -51,8 +47,4 @@ void BLI_windows_handle_exception(void *exception);
 
 #else
 #  define BLI_SYSTEM_PID_H <unistd.h>
-#endif
-
-#ifdef __cplusplus
-}
 #endif

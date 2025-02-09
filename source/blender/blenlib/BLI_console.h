@@ -4,10 +4,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** \file
  * \ingroup bli
  * \brief Set of utility functions and constants to work with consoles.
@@ -20,7 +16,3 @@ extern "C" {
 
 /* Marker which indicates that colored output is finished. */
 #define TRUECOLOR_ANSI_COLOR_FINISH "\x1b[0m"
-
-#ifdef __cplusplus
-}
-#endif

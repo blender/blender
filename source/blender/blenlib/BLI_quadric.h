@@ -10,10 +10,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct Quadric {
   double a2, ab, ac, ad, b2, bc, bd, c2, cd, d2;
 } Quadric;
@@ -35,7 +31,3 @@ void BLI_quadric_mul(Quadric *a, double scalar);
 
 double BLI_quadric_evaluate(const Quadric *q, const double v[3]);
 bool BLI_quadric_optimize(const Quadric *q, double v[3], double epsilon);
-
-#ifdef __cplusplus
-}
-#endif

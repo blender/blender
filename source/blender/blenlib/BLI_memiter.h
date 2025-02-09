@@ -12,10 +12,6 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* 512kb, good default for small elems. */
 #define BLI_MEMITER_DEFAULT_SIZE (1 << 19)
 
@@ -65,7 +61,3 @@ bool BLI_memiter_iter_done(const BLI_memiter_handle *iter) ATTR_NONNULL(1);
 void *BLI_memiter_iter_step(BLI_memiter_handle *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
-
-#ifdef __cplusplus
-}
-#endif

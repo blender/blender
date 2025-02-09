@@ -10,12 +10,6 @@
  * SIMD instruction support.
  */
 
-/* sse2neon.h uses a newer pre-processor which is no available for C language when using MSVC.
- * For the consistency require C++ for all build configurations.  */
-#if !defined(__cplusplus)
-#  error Including BLI_simd.hh requires C++
-#endif
-
 #if (defined(__ARM_NEON) || (defined(_M_ARM64) && defined(_MSC_VER))) && \
     defined(WITH_SSE2NEON) && !defined(DISABLE_SSE2NEON)
 /* SSE/SSE2 emulation on ARM Neon. Match SSE precision. */

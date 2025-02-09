@@ -58,16 +58,12 @@ static const int NAN_INT = 0x7FC00000;
 #endif
 
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_base_inline.c"  // IWYU pragma: export
+#  include "intern/math_base_inline.cc"  // IWYU pragma: export
 #endif
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /******************************* Float ******************************/
@@ -352,8 +348,4 @@ float ceil_power_of_10(float f);
 #  define BLI_ASSERT_ZERO_M3(m) (void)(m)
 #  define BLI_ASSERT_ZERO_M4(m) (void)(m)
 #  define BLI_ASSERT_UNIT_M3(m) (void)(m)
-#endif
-
-#ifdef __cplusplus
-}
 #endif

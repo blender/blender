@@ -6,6 +6,7 @@
 
 #include <ostream>
 
+#include "BLI_compiler_compat.h"
 #include "BLI_math_color.h"
 #include "BLI_struct_equality_utils.hh"
 

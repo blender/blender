@@ -12,10 +12,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Generate time-code/frame number string and store in \a str
  *
@@ -62,7 +58,3 @@ size_t BLI_timecode_string_from_time_seconds(char *str,
                                              size_t maxncpy,
                                              int brevity_level,
                                              float time_seconds) ATTR_NONNULL();
-
-#ifdef __cplusplus
-}
-#endif

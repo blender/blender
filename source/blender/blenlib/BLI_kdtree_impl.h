@@ -19,10 +19,6 @@
 #  define KD_DIMS 0
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct KDTree;
 typedef struct KDTree KDTree;
 
@@ -94,11 +90,6 @@ int BLI_kdtree_nd_(range_search_with_len_squared_cb)(
                        const void *user_data),
     const void *user_data) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
 template<typename Fn>
 inline void BLI_kdtree_nd_(range_search_cb_cpp)(const KDTree *tree,
                                                 const float co[KD_DIMS],
@@ -132,7 +123,6 @@ inline int BLI_kdtree_nd_(find_nearest_cb_cpp)(const KDTree *tree,
       &fn,
       r_nearest);
 }
-#endif
 
 #undef _BLI_CONCAT_AUX
 #undef _BLI_CONCAT

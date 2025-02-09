@@ -900,8 +900,8 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
 
     tree->nodes = MEM_cnew_array<BVHNode *>(size_t(numnodes), "BVHNodes");
-    tree->nodebv = MEM_cnew_array<float>(size_t(axis * numnodes), "BVHNodeBV");
-    tree->nodechild = MEM_cnew_array<BVHNode *>(size_t(tree_type * numnodes), "BVHNodeBV");
+    tree->nodebv = MEM_cnew_array<float>(axis * size_t(numnodes), "BVHNodeBV");
+    tree->nodechild = MEM_cnew_array<BVHNode *>(tree_type * size_t(numnodes), "BVHNodeBV");
     tree->nodearray = MEM_cnew_array<BVHNode>(size_t(numnodes), "BVHNodeArray");
 
     if (UNLIKELY((!tree->nodes) || (!tree->nodebv) || (!tree->nodechild) || (!tree->nodearray))) {

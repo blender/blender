@@ -91,7 +91,7 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
       return dir;
     }
   }
-  return NULL;
+  return nullptr;
 #  else
   const char *pwd = BLI_getenv("PWD");
   if (pwd) {
@@ -328,14 +328,14 @@ bool BLI_file_alias_target(const char *filepath,
     return false;
   }
 
-  HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+  HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
   if (FAILED(hr)) {
     return false;
   }
 
-  IShellLinkW *Shortcut = NULL;
+  IShellLinkW *Shortcut = nullptr;
   hr = CoCreateInstance(
-      CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID *)&Shortcut);
+      CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID *)&Shortcut);
 
   bool success = false;
   if (SUCCEEDED(hr)) {
@@ -349,7 +349,7 @@ bool BLI_file_alias_target(const char *filepath,
           hr = Shortcut->Resolve(0, SLR_NO_UI | SLR_UPDATE | SLR_NOSEARCH);
           if (SUCCEEDED(hr)) {
             wchar_t target_utf16[FILE_MAXDIR] = {0};
-            hr = Shortcut->GetPath(target_utf16, FILE_MAXDIR, NULL, 0);
+            hr = Shortcut->GetPath(target_utf16, FILE_MAXDIR, nullptr, 0);
             if (SUCCEEDED(hr)) {
               success = (conv_utf_16_to_8(target_utf16, r_targetpath, FILE_MAXDIR) == 0);
             }

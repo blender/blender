@@ -23,7 +23,7 @@ set(LIB
 
 add_definitions(-DWITH_DNA_GHASH)
 
-# Needed for `mallocn.c`.
+# Needed for `mallocn.cc`.
 if(HAVE_MALLOC_STATS_H)
   add_definitions(-DHAVE_MALLOC_STATS_H)
 endif()
@@ -47,23 +47,23 @@ file(GENERATE OUTPUT ${dna_header_string_file} CONTENT "${DNA_FILE_LIST}")
 
 # Subset of `blenlib` used by `makesdna`.
 set(BLENLIB_SRC
-  ../../blenlib/intern/BLI_assert.c
-  ../../blenlib/intern/BLI_ghash.c
+  ../../blenlib/intern/BLI_assert.cc
+  ../../blenlib/intern/BLI_ghash.cc
   ../../blenlib/intern/BLI_ghash_utils.cc
-  ../../blenlib/intern/BLI_linklist.c
-  ../../blenlib/intern/BLI_memarena.c
-  ../../blenlib/intern/BLI_mempool.c
-  ../../blenlib/intern/endian_switch.c
+  ../../blenlib/intern/BLI_linklist.cc
+  ../../blenlib/intern/BLI_memarena.cc
+  ../../blenlib/intern/BLI_mempool.cc
+  ../../blenlib/intern/endian_switch.cc
   ../../blenlib/intern/listbase.cc
-  ../../blenlib/intern/string.c
+  ../../blenlib/intern/string.cc
 
-  # Dependency of BLI_ghash.c
+  # Dependency of BLI_ghash.cc
   ../../blenlib/intern/hash_mm2a.cc
 
-  # Dependencies of BLI_mempool.c when ASAN is enabled.
-  ../../blenlib/intern/gsqueue.c
+  # Dependencies of BLI_mempool.cc when ASAN is enabled.
+  ../../blenlib/intern/gsqueue.cc
   ../../blenlib/intern/threads.cc
-  ../../blenlib/intern/time.c
+  ../../blenlib/intern/time.cc
 )
 
 set(SRC
@@ -74,7 +74,7 @@ set(SRC
   ${dna_header_string_file}
 )
 
-# BLI_mempool.c needs these files for ThreadMutex when
+# BLI_mempool.cc needs these files for ThreadMutex when
 # compiling in address sanitizer mode.
 if(WITH_COMPILER_ASAN)
   list(APPEND SRC

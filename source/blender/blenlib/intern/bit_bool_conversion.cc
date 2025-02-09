@@ -4,7 +4,6 @@
 
 #include "BLI_bit_bool_conversion.hh"
 #include "BLI_simd.hh"
-#include "BLI_timeit.hh"
 
 namespace blender::bits {
 

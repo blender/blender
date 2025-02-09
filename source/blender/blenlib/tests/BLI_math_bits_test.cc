@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_math_bits.h"
+#include "BLI_sys_types.h"
 #include "testing/testing.h"
-#include <iostream>
 
 TEST(math_bits, BitscanReverseClearUint)
 {

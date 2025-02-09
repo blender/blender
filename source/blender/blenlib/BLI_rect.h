@@ -15,10 +15,6 @@
 struct rctf;
 struct rcti;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Determine if a `rect` is empty.
  * An empty `rect` is one with a zero (or negative) width or height.
@@ -202,7 +198,3 @@ BLI_INLINE float BLI_rctf_size_y(const struct rctf *rct)
 {
   return (rct->ymax - rct->ymin);
 }
-
-#ifdef __cplusplus
-}
-#endif

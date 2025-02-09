@@ -10,10 +10,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct BLI_Iterator {
   void *current; /* current pointer we iterate over */
   void *data;    /* stored data required for this iterator */
@@ -49,7 +45,3 @@ typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);
   callback_end_func(&iter_macro); \
   } \
   ((void)0)
-
-#ifdef __cplusplus
-}
-#endif

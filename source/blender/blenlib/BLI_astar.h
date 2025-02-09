@@ -11,30 +11,24 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLI_bitmap.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* -------------------------------------------------------------------- */
 
-typedef struct BLI_AStarGNLink {
+struct BLI_AStarGNLink {
   int nodes[2];
   float cost;
 
   void *custom_data;
-} BLI_AStarGNLink;
+};
 
-typedef struct BLI_AStarGNode {
+struct BLI_AStarGNode {
   struct ListBase neighbor_links;
 
   void *custom_data;
-} BLI_AStarGNode;
+};
 
-typedef struct BLI_AStarSolution {
+struct BLI_AStarSolution {
   /* Final 'most useful' data. */
   /** Number of steps (i.e. walked links) in path
    * (nodes num, including start and end, is steps + 1). */
@@ -52,16 +46,16 @@ typedef struct BLI_AStarSolution {
   int *g_steps;
 
   struct MemArena *mem; /* Memory arena. */
-} BLI_AStarSolution;
+};
 
-typedef struct BLI_AStarGraph {
+struct BLI_AStarGraph {
   int node_num;
   BLI_AStarGNode *nodes;
 
   void *custom_data;
 
   struct MemArena *mem; /* Memory arena. */
-} BLI_AStarGraph;
+};
 
 /**
  * Initialize a node in A* graph.
@@ -119,12 +113,12 @@ void BLI_astar_solution_free(BLI_AStarSolution *as_solution);
  * \param node_idx_next: next node index.
  * \param node_idx_dst: destination node index.
  */
-typedef float (*astar_f_cost)(BLI_AStarGraph *as_graph,
-                              BLI_AStarSolution *as_solution,
-                              BLI_AStarGNLink *link,
-                              int node_idx_curr,
-                              int node_idx_next,
-                              int node_idx_dst);
+using astar_f_cost = float (*)(BLI_AStarGraph *as_graph,
+                               BLI_AStarSolution *as_solution,
+                               BLI_AStarGNLink *link,
+                               int node_idx_curr,
+                               int node_idx_next,
+                               int node_idx_dst);
 
 /**
  * Initialize an A* graph. Total number of nodes must be known.
@@ -150,7 +144,3 @@ bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
                            astar_f_cost f_cost_cb,
                            BLI_AStarSolution *r_solution,
                            int max_steps);
-
-#ifdef __cplusplus
-}
-#endif

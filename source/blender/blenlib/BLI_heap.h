@@ -14,10 +14,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Heap;
 struct HeapNode;
 typedef struct Heap Heap;
@@ -79,7 +75,3 @@ void *BLI_heap_node_ptr(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNU
  * Only for checking internal errors (gtest).
  */
 bool BLI_heap_is_valid(const Heap *heap);
-
-#ifdef __cplusplus
-}
-#endif

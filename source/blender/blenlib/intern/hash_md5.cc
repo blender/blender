@@ -45,13 +45,13 @@
 #endif
 
 #if UINT_MAX == UINT_MAX_32_BITS
-typedef unsigned int md5_uint32;
+using md5_uint32 = unsigned int;
 #else
 #  if USHRT_MAX == UINT_MAX_32_BITS
-typedef unsigned short md5_uint32;
+using md5_uint32 = unsigned short;
 #  else
 #    if ULONG_MAX == UINT_MAX_32_BITS
-typedef unsigned long md5_uint32;
+using md5_uint32 = unsigned long;
 #    else
 /* The following line is intended to evoke an error. Using #error is not portable enough. */
 "Cannot determine unsigned 32-bit data type."
