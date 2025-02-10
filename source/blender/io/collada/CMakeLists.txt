@@ -106,7 +106,6 @@ set(SRC
 
 set(LIB
   ${OPENCOLLADA_LIBRARIES}
-  ${PCRE_LIBRARIES}
   ${XML2_LIBRARIES}
   PRIVATE bf::animrig
   PRIVATE bf::blenkernel
