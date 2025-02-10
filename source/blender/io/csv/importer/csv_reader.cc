@@ -6,20 +6,24 @@
  * \ingroup csv
  */
 
+#include <optional>
+
+#include "BKE_attribute.hh"
+#include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 
 #include "BLI_fileops.hh"
+#include "BLI_generic_span.hh"
+#include "BLI_vector.hh"
 
 #include "IO_csv.hh"
 #include "IO_string_utils.hh"
 
-#include "csv_data.hh"
-
 namespace blender::io::csv {
 
-static Vector<std::string> get_columns(const StringRef line)
+static Vector<StringRef> parse_column_names(const StringRef line)
 {
-  Vector<std::string> columns;
+  Vector<StringRef> columns;
   const char delim = ',';
   const char *start = line.begin(), *end = line.end();
   const char *cell_start = start, *cell_end = start;
@@ -29,14 +33,14 @@ static Vector<std::string> get_columns(const StringRef line)
   while (delim_index != StringRef::not_found) {
     cell_end = start + delim_index;
 
-    columns.append(std::string(cell_start, cell_end));
+    columns.append_as(cell_start, cell_end);
 
     cell_start = cell_end + 1;
     delim_index = line.find_first_of(delim, delim_index + 1);
   }
 
   /* Handle last cell, --end because the end in StringRef is one_after_ern */
-  columns.append(std::string(cell_start, --end));
+  columns.append_as(cell_start, --end);
 
   return columns;
 }
@@ -105,62 +109,66 @@ static int64_t get_row_count(StringRef buffer)
   return row_count;
 }
 
-static void parse_csv_cell(CsvData &csv_data,
-                           int64_t row_index,
-                           int64_t col_index,
+static void parse_csv_cell(const Span<GMutableSpan> data,
+                           const Span<eCustomDataType> types,
+                           const Span<StringRef> column_names,
+                           const int64_t row_index,
+                           const int64_t col_index,
                            const char *start,
                            const char *end,
                            const CSVImportParams &import_params)
 {
   bool success = false;
 
-  switch (csv_data.get_column_type(col_index)) {
+  switch (types[col_index]) {
     case CD_PROP_INT32: {
       int value = 0;
       try_parse_int(start, end, 0, success, value);
-      csv_data.set_data(row_index, col_index, value);
+      data[col_index].typed<int>()[row_index] = value;
       if (!success) {
-        std::string column_name = csv_data.get_column_name(col_index);
+        StringRef column_name = column_names[col_index];
         BKE_reportf(import_params.reports,
                     RPT_ERROR,
                     "CSV Import: file '%s' has an unexpected value at row %d for column %s of "
                     "type Integer",
                     import_params.filepath,
                     int(row_index),
-                    column_name.c_str());
+                    std::string(column_name).c_str());
       }
       break;
     }
     case CD_PROP_FLOAT: {
       float value = 0.0f;
       try_parse_float(start, end, 0.0f, success, value);
-      csv_data.set_data(row_index, col_index, value);
+      data[col_index].typed<float>()[row_index] = value;
       if (!success) {
-        std::string column_name = csv_data.get_column_name(col_index);
+        StringRef column_name = column_names[col_index];
         BKE_reportf(import_params.reports,
                     RPT_ERROR,
                     "CSV Import: file '%s' has an unexpected value at row %d for column %s of "
                     "type Float",
                     import_params.filepath,
                     int(row_index),
-                    column_name.c_str());
+                    std::string(column_name).c_str());
       }
       break;
     }
     default: {
-      std::string column_name = csv_data.get_column_name(col_index);
+      StringRef column_name = column_names[col_index];
       BKE_reportf(import_params.reports,
                   RPT_ERROR,
                   "CSV Import: file '%s' has an unsupported value at row %d for column %s",
                   import_params.filepath,
                   int(row_index),
-                  column_name.c_str());
+                  std::string(column_name).c_str());
       break;
     }
   }
 }
 
-static void parse_csv_line(CsvData &csv_data,
+static void parse_csv_line(const Span<GMutableSpan> data,
+                           const Span<eCustomDataType> types,
+                           const Span<StringRef> column_names,
                            int64_t row_index,
                            const StringRef line,
                            const CSVImportParams &import_params)
@@ -176,7 +184,8 @@ static void parse_csv_line(CsvData &csv_data,
   while (delim_index != StringRef::not_found) {
     cell_end = start + delim_index;
 
-    parse_csv_cell(csv_data, row_index, col_index, cell_start, cell_end, import_params);
+    parse_csv_cell(
+        data, types, column_names, row_index, col_index, cell_start, cell_end, import_params);
     col_index++;
 
     cell_start = cell_end + 1;
@@ -184,10 +193,13 @@ static void parse_csv_line(CsvData &csv_data,
   }
 
   /* Handle last cell, --end because the end in StringRef is one_after_ern */
-  parse_csv_cell(csv_data, row_index, col_index, cell_start, --end, import_params);
+  parse_csv_cell(
+      data, types, column_names, row_index, col_index, cell_start, --end, import_params);
 }
 
-static void parse_csv_data(CsvData &csv_data,
+static void parse_csv_data(const Span<GMutableSpan> data,
+                           const Span<eCustomDataType> types,
+                           const Span<StringRef> column_names,
                            StringRef buffer,
                            const CSVImportParams &import_params)
 {
@@ -195,7 +207,7 @@ static void parse_csv_data(CsvData &csv_data,
   while (!buffer.is_empty()) {
     const StringRef line = read_next_line(buffer);
 
-    parse_csv_line(csv_data, row_index, line, import_params);
+    parse_csv_line(data, types, column_names, row_index, line, import_params);
 
     row_index++;
   }
@@ -205,7 +217,6 @@ PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
 {
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(import_params.filepath, 0, &buffer_len);
-
   if (buffer == nullptr) {
     BKE_reportf(import_params.reports,
                 RPT_ERROR,
@@ -216,9 +227,7 @@ PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
 
   BLI_SCOPED_DEFER([&]() { MEM_freeN(buffer); });
 
-  StringRef buffer_str{(const char *)buffer, int64_t(buffer_len)};
-
-  /* Get row count and columns */
+  StringRef buffer_str{static_cast<char *>(buffer), int64_t(buffer_len)};
   if (buffer_str.is_empty()) {
     BKE_reportf(
         import_params.reports, RPT_ERROR, "CSV Import: empty file '%s'", import_params.filepath);
@@ -226,7 +235,7 @@ PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
   }
 
   const StringRef header = read_next_line(buffer_str);
-  const Vector<std::string> columns = get_columns(header);
+  const Vector<StringRef> names = parse_column_names(header);
 
   if (buffer_str.is_empty()) {
     BKE_reportf(import_params.reports,
@@ -237,13 +246,13 @@ PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
   }
 
   /* Shallow copy buffer to preserve pointers from first row for parsing */
-  StringRef data_buffer(buffer_str.begin(), buffer_str.end());
+  const StringRef data_buffer(buffer_str.begin(), buffer_str.end());
 
   const StringRef first_row = read_next_line(buffer_str);
 
   Vector<eCustomDataType> column_types;
   if (!get_column_types(first_row, column_types)) {
-    std::string column_name = columns[column_types.size()];
+    std::string column_name = names[column_types.size()];
     BKE_reportf(import_params.reports,
                 RPT_ERROR,
                 "CSV Import: file '%s', Column %s is of unsupported data type",
@@ -252,15 +261,28 @@ PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
     return nullptr;
   }
 
-  const int64_t row_count = get_row_count(buffer_str);
+  const int64_t rows_num = get_row_count(buffer_str);
 
-  /* Create csv data */
-  CsvData csv_data(row_count, columns, column_types);
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(rows_num);
+  pointcloud->positions_for_write().fill(float3(0));
 
-  /* Fill csv data while seeking over the file */
-  parse_csv_data(csv_data, data_buffer, import_params);
+  Array<bke::GSpanAttributeWriter> attribute_writers(names.size());
+  Array<GMutableSpan> attribute_data(names.size());
 
-  return csv_data.to_point_cloud();
+  bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
+  for (const int i : names.index_range()) {
+    attribute_writers[i] = attributes.lookup_or_add_for_write_span(
+        names[i], bke::AttrDomain::Point, column_types[i]);
+    attribute_data[i] = attribute_writers[i].span;
+  }
+
+  parse_csv_data(attribute_data, column_types, names, data_buffer, import_params);
+
+  for (bke::GSpanAttributeWriter &attr : attribute_writers) {
+    attr.finish();
+  }
+
+  return pointcloud;
 }
 
 }  // namespace blender::io::csv

@@ -18,11 +18,9 @@ set(INC_SYS
 )
 
 set(SRC
-  importer/csv_data.cc
   importer/csv_reader.cc
 
   IO_csv.hh
-  importer/csv_data.hh
 )
 
 set(LIB
