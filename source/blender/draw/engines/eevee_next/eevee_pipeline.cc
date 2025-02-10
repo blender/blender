@@ -1186,6 +1186,12 @@ VolumeLayer *VolumePipeline::register_and_get_layer(Object *ob)
 {
   /* TODO(fclem): This is against design. Sync shouldn't depend on view properties (camera). */
   VolumeObjectBounds object_bounds(inst_.camera, ob);
+  if (math::reduce_max(object_bounds.screen_bounds->size()) < 1e-5) {
+    /* WORKAROUND(fclem): Fixes an issue with 0 scaled object (see #132889).
+     * Is likely to be an issue somewhere else in the pipeline but it is hard to find. */
+    return nullptr;
+  }
+
   object_integration_range_ = bounds::merge(object_integration_range_, object_bounds.z_range);
 
   /* Do linear search in all layers in order. This can be optimized. */
