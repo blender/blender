@@ -15,8 +15,6 @@
 
 #include "csv_data.hh"
 
-#include "csv_reader.hh"
-
 namespace blender::io::csv {
 
 static Vector<std::string> get_columns(const StringRef line)
@@ -203,7 +201,7 @@ static void parse_csv_data(CsvData &csv_data,
   }
 }
 
-PointCloud *read_csv_file(const CSVImportParams &import_params)
+PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
 {
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(import_params.filepath, 0, &buffer_len);

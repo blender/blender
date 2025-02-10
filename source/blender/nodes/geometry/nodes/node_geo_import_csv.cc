@@ -38,7 +38,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); })
   import_params.reports = &reports;
 
-  PointCloud *point_cloud = blender::io::csv::import_csv_as_point_cloud(&import_params);
+  PointCloud *point_cloud = blender::io::csv::import_csv_as_point_cloud(import_params);
 
   LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
     NodeWarningType type;
