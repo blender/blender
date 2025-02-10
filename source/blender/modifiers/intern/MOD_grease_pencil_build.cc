@@ -501,7 +501,8 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
     const float previous_end_time = previous_start_time + previous_delta_time;
 
     const float shifted_start_time = init_times[curve] - accumulated_shift_delta_time;
-    const float gap_delta_time = math::min(shifted_start_time - previous_end_time, max_gap);
+    const float gap_delta_time = math::min(math::abs(shifted_start_time - previous_end_time),
+                                           max_gap);
 
     start_times[curve] = previous_end_time + gap_delta_time;
     accumulated_shift_delta_time += math::max(shifted_start_time - start_times[curve], 0.0f);
