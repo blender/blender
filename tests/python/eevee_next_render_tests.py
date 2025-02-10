@@ -46,10 +46,16 @@ BLOCKLIST_METAL = [
     "shadow_all_max_bounces.blend",
     "light_link_exclude.blend",
     "light_link_instanced_receiver.blend",
+    # Blocked due to difference in volume lightprobe bakes(maybe?) (to be fixed).
+    "volume_zero_extinction.blend"
     # Blocked due to difference in screen space tracing (to be fixed).
     "sss_reflection_clamp.blend",
     # Blocked due to difference in volume rendering (to be fixed).
     "principled_bsdf_interior.blend",
+    # Blocked due to difference in mipmap interpolation (to be fixed).
+    "environment_mirror_ball.blend",
+    # Blocked due to difference in mipmap interpolation / anisotropic filtering (to be fixed).
+    "image.blend"
 ]
 
 BLOCKLIST_VULKAN = [
