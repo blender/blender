@@ -1287,7 +1287,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
         "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
         "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
       COMMAND_EXPAND_LISTS
-      DEPENDS ${cycles_oneapi_kernel_sources})
+      DEPENDS ${cycles_oneapi_kernel_sources} ${SYCL_COMPILER})
   else()
     if(NOT IGC_INSTALL_DIR)
       get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
@@ -1313,7 +1313,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
         "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug_str}>"
         "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release_str}>"
       COMMAND_EXPAND_LISTS
-      DEPENDS ${cycles_oneapi_kernel_sources})
+      DEPENDS ${cycles_oneapi_kernel_sources} ${SYCL_COMPILER})
   endif()
 
   # install dynamic libraries required at runtime
