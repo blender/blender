@@ -861,6 +861,14 @@ template<typename T> struct Interval {
   }
 };
 
+template<typename T1, typename T2>
+ccl_device_inline Interval<T1> operator/=(ccl_private Interval<T1> &interval, const T2 f)
+{
+  interval.min /= f;
+  interval.max /= f;
+  return interval;
+}
+
 /* Computes the intersection of two intervals. */
 template<typename T>
 ccl_device_inline Interval<T> intervals_intersection(const ccl_private Interval<T> &first,
