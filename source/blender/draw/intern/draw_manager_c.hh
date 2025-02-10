@@ -42,16 +42,6 @@ class View;
 struct GPUMaterial;
 struct GSet;
 
-/** Use draw manager to call GPU_select, see: #DRW_draw_select_loop */
-#define USE_GPU_SELECT
-
-/** Use draw-call batching using instanced rendering. */
-#define USE_BATCHING 1
-
-// #define DRW_DEBUG_CULLING
-#define DRW_DEBUG_USE_UNIFORM_NAME 0
-#define DRW_UNIFORM_BUFFER_NAME 64
-
 /* -------------------------------------------------------------------- */
 /** \name Profiling
  * \{ */
@@ -166,10 +156,6 @@ struct DRWManager {
   /* Dupli data for the current dupli for each enabled engine. */
   void **dupli_datas;
 
-  /* Rendering state */
-  GPUShader *shader;
-  blender::gpu::Batch *batch;
-
   /* Per viewport */
   GPUViewport *viewport;
   GPUFrameBuffer *default_framebuffer;
@@ -196,10 +182,6 @@ struct DRWManager {
   bool in_progress;
 
   uint primary_view_num;
-
-#ifdef USE_GPU_SELECT
-  uint select_id;
-#endif
 
   TaskGraph *task_graph;
   /* Contains list of objects that needs to be extracted from other objects. */

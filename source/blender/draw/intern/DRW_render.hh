@@ -14,15 +14,6 @@
 
 #include "GPU_material.hh"
 
-/* Uncomment to track unused resource bindings. */
-// #define DRW_UNUSED_RESOURCE_TRACKING
-
-#ifdef DRW_UNUSED_RESOURCE_TRACKING
-#  define DRW_DEBUG_FILE_LINE_ARGS , const char *file, int line
-#else
-#  define DRW_DEBUG_FILE_LINE_ARGS
-#endif
-
 namespace blender::gpu {
 class Batch;
 }

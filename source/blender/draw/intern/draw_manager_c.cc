@@ -2224,9 +2224,6 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = use_obedit_skip ? nullptr : OBEDIT_FROM_OBACT(obact);
-#ifndef USE_GPU_SELECT
-  UNUSED_VARS(scene, view_layer, v3d, region, rect);
-#else
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   /* Reset before using it. */
@@ -2425,8 +2422,6 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   drw_manager_exit(&DST);
 
   GPU_framebuffer_restore();
-
-#endif /* USE_GPU_SELECT */
 }
 
 void DRW_draw_depth_loop(Depsgraph *depsgraph,
