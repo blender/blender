@@ -2,15 +2,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "obj_import_string_utils.hh"
+#include "IO_string_utils.hh"
 
 #include "testing/testing.h"
 
-namespace blender::io::obj {
+namespace blender::io {
 
 #define EXPECT_STRREF_EQ(str1, str2) EXPECT_STREQ(str1, std::string(str2).c_str())
 
-TEST(obj_import_string_utils, read_next_line)
+TEST(io_common_string_utils, read_next_line)
 {
   std::string str = "abc\n  \n\nline with \t spaces\nCRLF ending:\r\na";
   StringRef s = str;
@@ -23,7 +23,7 @@ TEST(obj_import_string_utils, read_next_line)
   EXPECT_TRUE(s.is_empty());
 }
 
-TEST(obj_import_string_utils, fixup_line_continuations)
+TEST(io_common_string_utils, fixup_line_continuations)
 {
   const char *str =
       "backslash \\\n eol\n"
@@ -58,7 +58,7 @@ static StringRef parse_float(StringRef s,
       parse_float(s.begin(), s.end(), fallback, dst, skip_space, require_trailing_space), s.end());
 }
 
-TEST(obj_import_string_utils, drop_whitespace)
+TEST(io_common_string_utils, drop_whitespace)
 {
   /* Empty */
   EXPECT_STRREF_EQ("", drop_whitespace(""));
@@ -76,7 +76,7 @@ TEST(obj_import_string_utils, drop_whitespace)
   EXPECT_STRREF_EQ("d", drop_whitespace(" \t d"));
 }
 
-TEST(obj_import_string_utils, parse_int_valid)
+TEST(io_common_string_utils, parse_int_valid)
 {
   std::string str = "1 -10 \t  1234 1234567890 +7 123a";
   StringRef s = str;
@@ -96,7 +96,7 @@ TEST(obj_import_string_utils, parse_int_valid)
   EXPECT_STRREF_EQ("a", s);
 }
 
-TEST(obj_import_string_utils, parse_int_invalid)
+TEST(io_common_string_utils, parse_int_invalid)
 {
   int val;
   /* Invalid syntax */
@@ -112,7 +112,7 @@ TEST(obj_import_string_utils, parse_int_invalid)
   EXPECT_EQ(val, -4);
 }
 
-TEST(obj_import_string_utils, parse_float_valid)
+TEST(io_common_string_utils, parse_float_valid)
 {
   std::string str = "1 -10 123.5 -17.125 0.1 1e6 50.0e-1";
   StringRef s = str;
@@ -134,7 +134,7 @@ TEST(obj_import_string_utils, parse_float_valid)
   EXPECT_TRUE(s.is_empty());
 }
 
-TEST(obj_import_string_utils, parse_float_invalid)
+TEST(io_common_string_utils, parse_float_invalid)
 {
   float val;
   /* Invalid syntax */
@@ -153,4 +153,4 @@ TEST(obj_import_string_utils, parse_float_invalid)
   EXPECT_EQ(val, -5.0f);
 }
 
-}  // namespace blender::io::obj
+}  // namespace blender::io

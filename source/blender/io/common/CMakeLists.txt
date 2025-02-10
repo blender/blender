@@ -8,6 +8,7 @@ set(INC
 )
 
 set(INC_SYS
+  ../../../../extern/fast_float
 )
 
 set(SRC
@@ -18,6 +19,7 @@ set(SRC
   intern/orientation.cc
   intern/path_util.cc
   intern/subdiv_disabler.cc
+  intern/string_utils.cc
 
   IO_abstract_hierarchy_iterator.h
   IO_dupli_persistent_id.hh
@@ -26,6 +28,7 @@ set(SRC
   IO_path_util_types.hh
   IO_subdiv_disabler.hh
   IO_types.hh
+  IO_string_utils.hh
   intern/dupli_parent_finder.hh
 )
 
@@ -48,6 +51,7 @@ if(WITH_GTESTS)
     intern/abstract_hierarchy_iterator_test.cc
     intern/hierarchy_context_order_test.cc
     intern/object_identifier_test.cc
+    intern/string_utils_tests.cc
   )
   set(TEST_INC
     ../../blenloader

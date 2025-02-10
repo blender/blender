@@ -11,8 +11,9 @@ set(INC
   ../../makesrna
   ../../modifiers
   ../../io/common
-  ../../io/ply
+  ../../io/csv
   ../../io/stl
+  ../../io/ply
   ../../io/wavefront_obj
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -85,6 +86,7 @@ set(SRC
   nodes/node_geo_image.cc
   nodes/node_geo_image_info.cc
   nodes/node_geo_image_texture.cc
+  nodes/node_geo_import_csv.cc
   nodes/node_geo_import_obj.cc
   nodes/node_geo_import_ply.cc
   nodes/node_geo_import_stl.cc
@@ -257,6 +259,14 @@ set(LIB
   PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
+
+if(WITH_IO_CSV)
+  list(APPEND LIB
+    PRIVATE bf_io_common
+    PRIVATE bf_io_csv
+  )
+  add_definitions(-DWITH_IO_CSV)
+endif()
 
 if(WITH_IO_STL)
   list(APPEND LIB

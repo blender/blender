@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,18 +7,18 @@
 #include "BLI_string_ref.hh"
 
 /*
- * Various text parsing utilities used by OBJ importer.
+ * Various text parsing utilities used by importers.
  *
  * Many of these functions take two pointers (p, end) indicating
  * which part of a string to operate on, and return a possibly
  * changed new start of the string. They could be taking a StringRef
  * as input and returning a new StringRef, but this is a hot path
- * in OBJ parsing, and the StringRef approach does lose performance
+ * in CSV and OBJ parsing, and the StringRef approach does lose performance
  * (mostly due to return of StringRef being two register-size values
  * instead of just one pointer).
  */
 
-namespace blender::io::obj {
+namespace blender::io {
 
 /**
  * Fetches next line from an input string buffer.
@@ -44,6 +44,34 @@ const char *drop_whitespace(const char *p, const char *end);
  * Drop leading non-white-space from a string part.
  */
 const char *drop_non_whitespace(const char *p, const char *end);
+
+/**
+ * Parse an integer from an input string.
+ * The parsed result is stored in `dst`. The function skips
+ * leading white-space unless `skip_space=false`. If the
+ * number can't be parsed (invalid syntax, out of range),
+ * `success` value is false.
+ *
+ * Returns the start of remainder of the input string after parsing.
+ */
+const char *try_parse_int(
+    const char *p, const char *end, int fallback, bool &success, int &dst, bool skip_space = true);
+
+/**
+ * Parse a float from an input string.
+ * The parsed result is stored in `dst`. The function skips
+ * leading white-space unless `skip_space=false`. If the
+ * number can't be parsed (invalid syntax, out of range),
+ * `success` value is false.
+ *
+ * Returns the start of remainder of the input string after parsing.
+ */
+const char *try_parse_float(const char *p,
+                            const char *end,
+                            int fallback,
+                            bool &success,
+                            float &dst,
+                            bool skip_space = true);
 
 /**
  * Parse an integer from an input string.
@@ -89,4 +117,4 @@ const char *parse_floats(const char *p,
                          int count,
                          bool require_trailing_space = false);
 
-}  // namespace blender::io::obj
+}  // namespace blender::io

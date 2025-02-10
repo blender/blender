@@ -1,8 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "obj_import_string_utils.hh"
+#include "IO_string_utils.hh"
 
 /* NOTE: we could use C++17 <charconv> from_chars to parse
  * floats, but even if some compilers claim full support,
@@ -13,7 +13,7 @@
 #include "fast_float.h"
 #include <charconv>
 
-namespace blender::io::obj {
+namespace blender::io {
 
 StringRef read_next_line(StringRef &buffer)
 {
@@ -76,6 +76,61 @@ const char *drop_non_whitespace(const char *p, const char *end)
   return p;
 }
 
+static const char *drop_sign(const char *p, const char *end, int &sign)
+{
+  sign = 1;
+  if (p < end) {
+    if (*p == '+') {
+      ++p;
+    }
+    if (*p == '-') {
+      sign = -1;
+      ++p;
+    }
+  }
+  return p;
+}
+
+const char *try_parse_float(
+    const char *p, const char *end, int fallback, bool &success, float &dst, bool skip_space)
+{
+  if (skip_space) {
+    p = drop_whitespace(p, end);
+  }
+  int sign = 0;
+  p = drop_sign(p, end, sign);
+  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
+  if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range) || res.ptr < end) {
+    dst = fallback;
+    success = false;
+  }
+  else {
+    dst *= sign;
+    success = true;
+  }
+  return res.ptr;
+}
+
+const char *try_parse_int(
+    const char *p, const char *end, int fallback, bool &success, int &dst, bool skip_space)
+{
+  if (skip_space) {
+    p = drop_whitespace(p, end);
+  }
+  int sign = 0;
+  p = drop_sign(p, end, sign);
+  std::from_chars_result res = std::from_chars(p, end, dst);
+  if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range) || res.ptr < end) {
+    dst = fallback;
+    success = false;
+  }
+  else {
+    dst *= sign;
+    success = true;
+  }
+  return res.ptr;
+}
+
 static const char *drop_plus(const char *p, const char *end)
 {
   if (p < end && *p == '+') {
@@ -133,4 +188,4 @@ const char *parse_int(const char *p, const char *end, int fallback, int &dst, bo
   return res.ptr;
 }
 
-}  // namespace blender::io::obj
+}  // namespace blender::io
