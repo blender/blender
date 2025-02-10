@@ -12,7 +12,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_generic_array.hh"
-#include "BLI_map.hh"
+
+#include "DNA_customdata_types.h"
 
 struct PointCloud;
 

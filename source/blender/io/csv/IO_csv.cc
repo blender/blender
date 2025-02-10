@@ -6,8 +6,6 @@
  * \ingroup csv
  */
 
-#include "BLI_timeit.hh"
-
 #include "IO_csv.hh"
 
 #include "csv_reader.hh"
