@@ -40,10 +40,6 @@ constant int MTL_AttributeConvert13 [[function_constant(15)]];
 constant int MTL_AttributeConvert14 [[function_constant(16)]];
 constant int MTL_AttributeConvert15 [[function_constant(17)]];
 
-/* Constant to flag binding index of transform feedback buffer.
- * Unused if function constant not set. */
-constant int MTL_transform_feedback_buffer_index [[function_constant(18)]];
-
 /** Clip distance enablement. */
 /* General toggle to control whether any clipping distances are written at all.
  * This is an optimization to avoid having the clipping distance shader output

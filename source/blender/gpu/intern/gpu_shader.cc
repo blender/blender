@@ -121,9 +121,6 @@ GPUShader *GPU_shader_create_ex(const std::optional<StringRefNull> vertcode,
                                 const std::optional<StringRefNull> computecode,
                                 const std::optional<StringRefNull> libcode,
                                 const std::optional<StringRefNull> defines,
-                                const eGPUShaderTFBType tf_type,
-                                const char **tf_names,
-                                const int tf_count,
                                 const StringRefNull shname)
 {
   /* At least a vertex shader and a fragment shader are required, or only a compute shader. */
@@ -195,11 +192,6 @@ GPUShader *GPU_shader_create_ex(const std::optional<StringRefNull> vertcode,
     shader->compute_shader_from_glsl(sources);
   }
 
-  if (tf_names != nullptr && tf_count > 0) {
-    BLI_assert(tf_type != GPU_SHADER_TFB_NONE);
-    shader->transform_feedback_names_set(Span<const char *>(tf_names, tf_count), tf_type);
-  }
-
   if (!shader->finalize()) {
     delete shader;
     return nullptr;
@@ -226,16 +218,8 @@ GPUShader *GPU_shader_create(const std::optional<StringRefNull> vertcode,
                              const std::optional<StringRefNull> defines,
                              const StringRefNull shname)
 {
-  return GPU_shader_create_ex(vertcode,
-                              fragcode,
-                              geomcode,
-                              std::nullopt,
-                              libcode,
-                              defines,
-                              GPU_SHADER_TFB_NONE,
-                              nullptr,
-                              0,
-                              shname);
+  return GPU_shader_create_ex(
+      vertcode, fragcode, geomcode, std::nullopt, libcode, defines, shname);
 }
 
 GPUShader *GPU_shader_create_compute(const std::optional<StringRefNull> computecode,
@@ -243,16 +227,8 @@ GPUShader *GPU_shader_create_compute(const std::optional<StringRefNull> computec
                                      const std::optional<StringRefNull> defines,
                                      const StringRefNull shname)
 {
-  return GPU_shader_create_ex(std::nullopt,
-                              std::nullopt,
-                              std::nullopt,
-                              computecode,
-                              libcode,
-                              defines,
-                              GPU_SHADER_TFB_NONE,
-                              nullptr,
-                              0,
-                              shname);
+  return GPU_shader_create_ex(
+      std::nullopt, std::nullopt, std::nullopt, computecode, libcode, defines, shname);
 }
 
 const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name)
@@ -378,16 +354,8 @@ GPUShader *GPU_shader_create_from_python(std::optional<StringRefNull> vertcode,
   /* Use pyGPUShader as default name for shader. */
   blender::StringRefNull shname = name.value_or("pyGPUShader");
 
-  GPUShader *sh = GPU_shader_create_ex(vertcode,
-                                       fragcode,
-                                       geomcode,
-                                       std::nullopt,
-                                       libcode,
-                                       defines,
-                                       GPU_SHADER_TFB_NONE,
-                                       nullptr,
-                                       0,
-                                       shname);
+  GPUShader *sh = GPU_shader_create_ex(
+      vertcode, fragcode, geomcode, std::nullopt, libcode, defines, shname);
 
   return sh;
 }
@@ -511,24 +479,6 @@ void GPU_shader_set_parent(GPUShader *shader, GPUShader *parent)
 void GPU_shader_warm_cache(GPUShader *shader, int limit)
 {
   unwrap(shader)->warm_cache(limit);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Transform feedback
- *
- * TODO(fclem): Should be replaced by compute shaders.
- * \{ */
-
-bool GPU_shader_transform_feedback_enable(GPUShader *shader, blender::gpu::VertBuf *vertbuf)
-{
-  return unwrap(shader)->transform_feedback_enable(vertbuf);
-}
-
-void GPU_shader_transform_feedback_disable(GPUShader *shader)
-{
-  unwrap(shader)->transform_feedback_disable();
 }
 
 /** \} */
@@ -998,10 +948,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.append(info.compute_source_generated);
 
     shader->compute_shader_from_glsl(sources);
-  }
-
-  if (info.tf_type_ != GPU_SHADER_TFB_NONE && info.tf_names_.size() > 0) {
-    shader->transform_feedback_names_set(info.tf_names_.as_span(), info.tf_type_);
   }
 
   if (!shader->finalize(&info)) {

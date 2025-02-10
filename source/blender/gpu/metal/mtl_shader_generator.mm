@@ -393,15 +393,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
   /* Verify Source sizes are greater than zero. */
   BLI_assert(shd_builder_->glsl_vertex_source_.empty() == false);
-  if (!msl_iface.uses_transform_feedback) {
-    BLI_assert(shd_builder_->glsl_fragment_source_.empty() == false);
-  }
-
-  if (transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
-    /* Ensure #TransformFeedback is configured correctly. */
-    BLI_assert(tf_output_name_list_.is_empty() == false);
-    msl_iface.uses_transform_feedback = true;
-  }
+  BLI_assert(shd_builder_->glsl_fragment_source_.empty() == false);
 
   /* Concatenate msl_shader_defines to provide functionality mapping
    * from GLSL to MSL. Also include additional GPU defines for
@@ -416,9 +408,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   }
 
   shd_builder_->glsl_vertex_source_ = msl_defines_string + shd_builder_->glsl_vertex_source_;
-  if (!msl_iface.uses_transform_feedback) {
-    shd_builder_->glsl_fragment_source_ = msl_defines_string + shd_builder_->glsl_fragment_source_;
-  }
+  shd_builder_->glsl_fragment_source_ = msl_defines_string + shd_builder_->glsl_fragment_source_;
 
   /**** Extract usage of GL globals. ****/
   /* NOTE(METAL): Currently still performing fallback string scan, as info->builtins_ does
@@ -454,7 +444,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   msl_iface.uses_gpu_viewport_index = bool(info->builtins_ & BuiltinBits::VIEWPORT_INDEX);
 
   /** Identify usage of fragment-shader builtins. */
-  if (!msl_iface.uses_transform_feedback) {
+  {
     std::smatch gl_special_cases;
     msl_iface.uses_gl_PointCoord = bool(info->builtins_ & BuiltinBits::POINT_COORD) ||
                                    shd_builder_->glsl_fragment_source_.find("gl_PointCoord") !=
@@ -645,9 +635,6 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
   /* Generate VertexOut and TransformFeedbackOutput structs. */
   ss_vertex << msl_iface.generate_msl_vertex_out_struct(ShaderStage::VERTEX);
-  if (msl_iface.uses_transform_feedback) {
-    ss_vertex << msl_iface.generate_msl_vertex_transform_feedback_out_struct(ShaderStage::VERTEX);
-  }
 
   /* Class Closing Bracket to end shader global scope. */
   ss_vertex << "};" << std::endl;
@@ -656,7 +643,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   ss_vertex << msl_iface.generate_msl_vertex_entry_stub();
 
   /*** Generate FRAGMENT Stage. ***/
-  if (!msl_iface.uses_transform_feedback) {
+  {
 
     /* Conditional defines. */
     if (msl_iface.use_argument_buffer_for_samplers()) {
@@ -788,14 +775,12 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   vertex_fs << ss_vertex.str();
   vertex_fs.close();
 
-  if (!msl_iface.uses_transform_feedback) {
-    std::ofstream fragment_fs;
-    fragment_fs.open(
-        (std::string(path_cstr) + "/" + std::string(this->name) + "_GeneratedFragmentShader.msl")
-            .c_str());
-    fragment_fs << ss_fragment.str();
-    fragment_fs.close();
-  }
+  std::ofstream fragment_fs;
+  fragment_fs.open(
+      (std::string(path_cstr) + "/" + std::string(this->name) + "_GeneratedFragmentShader.msl")
+          .c_str());
+  fragment_fs << ss_fragment.str();
+  fragment_fs.close();
 
   shader_debug_printf(
       "Vertex Shader Saved to: %s\n",
@@ -804,9 +789,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
   /* Set MSL source NSString's. Required by Metal API. */
   NSString *msl_final_vert = [NSString stringWithUTF8String:ss_vertex.str().c_str()];
-  NSString *msl_final_frag = (msl_iface.uses_transform_feedback) ?
-                                 (@"") :
-                                 ([NSString stringWithUTF8String:ss_fragment.str().c_str()]);
+  NSString *msl_final_frag = [NSString stringWithUTF8String:ss_fragment.str().c_str()];
 
   this->shader_source_from_msl(msl_final_vert, msl_final_frag);
 
@@ -1364,10 +1347,6 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
       max_tex_bind_index = max_ii(max_tex_bind_index, msl_image.slot);
     }
   }
-
-  /* Transform feedback. */
-  uses_transform_feedback = (create_info_->tf_type_ != GPU_SHADER_TFB_NONE) &&
-                            (create_info_->tf_names_.is_empty() == false);
 }
 
 bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
@@ -1444,12 +1423,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
 
   /* Generate function entry point signature w/ resource bindings and inputs. */
   out << "vertex ";
-  if (this->uses_transform_feedback) {
-    out << "void ";
-  }
-  else {
-    out << get_stage_class_name(ShaderStage::VERTEX) << "::VertexOut ";
-  }
+  out << get_stage_class_name(ShaderStage::VERTEX) << "::VertexOut ";
 #ifndef NDEBUG
   out << "vertex_function_entry_" << parent_shader_.name_get() << "(\n\t";
 #else
@@ -1497,14 +1471,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
   out << "if(is_function_constant_defined(MTL_global_pointsize)){ output.pointsize = "
          "(MTL_global_pointsize > 0.0)?MTL_global_pointsize:output.pointsize; }"
       << std::endl;
-
-  /* Populate transform feedback buffer. */
-  if (this->uses_transform_feedback) {
-    out << this->generate_msl_vertex_output_tf_population();
-  }
-  else {
-    out << "\treturn output;" << std::endl;
-  }
+  out << "\treturn output;" << std::endl;
   out << "}";
   return out.str();
 }
@@ -1775,14 +1742,6 @@ std::string MSLGeneratorInterface::generate_msl_vertex_inputs_string()
 
   this->generate_msl_uniforms_input_string(out, ShaderStage::VERTEX, is_first_parameter);
 
-  /* Transform feedback buffer binding. */
-  if (this->uses_transform_feedback) {
-    out << parameter_delimiter(is_first_parameter) << "\n\tdevice "
-        << get_stage_class_name(ShaderStage::VERTEX)
-        << "::VertexOut_TF* "
-           "transform_feedback_results[[buffer(MTL_transform_feedback_buffer_index)]]";
-  }
-
   /* Generate texture signatures. */
   this->generate_msl_textures_input_string(out, ShaderStage::VERTEX, is_first_parameter);
 
@@ -1994,9 +1953,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
   out << "typedef struct {" << std::endl;
 
   /* If we use GL position, our standard output variable will be mapped to '_default_position_'.
-   * Otherwise, we use the FIRST element in the output array.
-   * If transform feedback is enabled, we do not need to output position, unless it
-   * is explicitly specified as a tf output. */
+   * Otherwise, we use the FIRST element in the output array. */
   bool first_attr_is_position = false;
   if (this->uses_gl_Position) {
 
@@ -2008,17 +1965,15 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
     out << ";" << std::endl;
   }
   else {
-    if (!this->uses_transform_feedback) {
-      /* Use first output element for position. */
-      BLI_assert(this->vertex_output_varyings.is_empty() == false);
-      BLI_assert(this->vertex_output_varyings[0].type == "vec4");
+    /* Use first output element for position. */
+    BLI_assert(this->vertex_output_varyings.is_empty() == false);
+    BLI_assert(this->vertex_output_varyings[0].type == "vec4");
 
-      /* Use invariance if available. See above for detail. */
-      out << "\tfloat4 " << this->vertex_output_varyings[0].name << " [[position]];";
-      out << " [[invariant]]";
-      out << ";" << std::endl;
-      first_attr_is_position = true;
-    }
+    /* Use invariance if available. See above for detail. */
+    out << "\tfloat4 " << this->vertex_output_varyings[0].name << " [[position]];";
+    out << " [[invariant]]";
+    out << ";" << std::endl;
+    first_attr_is_position = true;
   }
 
   /* Generate other vertex output members. */
@@ -2108,85 +2063,6 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
   }
 
   out << "} VertexOut;" << std::endl << std::endl;
-
-  return out.str();
-}
-
-std::string MSLGeneratorInterface::generate_msl_vertex_transform_feedback_out_struct(
-    ShaderStage shader_stage)
-{
-  BLI_assert(shader_stage == ShaderStage::VERTEX || shader_stage == ShaderStage::FRAGMENT);
-  UNUSED_VARS_NDEBUG(shader_stage);
-  std::stringstream out;
-  vertex_output_varyings_tf.clear();
-
-  out << "typedef struct {" << std::endl;
-
-  /* If we use GL position, our standard output variable will be mapped to '_default_position_'.
-   * Otherwise, we use the FIRST element in the output array -- If transform feedback is enabled,
-   * we do not need to output position */
-  bool first_attr_is_position = false;
-  if (this->uses_gl_Position) {
-
-    if (parent_shader_.has_transform_feedback_varying("gl_Position")) {
-      out << "\tfloat4 pos [[position]];" << std::endl;
-      vertex_output_varyings_tf.append({.type = "vec4",
-                                        .name = "gl_Position",
-                                        .interpolation_qualifier = "",
-                                        .is_array = false,
-                                        .array_elems = 1});
-    }
-  }
-  else {
-    if (!this->uses_transform_feedback) {
-      /* Use first output element for position */
-      BLI_assert(this->vertex_output_varyings.is_empty() == false);
-      BLI_assert(this->vertex_output_varyings[0].type == "vec4");
-      first_attr_is_position = true;
-    }
-  }
-
-  /* Generate other vertex outputs. */
-  bool skip_first_index = first_attr_is_position;
-  for (const MSLVertexOutputAttribute &v_out : this->vertex_output_varyings) {
-
-    /* Skip first index if used for position. */
-    if (skip_first_index) {
-      skip_first_index = false;
-      continue;
-    }
-
-    if (!parent_shader_.has_transform_feedback_varying(v_out.name)) {
-      continue;
-    }
-    vertex_output_varyings_tf.append(v_out);
-
-    if (v_out.is_array) {
-      /* TODO(Metal): Support array of matrix types if required. */
-      for (int i = 0; i < v_out.array_elems; i++) {
-        out << "\t" << v_out.type << " " << v_out.name << i
-            << v_out.get_mtl_interpolation_qualifier() << ";" << std::endl;
-      }
-    }
-    else {
-      /* Matrix types need to be expressed as their vector sub-components. */
-      if (is_matrix_type(v_out.type)) {
-        BLI_assert(v_out.get_mtl_interpolation_qualifier() == " [[flat]]" &&
-                   "Matrix varying types must have [[flat]] interpolation");
-        std::string subtype = get_matrix_subtype(v_out.type);
-        for (int elem = 0; elem < get_matrix_location_count(v_out.type); elem++) {
-          out << "\t" << subtype << " __matrix_" << v_out.name << elem
-              << v_out.get_mtl_interpolation_qualifier() << ";" << std::endl;
-        }
-      }
-      else {
-        out << "\t" << v_out.type << " " << v_out.name << v_out.get_mtl_interpolation_qualifier()
-            << ";" << std::endl;
-      }
-    }
-  }
-
-  out << "} VertexOut_TF;" << std::endl << std::endl;
 
   return out.str();
 }
@@ -2499,9 +2375,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
       }
       else {
         /* If we are not using gl_Position, first vertex output is used for position.
-         * Ensure it is vec4. If transform feedback is enabled, we do not need position. */
-        if (!this->uses_gl_Position && output_id == 0 && !this->uses_transform_feedback) {
-
+         * Ensure it is vec4. */
+        if (!this->uses_gl_Position && output_id == 0) {
           out << "\toutput." << v_out.instance_name << "_" << v_out.name << " = to_vec4("
               << shader_stage_inst_name << "." << v_out.name << ");" << std::endl;
 
@@ -2510,7 +2385,6 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
               << v_out.name << ".y;" << std::endl;
         }
         else {
-
           /* Assign vertex output. */
           out << "\toutput." << v_out.instance_name << "_" << v_out.name << " = "
               << shader_stage_inst_name << ".";
@@ -2524,25 +2398,6 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
       }
     }
     output_id++;
-  }
-  out << std::endl;
-  return out.str();
-}
-
-/* Copy desired output varyings into transform feedback structure */
-std::string MSLGeneratorInterface::generate_msl_vertex_output_tf_population()
-{
-  static const char *shader_stage_inst_name = get_shader_stage_instance_name(ShaderStage::VERTEX);
-  std::stringstream out;
-  out << "\t/* Copy Vertex TF Outputs into transform feedback buffer */" << std::endl;
-
-  /* Populate output vertex variables */
-  /* TODO(Metal): Currently do not need to support output matrix types etc; but may need to
-   * verify for other configurations if these occur in any cases. */
-  for (int v_output = 0; v_output < this->vertex_output_varyings_tf.size(); v_output++) {
-    out << "transform_feedback_results[gl_VertexID]."
-        << this->vertex_output_varyings_tf[v_output].name << " = " << shader_stage_inst_name << "."
-        << this->vertex_output_varyings_tf[v_output].name << ";" << std::endl;
   }
   out << std::endl;
   return out.str();

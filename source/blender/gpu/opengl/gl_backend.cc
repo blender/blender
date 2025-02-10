@@ -590,7 +590,6 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &ssbo_alignment);
   GCaps.storage_buffer_alignment = size_t(ssbo_alignment);
 
-  GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
                                epoxy_has_gl_extension("GL_ARB_texture_view");
   GCaps.stencil_export_support = epoxy_has_gl_extension("GL_ARB_shader_stencil_export");

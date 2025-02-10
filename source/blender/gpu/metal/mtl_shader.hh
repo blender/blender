@@ -84,8 +84,6 @@ struct MTLRenderPipelineStateInstance {
   int base_storage_buffer_index;
   /* buffer bind slot used for null attributes (-1 if not needed). */
   int null_attribute_buffer_index;
-  /* buffer bind used for transform feedback output buffer. */
-  int transform_feedback_buffer_index;
   /* Topology class. */
   MTLPrimitiveTopologyClass prim_type;
 
@@ -172,16 +170,6 @@ class MTLShader : public Shader {
  private:
   /* Context Handle. */
   MTLContext *context_ = nullptr;
-
-  /** Transform Feedback. */
-  /* Transform feedback mode. */
-  eGPUShaderTFBType transform_feedback_type_ = GPU_SHADER_TFB_NONE;
-  /* Transform feedback outputs written to TFB buffer. */
-  blender::Vector<std::string> tf_output_name_list_;
-  /* Whether transform feedback is currently active. */
-  bool transform_feedback_active_ = false;
-  /* Vertex buffer to write transform feedback data into. */
-  VertBuf *transform_feedback_vertbuf_ = nullptr;
 
   /** Shader source code. */
   MTLShaderBuilder *shd_builder_ = nullptr;
@@ -294,11 +282,6 @@ class MTLShader : public Shader {
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
-  void transform_feedback_names_set(Span<const char *> name_list,
-                                    const eGPUShaderTFBType geom_type) override;
-  bool transform_feedback_enable(VertBuf *buf) override;
-  void transform_feedback_disable() override;
-
   void bind() override;
   void unbind() override;
 
@@ -335,9 +318,6 @@ class MTLShader : public Shader {
   {
     return compute_pso_common_state_;
   }
-  /* Transform Feedback. */
-  VertBuf *get_transform_feedback_active_buffer();
-  bool has_transform_feedback_varying(std::string str);
 
  private:
   /* Generate MSL shader from GLSL source. */

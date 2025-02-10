@@ -522,7 +522,6 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.max_work_group_size[1] = max_threads_per_threadgroup_per_dim;
   GCaps.max_work_group_size[2] = max_threads_per_threadgroup_per_dim;
 
-  GCaps.transform_feedback_support = true;
   GCaps.stencil_export_support = true;
 
   /* OPENGL Related workarounds -- none needed for Metal. */

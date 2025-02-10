@@ -25,7 +25,7 @@ class GPULogParser;
 class Context;
 
 /* Set to 1 to log the full source of shaders that fail to compile. */
-#define DEBUG_LOG_SHADER_SRC_ON_ERROR 0
+#define DEBUG_LOG_SHADER_SRC_ON_ERROR 1
 
 /**
  * Compilation is done on a list of GLSL sources. This list contains placeholders that should be
@@ -97,11 +97,6 @@ class Shader {
    *
    * See `GPU_shader_warm_cache(..)` in `GPU_shader.hh` for more information. */
   virtual void warm_cache(int limit) = 0;
-
-  virtual void transform_feedback_names_set(Span<const char *> name_list,
-                                            eGPUShaderTFBType geom_type) = 0;
-  virtual bool transform_feedback_enable(VertBuf *) = 0;
-  virtual void transform_feedback_disable() = 0;
 
   virtual void bind() = 0;
   virtual void unbind() = 0;

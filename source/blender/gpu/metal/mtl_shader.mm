@@ -318,9 +318,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
   else {
     /* Vertex/Fragment path. */
     BLI_assert([vertex_function_name_ length] > 0);
-    if (transform_feedback_type_ == GPU_SHADER_TFB_NONE) {
-      BLI_assert([fragment_function_name_ length] > 0);
-    }
+    BLI_assert([fragment_function_name_ length] > 0);
     BLI_assert([shd_builder_->msl_source_vert_ length] > 0);
   }
 
@@ -360,13 +358,6 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
                               ((src_stage == ShaderStage::COMPUTE) ?
                                    shd_builder_->msl_source_compute_ :
                                    shd_builder_->msl_source_frag_);
-
-      /* Transform feedback, skip compilation. */
-      if (src_stage == ShaderStage::FRAGMENT && (transform_feedback_type_ != GPU_SHADER_TFB_NONE))
-      {
-        shader_library_frag_ = nil;
-        break;
-      }
 
       /* Concatenate common source. */
       NSString *str = [NSString stringWithUTF8String:datatoc_mtl_shader_common_msl];
@@ -471,33 +462,6 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
   delete shd_builder_;
   shd_builder_ = nullptr;
   return true;
-}
-
-void MTLShader::transform_feedback_names_set(Span<const char *> name_list,
-                                             const eGPUShaderTFBType geom_type)
-{
-  tf_output_name_list_.clear();
-  for (int i = 0; i < name_list.size(); i++) {
-    tf_output_name_list_.append(std::string(name_list[i]));
-  }
-  transform_feedback_type_ = geom_type;
-}
-
-bool MTLShader::transform_feedback_enable(blender::gpu::VertBuf *buf)
-{
-  BLI_assert(transform_feedback_type_ != GPU_SHADER_TFB_NONE);
-  BLI_assert(buf);
-  transform_feedback_active_ = true;
-  transform_feedback_vertbuf_ = buf;
-  BLI_assert(static_cast<MTLVertBuf *>(transform_feedback_vertbuf_)->get_usage_type() ==
-             GPU_USAGE_DEVICE_ONLY);
-  return true;
-}
-
-void MTLShader::transform_feedback_disable()
-{
-  transform_feedback_active_ = false;
-  transform_feedback_vertbuf_ = nullptr;
 }
 
 /** \} */
@@ -1138,25 +1102,6 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
                         type:MTLDataTypeInt
                     withName:@"MTL_storage_buffer_base_index"];
 
-    /* Transform feedback constant.
-     * Ensure buffer is placed after existing buffers, including default buffers. */
-    int MTL_transform_feedback_buffer_index = -1;
-    if (this->transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
-      /* If using argument buffers, insert index after argument buffer index. Otherwise, insert
-       * after uniform buffer bindings. */
-      MTL_transform_feedback_buffer_index =
-          MTL_uniform_buffer_base_index +
-          ((mtl_interface->uses_argument_buffer_for_samplers()) ?
-               (mtl_interface->get_argument_buffer_bind_index(ShaderStage::VERTEX) + 1) :
-               (mtl_interface->get_max_buffer_index() + 2));
-    }
-
-    if (this->transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
-      [values setConstantValue:&MTL_transform_feedback_buffer_index
-                          type:MTLDataTypeInt
-                      withName:@"MTL_transform_feedback_buffer_index"];
-    }
-
     /* Clipping planes. */
     int MTL_clip_distances_enabled = (pipeline_descriptor.clipping_plane_enable_mask > 0) ? 1 : 0;
 
@@ -1226,31 +1171,24 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
       }
     }
 
-    /* If transform feedback is used, Vertex-only stage */
-    if (transform_feedback_type_ == GPU_SHADER_TFB_NONE) {
-      desc.fragmentFunction = [shader_library_frag_ newFunctionWithName:fragment_function_name_
-                                                         constantValues:values
-                                                                  error:&error];
-      if (error) {
-        bool has_error = (
-            [[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
-            NSNotFound);
+    desc.fragmentFunction = [shader_library_frag_ newFunctionWithName:fragment_function_name_
+                                                       constantValues:values
+                                                                error:&error];
+    if (error) {
+      bool has_error = (
+          [[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound);
 
-        const char *errors_c_str = [[error localizedDescription] UTF8String];
-        const StringRefNull source = shd_builder_->glsl_fragment_source_;
+      const char *errors_c_str = [[error localizedDescription] UTF8String];
+      const StringRefNull source = shd_builder_->glsl_fragment_source_;
 
-        MTLLogParser parser;
-        print_log({source}, errors_c_str, "FragShader", has_error, &parser);
+      MTLLogParser parser;
+      print_log({source}, errors_c_str, "FragShader", has_error, &parser);
 
-        /* Only exit out if genuine error and not warning */
-        if (has_error) {
-          return nullptr;
-        }
+      /* Only exit out if genuine error and not warning */
+      if (has_error) {
+        return nullptr;
       }
-    }
-    else {
-      desc.fragmentFunction = nil;
-      desc.rasterizationEnabled = false;
     }
 
     /* Setup pixel format state */
@@ -1300,12 +1238,6 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
                        MTL_MAX_BUFFER_BINDINGS,
                    "UBO and SSBO bindings exceed the fragment bind table limit.");
 
-    /* Transform feedback buffer. */
-    if (transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
-      BLI_assert_msg(MTL_transform_feedback_buffer_index < MTL_MAX_BUFFER_BINDINGS,
-                     "Transform feedback buffer binding exceeds the fragment bind table limit.");
-    }
-
     /* Argument buffer. */
     if (mtl_interface->uses_argument_buffer_for_samplers()) {
       BLI_assert_msg(mtl_interface->get_argument_buffer_bind_index() < MTL_MAX_BUFFER_BINDINGS,
@@ -1344,7 +1276,6 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
     pso_inst->base_uniform_buffer_index = MTL_uniform_buffer_base_index;
     pso_inst->base_storage_buffer_index = MTL_storage_buffer_base_index;
     pso_inst->null_attribute_buffer_index = (using_null_buffer) ? null_buffer_index : -1;
-    pso_inst->transform_feedback_buffer_index = MTL_transform_feedback_buffer_index;
     pso_inst->prim_type = prim_type;
 
     pso_inst->reflection_data_available = (reflection_data != nil);
@@ -1610,30 +1541,6 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
     return compute_pso_instance;
   }
 }
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name SSBO-vertex-fetch-mode attribute control.
- * \{ */
-
-blender::gpu::VertBuf *MTLShader::get_transform_feedback_active_buffer()
-{
-  if (transform_feedback_type_ == GPU_SHADER_TFB_NONE || !transform_feedback_active_) {
-    return nullptr;
-  }
-  return transform_feedback_vertbuf_;
-}
-
-bool MTLShader::has_transform_feedback_varying(std::string str)
-{
-  if (this->transform_feedback_type_ == GPU_SHADER_TFB_NONE) {
-    return false;
-  }
-
-  return (std::find(tf_output_name_list_.begin(), tf_output_name_list_.end(), str) !=
-          tf_output_name_list_.end());
-}
-
 /** \} */
 
 /* Since this is going to be compiling shaders in a multi-threaded fashion we

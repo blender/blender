@@ -121,7 +121,6 @@
  * Uniform buffers                          <-- MTL_uniform_buffer_base_index+1
  * Storage buffers                          <-- MTL_storage_buffer_base_index
  * Samplers/argument buffer table           <-- last buffer + 1
- * Transform feedback buffer                <-- MTL_transform_feedback_buffer_index ~last_buffer+2
  *
  * Up to a maximum of 31 bindings.
  */
@@ -351,8 +350,6 @@ class MSLGeneratorInterface {
    * Final shader uses the intersection between the two sets. */
   blender::Vector<MSLVertexOutputAttribute> fragment_input_varyings;
   blender::Vector<MSLFragmentOutputAttribute> fragment_outputs;
-  /* Transform feedback interface. */
-  blender::Vector<MSLVertexOutputAttribute> vertex_output_varyings_tf;
   /* Clip Distances. */
   blender::Vector<char> clip_distances;
   /* Max bind IDs. */
@@ -378,7 +375,6 @@ class MSLGeneratorInterface {
   bool uses_gl_FragStencilRefARB;
   bool uses_gpu_layer;
   bool uses_gpu_viewport_index;
-  bool uses_transform_feedback;
   bool uses_barycentrics;
   /* Compute shader global variables. */
   bool uses_gl_GlobalInvocationID;
@@ -426,7 +422,6 @@ class MSLGeneratorInterface {
   std::string generate_msl_uniform_structs(ShaderStage shader_stage);
   std::string generate_msl_vertex_in_struct();
   std::string generate_msl_vertex_out_struct(ShaderStage shader_stage);
-  std::string generate_msl_vertex_transform_feedback_out_struct(ShaderStage shader_stage);
   std::string generate_msl_fragment_struct(bool is_input);
   std::string generate_msl_vertex_inputs_string();
   std::string generate_msl_fragment_inputs_string();
@@ -440,7 +435,6 @@ class MSLGeneratorInterface {
   std::string generate_msl_uniform_block_population(ShaderStage stage);
   std::string generate_msl_vertex_attribute_input_population();
   std::string generate_msl_vertex_output_population();
-  std::string generate_msl_vertex_output_tf_population();
   std::string generate_msl_fragment_input_population();
   std::string generate_msl_fragment_output_population();
   std::string generate_msl_uniform_undefs(ShaderStage stage);

@@ -714,31 +714,6 @@ bool VKShader::finalize_descriptor_set_layouts(VKDevice &vk_device,
   return vk_descriptor_set_layout_ != VK_NULL_HANDLE;
 }
 
-/* -------------------------------------------------------------------- */
-/** \name Transform feedback
- *
- * Not supported in the vulkan backend.
- *
- * \{ */
-
-void VKShader::transform_feedback_names_set(Span<const char *> /*name_list*/,
-                                            eGPUShaderTFBType /*geom_type*/)
-{
-  BLI_assert_unreachable();
-}
-
-bool VKShader::transform_feedback_enable(VertBuf *)
-{
-  return false;
-}
-
-void VKShader::transform_feedback_disable()
-{
-  BLI_assert_unreachable();
-}
-
-/** \} */
-
 void VKShader::bind()
 {
   /* Intentionally empty. Binding of the pipeline are done just before drawing/dispatching.

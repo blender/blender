@@ -21,9 +21,7 @@ namespace blender::gpu {
 
 class MTLVertBuf : public VertBuf {
   friend class gpu::MTLTexture; /* For buffer texture. */
-  friend class MTLShader;       /* For transform feedback. */
   friend class MTLBatch;
-  friend class MTLContext;    /* For transform feedback. */
   friend class MTLStorageBuf; /* For bind as SSBO resource access and copy sub. */
 
  private:
