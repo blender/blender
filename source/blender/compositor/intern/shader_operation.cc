@@ -9,7 +9,6 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_customdata_types.h"
 
@@ -22,7 +21,6 @@
 #include "gpu_shader_create_info.hh"
 
 #include "NOD_derived_node_tree.hh"
-#include "NOD_node_declaration.hh"
 
 #include "COM_context.hh"
 #include "COM_pixel_operation.hh"
@@ -118,12 +116,11 @@ void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
   ShaderOperation *operation = static_cast<ShaderOperation *>(thunk);
   operation->material_ = material;
   for (DNode node : operation->compile_unit_) {
-    ShaderNode *shader_node = node->typeinfo->get_compositor_shader_node(node);
-    operation->shader_nodes_.add_new(node, std::unique_ptr<ShaderNode>(shader_node));
+    operation->shader_nodes_.add_new(node, std::make_unique<ShaderNode>(node));
 
     operation->link_node_inputs(node);
 
-    shader_node->compile(material);
+    operation->shader_nodes_.lookup(node)->compile(material);
 
     operation->populate_results_for_node(node);
   }

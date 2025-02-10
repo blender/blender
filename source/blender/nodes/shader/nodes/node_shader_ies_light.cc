@@ -19,7 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .min(0.0f)
       .max(1000000.0f)
-      .description("Strength of the light source");
+      .description("Strength of the light source")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
   b.add_output<decl::Float>("Fac");
 }
 
@@ -56,8 +57,13 @@ void register_node_type_sh_tex_ies()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_IES, "IES Texture", NODE_CLASS_TEXTURE);
+  sh_node_type_base(&ntype, "ShaderNodeTexIES", SH_NODE_TEX_IES);
+  ntype.ui_name = "IES Texture";
+  ntype.ui_description =
+      "Match real world lights with IES files, which store the directional intensity distribution "
+      "of light sources";
   ntype.enum_name_legacy = "TEX_IES";
+  ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_ies;
   ntype.initfunc = file_ns::node_shader_init_tex_ies;

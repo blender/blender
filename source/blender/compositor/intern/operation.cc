@@ -7,7 +7,6 @@
 
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
 
 #include "COM_context.hh"
 #include "COM_conversion_operation.hh"
@@ -79,7 +78,7 @@ Domain Operation::compute_domain()
     }
 
     /* An input that skips operation domain realization can't be a domain input. */
-    if (!descriptor.realization_options.realize_on_operation_domain) {
+    if (descriptor.realization_mode != InputRealizationMode::OperationDomain) {
       continue;
     }
 

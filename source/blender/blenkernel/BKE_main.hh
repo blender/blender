@@ -296,7 +296,7 @@ struct Main {
  * \note Always generate a non-global Main, use #BKE_blender_globals_main_replace to put a newly
  * created one in `G_MAIN`.
  */
-Main *BKE_main_new(void);
+Main *BKE_main_new();
 /**
  * Initialize a Main data-base.
  *
@@ -600,8 +600,8 @@ int set_listbasepointers(Main *bmain, ListBase *lb[]);
    ((main)->versionfile == (ver) && (main)->subversionfile <= (subver)))
 
 #define LIBRARY_VERSION_FILE_ATLEAST(lib, ver, subver) \
-  ((lib)->runtime.versionfile > (ver) || \
-   ((lib)->runtime.versionfile == (ver) && (lib)->runtime.subversionfile >= (subver)))
+  ((lib)->runtime->versionfile > (ver) || \
+   ((lib)->runtime->versionfile == (ver) && (lib)->runtime->subversionfile >= (subver)))
 
 /**
  * The size of thumbnails (optionally) stored in the `.blend` files header.

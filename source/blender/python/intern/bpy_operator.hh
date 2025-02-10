@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 extern PyTypeObject pyop_base_Type;
 
 #define BPy_OperatorBase_Check(v) (PyObject_TypeCheck(v, &pyop_base_Type))

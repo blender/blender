@@ -15,16 +15,11 @@
 
 #include "rna_internal.hh"
 
-#include "DNA_lightprobe_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
-
-#  include "MEM_guardedalloc.h"
 
 #  include "BKE_context.hh"
 #  include "BKE_layer.hh"
@@ -40,12 +35,12 @@
 
 static PointerRNA rna_World_lighting_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_WorldLighting, ptr->owner_id);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_WorldLighting, ptr->owner_id);
 }
 
 static PointerRNA rna_World_mist_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_WorldMistSettings, ptr->owner_id);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_WorldMistSettings, ptr->owner_id);
 }
 
 static void rna_World_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

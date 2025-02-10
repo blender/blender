@@ -418,9 +418,7 @@ class Array {
     if (size <= InlineBufferCapacity) {
       return inline_buffer_;
     }
-    else {
-      return this->allocate(size);
-    }
+    return this->allocate(size);
   }
 
   T *allocate(int64_t size)

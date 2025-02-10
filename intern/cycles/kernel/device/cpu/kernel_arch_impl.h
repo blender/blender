@@ -24,15 +24,6 @@
 
 #    include "kernel/integrator/init_from_camera.h"
 #    include "kernel/integrator/init_from_bake.h"
-#    include "kernel/integrator/intersect_closest.h"
-#    include "kernel/integrator/intersect_shadow.h"
-#    include "kernel/integrator/intersect_subsurface.h"
-#    include "kernel/integrator/intersect_volume_stack.h"
-#    include "kernel/integrator/shade_background.h"
-#    include "kernel/integrator/shade_light.h"
-#    include "kernel/integrator/shade_shadow.h"
-#    include "kernel/integrator/shade_surface.h"
-#    include "kernel/integrator/shade_volume.h"
 #    include "kernel/integrator/megakernel.h"
 
 #    include "kernel/film/adaptive_sampling.h"
@@ -103,18 +94,7 @@ CCL_NAMESPACE_BEGIN
 
 DEFINE_INTEGRATOR_INIT_KERNEL(init_from_camera)
 DEFINE_INTEGRATOR_INIT_KERNEL(init_from_bake)
-DEFINE_INTEGRATOR_SHADE_KERNEL(intersect_closest)
-DEFINE_INTEGRATOR_KERNEL(intersect_subsurface)
-DEFINE_INTEGRATOR_KERNEL(intersect_volume_stack)
-DEFINE_INTEGRATOR_KERNEL(intersect_dedicated_light)
-DEFINE_INTEGRATOR_SHADE_KERNEL(shade_background)
-DEFINE_INTEGRATOR_SHADE_KERNEL(shade_light)
-DEFINE_INTEGRATOR_SHADE_KERNEL(shade_surface)
-DEFINE_INTEGRATOR_SHADE_KERNEL(shade_volume)
-DEFINE_INTEGRATOR_SHADE_KERNEL(shade_dedicated_light)
 DEFINE_INTEGRATOR_SHADE_KERNEL(megakernel)
-DEFINE_INTEGRATOR_SHADOW_KERNEL(intersect_shadow)
-DEFINE_INTEGRATOR_SHADOW_SHADE_KERNEL(shade_shadow)
 
 /* --------------------------------------------------------------------
  * Shader evaluation.

@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
@@ -33,6 +34,7 @@
 #include "UI_resources.hh"
 
 #include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "view3d_intern.hh"
 

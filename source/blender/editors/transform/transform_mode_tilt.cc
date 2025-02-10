@@ -48,7 +48,7 @@ static void applyTilt(TransInfo *t)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
 
     SNPRINTF(str, "%s %s" BLI_STR_UTF8_DEGREE_SIGN " %s", IFACE_("Tilt:"), &c[0], t->proptext);
 

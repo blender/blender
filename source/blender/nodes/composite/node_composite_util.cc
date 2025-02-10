@@ -6,6 +6,8 @@
  * \ingroup nodes
  */
 
+#include <optional>
+
 #include "BKE_node_runtime.hh"
 
 #include "NOD_socket_search_link.hh"
@@ -28,9 +30,11 @@ void cmp_node_update_default(bNodeTree * /*ntree*/, bNode *node)
   node->runtime->need_exec = 1;
 }
 
-void cmp_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass)
+void cmp_node_type_base(blender::bke::bNodeType *ntype,
+                        std::string idname,
+                        const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(ntype, type, name, nclass);
+  blender::bke::node_type_base(ntype, idname, legacy_type);
 
   ntype->poll = cmp_node_poll_default;
   ntype->updatefunc = cmp_node_update_default;

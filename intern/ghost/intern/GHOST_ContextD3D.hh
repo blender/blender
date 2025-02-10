@@ -22,38 +22,38 @@ class GHOST_ContextD3D : public GHOST_Context {
 
  public:
   GHOST_ContextD3D(bool stereoVisual, HWND hWnd);
-  ~GHOST_ContextD3D();
+  ~GHOST_ContextD3D() override;
 
   /**
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess swapBuffers();
+  GHOST_TSuccess swapBuffers() override;
 
   /**
    * Activates the drawing context of this window.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess activateDrawingContext();
+  GHOST_TSuccess activateDrawingContext() override;
 
   /**
    * Release the drawing context of the calling thread.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess releaseDrawingContext();
+  GHOST_TSuccess releaseDrawingContext() override;
 
   /**
    * Call immediately after new to initialize.  If this fails then immediately delete the object.
    * \return Indication as to whether initialization has succeeded.
    */
-  GHOST_TSuccess initializeDrawingContext();
+  GHOST_TSuccess initializeDrawingContext() override;
 
   /**
    * Updates the drawing context of this window. Needed
    * whenever the window is changed.
    * \return Indication of success.
    */
-  GHOST_TSuccess updateDrawingContext()
+  GHOST_TSuccess updateDrawingContext() override
   {
     return GHOST_kFailure;
   }
@@ -62,14 +62,14 @@ class GHOST_ContextD3D : public GHOST_Context {
    * Checks if it is OK for a remove the native display
    * \return Indication as to whether removal has succeeded.
    */
-  GHOST_TSuccess releaseNativeHandles();
+  GHOST_TSuccess releaseNativeHandles() override;
 
   /**
    * Sets the swap interval for #swapBuffers.
    * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess setSwapInterval(int /*interval*/)
+  GHOST_TSuccess setSwapInterval(int /*interval*/) override
   {
     return GHOST_kFailure;
   }
@@ -79,7 +79,7 @@ class GHOST_ContextD3D : public GHOST_Context {
    * \param intervalOut: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &)
+  GHOST_TSuccess getSwapInterval(int & /*unused*/) override
   {
     return GHOST_kFailure;
   }
@@ -88,7 +88,7 @@ class GHOST_ContextD3D : public GHOST_Context {
    * Gets the OpenGL frame-buffer associated with the OpenGL context
    * \return The ID of an OpenGL frame-buffer object.
    */
-  unsigned int getDefaultFramebuffer()
+  unsigned int getDefaultFramebuffer() override
   {
     return 0;
   }
@@ -107,7 +107,7 @@ class GHOST_ContextD3D : public GHOST_Context {
                                        unsigned int height);
   ID3D11Texture2D *getSharedTexture2D(class GHOST_SharedOpenGLResource *shared_res);
 
-  bool isUpsideDown() const
+  bool isUpsideDown() const override
   {
     return true;
   }

@@ -12,8 +12,6 @@
  * \note This is a slight misuse of gizmo's, since clicking performs no action.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
@@ -188,7 +186,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
       /* Re-topology should always prioritize edge pre-selection.
        * Only pre-select a vertex when the cursor is really close to it. */
       if (eve_test) {
-        BMVert *vert = (BMVert *)eve_test;
+        BMVert *vert = eve_test;
         float vert_p_co[2], vert_co[3];
         const float mval_f[2] = {float(vc.mval[0]), float(vc.mval[1])};
         mul_v3_m4v3(

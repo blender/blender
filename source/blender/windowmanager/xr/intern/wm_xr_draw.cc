@@ -13,6 +13,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -20,10 +21,11 @@
 #include "ED_view3d_offscreen.hh"
 
 #include "GHOST_C-api.h"
+
 #include "GPU_batch_presets.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
-
+#include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
 #include "WM_api.hh"

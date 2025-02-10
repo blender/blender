@@ -21,25 +21,23 @@ void VKUniformBuffer::update(const void *data)
     allocate();
   }
 
-  if (!data_uploaded_ && buffer_.is_mapped()) {
-    buffer_.update_immediately(data);
-  }
-  else {
+  if (data) {
     void *data_copy = MEM_mallocN(size_in_bytes_, __func__);
     memcpy(data_copy, data, size_in_bytes_);
     VKContext &context = *VKContext::get();
     buffer_.update_render_graph(context, data_copy);
+    data_uploaded_ = true;
   }
-  data_uploaded_ = true;
 }
 
 void VKUniformBuffer::allocate()
 {
   buffer_.create(size_in_bytes_,
-                 GPU_USAGE_STATIC,
                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 false);
+                 VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                 VmaAllocationCreateFlags(0));
   debug::object_label(buffer_.vk_handle(), name_);
 }
 

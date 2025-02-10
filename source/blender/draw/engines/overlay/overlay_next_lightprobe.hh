@@ -100,7 +100,7 @@ class LightProbes : Overlay {
         clip_end = show_clipping ? prb->clipend : -1.0;
         call_buffers_.probe_cube_buf.append(data, select_id);
 
-        call_buffers_.ground_line_buf.append(float4(matrix.location()), select_id);
+        call_buffers_.ground_line_buf.append(float4(matrix.location(), 0.0f), select_id);
 
         if (show_influence) {
           LightProbeInstanceBuf &attenuation = (prb->attenuation_type == LIGHTPROBE_SHAPE_BOX) ?

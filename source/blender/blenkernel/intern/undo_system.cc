@@ -27,6 +27,7 @@
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 
@@ -136,7 +137,7 @@ static void undosys_id_ref_store(void * /*user_data*/, UndoRefID *id_ref)
   if (id_ref->ptr) {
     STRNCPY(id_ref->name, id_ref->ptr->name);
     if (id_ref->ptr->lib) {
-      STRNCPY(id_ref->library_filepath_abs, id_ref->ptr->lib->runtime.filepath_abs);
+      STRNCPY(id_ref->library_filepath_abs, id_ref->ptr->lib->runtime->filepath_abs);
     }
     else {
       id_ref->library_filepath_abs[0] = '\0';
@@ -476,8 +477,6 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
                                                const UndoType *ut)
 {
   UNDO_NESTED_ASSERT(false);
-  /* We could detect and clean this up (but it should never happen!). */
-  BLI_assert(ustack->step_init == nullptr);
   if (ut->step_encode_init) {
     undosys_stack_validate(ustack, false);
 
@@ -507,8 +506,6 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
 UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char *name)
 {
   UNDO_NESTED_ASSERT(false);
-  /* We could detect and clean this up (but it should never happen!). */
-  BLI_assert(ustack->step_init == nullptr);
   const UndoType *ut = BKE_undosys_type_from_context(C);
   if (ut == nullptr) {
     return nullptr;

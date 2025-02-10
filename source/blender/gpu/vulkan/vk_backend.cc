@@ -356,6 +356,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.vertex_formats.r8g8b8 = true;
     workarounds.fragment_shader_barycentric = true;
     workarounds.dynamic_rendering = true;
+    workarounds.dynamic_rendering_local_read = true;
     workarounds.dynamic_rendering_unused_attachments = true;
 
     GCaps.render_pass_workaround = true;
@@ -372,6 +373,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
   workarounds.dynamic_rendering = !device.supports_extension(
       VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  workarounds.dynamic_rendering_local_read = !device.supports_extension(
+      VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
   workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   workarounds.logic_ops = !device.physical_device_features_get().logicOp;
@@ -381,6 +384,22 @@ void VKBackend::detect_workarounds(VKDevice &device)
       GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY))
   {
     workarounds.not_aligned_pixel_formats = true;
+  }
+
+  /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel
+   * performance is better when disabled (20%). On Qualcomm devices the improvement can be
+   * substantial (16% on shader_balls.blend).
+   *
+   * `--debug-gpu-vulkan-local-read` can be used to use dynamic rendering local read on any
+   * supported platform.
+   *
+   * TODO: Check if bottleneck is during command building. If so we could fine-tune this after the
+   * device command building landed (T132682).
+   */
+  if ((G.debug & G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ) == 0 &&
+      !GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY))
+  {
+    workarounds.dynamic_rendering_local_read = true;
   }
 
   VkFormatProperties format_properties = {};
@@ -437,7 +456,7 @@ void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_
   dispatch_info.dispatch_node.group_count_x = groups_x_len;
   dispatch_info.dispatch_node.group_count_y = groups_y_len;
   dispatch_info.dispatch_node.group_count_z = groups_z_len;
-  context.render_graph.add_node(dispatch_info);
+  context.render_graph().add_node(dispatch_info);
 }
 
 void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
@@ -450,7 +469,7 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
   dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();
   dispatch_indirect_info.dispatch_indirect_node.offset = 0;
-  context.render_graph.add_node(dispatch_indirect_info);
+  context.render_graph().add_node(dispatch_indirect_info);
 }
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
@@ -465,7 +484,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
   }
 
-  VKContext *context = new VKContext(ghost_window, ghost_context, device.resources);
+  VKContext *context = new VKContext(ghost_window, ghost_context);
   device.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
                                       VKContext::swap_buffers_pre_callback,
@@ -545,23 +564,9 @@ void VKBackend::render_end()
     if (thread_data.rendering_depth == 0) {
       VKContext *context = VKContext::get();
       if (context != nullptr) {
-        context->flush_render_graph();
+        context->flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
       }
-
-      thread_data.resource_pool_next();
-      VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      resource_pool.discard_pool.destroy_discarded_resources(device);
-      resource_pool.reset();
-    }
-  }
-
-  else if (!BLI_thread_is_main()) {
-    /* Foreground rendering using a worker/render thread. In this case we move the resources to the
-     * device discard list and it will be cleared by the main thread. */
-    if (thread_data.rendering_depth == 0) {
-      VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      device.orphaned_data.move_data(resource_pool.discard_pool);
-      resource_pool.reset();
+      device.orphaned_data.destroy_discarded_resources(device);
     }
   }
 }

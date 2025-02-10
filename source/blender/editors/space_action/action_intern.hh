@@ -10,11 +10,13 @@
 
 struct ARegion;
 struct ARegionType;
+struct ListBase;
 struct Object;
 struct Scene;
 struct SpaceAction;
 struct bAnimContext;
 struct bContext;
+struct wmKeyConfig;
 struct wmOperatorType;
 
 /* internal exports only */

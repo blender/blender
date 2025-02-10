@@ -6,22 +6,20 @@
  * \ingroup spview3d
  */
 
-#include <iostream>
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
-#include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_idprop.hh"
 #include "BKE_instances.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_modifier.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 
@@ -30,15 +28,13 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_rotation.hh"
-#include "BLI_math_vector.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.hh"
+
+#include "MOD_nodes.hh"
 
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_log.hh"
-
-#include "MOD_nodes.hh"
 
 #include "UI_resources.hh"
 
@@ -792,7 +788,7 @@ struct GeometryNodesGizmoGroup {
 
 static std::unique_ptr<NodeGizmos> create_gizmo_node_gizmos(const bNode &gizmo_node)
 {
-  switch (gizmo_node.type) {
+  switch (gizmo_node.type_legacy) {
     case GEO_NODE_GIZMO_LINEAR:
       return std::make_unique<LinearGizmo>();
     case GEO_NODE_GIZMO_DIAL:
@@ -870,7 +866,7 @@ static std::optional<float4x4> find_gizmo_geometry_transform_recursive(
         if (const std::optional<float4x4> m = find_gizmo_geometry_transform_recursive(
                 reference_geometry, gizmo_id, sub_transform))
         {
-          return *m;
+          return m;
         }
       }
     }
@@ -1072,7 +1068,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
                                                   modify_value);
 
                 Main *main = CTX_data_main(C);
-                ED_node_tree_propagate_change(const_cast<bContext *>(C), main, nullptr);
+                BKE_main_ensure_invariants(*main);
                 WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
               };
         }

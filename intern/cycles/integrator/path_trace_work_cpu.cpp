@@ -7,6 +7,10 @@
 #include "device/cpu/kernel.h"
 #include "device/device.h"
 
+#ifdef WITH_CYCLES_DEBUG
+#  include "kernel/film/write.h"
+#endif
+
 #include "kernel/integrator/path_state.h"
 
 #include "integrator/pass_accessor_cpu.h"
@@ -331,10 +335,10 @@ void PathTraceWorkCPU::guiding_init_kernel_globals(void *guiding_field,
   }
 }
 
-void PathTraceWorkCPU::guiding_push_sample_data_to_global_storage(
-    ThreadKernelGlobalsCPU *kg,
-    IntegratorStateCPU *state,
-    const ccl_global float *ccl_restrict render_buffer)
+void PathTraceWorkCPU::guiding_push_sample_data_to_global_storage(ThreadKernelGlobalsCPU *kg,
+                                                                  IntegratorStateCPU *state,
+                                                                  ccl_global float *ccl_restrict
+                                                                      render_buffer)
 {
 #  ifdef WITH_CYCLES_DEBUG
   if (VLOG_WORK_IS_ON) {

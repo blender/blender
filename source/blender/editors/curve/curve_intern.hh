@@ -8,12 +8,21 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 /* internal exports only */
+struct BPoint;
+struct Base;
+struct BezTriple;
+struct Curve;
 struct EditNurb;
 struct GHash;
 struct ListBase;
+struct Nurb;
 struct Object;
+struct View3D;
 struct ViewContext;
+struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperatorType;
 

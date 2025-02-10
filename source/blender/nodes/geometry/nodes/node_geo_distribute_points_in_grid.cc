@@ -6,13 +6,14 @@
 #  include <openvdb/openvdb.h>
 #  include <openvdb/tools/Interpolation.h>
 #  include <openvdb/tools/PointScatter.h>
+
+#  include <algorithm>
 #endif
 
 #include "DNA_node_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_pointcloud.hh"
-#include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 
 #include "NOD_rna_define.hh"
@@ -131,8 +132,7 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
                                      double(spacing.z) / grid.voxelSize().z());
 
   /* Abort if spacing is zero. */
-  const double min_spacing = std::min(voxel_spacing.x(),
-                                      std::min(voxel_spacing.y(), voxel_spacing.z()));
+  const double min_spacing = std::min({voxel_spacing.x(), voxel_spacing.y(), voxel_spacing.z()});
   if (std::abs(min_spacing) < 0.0001) {
     return;
   }
@@ -253,11 +253,12 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     GEO_NODE_DISTRIBUTE_POINTS_IN_GRID,
-                     "Distribute Points in Grid",
-                     NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeDistributePointsInGrid", GEO_NODE_DISTRIBUTE_POINTS_IN_GRID);
+  ntype.ui_name = "Distribute Points in Grid";
+  ntype.ui_description = "Generate points inside a volume grid";
   ntype.enum_name_legacy = "DISTRIBUTE_POINTS_IN_GRID";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   blender::bke::node_type_size(&ntype, 170, 100, 320);
   ntype.declare = node_declare;

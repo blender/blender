@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_generic_span.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 

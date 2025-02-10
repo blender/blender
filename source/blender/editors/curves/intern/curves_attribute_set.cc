@@ -11,7 +11,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_context.hh"
-#include "BKE_report.hh"
 #include "BKE_type_conversions.hh"
 
 #include "WM_api.hh"
@@ -26,15 +25,12 @@
 
 #include "RNA_access.hh"
 
-#include "BLT_translation.hh"
-
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Delete Operator
@@ -97,8 +93,8 @@ static int set_attribute_exec(bContext *C, wmOperator *op)
   Object *active_object = CTX_data_active_object(C);
   Curves &active_curves_id = *static_cast<Curves *>(active_object->data);
 
-  AttributeOwner owner = AttributeOwner::from_id(&active_curves_id.id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
+  AttributeOwner active_owner = AttributeOwner::from_id(&active_curves_id.id);
+  CustomDataLayer *active_attribute = BKE_attributes_active_get(active_owner);
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
   const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
 
@@ -111,6 +107,7 @@ static int set_attribute_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    AttributeOwner owner = AttributeOwner::from_id(&curves_id->id);
     CustomDataLayer *layer = BKE_attributes_active_get(owner);
     if (!layer) {
       continue;

@@ -6,17 +6,12 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 
 #include "DNA_color_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLT_translation.hh"
-
-#include "BKE_node_tree_update.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -56,8 +51,11 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "BKE_colortools.hh"
 #  include "BKE_image.hh"
 #  include "BKE_linestyle.h"
+#  include "BKE_main_invariants.hh"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.hh"
+#  include "BKE_node_legacy_types.hh"
+#  include "BKE_node_tree_update.hh"
 
 #  include "DEG_depsgraph.hh"
 
@@ -71,6 +69,38 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "SEQ_iterator.hh"
 #  include "SEQ_relations.hh"
 #  include "SEQ_thumbnail_cache.hh"
+
+struct SeqCurveMappingUpdateData {
+  Scene *scene;
+  CurveMapping *curve;
+};
+
+static bool seq_update_modifier_curve(Strip *strip, void *user_data)
+{
+  /* Invalidate cache of any strips that have modifiers using this
+   * curve mapping. */
+  SeqCurveMappingUpdateData *data = static_cast<SeqCurveMappingUpdateData *>(user_data);
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
+    if (smd->type == seqModifierType_Curves) {
+      CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
+      if (&cmd->curve_mapping == data->curve) {
+        SEQ_relations_invalidate_cache_preprocessed(data->scene, strip);
+      }
+    }
+  }
+  return true;
+}
+
+static void seq_notify_curve_update(CurveMapping *curve, ID *id)
+{
+  if (id && GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->ed) {
+      SeqCurveMappingUpdateData data{scene, curve};
+      SEQ_for_each_callback(&scene->ed->seqbase, seq_update_modifier_curve, &data);
+    }
+  }
+}
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
@@ -91,7 +121,7 @@ static void rna_CurveMapping_curves_begin(CollectionPropertyIterator *iter, Poin
   CurveMapping *cumap = (CurveMapping *)ptr->data;
 
   rna_iterator_array_begin(
-      iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), 0, nullptr);
+      iter, ptr, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), 0, nullptr);
 }
 
 static void rna_CurveMapping_clip_set(PointerRNA *ptr, bool value)
@@ -141,6 +171,7 @@ static void rna_CurveMapping_tone_update(Main * /*bmain*/, Scene * /*scene*/, Po
     curve_mapping->cur = 3;
   }
 
+  seq_notify_curve_update(curve_mapping, ptr->owner_id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
@@ -201,12 +232,12 @@ static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
         bNode *node;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
-          if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
+          if (ELEM(node->type_legacy, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             if (node->storage == ptr->data) {
               /* all node color ramp properties called 'color_ramp'
                * prepend path from ID to the node
                */
-              PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, node);
+              PointerRNA node_ptr = RNA_pointer_create_discrete(id, &RNA_Node, node);
               std::string node_path = RNA_path_from_ID_to_struct(&node_ptr).value_or("");
               return fmt::format("{}.color_ramp", node_path);
             }
@@ -268,8 +299,8 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
         bNode *node;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
-          if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
-            ramp_ptr = RNA_pointer_create(id, &RNA_ColorRamp, node->storage);
+          if (ELEM(node->type_legacy, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
+            ramp_ptr = RNA_pointer_create_discrete(id, &RNA_ColorRamp, node->storage);
             COLRAMP_GETPATH;
           }
         }
@@ -281,7 +312,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
 
         BKE_linestyle_modifier_list_color_ramps((FreestyleLineStyle *)id, &listbase);
         for (link = (LinkData *)listbase.first; link; link = link->next) {
-          ramp_ptr = RNA_pointer_create(id, &RNA_ColorRamp, link->data);
+          ramp_ptr = RNA_pointer_create_discrete(id, &RNA_ColorRamp, link->data);
           COLRAMP_GETPATH;
         }
         BLI_freelistN(&listbase);
@@ -324,9 +355,9 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
         bNode *node;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
-          if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
+          if (ELEM(node->type_legacy, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             BKE_ntree_update_tag_node_property(ntree, node);
-            ED_node_tree_propagate_change(nullptr, bmain, ntree);
+            BKE_main_ensure_invariants(*bmain, ntree->id);
           }
         }
         break;
@@ -630,11 +661,11 @@ struct Seq_colorspace_cb_data {
  * If property pointer matches one of strip, set `r_seq`,
  * so not all cached images have to be invalidated.
  */
-static bool seq_find_colorspace_settings_cb(Strip *seq, void *user_data)
+static bool strip_find_colorspace_settings_cb(Strip *strip, void *user_data)
 {
   Seq_colorspace_cb_data *cd = (Seq_colorspace_cb_data *)user_data;
-  if (seq->data && &seq->data->colorspace_settings == cd->colorspace_settings) {
-    cd->r_seq = seq;
+  if (strip->data && &strip->data->colorspace_settings == cd->colorspace_settings) {
+    cd->r_seq = strip;
     return false;
   }
   return true;
@@ -687,18 +718,18 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
       }
       else {
         /* Strip colorspace was likely changed. */
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
-        Strip *seq = cb_data.r_seq;
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_find_colorspace_settings_cb, &cb_data);
+        Strip *strip = cb_data.r_seq;
 
-        if (seq) {
-          SEQ_relations_sequence_free_anim(seq);
+        if (strip) {
+          SEQ_relations_sequence_free_anim(strip);
 
-          if (seq->data->proxy && seq->data->proxy->anim) {
-            MOV_close(seq->data->proxy->anim);
-            seq->data->proxy->anim = nullptr;
+          if (strip->data->proxy && strip->data->proxy->anim) {
+            MOV_close(strip->data->proxy->anim);
+            strip->data->proxy->anim = nullptr;
           }
 
-          SEQ_relations_invalidate_cache_raw(scene, seq);
+          SEQ_relations_invalidate_cache_raw(scene, strip);
         }
       }
 
@@ -908,6 +939,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
   RNA_def_property_enum_items(prop, prop_extend_items);
   RNA_def_property_ui_text(prop, "Extend", "Extrapolate the curve or extend it horizontally");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE_LEGACY);
   RNA_def_property_update(prop, 0, "rna_CurveMapping_extend_update");
 
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);

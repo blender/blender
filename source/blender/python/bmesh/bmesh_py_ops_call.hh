@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 struct BPy_BMeshOpFunc {
   PyObject_HEAD /* Required Python macro. */
   const char *opname;

@@ -8,8 +8,6 @@
 
 #include <cstring>
 
-#include "BLI_utildefines.h"
-
 #include "ED_armature.hh"
 #include "ED_curve.hh"
 #include "ED_curves.hh"

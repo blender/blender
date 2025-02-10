@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_string_ref.hh"
 
 struct ID;

@@ -366,7 +366,8 @@ class OUTLINER_MT_liboverride(Menu):
         layout.operator_menu_enum(
             "outliner.liboverride_operation",
             "selection_set",
-            text="Reset").type = 'OVERRIDE_LIBRARY_RESET'
+            text="Reset",
+        ).type = 'OVERRIDE_LIBRARY_RESET'
         layout.operator_menu_enum(
             "outliner.liboverride_operation", "selection_set",
             text="Clear",

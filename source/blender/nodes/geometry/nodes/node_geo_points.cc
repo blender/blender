@@ -5,8 +5,6 @@
 #include "BKE_pointcloud.hh"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_task.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_points_cc {
@@ -16,6 +14,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Count").default_value(1).min(0).description(
       "The number of points to create");
   b.add_input<decl::Vector>("Position")
+      .subtype(PROP_TRANSLATION)
       .default_value(float3(0.0f))
       .supports_field()
       .description("The positions of the new points");
@@ -42,7 +41,7 @@ class PointsFieldContext : public FieldContext {
 
   GVArray get_varray_for_input(const FieldInput &field_input,
                                const IndexMask &mask,
-                               ResourceScope & /*scope*/) const
+                               ResourceScope & /*scope*/) const override
   {
     const bke::IDAttributeFieldInput *id_field_input =
         dynamic_cast<const bke::IDAttributeFieldInput *>(&field_input);
@@ -87,8 +86,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_POINTS, "Points", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodePoints", GEO_NODE_POINTS);
+  ntype.ui_name = "Points";
+  ntype.ui_description = "Generate a point cloud with positions and radii defined by fields";
   ntype.enum_name_legacy = "POINTS";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

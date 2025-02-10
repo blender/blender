@@ -6,6 +6,8 @@
  * \ingroup modifiers
  */
 
+#include "BLI_math_matrix.hh"
+
 #include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 

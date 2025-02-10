@@ -65,10 +65,10 @@ static void bmo_subd_init_shape_info(BMesh *bm, SubDParams *params)
   params->shape_info.totlayer = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY);
 }
 
-typedef void (*subd_pattern_fill_fp)(BMesh *bm,
-                                     BMFace *face,
-                                     BMVert **verts,
-                                     const SubDParams *params);
+using subd_pattern_fill_fp = void (*)(BMesh *bm,
+                                      BMFace *face,
+                                      BMVert **verts,
+                                      const SubDParams *params);
 
 /*
  * NOTE: this is a pattern-based edge subdivider.

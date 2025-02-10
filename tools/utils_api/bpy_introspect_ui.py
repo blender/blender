@@ -177,7 +177,7 @@ _attribute_builder_overrides = {
     "context.gpencil_data.layers": AttributeBuilder_Seq("context.gpencil_data.layers", "layers"),
     "context.object.material_slots": (),
     "context.selected_nodes": (),
-    "context.selected_sequences": (),
+    "context.selected_strips": (),
     "context.space_data.bookmarks": (),
     "context.space_data.text.filepath": "",
     "context.preferences.filepaths.script_directory": "",
@@ -359,7 +359,7 @@ def fake_runtime():
     """Only call this before `draw()` functions."""
 
     # Misc Sub-classes
-    bpy.types.EffectSequence = type("EffectSequence", (), {})
+    bpy.types.EffectStrip = type("EffectStrip", (), {})
 
     # Operator Sub-classes.
     bpy.types.WM_OT_doc_view = type("WM_OT_doc_view", (), {"_prefix": ""})

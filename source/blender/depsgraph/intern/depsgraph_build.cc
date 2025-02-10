@@ -8,13 +8,8 @@
  * Methods for constructing depsgraph.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_time.h"
-#include "BLI_time_utildefines.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
@@ -23,6 +18,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_collection.hh"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 

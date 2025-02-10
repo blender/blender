@@ -71,7 +71,7 @@ def language_menu(args, settings):
             continue
         for po_path in os.listdir(po_dir):
             uid = po_to_uid.get(po_path, None)
-            # print("Checking %s, found uid %s" % (po_path, uid))
+            # print("Checking {:s}, found uid {:s}".format(po_path, uid))
             po_path = os.path.join(po_dir, po_path)
             if uid is not None:
                 po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=po_path, settings=settings)

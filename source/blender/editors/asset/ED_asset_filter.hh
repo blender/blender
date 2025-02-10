@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 #include "BLI_function_ref.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_vector.hh"
@@ -18,6 +20,7 @@
 #include "AS_asset_catalog_tree.hh"
 
 struct AssetLibraryReference;
+struct AssetMetaData;
 struct bContext;
 namespace blender::asset_system {
 class AssetLibrary;

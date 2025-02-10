@@ -22,7 +22,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 
@@ -32,7 +31,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* IDPropertyTemplate is a union in DNA_ID.h */
 
@@ -72,7 +71,7 @@ IDProperty *IDP_NewIDPArray(const blender::StringRef name)
       MEM_callocN(sizeof(IDProperty), "IDProperty prop array"));
   prop->type = IDP_IDPARRAY;
   prop->len = 0;
-  name.copy(prop->name);
+  name.copy_utf8_truncated(prop->name);
 
   return prop;
 }
@@ -384,7 +383,7 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
   }
 
   prop->type = IDP_STRING;
-  name.copy(prop->name);
+  name.copy_utf8_truncated(prop->name);
   prop->flag = short(flags);
 
   return prop;
@@ -1088,7 +1087,7 @@ IDProperty *IDP_New(const char type,
   }
 
   prop->type = type;
-  name.copy(prop->name);
+  name.copy_utf8_truncated(prop->name);
   prop->flag = short(flags);
 
   return prop;
@@ -1469,7 +1468,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)prop->ui_data;
       if (prop->type == IDP_ARRAY) {
         BLO_read_int32_array(
-            reader, ui_data_int->default_array_len, (int **)&ui_data_int->default_array);
+            reader, ui_data_int->default_array_len, (&ui_data_int->default_array));
       }
       else {
         ui_data_int->default_array = nullptr;
@@ -1492,7 +1491,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)prop->ui_data;
       if (prop->type == IDP_ARRAY) {
         BLO_read_int8_array(
-            reader, ui_data_bool->default_array_len, (int8_t **)&ui_data_bool->default_array);
+            reader, ui_data_bool->default_array_len, (&ui_data_bool->default_array));
       }
       else {
         ui_data_bool->default_array = nullptr;
@@ -1505,7 +1504,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)prop->ui_data;
       if (prop->type == IDP_ARRAY) {
         BLO_read_double_array(
-            reader, ui_data_float->default_array_len, (double **)&ui_data_float->default_array);
+            reader, ui_data_float->default_array_len, (&ui_data_float->default_array));
       }
       else {
         ui_data_float->default_array = nullptr;

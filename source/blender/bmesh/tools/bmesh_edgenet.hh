@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 /**
  * Fill in faces from an edgenet made up of boundary and wire edges.
  *

@@ -233,11 +233,14 @@ def operator_value_is_undo(value):
             return False
 
     # return True if its a non window ID type
-    return (isinstance(id_data, bpy.types.ID) and
-            (not isinstance(id_data, (bpy.types.WindowManager,
-                                      bpy.types.Screen,
-                                      bpy.types.Brush,
-                                      ))))
+    return (
+        isinstance(id_data, bpy.types.ID) and
+        (not isinstance(id_data, (
+            bpy.types.WindowManager,
+            bpy.types.Screen,
+            bpy.types.Brush,
+        )))
+    )
 
 
 def operator_path_is_undo(context, data_path):
@@ -842,10 +845,12 @@ doc_id = StringProperty(
 )
 
 data_path_iter = StringProperty(
-    description="The data path relative to the context, must point to an iterable")
+    description="The data path relative to the context, must point to an iterable",
+)
 
 data_path_item = StringProperty(
-    description="The data path from each iterable to the value (int or float)")
+    description="The data path from each iterable to the value (int or float)",
+)
 
 
 class WM_OT_context_collection_boolean_set(Operator):
@@ -1384,36 +1389,40 @@ rna_custom_property_type_items = (
     ('PYTHON', "Python", "Edit a Python value directly, for unsupported property types"),
 )
 
-rna_custom_property_subtype_none_item = ('NONE', n_("Plain Data"), n_("Data values without special behavior"))
+rna_custom_property_subtype_none_item = (
+    'NONE', n_("Plain Data", i18n_contexts.unit), n_("Data values without special behavior")
+)
 
 rna_custom_property_subtype_number_items = (
     rna_custom_property_subtype_none_item,
-    ('PIXEL', n_("Pixel"), n_("A distance on screen")),
-    ('PERCENTAGE', n_("Percentage"), n_("A percentage between 0 and 100")),
-    ('FACTOR', n_("Factor"), n_("A factor between 0.0 and 1.0")),
-    ('ANGLE', n_("Angle"), n_("A rotational value specified in radians")),
-    ('TIME_ABSOLUTE', n_("Time"), n_("Time specified in seconds")),
-    ('DISTANCE', n_("Distance"), n_("A distance between two points")),
-    ('POWER', n_("Power"), ""),
-    ('TEMPERATURE', n_("Temperature"), ""),
+    ('PIXEL', n_("Pixel", i18n_contexts.unit), n_("A distance on screen")),
+    ('PERCENTAGE', n_("Percentage", i18n_contexts.unit), n_("A percentage between 0 and 100")),
+    ('FACTOR', n_("Factor", i18n_contexts.unit), n_("A factor between 0.0 and 1.0")),
+    ('ANGLE', n_("Angle", i18n_contexts.unit), n_("A rotational value specified in radians")),
+    ('TIME_ABSOLUTE', n_("Time", i18n_contexts.unit), n_("Time specified in seconds")),
+    ('DISTANCE', n_("Distance", i18n_contexts.unit), n_("A distance between two points")),
+    ('POWER', n_("Power", i18n_contexts.unit), ""),
+    ('TEMPERATURE', n_("Temperature", i18n_contexts.unit), ""),
 )
 
 rna_custom_property_subtype_vector_items = (
     rna_custom_property_subtype_none_item,
-    ('COLOR', n_("Linear Color"), n_("Color in the linear space")),
-    ('COLOR_GAMMA', n_("Gamma-Corrected Color"), n_("Color in the gamma corrected space")),
-    ('TRANSLATION', n_("Translation"), ""),
-    ('DIRECTION', n_("Direction"), ""),
-    ('VELOCITY', n_("Velocity"), ""),
-    ('ACCELERATION', n_("Acceleration"), ""),
-    ('EULER', n_("Euler Angles"), n_("Euler rotation angles in radians")),
-    ('QUATERNION', n_("Quaternion Rotation"), n_("Quaternion rotation (affects NLA blending)")),
-    ('AXISANGLE', n_("Axis-Angle"), n_("Angle and axis to rotate around")),
-    ('XYZ', n_("XYZ"), ""),
+    ('COLOR', n_("Linear Color", i18n_contexts.unit), n_("Color in the linear space")),
+    ('COLOR_GAMMA', n_("Gamma-Corrected Color", i18n_contexts.unit), n_("Color in the gamma corrected space")),
+    ('TRANSLATION', n_("Translation", i18n_contexts.unit), ""),
+    ('DIRECTION', n_("Direction", i18n_contexts.unit), ""),
+    ('VELOCITY', n_("Velocity", i18n_contexts.unit), ""),
+    ('ACCELERATION', n_("Acceleration", i18n_contexts.unit), ""),
+    ('EULER', n_("Euler Angles", i18n_contexts.unit), n_("Euler rotation angles in radians")),
+    ('QUATERNION', n_("Quaternion Rotation", i18n_contexts.unit), n_("Quaternion rotation (affects NLA blending)")),
+    ('AXISANGLE', n_("Axis-Angle", i18n_contexts.unit), n_("Angle and axis to rotate around")),
+    ('XYZ', n_("XYZ", i18n_contexts.unit), ""),
 )
 
-rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
-                          for item in bpy.types.ID.bl_rna.properties["id_type"].enum_items)
+rna_id_type_items = tuple(
+    (item.identifier, item.name, item.description, item.icon, item.value)
+    for item in bpy.types.ID.bl_rna.properties["id_type"].enum_items
+)
 
 
 class WM_OT_properties_edit(Operator):
@@ -1548,6 +1557,7 @@ class WM_OT_properties_edit(Operator):
     subtype: EnumProperty(
         name="Subtype",
         items=subtype_items_cb,
+        translation_context=i18n_contexts.unit,
     )
 
     # String properties.
@@ -1562,6 +1572,7 @@ class WM_OT_properties_edit(Operator):
     id_type: EnumProperty(
         name="ID Type",
         items=rna_id_type_items,
+        translation_context=i18n_contexts.id_id,
         default='OBJECT',
     )
 
@@ -2681,6 +2692,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     # Used when `type == 'STRIP'`.
     strip_chars: EnumProperty(
         name="Strip Characters",
+        translation_context=i18n_contexts.id_text,
         options={'ENUM_FLAG'},
         items=(
             ('SPACE', "Spaces", ""),
@@ -2738,32 +2750,33 @@ class WM_OT_batch_rename(Operator):
     data_type: EnumProperty(
         name="Type",
         items=(
-            ('OBJECT', "Objects", ""),
-            ('COLLECTION', "Collections", ""),
-            ('MATERIAL', "Materials", ""),
+            ('OBJECT', "Objects", "", 'OBJECT_DATA', 0),
+            ('COLLECTION', "Collections", "", 'OUTLINER_COLLECTION', 1),
+            ('MATERIAL', "Materials", "", 'MATERIAL_DATA', 2),
             None,
             # Enum identifiers are compared with `object.type`.
             # Follow order in "Add" menu.
-            ('MESH', "Meshes", ""),
-            ('CURVE', "Curves", ""),
-            ('META', "Metaballs", ""),
-            ('VOLUME', "Volumes", ""),
-            ('GPENCIL', "Grease Pencils", ""),
-            ('ARMATURE', "Armatures", ""),
-            ('LATTICE', "Lattices", ""),
-            ('LIGHT', "Light", ""),
-            ('LIGHT_PROBE', "Light Probes", ""),
-            ('CAMERA', "Cameras", ""),
-            ('SPEAKER', "Speakers", ""),
+            ('MESH', "Meshes", "", 'MESH_DATA', 3),
+            ('CURVE', "Curves", "", 'CURVE_DATA', 4),
+            ('META', "Metaballs", "", 'META_DATA', 5),
+            ('VOLUME', "Volumes", "", 'VOLUME_DATA', 6),
+            ('GPENCIL', "Grease Pencils", "", 'OUTLINER_DATA_GREASEPENCIL', 7),
+            ('ARMATURE', "Armatures", "", 'ARMATURE_DATA', 8),
+            ('LATTICE', "Lattices", "", 'LATTICE_DATA', 9),
+            ('LIGHT', "Lights", "", 'LIGHT_DATA', 10),
+            ('LIGHT_PROBE', "Light Probes", "", 'OUTLINER_DATA_LIGHTPROBE', 11),
+            ('CAMERA', "Cameras", "", 'CAMERA_DATA', 12),
+            ('SPEAKER', "Speakers", "", 'OUTLINER_DATA_SPEAKER', 13),
             None,
-            ('BONE', "Bones", ""),
-            ('NODE', "Nodes", ""),
-            ('SEQUENCE_STRIP', "Sequence Strips", ""),
-            ('ACTION_CLIP', "Action Clips", ""),
+            ('BONE', "Bones", "", 'BONE_DATA', 14),
+            ('NODE', "Nodes", "", 'NODETREE', 15),
+            ('SEQUENCE_STRIP', "Sequence Strips", "", 'SEQ_SEQUENCER', 16),
+            ('ACTION_CLIP', "Action Clips", "", 'ACTION', 17),
             None,
-            ('SCENE', "Scenes", ""),
-            ('BRUSH', "Brushes", ""),
+            ('SCENE', "Scenes", "", 'SCENE_DATA', 18),
+            ('BRUSH', "Brushes", "", 'BRUSH_DATA', 19),
         ),
+        translation_context=i18n_contexts.id_id,
         description="Type of data to rename",
     )
 
@@ -2832,9 +2845,9 @@ class WM_OT_batch_rename(Operator):
                 return data_type_test
             if data_type == data_type_test:
                 data = (
-                    context.selected_sequences
+                    context.selected_strips
                     if only_selected else
-                    scene.sequence_editor.sequences_all,
+                    scene.sequence_editor.strips_all,
                     "name",
                     iface_("Strip(s)"),
                 )
@@ -3586,8 +3599,12 @@ class WM_MT_region_toggle_pie(Menu):
             text = enum_items[region_type].name
             attr = cls._region_info[region_type]
             value = getattr(space_data, attr)
-            props = pie.operator("wm.context_toggle", text=text, text_ctxt=i18n_contexts.default,
-                                 icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT')
+            props = pie.operator(
+                "wm.context_toggle",
+                text=text,
+                text_ctxt=i18n_contexts.default,
+                icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT',
+            )
             props.data_path = "space_data." + attr
 
     def draw(self, context):

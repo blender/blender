@@ -6,6 +6,8 @@
 
 #include "BLI_vector.hh"
 
+#include "bmesh_class.hh"
+
 /** \file
  * \ingroup bmesh
  */

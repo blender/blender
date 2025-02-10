@@ -6,7 +6,6 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
@@ -17,13 +16,21 @@
 
 #ifdef RNA_RUNTIME
 
-#  include <stddef.h>
+#  include <cstddef>
 
 #  include "DNA_armature_types.h"
 
-#  include "BKE_armature.hh"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_vector.h"
+
+#  include "BKE_armature.hh"
+#  include "BKE_report.hh"
+
+#  include "ED_armature.hh"
+
+#  include "ANIM_bone_collections.hh"
+
+#  include "WM_api.hh"
 
 static void rna_EditBone_align_roll(EditBone *ebo, const float no[3])
 {

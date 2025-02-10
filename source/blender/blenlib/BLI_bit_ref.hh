@@ -17,7 +17,6 @@
  * - Within each #BitInt, the bits are ordered from least to most significant.
  */
 
-#include "BLI_index_range.hh"
 #include "BLI_utildefines.h"
 
 #include <iosfwd>

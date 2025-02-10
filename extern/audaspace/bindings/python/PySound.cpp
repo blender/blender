@@ -233,6 +233,8 @@ Sound_write(Sound* self, PyObject* args, PyObject* kwds)
 				container = CONTAINER_OGG;
 			else if(extension == ".wav")
 				container = CONTAINER_WAV;
+			else if(extension == ".aac")
+				container = CONTAINER_AAC;
 			else
 			{
 				PyErr_SetString(AUDError, invalid_container_error);
@@ -264,6 +266,9 @@ Sound_write(Sound* self, PyObject* args, PyObject* kwds)
 				break;
 			case CONTAINER_WAV:
 				codec = CODEC_PCM;
+				break;
+			case CONTAINER_AAC:
+				codec = CODEC_AAC;
 				break;
 			default:
 				PyErr_SetString(AUDError, "Unknown container, cannot select default codec.");

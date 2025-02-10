@@ -28,8 +28,8 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   USDGenericMeshWriter(const USDExporterContext &ctx);
 
  protected:
-  virtual bool is_supported(const HierarchyContext *context) const override;
-  virtual void do_write(HierarchyContext &context) override;
+  bool is_supported(const HierarchyContext *context) const override;
+  void do_write(HierarchyContext &context) override;
 
   virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) = 0;
   virtual void free_export_mesh(Mesh *mesh);
@@ -64,9 +64,9 @@ class USDMeshWriter : public USDGenericMeshWriter {
   USDMeshWriter(const USDExporterContext &ctx);
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
+  void do_write(HierarchyContext &context) override;
 
-  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
+  Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 
   /**
    * Determine whether we should write skinned mesh or blend shape data

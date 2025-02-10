@@ -7,7 +7,6 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
-#include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -18,9 +17,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
-
-#include <limits>
 
 #include "CLG_log.h"
 #include "testing/testing.h"
@@ -151,7 +147,7 @@ TEST_F(NLASlottedActionTest, assign_slot_to_multiple_strips)
   EXPECT_STREQ(strip1->last_slot_identifier, slot.identifier);
   EXPECT_EQ(slot.idtype, ID_OB);
 
-  /* Assign another slot slot 'manually'. */
+  /* Assign another slot 'manually'. */
   Slot &other_slot = action->slot_add();
   EXPECT_EQ(nla::assign_action_slot(*strip1, &other_slot, cube->id),
             ActionSlotAssignmentResult::OK);

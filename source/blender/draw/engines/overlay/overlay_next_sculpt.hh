@@ -19,6 +19,7 @@
 #include "bmesh.hh"
 
 #include "draw_cache_impl.hh"
+#include "draw_sculpt.hh"
 
 #include "overlay_next_base.hh"
 
@@ -49,7 +50,8 @@ class Sculpts : Overlay {
     show_face_set_ = state.show_sculpt_face_sets();
     show_mask_ = state.show_sculpt_mask();
 
-    enabled_ = state.is_space_v3d() && !state.xray_enabled && !res.is_selection() &&
+    enabled_ = state.is_space_v3d() && !state.is_wire() && !res.is_selection() &&
+               !state.is_depth_only_drawing &&
                ELEM(state.object_mode, OB_MODE_SCULPT_CURVES, OB_MODE_SCULPT) &&
                (show_curves_cage_ || show_face_set_ || show_mask_);
 

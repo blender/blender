@@ -15,7 +15,6 @@
 
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -626,13 +625,13 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
       int i = 0;
       ret = PyList_New(0);
       while ((fcu = BKE_fcurve_find(&adt->drivers, path_full, i++))) {
-        tptr = RNA_pointer_create(id, &RNA_FCurve, fcu);
+        tptr = RNA_pointer_create_discrete(id, &RNA_FCurve, fcu);
         PyList_APPEND(ret, pyrna_struct_CreatePyObject(&tptr));
       }
     }
     else {
       fcu = BKE_fcurve_find(&adt->drivers, path_full, index);
-      tptr = RNA_pointer_create(id, &RNA_FCurve, fcu);
+      tptr = RNA_pointer_create_discrete(id, &RNA_FCurve, fcu);
       ret = pyrna_struct_CreatePyObject(&tptr);
     }
 

@@ -9,10 +9,9 @@
  */
 
 #include "BKE_object.hh"
-#include "BLI_link_utils.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "GPU_batch.hh"
-#include "GPU_capabilities.hh"
 #include "GPU_debug.hh"
 
 #include "draw_debug.hh"
@@ -20,16 +19,6 @@
 #include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_shader_shared.hh"
-
-#include <iomanip>
-#include <sstream>
-
-#if defined(_DEBUG) || defined(WITH_DRAW_DEBUG)
-#  define DRAW_DEBUG
-#else
-/* Uncomment to forcibly enable debug draw in release mode. */
-// #define DRAW_DEBUG
-#endif
 
 namespace blender::draw {
 
@@ -305,7 +294,7 @@ blender::draw::DebugDraw *DRW_debug_get()
 
 void drw_debug_draw()
 {
-#ifdef DRAW_DEBUG
+#ifdef WITH_DRAW_DEBUG
   if (DST.debug == nullptr) {
     return;
   }
@@ -320,7 +309,7 @@ void drw_debug_init()
 
   /* Module should not be used in release builds. */
   /* TODO(@fclem): Hide the functions declarations without using `ifdefs` everywhere. */
-#ifdef DRAW_DEBUG
+#ifdef WITH_DRAW_DEBUG
   /* TODO(@fclem): Convenience for now. Will have to move to #DRWManager. */
   if (DST.debug == nullptr) {
     DST.debug = reinterpret_cast<DRWDebugModule *>(new blender::draw::DebugDraw());
@@ -354,7 +343,7 @@ void DRW_debug_modelmat_reset()
 
 void DRW_debug_modelmat(const float modelmat[4][4])
 {
-#ifdef DRAW_DEBUG
+#ifdef WITH_DRAW_DEBUG
   reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->modelmat_set(modelmat);
 #else
   UNUSED_VARS(modelmat);
@@ -388,7 +377,7 @@ void DRW_debug_m4_as_bbox(const float m[4][4], bool invert, const float color[4]
 
 void DRW_debug_bbox(const BoundBox *bbox, const float color[4])
 {
-#ifdef DRAW_DEBUG
+#ifdef WITH_DRAW_DEBUG
   reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_bbox(*bbox, color);
 #else
   UNUSED_VARS(bbox, color);

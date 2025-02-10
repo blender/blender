@@ -8,4 +8,6 @@
 
 #pragma once
 
+#include <Python.h>
+
 extern PyMethodDef BPY_rna_uilayout_introspect_method_def;

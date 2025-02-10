@@ -10,10 +10,9 @@
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite
  */
 
-#include "DNA_volume_types.h"
 #include "GPU_capabilities.hh"
 
-#include "draw_common.hh"
+#include "draw_manager_profiling.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_pipeline.hh"

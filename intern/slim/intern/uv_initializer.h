@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <stdio.h>
-
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 

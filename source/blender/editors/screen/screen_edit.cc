@@ -15,7 +15,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -659,10 +660,16 @@ void ED_screen_do_listen(bContext *C, const wmNotifier *note)
       }
       break;
     case NC_WINDOW:
+      if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES) {
+        WM_window_decoration_style_apply(win, screen);
+      }
       screen->do_draw = true;
       break;
     case NC_SCREEN:
       if (note->action == NA_EDITED) {
+        if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES) {
+          WM_window_decoration_style_apply(win, screen);
+        }
         screen->do_draw = screen->do_refresh = true;
       }
       break;
@@ -698,6 +705,53 @@ static bool region_poll(const bContext *C,
 }
 
 /**
+ * \return true if any region polling state changed, and an area re-init is needed.
+ */
+bool area_regions_poll(bContext *C, const bScreen *screen, ScrArea *area)
+{
+  bScreen *prev_screen = CTX_wm_screen(C);
+  ScrArea *prev_area = CTX_wm_area(C);
+  ARegion *prev_region = CTX_wm_region(C);
+
+  CTX_wm_screen_set(C, const_cast<bScreen *>(screen));
+  CTX_wm_area_set(C, area);
+
+  bool any_changed = false;
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    const int old_region_flag = region->flag;
+
+    region->flag &= ~RGN_FLAG_POLL_FAILED;
+
+    CTX_wm_region_set(C, region);
+    if (region_poll(C, screen, area, region) == false) {
+      region->flag |= RGN_FLAG_POLL_FAILED;
+    }
+    else if (region->runtime->type && region->runtime->type->on_poll_success) {
+      region->runtime->type->on_poll_success(C, region);
+    }
+
+    if (old_region_flag != region->flag) {
+      any_changed = true;
+
+      /* Enforce complete re-init. */
+      region->v2d.flag &= ~V2D_IS_INIT;
+
+      const bool is_hidden = region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_POLL_FAILED);
+      /* Don't re-init areas, caller is expected to handle that. In fact, this code might actually
+       * run as part of #ED_area_init(). */
+      const bool do_init = false;
+      ED_region_visibility_change_update_ex(C, area, region, is_hidden, do_init);
+    }
+  }
+
+  CTX_wm_screen_set(C, prev_screen);
+  CTX_wm_area_set(C, prev_area);
+  CTX_wm_region_set(C, prev_region);
+
+  return any_changed;
+}
+
+/**
  * \return true if any region polling state changed, and a screen refresh is needed.
  */
 static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *screen)
@@ -710,28 +764,8 @@ static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *scree
 
   bool any_changed = false;
   ED_screen_areas_iter (win, screen, area) {
-    CTX_wm_area_set(C, area);
-
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      const int old_region_flag = region->flag;
-
-      region->flag &= ~RGN_FLAG_POLL_FAILED;
-
-      CTX_wm_region_set(C, region);
-      if (region_poll(C, screen, area, region) == false) {
-        region->flag |= RGN_FLAG_POLL_FAILED;
-      }
-      else if (region->runtime->type && region->runtime->type->on_poll_success) {
-        region->runtime->type->on_poll_success(C, region);
-      }
-
-      if (old_region_flag != region->flag) {
-        any_changed = true;
-
-        /* Enforce complete re-init. */
-        region->v2d.flag &= ~V2D_IS_INIT;
-        ED_region_visibility_change_update(C, area, region);
-      }
+    if (area_regions_poll(C, screen, area)) {
+      any_changed = true;
     }
   }
 
@@ -784,7 +818,7 @@ static void screen_refresh_if_needed(bContext *C, wmWindowManager *wm, wmWindow 
     ED_screen_areas_iter (win, screen, area) {
       /* Set space-type and region callbacks, calls init() */
       /* Sets sub-windows for regions, adds handlers. */
-      ED_area_init(wm, win, area);
+      ED_area_init(C, win, area);
     }
 
     /* wake up animtimer */
@@ -860,6 +894,11 @@ void ED_region_exit(bContext *C, ARegion *region)
 
   WM_event_remove_handlers(C, &region->runtime->handlers);
   WM_event_modal_handler_region_replace(win, region, nullptr);
+
+  /* Stop panel animation in this region if there are any. */
+  LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+    UI_panel_stop_animation(C, panel);
+  }
 
   if (region->regiontype == RGN_TYPE_TEMPORARY) {
     /* This may be a popup region such as a popover or splash screen.
@@ -1279,7 +1318,7 @@ void ED_screen_global_areas_refresh(wmWindow *win)
 {
   /* Don't create global area for child and temporary windows. */
   bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-  if ((win->parent != nullptr) || screen->temp) {
+  if (!WM_window_is_main_top_level(win)) {
     if (win->global_areas.areabase.first) {
       screen->do_refresh = true;
       BKE_screen_area_map_free(&win->global_areas);

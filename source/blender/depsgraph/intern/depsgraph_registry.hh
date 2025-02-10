@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "intern/depsgraph_type.hh"
+#include "BLI_span.hh"
 
 struct Main;
 

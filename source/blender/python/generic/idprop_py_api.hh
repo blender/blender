@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 struct BPy_IDGroup_Iter;
 struct ID;
 struct IDProperty;

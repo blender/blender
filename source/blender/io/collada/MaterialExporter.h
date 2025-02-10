@@ -14,7 +14,7 @@
 #include "COLLADASWLibraryMaterials.h"
 #include "COLLADASWStreamWriter.h"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -22,7 +22,6 @@
 
 #include "ExportSettings.h"
 #include "GeometryExporter.h"
-#include "Materials.h"
 #include "collada_internal.h"
 
 class MaterialsExporter : COLLADASW::LibraryMaterials {

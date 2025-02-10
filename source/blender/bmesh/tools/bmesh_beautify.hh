@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 enum {
   /** Vertices tags must match (special case). */
   VERT_RESTRICT_TAG = (1 << 0),

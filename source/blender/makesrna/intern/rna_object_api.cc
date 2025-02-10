@@ -6,25 +6,17 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
 #include "BLI_kdopbvh.hh"
 #include "BLI_math_geom.h"
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 
 #include "DNA_constraint_types.h"
-#include "DNA_layer_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-
-#include "BKE_layer.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "ED_outliner.hh"
 
@@ -466,7 +458,8 @@ static PointerRNA rna_Object_shape_key_add(
   KeyBlock *kb = nullptr;
 
   if ((kb = BKE_object_shapekey_insert(bmain, ob, name, from_mix))) {
-    PointerRNA keyptr = RNA_pointer_create((ID *)BKE_key_from_object(ob), &RNA_ShapeKey, kb);
+    PointerRNA keyptr = RNA_pointer_create_discrete(
+        (ID *)BKE_key_from_object(ob), &RNA_ShapeKey, kb);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

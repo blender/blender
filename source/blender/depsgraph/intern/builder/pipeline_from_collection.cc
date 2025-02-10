@@ -85,19 +85,20 @@ FromCollectionBuilderPipeline::FromCollectionBuilderPipeline(::Depsgraph *graph,
   const int base_flag = (deg_graph_->mode == DAG_EVAL_RENDER) ? BASE_ENABLED_RENDER :
                                                                 BASE_ENABLED_VIEWPORT;
   for (; base; base = base->next) {
-    if (base->flag & base_flag) {
+    if (!deg_graph_->use_visibility_optimization || (base->flag & base_flag)) {
       ids_.add(&base->object->id);
     }
   }
 }
 
-unique_ptr<DepsgraphNodeBuilder> FromCollectionBuilderPipeline::construct_node_builder()
+std::unique_ptr<DepsgraphNodeBuilder> FromCollectionBuilderPipeline::construct_node_builder()
 {
   return std::make_unique<DepsgraphFromCollectionIDsNodeBuilder>(
       bmain_, deg_graph_, &builder_cache_, ids_);
 }
 
-unique_ptr<DepsgraphRelationBuilder> FromCollectionBuilderPipeline::construct_relation_builder()
+std::unique_ptr<DepsgraphRelationBuilder> FromCollectionBuilderPipeline::
+    construct_relation_builder()
 {
   return std::make_unique<DepsgraphFromCollectionIDsRelationBuilder>(
       bmain_, deg_graph_, &builder_cache_, ids_);

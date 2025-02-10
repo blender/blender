@@ -1309,8 +1309,12 @@ bool BVHMetal::build(Progress &progress,
     if (refit) {
       /* It isn't valid to refit a non-existent BVH, or one which wasn't constructed as dynamic.
        * In such cases, assert in development but try to recover in the wild. */
-      if (params.bvh_type != BVH_TYPE_DYNAMIC || !accel_struct) {
-        assert(false);
+      if (params.bvh_type != BVH_TYPE_DYNAMIC) {
+        assert(!"Can't refit static Metal BVH");
+        refit = false;
+      }
+      else if (!accel_struct) {
+        assert(!"Can't refit non-existing Metal BVH");
         refit = false;
       }
     }

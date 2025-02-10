@@ -8,10 +8,7 @@
 
 #include <algorithm>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -110,6 +107,9 @@ static std::string ensure_weight_attribute_meta_data(Mesh &mesh,
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   using namespace blender;
+  if (mesh->verts_num == 0) {
+    return mesh;
+  }
   Mesh *result;
   BMesh *bm;
   BMIter iter;

@@ -17,6 +17,7 @@ struct Main;
 struct Mesh;
 struct Material;
 struct Object;
+struct OBJImportParams;
 
 namespace blender::io::obj {
 

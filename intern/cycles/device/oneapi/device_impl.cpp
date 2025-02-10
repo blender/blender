@@ -112,7 +112,6 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
 
   max_memory_on_device_ = get_memcapacity();
   init_host_memory();
-  move_texture_to_host = false;
   can_map_host = true;
 
   const char *headroom_str = getenv("CYCLES_ONEAPI_MEMORY_HEADROOM");
@@ -344,11 +343,11 @@ void OneapiDevice::free_host(void *shared_pointer)
   usm_free(device_queue_, shared_pointer);
 }
 
-void OneapiDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void *OneapiDevice::transform_host_to_device_pointer(const void *shared_pointer)
 {
   /* Device and host pointer are in the same address space
    * as we're using Unified Shared Memory. */
-  device_pointer = shared_pointer;
+  return const_cast<void *>(shared_pointer);
 }
 
 void OneapiDevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
@@ -392,6 +391,14 @@ void OneapiDevice::mem_alloc(device_memory &mem)
                  << string_human_readable_size(mem.memory_size()) << ")";
     }
     generic_alloc(mem);
+#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
+    /* Import host_pointer into USM memory for faster host<->device data transfers. */
+    if (mem.type == MEM_READ_WRITE || mem.type == MEM_READ_ONLY) {
+      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+      sycl::ext::oneapi::experimental::prepare_for_device_copy(
+          mem.host_pointer, mem.memory_size(), *queue);
+    }
+#  endif
   }
 }
 
@@ -399,6 +406,34 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
 {
   if (mem.name) {
     VLOG_DEBUG << "OneapiDevice::mem_copy_to: \"" << mem.name << "\", "
+               << string_human_readable_number(mem.memory_size()) << " bytes. ("
+               << string_human_readable_size(mem.memory_size()) << ")";
+  }
+
+  /* After getting runtime errors we need to avoid performing oneAPI runtime operations
+   * because the associated GPU context may be in an invalid state at this point. */
+  if (have_error()) {
+    return;
+  }
+
+  if (mem.type == MEM_GLOBAL) {
+    global_copy_to(mem);
+  }
+  else if (mem.type == MEM_TEXTURE) {
+    tex_copy_to((device_texture &)mem);
+  }
+  else {
+    if (!mem.device_pointer) {
+      generic_alloc(mem);
+    }
+    generic_copy_to(mem);
+  }
+}
+
+void OneapiDevice::mem_move_to_host(device_memory &mem)
+{
+  if (mem.name) {
+    VLOG_DEBUG << "OneapiDevice::mem_move_to_host: \"" << mem.name << "\", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")";
   }
@@ -418,11 +453,7 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
     tex_alloc((device_texture &)mem);
   }
   else {
-    if (!mem.device_pointer) {
-      generic_alloc(mem);
-    }
-
-    generic_copy_to(mem);
+    assert(0);
   }
 }
 
@@ -509,6 +540,12 @@ void OneapiDevice::mem_free(device_memory &mem)
     tex_free((device_texture &)mem);
   }
   else {
+#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
+    if (mem.type == MEM_READ_WRITE || mem.type == MEM_READ_ONLY) {
+      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+      sycl::ext::oneapi::experimental::release_from_device_copy(mem.host_pointer, *queue);
+    }
+#  endif
     generic_free(mem);
   }
 }
@@ -550,7 +587,7 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
         this, name, MEM_READ_ONLY);
     data_ptr->alloc(size);
     data = data_ptr.get();
-    const_mem_map_.insert(ConstMemMap::value_type(name, std::move(data)));
+    const_mem_map_.insert(ConstMemMap::value_type(name, std::move(data_ptr)));
   }
   else {
     data = i->second.get();
@@ -582,6 +619,16 @@ void OneapiDevice::global_alloc(device_memory &mem)
   usm_memcpy(device_queue_, kg_memory_device_, kg_memory_, kg_memory_size_);
 }
 
+void OneapiDevice::global_copy_to(device_memory &mem)
+{
+  if (!mem.device_pointer) {
+    global_alloc(mem);
+  }
+  else {
+    generic_copy_to(mem);
+  }
+}
+
 void OneapiDevice::global_free(device_memory &mem)
 {
   if (mem.device_pointer) {
@@ -594,16 +641,29 @@ void OneapiDevice::tex_alloc(device_texture &mem)
   generic_alloc(mem);
   generic_copy_to(mem);
 
-  /* Resize if needed. Also, in case of resize - allocate in advance for future allocations. */
-  const uint slot = mem.slot;
-  if (slot >= texture_info.size()) {
-    texture_info.resize(slot + 128);
+  {
+    /* Update texture info. */
+    thread_scoped_lock lock(texture_info_mutex);
+    const uint slot = mem.slot;
+    if (slot >= texture_info.size()) {
+      /* Allocate some slots in advance, to reduce amount of re-allocations. */
+      texture_info.resize(slot + 128);
+    }
+    TextureInfo tex_info = mem.info;
+    tex_info.data = (uint64_t)mem.device_pointer;
+    texture_info[slot] = tex_info;
+    need_texture_info = true;
   }
+}
 
-  texture_info[slot] = mem.info;
-  need_texture_info = true;
-
-  texture_info[slot].data = (uint64_t)mem.device_pointer;
+void OneapiDevice::tex_copy_to(device_texture &mem)
+{
+  if (!mem.device_pointer) {
+    tex_alloc(mem);
+  }
+  else {
+    generic_copy_to(mem);
+  }
 }
 
 void OneapiDevice::tex_free(device_texture &mem)
@@ -1007,7 +1067,7 @@ static const int lowest_supported_driver_version_win = 1015730;
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`.*/
 static const int lowest_supported_driver_version_neo = 29550;
 #  else
-static const int lowest_supported_driver_version_neo = 29735;
+static const int lowest_supported_driver_version_neo = 31740;
 #  endif
 
 int parse_driver_build_version(const sycl::device &device)

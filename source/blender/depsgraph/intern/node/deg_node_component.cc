@@ -12,7 +12,6 @@
 #include <cstring> /* required for STREQ later on. */
 
 #include "BLI_ghash.h"
-#include "BLI_hash.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
@@ -47,9 +46,9 @@ ComponentNode::OperationIDKey::OperationIDKey(OperationCode opcode, const char *
 {
 }
 
-string ComponentNode::OperationIDKey::identifier() const
+std::string ComponentNode::OperationIDKey::identifier() const
 {
-  const string codebuf = to_string(int(opcode));
+  const std::string codebuf = std::to_string(int(opcode));
   return "OperationIDKey(" + codebuf + ", " + name + ")";
 }
 
@@ -89,10 +88,10 @@ ComponentNode::~ComponentNode()
   delete operations_map;
 }
 
-string ComponentNode::identifier() const
+std::string ComponentNode::identifier() const
 {
-  const string type_name = type_get_factory(type)->type_name();
-  const string name_part = name[0] ? (string(" '") + name + "'") : "";
+  const std::string type_name = type_get_factory(type)->type_name();
+  const std::string name_part = name[0] ? (std::string(" '") + name + "'") : "";
 
   return "[" + type_name + "]" + name_part + " : " +
          "(affects_visible_id: " + (affects_visible_id ? "true" : "false") + ")";

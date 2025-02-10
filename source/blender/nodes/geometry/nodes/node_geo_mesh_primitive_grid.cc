@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "GEO_mesh_primitive_grid.hh"
 
@@ -60,8 +60,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_GRID, "Grid", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeMeshGrid", GEO_NODE_MESH_PRIMITIVE_GRID);
+  ntype.ui_name = "Grid";
+  ntype.ui_description = "Generate a planar mesh on the XY plane";
   ntype.enum_name_legacy = "MESH_PRIMITIVE_GRID";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

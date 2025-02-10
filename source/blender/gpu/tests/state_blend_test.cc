@@ -9,7 +9,7 @@
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
 #include "GPU_framebuffer.hh"
-#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "BLI_math_vector.hh"
 

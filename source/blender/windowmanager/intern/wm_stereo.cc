@@ -9,8 +9,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "DNA_listBase.h"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -30,7 +28,6 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_immediate.hh"
-#include "GPU_texture.hh"
 #include "GPU_viewport.hh"
 
 #include "WM_api.hh"
@@ -359,7 +356,7 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   uiLayout *col;
 
-  PointerRNA stereo3d_format_ptr = RNA_pointer_create(
+  PointerRNA stereo3d_format_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_Stereo3dDisplay, &s3dd->stereo3d_format);
 
   uiLayoutSetPropSep(layout, true);

@@ -4,10 +4,10 @@
 
 #include <utility>
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_type_conversions.hh"
 
@@ -26,9 +26,11 @@
 
 #include "FN_field.hh"
 
-#include "CLG_log.h"
-
 #include "attribute_access_intern.hh"
+
+#ifndef NDEBUG
+#  include <iostream>
+#endif
 
 namespace blender::bke {
 
@@ -870,7 +872,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     GVArray src = *iter.get();
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
-    attributes.append({std::move(src), {iter.domain, iter.data_type}, std::move(dst)});
+    attributes.append({std::move(src), iter.name, {iter.domain, iter.data_type}, std::move(dst)});
   });
   return attributes;
 }
@@ -1012,12 +1014,12 @@ void copy_attributes(const AttributeAccessor src_attributes,
                      MutableAttributeAccessor dst_attributes)
 {
   BLI_assert(src_attributes.domain_size(src_domain) == dst_attributes.domain_size(dst_domain));
-  return gather_attributes(src_attributes,
-                           src_domain,
-                           dst_domain,
-                           attribute_filter,
-                           IndexMask(src_attributes.domain_size(src_domain)),
-                           dst_attributes);
+  gather_attributes(src_attributes,
+                    src_domain,
+                    dst_domain,
+                    attribute_filter,
+                    IndexMask(src_attributes.domain_size(src_domain)),
+                    dst_attributes);
 }
 
 void copy_attributes_group_to_group(const AttributeAccessor src_attributes,

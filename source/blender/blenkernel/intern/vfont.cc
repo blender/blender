@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -36,6 +35,7 @@
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_vfont.hh"
@@ -49,7 +49,7 @@ static CLG_LogRef LOG = {"bke.vfont"};
 /** \name Prototypes
  * \{ */
 
-static PackedFile *packedfile_new_from_builtin(void);
+static PackedFile *packedfile_new_from_builtin();
 
 /** \} */
 

@@ -6,11 +6,8 @@
  * \ingroup draw
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_string.h"
 
-#include "BKE_editmesh.hh"
 #include "BKE_editmesh_tangent.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_tangent.hh"

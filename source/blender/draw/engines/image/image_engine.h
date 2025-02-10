@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+struct DrawEngineType;
+
 extern DrawEngineType draw_engine_image_type;
 
 #ifdef __cplusplus

@@ -4,6 +4,8 @@
 
 #include "gpu_shader_create_info.hh"
 
+using namespace blender::gpu::shader;
+
 GPU_SHADER_CREATE_INFO(compositor_cryptomatte_pick)
 LOCAL_GROUP_SIZE(16, 16)
 PUSH_CONSTANT(IVEC2, lower_bound)

@@ -6,6 +6,8 @@
  * \ingroup nodes
  */
 
+#include <optional>
+
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 
@@ -47,18 +49,22 @@ static bool sh_fn_poll_default(const blender::bke::bNodeType * /*ntype*/,
   return true;
 }
 
-void sh_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass)
+void sh_node_type_base(blender::bke::bNodeType *ntype,
+                       std::string idname,
+                       const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(ntype, type, name, nclass);
+  blender::bke::node_type_base(ntype, idname, legacy_type);
 
   ntype->poll = sh_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }
 
-void sh_fn_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass)
+void sh_fn_node_type_base(blender::bke::bNodeType *ntype,
+                          std::string idname,
+                          const std::optional<int16_t> legacy_type)
 {
-  sh_node_type_base(ntype, type, name, nclass);
+  sh_node_type_base(ntype, idname, legacy_type);
   ntype->poll = sh_fn_poll_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }
@@ -228,7 +234,7 @@ bool blender::bke::node_supports_active_flag(const bNode *node, int sub_activity
     case NODE_ACTIVE_TEXTURE:
       return node->typeinfo->nclass == NODE_CLASS_TEXTURE;
     case NODE_ACTIVE_PAINT_CANVAS:
-      return ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_ATTRIBUTE);
+      return ELEM(node->type_legacy, SH_NODE_TEX_IMAGE, SH_NODE_ATTRIBUTE);
   }
   return false;
 }
@@ -255,7 +261,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
     else if (!inactivenode && blender::bke::node_supports_active_flag(node, sub_activity)) {
       inactivenode = node;
     }
-    else if (node->type == NODE_GROUP) {
+    else if (node->type_legacy == NODE_GROUP) {
       if (node->flag & NODE_ACTIVE) {
         activegroup = node;
       }
@@ -281,7 +287,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
   if (hasgroup) {
     /* node active texture node in this tree, look inside groups */
     for (bNode *node : ntree->all_nodes()) {
-      if (node->type == NODE_GROUP) {
+      if (node->type_legacy == NODE_GROUP) {
         bNode *tnode = node_get_active((bNodeTree *)node->id, sub_activity);
         if (tnode && ((tnode->flag & sub_activity) || !inactivenode)) {
           return tnode;
@@ -306,7 +312,10 @@ bNode *node_get_active_paint_canvas(bNodeTree *ntree)
 }
 }  // namespace blender::bke
 
-void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node, int *depth_level)
+void ntreeExecGPUNodes(bNodeTreeExec *exec,
+                       GPUMaterial *mat,
+                       bNode *output_node,
+                       const int *depth_level)
 {
   bNodeExec *nodeexec;
   bNode *node;

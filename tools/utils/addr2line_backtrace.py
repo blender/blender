@@ -143,6 +143,21 @@ def argparse_create() -> argparse.ArgumentParser:
         required=False,
     )
     parser.add_argument(
+        "--skip-last",
+        dest="skip_last",
+        type=int,
+        default=0,
+        required=False,
+        help=(
+            "Optionally skip the last N addresses found.\n"
+            "You may want to set this to 1 as the first address\n"
+            "may point to an address that calls the main() function."
+            "\n"
+            "In this case the lookup will fail, taking significantly longer than all other lookups.\n"
+            "Typically values between 1-4 should be used."
+        ),
+    )
+    parser.add_argument(
         "backtraces",
         nargs="*",
         help="Back-trace files to scan for addresses.",
@@ -151,17 +166,54 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def addr2line_for_filedata(
-        exe: str,
-        base_path: str,
-        time_command: bool,
-        jobs: int,
-        backtrace_data: str,
-) -> None:
+def backtraces_extract_from_text(backtrace_data: str) -> set[str]:
     addr_set = set()
     for match in RE_ADDR.finditer(backtrace_data):
         addr = match.group(1)
         addr_set.add(addr)
+    return addr_set
+
+
+def backtraces_extract_from_text_skip_last(
+        backtrace_data: str,
+        skip_last: int,
+) -> tuple[set[str], set[str]]:
+    addr_set = set()
+    addr_list = []
+    for match in RE_ADDR.finditer(backtrace_data):
+        addr = match.group(1)
+        addr_set.add(addr)
+        addr_list.append(addr)
+
+    # Remove the last N items.
+    addr_set_skip = set()
+    for i, addr in enumerate(reversed(addr_list)):
+        if i == skip_last:
+            break
+        # Unlikely but possible, probably too many values are being skipped.
+        if addr in addr_set_skip:
+            skip_last += 1
+            continue
+        addr_set_skip.add(addr)
+        addr_set.remove(addr)
+
+    return addr_set, addr_set_skip
+
+
+def addr2line_for_filedata(
+        exe: str,
+        base_path: str,
+        time_command: bool,
+        skip_last: int,
+        jobs: int,
+        backtrace_data: str,
+) -> None:
+
+    if skip_last == 0:
+        addr_set = backtraces_extract_from_text(backtrace_data)
+        addr_set_skip: set[str] = set()
+    else:
+        addr_set, addr_set_skip = backtraces_extract_from_text_skip_last(backtrace_data, skip_last)
 
     shared_args = exe, base_path, time_command
     if jobs >= len(addr_set):
@@ -179,7 +231,13 @@ def addr2line_for_filedata(
     with multiprocessing.Pool(jobs) as pool:
         for i, result_list in enumerate(pool.imap_unordered(addr2line_fn, addr2line_args), 1):
             for (addr, result) in result_list:
-                progress_output(addr_done, addr_len, "{:d} of {:d}".format(addr_done, addr_len))
+                if addr_set_skip:
+                    skip_text = " (skipped {:d})".format(len(addr_set_skip))
+                else:
+                    skip_text = ""
+                progress_output(addr_done, addr_len, "{:d} of {:d}{:s}".format(addr_done, addr_len, skip_text))
+                del skip_text
+
                 addr_map[addr] = result
                 addr_done += 1
 
@@ -188,6 +246,8 @@ def addr2line_for_filedata(
 
     def re_replace_fn(match: re.Match[str]) -> str:
         addr = match.group(1)
+        if addr in addr_set_skip:
+            return "{:s} ({:s})".format("<SKIP>", addr)
         return "{:s} ({:s})".format(addr_map[addr], addr)
 
     backtrace_data_updated = RE_ADDR.sub(re_replace_fn, backtrace_data)
@@ -221,10 +281,10 @@ def main() -> None:
                 print("Filed to open {!r}, {:s}".format(backtrace_filepath, str(ex)))
                 continue
 
-            addr2line_for_filedata(args.exe, base_path, args.time_command, jobs, bactrace_data)
+            addr2line_for_filedata(args.exe, base_path, args.time_command, args.skip_last, jobs, bactrace_data)
     else:
         bactrace_data = sys.stdin.read()
-        addr2line_for_filedata(args.exe, base_path, args.time_command, jobs, bactrace_data)
+        addr2line_for_filedata(args.exe, base_path, args.time_command, args.skip_last, jobs, bactrace_data)
 
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_ro
 {
 }
 
-AssetCatalogService::AssetCatalogService(read_only_tag) : AssetCatalogService()
+AssetCatalogService::AssetCatalogService(read_only_tag /*unused*/) : AssetCatalogService()
 {
   const_cast<bool &>(is_read_only_) = true;
 }
@@ -495,9 +495,8 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
     return true; /* Writing nothing when there is nothing to write is still a success. */
   }
 
-  const CatalogFilePath cdf_path_to_write = this->find_suitable_cdf_path_for_writing(
-      blend_file_path);
-  catalog_collection_->catalog_definition_file_ = this->construct_cdf_in_memory(cdf_path_to_write);
+  const CatalogFilePath cdf_path_to_write = find_suitable_cdf_path_for_writing(blend_file_path);
+  catalog_collection_->catalog_definition_file_ = construct_cdf_in_memory(cdf_path_to_write);
   this->reload_catalogs();
   return catalog_collection_->catalog_definition_file_->write_to_disk();
 }

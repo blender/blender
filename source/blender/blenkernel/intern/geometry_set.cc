@@ -7,29 +7,19 @@
 #include "BLI_memory_counter.hh"
 #include "BLI_task.hh"
 
-#include "BLT_translation.hh"
-
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
-#include "BKE_pointcloud.hh"
 #include "BKE_volume.hh"
 
-#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
-
-#include "BLI_rand.hh"
-
-#include "MEM_guardedalloc.h"
 
 namespace blender::bke {
 

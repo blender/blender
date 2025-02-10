@@ -9,7 +9,6 @@
 #include "BLI_listbase_wrapper.hh"
 
 #include "DNA_anim_types.h"
-#include "DNA_listBase.h"
 #include "DNA_space_types.h"
 
 #include "BLT_translation.hh"

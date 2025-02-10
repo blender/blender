@@ -25,13 +25,13 @@
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_icons.h"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_main_invariants.hh"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
@@ -50,8 +50,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
-
-#include <cstdio>
 
 /* -------------------------------------------------------------------- */
 /** \name Render Engines
@@ -201,7 +199,7 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
       ntreeCompositUpdateRLayers(scene->nodetree);
     }
   }
-  ED_node_tree_propagate_change(nullptr, bmain, nullptr);
+  BKE_main_ensure_invariants(*bmain);
 
   /* Update #CacheFiles to ensure that procedurals are properly taken into account. */
   LISTBASE_FOREACH (CacheFile *, cachefile, &bmain->cachefiles) {
@@ -268,7 +266,7 @@ static void texture_changed(Main *bmain, Tex *tex)
     if (scene->use_nodes && scene->nodetree) {
       LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
         if (node->id == &tex->id) {
-          ED_node_tag_update_id(&scene->id);
+          blender::ed::space_node::tag_update_id(&scene->id);
         }
       }
     }

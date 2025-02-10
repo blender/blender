@@ -17,8 +17,6 @@
 
 #include "ED_grease_pencil.hh"
 
-#include <iostream>
-
 namespace blender::ed::greasepencil::tests {
 
 struct GreasePencilIDTestContext {

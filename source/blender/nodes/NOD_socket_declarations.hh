@@ -246,7 +246,6 @@ class IDSocketDeclaration : public SocketDeclaration {
    */
   std::function<ID *(const bNode &node)> default_value_fn;
 
- public:
   IDSocketDeclaration(const char *idname);
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;

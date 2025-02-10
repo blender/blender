@@ -15,7 +15,6 @@
 #include <Python.h>
 
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh" /* For #BKE_id_is_in_global_main. */
@@ -25,6 +24,7 @@
 
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
 #include "GPU_viewport.hh"
 

@@ -17,6 +17,7 @@
 
 #include "openjpeg.h"
 
+#include <algorithm>
 #include <cstring>
 
 #define JP2_FILEHEADER_SIZE 12
@@ -417,9 +418,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   }
 
   i = image->numcomps;
-  if (i > 4) {
-    i = 4;
-  }
+  i = std::min<uint>(i, 4);
 
   while (i) {
     i--;
@@ -694,9 +693,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
   switch (parameters->cp_cinema) {
     case OPJ_CINEMA2K_24:
     case OPJ_CINEMA2K_48:
-      if (parameters->numresolution > 6) {
-        parameters->numresolution = 6;
-      }
+      parameters->numresolution = std::min(parameters->numresolution, 6);
       if (!((image->comps[0].w == 2048) || (image->comps[0].h == 1080))) {
         fprintf(stdout,
                 "Image coordinates %u x %u is not 2K compliant.\nJPEG Digital Cinema Profile-3 "

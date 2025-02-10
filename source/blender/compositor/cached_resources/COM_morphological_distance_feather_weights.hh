@@ -11,6 +11,7 @@
 #include "BLI_map.hh"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::compositor {
 
@@ -49,7 +50,6 @@ class MorphologicalDistanceFeatherWeights : public CachedResource {
   Result weights_result;
   Result falloffs_result;
 
- public:
   MorphologicalDistanceFeatherWeights(Context &context, int type, int radius);
 
   ~MorphologicalDistanceFeatherWeights();

@@ -21,18 +21,25 @@ def get_compositor_device_setter_script(execution_device):
 
 
 def get_arguments(filepath, output_filepath, execution_device):
-    return [
+    arguments = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
-        "--debug-exit-on-error",
+        "--debug-exit-on-error"]
+
+    if execution_device != 'CPU':
+        arguments.extend(["--gpu-backend", execution_device])
+
+    arguments.extend([
         filepath,
         "-P", os.path.realpath(__file__),
-        "--python-expr", get_compositor_device_setter_script(execution_device),
+        "--python-expr", get_compositor_device_setter_script(
+            execution_device if execution_device == 'CPU' else 'GPU'),
         "-o", output_filepath,
         "-F", "PNG",
-        "-f", "1"]
+        "-f", "1"])
+    return arguments
 
 
 def create_argparse():
@@ -45,6 +52,7 @@ def create_argparse():
     parser.add_argument("--oiiotool", required=True)
     parser.add_argument("--gpu", default=False, action='store_true')
     parser.add_argument('--batch', default=False, action='store_true')
+    parser.add_argument('--gpu-backend')
     return parser
 
 
@@ -53,7 +61,7 @@ def main():
     args = parser.parse_args()
 
     from modules import render_report
-    execution_device = "GPU" if args.gpu else "CPU"
+    execution_device = args.gpu_backend if args.gpu else "CPU"
     report_title = f"Compositor {execution_device}"
     report = render_report.Report(report_title, args.outdir, args.oiiotool)
     report.set_pixelated(True)

@@ -17,8 +17,13 @@
 
 #include "wm_xr.hh"
 
+struct bContext;
+struct ARegion;
 struct Object;
+struct wmWindow;
+struct wmWindowManager;
 struct wmXrActionSet;
+struct wmXrData;
 
 struct wmXrSessionState {
   bool is_started;

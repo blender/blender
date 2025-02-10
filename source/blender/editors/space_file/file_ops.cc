@@ -6,10 +6,11 @@
  * \ingroup spfile
  */
 
-#include "BLI_utildefines.h"
-
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_linklist.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
@@ -46,6 +47,7 @@
 #include "filelist.hh"
 #include "fsmenu.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstdio>
@@ -671,6 +673,7 @@ void FILE_OT_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "fill", false, "Fill", "Select everything beginning with the last selection");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "open", true, "Open", "Open a directory when selecting it");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -952,6 +955,7 @@ void FILE_OT_select_walk(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "fill", false, "Fill", "Select everything beginning with the last selection");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3096,9 +3100,7 @@ static void filenum_newname(char *filename, size_t filename_maxncpy, int add)
   }
 
   pic += add;
-  if (pic < 0) {
-    pic = 0;
-  }
+  pic = std::max(pic, 0);
   BLI_path_sequence_encode(filename, filename_maxncpy, head, tail, digits, pic);
 }
 

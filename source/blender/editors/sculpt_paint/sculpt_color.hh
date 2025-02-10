@@ -11,11 +11,12 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_generic_span.hh"
-#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 
 struct Depsgraph;
+struct Mesh;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 struct GAttributeReader;

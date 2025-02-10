@@ -90,7 +90,7 @@ static void apply_value_impl(TransInfo *t, const char *value_name)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
 
     if (value >= 0.0f) {
       SNPRINTF(str, "%s: +%s %s", value_name, c, t->proptext);

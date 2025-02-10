@@ -6,8 +6,6 @@
  * \ingroup shader_fx
  */
 
-#include <cstdio>
-
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
 

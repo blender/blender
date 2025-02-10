@@ -34,13 +34,11 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
-#include "BLI_multi_value_map.hh"
 
 #include "BKE_geometry_set.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_viewer_path.hh"
-#include "BKE_volume_grid.hh"
+#include "BKE_volume_grid_fwd.hh"
 
 #include "FN_field.hh"
 
@@ -107,7 +105,7 @@ class GenericValueLog : public ValueLog {
 
   GenericValueLog(const GMutablePointer value) : value(value) {}
 
-  ~GenericValueLog();
+  ~GenericValueLog() override;
 };
 
 /**

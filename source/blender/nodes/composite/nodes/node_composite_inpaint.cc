@@ -14,8 +14,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "DNA_scene_types.h"
-
 #include "COM_algorithm_jump_flooding.hh"
 #include "COM_algorithm_symmetric_separable_blur_variable_size.hh"
 #include "COM_node_operation.hh"
@@ -364,8 +362,11 @@ void register_node_type_cmp_inpaint()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeInpaint", CMP_NODE_INPAINT);
+  ntype.ui_name = "Inpaint";
+  ntype.ui_description = "Extend borders of an image into transparent or masked regions";
   ntype.enum_name_legacy = "INPAINT";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_inpaint_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_inpaint;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

@@ -8,6 +8,8 @@
 #include "BLI_index_mask.hh"
 #include "BLI_offset_indices.hh"
 
+#include "BKE_curves.hh"
+
 namespace blender::geometry {
 
 /**

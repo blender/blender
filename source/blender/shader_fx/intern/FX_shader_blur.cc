@@ -6,10 +6,7 @@
  * \ingroup shader_fx
  */
 
-#include <cstdio>
-
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 

@@ -178,10 +178,9 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   /* Getting node name for Color output. This name will be used for <image> node. */
-  std::string image_node_name = node_name(false) + "_Color";
+  std::string image_node_name = node_name("Color");
 
-  NodeItem res = empty();
-  res.node = graph_->getNode(image_node_name);
+  NodeItem res = graph_.get_node(image_node_name);
   if (!res.node) {
     res = val(MaterialX::Color4(1.0f, 0.0f, 1.0f, 1.0f));
 
@@ -190,10 +189,10 @@ NODE_SHADER_MATERIALX_BEGIN
       NodeTexImage *tex_image = static_cast<NodeTexImage *>(node_->storage);
 
       std::string image_path = image->id.name;
-      if (export_params_.image_fn) {
-        Scene *scene = DEG_get_input_scene(depsgraph_);
-        Main *bmain = DEG_get_bmain(depsgraph_);
-        image_path = export_params_.image_fn(bmain, scene, image, &tex_image->iuser);
+      if (graph_.export_params.image_fn) {
+        Scene *scene = DEG_get_input_scene(graph_.depsgraph);
+        Main *bmain = DEG_get_bmain(graph_.depsgraph);
+        image_path = graph_.export_params.image_fn(bmain, scene, image, &tex_image->iuser);
       }
 
       NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector2);
@@ -279,8 +278,11 @@ void register_node_type_sh_tex_image()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE);
+  sh_node_type_base(&ntype, "ShaderNodeTexImage", SH_NODE_TEX_IMAGE);
+  ntype.ui_name = "Image Texture";
+  ntype.ui_description = "Sample an image file as a texture";
   ntype.enum_name_legacy = "TEX_IMAGE";
+  ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_image_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_image;
   blender::bke::node_type_storage(

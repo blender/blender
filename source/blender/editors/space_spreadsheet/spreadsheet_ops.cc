@@ -8,8 +8,6 @@
 
 #include "BLI_listbase.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_context.hh"
 
 #include "RNA_access.hh"

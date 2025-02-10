@@ -12,8 +12,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "GPU_texture.hh"
-
 #include "COM_algorithm_parallel_reduction.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
@@ -31,7 +29,7 @@ static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
       .compositor_domain_priority(0);
   b.add_input<decl::Color>("Bokeh")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_realization_options(CompositorInputRealizationOptions::None);
+      .compositor_realization_mode(CompositorInputRealizationMode::Transforms);
   b.add_input<decl::Float>("Size")
       .default_value(1.0f)
       .min(0.0f)
@@ -415,8 +413,13 @@ void register_node_type_cmp_bokehblur()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeBokehBlur", CMP_NODE_BOKEHBLUR);
+  ntype.ui_name = "Bokeh Blur";
+  ntype.ui_description =
+      "Generate a bokeh type blur similar to Defocus. Unlike defocus an in-focus region is "
+      "defined in the compositor";
   ntype.enum_name_legacy = "BOKEHBLUR";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_bokehblur;
   ntype.initfunc = file_ns::node_composit_init_bokehblur;

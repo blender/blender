@@ -965,7 +965,7 @@ static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
 
   /* Rewind. */
   while ((owalk_pt = static_cast<BMwEdgeLoopWalker *>(BMW_current_state(walker)))) {
-    owalk = *((BMwEdgeLoopWalker *)owalk_pt);
+    owalk = *(owalk_pt);
     BMW_walk(walker);
   }
 
@@ -1222,7 +1222,7 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 
   /* Rewind. */
   while ((owalk_pt = static_cast<BMwFaceLoopWalker *>(BMW_current_state(walker)))) {
-    owalk = *((BMwFaceLoopWalker *)owalk_pt);
+    owalk = *(owalk_pt);
     BMW_walk(walker);
   }
 
@@ -1323,7 +1323,7 @@ static void bmw_EdgeringWalker_begin(BMWalker *walker, void *data)
 
   /* Rewind. */
   while ((owalk_pt = static_cast<BMwEdgeringWalker *>(BMW_current_state(walker)))) {
-    owalk = *((BMwEdgeringWalker *)owalk_pt);
+    owalk = *(owalk_pt);
     BMW_walk(walker);
   }
 

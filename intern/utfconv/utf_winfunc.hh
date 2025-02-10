@@ -13,7 +13,7 @@
 #  error "This file can only compile on windows"
 #endif
 
-#include <stdio.h>
+#include <cstdio>
 
 FILE *ufopen(const char *filename, const char *mode);
 int uopen(const char *filename, int oflag, int pmode);

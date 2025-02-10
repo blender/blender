@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
+#include "BLI_rect.h"
+
 #include "CLG_log.h"
 
 #include "GHOST_Path-api.hh"
@@ -18,8 +20,6 @@
 #include "IMB_moviecache.hh"
 
 #include "DNA_image_types.h"
-
-#include "MEM_guardedalloc.h"
 
 namespace blender::bke::image::partial_update {
 

@@ -33,10 +33,12 @@
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_material.h"
+#include "BKE_main_invariants.hh"
+#include "BKE_material.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -108,7 +110,7 @@ static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
 
 static bool is_image_texture_node(bNode *node)
 {
-  return ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT);
+  return ELEM(node->type_legacy, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT);
 }
 
 bool ED_object_get_active_image(Object *ob,
@@ -128,10 +130,10 @@ bool ED_object_get_active_image(Object *ob,
       *r_ima = (Image *)node->id;
     }
     if (r_iuser) {
-      if (node->type == SH_NODE_TEX_IMAGE) {
+      if (node->type_legacy == SH_NODE_TEX_IMAGE) {
         *r_iuser = &((NodeTexImage *)node->storage)->iuser;
       }
-      else if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+      else if (node->type_legacy == SH_NODE_TEX_ENVIRONMENT) {
         *r_iuser = &((NodeTexEnvironment *)node->storage)->iuser;
       }
       else {
@@ -170,7 +172,7 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
   if (node && is_image_texture_node(node)) {
     node->id = &ima->id;
-    ED_node_tree_propagate_change(nullptr, bmain, ma->nodetree);
+    BKE_main_ensure_invariants(*bmain, ma->nodetree->id);
   }
 }
 

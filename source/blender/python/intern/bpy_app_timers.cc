@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+#include <algorithm>
+
 #include "bpy_app_timers.hh"
 
 #include "../generic/python_compat.hh"
@@ -35,9 +37,7 @@ static double handle_returned_value(PyObject *function, PyObject *ret)
     return -1;
   }
 
-  if (value < 0.0) {
-    value = 0.0;
-  }
+  value = std::max(value, 0.0);
 
   return value;
 }

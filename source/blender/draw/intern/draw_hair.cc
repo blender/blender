@@ -10,11 +10,9 @@
 
 #include "DRW_render.hh"
 
-#include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_math_matrix.h"
 
 #include "DNA_collection_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
@@ -22,8 +20,6 @@
 
 #include "GPU_batch.hh"
 #include "GPU_capabilities.hh"
-#include "GPU_compute.hh"
-#include "GPU_context.hh"
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -31,6 +27,7 @@
 
 #include "DRW_gpu_wrapper.hh"
 
+#include "draw_common_c.hh"
 #include "draw_hair_private.hh"
 #include "draw_manager.hh"
 #include "draw_shader.hh"

@@ -9,27 +9,24 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "ED_gpencil_legacy.hh"
 #include "ED_view3d.hh"
 
-#include "DNA_gpencil_legacy_types.h"
-#include "DNA_view3d_types.h"
+#include "DNA_material_types.h"
 
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_id.hh"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
 
+#include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_link_utils.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memblock.h"
 
 #include "gpencil_engine.h"
-
-#include "draw_cache_impl.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -55,7 +52,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
 
   /* Check if any material with holdout flag enabled. */
   tgp_ob->do_mat_holdout = false;
-  const int tot_materials = BKE_object_material_count_eval(ob);
+  const int tot_materials = BKE_object_material_used_with_fallback_eval(*ob);
   for (int i = 0; i < tot_materials; i++) {
     MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, i + 1);
     if (((gp_style != nullptr) && (gp_style->flag & GP_MATERIAL_IS_STROKE_HOLDOUT)) ||
@@ -440,7 +437,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
 
     PassSimple &pass = *tgp_layer->geom_ps;
 
-    GPUTexture *depth_tex = (is_in_front) ? pd->dummy_depth : pd->scene_depth_tx;
+    GPUTexture **depth_tex = (is_in_front) ? &pd->dummy_depth : &pd->scene_depth_tx;
     GPUTexture **mask_tex = (is_masked) ? &inst->mask_tx : &pd->dummy_tx;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND_ALPHA_PREMUL;

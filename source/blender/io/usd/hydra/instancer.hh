@@ -9,6 +9,7 @@
 
 #include "mesh.hh"
 
+struct DupliObject;
 struct ParticleSystem;
 
 namespace blender::io::hydra {

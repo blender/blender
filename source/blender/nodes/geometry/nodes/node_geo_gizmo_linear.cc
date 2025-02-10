@@ -37,25 +37,31 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_rna(StructRNA *srna)
 {
+  PropertyRNA *prop;
+
   RNA_def_node_enum(srna,
                     "color_id",
                     "Color",
                     "",
                     rna_enum_geometry_nodes_gizmo_color_items,
                     NOD_storage_enum_accessors(color_id));
-  RNA_def_node_enum(srna,
-                    "draw_style",
-                    "Draw Style",
-                    "",
-                    rna_enum_geometry_nodes_linear_gizmo_draw_style_items,
-                    NOD_storage_enum_accessors(draw_style));
+  prop = RNA_def_node_enum(srna,
+                           "draw_style",
+                           "Draw Style",
+                           "",
+                           rna_enum_geometry_nodes_linear_gizmo_draw_style_items,
+                           NOD_storage_enum_accessors(draw_style));
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
 }
 
 static void node_register()
 {
   static bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_GIZMO_LINEAR, "Linear Gizmo", NODE_CLASS_INTERFACE);
+  geo_node_type_base(&ntype, "GeometryNodeGizmoLinear", GEO_NODE_GIZMO_LINEAR);
+  ntype.ui_name = "Linear Gizmo";
+  ntype.ui_description = "Show a linear gizmo in the viewport for a value";
   ntype.enum_name_legacy = "GIZMO_LINEAR";
+  ntype.nclass = NODE_CLASS_INTERFACE;
   bke::node_type_storage(
       &ntype, "NodeGeometryLinearGizmo", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;

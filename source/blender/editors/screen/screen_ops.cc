@@ -37,6 +37,7 @@
 #include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_object.hh"
@@ -4047,10 +4048,8 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
       jd->factor = area_docking_snap(std::max(1.0f - fac_y, min_fac_y), event);
       return AreaDockTarget::Top;
     }
-    else {
-      jd->factor = area_docking_snap(std::max(fac_y, min_fac_y), event);
-      return AreaDockTarget::Bottom;
-    }
+    jd->factor = area_docking_snap(std::max(fac_y, min_fac_y), event);
+    return AreaDockTarget::Bottom;
   }
   if (jd->sa2->winy < (min_y * 3)) {
     if (fac_x > 0.4f && fac_x < 0.6f) {
@@ -4060,10 +4059,8 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
       jd->factor = area_docking_snap(std::max(1.0f - fac_x, min_fac_x), event);
       return AreaDockTarget::Right;
     }
-    else {
-      jd->factor = area_docking_snap(std::max(fac_x, min_fac_x), event);
-      return AreaDockTarget::Left;
-    }
+    jd->factor = area_docking_snap(std::max(fac_x, min_fac_x), event);
+    return AreaDockTarget::Left;
   }
 
   /* Are we in the center? But not in same area! */
@@ -4144,11 +4141,7 @@ static float area_split_factor(bContext *C, sAreaJoinData *jd, const wmEvent *ev
   if (min_fac < 0.5f) {
     return std::clamp(fac, min_fac, 1.0f - min_fac);
   }
-  else {
-    return 0.5f;
-  }
-
-  return fac;
+  return 0.5f;
 }
 
 static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent *event)
@@ -4260,7 +4253,9 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
         else {
           status.item(IFACE_("Select Location"), ICON_MOUSE_LMB);
           status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
-          status.item_bool(IFACE_("Precision"), event->modifier & KM_ALT, ICON_EVENT_ALT);
+          status.item_bool(CTX_IFACE_(BLT_I18NCONTEXT_ID_SCREEN, "Precision"),
+                           event->modifier & KM_ALT,
+                           ICON_EVENT_ALT);
           status.item_bool(IFACE_("Snap"), event->modifier & KM_CTRL, ICON_EVENT_CTRL);
         }
       }
@@ -4759,6 +4754,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
   }
   else if (region->alignment == RGN_ALIGN_QSPLIT) {
     /* Exit quad-view */
+    bScreen *screen = CTX_wm_screen(C);
     ScrArea *area = CTX_wm_area(C);
 
     /* keep current region */
@@ -4799,6 +4795,9 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH_MUTABLE (ARegion *, region_iter, &area->regionbase) {
       if (region_iter->alignment == RGN_ALIGN_QSPLIT) {
         ED_region_remove(C, area, region_iter);
+        if (region_iter == screen->active_region) {
+          screen->active_region = nullptr;
+        }
       }
     }
     ED_area_tag_redraw(area);
@@ -5081,7 +5080,8 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /
 {
   ScrArea *area = CTX_wm_area(C);
   {
-    PointerRNA ptr = RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
+    PointerRNA ptr = RNA_pointer_create_discrete(
+        (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
     if (!ELEM(area->spacetype, SPACE_TOPBAR)) {
       uiItemR(layout, &ptr, "show_region_header", UI_ITEM_NONE, IFACE_("Show Header"), ICON_NONE);
     }
@@ -5118,7 +5118,8 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void * /
   ScrArea *area = CTX_wm_area(C);
 
   {
-    PointerRNA ptr = RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
+    PointerRNA ptr = RNA_pointer_create_discrete(
+        (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
     uiItemR(layout, &ptr, "show_region_footer", UI_ITEM_NONE, IFACE_("Show Footer"), ICON_NONE);
   }
 
@@ -5144,7 +5145,7 @@ void ED_screens_region_flip_menu_create(bContext *C, uiLayout *layout, void * /*
 
 static void ed_screens_statusbar_menu_create(uiLayout *layout, void * /*arg*/)
 {
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_PreferencesView, &U);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_PreferencesView, &U);
   uiItemR(
       layout, &ptr, "show_statusbar_stats", UI_ITEM_NONE, IFACE_("Scene Statistics"), ICON_NONE);
   uiItemR(layout,
@@ -5928,7 +5929,7 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   if (prop && RNA_property_is_set(op->ptr, prop)) {
     /* Set active section via RNA, so it can fail properly. */
 
-    PointerRNA pref_ptr = RNA_pointer_create(nullptr, &RNA_Preferences, &U);
+    PointerRNA pref_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Preferences, &U);
     PropertyRNA *active_section_prop = RNA_struct_find_property(&pref_ptr, "active_section");
 
     RNA_property_enum_set(&pref_ptr, active_section_prop, RNA_property_enum_get(op->ptr, prop));
@@ -6277,7 +6278,7 @@ static void region_blend_end(bContext *C, ARegion *region, const bool is_running
   else {
     if (rgi->hidden) {
       rgi->region->flag |= rgi->hidden;
-      ED_area_init(CTX_wm_manager(C), CTX_wm_window(C), rgi->area);
+      ED_area_init(C, CTX_wm_window(C), rgi->area);
     }
     /* area decoration needs redraw in end */
     ED_area_tag_redraw(rgi->area);
@@ -6305,7 +6306,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
 
   /* blend in, reinitialize regions because it got unhidden */
   if (rgi->hidden == 0) {
-    ED_area_init(wm, win, area);
+    ED_area_init(C, win, area);
   }
   else {
     ED_region_visibility_change_update_ex(C, area, region, true, false);
@@ -6382,7 +6383,7 @@ static int space_type_set_or_cycle_exec(bContext *C, wmOperator *op)
   const int space_type = RNA_enum_get(op->ptr, "space_type");
 
   ScrArea *area = CTX_wm_area(C);
-  PointerRNA ptr = RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Area, area);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)CTX_wm_screen(C), &RNA_Area, area);
   PropertyRNA *prop_type = RNA_struct_find_property(&ptr, "type");
   PropertyRNA *prop_ui_type = RNA_struct_find_property(&ptr, "ui_type");
 
@@ -6463,11 +6464,12 @@ static void context_cycle_prop_get(bScreen *screen,
 
   switch (area->spacetype) {
     case SPACE_PROPERTIES:
-      *r_ptr = RNA_pointer_create(&screen->id, &RNA_SpaceProperties, area->spacedata.first);
+      *r_ptr = RNA_pointer_create_discrete(
+          &screen->id, &RNA_SpaceProperties, area->spacedata.first);
       propname = "context";
       break;
     case SPACE_USERPREF:
-      *r_ptr = RNA_pointer_create(nullptr, &RNA_Preferences, &U);
+      *r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Preferences, &U);
       propname = "active_section";
       break;
     default:

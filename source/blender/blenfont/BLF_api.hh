@@ -191,10 +191,10 @@ blender::Array<uchar> BLF_svg_icon_bitmap(
     bool multicolor = false,
     blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr);
 
-typedef bool (*BLF_GlyphBoundsFn)(const char *str,
-                                  size_t str_step_ofs,
-                                  const rcti *bounds,
-                                  void *user_data);
+using BLF_GlyphBoundsFn = bool (*)(const char *str,
+                                   size_t str_step_ofs,
+                                   const rcti *bounds,
+                                   void *user_dataconst);
 
 /**
  * Run \a user_fn for each character, with the bound-box that would be used for drawing.

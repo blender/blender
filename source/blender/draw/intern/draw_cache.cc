@@ -11,7 +11,6 @@
 #include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -21,16 +20,16 @@
 
 #include "UI_resources.hh"
 
+#include "BLI_ghash.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.hh"
 #include "BKE_object.hh"
-#include "BKE_paint.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_batch_utils.hh"
 #include "GPU_capabilities.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "draw_cache.hh"
 #include "draw_cache_impl.hh"
@@ -935,11 +934,6 @@ blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
   }
 }
 
-int DRW_cache_object_material_count_get(const Object *ob)
-{
-  return BKE_object_material_count_with_fallback_eval(ob);
-}
-
 Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
     Object *ob, const Span<const GPUMaterial *> materials)
 {
@@ -1815,9 +1809,9 @@ blender::gpu::Batch *DRW_cache_lightprobe_cube_get()
     /* Direction Lines */
     flag = VCLASS_LIGHT_DIST | VCLASS_SCREENSPACE;
     for (int i = 0; i < 6; i++) {
-      char axes[] = "zZyYxX";
-      float zsta = light_distance_z_get(axes[i], true);
-      float zend = light_distance_z_get(axes[i], false);
+      const char axes[] = "zZyYxX";
+      const float zsta = light_distance_z_get(axes[i], true);
+      const float zend = light_distance_z_get(axes[i], false);
       GPU_vertbuf_vert_set(vbo, v++, Vert{{0.0f, 0.0f, zsta}, flag});
       GPU_vertbuf_vert_set(vbo, v++, Vert{{0.0f, 0.0f, zend}, flag});
       circle_verts(vbo, &v, DIAMOND_NSEGMENTS, 1.2f, zsta, flag);
@@ -1878,9 +1872,9 @@ blender::gpu::Batch *DRW_cache_lightprobe_grid_get()
     /* Direction Lines */
     flag = VCLASS_LIGHT_DIST | VCLASS_SCREENSPACE;
     for (int i = 0; i < 6; i++) {
-      char axes[] = "zZyYxX";
-      float zsta = light_distance_z_get(axes[i], true);
-      float zend = light_distance_z_get(axes[i], false);
+      const char axes[] = "zZyYxX";
+      const float zsta = light_distance_z_get(axes[i], true);
+      const float zend = light_distance_z_get(axes[i], false);
       GPU_vertbuf_vert_set(vbo, v++, Vert{{0.0f, 0.0f, zsta}, flag});
       GPU_vertbuf_vert_set(vbo, v++, Vert{{0.0f, 0.0f, zend}, flag});
       circle_verts(vbo, &v, DIAMOND_NSEGMENTS, 1.2f, zsta, flag);
@@ -2527,7 +2521,7 @@ blender::gpu::Batch *DRW_cache_bone_arrows_get()
       }
       /* Axis name */
       flag = VCLASS_EMPTY_AXES | VCLASS_EMPTY_AXES_NAME | VCLASS_SCREENALIGNED;
-      int axis_v_len[] = {X_LEN, Y_LEN, Z_LEN};
+      const int axis_v_len[] = {X_LEN, Y_LEN, Z_LEN};
       float(*axis_v)[2] = (axis == 0) ? x_axis_name : ((axis == 1) ? y_axis_name : z_axis_name);
       p[2] = axis + 0.25f;
       for (int i = 0; i < axis_v_len[axis]; i++) {
@@ -3293,7 +3287,7 @@ void drw_batch_cache_validate(Object *ob)
   using namespace blender::draw;
   switch (ob->type) {
     case OB_MESH:
-      DRW_mesh_batch_cache_validate(*ob, *(Mesh *)ob->data);
+      DRW_mesh_batch_cache_validate(*(Mesh *)ob->data);
       break;
     case OB_CURVES_LEGACY:
     case OB_FONT:
@@ -3307,7 +3301,7 @@ void drw_batch_cache_validate(Object *ob)
       DRW_curves_batch_cache_validate((Curves *)ob->data);
       break;
     case OB_POINTCLOUD:
-      DRW_pointcloud_batch_cache_validate(*ob, (PointCloud *)ob->data);
+      DRW_pointcloud_batch_cache_validate((PointCloud *)ob->data);
       break;
     case OB_VOLUME:
       DRW_volume_batch_cache_validate((Volume *)ob->data);

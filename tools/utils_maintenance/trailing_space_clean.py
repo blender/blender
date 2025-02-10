@@ -21,10 +21,15 @@ SOURCE_EXT = (
     ".glsl",
     # Python
     ".py",
+    # TOML.
+    ".toml",
     # Text (also CMake)
     ".txt", ".cmake", ".rst",
     # MS-Windows Scripts.
     ".bat", ".cmd",
+    # HTML, XML.
+    ".html",
+    ".xml",
 )
 
 

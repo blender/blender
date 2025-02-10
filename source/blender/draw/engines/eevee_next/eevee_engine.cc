@@ -2,10 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_global.hh"
 #include "BLI_rect.h"
 
-#include "GPU_capabilities.hh"
 #include "GPU_framebuffer.hh"
 
 #include "ED_screen.hh"
@@ -16,6 +14,8 @@
 #include "RE_pipeline.h"
 
 #include "eevee_engine.h" /* Own include. */
+
+#include "draw_view_data.hh"
 
 #include "eevee_instance.hh"
 

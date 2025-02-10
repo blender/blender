@@ -9,9 +9,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_geometry_fields.hh"
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_copy_selection.hh"

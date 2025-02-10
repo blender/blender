@@ -36,7 +36,6 @@
 
 #include <optional>
 
-#include "BLI_array.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_stack.hh"
 #include "BLI_string_ref.hh"
@@ -162,7 +161,7 @@ class ComputeContextBuilder {
     return contexts_.peek().get();
   }
 
-  const ComputeContextHash hash() const
+  ComputeContextHash hash() const
   {
     BLI_assert(!contexts_.is_empty());
     return this->current()->hash();

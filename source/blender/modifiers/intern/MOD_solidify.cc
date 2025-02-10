@@ -14,11 +14,9 @@
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_particle.h"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -107,7 +105,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   col = uiLayoutColumnWithHeading(layout, false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
-  uiItemR(col, ptr, "use_rim", UI_ITEM_NONE, IFACE_("Fill"), ICON_NONE);
+  uiItemR(
+      col, ptr, "use_rim", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Fill"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_rim"));
   uiItemR(sub, ptr, "use_rim_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);

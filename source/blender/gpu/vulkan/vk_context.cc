@@ -5,10 +5,12 @@
 /** \file
  * \ingroup gpu
  */
-#include "vk_context.hh"
-#include "vk_debug.hh"
+
+#include "GPU_debug.hh"
 
 #include "vk_backend.hh"
+#include "vk_context.hh"
+#include "vk_debug.hh"
 #include "vk_framebuffer.hh"
 #include "vk_immediate.hh"
 #include "vk_shader.hh"
@@ -20,12 +22,7 @@
 
 namespace blender::gpu {
 
-VKContext::VKContext(void *ghost_window,
-                     void *ghost_context,
-                     render_graph::VKResourceStateTracker &resources)
-    : render_graph(std::make_unique<render_graph::VKCommandBufferWrapper>(
-                       VKBackend::get().device.workarounds_get()),
-                   resources)
+VKContext::VKContext(void *ghost_window, void *ghost_context)
 {
   ghost_window_ = ghost_window;
   ghost_context_ = ghost_context;
@@ -56,7 +53,6 @@ VKContext::~VKContext()
 
 void VKContext::sync_backbuffer(bool cycle_resource_pool)
 {
-  VKDevice &device = VKBackend::get().device;
   if (ghost_window_) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
     GHOST_GetVulkanSwapChainFormat((GHOST_WindowHandle)ghost_window_, &swap_chain_data);
@@ -65,12 +61,12 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
       thread_data.resource_pool_next();
       VKResourcePool &resource_pool = thread_data.resource_pool_get();
       imm = &resource_pool.immediate;
-      resource_pool.discard_pool.destroy_discarded_resources(device);
-      resource_pool.reset();
-      resource_pool.discard_pool.move_data(device.orphaned_data);
     }
 
-    const bool reset_framebuffer = swap_chain_format_ != swap_chain_data.format ||
+    const bool reset_framebuffer = swap_chain_format_.format !=
+                                       swap_chain_data.surface_format.format ||
+                                   swap_chain_format_.colorSpace !=
+                                       swap_chain_data.surface_format.colorSpace ||
                                    vk_extent_.width != swap_chain_data.extent.width ||
                                    vk_extent_.height != swap_chain_data.extent.height;
     if (reset_framebuffer) {
@@ -81,13 +77,14 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
         GPU_texture_free(surface_texture_);
         surface_texture_ = nullptr;
       }
-      surface_texture_ = GPU_texture_create_2d("back-left",
-                                               swap_chain_data.extent.width,
-                                               swap_chain_data.extent.height,
-                                               1,
-                                               to_gpu_format(swap_chain_data.format),
-                                               GPU_TEXTURE_USAGE_ATTACHMENT,
-                                               nullptr);
+      surface_texture_ = GPU_texture_create_2d(
+          "back-left",
+          swap_chain_data.extent.width,
+          swap_chain_data.extent.height,
+          1,
+          to_gpu_format(swap_chain_data.surface_format.format),
+          GPU_TEXTURE_USAGE_ATTACHMENT,
+          nullptr);
 
       back_left->attachment_set(GPU_FB_COLOR_ATTACHMENT0,
                                 GPU_ATTACHMENT_TEXTURE(surface_texture_));
@@ -96,15 +93,10 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
 
       back_left->bind(false);
 
-      swap_chain_format_ = swap_chain_data.format;
+      swap_chain_format_ = swap_chain_data.surface_format;
       vk_extent_ = swap_chain_data.extent;
     }
   }
-#if 0
-  else (is_background) {
-    discard all orphaned data
-  }
-#endif
 }
 
 void VKContext::activate()
@@ -115,6 +107,14 @@ void VKContext::activate()
   VKDevice &device = VKBackend::get().device;
   VKThreadData &thread_data = device.current_thread_data();
   thread_data_ = std::reference_wrapper<VKThreadData>(thread_data);
+
+  if (!render_graph_.has_value()) {
+    render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
+        *device.render_graph_new());
+    for (const StringRef &group : debug_stack) {
+      debug_group_begin(std::string(group).c_str(), 0);
+    }
+  }
 
   imm = &thread_data.resource_pool_get().immediate;
 
@@ -127,24 +127,26 @@ void VKContext::activate()
 
 void VKContext::deactivate()
 {
-  flush_render_graph();
+  flush_render_graph(RenderGraphFlushFlags(0));
   immDeactivate();
   imm = nullptr;
   thread_data_.reset();
+
   is_active_ = false;
 }
 
 void VKContext::begin_frame() {}
 
-void VKContext::end_frame() {}
+void VKContext::end_frame()
+{
+  VKDevice &device = VKBackend::get().device;
+  device.orphaned_data.destroy_discarded_resources(device);
+}
 
 void VKContext::flush() {}
 
-void VKContext::flush_render_graph()
+TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags)
 {
-  if (render_graph.is_empty()) {
-    return;
-  }
   if (has_active_framebuffer()) {
     VKFrameBuffer &framebuffer = *active_framebuffer_get();
     if (framebuffer.is_rendering()) {
@@ -152,7 +154,21 @@ void VKContext::flush_render_graph()
     }
   }
   descriptor_set_get().upload_descriptor_sets();
-  render_graph.submit();
+  VKDevice &device = VKBackend::get().device;
+  TimelineValue timeline = device.render_graph_submit(
+      &render_graph_.value().get(),
+      discard_pool,
+      bool(flags & RenderGraphFlushFlags::SUBMIT),
+      bool(flags & RenderGraphFlushFlags::WAIT_FOR_COMPLETION));
+  render_graph_.reset();
+  if (bool(flags & RenderGraphFlushFlags::RENEW_RENDER_GRAPH)) {
+    render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
+        *device.render_graph_new());
+    for (const StringRef &group : debug_stack) {
+      debug_group_begin(std::string(group).c_str(), 0);
+    }
+  }
+  return timeline;
 }
 
 void VKContext::finish() {}
@@ -317,6 +333,8 @@ void VKContext::swap_buffers_post_callback()
 
 void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
+  GPU_debug_group_begin("BackBuffer.Blit");
+
   VKFrameBuffer &framebuffer = *unwrap(back_left);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
 
@@ -345,16 +363,20 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
    * chain image as device resources. When we move towards GPU swap chain synchronization we need
    * to keep track of the swap chain image between frames. */
   VKDevice &device = VKBackend::get().device;
-  device.resources.add_image(swap_chain_data.image,
-                             1,
-                             VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                             render_graph::ResourceOwner::SWAP_CHAIN,
-                             "SwapchainImage");
+  device.resources.add_image(swap_chain_data.image, 1, "SwapchainImage");
 
   framebuffer.rendering_end(*this);
+  render_graph::VKRenderGraph &render_graph = this->render_graph();
   render_graph.add_node(blit_image);
+  GPU_debug_group_end();
   descriptor_set_get().upload_descriptor_sets();
-  render_graph.submit_for_present(swap_chain_data.image);
+  render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
+  synchronization.vk_image = swap_chain_data.image;
+  synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+  synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  render_graph.add_node(synchronization);
+  flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
+                     RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
 
   device.resources.remove_image(swap_chain_data.image);
 #if 0

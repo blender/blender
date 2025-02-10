@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#include "BLI_linklist.h"
+
+#include "bmesh_class.hh"
+
 LinkNode *BM_mesh_calc_path_uv_region_vert(BMesh *bm,
                                            BMElem *ele_src,
                                            BMElem *ele_dst,

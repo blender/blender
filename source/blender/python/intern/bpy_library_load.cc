@@ -32,8 +32,6 @@
 
 #include "BLO_readfile.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "bpy_capi_utils.hh"
 #include "bpy_library.hh"
 

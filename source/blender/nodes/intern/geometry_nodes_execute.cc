@@ -6,9 +6,7 @@
  * \ingroup nodes
  */
 
-#include "BLI_math_color.hh"
 #include "BLI_math_euler.hh"
-#include "BLI_math_quaternion.hh"
 #include "BLI_string.h"
 
 #include "NOD_geometry.hh"
@@ -17,7 +15,6 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
-#include "BKE_compute_contexts.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_nodes_reference_set.hh"
 #include "BKE_geometry_set.hh"
@@ -26,7 +23,6 @@
 #include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
-#include "BKE_type_conversions.hh"
 
 #include "FN_lazy_function_execute.hh"
 
@@ -219,6 +215,7 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       auto property = bke::idprop::create(identifier, value->value);
       IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
       id_property_int_update_enum_items(value, ui_data);
+      ui_data->default_value = value->value;
       return property;
     }
     case SOCK_OBJECT: {
@@ -1036,6 +1033,71 @@ void update_output_properties_from_node_tree(const bNodeTree &tree,
         }
         new_prop->ui_data = ui_data;
       }
+    }
+  }
+}
+
+void get_geometry_nodes_input_base_values(const bNodeTree &btree,
+                                          const IDProperty *properties,
+                                          ResourceScope &scope,
+                                          MutableSpan<GPointer> r_values)
+{
+  if (!properties) {
+    return;
+  }
+
+  /* Assume that all inputs have unknown values by default. */
+  r_values.fill(nullptr);
+
+  btree.ensure_interface_cache();
+  for (const int input_i : btree.interface_inputs().index_range()) {
+    const bNodeTreeInterfaceSocket &io_input = *btree.interface_inputs()[input_i];
+    const bke::bNodeSocketType *stype = io_input.socket_typeinfo();
+    if (!stype) {
+      continue;
+    }
+    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(stype->type);
+    if (!stype->base_cpp_type || !stype->geometry_nodes_cpp_type) {
+      continue;
+    }
+    const IDProperty *property = IDP_GetPropertyFromGroup(properties, io_input.identifier);
+    if (!property) {
+      continue;
+    }
+    if (!id_property_type_matches_socket(io_input, *property)) {
+      continue;
+    }
+    if (input_attribute_name_get(*properties, io_input).has_value()) {
+      /* Attributes don't have a single base value, so ignore them here.*/
+      continue;
+    }
+    if (is_layer_selection_field(io_input)) {
+      /* Can't get a single value for layer selections. */
+      continue;
+    }
+
+    void *value_buffer = scope.linear_allocator().allocate(
+        stype->geometry_nodes_cpp_type->size(), stype->geometry_nodes_cpp_type->alignment());
+    init_socket_cpp_value_from_property(*property, socket_type, value_buffer);
+    if (!stype->geometry_nodes_cpp_type->is_trivially_destructible()) {
+      scope.add_destruct_call([type = stype->geometry_nodes_cpp_type, value_buffer]() {
+        type->destruct(value_buffer);
+      });
+    }
+    if (stype->geometry_nodes_cpp_type == stype->base_cpp_type) {
+      r_values[input_i] = {stype->base_cpp_type, value_buffer};
+      continue;
+    }
+    if (stype->geometry_nodes_cpp_type == &CPPType::get<bke::SocketValueVariant>()) {
+      const bke::SocketValueVariant &socket_value = *static_cast<const bke::SocketValueVariant *>(
+          value_buffer);
+      if (!socket_value.is_single()) {
+        continue;
+      }
+      const GPointer single_value = socket_value.get_single_ptr();
+      BLI_assert(single_value.type() == stype->base_cpp_type);
+      r_values[input_i] = single_value;
+      continue;
     }
   }
 }

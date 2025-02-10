@@ -9,7 +9,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BKE_asset.hh"
 #include "BKE_asset_edit.hh"
@@ -22,13 +21,13 @@
 #include "BKE_report.hh"
 
 #include "AS_asset_catalog_path.hh"
-#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "ED_asset.hh"
 #include "ED_asset_handle.hh"
 #include "ED_asset_library.hh"
 #include "ED_asset_list.hh"
@@ -37,7 +36,6 @@
 #include "ED_asset_shelf.hh"
 
 #include "UI_interface_icons.hh"
-#include "UI_resources.hh"
 
 #include "BLT_translation.hh"
 
@@ -92,51 +90,6 @@ void BRUSH_OT_asset_activate(wmOperatorType *ot)
   asset::operator_asset_reference_props_register(*ot->srna);
 }
 
-static std::optional<AssetLibraryReference> library_to_library_ref(
-    const asset_system::AssetLibrary &library)
-{
-  for (const AssetLibraryReference &ref : asset_system::all_valid_asset_library_refs()) {
-    const std::string root_path = AS_asset_library_root_path_from_library_ref(ref);
-    /* Use #BLI_path_cmp_normalized because `library.root_path()` ends with a slash while
-     * `root_path` doesn't. */
-    if (BLI_path_cmp_normalized(root_path.c_str(), library.root_path().c_str()) == 0) {
-      return ref;
-    }
-  }
-  return std::nullopt;
-}
-
-static AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_library)
-{
-  AssetLibraryReference library_ref{};
-  library_ref.custom_library_index = BLI_findindex(&U.asset_libraries, &user_library);
-  library_ref.type = ASSET_LIBRARY_CUSTOM;
-  return library_ref;
-}
-
-static const bUserAssetLibrary *library_ref_to_user_library(
-    const AssetLibraryReference &library_ref)
-{
-  if (library_ref.type != ASSET_LIBRARY_CUSTOM) {
-    return nullptr;
-  }
-  return static_cast<const bUserAssetLibrary *>(
-      BLI_findlink(&U.asset_libraries, library_ref.custom_library_index));
-}
-
-static void refresh_asset_library(const bContext *C, const AssetLibraryReference &library_ref)
-{
-  asset::list::clear(&library_ref, C);
-  /* TODO: Should the all library reference be automatically cleared? */
-  AssetLibraryReference all_lib_ref = asset_system::all_library_reference();
-  asset::list::clear(&all_lib_ref, C);
-}
-
-static void refresh_asset_library(const bContext *C, const bUserAssetLibrary &user_library)
-{
-  refresh_asset_library(C, user_library_to_library_ref(user_library));
-}
-
 static bool brush_asset_save_as_poll(bContext *C)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -158,62 +111,6 @@ static bool brush_asset_save_as_poll(bContext *C)
   return true;
 }
 
-static const bUserAssetLibrary *get_asset_library_from_prop(PointerRNA &ptr)
-{
-  const int enum_value = RNA_enum_get(&ptr, "asset_library_reference");
-  const AssetLibraryReference lib_ref = asset::library_reference_from_enum_value(enum_value);
-  return BKE_preferences_asset_library_find_index(&U, lib_ref.custom_library_index);
-}
-
-static asset_system::AssetCatalog &asset_library_ensure_catalog(
-    asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path)
-{
-  if (asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog_by_path(path)) {
-    return *catalog;
-  }
-  return *library.catalog_service().create_catalog(path);
-}
-
-/* Suppress warning for GCC-14.2. This isn't a dangling reference
- * because the #asset_system::AssetLibrary owns the returned value. */
-#if defined(__GNUC__) && !defined(__clang__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wdangling-reference"
-#endif
-
-static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
-    asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path)
-{
-  /* Adding multiple catalogs in a path at a time with #AssetCatalogService::create_catalog()
-   * doesn't work; add each potentially new catalog in the hierarchy manually here. */
-  asset_system::AssetCatalogPath parent = "";
-  path.iterate_components([&](StringRef component_name, bool /*is_last_component*/) {
-    asset_library_ensure_catalog(library, parent / component_name);
-    parent = parent / component_name;
-  });
-  return *library.catalog_service().find_catalog_by_path(path);
-}
-#if defined(__GNUC__) && !defined(__clang__)
-#  pragma GCC diagnostic pop
-#endif
-
-static void show_catalog_in_asset_shelf(const bContext &C, const StringRefNull catalog_path)
-{
-  /* Enable catalog in all visible asset shelves. */
-  wmWindowManager *wm = CTX_wm_manager(&C);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      const AssetShelf *shelf = asset::shelf::active_shelf_from_area(area);
-      if (shelf && BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-                       &U, shelf->idname, catalog_path.c_str()))
-      {
-        U.runtime.is_dirty = true;
-      }
-    }
-  }
-}
-
 static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -230,13 +127,13 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     STRNCPY(name, brush->id.name + 2);
   }
 
-  const bUserAssetLibrary *user_library = get_asset_library_from_prop(*op->ptr);
+  const bUserAssetLibrary *user_library = asset::get_asset_library_from_opptr(*op->ptr);
   if (!user_library) {
     return OPERATOR_CANCELLED;
   }
 
   asset_system::AssetLibrary *library = AS_asset_library_load(
-      bmain, user_library_to_library_ref(*user_library));
+      bmain, asset::user_library_to_library_ref(*user_library));
   if (!library) {
     BKE_report(op->reports, RPT_ERROR, "Failed to load asset library");
     return OPERATOR_CANCELLED;
@@ -255,7 +152,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   AssetMetaData &meta_data = *brush->id.asset_data;
   if (catalog_path[0]) {
-    const asset_system::AssetCatalog &catalog = asset_library_ensure_catalogs_in_path(
+    const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
         *library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
   }
@@ -268,7 +165,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
 
   library->catalog_service().write_to_disk(*final_full_asset_filepath);
-  show_catalog_in_asset_shelf(*C, catalog_path);
+  asset::shelf::show_catalog_in_visible_shelves(*C, catalog_path);
 
   brush = reinterpret_cast<Brush *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
@@ -279,7 +176,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Unable to activate just-saved brush asset");
   }
 
-  refresh_asset_library(C, *user_library);
+  asset::refresh_asset_library(C, *user_library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_ADDED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 
@@ -304,7 +201,7 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
   const asset_system::AssetLibrary &library = asset->owner_asset_library();
-  const std::optional<AssetLibraryReference> library_ref = library_to_library_ref(library);
+  const std::optional<AssetLibraryReference> library_ref = library.library_reference();
   if (!library_ref) {
     BLI_assert_unreachable();
     return OPERATOR_CANCELLED;
@@ -321,7 +218,7 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
                    asset::library_reference_to_enum_value(&*library_ref));
     }
     else {
-      const AssetLibraryReference first_library = user_library_to_library_ref(
+      const AssetLibraryReference first_library = asset::user_library_to_library_ref(
           *static_cast<const bUserAssetLibrary *>(U.asset_libraries.first));
       RNA_enum_set(op->ptr,
                    "asset_library_reference",
@@ -345,7 +242,11 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
                                                                  PropertyRNA * /*prop*/,
                                                                  bool *r_free)
 {
-  const EnumPropertyItem *items = asset::library_reference_to_rna_enum_itemf(false);
+  const EnumPropertyItem *items = asset::library_reference_to_rna_enum_itemf(
+      /* Only get writable libraries. */
+      /*include_readonly=*/false,
+      /* Saving brushes to the current file isn't working correctly yet. */
+      /*include_current_file=*/false);
   if (!items) {
     *r_free = false;
     return nullptr;
@@ -353,31 +254,6 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
 
   *r_free = true;
   return items;
-}
-
-static void visit_library_catalogs_catalog_for_search(
-    const Main &bmain,
-    const bUserAssetLibrary &user_library,
-    const StringRef edit_text,
-    const FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
-{
-  const asset_system::AssetLibrary *library = AS_asset_library_load(
-      &bmain, user_library_to_library_ref(user_library));
-  if (!library) {
-    return;
-  }
-
-  if (!edit_text.is_empty()) {
-    const asset_system::AssetCatalogPath edit_path = edit_text;
-    if (!library->catalog_service().find_catalog_by_path(edit_path)) {
-      visit_fn(StringPropertySearchVisitParams{edit_path.str(), std::nullopt, ICON_ADD});
-    }
-  }
-
-  const asset_system::AssetCatalogTree &full_tree = library->catalog_service().catalog_tree();
-  full_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
-    visit_fn(StringPropertySearchVisitParams{item.catalog_path().str(), std::nullopt});
-  });
 }
 
 static void visit_library_prop_catalogs_catalog_for_search_fn(
@@ -388,10 +264,8 @@ static void visit_library_prop_catalogs_catalog_for_search_fn(
     FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   /* NOTE: Using the all library would also be a valid choice. */
-  if (const bUserAssetLibrary *user_library = get_asset_library_from_prop(*ptr)) {
-    visit_library_catalogs_catalog_for_search(
-        *CTX_data_main(C), *user_library, edit_text, visit_fn);
-  }
+  asset::visit_library_catalogs_catalog_for_search(
+      *CTX_data_main(C), asset::get_asset_library_ref_from_opptr(*ptr), edit_text, visit_fn);
 }
 
 void BRUSH_OT_asset_save_as(wmOperatorType *ot)
@@ -431,9 +305,7 @@ static int brush_asset_edit_metadata_exec(bContext *C, wmOperator *op)
   if (!asset) {
     return OPERATOR_CANCELLED;
   }
-  const asset_system::AssetLibrary &library_const = asset->owner_asset_library();
-  const AssetLibraryReference library_ref = *library_to_library_ref(library_const);
-  asset_system::AssetLibrary *library = AS_asset_library_load(bmain, library_ref);
+  asset_system::AssetLibrary &library = asset->owner_asset_library();
 
   char catalog_path[MAX_NAME];
   RNA_string_get(op->ptr, "catalog_path", catalog_path);
@@ -445,8 +317,8 @@ static int brush_asset_edit_metadata_exec(bContext *C, wmOperator *op)
   meta_data.description = RNA_string_get_alloc(op->ptr, "description", nullptr, 0, nullptr);
 
   if (catalog_path[0]) {
-    const asset_system::AssetCatalog &catalog = asset_library_ensure_catalogs_in_path(
-        *library, catalog_path);
+    const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
+        library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
   }
 
@@ -454,18 +326,9 @@ static int brush_asset_edit_metadata_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  char asset_full_path_buffer[FILE_MAX_LIBEXTRA];
-  char *file_path = nullptr;
-  AS_asset_full_path_explode_from_weak_ref(
-      &brush_weak_ref, asset_full_path_buffer, &file_path, nullptr, nullptr);
-  if (!file_path) {
-    BLI_assert_unreachable();
-    return OPERATOR_CANCELLED;
-  }
+  asset::catalogs_save_from_asset_reference(library, brush_weak_ref);
 
-  library->catalog_service().write_to_disk(file_path);
-
-  refresh_asset_library(C, library_ref);
+  asset::refresh_asset_library_from_asset(C, *asset);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
@@ -513,14 +376,12 @@ static void visit_active_library_catalogs_catalog_for_search_fn(
   if (!asset) {
     return;
   }
+
   const asset_system::AssetLibrary &library = asset->owner_asset_library();
 
   /* NOTE: Using the all library would also be a valid choice. */
-  visit_library_catalogs_catalog_for_search(
-      *CTX_data_main(C),
-      *library_ref_to_user_library(*library_to_library_ref(library)),
-      edit_text,
-      visit_fn);
+  asset::visit_library_catalogs_catalog_for_search(
+      *CTX_data_main(C), *library.library_reference(), edit_text, visit_fn);
 }
 
 static bool brush_asset_edit_metadata_poll(bContext *C)
@@ -540,13 +401,13 @@ static bool brush_asset_edit_metadata_poll(bContext *C)
     return false;
   }
   const asset_system::AssetRepresentation *asset = asset::find_asset_from_weak_ref(
-      *C, *brush_weak_ref, nullptr);
+      *C, *brush_weak_ref, CTX_wm_reports(C));
   if (!asset) {
-    BLI_assert_unreachable();
+    /* May happen if library loading hasn't finished. */
     return false;
   }
-  const std::optional<AssetLibraryReference> library_ref = library_to_library_ref(
-      asset->owner_asset_library());
+  const std::optional<AssetLibraryReference> library_ref =
+      asset->owner_asset_library().library_reference();
   if (!library_ref) {
     BLI_assert_unreachable();
     return false;
@@ -592,7 +453,6 @@ static int brush_asset_load_preview_exec(bContext *C, wmOperator *op)
   if (!asset) {
     return OPERATOR_CANCELLED;
   }
-  const AssetLibraryReference library_ref = *library_to_library_ref(asset->owner_asset_library());
 
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -607,7 +467,7 @@ static int brush_asset_load_preview_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  refresh_asset_library(C, library_ref);
+  asset::refresh_asset_library_from_asset(C, *asset);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
@@ -675,7 +535,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
   BKE_paint_brush_set_default(bmain, paint);
 
   if (library) {
-    refresh_asset_library(C, *library);
+    asset::refresh_asset_library(C, *library);
   }
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_REMOVED, nullptr);
@@ -754,7 +614,7 @@ static int brush_asset_save_exec(bContext *C, wmOperator *op)
   bke::asset_edit_id_save(*bmain, brush->id, *op->reports);
   brush->has_unsaved_changes = false;
 
-  refresh_asset_library(C, *user_library);
+  asset::refresh_asset_library(C, *user_library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 

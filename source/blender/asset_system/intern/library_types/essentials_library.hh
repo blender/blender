@@ -15,6 +15,8 @@ namespace blender::asset_system {
 class EssentialsAssetLibrary : public OnDiskAssetLibrary {
  public:
   EssentialsAssetLibrary();
+
+  std::optional<AssetLibraryReference> library_reference() const override;
 };
 
 }  // namespace blender::asset_system

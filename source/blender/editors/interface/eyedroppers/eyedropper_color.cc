@@ -26,9 +26,11 @@
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_image.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
+
+#include "BLT_translation.hh"
 
 #include "NOD_composite.hh"
 
@@ -92,17 +94,15 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 {
   Eyedropper *eye = MEM_new<Eyedropper>(__func__);
 
-  PropertyRNA *prop;
-  if ((prop = RNA_struct_find_property(op->ptr, "prop_data_path")) &&
-      RNA_property_is_set(op->ptr, prop))
-  {
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "prop_data_path");
+  if (prop && RNA_property_is_set(op->ptr, prop)) {
     char *prop_data_path = RNA_string_get_alloc(op->ptr, "prop_data_path", nullptr, 0, nullptr);
     BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(prop_data_path); });
     if (!prop_data_path || prop_data_path[0] == '\0') {
       MEM_freeN(eye);
       return false;
     }
-    PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
+    PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
     if (!RNA_path_resolve(&ctx_ptr, prop_data_path, &eye->ptr, &eye->prop)) {
       BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", prop_data_path);
       MEM_freeN(eye);
@@ -162,6 +162,8 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
   Eyedropper *eye = static_cast<Eyedropper *>(op->customdata);
   wmWindow *window = CTX_wm_window(C);
   WM_cursor_modal_restore(window);
+
+  ED_workspace_status_text(C, nullptr);
 
   if (eye->draw_handle_sample_text) {
     WM_draw_cb_exit(eye->cb_win, eye->draw_handle_sample_text);
@@ -430,7 +432,7 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
   return false;
 }
 
-void eyedropper_color_sample_fl(bContext *C,
+bool eyedropper_color_sample_fl(bContext *C,
                                 Eyedropper *eye,
                                 const int event_xy[2],
                                 float r_col[3])
@@ -454,20 +456,20 @@ void eyedropper_color_sample_fl(bContext *C,
       if (area->spacetype == SPACE_IMAGE) {
         SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         if (ED_space_image_color_sample(sima, region, mval, r_col, nullptr)) {
-          return;
+          return true;
         }
       }
       else if (area->spacetype == SPACE_NODE) {
         SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
         Main *bmain = CTX_data_main(C);
         if (ED_space_node_color_sample(bmain, snode, region, mval, r_col)) {
-          return;
+          return true;
         }
       }
       else if (area->spacetype == SPACE_CLIP) {
         SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         if (ED_space_clip_color_sample(sc, region, mval, r_col)) {
-          return;
+          return true;
         }
       }
       else if (eye != nullptr && area->spacetype == SPACE_VIEW3D) {
@@ -479,30 +481,33 @@ void eyedropper_color_sample_fl(bContext *C,
           eye->viewport_session->init(region);
         }
         if (eye->viewport_session->sample(mval, r_col)) {
-          return;
+          return true;
         }
       }
     }
   }
 
+  /* Other areas within a Blender window. */
   if (win) {
-    /* Other areas within a Blender window. */
     if (!WM_window_pixels_read_sample(C, win, event_xy_win, r_col)) {
       WM_window_pixels_read_sample_from_offscreen(C, win, event_xy_win, r_col);
     }
     const char *display_device = CTX_data_scene(C)->display_settings.display_device;
     ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
     IMB_colormanagement_display_to_scene_linear_v3(r_col, display);
+    return true;
   }
-  else if ((WM_capabilities_flag() & WM_CAPABILITY_DESKTOP_SAMPLE) &&
-           WM_desktop_cursor_sample_read(r_col))
-  {
-    /* Outside of the Blender window if we support it. */
-    IMB_colormanagement_srgb_to_scene_linear_v3(r_col, r_col);
+
+  /* Outside the Blender window if we support it. */
+  if ((WM_capabilities_flag() & WM_CAPABILITY_DESKTOP_SAMPLE)) {
+    if (WM_desktop_cursor_sample_read(r_col)) {
+      IMB_colormanagement_srgb_to_scene_linear_v3(r_col, r_col);
+      return true;
+    }
   }
-  else {
-    zero_v3(r_col);
-  }
+
+  zero_v3(r_col);
+  return false;
 }
 
 /* sets the sample color RGB, maintaining A */
@@ -538,7 +543,9 @@ static void eyedropper_color_sample(bContext *C, Eyedropper *eye, const int even
     }
   }
   else {
-    eyedropper_color_sample_fl(C, eye, event_xy, col);
+    if (!eyedropper_color_sample_fl(C, eye, event_xy, col)) {
+      return;
+    }
   }
 
   if (!eye->crypto_node) {
@@ -622,6 +629,16 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
     if (eye->accum_start) {
       /* button is pressed so keep sampling */
       eyedropper_color_sample(C, eye, event->xy);
+      WorkspaceStatus status(C);
+      status.item(TIP_("Drag to continue sampling, release when done"), ICON_MOUSE_MOVE);
+    }
+    else {
+      WorkspaceStatus status(C);
+      status.opmodal(IFACE_("Confirm"), op->type, EYE_MODAL_SAMPLE_CONFIRM);
+      status.opmodal(IFACE_("Cancel"), op->type, EYE_MODAL_CANCEL);
+#ifdef __APPLE__
+      status.item(TIP_("Press 'Enter' to sample outside of a Blender window"), ICON_INFO);
+#endif
     }
 
     if (eye->draw_handle_sample_text) {

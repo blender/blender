@@ -10,6 +10,7 @@
 #include "WXEdge.h"
 
 #include "BLI_sys_types.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
 

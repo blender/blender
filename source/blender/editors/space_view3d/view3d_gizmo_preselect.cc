@@ -8,8 +8,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
 

@@ -10,8 +10,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -24,7 +22,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_packedFile.hh"
@@ -34,8 +32,6 @@
 #include "BKE_undo_system.hh"
 
 #include "DEG_depsgraph.hh"
-
-#include "DNA_gpencil_legacy_types.h"
 
 #include "ED_armature.hh"
 #include "ED_asset.hh"
@@ -49,8 +45,6 @@
 #include "ED_space_api.hh"
 #include "ED_util.hh"
 #include "ED_view3d.hh"
-
-#include "GPU_immediate.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

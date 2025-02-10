@@ -81,18 +81,15 @@ def _get_channelbag_for_slot(action: Action, slot: ActionSlot):
     # happen in C++.
     for layer in action.layers:
         for strip in layer.strips:
-            channelbag = strip.channels(slot.handle)
+            channelbag = strip.channelbag(slot)
             return channelbag
 
 
 def _ensure_channelbag_exists(action: Action, slot: ActionSlot):
-    channelbag = _get_channelbag_for_slot(action, slot)
-    if channelbag:
-        return channelbag
-
     for layer in action.layers:
         for strip in layer.strips:
-            return strip.channelbags.new(slot)
+            channelbag = strip.channelbag(slot, ensure=True)
+            return channelbag
 
 
 def bake_action(

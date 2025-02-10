@@ -280,7 +280,7 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
 
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
   if (context->img_convert_frame != nullptr) {
-    BLI_assert(context->img_convert_ctx != NULL);
+    BLI_assert(context->img_convert_ctx != nullptr);
     /* Ensure the frame we are scaling to is writable as well. */
     av_frame_make_writable(context->current_frame);
     ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
@@ -790,7 +790,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   if (codec_id == AV_CODEC_ID_VP9 && rd->im_format.planes == R_IMF_PLANES_RGBA) {
     c->pix_fmt = AV_PIX_FMT_YUVA420P;
   }
-  else if (ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_VP9) &&
+  else if (ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_VP9, AV_CODEC_ID_AV1) &&
            (context->ffmpeg_crf == 0))
   {
     /* Use 4:4:4 instead of 4:2:0 pixel format for lossless rendering. */
@@ -1308,17 +1308,20 @@ static bool ffmpeg_movie_append(MovieWriter *context,
   if (context->video_stream) {
     avframe = generate_video_frame(context, image);
     success = (avframe && write_video_frame(context, avframe, reports));
+  }
+
+  if (context->audio_stream) {
     /* Add +1 frame because we want to encode audio up until the next video frame. */
     write_audio_frames(
         context, (frame - start_frame + 1) / (double(rd->frs_sec) / double(rd->frs_sec_base)));
+  }
 
-    if (context->ffmpeg_autosplit) {
-      if (avio_tell(context->outfile->pb) > ffmpeg_autosplit_size) {
-        end_ffmpeg_impl(context, true);
-        context->ffmpeg_autosplit_count++;
+  if (context->ffmpeg_autosplit) {
+    if (avio_tell(context->outfile->pb) > ffmpeg_autosplit_size) {
+      end_ffmpeg_impl(context, true);
+      context->ffmpeg_autosplit_count++;
 
-        success &= start_ffmpeg_impl(context, rd, image->x, image->y, suffix, reports);
-      }
+      success &= start_ffmpeg_impl(context, rd, image->x, image->y, suffix, reports);
     }
   }
 

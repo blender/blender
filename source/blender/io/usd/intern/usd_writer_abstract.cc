@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_abstract.hh"
+#include "usd_attribute_utils.hh"
 #include "usd_utils.hh"
 #include "usd_writer_material.hh"
 
@@ -10,9 +11,9 @@
 #include <pxr/usd/usdGeom/scope.h>
 
 #include "BKE_customdata.hh"
-#include "BKE_report.hh"
 
 #include "BLI_assert.h"
+#include "BLI_bounds_types.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -21,13 +22,6 @@ static CLG_LogRef LOG = {"io.usd"};
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
-/* Materials */
-static const pxr::TfToken diffuse_color("diffuseColor", pxr::TfToken::Immortal);
-static const pxr::TfToken metallic("metallic", pxr::TfToken::Immortal);
-static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal);
-static const pxr::TfToken preview_surface("UsdPreviewSurface", pxr::TfToken::Immortal);
-static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
-static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
 static const pxr::TfToken blender_ns("userProperties:blender", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
@@ -208,8 +202,19 @@ pxr::SdfPath USDAbstractWriter::get_material_library_path() const
   return pxr::SdfPath(material_library_path);
 }
 
-pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
-                                                             Material *material) const
+pxr::SdfPath USDAbstractWriter::get_proto_material_root_path(const HierarchyContext &context) const
+{
+  static std::string material_library_path("/_materials");
+
+  std::string path_prefix(usd_export_context_.export_params.root_prim_path);
+
+  path_prefix += context.higher_up_export_path;
+
+  return pxr::SdfPath(path_prefix + material_library_path);
+}
+
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material_created(
+    const HierarchyContext &context, Material *material) const
 {
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
@@ -233,6 +238,42 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   write_id_properties(prim, material->id, get_export_time_code());
 
   return usd_material;
+}
+
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
+                                                             Material *material) const
+{
+  pxr::UsdShadeMaterial library_material = ensure_usd_material_created(context, material);
+
+  /* If instancing is enabled and the object is an instancing prototype, create a material
+   * under the prototype root referencing the library material. This is considered a best
+   * practice and is required for certain renderers (e.g., karma). */
+
+  if (!(usd_export_context_.export_params.use_instancing && context.is_prototype())) {
+    /* We don't need to handle the material for the prototype. */
+    return library_material;
+  }
+
+  /* Create the prototype material. */
+
+  pxr::UsdStageRefPtr stage = usd_export_context_.stage;
+
+  pxr::SdfPath usd_path = pxr::UsdGeomScope::Define(stage, get_proto_material_root_path(context))
+                              .GetPath()
+                              .AppendChild(library_material.GetPath().GetNameToken());
+
+  pxr::UsdShadeMaterial proto_material = pxr::UsdShadeMaterial::Define(stage, usd_path);
+
+  if (!proto_material.GetPrim().GetReferences().AddInternalReference(library_material.GetPath())) {
+    CLOG_WARN(&LOG,
+              "Unable to add a material reference from %s to %s for prototype %s",
+              proto_material.GetPath().GetAsString().c_str(),
+              library_material.GetPath().GetAsString().c_str(),
+              context.export_path.c_str());
+    return library_material;
+  }
+
+  return proto_material;
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,
@@ -282,6 +323,8 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
               context.original_export_path.c_str());
     return false;
   }
+
+  prim.SetInstanceable(true);
 
   return true;
 }
@@ -405,26 +448,36 @@ void USDAbstractWriter::write_user_properties(const pxr::UsdPrim &prim,
   }
 }
 
-void USDAbstractWriter::author_extent(const pxr::UsdTimeCode timecode, pxr::UsdGeomBoundable &prim)
+void USDAbstractWriter::author_extent(const pxr::UsdGeomBoundable &boundable,
+                                      const pxr::UsdTimeCode timecode)
 {
   /* Do not use any existing `extentsHint` that may be authored, instead recompute the extent when
    * authoring it. */
   const bool useExtentsHint = false;
   const pxr::TfTokenVector includedPurposes{pxr::UsdGeomTokens->default_};
   pxr::UsdGeomBBoxCache bboxCache(timecode, includedPurposes, useExtentsHint);
-  pxr::GfBBox3d bounds = bboxCache.ComputeLocalBound(prim.GetPrim());
-  if (pxr::GfBBox3d() == bounds) {
-    /* This will occur, for example, if a mesh does not have any vertices. */
-    BKE_reportf(reports(),
-                RPT_WARNING,
-                "USD Export: no bounds could be computed for %s",
-                prim.GetPrim().GetName().GetText());
-    return;
+  pxr::GfBBox3d bounds = bboxCache.ComputeLocalBound(boundable.GetPrim());
+
+  /* Note: An empty 'bounds' is still valid (e.g. a mesh with no vertices). */
+  pxr::VtArray<pxr::GfVec3f> extent{pxr::GfVec3f(bounds.GetRange().GetMin()),
+                                    pxr::GfVec3f(bounds.GetRange().GetMax())};
+
+  pxr::UsdAttribute attr_extent = boundable.CreateExtentAttr(pxr::VtValue(), true);
+  set_attribute(attr_extent, extent, timecode, usd_value_writer_);
+}
+
+void USDAbstractWriter::author_extent(const pxr::UsdGeomBoundable &boundable,
+                                      const std::optional<Bounds<float3>> &bounds,
+                                      const pxr::UsdTimeCode timecode)
+{
+  pxr::VtArray<pxr::GfVec3f> extent(2);
+  if (bounds) {
+    extent[0].Set(bounds->min);
+    extent[1].Set(bounds->max);
   }
 
-  pxr::VtArray<pxr::GfVec3f> extent{(pxr::GfVec3f)bounds.GetRange().GetMin(),
-                                    (pxr::GfVec3f)bounds.GetRange().GetMax()};
-  prim.CreateExtentAttr().Set(extent);
+  pxr::UsdAttribute attr_extent = boundable.CreateExtentAttr(pxr::VtValue(), true);
+  set_attribute(attr_extent, extent, timecode, usd_value_writer_);
 }
 
 }  // namespace blender::io::usd

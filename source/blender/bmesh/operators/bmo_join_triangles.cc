@@ -11,9 +11,12 @@
  * - convert triangles to any sided faces, not just quads.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
+#include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -619,7 +622,7 @@ static void rotate_to_plane(const JoinEdgesState &s,
  * the four vertices of quad_a. Instead, They are four unit vectors, aligned
  * parallel to the respective edge loop of quad_a.
  * \param quad_b_verts: an array of four vertices, giving the four corners of `quad_b`.
- * \param l_shared: a loop known to be one of the the common manifold loops that is
+ * \param l_shared: a loop known to be one of the common manifold loops that is
  * shared between the two quads. This is used as a 'hinge' to flatten the two
  * quads into the same plane as much as possible.
  * \param plane_normal: The normal vector of quad_a.
@@ -669,7 +672,7 @@ static float compute_alignment(const JoinEdgesState &s,
   normalize_v3(quad_b_vecs[2]);
   normalize_v3(quad_b_vecs[3]);
 
-  /* Given that we're not certain of how the the first loop of the quad and the first loop
+  /* Given that we're not certain of how the first loop of the quad and the first loop
    * of the proposed merge quad relate to each other, there are four possible combinations
    * to check, to test that the neighbor face and the merged face have good alignment.
    *
@@ -680,7 +683,7 @@ static float compute_alignment(const JoinEdgesState &s,
    *
    * Instead, this code does the math twice, then it just flips each component by 180 degrees to
    * pick up the other two cases. Four extra angle tests aren't that much worse than optimal.
-   * Brute forcing the math and ending up with with clear and understandable code is better. */
+   * Brute forcing the math and ending up with clear and understandable code is better. */
 
   float error[4] = {0.0f};
   for (int i = 0; i < ARRAY_SIZE(error); i++) {
@@ -702,8 +705,7 @@ static float compute_alignment(const JoinEdgesState &s,
   }
 
   /* Pick the best option and average the four components. */
-  const float best_error = std::min(std::min(error[0], error[1]), std::min(error[2], error[3])) /
-                           4.0f;
+  const float best_error = std::min({error[0], error[1], error[2], error[3]}) / 4.0f;
 
   ASSERT_VALID_ERROR_METRIC(best_error);
 
@@ -713,9 +715,7 @@ static float compute_alignment(const JoinEdgesState &s,
   float alignment = 1.0f - (best_error / (M_PI / 4.0f));
 
   /* if alignment is *truly* awful, then do nothing. Don't make a join worse. */
-  if (alignment < 0.0f) {
-    alignment = 0.0f;
-  }
+  alignment = std::max(alignment, 0.0f);
 
   ASSERT_VALID_ERROR_METRIC(alignment);
 
@@ -732,7 +732,7 @@ static float compute_alignment(const JoinEdgesState &s,
  * even though there might be an alternate quad with lower numerical error.
  *
  * This algorithm reduces the error of a given edge based on three factors:
- * - The error of the neighboring quad. The the better the neighbor quad, the more the impact.
+ * - The error of the neighboring quad. The better the neighbor quad, the more the impact.
  * - The alignment of the proposed new quad the existing quad.
  *   Grids of rectangles or trapezoids improve well. Trapezoids and diamonds are left alone.
  * - topology_influence. The higher the operator parameter is set, the more the impact.
@@ -834,9 +834,7 @@ static void reprioritize_join(JoinEdgesState &s,
    * the priority queue. Limiting improvement at 99% ensures those quads tend to retain their bad
    * sort, meaning they end up surrounded by quads that define a good grid,
    * then they merge last, which tends to produce better results. */
-  if (multiplier > maximum_improvement) {
-    multiplier = maximum_improvement;
-  }
+  multiplier = std::min(multiplier, maximum_improvement);
 
   ASSERT_VALID_ERROR_METRIC(multiplier);
 
@@ -864,7 +862,7 @@ static void reprioritize_join(JoinEdgesState &s,
  *
  * \param s: State information about the join_triangles process.
  * \param f: A quad.
- * \param f_error The current error of the face.
+ * \param f_error: The current error of the face.
  */
 static void reprioritize_face_neighbors(JoinEdgesState &s, BMFace *f, float f_error)
 {
@@ -964,7 +962,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   DelimitData delimit_data = bm_edge_delmimit_data_from_op(bm, op);
 
   /* Initial setup of state. */
-  JoinEdgesState s = {0};
+  JoinEdgesState s = {nullptr};
   s.topo_influnce = BMO_slot_float_get(op->slots_in, "topology_influence");
   s.use_topo_influence = (s.topo_influnce != 0.0f);
   s.edge_queue = BLI_heap_new();
@@ -1024,7 +1022,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* Go through all the the faces of the input slot, this time to find quads.
+  /* Go through all the faces of the input slot, this time to find quads.
    * Improve the candidates around any preexisting quads in the mesh.
    *
    * NOTE: This unfortunately misses any quads which are not selected, but
@@ -1045,7 +1043,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
          * allow them to have an especially strong influence on the resulting mesh.
          * At a topology influence of 200%, they're considered to be *almost perfect* quads
          * regardless of their actual error. Either way, the multiplier is never completely
-         * allowed to reach reach zero. Instead, 1% of the original error is preserved...
+         * allowed to reach zero. Instead, 1% of the original error is preserved...
          * which is enough to maintain the relative priority sorting between existing quads. */
         f_error *= (2.0f - (s.topo_influnce * maximum_improvement));
 

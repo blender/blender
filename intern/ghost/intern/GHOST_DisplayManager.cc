@@ -15,7 +15,7 @@
 
 GHOST_DisplayManager::GHOST_DisplayManager() : m_settingsInitialized(false) {}
 
-GHOST_DisplayManager::~GHOST_DisplayManager() {}
+GHOST_DisplayManager::~GHOST_DisplayManager() = default;
 
 GHOST_TSuccess GHOST_DisplayManager::initialize()
 {

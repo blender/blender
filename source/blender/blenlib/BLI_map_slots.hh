@@ -22,6 +22,7 @@
  * - Implement slot type that stores the hash.
  */
 
+#include "BLI_hash_tables.hh"
 #include "BLI_memory_utils.hh"
 
 namespace blender {

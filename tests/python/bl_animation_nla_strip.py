@@ -124,7 +124,7 @@ class NLAStripActionSlotSelectionTest(AbstractNlaStripTest):
 
         strip1 = track.strips.new("name", 1, action)
         self.assertEqual(action.slots[0], strip1.action_slot)
-        self.assertEqual('OBJECT', action.slots[0].id_root, "Slot should have been rooted to object")
+        self.assertEqual('OBJECT', action.slots[0].target_id_type, "Slot should have been rooted to object")
 
         strip2 = track.strips.new("name", 10, action)
         self.assertEqual(action.slots[0], strip2.action_slot)
@@ -144,11 +144,13 @@ class NLAStripActionSlotSelectionTest(AbstractNlaStripTest):
 
         strip = track.strips.new("name", 1, action1)
         self.assertEqual(action1.slots[0], strip.action_slot)
-        self.assertEqual('OBJECT', action1.slots[0].id_root, "Slot of Action 1 should have been rooted to object")
+        self.assertEqual('OBJECT', action1.slots[0].target_id_type,
+                         "Slot of Action 1 should have been rooted to object")
 
         strip.action = action2
         self.assertEqual(action2.slots[0], strip.action_slot)
-        self.assertEqual('OBJECT', action2.slots[0].id_root, "Slot of Action 2 should have been rooted to object")
+        self.assertEqual('OBJECT', action2.slots[0].target_id_type,
+                         "Slot of Action 2 should have been rooted to object")
 
 
 if __name__ == "__main__":

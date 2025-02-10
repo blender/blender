@@ -7,7 +7,7 @@ Pose Library - operators.
 """
 
 from pathlib import Path
-from typing import Optional, Set
+from typing import Set
 
 _need_reload = "functions" in locals()
 from . import asset_browser, functions, pose_creation, pose_usage
@@ -22,7 +22,7 @@ if _need_reload:
 
 
 import bpy
-from bpy.props import BoolProperty, StringProperty
+from bpy.props import BoolProperty
 from bpy.types import (
     Action,
     AssetRepresentation,
@@ -44,109 +44,6 @@ class PoseAssetCreator:
             and context.object.pose
             and context.selected_pose_bones_from_active_object
         )
-
-
-class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
-    bl_idname = "poselib.create_pose_asset"
-    bl_label = "Create Pose Asset"
-    bl_description = (
-        "Create a new Action that contains the pose of the selected bones, and mark it as Asset. "
-        "The asset will be stored in the current blend file"
-    )
-    bl_options = {'REGISTER', 'UNDO'}
-
-    pose_name: StringProperty(name="Pose Name")  # type: ignore
-    activate_new_action: BoolProperty(name="Activate New Action", default=True)  # type: ignore
-
-    @classmethod
-    def poll(cls, context: Context) -> bool:
-        if context.object is None or context.object.mode != "POSE":
-            # The operator assumes pose mode, so that bone selection is visible.
-            cls.poll_message_set("An active armature object in pose mode is needed")
-            return False
-
-        # Make sure that if there is an asset browser open, the artist can see the newly created pose asset.
-        asset_browse_area: Optional[bpy.types.Area] = asset_browser.area_from_context(context)
-        if not asset_browse_area:
-            # No asset browser is visible, so there also aren't any expectations
-            # that this asset will be visible.
-            return True
-
-        asset_space_params = asset_browser.params(asset_browse_area)
-        if asset_space_params.asset_library_reference != 'LOCAL':
-            cls.poll_message_set("Asset Browser must be set to the Current File library")
-            return False
-
-        return True
-
-    def execute(self, context: Context) -> Set[str]:
-        pose_name = self.pose_name or context.object.name
-        asset = pose_creation.create_pose_asset_from_context(context, pose_name)
-        if not asset:
-            self.report({"WARNING"}, "No keyframes were found for this pose")
-            return {"CANCELLED"}
-
-        if self.activate_new_action:
-            self._set_active_action(context, asset)
-        self._activate_asset_in_browser(context, asset)
-        return {'FINISHED'}
-
-    def _set_active_action(self, context: Context, asset: Action) -> None:
-        self._prevent_action_loss(context.object)
-
-        anim_data = context.object.animation_data_create()
-        context.window_manager.poselib_previous_action = anim_data.action
-        anim_data.action = asset
-        # The `pass` on `AttributeError` and `IndexError` is just for while
-        # slotted actions are still behind an experimental flag, and thus the
-        # `slots` attribute may not exist when Blender is built without
-        # experimental features or it might be empty when the flag is simply
-        # disabled. The `try/except` here can be removed when slotted actions
-        # are taken out of experimental.
-        try:
-            anim_data.action_slot = asset.slots[0]
-        except (AttributeError, IndexError):
-            pass
-
-    def _activate_asset_in_browser(self, context: Context, asset: Action) -> None:
-        """Activate the new asset in the appropriate Asset Browser.
-
-        This makes it possible to immediately check & edit the created pose asset.
-        """
-
-        asset_browse_area: Optional[bpy.types.Area] = asset_browser.area_from_context(context)
-        if not asset_browse_area:
-            return
-
-        # After creating an asset, the window manager has to process the
-        # notifiers before editors should be manipulated.
-        pose_creation.assign_from_asset_browser(asset, asset_browse_area)
-
-        # Pass deferred=True, because we just created a new asset that isn't
-        # known to the Asset Browser space yet. That requires the processing of
-        # notifiers, which will only happen after this code has finished
-        # running.
-        asset_browser.activate_asset(asset, asset_browse_area, deferred=True)
-
-    def _prevent_action_loss(self, object: Object) -> None:
-        """Mark the action with Fake User if necessary.
-
-        This is to prevent action loss when we reduce its reference counter by one.
-        """
-
-        if not object.animation_data:
-            return
-
-        action = object.animation_data.action
-        if not action:
-            return
-
-        if action.use_fake_user or action.users > 1:
-            # Removing one user won't GC it.
-            return
-
-        action.use_fake_user = True
-        self.report({'WARNING'}, tip_("Action %s marked Fake User to prevent loss") % action.name)
 
 
 class POSELIB_OT_restore_previous_action(Operator):
@@ -461,7 +358,6 @@ classes = (
     POSELIB_OT_convert_old_poselib,
     POSELIB_OT_convert_old_object_poselib,
     POSELIB_OT_copy_as_asset,
-    POSELIB_OT_create_pose_asset,
     POSELIB_OT_paste_asset,
     POSELIB_OT_pose_asset_select_bones,
     POSELIB_OT_restore_previous_action,

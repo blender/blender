@@ -120,7 +120,7 @@ void FFMPEGWriter::encode()
 	while(avcodec_receive_packet(m_codecCtx, m_packet) == 0)
 	{
 		m_packet->stream_index = m_stream->index;
-
+		av_packet_rescale_ts(m_packet, m_codecCtx->time_base, m_stream->time_base);
 		if(av_write_frame(m_formatCtx, m_packet) < 0)
 			AUD_THROW(FileException, "Frame couldn't be writen to the file with ffmpeg.");
 	}
@@ -161,7 +161,7 @@ void FFMPEGWriter::close()
 	while(avcodec_receive_packet(m_codecCtx, m_packet) == 0)
 	{
 		m_packet->stream_index = m_stream->index;
-
+		av_packet_rescale_ts(m_packet, m_codecCtx->time_base, m_stream->time_base);
 		if(av_write_frame(m_formatCtx, m_packet) < 0)
 			AUD_THROW(FileException, "Frame couldn't be writen to the file with ffmpeg.");
 	}
@@ -179,7 +179,7 @@ FFMPEGWriter::FFMPEGWriter(const std::string &filename, DeviceSpecs specs, Conta
 	m_input_samples(0),
 	m_deinterleave(false)
 {
-	static const char* formats[] = { nullptr, "ac3", "flac", "matroska", "mp2", "mp3", "ogg", "wav" };
+	static const char* formats[] = { nullptr, "ac3", "flac", "matroska", "mp2", "mp3", "ogg", "wav", "adts" };
 
 	if(avformat_alloc_output_context2(&m_formatCtx, nullptr, formats[format], filename.c_str()) < 0)
 		AUD_THROW(FileException, "File couldn't be written, format couldn't be found with ffmpeg.");

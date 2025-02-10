@@ -47,14 +47,14 @@ enum eImbFileType {
 #endif
 };
 
-typedef enum IMB_Proxy_Size {
+enum IMB_Proxy_Size {
   IMB_PROXY_NONE = 0,
   IMB_PROXY_25 = 1,
   IMB_PROXY_50 = 2,
   IMB_PROXY_75 = 4,
   IMB_PROXY_100 = 8,
   IMB_PROXY_MAX_SLOT = 4,
-} IMB_Proxy_Size;
+};
 ENUM_OPERATORS(IMB_Proxy_Size, IMB_PROXY_100);
 
 #ifdef __cplusplus

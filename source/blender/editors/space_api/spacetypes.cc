@@ -10,9 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
-#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.hh"

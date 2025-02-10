@@ -27,12 +27,20 @@ def CLIP_set_viewport_background(context, clip, clip_user):
 
     def check_camera_has_distortion(tracking_camera):
         if tracking_camera.distortion_model == 'POLYNOMIAL':
-            return not all(k == 0 for k in (tracking_camera.k1,
-                                            tracking_camera.k2,
-                                            tracking_camera.k3))
+            return not all(
+                k == 0 for k in (
+                    tracking_camera.k1,
+                    tracking_camera.k2,
+                    tracking_camera.k3,
+                )
+            )
         elif tracking_camera.distortion_model == 'DIVISION':
-            return not all(k == 0 for k in (tracking_camera.division_k1,
-                                            tracking_camera.division_k2))
+            return not all(
+                k == 0 for k in (
+                    tracking_camera.division_k1,
+                    tracking_camera.division_k2,
+                )
+            )
         return False
 
     def set_background(cam, clip, user):
@@ -926,12 +934,14 @@ class CLIP_OT_setup_tracking_scene(Operator):
     def _createSampleObject(self, collection):
         vertices = self._getPlaneVertices(1.0, -1.0) + \
             self._getPlaneVertices(1.0, 1.0)
-        faces = (0, 1, 2, 3,
-                 4, 7, 6, 5,
-                 0, 4, 5, 1,
-                 1, 5, 6, 2,
-                 2, 6, 7, 3,
-                 3, 7, 4, 0)
+        faces = (
+            0, 1, 2, 3,
+            4, 7, 6, 5,
+            0, 4, 5, 1,
+            1, 5, 6, 2,
+            2, 6, 7, 3,
+            3, 7, 4, 0,
+        )
 
         return self._createMesh(collection, "Cube", vertices, faces)
 

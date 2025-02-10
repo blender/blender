@@ -11,16 +11,11 @@
 #include <cstring>
 #include <optional>
 
-#include "BKE_curve_legacy_convert.hh"
-#include "BKE_curves.hh"
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -28,13 +23,13 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
@@ -50,12 +45,14 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_curve_legacy_convert.hh"
 #include "BKE_curve_to_mesh.hh"
 #include "BKE_curves.h"
 #include "BKE_curves.hh"
@@ -77,10 +74,11 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_library.hh"
 #include "BKE_light.h"
 #include "BKE_lightprobe.h"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -636,7 +634,7 @@ Object *add_type_with_obdata(bContext *C,
     ob = BKE_object_add_for_data(bmain, scene, view_layer, type, name, obdata, true);
     const short *materials_len_p = BKE_id_material_len_p(obdata);
     if (materials_len_p && *materials_len_p > 0) {
-      BKE_object_materials_test(bmain, ob, static_cast<ID *>(ob->data));
+      BKE_object_materials_sync_length(bmain, ob, static_cast<ID *>(ob->data));
     }
   }
   else {
@@ -1217,6 +1215,11 @@ static int object_image_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!ED_operator_objectmode(C)) {
+    BKE_report(op->reports, RPT_ERROR, "Image objects can only be added in Object Mode");
+    return OPERATOR_CANCELLED;
+  }
+
   /* Add new empty. */
   ushort local_view_bits;
   float loc[3], rot[3];
@@ -1303,7 +1306,7 @@ static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 static bool object_image_add_poll(bContext *C)
 {
-  return ED_operator_objectmode(C) && CTX_wm_region_view3d(C);
+  return CTX_wm_region_view3d(C);
 }
 
 void OBJECT_OT_empty_image_add(wmOperatorType *ot)
@@ -1441,8 +1444,7 @@ static int object_grease_pencil_add_exec(bContext *C, wmOperator *op)
       greasepencil::create_blank(*bmain, *object, scene->r.cfra);
 
       auto *grease_pencil = reinterpret_cast<GreasePencil *>(object->data);
-      auto *new_md = reinterpret_cast<ModifierData *>(
-          BKE_modifier_new(eModifierType_GreasePencilLineart));
+      auto *new_md = BKE_modifier_new(eModifierType_GreasePencilLineart);
       auto *md = reinterpret_cast<GreasePencilLineartModifierData *>(new_md);
 
       BLI_addtail(&object->modifiers, md);
@@ -2874,6 +2876,7 @@ struct ObjectConversionInfo {
   Object *obact;
   bool keep_original;
   bool do_merge_customdata;
+  PointerRNA *op_props;
   ReportList *reports;
 };
 
@@ -3086,6 +3089,221 @@ static Object *convert_mesh_to_mesh(Base &base, ObjectConversionInfo &info, Base
   return newob;
 }
 
+static int mesh_to_grease_pencil_add_material(Main &bmain,
+                                              Object &ob_grease_pencil,
+                                              const StringRefNull name,
+                                              const std::optional<float4> &stroke_color,
+                                              const std::optional<float4> &fill_color)
+{
+  int index;
+  Material *ma = BKE_grease_pencil_object_material_ensure_by_name(
+      &bmain, &ob_grease_pencil, DATA_(name.c_str()), &index);
+
+  if (stroke_color.has_value()) {
+    copy_v4_v4(ma->gp_style->stroke_rgba, stroke_color.value());
+    srgb_to_linearrgb_v4(ma->gp_style->stroke_rgba, ma->gp_style->stroke_rgba);
+  }
+
+  if (fill_color.has_value()) {
+    copy_v4_v4(ma->gp_style->fill_rgba, fill_color.value());
+    srgb_to_linearrgb_v4(ma->gp_style->fill_rgba, ma->gp_style->fill_rgba);
+  }
+
+  SET_FLAG_FROM_TEST(ma->gp_style->flag, stroke_color.has_value(), GP_MATERIAL_STROKE_SHOW);
+  SET_FLAG_FROM_TEST(ma->gp_style->flag, fill_color.has_value(), GP_MATERIAL_FILL_SHOW);
+
+  return index;
+}
+
+class FillColorRecord {
+ public:
+  float4 color;
+  StringRefNull name;
+  bool operator==(const FillColorRecord &other) const
+  {
+    return other.color == color && other.name == name;
+  }
+  uint64_t hash() const
+  {
+    return hash_string(name);
+  }
+};
+
+static VectorSet<FillColorRecord> mesh_to_grease_pencil_get_material_list(
+    Object &ob_mesh, const Mesh &mesh, Array<int> &material_remap)
+{
+  const short num_materials = mesh.totcol;
+  const FillColorRecord empty_fill = {float4(1.0f), DATA_("Empty Fill")};
+
+  /* This function will only be called when we want to create fills out of mesh faces, so always
+   * ensure that fills would have at least one material to be assigned to. */
+  if (num_materials == 0) {
+    VectorSet<FillColorRecord> fill_colors;
+    fill_colors.add(empty_fill);
+    material_remap.reinitialize(1);
+    material_remap[0] = 0;
+    return fill_colors;
+  }
+
+  VectorSet<FillColorRecord> fill_colors;
+
+  material_remap.reinitialize(num_materials);
+
+  for (const int material_i : IndexRange(num_materials)) {
+    const Material *mesh_material = BKE_object_material_get(&ob_mesh, material_i + 1);
+    if (!mesh_material) {
+      material_remap[material_i] = fill_colors.index_of_or_add(empty_fill);
+      continue;
+    }
+    const float4 fill_color = float4(
+        mesh_material->r, mesh_material->g, mesh_material->b, mesh_material->a);
+    const StringRefNull material_name = BKE_id_name(mesh_material->id);
+    const FillColorRecord record = {fill_color, material_name};
+    material_remap[material_i] = fill_colors.index_of_or_add(record);
+  }
+
+  return fill_colors;
+}
+static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
+                                       GreasePencil &grease_pencil,
+                                       const int current_frame,
+                                       const bool generate_faces,
+                                       const float stroke_radius,
+                                       const float offset,
+                                       const Array<int> &material_remap)
+{
+  grease_pencil.flag |= GREASE_PENCIL_STROKE_ORDER_3D;
+
+  if (mesh_eval.edges_num <= 0) {
+    return;
+  }
+
+  bke::greasepencil::Layer &layer_line = grease_pencil.add_layer(DATA_("Lines"));
+  bke::greasepencil::Drawing *drawing_line = grease_pencil.insert_frame(layer_line, current_frame);
+
+  const Span<float3> mesh_positions = mesh_eval.vert_positions();
+  const Span<float3> vert_normals = mesh_eval.vert_normals();
+  const Span<int2> edges = mesh_eval.edges();
+  const OffsetIndices<int> faces = mesh_eval.faces();
+  Span<int> faces_span = faces.data();
+  const Span<int> corner_verts = mesh_eval.corner_verts();
+
+  if (generate_faces && !faces.is_empty()) {
+    bke::greasepencil::Layer &layer_fill = grease_pencil.add_layer(DATA_("Fills"));
+    bke::greasepencil::Drawing *drawing_fill = grease_pencil.insert_frame(layer_fill,
+                                                                          current_frame);
+    const int fills_num = faces.size();
+    const int fills_points_num = corner_verts.size();
+
+    drawing_fill->strokes_for_write().resize(fills_points_num, fills_num);
+    bke::CurvesGeometry &curves_fill = drawing_fill->strokes_for_write();
+    MutableSpan<float3> positions_fill = curves_fill.positions_for_write();
+    MutableSpan<int> offsets_fill = curves_fill.offsets_for_write();
+    MutableSpan<bool> cyclic_fill = curves_fill.cyclic_for_write();
+    bke::SpanAttributeWriter<int> stroke_materials_fill =
+        curves_fill.attributes_for_write().lookup_or_add_for_write_span<int>(
+            "material_index", bke::AttrDomain::Curve);
+    bke::AttributeAccessor mesh_attributes = mesh_eval.attributes();
+    VArray<int> mesh_materials = *mesh_attributes.lookup_or_default(
+        "material_index", bke::AttrDomain::Face, 0);
+
+    curves_fill.fill_curve_types(CURVE_TYPE_POLY);
+    array_utils::gather(mesh_positions, corner_verts, positions_fill);
+    array_utils::copy(faces_span, offsets_fill);
+    cyclic_fill.fill(true);
+
+    MutableSpan<int> material_span = stroke_materials_fill.span;
+    for (const int face_i : material_span.index_range()) {
+      /* Increase material index by 1 to accommodate the stroke material. */
+      material_span[face_i] = material_remap[mesh_materials[face_i]] + 1;
+    }
+    stroke_materials_fill.finish();
+  }
+
+  const int edges_num = edges.size();
+  const int points_num = edges_num * 2;
+
+  bke::CurvesGeometry &curves = drawing_line->strokes_for_write();
+  curves.resize(points_num, edges_num);
+  MutableSpan<float3> positions = curves.positions_for_write();
+  MutableSpan<int> offsets = curves.offsets_for_write();
+  MutableSpan<float> radii = curves.radius_for_write();
+  curves.fill_curve_types(CURVE_TYPE_POLY);
+
+  for (const int edge_i : edges.index_range()) {
+    const int2 edge = edges[edge_i];
+    const int point_i = edge_i * 2;
+    positions[point_i] = mesh_positions[edge[0]] + offset * vert_normals[edge[0]];
+    positions[point_i + 1] = mesh_positions[edge[1]] + offset * vert_normals[edge[1]];
+    radii[point_i] = radii[point_i + 1] = stroke_radius;
+  }
+  radii.fill(stroke_radius);
+
+  offset_indices::fill_constant_group_size(2, 0, offsets);
+}
+
+static Object *convert_mesh_to_grease_pencil(Base &base,
+                                             ObjectConversionInfo &info,
+                                             Base **r_new_base)
+{
+  Object *ob = base.object;
+  ob->flag |= OB_DONE;
+  Object *newob = get_object_for_conversion(base, info, r_new_base);
+
+  const bool generate_faces = RNA_boolean_get(info.op_props, "faces");
+  const int thickness = RNA_int_get(info.op_props, "thickness");
+  const float offset = RNA_float_get(info.op_props, "offset");
+
+  /* To be compatible with the thickness value prior to Grease Pencil v3. */
+  const float stroke_radius = float(thickness) / 2 *
+                              bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+
+  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+
+  VectorSet<FillColorRecord> fill_colors;
+  Array<int> material_remap;
+  if (generate_faces) {
+    fill_colors = mesh_to_grease_pencil_get_material_list(*ob_eval, *mesh_eval, material_remap);
+  }
+
+  Mesh *newob_mesh = static_cast<Mesh *>(newob->data);
+  BKE_id_material_clear(info.bmain, &newob_mesh->id);
+  BKE_object_free_derived_caches(newob);
+  BKE_object_free_modifiers(newob, 0);
+
+  GreasePencil *grease_pencil = BKE_grease_pencil_add(info.bmain, BKE_id_name(mesh_eval->id));
+  newob->data = grease_pencil;
+  newob->type = OB_GREASE_PENCIL;
+
+  /* Reset `ob->totcol` and `ob->actcol` since currently the generic / grease pencil material
+   * functions still depend on this value being coherent (The same value as
+   * `GreasePencil::material_array_num`).
+   */
+  newob->totcol = 0;
+  newob->actcol = 0;
+
+  mesh_to_grease_pencil_add_material(
+      *info.bmain, *newob, DATA_("Stroke"), float4(0.0f, 0.0f, 0.0f, 1.0f), {});
+
+  if (generate_faces) {
+    for (const int fill_i : fill_colors.index_range()) {
+      const FillColorRecord &record = fill_colors[fill_i];
+      mesh_to_grease_pencil_add_material(*info.bmain, *newob, record.name, {}, record.color);
+    }
+  }
+
+  mesh_data_to_grease_pencil(*mesh_eval,
+                             *grease_pencil,
+                             info.scene->r.cfra,
+                             generate_faces,
+                             stroke_radius,
+                             offset,
+                             material_remap);
+
+  return newob;
+}
+
 static Object *convert_mesh(Base &base,
                             const ObjectType target,
                             ObjectConversionInfo &info,
@@ -3100,6 +3318,8 @@ static Object *convert_mesh(Base &base,
       return convert_mesh_to_point_cloud(base, info, r_new_base);
     case OB_MESH:
       return convert_mesh_to_mesh(base, info, r_new_base);
+    case OB_GREASE_PENCIL:
+      return convert_mesh_to_grease_pencil(base, info, r_new_base);
     default:
       /* Current logic does convert mesh to mesh for any other target types. This would change
        * after other types of conversion are designed and implemented. */
@@ -3728,6 +3948,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   info.obact = obact;
   info.keep_original = keep_original;
   info.do_merge_customdata = do_merge_customdata;
+  info.op_props = op->ptr;
   info.reports = op->reports;
 
   Base *act_base = nullptr;
@@ -3821,7 +4042,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
     /* Ensure new object has consistent material data with its new obdata. */
     if (newob) {
-      BKE_object_materials_test(bmain, newob, static_cast<ID *>(newob->data));
+      BKE_object_materials_sync_length(bmain, newob, static_cast<ID *>(newob->data));
     }
 
     /* tag obdata if it was been changed */
@@ -3913,11 +4134,9 @@ static void object_convert_ui(bContext * /*C*/, wmOperator *op)
   if (target == OB_MESH) {
     uiItemR(layout, op->ptr, "merge_customdata", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-  else if (target == OB_GPENCIL_LEGACY) {
+  else if (target == OB_GREASE_PENCIL) {
     uiItemR(layout, op->ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(layout, op->ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(layout, op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(layout, op->ptr, "seams", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(layout, op->ptr, "faces", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
@@ -3959,20 +4178,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
       "Merge UVs",
       "Merge UV coordinates that share a vertex to account for imprecision in some modifiers");
 
-  prop = RNA_def_float_rotation(ot->srna,
-                                "angle",
-                                0,
-                                nullptr,
-                                DEG2RADF(0.0f),
-                                DEG2RADF(180.0f),
-                                "Threshold Angle",
-                                "Threshold to determine ends of the strokes",
-                                DEG2RADF(0.0f),
-                                DEG2RADF(180.0f));
-  RNA_def_property_float_default(prop, DEG2RADF(70.0f));
-
   RNA_def_int(ot->srna, "thickness", 5, 1, 100, "Thickness", "", 1, 100);
-  RNA_def_boolean(ot->srna, "seams", false, "Only Seam Edges", "Convert only seam edges");
   RNA_def_boolean(ot->srna, "faces", true, "Export Faces", "Export faces as filled strokes");
   RNA_def_float_distance(ot->srna,
                          "offset",
@@ -4044,7 +4250,6 @@ static void object_add_duplicate_internal(Main *bmain,
     *r_ob_new = obn;
   }
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  return;
 }
 
 static Base *object_add_duplicate_internal(Main *bmain,

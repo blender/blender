@@ -50,7 +50,10 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
   int size;
 
   /* Common / easy case optimization. */
-  if ((coba->tot <= 2) && (coba->color_mode == COLBAND_BLEND_RGB)) {
+  if (coba->tot == 1) {
+    return GPU_link(mat, "set_rgba", GPU_uniform(&coba->data[0].r), &out[0].link);
+  }
+  if ((coba->tot == 2) && (coba->color_mode == COLBAND_BLEND_RGB)) {
     float mul_bias[2];
     switch (coba->ipotype) {
       case COLBAND_INTERP_LINEAR:
@@ -159,8 +162,11 @@ void register_node_type_sh_valtorgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "Color Ramp", NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeValToRGB", SH_NODE_VALTORGB);
+  ntype.ui_name = "Color Ramp";
+  ntype.ui_description = "Map values to colors with the use of a gradient";
   ntype.enum_name_legacy = "VALTORGB";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_valtorgb_declare;
   ntype.initfunc = file_ns::node_shader_init_valtorgb;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);

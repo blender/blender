@@ -10,8 +10,6 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
-
 #include "bpy_path.hh"
 
 #include "../generic/py_capi_utils.hh"

@@ -10,6 +10,8 @@
 
 #include "../wm_message_bus.hh"
 
+struct GSet;
+
 struct wmMsgBus {
   GSet *messages_gset[WM_MSG_TYPE_NUM];
   /** Messages in order of being added. */

@@ -6,6 +6,7 @@
  * \ingroup spconsole
  */
 
+#include <algorithm>
 #include <cctype> /* #ispunct */
 #include <cstdlib>
 #include <cstring>
@@ -110,9 +111,7 @@ static int console_delete_editable_selection(SpaceConsole *sc)
     return 0;
   }
 
-  if (sc->sel_start < 0) {
-    sc->sel_start = 0;
-  }
+  sc->sel_start = std::max(sc->sel_start, 0);
 
   ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
   if (!cl || sc->sel_start > cl->len) {
@@ -123,10 +122,7 @@ static int console_delete_editable_selection(SpaceConsole *sc)
   int del_start = sc->sel_start;
   int del_end = sc->sel_end;
 
-  if (del_end > cl->len) {
-    /* Adjust range to only editable portion. */
-    del_end = cl->len;
-  }
+  del_end = std::min(del_end, cl->len);
 
   const int len = del_end - del_start;
   memmove(cl->line + cl->len - del_end, cl->line + cl->len - del_start, del_start);

@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -35,7 +36,6 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
 #include "UI_interface.hh"
@@ -152,7 +152,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
     if (vos->sco[0] != IS_CLIPPED) {
       if (col_pack_prev != vos->col.pack) {
         BLF_color4ubv(font_id, vos->col.ub);
-        const uchar lightness = rgb_to_grayscale_byte(vos->col.ub);
+        const uchar lightness = srgb_to_grayscale_byte(vos->col.ub);
         outline_is_dark = lightness > 96;
         col_pack_prev = vos->col.pack;
       }
@@ -259,7 +259,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
 void DRW_text_edit_mesh_measure_stats(const ARegion *region,
                                       const View3D *v3d,
                                       const Object *ob,
-                                      const UnitSettings *unit,
+                                      const UnitSettings &unit,
                                       DRWTextStore *dt)
 {
   /* Do not use ascii when using non-default unit system, some unit chars are utf8 (micro, square,
@@ -277,7 +277,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   char numstr[32];                      /* Stores the measurement display text here */
   const char *conv_float;               /* Use a float conversion matching the grid size */
   blender::uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */
-  const float grid = unit->system ? unit->scale_length : v3d->grid;
+  const float grid = unit.system ? unit.scale_length : v3d->grid;
   const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
   const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
   blender::float4x4 clip_planes;
@@ -362,16 +362,11 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
             v2 = ob->object_to_world().view<3, 3>() * v2;
           }
 
-          const size_t numstr_len = unit->system ?
-                                        BKE_unit_value_as_string(numstr,
-                                                                 sizeof(numstr),
-                                                                 len_v3v3(v1, v2) *
-                                                                     unit->scale_length,
-                                                                 3,
-                                                                 B_UNIT_LENGTH,
-                                                                 unit,
-                                                                 false) :
-                                        SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
+          const size_t numstr_len =
+              unit.system ?
+                  BKE_unit_value_as_string_scaled(
+                      numstr, sizeof(numstr), len_v3v3(v1, v2), 3, B_UNIT_LENGTH, unit, false) :
+                  SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
 
           DRW_text_cache_add(dt, co, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
         }
@@ -380,7 +375,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   }
 
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
-    const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
+    const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
     BMEdge *eed;
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
@@ -502,16 +497,10 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
         vmid *= 1.0f / float(n);
         vmid = blender::math::transform_point(ob->object_to_world(), vmid);
 
-        const size_t numstr_len = unit->system ?
-                                      BKE_unit_value_as_string(
-                                          numstr,
-                                          sizeof(numstr),
-                                          double(area * unit->scale_length * unit->scale_length),
-                                          3,
-                                          B_UNIT_AREA,
-                                          unit,
-                                          false) :
-                                      SNPRINTF_RLEN(numstr, conv_float, area);
+        const size_t numstr_len =
+            unit.system ? BKE_unit_value_as_string_scaled(
+                              numstr, sizeof(numstr), area, 3, B_UNIT_AREA, unit, false) :
+                          SNPRINTF_RLEN(numstr, conv_float, area);
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
       }
@@ -521,7 +510,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
 
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_ANG) {
     BMFace *efa;
-    const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
+    const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 
@@ -595,8 +584,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) {
     int i;
 
-    /* For now, reuse an appropriate theme color */
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+    UI_GetThemeColor4ubv(TH_TEXT_HI, col);
 
     if (em->selectmode & SCE_SELECT_VERTEX) {
       BMVert *v;
@@ -610,7 +598,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
               ob->object_to_world(), use_coords ? vert_positions[BM_elem_index_get(v)] : v->co);
 
           const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
-          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
+          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col, true, false);
         }
       }
     }
@@ -648,7 +636,9 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
                 0,
                 (use_edge_tex_sep) ? (use_edge_tex_len) ? -edge_tex_sep : edge_tex_sep : 0,
                 txt_flag,
-                col);
+                col,
+                true,
+                false);
           }
         }
       }
@@ -675,7 +665,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
           co = blender::math::transform_point(ob->object_to_world(), co);
 
           const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
-          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
+          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col, true, false);
         }
       }
     }

@@ -8,12 +8,13 @@
 
 #pragma once
 
+#include <Python.h>
+
 #include <string>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
-#include "BLI_utildefines_variadic.h"
 
 /** Useful to print Python objects while debugging. */
 void PyC_ObSpit(const char *name, PyObject *var);

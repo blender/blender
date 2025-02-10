@@ -9,14 +9,12 @@
 #include "AS_asset_library.hh"
 
 #include "AS_asset_catalog.hh"
-#include "AS_asset_catalog_tree.hh"
 
 #include "BKE_main.hh"
 
 #include "BLI_string_utils.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.hh"
 
 #include "ED_asset_catalog.hh"
 
@@ -170,6 +168,28 @@ void catalogs_save_from_main_path(AssetLibrary *library, const Main *bmain)
    * an undo step. */
   catalog_service.undo_push();
   catalog_service.write_to_disk(bmain->filepath);
+}
+
+void catalogs_save_from_asset_reference(AssetLibrary &library, const AssetWeakReference &reference)
+{
+  asset_system::AssetCatalogService &catalog_service = library.catalog_service();
+  if (catalog_service.is_read_only()) {
+    return;
+  }
+
+  char asset_full_path_buffer[1024 + MAX_ID_NAME /*FILE_MAX_LIBEXTRA*/];
+  char *file_path = nullptr;
+  AS_asset_full_path_explode_from_weak_ref(
+      &reference, asset_full_path_buffer, &file_path, nullptr, nullptr);
+  if (!file_path) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  /* Since writing to disk also means loading any on-disk changes, it may be a good idea to store
+   * an undo step. */
+  catalog_service.undo_push();
+  catalog_service.write_to_disk(file_path);
 }
 
 void catalogs_set_save_catalogs_when_file_is_saved(const bool should_save)

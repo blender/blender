@@ -10,6 +10,7 @@
 
 #include "BLI_math_vector_types.hh"
 
+struct Depsgraph;
 struct Object;
 struct PTCacheEdit;
 struct ParticleEditSettings;

@@ -38,7 +38,7 @@ struct HuangHairExtra {
   float pixel_coverage;
 
   /* Valid integration interval. */
-  float gamma_m_min, gamma_m_max;
+  Interval<float> gamma_m;
 };
 
 struct HuangHairBSDF {
@@ -72,6 +72,8 @@ static_assert(sizeof(ShaderClosure) >= sizeof(HuangHairExtra), "HuangHairExtra i
 /* -------------------------------------------------------------------- */
 /** \name Hair coordinate system utils.
  * \{ */
+
+/* TODO(weizhen): add a namespace `huanghair` for the below utility functions. */
 
 /* Returns `sin(theta)` of the given direction. */
 ccl_device_inline float sin_theta(const float3 w)
@@ -124,10 +126,16 @@ ccl_device_inline float2 dir_sph(const float3 w)
   return make_float2(dir_theta(w), dir_phi(w));
 }
 
+/* Check whether the hair cross-section is circular. */
+ccl_device_inline bool is_circular(const float b)
+{
+  return b == 1.0f;
+}
+
 /* Conversion between `gamma` and `phi`. Notations see Figure 5 in the paper. */
 ccl_device_inline float to_phi(const float gamma, const float b)
 {
-  if (b == 1.0f) {
+  if (is_circular(b)) {
     return gamma;
   }
   float sin_gamma;
@@ -138,7 +146,7 @@ ccl_device_inline float to_phi(const float gamma, const float b)
 
 ccl_device_inline float to_gamma(const float phi, const float b)
 {
-  if (b == 1.0f) {
+  if (is_circular(b)) {
     return phi;
   }
   float sin_phi;
@@ -152,7 +160,7 @@ ccl_device_inline float to_gamma(const float phi, const float b)
  * Also, make use of `r = sqrt(sqr(cos_phi_i) + sqr(b * sin_phi_i))` to pre-map `h` to [-1, 1]. */
 ccl_device_inline float h_to_gamma(const float h_div_r, const float b, const float3 wi)
 {
-  return (b == 1.0f) ? -asinf(h_div_r) : atan2f(wi.z, -b * wi.x) - acosf(-h_div_r);
+  return is_circular(b) ? -asinf(h_div_r) : atan2f(wi.z, -b * wi.x) - acosf(-h_div_r);
 }
 
 /* Compute the coordinate on the ellipse, given `gamma` and the aspect ratio between the minor axis
@@ -178,7 +186,7 @@ ccl_device_inline float3 sphg_dir(const float theta, const float gamma, const fl
   fast_sincosf(theta, &sin_theta, &cos_theta);
   fast_sincosf(gamma, &sin_gamma, &cos_gamma);
 
-  if (b == 1.0f || fabsf(cos_gamma) < 1e-6f) {
+  if (is_circular(b) || fabsf(cos_gamma) < 1e-6f) {
     sin_phi = sin_gamma;
     cos_phi = cos_gamma;
   }
@@ -349,7 +357,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_r(KernelGlobals kg,
   /* Maximal sample resolution. */
   float res = roughness * 0.7f;
 
-  const float gamma_m_range = bsdf->extra->gamma_m_max - bsdf->extra->gamma_m_min;
+  const float gamma_m_range = bsdf->extra->gamma_m.length();
 
   /* Number of intervals should be even. */
   const size_t intervals = 2 * (size_t)ceilf(gamma_m_range / res * 0.5f);
@@ -360,7 +368,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_r(KernelGlobals kg,
   /* Integrate using Composite Simpson's 1/3 rule. */
   float integral = 0.0f;
   for (size_t i = 0; i <= intervals; i++) {
-    const float gamma_m = bsdf->extra->gamma_m_min + i * res;
+    const float gamma_m = bsdf->extra->gamma_m.min + i * res;
     const float3 wm = sphg_dir(bsdf->tilt, gamma_m, b);
 
     if (microfacet_visible(wi, wo, make_float3(wm.x, 0.0f, wm.z), wh)) {
@@ -407,7 +415,6 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
 
   /* Get minor axis, assuming major axis is 1. */
   const float b = bsdf->aspect_ratio;
-  const bool is_circular = (b == 1.0f);
 
   const Spectrum mu_a = bsdf->sigma;
   const float eta = bsdf->eta;
@@ -418,7 +425,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
   const float sqrt_roughness = sqrtf(roughness);
 
   float res = roughness * 0.8f;
-  const float gamma_m_range = bsdf->extra->gamma_m_max - bsdf->extra->gamma_m_min;
+  const float gamma_m_range = bsdf->extra->gamma_m.length();
   const size_t intervals = 2 * (size_t)ceilf(gamma_m_range / res * 0.5f);
   res = gamma_m_range / intervals;
 
@@ -427,7 +434,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
   Spectrum S_trrt = zero_spectrum();
   for (size_t i = 0; i <= intervals; i++) {
 
-    const float gamma_mi = bsdf->extra->gamma_m_min + i * res;
+    const float gamma_mi = bsdf->extra->gamma_m.min + i * res;
 
     const float3 wmi = sphg_dir(bsdf->tilt, gamma_mi, b);
     const float3 wmi_ = sphg_dir(0.0f, gamma_mi, b);
@@ -464,7 +471,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
     const float weight = (i == 0 || i == intervals) ? 0.5f : (i % 2 + 1);
 
     const Spectrum A_t = exp(mu_a / cos_theta(wt) *
-                             (is_circular ?
+                             (is_circular(b) ?
                                   2.0f * cosf(gamma_mi - phi_t) :
                                   -len(to_point(gamma_mi, b) - to_point(gamma_mt + M_PI_F, b))));
 
@@ -544,7 +551,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
       const float D3 = bsdf_D<MicrofacetType::GGX>(roughness2, cos_mh3);
 
       const Spectrum A_tr = exp(mu_a / cos_theta(wtr) *
-                                -(is_circular ?
+                                -(is_circular(b) ?
                                       2.0f * fabsf(cosf(phi_tr - gamma_mt)) :
                                       len(to_point(gamma_mtr, b) - to_point(gamma_mt, b))));
 
@@ -606,7 +613,6 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
 
   /* Get minor axis, assuming major axis is 1. */
   const float b = bsdf->aspect_ratio;
-  const bool is_circular = (b == 1.0f);
 
   /* Sample `h` for farfield model, as the computed intersection might have numerical issues. */
   const float h_div_r = is_nearfield(bsdf) ? bsdf->h / bsdf->extra->radius :
@@ -673,7 +679,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
   if (cos_mi2 > 0.0f && microfacet_visible(-wt, wmi_, wh1) && microfacet_visible(-wt, wmt_, wh2)) {
     const Spectrum mu_a = bsdf->sigma;
     const Spectrum A_t = exp(mu_a / cos_theta(wt) *
-                             (is_circular ?
+                             (is_circular(b) ?
                                   2.0f * cosf(phi_t - gamma_mi) :
                                   -len(to_point(gamma_mi, b) - to_point(gamma_mt + M_PI_F, b))));
 
@@ -704,7 +710,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
     const float cos_mi3 = dot(wmtr, wtr);
     if (cos_mi3 > 0.0f) {
       const Spectrum A_tr = exp(mu_a / cos_theta(wtr) *
-                                -(is_circular ?
+                                -(is_circular(b) ?
                                       2.0f * fabsf(cosf(phi_tr - gamma_mt)) :
                                       len(to_point(gamma_mt, b) - to_point(gamma_mtr, b))));
 
@@ -826,16 +832,16 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
   }
   const float r = bsdf->extra->radius;
   const float b = bsdf->aspect_ratio;
-  const float phi_i = (b == 1.0f) ? 0.0f : dir_phi(local_I);
-  float gamma_m_min = to_gamma(phi_i - half_span, b);
-  float gamma_m_max = to_gamma(phi_i + half_span, b);
-  if (gamma_m_max < gamma_m_min) {
-    gamma_m_max += M_2PI_F;
+  const float phi_i = is_circular(b) ? 0.0f : dir_phi(local_I);
+
+  Interval<float> gamma_m = {to_gamma(phi_i - half_span, b), to_gamma(phi_i + half_span, b)};
+  if (gamma_m.max < gamma_m.min) {
+    gamma_m.max += M_2PI_F;
   }
 
   /* Prevent numerical issues at the boundary. */
-  gamma_m_min += 1e-3f;
-  gamma_m_max -= 1e-3f;
+  gamma_m.min += 1e-3f;
+  gamma_m.max -= 1e-3f;
 
   /* Length of the integral interval. */
   float dh = 2.0f * r;
@@ -845,35 +851,40 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
      * Inspired by [An Efficient and Practical Near and Far Field Fur Reflectance Model]
      * (https://sites.cs.ucsb.edu/~lingqi/publications/paper_fur2.pdf) by Ling-Qi Yan, Henrik Wann
      * Jensen and Ravi Ramamoorthi. */
-    const float h_max = min(bsdf->h + bsdf->extra->pixel_coverage, r);
-    const float h_min = max(bsdf->h - bsdf->extra->pixel_coverage, -r);
+    const float half_pixel = bsdf->extra->pixel_coverage;
+    const Interval<float> h = intervals_intersection(Interval<float>{-r, r},
+                                                     {bsdf->h - half_pixel, bsdf->h + half_pixel});
 
     /* At the boundaries the hair might not cover the whole pixel. */
-    dh = h_max - h_min;
+    dh = h.length();
 
-    float nearfield_gamma_min = h_to_gamma(h_max / r, bsdf->aspect_ratio, local_I);
-    float nearfield_gamma_max = h_to_gamma(h_min / r, bsdf->aspect_ratio, local_I);
+    Interval<float> nearfield_gamma = {h_to_gamma(h.max / r, bsdf->aspect_ratio, local_I),
+                                       h_to_gamma(h.min / r, bsdf->aspect_ratio, local_I)};
 
-    if (nearfield_gamma_max < nearfield_gamma_min) {
-      nearfield_gamma_max += M_2PI_F;
+    if (nearfield_gamma.max < nearfield_gamma.min) {
+      nearfield_gamma.max += M_2PI_F;
     }
 
     /* Wrap range to compute the intersection. */
-    if ((gamma_m_max - nearfield_gamma_min) > M_2PI_F) {
-      gamma_m_min -= M_2PI_F;
-      gamma_m_max -= M_2PI_F;
+    if ((gamma_m.max - nearfield_gamma.min) > M_2PI_F) {
+      gamma_m.min -= M_2PI_F;
+      gamma_m.max -= M_2PI_F;
     }
-    else if ((nearfield_gamma_max - gamma_m_min) > M_2PI_F) {
-      nearfield_gamma_min -= M_2PI_F;
-      nearfield_gamma_max -= M_2PI_F;
+    else if ((nearfield_gamma.max - gamma_m.min) > M_2PI_F) {
+      nearfield_gamma.min -= M_2PI_F;
+      nearfield_gamma.max -= M_2PI_F;
     }
 
-    gamma_m_min = fmaxf(gamma_m_min, nearfield_gamma_min);
-    gamma_m_max = fminf(gamma_m_max, nearfield_gamma_max);
+    gamma_m = intervals_intersection(gamma_m, nearfield_gamma);
   }
 
-  bsdf->extra->gamma_m_min = gamma_m_min;
-  bsdf->extra->gamma_m_max = gamma_m_max;
+  if (gamma_m.is_empty()) {
+    /* No overlap between the valid range and the visible range. Can happen at grazing `theta`
+     * angles. */
+    return zero_spectrum();
+  }
+
+  bsdf->extra->gamma_m = gamma_m;
 
   const float projected_area = cos_theta(local_I) * dh;
 

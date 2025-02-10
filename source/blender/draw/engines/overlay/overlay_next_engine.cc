@@ -11,19 +11,7 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "DEG_depsgraph_query.hh"
-
-#include "ED_view3d.hh"
-
-#include "UI_interface.hh"
-
-#include "BKE_duplilist.hh"
-#include "BKE_object.hh"
-#include "BKE_paint.hh"
-
-#include "GPU_capabilities.hh"
-
-#include "DNA_space_types.h"
+#include "BLT_translation.hh"
 
 #include "draw_manager.hh"
 #include "overlay_next_instance.hh"
@@ -94,9 +82,7 @@ static void OVERLAY_next_draw_scene(void *vedata)
 static void OVERLAY_next_instance_free(void *instance_)
 {
   Instance *instance = (Instance *)instance_;
-  if (instance != nullptr) {
-    delete instance;
-  }
+  delete instance;
 }
 
 static void OVERLAY_next_engine_free()

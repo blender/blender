@@ -14,8 +14,6 @@
 #include <Python.h>
 #include <structmember.h>
 
-#include "BLI_utildefines.h"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -23,8 +21,6 @@
 #include "bpy_utils_previews.hh"
 
 #include "../generic/py_capi_utils.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "IMB_thumbs.hh"
 
@@ -56,7 +52,7 @@ static PyObject *bpy_utils_previews_new(PyObject * /*self*/, PyObject *args)
   }
 
   prv = BKE_previewimg_cached_ensure(name);
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_ImagePreview, prv);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImagePreview, prv);
 
   return pyrna_struct_CreatePyObject(&ptr);
 }
@@ -124,7 +120,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 
   Py_XDECREF(filepath_data.value_coerce);
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_ImagePreview, prv);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImagePreview, prv);
   return pyrna_struct_CreatePyObject(&ptr);
 }
 

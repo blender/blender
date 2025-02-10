@@ -15,10 +15,9 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "DNA_vec_types.h"
 
-#include "BLI_rect.h"
-
+#include "BKE_image.hh"
 #include "BKE_image_wrappers.hh"
 
 #include "DNA_image_types.h"
@@ -27,9 +26,7 @@ extern "C" {
 struct PartialUpdateUser;
 }
 
-namespace blender::bke::image {
-
-namespace partial_update {
+namespace blender::bke::image::partial_update {
 
 /* --- image_partial_update.cc --- */
 /** Image partial updates. */
@@ -57,7 +54,7 @@ enum class ePartialUpdateCollectResult {
 struct PartialUpdateRegion {
   /** \brief region of the image that has been updated. Region can be bigger than actual changes.
    */
-  struct rcti region;
+  rcti region;
 
   /**
    * \brief Tile number (UDIM) that this region belongs to.
@@ -145,7 +142,7 @@ class ImageTileData : AbstractTileData {
    * The local copy is required so we don't change the image user of the caller.
    * We need to change it in order to request data for a specific tile.
    */
-  ImageUser image_user = {0};
+  ImageUser image_user = {nullptr};
 
   /**
    * \brief ImageTile associated with the loaded tile.
@@ -223,7 +220,7 @@ template<typename TileData = NoTileData> struct PartialUpdateChecker {
     {
     }
 
-    const ePartialUpdateCollectResult get_result_code() const
+    ePartialUpdateCollectResult get_result_code() const
     {
       return result_code;
     }
@@ -280,5 +277,4 @@ template<typename TileData = NoTileData> struct PartialUpdateChecker {
   }
 };
 
-}  // namespace partial_update
-}  // namespace blender::bke::image
+}  // namespace blender::bke::image::partial_update

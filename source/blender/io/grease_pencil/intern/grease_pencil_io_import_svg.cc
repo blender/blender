@@ -24,8 +24,6 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "GEO_resample_curves.hh"
-
 #include "ED_grease_pencil.hh"
 
 #include "grease_pencil_io_intern.hh"

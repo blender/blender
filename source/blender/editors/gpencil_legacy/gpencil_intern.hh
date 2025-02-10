@@ -10,8 +10,6 @@
 
 #include "DNA_vec_types.h"
 
-#include "ED_numinput.hh"
-
 #define DEPTH_INVALID 1.0f
 
 /* internal exports only */
@@ -34,6 +32,10 @@ struct wmOperatorType;
 struct wmWindow;
 
 struct Depsgraph;
+struct Object;
+struct ScrArea;
+struct ListBase;
+struct bGPDlayer;
 
 struct EnumPropertyItem;
 struct PointerRNA;

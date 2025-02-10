@@ -10,7 +10,6 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_sys_types.h"
 
 #include <string>
 
@@ -39,7 +38,7 @@ class AssetCatalogPath {
   /**
    * The path itself, such as "Agents/Secret/327".
    */
-  std::string path_ = "";
+  std::string path_;
 
  public:
   static const char SEPARATOR;

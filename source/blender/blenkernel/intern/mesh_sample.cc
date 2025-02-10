@@ -9,7 +9,6 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_rand.hh"
-#include "BLI_task.hh"
 
 namespace blender::bke::mesh_surface_sample {
 

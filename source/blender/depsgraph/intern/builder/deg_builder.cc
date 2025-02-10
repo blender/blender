@@ -11,14 +11,12 @@
 #include <cstring>
 
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_stack.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BKE_action.hh"
 #include "BKE_collection.hh"
@@ -29,7 +27,6 @@
 #include "intern/builder/deg_builder_cache.h"
 #include "intern/builder/deg_builder_remove_noop.h"
 #include "intern/depsgraph.hh"
-#include "intern/depsgraph_relation.hh"
 #include "intern/depsgraph_tag.hh"
 #include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
@@ -37,7 +34,6 @@
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_id.hh"
-#include "intern/node/deg_node_operation.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -73,7 +69,8 @@ bool DepsgraphBuilder::need_pull_base_into_graph(const Base *base)
   /* Simple check: enabled bases are always part of dependency graph. */
   const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT :
                                                               BASE_ENABLED_RENDER;
-  if (base->flag & base_flag) {
+
+  if (!graph_->use_visibility_optimization || (base->flag & base_flag)) {
     return true;
   }
 

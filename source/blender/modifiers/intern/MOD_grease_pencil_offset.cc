@@ -16,7 +16,7 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
@@ -401,7 +401,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   LayoutPanelState *advanced_panel_state = BKE_panel_layout_panel_state_ensure(
       panel, "advanced", true);
-  PointerRNA advanced_state_ptr = RNA_pointer_create(
+  PointerRNA advanced_state_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_LayoutPanelState, advanced_panel_state);
   if (uiLayout *advanced_panel = uiLayoutPanelProp(
           C, layout, &advanced_state_ptr, "is_open", IFACE_("Advanced")))

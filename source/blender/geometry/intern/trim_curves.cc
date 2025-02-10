@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include "BLI_array_utils.hh"
 #include "BLI_length_parameterize.hh"
 
 #include "BKE_attribute.hh"
@@ -159,7 +158,7 @@ static bke::curves::CurvePoint lookup_curve_point(
     return lookup_point_uniform_spacing(
         accumulated_lengths, sample_length, cyclic, resolution, num_curve_points);
   }
-  else if (curve_type == CURVE_TYPE_BEZIER) {
+  if (curve_type == CURVE_TYPE_BEZIER) {
     return lookup_point_bezier(src_curves,
                                evaluated_points_by_curve,
                                curve_index,
@@ -169,7 +168,7 @@ static bke::curves::CurvePoint lookup_curve_point(
                                resolution,
                                num_curve_points);
   }
-  else if (curve_type == CURVE_TYPE_POLY) {
+  if (curve_type == CURVE_TYPE_POLY) {
     return lookup_point_polygonal(accumulated_lengths, sample_length, cyclic, num_curve_points);
   }
   /* Handle evaluated curve. */

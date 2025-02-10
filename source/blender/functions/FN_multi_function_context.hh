@@ -14,10 +14,6 @@
  * - Pass cached data to called functions.
  */
 
-#include "BLI_utildefines.h"
-
-#include "BLI_map.hh"
-
 namespace blender::fn::multi_function {
 
 class Context;

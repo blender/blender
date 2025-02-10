@@ -6,23 +6,19 @@
  * \ingroup edmesh
  */
 
-#include "BLI_color.hh"
 #include "BLI_generic_pointer.hh"
-#include "BLI_math_quaternion.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
-#include "BKE_report.hh"
 #include "BKE_type_conversions.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "ED_geometry.hh"
@@ -32,17 +28,10 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "BLT_translation.hh"
-
 #include "DNA_object_types.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
-
-#include "bmesh_tools.hh"
-
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "mesh_intern.hh"
 
@@ -148,9 +137,9 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
 
-  Mesh *mesh = ED_mesh_context(C);
-  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
+  Mesh *active_mesh = ED_mesh_context(C);
+  AttributeOwner active_owner = AttributeOwner::from_id(&active_mesh->id);
+  CustomDataLayer *active_attribute = BKE_attributes_active_get(active_owner);
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
   const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
 
@@ -166,7 +155,7 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
     Mesh *mesh = static_cast<Mesh *>(object->data);
     BMEditMesh *em = BKE_editmesh_from_object(object);
     BMesh *bm = em->bm;
-
+    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
     CustomDataLayer *layer = BKE_attributes_active_get(owner);
     if (!layer) {
       continue;

@@ -464,8 +464,10 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
     session->set_samples(samples);
   }
   else if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
-    session->params.sample_offset = VtValue::Cast<int>(value).GetWithDefault(
-        session->params.sample_offset);
+    session->params.sample_subset_offset = VtValue::Cast<int>(value).GetWithDefault(
+        session->params.sample_subset_offset);
+    session->params.sample_subset_length = Integrator::MAX_SAMPLES;
+    session->params.use_sample_subset = session->params.sample_subset_offset > 0;
     ++_settingsVersion;
   }
   else {
@@ -501,7 +503,7 @@ VtValue HdCyclesDelegate::GetRenderSetting(const TfToken &key) const
     return VtValue(session->params.samples);
   }
   if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
-    return VtValue(session->params.sample_offset);
+    return VtValue((session->params.use_sample_subset) ? session->params.sample_subset_offset : 0);
   }
 
   const std::string &keyString = key.GetString();

@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
+#include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 
 #if !defined(POINTS) && !defined(CURVES)
@@ -59,8 +61,13 @@ vec3 hsv_to_rgb(vec3 hsv)
 
 void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
 {
+#ifdef OBINFO_NEW
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  bool is_selected = flag_test(ob_flag, OBJECT_SELECTED);
+#else
   int flag = int(abs(ObjectInfo.w));
   bool is_selected = (flag & DRW_BASE_SELECTED) != 0;
+#endif
 
   if (colorType == V3D_SHADING_OBJECT_COLOR) {
     rim_col = wire_col = ObjectColor.rgb * 0.5;
@@ -88,16 +95,18 @@ void main()
 {
   select_id_set(drw_CustomID);
 
-  vec3 wpos = point_object_to_world(pos);
+  /* If no attribute is available, use a fixed facing value depending on the coloring mode.
+   * This allow to keep most of the contrast between unselected and selected color
+   * while keeping object coloring mode working (see #134011). */
+  float no_nor_facing = (colorType == V3D_SHADING_SINGLE_COLOR) ? 0.0 : 0.5;
+
+  vec3 wpos = drw_point_object_to_world(pos);
 #if defined(POINTS)
   gl_PointSize = sizeVertex * 2.0;
 #elif defined(CURVES)
-  /* Noop */
+  float facing = no_nor_facing;
 #else
-  bool no_attr = all(equal(nor, vec3(0)));
-  /* If no attribute is available, use a direction perpendicular
-   * to the view to have full brightness. */
-  vec3 wnor = no_attr ? drw_view.viewinv[1].xyz : normalize(normal_object_to_world(nor));
+  vec3 wnor = normalize(drw_normal_object_to_world(nor));
 
   if (isHair) {
     mat4 obmat = hairDupliMatrix;
@@ -108,10 +117,11 @@ void main()
   bool is_persp = (drw_view.winmat[3][3] == 0.0);
   vec3 V = (is_persp) ? normalize(drw_view.viewinv[3].xyz - wpos) : drw_view.viewinv[2].xyz;
 
-  float facing = dot(wnor, V);
+  bool no_attr = all(equal(nor, vec3(0)));
+  float facing = no_attr ? no_nor_facing : dot(wnor, V);
 #endif
 
-  gl_Position = point_world_to_ndc(wpos);
+  gl_Position = drw_point_world_to_homogenous(wpos);
 
 #ifndef CUSTOM_DEPTH_BIAS_CONST
 /* TODO(fclem): Cleanup after overlay next. */
@@ -128,7 +138,7 @@ void main()
     float flip = sign(facing);           /* Flip when not facing the normal (i.e.: back-facing). */
     float curvature = (1.0 - wd * 0.75); /* Avoid making things worse for curvy areas. */
     vec3 wofs = wnor * (facing_ratio * curvature * flip);
-    wofs = normal_world_to_view(wofs);
+    wofs = drw_normal_world_to_view(wofs);
 
     /* Push vertex half a pixel (maximum) in normal direction. */
     gl_Position.xy += wofs.xy * sizeViewportInv * gl_Position.w;
@@ -136,6 +146,11 @@ void main()
     /* Push the vertex towards the camera. Helps a bit. */
     gl_Position.z -= facing_ratio * curvature * 1.0e-6 * gl_Position.w;
   }
+#endif
+
+  /* Curves do not need the offset since they *are* the curve geometry. */
+#if !defined(CURVES)
+  gl_Position.z -= ndc_offset_factor * 0.5;
 #endif
 
   vec3 rim_col, wire_col;
@@ -155,9 +170,7 @@ void main()
   edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
   edgePos = edgeStart;
 
-#  if defined(CURVES)
-  finalColor.rgb = rim_col;
-#  elif !defined(SELECT_ENABLE)
+#  if !defined(SELECT_ENABLE)
   facing = clamp(abs(facing), 0.0, 1.0);
   /* Do interpolation in a non-linear space to have a better visual result. */
   rim_col = pow(rim_col, vec3(1.0 / 2.2));

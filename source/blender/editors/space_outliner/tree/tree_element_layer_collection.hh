@@ -10,6 +10,8 @@
 
 #include "tree_element.hh"
 
+struct LayerCollection;
+
 namespace blender::ed::outliner {
 
 class TreeElementLayerCollection final : public AbstractTreeElement {

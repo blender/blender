@@ -6,12 +6,17 @@
  * \ingroup gpu
  */
 
+#include <string>
+
 #include "BKE_global.hh"
 #if defined(WIN32)
 #  include "BLI_winstuff.h"
 #endif
+#include "BLI_string_ref.hh"
 #include "BLI_subprocess.hh"
 #include "BLI_threads.h"
+#include "BLI_vector.hh"
+
 #include "DNA_userdef_types.h"
 
 #include "gpu_capabilities_private.hh"

@@ -10,8 +10,6 @@
 
 #include "BLI_math_matrix.h"
 
-#include "BKE_editmesh.hh"
-
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
@@ -20,6 +18,8 @@
 
 #include "ED_mesh.hh"
 #include "ED_view3d.hh"
+
+#include "bmesh.hh"
 
 using blender::float3;
 using blender::Span;

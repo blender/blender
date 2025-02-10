@@ -10,7 +10,9 @@
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_shader.hh"
+#include "GPU_state.hh"
 #include "GPU_storage_buffer.hh"
+#include "GPU_vertex_format.hh"
 
 #include "BLI_math_vector.hh"
 #include "BLI_utility_mixins.hh"

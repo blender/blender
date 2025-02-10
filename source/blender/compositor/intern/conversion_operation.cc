@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_utildefines.h"
 
 #include "GPU_shader.hh"
 
@@ -39,6 +40,14 @@ void ConversionOperation::execute()
   if (this->context().use_gpu()) {
     GPUShader *shader = this->context().get_shader(this->get_conversion_shader_name());
     GPU_shader_bind(shader);
+
+    if (this->get_input().type() == ResultType::Color &&
+        ELEM(this->get_result().type(), ResultType::Float, ResultType::Int))
+    {
+      float luminance_coefficients[3];
+      IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+      GPU_shader_uniform_3fv(shader, "luminance_coefficients_u", luminance_coefficients);
+    }
 
     input.bind_as_texture(shader, "input_tx");
     result.bind_as_image(shader, "output_img");

@@ -23,7 +23,7 @@ using XformResult = std::tuple<pxr::GfMatrix4f, bool>;
 
 class USDXformReader : public USDPrimReader {
  private:
-  bool use_parent_xform_;
+  bool use_parent_xform_ = false;
 
   /* Indicates if the created object is the root of a
    * transform hierarchy. */
@@ -33,16 +33,14 @@ class USDXformReader : public USDPrimReader {
   USDXformReader(const pxr::UsdPrim &prim,
                  const USDImportParams &import_params,
                  const ImportSettings &settings)
-      : USDPrimReader(prim, import_params, settings),
-        use_parent_xform_(false),
-        is_root_xform_(is_root_xform_prim())
+      : USDPrimReader(prim, import_params, settings), is_root_xform_(is_root_xform_prim())
   {
   }
 
   void create_object(Main *bmain, double motionSampleTime) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
 
-  std::string object_prim_path() const override;
+  pxr::SdfPath object_prim_path() const override;
 
   void read_matrix(float r_mat[4][4], float time, float scale, bool *r_is_constant) const;
 

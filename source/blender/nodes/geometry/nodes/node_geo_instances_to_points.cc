@@ -6,7 +6,6 @@
 
 #include "DNA_pointcloud_types.h"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_instances.hh"
 #include "BKE_pointcloud.hh"
 
@@ -111,9 +110,13 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_INSTANCES_TO_POINTS, "Instances to Points", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeInstancesToPoints", GEO_NODE_INSTANCES_TO_POINTS);
+  ntype.ui_name = "Instances to Points";
+  ntype.ui_description =
+      "Generate points at the origins of instances.\nNote: Nested instances are not affected by "
+      "this node";
   ntype.enum_name_legacy = "INSTANCES_TO_POINTS";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

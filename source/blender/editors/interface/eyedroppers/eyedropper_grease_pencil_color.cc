@@ -15,19 +15,17 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_material_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 
 #include "UI_interface.hh"

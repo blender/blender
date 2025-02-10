@@ -18,10 +18,13 @@ class TextureFromPool;
 }  // namespace blender::draw
 
 struct DRWPass;
-struct DRWTextStore;
 struct DRWRegisteredDrawEngine;
+struct DRWTextStore;
 struct DrawEngineType;
+struct GPUFrameBuffer;
+struct GPUTexture;
 struct GPUViewport;
+struct ListBase;
 
 /* NOTE: these structs are only here for reading the actual lists from the engine.
  * The actual length of them is stored in a ViewportEngineData_Info.
@@ -103,7 +106,7 @@ DRWViewData *DRW_view_data_create(ListBase *engine_types);
 void DRW_view_data_free(DRWViewData *view_data);
 
 /* Returns a TextureFromPool stored in the given view data for the pass identified by the given
- * pass name. Engines should call call this function for each of the passes needed by the viewport
+ * pass name. Engines should call this function for each of the passes needed by the viewport
  * compositor in every redraw, then it should allocate the texture and write the pass data to it.
  * The texture should cover the entire viewport. */
 blender::draw::TextureFromPool &DRW_view_data_pass_texture_get(DRWViewData *view_data,

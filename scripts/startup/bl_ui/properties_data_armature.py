@@ -391,8 +391,7 @@ class POSE_MT_selection_set_create(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("pose.selection_set_add_and_assign",
-                        text="New Selection Set")
+        layout.operator("pose.selection_set_add_and_assign", text="New Selection Set")
 
 
 class POSE_MT_selection_sets_select(Menu):

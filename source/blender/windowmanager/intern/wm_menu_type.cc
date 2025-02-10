@@ -10,14 +10,12 @@
 
 #include <cstdio>
 
-#include "BLI_sys_types.h"
-
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -26,39 +24,51 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-static GHash *menutypes_hash = nullptr;
+using blender::StringRef;
 
-MenuType *WM_menutype_find(const char *idname, bool quiet)
+static auto &get_menu_type_map()
 {
-  if (idname[0]) {
-    MenuType *mt = static_cast<MenuType *>(BLI_ghash_lookup(menutypes_hash, idname));
-    if (mt) {
-      return mt;
+  struct IDNameGetter {
+    StringRef operator()(const MenuType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<MenuType *, IDNameGetter> map;
+  return map;
+}
+
+MenuType *WM_menutype_find(const StringRef idname, bool quiet)
+{
+  if (!idname.is_empty()) {
+    if (MenuType *const *mt = get_menu_type_map().lookup_key_ptr_as(idname)) {
+      return *mt;
     }
   }
 
   if (!quiet) {
-    printf("search for unknown menutype %s\n", idname);
+    printf("search for unknown menutype %s\n", std::string(idname).c_str());
   }
 
   return nullptr;
 }
 
-void WM_menutype_iter(GHashIterator *ghi)
+blender::Span<MenuType *> WM_menutypes_registered_get()
 {
-  BLI_ghashIterator_init(ghi, menutypes_hash);
+  return get_menu_type_map();
 }
 
 bool WM_menutype_add(MenuType *mt)
 {
   BLI_assert((mt->description == nullptr) || (mt->description[0]));
-  BLI_ghash_insert(menutypes_hash, mt->idname, mt);
+  get_menu_type_map().add(mt);
   return true;
 }
 
 void WM_menutype_freelink(MenuType *mt)
 {
-  bool ok = BLI_ghash_remove(menutypes_hash, mt->idname, nullptr, MEM_freeN);
+  bool ok = get_menu_type_map().remove(mt);
+  MEM_freeN(mt);
 
   BLI_assert(ok);
   UNUSED_VARS_NDEBUG(ok);
@@ -67,22 +77,18 @@ void WM_menutype_freelink(MenuType *mt)
 void WM_menutype_init()
 {
   /* Reserve size is set based on blender default setup. */
-  menutypes_hash = BLI_ghash_str_new_ex("menutypes_hash gh", 512);
+  get_menu_type_map().reserve(512);
 }
 
 void WM_menutype_free()
 {
-  GHashIterator gh_iter;
-
-  GHASH_ITER (gh_iter, menutypes_hash) {
-    MenuType *mt = static_cast<MenuType *>(BLI_ghashIterator_getValue(&gh_iter));
+  for (MenuType *mt : get_menu_type_map()) {
     if (mt->rna_ext.free) {
       mt->rna_ext.free(mt->rna_ext.data);
     }
+    MEM_freeN(mt);
   }
-
-  BLI_ghash_free(menutypes_hash, nullptr, MEM_freeN);
-  menutypes_hash = nullptr;
+  get_menu_type_map().clear();
 }
 
 bool WM_menutype_poll(bContext *C, MenuType *mt)
@@ -108,10 +114,7 @@ void WM_menutype_idname_visit_for_search(
     const char * /*edit_text*/,
     blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, menutypes_hash) {
-    MenuType *mt = static_cast<MenuType *>(BLI_ghashIterator_getValue(&gh_iter));
-
+  for (MenuType *mt : get_menu_type_map()) {
     StringPropertySearchVisitParams visit_params{};
     visit_params.text = mt->idname;
     visit_params.info = mt->label;

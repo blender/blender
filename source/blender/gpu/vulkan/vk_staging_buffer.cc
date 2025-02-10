@@ -23,7 +23,12 @@ VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer, Direction direct
       usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   }
 
-  host_buffer_.create(device_buffer.size_in_bytes(), GPU_USAGE_STREAM, usage, true);
+  host_buffer_.create(device_buffer.size_in_bytes(),
+                      usage,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                      VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
   debug::object_label(host_buffer_.vk_handle(), "StagingBuffer");
 }
 
@@ -35,7 +40,7 @@ void VKStagingBuffer::copy_to_device(VKContext &context)
   copy_buffer.dst_buffer = device_buffer_.vk_handle();
   copy_buffer.region.size = device_buffer_.size_in_bytes();
 
-  context.render_graph.add_node(copy_buffer);
+  context.render_graph().add_node(copy_buffer);
 }
 
 void VKStagingBuffer::copy_from_device(VKContext &context)
@@ -46,7 +51,7 @@ void VKStagingBuffer::copy_from_device(VKContext &context)
   copy_buffer.dst_buffer = host_buffer_.vk_handle();
   copy_buffer.region.size = device_buffer_.size_in_bytes();
 
-  context.render_graph.add_node(copy_buffer);
+  context.render_graph().add_node(copy_buffer);
 }
 
 void VKStagingBuffer::free()

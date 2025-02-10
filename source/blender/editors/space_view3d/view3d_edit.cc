@@ -14,11 +14,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -43,6 +44,7 @@
 #include "ED_undo.hh"
 
 #include "view3d_intern.hh" /* own include */
+#include "view3d_navigate.hh"
 
 /* test for unlocked camera view in quad view */
 static bool view3d_camera_user_poll(bContext *C)
@@ -444,6 +446,9 @@ static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator * /*op*/)
   /* no nullptr check is needed, poll checks */
   ED_view3d_context_user_region(C, &v3d, &region);
 
+  /* NOTE: don't call #ED_view3d_smooth_view_force_finish as the camera zoom
+   * isn't controlled by smooth-view, there is no need to "finish". */
+
   view3d_set_1_to_1_viewborder(scene, depsgraph, region, v3d);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
@@ -474,12 +479,14 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 
 static int viewpersportho_exec(bContext *C, wmOperator * /*op*/)
 {
-  View3D *v3d_dummy;
+  View3D *v3d;
   ARegion *region;
   RegionView3D *rv3d;
 
   /* no nullptr check is needed, poll checks */
-  ED_view3d_context_user_region(C, &v3d_dummy, &region);
+  ED_view3d_context_user_region(C, &v3d, &region);
+  ED_view3d_smooth_view_force_finish(C, v3d, region);
+
   rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   /* Could add a separate lock flag for locking persp. */
@@ -851,7 +858,7 @@ void ED_view3d_cursor3d_position(bContext *C,
   if (use_depth) { /* maybe this should be accessed some other way */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-    view3d_operator_needs_opengl(C);
+    view3d_operator_needs_gpu(C);
 
     /* Ensure the depth buffer is updated for #ED_view3d_autodist. */
     ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_ALL, false, nullptr);
@@ -1055,7 +1062,8 @@ void ED_view3d_cursor3d_update(bContext *C,
   {
     wmMsgBus *mbus = CTX_wm_message_bus(C);
     wmMsgParams_RNA msg_key_params = {{}};
-    msg_key_params.ptr = RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor);
+    msg_key_params.ptr = RNA_pointer_create_discrete(
+        &scene->id, &RNA_View3DCursor, &scene->cursor);
     WM_msg_publish_rna_params(mbus, &msg_key_params);
   }
 

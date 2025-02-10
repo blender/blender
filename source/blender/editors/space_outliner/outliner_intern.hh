@@ -10,6 +10,8 @@
 
 #include <memory>
 
+#include "DNA_listBase.h"
+
 #include "BLI_function_ref.hh"
 
 #include "RNA_types.hh"

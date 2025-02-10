@@ -61,15 +61,15 @@ class StripsDrawBatch {
 
   /* Same math as `UI_view2d_view_to_region_*` but avoiding divisions,
    * and without relying on View2D data type. */
-  inline float pos_to_pixel_space_x(float x) const
+  float pos_to_pixel_space_x(float x) const
   {
     return (view_mask_min_.x + (x - view_cur_min_.x) * view_cur_inv_size_.x) * view_mask_size_.x;
   }
-  inline float pos_to_pixel_space_y(float y) const
+  float pos_to_pixel_space_y(float y) const
   {
     return (view_mask_min_.y + (y - view_cur_min_.y) * view_cur_inv_size_.y) * view_mask_size_.y;
   }
-  inline float size_to_pixel_space_x(float x) const
+  float size_to_pixel_space_x(float x) const
   {
     return x * view_cur_inv_size_.x * view_mask_size_.x;
   }

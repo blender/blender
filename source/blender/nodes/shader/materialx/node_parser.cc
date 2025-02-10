@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifdef WITH_USD
-#  include <pxr/base/tf/stringUtils.h>
-#endif
-
 #include "node_parser.h"
 
 #include "group_nodes.h"
@@ -18,22 +14,16 @@ constexpr StringRef TEXCOORD_NODE_NAME = "node_texcoord";
 
 CLG_LOGREF_DECLARE_GLOBAL(LOG_MATERIALX_SHADER, "materialx.shader");
 
-NodeParser::NodeParser(MaterialX::GraphElement *graph,
-                       const Depsgraph *depsgraph,
-                       const Material *material,
+NodeParser::NodeParser(NodeGraph &graph,
                        const bNode *node,
                        const bNodeSocket *socket_out,
                        NodeItem::Type to_type,
-                       GroupNodeParser *group_parser,
-                       const ExportParams &export_params)
+                       GroupNodeParser *group_parser)
     : graph_(graph),
-      depsgraph_(depsgraph),
-      material_(material),
       node_(node),
       socket_out_(socket_out),
       to_type_(to_type),
-      group_parser_(group_parser),
-      export_params_(export_params)
+      group_parser_(group_parser)
 {
 }
 
@@ -41,66 +31,39 @@ NodeItem NodeParser::compute_full()
 {
   NodeItem res = empty();
 
+  if (socket_out_ && !NodeItem::is_convertible((eNodeSocketDatatype)socket_out_->type, to_type_)) {
+    return res;
+  }
+
   /* Checking if node was already computed */
-  res.node = graph_->getNode(node_name());
+  const std::string res_node_name = node_name();
+  res = graph_.get_node(res_node_name);
   if (!res.node) {
     CLOG_INFO(LOG_MATERIALX_SHADER,
               1,
               "%s [%d] => %s",
               node_->name,
-              node_->typeinfo->type,
+              node_->typeinfo->type_legacy,
               NodeItem::type(to_type_).c_str());
 
     res = compute();
     if (res.node) {
-      res.node->setName(node_name());
+      res.node->setName(res_node_name);
     }
   }
-  if (NodeItem::is_arithmetic(to_type_)) {
-    res = res.convert(to_type_);
-  }
-  return res;
+  return res.convert(to_type_);
 }
 
-std::string NodeParser::node_name(bool with_out_socket) const
+std::string NodeParser::node_name(const char *override_output_name) const
 {
-  auto valid_name = [](const std::string &name) {
-#ifdef WITH_USD
-    /* Node name should suite to MatX and USD valid names.
-     * It shouldn't start from '_', due to error occurred in Storm delegate. */
-    std::string res = MaterialX::createValidName(pxr::TfMakeValidIdentifier(name));
-#else
-    std::string res = MaterialX::createValidName(name);
-#endif
-    if (res[0] == '_') {
-      res = "node" + res;
-    }
-    return res;
-  };
-
-  std::string name = node_->name;
-  if (with_out_socket) {
-    if (node_->output_sockets().size() > 1) {
-      name += std::string("_") + socket_out_->name;
-    }
-    if (ELEM(to_type_, NodeItem::Type::BSDF, NodeItem::Type::EDF, NodeItem::Type::SurfaceOpacity))
-    {
-      name += "_" + NodeItem::type(to_type_);
-    }
-  }
-#ifdef USE_MATERIALX_NODEGRAPH
-  return valid_name(name);
-#else
-
-  std::string prefix;
-  GroupNodeParser *gr = group_parser_;
-  while (gr) {
-    const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(gr->node_->id);
-    prefix = valid_name(ngroup->id.name) + "_" + prefix;
-    gr = gr->group_parser_;
-  }
-  return prefix + valid_name(name);
-#endif
+  const NodeItem::Type to_type =
+      ELEM(to_type_, NodeItem::Type::BSDF, NodeItem::Type::EDF, NodeItem::Type::SurfaceOpacity) ?
+          to_type_ :
+          NodeItem::Type::Empty;
+  const StringRef socket_out_name = (override_output_name) ? override_output_name :
+                                    (socket_out_)          ? socket_out_->name :
+                                                             "";
+  return graph_.unique_node_name(node_, socket_out_name, to_type);
 }
 
 NodeItem NodeParser::create_node(const std::string &category, NodeItem::Type type)
@@ -167,7 +130,7 @@ NodeItem NodeParser::get_output_default(int index, NodeItem::Type to_type)
 
 NodeItem NodeParser::empty() const
 {
-  return NodeItem(graph_);
+  return graph_.empty_node();
 }
 
 NodeItem NodeParser::texcoord_node(NodeItem::Type type, const std::string &attribute_name)
@@ -177,19 +140,19 @@ NodeItem NodeParser::texcoord_node(NodeItem::Type type, const std::string &attri
   if (type == NodeItem::Type::Vector3) {
     name += "_vector3";
   }
-  NodeItem res = empty();
-  res.node = graph_->getNode(name);
+  NodeItem res = graph_.get_node(name);
   if (!res.node) {
     /* TODO: Use "Pref" generated texture coordinates for 3D, but needs
      * work in USD and Hydra mesh export. */
     const bool is_active_uvmap = attribute_name == "" ||
-                                 attribute_name == export_params_.original_active_uvmap_name;
-    if (export_params_.new_active_uvmap_name == "st" && is_active_uvmap) {
+                                 attribute_name == graph_.export_params.original_active_uvmap_name;
+    if (graph_.export_params.new_active_uvmap_name == "st" && is_active_uvmap) {
       res = create_node("texcoord", type);
     }
     else {
-      const std::string &geomprop = (is_active_uvmap) ? export_params_.new_active_uvmap_name :
-                                                        attribute_name;
+      const std::string &geomprop = (is_active_uvmap) ?
+                                        graph_.export_params.new_active_uvmap_name :
+                                        attribute_name;
       res = create_node("geompropvalue", type, {{"geomprop", val(geomprop)}});
     }
     res.node->setName(name);
@@ -243,7 +206,7 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
 
   const bNode *from_node = link->fromnode;
 
-  /* Passing NODE_REROUTE nodes */
+  /* Passing reroute nodes. */
   while (from_node->is_reroute()) {
     link = from_node->input_socket(0).link;
     if (!(link && link->is_used())) {
@@ -253,27 +216,13 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
   }
 
   if (from_node->is_group()) {
-    return GroupNodeParser(graph_,
-                           depsgraph_,
-                           material_,
-                           from_node,
-                           link->fromsock,
-                           to_type,
-                           group_parser_,
-                           export_params_,
-                           use_group_default)
+    return GroupNodeParser(
+               graph_, from_node, link->fromsock, to_type, group_parser_, use_group_default)
         .compute_full();
   }
   if (from_node->is_group_input()) {
-    return GroupInputNodeParser(graph_,
-                                depsgraph_,
-                                material_,
-                                from_node,
-                                link->fromsock,
-                                to_type,
-                                group_parser_,
-                                export_params_,
-                                use_group_default)
+    return GroupInputNodeParser(
+               graph_, from_node, link->fromsock, to_type, group_parser_, use_group_default)
         .compute_full();
   }
 
@@ -281,12 +230,11 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
     CLOG_WARN(LOG_MATERIALX_SHADER,
               "Unsupported node: %s [%d]",
               from_node->name,
-              from_node->typeinfo->type);
+              from_node->typeinfo->type_legacy);
     return empty();
   }
 
-  NodeParserData data = {
-      graph_, depsgraph_, material_, to_type, group_parser_, empty(), export_params_};
+  NodeParserData data = {graph_, to_type, group_parser_, empty()};
   from_node->typeinfo->materialx_fn(&data, const_cast<bNode *>(from_node), link->fromsock);
   return data.result;
 }

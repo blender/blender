@@ -8,13 +8,11 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
-
 #include "BLI_compiler_attrs.h"
 
 #include "rna_internal_types.hh"
 
-#include "UI_resources.hh"
+#include "UI_resources.hh" /* IWYU pragma: export */
 
 #define RNA_MAGIC ((int)~0)
 
@@ -454,7 +452,7 @@ void RNA_api_pose(StructRNA *srna);
 void RNA_api_pose_channel(StructRNA *srna);
 void RNA_api_scene(StructRNA *srna);
 void RNA_api_scene_render(StructRNA *srna);
-void RNA_api_sequence_strip(StructRNA *srna);
+void RNA_api_strip(StructRNA *srna);
 void RNA_api_text(StructRNA *srna);
 void RNA_api_ui_layout(StructRNA *srna);
 void RNA_api_window(StructRNA *srna);
@@ -464,9 +462,9 @@ void RNA_api_space_text(StructRNA *srna);
 void RNA_api_space_filebrowser(StructRNA *srna);
 void RNA_api_region_view3d(StructRNA *srna);
 void RNA_api_texture(StructRNA *srna);
-void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, bool metastrip);
-void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop);
-void RNA_api_sequence_retiming_keys(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_api_strips(StructRNA *srna, bool metastrip);
+void RNA_api_strip_elements(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_api_strip_retiming_keys(BlenderRNA *brna);
 void RNA_api_sound(StructRNA *srna);
 void RNA_api_vfont(StructRNA *srna);
 void RNA_api_workspace(StructRNA *srna);
@@ -560,6 +558,7 @@ bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Poin
 /* Iterators */
 
 void rna_iterator_listbase_begin(CollectionPropertyIterator *iter,
+                                 PointerRNA *ptr,
                                  ListBase *lb,
                                  IteratorSkipFunc skip);
 void rna_iterator_listbase_next(CollectionPropertyIterator *iter);
@@ -568,7 +567,8 @@ void rna_iterator_listbase_end(CollectionPropertyIterator *iter);
 PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, ListBase *lb, int index);
 
 void rna_iterator_array_begin(CollectionPropertyIterator *iter,
-                              void *ptr,
+                              PointerRNA *ptr,
+                              void *data,
                               int itemsize,
                               int length,
                               bool free_ptr,
@@ -583,8 +583,8 @@ PointerRNA rna_array_lookup_int(
 /* Duplicated code since we can't link in blenlib */
 
 #ifndef RNA_RUNTIME
-void *rna_alloc_from_buffer(const char *buffer, int buffer_len);
-void *rna_calloc(int buffer_len);
+void *rna_alloc_from_buffer(const char *buffer, int buffer_size);
+void *rna_calloc(int buffer_size);
 #endif
 
 void rna_addtail(ListBase *listbase, void *vlink);
@@ -599,7 +599,16 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 
 /* Pointer Handling */
 
-PointerRNA rna_pointer_inherit_refine(const PointerRNA *ptr, StructRNA *type, void *data);
+/**
+ * Internal implementation for #RNA_pointer_create_with_parent.
+ *
+ * Only exposed to RNA code because custom collection lookup functions get an existing PointerRNA
+ * data to modify, instead of returning a new one.
+ */
+void rna_pointer_create_with_ancestors(const PointerRNA &parent,
+                                       StructRNA *type,
+                                       void *data,
+                                       PointerRNA &r_ptr);
 
 /* Functions */
 

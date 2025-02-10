@@ -7,7 +7,6 @@
  */
 
 #include "logImageCore.h"
-#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -169,9 +168,9 @@ bool imb_save_cineon(ImBuf *buf, const char *filepath, int flags)
   return imb_save_dpx_cineon(buf, filepath, 1, flags);
 }
 
-bool imb_is_a_cineon(const uchar *buf, size_t size)
+bool imb_is_a_cineon(const uchar *mem, size_t size)
 {
-  return logImageIsCineon(buf, size);
+  return logImageIsCineon(mem, size);
 }
 
 ImBuf *imb_load_cineon(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])

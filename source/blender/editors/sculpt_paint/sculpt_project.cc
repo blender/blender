@@ -6,7 +6,6 @@
  * \ingroup edsculpt
  */
 
-#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 
 #include "BKE_context.hh"
@@ -151,9 +150,9 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
       switch (pbvh.type()) {
         case bke::pbvh::Type::Mesh: {
           Mesh &mesh = *static_cast<Mesh *>(object.data);
-          const MeshAttributeData attribute_data(mesh.attributes());
           MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
           const PositionDeformData position_data(depsgraph, object);
+          const MeshAttributeData attribute_data(mesh);
           const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
           undo::push_nodes(depsgraph, object, node_mask, undo::Type::Position);
           node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -201,7 +200,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
       break;
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 static void gesture_end(bContext &C, gesture::GestureData &gesture_data)

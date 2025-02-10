@@ -43,6 +43,7 @@
 #include "GPU_matrix.hh"
 #include "GPU_shader_shared.hh"
 #include "GPU_state.hh"
+#include "GPU_uniform_buffer.hh"
 
 #include "UI_interface.hh"
 
@@ -926,6 +927,8 @@ static void vectorscope_draw_target(
   const char labelstr[2] = {label, '\0'};
 
   rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v, BLI_YUV_ITU_BT709);
+  u *= SCOPES_VEC_U_SCALE;
+  v *= SCOPES_VEC_V_SCALE;
 
   if (u > 0 && v >= 0) {
     tangle = atanf(v / u);
@@ -979,7 +982,7 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
                              const rcti *recti)
 {
   const float skin_rad = DEG2RADF(123.0f); /* angle in radians of the skin tone line */
-  Scopes *scopes = (Scopes *)but->poin;
+  const Scopes *scopes = (const Scopes *)but->poin;
 
   const float colors[6][3] = {
       {0.75, 0.0, 0.0},  /* Red */
@@ -1002,7 +1005,7 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
   const float h = BLI_rctf_size_y(&rect);
   const float centerx = rect.xmin + w * 0.5f;
   const float centery = rect.ymin + h * 0.5f;
-  const float diam = (w < h) ? w : h;
+  const float diam = ((w < h) ? w : h) * 0.9f;
 
   const float alpha = scopes->vecscope_alpha;
 
@@ -1019,7 +1022,7 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
   back_rect.ymax = rect.ymax + 1;
   UI_draw_roundbox_4fv(&back_rect, true, 3.0f, color);
 
-  /* need scissor test, hvectorscope can draw outside of boundary */
+  /* need scissor test, vectorscope can draw outside of boundary */
   int scissor[4];
   GPU_scissor_get(scissor);
   GPU_scissor((rect.xmin - 1),
@@ -1056,8 +1059,8 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
       const float x = polar_to_x(centerx, diam, r, a);
       const float y = polar_to_y(centery, diam, r, a);
 
-      const float u = polar_to_x(0.0f, 1.0, 1.0f, a);
-      const float v = polar_to_y(0.0f, 1.0, 1.0f, a);
+      const float u = (x - centerx) / diam / SCOPES_VEC_U_SCALE;
+      const float v = (y - centery) / diam / SCOPES_VEC_V_SCALE;
 
       circle_fill_points[(i + 1) * 2] = x;
       circle_fill_points[(i + 1) * 2 + 1] = y;
@@ -1102,8 +1105,8 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
     circle_points[i * 2] = x;
     circle_points[i * 2 + 1] = y;
 
-    const float u = polar_to_x(0.0f, 1.0, 1.0f, a);
-    const float v = polar_to_y(0.0f, 1.0, 1.0f, a);
+    const float u = (x - centerx) / diam / SCOPES_VEC_U_SCALE;
+    const float v = (y - centery) / diam / SCOPES_VEC_V_SCALE;
     float r, g, b;
     yuv_to_rgb(0.5f, u, v, &r, &g, &b, BLI_YUV_ITU_BT709);
 

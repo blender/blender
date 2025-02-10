@@ -54,7 +54,6 @@ blender_add_lib(bf_io_stl "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/stl_exporter_tests.cc
-    tests/stl_importer_tests.cc
   )
 
   set(TEST_INC

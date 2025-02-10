@@ -14,10 +14,10 @@ diff -Naur orig/src/cmake/compiler.cmake external_openimageio/src/cmake/compiler
 --- orig/src/cmake/compiler.cmake	2020-05-10 21:43:52 -0600
 +++ external_openimageio/src/cmake/compiler.cmake	2020-05-13 17:02:54 -0600
 @@ -188,6 +189,7 @@
-     add_definitions (-D_CRT_NONSTDC_NO_WARNINGS)
-     add_definitions (-D_SCL_SECURE_NO_WARNINGS)
-     add_definitions (-DJAS_WIN_MSVC_BUILD)
-+    add_definitions (-DOPJ_STATIC)
+     add_compile_definitions (_CRT_NONSTDC_NO_WARNINGS)
+     add_compile_definitions (_SCL_SECURE_NO_WARNINGS)
+     add_compile_definitions (JAS_WIN_MSVC_BUILD)
++    add_compile_definitions (OPJ_STATIC)
  endif (MSVC)
  
  if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD"

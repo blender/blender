@@ -161,6 +161,8 @@ class MetalDevice : public Device {
 
   void mem_copy_to(device_memory &mem) override;
 
+  void mem_move_to_host(device_memory &mem) override;
+
   void mem_copy_from(device_memory &mem)
   {
     mem_copy_from(mem, -1, -1, -1, -1);
@@ -177,13 +179,11 @@ class MetalDevice : public Device {
   void const_copy_to(const char *name, void *host, const size_t size) override;
 
   void global_alloc(device_memory &mem);
-
   void global_free(device_memory &mem);
 
   void tex_alloc(device_texture &mem);
-
   void tex_alloc_as_buffer(device_texture &mem);
-
+  void tex_copy_to(device_texture &mem);
   void tex_free(device_texture &mem);
 
   void flush_delayed_free_list();

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_view_data.hh"
+
 #include "image_drawing_mode.hh"
 #include "image_instance.hh"
 #include "image_shader.hh"
@@ -44,7 +46,7 @@ void ScreenSpaceDrawingMode::add_depth_shgroups(::Image *image, ImageUser *image
   float4x4 image_mat = float4x4::identity();
   ResourceHandle handle = instance_.manager->resource_handle(image_mat);
 
-  ImageUser tile_user = {0};
+  ImageUser tile_user = {nullptr};
   if (image_user) {
     tile_user = *image_user;
   }
@@ -254,7 +256,7 @@ void ScreenSpaceDrawingMode::do_full_update_gpu_texture(TextureInfo &info,
   const int texture_width = GPU_texture_width(info.texture);
   const int texture_height = GPU_texture_height(info.texture);
   IMB_initImBuf(&texture_buffer, texture_width, texture_height, 0, IB_rectfloat);
-  ImageUser tile_user = {0};
+  ImageUser tile_user = {nullptr};
   if (image_user) {
     tile_user = *image_user;
   }
@@ -379,27 +381,13 @@ void ScreenSpaceDrawingMode::draw_finish() const
 void ScreenSpaceDrawingMode::draw_viewport() const
 {
   float clear_depth = instance_.state.flags.do_tile_drawing ? 0.75 : 1.0f;
-  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
-    /* OpenGL doesn't support clearing depth stencil via load store actions as the data types
-     * should match. */
-    GPU_framebuffer_bind(instance_.state.depth_fb);
-    instance_.state.depth_fb.clear_depth(clear_depth);
-  }
-  else {
-    GPU_framebuffer_bind_ex(instance_.state.depth_fb,
-                            {
-                                {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {clear_depth}},
-                            });
-  }
+  GPU_framebuffer_bind(instance_.state.depth_fb);
+  instance_.state.depth_fb.clear_depth(clear_depth);
   instance_.manager->submit(instance_.state.depth_ps, instance_.state.view);
 
-  GPU_framebuffer_bind_ex(
-      instance_.state.color_fb,
-      {
-          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE, {0.0f}},
-          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f, 0.0f, 0.0f, 0.0f}},
-
-      });
+  GPU_framebuffer_bind(instance_.state.color_fb);
+  float4 clear_color = float4(0.0);
+  GPU_framebuffer_clear_color(instance_.state.color_fb, clear_color);
   instance_.manager->submit(instance_.state.image_ps, instance_.state.view);
 }
 

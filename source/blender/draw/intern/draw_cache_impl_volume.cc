@@ -13,12 +13,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math_base.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
 #include "BKE_global.hh"
@@ -29,8 +28,6 @@
 #include "GPU_batch.hh"
 #include "GPU_capabilities.hh"
 #include "GPU_texture.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "DRW_render.hh"
 

@@ -32,8 +32,8 @@ static_assert(sizeof(OSLClosure) == sizeof(OSL::ClosureColor) &&
               sizeof(OSLClosureAdd) == sizeof(OSL::ClosureAdd) &&
               sizeof(OSLClosureMul) == sizeof(OSL::ClosureMul) &&
               sizeof(OSLClosureComponent) == sizeof(OSL::ClosureComponent));
-static_assert(sizeof(ShaderGlobals) == sizeof(OSL::ShaderGlobals) &&
-              offsetof(ShaderGlobals, Ci) == offsetof(OSL::ShaderGlobals, Ci));
+static_assert(sizeof(ShaderGlobals) >= sizeof(OSL::ShaderGlobals) &&
+              offsetof(ShaderGlobals, backfacing) == offsetof(OSL::ShaderGlobals, backfacing));
 
 /* Registration */
 
@@ -82,33 +82,31 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                                          const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
+  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
-  sd->osl_globals = kg;
+  kg->osl.shader_globals.kg = kg;
   if (path_flag & PATH_RAY_SHADOW) {
-    sd->osl_path_state = nullptr;
-    sd->osl_shadow_path_state = (const IntegratorShadowStateCPU *)state;
+    kg->osl.shader_globals.path_state = nullptr;
+    kg->osl.shader_globals.shadow_path_state = (const IntegratorShadowStateCPU *)state;
   }
   else {
-    sd->osl_path_state = (const IntegratorStateCPU *)state;
-    sd->osl_shadow_path_state = nullptr;
+    kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
   }
 
   /* execute shader for this point */
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
-  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShaderGlobals *globals = reinterpret_cast<OSL::ShaderGlobals *>(&kg->osl.shader_globals);
   OSL::ShadingContext *octx = kg->osl.context;
   const int shader = sd->shader & SHADER_MASK;
 
   if (sd->object == OBJECT_NONE && sd->lamp == LAMP_NONE) {
     /* background */
     if (kg->osl.globals->background_state) {
-#if OSL_LIBRARY_VERSION_CODE >= 11304
       ss->execute(*octx,
                   *(kg->osl.globals->background_state),
                   kg->osl.thread_index,
@@ -116,9 +114,6 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                   *globals,
                   nullptr,
                   nullptr);
-#else
-      ss->execute(octx, *(kg->osl.globals->background_state), *globals);
-#endif
     }
   }
   else {
@@ -134,7 +129,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
       if (sd->flag & SD_HAS_DISPLACEMENT) {
         float data[9];
         const bool found = kg->osl.globals->services->get_attribute(
-            sd,
+            globals,
             true,
             OSLRenderServices::u_empty,
             TypeVector,
@@ -159,8 +154,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
         globals->dPdy = TO_VEC3(tmp_dP.dy);
       }
 
-/* execute bump shader */
-#if OSL_LIBRARY_VERSION_CODE >= 11304
+      /* execute bump shader */
       ss->execute(*octx,
                   *(kg->osl.globals->bump_state[shader]),
                   kg->osl.thread_index,
@@ -168,9 +162,6 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                   *globals,
                   nullptr,
                   nullptr);
-#else
-      ss->execute(octx, *(kg->osl.globals->bump_state[shader]), *globals);
-#endif
 
       /* reset state */
       sd->P = P;
@@ -183,7 +174,6 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
 
     /* surface shader */
     if (kg->osl.globals->surface_state[shader]) {
-#if OSL_LIBRARY_VERSION_CODE >= 11304
       ss->execute(*octx,
                   *(kg->osl.globals->surface_state[shader]),
                   kg->osl.thread_index,
@@ -191,15 +181,12 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                   *globals,
                   nullptr,
                   nullptr);
-#else
-      ss->execute(octx, *(kg->osl.globals->surface_state[shader]), *globals);
-#endif
     }
   }
 
   /* flatten closure tree */
-  if (globals->Ci) {
-    flatten_closure_tree(kg, sd, path_flag, reinterpret_cast<OSLClosure *>(globals->Ci));
+  if (kg->osl.shader_globals.Ci) {
+    flatten_closure_tree(kg, sd, path_flag, kg->osl.shader_globals.Ci);
   }
 }
 
@@ -212,31 +199,29 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const ThreadKernelGlobalsCPU *kg,
                                         const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
+  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
-  sd->osl_globals = kg;
+  kg->osl.shader_globals.kg = kg;
   if (path_flag & PATH_RAY_SHADOW) {
-    sd->osl_path_state = nullptr;
-    sd->osl_shadow_path_state = (const IntegratorShadowStateCPU *)state;
+    kg->osl.shader_globals.path_state = nullptr;
+    kg->osl.shader_globals.shadow_path_state = (const IntegratorShadowStateCPU *)state;
   }
   else {
-    sd->osl_path_state = (const IntegratorStateCPU *)state;
-    sd->osl_shadow_path_state = nullptr;
+    kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
   }
 
   /* execute shader */
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
-  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShaderGlobals *globals = reinterpret_cast<OSL::ShaderGlobals *>(&kg->osl.shader_globals);
   OSL::ShadingContext *octx = kg->osl.context;
   const int shader = sd->shader & SHADER_MASK;
 
   if (kg->osl.globals->volume_state[shader]) {
-#if OSL_LIBRARY_VERSION_CODE >= 11304
     ss->execute(*octx,
                 *(kg->osl.globals->volume_state[shader]),
                 kg->osl.thread_index,
@@ -244,14 +229,11 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const ThreadKernelGlobalsCPU *kg,
                 *globals,
                 nullptr,
                 nullptr);
-#else
-    ss->execute(octx, *(kg->osl.globals->volume_state[shader]), *globals);
-#endif
   }
 
   /* flatten closure tree */
-  if (globals->Ci) {
-    flatten_closure_tree(kg, sd, path_flag, reinterpret_cast<OSLClosure *>(globals->Ci));
+  if (kg->osl.shader_globals.Ci) {
+    flatten_closure_tree(kg, sd, path_flag, kg->osl.shader_globals.Ci);
   }
 }
 
@@ -264,25 +246,23 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const ThreadKernelGlobalsCPU *kg,
                                               const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
+  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
-  sd->osl_globals = kg;
-  sd->osl_path_state = (const IntegratorStateCPU *)state;
-  sd->osl_shadow_path_state = nullptr;
+  kg->osl.shader_globals.kg = kg;
+  kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
+  kg->osl.shader_globals.shadow_path_state = nullptr;
 
   /* execute shader */
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
-  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShaderGlobals *globals = reinterpret_cast<OSL::ShaderGlobals *>(&kg->osl.shader_globals);
   OSL::ShadingContext *octx = kg->osl.context;
   const int shader = sd->shader & SHADER_MASK;
 
   if (kg->osl.globals->displacement_state[shader]) {
-#if OSL_LIBRARY_VERSION_CODE >= 11304
     ss->execute(*octx,
                 *(kg->osl.globals->displacement_state[shader]),
                 kg->osl.thread_index,
@@ -290,9 +270,6 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const ThreadKernelGlobalsCPU *kg,
                 *globals,
                 nullptr,
                 nullptr);
-#else
-    ss->execute(octx, *(kg->osl.globals->displacement_state[shader]), *globals);
-#endif
   }
 
   /* get back position */

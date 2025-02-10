@@ -11,8 +11,8 @@
  * another #Graph again).
  */
 
+#include "BLI_generic_pointer.hh"
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 #include "FN_lazy_function_graph.hh"
 

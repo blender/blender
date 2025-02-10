@@ -11,28 +11,19 @@
 #include <cctype>
 #include <cerrno>
 #include <cfloat>
-#include <cstddef>
-#include <cstdio>
 #include <cstring>
 
 #include "CLG_log.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_ID.h"
-#include "DNA_collection_types.h"
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_blenlib.h"
-#include "BLI_linklist.h"
+#include "BLI_fileops.h"
 #include "BLI_map.hh"
-#include "BLI_memarena.h"
-#include "BLI_utildefines.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 
 #include "BLO_readfile.hh"
 
@@ -47,8 +38,9 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
@@ -615,14 +607,14 @@ static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent * /
   lib = (Library *)BKE_libblock_find_name(CTX_data_main(C), ID_LI, lib_name);
 
   if (lib) {
-    if (lib->runtime.parent) {
+    if (lib->runtime->parent) {
       BKE_reportf(op->reports,
                   RPT_ERROR_INVALID_INPUT,
                   "Cannot relocate indirectly linked library '%s'",
-                  lib->runtime.filepath_abs);
+                  lib->runtime->filepath_abs);
       return OPERATOR_CANCELLED;
     }
-    RNA_string_set(op->ptr, "filepath", lib->runtime.filepath_abs);
+    RNA_string_set(op->ptr, "filepath", lib->runtime->filepath_abs);
 
     WM_event_add_fileselect(C, op);
 
@@ -634,18 +626,18 @@ static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent * /
 
 void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 {
-  if (!BKE_blendfile_extension_check(lib->runtime.filepath_abs)) {
+  if (!BKE_blendfile_extension_check(lib->runtime->filepath_abs)) {
     BKE_reportf(
-        reports, RPT_ERROR, "'%s' is not a valid library filepath", lib->runtime.filepath_abs);
+        reports, RPT_ERROR, "'%s' is not a valid library filepath", lib->runtime->filepath_abs);
     return;
   }
 
-  if (!BLI_exists(lib->runtime.filepath_abs)) {
+  if (!BLI_exists(lib->runtime->filepath_abs)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Trying to reload library '%s' from invalid path '%s'",
                 lib->id.name,
-                lib->runtime.filepath_abs);
+                lib->runtime->filepath_abs);
     return;
   }
 
@@ -662,7 +654,7 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
 
-  BKE_blendfile_link_append_context_library_add(lapp_context, lib->runtime.filepath_abs, nullptr);
+  BKE_blendfile_link_append_context_library_add(lapp_context, lib->runtime->filepath_abs, nullptr);
 
   BKE_blendfile_library_relocate(lapp_context, reports, lib, true);
 
@@ -702,11 +694,11 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
     flag |= FILE_RELPATH;
   }
 
-  if (lib->runtime.parent && !do_reload) {
+  if (lib->runtime->parent && !do_reload) {
     BKE_reportf(op->reports,
                 RPT_ERROR_INVALID_INPUT,
                 "Cannot relocate indirectly linked library '%s'",
-                lib->runtime.filepath_abs);
+                lib->runtime->filepath_abs);
     return OPERATOR_CANCELLED;
   }
 
@@ -742,7 +734,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
   BLO_library_link_params_init_with_context(
       &lapp_params, bmain, flag, 0, CTX_data_scene(C), CTX_data_view_layer(C), nullptr);
 
-  if (BLI_path_cmp(lib->runtime.filepath_abs, filepath) == 0) {
+  if (BLI_path_cmp(lib->runtime->filepath_abs, filepath) == 0) {
     CLOG_INFO(&LOG, 4, "We are supposed to reload '%s' lib (%d)", lib->filepath, lib->id.us);
 
     do_reload = true;
@@ -776,7 +768,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 
         BLI_path_join(filepath, sizeof(filepath), root, relname);
 
-        if (BLI_path_cmp(filepath, lib->runtime.filepath_abs) == 0 ||
+        if (BLI_path_cmp(filepath, lib->runtime->filepath_abs) == 0 ||
             !BKE_blendfile_extension_check(relname))
         {
           continue;

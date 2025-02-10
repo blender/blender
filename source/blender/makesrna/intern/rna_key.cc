@@ -8,23 +8,13 @@
 
 #include <cstdlib>
 
-#include "DNA_ID.h"
-#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math_rotation.h"
-#include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "rna_internal.hh"
 
@@ -39,12 +29,19 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
+#  include <cstddef>
 #  include <fmt/format.h>
-#  include <stddef.h>
 
+#  include "BLT_translation.hh"
+
+#  include "DNA_curve_types.h"
+#  include "DNA_lattice_types.h"
+#  include "DNA_mesh_types.h"
 #  include "DNA_object_types.h"
 
 #  include "BLI_listbase.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 #  include "BLI_string_utils.hh"
 
 #  include "BKE_animsys.h"
@@ -293,7 +290,7 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
     kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, value));
   }
 
-  PointerRNA ptr = RNA_pointer_create(id, &RNA_ShapeKey, kb);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_ShapeKey, kb);
   return ptr;
 }
 
@@ -466,9 +463,7 @@ StructRNA *rna_ShapeKey_curve_point_type(Nurb *nu)
   if (nu->bezt) {
     return &RNA_ShapeKeyBezierPoint;
   }
-  else {
-    return &RNA_ShapeKeyCurvePoint;
-  }
+  return &RNA_ShapeKeyCurvePoint;
 }
 
 static void rna_ShapeKey_NurbInfo_init(NurbInfo *r_info, Nurb *nu)
@@ -532,10 +527,8 @@ struct ShapeKeyCurvePoint {
 };
 
 /* Build a mapping array for Curve objects with mixed sub-curve types. */
-static void rna_ShapeKey_data_begin_mixed(CollectionPropertyIterator *iter,
-                                          Key *key,
-                                          KeyBlock *kb,
-                                          Curve *cu)
+static void rna_ShapeKey_data_begin_mixed(
+    CollectionPropertyIterator *iter, PointerRNA *ptr, Key *key, KeyBlock *kb, Curve *cu)
 {
   int point_count = rna_ShapeKey_curve_find_index(key, kb->totelem);
 
@@ -560,7 +553,7 @@ static void rna_ShapeKey_data_begin_mixed(CollectionPropertyIterator *iter,
     }
   }
 
-  rna_iterator_array_begin(iter, points, sizeof(*points), point_count, true, nullptr);
+  rna_iterator_array_begin(iter, ptr, points, sizeof(*points), point_count, true, nullptr);
 }
 
 static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -572,7 +565,7 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
   if (GS(key->from->name) == ID_CU_LEGACY && tot > 0) {
     Curve *cu = (Curve *)key->from;
     StructRNA *type = nullptr;
-    NurbInfo info = {0};
+    NurbInfo info = {nullptr};
 
     /* Check if all sub-curves have the same type. */
     LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
@@ -588,16 +581,14 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
 
     /* If types are mixed, build a mapping array. */
     if (type == nullptr) {
-      rna_ShapeKey_data_begin_mixed(iter, key, kb, cu);
+      rna_ShapeKey_data_begin_mixed(iter, ptr, key, kb, cu);
       return;
     }
-    else {
-      tot /= info.nurb_elem_step;
-      size *= info.nurb_elem_step;
-    }
+    tot /= info.nurb_elem_step;
+    size *= info.nurb_elem_step;
   }
 
-  rna_iterator_array_begin(iter, (void *)kb->data, size, tot, 0, nullptr);
+  rna_iterator_array_begin(iter, ptr, kb->data, size, tot, false, nullptr);
 }
 
 static int rna_ShapeKey_data_length(PointerRNA *ptr)
@@ -623,7 +614,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
   if (iter->internal.array.free_ptr) {
     ShapeKeyCurvePoint *point = static_cast<ShapeKeyCurvePoint *>(ptr);
 
-    return rna_pointer_inherit_refine(&iter->parent, point->type, point->data);
+    return RNA_pointer_create_with_parent(iter->parent, point->type, point->data);
   }
 
   if (GS(key->from->name) == ID_CU_LEGACY) {
@@ -632,7 +623,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
     type = rna_ShapeKey_curve_point_type(static_cast<Nurb *>(cu->nurb.first));
   }
 
-  return rna_pointer_inherit_refine(&iter->parent, type, ptr);
+  return RNA_pointer_create_with_parent(iter->parent, type, ptr);
 }
 
 bool rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
@@ -655,13 +646,14 @@ bool rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
     if (info.nu && info.nurb_index < info.nurb_size) {
       StructRNA *type = rna_ShapeKey_curve_point_type(info.nu);
 
-      *r_ptr = rna_pointer_inherit_refine(ptr, type, databuf + elemsize * info.elem_index);
+      rna_pointer_create_with_ancestors(*ptr, type, databuf + elemsize * info.elem_index, *r_ptr);
       return true;
     }
   }
   else {
     if (index < kb->totelem) {
-      *r_ptr = rna_pointer_inherit_refine(ptr, &RNA_ShapeKeyPoint, databuf + elemsize * index);
+      rna_pointer_create_with_ancestors(
+          *ptr, &RNA_ShapeKeyPoint, databuf + elemsize * index, *r_ptr);
       return true;
     }
   }
@@ -679,7 +671,7 @@ static void rna_ShapeKey_points_begin(CollectionPropertyIterator *iter, PointerR
     /* Legacy curves have only curve points and bezier points. */
     tot = 0;
   }
-  rna_iterator_array_begin(iter, (void *)kb->data, key->elemsize, tot, 0, nullptr);
+  rna_iterator_array_begin(iter, ptr, kb->data, key->elemsize, tot, false, nullptr);
 }
 
 static int rna_ShapeKey_points_length(PointerRNA *ptr)
@@ -715,9 +707,8 @@ bool rna_ShapeKey_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_pt
   }
   else {
     if (index < kb->totelem) {
-      r_ptr->owner_id = ptr->owner_id;
-      r_ptr->type = &RNA_ShapeKeyPoint;
-      r_ptr->data = databuf + elemsize * index;
+      rna_pointer_create_with_ancestors(
+          *ptr, &RNA_ShapeKeyPoint, databuf + elemsize * index, *r_ptr);
       return true;
     }
   }
@@ -764,7 +755,7 @@ static void rna_ShapeKey_update_minmax(Main *bmain, Scene *scene, PointerRNA *pt
   rna_Key_update_data(bmain, scene, ptr);
 }
 
-static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
+static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, const float *point)
 {
   KeyBlock *kb;
 
@@ -785,7 +776,7 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
         /* there's no chance point is in array */
         continue;
       }
-      else if (start == point) {
+      if (start == point) {
         /* exact match - point is first in array */
         return kb;
       }

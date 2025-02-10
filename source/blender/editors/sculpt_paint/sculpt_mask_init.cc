@@ -6,11 +6,8 @@
  * \ingroup edsculpt
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_hash.h"
-#include "BLI_task.h"
 #include "BLI_time.h"
 
 #include "DNA_object_types.h"

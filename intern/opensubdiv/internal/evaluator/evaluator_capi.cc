@@ -29,7 +29,7 @@ void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache *evaluator_cache)
   MEM_delete(evaluator_cache);
 }
 
-const char *openSubdiv_getGLSLPatchBasisSource(void)
+const char *openSubdiv_getGLSLPatchBasisSource()
 {
   /* Using a global string to avoid dealing with memory allocation/ownership. */
   static std::string patch_basis_source;

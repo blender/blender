@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_scene_types.h"
+
 #include "RE_pipeline.h"
 
 struct Depsgraph;
@@ -19,7 +21,7 @@ struct Render;
 extern "C" {
 #endif
 
-typedef struct BakeImage {
+struct BakeImage {
   struct Image *image;
   int tile_number;
   float uv_offset[2];
@@ -29,9 +31,9 @@ typedef struct BakeImage {
 
   /* For associating render result layer with image. */
   char render_layer_name[RE_MAXNAME];
-} BakeImage;
+};
 
-typedef struct BakeTargets {
+struct BakeTargets {
   /* All images of the object. */
   BakeImage *images;
   int images_num;
@@ -47,17 +49,17 @@ typedef struct BakeTargets {
 
   /* Baking to non-color data image. */
   bool is_noncolor;
-} BakeTargets;
+};
 
-typedef struct BakePixel {
+struct BakePixel {
   int primitive_id, object_id;
   int seed;
   float uv[2];
   float du_dx, du_dy;
   float dv_dx, dv_dy;
-} BakePixel;
+};
 
-typedef struct BakeHighPolyData {
+struct BakeHighPolyData {
   struct Object *ob;
   struct Object *ob_eval;
   struct Mesh *mesh;
@@ -65,7 +67,7 @@ typedef struct BakeHighPolyData {
 
   float obmat[4][4];
   float imat[4][4];
-} BakeHighPolyData;
+};
 
 /* `external_engine.cc` */
 
@@ -89,7 +91,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           BakePixel pixel_array_from[],
                                           BakePixel pixel_array_to[],
                                           BakeHighPolyData highpoly[],
-                                          int tot_highpoly,
+                                          int highpoly_num,
                                           size_t pixels_num,
                                           bool is_custom_cage,
                                           float cage_extrusion,

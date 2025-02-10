@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "opensubdiv_capi_type.hh"
-
 // Global initialization/deinitialization.
 //
 // Supposed to be called from main thread.

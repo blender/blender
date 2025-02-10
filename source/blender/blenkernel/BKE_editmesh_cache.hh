@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"

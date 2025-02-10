@@ -119,8 +119,8 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem value1 = val(1.0f);
   NodeItem value2 = val(0.0f);
   if (STREQ(socket_out_->name, "Color")) {
-    value1 = get_input_value("Color1", NodeItem::Type::Color4);
-    value2 = get_input_value("Color2", NodeItem::Type::Color4);
+    value1 = get_input_value("Color1", NodeItem::Type::Color3);
+    value2 = get_input_value("Color2", NodeItem::Type::Color3);
   }
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
 
@@ -139,8 +139,11 @@ void register_node_type_sh_tex_checker()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_CHECKER, "Checker Texture", NODE_CLASS_TEXTURE);
+  sh_fn_node_type_base(&ntype, "ShaderNodeTexChecker", SH_NODE_TEX_CHECKER);
+  ntype.ui_name = "Checker Texture";
+  ntype.ui_description = "Generate a checkerboard texture";
   ntype.enum_name_legacy = "TEX_CHECKER";
+  ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_checker_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_checker;
   blender::bke::node_type_storage(

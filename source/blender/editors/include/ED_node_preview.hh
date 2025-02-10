@@ -4,15 +4,20 @@
 
 #pragma once
 
+#include "BLI_map.hh"
+
 #include "RE_pipeline.h"
 
 #include "IMB_imbuf.hh"
 
 #include "DNA_material_types.h"
 
-struct bContext;
-struct bNodeTree;
 struct ImBuf;
+struct SpaceNode;
+struct bContext;
+struct bNode;
+struct bNodeTree;
+struct wmWindowManager;
 struct Render;
 
 namespace blender::ed::space_node {

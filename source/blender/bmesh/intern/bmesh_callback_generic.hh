@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+struct BMElem;
+
 bool BM_elem_cb_check_hflag_enabled(BMElem *, void *user_data);
 bool BM_elem_cb_check_hflag_disabled(BMElem *, void *user_data);
 bool BM_elem_cb_check_hflag_ex(BMElem *, void *user_data);

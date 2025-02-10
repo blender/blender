@@ -142,10 +142,10 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeTexEnvironment *tex_env = static_cast<NodeTexEnvironment *>(node_->storage);
 
   std::string image_path = image->id.name;
-  if (export_params_.image_fn) {
-    Scene *scene = DEG_get_input_scene(depsgraph_);
-    Main *bmain = DEG_get_bmain(depsgraph_);
-    image_path = export_params_.image_fn(bmain, scene, image, &tex_env->iuser);
+  if (graph_.export_params.image_fn) {
+    Scene *scene = DEG_get_input_scene(graph_.depsgraph);
+    Main *bmain = DEG_get_bmain(graph_.depsgraph);
+    image_path = graph_.export_params.image_fn(bmain, scene, image, &tex_env->iuser);
   }
 
   NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector2);
@@ -189,8 +189,13 @@ void register_node_type_sh_tex_environment()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE);
+  sh_node_type_base(&ntype, "ShaderNodeTexEnvironment", SH_NODE_TEX_ENVIRONMENT);
+  ntype.ui_name = "Environment Texture";
+  ntype.ui_description =
+      "Sample an image file as an environment texture. Typically used to light the scene with the "
+      "background node";
   ntype.enum_name_legacy = "TEX_ENVIRONMENT";
+  ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::node_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_environment;
   blender::bke::node_type_storage(

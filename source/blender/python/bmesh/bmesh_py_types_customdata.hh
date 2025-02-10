@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "bmesh_py_types.hh"
+
 struct BMesh;
 
 /* All use #BPy_BMLayerAccess struct. */

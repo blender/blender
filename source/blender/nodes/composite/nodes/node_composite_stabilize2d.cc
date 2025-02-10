@@ -23,7 +23,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -36,6 +35,7 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
       .compositor_domain_priority(0);
   b.add_output<decl::Color>("Image");
 }
@@ -74,8 +74,8 @@ class Stabilize2DOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
 
     MovieClip *movie_clip = get_movie_clip();
     if (input.is_single_value() || !movie_clip) {
@@ -99,10 +99,9 @@ class Stabilize2DOperation : public NodeOperation {
       transformation = math::invert(transformation);
     }
 
-    RealizationOptions realization_options = input.get_realization_options();
-    realization_options.interpolation = get_interpolation();
-
-    transform(context(), input, output, transformation, realization_options);
+    input.pass_through(output);
+    output.transform(transformation);
+    output.get_realization_options().interpolation = this->get_interpolation();
   }
 
   Interpolation get_interpolation()
@@ -127,7 +126,7 @@ class Stabilize2DOperation : public NodeOperation {
 
   MovieClip *get_movie_clip()
   {
-    return (MovieClip *)bnode().id;
+    return reinterpret_cast<MovieClip *>(bnode().id);
   }
 };
 
@@ -144,8 +143,11 @@ void register_node_type_cmp_stabilize2d()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeStabilize", CMP_NODE_STABILIZE2D);
+  ntype.ui_name = "Stabilize 2D";
+  ntype.ui_description = "Stabilize footage using 2D stabilization motion tracking settings";
   ntype.enum_name_legacy = "STABILIZE2D";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_stabilize2d_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_stabilize2d;
   ntype.initfunc_api = file_ns::init;

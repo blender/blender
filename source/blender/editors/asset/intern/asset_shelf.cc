@@ -921,4 +921,23 @@ void type_unlink(const Main &bmain, const AssetShelfType &shelf_type)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name External helpers
+ * \{ */
+
+void show_catalog_in_visible_shelves(const bContext &C, const StringRefNull catalog_path)
+{
+  wmWindowManager *wm = CTX_wm_manager(&C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (AssetShelf *shelf = asset::shelf::active_shelf_from_area(area)) {
+        settings_set_catalog_path_enabled(*shelf, catalog_path.c_str());
+      }
+    }
+  }
+}
+
+/** \} */
+
 }  // namespace blender::ed::asset::shelf

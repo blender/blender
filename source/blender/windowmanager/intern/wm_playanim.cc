@@ -12,8 +12,8 @@
  * this could be made into its own module, alongside creator.
  */
 
+#include <algorithm>
 #include <cerrno>
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
@@ -135,7 +135,6 @@ static bool buffer_from_filepath(const char *filepath,
         size_read);
   }
   else {
-    close(file);
     *r_size = size;
     if (r_mem) {
       *r_mem = mem;
@@ -1669,7 +1668,8 @@ static void playanim_window_zoom(PlayState &ps, const float zoom_offset)
 
 static bool playanim_window_font_scale_from_dpi(PlayState &ps)
 {
-  const float scale = (GHOST_GetDPIHint(ps.ghost_data.window) / 96.0f);
+  const float scale = (GHOST_GetDPIHint(ps.ghost_data.window) *
+                       GHOST_GetNativePixelSize(ps.ghost_data.window) / 96.0f);
   const float font_size_base = 11.0f; /* Font size un-scaled. */
   const int font_size = int((font_size_base * scale) + 0.5f);
   bool changed = false;
@@ -1977,9 +1977,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
         ps.picture = ps.picture->prev;
       }
     }
-    if (g_playanim.total_time > 0.0) {
-      g_playanim.total_time = 0.0;
-    }
+    g_playanim.total_time = std::min(g_playanim.total_time, 0.0);
 
 #ifdef WITH_AUDASPACE
     if (g_audaspace.playback_handle) {

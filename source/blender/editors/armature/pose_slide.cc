@@ -31,16 +31,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_vec_types.h"
 
 #include "BKE_fcurve.hh"
 #include "BKE_nla.hh"
@@ -59,7 +57,6 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframes_keylist.hh"
@@ -458,7 +455,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
   int len = strlen(pfl->pchan_path);
 
   /* Setup pointer RNA for resolving paths. */
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_PoseBone, pfl->pchan);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_PoseBone, pfl->pchan);
 
   /* - custom properties are just denoted using ["..."][etc.] after the end of the base path,
    *   so just check for opening pair after the end of the path
@@ -890,92 +887,83 @@ static void pose_slide_reset(tPoseSlideOp *pso)
  */
 static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 {
-  char status_str[UI_MAX_DRAW_STR];
-  char limits_str[UI_MAX_DRAW_STR];
-  char axis_str[50];
-  char mode_str[32];
-  char slider_str[UI_MAX_DRAW_STR];
-  char bone_vis_str[50];
-
+  const char *mode_st;
   switch (pso->mode) {
     case POSESLIDE_PUSH:
-      STRNCPY(mode_str, IFACE_("Push Pose"));
+      mode_st = IFACE_("Push Pose");
       break;
     case POSESLIDE_RELAX:
-      STRNCPY(mode_str, IFACE_("Relax Pose"));
+      mode_st = IFACE_("Relax Pose");
       break;
     case POSESLIDE_BREAKDOWN:
-      STRNCPY(mode_str, IFACE_("Breakdown"));
+      mode_st = IFACE_("Breakdown");
       break;
     case POSESLIDE_BLEND:
-      STRNCPY(mode_str, IFACE_("Blend to Neighbor"));
+      mode_st = IFACE_("Blend to Neighbor");
       break;
-
     default:
       /* Unknown. */
-      STRNCPY(mode_str, IFACE_("Sliding-Tool"));
+      mode_st = IFACE_("Sliding-Tool");
       break;
   }
 
-  switch (pso->axislock) {
-    case PS_LOCK_X:
-      STRNCPY(axis_str, IFACE_("[X]/Y/Z axis only (X to clear)"));
-      break;
-    case PS_LOCK_Y:
-      STRNCPY(axis_str, IFACE_("X/[Y]/Z axis only (Y to clear)"));
-      break;
-    case PS_LOCK_Z:
-      STRNCPY(axis_str, IFACE_("X/Y/[Z] axis only (Z to clear)"));
-      break;
+  ED_slider_property_label_set(pso->slider, mode_st);
 
-    default:
-      if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SIZE)) {
-        STRNCPY(axis_str, IFACE_("X/Y/Z = Axis Constraint"));
-      }
-      else {
-        axis_str[0] = '\0';
-      }
-      break;
-  }
+  WorkspaceStatus status(C);
+
+  status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+  status.item(IFACE_("Adjust"), ICON_MOUSE_MOVE);
+
+  status.item_bool("", pso->channels == PS_TFM_LOC, ICON_EVENT_G);
+  status.item_bool("", pso->channels == PS_TFM_ROT, ICON_EVENT_R);
+  status.item_bool("", pso->channels == PS_TFM_SIZE, ICON_EVENT_S);
+  status.item_bool("", pso->channels == PS_TFM_BBONE_SHAPE, ICON_EVENT_B);
+  status.item_bool("", pso->channels == PS_TFM_PROPS, ICON_EVENT_C);
 
   switch (pso->channels) {
     case PS_TFM_LOC:
-      SNPRINTF(limits_str, IFACE_("[G]/R/S/B/C - Location only (G to clear) | %s"), axis_str);
+      status.item("Location Only", ICON_NONE);
       break;
     case PS_TFM_ROT:
-      SNPRINTF(limits_str, IFACE_("G/[R]/S/B/C - Rotation only (R to clear) | %s"), axis_str);
+      status.item("Rotation Only", ICON_NONE);
       break;
     case PS_TFM_SIZE:
-      SNPRINTF(limits_str, IFACE_("G/R/[S]/B/C - Scale only (S to clear) | %s"), axis_str);
+      status.item("Scale Only", ICON_NONE);
       break;
     case PS_TFM_BBONE_SHAPE:
-      STRNCPY(limits_str, IFACE_("G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"));
+      status.item("Bendy Bones Only", ICON_NONE);
       break;
     case PS_TFM_PROPS:
-      STRNCPY(limits_str, IFACE_("G/R/S/B/[C] - Custom Properties only (C to clear) | %s"));
+      status.item("Custom Properties Only", ICON_NONE);
       break;
     default:
-      STRNCPY(limits_str, IFACE_("G/R/S/B/C - Limit to Transform/Property Set"));
+      status.item("Transform limits", ICON_NONE);
       break;
   }
 
-  STRNCPY(bone_vis_str, IFACE_("[H] - Toggle bone visibility"));
-
-  ED_slider_status_string_get(pso->slider, slider_str, sizeof(slider_str));
+  if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SIZE)) {
+    status.item_bool("", pso->axislock & PS_LOCK_X, ICON_EVENT_X);
+    status.item_bool("", pso->axislock & PS_LOCK_Y, ICON_EVENT_Y);
+    status.item_bool("", pso->axislock & PS_LOCK_Z, ICON_EVENT_Z);
+    status.item(pso->axislock == 0 ? IFACE_("Axis Constraint") : IFACE_("Axis Only"), ICON_NONE);
+  }
 
   if (hasNumInput(&pso->num)) {
     Scene *scene = pso->scene;
     char str_offs[NUM_STR_REP_LEN];
 
-    outputNumInput(&pso->num, str_offs, &scene->unit);
+    outputNumInput(&pso->num, str_offs, scene->unit);
 
-    SNPRINTF(status_str, "%s: %s | %s", mode_str, str_offs, limits_str);
+    status.item(str_offs, ICON_NONE);
   }
   else {
-    SNPRINTF(status_str, "%s: %s | %s | %s", mode_str, limits_str, slider_str, bone_vis_str);
+    ED_slider_status_get(pso->slider, status);
+    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+    status.item_bool(
+        IFACE_("Bone Visibility"), !(v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES), ICON_EVENT_H);
   }
 
-  ED_workspace_status_text(C, status_str);
   ED_area_status_text(pso->area, "");
 }
 

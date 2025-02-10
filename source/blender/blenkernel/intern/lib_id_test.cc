@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
@@ -14,8 +12,6 @@
 #include "BKE_main_namemap.hh"
 
 #include "DNA_ID.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 
 namespace blender::bke::tests {
 

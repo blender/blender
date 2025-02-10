@@ -12,6 +12,7 @@
 
 #include "draw_manager.hh"
 #include "draw_pass.hh"
+#include "draw_view_data.hh"
 
 #include "DRW_render.hh"
 

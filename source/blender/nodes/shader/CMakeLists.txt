@@ -143,11 +143,13 @@ if(WITH_MATERIALX)
   list(APPEND SRC
     materialx/group_nodes.cc
     materialx/material.cc
+    materialx/node_graph.cc
     materialx/node_item.cc
     materialx/node_parser.cc
 
     materialx/group_nodes.h
     materialx/material.h
+    materialx/node_graph.h
     materialx/node_item.h
     materialx/node_parser.h
   )

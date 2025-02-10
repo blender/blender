@@ -31,10 +31,10 @@
  * defined outside of the class in the `blender::math` namespace.
  */
 
-#include <array>
-#include <cmath>
 #include <ostream>
 #include <type_traits>
+
+#include "BLI_unroll.hh"
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"

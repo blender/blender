@@ -6,13 +6,12 @@
  * \ingroup edmesh
  */
 
+#include <algorithm>
 #include <optional>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_heap.h"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_geom.h"
@@ -20,7 +19,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
-#include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
 #include "BLI_vector.hh"
 
@@ -54,8 +52,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-
-#include "UI_resources.hh"
 
 #include "bmesh_tools.hh"
 
@@ -476,9 +472,7 @@ static void find_nearest_edge_center__doZBuf(void *user_data,
     mid_v2_v2v2(screen_co_mid, screen_co_a, screen_co_b);
     dist_test = len_manhattan_v2v2(data->mval_fl, screen_co_mid);
 
-    if (dist_test < data->dist) {
-      data->dist = dist_test;
-    }
+    data->dist = std::min(dist_test, data->dist);
   }
 }
 
@@ -733,9 +727,7 @@ static void find_nearest_face_center__doZBuf(void *user_data,
   if (efa == data->face_test) {
     const float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
-    if (dist_test < data->dist_px_manhattan) {
-      data->dist_px_manhattan = dist_test;
-    }
+    data->dist_px_manhattan = std::min(dist_test, data->dist_px_manhattan);
   }
 }
 
@@ -1951,7 +1943,7 @@ static bool mouse_mesh_loop(
 static int edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   if (mouse_mesh_loop(C,
                       event->mval,
@@ -3719,7 +3711,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
   }
 
   /* #unified_findnearest needs OpenGL. */
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   /* Setup view context for argument to callbacks. */
   ViewContext vc = em_setup_viewcontext(C);

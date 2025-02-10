@@ -8,7 +8,7 @@
 
 #include "DNA_node_types.h"
 
-#include "ED_node.hh" /* own include */
+#include "ED_node_c.hh"
 #include "ED_screen.hh"
 
 #include "RNA_access.hh"
@@ -84,6 +84,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_add_file);
   WM_operatortype_append(NODE_OT_add_mask);
   WM_operatortype_append(NODE_OT_add_material);
+  WM_operatortype_append(NODE_OT_add_color);
 
   WM_operatortype_append(NODE_OT_new_node_tree);
 
@@ -123,6 +124,7 @@ void node_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
   node_link_modal_keymap(keyconf);
+  node_resize_modal_keymap(keyconf);
 }
 
 }  // namespace blender::ed::space_node

@@ -170,7 +170,7 @@ template<typename EVAL_VERTEX_BUFFER,
          typename DEVICE_CONTEXT = void>
 class FaceVaryingVolatileEval {
  public:
-  typedef OpenSubdiv::Osd::EvaluatorCacheT<EVALUATOR> EvaluatorCache;
+  using EvaluatorCache = OpenSubdiv::Osd::EvaluatorCacheT<EVALUATOR>;
 
   FaceVaryingVolatileEval(int face_varying_channel,
                           const StencilTable *face_varying_stencils,
@@ -309,13 +309,12 @@ template<typename SRC_VERTEX_BUFFER,
          typename DEVICE_CONTEXT = void>
 class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
  public:
-  typedef OpenSubdiv::Osd::EvaluatorCacheT<EVALUATOR> EvaluatorCache;
-  typedef FaceVaryingVolatileEval<EVAL_VERTEX_BUFFER,
-                                  STENCIL_TABLE,
-                                  PATCH_TABLE,
-                                  EVALUATOR,
-                                  DEVICE_CONTEXT>
-      FaceVaryingEval;
+  using EvaluatorCache = OpenSubdiv::Osd::EvaluatorCacheT<EVALUATOR>;
+  using FaceVaryingEval = FaceVaryingVolatileEval<EVAL_VERTEX_BUFFER,
+                                                  STENCIL_TABLE,
+                                                  PATCH_TABLE,
+                                                  EVALUATOR,
+                                                  DEVICE_CONTEXT>;
 
   VolatileEvalOutput(const StencilTable *vertex_stencils,
                      const StencilTable *varying_stencils,

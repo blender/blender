@@ -7,10 +7,7 @@
  */
 #include "sculpt_dyntopo.hh"
 
-#include <cmath>
 #include <cstdlib>
-
-#include "MEM_guardedalloc.h"
 
 #include "BLT_translation.hh"
 

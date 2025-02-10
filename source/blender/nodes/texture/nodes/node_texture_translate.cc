@@ -7,7 +7,6 @@
  */
 
 #include "node_texture_util.hh"
-#include <cmath>
 
 static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
@@ -48,8 +47,10 @@ void register_node_type_tex_translate()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT);
+  tex_node_type_base(&ntype, "TextureNodeTranslate", TEX_NODE_TRANSLATE);
+  ntype.ui_name = "Translate";
   ntype.enum_name_legacy = "TRANSLATE";
+  ntype.nclass = NODE_CLASS_DISTORT;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 

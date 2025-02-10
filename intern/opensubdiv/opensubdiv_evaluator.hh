@@ -14,8 +14,6 @@
 #include <opensubdiv/far/patchMap.h>
 #include <opensubdiv/far/patchTable.h>
 
-#include "internal/base/memory.h"
-
 #include "opensubdiv_capi_type.hh"
 
 struct OpenSubdiv_Buffer;
@@ -104,15 +102,15 @@ class EvalOutputAPI {
                      float dPdv[3]);
 
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
-  void evaluateVertexData(const int ptes_face_index, float face_u, float face_v, float data[]);
+  void evaluateVertexData(const int ptex_face_index, float face_u, float face_v, float data[]);
 
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
-  void evaluateVarying(const int ptes_face_index, float face_u, float face_v, float varying[3]);
+  void evaluateVarying(const int ptex_face_index, float face_u, float face_v, float varying[3]);
 
   // Evaluate facee-varying data at a given bilinear coordinate of given
   // ptex face.
   void evaluateFaceVarying(const int face_varying_channel,
-                           const int ptes_face_index,
+                           const int ptex_face_index,
                            float face_u,
                            float face_v,
                            float face_varying[2]);

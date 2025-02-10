@@ -9,14 +9,12 @@
 #include "MemoryAllocator.h"
 #include "ModelReader.h"
 #include "Projections.h"
-#include "Queue.h"
 #include "cubes.h"
 #include "dualcon.h"
 #include "manifold_table.h"
 #include <cassert>
+#include <cstdio>
 #include <cstring>
-#include <math.h>
-#include <stdio.h>
 
 /**
  * Main class and structures for scan-convertion, sign-generation,
@@ -107,7 +105,7 @@ struct InternalNode {
         count++;
       }
       else {
-        children[i] = NULL;
+        children[i] = nullptr;
         leaf[i] = 0;
       }
     }
@@ -255,7 +253,6 @@ class Octree {
 
   DualConMode mode;
 
- public:
   /**
    * Construtor
    */
@@ -264,10 +261,10 @@ class Octree {
          DualConAddVert add_vert_func,
          DualConAddQuad add_quad_func,
          DualConFlags flags,
-         DualConMode mode,
+         DualConMode dualcon_mode,
          int depth,
          float threshold,
-         float hermite_num);
+         float sharpness);
 
   /**
    * Destructor
@@ -308,10 +305,10 @@ class Octree {
   void resetMinimalEdges();
 
   void cellProcParity(Node *node, int leaf, int depth);
-  void faceProcParity(Node *node[2], int leaf[2], int depth[2], int maxdep, int dir);
-  void edgeProcParity(Node *node[4], int leaf[4], int depth[4], int maxdep, int dir);
+  void faceProcParity(Node *node[2], const int leaf[2], const int depth[2], int maxdep, int dir);
+  void edgeProcParity(Node *node[4], const int leaf[4], const int depth[4], int maxdep, int dir);
 
-  void processEdgeParity(LeafNode *node[4], int depths[4], int maxdep, int dir);
+  void processEdgeParity(LeafNode *node[4], const int depths[4], int maxdep, int dir);
 
   /**
    * Add triangles to the tree
@@ -341,8 +338,13 @@ class Octree {
   /**
    * Look for path on the face and add to paths
    */
-  void findPaths(
-      Node *node[2], int leaf[2], int depth[2], int *st[2], int maxdep, int dir, PathList *&paths);
+  void findPaths(Node *node[2],
+                 const int leaf[2],
+                 const int depth[2],
+                 int *st[2],
+                 int maxdep,
+                 int dir,
+                 PathList *&paths);
   /**
    * Combine two list1 and list2 into list1 using connecting paths list3,
    * while closed paths are appended to rings
@@ -378,7 +380,7 @@ class Octree {
                          PathList *&nrings2);
   Node *connectFace(Node *node, int st[3], int len, int dir, PathElement *f1, PathElement *f2);
   Node *locateCell(InternalNode *node,
-                   int st[3],
+                   const int st[3],
                    int len,
                    int ori[3],
                    int dir,
@@ -428,7 +430,7 @@ class Octree {
   /************************************************************************/
   void floodFill();
   void clearProcessBits(Node *node, int height);
-  int floodFill(LeafNode *leaf, int st[3], int len, int height, int threshold);
+  int floodFill(LeafNode *leaf, const int st[3], int len, int height, int threshold);
   int floodFill(Node *node, int st[3], int len, int height, int threshold);
 
   /**
@@ -444,8 +446,8 @@ class Octree {
    * op: 0 for counting, 1 for writing OBJ, 2 for writing OFF, 3 for writing PLY
    */
   void cellProcContour(Node *node, int leaf, int depth);
-  void faceProcContour(Node *node[2], int leaf[2], int depth[2], int maxdep, int dir);
-  void edgeProcContour(Node *node[4], int leaf[4], int depth[4], int maxdep, int dir);
+  void faceProcContour(Node *node[2], const int leaf[2], const int depth[2], int maxdep, int dir);
+  void edgeProcContour(Node *node[4], const int leaf[4], int depth[4], int maxdep, int dir);
   void processEdgeWrite(Node *node[4], int depths[4], int maxdep, int dir);
 
   /* output callbacks/data */
@@ -454,7 +456,6 @@ class Octree {
   DualConAddQuad add_quad;
   void *output_mesh;
 
- private:
   /************ Operators for all nodes ************/
 
   /** Lookup table */
@@ -491,16 +492,11 @@ class Octree {
     if (height == 0) {
       return getSign(&node->leaf, index);
     }
-    else {
-      if (node->internal.has_child(index)) {
-        return getSign(
-            node->internal.get_child(node->internal.get_child_count(index)), height - 1, index);
-      }
-      else {
-        return getSign(
-            node->internal.get_child(0), height - 1, 7 - node->internal.get_child_index(0));
-      }
+    if (node->internal.has_child(index)) {
+      return getSign(
+          node->internal.get_child(node->internal.get_child_count(index)), height - 1, index);
     }
+    return getSign(node->internal.get_child(0), height - 1, 7 - node->internal.get_child_index(0));
   }
 
   /************ Operators for leaf nodes ************/
@@ -508,7 +504,7 @@ class Octree {
   void printInfo(int st[3])
   {
     printf("INFO AT: %d %d %d\n", st[0] >> minshift, st[1] >> minshift, st[2] >> minshift);
-    LeafNode *leaf = (LeafNode *)locateLeafCheck(st);
+    LeafNode *leaf = locateLeafCheck(st);
     if (leaf) {
       printInfo(leaf);
     }
@@ -563,7 +559,7 @@ class Octree {
     return leaf->signs;
   }
 
-  void setInProcessAll(int st[3], int dir)
+  void setInProcessAll(const int st[3], int dir)
   {
     int nst[3], eind;
     for (int i = 0; i < 4; i++) {
@@ -579,7 +575,7 @@ class Octree {
     }
   }
 
-  void flipParityAll(int st[3], int dir)
+  void flipParityAll(const int st[3], int dir)
   {
     int nst[3], eind;
     for (int i = 0; i < 4; i++) {
@@ -615,7 +611,7 @@ class Octree {
   }
 
   /** Generate signs at the corners from the edge parity */
-  void generateSigns(LeafNode *leaf, unsigned char table[], int start)
+  void generateSigns(LeafNode *leaf, const unsigned char table[], int start)
   {
     leaf->signs = table[leaf->edge_parity];
 
@@ -721,7 +717,7 @@ class Octree {
           }
         }
 
-        removeLeaf(num - 1, (LeafNode *)leaf);
+        removeLeaf(num - 1, leaf);
         leaf = nleaf;
       }
     }
@@ -776,9 +772,7 @@ class Octree {
 
       return 1;
     }
-    else {
-      return 0;
-    }
+    return 0;
   }
 
   /** Retrieve number of edges intersected */
@@ -819,7 +813,7 @@ class Octree {
   }
 
   /** Set multiple edge intersections */
-  void setEdgeOffsets(LeafNode *leaf, float pt[3], int len)
+  void setEdgeOffsets(LeafNode *leaf, const float pt[3], int len)
   {
     float *pts = leaf->edge_intersections;
     for (int i = 0; i < len; i++) {
@@ -917,7 +911,7 @@ class Octree {
 
   /** Retrieve complete edge intersection */
   void getEdgeIntersectionByIndex(
-      const LeafNode *leaf, int index, int st[3], int len, float pt[3], float nm[3]) const
+      const LeafNode *leaf, int index, const int st[3], int len, float pt[3], float nm[3]) const
   {
     int count = getEdgeCount(leaf, index);
     const float *pts = leaf->edge_intersections;
@@ -1041,7 +1035,7 @@ class Octree {
         // int nstt[3] = {0, 0, 0};
         // nstt[i] += 1;
         const LeafNode *node = locateLeafCheck(nst);
-        if (node == NULL) {
+        if (node == nullptr) {
           continue;
         }
 
@@ -1076,7 +1070,7 @@ class Octree {
         // int nstt[3] = {1, 1, 1};
         // nstt[i] -= 1;
         const LeafNode *node = locateLeafCheck(nst);
-        if (node == NULL) {
+        if (node == nullptr) {
           continue;
         }
 
@@ -1117,7 +1111,7 @@ class Octree {
         // int nstt[3] = {0, 0, 0};
         // nstt[i] += 1;
         LeafNode *node = locateLeafCheck(nst);
-        if (node == NULL) {
+        if (node == nullptr) {
           continue;
         }
 
@@ -1146,7 +1140,7 @@ class Octree {
         // int nstt[3] = {1, 1, 1};
         // nstt[i] -= 1;
         LeafNode *node = locateLeafCheck(nst);
-        if (node == NULL) {
+        if (node == nullptr) {
           continue;
         }
 
@@ -1179,9 +1173,9 @@ class Octree {
    * Locate a leaf
    * WARNING: assuming this leaf already exists!
    */
-  LeafNode *locateLeaf(int st[3])
+  LeafNode *locateLeaf(const int st[3])
   {
-    Node *node = (Node *)root;
+    Node *node = root;
     for (int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i--) {
       int index = (((st[0] >> i) & 1) << 2) | (((st[1] >> i) & 1) << 1) | (((st[2] >> i) & 1));
       node = node->internal.get_child(node->internal.get_child_count(index));
@@ -1190,7 +1184,7 @@ class Octree {
     return &node->leaf;
   }
 
-  const LeafNode *locateLeaf(int st[3]) const
+  const LeafNode *locateLeaf(const int st[3]) const
   {
     const Node *node = root;
     for (int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i--) {
@@ -1201,7 +1195,7 @@ class Octree {
     return &node->leaf;
   }
 
-  LeafNode *locateLeaf(InternalNode *parent, int len, int st[3])
+  LeafNode *locateLeaf(InternalNode *parent, int len, const int st[3])
   {
     Node *node = (Node *)parent;
     int index;
@@ -1213,13 +1207,13 @@ class Octree {
     return &node->leaf;
   }
 
-  LeafNode *locateLeafCheck(int st[3])
+  LeafNode *locateLeafCheck(const int st[3])
   {
-    Node *node = (Node *)root;
+    Node *node = root;
     for (int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i--) {
       int index = (((st[0] >> i) & 1) << 2) | (((st[1] >> i) & 1) << 1) | (((st[2] >> i) & 1));
       if (!node->internal.has_child(index)) {
-        return NULL;
+        return nullptr;
       }
       node = node->internal.get_child(node->internal.get_child_count(index));
     }
@@ -1227,13 +1221,13 @@ class Octree {
     return &node->leaf;
   }
 
-  const LeafNode *locateLeafCheck(int st[3]) const
+  const LeafNode *locateLeafCheck(const int st[3]) const
   {
     const Node *node = root;
     for (int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i--) {
       int index = (((st[0] >> i) & 1) << 2) | (((st[1] >> i) & 1) << 1) | (((st[2] >> i) & 1));
       if (!node->internal.has_child(index)) {
-        return NULL;
+        return nullptr;
       }
       node = node->internal.get_child(node->internal.get_child_count(index));
     }
@@ -1241,10 +1235,10 @@ class Octree {
     return &node->leaf;
   }
 
-  InternalNode *locateParent(int len, int st[3], int &count)
+  InternalNode *locateParent(int len, const int st[3], int &count)
   {
     InternalNode *node = (InternalNode *)root;
-    InternalNode *pre = NULL;
+    InternalNode *pre = nullptr;
     int index = 0;
     for (int i = dimen / 2; i >= len; i >>= 1) {
       index = (((st[0] & i) ? 4 : 0) | ((st[1] & i) ? 2 : 0) | ((st[2] & i) ? 1 : 0));
@@ -1256,10 +1250,10 @@ class Octree {
     return pre;
   }
 
-  InternalNode *locateParent(InternalNode *parent, int len, int st[3], int &count)
+  InternalNode *locateParent(InternalNode *parent, int len, const int st[3], int &count)
   {
     InternalNode *node = parent;
-    InternalNode *pre = NULL;
+    InternalNode *pre = nullptr;
     int index = 0;
     for (int i = len / 2; i >= mindimen; i >>= 1) {
       index = (((st[0] & i) ? 4 : 0) | ((st[1] & i) ? 2 : 0) | ((st[2] & i) ? 1 : 0));

@@ -8,8 +8,6 @@
  * Bevel wrapper around #BM_mesh_bevel
  */
 
-#include "BLI_utildefines.h"
-
 #include "DNA_curveprofile_types.h"
 #include "bmesh.hh"
 #include "bmesh_tools.hh"

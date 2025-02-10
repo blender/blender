@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "ED_lattice.hh"
-
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 #include "draw_common_c.hh"
 #include "overlay_next_base.hh"

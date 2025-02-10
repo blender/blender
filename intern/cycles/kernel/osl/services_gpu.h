@@ -7,8 +7,11 @@
 
 #include "kernel/tables.h"
 
+#include "kernel/camera/camera.h"
+
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/curve.h"
+#include "kernel/geom/motion_triangle.h"
 #include "kernel/geom/object.h"
 #include "kernel/geom/point.h"
 #include "kernel/geom/primitive.h"
@@ -25,6 +28,7 @@
 #include "util/transform.h"
 
 #include "kernel/osl/osl.h"
+#include "kernel/osl/services_shared.h"
 
 namespace DeviceStrings {
 
@@ -66,6 +70,8 @@ ccl_device_constant DeviceString u_object_alpha = 11165053919428293151ull;
 ccl_device_constant DeviceString u_object_index = 6588325838217472556ull;
 /* "object:is_light" */
 ccl_device_constant DeviceString u_object_is_light = 13979755312845091842ull;
+/* "geom:bump_map_normal" */
+ccl_device_constant DeviceString u_bump_map_normal = 9592102745179132106ull;
 /* "geom:dupli_generated" */
 ccl_device_constant DeviceString u_geom_dupli_generated = 6715607178003388908ull;
 /* "geom:dupli_uv" */
@@ -74,6 +80,8 @@ ccl_device_constant DeviceString u_geom_dupli_uv = 1294253317490155849ull;
 ccl_device_constant DeviceString u_material_index = 741770758159634623ull;
 /* "object:random" */
 ccl_device_constant DeviceString u_object_random = 15789063994977955884ull;
+/* "light:random" */
+ccl_device_constant DeviceString u_light_random = 1743557801140685447ull;
 /* "particle:index" */
 ccl_device_constant DeviceString u_particle_index = 9489711748229903784ull;
 /* "particle:random" */
@@ -152,14 +160,12 @@ ccl_device_extern ccl_private OSLClosure *osl_mul_closure_color(ccl_private Shad
     return a;
   }
 
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureMul) - 1) &
       (-alignof(OSLClosureMul)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureMul);
+  sg->closure_pool = closure_pool + sizeof(OSLClosureMul);
 
   ccl_private OSLClosureMul *const closure = reinterpret_cast<ccl_private OSLClosureMul *>(
       closure_pool);
@@ -181,14 +187,12 @@ ccl_device_extern ccl_private OSLClosure *osl_mul_closure_float(ccl_private Shad
     return a;
   }
 
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureMul) - 1) &
       (-alignof(OSLClosureMul)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureMul);
+  sg->closure_pool = closure_pool + sizeof(OSLClosureMul);
 
   ccl_private OSLClosureMul *const closure = reinterpret_cast<ccl_private OSLClosureMul *>(
       closure_pool);
@@ -210,14 +214,12 @@ ccl_device_extern ccl_private OSLClosure *osl_add_closure_closure(ccl_private Sh
     return a;
   }
 
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureAdd) - 1) &
       (-alignof(OSLClosureAdd)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureAdd);
+  sg->closure_pool = closure_pool + sizeof(OSLClosureAdd);
 
   ccl_private OSLClosureAdd *const closure = reinterpret_cast<ccl_private OSLClosureAdd *>(
       closure_pool);
@@ -231,14 +233,12 @@ ccl_device_extern ccl_private OSLClosure *osl_add_closure_closure(ccl_private Sh
 ccl_device_extern ccl_private OSLClosure *osl_allocate_closure_component(
     ccl_private ShaderGlobals *sg, const int id, const int size)
 {
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureComponent) - 1) &
       (-alignof(OSLClosureComponent)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
+  sg->closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
 
   ccl_private OSLClosureComponent *const closure =
       reinterpret_cast<ccl_private OSLClosureComponent *>(closure_pool);
@@ -251,14 +251,12 @@ ccl_device_extern ccl_private OSLClosure *osl_allocate_closure_component(
 ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_component(
     ccl_private ShaderGlobals *sg, const int id, const int size, const ccl_private float3 *weight)
 {
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
-
-  ccl_private uint8_t *closure_pool = sd->osl_closure_pool;
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
   /* Align pointer to closure struct requirement */
   closure_pool = reinterpret_cast<uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureComponent) - 1) &
       (-alignof(OSLClosureComponent)));
-  sd->osl_closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
+  sg->closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
 
   ccl_private OSLClosureComponent *const closure =
       reinterpret_cast<ccl_private OSLClosureComponent *>(closure_pool);
@@ -622,7 +620,7 @@ ccl_device_extern bool osl_get_matrix(ccl_private ShaderGlobals *sg,
   }
   if (from == DeviceStrings::u_shader || from == DeviceStrings::u_object) {
     KernelGlobals kg = nullptr;
-    ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+    ccl_private ShaderData *const sd = sg->sd;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -666,7 +664,7 @@ ccl_device_extern bool osl_get_inverse_matrix(ccl_private ShaderGlobals *sg,
   }
   if (to == DeviceStrings::u_shader || to == DeviceStrings::u_object) {
     KernelGlobals kg = nullptr;
-    ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+    ccl_private ShaderData *const sd = sg->sd;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -1036,18 +1034,104 @@ ccl_device_inline bool set_attribute_matrix(const ccl_private Transform &tfm,
 
   return false;
 }
+ccl_device_inline bool set_attribute_int(const int i,
+                                         const TypeDesc type,
+                                         bool derivatives,
+                                         void *val)
+{
+  const unsigned char type_basetype = type & 0xF;
+  const unsigned char type_aggregate = (type >> 8) & 0xF;
+  const int type_arraylen = type >> 32;
+
+  if ((type_basetype == 7 /* TypeDesc::INT */) && (type_aggregate == 1 /* TypeDesc::SCALAR */) &&
+      type_arraylen == 0)
+  {
+    static_cast<ccl_private int *>(val)[0] = i;
+
+    if (derivatives) {
+      static_cast<ccl_private int *>(val)[1] = 0;
+      static_cast<ccl_private int *>(val)[2] = 0;
+    }
+
+    return true;
+  }
+
+  return false;
+}
 
 ccl_device_inline bool get_background_attribute(KernelGlobals kg,
+                                                ccl_private ShaderGlobals *sg,
                                                 ccl_private ShaderData *sd,
                                                 DeviceString name,
                                                 const TypeDesc type,
                                                 bool derivatives,
                                                 ccl_private void *val)
 {
+  ConstIntegratorState state = (sg->shade_index > 0) ? (sg->shade_index - 1) : -1;
+  ConstIntegratorShadowState shadow_state = (sg->shade_index < 0) ? (-sg->shade_index - 1) : -1;
   if (name == DeviceStrings::u_path_ray_length) {
     /* Ray Length */
     float f = sd->ray_length;
     return set_attribute_float(f, type, derivatives, val);
+  }
+
+#define READ_PATH_STATE(elem) \
+  ((state != -1)        ? INTEGRATOR_STATE(state, path, elem) : \
+   (shadow_state != -1) ? INTEGRATOR_STATE(shadow_state, shadow_path, elem) : \
+                          0)
+
+  if (name == DeviceStrings::u_path_ray_depth) {
+    /* Ray Depth */
+    const int f = READ_PATH_STATE(bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_diffuse_depth) {
+    /* Diffuse Ray Depth */
+    const int f = READ_PATH_STATE(diffuse_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_glossy_depth) {
+    /* Glossy Ray Depth */
+    const int f = READ_PATH_STATE(glossy_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_transmission_depth) {
+    /* Transmission Ray Depth */
+    const int f = READ_PATH_STATE(transmission_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_transparent_depth) {
+    /* Transparent Ray Depth */
+    const int f = READ_PATH_STATE(transparent_bounce);
+    return set_attribute_int(f, type, derivatives, val);
+  }
+#undef READ_PATH_STATE
+
+  else if (name == DeviceStrings::u_ndc) {
+    /* NDC coordinates with special exception for orthographic projection. */
+    float3 ndc[3];
+
+    if ((sg->raytype & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
+        kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+    {
+      ndc[0] = camera_world_to_ndc(kg, sd, sd->ray_P);
+
+      if (derivatives) {
+        ndc[1] = zero_float3();
+        ndc[2] = zero_float3();
+      }
+    }
+    else {
+      ndc[0] = camera_world_to_ndc(kg, sd, sd->P);
+
+      if (derivatives) {
+        const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+        ndc[1] = camera_world_to_ndc(kg, sd, sd->P + dP.dx) - ndc[0];
+        ndc[2] = camera_world_to_ndc(kg, sd, sd->P + dP.dy) - ndc[0];
+      }
+    }
+
+    return set_attribute_float3(ndc, type, derivatives, val);
   }
 
   return false;
@@ -1113,6 +1197,7 @@ ccl_device_inline bool get_object_attribute(KernelGlobals kg,
 }
 
 ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
+                                                     ccl_private ShaderGlobals *sg,
                                                      ccl_private ShaderData *sd,
                                                      DeviceString name,
                                                      const TypeDesc type,
@@ -1153,7 +1238,13 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
     return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_object_random) {
-    float f = object_random_number(kg, sd->object);
+    const float f = object_random_number(kg, sd->object);
+
+    return set_attribute_float(f, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_light_random) {
+    const float f = lamp_random_number(kg, sd->lamp);
+
     return set_attribute_float(f, type, derivatives, val);
   }
 
@@ -1274,8 +1365,15 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
       return false;
     }
   }
+  if (name == DeviceStrings::u_bump_map_normal) {
+    float3 f[3];
+    if (!attribute_bump_map_normal(kg, sd, f)) {
+      return false;
+    }
+    return set_attribute_float3(f, type, derivatives, val);
+  }
 
-  return get_background_attribute(kg, sd, name, type, derivatives, val);
+  return get_background_attribute(kg, sg, sd, name, type, derivatives, val);
 }
 
 ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
@@ -1288,7 +1386,7 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
                                          ccl_private void *res)
 {
   KernelGlobals kg = nullptr;
-  ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+  ccl_private ShaderData *const sd = sg->sd;
   int object;
 
   if (object_name != DeviceStrings::_emptystring_) {
@@ -1304,7 +1402,7 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
     return get_object_attribute(kg, sd, desc, type, derivatives, res);
   }
   else {
-    return get_object_standard_attribute(kg, sd, name, type, derivatives, res);
+    return get_object_standard_attribute(kg, sg, sd, name, type, derivatives, res);
   }
 }
 

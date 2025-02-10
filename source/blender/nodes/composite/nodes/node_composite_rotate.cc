@@ -13,7 +13,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -26,6 +25,7 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
       .compositor_domain_priority(0);
   b.add_input<decl::Float>("Degr")
       .default_value(0.0f)
@@ -38,7 +38,7 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_rotate(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = 1; /* Bilinear Filter. */
+  node->custom1 = CMP_NODE_INTERPOLATION_BILINEAR;
 }
 
 static void node_composit_buts_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -54,26 +54,25 @@ class RotateOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
 
-    const math::AngleRadian rotation = get_input("Degr").get_single_value_default(0.0f);
+    const math::AngleRadian rotation = this->get_input("Degr").get_single_value_default(0.0f);
     const float3x3 transformation = math::from_rotation<float3x3>(rotation);
 
-    RealizationOptions realization_options = input.get_realization_options();
-    realization_options.interpolation = get_interpolation();
-
-    transform(context(), input, output, transformation, realization_options);
+    input.pass_through(output);
+    output.transform(transformation);
+    output.get_realization_options().interpolation = this->get_interpolation();
   }
 
   Interpolation get_interpolation()
   {
-    switch (bnode().custom1) {
-      case 0:
+    switch (static_cast<CMPNodeInterpolation>(bnode().custom1)) {
+      case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
-      case 1:
+      case CMP_NODE_INTERPOLATION_BILINEAR:
         return Interpolation::Bilinear;
-      case 2:
+      case CMP_NODE_INTERPOLATION_BICUBIC:
         return Interpolation::Bicubic;
     }
 
@@ -95,8 +94,11 @@ void register_node_type_cmp_rotate()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeRotate", CMP_NODE_ROTATE);
+  ntype.ui_name = "Rotate";
+  ntype.ui_description = "Rotate image by specified angle";
   ntype.enum_name_legacy = "ROTATE";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_rotate_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_rotate;
   ntype.initfunc = file_ns::node_composit_init_rotate;

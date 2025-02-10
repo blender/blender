@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import math
+import os
 import pathlib
 import pprint
 import sys
@@ -11,6 +12,10 @@ import unittest
 from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade, UsdSkel, UsdUtils, UsdVol
 
 import bpy
+
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
+from modules.colored_print import (print_message, use_message_colors)
+
 
 args = None
 
@@ -21,16 +26,22 @@ class AbstractUSDTest(unittest.TestCase):
         cls._tempdir = tempfile.TemporaryDirectory()
         cls.testdir = args.testdir
         cls.tempdir = pathlib.Path(cls._tempdir.name)
-
-        return cls
+        if os.environ.get("BLENDER_TEST_COLOR") is not None:
+            use_message_colors()
 
     def setUp(self):
-        self.assertTrue(
-            self.testdir.exists(), "Test dir {0} should exist".format(self.testdir)
-        )
+        self.assertTrue(self.testdir.exists(), "Test dir {0} should exist".format(self.testdir))
+        print_message(self._testMethodName, 'SUCCESS', 'RUN')
 
     def tearDown(self):
         self._tempdir.cleanup()
+
+        result = self._outcome.result
+        ok = all(test != self for test, _ in result.errors + result.failures)
+        if not ok:
+            print_message(self._testMethodName, 'FAILURE', 'FAILED')
+        else:
+            print_message(self._testMethodName, 'SUCCESS', 'PASSED')
 
     def export_and_validate(self, **kwargs):
         """Export and validate the resulting USD file."""
@@ -375,6 +386,34 @@ class USDExportTest(AbstractUSDTest):
         self.assertTrue(stage_path.parent.joinpath(image_path1).is_file())
         self.assertTrue(stage_path.parent.joinpath(image_path2).is_file())
 
+    def test_export_material_textures_mode(self):
+        """Validate the non-default export textures mode options."""
+
+        # Use the common materials .blend file
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+
+        # For this test, the "textures" directory should NOT exist and the image paths
+        # should all point to the original test location, not the temp output location.
+        def check_image_paths(stage):
+            orig_tex_path = (self.testdir / "textures")
+            temp_tex_path = (self.tempdir / "textures")
+            self.assertFalse(temp_tex_path.is_dir())
+
+            shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Image_Texture")
+            shader = UsdShade.Shader(shader_prim)
+            filepath = pathlib.Path(shader.GetInput('file').Get().path)
+            self.assertEqual(orig_tex_path, filepath.parent)
+
+        export_file = str(self.tempdir / "usd_materials_texture_preserve.usda")
+        self.export_and_validate(
+            filepath=export_file, export_materials=True, convert_world_material=False, export_textures_mode='PRESERVE')
+        check_image_paths(Usd.Stage.Open(export_file))
+
+        export_file = str(self.tempdir / "usd_materials_texture_keep.usda")
+        self.export_and_validate(
+            filepath=export_file, export_materials=True, convert_world_material=False, export_textures_mode='KEEP')
+        check_image_paths(Usd.Stage.Open(export_file))
+
     def test_export_material_displacement(self):
         """Validate correct export of Displacement information for the UsdPreviewSurface"""
 
@@ -621,6 +660,10 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh1).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh2).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh3).GetPrimvar("test").GetTimeSamples(), sparse_frames)
+        # Extents of the mesh (should be sparsely written)
+        self.assertEqual(UsdGeom.Boundable(mesh1).GetExtentAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(UsdGeom.Boundable(mesh2).GetExtentAttr().GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.Boundable(mesh3).GetExtentAttr().GetTimeSamples(), [])
 
         #
         # Validate PointCloud data
@@ -655,6 +698,35 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(UsdGeom.Boundable(points2).GetExtentAttr().GetTimeSamples(), [])
         self.assertEqual(UsdGeom.Boundable(points3).GetExtentAttr().GetTimeSamples(), sparse_frames)
         self.assertEqual(UsdGeom.Boundable(points4).GetExtentAttr().GetTimeSamples(), [])
+
+        #
+        # Validate BasisCurve data
+        #
+        curves1 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane1/curves1/Curves"))
+        curves2 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane2/curves2/Curves"))
+        curves3 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane3/curves3/Curves"))
+        curves4 = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/curves_plane4/curves4/Curves"))
+
+        # Positions (should be sparsely written)
+        self.assertEqual(curves1.GetPointsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(curves2.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves3.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves4.GetPointsAttr().GetTimeSamples(), [])
+        # Velocity (should be sparsely written)
+        self.assertEqual(curves1.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(curves2.GetVelocitiesAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(curves3.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(curves4.GetVelocitiesAttr().GetTimeSamples(), [])
+        # Radius (should be sparsely written)
+        self.assertEqual(curves1.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves2.GetWidthsAttr().GetTimeSamples(), [])
+        self.assertEqual(curves3.GetWidthsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(curves4.GetWidthsAttr().GetTimeSamples(), [])
+        # Regular primvar (should be sparsely written)
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves1).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves2).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves3).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(curves4).GetPrimvar("test").GetTimeSamples(), sparse_frames)
 
     def test_export_mesh_subd(self):
         """Test exporting Subdivision Surface attributes and values"""
@@ -712,7 +784,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(usd_vert_sharpness), 7)
         # A 1.0 crease is INFINITE (10) in USD
         self.assertAlmostEqual(min(usd_vert_sharpness), 0.1, 5)
-        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp < 1]), 6)
+        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp < 10]), 6)
         self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp == 10]), 1)
 
         mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/crease_edge/crease_edge"))
@@ -727,7 +799,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(usd_crease_sharpness), 10)
         # A 1.0 crease is INFINITE (10) in USD
         self.assertAlmostEqual(min(usd_crease_sharpness), 0.1, 5)
-        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 1]), 9)
+        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 10]), 9)
         self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp == 10]), 1)
 
     def test_export_mesh_triangulate(self):
@@ -779,6 +851,71 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(indices2), 15)
         self.assertNotEqual(indices1, indices2)
 
+    def test_export_curves(self):
+        """Test exporting Curve types"""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_curves_test.blend"))
+        export_path = self.tempdir / "usd_curves_test.usda"
+        self.export_and_validate(filepath=str(export_path), evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        def check_basis_curve(prim, basis, curve_type, wrap, vert_counts, extent):
+            self.assertEqual(prim.GetBasisAttr().Get(), basis)
+            self.assertEqual(prim.GetTypeAttr().Get(), curve_type)
+            self.assertEqual(prim.GetWrapAttr().Get(), wrap)
+            self.assertEqual(prim.GetWidthsInterpolation(), "varying" if basis == "bezier" else "vertex")
+            self.assertEqual(prim.GetCurveVertexCountsAttr().Get(), vert_counts)
+            usd_extent = prim.GetExtentAttr().Get()
+            self.assertEqual(self.round_vector(usd_extent[0]), extent[0])
+            self.assertEqual(self.round_vector(usd_extent[1]), extent[1])
+
+        def check_nurbs_curve(prim, cyclic, orders, vert_counts, knots_count, extent):
+            self.assertEqual(prim.GetOrderAttr().Get(), orders)
+            self.assertEqual(prim.GetCurveVertexCountsAttr().Get(), vert_counts)
+            self.assertEqual(prim.GetWidthsInterpolation(), "vertex")
+            knots = prim.GetKnotsAttr().Get()
+            usd_extent = prim.GetExtentAttr().Get()
+            self.assertEqual(self.round_vector(usd_extent[0]), extent[0])
+            self.assertEqual(self.round_vector(usd_extent[1]), extent[1])
+
+            curve_count = len(vert_counts)
+            self.assertEqual(len(knots), knots_count * curve_count)
+            if not cyclic:
+                for i in range(0, curve_count):
+                    zeroth_knot = i * len(knots) // curve_count
+                    self.assertEqual(knots[zeroth_knot], knots[zeroth_knot + 1], "Knots start rule violated")
+                    self.assertEqual(
+                        knots[zeroth_knot + knots_count - 1],
+                        knots[zeroth_knot + knots_count - 2],
+                        "Knots end rule violated")
+            else:
+                self.assertEqual(curve_count, 1, "Validation is only correct for 1 cyclic curve currently")
+                self.assertEqual(
+                    knots[0], knots[1] - (knots[knots_count - 2] - knots[knots_count - 3]), "Knots rule violated")
+                self.assertEqual(
+                    knots[knots_count - 1], knots[knots_count - 2] + (knots[2] - knots[1]), "Knots rule violated")
+
+        # Contains 3 CatmullRom curves
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/Cube/Curves/Curves"))
+        check_basis_curve(
+            curve, "catmullRom", "cubic", "pinned", [8, 8, 8], [[-0.3784, -0.0866, 1], [0.2714, -0.0488, 1.3]])
+
+        # Contains 1 Bezier curve
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/BezierCurve/BezierCurve"))
+        check_basis_curve(curve, "bezier", "cubic", "nonperiodic", [7], [[-2.644, -0.0777, 0], [1, 0.9815, 0]])
+
+        # Contains 1 Bezier curve
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/BezierCircle/BezierCircle"))
+        check_basis_curve(curve, "bezier", "cubic", "periodic", [12], [[-1, -1, 0], [1, 1, 0]])
+
+        # Contains 2 NURBS curves
+        curve = UsdGeom.NurbsCurves(stage.GetPrimAtPath("/root/NurbsCurve/NurbsCurve"))
+        check_nurbs_curve(curve, False, [4, 4], [6, 6], 10, [[-0.75, -1.6898, -0.0117], [2.0896, 0.9583, 0.0293]])
+
+        # Contains 1 NURBS curve
+        curve = UsdGeom.NurbsCurves(stage.GetPrimAtPath("/root/NurbsCircle/NurbsCircle"))
+        check_nurbs_curve(curve, True, [3], [8], 13, [[-1, -1, 0], [1, 1, 0]])
+
     def test_export_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"
@@ -798,6 +935,15 @@ class USDExportTest(AbstractUSDTest):
         scale_samples = UsdGeom.Xformable(prim).GetScaleOp().GetTimeSamples()
         self.assertEqual(loc_samples, [1.0, 2.0, 3.0, 4.0])
         self.assertEqual(rot_samples, [1.0])
+        self.assertEqual(scale_samples, [1.0])
+
+        prim = stage.GetPrimAtPath("/root/cube_anim_xform/cube_anim_child")
+        self.assertEqual(prim.GetTypeName(), "Xform")
+        loc_samples = UsdGeom.Xformable(prim).GetTranslateOp().GetTimeSamples()
+        rot_samples = UsdGeom.Xformable(prim).GetRotateXYZOp().GetTimeSamples()
+        scale_samples = UsdGeom.Xformable(prim).GetScaleOp().GetTimeSamples()
+        self.assertEqual(loc_samples, [1.0])
+        self.assertEqual(rot_samples, [1.0, 2.0, 3.0, 4.0])
         self.assertEqual(scale_samples, [1.0])
 
         # Validate the armature animation
@@ -1179,43 +1325,90 @@ class USDExportTest(AbstractUSDTest):
     def test_export_units(self):
         """Test specifying stage meters per unit on export."""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        export_path = self.tempdir / "usd_export_units_test_cm.usda"
 
+        units = (
+            ("mm", 'MILLIMETERS', 0.001), ("cm", 'CENTIMETERS', 0.01), ("km", 'KILOMETERS', 1000),
+            ("in", 'INCHES', 0.0254), ("ft", 'FEET', 0.3048), ("yd", 'YARDS', 0.9144),
+            ("default", "", 1), ("custom", 'CUSTOM', 0.125)
+        )
+        for name, unit, value in units:
+            export_path = self.tempdir / f"usd_export_units_test_{name}.usda"
+            if name == "default":
+                self.export_and_validate(filepath=str(export_path))
+            elif name == "custom":
+                self.export_and_validate(filepath=str(export_path), convert_scene_units=unit, meters_per_unit=value)
+            else:
+                self.export_and_validate(filepath=str(export_path), convert_scene_units=unit)
+
+            # Verify that meters per unit were set correctly
+            stage = Usd.Stage.Open(str(export_path))
+            self.assertEqual(UsdGeom.GetStageMetersPerUnit(stage), value)
+
+    def test_export_native_instancing_true(self):
+        """Test exporting instanced objects to native (scne graph) instances."""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
+
+        export_path = self.tempdir / "usd_export_nested_instancing_true.usda"
         self.export_and_validate(
             filepath=str(export_path),
-            convert_scene_units='CENTIMETERS'
+            use_instancing=True
         )
 
-        # Verify that meters per unit were set correctly
+        # The USD should contain two instances of a plane which has two
+        # instances of a point cloud as children.
         stage = Usd.Stage.Open(str(export_path))
-        mpu = UsdGeom.GetStageMetersPerUnit(stage)
-        self.assertEqual(mpu, 0.01)
 
-        # Export with default meters units.
-        export_path = self.tempdir / "usd_export_units_test_default.usda"
+        stats = UsdUtils.ComputeUsdStageStats(stage)
+        self.assertEqual(stats['totalInstanceCount'], 6, "Unexpected number of instances")
+        self.assertEqual(stats['prototypeCount'], 2, "Unexpected number of prototypes")
+        self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 1, "Unexpected number of primary meshes")
+        self.assertEqual(stats['primary']['primCountsByType']['Points'], 1, "Unexpected number of primary point clouds")
+        self.assertEqual(stats['prototypes']['primCountsByType']['Mesh'], 1, "Unexpected number of prototype meshes")
+        self.assertEqual(stats['prototypes']['primCountsByType']['Points'],
+                         1, "Unexpected number of prototype point clouds")
 
-        self.export_and_validate(
-            filepath=str(export_path)
-        )
+        # Get the prototypes root.
+        protos_root_path = Sdf.Path("/root/prototypes")
+        prim = stage.GetPrimAtPath(protos_root_path)
+        assert prim
+        self.assertTrue(prim.IsAbstract())
 
-        # Verify that meters per unit were set correctly
-        stage = Usd.Stage.Open(str(export_path))
-        mpu = UsdGeom.GetStageMetersPerUnit(stage)
-        self.assertEqual(mpu, 1.0)
+        # Get the first plane instance.
+        prim = stage.GetPrimAtPath("/root/plane_001/Plane_0")
+        assert prim
+        assert prim.IsInstance()
 
-        # Export with custom meters per unit.
-        export_path = self.tempdir / "usd_export_units_test_custom.usda"
+        # Get the second plane instance.
+        prim = stage.GetPrimAtPath("/root/plane/Plane_0")
+        assert prim
+        assert prim.IsInstance()
 
+        # Ensure all the prototype paths are under the pototypes root.
+        for prim in stage.Traverse():
+            if prim.IsInstance():
+                arcs = Usd.PrimCompositionQuery.GetDirectReferences(prim).GetCompositionArcs()
+                for arc in arcs:
+                    target_path = arc.GetTargetPrimPath()
+                    self.assertTrue(target_path.HasPrefix(protos_root_path))
+
+    def test_export_native_instancing_false(self):
+        """Test exporting instanced objects with instancing disabled."""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
+
+        export_path = self.tempdir / "usd_export_nested_instancing_false.usda"
         self.export_and_validate(
             filepath=str(export_path),
-            convert_scene_units='CUSTOM',
-            meters_per_unit=0.1,
+            use_instancing=False
         )
 
-        # Verify that meters per unit were set correctly
+        # The USD should contain no instances.
         stage = Usd.Stage.Open(str(export_path))
-        mpu = UsdGeom.GetStageMetersPerUnit(stage)
-        self.assertAlmostEqual(mpu, 0.1)
+
+        stats = UsdUtils.ComputeUsdStageStats(stage)
+        self.assertEqual(stats['totalInstanceCount'], 0, "Unexpected number of instances")
+        self.assertEqual(stats['prototypeCount'], 0, "Unexpected number of prototypes")
+        self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 2, "Unexpected number of primary meshes")
+        self.assertEqual(stats['primary']['primCountsByType']['Points'], 4, "Unexpected number of primary point clouds")
 
     def test_texture_export_hook(self):
         """Exporting textures from on_material_export USD hook."""
@@ -1298,7 +1491,7 @@ class USDExportTest(AbstractUSDTest):
                             f"Exported texture {tex_path} doesn't exist")
 
 
-class USDHookBase():
+class USDHookBase:
     instructions = {}
     responses = {}
 
@@ -1424,7 +1617,7 @@ def main():
     parser.add_argument("--testdir", required=True, type=pathlib.Path)
     args, remaining = parser.parse_known_args(argv)
 
-    unittest.main(argv=remaining)
+    unittest.main(argv=remaining, verbosity=0)
 
 
 if __name__ == "__main__":

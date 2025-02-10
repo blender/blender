@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_listbase.h"
+#include "DNA_listBase.h"
 
 struct Strip;
 

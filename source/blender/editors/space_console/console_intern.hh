@@ -10,7 +10,9 @@
 
 /* internal exports only */
 
+struct ARegion;
 struct ConsoleLine;
+struct SpaceConsole;
 struct bContext;
 struct wmOperatorType;
 

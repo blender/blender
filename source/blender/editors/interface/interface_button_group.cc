@@ -6,8 +6,6 @@
  * \ingroup edinterface
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */

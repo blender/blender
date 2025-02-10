@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "intern/bpy_rna.hh"
+
 /** \file
  * \ingroup pythonintern
  */

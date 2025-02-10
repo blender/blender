@@ -8,12 +8,10 @@
 
 #pragma once
 
-#include "COLLADAFWMatrix.h"
+#include <map>
+
 #include "COLLADAFWNode.h"
-#include "COLLADAFWRotate.h"
-#include "COLLADAFWScale.h"
 #include "COLLADAFWTransformation.h"
-#include "COLLADAFWTranslate.h"
 #include "COLLADAFWUniqueId.h"
 #include "Math/COLLADABUMathVector3.h"
 

@@ -6,8 +6,6 @@
  * \ingroup bke
  */
 
-#include "BLI_array_utils.hh"
-#include "BLI_length_parameterize.hh"
 #include "BLI_math_axis_angle.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion.hh"
@@ -15,7 +13,6 @@
 #include "BLI_math_vector.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_geometry_set.hh"

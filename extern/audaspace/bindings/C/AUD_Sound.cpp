@@ -208,6 +208,8 @@ AUD_API const char* AUD_Sound_write(AUD_Sound* sound, const char* filename, AUD_
 				container = AUD_CONTAINER_OGG;
 			else if(extension == ".wav")
 				container = AUD_CONTAINER_WAV;
+			else if(extension == ".aac")
+				container = AUD_CONTAINER_AAC;
 			else
 				return invalid_container_error;
 		}
@@ -236,6 +238,9 @@ AUD_API const char* AUD_Sound_write(AUD_Sound* sound, const char* filename, AUD_
 				break;
 			case AUD_CONTAINER_WAV:
 				codec = AUD_CODEC_PCM;
+				break;
+			case AUD_CONTAINER_AAC:
+				codec = AUD_CODEC_AAC;
 				break;
 			default:
 				return "Unknown container, cannot select default codec.";

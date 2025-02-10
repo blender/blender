@@ -9,12 +9,10 @@
 #include "BLI_assert.h"
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -27,7 +25,8 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
-      .compositor_domain_priority(0);
+      .compositor_domain_priority(0)
+      .compositor_realization_mode(CompositorInputRealizationMode::None);
   b.add_input<decl::Float>("X")
       .default_value(0.0f)
       .min(-10000.0f)
@@ -65,30 +64,29 @@ class TransformOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
 
-    const float2 translation = float2(get_input("X").get_single_value_default(0.0f),
-                                      get_input("Y").get_single_value_default(0.0f));
-    const math::AngleRadian rotation = get_input("Angle").get_single_value_default(0.0f);
-    const float2 scale = float2(get_input("Scale").get_single_value_default(1.0f));
+    const float2 translation = float2(this->get_input("X").get_single_value_default(0.0f),
+                                      this->get_input("Y").get_single_value_default(0.0f));
+    const math::AngleRadian rotation = this->get_input("Angle").get_single_value_default(0.0f);
+    const float2 scale = float2(this->get_input("Scale").get_single_value_default(1.0f));
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
-    RealizationOptions realization_options = input.get_realization_options();
-    realization_options.interpolation = get_interpolation();
-
-    transform(context(), input, output, transformation, realization_options);
+    input.pass_through(output);
+    output.transform(transformation);
+    output.get_realization_options().interpolation = this->get_interpolation();
   }
 
   Interpolation get_interpolation()
   {
-    switch (bnode().custom1) {
-      case 0:
+    switch (static_cast<CMPNodeInterpolation>(bnode().custom1)) {
+      case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
-      case 1:
+      case CMP_NODE_INTERPOLATION_BILINEAR:
         return Interpolation::Bilinear;
-      case 2:
+      case CMP_NODE_INTERPOLATION_BICUBIC:
         return Interpolation::Bicubic;
     }
 
@@ -110,8 +108,11 @@ void register_node_type_cmp_transform()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeTransform", CMP_NODE_TRANSFORM);
+  ntype.ui_name = "Transform";
+  ntype.ui_description = "Scale, translate and rotate an image";
   ntype.enum_name_legacy = "TRANSFORM";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_transform_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_transform;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

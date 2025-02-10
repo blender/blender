@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Script to get all the inactive gitea developers
+# Script to get all the inactive GITEA developers
 # Usage: GITEA_API_TOKEN=<yourtoken> python3 gitea_inactive_developers.py
 #
 # The API Token have the "read:org" or "admin:org" scope.

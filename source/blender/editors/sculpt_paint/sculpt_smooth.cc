@@ -7,14 +7,11 @@
  */
 #include "sculpt_smooth.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"

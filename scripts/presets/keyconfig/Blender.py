@@ -8,6 +8,7 @@ from bpy.props import (
     BoolProperty,
     EnumProperty,
 )
+from bpy.app.translations import contexts as i18n_contexts
 
 DIRNAME, FILENAME = os.path.split(__file__)
 IDNAME = os.path.splitext(FILENAME)[0]
@@ -140,6 +141,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
 
     gizmo_action: EnumProperty(
         name="Activate Gizmo",
+        translation_context=i18n_contexts.editor_view3d,
         items=(
             ('PRESS', "Press", "Press causes immediate activation, preventing click being passed to the tool"),
             ('DRAG', "Drag", "Drag allows click events to pass through to the tool, adding a small delay"),

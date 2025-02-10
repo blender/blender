@@ -4,6 +4,11 @@
 
 import bpy
 from bpy.types import Menu, Panel
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+    pgettext_n as n_,
+)
 
 
 class BrushAssetShelf:
@@ -306,9 +311,9 @@ class BrushPanel(UnifiedPaintPanel):
 class BrushSelectPanel(BrushPanel):
     bl_label = "Brush Asset"
 
-    # Use header preset function to right align the layout.
+    # Use header preset function to set the title.
     def draw_header_preset(self, context):
-        layout = self.layout
+        # layout = self.layout  # UNUSED.
 
         settings = self.paint_settings(context)
         if settings is None:
@@ -319,8 +324,9 @@ class BrushSelectPanel(BrushPanel):
             return
 
         if brush.has_unsaved_changes:
-            layout.label(text="*Unsaved Changes")
-            layout.separator()
+            self.bl_label = n_("Brush Asset (Unsaved)")
+        else:
+            self.bl_label = n_("Brush Asset")
 
     def draw(self, context):
         layout = self.layout
@@ -616,8 +622,11 @@ class FalloffPanel(BrushPanel):
             return
 
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(brush, "curve_preset", text="")
+        if context.region.type == 'TOOL_HEADER':
+            col.prop(brush, "curve_preset", expand=True)
+        else:
+            row = col.row(align=True)
+            col.prop(brush, "curve_preset", text="")
 
         if brush.curve_preset == 'CUSTOM':
             layout.template_curve_mapping(brush, "curve", brush=True)
@@ -769,10 +778,10 @@ def brush_settings(layout, context, brush, popover=False):
 
         # crease_pinch_factor
         if capabilities.has_pinch_factor:
-            text = "Pinch"
+            text = iface_("Pinch")
             if sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
-                text = "Magnify"
-            layout.prop(brush, "crease_pinch_factor", slider=True, text=text)
+                text = iface_("Magnify")
+            layout.prop(brush, "crease_pinch_factor", slider=True, text=text, translate=False)
 
         # rake_factor
         if capabilities.has_rake_factor:
@@ -790,17 +799,24 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-            row = layout.row(heading="Plane Trim")
-            row.prop(brush, "use_plane_trim", text="")
-            sub = row.row()
-            sub.active = brush.use_plane_trim
-            sub.prop(brush, "plane_trim", slider=True, text="")
+            if sculpt_tool != 'PLANE':
+                row = layout.row(heading="Plane Trim")
+                row.prop(brush, "use_plane_trim", text="")
+                sub = row.row()
+                sub.active = brush.use_plane_trim
+                sub.prop(brush, "plane_trim", slider=True, text="")
 
             layout.separator()
 
         # height
         if capabilities.has_height:
             layout.prop(brush, "height", slider=True, text="Height")
+
+        if capabilities.has_plane_height:
+            layout.prop(brush, "plane_height", slider=True, text="Height")
+
+        if capabilities.has_plane_depth:
+            layout.prop(brush, "plane_depth", slider=True, text="Depth")
 
         # use_persistent, set_persistent_base
         if capabilities.has_persistence:
@@ -891,6 +907,16 @@ def brush_settings(layout, context, brush, popover=False):
             row.prop(brush, "use_pressure_area_radius", text="")
             row = layout.row()
             row.prop(brush, "invert_to_scrape_fill", text="Invert to Scrape")
+
+        elif sculpt_tool == 'PLANE':
+            row = layout.row(align=True)
+            row.prop(brush, "area_radius_factor")
+            row.prop(brush, "use_pressure_area_radius", text="")
+            layout.separator()
+            layout.prop(brush, "plane_inversion_mode")
+            layout.separator()
+            layout.prop(brush, "stabilize_normal")
+            layout.prop(brush, "stabilize_plane")
 
         elif sculpt_tool == 'GRAB':
             layout.prop(brush, "use_grab_active_vertex")
@@ -1249,9 +1275,10 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         # sculpt plane settings
         if capabilities.has_sculpt_plane:
             layout.prop(brush, "sculpt_plane")
-            col = layout.column(heading="Original", align=True)
-            col.prop(brush, "use_original_normal", text="Normal")
-            col.prop(brush, "use_original_plane", text="Plane")
+            if brush.sculpt_tool != 'PLANE':
+                col = layout.column(heading="Original", align=True)
+                col.prop(brush, "use_original_normal", text="Normal")
+                col.prop(brush, "use_original_plane", text="Plane")
             layout.separator()
 
     elif mode == 'SCULPT_GREASE_PENCIL':
@@ -1259,7 +1286,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         col = layout.column(heading="Affect", align=True)
         col.prop(gp_settings, "use_edit_position", text="Position")
-        col.prop(gp_settings, "use_edit_strength", text="Strength")
+        col.prop(gp_settings, "use_edit_strength", text="Strength", text_ctxt=i18n_contexts.id_gpencil)
         col.prop(gp_settings, "use_edit_thickness", text="Thickness")
         col.prop(gp_settings, "use_edit_uv", text="UV")
 
@@ -1482,7 +1509,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         UnifiedPaintPanel.prop_unified_color(row, context, brush, "color", text="")
         UnifiedPaintPanel.prop_unified_color(row, context, brush, "secondary_color", text="")
         row.separator()
-        layout.prop(brush, "blend", text="" if compact else "Blend")
+        layout.prop(brush, "blend", text="" if compact else iface_("Blend"), translate=False)
 
     UnifiedPaintPanel.prop_unified(
         layout,
@@ -1531,6 +1558,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
     sub.popover(
         panel="TOPBAR_PT_grease_pencil_materials",
         text=txt_ma,
+        translate=False,
         icon_value=icon_id,
     )
 

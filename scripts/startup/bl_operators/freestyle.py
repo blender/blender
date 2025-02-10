@@ -195,7 +195,8 @@ class SCENE_OT_freestyle_module_open(Operator):
     make_internal: BoolProperty(
         name="Make internal",
         description="Make module file internal after loading",
-        default=True)
+        default=True,
+    )
 
     @classmethod
     def poll(cls, context):

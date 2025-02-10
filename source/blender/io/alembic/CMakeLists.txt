@@ -15,12 +15,6 @@ set(INC_SYS
   ${OPENEXR_INCLUDE_DIRS}
 )
 
-if(WITH_BOOST)
-  list(APPEND INC_SYS
-    ${BOOST_INCLUDE_DIR}
-  )
-endif()
-
 set(SRC
   intern/abc_axis_conversion.cc
   intern/abc_customdata.cc
@@ -94,12 +88,6 @@ set(LIB
   ${OPENEXR_LIBRARIES}
   PRIVATE bf::windowmanager
 )
-
-if(WITH_BOOST)
-  list(APPEND LIB
-    ${BOOST_LIBRARIES}
-  )
-endif()
 
 blender_add_lib(bf_io_alembic "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

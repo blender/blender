@@ -6,17 +6,9 @@
  * \ingroup shader_fx
  */
 
-#include <cstdio>
-
-#include "DNA_gpencil_legacy_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
+#include "BLT_translation.hh"
 
 #include "BLI_math_base.h"
-#include "BLI_utildefines.h"
-
-#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_lib_query.hh"
@@ -32,7 +24,6 @@
 #include "FX_shader_types.h"
 #include "FX_ui_common.h"
 
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 static void init_data(ShaderFxData *md)

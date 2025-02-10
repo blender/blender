@@ -6,15 +6,12 @@
  * \ingroup spnla
  */
 
-#include <cstdio>
 #include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_math_base.h"
 
 #include "BKE_nla.hh"
 

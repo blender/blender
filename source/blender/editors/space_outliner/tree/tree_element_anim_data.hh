@@ -10,6 +10,8 @@
 
 #include "tree_element.hh"
 
+struct AnimData;
+
 namespace blender::ed::outliner {
 
 class TreeElementAnimData final : public AbstractTreeElement {

@@ -10,6 +10,7 @@
 /* Shrinkwrap stuff */
 #include "BKE_bvhutils.hh"
 
+#include "BKE_context.hh"
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -29,6 +30,7 @@
  * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
+struct Depsgraph;
 struct BVHTree;
 struct MDeformVert;
 struct Mesh;
@@ -51,7 +53,7 @@ class ShrinkwrapBoundaryData {
  public:
   /* Returns true if there is boundary information. If there is no boundary information, then the
    * mesh from which this data is created from has no boundaries. */
-  inline bool has_boundary() const
+  bool has_boundary() const
   {
     return !edge_is_boundary.is_empty();
   }

@@ -10,8 +10,14 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
-
+struct bContext;
+struct rcti;
+struct wmEvent;
+struct wmGizmo;
+struct wmGizmoGroup;
+struct wmGizmoGroupType;
+struct wmGizmoProperty;
+struct wmKeyConfig;
 struct wmKeyMap;
 struct wmMsgBus;
 

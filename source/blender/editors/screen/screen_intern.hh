@@ -17,9 +17,12 @@ struct bContextDataResult;
 struct bScreen;
 struct Main;
 struct rcti;
+struct ScrArea;
 struct ScrAreaMap;
 struct ScrEdge;
 struct ScrVert;
+struct WorkSpaceLayout;
+struct wmOperatorType;
 struct wmWindow;
 
 /* internal exports only */
@@ -139,6 +142,8 @@ void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, eScreenDir dir, int *r_offset
 bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area);
 void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type space_type);
 AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
+
+bool area_regions_poll(bContext *C, const bScreen *screen, ScrArea *area);
 
 /* `screen_geometry.cc` */
 

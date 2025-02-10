@@ -8,8 +8,6 @@
 #include <memory>
 #include <optional>
 
-#include "BLI_sys_types.h"
-
 #include "DNA_ID_enums.h"
 
 struct BlendDataReader;
@@ -116,10 +114,15 @@ std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *
  * Create an #ImBuf holding a copy of the preview image buffer in \a prv.
  * \note The returned image buffer has to be freed (#IMB_freeImBuf()).
  */
-ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, int size);
+ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, int size);
 
 void BKE_previewimg_finish(PreviewImage *prv, int size);
 bool BKE_previewimg_is_finished(const PreviewImage *prv, int size);
+/**
+ * Deferred preview images may fail to load, e.g. because the image couldn't be found on disk.
+ * \return true of a deferred preview image could not be loaded.
+ */
+bool BKE_previewimg_is_invalid(const PreviewImage *prv);
 
 PreviewImage *BKE_previewimg_cached_get(const char *name);
 

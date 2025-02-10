@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_grease_pencil.hh"
+#include "BKE_library.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"

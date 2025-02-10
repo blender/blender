@@ -19,12 +19,9 @@
 
 #include "BLI_linklist.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_collection_types.h"
 #include "DNA_key_types.h"
 #include "DNA_node_types.h"
-#include "DNA_sdna_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_key.hh"
@@ -78,14 +75,14 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
     BKE_library_filepath_set(bmain, curlib, curlib->filepath);
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
-    BlendHandle *bh = BLO_blendhandle_from_file(curlib->runtime.filepath_abs, &bf_reports);
+    BlendHandle *bh = BLO_blendhandle_from_file(curlib->runtime->filepath_abs, &bf_reports);
 
     if (bh == nullptr) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Library ID %s not found at expected path %s!",
                   curlib->id.name,
-                  curlib->runtime.filepath_abs);
+                  curlib->runtime->filepath_abs);
       continue;
     }
 

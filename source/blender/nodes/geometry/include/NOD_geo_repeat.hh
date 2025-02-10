@@ -6,7 +6,6 @@
 
 #include "DNA_node_types.h"
 
-#include "NOD_geo_simulation.hh"
 #include "NOD_socket_items.hh"
 
 namespace blender::nodes {

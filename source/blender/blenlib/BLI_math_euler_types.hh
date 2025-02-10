@@ -281,7 +281,7 @@ template<typename T> struct Euler3Base : public EulerBase<T> {
   {
     return Swizzle{*this};
   }
-  const VecBase<AngleT, 3> ijk() const
+  VecBase<AngleT, 3> ijk() const
   {
     return {i(), j(), k()};
   }

@@ -8,9 +8,15 @@
 
 #pragma once
 
+#include "BKE_mask.h"
+
 #include "ED_clip.hh"
 
 struct Mask;
+struct MaskLayer;
+struct MaskSpline;
+struct MaskSplinePoint;
+struct MaskSplinePointUW;
 struct bContext;
 struct wmOperatorType;
 

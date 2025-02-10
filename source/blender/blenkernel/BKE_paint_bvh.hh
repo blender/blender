@@ -9,17 +9,13 @@
  * \brief A BVH for high poly meshes.
  */
 
-#include <optional>
-#include <string>
 #include <variant>
 
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds_types.hh"
-#include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
-#include "BLI_generic_span.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -28,6 +24,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 struct BMFace;
 struct BMLog;
@@ -42,16 +39,15 @@ struct SubdivCCGCoord;
 struct Image;
 struct ImageUser;
 struct Object;
-namespace blender {
-namespace bke::pbvh {
+
+namespace blender::bke::pbvh {
 class Node;
 class Tree;
 namespace pixels {
 struct PBVHData;
 struct NodeData;
 }  // namespace pixels
-}  // namespace bke::pbvh
-}  // namespace blender
+}  // namespace blender::bke::pbvh
 
 namespace blender::bke::pbvh {
 
@@ -230,9 +226,6 @@ class Tree {
   /** Memory backing for #Node::prim_indices. Without an inline buffer to make #Tree movable. */
   Array<int, 0> prim_indices_;
 
- public:
-  std::variant<Vector<MeshNode>, Vector<GridsNode>, Vector<BMeshNode>> nodes_;
-
   /**
    * If true, the bounds for the corresponding node index is out of date.
    * \note Values are only meaningful for leaf nodes.
@@ -254,11 +247,13 @@ class Tree {
    */
   BitVector<> visibility_dirty_;
 
+ public:
+  std::variant<Vector<MeshNode>, Vector<GridsNode>, Vector<BMeshNode>> nodes_;
+
   pixels::PBVHData *pixels_ = nullptr;
 
   std::unique_ptr<DrawCache> draw_data;
 
- public:
   Tree(const Tree &other) = delete;
   Tree(Tree &&other) = default;
   Tree &operator=(const Tree &other) = delete;
@@ -278,7 +273,7 @@ class Tree {
 
   Type type() const
   {
-    return this->type_;
+    return type_;
   }
 
   /**
@@ -307,6 +302,26 @@ class Tree {
    */
   void tag_attribute_changed(const IndexMask &node_mask, StringRef attribute_name);
 
+  /**
+   * Run the last step of the BVH bounds recalculation process, propagating updated leaf node
+   * bounds to their parent/ancestor inner nodes. This is meant to be used after leaf node bounds
+   * have been computed separately.
+   */
+  void flush_bounds_to_parents();
+
+  /**
+   * Recalculate node bounding boxes based on the current coordinates. Calculation is only done for
+   * affected nodes that have been tagged by #PBVH::tag_positions_changed().
+   */
+  void update_bounds(const Depsgraph &depsgraph, const Object &object);
+  void update_bounds_mesh(Span<float3> vert_positions);
+  void update_bounds_grids(Span<float3> positions, int grid_area);
+  void update_bounds_bmesh(const BMesh &bm);
+
+  void update_normals(Object &object_orig, Object &object_eval);
+
+  void update_visibility(const Object &object);
+
  private:
   explicit Tree(Type type);
 };
@@ -319,7 +334,7 @@ void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, Imag
  * hit first */
 
 void raycast(Tree &pbvh,
-             FunctionRef<void(Node &node, float *tmin)> cb,
+             FunctionRef<void(Node &node, float *tmin)> hit_fn,
              const float3 &ray_start,
              const float3 &ray_normal,
              bool original);
@@ -423,7 +438,7 @@ namespace blender::bke::pbvh {
 /**
  * Returns the number of visible quads in the nodes' grids.
  */
-int count_grid_quads(const BitGroupVector<> &grid_visibility,
+int count_grid_quads(const BitGroupVector<> &grid_hidden,
                      Span<int> grid_indices,
                      int gridsize,
                      int display_gridsize);
@@ -511,15 +526,6 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh);
 namespace blender::bke::pbvh {
 
 /**
- * Recalculate node bounding boxes based on the current coordinates. Calculation is only done for
- * affected nodes that have been tagged by #PBVH::tag_positions_changed().
- */
-void update_bounds(const Depsgraph &depsgraph, const Object &object, Tree &pbvh);
-void update_bounds_mesh(Span<float3> vert_positions, Tree &pbvh);
-void update_bounds_grids(const CCGKey &key, Span<float3> positions, Tree &pbvh);
-void update_bounds_bmesh(const BMesh &bm, Tree &pbvh);
-
-/**
  * Copy all current node bounds to the original bounds. "Original" bounds are typically from before
  * a brush stroke started (while the "regular" bounds update on every change of positions). These
  * are stored to optimize the BVH traversal for original coordinates enabled by various "use
@@ -532,7 +538,6 @@ void update_mask_mesh(const Mesh &mesh, const IndexMask &node_mask, Tree &pbvh);
 void update_mask_grids(const SubdivCCG &subdiv_ccg, const IndexMask &node_mask, Tree &pbvh);
 void update_mask_bmesh(const BMesh &bm, const IndexMask &node_mask, Tree &pbvh);
 
-void update_visibility(const Object &object, Tree &pbvh);
 void update_normals(const Depsgraph &depsgraph, Object &object_orig, Tree &pbvh);
 /** Update geometry normals (potentially on the original object geometry). */
 void update_normals_from_eval(Object &object_eval, Tree &pbvh);
@@ -566,14 +571,14 @@ Span<float3> vert_positions_eval_from_eval(const Object &object_eval);
 
 /**
  * Retrieve write access to the evaluated deform positions, or the original object positions if
- * there are no deformation modifiers. Writing the the evaluated positions is necessary because
+ * there are no deformation modifiers. Writing the evaluated positions is necessary because
  * they are used for drawing and we don't run a full dependency graph update whenever they are
  * changed.
  */
 MutableSpan<float3> vert_positions_eval_for_write(const Depsgraph &depsgraph, Object &object_orig);
 
 /**
- * Return the vertex normals corresponding the the positions from #vert_positions_eval. This may be
+ * Return the vertex normals corresponding the positions from #vert_positions_eval. This may be
  * a reference to the normals cache on the original mesh.
  */
 Span<float3> vert_normals_eval(const Depsgraph &depsgraph, const Object &object_orig);
@@ -606,13 +611,6 @@ void node_update_visibility_bmesh(BMeshNode &node);
 void update_node_bounds_mesh(Span<float3> positions, MeshNode &node);
 void update_node_bounds_grids(int grid_area, Span<float3> positions, GridsNode &node);
 void update_node_bounds_bmesh(BMeshNode &node);
-
-/**
- * Run the last step of the BVH bounds recalculation process, propagating updated leaf node bounds
- * to their parent/ancestor inner nodes. This is meant to be used after leaf node bounds have been
- * computed separately.
- */
-void flush_bounds_to_parents(Tree &pbvh);
 
 inline Span<int> MeshNode::faces() const
 {

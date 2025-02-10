@@ -8,6 +8,7 @@
 
 #pragma once
 
+struct ListBase;
 struct Scene;
 struct ScrArea;
 struct TimeMarker;

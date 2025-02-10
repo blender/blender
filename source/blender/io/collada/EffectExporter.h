@@ -9,7 +9,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "COLLADASWColorOrTexture.h"
 #include "COLLADASWLibraryEffects.h"

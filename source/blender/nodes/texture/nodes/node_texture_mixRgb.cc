@@ -9,7 +9,7 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLI_math_vector.h"
 
@@ -58,8 +58,10 @@ void register_node_type_tex_mix_rgb()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR);
+  tex_node_type_base(&ntype, "TextureNodeMixRGB", TEX_NODE_MIX_RGB);
+  ntype.ui_name = "Mix";
   ntype.enum_name_legacy = "MIX_RGB";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_blend_label;
   ntype.exec_fn = exec;

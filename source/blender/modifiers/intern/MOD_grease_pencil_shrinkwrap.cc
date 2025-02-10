@@ -7,7 +7,7 @@
  */
 
 #include "BKE_attribute.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"

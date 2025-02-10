@@ -458,9 +458,8 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mi
       /* DEPTH TEX */
       GPU_framebuffer_ensure_config(
           &blit_fb_,
-          {GPU_ATTACHMENT_TEXTURE_LAYER_MIP(wrap(static_cast<Texture *>(this)),
-                                            static_cast<int>(dst_slice),
-                                            static_cast<int>(dst_mip)),
+          {GPU_ATTACHMENT_TEXTURE_LAYER_MIP(
+               wrap(static_cast<Texture *>(this)), int(dst_slice), int(dst_mip)),
            GPU_ATTACHMENT_NONE});
     }
     else {
@@ -468,9 +467,8 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mi
       GPU_framebuffer_ensure_config(
           &blit_fb_,
           {GPU_ATTACHMENT_NONE,
-           GPU_ATTACHMENT_TEXTURE_LAYER_MIP(wrap(static_cast<Texture *>(this)),
-                                            static_cast<int>(dst_slice),
-                                            static_cast<int>(dst_mip))});
+           GPU_ATTACHMENT_TEXTURE_LAYER_MIP(
+               wrap(static_cast<Texture *>(this)), int(dst_slice), int(dst_mip))});
     }
     blit_fb_slice_ = dst_slice;
     blit_fb_mip_ = dst_mip;
@@ -1353,13 +1351,14 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
   /* If texture is buffer-backed, clear directly on buffer.
    * NOTE: This us currently only true for fallback atomic textures. */
   if (backing_buffer_ != nullptr) {
-    uint num_channels = to_component_len(format_);
-    bool fast_buf_clear_to_zero = true;
-    const uint *val = reinterpret_cast<const uint *>(data);
-    for (int i = 0; i < num_channels; i++) {
-      fast_buf_clear_to_zero = fast_buf_clear_to_zero && (val[i] == 0);
+    uint channel_len = to_component_len(format_);
+    uint channel_size = to_bytesize(data_format);
+    bool fast_buf_clear = true;
+    const uchar *val = reinterpret_cast<const uchar *>(data);
+    for (int i = 1; i < channel_size * channel_len; i++) {
+      fast_buf_clear = fast_buf_clear && (val[i] == val[0]);
     }
-    if (fast_buf_clear_to_zero) {
+    if (fast_buf_clear) {
       /* Fetch active context. */
       MTLContext *ctx = MTLContext::get();
       BLI_assert(ctx);
@@ -1369,10 +1368,11 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
           ctx->main_command_buffer.ensure_begin_blit_encoder();
       [blit_encoder fillBuffer:backing_buffer_->get_metal_buffer()
                          range:NSMakeRange(0, backing_buffer_->get_size())
-                         value:0];
+                         value:val[0]];
     }
     else {
-      BLI_assert_msg(false, "Non-zero buffer-backed texture clear not supported!");
+      BLI_assert_msg(false,
+                     "Non-repeating-byte-pattern clear for buffer-backed textures not supported!");
     }
     return;
   }
@@ -2076,7 +2076,7 @@ bool gpu::MTLTexture::init_internal(VertBuf *vbo)
   size_t bytes_per_row = bytes_per_pixel * w_;
 
   MTLContext *mtl_ctx = MTLContext::get();
-  uint32_t align_requirement = static_cast<uint32_t>(
+  uint32_t align_requirement = uint32_t(
       [mtl_ctx->device minimumLinearTextureAlignmentForPixelFormat:mtl_format]);
 
   /* If stride is larger than bytes per pixel, but format has multiple attributes,
@@ -2453,7 +2453,7 @@ void gpu::MTLTexture::ensure_baked()
 
       /* Texture allocation with buffer as backing storage. Bytes per row must satisfy alignment
        * rules for device. */
-      uint32_t align_requirement = static_cast<uint32_t>(
+      uint32_t align_requirement = uint32_t(
           [ctx->device minimumLinearTextureAlignmentForPixelFormat:mtl_format]);
       size_t aligned_bytes_per_row = ceil_to_multiple_ul(bytes_per_row, align_requirement);
       texture_ = [backing_buffer_->get_metal_buffer()

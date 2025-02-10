@@ -8,17 +8,19 @@
 
 #pragma once
 
-#include "FX_shader_types.h"
+#include "FX_shader_types.h"  // IWYU pragma: export
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct PointerRNA;
+struct Panel;
 struct ARegionType;
 struct PanelType;
 struct bContext;
 struct uiLayout;
-typedef void (*PanelDrawFn)(const bContext *, Panel *);
+using PanelDrawFn = void (*)(const bContext *, Panel *);
 
 /**
  * Draw shaderfx error message.

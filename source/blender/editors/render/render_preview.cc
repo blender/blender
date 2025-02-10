@@ -9,6 +9,7 @@
 /* global includes */
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -21,10 +22,11 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_time.h"
+#include "BLI_path_utils.hh"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -45,7 +47,6 @@
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -56,9 +57,10 @@
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_light.h"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_pose_backup.h"
@@ -79,8 +81,6 @@
 #include "IMB_thumbs.hh"
 
 #include "BIF_glutil.hh"
-
-#include "GPU_shader.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -179,8 +179,7 @@ static Main *load_main_from_memory(const void *blend, int blend_size)
   bfd = BLO_read_from_memory(blend, blend_size, BLO_READ_SKIP_NONE, nullptr);
   if (bfd) {
     bmain = bfd->main;
-
-    MEM_freeN(bfd);
+    MEM_delete(bfd);
   }
   G.fileflags = fileflags;
 
@@ -721,7 +720,7 @@ void ED_preview_draw(
     MTex *slot = (MTex *)slotp;
     SpaceProperties *sbuts = CTX_wm_space_properties(C);
     ShaderPreview *sp = static_cast<ShaderPreview *>(
-        WM_jobs_customdata_from_type(wm, area, WM_JOB_TYPE_LOAD_PREVIEW));
+        WM_jobs_customdata_from_type(wm, area, WM_JOB_TYPE_RENDER_PREVIEW));
     rcti newrect;
     bool ok;
     int newx = BLI_rcti_size_x(rect);
@@ -986,15 +985,13 @@ static PoseBackup *action_preview_render_prepare(IconPreview *preview)
 
   blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(object->id,
                                                                              pose_action);
-  PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, &pose_action, slot.handle);
+  PoseBackup *pose_backup = BKE_pose_backup_create_all_bones({object}, &pose_action);
 
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
   AnimationEvalContext anim_eval_context = {preview->depsgraph, 0.0f};
-  const blender::animrig::slot_handle_t slot_handle = blender::animrig::first_slot_handle(
-      pose_action);
   blender::animrig::pose_apply_action_all_bones(
-      object, &pose_action, slot_handle, &anim_eval_context);
+      object, &pose_action, slot.handle, &anim_eval_context);
 
   /* Force evaluation of the new pose, before the preview is rendered. */
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
@@ -1729,6 +1726,16 @@ class PreviewLoadJob {
     PreviewImage *preview;
     /** Requested size. */
     eIconSizes icon_size;
+    /** Set to true by if the request was fully handled. */
+    std::atomic<bool> done = false;
+    /** Set to true if the request was handled but didn't result in a valid preview.
+     * #PRV_TAG_DEFFERED_INVALID will be set in response. */
+    std::atomic<bool> failure = false;
+
+    RequestedPreview(PreviewImage *preview, eIconSizes icon_size)
+        : preview(preview), icon_size(icon_size)
+    {
+    }
   };
 
   /** The previews that are still to be loaded. */
@@ -1796,15 +1803,12 @@ void PreviewLoadJob::load_jobless(PreviewImage *preview, const eIconSizes icon_s
 void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes icon_size)
 {
   BLI_assert(preview->runtime->deferred_loading_data);
-  RequestedPreview requested_preview{};
-  requested_preview.preview = preview;
-  requested_preview.icon_size = icon_size;
 
   preview->flag[icon_size] |= PRV_RENDERING;
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
   preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
-  requested_previews_.push_back(requested_preview);
+  requested_previews_.emplace_back(preview, icon_size);
   BLI_thread_queue_push(todo_queue_, &requested_previews_.back());
 }
 
@@ -1837,16 +1841,28 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
     IMB_thumb_path_unlock(filepath);
 
     if (thumb) {
-      /* PreviewImage assumes premultiplied alpha... */
+      /* PreviewImage assumes premultiplied alpha. */
       IMB_premultiply_alpha(thumb);
 
-      icon_copy_rect(thumb,
-                     preview->w[request->icon_size],
-                     preview->h[request->icon_size],
-                     preview->rect[request->icon_size]);
+      if (ED_preview_use_image_size(preview, request->icon_size)) {
+        preview->w[request->icon_size] = thumb->x;
+        preview->h[request->icon_size] = thumb->y;
+        BLI_assert(preview->rect[request->icon_size] == nullptr);
+        preview->rect[request->icon_size] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
+      }
+      else {
+        icon_copy_rect(thumb,
+                       preview->w[request->icon_size],
+                       preview->h[request->icon_size],
+                       preview->rect[request->icon_size]);
+      }
       IMB_freeImBuf(thumb);
     }
+    else {
+      request->failure = true;
+    }
 
+    request->done = true;
     worker_status->do_update = true;
   }
 
@@ -1859,6 +1875,9 @@ void PreviewLoadJob::finish_request(RequestedPreview &request)
   PreviewImage *preview = request.preview;
 
   preview->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+  if (request.failure) {
+    preview->runtime->tag |= PRV_TAG_DEFFERED_INVALID;
+  }
   BKE_previewimg_finish(preview, request.icon_size);
 
   BLI_assert_msg(BLI_thread_is_main(),
@@ -1878,7 +1897,7 @@ void PreviewLoadJob::update_fn(void *customdata)
   {
     RequestedPreview &requested = *request_it;
     /* Skip items that are not done loading yet. */
-    if (requested.preview->runtime->tag & PRV_TAG_DEFFERED_RENDERING) {
+    if (!requested.done) {
       ++request_it;
       continue;
     }
@@ -1916,6 +1935,11 @@ static void icon_preview_free(void *customdata)
 
   BLI_freelistN(&ip->sizes);
   MEM_freeN(ip);
+}
+
+bool ED_preview_use_image_size(const PreviewImage *preview, eIconSizes size)
+{
+  return size == ICON_SIZE_PREVIEW && preview->runtime->deferred_loading_data;
 }
 
 bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)

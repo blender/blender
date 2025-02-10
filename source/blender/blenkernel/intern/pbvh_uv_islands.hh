@@ -21,18 +21,14 @@
 
 #pragma once
 
-#include <fstream>
 #include <optional>
 
 #include "BLI_array.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_rect.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_list.hh"
-#include "BLI_virtual_array.hh"
 
 namespace blender::bke::pbvh::uv_islands {
 
@@ -132,7 +128,6 @@ struct MeshData {
   /** Total number of found uv islands. */
   int64_t uv_island_len;
 
- public:
   explicit MeshData(OffsetIndices<int> faces,
                     Span<int3> corner_tris,
                     Span<int> corner_verts,
@@ -169,7 +164,7 @@ struct UVEdge {
 
  private:
   bool has_shared_edge(const UVVertex &v1, const UVVertex &v2) const;
-  bool has_same_vertices(const int v1, const int v2) const;
+  bool has_same_vertices(const int vert1, const int vert2) const;
   bool has_same_uv_vertices(const UVEdge &other) const;
 };
 

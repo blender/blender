@@ -11,8 +11,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_utildefines.h"
-
 namespace blender::deg {
 
 void RootPChanMap::print_debug()

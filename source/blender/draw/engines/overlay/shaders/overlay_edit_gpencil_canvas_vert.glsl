@@ -3,12 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
 
 void main()
 {
-  GPU_INTEL_VERTEX_SHADER_WORKAROUND
-
   vec2 pos;
   pos.x = float(gl_VertexID % 2);
   pos.y = float(gl_VertexID / 2) / float(halfLineCount - 1);
@@ -22,7 +20,7 @@ void main()
 
   vec3 world_pos = xAxis * pos.x + yAxis * pos.y + origin;
 
-  gl_Position = point_world_to_ndc(world_pos);
+  gl_Position = drw_point_world_to_homogenous(world_pos);
 
   view_clipping_distances(world_pos);
 

@@ -16,9 +16,9 @@
 
 #include "eigen_capi.h"
 
-#include <string.h>
+#include <cstring>
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /********************************** Eigen Solvers *********************************/
 
@@ -39,7 +39,7 @@ bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
 
 void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3][3])
 {
-  EIG_svd_square_matrix(3, (const float *)m3, (float *)r_U, (float *)r_S, (float *)r_V);
+  EIG_svd_square_matrix(3, (const float *)m3, (float *)r_U, r_S, (float *)r_V);
 }
 
 /***************************** Simple Solvers ************************************/

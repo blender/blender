@@ -14,7 +14,7 @@ from bl_blendfile_utils import TestHelper
 class TestBlendFileSaveLoadBasic(TestHelper):
 
     def __init__(self, args):
-        self.args = args
+        super().__init__(args)
 
     def test_save_load(self):
         bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
@@ -35,7 +35,7 @@ class TestBlendFileSaveLoadBasic(TestHelper):
         read_data = self.blender_data_to_tuple(bpy.data, "read_data 1")
 
         # We have orphaned data, which should be removed by file reading, so there should not be equality here.
-        assert orig_data != read_data
+        self.assertNotEqual(orig_data, read_data)
 
         bpy.data.orphans_purge()
 
@@ -46,7 +46,7 @@ class TestBlendFileSaveLoadBasic(TestHelper):
 
         read_data = self.blender_data_to_tuple(bpy.data, "read_data 2")
 
-        assert orig_data == read_data
+        self.assertEqual(orig_data, read_data)
 
 
 class TestBlendFileSavePartial(TestHelper):
@@ -56,7 +56,7 @@ class TestBlendFileSavePartial(TestHelper):
     UNUSED_MESH_NAME = "UnusedMesh"
 
     def __init__(self, args):
-        self.args = args
+        super().__init__(args)
 
     def test_save_load(self):
         bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
@@ -70,10 +70,10 @@ class TestBlendFileSavePartial(TestHelper):
         unused_mesh = bpy.data.meshes.new(self.UNUSED_MESH_NAME)
         unused_mesh.materials.append(ob_material)
 
-        assert ob_mesh.users == 1
-        assert ob_material.users == 2
-        assert ob.users == 1
-        assert unused_mesh.users == 0
+        self.assertEqual(ob_mesh.users, 1)
+        self.assertEqual(ob_material.users, 2)
+        self.assertEqual(ob.users, 1)
+        self.assertEqual(unused_mesh.users, 0)
 
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)
@@ -84,15 +84,15 @@ class TestBlendFileSavePartial(TestHelper):
         bpy.data.libraries.write(filepath=output_path, datablocks={ob, unused_mesh}, fake_user=False)
         bpy.ops.wm.open_mainfile(filepath=output_path, load_ui=False)
 
-        assert self.OBJECT_MESH_NAME in bpy.data.meshes
-        assert self.OBJECT_MATERIAL_NAME in bpy.data.materials
-        assert self.OBJECT_NAME in bpy.data.objects
-        assert self.UNUSED_MESH_NAME in bpy.data.meshes
+        self.assertIn(self.OBJECT_MESH_NAME, bpy.data.meshes)
+        self.assertIn(self.OBJECT_MATERIAL_NAME, bpy.data.materials)
+        self.assertIn(self.OBJECT_NAME, bpy.data.objects)
+        self.assertIn(self.UNUSED_MESH_NAME, bpy.data.meshes)
 
-        assert bpy.data.meshes[self.OBJECT_MESH_NAME].users == 1
-        assert bpy.data.materials[self.OBJECT_MATERIAL_NAME].users == 2
-        assert bpy.data.objects[self.OBJECT_NAME].users == 0
-        assert bpy.data.meshes[self.UNUSED_MESH_NAME].users == 0
+        self.assertEqual(bpy.data.meshes[self.OBJECT_MESH_NAME].users, 1)
+        self.assertEqual(bpy.data.materials[self.OBJECT_MATERIAL_NAME].users, 2)
+        self.assertEqual(bpy.data.objects[self.OBJECT_NAME].users, 0)
+        self.assertEqual(bpy.data.meshes[self.UNUSED_MESH_NAME].users, 0)
 
 
 # NOTE: Technically this should rather be in `bl_id_management.py` test, but that file uses `unittest` module,
@@ -101,7 +101,7 @@ class TestBlendFileSavePartial(TestHelper):
 class TestIdRuntimeTag(TestHelper):
 
     def __init__(self, args):
-        self.args = args
+        super().__init__(args)
 
     def unique_blendfile_name(self, base_name):
         return base_name + self.__class__.__name__ + ".blend"
@@ -112,26 +112,26 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
 
         obj = bpy.data.objects['Cube']
-        assert obj.is_runtime_data is False
-        assert bpy.context.view_layer.depsgraph.ids['Cube'].is_runtime_data
+        self.assertFalse(obj.is_runtime_data)
+        self.assertTrue(bpy.context.view_layer.depsgraph.ids['Cube'].is_runtime_data)
 
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
         obj = bpy.data.objects['Cube']
-        assert obj.is_runtime_data is False
+        self.assertFalse(obj.is_runtime_data)
 
         obj.is_runtime_data = True
-        assert obj.is_runtime_data
+        self.assertTrue(obj.is_runtime_data)
 
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
-        assert 'Cube' not in bpy.data.objects
+        self.assertNotIn('Cube', bpy.data.objects)
         mesh = bpy.data.meshes['Cube']
-        assert mesh.is_runtime_data is False
-        assert mesh.users == 0
+        self.assertFalse(mesh.is_runtime_data)
+        self.assertEqual(mesh.users, 0)
 
     def test_linking(self):
         output_dir = self.args.output_dir
@@ -151,21 +151,21 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
 
         obj = bpy.data.objects['Cube']
-        assert obj.is_runtime_data is False
+        self.assertFalse(obj.is_runtime_data)
         obj.is_runtime_data = True
 
         link_dir = os.path.join(output_lib_path, "Material")
         bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
 
         linked_material = bpy.data.materials['LibMaterial']
-        assert linked_material.is_library_indirect is False
+        self.assertFalse(linked_material.is_library_indirect)
 
         link_dir = os.path.join(output_lib_path, "Mesh")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
 
         linked_mesh = bpy.data.meshes['LibMesh']
-        assert linked_mesh.is_library_indirect is False
-        assert linked_mesh.use_fake_user is False
+        self.assertFalse(linked_mesh.is_library_indirect)
+        self.assertFalse(linked_mesh.use_fake_user)
 
         obj.data = linked_mesh
         obj.material_slots[0].link = 'OBJECT'
@@ -176,17 +176,17 @@ class TestIdRuntimeTag(TestHelper):
 
         # Only usage of this linked material is a runtime ID (object),
         # so writing .blend file will have properly reset its tag to indirectly linked data.
-        assert linked_material.is_library_indirect
+        self.assertTrue(linked_material.is_library_indirect)
 
         # Only usage of this linked mesh is a runtime ID (object),
         # so writing .blend file will have properly reset its tag to indirectly linked data.
-        assert linked_mesh.is_library_indirect
+        self.assertTrue(linked_mesh.is_library_indirect)
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
-        assert 'Cube' not in bpy.data.objects
-        assert 'LibMaterial' not in bpy.data.materials
-        assert 'libMesh' not in bpy.data.meshes
+        self.assertNotIn('Cube', bpy.data.objects)
+        self.assertNotIn('LibMaterial', bpy.data.materials)
+        self.assertNotIn('libMesh', bpy.data.meshes)
 
 
 TESTS = (

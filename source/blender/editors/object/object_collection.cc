@@ -22,6 +22,7 @@
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -189,8 +190,11 @@ void COLLECTION_OT_objects_add_active(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Add Selected to Active Collection";
-  ot->description = "Add the object to an object collection that contains the active object";
+  ot->name = "Add Selected to Active Objects Collection";
+  ot->description =
+      "Add selected objects to one of the collections the active-object is part of. "
+      "Optionally add to \"All Collections\" to ensure selected objects are included in "
+      "the same collections as the active object";
   ot->idname = "COLLECTION_OT_objects_add_active";
 
   /* api callbacks */
@@ -607,7 +611,7 @@ static int collection_exporter_export(bContext *C,
   /* Execute operator with our stored properties. */
   /* TODO: Cascade settings down from parent collections(?) */
   IDProperty *op_props = IDP_CopyProperty(data->export_properties);
-  PointerRNA properties = RNA_pointer_create(nullptr, ot->srna, op_props);
+  PointerRNA properties = RNA_pointer_create_discrete(nullptr, ot->srna, op_props);
   const char *collection_name = collection->id.name + 2;
 
   /* Ensure we have a valid filepath set. Create one if the user has not specified anything yet. */
@@ -705,9 +709,7 @@ static int collection_export(bContext *C,
       /* Do not continue calling exporters if we encounter one that fails. */
       return OPERATOR_CANCELLED;
     }
-    else {
-      files_num++;
-    }
+    files_num++;
   }
 
   if (files_num) {

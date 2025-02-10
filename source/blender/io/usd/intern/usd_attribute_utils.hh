@@ -107,6 +107,9 @@ template<> inline math::Quaternion convert_value(const pxr::GfQuatf value)
   return math::Quaternion(value.GetReal(), img[0], img[1], img[2]);
 }
 
+template<class T> struct is_vt_array : std::false_type {};
+template<class T> struct is_vt_array<pxr::VtArray<T>> : std::true_type {};
+
 }  // namespace detail
 
 std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
@@ -120,15 +123,20 @@ std::optional<eCustomDataType> convert_usd_type_to_blender(const pxr::SdfValueTy
  */
 template<typename USDT>
 void set_attribute(const pxr::UsdAttribute &attr,
-                   USDT value,
+                   const USDT value,
                    pxr::UsdTimeCode timecode,
                    pxr::UsdUtilsSparseValueWriter &value_writer)
 {
+  /* This overload should only be use with non-VtArray types. If it is not, then that indicates
+   * an issue on the caller side, usually because of using a const reference rather than non-const
+   * for the `value` parameter. */
+  static_assert(!detail::is_vt_array<USDT>::value, "Wrong set_attribute overload selected.");
+
   if (!attr.HasValue()) {
     attr.Set(value, pxr::UsdTimeCode::Default());
   }
 
-  value_writer.SetAttribute(attr, value, timecode);
+  value_writer.SetAttribute(attr, pxr::VtValue(value), timecode);
 }
 
 /**

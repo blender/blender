@@ -9,8 +9,6 @@
  * \brief Volume data-block rendering and viewport drawing utilities.
  */
 
-#include "BLI_sys_types.h"
-
 #include "DNA_volume_types.h"
 
 #include "BKE_volume_enums.hh"

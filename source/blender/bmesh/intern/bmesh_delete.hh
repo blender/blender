@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 void BMO_mesh_delete_oflag_tagged(BMesh *bm, short oflag, char htype);
 void BM_mesh_delete_hflag_tagged(BMesh *bm, char hflag, char htype);
 

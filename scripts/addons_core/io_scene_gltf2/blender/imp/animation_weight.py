@@ -6,7 +6,7 @@ import bpy
 
 from ...io.imp.user_extensions import import_user_extensions
 from ...io.imp.gltf2_io_binary import BinaryData
-from .animation_utils import make_fcurve
+from .animation_utils import make_fcurve, get_or_create_action_and_slot
 
 
 class BlenderWeightAnim():
@@ -39,18 +39,17 @@ class BlenderWeightAnim():
         for channel_idx in node.animations[anim_idx]:
             channel = animation.channels[channel_idx]
             if channel.target.path == "weights":
+                path = channel.target.path
                 break
             if channel.target.path == "pointer":
                 pointer_tab = channel.target.extensions["KHR_animation_pointer"]["pointer"].split("/")
                 if len(pointer_tab) >= 4 and pointer_tab[1] in ["nodes", "meshes"] and pointer_tab[3] == "weights":
+                    path = pointer_tab[3]
                     break
         else:
             return
 
-        name = animation.track_name + "_" + obj.name
-        action = bpy.data.actions.new(name)
-        action.id_root = "KEY"
-        gltf.needs_stash.append((obj.data.shape_keys, action))
+        action, slot = get_or_create_action_and_slot(gltf, vnode_id, anim_idx, path)
 
         keys = BinaryData.get_data_from_accessor(gltf, animation.samplers[channel.sampler].input)
         values = BinaryData.get_data_from_accessor(gltf, animation.samplers[channel.sampler].output)
@@ -77,9 +76,10 @@ class BlenderWeightAnim():
 
                 make_fcurve(
                     action,
+                    slot,
                     coords,
                     data_path=data_path,
-                    group_name="ShapeKeys",
+                    group_name="",
                     interpolation=animation.samplers[channel.sampler].interpolation,
                 )
 

@@ -23,10 +23,6 @@
 #include "GPU_immediate.hh"
 #include "GPU_texture.hh"
 
-#ifdef __APPLE__
-#  include "GPU_state.hh"
-#endif
-
 /* ******************************************** */
 
 static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)

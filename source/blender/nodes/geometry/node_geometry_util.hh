@@ -4,17 +4,20 @@
 
 #pragma once
 
-#include "MEM_guardedalloc.h"
+#include <optional>
+
+#include "MEM_guardedalloc.h"  // IWYU pragma: export
 
 #include "BKE_node.hh"
-#include "BKE_node_socket_value.hh"
+#include "BKE_node_legacy_types.hh"  // IWYU pragma: export
+#include "BKE_node_socket_value.hh"  // IWYU pragma: export
 
-#include "NOD_geometry_exec.hh"
-#include "NOD_register.hh"
-#include "NOD_socket_declarations.hh"
-#include "NOD_socket_declarations_geometry.hh"
+#include "NOD_geometry_exec.hh"                 // IWYU pragma: export
+#include "NOD_register.hh"                      // IWYU pragma: export
+#include "NOD_socket_declarations.hh"           // IWYU pragma: export
+#include "NOD_socket_declarations_geometry.hh"  // IWYU pragma: export
 
-#include "node_util.hh"
+#include "node_util.hh"  // IWYU pragma: export
 
 namespace blender {
 namespace bke {
@@ -26,7 +29,9 @@ class GatherLinkSearchOpParams;
 }  // namespace nodes
 }  // namespace blender
 
-void geo_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass);
+void geo_node_type_base(blender::bke::bNodeType *ntype,
+                        std::string idname,
+                        std::optional<int16_t> legacy_type = std::nullopt);
 bool geo_node_poll_default(const blender::bke::bNodeType *ntype,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint);

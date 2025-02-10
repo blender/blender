@@ -662,9 +662,7 @@ static int init_jpeg(FILE *outfile, jpeg_compress_struct *cinfo, ImBuf *ibuf)
   if (quality <= 0) {
     quality = jpeg_default_quality;
   }
-  if (quality > 100) {
-    quality = 100;
-  }
+  quality = std::min(quality, 100);
 
   jpeg_create_compress(cinfo);
   jpeg_stdio_dest(cinfo, outfile);

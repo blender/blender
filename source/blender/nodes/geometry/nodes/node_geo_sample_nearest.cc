@@ -2,10 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_math_vector.hh"
+
 #include "BKE_bvhutils.hh"
-#include "BKE_mesh.hh"
 
 #include "NOD_rna_define.hh"
 
@@ -329,8 +331,13 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_NEAREST, "Sample Nearest", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSampleNearest", GEO_NODE_SAMPLE_NEAREST);
+  ntype.ui_name = "Sample Nearest";
+  ntype.ui_description =
+      "Find the element of a geometry closest to a position. Similar to the \"Index of Nearest\" "
+      "node";
   ntype.enum_name_legacy = "SAMPLE_NEAREST";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

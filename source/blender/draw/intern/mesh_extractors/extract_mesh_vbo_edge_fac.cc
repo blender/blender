@@ -27,7 +27,7 @@ struct MEdgeDataPrev {
 
 /**
  * Calculates a factor that is used to identify the minimum angle in the shader to display an edge.
- * NOTE: Keep in sync with `common_subdiv_vbo_edge_fac_comp.glsl`.
+ * NOTE: Keep in sync with `subdiv_vbo_edge_fac_comp.glsl`.
  */
 template<typename T> T edge_factor_calc(const float3 &a, const float3 &b);
 
@@ -118,7 +118,7 @@ static void extract_edge_factor_bm(const MeshRenderData &mr, MutableSpan<T> vbo_
   BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
     for (const int face_index : range) {
-      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+      const BMFace &face = *BM_face_at_index(&bm, face_index);
       const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
       for ([[maybe_unused]] const int i : IndexRange(face.len)) {
         const int index = BM_elem_index_get(loop);

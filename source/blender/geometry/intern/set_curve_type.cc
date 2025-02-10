@@ -6,6 +6,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 
 #include "BLI_array_utils.hh"
 #include "BLI_task.hh"
@@ -279,6 +280,8 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
   const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
 
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  /* Copy vertex groups from source curves to allow copying vertex group attributes. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   dst_curves.fill_curve_types(selection, CURVE_TYPE_BEZIER);
 
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
@@ -299,16 +302,13 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
   MutableSpan<float3> dst_handles_r = dst_curves.handle_positions_right_for_write();
   MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();
   MutableSpan<int8_t> dst_types_r = dst_curves.handle_types_right_for_write();
-  Set<std::string> attributes_to_skip = {
+  Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
+      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+  Set<StringRef> attributes_to_skip = {
       "position", "handle_type_left", "handle_type_right", "handle_right", "handle_left"};
   if (!dst_curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
     attributes_to_skip.add_new("nurbs_weight");
   }
-  Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes,
-      dst_attributes,
-      ATTR_DOMAIN_MASK_POINT,
-      bke::attribute_filter_with_skip_ref(attribute_filter, attributes_to_skip));
 
   auto catmull_rom_to_bezier = [&](const IndexMask &selection) {
     bke::curves::fill_points<int8_t>(
@@ -328,6 +328,9 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
     });
 
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       array_utils::copy_group_to_group(
           src_points_by_curve, dst_points_by_curve, selection, attribute.src, attribute.dst.span);
     }
@@ -342,6 +345,9 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
         dst_points_by_curve, selection, BEZIER_HANDLE_VECTOR, dst_types_r);
     dst_curves.calculate_bezier_auto_handles();
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       array_utils::copy_group_to_group(
           src_points_by_curve, dst_points_by_curve, selection, attribute.src, attribute.dst.span);
     }
@@ -367,6 +373,9 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
     dst_curves.calculate_bezier_auto_handles();
 
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       array_utils::copy_group_to_group(
           src_points_by_curve, dst_points_by_curve, selection, attribute.src, attribute.dst.span);
     }
@@ -414,6 +423,9 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
     });
 
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       selection.foreach_index(GrainSize(512), [&](const int i) {
         const IndexRange src_points = src_points_by_curve[i];
         const IndexRange dst_points = dst_points_by_curve[i];
@@ -433,17 +445,11 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
                                      nurbs_to_bezier);
 
   for (bke::AttributeTransferData &attribute : generic_attributes) {
+    array_utils::copy_group_to_group(
+        src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
+
     attribute.dst.finish();
   }
-
-  bke::copy_attributes_group_to_group(src_attributes,
-                                      bke::AttrDomain::Point,
-                                      bke::AttrDomain::Point,
-                                      attribute_filter,
-                                      src_points_by_curve,
-                                      dst_points_by_curve,
-                                      unselected,
-                                      dst_attributes);
 
   return dst_curves;
 }
@@ -461,6 +467,8 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
   const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
 
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  /* Copy vertex groups from source curves to allow copying vertex group attributes. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   dst_curves.fill_curve_types(selection, CURVE_TYPE_NURBS);
 
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
@@ -475,16 +483,13 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes,
-      dst_attributes,
-      ATTR_DOMAIN_MASK_POINT,
-      bke::attribute_filter_with_skip_ref(attribute_filter,
-                                          {"position",
-                                           "handle_type_left",
-                                           "handle_type_right",
-                                           "handle_right",
-                                           "handle_left",
-                                           "nurbs_weight"}));
+      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+  const Set<StringRef> attributes_to_skip = {"position",
+                                             "handle_type_left",
+                                             "handle_type_right",
+                                             "handle_right",
+                                             "handle_left",
+                                             "nurbs_weight"};
 
   auto fill_weights_if_necessary = [&](const IndexMask &selection) {
     if (src_attributes.contains("nurbs_weight")) {
@@ -509,6 +514,9 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
     });
 
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       selection.foreach_index(GrainSize(512), [&](const int i) {
         const IndexRange src_points = src_points_by_curve[i];
         const IndexRange dst_points = dst_points_by_curve[i];
@@ -541,6 +549,9 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
     }
 
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       array_utils::copy_group_to_group(
           src_points_by_curve, dst_points_by_curve, selection, attribute.src, attribute.dst.span);
     }
@@ -565,6 +576,9 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
     });
 
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       selection.foreach_index(GrainSize(512), [&](const int i) {
         const IndexRange src_points = src_points_by_curve[i];
         const IndexRange dst_points = dst_points_by_curve[i];
@@ -587,6 +601,9 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
     }
 
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       array_utils::copy_group_to_group(
           src_points_by_curve, dst_points_by_curve, selection, attribute.src, attribute.dst.span);
     }
@@ -601,17 +618,11 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
                                      nurbs_to_nurbs);
 
   for (bke::AttributeTransferData &attribute : generic_attributes) {
+    array_utils::copy_group_to_group(
+        src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
+
     attribute.dst.finish();
   }
-
-  bke::copy_attributes_group_to_group(src_attributes,
-                                      bke::AttrDomain::Point,
-                                      bke::AttrDomain::Point,
-                                      attribute_filter,
-                                      src_points_by_curve,
-                                      dst_points_by_curve,
-                                      unselected,
-                                      dst_attributes);
 
   return dst_curves;
 }
@@ -649,6 +660,8 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
   const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
 
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  /* Copy vertex groups from source curves to allow copying vertex group attributes. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   dst_curves.fill_curve_types(selection, dst_type);
 
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
@@ -671,21 +684,21 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes,
-      dst_attributes,
-      ATTR_DOMAIN_MASK_POINT,
-      bke::attribute_filter_with_skip_ref(attribute_filter,
-                                          {"position",
-                                           "handle_type_left",
-                                           "handle_type_right",
-                                           "handle_right",
-                                           "handle_left",
-                                           "nurbs_weight"}));
+      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+  const Set<StringRef> attributes_to_skip = {"position",
+                                             "handle_type_left",
+                                             "handle_type_right",
+                                             "handle_right",
+                                             "handle_left",
+                                             "nurbs_weight"};
 
   auto convert_from_catmull_rom_or_poly_or_nurbs = [&](const IndexMask &selection) {
     array_utils::copy_group_to_group(
         src_points_by_curve, dst_points_by_curve, selection, src_positions, dst_positions);
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       array_utils::copy_group_to_group(
           src_points_by_curve, dst_points_by_curve, selection, attribute.src, attribute.dst.span);
     }
@@ -710,6 +723,9 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
     /* Transfer attributes. The handles the same attribute values as their corresponding control
      * point. */
     for (bke::AttributeTransferData &attribute : generic_attributes) {
+      if (attributes_to_skip.contains(attribute.name)) {
+        continue;
+      }
       const CPPType &cpp_type = attribute.src.type();
       selection.foreach_index([&](const int curve_i) {
         const IndexRange src_points = src_points_by_curve[curve_i];
@@ -733,17 +749,11 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
                                      convert_from_catmull_rom_or_poly_or_nurbs);
 
   for (bke::AttributeTransferData &attribute : generic_attributes) {
+    array_utils::copy_group_to_group(
+        src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
+
     attribute.dst.finish();
   }
-
-  bke::copy_attributes_group_to_group(src_attributes,
-                                      bke::AttrDomain::Point,
-                                      bke::AttrDomain::Point,
-                                      attribute_filter,
-                                      src_points_by_curve,
-                                      dst_points_by_curve,
-                                      unselected,
-                                      dst_attributes);
 
   return dst_curves;
 }

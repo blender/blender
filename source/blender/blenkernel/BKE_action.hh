@@ -13,8 +13,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
-
-#include "DNA_listBase.h"
+#include "BLI_span.hh"
 
 struct BlendDataReader;
 struct BlendLibReader;
@@ -367,7 +366,11 @@ void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose
 
 /* `action_mirror.cc` */
 
-void BKE_action_flip_with_pose(bAction *act, Object *ob_arm) ATTR_NONNULL(1, 2);
+/**
+ * Flip the action so it can be applied as a mirror. Only data of slots that are related to the
+ * given objects is mirrored.
+ */
+void BKE_action_flip_with_pose(bAction *act, blender::Span<Object *> objects) ATTR_NONNULL(1);
 
 namespace blender::bke {
 
@@ -378,7 +381,7 @@ using FoundFCurveCallbackConst =
 /**
  * Calls `callback` for every fcurve in an action slot that targets any bone.
  *
- * \param slot_handle only FCurves from the given action slot are visited.
+ * \param slot_handle: only FCurves from the given action slot are visited.
  */
 void BKE_action_find_fcurves_with_bones(bAction *action,
                                         blender::animrig::slot_handle_t slot_handle,

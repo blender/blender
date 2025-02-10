@@ -8,6 +8,8 @@
  * \ingroup pythonintern
  */
 
+#include <Python.h>
+
 struct BPy_StructRNA;
 
 #if 0

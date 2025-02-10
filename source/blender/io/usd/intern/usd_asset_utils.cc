@@ -394,7 +394,7 @@ bool should_import_asset(const std::string &path)
     return true;
   }
 
-  if (is_udim_path(path) && parent_dir_exists_on_file_system(path.c_str())) {
+  if (is_udim_path(path) && parent_dir_exists_on_file_system(path)) {
     return false;
   }
 
@@ -568,8 +568,7 @@ std::string get_relative_path(const std::string &path, const std::string &anchor
     return rel_path + 2;
   }
 
-  /* if we got here, the paths may be URIs or files on on the
-   * file system. */
+  /* If we got here, the paths may be URIs or files on the file system. */
 
   /* We don't have a library to compute relative paths for URIs
    * so we use the standard file-system calls to do so. This

@@ -59,6 +59,14 @@ struct PaintSample {
   float pressure;
 };
 
+/**
+ * Common structure for various paint operators (e.g. Sculpt, Grease Pencil, Curves Sculpt)
+ *
+ * Callback functions defined and stored on this struct (e.g. `StrokeGetLocation`) allow each of
+ * these modes to customize specific behavior while still sharing other common handing.
+ *
+ * See #paint_stroke_modal for the majority of the paint operator logic.
+ */
 struct PaintStroke {
   std::unique_ptr<PaintModeData> mode_data;
   void *stroke_cursor;
@@ -1050,7 +1058,7 @@ bool paint_space_stroke_enabled(const Brush &br, const PaintMode mode)
     return false;
   }
 
-  if (ELEM(mode, PaintMode::GPencil, PaintMode::SculptGreasePencil)) {
+  if (ELEM(mode, PaintMode::GPencil, PaintMode::SculptGPencil)) {
     /* No spacing needed for now. */
     return false;
   }
@@ -1664,9 +1672,24 @@ int paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke)
     }
   }
 
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "override_location");
+  const bool override_location = prop && RNA_property_boolean_get(op->ptr, prop) &&
+                                 stroke->get_location;
   if (stroke->stroke_started) {
     RNA_BEGIN (op->ptr, itemptr, "stroke") {
-      stroke->update_step(C, op, stroke, &itemptr);
+      if (override_location) {
+        float2 mval;
+        RNA_float_get_array(&itemptr, "mouse_event", mval);
+
+        float3 location;
+        if (stroke->get_location(C, location, mval, false)) {
+          RNA_float_set_array(&itemptr, "location", location);
+          stroke->update_step(C, op, stroke, &itemptr);
+        }
+      }
+      else {
+        stroke->update_step(C, op, stroke, &itemptr);
+      }
     }
     RNA_END;
   }

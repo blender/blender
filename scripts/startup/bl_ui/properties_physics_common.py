@@ -6,7 +6,9 @@ import bpy
 from bpy.types import (
     Panel,
 )
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+)
 
 
 class PhysicButtonsPanel:
@@ -328,7 +330,7 @@ def basic_force_field_falloff_ui(self, field):
 
     col = layout.column()
     col.prop(field, "z_direction")
-    col.prop(field, "falloff_power", text="Power")
+    col.prop(field, "falloff_power", text="Power", text_ctxt=i18n_contexts.id_particlesettings)
 
     col = layout.column(align=False, heading="Min Distance")
     col.use_property_decorate = False

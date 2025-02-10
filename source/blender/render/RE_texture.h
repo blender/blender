@@ -83,12 +83,12 @@ void RE_point_density_fix_linking(void);
 /**
  * Texture evaluation result.
  */
-typedef struct TexResult {
+struct TexResult {
   float tin;
   float trgba[4];
   /* Is actually a boolean: When true -> use alpha, false -> set alpha to 1.0. */
   int talpha;
-} TexResult;
+};
 
 /* This one uses nodes. */
 

@@ -6,8 +6,6 @@
  * \ingroup fn
  */
 
-#include "BLI_array.hh"
-
 #include "FN_lazy_function.hh"
 
 namespace blender::fn::lazy_function {

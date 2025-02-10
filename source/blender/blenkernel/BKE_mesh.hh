@@ -12,8 +12,8 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_string_ref.hh"
 
-#include "BKE_mesh.h"
-#include "BKE_mesh_types.hh"
+#include "BKE_mesh.h"         // IWYU pragma: export
+#include "BKE_mesh_types.hh"  // IWYU pragma: export
 
 namespace blender::bke {
 
@@ -192,7 +192,6 @@ void normals_calc_corners(Span<float3> vert_positions,
                           Span<int> corner_verts,
                           Span<int> corner_edges,
                           Span<int> corner_to_face_map,
-                          Span<float3> vert_normals,
                           Span<float3> face_normals,
                           Span<bool> sharp_edges,
                           Span<bool> sharp_faces,

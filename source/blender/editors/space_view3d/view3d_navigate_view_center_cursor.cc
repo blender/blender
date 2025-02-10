@@ -6,8 +6,6 @@
  * \ingroup spview3d
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"

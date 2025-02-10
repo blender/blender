@@ -7,7 +7,6 @@
  */
 
 #include <cfloat>
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -145,7 +144,7 @@ static void actedit_change_action(bContext *C, bAction *act)
   PropertyRNA *prop;
 
   /* create RNA pointers and get the property */
-  PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_SpaceDopeSheetEditor, saction);
+  PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceDopeSheetEditor, saction);
   prop = RNA_struct_find_property(&ptr, "action");
 
   /* NOTE: act may be nullptr here, so better to just use a cast here */
@@ -425,7 +424,7 @@ static int action_stash_exec(bContext *C, wmOperator *op)
     }
     else {
       /* action has already been added - simply warn about this, and clear */
-      BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+      BKE_report(op->reports, RPT_ERROR, "Action+Slot has already been stashed");
     }
 
     /* clear action refs from editor, and then also the backing data (not necessary) */
@@ -540,7 +539,7 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
     }
     else {
       /* action has already been added - simply warn about this, and clear */
-      BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+      BKE_report(op->reports, RPT_ERROR, "Action+Slot has already been stashed");
       actedit_change_action(C, nullptr);
     }
   }
@@ -646,7 +645,7 @@ void ED_animedit_unlink_action(
   }
   else {
     /* Clear AnimData -> action via RNA, so that it triggers message bus updates. */
-    PointerRNA ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
+    PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_AnimData, adt);
     PropertyRNA *prop = RNA_struct_find_property(&ptr, "action");
 
     RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);

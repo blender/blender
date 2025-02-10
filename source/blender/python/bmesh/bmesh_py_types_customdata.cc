@@ -11,6 +11,8 @@
 
 #include <Python.h>
 
+#include <algorithm>
+
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -833,12 +835,8 @@ static PyObject *bpy_bmlayercollection_subscript_slice(BPy_BMLayerCollection *se
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (start > len) {
-    start = len;
-  }
-  if (stop > len) {
-    stop = len;
-  }
+  start = std::min(start, len);
+  stop = std::min(stop, len);
 
   tuple = PyTuple_New(stop - start);
 
@@ -1286,9 +1284,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
         ret = -1;
       }
       else {
-        if (tmp_val_len > sizeof(mstring->s)) {
-          tmp_val_len = sizeof(mstring->s);
-        }
+        tmp_val_len = std::min<unsigned long>(tmp_val_len, sizeof(mstring->s));
         memcpy(mstring->s, tmp_val, tmp_val_len);
         mstring->s_len = tmp_val_len;
       }

@@ -16,6 +16,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 #include "BKE_geometry_fields.hh"
 
 #include "GEO_resample_curves.hh"
@@ -411,6 +412,8 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
 
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  /* Copy vertex groups from source curves to allow copying vertex group attributes. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
@@ -444,6 +447,8 @@ CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
 
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  /* Copy vertex groups from source curves to allow copying vertex group attributes. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   array_utils::copy(counts, selection, dst_offsets);
@@ -490,6 +495,8 @@ CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
   const VArray<bool> curves_cyclic = src_curves.cyclic();
 
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  /* Copy vertex groups from source curves to allow copying vertex group attributes. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   src_curves.ensure_evaluated_lengths();
@@ -540,6 +547,8 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
   const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
 
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  /* Copy vertex groups from source curves to allow copying vertex group attributes. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
   offset_indices::copy_group_sizes(src_evaluated_points_by_curve, selection, dst_offsets);

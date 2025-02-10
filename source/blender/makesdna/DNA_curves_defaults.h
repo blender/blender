@@ -17,6 +17,7 @@
 #define _DNA_DEFAULT_Curves \
   { \
     .flag = 0, \
+    .surface_collision_distance = 0.005f, \
   }
 
 /** \} */

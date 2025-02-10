@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
@@ -893,9 +895,7 @@ static int calculate_points_per_side(bContext *C, MinDistanceEditData &op_data)
     const float distance = math::length(pos_re - origin_re);
     const int needed_points_iter = (brush_radius * 2.0f) / distance;
 
-    if (needed_points_iter > needed_points) {
-      needed_points = needed_points_iter;
-    }
+    needed_points = std::max(needed_points_iter, needed_points);
   }
 
   /* Limit to a hard-coded number since it only adds noise at some point. */
@@ -945,7 +945,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
   RegionView3D *rv3d = op_data.rv3d;
   wmWindow *win = CTX_wm_window(C);
 
-  /* It does the same as: `view3d_operator_needs_opengl(C);`. */
+  /* It does the same as: `view3d_operator_needs_gpu(C);`. */
   wmViewport(&region->winrct);
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);

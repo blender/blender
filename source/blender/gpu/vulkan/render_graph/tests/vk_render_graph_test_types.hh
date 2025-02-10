@@ -27,10 +27,16 @@ BLI_INLINE std::string &endl()
 class CommandBufferLog : public VKCommandBufferInterface {
   Vector<std::string> &log_;
   bool is_recording_ = false;
-  bool is_cpu_synchronizing_ = false;
 
  public:
-  CommandBufferLog(Vector<std::string> &log) : log_(log) {}
+  CommandBufferLog(Vector<std::string> &log,
+                   bool use_dynamic_rendering_ = true,
+                   bool use_dynamic_rendering_local_read_ = true)
+      : log_(log)
+  {
+    use_dynamic_rendering = use_dynamic_rendering_;
+    use_dynamic_rendering_local_read = use_dynamic_rendering_local_read_;
+  }
   virtual ~CommandBufferLog() {}
 
   void begin_recording() override
@@ -44,19 +50,6 @@ class CommandBufferLog : public VKCommandBufferInterface {
     EXPECT_TRUE(is_recording_);
     is_recording_ = false;
   }
-
-  void submit_with_cpu_synchronization(VkFence /*vk_fence*/) override
-  {
-    EXPECT_FALSE(is_recording_);
-    EXPECT_FALSE(is_cpu_synchronizing_);
-    is_cpu_synchronizing_ = true;
-  };
-  void wait_for_cpu_synchronization(VkFence /*vk_fence*/) override
-  {
-    EXPECT_FALSE(is_recording_);
-    EXPECT_TRUE(is_cpu_synchronizing_);
-    is_cpu_synchronizing_ = false;
-  };
 
   void bind_pipeline(VkPipelineBindPoint pipeline_bind_point, VkPipeline pipeline) override
   {
@@ -468,6 +461,59 @@ class CommandBufferLog : public VKCommandBufferInterface {
   void end_debug_utils_label() override {}
 };
 
+class VKRenderGraphTest : public ::testing::Test {
+ public:
+  VKRenderGraphTest()
+  {
+    resources.use_dynamic_rendering = use_dynamic_rendering;
+    resources.use_dynamic_rendering_local_read = use_dynamic_rendering_local_read;
+    render_graph = std::make_unique<VKRenderGraph>(resources);
+    command_buffer = std::make_unique<CommandBufferLog>(
+        log, use_dynamic_rendering, use_dynamic_rendering_local_read);
+  }
+
+ protected:
+  Vector<std::string> log;
+  VKResourceStateTracker resources;
+  std::unique_ptr<VKRenderGraph> render_graph;
+  std::unique_ptr<CommandBufferLog> command_buffer;
+  bool use_dynamic_rendering = true;
+  bool use_dynamic_rendering_local_read = true;
+};
+
+class VKRenderGraphTest_P : public ::testing::TestWithParam<std::tuple<bool, bool>> {
+ public:
+  VKRenderGraphTest_P()
+  {
+    use_dynamic_rendering = std::get<0>(GetParam());
+    use_dynamic_rendering_local_read = std::get<1>(GetParam());
+    resources.use_dynamic_rendering = use_dynamic_rendering;
+    resources.use_dynamic_rendering_local_read = use_dynamic_rendering_local_read;
+    render_graph = std::make_unique<VKRenderGraph>(resources);
+    command_buffer = std::make_unique<CommandBufferLog>(
+        log, use_dynamic_rendering, use_dynamic_rendering_local_read);
+  }
+
+ protected:
+  VkImageLayout color_attachment_layout() const
+  {
+    return use_dynamic_rendering_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  }
+  std::string color_attachment_layout_str() const
+  {
+    return use_dynamic_rendering_local_read ? "VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR" :
+                                              "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL";
+  }
+
+  Vector<std::string> log;
+  VKResourceStateTracker resources;
+  std::unique_ptr<VKRenderGraph> render_graph;
+  std::unique_ptr<CommandBufferLog> command_buffer;
+  bool use_dynamic_rendering = true;
+  bool use_dynamic_rendering_local_read = true;
+};
+
 /**
  * Union to create a dummy vulkan handler.
  *
@@ -486,4 +532,18 @@ template<typename VKObjectType> union VkHandle {
   }
 };
 
+static inline void submit(std::unique_ptr<VKRenderGraph> &render_graph,
+                          std::unique_ptr<CommandBufferLog> &command_buffer)
+{
+  VKScheduler scheduler;
+  VKCommandBuilder command_builder;
+  Span<render_graph::NodeHandle> node_handles = scheduler.select_nodes(*render_graph);
+  command_builder.build_nodes(*render_graph, *command_buffer, node_handles);
+
+  command_buffer->begin_recording();
+  command_builder.record_commands(*render_graph, *command_buffer, node_handles);
+  command_buffer->end_recording();
+
+  render_graph->reset();
+}
 }  // namespace blender::gpu::render_graph

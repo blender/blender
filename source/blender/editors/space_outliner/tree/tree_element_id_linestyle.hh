@@ -20,7 +20,7 @@ class TreeElementIDLineStyle final : public TreeElementID {
  public:
   TreeElementIDLineStyle(TreeElement &legacy_te, FreestyleLineStyle &linestyle);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_textures() const;

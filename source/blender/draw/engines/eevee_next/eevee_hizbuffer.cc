@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_global.hh"
-
 #include "eevee_instance.hh"
 
 #include "eevee_hizbuffer.hh"

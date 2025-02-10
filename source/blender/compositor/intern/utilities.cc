@@ -5,7 +5,6 @@
 #include "BLI_assert.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
 
@@ -15,7 +14,6 @@
 #include "GPU_compute.hh"
 #include "GPU_shader.hh"
 
-#include "COM_operation.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
@@ -102,7 +100,8 @@ int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
 
 bool is_pixel_node(DNode node)
 {
-  return node->typeinfo->get_compositor_shader_node;
+  BLI_assert(bool(node->typeinfo->gpu_fn) == bool(node->typeinfo->build_multi_function));
+  return node->typeinfo->gpu_fn && node->typeinfo->build_multi_function;
 }
 
 InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
@@ -119,10 +118,8 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   const SocketDeclaration *socket_declaration = node_declaration->inputs[socket->index()];
   input_descriptor.domain_priority = socket_declaration->compositor_domain_priority();
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
-
-  input_descriptor.realization_options.realize_on_operation_domain = bool(
-      socket_declaration->compositor_realization_options() &
-      CompositorInputRealizationOptions::RealizeOnOperationDomain);
+  input_descriptor.realization_mode = static_cast<InputRealizationMode>(
+      socket_declaration->compositor_realization_mode());
 
   return input_descriptor;
 }

@@ -8,7 +8,9 @@ from .json_util import is_json_convertible
 
 
 # Custom properties, which are in most cases present and should not be imported/exported.
-BLACK_LIST = ['cycles', 'cycles_visibility', 'cycles_curves', 'glTF2ExportSettings', 'gltf2_mesh_applied']
+BLACK_LIST = ['cycles', 'cycles_visibility', 'cycles_curves', 'glTF2ExportSettings', 'gltf2_mesh_applied',
+    'gltf2_KHR_materials_variants_variants', 'gltf2_active_variant', 'gltf2_variant_default_materials', 'gltf2_variant_mesh_data'
+]
 
 
 def generate_extras(blender_element):

@@ -408,7 +408,6 @@ ccl_device_inline float4 quat_interpolate(const float4 q1, const float4 q2, cons
 }
 
 #ifndef __KERNEL_GPU__
-void transform_inverse_cpu_sse42(const Transform &tfm, Transform &itfm);
 void transform_inverse_cpu_avx2(const Transform &tfm, Transform &itfm);
 #endif
 
@@ -495,11 +494,6 @@ ccl_device_inline Transform transform_inverse(const Transform tfm)
   if (system_cpu_support_avx2()) {
     Transform itfm;
     transform_inverse_cpu_avx2(tfm, itfm);
-    return itfm;
-  }
-  if (system_cpu_support_sse42()) {
-    Transform itfm;
-    transform_inverse_cpu_sse42(tfm, itfm);
     return itfm;
   }
 #endif

@@ -15,6 +15,7 @@ if "%BUILD_WITH_SCCACHE%"=="1" (
 
 if "%WITH_CLANG%" == "1" (
 set LLVM_DIR=
+	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_WINDOWS_EXTERNAL_MANIFEST=On
 	for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\LLVM\LLVM" /ve 2^>nul`) DO set LLVM_DIR=%%C
 	if DEFINED LLVM_DIR (
 		if NOT "%verbose%" == "" (
@@ -37,14 +38,8 @@ set LLVM_DIR=
 :DetectionComplete	
 	set CC=%LLVM_DIR%\bin\clang-cl
 	set CXX=%LLVM_DIR%\bin\clang-cl
-	if "%PROCESSOR_ARCHITECTURE%" == "ARM64" (
-		set CFLAGS=-m64
-		set CXXFLAGS=-m64
-	) else (
-		rem build and tested against 2019 16.2
-		set CFLAGS=-m64 -fmsc-version=1922
-		set CXXFLAGS=-m64 -fmsc-version=1922
-	)
+	set CFLAGS=-m64
+	set CXXFLAGS=-m64
 )
 
 if "%WITH_ASAN%"=="1" (

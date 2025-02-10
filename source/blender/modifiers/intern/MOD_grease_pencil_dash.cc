@@ -415,9 +415,9 @@ static void panel_draw(const bContext *C, Panel *panel)
                      "DOWN");
 
   if (dmd->segment_active_index >= 0 && dmd->segment_active_index < dmd->segments_num) {
-    PointerRNA ds_ptr = RNA_pointer_create(ptr->owner_id,
-                                           &RNA_GreasePencilDashModifierSegment,
-                                           &dmd->segments()[dmd->segment_active_index]);
+    PointerRNA ds_ptr = RNA_pointer_create_discrete(ptr->owner_id,
+                                                    &RNA_GreasePencilDashModifierSegment,
+                                                    &dmd->segments()[dmd->segment_active_index]);
 
     sub = uiLayoutColumn(layout, true);
     uiItemR(sub, &ds_ptr, "dash", UI_ITEM_NONE, std::nullopt, ICON_NONE);

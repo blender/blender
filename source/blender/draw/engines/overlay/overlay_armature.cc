@@ -15,12 +15,12 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
 #include "DRW_render.hh"
 
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
@@ -28,9 +28,7 @@
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_deform.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -42,11 +40,11 @@
 
 #include "UI_resources.hh"
 
+#include "draw_cache.hh"
 #include "draw_common_c.hh"
 #include "draw_manager_text.hh"
 
 #include "overlay_next_armature.hh"
-#include "overlay_private.hh"
 
 #include "draw_cache_impl.hh"
 
@@ -404,7 +402,7 @@ static void drw_shgroup_bone_custom_solid_mesh(const Armatures::DrawContext *ctx
   using namespace blender::draw;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  DRW_mesh_batch_cache_validate(custom, mesh);
+  DRW_mesh_batch_cache_validate(mesh);
 
   blender::gpu::Batch *surf = DRW_mesh_batch_cache_get_surface(mesh);
   blender::gpu::Batch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
@@ -449,7 +447,7 @@ static void drw_shgroup_bone_custom_mesh_wire(const Armatures::DrawContext *ctx,
   using namespace blender::draw;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  DRW_mesh_batch_cache_validate(custom, mesh);
+  DRW_mesh_batch_cache_validate(mesh);
 
   blender::gpu::Batch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
   if (geom) {
@@ -600,7 +598,8 @@ static void drw_shgroup_bone_custom_empty(const Armatures::DrawContext *ctx,
   const float4 final_color(UNPACK3(color), 1.0f);
 
   draw::overlay::BoneInstanceData inst_data;
-  inst_data.mat44 = ctx->ob->object_to_world() * float4x4(bone_mat);
+  inst_data.mat44 = ctx->ob->object_to_world() * float4x4(bone_mat) *
+                    math::from_scale<float4x4>(float3(custom->empty_drawsize));
   inst_data.set_hint_color(final_color);
   inst_data.set_color(float4(UNPACK3(final_color), wire_width / WIRE_WIDTH_COMPRESSION));
 
@@ -1956,12 +1955,12 @@ namespace {
  *
  * See the functions below.
  */
-static ArmatureBoneDrawStrategyOcta strat_octa;
-static ArmatureBoneDrawStrategyLine strat_line;
-static ArmatureBoneDrawStrategyBBone strat_b_bone;
-static ArmatureBoneDrawStrategyEnvelope strat_envelope;
-static ArmatureBoneDrawStrategyWire strat_wire;
-static ArmatureBoneDrawStrategyEmpty strat_empty;
+ArmatureBoneDrawStrategyOcta strat_octa;
+ArmatureBoneDrawStrategyLine strat_line;
+ArmatureBoneDrawStrategyBBone strat_b_bone;
+ArmatureBoneDrawStrategyEnvelope strat_envelope;
+ArmatureBoneDrawStrategyWire strat_wire;
+ArmatureBoneDrawStrategyEmpty strat_empty;
 };  // namespace
 
 /**

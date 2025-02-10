@@ -8,9 +8,7 @@
 
 #include <cstdlib>
 
-#include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
-#include "BLI_sys_types.h"
 
 #include "BLT_translation.hh"
 
@@ -19,8 +17,6 @@
 #include "rna_internal.hh"
 
 #include "DNA_light_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -197,6 +193,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
       RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
       RNA_def_property_ui_text(
           prop, "Strength", "Sunlight strength in watts per meter squared (W/m²)");
+      RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
       RNA_def_property_update(prop, 0, "rna_Light_draw_update");
       break;
     }

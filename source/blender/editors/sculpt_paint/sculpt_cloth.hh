@@ -11,7 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_map.hh"
-#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_collision.h"

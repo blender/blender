@@ -6,15 +6,14 @@
  * \ingroup eevee
  */
 
-// #include "BLI_map.hh"
 #include "BKE_colortools.hh"
-#include "DEG_depsgraph_query.hh"
+
+#include "RE_engine.h"
+
+#include "draw_manager_profiling.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_motion_blur.hh"
-// #include "eevee_sampling.hh"
-// #include "eevee_shader_shared.hh"
-// #include "eevee_velocity.hh"
 
 namespace blender::eevee {
 

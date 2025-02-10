@@ -6,8 +6,8 @@
 
 #ifdef WITH_OPENVDB
 
-#  include <openvdb/openvdb.h>
-#  include <openvdb/points/PointDataGrid.h>
+#  include <openvdb/openvdb.h>              /* IWYU pragma: export */
+#  include <openvdb/points/PointDataGrid.h> /* IWYU pragma: export */
 #  include <optional>
 
 #  include "BLI_bounds_types.hh"
@@ -16,6 +16,7 @@
 #  include "BLI_string_ref.hh"
 
 #  include "BKE_volume_enums.hh"
+#  include "BKE_volume_grid_fwd.hh"
 
 struct Volume;
 

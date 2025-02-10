@@ -188,7 +188,7 @@ typedef struct bNodeSocket {
   /* XXX deprecated, only used for restoring old group node links */
   int to_index DNA_DEPRECATED;
 
-  /** A link pointer, set in #BKE_ntree_update_main. */
+  /** A link pointer, set in #BKE_ntree_update. */
   struct bNodeLink *link;
 
   /* XXX deprecated, socket input values are stored in default_value now.
@@ -206,6 +206,11 @@ typedef struct bNodeSocket {
   bool is_multi_input() const;
   bool is_input() const;
   bool is_output() const;
+
+  /**
+   * False when this input socket definitely does not affect the output.
+   */
+  bool affects_node_output() const;
 
   /** Utility to access the value of the socket. */
   template<typename T> T *default_value_typed();
@@ -348,6 +353,21 @@ typedef struct bNodePanelState {
 #endif
 } bNodePanelState;
 
+typedef enum eViewerNodeShortcut {
+  NODE_VIEWER_SHORTCUT_NONE = 0,
+  /* Users can set custom keys to shortcuts,
+   * but shortcuts should always be referred to as enums. */
+  NODE_VIEWER_SHORCTUT_SLOT_1 = 1,
+  NODE_VIEWER_SHORCTUT_SLOT_2 = 2,
+  NODE_VIEWER_SHORCTUT_SLOT_3 = 3,
+  NODE_VIEWER_SHORCTUT_SLOT_4 = 4,
+  NODE_VIEWER_SHORCTUT_SLOT_5 = 5,
+  NODE_VIEWER_SHORCTUT_SLOT_6 = 6,
+  NODE_VIEWER_SHORCTUT_SLOT_7 = 7,
+  NODE_VIEWER_SHORCTUT_SLOT_8 = 8,
+  NODE_VIEWER_SHORCTUT_SLOT_9 = 9
+} eViewerNodeShortcut;
+
 typedef enum NodeWarningPropagation {
   NODE_WARNING_PROPAGATION_ALL = 0,
   NODE_WARNING_PROPAGATION_NONE = 1,
@@ -385,11 +405,25 @@ typedef struct bNode {
   bNodeTypeHandle *typeinfo;
 
   /**
-   * Integer type used for builtin nodes, allowing cheaper lookup and changing ID names with
-   * versioning code. Avoid using directly if possible, since may not match runtime node type if it
-   * wasn't found.
+   * Legacy integer type for nodes. It does not uniquely identify a node type, only the `idname`
+   * does that. For example, all custom nodes use #NODE_CUSTOM but do have different idnames.
+   * This is mainly kept for compatibility reasons.
+   *
+   * Currently, this type is also used in many parts of Blender, but that should slowly be phased
+   * out by either relying on idnames, accessor methods like `node.is_reroute()`.
+   *
+   * Older node types have a stable legacy-type (defined in `BKE_node_legacy_types.hh`). However,
+   * the legacy type of newer types is generated at runtime and is not guaranteed to be stable over
+   * time.
+   *
+   * A main benefit of this integer type over using idnames currently is that integer comparison is
+   * much cheaper than string comparison, especially if many idnames have the same prefix (e.g.
+   * "GeometryNode"). Eventually, we could introduce cheap-to-compare runtime identifier for node
+   * types. That could mean e.g. using `ustring` for idnames (where string comparison is just
+   * pointer comparison), or using a run-time generated integer that is automatically assigned when
+   * node types are registered.
    */
-  int16_t type;
+  int16_t type_legacy;
 
   /**
    * Depth of the node in the node editor, used to keep recently selected nodes at the front, and
@@ -458,6 +492,17 @@ typedef struct bNode {
   bool is_group() const;
   bool is_group_input() const;
   bool is_group_output() const;
+  bool is_undefined() const;
+
+  /**
+   * Check if the node has the given idname.
+   *
+   * Note: This function assumes that the given idname is a valid registered idname. This is done
+   * to catch typos earlier. One can compare with `bNodeType::idname` directly if the idname might
+   * not be registered.
+   */
+  bool is_type(blender::StringRef query_idname) const;
+
   const blender::nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
   blender::Span<bNodeLink> internal_links() const;
@@ -477,10 +522,12 @@ typedef struct bNode {
   blender::Span<bNodeSocket *> input_sockets();
   blender::Span<const bNodeSocket *> input_sockets() const;
   blender::IndexRange input_socket_indices_in_tree() const;
+  blender::IndexRange input_socket_indices_in_all_inputs() const;
   /** A span containing all output sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> output_sockets();
   blender::Span<const bNodeSocket *> output_sockets() const;
   blender::IndexRange output_socket_indices_in_tree() const;
+  blender::IndexRange output_socket_indices_in_all_outputs() const;
   /** Utility to get an input socket by its index. */
   bNodeSocket &input_socket(int index);
   const bNodeSocket &input_socket(int index) const;
@@ -1223,12 +1270,19 @@ typedef struct NodeScriptDict {
 
 /** glare node. */
 typedef struct NodeGlare {
-  char quality, type, iter;
-  /* XXX angle is only kept for backward/forward compatibility,
-   * was used for two different things, see #50736. */
-  char angle DNA_DEPRECATED, _pad0, size, star_45, streaks;
-  float colmod, mix, threshold, fade;
-  float angle_ofs;
+  char type;
+  char quality;
+  char iter DNA_DEPRECATED;
+  char angle DNA_DEPRECATED;
+  char _pad0;
+  char size DNA_DEPRECATED;
+  char star_45;
+  char streaks DNA_DEPRECATED;
+  float colmod DNA_DEPRECATED;
+  float mix DNA_DEPRECATED;
+  float threshold DNA_DEPRECATED;
+  float fade DNA_DEPRECATED;
+  float angle_ofs DNA_DEPRECATED;
   char _pad1[4];
 } NodeGlare;
 
@@ -2638,13 +2692,12 @@ enum {
   CMP_NODE_BLUR_ASPECT_X = 2,
 };
 
-/* wrapping */
-enum {
-  CMP_NODE_WRAP_NONE = 0,
-  CMP_NODE_WRAP_X = 1,
-  CMP_NODE_WRAP_Y = 2,
-  CMP_NODE_WRAP_XY = 3,
-};
+typedef enum CMPNodeTranslateRepeatAxis {
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_NONE = 0,
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_X = 1,
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_Y = 2,
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_XY = 3,
+} CMPNodeTranslateRepeatAxis;
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
 
@@ -2767,8 +2820,7 @@ typedef enum CMPNodeKuwahara {
   CMP_NODE_KUWAHARA_ANISOTROPIC = 1,
 } CMPNodeKuwahara;
 
-/* Stabilize 2D node. Stored in custom1 for Stabilize 2D node and in interpolation for Translate
- * node. */
+/* Shared between nodes with interpolation option. */
 typedef enum CMPNodeInterpolation {
   CMP_NODE_INTERPOLATION_NEAREST = 0,
   CMP_NODE_INTERPOLATION_BILINEAR = 1,

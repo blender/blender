@@ -8,7 +8,14 @@
 
 #pragma once
 
-#include "draw_manager.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
+
+struct GPUMaterial;
+struct Object;
+namespace blender::gpu {
+class Batch;
+}
 
 namespace blender::draw {
 

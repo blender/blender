@@ -6,20 +6,14 @@
 
 #include <functional>
 
-#include "BLI_color.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_task.hh"
 
 #include "DNA_scene_types.h"
 
 #include "ED_grease_pencil.hh"
 
-#include "IMB_imbuf_types.hh"
-
 #include "paint_intern.hh"
-
-#ifdef WITH_POTRACE
-#  include "potracelib.h"
-#endif
 
 namespace blender::bke::greasepencil {
 class Drawing;
@@ -54,7 +48,9 @@ class GreasePencilStrokeOperation : public PaintModeData {
 namespace greasepencil {
 
 /* Get list of drawings the tool should be operating on. */
-Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_painting(const bContext &C);
+Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_stroke_operation(const bContext &C);
+Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_with_masking_for_stroke_operation(
+    const bContext &C);
 /* Get the brush radius accounting for pen pressure. */
 float brush_radius(const Scene &scene, const Brush &brush, float pressure);
 
@@ -125,15 +121,15 @@ struct GreasePencilStrokeParams {
 };
 
 /* Point index mask for a drawing based on selection tool settings. */
-IndexMask point_selection_mask(const GreasePencilStrokeParams &params,
-                               const bool use_masking,
-                               IndexMaskMemory &memory);
-IndexMask stroke_selection_mask(const GreasePencilStrokeParams &params,
-                                const bool use_masking,
-                                IndexMaskMemory &memory);
-IndexMask fill_selection_mask(const GreasePencilStrokeParams &params,
-                              const bool use_masking,
-                              IndexMaskMemory &memory);
+IndexMask point_mask_for_stroke_operation(const GreasePencilStrokeParams &params,
+                                          bool use_selection_masking,
+                                          IndexMaskMemory &memory);
+IndexMask curve_mask_for_stroke_operation(const GreasePencilStrokeParams &params,
+                                          bool use_selection_masking,
+                                          IndexMaskMemory &memory);
+IndexMask fill_mask_for_stroke_operation(const GreasePencilStrokeParams &params,
+                                         bool use_selection_masking,
+                                         IndexMaskMemory &memory);
 
 bke::crazyspace::GeometryDeformation get_drawing_deformation(
     const GreasePencilStrokeParams &params);
@@ -153,8 +149,8 @@ DeltaProjectionFunc get_screen_projection_fn(const GreasePencilStrokeParams &par
 /**
  * Compute position offset for a point in the original geometry
  * from a screen offset and crazyspace deformation info.
- * \param projection_fn Projection from screen space to the evaluated object.
- * \param deformation Converts evaluated position delta to original geometry.
+ * \param projection_fn: Projection from screen space to the evaluated object.
+ * \param deformation: Converts evaluated position delta to original geometry.
  */
 float3 compute_orig_delta(const DeltaProjectionFunc &projection_fn,
                           const bke::crazyspace::GeometryDeformation &deformation,
@@ -177,7 +173,14 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
   /** Previous mouse position for computing the direction. */
   float2 prev_mouse_position;
 
-  GreasePencilStrokeOperationCommon() {}
+  /* When auto-masking is used, this contains the index mask of the elements that are affected. */
+  struct AutoMaskingInfo {
+    IndexMask point_mask;
+    IndexMaskMemory memory;
+  };
+  Array<AutoMaskingInfo> auto_masking_info_per_drawing;
+
+  GreasePencilStrokeOperationCommon() = default;
   GreasePencilStrokeOperationCommon(const BrushStrokeMode stroke_mode) : stroke_mode(stroke_mode)
   {
   }
@@ -186,18 +189,25 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
   float2 mouse_delta(const InputSample &input_sample) const;
 
   void init_stroke(const bContext &C, const InputSample &start_sample);
+  void init_auto_masking(const bContext &C, const InputSample &start_sample);
   void stroke_extended(const InputSample &extension_sample);
 
+  void foreach_editable_drawing_with_automask(
+      const bContext &C,
+      FunctionRef<bool(const GreasePencilStrokeParams &params, const IndexMask &points)> fn) const;
+  void foreach_editable_drawing_with_automask(
+      const bContext &C,
+      FunctionRef<bool(const GreasePencilStrokeParams &params,
+                       const IndexMask &points,
+                       const DeltaProjectionFunc &projection_fn)> fn) const;
+
+  /** Used in vertex paint mode. */
   void foreach_editable_drawing(
       const bContext &C, FunctionRef<bool(const GreasePencilStrokeParams &params)> fn) const;
   void foreach_editable_drawing(
       const bContext &C,
       GrainSize grain_size,
       FunctionRef<bool(const GreasePencilStrokeParams &params)> fn) const;
-  void foreach_editable_drawing(
-      const bContext &C,
-      FunctionRef<bool(const GreasePencilStrokeParams &params,
-                       const DeltaProjectionFunc &projection_fn)> fn) const;
 };
 
 /* Operations */
@@ -206,7 +216,7 @@ std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation(bool temp_draw 
 std::unique_ptr<GreasePencilStrokeOperation> new_erase_operation(bool temp_eraser = false);
 std::unique_ptr<GreasePencilStrokeOperation> new_tint_operation();
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_draw_operation(
-    const BrushStrokeMode &brush_mode);
+    const BrushStrokeMode &stroke_mode);
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_blur_operation();
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_average_operation();
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_smear_operation();

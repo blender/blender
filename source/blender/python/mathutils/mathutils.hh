@@ -8,10 +8,11 @@
  * \ingroup pymathutils
  */
 
+#include <Python.h>
+
 /* Can cast different mathutils types to this, use for generic functions. */
 
 #include "BLI_array.hh"
-#include "BLI_compiler_attrs.h"
 #include "BLI_vector.hh"
 
 struct DynStr;
@@ -61,11 +62,11 @@ struct BaseMathObject {
 };
 
 /* types */
-#include "mathutils_Color.hh"
-#include "mathutils_Euler.hh"
-#include "mathutils_Matrix.hh"
-#include "mathutils_Quaternion.hh"
-#include "mathutils_Vector.hh"
+#include "mathutils_Color.hh"       // IWYU pragma: export
+#include "mathutils_Euler.hh"       // IWYU pragma: export
+#include "mathutils_Matrix.hh"      // IWYU pragma: export
+#include "mathutils_Quaternion.hh"  // IWYU pragma: export
+#include "mathutils_Vector.hh"      // IWYU pragma: export
 
 /* avoid checking all types */
 #define BaseMathObject_CheckExact(v) (Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)
@@ -88,18 +89,16 @@ PyMODINIT_FUNC PyInit_mathutils();
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff);
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);
 
-typedef struct Mathutils_Callback Mathutils_Callback;
-
 /** Checks the user is still valid. */
-typedef int (*BaseMathCheckFunc)(BaseMathObject *);
+using BaseMathCheckFunc = int (*)(BaseMathObject *);
 /** Gets the vector from the user. */
-typedef int (*BaseMathGetFunc)(BaseMathObject *, int);
+using BaseMathGetFunc = int (*)(BaseMathObject *, int);
 /** Sets the users vector values once its modified. */
-typedef int (*BaseMathSetFunc)(BaseMathObject *, int);
+using BaseMathSetFunc = int (*)(BaseMathObject *, int);
 /** Same as #BaseMathGetFunc but only for an index. */
-typedef int (*BaseMathGetIndexFunc)(BaseMathObject *, int, int);
+using BaseMathGetIndexFunc = int (*)(BaseMathObject *, int, int);
 /** Same as #BaseMathSetFunc but only for an index. */
-typedef int (*BaseMathSetIndexFunc)(BaseMathObject *, int, int);
+using BaseMathSetIndexFunc = int (*)(BaseMathObject *, int, int);
 
 struct Mathutils_Callback {
   BaseMathCheckFunc check;

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 namespace blender::gpu {
 class IndexBuf;
 }

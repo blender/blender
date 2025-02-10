@@ -16,19 +16,15 @@
 #endif
 
 #include <cerrno>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h> /* for open */
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_undo.hh" /* own include */

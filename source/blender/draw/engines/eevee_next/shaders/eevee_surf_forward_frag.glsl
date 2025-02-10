@@ -56,7 +56,7 @@ void main()
 
   eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
-    g_holdout = 1.0;
+    g_holdout = 1.0 - average(g_transmittance);
   }
 
   g_holdout = saturate(g_holdout);

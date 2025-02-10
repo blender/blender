@@ -6,7 +6,6 @@
 #include "BLI_timeit.hh"
 
 #include <algorithm>
-#include <iomanip>
 #include <iostream>
 
 #include <fmt/format.h>

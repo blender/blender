@@ -8,14 +8,7 @@
  * \ingroup bke
  */
 
-#include <optional>
-
-#include "BLI_string_ref.hh"
-#include "BLI_struct_equality_utils.hh"
-
 #include "BKE_bake_data_block_id.hh"
-
-#include "DNA_ID_enums.h"
 
 namespace blender::bke::bake {
 

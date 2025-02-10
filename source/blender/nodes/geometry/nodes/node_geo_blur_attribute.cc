@@ -8,13 +8,11 @@
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
-#include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
-#include "BKE_grease_pencil.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
@@ -496,8 +494,11 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_BLUR_ATTRIBUTE, "Blur Attribute", NODE_CLASS_ATTRIBUTE);
+  geo_node_type_base(&ntype, "GeometryNodeBlurAttribute", GEO_NODE_BLUR_ATTRIBUTE);
+  ntype.ui_name = "Blur Attribute";
+  ntype.ui_description = "Mix attribute values of neighboring elements";
   ntype.enum_name_legacy = "BLUR_ATTRIBUTE";
+  ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;

@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include "BLI_utildefines.h" /* for bool type */
+#include "BLI_string_ref.hh"
 
 #define TEXT_DOMAIN_NAME "blender"
 
-bool BLT_is_default_context(const char *msgctxt);
+bool BLT_is_default_context(blender::StringRef msgctxt);
 const char *BLT_pgettext(const char *msgctxt, const char *msgid);
+blender::StringRef BLT_pgettext(blender::StringRef msgctxt, blender::StringRef msgid);
 
 /* Translation */
 /* - iface includes buttons in the user interface: short labels displayed in windows, panels,
@@ -27,10 +28,16 @@ bool BLT_translate_tooltips();
 bool BLT_translate_reports();
 bool BLT_translate_new_dataname();
 const char *BLT_translate_do(const char *msgctxt, const char *msgid);
+blender::StringRef BLT_translate_do(blender::StringRef msgctxt, blender::StringRef msgid);
 const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
+blender::StringRef BLT_translate_do_iface(blender::StringRef msgctxt, blender::StringRef msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
+blender::StringRef BLT_translate_do_tooltip(blender::StringRef msgctxt, blender::StringRef msgid);
 const char *BLT_translate_do_report(const char *msgctxt, const char *msgid);
+blender::StringRef BLT_translate_do_report(blender::StringRef msgctxt, blender::StringRef msgid);
 const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid);
+blender::StringRef BLT_translate_do_new_dataname(blender::StringRef msgctxt,
+                                                 blender::StringRef msgid);
 
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid
@@ -139,6 +146,9 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_AMOUNT "Amount"
 #define BLT_I18NCONTEXT_COLOR "Color"
 #define BLT_I18NCONTEXT_CONSTRAINT "Constraint"
+#define BLT_I18NCONTEXT_MODIFIER "Modifier"
+#define BLT_I18NCONTEXT_NAVIGATION "Navigation"
+#define BLT_I18NCONTEXT_RENDER_LAYER "Render Layer"
 #define BLT_I18NCONTEXT_TIME "Time"
 #define BLT_I18NCONTEXT_UNIT "Unit"
 
@@ -211,6 +221,9 @@ struct BLT_i18n_contexts_descriptor {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_AMOUNT, "amount"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COLOR, "color"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_CONSTRAINT, "constraint"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_MODIFIER, "modifier"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_NAVIGATION, "navigation"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_RENDER_LAYER, "render_layer"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_TIME, "time"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_UNIT, "unit"), \
     { \

@@ -29,7 +29,7 @@ struct StripSelection {
   eSeqHandle handle = SEQ_HANDLE_NONE;
 };
 
-void ED_sequencer_select_sequence_single(Scene *scene, Strip *seq, bool deselect_all);
+void ED_sequencer_select_sequence_single(Scene *scene, Strip *strip, bool deselect_all);
 /**
  * Iterates over a scene's sequences and deselects all of them.
  *
@@ -74,5 +74,5 @@ blender::VectorSet<Strip *> ED_sequencer_selected_strips_from_context(bContext *
 StripSelection ED_sequencer_pick_strip_and_handle(const struct Scene *scene,
                                                   const View2D *v2d,
                                                   float mouse_co[2]);
-bool ED_sequencer_can_select_handle(const Scene *scene, const Strip *seq, const View2D *v2d);
-bool ED_sequencer_handle_is_selected(const Strip *seq, eSeqHandle handle);
+bool ED_sequencer_can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d);
+bool ED_sequencer_handle_is_selected(const Strip *strip, eSeqHandle handle);

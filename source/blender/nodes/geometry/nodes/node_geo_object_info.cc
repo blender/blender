@@ -199,8 +199,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeObjectInfo", GEO_NODE_OBJECT_INFO);
+  ntype.ui_name = "Object Info";
+  ntype.ui_description = "Retrieve information from an object";
   ntype.enum_name_legacy = "OBJECT_INFO";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.initfunc = node_node_init;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);

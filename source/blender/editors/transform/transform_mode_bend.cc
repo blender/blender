@@ -10,8 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -84,7 +82,7 @@ static void transdata_elem_bend(const TransInfo *t,
                                 float angle,
                                 const BendCustomData *bend_data,
                                 const float warp_sta_local[3],
-                                const float[3] /*warp_end_local*/,
+                                const float /*warp_end_local*/[3],
                                 const float warp_end_radius_local[3],
                                 const float pivot_local[3],
 
@@ -225,7 +223,7 @@ static void Bend(TransInfo *t)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN * 2];
 
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
 
     SNPRINTF(str,
              IFACE_("Bend Angle: %s, Radius: %s, Alt: Clamp %s"),

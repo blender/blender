@@ -326,11 +326,11 @@ static bool cast_ray_highpoly(blender::bke::BVHTreeFromMesh *treeData,
                               BakePixel *pixel_array,
                               const float mat_low[4][4],
                               BakeHighPolyData *highpoly,
+                              const int highpoly_num,
                               blender::MutableSpan<BVHTreeRayHit> hits,
                               const float co[3],
                               const float dir[3],
                               const int pixel_id,
-                              const int tot_highpoly,
                               const float max_ray_distance)
 {
   int hit_mesh = -1;
@@ -340,7 +340,7 @@ static bool cast_ray_highpoly(blender::bke::BVHTreeFromMesh *treeData,
     hit_distance_squared = FLT_MAX;
   }
 
-  for (int i = 0; i < tot_highpoly; i++) {
+  for (int i = 0; i < highpoly_num; i++) {
     float co_high[3], dir_high[3];
 
     hits[i].index = -1;
@@ -544,7 +544,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
                                           BakePixel pixel_array_from[],
                                           BakePixel pixel_array_to[],
                                           BakeHighPolyData highpoly[],
-                                          const int tot_highpoly,
+                                          const int highpoly_num,
                                           const size_t pixels_num,
                                           const bool is_custom_cage,
                                           const float cage_extrusion,
@@ -567,12 +567,12 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   TriTessFace **tris_high;
 
   /* Assume all low-poly tessfaces can be quads. */
-  tris_high = MEM_cnew_array<TriTessFace *>(tot_highpoly, "MVerts Highpoly Mesh Array");
+  tris_high = MEM_cnew_array<TriTessFace *>(highpoly_num, "MVerts Highpoly Mesh Array");
 
   /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = static_cast<Mesh **>(
-      MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes"));
-  Array<blender::bke::BVHTreeFromMesh> treeData(tot_highpoly);
+      MEM_mallocN(sizeof(Mesh *) * highpoly_num, "Highpoly Derived Meshes"));
+  Array<blender::bke::BVHTreeFromMesh> treeData(highpoly_num);
 
   if (!is_cage) {
     me_eval_low = BKE_mesh_copy_for_eval(*me_low);
@@ -588,7 +588,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
 
   invert_m4_m4(imat_low, mat_low);
 
-  for (int i = 0; i < tot_highpoly; i++) {
+  for (int i = 0; i < highpoly_num; i++) {
     tris_high[i] = mesh_calc_tri_tessface(highpoly[i].mesh, false, nullptr);
 
     me_highpoly[i] = highpoly[i].mesh;
@@ -605,7 +605,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   }
 
   threading::parallel_for(IndexRange(pixels_num), 1024, [&](const IndexRange range) {
-    Array<BVHTreeRayHit> hits(tot_highpoly);
+    Array<BVHTreeRayHit> hits(highpoly_num);
     for (const IndexRange::Iterator::value_type i : range) {
       int primitive_id = pixel_array_from[i].primitive_id;
 
@@ -645,11 +645,11 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
                              pixel_array_to,
                              mat_low,
                              highpoly,
+                             highpoly_num,
                              hits,
                              co,
                              dir,
                              i,
-                             tot_highpoly,
                              max_ray_distance))
       {
         /* if it fails mask out the original pixel array */
@@ -660,7 +660,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
 
   /* garbage collection */
 cleanup:
-  for (int i = 0; i < tot_highpoly; i++) {
+  for (int i = 0; i < highpoly_num; i++) {
     if (tris_high[i]) {
       MEM_freeN(tris_high[i]);
     }

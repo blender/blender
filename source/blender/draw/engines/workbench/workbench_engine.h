@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+struct RenderEngineType;
+
 extern RenderEngineType DRW_engine_viewport_workbench_type;
 
 #ifdef __cplusplus

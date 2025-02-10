@@ -8,10 +8,6 @@
 
 #pragma once
 
-#include "BLI_sys_types.h" /* for bool */
-
-#include "DNA_object_enums.h"
-
 struct ARegion;
 struct DRWData;
 struct DRWInstanceDataList;

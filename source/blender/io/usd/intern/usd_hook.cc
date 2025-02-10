@@ -6,6 +6,7 @@
 
 #include "usd.hh"
 #include "usd_asset_utils.hh"
+#include "usd_hash_types.hh"
 #include "usd_reader_prim.hh"
 #include "usd_reader_stage.hh"
 #include "usd_writer_material.hh"
@@ -26,6 +27,7 @@
 
 #include <list>
 #include <memory>
+#include <string>
 
 #if PXR_VERSION >= 2411
 #  include <pxr/external/boost/python/call_method.hpp>
@@ -57,7 +59,7 @@ using namespace boost;
 namespace blender::io::usd {
 
 using USDHookList = std::list<std::unique_ptr<USDHook>>;
-using ImportedPrimMap = Map<std::string, Vector<PointerRNA>>;
+using ImportedPrimMap = Map<pxr::SdfPath, Vector<PointerRNA>>;
 
 /* USD hook type declarations */
 static USDHookList &hook_list()
@@ -116,7 +118,7 @@ struct USDSceneExportContext {
 
   USDSceneExportContext(pxr::UsdStageRefPtr in_stage, Depsgraph *depsgraph) : stage(in_stage)
   {
-    depsgraph_ptr = RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph);
+    depsgraph_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Depsgraph, depsgraph);
   }
 
   pxr::UsdStageRefPtr get_stage() const
@@ -144,9 +146,7 @@ struct USDSceneImportContext {
 
   void release()
   {
-    if (prim_map_dict) {
-      delete prim_map_dict;
-    }
+    delete prim_map_dict;
   }
 
   pxr::UsdStageRefPtr get_stage() const
@@ -159,13 +159,13 @@ struct USDSceneImportContext {
     if (!prim_map_dict) {
       prim_map_dict = new PYTHON_NS::dict;
 
-      prim_map.foreach_item([&](const std::string &path, const Vector<PointerRNA> &ids) {
+      prim_map.foreach_item([&](const pxr::SdfPath &path, const Vector<PointerRNA> &ids) {
         if (!prim_map_dict->has_key(path)) {
           (*prim_map_dict)[path] = PYTHON_NS::list();
         }
-        PYTHON_NS::list list = PYTHON_NS::extract<PYTHON_NS::list>((*prim_map_dict)[path]);
 
-        for (auto &ptr_rna : ids) {
+        PYTHON_NS::list list = PYTHON_NS::extract<PYTHON_NS::list>((*prim_map_dict)[path]);
+        for (const auto &ptr_rna : ids) {
           list.append(ptr_rna);
         }
       });
@@ -460,7 +460,7 @@ class OnMaterialExportInvoker : public USDHookInvoker {
         hook_context_(stage, export_params, reports),
         usd_material_(usd_material)
   {
-    material_ptr_ = RNA_pointer_create(nullptr, &RNA_Material, material);
+    material_ptr_ = RNA_pointer_create_discrete(nullptr, &RNA_Material, material);
   }
 
  protected:
@@ -507,7 +507,7 @@ class MaterialImportPollInvoker : public USDHookInvoker {
  private:
   USDMaterialImportContext hook_context_;
   pxr::UsdShadeMaterial usd_material_;
-  bool result_;
+  bool result_ = false;
 
  public:
   MaterialImportPollInvoker(pxr::UsdStageRefPtr stage,
@@ -516,8 +516,7 @@ class MaterialImportPollInvoker : public USDHookInvoker {
                             ReportList *reports)
       : USDHookInvoker(reports),
         hook_context_(stage, import_params, reports),
-        usd_material_(usd_material),
-        result_(false)
+        usd_material_(usd_material)
   {
   }
 
@@ -548,7 +547,7 @@ class OnMaterialImportInvoker : public USDHookInvoker {
   USDMaterialImportContext hook_context_;
   pxr::UsdShadeMaterial usd_material_;
   PointerRNA material_ptr_;
-  bool result_;
+  bool result_ = false;
 
  public:
   OnMaterialImportInvoker(pxr::UsdStageRefPtr stage,
@@ -558,10 +557,9 @@ class OnMaterialImportInvoker : public USDHookInvoker {
                           ReportList *reports)
       : USDHookInvoker(reports),
         hook_context_(stage, import_params, reports),
-        usd_material_(usd_material),
-        result_(false)
+        usd_material_(usd_material)
   {
-    material_ptr_ = RNA_pointer_create(nullptr, &RNA_Material, material);
+    material_ptr_ = RNA_pointer_create_discrete(nullptr, &RNA_Material, material);
   }
 
   bool result() const
@@ -619,7 +617,7 @@ void call_import_hooks(USDStageReader *archive, ReportList *reports)
 
   /* Resize based on the typical scenario where there will be both Object and Data entries
    * in the map in addition to each material. */
-  prim_map.reserve((readers.size() * 2) + settings.usd_path_to_mat_name.size());
+  prim_map.reserve((readers.size() * 2) + settings.usd_path_to_mat.size());
 
   for (const USDPrimReader *reader : readers) {
     if (!reader) {
@@ -636,12 +634,9 @@ void call_import_hooks(USDStageReader *archive, ReportList *reports)
     }
   }
 
-  settings.usd_path_to_mat_name.foreach_item(
-      [&](const std::string &path, const std::string &name) {
-        if (Material *mat = settings.mat_name_to_mat.lookup_default(name, nullptr)) {
-          prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
-        }
-      });
+  settings.usd_path_to_mat.foreach_item([&prim_map](const pxr::SdfPath &path, Material *mat) {
+    prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
+  });
 
   OnImportInvoker on_import(archive->stage(), prim_map, reports);
   on_import.call();

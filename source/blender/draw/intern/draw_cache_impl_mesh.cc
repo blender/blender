@@ -8,23 +8,15 @@
  * \brief Mesh API for render engines
  */
 
-#include <memory>
 #include <optional>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_buffer.h"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
-#include "BLI_map.hh"
-#include "BLI_math_bits.h"
-#include "BLI_math_vector.h"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -32,14 +24,9 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_editmesh_cache.hh"
-#include "BKE_editmesh_tangent.hh"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
-#include "BKE_mesh_tangent.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
@@ -48,15 +35,10 @@
 
 #include "atomic_ops.h"
 
-#include "bmesh.hh"
-
 #include "GPU_batch.hh"
 #include "GPU_material.hh"
 
 #include "DRW_render.hh"
-
-#include "ED_mesh.hh"
-#include "ED_uvedit.hh"
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_inline.hh"
@@ -548,7 +530,7 @@ BLI_INLINE void mesh_batch_cache_add_request(MeshBatchCache &cache, DRWBatchFlag
 
 /* gpu::Batch cache management. */
 
-static bool mesh_batch_cache_valid(Object &object, Mesh &mesh)
+static bool mesh_batch_cache_valid(Mesh &mesh)
 {
   MeshBatchCache *cache = static_cast<MeshBatchCache *>(mesh.runtime->batch_cache);
 
@@ -566,14 +548,14 @@ static bool mesh_batch_cache_valid(Object &object, Mesh &mesh)
     return false;
   }
 
-  if (cache->mat_len != BKE_object_material_count_with_fallback_eval(&object)) {
+  if (cache->mat_len != BKE_id_material_used_with_fallback_eval(mesh.id)) {
     return false;
   }
 
   return true;
 }
 
-static void mesh_batch_cache_init(Object &object, Mesh &mesh)
+static void mesh_batch_cache_init(Mesh &mesh)
 {
   if (!mesh.runtime->batch_cache) {
     mesh.runtime->batch_cache = MEM_new<MeshBatchCache>(__func__);
@@ -592,7 +574,7 @@ static void mesh_batch_cache_init(Object &object, Mesh &mesh)
     // cache->vert_len = mesh_render_verts_len_get(mesh);
   }
 
-  cache->mat_len = BKE_object_material_count_with_fallback_eval(&object);
+  cache->mat_len = BKE_id_material_used_with_fallback_eval(mesh.id);
   cache->surface_per_mat = Array<gpu::Batch *>(cache->mat_len, nullptr);
   cache->tris_per_mat = Array<gpu::IndexBuf *>(cache->mat_len, nullptr);
 
@@ -603,13 +585,13 @@ static void mesh_batch_cache_init(Object &object, Mesh &mesh)
   drw_mesh_weight_state_clear(&cache->weight_state);
 }
 
-void DRW_mesh_batch_cache_validate(Object &object, Mesh &mesh)
+void DRW_mesh_batch_cache_validate(Mesh &mesh)
 {
-  if (!mesh_batch_cache_valid(object, mesh)) {
+  if (!mesh_batch_cache_valid(mesh)) {
     if (mesh.runtime->batch_cache) {
       mesh_batch_cache_clear(*static_cast<MeshBatchCache *>(mesh.runtime->batch_cache));
     }
-    mesh_batch_cache_init(object, mesh);
+    mesh_batch_cache_init(mesh);
   }
 }
 
@@ -1737,7 +1719,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     if (edit_mapping_valid) {
       DRW_ibo_request(cache.batch.edit_vnor, &mbuflist->ibo.points);
       DRW_vbo_request(cache.batch.edit_vnor, &mbuflist->vbo.pos);
-      if (!do_subdivision) {
+      if (!do_subdivision || do_cage) {
         /* For GPU subdivision, vertex normals are included in the `pos` VBO. */
         DRW_vbo_request(cache.batch.edit_vnor, &mbuflist->vbo.vnor);
       }

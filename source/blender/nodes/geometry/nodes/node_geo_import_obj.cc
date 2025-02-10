@@ -7,12 +7,9 @@
 #include "BLI_string.h"
 
 #include "BKE_instances.hh"
-#include "BKE_mesh.hh"
 #include "BKE_report.hh"
 
 #include "IO_wavefront_obj.hh"
-
-#include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_import_obj {
 
@@ -82,8 +79,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMPORT_OBJ, "Import OBJ", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeImportOBJ", GEO_NODE_IMPORT_OBJ);
+  ntype.ui_name = "Import OBJ";
+  ntype.ui_description = "Import geometry from an OBJ file";
   ntype.enum_name_legacy = "IMPORT_OBJ";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_import_node;

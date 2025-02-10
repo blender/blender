@@ -8,8 +8,6 @@
  * \ingroup sequencer
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -100,23 +98,23 @@ Array<float> make_gaussian_blur_kernel(float rad, int size)
   return gaussian;
 }
 
-static void init_noop(Strip * /*seq*/) {}
+static void init_noop(Strip * /*strip*/) {}
 
-static void load_noop(Strip * /*seq*/) {}
+static void load_noop(Strip * /*strip*/) {}
 
-static void free_noop(Strip * /*seq*/, const bool /*do_id_user*/) {}
+static void free_noop(Strip * /*strip*/, const bool /*do_id_user*/) {}
 
 static int num_inputs_default()
 {
   return 2;
 }
 
-static StripEarlyOut early_out_noop(const Strip * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_noop(const Strip * /*strip*/, float /*fac*/)
 {
   return StripEarlyOut::DoEffect;
 }
 
-StripEarlyOut early_out_fade(const Strip * /*seq*/, float fac)
+StripEarlyOut early_out_fade(const Strip * /*strip*/, float fac)
 {
   if (fac == 0.0f) {
     return StripEarlyOut::UseInput1;
@@ -127,7 +125,7 @@ StripEarlyOut early_out_fade(const Strip * /*seq*/, float fac)
   return StripEarlyOut::DoEffect;
 }
 
-StripEarlyOut early_out_mul_input2(const Strip * /*seq*/, float fac)
+StripEarlyOut early_out_mul_input2(const Strip * /*strip*/, float fac)
 {
   if (fac == 0.0f) {
     return StripEarlyOut::UseInput1;
@@ -135,7 +133,7 @@ StripEarlyOut early_out_mul_input2(const Strip * /*seq*/, float fac)
   return StripEarlyOut::DoEffect;
 }
 
-StripEarlyOut early_out_mul_input1(const Strip * /*seq*/, float fac)
+StripEarlyOut early_out_mul_input1(const Strip * /*strip*/, float fac)
 {
   if (fac == 0.0f) {
     return StripEarlyOut::UseInput2;
@@ -144,24 +142,23 @@ StripEarlyOut early_out_mul_input1(const Strip * /*seq*/, float fac)
 }
 
 static void get_default_fac_noop(const Scene * /*scene*/,
-                                 const Strip * /*seq*/,
+                                 const Strip * /*strip*/,
                                  float /*timeline_frame*/,
                                  float *fac)
 {
   *fac = 1.0f;
 }
 
-void get_default_fac_fade(const Scene *scene, const Strip *seq, float timeline_frame, float *fac)
+void get_default_fac_fade(const Scene *scene, const Strip *strip, float timeline_frame, float *fac)
 {
-  *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq));
-  *fac /= SEQ_time_strip_length_get(scene, seq);
+  *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, strip));
+  *fac /= SEQ_time_strip_length_get(scene, strip);
   *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
-SeqEffectHandle get_sequence_effect_impl(int seq_type)
+SeqEffectHandle get_sequence_effect_impl(int strip_type)
 {
   SeqEffectHandle rval;
-  int sequence_type = seq_type;
 
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
@@ -172,79 +169,79 @@ SeqEffectHandle get_sequence_effect_impl(int seq_type)
   rval.execute = nullptr;
   rval.copy = nullptr;
 
-  switch (sequence_type) {
-    case SEQ_TYPE_CROSS:
+  switch (strip_type) {
+    case STRIP_TYPE_CROSS:
       cross_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_GAMCROSS:
+    case STRIP_TYPE_GAMCROSS:
       gamma_cross_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ADD:
+    case STRIP_TYPE_ADD:
       add_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_SUB:
+    case STRIP_TYPE_SUB:
       sub_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_MUL:
+    case STRIP_TYPE_MUL:
       mul_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_SCREEN:
-    case SEQ_TYPE_OVERLAY:
-    case SEQ_TYPE_COLOR_BURN:
-    case SEQ_TYPE_LINEAR_BURN:
-    case SEQ_TYPE_DARKEN:
-    case SEQ_TYPE_LIGHTEN:
-    case SEQ_TYPE_DODGE:
-    case SEQ_TYPE_SOFT_LIGHT:
-    case SEQ_TYPE_HARD_LIGHT:
-    case SEQ_TYPE_PIN_LIGHT:
-    case SEQ_TYPE_LIN_LIGHT:
-    case SEQ_TYPE_VIVID_LIGHT:
-    case SEQ_TYPE_BLEND_COLOR:
-    case SEQ_TYPE_HUE:
-    case SEQ_TYPE_SATURATION:
-    case SEQ_TYPE_VALUE:
-    case SEQ_TYPE_DIFFERENCE:
-    case SEQ_TYPE_EXCLUSION:
+    case STRIP_TYPE_SCREEN:
+    case STRIP_TYPE_OVERLAY:
+    case STRIP_TYPE_COLOR_BURN:
+    case STRIP_TYPE_LINEAR_BURN:
+    case STRIP_TYPE_DARKEN:
+    case STRIP_TYPE_LIGHTEN:
+    case STRIP_TYPE_DODGE:
+    case STRIP_TYPE_SOFT_LIGHT:
+    case STRIP_TYPE_HARD_LIGHT:
+    case STRIP_TYPE_PIN_LIGHT:
+    case STRIP_TYPE_LIN_LIGHT:
+    case STRIP_TYPE_VIVID_LIGHT:
+    case STRIP_TYPE_BLEND_COLOR:
+    case STRIP_TYPE_HUE:
+    case STRIP_TYPE_SATURATION:
+    case STRIP_TYPE_VALUE:
+    case STRIP_TYPE_DIFFERENCE:
+    case STRIP_TYPE_EXCLUSION:
       blend_mode_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_COLORMIX:
+    case STRIP_TYPE_COLORMIX:
       color_mix_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAOVER:
       alpha_over_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_OVERDROP:
+    case STRIP_TYPE_OVERDROP:
       over_drop_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_ALPHAUNDER:
       alpha_under_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_WIPE:
+    case STRIP_TYPE_WIPE:
       wipe_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_GLOW:
+    case STRIP_TYPE_GLOW:
       glow_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_TRANSFORM:
+    case STRIP_TYPE_TRANSFORM:
       transform_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_SPEED:
+    case STRIP_TYPE_SPEED:
       speed_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_COLOR:
+    case STRIP_TYPE_COLOR:
       solid_color_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_MULTICAM:
+    case STRIP_TYPE_MULTICAM:
       multi_camera_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ADJUSTMENT:
+    case STRIP_TYPE_ADJUSTMENT:
       adjustment_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_GAUSSIAN_BLUR:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
       gaussian_blur_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_TEXT:
+    case STRIP_TYPE_TEXT:
       text_effect_get_handle(rval);
       break;
   }
@@ -252,46 +249,46 @@ SeqEffectHandle get_sequence_effect_impl(int seq_type)
   return rval;
 }
 
-SeqEffectHandle SEQ_effect_handle_get(Strip *seq)
+SeqEffectHandle SEQ_effect_handle_get(Strip *strip)
 {
   SeqEffectHandle rval = {};
 
-  if (seq->type & SEQ_TYPE_EFFECT) {
-    rval = get_sequence_effect_impl(seq->type);
-    if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
-      rval.load(seq);
-      seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+  if (strip->type & STRIP_TYPE_EFFECT) {
+    rval = get_sequence_effect_impl(strip->type);
+    if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+      rval.load(strip);
+      strip->flag &= ~SEQ_EFFECT_NOT_LOADED;
     }
   }
 
   return rval;
 }
 
-SeqEffectHandle seq_effect_get_sequence_blend(Strip *seq)
+SeqEffectHandle strip_effect_get_sequence_blend(Strip *strip)
 {
   SeqEffectHandle rval = {};
 
-  if (seq->blend_mode != 0) {
-    if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+  if (strip->blend_mode != 0) {
+    if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       /* load the effect first */
-      rval = get_sequence_effect_impl(seq->type);
-      rval.load(seq);
+      rval = get_sequence_effect_impl(strip->type);
+      rval.load(strip);
     }
 
-    rval = get_sequence_effect_impl(seq->blend_mode);
-    if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+    rval = get_sequence_effect_impl(strip->blend_mode);
+    if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       /* now load the blend and unset unloaded flag */
-      rval.load(seq);
-      seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+      rval.load(strip);
+      strip->flag &= ~SEQ_EFFECT_NOT_LOADED;
     }
   }
 
   return rval;
 }
 
-int SEQ_effect_get_num_inputs(int seq_type)
+int SEQ_effect_get_num_inputs(int strip_type)
 {
-  SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
+  SeqEffectHandle rval = get_sequence_effect_impl(strip_type);
 
   int count = rval.num_inputs();
   if (rval.execute) {

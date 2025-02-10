@@ -10,6 +10,10 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
+
+#include "DNA_anim_types.h"
+#include "DNA_listBase.h"
+
 #include "RNA_types.hh"
 
 #ifdef __cplusplus

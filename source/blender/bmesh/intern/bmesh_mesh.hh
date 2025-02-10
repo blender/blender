@@ -14,6 +14,8 @@
 
 #include "bmesh_class.hh"
 
+#include "intern/bmesh_operator_api.hh"
+
 struct BMAllocTemplate;
 
 void BM_mesh_elem_toolflags_ensure(BMesh *bm);
@@ -200,7 +202,7 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 #define BMALLOC_TEMPLATE_FROM_ME(...) \
   VA_NARGS_CALL_OVERLOAD(_VA_BMALLOC_TEMPLATE_FROM_ME_, __VA_ARGS__)
 
-void BM_mesh_vert_normals_get(BMesh *bm, blender::MutableSpan<blender::float3> positions);
+void BM_mesh_vert_normals_get(BMesh *bm, blender::MutableSpan<blender::float3> normals);
 
 /* Vertex coords access. */
 void BM_mesh_vert_coords_get(BMesh *bm, blender::MutableSpan<blender::float3> positions);

@@ -488,11 +488,24 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=1024,
     )
 
+    use_sample_subset: BoolProperty(
+        name="Use Sample Subset",
+        description="Render a subset of the specified max samples. Typically used for distributed rendering across multiple devices",
+        default=False,
+    )
+
     sample_offset: IntProperty(
-        name="Sample Offset",
-        description="Number of samples to skip when starting render",
+        name="Sample Subset Offset",
+        description="0-based index of sample to start rendering from",
         min=0, max=(1 << 24),
         default=0,
+    )
+
+    sample_subset_length: IntProperty(
+        name="Sample Subset Length",
+        description="The number of samples to render in this subset",
+        min=1, max=(1 << 24),
+        default=2048,
     )
 
     time_limit: FloatProperty(
@@ -1779,7 +1792,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.label(text=rpt_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "XX.XX.29735.20"
+                    driver_version = "XX.XX.31740.15"
                     col.label(
                         text=rpt_("Requires Intel GPU with Xe-HPG architecture and"),
                         icon='BLANK1',

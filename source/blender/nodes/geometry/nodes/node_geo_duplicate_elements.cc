@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
-#include "BLI_map.hh"
 #include "BLI_noise.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -21,6 +20,8 @@
 #include "node_geometry_util.hh"
 
 #include "NOD_rna_define.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -1243,9 +1244,11 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(
-      &ntype, GEO_NODE_DUPLICATE_ELEMENTS, "Duplicate Elements", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeDuplicateElements", GEO_NODE_DUPLICATE_ELEMENTS);
+  ntype.ui_name = "Duplicate Elements";
+  ntype.ui_description = "Generate an arbitrary number copies of each selected input element";
   ntype.enum_name_legacy = "DUPLICATE_ELEMENTS";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryDuplicateElements",
                                   node_free_standard_storage,

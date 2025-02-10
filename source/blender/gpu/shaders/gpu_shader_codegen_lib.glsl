@@ -103,8 +103,8 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 
 #endif
 
-/* Assumes GPU_VEC4 is color data. So converting to luminance like cycles. */
-#define float_from_vec4(v) dot(v.rgb, vec3(0.2126, 0.7152, 0.0722))
+/* Assumes GPU_VEC4 is color data, special case that needs luminance coefficients from OCIO. */
+#define float_from_vec4(v, luminance_coefficients) dot(v.rgb, luminance_coefficients)
 #define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0 / 3.0))
 #define float_from_vec2(v) v.r
 
@@ -334,21 +334,27 @@ vec3 dF_impl(vec3 v)
 
 void dF_branch(float fn, out vec2 result)
 {
+  /* NOTE: this function is currently unused, once it is used we need to check if `BUMP_DX/BUMP_DY`
+   * needs to be applied. */
   result.x = dFdx(fn);
   result.y = dFdy(fn);
 }
 
 #else
+/* Offset of coordinates for evaluating bump node. Unit in pixel. */
+#  define BUMP_DX 0.1
+#  define BUMP_DY BUMP_DX
+
 /* Precise derivatives */
 int g_derivative_flag = 0;
 
 vec3 dF_impl(vec3 v)
 {
   if (g_derivative_flag > 0) {
-    return dFdx(v);
+    return dFdx(v) * BUMP_DX;
   }
   else if (g_derivative_flag < 0) {
-    return dFdy(v);
+    return dFdy(v) * BUMP_DY;
   }
   return vec3(0.0);
 }

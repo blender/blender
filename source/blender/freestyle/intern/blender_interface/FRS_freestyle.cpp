@@ -7,10 +7,7 @@
  */
 
 #include <iostream>
-#include <map>
-#include <set>
 
-#include "../application/AppCanvas.h"
 #include "../application/AppConfig.h"
 #include "../application/AppView.h"
 #include "../application/Controller.h"
@@ -22,7 +19,6 @@ using namespace Freestyle;
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_material_types.h"
@@ -39,7 +35,6 @@ using namespace Freestyle;
 
 #include "BLT_translation.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

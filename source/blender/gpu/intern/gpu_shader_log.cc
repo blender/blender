@@ -9,8 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_dynstr.h"
-#include "BLI_string.h"
-#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_storage_buffer.hh"
@@ -212,7 +210,8 @@ void Shader::print_log(Span<StringRefNull> sources,
     /* Print the filename the error line is coming from. */
     if (!log_item.cursor.file_name_and_error_line.is_empty()) {
       char name_buf[256];
-      log_item.cursor.file_name_and_error_line.substr(0, sizeof(name_buf) - 1).copy(name_buf);
+      log_item.cursor.file_name_and_error_line.substr(0, sizeof(name_buf) - 1)
+          .copy_utf8_truncated(name_buf);
       BLI_dynstr_appendf(dynstr, "%s%s: %s", info_col, name_buf, reset_col);
     }
     else if (source_index > 0) {

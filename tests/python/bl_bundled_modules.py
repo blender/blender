@@ -34,7 +34,13 @@ from pxr import Usd
 import MaterialX
 import OpenImageIO
 import PyOpenColorIO
-import pyopenvdb
+
+# Test both old and new names, remove when all 4.4 libs have landed.
+try:
+    import pyopenvdb
+except ModuleNotFoundError:
+    import openvdb
+    import oslquery
 
 # Test modules in bundled Python standalone executable.
 if app == "Blender":

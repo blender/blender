@@ -8,8 +8,6 @@
 
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -642,7 +640,7 @@ static void tree_element_active_ebone__sel(bContext *C, bArmature *arm, EditBone
   if (sel) {
     arm->act_edbone = ebone;
   }
-  if (ANIM_bone_is_visible_editbone(arm, ebone) && ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
+  if (EBONE_SELECTABLE(arm, ebone)) {
     ED_armature_ebone_select_set(ebone, sel);
   }
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, CTX_data_edit_object(C));
@@ -736,21 +734,21 @@ static void tree_element_strip_activate(bContext *C,
                                         const eOLSetState set)
 {
   const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
-  Strip *seq = &te_strip->get_strip();
+  Strip *strip = &te_strip->get_strip();
   Editing *ed = SEQ_editing_get(scene);
 
-  if (BLI_findindex(ed->seqbasep, seq) != -1) {
+  if (BLI_findindex(ed->seqbasep, strip) != -1) {
     if (set == OL_SETSEL_EXTEND) {
       SEQ_select_active_set(scene, nullptr);
     }
     ED_sequencer_deselect_all(scene);
 
-    if ((set == OL_SETSEL_EXTEND) && seq->flag & SELECT) {
-      seq->flag &= ~SELECT;
+    if ((set == OL_SETSEL_EXTEND) && strip->flag & SELECT) {
+      strip->flag &= ~SELECT;
     }
     else {
-      seq->flag |= SELECT;
-      SEQ_select_active_set(scene, seq);
+      strip->flag |= SELECT;
+      SEQ_select_active_set(scene, strip);
     }
   }
 
@@ -762,7 +760,7 @@ static void tree_element_strip_dup_activate(Scene *scene, TreeElement * /*te*/)
   Editing *ed = SEQ_editing_get(scene);
 
 #if 0
-  select_single_seq(seq, 1);
+  select_single_seq(strip, 1);
 #endif
   Strip *p = static_cast<Strip *>(ed->seqbasep->first);
   while (p) {
@@ -772,7 +770,7 @@ static void tree_element_strip_dup_activate(Scene *scene, TreeElement * /*te*/)
     }
 
 #if 0
-    if (STREQ(p->strip->stripdata->filename, seq->data->stripdata->filename)) {
+    if (STREQ(p->strip->stripdata->filename, strip->data->stripdata->filename)) {
       select_single_seq(p, 0);
     }
 #endif
@@ -995,11 +993,6 @@ static eOLDrawState tree_element_posechannel_state_get(const Object *ob_pose,
 static eOLDrawState tree_element_viewlayer_state_get(const ViewLayer *view_layer,
                                                      const TreeElement *te)
 {
-  /* paranoia check */
-  if (te->idcode != ID_SCE) {
-    return OL_DRAWSEL_NONE;
-  }
-
   const ViewLayer *te_view_layer = static_cast<ViewLayer *>(te->directdata);
 
   if (view_layer == te_view_layer) {
@@ -1023,10 +1016,10 @@ static eOLDrawState tree_element_bone_collection_state_get(const TreeElement *te
 static eOLDrawState tree_element_strip_state_get(const Scene *scene, const TreeElement *te)
 {
   const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
-  const Strip *seq = &te_strip->get_strip();
+  const Strip *strip = &te_strip->get_strip();
   const Editing *ed = scene->ed;
 
-  if (ed && ed->act_seq == seq && seq->flag & SELECT) {
+  if (ed && ed->act_seq == strip && strip->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1035,8 +1028,8 @@ static eOLDrawState tree_element_strip_state_get(const Scene *scene, const TreeE
 static eOLDrawState tree_element_strip_dup_state_get(const TreeElement *te)
 {
   const TreeElementStripDuplicate *te_dup = tree_element_cast<TreeElementStripDuplicate>(te);
-  const Strip *seq = &te_dup->get_strip();
-  if (seq->flag & SELECT) {
+  const Strip *strip = &te_dup->get_strip();
+  if (strip->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1302,7 +1295,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bPoseChannel *pchan = outliner_find_parent_bone(te, &bone_te);
 
         if (pchan) {
-          ptr = RNA_pointer_create(TREESTORE(bone_te)->id, &RNA_PoseBone, pchan);
+          ptr = RNA_pointer_create_discrete(TREESTORE(bone_te)->id, &RNA_PoseBone, pchan);
           context = BCONTEXT_BONE_CONSTRAINT;
         }
         else {
@@ -1360,7 +1353,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bArmature *arm = (bArmature *)tselem->id;
         Bone *bone = static_cast<Bone *>(te->directdata);
 
-        ptr = RNA_pointer_create(&arm->id, &RNA_Bone, bone);
+        ptr = RNA_pointer_create_discrete(&arm->id, &RNA_Bone, bone);
         context = BCONTEXT_BONE;
         break;
       }
@@ -1368,7 +1361,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bArmature *arm = (bArmature *)tselem->id;
         EditBone *ebone = static_cast<EditBone *>(te->directdata);
 
-        ptr = RNA_pointer_create(&arm->id, &RNA_EditBone, ebone);
+        ptr = RNA_pointer_create_discrete(&arm->id, &RNA_EditBone, ebone);
         context = BCONTEXT_BONE;
         break;
       }
@@ -1377,7 +1370,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bArmature *arm = static_cast<bArmature *>(ob->data);
         bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 
-        ptr = RNA_pointer_create(&arm->id, &RNA_PoseBone, pchan);
+        ptr = RNA_pointer_create_discrete(&arm->id, &RNA_PoseBone, pchan);
         context = BCONTEXT_BONE;
         break;
       }
@@ -1385,14 +1378,14 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         Object *ob = (Object *)tselem->id;
         bArmature *arm = static_cast<bArmature *>(ob->data);
 
-        ptr = RNA_pointer_create(&arm->id, &RNA_Armature, arm);
+        ptr = RNA_pointer_create_discrete(&arm->id, &RNA_Armature, arm);
         context = BCONTEXT_DATA;
         break;
       }
       case TSE_R_LAYER: {
         ViewLayer *view_layer = static_cast<ViewLayer *>(te->directdata);
 
-        ptr = RNA_pointer_create(tselem->id, &RNA_ViewLayer, view_layer);
+        ptr = RNA_pointer_create_discrete(tselem->id, &RNA_ViewLayer, view_layer);
         context = BCONTEXT_VIEW_LAYER;
         break;
       }
@@ -1400,7 +1393,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         Object *ob = (Object *)tselem->id;
         ParticleSystem *psys = psys_get_current(ob);
 
-        ptr = RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys);
+        ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ParticleSystem, psys);
         context = BCONTEXT_PARTICLE;
         break;
       }
@@ -1410,15 +1403,15 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         context = BCONTEXT_DATA;
         break;
       case TSE_BONE_COLLECTION_BASE:
-        ptr = RNA_pointer_create(tselem->id, &RNA_Armature, tselem->id);
+        ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Armature, tselem->id);
         context = BCONTEXT_DATA;
         break;
       case TSE_BONE_COLLECTION:
-        ptr = RNA_pointer_create(tselem->id, &RNA_BoneCollection, te->directdata);
+        ptr = RNA_pointer_create_discrete(tselem->id, &RNA_BoneCollection, te->directdata);
         context = BCONTEXT_DATA;
         break;
       case TSE_LAYER_COLLECTION:
-        ptr = RNA_pointer_create(tselem->id, &RNA_Collection, te->directdata);
+        ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Collection, te->directdata);
         context = BCONTEXT_COLLECTION;
         break;
     }

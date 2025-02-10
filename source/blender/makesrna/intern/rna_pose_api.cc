@@ -6,17 +6,11 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
-#include "BLI_math_matrix.h"
-#include "BLI_utildefines.h"
-
 #include "RNA_define.hh"
-
-#include "DNA_object_types.h"
 
 /* #include "BLI_sys_types.h" */
 
@@ -35,6 +29,7 @@ using namespace blender;
 #  include "DNA_anim_types.h"
 
 #  include "BLI_ghash.h"
+#  include "BLI_math_matrix.h"
 
 #  include "ANIM_action.hh"
 #  include "ANIM_pose.hh"
@@ -129,11 +124,8 @@ static void rna_Pose_apply_pose_from_action(ID *pose_owner,
   BLI_assert(GS(pose_owner->name) == ID_OB);
   Object *pose_owner_ob = (Object *)pose_owner;
 
-  const animrig::slot_handle_t slot_handle = animrig::first_slot_handle(*action);
-
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
-  animrig::pose_apply_action_selected_bones(
-      pose_owner_ob, action, slot_handle, &anim_eval_context);
+  animrig::pose_apply_action({pose_owner_ob}, action->wrap(), &anim_eval_context, 1.0);
 
   /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
   DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);
@@ -149,11 +141,8 @@ static void rna_Pose_blend_pose_from_action(ID *pose_owner,
   BLI_assert(GS(pose_owner->name) == ID_OB);
   Object *pose_owner_ob = (Object *)pose_owner;
 
-  animrig::slot_handle_t slot_handle = animrig::first_slot_handle(*action);
-
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
-  animrig::pose_apply_action_blend(
-      pose_owner_ob, action, slot_handle, &anim_eval_context, blend_factor);
+  animrig::pose_apply_action({pose_owner_ob}, action->wrap(), &anim_eval_context, blend_factor);
 
   /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
   DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);
@@ -169,10 +158,7 @@ static void rna_Pose_backup_create(ID *pose_owner, bAction *action)
     return;
   }
   Object *pose_owner_ob = (Object *)pose_owner;
-  blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(*pose_owner,
-                                                                             action->wrap());
-
-  BKE_pose_backup_create_on_object(pose_owner_ob, action, slot.handle);
+  BKE_pose_backup_create_on_object(pose_owner_ob, action);
 }
 
 static bool rna_Pose_backup_restore(ID *pose_owner, bContext *C)

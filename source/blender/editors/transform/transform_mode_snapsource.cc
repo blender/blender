@@ -6,14 +6,16 @@
  * \ingroup edtransform
  */
 
+#include "DNA_space_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_windowmanager_types.h"
 
+#include "WM_types.hh"
+
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "ED_screen.hh"
 #include "ED_transform_snap_object_context.hh"
 
 #include "transform.hh"

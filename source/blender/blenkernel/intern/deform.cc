@@ -7,7 +7,6 @@
  */
 
 #include <cctype>
-#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -20,25 +19,21 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
-#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.hh" /* own include */
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 
@@ -56,7 +51,7 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const StringRef name)
 
   defgroup = MEM_cnew<bDeformGroup>(__func__);
 
-  name.copy(defgroup->name);
+  name.copy_utf8_truncated(defgroup->name);
 
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 
@@ -1211,7 +1206,6 @@ static void vgroups_datatransfer_interp(const CustomDataTransferLayerMap *laymap
 
   int i, j;
 
-  MDeformWeight *dw_src;
   MDeformWeight *dw_dst = BKE_defvert_find_index(data_dst, idx_dst);
   float weight_src = 0.0f, weight_dst = 0.0f;
 
@@ -1219,7 +1213,8 @@ static void vgroups_datatransfer_interp(const CustomDataTransferLayerMap *laymap
   if (sources) {
     for (i = count; i--;) {
       for (j = data_src[i]->totweight; j--;) {
-        if ((dw_src = &data_src[i]->dw[j])->def_nr == idx_src) {
+        const MDeformWeight *dw_src = &data_src[i]->dw[j];
+        if (dw_src->def_nr == idx_src) {
           weight_src += dw_src->weight * weights[i];
           has_dw_sources = true;
           break;
@@ -1362,7 +1357,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
           continue;
         }
 
-        if ((idx_dst = BKE_object_defgroup_name_index(ob_dst, dg_src->name)) == -1) {
+        idx_dst = BKE_object_defgroup_name_index(ob_dst, dg_src->name);
+        if (idx_dst == -1) {
           if (use_create) {
             BKE_object_defgroup_add_name(ob_dst, dg_src->name);
             idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1;
@@ -1478,7 +1474,8 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
       UNUSED_VARS_NDEBUG(dst_defbase);
     }
     else if (tolayers == DT_LAYERS_ACTIVE_DST) {
-      if ((idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1) == -1) {
+      idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1;
+      if (idx_dst == -1) {
         bDeformGroup *dg_src;
         if (!use_create) {
           return true;
@@ -1503,7 +1500,8 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
       bDeformGroup *dg_src = static_cast<bDeformGroup *>(BLI_findlink(src_defbase, idx_src));
-      if ((idx_dst = BKE_object_defgroup_name_index(ob_dst, dg_src->name)) == -1) {
+      idx_dst = BKE_object_defgroup_name_index(ob_dst, dg_src->name);
+      if (idx_dst == -1) {
         if (!use_create) {
           return true;
         }

@@ -14,7 +14,7 @@
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_node.hh"
 
 #include "BLT_translation.hh"
@@ -28,11 +28,9 @@
 #include "DNA_anim_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_particle_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_path.hh"
 
 namespace blender::animrig {
 

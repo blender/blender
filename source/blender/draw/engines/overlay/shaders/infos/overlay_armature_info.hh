@@ -134,6 +134,7 @@ PUSH_CONSTANT(BOOL, do_smooth_wire)
 STORAGE_BUF_FREQ(0, READ, float, pos[], GEOMETRY)
 STORAGE_BUF(1, READ, mat4, data_buf[])
 PUSH_CONSTANT(IVEC2, gpu_attr_0)
+PUSH_CONSTANT(BOOL, use_arrow_drawing)
 VERTEX_OUT(overlay_armature_shape_wire_iface)
 VERTEX_SOURCE("overlay_armature_shape_wire_vert.glsl")
 FRAGMENT_SOURCE("overlay_armature_shape_wire_frag.glsl")
@@ -145,6 +146,14 @@ ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_VARIATIONS(overlay_armature_shape_wire)
+
+GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire_strip)
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(overlay_armature_shape_wire)
+DEFINE("FROM_LINE_STRIP")
+GPU_SHADER_CREATE_END()
+
+OVERLAY_INFO_VARIATIONS(overlay_armature_shape_wire_strip)
 
 /** \} */
 

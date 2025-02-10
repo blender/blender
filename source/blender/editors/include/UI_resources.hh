@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
+#include "BLI_assert.h"
 
 struct bTheme;
 

@@ -13,12 +13,14 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
 
+#include "RNA_types.hh"
+
+struct IDProperty;
 struct wmGizmo;
 struct wmGizmoType;
 struct wmGizmoGroup;

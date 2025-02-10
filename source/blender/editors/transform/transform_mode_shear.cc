@@ -6,9 +6,8 @@
  * \ingroup edtransform
  */
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
 
@@ -304,7 +303,7 @@ static void apply_shear(TransInfo *t)
   /* Header print for NumInput. */
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
     SNPRINTF(str, IFACE_("Shear: %s %s"), c, t->proptext);
   }
   else {

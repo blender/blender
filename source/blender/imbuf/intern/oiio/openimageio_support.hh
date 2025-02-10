@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include <memory>
-
 /* Include our own math header first to avoid warnings about M_PI
  * redefinition between OpenImageIO and Windows headers. */
-#include "BLI_math_base.h"
+#include "BLI_math_base.h"  // IWYU pragma: keep
 #include "BLI_sys_types.h"
 
 #include <OpenImageIO/filesystem.h>

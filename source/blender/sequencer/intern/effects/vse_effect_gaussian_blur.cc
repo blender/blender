@@ -19,13 +19,13 @@
 
 using namespace blender;
 
-static void init_gaussian_blur_effect(Strip *seq)
+static void init_gaussian_blur_effect(Strip *strip)
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
+  if (strip->effectdata) {
+    MEM_freeN(strip->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(GaussianBlurVars), "gaussianblurvars");
+  strip->effectdata = MEM_callocN(sizeof(GaussianBlurVars), "gaussianblurvars");
 }
 
 static int num_inputs_gaussian_blur()
@@ -33,9 +33,9 @@ static int num_inputs_gaussian_blur()
   return 1;
 }
 
-static void free_gaussian_blur_effect(Strip *seq, const bool /*do_id_user*/)
+static void free_gaussian_blur_effect(Strip *strip, const bool /*do_id_user*/)
 {
-  MEM_SAFE_FREE(seq->effectdata);
+  MEM_SAFE_FREE(strip->effectdata);
 }
 
 static void copy_gaussian_blur_effect(Strip *dst, const Strip *src, const int /*flag*/)
@@ -43,9 +43,9 @@ static void copy_gaussian_blur_effect(Strip *dst, const Strip *src, const int /*
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static StripEarlyOut early_out_gaussian_blur(const Strip *seq, float /*fac*/)
+static StripEarlyOut early_out_gaussian_blur(const Strip *strip, float /*fac*/)
 {
-  GaussianBlurVars *data = static_cast<GaussianBlurVars *>(seq->effectdata);
+  GaussianBlurVars *data = static_cast<GaussianBlurVars *>(strip->effectdata);
   if (data->size_x == 0.0f && data->size_y == 0) {
     return StripEarlyOut::UseInput1;
   }
@@ -136,7 +136,7 @@ static void gaussian_blur_y(const Span<float> gaussian,
 }
 
 static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
-                                      Strip *seq,
+                                      Strip *strip,
                                       float /*timeline_frame*/,
                                       float /*fac*/,
                                       ImBuf *ibuf1,
@@ -145,7 +145,7 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
   using namespace blender;
 
   /* Create blur kernel weights. */
-  const GaussianBlurVars *data = static_cast<const GaussianBlurVars *>(seq->effectdata);
+  const GaussianBlurVars *data = static_cast<const GaussianBlurVars *>(strip->effectdata);
   const int half_size_x = int(data->size_x + 0.5f);
   const int half_size_y = int(data->size_y + 0.5f);
   Array<float> gaussian_x = make_gaussian_blur_kernel(data->size_x, half_size_x);

@@ -26,8 +26,6 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
-#include "bmesh.hh"
-
 #include "mesh_brush_common.hh"
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
@@ -170,7 +168,7 @@ template<typename ImageBuffer> class PaintingKernel {
   const char *last_used_color_space_ = nullptr;
 
  public:
-  explicit PaintingKernel() {}
+  explicit PaintingKernel() = default;
 
   bool paint(const Brush &brush,
              const PackedPixelRow &pixel_row,

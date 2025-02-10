@@ -13,7 +13,7 @@
 struct bContext;
 
 /* For 'FILE'. */
-#include <stdio.h>
+#include <cstdio>
 
 /* `bpy_interface.cc` */
 

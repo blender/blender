@@ -8,14 +8,10 @@
 
 #pragma once
 
+#include "ED_fileselect.hh"
+
 /* XXX could become UserPref */
 #define FSMENU_RECENT_MAX 10
-
-enum FSMenuCategory;
-enum FSMenuInsert;
-
-struct FSMenu;
-struct FSMenuEntry;
 
 #ifdef __cplusplus
 extern "C" {

@@ -4,8 +4,9 @@
 
 #include "node_geometry_util.hh"
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_lib_id.hh"
-#include "BKE_mesh.hh"
 
 #include "GEO_mesh_to_volume.hh"
 
@@ -162,8 +163,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_TO_VOLUME, "Mesh to Volume", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeMeshToVolume", GEO_NODE_MESH_TO_VOLUME);
+  ntype.ui_name = "Mesh to Volume";
+  ntype.ui_description = "Create a fog volume with the shape of the input mesh's surface";
   ntype.enum_name_legacy = "MESH_TO_VOLUME";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   bke::node_type_size(&ntype, 200, 120, 700);
   ntype.initfunc = node_init;

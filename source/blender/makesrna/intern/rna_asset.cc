@@ -15,7 +15,6 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_defs.h"
-#include "DNA_space_types.h"
 
 #include "rna_internal.hh"
 
@@ -53,9 +52,10 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 #  include "BKE_asset.hh"
 #  include "BKE_context.hh"
-#  include "BKE_idprop.hh"
+#  include "BKE_report.hh"
 
 #  include "BLI_listbase.h"
+#  include "BLI_string.h"
 #  include "BLI_uuid.h"
 
 #  include "ED_asset.hh"
@@ -376,8 +376,8 @@ static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
 {
   AssetHandle *asset_handle = static_cast<AssetHandle *>(ptr->data);
   /* Have to cast away const, but the file entry API doesn't allow modifications anyway. */
-  return rna_pointer_inherit_refine(
-      ptr, &RNA_FileSelectEntry, (FileDirEntry *)asset_handle->file_data);
+  return RNA_pointer_create_with_parent(
+      *ptr, &RNA_FileSelectEntry, (FileDirEntry *)asset_handle->file_data);
 }
 
 static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
@@ -414,10 +414,10 @@ static PointerRNA rna_AssetRepresentation_metadata_get(PointerRNA *ptr)
 
   if (asset->is_local_id()) {
     PointerRNA id_ptr = RNA_id_pointer_create(asset->local_id());
-    return rna_pointer_inherit_refine(&id_ptr, &RNA_AssetMetaData, &asset_data);
+    return RNA_pointer_create_with_parent(id_ptr, &RNA_AssetMetaData, &asset_data);
   }
 
-  return rna_pointer_inherit_refine(ptr, &RNA_AssetMetaData, &asset_data);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_AssetMetaData, &asset_data);
 }
 
 static int rna_AssetRepresentation_id_type_get(PointerRNA *ptr)
@@ -429,7 +429,7 @@ static int rna_AssetRepresentation_id_type_get(PointerRNA *ptr)
 static PointerRNA rna_AssetRepresentation_local_id_get(PointerRNA *ptr)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
-  return rna_pointer_inherit_refine(ptr, &RNA_ID, asset->local_id());
+  return RNA_id_pointer_create(asset->local_id());
 }
 
 static void rna_AssetRepresentation_full_library_path_get(PointerRNA *ptr, char *value)
@@ -465,7 +465,10 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(true);
+  const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(
+      /* Include all valid libraries for the user to choose from. */
+      /*include_readonly=*/true,
+      /*include_current_file=*/true);
   if (!items) {
     *r_free = false;
     return rna_enum_dummy_NULL_items;

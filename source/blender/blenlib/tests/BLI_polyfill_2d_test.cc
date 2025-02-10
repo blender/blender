@@ -36,7 +36,7 @@ static void polyfill_to_obj(const char *id,
                             const uint tris[][3],
                             const uint tris_num);
 
-using ePolyFill2DTestFlag = enum ePolyFill2DTestFlag {
+enum ePolyFill2DTestFlag {
   POLYFILL2D_TEST_IS_DEGENERATE = (1 << 0),
   POLYFILL2D_TEST_NO_ZERO_AREA_TRIS = (1 << 1),
   POLYFILL2D_TEST_NOP = 0,

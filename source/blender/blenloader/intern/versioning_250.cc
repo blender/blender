@@ -34,7 +34,6 @@
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
@@ -42,10 +41,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.hh"
@@ -57,8 +58,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
-#include "BKE_multires.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_particle.h"
 #include "BKE_screen.hh"
@@ -72,6 +73,7 @@
 
 #include "versioning_common.hh"
 
+#include <algorithm>
 #include <cerrno>
 
 /* Make preferences read-only, use `versioning_userdef.cc`. */
@@ -616,36 +618,36 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
   }
 }
 
-static bool seq_sound_proxy_update_cb(Strip *seq, void * /*user_data*/)
+static bool strip_sound_proxy_update_cb(Strip *strip, void * /*user_data*/)
 {
-#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
-#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
+#define STRIP_USE_PROXY_CUSTOM_DIR (1 << 19)
+#define STRIP_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
-  if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    SNPRINTF(seq->data->proxy->dirpath, "%s" SEP_STR "BL_proxy", seq->data->dirpath);
+  if ((strip->flag & STRIP_USE_PROXY_CUSTOM_FILE) && !(strip->flag & STRIP_USE_PROXY_CUSTOM_DIR)) {
+    SNPRINTF(strip->data->proxy->dirpath, "%s" SEP_STR "BL_proxy", strip->data->dirpath);
   }
-#undef SEQ_USE_PROXY_CUSTOM_DIR
-#undef SEQ_USE_PROXY_CUSTOM_FILE
+#undef STRIP_USE_PROXY_CUSTOM_DIR
+#undef STRIP_USE_PROXY_CUSTOM_FILE
   return true;
 }
 
-static bool seq_set_volume_cb(Strip *seq, void * /*user_data*/)
+static bool strip_set_volume_cb(Strip *strip, void * /*user_data*/)
 {
-  seq->volume = 1.0f;
+  strip->volume = 1.0f;
   return true;
 }
 
-static bool seq_set_sat_cb(Strip *seq, void * /*user_data*/)
+static bool strip_set_sat_cb(Strip *strip, void * /*user_data*/)
 {
-  if (seq->sat == 0.0f) {
-    seq->sat = 1.0f;
+  if (strip->sat == 0.0f) {
+    strip->sat = 1.0f;
   }
   return true;
 }
 
-static bool seq_set_pitch_cb(Strip *seq, void * /*user_data*/)
+static bool strip_set_pitch_cb(Strip *strip, void * /*user_data*/)
 {
-  seq->pitch = 1.0f;
+  strip->pitch = 1.0f;
   return true;
 }
 
@@ -668,7 +670,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_sound_proxy_update_cb, bmain);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_sound_proxy_update_cb, bmain);
       }
     }
 
@@ -718,7 +720,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
         /* which_output 0 is now "not specified" */
         LISTBASE_FOREACH (bNode *, node, &tx->nodetree->nodes) {
-          if (node->type == TEX_NODE_OUTPUT) {
+          if (node->type_legacy == TEX_NODE_OUTPUT) {
             node->custom1++;
           }
         }
@@ -935,7 +937,6 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 7)) {
-    Key *key;
     const float *data;
     int a, tot;
 
@@ -943,10 +944,9 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
      * to the evaluated #Mesh, so here we ensure that the basis
      * shape key is always set in the mesh coordinates. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      if ((key = static_cast<Key *>(
-               blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key))) &&
-          key->refkey)
-      {
+      Key *key = static_cast<Key *>(
+          blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key));
+      if (key && key->refkey) {
         data = static_cast<const float *>(key->refkey->data);
         tot = std::min(me->verts_num, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(
@@ -958,10 +958,9 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Lattice *, lt, &bmain->lattices) {
-      if ((key = static_cast<Key *>(
-               blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key))) &&
-          key->refkey)
-      {
+      Key *key = static_cast<Key *>(
+          blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key));
+      if (key && key->refkey) {
         data = static_cast<const float *>(key->refkey->data);
         tot = std::min(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
@@ -972,10 +971,9 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
-      if ((key = static_cast<Key *>(
-               blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key))) &&
-          key->refkey)
-      {
+      Key *key = static_cast<Key *>(
+          blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key));
+      if (key && key->refkey) {
         data = static_cast<const float *>(key->refkey->data);
 
         LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
@@ -1339,7 +1337,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         sce->r.ffcodecdata.audio_codec = 0x0; /* `CODEC_ID_NONE` */
       }
       if (sce->ed) {
-        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_volume_cb, nullptr);
+        SEQ_for_each_callback(&sce->ed->seqbase, strip_set_volume_cb, nullptr);
       }
     }
 
@@ -1424,7 +1422,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         bNode *node = static_cast<bNode *>(scene->nodetree->nodes.first);
 
         while (node) {
-          if (node->type == CMP_NODE_COLORBALANCE) {
+          if (node->type_legacy == CMP_NODE_COLORBALANCE) {
             NodeColorBalance *n = (NodeColorBalance *)node->storage;
             n->lift[0] += 1.0f;
             n->lift[1] += 1.0f;
@@ -1439,7 +1437,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       bNode *node = static_cast<bNode *>(ntree->nodes.first);
 
       while (node) {
-        if (node->type == CMP_NODE_COLORBALANCE) {
+        if (node->type_legacy == CMP_NODE_COLORBALANCE) {
           NodeColorBalance *n = (NodeColorBalance *)node->storage;
           n->lift[0] += 1.0f;
           n->lift[1] += 1.0f;
@@ -1487,21 +1485,13 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
               regionbase = &sl->regionbase;
             }
 
-            if (snode->v2d.minzoom > 0.09f) {
-              snode->v2d.minzoom = 0.09f;
-            }
-            if (snode->v2d.maxzoom < 2.31f) {
-              snode->v2d.maxzoom = 2.31f;
-            }
+            snode->v2d.minzoom = std::min(snode->v2d.minzoom, 0.09f);
+            snode->v2d.maxzoom = std::max(snode->v2d.maxzoom, 2.31f);
 
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
-                if (region->v2d.minzoom > 0.09f) {
-                  region->v2d.minzoom = 0.09f;
-                }
-                if (region->v2d.maxzoom < 2.31f) {
-                  region->v2d.maxzoom = 2.31f;
-                }
+                region->v2d.minzoom = std::min(region->v2d.minzoom, 0.09f);
+                region->v2d.maxzoom = std::max(region->v2d.maxzoom, 2.31f);
               }
             }
           }
@@ -1525,7 +1515,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
             amd = (ArmatureModifierData *)BKE_modifier_new(eModifierType_Armature);
             amd->object = ob->parent;
-            BLI_addtail((ListBase *)&ob->modifiers, amd);
+            BLI_addtail((&ob->modifiers), amd);
             amd->deformflag = arm->deformflag;
             ob->partype = PAROBJECT;
           }
@@ -1534,7 +1524,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
             lmd = (LatticeModifierData *)BKE_modifier_new(eModifierType_Lattice);
             lmd->object = ob->parent;
-            BLI_addtail((ListBase *)&ob->modifiers, lmd);
+            BLI_addtail((&ob->modifiers), lmd);
             ob->partype = PAROBJECT;
           }
           else if (parent->type == OB_CURVES_LEGACY && ob->partype == PARCURVE) {
@@ -1542,7 +1532,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
             cmd = (CurveModifierData *)BKE_modifier_new(eModifierType_Curve);
             cmd->object = ob->parent;
-            BLI_addtail((ListBase *)&ob->modifiers, cmd);
+            BLI_addtail((&ob->modifiers), cmd);
             ob->partype = PAROBJECT;
           }
         }
@@ -1574,7 +1564,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_sat_cb, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_set_sat_cb, nullptr);
       }
     }
 
@@ -1951,7 +1941,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->nodetree) {
         LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
-          if (node->type == CMP_NODE_BLUR) {
+          if (node->type_legacy == CMP_NODE_BLUR) {
             NodeBlurData *nbd = static_cast<NodeBlurData *>(node->storage);
             nbd->percentx *= 100.0f;
             nbd->percenty *= 100.0f;
@@ -2005,7 +1995,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       scene->r.ffcodecdata.audio_channels = 2;
       scene->audio.volume = 1.0f;
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_pitch_cb, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_set_pitch_cb, nullptr);
       }
     }
 

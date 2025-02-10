@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_task.hh"
-
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
@@ -73,8 +71,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_REVERSE_CURVE, "Reverse Curve", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeReverseCurve", GEO_NODE_REVERSE_CURVE);
+  ntype.ui_name = "Reverse Curve";
+  ntype.ui_description = "Change the direction of curves by swapping their start and end data";
   ntype.enum_name_legacy = "REVERSE_CURVE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

@@ -47,23 +47,30 @@ void *device_memory::host_alloc(const size_t size)
 
   void *ptr = util_aligned_malloc(size, MIN_ALIGNMENT_CPU_DATA_TYPES);
 
-  if (ptr) {
-    util_guarded_mem_alloc(size);
-  }
-  else {
+  if (ptr == nullptr) {
     throw std::bad_alloc();
   }
 
   return ptr;
 }
 
-void device_memory::host_free()
+void device_memory::host_and_device_free()
 {
   if (host_pointer) {
-    util_guarded_mem_free(memory_size());
-    util_aligned_free(host_pointer);
+    if (host_pointer != shared_pointer) {
+      util_aligned_free(host_pointer, memory_size());
+    }
     host_pointer = nullptr;
   }
+
+  if (device_pointer) {
+    device->mem_free(*this);
+  }
+
+  data_size = 0;
+  data_width = 0;
+  data_height = 0;
+  data_depth = 0;
 }
 
 void device_memory::device_alloc()
@@ -72,17 +79,17 @@ void device_memory::device_alloc()
   device->mem_alloc(*this);
 }
 
-void device_memory::device_free()
-{
-  if (device_pointer) {
-    device->mem_free(*this);
-  }
-}
-
 void device_memory::device_copy_to()
 {
   if (host_pointer) {
     device->mem_copy_to(*this);
+  }
+}
+
+void device_memory::device_move_to_host()
+{
+  if (host_pointer) {
+    device->mem_move_to_host(*this);
   }
 }
 
@@ -127,6 +134,11 @@ void device_memory::restore_device()
 bool device_memory::is_resident(Device *sub_device) const
 {
   return device->is_resident(device_pointer, sub_device);
+}
+
+bool device_memory::is_host_mapped(Device *sub_device) const
+{
+  return device->is_host_mapped(shared_pointer, device_pointer, sub_device);
 }
 
 /* Device Sub `ptr`. */
@@ -201,8 +213,7 @@ device_texture::device_texture(Device *device,
 
 device_texture::~device_texture()
 {
-  device_free();
-  host_free();
+  host_and_device_free();
 }
 
 /* Host memory allocation. */
@@ -211,8 +222,7 @@ void *device_texture::alloc(const size_t width, const size_t height, const size_
   const size_t new_size = size(width, height, depth);
 
   if (new_size != data_size) {
-    device_free();
-    host_free();
+    host_and_device_free();
     host_pointer = host_alloc(data_elements * datatype_size(data_type) * new_size);
     assert(device_pointer == 0);
   }

@@ -34,6 +34,7 @@ set(SRC
   intern/keyingsets.cc
   intern/nla.cc
   intern/pose.cc
+  intern/versioning.cc
   intern/visualkey.cc
 
   ANIM_action.hh
@@ -51,6 +52,7 @@ set(SRC
   ANIM_nla.hh
   ANIM_pose.hh
   ANIM_rna.hh
+  ANIM_versioning.hh
   ANIM_visualkey.hh
   intern/action_runtime.hh
   intern/bone_collections_internal.hh
@@ -60,6 +62,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   bf::blenlib
+  PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   bf::dna
@@ -84,6 +87,7 @@ if(WITH_GTESTS)
     intern/keyframing_test.cc
     intern/nla_test.cc
     intern/pose_test.cc
+    intern/versioning_test.cc
   )
   set(TEST_LIB
     PRIVATE bf::animrig

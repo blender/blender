@@ -12,7 +12,7 @@
 
 #include <array>
 
-typedef enum {
+enum NDOF_DeviceT {
   NDOF_UnknownDevice = 0,
 
   /* Current devices. */
@@ -31,16 +31,16 @@ typedef enum {
   NDOF_Spaceball5000,
   NDOF_SpaceTraveler
 
-} NDOF_DeviceT;
+};
 
-typedef std::array<GHOST_NDOF_ButtonT, 6> NDOF_Button_Array;
+using NDOF_Button_Array = std::array<GHOST_NDOF_ButtonT, 6>;
 
-typedef enum { ShortButton, LongButton } NDOF_Button_Type;
+enum NDOF_Button_Type { ShortButton, LongButton };
 
 class GHOST_NDOFManager {
  public:
   GHOST_NDOFManager(GHOST_System &);
-  virtual ~GHOST_NDOFManager() {}
+  virtual ~GHOST_NDOFManager() = default;
 
   /**
    * Whether multi-axis functionality is available (via the OS or driver)

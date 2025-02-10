@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
 #include "logImageCore.h"
 
@@ -23,10 +23,10 @@ extern "C" {
 #define DPX_UNDEFINED_U16 0xFFFF
 #define DPX_UNDEFINED_U32 0xFFFFFFFF
 #define DPX_UNDEFINED_R32 NAN
-#define IS_DPX_UNDEFINED_R32(x) isnan(x)
+#define IS_DPX_UNDEFINED_R32(x) std::isnan(x)
 #define DPX_UNDEFINED_CHAR 0
 
-typedef struct {
+struct DpxFileHeader {
   unsigned int magic_num;
   unsigned int offset;
   char version[8];
@@ -42,9 +42,9 @@ typedef struct {
   char copyright[200];
   unsigned int key;
   char reserved[104];
-} DpxFileHeader;
+};
 
-typedef struct {
+struct DpxElementHeader {
   unsigned int data_sign;
   unsigned int ref_low_data;
   float ref_low_quantity;
@@ -60,18 +60,18 @@ typedef struct {
   unsigned int line_padding;
   unsigned int element_padding;
   char description[32];
-} DpxElementHeader;
+};
 
-typedef struct {
+struct DpxImageHeader {
   unsigned short orientation;
   unsigned short elements_per_image;
   unsigned int pixels_per_line;
   unsigned int lines_per_element;
   DpxElementHeader element[8];
   char reserved[52];
-} DpxImageHeader;
+};
 
-typedef struct {
+struct DpxOrientationHeader {
   unsigned int x_offset;
   unsigned int y_offset;
   float x_center;
@@ -85,9 +85,9 @@ typedef struct {
   unsigned short border_validity[4];
   unsigned int pixel_aspect_ratio[2];
   char reserved[28];
-} DpxOrientationHeader;
+};
 
-typedef struct {
+struct DpxFilmHeader {
   char film_manufacturer_id[2];
   char film_type[2];
   char edge_code_perforation_offset[2];
@@ -102,9 +102,9 @@ typedef struct {
   char frame_identification[32];
   char slate_info[100];
   char reserved[56];
-} DpxFilmHeader;
+};
 
-typedef struct {
+struct DpxTelevisionHeader {
   unsigned int time_code;
   unsigned int user_bits;
   unsigned char interlace;
@@ -122,15 +122,15 @@ typedef struct {
   float white_level;
   float integration_times;
   unsigned char reserved[76];
-} DpxTelevisionHeader;
+};
 
-typedef struct {
+struct DpxMainHeader {
   DpxFileHeader fileHeader;
   DpxImageHeader imageHeader;
   DpxOrientationHeader orientationHeader;
   DpxFilmHeader filmHeader;
   DpxTelevisionHeader televisionHeader;
-} DpxMainHeader;
+};
 
 void dpxSetVerbose(int verbosity);
 LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize);

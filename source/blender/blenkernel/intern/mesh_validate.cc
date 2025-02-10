@@ -8,14 +8,12 @@
 
 #include <algorithm>
 #include <climits>
-#include <cstdio>
 #include <cstring>
 
 #include "CLG_log.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
@@ -24,7 +22,6 @@
 #include "BLI_sort.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
-#include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
@@ -1164,6 +1161,9 @@ bool BKE_mesh_validate_material_indices(Mesh *mesh)
 
 void strip_loose_faces_corners(Mesh *mesh, blender::BitSpan faces_to_remove)
 {
+  /* Ensure layers are mutable so that #CustomData_copy_data can be used. */
+  CustomData_ensure_layers_are_mutable(&mesh->face_data, mesh->faces_num);
+
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
 
@@ -1238,6 +1238,9 @@ void strip_loose_faces_corners(Mesh *mesh, blender::BitSpan faces_to_remove)
 
 void mesh_strip_edges(Mesh *mesh)
 {
+  /* Ensure layers are mutable so that #CustomData_copy_data can be used. */
+  CustomData_ensure_layers_are_mutable(&mesh->edge_data, mesh->edges_num);
+
   blender::int2 *e;
   int a, b;
   uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * mesh->edges_num, __func__);

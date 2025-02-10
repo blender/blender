@@ -20,7 +20,7 @@ extern "C" {
 
 #include <cstring>
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 struct Knot {
   Knot *next, *prev;

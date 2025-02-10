@@ -20,7 +20,7 @@ class TreeElementIDGreasePencil final : public TreeElementID {
  public:
   TreeElementIDGreasePencil(TreeElement &legacy_te, GreasePencil &grease_pencil_);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_layer_tree() const;

@@ -2,10 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_cache.hh"
+#include "draw_common_c.hh"
+
 #include "workbench_private.hh"
 
 #include "BKE_volume.hh"
 #include "BKE_volume_render.hh"
+#include "BLI_math_geom.h"
 #include "BLI_rand.h"
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"

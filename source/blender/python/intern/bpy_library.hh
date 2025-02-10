@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 int BPY_library_load_type_ready();
 
 extern PyMethodDef BPY_library_load_method_def;

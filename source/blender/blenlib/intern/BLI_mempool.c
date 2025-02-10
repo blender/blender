@@ -35,7 +35,7 @@
 #  include "valgrind/memcheck.h"
 #endif
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 #ifdef WITH_ASAN
 #  define POISON_REDZONE_SIZE 32

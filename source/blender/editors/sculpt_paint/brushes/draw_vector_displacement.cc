@@ -14,9 +14,7 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
-#include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 
@@ -34,7 +32,6 @@ struct LocalData {
   Vector<float3> positions;
   Vector<float> factors;
   Vector<float> distances;
-  Vector<float4> colors;
   Vector<float3> translations;
 };
 
@@ -42,8 +39,7 @@ static void calc_brush_texture_colors(SculptSession &ss,
                                       const Brush &brush,
                                       const Span<float3> vert_positions,
                                       const Span<int> verts,
-                                      const Span<float> factors,
-                                      const MutableSpan<float4> r_colors)
+                                      const MutableSpan<float3> r_colors)
 {
   BLI_assert(verts.size() == r_colors.size());
 
@@ -56,15 +52,14 @@ static void calc_brush_texture_colors(SculptSession &ss,
     sculpt_apply_texture(
         ss, brush, vert_positions[verts[i]], thread_id, &texture_value, texture_rgba);
 
-    r_colors[i] = texture_rgba * factors[i];
+    r_colors[i] = float3(texture_rgba);
   }
 }
 
 static void calc_brush_texture_colors(SculptSession &ss,
                                       const Brush &brush,
                                       const Span<float3> positions,
-                                      const Span<float> factors,
-                                      const MutableSpan<float4> r_colors)
+                                      const MutableSpan<float3> r_colors)
 {
   BLI_assert(positions.size() == r_colors.size());
 
@@ -75,8 +70,7 @@ static void calc_brush_texture_colors(SculptSession &ss,
     float4 texture_rgba;
     /* NOTE: This is not a thread-safe call. */
     sculpt_apply_texture(ss, brush, positions[i], thread_id, &texture_value, texture_rgba);
-
-    r_colors[i] = texture_rgba * factors[i];
+    r_colors[i] = float3(texture_rgba);
   }
 }
 
@@ -113,14 +107,12 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  tls.colors.resize(verts.size());
-  const MutableSpan<float4> colors = tls.colors;
-  calc_brush_texture_colors(ss, brush, position_data.eval, verts, factors, colors);
-
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
+  calc_brush_texture_colors(ss, brush, position_data.eval, verts, translations);
+  scale_translations(translations, factors);
   for (const int i : verts.index_range()) {
-    SCULPT_calc_vertex_displacement(ss, brush, colors[i], translations[i]);
+    SCULPT_calc_vertex_displacement(ss, brush, translations[i]);
   }
 
   clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
@@ -158,14 +150,12 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
-  tls.colors.resize(positions.size());
-  const MutableSpan<float4> colors = tls.colors;
-  calc_brush_texture_colors(ss, brush, positions, factors, colors);
-
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
+  calc_brush_texture_colors(ss, brush, positions, translations);
+  scale_translations(translations, factors);
   for (const int i : positions.index_range()) {
-    SCULPT_calc_vertex_displacement(ss, brush, colors[i], translations[i]);
+    SCULPT_calc_vertex_displacement(ss, brush, translations[i]);
   }
 
   clip_and_lock_translations(sd, ss, positions, translations);
@@ -202,14 +192,12 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  tls.colors.resize(verts.size());
-  const MutableSpan<float4> colors = tls.colors;
-  calc_brush_texture_colors(ss, brush, positions, factors, colors);
-
-  tls.translations.resize(verts.size());
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
+  calc_brush_texture_colors(ss, brush, positions, translations);
+  scale_translations(translations, factors);
   for (const int i : positions.index_range()) {
-    SCULPT_calc_vertex_displacement(ss, brush, colors[i], translations[i]);
+    SCULPT_calc_vertex_displacement(ss, brush, translations[i]);
   }
 
   clip_and_lock_translations(sd, ss, positions, translations);
@@ -233,7 +221,7 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      const MeshAttributeData attribute_data(mesh.attributes());
+      const MeshAttributeData attribute_data(mesh);
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();
         calc_faces(depsgraph,
@@ -271,7 +259,7 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 }  // namespace blender::ed::sculpt_paint

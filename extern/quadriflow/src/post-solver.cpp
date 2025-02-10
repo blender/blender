@@ -5,7 +5,9 @@
 //  Created by Jingwei on 2/5/18.
 //
 #include <algorithm>
+#ifdef POST_SOLVER
 #include <boost/program_options.hpp>
+#endif
 #include <cmath>
 #include <cstdio>
 #include <string>

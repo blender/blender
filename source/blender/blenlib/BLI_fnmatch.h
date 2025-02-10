@@ -55,8 +55,8 @@ extern int fnmatch __P((const char *__pattern, const char *__string, int __flags
 #  ifndef _GNU_SOURCE
 #    define _GNU_SOURCE
 #  endif
-#  include <fnmatch.h>
-#endif /* defined WIN32 && !defined _LIBC */
+#  include <fnmatch.h>  // IWYU pragma: export
+#endif                  /* defined WIN32 && !defined _LIBC */
 
 #ifdef __cplusplus
 }

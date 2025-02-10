@@ -6,13 +6,11 @@
  * \ingroup pythonintern
  */
 
-#include "BLI_utildefines.h"
-
 #include "BPY_extern.hh"
 
 /* python, will come back */
-// void BPY_script_exec(void) {}
-// void BPY_python_start(void) {}
+// void BPY_script_exec() {}
+// void BPY_python_start() {}
 void BPY_pyconstraint_exec(bPythonConstraint * /*con*/,
                            bConstraintOb * /*cob*/,
                            ListBase * /*targets*/)

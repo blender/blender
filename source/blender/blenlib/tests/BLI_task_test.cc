@@ -10,8 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_task.h"
@@ -145,7 +143,7 @@ TEST(task, MempoolIter)
 
 /* *** Parallel iterations over mempool items with TLS. *** */
 
-using TaskMemPool_Chunk = struct TaskMemPool_Chunk {
+struct TaskMemPool_Chunk {
   ListBase *accumulate_items;
 };
 

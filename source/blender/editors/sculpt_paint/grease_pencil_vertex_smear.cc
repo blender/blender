@@ -2,16 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <optional>
-
 #include "DNA_gpencil_legacy_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_paint.hh"
 
+#include "BLI_index_mask.hh"
+#include "BLI_math_color.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
+#include "BLI_virtual_array.hh"
 
 #include "grease_pencil_intern.hh"
 
@@ -70,7 +71,7 @@ void VertexSmearOperation::init_color_grid(const bContext &C, const float2 start
   const Scene &scene = *CTX_data_scene(&C);
   Paint &paint = *BKE_paint_get_active_from_context(&C);
   const Brush &brush = *BKE_paint_brush(&paint);
-  const bool is_masking = GPENCIL_ANY_VERTEX_MASK(
+  const bool use_selection_masking = GPENCIL_ANY_VERTEX_MASK(
       eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
   const float radius = brush_radius(scene, brush, 1.0f);
 
@@ -88,7 +89,8 @@ void VertexSmearOperation::init_color_grid(const bContext &C, const float2 start
   /* Initialize grid values. */
   this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory memory;
-    const IndexMask point_selection = point_selection_mask(params, is_masking, memory);
+    const IndexMask point_selection = point_mask_for_stroke_operation(
+        params, use_selection_masking, memory);
     if (point_selection.is_empty()) {
       return false;
     }
@@ -153,12 +155,13 @@ void VertexSmearOperation::on_stroke_extended(const bContext &C,
   const Brush &brush = *BKE_paint_brush(&paint);
   const float radius = brush_radius(scene, brush, extension_sample.pressure);
 
-  const bool is_masking = GPENCIL_ANY_VERTEX_MASK(
+  const bool use_selection_masking = GPENCIL_ANY_VERTEX_MASK(
       eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
 
   this->foreach_editable_drawing(C, GrainSize(1), [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory memory;
-    const IndexMask point_selection = point_selection_mask(params, is_masking, memory);
+    const IndexMask point_selection = point_mask_for_stroke_operation(
+        params, use_selection_masking, memory);
     if (point_selection.is_empty()) {
       return false;
     }

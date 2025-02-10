@@ -10,10 +10,8 @@
 
 #include "slim.h"
 
-#include <stdio.h>
-
 namespace slim {
 
-void transform_initialization_if_necessary(SLIMData &slimData);
+void transform_initialization_if_necessary(SLIMData &slim_data);
 
 }

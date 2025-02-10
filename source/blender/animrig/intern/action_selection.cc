@@ -9,15 +9,12 @@
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_set.hh"
 
-#include "BKE_anim_data.hh"
 #include "BKE_fcurve.hh"
 
 #include "ANIM_action.hh"
 #include "ANIM_action_legacy.hh"
-#include "ANIM_fcurve.hh"
 
 namespace blender::animrig {
 

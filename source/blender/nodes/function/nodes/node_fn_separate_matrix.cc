@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_matrix.hh"
-
 #include "NOD_inverse_eval_params.hh"
 #include "NOD_value_elem_eval.hh"
 
@@ -275,8 +273,11 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_SEPARATE_MATRIX, "Separate Matrix", NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeSeparateMatrix", FN_NODE_SEPARATE_MATRIX);
+  ntype.ui_name = "Separate Matrix";
+  ntype.ui_description = "Split a 4x4 matrix into its individual values";
   ntype.enum_name_legacy = "SEPARATE_MATRIX";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   ntype.eval_elem = node_eval_elem;

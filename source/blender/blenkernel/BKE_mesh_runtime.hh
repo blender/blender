@@ -9,6 +9,9 @@
  * This file contains access functions for the Mesh.runtime struct.
  */
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
+
 struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Depsgraph;

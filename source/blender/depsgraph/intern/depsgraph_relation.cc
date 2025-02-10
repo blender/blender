@@ -8,9 +8,6 @@
 
 #include "intern/depsgraph_relation.hh" /* own include */
 
-#include "BLI_utildefines.h"
-
-#include "intern/depsgraph_type.hh"
 #include "intern/node/deg_node.hh"
 
 namespace blender::deg {

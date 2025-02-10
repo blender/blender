@@ -8,4 +8,6 @@
 
 #pragma once
 
+#include <Python.h>
+
 bool BPY_rna_gizmo_module(PyObject *);

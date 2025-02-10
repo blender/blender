@@ -41,7 +41,6 @@ class PlyReadBuffer {
  private:
   bool refill_buffer();
 
- private:
   FILE *file_ = nullptr;
   Array<char> buffer_;
   int pos_ = 0;

@@ -8,21 +8,16 @@
 
 #pragma once
 
-#include <list>
 #include <string>
-// #include <vector>
 
-#include "COLLADASWInputList.h"
-#include "COLLADASWLibraryControllers.h"
-#include "COLLADASWNode.h"
-#include "COLLADASWStreamWriter.h"
+#include <COLLADASWInputList.h>
+#include <COLLADASWInstanceController.h>
+#include <COLLADASWLibraryControllers.h>
+#include <COLLADASWNode.h>
+#include <COLLADASWStreamWriter.h>
 
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_listBase.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "InstanceWriter.h"
 #include "TransformWriter.h"
@@ -84,7 +79,7 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
                      SceneExporter *se,
                      std::vector<Object *> &child_objects);
 
-  inline bool can_export(Bone *bone)
+  bool can_export(Bone *bone)
   {
     return !(export_settings.get_deform_bones_only() && bone->flag & BONE_NO_DEFORM);
   }

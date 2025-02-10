@@ -30,11 +30,7 @@ ResourceHandle VKResourceStateTracker::create_resource_slot()
   return handle;
 }
 
-void VKResourceStateTracker::add_image(VkImage vk_image,
-                                       uint32_t layer_count,
-                                       VkImageLayout vk_image_layout,
-                                       ResourceOwner owner,
-                                       const char *name)
+void VKResourceStateTracker::add_image(VkImage vk_image, uint32_t layer_count, const char *name)
 {
   UNUSED_VARS_NDEBUG(name);
   BLI_assert_msg(!image_resources_.contains(vk_image),
@@ -45,10 +41,8 @@ void VKResourceStateTracker::add_image(VkImage vk_image,
   image_resources_.add_new(vk_image, handle);
 
   resource.type = VKResourceType::IMAGE;
-  resource.owner = owner;
   resource.image.vk_image = vk_image;
   resource.image.layer_count = layer_count;
-  resource.image.vk_image_layout = vk_image_layout;
   resource.stamp = 0;
 #ifndef NDEBUG
   resource.name = name;
@@ -70,7 +64,6 @@ void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char *name)
   buffer_resources_.add_new(vk_buffer, handle);
 
   resource.type = VKResourceType::BUFFER;
-  resource.owner = ResourceOwner::APPLICATION;
   resource.buffer.vk_buffer = vk_buffer;
   resource.stamp = 0;
 #ifndef NDEBUG
@@ -157,16 +150,6 @@ ResourceWithStamp VKResourceStateTracker::get_image(VkImage vk_image) const
   ResourceHandle handle = image_resources_.lookup(vk_image);
   const Resource &resource = resources_.lookup(handle);
   return get_stamp(handle, resource);
-}
-
-void VKResourceStateTracker::reset_image_layouts()
-{
-  for (ResourceHandle image_handle : image_resources_.values()) {
-    VKResourceStateTracker::Resource &resource = resources_.lookup(image_handle);
-    if (resource.owner == ResourceOwner::SWAP_CHAIN) {
-      resource.reset_image_layout();
-    }
-  }
 }
 
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION

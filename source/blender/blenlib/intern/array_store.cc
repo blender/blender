@@ -99,7 +99,7 @@
 #include "BLI_array_store.h" /* Own include. */
 #include "BLI_ghash.h"       /* Only for #BLI_array_store_is_valid. */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 struct BChunkList;
 

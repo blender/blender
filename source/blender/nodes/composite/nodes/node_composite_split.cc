@@ -10,7 +10,6 @@
 #include "UI_resources.hh"
 
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
@@ -149,8 +148,13 @@ void register_node_type_cmp_split()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SPLIT, "Split", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSplit", CMP_NODE_SPLIT);
+  ntype.ui_name = "Split";
+  ntype.ui_description =
+      "Combine two images for side-by-side display. Typically used in combination with a Viewer "
+      "node";
   ntype.enum_name_legacy = "SPLIT";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_split_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_split;
   ntype.flag |= NODE_PREVIEW;

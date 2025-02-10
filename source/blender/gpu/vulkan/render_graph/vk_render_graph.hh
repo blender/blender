@@ -72,21 +72,8 @@ class VKRenderGraph : public NonCopyable {
   Vector<VKRenderGraphNodeLinks> links_;
   /** All nodes inside the graph indexable via NodeHandle. */
   Vector<VKRenderGraphNode> nodes_;
-  /** Scheduler decides which nodes to select and in what order to execute them. */
-  VKScheduler scheduler_;
-  /**
-   * Command builder generated the commands of the nodes and record them into the command buffer.
-   */
-  VKCommandBuilder command_builder_;
-
-  /**
-   * Command buffer sends the commands to the device (`VKCommandBufferWrapper`).
-   *
-   * To improve testability the command buffer can be replaced by an instance of
-   * `VKCommandBufferLog` this way test cases don't need to create a fully working context in order
-   * to test something render graph specific.
-   */
-  std::unique_ptr<VKCommandBufferInterface> command_buffer_;
+  /** Storage for large node datas to improve CPU cache pre-loading. */
+  VKRenderGraphStorage storage_;
 
   /**
    * Not owning pointer to device resources.
@@ -114,11 +101,16 @@ class VKRenderGraph : public NonCopyable {
 
     /** Current stack of debug group names. */
     Vector<DebugGroupNameID> group_stack;
-    /** Has a node been added to the current stack? If not the group stack will be added to
-     * used_groups. */
+
+    /**
+     * Has a node been added to the current stack? If not the group stack will be added to
+     * used_groups.
+     */
     bool group_used = false;
+
     /** All used debug groups. */
     Vector<Vector<DebugGroupNameID>> used_groups;
+
     /**
      * Map of a node_handle to an index of debug group in used_groups.
      *
@@ -139,8 +131,7 @@ class VKRenderGraph : public NonCopyable {
    * To improve testability the command buffer and resources they work on are provided as a
    * parameter.
    */
-  VKRenderGraph(std::unique_ptr<VKCommandBufferInterface> command_buffer,
-                VKResourceStateTracker &resources);
+  VKRenderGraph(VKResourceStateTracker &resources);
 
  private:
   /**
@@ -164,7 +155,7 @@ class VKRenderGraph : public NonCopyable {
       links_.resize(nodes_.size());
     }
     VKRenderGraphNode &node = nodes_[node_handle];
-    node.set_node_data<NodeInfo>(create_info);
+    node.set_node_data<NodeInfo>(storage_, create_info);
 
     VKRenderGraphNodeLinks &node_links = links_[node_handle];
     BLI_assert(node_links.inputs.is_empty());
@@ -211,41 +202,9 @@ class VKRenderGraph : public NonCopyable {
   ADD_NODE(VKResetQueryPoolNode)
   ADD_NODE(VKUpdateBufferNode)
   ADD_NODE(VKUpdateMipmapsNode)
+  ADD_NODE(VKSynchronizationNode)
 #undef ADD_NODE
 
-  /**
-   * Submit partial graph to be able to read the expected result of the rendering commands
-   * affecting the given vk_buffer. This method is called from
-   * `GPU_texture/storagebuf/indexbuf/vertbuf/_read`. In vulkan the content of images cannot be
-   * read directly and always needs to be copied to a transfer buffer.
-   *
-   * After calling this function the mapped memory of the vk_buffer would contain the data of the
-   * buffer.
-   */
-  void submit_buffer_for_read(VkBuffer vk_buffer);
-
-  /**
-   * Submit partial graph to be able to present the expected result of the rendering commands
-   * affecting the given vk_swapchain_image. This method is called when performing a
-   * swap chain swap.
-   *
-   * Pre conditions:
-   * - `vk_swapchain_image` needs to be a created using ResourceOwner::SWAP_CHAIN`.
-   *
-   * Post conditions:
-   * - `vk_swapchain_image` layout is transitioned to `VK_IMAGE_LAYOUT_SRC_PRESENT`.
-   */
-  void submit_for_present(VkImage vk_swapchain_image);
-
-  /**
-   * Submit full graph.
-   */
-  void submit();
-
-  /**  Submit render graph with CPU synchronization event. */
-  void submit_synchronization_event(VkFence vk_fence);
-  /** Wait and reset for a CPU synchronization event. */
-  void wait_synchronization_event(VkFence vk_fence);
   /**
    * Push a new debugging group to the stack with the given name.
    *
@@ -286,8 +245,12 @@ class VKRenderGraph : public NonCopyable {
 
   void debug_print(NodeHandle node_handle) const;
 
+  /**
+   * Reset the render graph.
+   */
+  void reset();
+
  private:
-  void remove_nodes(Span<NodeHandle> node_handles);
 };
 
 }  // namespace blender::gpu::render_graph

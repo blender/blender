@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 
@@ -88,9 +89,8 @@ static void image_buf_fill_checker_slice(
 {
   /* these two passes could be combined into one, but it's more readable and
    * easy to tweak like this, speed isn't really that much of an issue in this situation... */
-
-  int checkerwidth = 32;
-  int x, y;
+  const int checker_size = 32;
+  const int checker_size_half = checker_size / 2;
 
   uchar *rect_orig = rect;
   float *rect_float_orig = rect_float;
@@ -105,11 +105,11 @@ static void image_buf_fill_checker_slice(
   }
 
   /* checkers */
-  for (y = offset; y < height + offset; y++) {
-    int dark = powf(-1.0f, floorf(y / checkerwidth));
+  for (int y = offset; y < height + offset; y++) {
+    int dark = powf(-1.0f, floorf(y / checker_size));
 
-    for (x = 0; x < width; x++) {
-      if (x % checkerwidth == 0) {
+    for (int x = 0; x < width; x++) {
+      if (x % checker_size == 0) {
         dark = -dark;
       }
 
@@ -142,32 +142,32 @@ static void image_buf_fill_checker_slice(
   rect_float = rect_float_orig;
 
   /* 2nd pass, colored `+`. */
-  for (y = offset; y < height + offset; y++) {
-    float hoffs = 0.125f * floorf(y / checkerwidth);
+  for (int y = offset; y < height + offset; y++) {
+    float hoffs = 0.125f * floorf(y / checker_size);
 
-    for (x = 0; x < width; x++) {
-      float h = 0.125f * floorf(x / checkerwidth);
-
-      if ((abs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
-          (abs((y % checkerwidth) - (checkerwidth / 2)) < 4))
+    for (int x = 0; x < width; x++) {
+      float h = 0.125f * floorf(x / checker_size);
+      int test_x, test_y;
+      /* Note that this `+` is not exactly centered since it's a 1px wide line being
+       * drawn inside an even sized square, keep as-is since solving requires either
+       * using odd sized checkers or double-width lines, see #112653. */
+      if (((test_x = abs((x % checker_size) - checker_size_half)) < 4) &&
+          ((test_y = abs((y % checker_size) - checker_size_half)) < 4) &&
+          ((test_x < 1) || (test_y < 1)))
       {
-        if ((abs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
-            (abs((y % checkerwidth) - (checkerwidth / 2)) < 1))
-        {
-          hsv[0] = fmodf(fabsf(h - hoffs), 1.0f);
-          hsv_to_rgb_v(hsv, rgb);
+        hsv[0] = fmodf(fabsf(h - hoffs), 1.0f);
+        hsv_to_rgb_v(hsv, rgb);
 
-          if (rect) {
-            rect[0] = char(rgb[0] * 255.0f);
-            rect[1] = char(rgb[1] * 255.0f);
-            rect[2] = char(rgb[2] * 255.0f);
-            rect[3] = 255;
-          }
+        if (rect) {
+          rect[0] = char(rgb[0] * 255.0f);
+          rect[1] = char(rgb[1] * 255.0f);
+          rect[2] = char(rgb[2] * 255.0f);
+          rect[3] = 255;
+        }
 
-          if (rect_float) {
-            srgb_to_linearrgb_v3_v3(rect_float, rgb);
-            rect_float[3] = 1.0f;
-          }
+        if (rect_float) {
+          srgb_to_linearrgb_v3_v3(rect_float, rgb);
+          rect_float[3] = 1.0f;
         }
       }
 
@@ -226,9 +226,7 @@ static void checker_board_color_fill(
   hsv[1] = 1.0;
 
   hue_step = power_of_2_max_i(width / 8);
-  if (hue_step < 8) {
-    hue_step = 8;
-  }
+  hue_step = std::max(hue_step, 8);
 
   for (y = offset; y < height + offset; y++) {
     /* Use a number lower than 1.0 else its too bright. */

@@ -13,7 +13,7 @@
 /* avoid many includes for now */
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
-#include "BLI_utildefines_variadic.h"
+#include "BLI_utildefines_variadic.h"  // IWYU prama: export
 
 /* We could remove in future. */
 #include "BLI_assert.h"

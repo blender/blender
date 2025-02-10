@@ -3,6 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import api
+import enum
+import pathlib
+
+
+class SculptMode(enum.IntEnum):
+    MESH = 1
+    MULTIRES = 2
 
 
 def set_view3d_context_override(context_override):
@@ -26,7 +33,7 @@ def set_view3d_context_override(context_override):
                 context_override["region"] = region
 
 
-def prepare_sculpt_scene(context):
+def prepare_sculpt_scene(context: any, mode: SculptMode):
     import bpy
     """
     Prepare a clean state of the scene suitable for benchmarking
@@ -48,7 +55,10 @@ def prepare_sculpt_scene(context):
     group.interface.new_socket("Geometry", in_out='OUTPUT', socket_type='NodeSocketGeometry')
     group_output_node = group.nodes.new('NodeGroupOutput')
 
-    size = 1500
+    if mode == SculptMode.MULTIRES:
+        size = 150
+    else:
+        size = 1500
 
     grid_node = group.nodes.new('GeometryNodeMeshGrid')
     grid_node.inputs["Size X"].default_value = 2.0
@@ -70,6 +80,9 @@ def prepare_sculpt_scene(context):
     # Move the plane to the sculpt mode.
     bpy.ops.object.mode_set(mode='SCULPT')
 
+    if mode == SculptMode.MULTIRES:
+        bpy.ops.object.subdivision_set(level=3)
+
 
 def generate_stroke(context):
     """
@@ -77,6 +90,7 @@ def generate_stroke(context):
 
     The generated stroke coves the full plane diagonal.
     """
+    import bpy
     from mathutils import Vector
 
     template = {
@@ -91,6 +105,10 @@ def generate_stroke(context):
         "x_tilt": 0,
         "y_tilt": 0
     }
+
+    version = bpy.app.version
+    if version[0] <= 4 and version[1] <= 3:
+        template["pen_flip"] = False
 
     num_steps = 100
     start = Vector((-1, -1, 0))
@@ -107,7 +125,7 @@ def generate_stroke(context):
     return stroke
 
 
-def _run(args):
+def _run(args: dict):
     import bpy
     import time
     context = bpy.context
@@ -115,7 +133,7 @@ def _run(args):
     # Create an undo stack explicitly. This isn't created by default in background mode.
     bpy.ops.ed.undo_push()
 
-    prepare_sculpt_scene(context)
+    prepare_sculpt_scene(context, args['mode'])
 
     context_override = context.copy()
     set_view3d_context_override(context_override)
@@ -131,17 +149,22 @@ def _run(args):
 
 
 class SculptBrushTest(api.Test):
-    def __init__(self, filepath):
+    def __init__(self, filepath: pathlib.Path, mode: SculptMode):
         self.filepath = filepath
+        self.mode = mode
 
     def name(self):
-        return self.filepath.stem
+        # To preserve historical data, avoid adding the prefix for the mesh tests.
+        if self.mode == SculptMode.MESH:
+            return self.filepath.stem
+
+        return "{}_{}".format(self.mode.name.lower(), self.filepath.stem)
 
     def category(self):
         return "sculpt"
 
-    def run(self, env, device_id):
-        args = {}
+    def run(self, env, _device_id):
+        args = {"mode": self.mode.value}
 
         result, _ = env.run_in_blender(_run, args, [self.filepath])
 
@@ -150,4 +173,4 @@ class SculptBrushTest(api.Test):
 
 def generate(env):
     filepaths = env.find_blend_files('sculpt/*')
-    return [SculptBrushTest(filepath) for filepath in filepaths]
+    return [SculptBrushTest(filepath, mode) for filepath in filepaths for mode in SculptMode]

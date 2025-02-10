@@ -10,9 +10,8 @@
 
 #include "DNA_session_uid_types.h"
 
-#include "BLI_session_uid.h"
+#include "BLI_map.hh"
 
-#include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_runtime_backup_sequence.h"
 
 struct Scene;

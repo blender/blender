@@ -17,7 +17,7 @@
 class ModelReader {
  public:
   /// Constructor
-  ModelReader(){};
+  ModelReader() = default;
 
   /// Get next triangle
   virtual Triangle *getNextTriangle() = 0;

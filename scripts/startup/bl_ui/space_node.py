@@ -697,7 +697,7 @@ class NODE_PT_active_node_generic(Panel):
         layout.prop(node, "name", icon='NODE')
         layout.prop(node, "label", icon='NODE')
 
-        if tree.type == "GEOMETRY":
+        if tree.type == 'GEOMETRY':
             layout.prop(node, "warning_propagation")
 
 
@@ -853,7 +853,8 @@ class NODE_PT_quality(bpy.types.Panel):
 
         col = layout.column()
         col.prop(rd, "compositor_device", text="Device")
-        col.prop(rd, "compositor_precision", text="Precision")
+        if rd.compositor_device == 'GPU':
+            col.prop(rd, "compositor_precision", text="Precision")
 
         col = layout.column()
         col.prop(tree, "use_viewer_border")

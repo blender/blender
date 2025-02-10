@@ -42,8 +42,6 @@
  */
 
 #include "MEM_Allocator.h"
-#include <list>
-#include <queue>
 #include <vector>
 
 template<class T> class MEM_CacheLimiter;
@@ -60,7 +58,7 @@ bool MEM_CacheLimiter_is_disabled(void);
 template<class T> class MEM_CacheLimiterHandle {
  public:
   explicit MEM_CacheLimiterHandle(T *data_, MEM_CacheLimiter<T> *parent_)
-      : data(data_), refcount(0), parent(parent_)
+      : data(data_), parent(parent_)
   {
   }
 
@@ -119,16 +117,16 @@ template<class T> class MEM_CacheLimiterHandle {
   friend class MEM_CacheLimiter<T>;
 
   T *data;
-  int refcount;
+  int refcount = 0;
   int pos;
   MEM_CacheLimiter<T> *parent;
 };
 
 template<class T> class MEM_CacheLimiter {
  public:
-  typedef size_t (*MEM_CacheLimiter_DataSize_Func)(void *data);
-  typedef int (*MEM_CacheLimiter_ItemPriority_Func)(void *item, int default_priority);
-  typedef bool (*MEM_CacheLimiter_ItemDestroyable_Func)(void *item);
+  using MEM_CacheLimiter_DataSize_Func = size_t (*)(void *);
+  using MEM_CacheLimiter_ItemPriority_Func = int (*)(void *, int);
+  using MEM_CacheLimiter_ItemDestroyable_Func = bool (*)(void *);
 
   MEM_CacheLimiter(MEM_CacheLimiter_DataSize_Func data_size_func) : data_size_func(data_size_func)
   {
@@ -224,7 +222,7 @@ template<class T> class MEM_CacheLimiter {
      * doesn't make much sense because we'll iterate it all to get
      * least priority element anyway.
      */
-    if (item_priority_func == NULL) {
+    if (item_priority_func == nullptr) {
       queue[handle->pos] = queue.back();
       queue[handle->pos]->pos = handle->pos;
       queue.pop_back();
@@ -244,9 +242,9 @@ template<class T> class MEM_CacheLimiter {
   }
 
  private:
-  typedef MEM_CacheLimiterHandle<T> *MEM_CacheElementPtr;
-  typedef std::vector<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr>> MEM_CacheQueue;
-  typedef typename MEM_CacheQueue::iterator iterator;
+  using MEM_CacheElementPtr = MEM_CacheLimiterHandle<T> *;
+  using MEM_CacheQueue = std::vector<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr>>;
+  using iterator = typename MEM_CacheQueue::iterator;
 
   /* Check whether element can be destroyed when enforcing cache limits */
   bool can_destroy_element(MEM_CacheElementPtr &elem)
@@ -263,7 +261,7 @@ template<class T> class MEM_CacheLimiter {
     return true;
   }
 
-  MEM_CacheElementPtr get_least_priority_destroyable_element(void)
+  MEM_CacheElementPtr get_least_priority_destroyable_element()
   {
     if (queue.empty()) {
       return NULL;

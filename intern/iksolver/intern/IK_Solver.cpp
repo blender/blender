@@ -12,16 +12,17 @@
 #include "IK_QSegment.h"
 #include "IK_QTask.h"
 
+#include <algorithm>
 #include <list>
 using namespace std;
 
 class IK_QSolver {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  IK_QSolver() : root(NULL) {}
+  IK_QSolver() = default;
 
   IK_QJacobianSolver solver;
-  IK_QSegment *root;
+  IK_QSegment *root = nullptr;
   std::list<IK_QTask *> tasks;
 };
 
@@ -36,9 +37,9 @@ static IK_QSegment *CreateSegment(int flag, bool translate)
   IK_QSegment *seg;
 
   if (ndof == 0) {
-    return NULL;
+    return nullptr;
   }
-  else if (ndof == 1) {
+  if (ndof == 1) {
     int axis;
 
     if (flag & IK_XDOF) {
@@ -101,10 +102,10 @@ IK_Segment *IK_CreateSegment(int flag)
 
   IK_QSegment *seg;
 
-  if (rot == NULL && trans == NULL) {
+  if (rot == nullptr && trans == nullptr) {
     seg = new IK_QNullSegment();
   }
-  else if (rot == NULL) {
+  else if (rot == nullptr) {
     seg = trans;
   }
   else {
@@ -218,9 +219,7 @@ void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
     return;
   }
 
-  if (stiffness > (1.0 - IK_STRETCH_STIFF_EPS)) {
-    stiffness = (1.0 - IK_STRETCH_STIFF_EPS);
-  }
+  stiffness = std::min<double>(stiffness, 1.0 - IK_STRETCH_STIFF_EPS);
 
   IK_QSegment *qseg = (IK_QSegment *)seg;
   double weight = 1.0f - stiffness;
@@ -288,8 +287,8 @@ void IK_GetTranslationChange(IK_Segment *seg, float *translation_change)
 
 IK_Solver *IK_CreateSolver(IK_Segment *root)
 {
-  if (root == NULL) {
-    return NULL;
+  if (root == nullptr) {
+    return nullptr;
   }
 
   IK_QSolver *solver = new IK_QSolver();
@@ -300,7 +299,7 @@ IK_Solver *IK_CreateSolver(IK_Segment *root)
 
 void IK_FreeSolver(IK_Solver *solver)
 {
-  if (solver == NULL) {
+  if (solver == nullptr) {
     return;
   }
 
@@ -317,7 +316,7 @@ void IK_FreeSolver(IK_Solver *solver)
 
 void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight)
 {
-  if (solver == NULL || tip == NULL) {
+  if (solver == nullptr || tip == nullptr) {
     return;
   }
 
@@ -338,7 +337,7 @@ void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float w
 
 void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight)
 {
-  if (solver == NULL || tip == NULL) {
+  if (solver == nullptr || tip == nullptr) {
     return;
   }
 
@@ -373,7 +372,7 @@ void IK_SolverSetPoleVectorConstraint(IK_Solver *solver,
                                       float poleangle,
                                       int getangle)
 {
-  if (solver == NULL || tip == NULL) {
+  if (solver == nullptr || tip == nullptr) {
     return;
   }
 
@@ -393,7 +392,7 @@ void IK_SolverSetPoleVectorConstraint(IK_Solver *solver,
 
 float IK_SolverGetPoleAngle(IK_Solver *solver)
 {
-  if (solver == NULL) {
+  if (solver == nullptr) {
     return 0.0f;
   }
 
@@ -408,7 +407,7 @@ static void IK_SolverAddCenterOfMass(IK_Solver *solver,
                                      float goal[3],
                                      float weight)
 {
-  if (solver == NULL || root == NULL)
+  if (solver == nullptr || root == nullptr)
     return;
 
   IK_QSolver *qsolver = (IK_QSolver *)solver;
@@ -425,7 +424,7 @@ static void IK_SolverAddCenterOfMass(IK_Solver *solver,
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
 {
-  if (solver == NULL) {
+  if (solver == nullptr) {
     return 0;
   }
 

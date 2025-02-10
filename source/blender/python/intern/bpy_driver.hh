@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <stdbool.h>
+#include <Python.h>
 
 /**
  * For faster execution we keep a special dictionary for py-drivers, with

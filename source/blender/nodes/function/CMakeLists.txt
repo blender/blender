@@ -70,6 +70,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::functions
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

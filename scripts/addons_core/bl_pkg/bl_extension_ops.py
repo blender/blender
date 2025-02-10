@@ -1116,7 +1116,12 @@ def _extensions_enabled_from_repo_directory_and_pkg_id_sequence(repo_directory_a
     return extensions_enabled_pending
 
 
-def _extensions_repo_sync_wheels(repo_cache_store, extensions_enabled):
+def _extensions_repo_sync_wheels(
+        repo_cache_store,  # `bl_extension_utils.RepoCacheStore`
+        extensions_enabled,  # `set[tuple[str, str]]`
+        *,
+        error_fn,  # `Callable[[Exception], None]`
+):  # `-> None`
     """
     This function collects all wheels from all packages and ensures the packages are either extracted or removed
     when they are no longer used.
@@ -1128,7 +1133,7 @@ def _extensions_repo_sync_wheels(repo_cache_store, extensions_enabled):
     wheel_list = []
 
     for repo_index, pkg_manifest_local in enumerate(repo_cache_store.pkg_manifest_from_local_ensure(
-            error_fn=print,
+            error_fn=error_fn,
             ignore_missing=True,
     )):
         repo = repos_all[repo_index]
@@ -1157,13 +1162,25 @@ def _extensions_repo_sync_wheels(repo_cache_store, extensions_enabled):
         local_dir=local_dir,
         wheel_list=wheel_list,
         debug=bpy.app.debug_python,
+        error_fn=error_fn,
     )
 
 
-def _extensions_repo_refresh_on_change(repo_cache_store, *, extensions_enabled, compat_calc, stats_calc):
+def _extensions_repo_refresh_on_change(
+        repo_cache_store,  # `bl_extension_utils.RepoCacheStore`
+        *,
+        extensions_enabled,  # `set[tuple[str, str]] | None`
+        compat_calc,  # `bool`
+        stats_calc,  # `bool`
+        error_fn,  # `Callable[[Exception], None]`
+):  # `-> None`
     import addon_utils
     if extensions_enabled is not None:
-        _extensions_repo_sync_wheels(repo_cache_store, extensions_enabled)
+        _extensions_repo_sync_wheels(
+            repo_cache_store,
+            extensions_enabled,
+            error_fn=error_fn,
+        )
     # Wheel sync handled above.
 
     if compat_calc:
@@ -1181,6 +1198,7 @@ def _extensions_repo_refresh_on_change(repo_cache_store, *, extensions_enabled, 
         addon_utils.extensions_refresh(
             ensure_wheels=False,
             addon_modules_pending=addon_modules_pending,
+            handle_error=error_fn,
         )
 
     if stats_calc:
@@ -1773,7 +1791,10 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
         # In-line `bpy.ops.preferences.addon_refresh`.
         addon_utils.modules_refresh()
         # Ensure compatibility info and wheels is up to date.
-        addon_utils.extensions_refresh(ensure_wheels=True)
+        addon_utils.extensions_refresh(
+            ensure_wheels=True,
+            handle_error=lambda ex: self.report({'ERROR'}, str(ex)),
+        )
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -2128,6 +2149,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
             ),
             compat_calc=True,
             stats_calc=True,
+            error_fn=handle_error,
         )
 
         _preferences_ensure_enabled_all(
@@ -2240,6 +2262,10 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
 
+        # TODO: it would be nice to include this message in the banner.
+        def handle_error(ex):
+            self.report({'ERROR'}, str(ex))
+
         # Refresh installed packages for repositories that were operated on.
         repo_cache_store = repo_cache_store_ensure()
         for directory in self._repo_directories:
@@ -2263,11 +2289,8 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             extensions_enabled=extensions_enabled,
             compat_calc=True,
             stats_calc=True,
+            error_fn=handle_error,
         )
-
-        # TODO: it would be nice to include this message in the banner.
-        def handle_error(ex):
-            self.report({'ERROR'}, str(ex))
 
         for directory, pkg_id_sequence in self._repo_map_packages_addon_only:
 
@@ -2297,6 +2320,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                     extensions_enabled=extensions_enabled_test,
                     compat_calc=False,
                     stats_calc=False,
+                    error_fn=handle_error,
                 )
 
         _preferences_ui_redraw()
@@ -2400,6 +2424,10 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
 
+        # TODO: it would be nice to include this message in the banner.
+        def handle_error(ex):
+            self.report({'ERROR'}, str(ex))
+
         for directory, pkg_id_sequence in self._pkg_id_sequence_from_directory.items():
             _extensions_repo_temp_files_make_stale(repo_directory=directory)
             _extensions_repo_uninstall_stale_package_fallback(
@@ -2420,6 +2448,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
             extensions_enabled=_extensions_enabled(),
             compat_calc=True,
             stats_calc=True,
+            error_fn=handle_error,
         )
 
         _preferences_theme_state_restore(self._theme_restore)
@@ -2622,6 +2651,10 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
 
+        # TODO: it would be nice to include this message in the banner.
+        def handle_error(ex):
+            self.report({'ERROR'}, str(ex))
+
         pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
@@ -2642,12 +2675,8 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             extensions_enabled=extensions_enabled,
             compat_calc=True,
             stats_calc=True,
+            error_fn=handle_error,
         )
-
-        # TODO: it would be nice to include this message in the banner.
-
-        def handle_error(ex):
-            self.report({'ERROR'}, str(ex))
 
         _preferences_ensure_enabled_all(
             addon_restore=self._addon_restore,
@@ -2678,6 +2707,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                     extensions_enabled=extensions_enabled_test,
                     compat_calc=False,
                     stats_calc=False,
+                    error_fn=handle_error,
                 )
 
         _extensions_repo_temp_files_make_stale(self.repo_directory)
@@ -2994,6 +3024,10 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
     def exec_command_finish(self, canceled):
 
+        # TODO: it would be nice to include this message in the banner.
+        def handle_error(ex):
+            self.report({'ERROR'}, str(ex))
+
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
@@ -3021,11 +3055,8 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             extensions_enabled=extensions_enabled,
             compat_calc=True,
             stats_calc=True,
+            error_fn=handle_error,
         )
-
-        # TODO: it would be nice to include this message in the banner.
-        def handle_error(ex):
-            self.report({'ERROR'}, str(ex))
 
         _preferences_ensure_enabled_all(
             addon_restore=self._addon_restore,
@@ -3056,6 +3087,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                     extensions_enabled=extensions_enabled_test,
                     compat_calc=False,
                     stats_calc=False,
+                    error_fn=handle_error,
                 )
 
         _extensions_repo_temp_files_make_stale(self.repo_directory)
@@ -3459,6 +3491,10 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
 
     def exec_command_finish(self, canceled):
 
+        # TODO: it would be nice to include this message in the banner.
+        def handle_error(ex):
+            self.report({'ERROR'}, str(ex))
+
         _extensions_repo_temp_files_make_stale(repo_directory=self.repo_directory)
         _extensions_repo_uninstall_stale_package_fallback(
             repo_directory=self.repo_directory,
@@ -3494,6 +3530,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
             extensions_enabled=_extensions_enabled(),
             compat_calc=True,
             stats_calc=True,
+            error_fn=handle_error,
         )
 
         _preferences_theme_state_restore(self._theme_restore)

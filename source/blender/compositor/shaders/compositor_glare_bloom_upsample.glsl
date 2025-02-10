@@ -37,5 +37,6 @@ void main()
   upsampled += (1.0 / 16.0) * texture(input_tx, coordinates + pixel_size * vec2(1.0, -1.0));
   upsampled += (1.0 / 16.0) * texture(input_tx, coordinates + pixel_size * vec2(1.0, 1.0));
 
-  imageStore(output_img, texel, imageLoad(output_img, texel) + upsampled);
+  vec4 combined = imageLoad(output_img, texel) + upsampled;
+  imageStore(output_img, texel, vec4(combined.rgb, 1.0f));
 }

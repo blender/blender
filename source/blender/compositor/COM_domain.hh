@@ -34,11 +34,11 @@ struct RealizationOptions {
   /* If true, the result will be repeated infinitely along the horizontal axis when realizing the
    * result. If false, regions outside of bounds of the result along the horizontal axis will be
    * filled with zeros. */
-  bool wrap_x = false;
+  bool repeat_x = false;
   /* If true, the result will be repeated infinitely along the vertical axis when realizing the
    * result. If false, regions outside of bounds of the result along the vertical axis will be
    * filled with zeros. */
-  bool wrap_y = false;
+  bool repeat_y = false;
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -143,7 +143,6 @@ class Domain {
    * RealizationOptions struct for more information. */
   RealizationOptions realization_options;
 
- public:
   /* A size only constructor that sets the transformation to identity. */
   Domain(const int2 &size);
 
@@ -155,14 +154,15 @@ class Domain {
 
   /* Returns a domain of size 1x1 and an identity transformation. */
   static Domain identity();
+
+  /* Compare the size and transformation of the domain. Transformations are compared within the
+   * given epsilon. The realization_options are not compared because they only describe the method
+   * of realization on another domain, which is not technically a property of the domain itself. */
+  static bool is_equal(const Domain &a, const Domain &b, const float epsilon = 0.0f);
 };
 
-/* Compare the size and transformation of the domain. The realization_options are not compared
- * because they only describe the method of realization on another domain, which is not technically
- * a property of the domain itself. */
+/* Identical to the is_equal static method with zero epsilon. */
 bool operator==(const Domain &a, const Domain &b);
-
-/* Inverse of the above equality operator. */
 bool operator!=(const Domain &a, const Domain &b);
 
 }  // namespace blender::compositor

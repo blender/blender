@@ -8,6 +8,7 @@ set(INC
   intern
   ../compositor
   ../compositor/cached_resources
+  ../compositor/derived_resources
   ../draw/intern
   ../gpu/intern
   ../makesrna

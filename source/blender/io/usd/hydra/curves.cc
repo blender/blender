@@ -10,7 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_particle.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -86,10 +86,10 @@ pxr::VtValue CurvesData::get_data(pxr::TfToken const &key) const
   if (key == pxr::HdTokens->points) {
     return pxr::VtValue(vertices_);
   }
-  else if (key == pxr::HdTokens->widths) {
+  if (key == pxr::HdTokens->widths) {
     return pxr::VtValue(widths_);
   }
-  else if (key == usdtokens::st) {
+  if (key == usdtokens::st) {
     return pxr::VtValue(uvs_);
   }
   return pxr::VtValue();

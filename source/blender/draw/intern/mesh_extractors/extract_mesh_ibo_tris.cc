@@ -8,6 +8,8 @@
 
 #include "BKE_editmesh.hh"
 
+#include "BLI_math_geom.h"
+
 #include "GPU_index_buffer.hh"
 
 #include "extract_mesh.hh"

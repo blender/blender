@@ -328,20 +328,6 @@ static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, 
   return iuser.frame_current();
 }
 
-static inline unsigned char *image_get_pixels_for_frame(BL::Image &image,
-                                                        const int frame,
-                                                        const int tile)
-{
-  return BKE_image_get_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
-}
-
-static inline float *image_get_float_pixels_for_frame(BL::Image &image,
-                                                      const int frame,
-                                                      const int tile)
-{
-  return BKE_image_get_float_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
-}
-
 static inline bool image_is_builtin(BL::Image &ima, BL::RenderEngine &engine)
 {
   const BL::Image::source_enum image_source = ima.source();

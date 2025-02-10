@@ -11,7 +11,7 @@
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
 
-#include <float.h>
+#include <cfloat>
 
 struct BVHTree;
 struct ClothVertex;

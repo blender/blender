@@ -14,11 +14,6 @@
 #include "COLLADAFWAnimation.h"
 #include "COLLADAFWAnimationCurve.h"
 #include "COLLADAFWAnimationList.h"
-#include "COLLADAFWCamera.h"
-#include "COLLADAFWEffect.h"
-#include "COLLADAFWInstanceGeometry.h"
-#include "COLLADAFWLight.h"
-#include "COLLADAFWMaterial.h"
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
 
@@ -27,7 +22,6 @@
 #include "DNA_anim_types.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_light_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 

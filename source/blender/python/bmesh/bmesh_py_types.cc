@@ -10,7 +10,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_sort.h"
-#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
@@ -20,8 +19,9 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
@@ -2193,7 +2193,7 @@ static PyObject *bpy_bmface_calc_tangent_edge(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_edge(self->f, tangent);
+  BM_face_calc_tangent_from_edge(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 
@@ -2215,7 +2215,7 @@ static PyObject *bpy_bmface_calc_tangent_edge_pair(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_edge_pair(self->f, tangent);
+  BM_face_calc_tangent_from_edge_pair(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 
@@ -2233,7 +2233,7 @@ static PyObject *bpy_bmface_calc_tangent_edge_diagonal(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_edge_diagonal(self->f, tangent);
+  BM_face_calc_tangent_from_edge_diagonal(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 
@@ -2251,7 +2251,7 @@ static PyObject *bpy_bmface_calc_tangent_vert_diagonal(BPy_BMFace *self)
   float tangent[3];
 
   BPY_BM_CHECK_OBJ(self);
-  BM_face_calc_tangent_vert_diagonal(self->f, tangent);
+  BM_face_calc_tangent_from_vert_diagonal(self->f, tangent);
   return Vector_CreatePyObject(tangent, 3, nullptr);
 }
 
@@ -3711,7 +3711,7 @@ static PyObject *bpy_bmiter_next(BPy_BMIter *self)
     return nullptr;
   }
 
-  return (PyObject *)BPy_BMElem_CreatePyObject(self->bm, ele);
+  return BPy_BMElem_CreatePyObject(self->bm, ele);
 }
 
 /* Deallocate Functions

@@ -162,14 +162,7 @@ void BKE_asset_metadata_catalog_id_set(AssetMetaData *asset_data,
                                        const char *catalog_simple_name)
 {
   asset_data->catalog_id = catalog_id;
-
-  constexpr size_t max_simple_name_length = sizeof(asset_data->catalog_simple_name);
-
-  /* The substr() call is necessary to make copy() copy the first N characters (instead of refusing
-   * to copy and producing an empty string). */
-  StringRef trimmed_id =
-      StringRef(catalog_simple_name).trim().substr(0, max_simple_name_length - 1);
-  trimmed_id.copy(asset_data->catalog_simple_name, max_simple_name_length);
+  StringRef(catalog_simple_name).trim().copy_utf8_truncated(asset_data->catalog_simple_name);
 }
 
 void BKE_asset_metadata_idprop_ensure(AssetMetaData *asset_data, IDProperty *prop)

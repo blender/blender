@@ -15,11 +15,12 @@
 
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_math_rotation.h"
-#include "BLI_path_utils.hh"
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_studiolight.h"
 
@@ -64,7 +65,7 @@ void WorldData::init()
       const Span<bNodeSocket *> input_sockets = output_node->input_sockets();
       bNodeSocket *input_socket = nullptr;
 
-      for (auto socket : input_sockets) {
+      for (auto *socket : input_sockets) {
         if (STREQ(socket->name, "Surface")) {
           input_socket = socket;
           break;
@@ -79,7 +80,7 @@ void WorldData::init()
       bNodeLink const *link = input_socket->directly_linked_links()[0];
 
       bNode *input_node = link->fromnode;
-      if (input_node->type != SH_NODE_BACKGROUND) {
+      if (input_node->type_legacy != SH_NODE_BACKGROUND) {
         return;
       }
 
@@ -93,7 +94,7 @@ void WorldData::init()
 
       if (!color_input.directly_linked_links().is_empty()) {
         bNode *color_input_node = color_input.directly_linked_links()[0]->fromnode;
-        if (ELEM(color_input_node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+        if (ELEM(color_input_node->type_legacy, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
           NodeTexImage *tex = static_cast<NodeTexImage *>(color_input_node->storage);
           Image *image = (Image *)color_input_node->id;
           if (image) {

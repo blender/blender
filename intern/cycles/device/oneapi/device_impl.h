@@ -62,7 +62,7 @@ class OneapiDevice : public GPUDevice {
   void free_device(void *device_pointer) override;
   bool alloc_host(void *&shared_pointer, const size_t size) override;
   void free_host(void *shared_pointer) override;
-  void transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
+  void *transform_host_to_device_pointer(const void *shared_pointer) override;
   void copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size) override;
 
   string oneapi_error_message();
@@ -74,6 +74,8 @@ class OneapiDevice : public GPUDevice {
   void mem_alloc(device_memory &mem) override;
 
   void mem_copy_to(device_memory &mem) override;
+
+  void mem_move_to_host(device_memory &mem) override;
 
   void mem_copy_from(
       device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override;
@@ -92,11 +94,11 @@ class OneapiDevice : public GPUDevice {
   void const_copy_to(const char *name, void *host, const size_t size) override;
 
   void global_alloc(device_memory &mem);
-
+  void global_copy_to(device_memory &mem);
   void global_free(device_memory &mem);
 
   void tex_alloc(device_texture &mem);
-
+  void tex_copy_to(device_texture &mem);
   void tex_free(device_texture &mem);
 
   /* Graphics resources interoperability. */

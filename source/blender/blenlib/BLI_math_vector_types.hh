@@ -9,12 +9,10 @@
  */
 
 #include <array>
-#include <cmath>
 #include <ostream>
 #include <type_traits>
 
 #include "BLI_math_vector_unroll.hh"
-#include "BLI_unroll.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {
@@ -159,6 +157,14 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
   VecBase(T x, T y, VecBase<U, 2> zw) : VecBase(T(x), T(y), T(zw.x), T(zw.y))
   {
   }
+
+  /**
+   * Prevent up-cast of dimensions (creating a bigger vector initialized with data
+   * from a smaller one) by deleting all copy constructors accepting smaller vectors
+   * as source.
+   */
+  template<typename U, int OtherSize, BLI_ENABLE_IF(OtherSize < Size)>
+  VecBase(const VecBase<U, OtherSize> &other) = delete;
 
   /** Masking. */
 

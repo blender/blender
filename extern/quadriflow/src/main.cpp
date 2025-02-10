@@ -110,7 +110,10 @@ int main(int argc, char** argv) {
     printf("Use %lf seconds\n", (t2 - t1) * 1e-3);
     t1 = GetCurrentTime64();
     printf("Solve index map...\n");
-    field.ComputeIndexMap();
+    if (!field.ComputeIndexMap()) {
+      fprintf(stderr, "Failed to solve result, exiting!\n");
+      return 1;
+    }
     t2 = GetCurrentTime64();
     printf("Indexmap Use %lf seconds\n", (t2 - t1) * 1e-3);
     printf("Writing the file...\n");

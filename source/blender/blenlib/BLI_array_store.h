@@ -9,6 +9,8 @@
  * \brief Efficient in-memory storage of multiple similar arrays.
  */
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

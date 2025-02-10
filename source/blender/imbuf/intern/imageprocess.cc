@@ -7,13 +7,11 @@
  * \ingroup imbuf
  */
 
-#include <cmath>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -69,7 +67,7 @@ void IMB_processor_apply_threaded(
     int handle_size,
     void *init_customdata,
     void(init_handle)(void *handle, int start_line, int tot_line, void *customdata),
-    void *(do_thread)(void *))
+    void(do_thread)(void *))
 {
   const int lines_per_task = 64;
 

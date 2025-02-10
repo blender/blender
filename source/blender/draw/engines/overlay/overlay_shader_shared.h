@@ -292,9 +292,9 @@ struct BoneEnvelopeData {
                    float3 &x_axis)
       : head_sphere(head_sphere),
         tail_sphere(tail_sphere),
-        bone_color_and_wire_width(bone_color),
-        state_color(state_color),
-        x_axis(x_axis){};
+        bone_color_and_wire_width(bone_color, 0.0f),
+        state_color(state_color, 0.0f),
+        x_axis(x_axis, 0.0f){};
 
   /* For bone outlines. */
   BoneEnvelopeData(float4 &head_sphere,
@@ -304,11 +304,11 @@ struct BoneEnvelopeData {
       : head_sphere(head_sphere),
         tail_sphere(tail_sphere),
         bone_color_and_wire_width(color_and_wire_width),
-        x_axis(x_axis){};
+        x_axis(x_axis, 0.0f){};
 
   /* For bone distance volumes. */
   BoneEnvelopeData(float4 &head_sphere, float4 &tail_sphere, float3 &x_axis)
-      : head_sphere(head_sphere), tail_sphere(tail_sphere), x_axis(x_axis){};
+      : head_sphere(head_sphere), tail_sphere(tail_sphere), x_axis(x_axis, 0.0f){};
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(BoneEnvelopeData, 16)

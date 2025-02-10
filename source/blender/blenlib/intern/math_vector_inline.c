@@ -10,6 +10,7 @@
 #define __MATH_VECTOR_INLINE_C__
 
 #include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 /********************************** Init *************************************/
 
@@ -633,6 +634,8 @@ MINLINE float dot_v3v3(const float a[3], const float b[3])
 {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
+
+MINLINE bool is_zero_v3(const float v[3]);
 
 MINLINE float dot_v3v3v3(const float p[3], const float a[3], const float b[3])
 {

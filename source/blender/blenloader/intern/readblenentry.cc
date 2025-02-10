@@ -7,9 +7,7 @@
  * `.blend` file reading entry point.
  */
 
-#include <cmath>
 #include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -401,7 +399,7 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
     MEM_freeN(bfd->user);
   }
 
-  MEM_freeN(bfd);
+  MEM_delete(bfd);
 }
 
 void BLO_read_do_version_after_setup(Main *new_bmain,

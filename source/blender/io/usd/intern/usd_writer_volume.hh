@@ -18,8 +18,8 @@ class USDVolumeWriter : public USDAbstractWriter {
   USDVolumeWriter(const USDExporterContext &ctx);
 
  protected:
-  virtual bool check_is_animated(const HierarchyContext &context) const override;
-  virtual void do_write(HierarchyContext &context) override;
+  bool check_is_animated(const HierarchyContext &context) const override;
+  void do_write(HierarchyContext &context) override;
 
  private:
   /* Try to ensure that external `.vdb` file is available for USD to be referenced. Blender can

@@ -41,7 +41,7 @@ struct VKImageAccess {
   uint32_t layer_count;
 
   /** Determine the image layout for the vk_access_flags. */
-  VkImageLayout to_vk_image_layout() const;
+  VkImageLayout to_vk_image_layout(bool supports_local_read) const;
 };
 
 /** Struct describing the access to a buffer. */

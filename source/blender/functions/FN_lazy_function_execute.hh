@@ -10,7 +10,7 @@
  * This file contains common utilities for actually executing a lazy-function.
  */
 
-#include "BLI_parameter_pack_utils.hh"
+#include "BLI_generic_pointer.hh"
 
 #include "FN_lazy_function.hh"
 
@@ -99,7 +99,7 @@ inline void execute_lazy_function_eagerly_impl(const LazyFunction &fn,
       [&]() {
         constexpr size_t I = InIndices;
         /* Use `typedef` instead of `using` to work around a compiler bug. */
-        typedef Inputs T;
+        using T = Inputs;
         const CPPType &type = CPPType::get<T>();
         input_pointers[I] = {type, &std::get<I>(inputs)};
       }(),
@@ -108,7 +108,7 @@ inline void execute_lazy_function_eagerly_impl(const LazyFunction &fn,
       [&]() {
         constexpr size_t I = OutIndices;
         /* Use `typedef` instead of `using` to work around a compiler bug. */
-        typedef Outputs T;
+        using T = Outputs;
         const CPPType &type = CPPType::get<T>();
         output_pointers[I] = {type, std::get<I>(outputs)};
       }(),

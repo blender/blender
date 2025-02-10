@@ -8,17 +8,22 @@
 
 #pragma once
 
-struct bArmature;
+#include "DNA_listBase.h"
+
+#include "BLI_span.hh"
+
 struct Base;
-struct bContext;
 struct Bone;
-struct bPoseChannel;
 struct EditBone;
 struct GPUSelectResult;
+struct IDProperty;
 struct LinkData;
 struct ListBase;
 struct Object;
 struct Scene;
+struct bArmature;
+struct bContext;
+struct bPoseChannel;
 struct wmOperatorType;
 
 /* -------------------------------------------------------------------- */

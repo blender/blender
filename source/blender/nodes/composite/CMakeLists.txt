@@ -7,10 +7,11 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../makesrna
   ../../compositor
+  ../../makesrna
   ../../compositor/algorithms
   ../../compositor/cached_resources
+  ../../compositor/derived_resources
   ../../compositor/utilities
 
   # RNA_prototypes.hh

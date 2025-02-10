@@ -7,12 +7,20 @@
  */
 
 #include "BLI_math_base.h"
+
+#if !BLI_MATH_DO_INLINE
+#  include "BLI_math_color_blend.h"
+#endif
+
 #include "BLI_math_color.h"
-#include "BLI_math_color_blend.h"
 #include "BLI_math_vector.h"
 
 #ifndef __MATH_COLOR_BLEND_INLINE_C__
 #  define __MATH_COLOR_BLEND_INLINE_C__
+
+#  ifdef __cplusplus
+extern "C" {
+#  endif
 
 /* don't add any saturation to a completely black and white image */
 #  define EPS_SATURATION 0.0005f
@@ -1126,5 +1134,9 @@ MINLINE void blend_color_interpolate_float(float dst[4],
 
 #  undef EPS_SATURATION
 #  undef EPS_ALPHA
+
+#  ifdef __cplusplus
+}
+#  endif
 
 #endif /* __MATH_COLOR_BLEND_INLINE_C__ */

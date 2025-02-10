@@ -97,7 +97,8 @@ static int add_vertex(const int3 v,
                       const int3 res,
                       unordered_map<size_t, int> &used_verts)
 {
-  const size_t vert_key = v.x + v.y * (res.x + 1) + v.z * (res.x + 1) * (res.y + 1);
+  const size_t vert_key = v.x + v.y * size_t(res.x + 1) +
+                          v.z * size_t(res.x + 1) * size_t(res.y + 1);
   const unordered_map<size_t, int>::iterator it = used_verts.find(vert_key);
 
   if (it != used_verts.end()) {

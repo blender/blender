@@ -12,6 +12,10 @@
 
 #include "BLI_string_ref.hh"
 
+struct ARegion;
+struct bContext;
+struct bScreen;
+
 /* interface_region_menu_popup.cc */
 
 uint ui_popup_menu_hash(blender::StringRef str);

@@ -27,7 +27,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 
 #include "BKE_action.hh"
@@ -1171,7 +1170,7 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
     /* only if scale changed, need to perform RNA updates */
     if (scaleChanged) {
       /* use RNA updates to compute scale properly */
-      PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
+      PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_NlaStrip, strip);
 
       RNA_float_set(&ptr, "frame_start", strip->start);
       RNA_float_set(&ptr, "frame_end", strip->end);
@@ -2115,12 +2114,14 @@ void BKE_nla_validate_state(AnimData *adt)
 /* name of stashed tracks - the translation stuff is included here to save extra work */
 #define STASH_TRACK_NAME DATA_("[Action Stash]")
 
-bool BKE_nla_action_is_stashed(AnimData *adt, bAction *act)
+bool BKE_nla_action_slot_is_stashed(AnimData *adt,
+                                    bAction *act,
+                                    const blender::animrig::slot_handle_t slot_handle)
 {
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     if (strstr(nlt->name, STASH_TRACK_NAME)) {
       LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
-        if (strip->act == act) {
+        if (strip->act == act && strip->action_slot_handle == slot_handle) {
           return true;
         }
       }
@@ -2144,7 +2145,7 @@ bool BKE_nla_action_stash(const OwnedAnimData owned_adt, const bool is_liboverri
   }
 
   /* do not add if it is already stashed */
-  if (BKE_nla_action_is_stashed(adt, adt->action)) {
+  if (BKE_nla_action_slot_is_stashed(adt, adt->action, adt->slot_handle)) {
     return false;
   }
 
@@ -2554,21 +2555,29 @@ void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id)
   }
 
   printf("  - ADT flags:");
-  if (adt->flag & ADT_NLA_SOLO_TRACK)
+  if (adt->flag & ADT_NLA_SOLO_TRACK) {
     printf(" SOLO_TRACK");
-  if (adt->flag & ADT_NLA_EVAL_OFF)
+  }
+  if (adt->flag & ADT_NLA_EVAL_OFF) {
     printf(" EVAL_OFF");
-  if (adt->flag & ADT_NLA_EDIT_ON)
+  }
+  if (adt->flag & ADT_NLA_EDIT_ON) {
     printf(" EDIT_ON");
-  if (adt->flag & ADT_NLA_EDIT_NOMAP)
+  }
+  if (adt->flag & ADT_NLA_EDIT_NOMAP) {
     printf(" EDIT_NOMAP");
-  if (adt->flag & ADT_NLA_SKEYS_COLLAPSED)
+  }
+  if (adt->flag & ADT_NLA_SKEYS_COLLAPSED) {
     printf(" SKEYS_COLLAPSED");
-  if (adt->flag & ADT_NLA_EVAL_UPPER_TRACKS)
+  }
+  if (adt->flag & ADT_NLA_EVAL_UPPER_TRACKS) {
     printf(" EVAL_UPPER_TRACKS");
+  }
   if ((adt->flag & (ADT_NLA_SOLO_TRACK | ADT_NLA_EVAL_OFF | ADT_NLA_EDIT_ON | ADT_NLA_EDIT_NOMAP |
                     ADT_NLA_SKEYS_COLLAPSED | ADT_NLA_EVAL_UPPER_TRACKS)) == 0)
+  {
     printf(" -");
+  }
   printf("\n");
 
   if (BLI_listbase_is_empty(&adt->nla_tracks)) {
@@ -2582,54 +2591,76 @@ void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id)
 
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     printf("  - Track #%d %s: ", nlt->index, nlt->name);
-    if (nlt->flag & NLATRACK_ACTIVE)
+    if (nlt->flag & NLATRACK_ACTIVE) {
       printf("ACTIVE ");
-    if (nlt->flag & NLATRACK_SELECTED)
+    }
+    if (nlt->flag & NLATRACK_SELECTED) {
       printf("SELECTED ");
-    if (nlt->flag & NLATRACK_MUTED)
+    }
+    if (nlt->flag & NLATRACK_MUTED) {
       printf("MUTED ");
-    if (nlt->flag & NLATRACK_SOLO)
+    }
+    if (nlt->flag & NLATRACK_SOLO) {
       printf("SOLO ");
-    if (nlt->flag & NLATRACK_PROTECTED)
+    }
+    if (nlt->flag & NLATRACK_PROTECTED) {
       printf("PROTECTED ");
-    if (nlt->flag & NLATRACK_DISABLED)
+    }
+    if (nlt->flag & NLATRACK_DISABLED) {
       printf("DISABLED ");
-    if (nlt->flag & NLATRACK_TEMPORARILY_ADDED)
+    }
+    if (nlt->flag & NLATRACK_TEMPORARILY_ADDED) {
       printf("TEMPORARILY_ADDED ");
-    if (nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL)
+    }
+    if (nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) {
       printf("OVERRIDELIBRARY_LOCAL ");
+    }
     printf("\n");
 
     LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       printf("    - Strip %s: ", strip->name);
-      if (strip->flag & NLASTRIP_FLAG_ACTIVE)
+      if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
         printf("ACTIVE ");
-      if (strip->flag & NLASTRIP_FLAG_SELECT)
+      }
+      if (strip->flag & NLASTRIP_FLAG_SELECT) {
         printf("SELECT ");
-      if (strip->flag & NLASTRIP_FLAG_TWEAKUSER)
+      }
+      if (strip->flag & NLASTRIP_FLAG_TWEAKUSER) {
         printf("TWEAKUSER ");
-      if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE)
+      }
+      if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
         printf("USR_INFLUENCE ");
-      if (strip->flag & NLASTRIP_FLAG_USR_TIME)
+      }
+      if (strip->flag & NLASTRIP_FLAG_USR_TIME) {
         printf("USR_TIME ");
-      if (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC)
+      }
+      if (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC) {
         printf("USR_TIME_CYCLIC ");
-      if (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH)
+      }
+      if (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH) {
         printf("SYNC_LENGTH ");
-      if (strip->flag & NLASTRIP_FLAG_AUTO_BLENDS)
+      }
+      if (strip->flag & NLASTRIP_FLAG_AUTO_BLENDS) {
         printf("AUTO_BLENDS ");
-      if (strip->flag & NLASTRIP_FLAG_REVERSE)
+      }
+      if (strip->flag & NLASTRIP_FLAG_REVERSE) {
         printf("REVERSE ");
-      if (strip->flag & NLASTRIP_FLAG_MUTED)
+      }
+      if (strip->flag & NLASTRIP_FLAG_MUTED) {
         printf("MUTED ");
-      if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION)
+      }
+      if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION) {
         printf("INVALID_LOCATION ");
-      if (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP)
+      }
+      if (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP) {
         printf("NO_TIME_MAP ");
-      if (strip->flag & NLASTRIP_FLAG_TEMP_META)
+      }
+      if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
         printf("TEMP_META ");
-      if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED)
+      }
+      if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED) {
         printf("EDIT_TOUCHED ");
+      }
       printf("\n");
     }
   }

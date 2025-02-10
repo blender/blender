@@ -177,6 +177,7 @@ set(SRC
   BLI_allocator.hh
   BLI_any.hh
   BLI_array.hh
+  BLI_array_state.hh
   BLI_array_store.h
   BLI_array_store_utils.h
   BLI_array_utils.h
@@ -195,7 +196,6 @@ set(SRC
   BLI_bit_vector.hh
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
-  BLI_blenlib.h
   BLI_bounds.hh
   BLI_bounds_types.hh
   BLI_boxpack_2d.h
@@ -295,6 +295,7 @@ set(SRC
   BLI_math_color.h
   BLI_math_color.hh
   BLI_math_color_blend.h
+  BLI_math_constants.h
   BLI_math_euler.hh
   BLI_math_euler_types.hh
   BLI_math_geom.h
@@ -511,6 +512,7 @@ add_library(bf::blenlib ALIAS bf_blenlib)
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/BLI_any_test.cc
+    tests/BLI_array_state_test.cc
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc

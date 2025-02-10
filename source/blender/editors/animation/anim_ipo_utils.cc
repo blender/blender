@@ -14,9 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -35,7 +34,7 @@
 
 #include "ANIM_action.hh"
 
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 #include <cstring>
 
@@ -133,7 +132,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     if (GS(ptr.owner_id->name) == ID_SCE) {
       char stripname[name_maxncpy];
       if (BLI_str_quoted_substr(
-              fcu->rna_path, "sequence_editor.sequences_all[", stripname, sizeof(stripname)))
+              fcu->rna_path, "sequence_editor.strips_all[", stripname, sizeof(stripname)))
       {
         if (strstr(fcu->rna_path, ".transform.") || strstr(fcu->rna_path, ".crop.") ||
             strstr(fcu->rna_path, ".modifiers["))
@@ -291,7 +290,7 @@ std::string getname_anim_fcurve_for_slot(Main &bmain,
     return propname;
   }
 
-  std::string arrayname = "";
+  std::string arrayname;
   char c = RNA_property_array_item_char(prop, fcurve.array_index);
   if (c) {
     arrayname = std::string(1, c);

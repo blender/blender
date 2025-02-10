@@ -66,7 +66,6 @@
 #include <utility>
 
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 
 namespace blender {
 

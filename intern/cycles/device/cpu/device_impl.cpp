@@ -106,12 +106,13 @@ void CPUDevice::mem_alloc(device_memory &mem)
                 << string_human_readable_size(mem.memory_size()) << ")";
     }
 
-    if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
+    if (mem.type == MEM_DEVICE_ONLY) {
       size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES;
       void *data = util_aligned_malloc(mem.memory_size(), alignment);
       mem.device_pointer = (device_ptr)data;
     }
     else {
+      assert(!(mem.host_pointer == nullptr && mem.memory_size() > 0));
       mem.device_pointer = (device_ptr)mem.host_pointer;
     }
 
@@ -137,6 +138,11 @@ void CPUDevice::mem_copy_to(device_memory &mem)
 
     /* copy is no-op */
   }
+}
+
+void CPUDevice::mem_move_to_host(device_memory & /*mem*/)
+{
+  /* no-op */
 }
 
 void CPUDevice::mem_copy_from(
@@ -165,8 +171,8 @@ void CPUDevice::mem_free(device_memory &mem)
     tex_free((device_texture &)mem);
   }
   else if (mem.device_pointer) {
-    if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
-      util_aligned_free((void *)mem.device_pointer);
+    if (mem.type == MEM_DEVICE_ONLY) {
+      util_aligned_free((void *)mem.device_pointer, mem.memory_size());
     }
     mem.device_pointer = 0;
     stats.mem_free(mem.device_size);

@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 
-# Strip version numbers from dependenciesm macOS notarizatiom fails
+# Strip version numbers from dependencies macOS notarizatiom fails
 # with version symlinks.
 def strip_lib_version(name):
     name = re.sub(r'(\.[0-9]+)+.dylib', '.dylib', name)
@@ -41,10 +41,10 @@ def main():
     file = pathlib.Path(file)
     new_file = pathlib.Path(new_file)
 
-    # Update cmake config files.
+    # Update CMake configuration files.
     update_cmake_config(file, new_file)
 
-    # Remove if symlink.
+    # Remove if symbolic-link.
     if file.is_symlink():
         os.remove(file)
         sys.exit(0)

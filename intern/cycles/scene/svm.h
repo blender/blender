@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
 

@@ -25,7 +25,7 @@
 
 #include "gpu_select_private.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 // #define DEBUG_PRINT
 

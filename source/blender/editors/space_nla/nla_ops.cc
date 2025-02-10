@@ -6,7 +6,6 @@
  * \ingroup spnla
  */
 
-#include <cstdio>
 #include <cstring>
 
 #include "DNA_scene_types.h"

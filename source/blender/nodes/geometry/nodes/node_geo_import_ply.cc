@@ -6,8 +6,6 @@
 
 #include "BLI_string.h"
 
-#include "BKE_instances.hh"
-#include "BKE_mesh.hh"
 #include "BKE_report.hh"
 
 #include "IO_ply.hh"
@@ -70,8 +68,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMPORT_PLY, "Import PLY", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeImportPLY", GEO_NODE_IMPORT_PLY);
+  ntype.ui_name = "Import PLY";
+  ntype.ui_description = "Import a point cloud from a PLY file";
   ntype.enum_name_legacy = "IMPORT_PLY";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_import_node;

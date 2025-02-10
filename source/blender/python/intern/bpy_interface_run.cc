@@ -18,6 +18,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_text.h"
@@ -27,7 +28,6 @@
 #include "BPY_extern_run.hh"
 
 #include "bpy_capi_utils.hh"
-#include "bpy_intern_string.hh"
 #include "bpy_traceback.hh"
 
 #include "../generic/py_capi_utils.hh"

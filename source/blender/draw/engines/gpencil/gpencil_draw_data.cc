@@ -9,11 +9,12 @@
 #include "DRW_render.hh"
 
 #include "DNA_light_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_image.hh"
+#include "BKE_material.hh"
 
-#include "BLI_hash.h"
-#include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_memblock.h"
 
 #include "GPU_uniform_buffer.hh"
@@ -164,7 +165,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
 {
   GPENCIL_MaterialPool *matpool = pd->last_material_pool;
 
-  int mat_len = max_ii(1, BKE_object_material_count_eval(ob));
+  int mat_len = BKE_object_material_used_with_fallback_eval(*ob);
 
   bool reuse_matpool = matpool && ((matpool->used_count + mat_len) <= GPENCIL_MATERIAL_BUFFER_LEN);
 

@@ -84,13 +84,13 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
     return;
   }
 
-  write_header(*buffer.get(), *plyData.get(), export_params);
+  write_header(*buffer, *plyData, export_params);
 
-  write_vertices(*buffer.get(), *plyData.get());
+  write_vertices(*buffer, *plyData);
 
-  write_faces(*buffer.get(), *plyData.get());
+  write_faces(*buffer, *plyData);
 
-  write_edges(*buffer.get(), *plyData.get());
+  write_edges(*buffer, *plyData);
 
   buffer->close_file();
 }

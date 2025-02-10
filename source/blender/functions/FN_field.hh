@@ -34,8 +34,6 @@
  * they share common sub-fields and a common context.
  */
 
-#include <iostream>
-
 #include "BLI_function_ref.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_string_ref.hh"
@@ -234,7 +232,7 @@ class FieldOperation : public FieldNode {
  public:
   FieldOperation(std::shared_ptr<const mf::MultiFunction> function, Vector<GField> inputs = {});
   FieldOperation(const mf::MultiFunction &function, Vector<GField> inputs = {});
-  ~FieldOperation();
+  ~FieldOperation() override;
 
   Span<GField> inputs() const;
   const mf::MultiFunction &multi_function() const;
@@ -275,7 +273,7 @@ class FieldInput : public FieldNode {
 
  public:
   FieldInput(const CPPType &type, std::string debug_name = "");
-  ~FieldInput();
+  ~FieldInput() override;
 
   /**
    * Get the value of this specific input based on the given context. The returned virtual array,
@@ -300,7 +298,7 @@ class FieldConstant : public FieldNode {
 
  public:
   FieldConstant(const CPPType &type, const void *value);
-  ~FieldConstant();
+  ~FieldConstant() override;
 
   const CPPType &output_cpp_type(int output_index) const override;
   const CPPType &type() const;

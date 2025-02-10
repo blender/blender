@@ -139,13 +139,20 @@ template double determinant(const double2x2 &mat);
 template double determinant(const double3x3 &mat);
 template double determinant(const double4x4 &mat);
 
+template<typename T> bool is_negative(const MatBase<T, 3, 3> &mat)
+{
+  return determinant(mat) < T(0);
+}
+
 template<typename T> bool is_negative(const MatBase<T, 4, 4> &mat)
 {
   return Eigen::Map<const Eigen::Matrix<T, 3, 3>, 0, Eigen::Stride<4, 1>>(mat.base_ptr())
              .determinant() < T(0);
 }
 
+template bool is_negative(const float3x3 &mat);
 template bool is_negative(const float4x4 &mat);
+template bool is_negative(const double3x3 &mat);
 template bool is_negative(const double4x4 &mat);
 
 /** \} */

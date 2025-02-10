@@ -12,19 +12,11 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "DNA_object_force_types.h"
-#  include "DNA_object_types.h"
-#  include "DNA_scene_types.h"
-#  include "DNA_texture_types.h"
-
 #  include "BLI_math_geom.h"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_vector.h"
-#  include "BLI_utildefines.h"
 
 #  include "BKE_cloth.hh"
-#  include "BKE_collision.h"
-#  include "BKE_effect.h"
 
 #  include "SIM_mass_spring.h"
 
@@ -59,7 +51,7 @@ static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 /////////////////////////////////////////
 
 /* DEFINITIONS */
-typedef float lfVector[3];
+using lfVector = float[3];
 struct fmatrix3x3 {
   float m[3][3]; /* 3x3 matrix */
   uint c, r;     /* column and row number */
@@ -1576,8 +1568,8 @@ static void edge_wind_vertex(const float dir[3],
                              float radius,
                              const float wind[3],
                              float f[3],
-                             float[3][3] /*dfdx*/,
-                             float[3][3] /*dfdv*/)
+                             float /*dfdx*/[3][3],
+                             float /*dfdv*/[3][3])
 {
   const float density = 0.01f; /* XXX arbitrary value, corresponds to effect of air density */
   float cos_alpha, sin_alpha, cross_section;

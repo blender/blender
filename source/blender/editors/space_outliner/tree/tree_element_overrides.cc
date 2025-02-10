@@ -6,7 +6,6 @@
  * \ingroup spoutliner
  */
 
-#include "BKE_collection.hh"
 #include "BKE_lib_override.hh"
 
 #include "BLI_function_ref.hh"

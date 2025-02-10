@@ -1,0 +1,97 @@
+From 2a1dd46bbd14b6fdc6540c76422ac4e9bd8ab724 Mon Sep 17 00:00:00 2001
+From: Brecht Van Lommel <brecht@blender.org>
+Date: Fri, 13 Dec 2024 02:31:45 +0100
+Subject: [PATCH] Fix address sanitizer warnings with stencil table casting
+
+For compatibility, StencilTableReal<float> is cast to StencilTable, which has
+the same data layout but it's not actually an instance of that class. And so
+using static_cast is not strictly correct. Use reinterpret_cast instead.
+---
+ opensubdiv/far/patchTable.h          |  6 +++---
+ opensubdiv/far/stencilTableFactory.h | 12 ++++++------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/opensubdiv/far/patchTable.h b/opensubdiv/far/patchTable.h
+index d2e9d5a614..6731d788f6 100644
+--- a/opensubdiv/far/patchTable.h
++++ b/opensubdiv/far/patchTable.h
+@@ -777,19 +777,19 @@ PatchTable::LocalPointFaceVaryingStencilPrecisionMatchesType<double>() const {
+ inline StencilTable const *
+ PatchTable::GetLocalPointStencilTable() const {
+     assert(LocalPointStencilPrecisionMatchesType<float>());
+-    return static_cast<StencilTable const *>(_localPointStencils.Get<float>());
++    return reinterpret_cast<StencilTable const *>(_localPointStencils.Get<float>());
+ }
+ inline StencilTable const *
+ PatchTable::GetLocalPointVaryingStencilTable() const {
+     assert(LocalPointVaryingStencilPrecisionMatchesType<float>());
+-    return static_cast<StencilTable const *>(
++    return reinterpret_cast<StencilTable const *>(
+             _localPointVaryingStencils.Get<float>());
+ }
+ inline StencilTable const *
+ PatchTable::GetLocalPointFaceVaryingStencilTable(int channel) const {
+     assert(LocalPointFaceVaryingStencilPrecisionMatchesType<float>());
+     if (channel >= 0 && channel < (int)_localPointFaceVaryingStencils.size()) {
+-        return static_cast<StencilTable const *>(
++        return reinterpret_cast<StencilTable const *>(
+                 _localPointFaceVaryingStencils[channel].Get<float>());
+     }
+     return NULL;
+diff --git a/opensubdiv/far/stencilTableFactory.h b/opensubdiv/far/stencilTableFactory.h
+index c2e95e1c3d..5b8d43f1dc 100644
+--- a/opensubdiv/far/stencilTableFactory.h
++++ b/opensubdiv/far/stencilTableFactory.h
+@@ -293,14 +293,14 @@ class StencilTableFactory : public StencilTableFactoryReal<float> {
+     static StencilTable const * Create(
+                 TopologyRefiner const & refiner, Options options = Options()) {
+ 
+-        return static_cast<StencilTable const *>(
++        return reinterpret_cast<StencilTable const *>(
+                 BaseFactory::Create(refiner, options));
+     }
+ 
+     static StencilTable const * Create(
+                 int numTables, StencilTable const ** tables) {
+ 
+-        return static_cast<StencilTable const *>(
++        return reinterpret_cast<StencilTable const *>(
+                 BaseFactory::Create(numTables,
+                         reinterpret_cast<BaseTable const **>(tables)));
+     }
+@@ -311,7 +311,7 @@ class StencilTableFactory : public StencilTableFactoryReal<float> {
+                 StencilTable const *localPointStencilTable,
+                 bool factorize = true) {
+ 
+-        return static_cast<StencilTable const *>(
++        return reinterpret_cast<StencilTable const *>(
+                 BaseFactory::AppendLocalPointStencilTable(refiner,
+                         static_cast<BaseTable const *>(baseStencilTable),
+                         static_cast<BaseTable const *>(localPointStencilTable),
+@@ -324,7 +324,7 @@ class StencilTableFactory : public StencilTableFactoryReal<float> {
+                 StencilTable const *localPointStencilTable,
+                 bool factorize = true) {
+ 
+-        return static_cast<StencilTable const *>(
++        return reinterpret_cast<StencilTable const *>(
+                 BaseFactory::AppendLocalPointStencilTableVarying(refiner,
+                         static_cast<BaseTable const *>(baseStencilTable),
+                         static_cast<BaseTable const *>(localPointStencilTable),
+@@ -338,7 +338,7 @@ class StencilTableFactory : public StencilTableFactoryReal<float> {
+                 int channel = 0,
+                 bool factorize = true) {
+ 
+-        return static_cast<StencilTable const *>(
++        return reinterpret_cast<StencilTable const *>(
+                 BaseFactory::AppendLocalPointStencilTableFaceVarying(refiner,
+                         static_cast<BaseTable const *>(baseStencilTable),
+                         static_cast<BaseTable const *>(localPointStencilTable),
+@@ -364,7 +364,7 @@ class LimitStencilTableFactory : public LimitStencilTableFactoryReal<float> {
+                 PatchTable const * patchTable = 0,
+                 Options options = Options()) {
+ 
+-        return static_cast<LimitStencilTable const *>(
++        return reinterpret_cast<LimitStencilTable const *>(
+                 BaseFactory::Create(
+                         refiner,
+                         locationArrays,

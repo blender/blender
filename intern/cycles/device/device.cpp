@@ -500,11 +500,11 @@ GPUDevice::~GPUDevice() noexcept(false) = default;
 
 bool GPUDevice::load_texture_info()
 {
+  /* Note texture_info is never host mapped, and load_texture_info() should only
+   * be called right before kernel enqueue when all memory operations have completed. */
   if (need_texture_info) {
-    /* Unset flag before copying, so this does not loop indefinitely if the copy below calls
-     * into 'move_textures_to_host' (which calls 'load_texture_info' again). */
-    need_texture_info = false;
     texture_info.copy_to_device();
+    need_texture_info = false;
     return true;
   }
   return false;
@@ -545,16 +545,19 @@ void GPUDevice::init_host_memory(const size_t preferred_texture_headroom,
             << " bytes. (" << string_human_readable_size(map_host_limit) << ")";
 }
 
-void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
+void GPUDevice::move_textures_to_host(size_t size, const size_t headroom, const bool for_texture)
 {
-  /* Break out of recursive call, which can happen when moving memory on a multi device. */
-  static bool any_device_moving_textures_to_host = false;
-  if (any_device_moving_textures_to_host) {
+  static thread_mutex move_mutex;
+  const thread_scoped_lock lock(move_mutex);
+
+  /* Check if there is enough space. Within mutex locks so that multiple threads
+   * calling take into account memory freed by another thread. */
+  size_t total = 0;
+  size_t free = 0;
+  get_device_memory_info(total, free);
+  if (size + headroom < free) {
     return;
   }
-
-  /* Signal to reallocate textures in host memory only. */
-  move_texture_to_host = true;
 
   while (size > 0) {
     /* Find suitable memory allocation to move. */
@@ -569,7 +572,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
 
       /* Can only move textures allocated on this device (and not those from peer devices).
        * And need to ignore memory that is already on the host. */
-      if (!mem.is_resident(this) || cmem->use_mapped_host) {
+      if (!mem.is_resident(this) || mem.is_host_mapped(this)) {
         continue;
       }
 
@@ -602,11 +605,6 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
     if (max_mem) {
       VLOG_WORK << "Move memory from device to host: " << max_mem->name;
 
-      static thread_mutex move_mutex;
-      const thread_scoped_lock lock(move_mutex);
-
-      any_device_moving_textures_to_host = true;
-
       /* Potentially need to call back into multi device, so pointer mapping
        * and peer devices are updated. This is also necessary since the device
        * pointer may just be a key here, so cannot be accessed and freed directly.
@@ -614,21 +612,18 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
        * devices as well, which is potentially dangerous when still in use (since
        * a thread rendering on another devices would only be caught in this mutex
        * if it so happens to do an allocation at the same time as well. */
-      max_mem->device_copy_to();
+      max_mem->move_to_host = true;
+      max_mem->device_move_to_host();
+      max_mem->move_to_host = false;
       size = (max_size >= size) ? 0 : size - max_size;
 
-      any_device_moving_textures_to_host = false;
+      /* Tag texture info update for new pointers. */
+      need_texture_info = true;
     }
     else {
       break;
     }
   }
-
-  /* Unset flag before texture info is reloaded, since it should stay in device memory. */
-  move_texture_to_host = false;
-
-  /* Update texture info array with new pointers. */
-  load_texture_info();
 }
 
 GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_padding)
@@ -652,18 +647,17 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
 
   const size_t headroom = (is_texture) ? device_texture_headroom : device_working_headroom;
 
+  /* Move textures to host memory if needed. */
+  if (!mem.move_to_host && !is_image && can_map_host) {
+    move_textures_to_host(size, headroom, is_texture);
+  }
+
   size_t total = 0;
   size_t free = 0;
   get_device_memory_info(total, free);
 
-  /* Move textures to host memory if needed. */
-  if (!move_texture_to_host && !is_image && (size + headroom) >= free && can_map_host) {
-    move_textures_to_host(size + headroom - free, is_texture);
-    get_device_memory_info(total, free);
-  }
-
   /* Allocate in device memory. */
-  if (!move_texture_to_host && (size + headroom) < free) {
+  if ((!mem.move_to_host && (size + headroom) < free) || (mem.type == MEM_DEVICE_ONLY)) {
     mem_alloc_result = alloc_device(device_pointer, size);
     if (mem_alloc_result) {
       device_mem_in_use += size;
@@ -690,7 +684,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
     }
 
     if (mem_alloc_result) {
-      transform_host_pointer(device_pointer, shared_pointer);
+      device_pointer = transform_host_to_device_pointer(shared_pointer);
       map_host_used += size;
       status = " in host memory";
     }
@@ -730,27 +724,15 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
      * does not work if we move textures to host during a render,
      * since other devices might be using the memory. */
 
-    if (!move_texture_to_host && pitch_padding == 0 && mem.host_pointer &&
+    if (!mem.move_to_host && pitch_padding == 0 && mem.host_pointer &&
         mem.host_pointer != shared_pointer)
     {
       memcpy(shared_pointer, mem.host_pointer, size);
-
-      /* A Call to device_memory::host_free() should be preceded by
-       * a call to device_memory::device_free() for host memory
-       * allocated by a device to be handled properly. Two exceptions
-       * are here and a call in OptiXDevice::generic_alloc(), where
-       * the current host memory can be assumed to be allocated by
-       * device_memory::host_alloc(), not by a device */
-
-      mem.host_free();
+      util_aligned_free(mem.host_pointer, mem.memory_size());
       mem.host_pointer = shared_pointer;
     }
     mem.shared_pointer = shared_pointer;
     mem.shared_counter++;
-    cmem->use_mapped_host = true;
-  }
-  else {
-    cmem->use_mapped_host = false;
   }
 
   return cmem;
@@ -758,40 +740,46 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
 
 void GPUDevice::generic_free(device_memory &mem)
 {
-  if (mem.device_pointer) {
-    const thread_scoped_lock lock(device_mem_map_mutex);
-    DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
-    const Mem &cmem = device_mem_map[&mem];
-
-    /* If cmem.use_mapped_host is true, reference counting is used
-     * to safely free a mapped host memory. */
-
-    if (cmem.use_mapped_host) {
-      assert(mem.shared_pointer);
-      if (mem.shared_pointer) {
-        assert(mem.shared_counter > 0);
-        if (--mem.shared_counter == 0) {
-          if (mem.host_pointer == mem.shared_pointer) {
-            mem.host_pointer = nullptr;
-          }
-          free_host(mem.shared_pointer);
-          mem.shared_pointer = nullptr;
-        }
-      }
-      map_host_used -= mem.device_size;
-    }
-    else {
-      /* Free device memory. */
-      free_device((void *)mem.device_pointer);
-      device_mem_in_use -= mem.device_size;
-    }
-
-    stats.mem_free(mem.device_size);
-    mem.device_pointer = 0;
-    mem.device_size = 0;
-
-    device_mem_map.erase(device_mem_map.find(&mem));
+  if (!(mem.device_pointer && mem.is_resident(this))) {
+    return;
   }
+
+  /* Host pointer should already have been freed at this point. If not we might
+   * end up freeing shared memory and can't recover original host memory. */
+  assert(mem.host_pointer == nullptr || mem.move_to_host);
+
+  const thread_scoped_lock lock(device_mem_map_mutex);
+  DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
+
+  /* For host mapped memory, reference counting is used to safely free it. */
+  if (mem.is_host_mapped(this)) {
+    assert(mem.shared_counter > 0);
+    if (--mem.shared_counter == 0) {
+      if (mem.host_pointer == mem.shared_pointer) {
+        /* Safely move the device-side data back to the host before it is freed.
+         * We should actually never reach this code as it is inefficient, but
+         * better than to crash if there is a bug. */
+        assert(!"GPU device should not copy memory back to host");
+        const size_t size = mem.memory_size();
+        mem.host_pointer = mem.host_alloc(size);
+        memcpy(mem.host_pointer, mem.shared_pointer, size);
+      }
+      free_host(mem.shared_pointer);
+      mem.shared_pointer = nullptr;
+    }
+    map_host_used -= mem.device_size;
+  }
+  else {
+    /* Free device memory. */
+    free_device((void *)mem.device_pointer);
+    device_mem_in_use -= mem.device_size;
+  }
+
+  stats.mem_free(mem.device_size);
+  mem.device_pointer = 0;
+  mem.device_size = 0;
+
+  device_mem_map.erase(device_mem_map.find(&mem));
 }
 
 void GPUDevice::generic_copy_to(device_memory &mem)
@@ -800,13 +788,20 @@ void GPUDevice::generic_copy_to(device_memory &mem)
     return;
   }
 
-  /* If use_mapped_host of mem is false, the current device only uses device memory allocated by
-   * backend device allocation regardless of mem.host_pointer and mem.shared_pointer, and should
+  /* If not host mapped, the current device only uses device memory allocated by backend
+   * device allocation regardless of mem.host_pointer and mem.shared_pointer, and should
    * copy data from mem.host_pointer. */
-  const thread_scoped_lock lock(device_mem_map_mutex);
-  if (!device_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
+  if (!(mem.is_host_mapped(this) && mem.host_pointer == mem.shared_pointer)) {
     copy_host_to_device((void *)mem.device_pointer, mem.host_pointer, mem.memory_size());
   }
+}
+
+bool GPUDevice::is_host_mapped(const void *shared_pointer,
+                               const device_ptr device_pointer,
+                               Device * /*sub_device*/)
+{
+  return (shared_pointer && device_pointer &&
+          (device_ptr)transform_host_to_device_pointer(shared_pointer) == device_pointer);
 }
 
 /* DeviceInfo */

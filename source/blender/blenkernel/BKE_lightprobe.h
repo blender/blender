@@ -9,6 +9,8 @@
  * \brief General operations for probes.
  */
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

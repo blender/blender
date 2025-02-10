@@ -12,14 +12,9 @@
 #include <cstring>
 #include <fmt/format.h>
 
-#include "DNA_object_types.h"
-#include "DNA_texture_types.h"
-
 #include "BLI_array.hh"
-#include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -57,7 +52,7 @@ static void operator_search_update_fn(const bContext *C,
   const int words_len = BLI_string_find_split_words(
       str, str_len, ' ', (int(*)[2])words.data(), words_max);
 
-  for (wmOperatorType *ot : WM_operatortype_map().values()) {
+  for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
     const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
 
     if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {
@@ -74,7 +69,7 @@ static void operator_search_update_fn(const bContext *C,
           name += *kmi_str;
         }
 
-        if (!UI_search_item_add(items, name.c_str(), ot, ICON_NONE, 0, 0)) {
+        if (!UI_search_item_add(items, name, ot, ICON_NONE, 0, 0)) {
           break;
         }
       }

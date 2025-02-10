@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cctype>
 #include <cfloat>
 #include <climits>
@@ -22,7 +23,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -374,9 +374,7 @@ static void ui_block_bounds_calc_text(uiBlock *block, float offset)
     if (!ELEM(bt->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_SEPR_SPACER)) {
       j = BLF_width(style->widget.uifont_id, bt->drawstr.c_str(), bt->drawstr.size());
 
-      if (j > i) {
-        i = j;
-      }
+      i = std::max(j, i);
     }
 
     /* Skip all buttons that are in a horizontal alignment group.
@@ -390,9 +388,7 @@ static void ui_block_bounds_calc_text(uiBlock *block, float offset)
         col_bt->rect.xmin += x1addval;
         col_bt->rect.xmax += x1addval;
       }
-      if (width > i) {
-        i = width;
-      }
+      i = std::max(width, i);
       /* Give the following code the last button in the alignment group, there might have to be a
        * split immediately after. */
       bt = col_bt ? col_bt->prev : nullptr;
@@ -1164,6 +1160,9 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
                 UI_BTYPE_MENU,
                 UI_BTYPE_BLOCK,
                 UI_BTYPE_PULLDOWN,
+                UI_BTYPE_ICON_TOGGLE,
+                UI_BTYPE_ICON_TOGGLE_N,
+
                 /* For PIE-menus. */
                 UI_BTYPE_ROW) ||
           (but->flag & UI_HIDDEN))
@@ -2832,12 +2831,12 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
   const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
 
-  /* Time unit is a bit special, not handled by BKE_scene_unit_scale() for now. */
+  /* Time unit is a bit special, not handled by #BKE_unit_value_scale() for now. */
   if (unit_type == PROP_UNIT_TIME) { /* WARNING: using evil_C :| */
     Scene *scene = CTX_data_scene(static_cast<const bContext *>(but->block->evil_C));
     return FRA2TIME(value);
   }
-  return BKE_scene_unit_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
+  return BKE_unit_value_scale(*unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
 }
 
 void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy)
@@ -2890,15 +2889,15 @@ static void ui_get_but_string_unit(
                            ui_get_but_scale_unit(but, value),
                            precision,
                            RNA_SUBTYPE_UNIT_VALUE(unit_type),
-                           unit,
+                           *unit,
                            pad);
 }
 
 static float ui_get_but_step_unit(uiBut *but, float step_default)
 {
   const int unit_type = RNA_SUBTYPE_UNIT_VALUE(UI_but_unit_type_get(but));
-  const double step_orig = step_default * UI_PRECISION_FLOAT_SCALE;
-  /* Scaling up 'step_origg ' here is a bit arbitrary,
+  const double step_orig = double(step_default) * double(UI_PRECISION_FLOAT_SCALE);
+  /* Scaling up 'step_orig ' here is a bit arbitrary,
    * its just giving better scales from user POV */
   const double scale_step = ui_get_but_scale_unit(but, step_orig * 10);
   const double step = BKE_unit_closest_scalar(scale_step, but->block->unit->system, unit_type);
@@ -2951,7 +2950,8 @@ void ui_but_string_get_ex(uiBut *but,
 
       /* uiBut.custom_data points to data this tab represents (e.g. workspace).
        * uiBut.rnapoin/prop store an active value (e.g. active workspace). */
-      PointerRNA ptr = RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data);
+      PointerRNA ptr = RNA_pointer_create_discrete(
+          but->rnapoin.owner_id, ptr_type, but->custom_data);
       buf = RNA_struct_name_get_alloc(&ptr, str, str_maxncpy, &buf_len);
     }
     else if (type == PROP_STRING) {
@@ -3128,7 +3128,7 @@ static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
 {
   char *error = nullptr;
-  const bool ok = user_string_to_number(C, str, unit, unit_type, r_value, true, &error);
+  const bool ok = user_string_to_number(C, str, *unit, unit_type, r_value, true, &error);
   if (error) {
     ReportList *reports = CTX_wm_reports(C);
     BKE_reportf(reports, RPT_ERROR, "%s: %s", UI_NUMBER_EVAL_ERROR_PREFIX, error);
@@ -3263,9 +3263,10 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, nullptr);
         }
         else if (search_but && search_but->item_active != nullptr) {
-          rptr = RNA_pointer_create(nullptr,
-                                    RNA_property_pointer_type(&but->rnapoin, but->rnaprop),
-                                    search_but->item_active);
+          rptr = RNA_pointer_create_discrete(
+              nullptr,
+              RNA_property_pointer_type(&but->rnapoin, but->rnaprop),
+              search_but->item_active);
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, nullptr);
         }
 
@@ -3295,7 +3296,8 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 
       /* uiBut.custom_data points to data this tab represents (e.g. workspace).
        * uiBut.rnapoin/prop store an active value (e.g. active workspace). */
-      PointerRNA ptr = RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data);
+      PointerRNA ptr = RNA_pointer_create_discrete(
+          but->rnapoin.owner_id, ptr_type, but->custom_data);
       prop = RNA_struct_name_property(ptr_type);
       if (RNA_property_editable(&ptr, prop)) {
         RNA_property_string_set(&ptr, prop, str);
@@ -3481,9 +3483,7 @@ void ui_but_range_set_soft(uiBut *but)
         softmin = soft_range_round_down(value_min, softmin);
       }
 
-      if (softmin < double(but->hardmin)) {
-        softmin = double(but->hardmin);
-      }
+      softmin = std::max(softmin, double(but->hardmin));
     }
     if (value_max - 1e-10 > softmax) {
       if (value_max < 0.0) {
@@ -4475,9 +4475,10 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   int rows = 0;
 
   const wmWindow *win = CTX_wm_window(C);
-  const int row_height = int(float(UI_UNIT_Y) / but->block->aspect);
+  const float row_height = float(UI_UNIT_Y) / but->block->aspect;
   /* Calculate max_rows from how many rows can fit in this window. */
-  const int max_rows = (win->sizey - (4 * row_height)) / row_height;
+  const float vertical_space = (float(WM_window_native_pixel_y(win)) / 2.0f) - (UI_UNIT_Y * 3.0f);
+  const int max_rows = int(vertical_space / row_height) - 1;
   float text_width = 0.0f;
 
   BLF_size(BLF_default(), UI_style_get()->widget.points * UI_SCALE_FAC);
@@ -4511,10 +4512,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
 
   /* Wrap long single-column lists. */
   if (categories == 0) {
-    columns = std::max((totitems + 20) / 20, 1);
-    if (columns > 8) {
-      columns = (totitems + 25) / 25;
-    }
+    columns = std::max((totitems + col_rows) / max_rows, 1);
     rows = std::max(totitems / columns, 1);
     while (rows * columns < totitems) {
       rows++;
@@ -5109,7 +5107,7 @@ AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxncpy)
   return autocpl;
 }
 
-void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name)
+void UI_autocomplete_update_name(AutoComplete *autocpl, const StringRef name)
 {
   char *truncate = autocpl->truncate;
   const char *startname = autocpl->startname;
@@ -5126,7 +5124,7 @@ void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name)
     autocpl->matches++;
     /* first match */
     if (truncate[0] == 0) {
-      BLI_strncpy(truncate, name, autocpl->maxncpy);
+      name.copy_utf8_truncated(truncate, autocpl->maxncpy);
     }
     else {
       /* remove from truncate what is not in bone->name */
@@ -6791,7 +6789,7 @@ std::string UI_but_context_menu_title_from_button(uiBut &but)
       return "";
     }
     const blender::ui::AbstractView &tree_view = view_item_but.view_item->get_view();
-    return IFACE_(tree_view.get_context_menu_title().c_str());
+    return IFACE_(tree_view.get_context_menu_title());
   }
   return UI_but_string_get_label(but);
 }
@@ -6868,7 +6866,7 @@ std::string UI_but_string_get_rna_tooltip(bContext &C, uiBut &but)
     PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
     const bContextStore *previous_ctx = CTX_store_get(&C);
     CTX_store_set(&C, but.context);
-    std::string tmp = WM_operatortype_description(&C, but.optype, opptr).c_str();
+    std::string tmp = WM_operatortype_description(&C, but.optype, opptr);
     CTX_store_set(&C, previous_ctx);
     return tmp;
   }

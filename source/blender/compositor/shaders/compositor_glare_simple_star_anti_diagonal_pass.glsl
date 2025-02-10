@@ -30,6 +30,7 @@ void main()
       vec4 neighbor_average = (previous_output + next_input) / 2.0;
       vec4 causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(anti_diagonal_img, texel, causal_output);
+      imageFence(anti_diagonal_img);
     }
 
     /* Non Causal Pass:
@@ -45,6 +46,7 @@ void main()
       vec4 neighbor_average = (previous_output + next_input) / 2.0;
       vec4 non_causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(anti_diagonal_img, texel, non_causal_output);
+      imageFence(anti_diagonal_img);
     }
   }
 
@@ -54,6 +56,7 @@ void main()
     ivec2 texel = start + j * direction;
     vec4 horizontal = texture_load(diagonal_tx, texel);
     vec4 vertical = imageLoad(anti_diagonal_img, texel);
-    imageStore(anti_diagonal_img, texel, horizontal + vertical);
+    vec4 combined = horizontal + vertical;
+    imageStore(anti_diagonal_img, texel, vec4(combined.rgb, 1.0));
   }
 }

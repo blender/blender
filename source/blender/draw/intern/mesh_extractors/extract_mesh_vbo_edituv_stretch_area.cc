@@ -6,9 +6,8 @@
  * \ingroup draw
  */
 
+#include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"

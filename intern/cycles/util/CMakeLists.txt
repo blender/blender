@@ -27,7 +27,6 @@ set(SRC
   time.cpp
   transform.cpp
   transform_avx2.cpp
-  transform_sse42.cpp
   windows.cpp
 )
 
@@ -125,9 +124,6 @@ set(SRC_HEADERS
   xml.h
 )
 
-if(CXX_HAS_SSE42)
-  set_source_files_properties(transform_sse42.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE42_FLAGS}")
-endif()
 if(CXX_HAS_AVX2)
   set_source_files_properties(transform_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_FLAGS}")
 endif()

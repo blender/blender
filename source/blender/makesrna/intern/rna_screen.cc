@@ -9,17 +9,14 @@
 #include <cstddef>
 #include <cstdlib>
 
+#include "DNA_space_types.h"
+
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "rna_internal.hh"
 
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_workspace_types.h"
-
-#include "ED_info.hh"
-#include "ED_node.hh"
 
 const EnumPropertyItem rna_enum_region_type_items[] = {
     {RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
@@ -46,8 +43,6 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#include "ED_screen.hh"
-
 #include "UI_interface_c.hh"
 
 #include "WM_api.hh"
@@ -62,6 +57,10 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 #  include "BKE_workspace.hh"
 
 #  include "DEG_depsgraph.hh"
+
+#  include "ED_info.hh"
+#  include "ED_node.hh"
+#  include "ED_screen.hh"
 
 #  include "UI_view2d.hh"
 
@@ -293,7 +292,8 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
       /* We could make this static, it won't change at run-time. */
       SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
       if (region->runtime->type == BKE_regiontype_from_id(st, region->regiontype)) {
-        PointerRNA newptr = RNA_pointer_create(&screen->id, &RNA_RegionView3D, region->regiondata);
+        PointerRNA newptr = RNA_pointer_create_discrete(
+            &screen->id, &RNA_RegionView3D, region->regiondata);
         return newptr;
       }
     }

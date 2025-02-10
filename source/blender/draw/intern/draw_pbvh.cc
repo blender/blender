@@ -10,6 +10,7 @@
  */
 
 #include "BLI_map.hh"
+#include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -146,7 +147,7 @@ class DrawCacheImpl : public DrawCache {
   BitVector<> dirty_topology_;
 
  public:
-  virtual ~DrawCacheImpl() override;
+  ~DrawCacheImpl() override;
 
   void tag_positions_changed(const IndexMask &node_mask) override;
   void tag_visibility_changed(const IndexMask &node_mask) override;
@@ -596,8 +597,8 @@ BLI_NOINLINE static void ensure_vbos_allocated_grids(const Object &object,
     if (!vbos[i]) {
       vbos[i] = GPU_vertbuf_create_with_format(format);
     }
-    const int verts_per_grid = use_flat_layout[i] ? square_i(subdiv_ccg.grid_area - 1) * 4 :
-                                                    square_i(subdiv_ccg.grid_area);
+    const int verts_per_grid = use_flat_layout[i] ? square_i(subdiv_ccg.grid_size - 1) * 4 :
+                                                    square_i(subdiv_ccg.grid_size);
     const int verts_num = nodes[i].grids().size() * verts_per_grid;
     GPU_vertbuf_data_alloc(*vbos[i], verts_num);
   });

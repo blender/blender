@@ -15,13 +15,11 @@
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"

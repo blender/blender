@@ -9,6 +9,7 @@
 /* It's become a bit messy... Basically, only the IMB_ prefixed files
  * should remain. */
 
+#include <algorithm>
 #include <cstddef>
 
 #include "IMB_imbuf.hh"
@@ -24,7 +25,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "GPU_texture.hh"
 
@@ -341,9 +341,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
   }
 
   uint newsize = 2 * ibuf->encoded_buffer_size;
-  if (newsize < 10000) {
-    newsize = 10000;
-  }
+  newsize = std::max<uint>(newsize, 10000);
 
   ImBufByteBuffer new_buffer;
   if (!imb_alloc_buffer(new_buffer, newsize, 1, 1, sizeof(uint8_t), true)) {

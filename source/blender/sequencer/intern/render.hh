@@ -14,6 +14,7 @@
 struct ImBuf;
 struct LinkNode;
 struct ListBase;
+struct Mask;
 struct Scene;
 struct SeqEffectHandle;
 struct SeqRenderData;
@@ -45,7 +46,7 @@ blender::Vector<Strip *> seq_get_shown_sequences(
     const Scene *scene, ListBase *channels, ListBase *seqbase, int timeline_frame, int chanshown);
 ImBuf *seq_render_strip(const SeqRenderData *context,
                         SeqRenderState *state,
-                        Strip *seq,
+                        Strip *strip,
                         float timeline_frame);
 
 /* Renders Mask into an image suitable for sequencer:
@@ -56,4 +57,4 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
                        bool make_float);
 void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf);
 
-StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Strip *seq);
+StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Strip *strip);

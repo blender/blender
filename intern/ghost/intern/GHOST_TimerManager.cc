@@ -16,7 +16,7 @@
 
 #include "GHOST_TimerTask.hh"
 
-GHOST_TimerManager::GHOST_TimerManager() {}
+GHOST_TimerManager::GHOST_TimerManager() = default;
 
 GHOST_TimerManager::~GHOST_TimerManager()
 {
@@ -71,10 +71,7 @@ uint64_t GHOST_TimerManager::nextFireTime()
 
   for (iter = m_timers.begin(); iter != m_timers.end(); ++iter) {
     const uint64_t next = (*iter)->getNext();
-
-    if (next < smallest) {
-      smallest = next;
-    }
+    smallest = std::min(next, smallest);
   }
 
   return smallest;

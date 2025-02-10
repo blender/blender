@@ -10,6 +10,8 @@
 
 #include "tree_element.hh"
 
+struct bAction;
+struct AnimData;
 struct NlaTrack;
 
 namespace blender::ed::outliner {

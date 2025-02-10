@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
@@ -38,9 +39,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* for timing... */
 #if 0
@@ -733,12 +732,8 @@ static void target_project_tri_jacobian(void *userdata, const float x[3], float 
 /* Clamp barycentric weights to the triangle. */
 static void target_project_tri_clamp(float x[3])
 {
-  if (x[0] < 0.0f) {
-    x[0] = 0.0f;
-  }
-  if (x[1] < 0.0f) {
-    x[1] = 0.0f;
-  }
+  x[0] = std::max(x[0], 0.0f);
+  x[1] = std::max(x[1], 0.0f);
   if (x[0] + x[1] > 1.0f) {
     x[0] = x[0] / (x[0] + x[1]);
     x[1] = 1.0f - x[0];
@@ -956,7 +951,7 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
   float c = d0co - d0v0;
   float det = b * b - 4 * a * c;
 
-  if (det >= 0) {
+  if (det >= 0 && a != 0) {
     const float epsilon = 1e-6f;
     float sdet = sqrtf(det);
     float hit_co[3], hit_no[3];

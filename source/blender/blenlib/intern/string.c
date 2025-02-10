@@ -20,7 +20,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name String Duplicate/Copy
@@ -706,7 +706,7 @@ static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
 
   /* same number of digits, compare size of number */
   if (numdigit > 0) {
-    int compare = (int)strncmp(p1, p2, (size_t)numdigit);
+    int compare = strncmp(p1, p2, (size_t)numdigit);
 
     if (compare != 0) {
       return compare;

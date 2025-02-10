@@ -261,8 +261,9 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     const PlyProperty &prop = element.properties[prop_idx];
     bool is_standard = ELEM(
         prop.name, "x", "y", "z", "nx", "ny", "nz", "red", "green", "blue", "alpha", "s", "t");
-    if (is_standard)
+    if (is_standard) {
       continue;
+    }
 
     custom_attr_indices.append(prop_idx);
     PlyCustomAttribute attr(prop.name, element.count);

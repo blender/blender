@@ -6,9 +6,9 @@
  * \ingroup depsgraph
  */
 
-#include "intern/builder/deg_builder_remove_noop.h"
+#include <deque>
 
-#include "MEM_guardedalloc.h"
+#include "intern/builder/deg_builder_remove_noop.h"
 
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_operation.hh"
@@ -16,7 +16,8 @@
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
-#include "intern/depsgraph_type.hh"
+
+#include "DEG_depsgraph_debug.hh"
 
 namespace blender::deg {
 
@@ -53,7 +54,7 @@ static inline bool is_removable_relation(const Relation *relation)
 
 void deg_graph_remove_unused_noops(Depsgraph *graph)
 {
-  deque<OperationNode *> queue;
+  std::deque<OperationNode *> queue;
 
   for (OperationNode *node : graph->operations) {
     if (is_unused_noop(node)) {

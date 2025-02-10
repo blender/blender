@@ -6,9 +6,9 @@
  * \ingroup modifiers
  */
 
-#include "BLI_utildefines.h"
-
+#include "BLI_math_base.h"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 

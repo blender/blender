@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
 
 namespace blender::bke {

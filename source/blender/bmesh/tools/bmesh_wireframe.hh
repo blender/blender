@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "bmesh_class.hh"
+
 /**
  * \param defgrp_index: Vertex group index, -1 for no vertex groups.
  *

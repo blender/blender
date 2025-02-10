@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "DNA_ID_enums.h"
-
 struct ID;
 struct Main;
 namespace blender::asset_system {

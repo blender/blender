@@ -8,10 +8,9 @@
 
 #pragma once
 
-#include "BLI_index_mask_fwd.hh"
-#include "BLI_math_vector.hh"
+#include <cstdint>
 
-#include "DNA_customdata_types.h"
+#include "BLI_index_mask_fwd.hh"
 
 struct BMLogEntry;
 struct Depsgraph;

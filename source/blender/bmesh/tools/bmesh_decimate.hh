@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#include "intern/bmesh_operator_api.hh"
+
+#include "bmesh_class.hh"
+
 /**
  * \brief BM_mesh_decimate
  * \param bm: The mesh

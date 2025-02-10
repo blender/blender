@@ -4,8 +4,6 @@
 
 #include "testing/testing.h"
 
-#include "BLI_utildefines.h"
-
 #include "ED_keyframes_keylist.hh"
 
 #include "DNA_anim_types.h"

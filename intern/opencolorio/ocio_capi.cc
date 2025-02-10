@@ -2,11 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "MEM_guardedalloc.h"
-
 #include "ocio_impl.h"
 
-static IOCIOImpl *impl = NULL;
+static IOCIOImpl *impl = nullptr;
 
 void OCIO_init()
 {
@@ -20,7 +18,7 @@ void OCIO_init()
 void OCIO_exit()
 {
   delete impl;
-  impl = NULL;
+  impl = nullptr;
 }
 
 OCIO_ConstConfigRcPtr *OCIO_getCurrentConfig()

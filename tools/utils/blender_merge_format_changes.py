@@ -65,9 +65,11 @@ def main() -> int:
     rebase_merge = get_string(['git', 'rev-parse', '--git-path', 'rebase-merge'])
     rebase_apply = get_string(['git', 'rev-parse', '--git-path', 'rebase-apply'])
     merge_head = get_string(['git', 'rev-parse', '--git-path', 'MERGE_HEAD'])
-    if os.path.exists(rebase_merge) or \
-       os.path.exists(rebase_apply) or \
-       os.path.exists(merge_head):
+    if (
+            os.path.exists(rebase_merge) or
+            os.path.exists(rebase_apply) or
+            os.path.exists(merge_head)
+    ):
         print("BLENDER MERGE: rebase or merge in progress, complete it first")
         return 1
 

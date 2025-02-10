@@ -11,10 +11,7 @@
 /* Silence warnings from copying deprecated fields. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_duplilist.hh"
-#include "BKE_geometry_set.hh"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"

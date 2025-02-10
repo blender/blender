@@ -7,7 +7,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 
@@ -315,6 +315,28 @@ TEST(vector_set, ExtractVectorEmpty)
   VectorSet<int> set;
   Vector<int> vec = set.extract_vector();
   EXPECT_TRUE(vec.is_empty());
+}
+
+TEST(vector_set, CustomIDVectorSet)
+{
+  struct ThingWithID {
+    int a;
+    std::string b;
+    int c;
+  };
+  struct ThingGetter {
+    StringRef operator()(const ThingWithID &value) const
+    {
+      return value.b;
+    }
+  };
+  CustomIDVectorSet<ThingWithID, ThingGetter> set;
+  set.add_new(ThingWithID{0, "test", 54});
+  EXPECT_TRUE(set.contains_as("test"));
+  set.add_new(ThingWithID{4333, "other", 2});
+  EXPECT_EQ(set.size(), 2);
+  set.add(ThingWithID{3333, "test", 27});
+  EXPECT_EQ(set.size(), 2);
 }
 
 }  // namespace blender::tests

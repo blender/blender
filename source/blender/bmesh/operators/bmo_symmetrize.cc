@@ -9,7 +9,6 @@
  */
 
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 #include "bmesh.hh"
 #include "intern/bmesh_operators_private.hh"

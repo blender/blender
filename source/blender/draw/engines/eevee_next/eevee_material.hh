@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_material_types.h"
+
 #include "DRW_render.hh"
 
 #include "BLI_map.hh"
@@ -15,6 +17,9 @@
 #include "GPU_material.hh"
 
 #include "eevee_sync.hh"
+
+struct bNodeSocketValueFloat;
+struct bNodeSocketValueRGBA;
 
 namespace blender::eevee {
 

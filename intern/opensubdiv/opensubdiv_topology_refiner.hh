@@ -13,7 +13,6 @@
 
 #include <opensubdiv/far/topologyRefiner.h>
 
-#include "internal/base/memory.h"
 #include "internal/topology/mesh_topology.h"
 
 // Those settings don't really belong to OpenSubdiv's topology refiner, but

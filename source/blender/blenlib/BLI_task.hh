@@ -35,9 +35,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_index_range.hh"
 #include "BLI_lazy_threading.hh"
-#include "BLI_span.hh"
 #include "BLI_task_size_hints.hh"
-#include "BLI_utildefines.h"
 
 namespace blender {
 

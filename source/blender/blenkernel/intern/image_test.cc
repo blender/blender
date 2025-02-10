@@ -258,7 +258,7 @@ class ImageTest : public ::testing::Test {
 
   Image *load_image(const char *path)
   {
-    const std::string asset_dir = blender::tests::flags_test_asset_dir().c_str();
+    const std::string asset_dir = blender::tests::flags_test_asset_dir();
     return BKE_image_load(bmain_, (asset_dir + SEP_STR + "imbuf_io" + SEP_STR + path).c_str());
   }
 

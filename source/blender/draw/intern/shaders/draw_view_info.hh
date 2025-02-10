@@ -202,17 +202,6 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Draw Globals
- * \{ */
-
-GPU_SHADER_CREATE_INFO(draw_globals)
-TYPEDEF_SOURCE("draw_common_shader_shared.hh")
-UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, GlobalsUboStorage, globalsBlock, PASS)
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Internal Draw Manager usage
  * \{ */
 

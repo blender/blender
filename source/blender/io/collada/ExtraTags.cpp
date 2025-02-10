@@ -6,11 +6,9 @@
  * \ingroup collada
  */
 
-#include "BLI_string.h"
 #include <cstddef>
 #include <cstdlib>
 
-#include <iostream>
 #include <regex>
 
 #include "ExtraTags.h"

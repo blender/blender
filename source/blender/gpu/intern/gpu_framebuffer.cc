@@ -12,9 +12,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_batch.hh"
 #include "GPU_capabilities.hh"
-#include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
 #include "gpu_backend.hh"

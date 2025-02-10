@@ -33,9 +33,9 @@ enum {
   SEQ_SIDE_NO_CHANGE,
 };
 
-/* seq_dupli' flags */
-#define SEQ_DUPE_UNIQUE_NAME (1 << 0)
-#define SEQ_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
+/* strip_dupli' flags */
+#define STRIP_DUPE_UNIQUE_NAME (1 << 0)
+#define STRIP_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
 
 SequencerToolSettings *SEQ_tool_settings_init();
 SequencerToolSettings *SEQ_tool_settings_ensure(Scene *scene);
@@ -66,7 +66,7 @@ ListBase *SEQ_active_seqbase_get(const Editing *ed);
  */
 void SEQ_seqbase_active_set(Editing *ed, ListBase *seqbase);
 Strip *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
-void SEQ_sequence_free(Scene *scene, Strip *seq);
+void SEQ_sequence_free(Scene *scene, Strip *strip);
 /**
  * Get #MetaStack that corresponds to current level that is being viewed
  *
@@ -87,14 +87,14 @@ void SEQ_meta_stack_set(const Scene *scene, Strip *dst_seq);
  */
 Strip *SEQ_meta_stack_pop(Editing *ed);
 Strip *SEQ_sequence_dupli_recursive(
-    const Scene *scene_src, Scene *scene_dst, ListBase *new_seq_list, Strip *seq, int dupe_flag);
+    const Scene *scene_src, Scene *scene_dst, ListBase *new_seq_list, Strip *strip, int dupe_flag);
 void SEQ_sequence_base_dupli_recursive(const Scene *scene_src,
                                        Scene *scene_dst,
                                        ListBase *nseqbase,
                                        const ListBase *seqbase,
                                        int dupe_flag,
                                        int flag);
-bool SEQ_is_valid_strip_channel(const Strip *seq);
+bool SEQ_is_valid_strip_channel(const Strip *strip);
 
 /**
  * Read and Write functions for `.blend` file data.
@@ -114,31 +114,31 @@ void SEQ_doversion_250_sound_proxy_update(Main *bmain, Editing *ed);
 void SEQ_eval_sequences(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase);
 
 /**
- * Find a sequence with a given name.
+ * Find a strip with a given name.
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
  * rebuilt.
  *
  * \param scene: scene that owns lookup hash
- * \param key: Sequence name without SQ prefix (seq->name + 2)
+ * \param key: Strip name without SQ prefix (strip->name + 2)
  *
- * \return pointer to Sequence
+ * \return pointer to Strip
  */
-Strip *SEQ_sequence_lookup_seq_by_name(const Scene *scene, const char *key);
+Strip *SEQ_lookup_strip_by_name(const Scene *scene, const char *key);
 
 /**
  * Find which meta strip the given timeline channel belongs to. Returns nullptr if it is a global
  * channel.
  */
-Strip *SEQ_sequence_lookup_owner_by_channel(const Scene *scene, const SeqTimelineChannel *channel);
+Strip *SEQ_lookup_strip_by_channel_owner(const Scene *scene, const SeqTimelineChannel *channel);
 
 /**
  * Free lookup hash data.
  *
  * \param scene: scene that owns lookup hash
  */
-void SEQ_sequence_lookup_free(const Scene *scene);
+void SEQ_strip_lookup_free(const Scene *scene);
 
 /**
- * Mark sequence lookup as invalid (i.e. will need rebuilding).
+ * Mark strip lookup as invalid (i.e. will need rebuilding).
  */
-void SEQ_sequence_lookup_invalidate(const Scene *scene);
+void SEQ_strip_lookup_invalidate(const Scene *scene);

@@ -8,7 +8,6 @@
  * \ingroup bli
  */
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_math_inline.h"
 
 #ifdef __cplusplus

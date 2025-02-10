@@ -9,6 +9,7 @@
  */
 
 #include "BKE_colortools.hh"
+#include "BKE_scene.hh"
 
 #include "BLI_rand.h"
 

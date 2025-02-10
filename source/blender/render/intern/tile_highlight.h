@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "BLI_rect.h"
+#include "DNA_vec_types.h"
+
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
@@ -41,11 +42,11 @@ class TilesHighlight {
 
     uint64_t hash() const;
 
-    inline bool operator==(const Tile &other) const
+    bool operator==(const Tile &other) const
     {
       return rect == other.rect;
     }
-    inline bool operator!=(const Tile &other) const
+    bool operator!=(const Tile &other) const
     {
       return !(*this == other);
     }

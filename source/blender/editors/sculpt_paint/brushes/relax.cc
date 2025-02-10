@@ -10,7 +10,6 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
@@ -156,7 +155,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
 
   const PositionDeformData position_data(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -210,7 +209,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
     bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
@@ -338,7 +337,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
     bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 static void calc_factors_bmesh(const Depsgraph &depsgraph,
@@ -436,7 +435,7 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
     bke::pbvh::update_node_bounds_bmesh(nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 /** \} */
@@ -494,7 +493,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
   const PositionDeformData position_data(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
 
@@ -543,7 +542,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
     bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 BLI_NOINLINE static void calc_topology_relax_factors_grids(const Depsgraph &depsgraph,
@@ -654,7 +653,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
     bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 static void calc_topology_relax_factors_bmesh(const Depsgraph &depsgraph,
@@ -750,7 +749,7 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
     bke::pbvh::update_node_bounds_bmesh(nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 /** \} */
 

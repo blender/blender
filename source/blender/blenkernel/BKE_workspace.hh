@@ -8,7 +8,13 @@
 
 #pragma once
 
+#include <string>
+
+#include "DNA_listBase.h"
+
 #include "BLI_compiler_attrs.h"
+
+#include "BLI_vector.hh"
 
 struct Main;
 struct bScreen;

@@ -2,21 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_listbase.h"
-#include "BLI_task.hh"
+#include "BLI_math_vector.hh"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-
-#include "BKE_attribute_math.hh"
-#include "BKE_deform.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-
-#include "FN_multi_function_builder.hh"
 
 #include "attribute_access_intern.hh"
 
@@ -131,7 +122,8 @@ void MeshComponent::count_memory(MemoryCounter &memory) const
 
 VArray<float3> mesh_normals_varray(const Mesh &mesh,
                                    const IndexMask &mask,
-                                   const AttrDomain domain)
+                                   const AttrDomain domain,
+                                   const bool no_corner_normals)
 {
   switch (domain) {
     case AttrDomain::Face: {
@@ -157,12 +149,11 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
       return VArray<float3>::ForContainer(std::move(edge_normals));
     }
     case AttrDomain::Corner: {
-      /* The normals on corners are just the mesh's face normals, so start with the face normal
-       * array and copy the face normal for each of its corners. In this case using the mesh
-       * component's generic domain interpolation is fine, the data will still be normalized,
-       * since the face normal is just copied to every corner. */
-      return mesh.attributes().adapt_domain(
-          VArray<float3>::ForSpan(mesh.face_normals()), AttrDomain::Face, AttrDomain::Corner);
+      if (no_corner_normals) {
+        return mesh.attributes().adapt_domain(
+            VArray<float3>::ForSpan(mesh.face_normals()), AttrDomain::Face, AttrDomain::Corner);
+      }
+      return VArray<float3>::ForSpan(mesh.corner_normals());
     }
     default:
       return {};

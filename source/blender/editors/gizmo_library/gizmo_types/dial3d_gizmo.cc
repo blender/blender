@@ -19,6 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
@@ -344,12 +345,14 @@ static void dial_ghostarc_get_angles(const wmGizmo *gz,
   if (!ED_view3d_win_to_3d_on_plane(
           region, dial_plane, inter->init.mval, false, proj_mval_init_rel))
   {
-    return fail();
+    fail();
+    return;
   }
   sub_v3_v3(proj_mval_init_rel, gz->matrix_basis[3]);
 
   if (!ED_view3d_win_to_3d_on_plane(region, dial_plane, mval, false, proj_mval_new_rel)) {
-    return fail();
+    fail();
+    return;
   }
   sub_v3_v3(proj_mval_new_rel, gz->matrix_basis[3]);
 
@@ -519,7 +522,7 @@ static int gizmo_dial_modal(bContext *C,
 
   if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
     angle_increment = RNA_float_get(gz->ptr, "incremental_angle");
-    angle_delta = float(roundf(double(angle_delta) / angle_increment)) * angle_increment;
+    angle_delta = roundf(double(angle_delta) / angle_increment) * angle_increment;
   }
   if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
     angle_increment *= 0.2f;

@@ -10,6 +10,7 @@
 #include <mutex>
 
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 
 #include "BLI_map.hh"
@@ -82,7 +83,7 @@ void SEQ_fontmap_clear()
   g_font_map.name_to_mem_font_id.clear();
 }
 
-static int seq_load_font_file(const std::string &path)
+static int strip_load_font_file(const std::string &path)
 {
   std::lock_guard lock(g_font_map.mutex);
   int fontid = g_font_map.path_to_file_font_id.add_or_modify(
@@ -109,7 +110,7 @@ static int seq_load_font_file(const std::string &path)
   return fontid;
 }
 
-static int seq_load_font_mem(const std::string &name, const uchar *data, int data_size)
+static int strip_load_font_mem(const std::string &name, const uchar *data, int data_size)
 {
   std::lock_guard lock(g_font_map.mutex);
   int fontid = g_font_map.name_to_mem_font_id.add_or_modify(
@@ -136,7 +137,7 @@ static int seq_load_font_mem(const std::string &name, const uchar *data, int dat
   return fontid;
 }
 
-static void seq_unload_font(int fontid)
+static void strip_unload_font(int fontid)
 {
   std::lock_guard lock(g_font_map.mutex);
   bool unloaded = BLF_unload_id(fontid);
@@ -153,9 +154,9 @@ static void seq_unload_font(int fontid)
  * \{ */
 
 /* `data->text[0] == 0` is ignored on purpose in order to make it possible to edit  */
-bool SEQ_effects_can_render_text(const Strip *seq)
+bool SEQ_effects_can_render_text(const Strip *strip)
 {
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   if (data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&
        (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0) &&
@@ -167,14 +168,14 @@ bool SEQ_effects_can_render_text(const Strip *seq)
   return true;
 }
 
-static void init_text_effect(Strip *seq)
+static void init_text_effect(Strip *strip)
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
+  if (strip->effectdata) {
+    MEM_freeN(strip->effectdata);
   }
 
   TextVars *data = static_cast<TextVars *>(
-      seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
+      strip->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
   data->text_font = nullptr;
   data->text_blf_id = -1;
   data->text_size = 60.0f;
@@ -217,7 +218,7 @@ void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
 
   /* Unload the font. */
   if (data->text_blf_id >= 0) {
-    seq_unload_font(data->text_blf_id);
+    strip_unload_font(data->text_blf_id);
     data->text_blf_id = -1;
   }
 }
@@ -244,32 +245,32 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
     char name[MAX_ID_FULL_NAME];
     BKE_id_full_name_get(name, &vfont->id, 0);
 
-    data->text_blf_id = seq_load_font_mem(name, static_cast<const uchar *>(pf->data), pf->size);
+    data->text_blf_id = strip_load_font_mem(name, static_cast<const uchar *>(pf->data), pf->size);
   }
   else {
     char filepath[FILE_MAX];
     STRNCPY(filepath, vfont->filepath);
 
     BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
-    data->text_blf_id = seq_load_font_file(filepath);
+    data->text_blf_id = strip_load_font_file(filepath);
   }
 }
 
-static void free_text_effect(Strip *seq, const bool do_id_user)
+static void free_text_effect(Strip *strip, const bool do_id_user)
 {
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   SEQ_effect_text_font_unload(data, do_id_user);
 
   if (data) {
     MEM_delete(data->runtime);
     MEM_freeN(data);
-    seq->effectdata = nullptr;
+    strip->effectdata = nullptr;
   }
 }
 
-static void load_text_effect(Strip *seq)
+static void load_text_effect(Strip *strip)
 {
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   SEQ_effect_text_font_load(data, false);
 }
 
@@ -288,9 +289,9 @@ static int num_inputs_text()
   return 0;
 }
 
-static StripEarlyOut early_out_text(const Strip *seq, float /*fac*/)
+static StripEarlyOut early_out_text(const Strip *strip, float /*fac*/)
 {
-  if (!SEQ_effects_can_render_text(seq)) {
+  if (!SEQ_effects_can_render_text(strip)) {
     return StripEarlyOut::UseInput1;
   }
   return StripEarlyOut::NoInput;
@@ -761,9 +762,9 @@ static void fill_rect_alpha_under(
   });
 }
 
-static int text_effect_line_size_get(const SeqRenderData *context, const Strip *seq)
+static int text_effect_line_size_get(const SeqRenderData *context, const Strip *strip)
 {
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   /* Compensate text size for preview render size. */
   double proxy_size_comp = context->scene->r.size / 100.0;
   if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
@@ -773,17 +774,17 @@ static int text_effect_line_size_get(const SeqRenderData *context, const Strip *
   return proxy_size_comp * data->text_size;
 }
 
-static int text_effect_font_init(const SeqRenderData *context, const Strip *seq, int font_flags)
+static int text_effect_font_init(const SeqRenderData *context, const Strip *strip, int font_flags)
 {
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   int font = blf_mono_font_render;
 
   /* In case font got unloaded behind our backs: mark it as needing a load. */
   if (data->text_blf_id >= 0 && !BLF_is_loaded_id(data->text_blf_id)) {
-    data->text_blf_id = SEQ_FONT_NOT_LOADED;
+    data->text_blf_id = STRIP_FONT_NOT_LOADED;
   }
 
-  if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
+  if (data->text_blf_id == STRIP_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
 
     SEQ_effect_text_font_load(data, false);
@@ -793,7 +794,7 @@ static int text_effect_font_init(const SeqRenderData *context, const Strip *seq,
     font = data->text_blf_id;
   }
 
-  BLF_size(font, text_effect_line_size_get(context, seq));
+  BLF_size(font, text_effect_line_size_get(context, strip));
   BLF_enable(font, font_flags);
   return font;
 }
@@ -894,7 +895,7 @@ static float2 horizontal_alignment_offset_get(const TextVars *data,
   if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
     return {line_offset, 0.0f};
   }
-  else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
+  if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
     return {line_offset / 2.0f, 0.0f};
   }
 
@@ -973,9 +974,9 @@ static void apply_text_alignment(const TextVars *data,
   }
 }
 
-static void calc_text_runtime(const Strip *seq, int font, const int2 image_size)
+static void calc_text_runtime(const Strip *strip, int font, const int2 image_size)
 {
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   if (data->runtime != nullptr) {
     MEM_delete(data->runtime);
@@ -995,7 +996,7 @@ static void calc_text_runtime(const Strip *seq, int font, const int2 image_size)
 }
 
 static ImBuf *do_text_effect(const SeqRenderData *context,
-                             Strip *seq,
+                             Strip *strip,
                              float /*timeline_frame*/,
                              float /*fac*/,
                              ImBuf * /*ibuf1*/,
@@ -1004,7 +1005,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* NOTE: text rasterization only fills in part of output image,
    * need to clear it. */
   ImBuf *out = prepare_effect_imbufs(context, nullptr, nullptr, false);
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   const char *display_device = context->scene->display_settings.display_device;
   ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
@@ -1014,9 +1015,9 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* Guard against parallel accesses to the fonts map. */
   std::lock_guard lock(g_font_map.mutex);
 
-  const int font = text_effect_font_init(context, seq, font_flags);
+  const int font = text_effect_font_init(context, strip, font_flags);
 
-  calc_text_runtime(seq, font, {out->x, out->y});
+  calc_text_runtime(strip, font, {out->x, out->y});
   TextVarsRuntime *runtime = data->runtime;
 
   rcti outline_rect = draw_text_outline(context, data, runtime, display, out);

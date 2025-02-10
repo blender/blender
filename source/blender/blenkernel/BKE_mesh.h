@@ -7,10 +7,10 @@
  * \ingroup bke
  */
 
+#include <cstdint>
+
 #include "BLI_array.hh"
-#include "BLI_compiler_attrs.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_ref.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -34,7 +34,7 @@ struct Object;
 struct Scene;
 
 /* TODO: Move to `BKE_mesh_types.hh` when possible. */
-enum eMeshBatchDirtyMode {
+enum eMeshBatchDirtyMode : int8_t {
   BKE_MESH_BATCH_DIRTY_ALL = 0,
   BKE_MESH_BATCH_DIRTY_SELECT,
   BKE_MESH_BATCH_DIRTY_SELECT_PAINT,
@@ -48,8 +48,12 @@ enum eMeshBatchDirtyMode {
 BMesh *BKE_mesh_to_bmesh_ex(const Mesh *mesh,
                             const BMeshCreateParams *create_params,
                             const BMeshFromMeshParams *convert_params);
+/**
+ * \param active_shapekey: See #BMeshFromMeshParams::active_shapekey.
+ * \param add_key_index: See #BMeshFromMeshParams::add_key_index.
+ */
 BMesh *BKE_mesh_to_bmesh(Mesh *mesh,
-                         Object *ob,
+                         int active_shapekey,
                          bool add_key_index,
                          const BMeshCreateParams *params);
 
@@ -134,7 +138,7 @@ Mesh *BKE_mesh_copy_for_eval(const Mesh &source);
 Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob);
 Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *dispbase);
 
-bool BKE_mesh_attribute_required(const char *name);
+bool BKE_mesh_attribute_required(blender::StringRef name);
 
 blender::Array<blender::float3> BKE_mesh_orco_verts_get(const Object *ob);
 void BKE_mesh_orco_verts_transform(Mesh *mesh,

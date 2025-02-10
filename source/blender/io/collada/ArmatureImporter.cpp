@@ -6,12 +6,12 @@
  * \ingroup collada
  */
 
-/* COLLADABU_ASSERT, may be able to remove later */
-#include "COLLADABUPlatform.h"
-
 #include <algorithm>
+#include <iostream>
 
 #include "COLLADAFWUniqueId.h"
+
+#include "DNA_key_types.h"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -199,9 +199,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
 
   for (uint i = 0; i < children.getCount(); i++) {
     int cl = create_bone(skin, children[i], bone, children.getCount(), mat, arm, layer_labels);
-    if (cl > chain_length) {
-      chain_length = cl;
-    }
+    chain_length = std::max(cl, chain_length);
   }
 
   bone->length = len_v3v3(bone->head, bone->tail);

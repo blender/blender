@@ -8,9 +8,6 @@
 
 #include "GHOST_System.hh"
 
-#include <chrono>
-#include <cstdio> /* Just for #printf. */
-
 #include "GHOST_DisplayManager.hh"
 #include "GHOST_EventManager.hh"
 #include "GHOST_TimerManager.hh"
@@ -44,7 +41,7 @@ GHOST_System::~GHOST_System()
   exit();
 }
 
-GHOST_TSuccess GHOST_System::hasClipboardImage(void) const
+GHOST_TSuccess GHOST_System::hasClipboardImage() const
 {
   return GHOST_kFailure;
 }
@@ -343,7 +340,7 @@ GHOST_TTabletAPI GHOST_System::getTabletAPI()
   return m_tabletAPI;
 }
 
-GHOST_TSuccess GHOST_System::getPixelAtCursor(float[3] /*r_color*/) const
+GHOST_TSuccess GHOST_System::getPixelAtCursor(float /*r_color*/[3]) const
 {
   return GHOST_kFailure;
 }

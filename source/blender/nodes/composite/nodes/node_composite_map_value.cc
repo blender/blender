@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include <algorithm>
+
 #include "FN_multi_function_builder.hh"
 
 #include "NOD_multi_function.hh"
@@ -18,8 +20,6 @@
 #include "UI_resources.hh"
 
 #include "GPU_material.hh"
-
-#include "COM_shader_node.hh"
 
 #include "node_composite_util.hh"
 
@@ -77,37 +77,28 @@ static bool get_use_max(const bNode &node)
   return node_storage(node).flag & TEXMAP_CLIP_MAX;
 }
 
-class MapValueShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const TexMapping &texture_mapping = node_storage(bnode());
-
-    const float use_min = get_use_min(bnode());
-    const float use_max = get_use_max(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_map_value",
-                   inputs,
-                   outputs,
-                   GPU_uniform(texture_mapping.loc),
-                   GPU_uniform(texture_mapping.size),
-                   GPU_constant(&use_min),
-                   GPU_uniform(texture_mapping.min),
-                   GPU_constant(&use_max),
-                   GPU_uniform(texture_mapping.max));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new MapValueShaderNode(node);
+  const TexMapping &texture_mapping = node_storage(*node);
+
+  const float use_min = get_use_min(*node);
+  const float use_max = get_use_max(*node);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_map_value",
+                        inputs,
+                        outputs,
+                        GPU_uniform(texture_mapping.loc),
+                        GPU_uniform(texture_mapping.size),
+                        GPU_constant(&use_min),
+                        GPU_uniform(texture_mapping.min),
+                        GPU_constant(&use_max),
+                        GPU_uniform(texture_mapping.max));
 }
 
 template<bool UseMin, bool UseMax>
@@ -117,15 +108,11 @@ static float map_value(
   float result = (value + offset) * size;
 
   if constexpr (UseMin) {
-    if (result < min) {
-      result = min;
-    }
+    result = std::max(result, min);
   }
 
   if constexpr (UseMax) {
-    if (result > max) {
-      result = max;
-    }
+    result = std::min(result, max);
   }
 
   return result;
@@ -195,14 +182,17 @@ void register_node_type_cmp_map_value()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MAP_VALUE, "Map Value", NODE_CLASS_OP_VECTOR);
+  cmp_node_type_base(&ntype, "CompositorNodeMapValue", CMP_NODE_MAP_VALUE);
+  ntype.ui_name = "Map Value";
+  ntype.ui_description = "Scale, offset and clamp values";
   ntype.enum_name_legacy = "MAP_VALUE";
+  ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::cmp_node_map_value_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_map_value;
   ntype.initfunc = file_ns::node_composit_init_map_value;
   blender::bke::node_type_storage(
       &ntype, "TexMapping", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

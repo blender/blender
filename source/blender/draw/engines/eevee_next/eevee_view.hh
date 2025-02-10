@@ -19,7 +19,9 @@
 #include "DRW_render.hh"
 
 #include "eevee_camera.hh"
+#include "eevee_depth_of_field.hh"
 #include "eevee_pipeline.hh"
+#include "eevee_renderbuffers.hh"
 #include "eevee_shader.hh"
 #include "eevee_velocity.hh"
 

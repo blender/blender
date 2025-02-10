@@ -8,9 +8,10 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
@@ -674,8 +675,7 @@ SelectedBonesResult BKE_armature_find_selected_bones(const bArmature *armature,
 
 using BoneNameSet = blender::Set<std::string>;
 /**
- * Return a set of names of the selected bones. An empty set means "ignore bone
- * selection", which either means all bones are selected, or none are.
+ * Return a set of names of the selected bones.
  */
 BoneNameSet BKE_armature_find_selected_bone_names(const bArmature *armature);
 

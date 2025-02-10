@@ -12,8 +12,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
-#include "DNA_camera_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
@@ -32,7 +30,10 @@
 #include "COM_texture_pool.hh"
 
 #include "GPU_context.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
+
+#include "draw_view_data.hh"
 
 #include "compositor_engine.h" /* Own include. */
 
@@ -81,22 +82,16 @@ class Context : public compositor::Context {
         this->get_render_data().compositor_denoise_preview_quality);
   }
 
-  bool use_file_output() const override
+  compositor::OutputTypes needed_outputs() const override
   {
-    return false;
+    return compositor::OutputTypes::Composite | compositor::OutputTypes::Viewer;
   }
 
-  bool should_compute_node_previews() const override
+  /* The viewport compositor does not support viewer outputs, so treat viewers as composite
+   * outputs. */
+  bool treat_viewer_as_composite_output() const override
   {
-    return false;
-  }
-
-  /* The viewport compositor doesn't really support the composite output, it only displays the
-   * viewer output in the viewport. Settings this to false will make the compositor use the
-   * composite output as fallback viewer if no other viewer exists. */
-  bool use_composite_output() const override
-  {
-    return false;
+    return true;
   }
 
   const RenderData &get_render_data() const override
@@ -212,7 +207,7 @@ class Context : public compositor::Context {
 
   void set_info_message(StringRef message) const override
   {
-    message.copy(info_message_, GPU_INFO_SIZE);
+    message.copy_utf8_truncated(info_message_, GPU_INFO_SIZE);
   }
 
   IDRecalcFlag query_id_recalc_flag(ID *id) const override

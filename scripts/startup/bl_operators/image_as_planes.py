@@ -22,6 +22,7 @@ from bpy.props import (
 
 from bpy.app.translations import (
     pgettext_tip as tip_,
+    contexts as i18n_contexts,
 )
 from mathutils import Vector
 
@@ -355,6 +356,7 @@ class TextureProperties_MixIn:
 
     extension: EnumProperty(
         name="Extension",
+        translation_context=i18n_contexts.id_image,
         items=(
             ('CLIP', "Clip", "Clip to image size and set exterior pixels as transparent"),
             ('EXTEND', "Extend", "Extend by repeating edge pixels of the image"),
@@ -625,8 +627,9 @@ def get_shadeless_node(dest_node_tree):
 # -----------------------------------------------------------------------------
 # Operator
 
-class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProperties_MixIn,
-                                     TextureProperties_MixIn, Operator):
+class IMAGE_OT_import_as_mesh_planes(
+        AddObjectHelper, ImportHelper, MaterialProperties_MixIn, TextureProperties_MixIn, Operator,
+):
     """Create mesh plane(s) from image files with the appropriate aspect ratio"""
 
     bl_idname = "image.import_as_mesh_planes"

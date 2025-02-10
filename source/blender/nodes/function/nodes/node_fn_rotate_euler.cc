@@ -5,8 +5,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
 
 #include "RNA_enum_types.hh"
 
@@ -133,8 +131,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_ROTATE_EULER, "Rotate Euler", NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeRotateEuler", FN_NODE_ROTATE_EULER);
+  ntype.ui_name = "Rotate Euler";
   ntype.enum_name_legacy = "ROTATE_EULER";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.updatefunc = node_update;

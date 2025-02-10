@@ -233,8 +233,8 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
   /**
    * Helped function to put duplicate sequence in the same tree.
    */
-  StripAddOp need_add_strip_dup(Strip *seq) const;
-  void add_strip_dup(Strip *seq, TreeElement *te, short index);
+  StripAddOp need_add_strip_dup(Strip *strip) const;
+  void add_strip_dup(Strip *strip, TreeElement *te, short index);
 };
 
 /* -------------------------------------------------------------------- */

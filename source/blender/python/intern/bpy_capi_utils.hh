@@ -47,7 +47,7 @@ bool BPy_errors_to_report_ex(struct ReportList *reports,
  */
 bool BPy_errors_to_report(struct ReportList *reports);
 
-struct bContext *BPY_context_get(void);
+struct bContext *BPY_context_get();
 
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
 /**

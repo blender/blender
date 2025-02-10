@@ -16,7 +16,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_defaults.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_global.hh"
@@ -41,7 +40,6 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -122,6 +120,22 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   }
 
   return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shared Properties
+ * \{ */
+
+static void uv_map_operator_property_correct_aspect(wmOperatorType *ot)
+{
+  RNA_def_boolean(
+      ot->srna,
+      "correct_aspect",
+      true,
+      "Correct Aspect",
+      "Map UVs taking aspect ratio of the image associated with the material into account");
 }
 
 /** \} */
@@ -2532,11 +2546,7 @@ static void correct_uv_aspect_per_face(Object *ob, BMEditMesh *em)
 
 static void uv_map_clip_correct_properties_ex(wmOperatorType *ot, bool clip_to_bounds)
 {
-  RNA_def_boolean(ot->srna,
-                  "correct_aspect",
-                  true,
-                  "Correct Aspect",
-                  "Map UVs taking image aspect ratio into account");
+  uv_map_operator_property_correct_aspect(ot);
   /* Optional, since not all unwrapping types need to be clipped. */
   if (clip_to_bounds) {
     RNA_def_boolean(ot->srna,
@@ -2874,7 +2884,7 @@ static void unwrap_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   /* Main draw call */
-  PointerRNA ptr = RNA_pointer_create(nullptr, op->type->srna, op->properties);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, op->type->srna, op->properties);
 
   uiLayout *col;
 
@@ -2947,11 +2957,9 @@ void UV_OT_unwrap(wmOperatorType *ot)
                   "Fill Holes",
                   "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
-  RNA_def_boolean(ot->srna,
-                  "correct_aspect",
-                  !(tool_settings_default->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT),
-                  "Correct Aspect",
-                  "Map UVs taking image aspect ratio into account");
+
+  uv_map_operator_property_correct_aspect(ot);
+
   RNA_def_boolean(
       ot->srna,
       "use_subsurf_data",

@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 /**
  * Split all faces that match `filter_fn`.
  * \note

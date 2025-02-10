@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <sstream>
-
 #include "BKE_appdir.hh"
 
 #include "DNA_userdef_types.h"

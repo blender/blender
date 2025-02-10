@@ -15,7 +15,6 @@
 
 #  include "BLI_array.hh"
 #  include "BLI_assert.h"
-#  include "BLI_delaunay_2d.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.hh"
 #  include "BLI_map.hh"

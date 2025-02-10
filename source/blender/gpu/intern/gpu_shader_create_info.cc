@@ -11,7 +11,6 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_threads.h"
 
 #include "BKE_global.hh"
 
@@ -19,7 +18,6 @@
 #include "GPU_context.hh"
 #include "GPU_platform.hh"
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
@@ -28,6 +26,9 @@
 #undef GPU_SHADER_NAMED_INTERFACE_INFO
 #undef GPU_SHADER_INTERFACE_INFO
 #undef GPU_SHADER_CREATE_INFO
+#undef GPU_SHADER_NAMED_INTERFACE_END
+#undef GPU_SHADER_INTERFACE_END
+#undef GPU_SHADER_CREATE_END
 
 namespace blender::gpu::shader {
 
@@ -463,6 +464,10 @@ void gpu_shader_create_info_init()
   ShaderCreateInfo &_info = *ptr_##_info; \
   g_create_infos->add_new(#_info, ptr_##_info); \
   _info
+
+#define GPU_SHADER_NAMED_INTERFACE_END(_inst_name) ;
+#define GPU_SHADER_INTERFACE_END() ;
+#define GPU_SHADER_CREATE_END() ;
 
 /* Declare, register and construct the infos. */
 #include "gpu_shader_create_info_list.hh"

@@ -11,7 +11,7 @@
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
@@ -19,7 +19,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.hh"
 #include "BLI_listbase.h"
@@ -34,7 +33,6 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <string_view>
 
 struct CryptomatteSession {
   blender::Map<std::string, blender::bke::cryptomatte::CryptomatteLayer> layers;
@@ -110,7 +108,7 @@ void CryptomatteSession::init(const ViewLayer *view_layer, bool build_meta_data)
   eViewLayerCryptomatteFlags cryptoflags = static_cast<eViewLayerCryptomatteFlags>(
       view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ALL);
   if (cryptoflags == 0) {
-    cryptoflags = static_cast<eViewLayerCryptomatteFlags>(VIEW_LAYER_CRYPTOMATTE_ALL);
+    cryptoflags = VIEW_LAYER_CRYPTOMATTE_ALL;
   }
 
   ListBase *object_bases = BKE_view_layer_object_bases_get(const_cast<ViewLayer *>(view_layer));

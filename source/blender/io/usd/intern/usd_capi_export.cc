@@ -8,6 +8,7 @@
 #include "usd.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
+#include "usd_instancing_utils.hh"
 #include "usd_light_convert.hh"
 #include "usd_private.hh"
 
@@ -169,7 +170,7 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
   }
 
   if (params.convert_scene_units) {
-    xf_api.SetScale(pxr::GfVec3f(float(1.0 / get_meters_per_unit(&params))));
+    xf_api.SetScale(pxr::GfVec3f(float(1.0 / get_meters_per_unit(params))));
   }
 
   if (params.convert_orientation) {
@@ -431,15 +432,17 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   pxr::VtValue upAxis = pxr::VtValue(pxr::UsdGeomTokens->z);
   if (params.convert_orientation) {
-    if (params.up_axis == IO_AXIS_X)
+    if (params.up_axis == IO_AXIS_X) {
       upAxis = pxr::VtValue(pxr::UsdGeomTokens->x);
-    else if (params.up_axis == IO_AXIS_Y)
+    }
+    else if (params.up_axis == IO_AXIS_Y) {
       upAxis = pxr::VtValue(pxr::UsdGeomTokens->y);
+    }
   }
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);
 
-  const double meters_per_unit = get_meters_per_unit(&params);
+  const double meters_per_unit = get_meters_per_unit(params);
   pxr::UsdGeomSetStageMetersPerUnit(usd_stage, meters_per_unit);
 
   ensure_root_prim(usd_stage, params);
@@ -499,6 +502,10 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
       usd_stage->SetDefaultPrim(prim);
       break;
     }
+  }
+
+  if (params.use_instancing) {
+    process_scene_graph_instances(params, usd_stage);
   }
 
   call_export_hooks(usd_stage, depsgraph, params.worker_status->reports);
@@ -742,10 +749,10 @@ int USD_get_version()
   return PXR_VERSION;
 }
 
-double get_meters_per_unit(const struct USDExportParams *params)
+double get_meters_per_unit(const USDExportParams &params)
 {
   double result;
-  switch (params->convert_scene_units) {
+  switch (params.convert_scene_units) {
     case USD_SCENE_UNITS_CENTIMETERS:
       result = 0.01;
       break;
@@ -765,7 +772,7 @@ double get_meters_per_unit(const struct USDExportParams *params)
       result = 0.9144;
       break;
     case USD_SCENE_UNITS_CUSTOM:
-      result = double(params->custom_meters_per_unit);
+      result = double(params.custom_meters_per_unit);
       break;
     default:
       result = 1.0;

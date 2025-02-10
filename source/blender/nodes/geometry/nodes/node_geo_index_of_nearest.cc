@@ -129,8 +129,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     return VArray<int>::ForContainer(std::move(result));
   }
 
- public:
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     positions_field_.node().for_each_field_input_recursive(fn);
     group_field_.node().for_each_field_input_recursive(fn);
@@ -198,8 +197,7 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
     return VArray<bool>::ForContainer(std::move(result));
   }
 
- public:
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     group_field_.node().for_each_field_input_recursive(fn);
   }
@@ -245,8 +243,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INDEX_OF_NEAREST, "Index of Nearest", NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, "GeometryNodeIndexOfNearest", GEO_NODE_INDEX_OF_NEAREST);
+  ntype.ui_name = "Index of Nearest";
+  ntype.ui_description =
+      "Find the nearest element in a group. Similar to the \"Sample Nearest\" node";
   ntype.enum_name_legacy = "INDEX_OF_NEAREST";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

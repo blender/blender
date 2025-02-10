@@ -7,7 +7,6 @@
  */
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -19,6 +18,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 #include "BLI_span.hh"
@@ -37,8 +37,6 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_vfont.hh"
-
-#include "BLI_sys_types.h" /* For #intptr_t support. */
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -644,10 +642,11 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
 static bool do_curve_implicit_mesh_conversion(const Curve *curve,
                                               ModifierData *first_modifier,
                                               const Scene *scene,
-                                              const ModifierMode required_mode)
+                                              const ModifierMode required_mode,
+                                              const bool editmode)
 {
   /* Skip implicit filling and conversion to mesh when using "fast text editing". */
-  if (curve->flag & CU_FAST) {
+  if ((curve->flag & CU_FAST) && editmode) {
     return false;
   }
 
@@ -710,7 +709,9 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
                          pretessellatePoint->next;
 
   blender::bke::GeometrySet geometry_set;
-  if (ob->type == OB_SURF || do_curve_implicit_mesh_conversion(cu, md, scene, required_mode)) {
+  if (ob->type == OB_SURF ||
+      do_curve_implicit_mesh_conversion(cu, md, scene, required_mode, editmode))
+  {
     Mesh *mesh = BKE_mesh_new_nomain_from_curve_displist(ob, dispbase);
     geometry_set.replace_mesh(mesh);
   }

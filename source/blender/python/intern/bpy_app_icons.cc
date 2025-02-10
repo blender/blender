@@ -12,8 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_icons.h"
 
 #include "../generic/py_capi_utils.hh"

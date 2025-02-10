@@ -23,7 +23,6 @@
 #include <ostream>
 
 #include "BLI_math_angle_types.hh"
-#include "BLI_math_base.hh"
 #include "BLI_math_basis_types.hh"
 #include "BLI_math_vector_types.hh"
 

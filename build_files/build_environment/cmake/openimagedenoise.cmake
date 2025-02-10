@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(OIDN_EXTRA_ARGS
+  -DCMAKE_BUILD_TYPE=Release
   -DOIDN_APPS=OFF
   -DTBB_ROOT=${LIBDIR}/tbb
   -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc
@@ -66,7 +67,10 @@ endif()
 set(ODIN_PATCH_COMMAND
   ${PATCH_CMD} --verbose -p 1 -N -d
   ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
-  ${PATCH_DIR}/oidn.diff
+  ${PATCH_DIR}/oidn.diff &&
+  ${PATCH_CMD} --verbose -p 1 -N -d
+  ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+  ${PATCH_DIR}/oidn_blackwell.diff
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

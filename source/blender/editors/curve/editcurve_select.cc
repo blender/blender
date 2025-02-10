@@ -696,7 +696,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
   Base *basact = nullptr;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   copy_v2_v2_int(vc.mval, event->mval);
 
@@ -811,7 +811,9 @@ void CURVE_OT_select_row(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Select Control Point Row";
   ot->idname = "CURVE_OT_select_row";
-  ot->description = "Select a row of control points including active one";
+  ot->description =
+      "Select a row of control points including active one. "
+      "Successive use on the same point switches between U/V directions";
 
   /* api callbacks */
   ot->exec = select_row_exec;
@@ -2003,7 +2005,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
   void *vert_dst_p;
   Base *basact = nullptr;
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   copy_v2_v2_int(vc.mval, event->mval);
 

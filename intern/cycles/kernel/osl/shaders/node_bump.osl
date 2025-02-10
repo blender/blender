@@ -45,7 +45,7 @@ surface node_bump(int invert = 0,
     dist *= -1.0;
 
   /* compute and output perturbed normal */
-  NormalOut = normalize(absdet * Normal - dist * sign(det) * surfgrad);
+  NormalOut = normalize(BUMP_DX * absdet * Normal - dist * sign(det) * surfgrad);
   NormalOut = normalize(strength * NormalOut + (1.0 - strength) * Normal);
 
   if (use_object_space) {

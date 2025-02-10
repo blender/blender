@@ -121,7 +121,7 @@ void MTLQueryPool::get_occlusion_result(MutableSpan<uint32_t> r_values)
     int requested_buffer = i / VISIBILITY_COUNT_PER_BUFFER;
     const uint64_t *queries = static_cast<const uint64_t *>(
         buffer_[requested_buffer]->get_host_ptr());
-    r_values[i] = static_cast<uint32_t>(queries[i % VISIBILITY_COUNT_PER_BUFFER]);
+    r_values[i] = uint32_t(queries[i % VISIBILITY_COUNT_PER_BUFFER]);
   }
   ctx->set_visibility_buffer(nullptr);
 }

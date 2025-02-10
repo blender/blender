@@ -7,7 +7,6 @@
  */
 
 #include <cctype>
-#include <climits>
 #include <cstring>
 
 #include "DNA_node_types.h"
@@ -21,7 +20,6 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_node.hh"
-#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 
 #include "RNA_access.hh"
@@ -29,8 +27,6 @@
 #include "RNA_prototypes.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "NOD_common.h"
 
 #include "node_util.hh"
 
@@ -293,19 +289,19 @@ bool node_insert_link_default(bNodeTree * /*ntree*/,
 
 float node_socket_get_float(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
 {
-  PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
   return RNA_float_get(&ptr, "default_value");
 }
 
 void node_socket_set_float(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float value)
 {
-  PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
   RNA_float_set(&ptr, "default_value", value);
 }
 
 void node_socket_get_color(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float *value)
 {
-  PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
   RNA_float_get_array(&ptr, "default_value", value);
 }
 
@@ -314,13 +310,13 @@ void node_socket_set_color(bNodeTree *ntree,
                            bNodeSocket *sock,
                            const float *value)
 {
-  PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
   RNA_float_set_array(&ptr, "default_value", value);
 }
 
 void node_socket_get_vector(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float *value)
 {
-  PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
   RNA_float_get_array(&ptr, "default_value", value);
 }
 
@@ -329,7 +325,7 @@ void node_socket_set_vector(bNodeTree *ntree,
                             bNodeSocket *sock,
                             const float *value)
 {
-  PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
   RNA_float_set_array(&ptr, "default_value", value);
 }
 

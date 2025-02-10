@@ -24,13 +24,13 @@ class ABCNurbsWriter : public ABCAbstractWriter {
  public:
   explicit ABCNurbsWriter(const ABCWriterConstructorArgs &args);
 
-  virtual void create_alembic_objects(const HierarchyContext *context) override;
-  virtual Alembic::Abc::OObject get_alembic_object() const override;
+  void create_alembic_objects(const HierarchyContext *context) override;
+  Alembic::Abc::OObject get_alembic_object() const override;
 
  protected:
-  virtual bool is_supported(const HierarchyContext *context) const override;
-  virtual void do_write(HierarchyContext &context) override;
-  virtual bool check_is_animated(const HierarchyContext &context) const override;
+  bool is_supported(const HierarchyContext *context) const override;
+  void do_write(HierarchyContext &context) override;
+  bool check_is_animated(const HierarchyContext &context) const override;
   Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
 };
 
@@ -39,7 +39,7 @@ class ABCNurbsMeshWriter : public ABCGenericMeshWriter {
   explicit ABCNurbsMeshWriter(const ABCWriterConstructorArgs &args);
 
  protected:
-  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
+  Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
 }  // namespace blender::io::alembic

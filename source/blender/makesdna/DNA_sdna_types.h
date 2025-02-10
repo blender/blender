@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 struct MemArena;
 
 #

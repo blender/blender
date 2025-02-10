@@ -12,7 +12,7 @@
 
 #include "atomic_ops.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 void BLI_linklist_lockfree_init(LockfreeLinkList *list)
 {

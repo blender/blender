@@ -15,7 +15,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .min(0.0f)
       .max(1000000.0f)
-      .description("Strength of the emitted light");
+      .description("Strength of the emitted light")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
   b.add_input<decl::Float>("Weight").available(false);
   b.add_output<decl::Shader>("Background");
 }
@@ -38,8 +39,13 @@ void register_node_type_sh_background()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BACKGROUND, "Background", NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeBackground", SH_NODE_BACKGROUND);
+  ntype.ui_name = "Background";
+  ntype.ui_description =
+      "Add background light emission.\nNote: This node should only be used for the world surface "
+      "output";
   ntype.enum_name_legacy = "BACKGROUND";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = world_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_gpu_background;

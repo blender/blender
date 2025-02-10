@@ -11,6 +11,7 @@
 #include "BLI_bitmap.h"
 #include "DNA_listBase.h"
 #include "RNA_types.hh"
+#include "UI_interface.hh"
 
 struct ARegionType;
 struct ID;

@@ -16,6 +16,7 @@ struct Text;
 struct TextLine;
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 /**
  * \note caller must handle `compiled` member.

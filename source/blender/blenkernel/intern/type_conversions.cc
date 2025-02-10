@@ -10,6 +10,7 @@
 #include "BLI_math_euler.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_vector.hh"
+#include "IMB_colormanagement.hh"
 
 namespace blender::bke {
 
@@ -350,15 +351,15 @@ static ColorGeometry4b bool_to_byte_color(const bool &a)
 
 static bool color_to_bool(const ColorGeometry4f &a)
 {
-  return rgb_to_grayscale(a) > 0.0f;
+  return IMB_colormanagement_get_luminance(a) > 0.0f;
 }
 static float color_to_float(const ColorGeometry4f &a)
 {
-  return rgb_to_grayscale(a);
+  return IMB_colormanagement_get_luminance(a);
 }
 static int32_t color_to_int(const ColorGeometry4f &a)
 {
-  return int(rgb_to_grayscale(a));
+  return int(IMB_colormanagement_get_luminance(a));
 }
 static short2 color_to_short2(const ColorGeometry4f &a)
 {

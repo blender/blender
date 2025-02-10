@@ -6,21 +6,17 @@
  * \ingroup eevee
  */
 
-#include <array>
+#include "BLI_bounds.hh"
+#include "BLI_rect.h"
 
 #include "DRW_render.hh"
-
-#include "BLI_bounds.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_camera.h"
 
-#include "DEG_depsgraph_query.hh"
-
-#include "ED_view3d.hh"
-
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 #include "render_types.h"
 
@@ -96,7 +92,7 @@ void Camera::sync()
   int2 film_extent = inst_.film.film_extent_get();
   int2 film_offset = inst_.film.film_offset_get();
   /* Over-scan in film pixel. Not the same as `render_overscan_get`. */
-  int film_overscan = inst_.film.overscan_pixels_get(overscan_, film_extent);
+  int film_overscan = Film::overscan_pixels_get(overscan_, film_extent);
 
   rcti film_rect;
   BLI_rcti_init(&film_rect,

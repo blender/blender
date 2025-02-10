@@ -8,5 +8,7 @@
 
 #pragma once
 
+#include <Python.h>
+
 extern PyMethodDef BPY_cli_command_register_def;
 extern PyMethodDef BPY_cli_command_unregister_def;

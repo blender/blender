@@ -29,8 +29,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_MATERIAL, "Material", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputMaterial", GEO_NODE_INPUT_MATERIAL);
+  ntype.ui_name = "Material";
+  ntype.ui_description = "Output a single material";
   ntype.enum_name_legacy = "INPUT_MATERIAL";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

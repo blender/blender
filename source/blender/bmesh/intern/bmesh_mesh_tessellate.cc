@@ -11,8 +11,6 @@
  * \see mesh_tessellate.cc for the #Mesh equivalent of this file.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_heap.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"

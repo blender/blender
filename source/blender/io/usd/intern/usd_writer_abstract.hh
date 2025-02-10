@@ -21,6 +21,10 @@
 struct Material;
 struct ReportList;
 
+namespace blender {
+template<typename T> struct Bounds;
+}
+
 namespace blender::io::usd {
 
 using blender::io::AbstractHierarchyWriter;
@@ -37,7 +41,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
  public:
   USDAbstractWriter(const USDExporterContext &usd_export_context);
 
-  virtual void write(HierarchyContext &context) override;
+  void write(HierarchyContext &context) override;
 
   /**
    * Returns true if the data to be written is actually supported. This would, for example, allow a
@@ -65,6 +69,14 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
   /* Returns the parent path of exported materials. */
   pxr::SdfPath get_material_library_path() const;
+  /* Returns the parent path of exported materials for instance prototypes. */
+  pxr::SdfPath get_proto_material_root_path(const HierarchyContext &context) const;
+  /* Ensure the USD material is created in the default material library folder. */
+  pxr::UsdShadeMaterial ensure_usd_material_created(const HierarchyContext &context,
+                                                    Material *material) const;
+  /* Calls ensure_usd_material_created(). Additionally, if the context is an
+   * instancing prototype, creates a reference to the library material under the
+   * prototype root. */
   pxr::UsdShadeMaterial ensure_usd_material(const HierarchyContext &context,
                                             Material *material) const;
 
@@ -103,7 +115,14 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
    *
    * TODO: also provide method for authoring extentsHint on every prim in a hierarchy.
    */
-  virtual void author_extent(const pxr::UsdTimeCode timecode, pxr::UsdGeomBoundable &prim);
+  void author_extent(const pxr::UsdGeomBoundable &boundable, const pxr::UsdTimeCode timecode);
+
+  /**
+   * Author the `extent` attribute for a boundable prim given the Blender `bounds`.
+   */
+  void author_extent(const pxr::UsdGeomBoundable &boundable,
+                     const std::optional<Bounds<float3>> &bounds,
+                     const pxr::UsdTimeCode timecode);
 };
 
 }  // namespace blender::io::usd

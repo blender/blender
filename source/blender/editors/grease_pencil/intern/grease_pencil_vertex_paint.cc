@@ -11,9 +11,8 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
 
-#include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -69,8 +68,11 @@ static bool apply_color_operation_for_mode(const VertexColorMode mode,
   }
   if (ELEM(mode, VertexColorMode::Fill, VertexColorMode::Both)) {
     if (info.drawing.strokes().attributes().contains("fill_color")) {
-      const IndexMask strokes = ed::greasepencil::retrieve_editable_strokes(
-          object, info.drawing, info.layer_index, memory);
+      const IndexMask strokes = use_selection_mask ?
+                                    ed::greasepencil::retrieve_editable_and_selected_strokes(
+                                        object, info.drawing, info.layer_index, memory) :
+                                    ed::greasepencil::retrieve_editable_strokes(
+                                        object, info.drawing, info.layer_index, memory);
       if (!strokes.is_empty()) {
         MutableSpan<ColorGeometry4f> fill_colors = info.drawing.fill_colors_for_write();
         strokes.foreach_index(GrainSize(1024), [&](const int64_t curve_i) {
@@ -429,6 +431,8 @@ static int grease_pencil_vertex_paint_reset_exec(bContext *C, wmOperator *op)
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
+      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
 
   std::atomic<bool> any_changed;
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
@@ -437,8 +441,22 @@ static int grease_pencil_vertex_paint_reset_exec(bContext *C, wmOperator *op)
     if (curves.is_empty()) {
       return;
     }
-    /* Remove the color attributes. */
+
     bool changed = false;
+    if (use_selection_mask) {
+      changed |= apply_color_operation_for_mode(
+          mode,
+          object,
+          info,
+          use_selection_mask,
+          [&](const ColorGeometry4f & /*color*/) -> ColorGeometry4f {
+            return ColorGeometry4f(1.0, 1.0, 1.0, 1.0);
+          });
+      any_changed.store(any_changed | changed, std::memory_order_relaxed);
+      return;
+    }
+
+    /* Remove the color attributes. */
     if (ELEM(mode, VertexColorMode::Stroke, VertexColorMode::Both)) {
       changed |= curves.attributes_for_write().remove("vertex_color");
     }

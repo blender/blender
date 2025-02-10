@@ -15,6 +15,11 @@
  * descriptive comments.  but seriously, don't use this stuff.
  */
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
+#include "bmesh_class.hh"
+
 /* LOOP CYCLE MANAGEMENT */
 /*****loop cycle functions, e.g. loops surrounding a face**** */
 bool bmesh_loop_validate(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -135,4 +140,4 @@ BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2) ATTR_WARN_UNU
     ATTR_NONNULL();
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-#include "intern/bmesh_structure_inline.hh"
+#include "intern/bmesh_structure_inline.hh" /* IWYU pragma: export */

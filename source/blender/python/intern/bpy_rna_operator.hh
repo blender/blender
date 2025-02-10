@@ -8,4 +8,6 @@
 
 #pragma once
 
+#include <Python.h>
+
 extern PyMethodDef BPY_rna_operator_poll_message_set_method_def;

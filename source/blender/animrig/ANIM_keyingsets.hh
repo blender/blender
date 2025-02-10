@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "RNA_types.hh"
+
 struct KeyingSet;
 struct ExtensionRNA;
 /* Forward declaration for this struct which is declared a bit later. */

@@ -241,12 +241,6 @@ int BKE_render_preview_pixel_size(const RenderData *r);
 
 /**********************************/
 
-/**
- * Apply the needed correction factor to value, based on unit_type
- * (only length-related are affected currently) and `unit->scale_length`.
- */
-double BKE_scene_unit_scale(const UnitSettings *unit, int unit_type, double value);
-
 /* Multi-view. */
 
 bool BKE_scene_multiview_is_stereo3d(const RenderData *rd);

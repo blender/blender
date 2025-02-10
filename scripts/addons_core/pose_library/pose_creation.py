@@ -203,6 +203,15 @@ class PoseActionCreator:
         """Resolve an RNA path + array index to an actual value."""
         value_or_array = cls._path_resolve(datablock, data_path)
 
+        if isinstance(value_or_array, str):
+            # Enums resolve to a string.
+            bone_path, enum_property_name = data_path.rsplit("[", 1)
+            unescaped_property_name = bpy.utils.unescape_identifier(enum_property_name)
+            # unescaped_property_name still has the quotes and a bracket at the end hence the [1:-2].
+            value = cls._path_resolve(datablock, bone_path).get(unescaped_property_name[1:-2])
+            assert isinstance(value, (int, float))
+            return cast(FCurveValue, value)
+
         # Both indices -1 and 0 are used for non-array properties.
         # -1 cannot be used in arrays, whereas 0 can be used in both arrays and non-arrays.
 
@@ -304,32 +313,6 @@ def create_pose_asset_from_context(context: Context, new_asset_name: str) -> Opt
     )
 
     return create_pose_asset(params)
-
-
-def copy_fcurves(
-    dst_action: Action,
-    src_action: Action,
-    src_frame_nr: float,
-    bone_names: Set[str],
-) -> int:
-    """Copy FCurves, returning number of curves copied."""
-    num_fcurves_copied = 0
-    for fcurve in src_action.fcurves:
-        match = pose_bone_re.match(fcurve.data_path)
-        if not match:
-            continue
-
-        bone_name = match.group(1)
-        if bone_name not in bone_names:
-            continue
-
-        # Check if there is a keyframe on this frame.
-        keyframe = find_keyframe(fcurve, src_frame_nr)
-        if keyframe is None:
-            continue
-        create_single_key_fcurve(dst_action, fcurve, keyframe)
-        num_fcurves_copied += 1
-    return num_fcurves_copied
 
 
 def create_single_key_fcurve(dst_action: Action, src_fcurve: FCurve, src_keyframe: Keyframe) -> FCurve:

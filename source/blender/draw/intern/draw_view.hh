@@ -17,9 +17,7 @@
  * setting `drw_view_id` accordingly.
  */
 
-#include "DNA_view3d_types.h"
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.hh"
 #include "GPU_matrix.hh"
 
 #include "draw_shader_shared.hh"
@@ -206,6 +204,19 @@ class View {
 
       winmat[3][2] -= GPU_polygon_offset_calc(winmat.ptr(), view_dist, offset);
       return winmat;
+    }
+
+    /* Return unit offset to apply to `gl_Position.z`. To be scaled depending on purpose. */
+    float polygon_offset_factor(float4x4 winmat)
+    {
+      float view_dist = dist;
+      /* Special exception for orthographic camera:
+       * `view_dist` isn't used as the depth range isn't the same. */
+      if (persp == RV3D_CAMOB && is_persp == false) {
+        view_dist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
+      }
+
+      return GPU_polygon_offset_calc(winmat.ptr(), view_dist, 1.0);
     }
   };
 

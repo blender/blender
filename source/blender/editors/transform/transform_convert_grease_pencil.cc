@@ -197,13 +197,13 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
               *CTX_data_depsgraph_pointer(C), *object, info.layer_index, info.frame_number);
 
       std::optional<MutableSpan<float>> value_attribute;
-      if (is_scale_thickness) {
-        MutableSpan<float> radii = info.drawing.radii_for_write();
-        value_attribute = radii;
-      }
-      else if (t->mode == TFM_GPENCIL_OPACITY) {
+      if (t->mode == TFM_GPENCIL_OPACITY) {
         MutableSpan<float> opacities = info.drawing.opacities_for_write();
         value_attribute = opacities;
+      }
+      else if (is_scale_thickness) {
+        MutableSpan<float> radii = info.drawing.radii_for_write();
+        value_attribute = radii;
       }
 
       const IndexMask affected_strokes = use_proportional_edit || use_individual_origins ?

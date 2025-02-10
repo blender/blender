@@ -4,7 +4,7 @@
 
 #include "GEO_uv_parametrizer.hh"
 
-#include "BKE_mesh.hh"
+#include "DNA_mesh_types.h"
 
 #include "node_geometry_util.hh"
 
@@ -142,8 +142,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_UV_PACK_ISLANDS, "Pack UV Islands", NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, "GeometryNodeUVPackIslands", GEO_NODE_UV_PACK_ISLANDS);
+  ntype.ui_name = "Pack UV Islands";
+  ntype.ui_description =
+      "Scale islands of a UV map and move them so they fill the UV space as much as possible";
   ntype.enum_name_legacy = "UV_PACK_ISLANDS";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

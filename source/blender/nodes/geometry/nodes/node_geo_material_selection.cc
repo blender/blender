@@ -6,7 +6,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BLI_task.hh"
+#include "BLI_index_mask.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
@@ -161,9 +161,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_MATERIAL_SELECTION, "Material Selection", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeMaterialSelection", GEO_NODE_MATERIAL_SELECTION);
+  ntype.ui_name = "Material Selection";
+  ntype.ui_description = "Provide a selection of faces that use the specified material";
   ntype.enum_name_legacy = "MATERIAL_SELECTION";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

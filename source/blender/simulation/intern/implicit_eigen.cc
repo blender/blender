@@ -6,8 +6,6 @@
  * \ingroup sim
  */
 
-#include "implicit.h"
-
 #ifdef IMPLICIT_SOLVER_EIGEN
 
 // #define USE_EIGEN_CORE

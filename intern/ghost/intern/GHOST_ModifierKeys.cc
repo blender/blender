@@ -18,7 +18,7 @@ GHOST_ModifierKeys::GHOST_ModifierKeys()
   clear();
 }
 
-GHOST_ModifierKeys::~GHOST_ModifierKeys() {}
+GHOST_ModifierKeys::~GHOST_ModifierKeys() = default;
 
 GHOST_TKey GHOST_ModifierKeys::getModifierKeyCode(GHOST_TModifierKey mask)
 {

@@ -10,6 +10,8 @@
 
 #include "tree_element.hh"
 
+struct Scene;
+
 namespace blender::ed::outliner {
 
 class TreeElementCollectionBase final : public AbstractTreeElement {
@@ -18,7 +20,7 @@ class TreeElementCollectionBase final : public AbstractTreeElement {
  public:
   TreeElementCollectionBase(TreeElement &legacy_te, Scene &scene);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 };
 
 }  // namespace blender::ed::outliner

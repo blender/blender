@@ -24,6 +24,7 @@ void solve_length_and_collision_constraints(OffsetIndices<int> points_by_curve,
                                             Span<float3> start_positions,
                                             const Mesh &surface,
                                             const bke::CurvesSurfaceTransforms &transforms,
-                                            MutableSpan<float3> positions);
+                                            MutableSpan<float3> positions,
+                                            const float surface_collision_distance);
 
 }  // namespace blender::geometry::curve_constraints

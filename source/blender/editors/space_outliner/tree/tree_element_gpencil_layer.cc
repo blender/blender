@@ -6,10 +6,8 @@
  * \ingroup spoutliner
  */
 
-#include "BLI_utildefines.h"
-
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_space_types.h"
+#include "DNA_outliner_types.h"
 
 #include "../outliner_intern.hh"
 

@@ -17,11 +17,11 @@ class RenderBuilderPipeline : public AbstractBuilderPipeline {
   RenderBuilderPipeline(::Depsgraph *graph);
 
  protected:
-  unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;
-  unique_ptr<DepsgraphRelationBuilder> construct_relation_builder() override;
+  std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;
+  std::unique_ptr<DepsgraphRelationBuilder> construct_relation_builder() override;
 
-  virtual void build_nodes(DepsgraphNodeBuilder &node_builder) override;
-  virtual void build_relations(DepsgraphRelationBuilder &relation_builder) override;
+  void build_nodes(DepsgraphNodeBuilder &node_builder) override;
+  void build_relations(DepsgraphRelationBuilder &relation_builder) override;
 };
 
 }  // namespace blender::deg

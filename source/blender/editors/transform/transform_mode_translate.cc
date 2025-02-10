@@ -10,9 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -22,7 +21,6 @@
 #include "BKE_report.hh"
 #include "BKE_unit.hh"
 
-#include "ED_node.hh"
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
@@ -187,9 +185,8 @@ static void translate_dist_to_str(char *r_str,
                                   const float val,
                                   const UnitSettings *unit)
 {
-  if (unit) {
-    BKE_unit_value_as_string(
-        r_str, r_str_maxncpy, val * unit->scale_length, 4, B_UNIT_LENGTH, unit, false);
+  if (unit && (unit->system != USER_UNIT_NONE)) {
+    BKE_unit_value_as_string_scaled(r_str, r_str_maxncpy, val, 4, B_UNIT_LENGTH, *unit, false);
   }
   else {
     /* Check range to prevent string buffer overflow. */
@@ -210,7 +207,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
 
   if (hasNumInput(&t->num)) {
-    outputNumInput(&(t->num), dvec_str[0], &t->scene->unit);
+    outputNumInput(&(t->num), dvec_str[0], t->scene->unit);
     dist = len_v3(t->num.val);
   }
   else {

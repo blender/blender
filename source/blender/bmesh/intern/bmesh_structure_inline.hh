@@ -10,6 +10,12 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
+#include "bmesh_class.hh"
+#include "intern/bmesh_query.hh"
+
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
     BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(const BMEdge *e, const BMVert *v)
 {
@@ -33,7 +39,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
   if (v == e->v2) {
     return e->v2_disk_link.next;
   }
-  return NULL;
+  return nullptr;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
@@ -45,7 +51,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
   if (v == e->v2) {
     return e->v2_disk_link.prev;
   }
-  return NULL;
+  return nullptr;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2) BLI_INLINE BMEdge *bmesh_disk_edge_next(const BMEdge *e,

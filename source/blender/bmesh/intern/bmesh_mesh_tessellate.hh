@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#include "BLI_span.hh"
+
+#include "bmesh_class.hh"
+
 struct BMPartialUpdate;
 
 struct BMeshCalcTessellation_Params {

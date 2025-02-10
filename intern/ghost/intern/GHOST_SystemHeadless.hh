@@ -37,7 +37,7 @@ class GHOST_SystemHeadless : public GHOST_System {
   }
   bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/) override
   {
-    return 0;
+    return false;
   }
   GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys & /*keys*/) const override
   {
@@ -54,7 +54,8 @@ class GHOST_SystemHeadless : public GHOST_System {
                                  ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
                                    GHOST_kCapabilityPrimaryClipboard |
                                    GHOST_kCapabilityDesktopSample |
-                                   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME));
+                                   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME |
+                                   GHOST_kCapabilityWindowDecorationStyles));
   }
   char *getClipboard(bool /*selection*/) const override
   {

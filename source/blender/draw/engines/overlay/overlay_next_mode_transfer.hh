@@ -8,7 +8,12 @@
 
 #pragma once
 
+#include "BLI_time.h"
+
 #include "BKE_paint.hh"
+
+#include "draw_cache.hh"
+#include "draw_sculpt.hh"
 
 #include "overlay_next_base.hh"
 

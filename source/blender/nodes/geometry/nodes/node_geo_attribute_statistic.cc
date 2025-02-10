@@ -92,7 +92,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     for (const StringRefNull name :
          {"Mean", "Median", "Sum", "Min", "Max", "Range", "Standard Deviation", "Variance"})
     {
-      params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
+      params.add_item(IFACE_(name), [node_type, name, type](LinkSearchOpParams &params) {
         bNode &node = params.add_node(node_type);
         node.custom1 = *type;
         params.update_and_connect_available_socket(node, name);
@@ -103,7 +103,25 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 template<typename T> static T compute_sum(const Span<T> data)
 {
-  return std::accumulate(data.begin(), data.end(), T());
+  /* Explicitly splitting work into chunks for a couple of reasons:
+   * - Improve numerical stability. While there are even more stable algorithms (e.g. Kahan
+   *   summation), they also add more complexity to the hot code path. So far, this simple approach
+   *   seems to solve the common issues people run into.
+   * - Support computing the sum using multiple threads.
+   * - Ensure deterministic results even with floating point numbers.
+   */
+  constexpr int64_t chunk_size = 1024;
+  const int64_t chunks_num = divide_ceil_ul(data.size(), chunk_size);
+  Array<T> partial_sums(chunks_num);
+  threading::parallel_for(partial_sums.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      const int64_t start = i * chunk_size;
+      const Span<T> chunk = data.slice_safe(start, chunk_size);
+      const T partial_sum = std::accumulate(chunk.begin(), chunk.end(), T());
+      partial_sums[i] = partial_sum;
+    }
+  });
+  return std::accumulate(partial_sums.begin(), partial_sums.end(), T());
 }
 
 static float compute_variance(const Span<float> data, const float mean)
@@ -363,10 +381,12 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-
-  geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE);
+  geo_node_type_base(&ntype, "GeometryNodeAttributeStatistic", GEO_NODE_ATTRIBUTE_STATISTIC);
+  ntype.ui_name = "Attribute Statistic";
+  ntype.ui_description =
+      "Calculate statistics about a data set from a field evaluated on a geometry";
   ntype.enum_name_legacy = "ATTRIBUTE_STATISTIC";
+  ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

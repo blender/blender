@@ -38,7 +38,7 @@ class PathTraceWorkCPU : public PathTraceWork {
   void render_samples(RenderStatistics &statistics,
                       const int start_sample,
                       const int samples_num,
-                      int sample_offset) override;
+                      const int sample_offset) override;
 
   void copy_to_display(PathTraceDisplay *display,
                        PassMode pass_mode,
@@ -65,8 +65,7 @@ class PathTraceWorkCPU : public PathTraceWork {
    * This function is called at the end of a random walk/path generation. */
   void guiding_push_sample_data_to_global_storage(ThreadKernelGlobalsCPU *kg,
                                                   IntegratorStateCPU *state,
-                                                  const ccl_global float *ccl_restrict
-                                                      render_buffer);
+                                                  ccl_global float *ccl_restrict render_buffer);
 #endif
 
  protected:

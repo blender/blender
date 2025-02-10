@@ -9,10 +9,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-
-#include "BKE_paint_bvh.hh"
 
 struct Brush;
 struct Scene;

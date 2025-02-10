@@ -9,19 +9,11 @@
 #include <climits>
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
 
-#include "BLI_math_vector.h"
-
 #include "BLT_translation.hh"
-
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -30,17 +22,19 @@
 
 #include "WM_types.hh"
 
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
-
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
 #  include <fmt/format.h>
 
+#  include "DNA_defaults.h"
 #  include "DNA_movieclip_types.h"
 
+#  include "BLI_math_vector.h"
+
 #  include "BKE_mask.h"
+#  include "BKE_movieclip.h"
+#  include "BKE_tracking.h"
 
 #  include "DEG_depsgraph.hh"
 
@@ -140,7 +134,7 @@ static void rna_Mask_layers_begin(CollectionPropertyIterator *iter, PointerRNA *
 {
   Mask *mask = (Mask *)ptr->owner_id;
 
-  rna_iterator_listbase_begin(iter, &mask->masklayers, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &mask->masklayers, nullptr);
 }
 
 static int rna_Mask_layer_active_index_get(PointerRNA *ptr)
@@ -182,7 +176,7 @@ static PointerRNA rna_Mask_layer_active_get(PointerRNA *ptr)
   Mask *mask = (Mask *)ptr->owner_id;
   MaskLayer *masklay = BKE_mask_layer_active(mask);
 
-  return rna_pointer_inherit_refine(ptr, &RNA_MaskLayer, masklay);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_MaskLayer, masklay);
 }
 
 static void rna_Mask_layer_active_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -197,7 +191,7 @@ static void rna_MaskLayer_splines_begin(CollectionPropertyIterator *iter, Pointe
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
 
-  rna_iterator_listbase_begin(iter, &masklay->splines, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &masklay->splines, nullptr);
 }
 
 static void rna_MaskLayer_name_set(PointerRNA *ptr, const char *value)
@@ -217,7 +211,7 @@ static PointerRNA rna_MaskLayer_active_spline_get(PointerRNA *ptr)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
 
-  return rna_pointer_inherit_refine(ptr, &RNA_MaskSpline, masklay->act_spline);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_MaskSpline, masklay->act_spline);
 }
 
 static void rna_MaskLayer_active_spline_set(PointerRNA *ptr,
@@ -240,7 +234,7 @@ static PointerRNA rna_MaskLayer_active_spline_point_get(PointerRNA *ptr)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
 
-  return rna_pointer_inherit_refine(ptr, &RNA_MaskSplinePoint, masklay->act_point);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_MaskSplinePoint, masklay->act_point);
 }
 
 static void rna_MaskLayer_active_spline_point_set(PointerRNA *ptr,
@@ -1029,7 +1023,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MASK_BLENDFLAG_INVERT);
-  RNA_def_property_ui_text(prop, "Restrict View", "Invert the mask black/white");
+  RNA_def_property_ui_text(prop, "Invert", "Invert the mask black/white");
   RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);

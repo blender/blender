@@ -565,6 +565,38 @@ GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
   return GHOST_kSuccess;
 }
 
+GHOST_TSuccess GHOST_WindowCocoa::applyWindowDecorationStyle()
+{
+  @autoreleasepool {
+    if (m_windowDecorationStyleFlags & GHOST_kDecorationColoredTitleBar) {
+      const float *background_color = m_windowDecorationStyleSettings.colored_titlebar_bg_color;
+
+      /* Title-bar background color. */
+      m_window.backgroundColor = [NSColor colorWithRed:background_color[0]
+                                                 green:background_color[1]
+                                                  blue:background_color[2]
+                                                 alpha:1.0];
+
+      /* Title-bar foreground color.
+       * Use the value component of the title-bar background's HSV representation to determine
+       * whether we should use the macOS dark or light title-bar text appearance. With values below
+       * 0.5 considered as dark themes, and values above 0.5 considered as light themes.
+       */
+      const float hsv_v = MAX(background_color[0], MAX(background_color[1], background_color[2]));
+
+      const NSAppearanceName win_appearance = hsv_v > 0.5 ? NSAppearanceNameVibrantLight :
+                                                            NSAppearanceNameVibrantDark;
+
+      m_window.appearance = [NSAppearance appearanceNamed:win_appearance];
+      m_window.titlebarAppearsTransparent = YES;
+    }
+    else {
+      m_window.titlebarAppearsTransparent = NO;
+    }
+  }
+  return GHOST_kSuccess;
+}
+
 void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect &bounds) const
 {
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getWindowBounds(): window invalid");

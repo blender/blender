@@ -11,6 +11,9 @@
 
 #pragma once
 
+#include "DNA_ID.h"
+#include "DNA_movieclip_types.h"
+
 #include "BLI_threads.h"
 
 #ifdef __cplusplus

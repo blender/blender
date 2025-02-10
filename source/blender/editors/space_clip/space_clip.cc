@@ -6,7 +6,6 @@
  * \ingroup spclip
  */
 
-#include <cstdio>
 #include <cstring>
 
 #include "DNA_defaults.h"
@@ -18,7 +17,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -631,11 +631,11 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *region)
   y1 -= sc->zoom * sc->yof;
 
   /* relative display right */
-  region->v2d.cur.xmin = (region->winrct.xmin - float(x1)) / sc->zoom;
+  region->v2d.cur.xmin = (region->winrct.xmin - x1) / sc->zoom;
   region->v2d.cur.xmax = region->v2d.cur.xmin + (float(winx) / sc->zoom);
 
   /* relative display left */
-  region->v2d.cur.ymin = (region->winrct.ymin - float(y1)) / sc->zoom;
+  region->v2d.cur.ymin = (region->winrct.ymin - y1) / sc->zoom;
   region->v2d.cur.ymax = region->v2d.cur.ymin + (float(winy) / sc->zoom);
 
   /* normalize 0.0..1.0 */

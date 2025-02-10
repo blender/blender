@@ -12,13 +12,13 @@
 
 #include "utf_winfunc.hh"
 #include "utfconv.hh"
+#include <cwchar>
 #include <io.h>
-#include <wchar.h>
 #include <windows.h>
 
 FILE *ufopen(const char *filename, const char *mode)
 {
-  FILE *f = NULL;
+  FILE *f = nullptr;
   UTF16_ENCODE(filename);
   UTF16_ENCODE(mode);
 
@@ -108,7 +108,7 @@ int umkdir(const char *pathname)
 
 char *u_alloc_getenv(const char *varname)
 {
-  char *r = 0;
+  char *r = nullptr;
   wchar_t *str;
   UTF16_ENCODE(varname);
   if (varname_16) {

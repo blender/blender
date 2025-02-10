@@ -126,14 +126,14 @@ TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
   const auto assign_other_action = [&](ID & /* animated_id */,
                                        bAction *&action_ptr_ref,
                                        slot_handle_t &slot_handle_ref,
-                                       char *slot_name) -> bool {
+                                       char *last_slot_identifier) -> bool {
     /* Assign the other Action. */
     all_assigns_ok &= generic_assign_action(
-        cube->id, &other_action, action_ptr_ref, slot_handle_ref, slot_name);
+        cube->id, &other_action, action_ptr_ref, slot_handle_ref, last_slot_identifier);
 
     /* Assign the slot of the other Action. */
     slot_assignment_result = generic_assign_action_slot(
-        &another_slot, cube->id, action_ptr_ref, slot_handle_ref, slot_name);
+        &another_slot, cube->id, action_ptr_ref, slot_handle_ref, last_slot_identifier);
 
     return true;
   };

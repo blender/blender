@@ -14,14 +14,15 @@
 
 #pragma once
 
+#include <cstdlib>
 #include <functional>
 #include <mutex>
-#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h" /* for ID_Type and INDEX_ID_MAX */
 
+#include "BLI_set.hh"
 #include "BLI_threads.h" /* for SpinLock */
 
 #include "DEG_depsgraph.hh"
@@ -29,7 +30,6 @@
 
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph_light_linking.hh"
-#include "intern/depsgraph_type.hh"
 
 struct ID;
 struct Scene;

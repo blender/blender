@@ -44,7 +44,7 @@
 #  define GHOST_OPENGL_VK_RESET_NOTIFICATION_STRATEGY 0
 #endif
 
-typedef enum {
+enum GHOST_TVulkanPlatformType {
   GHOST_kVulkanPlatformHeadless = 0,
 #ifdef WITH_GHOST_X11
   GHOST_kVulkanPlatformX11 = 1,
@@ -52,7 +52,7 @@ typedef enum {
 #ifdef WITH_GHOST_WAYLAND
   GHOST_kVulkanPlatformWayland = 2,
 #endif
-} GHOST_TVulkanPlatformType;
+};
 
 struct GHOST_ContextVK_WindowInfo {
   int size[2];
@@ -87,7 +87,7 @@ class GHOST_ContextVK : public GHOST_Context {
   /**
    * Destructor.
    */
-  ~GHOST_ContextVK();
+  ~GHOST_ContextVK() override;
 
   /**
    * Swaps front and back buffers of a window.

@@ -576,8 +576,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.dupli_generated[2] = ob->dupli_generated[2];
   kobject.dupli_uv[0] = ob->dupli_uv[0];
   kobject.dupli_uv[1] = ob->dupli_uv[1];
-  const int totalsteps = geom->get_motion_steps();
-  kobject.numsteps = (totalsteps - 1) / 2;
+  kobject.num_geom_steps = (geom->get_motion_steps() - 1) / 2;
+  kobject.num_tfm_steps = ob->motion.size();
   kobject.numverts = (geom->is_mesh() || geom->is_volume()) ?
                          static_cast<Mesh *>(geom)->get_verts().size() :
                      geom->is_hair()       ? static_cast<Hair *>(geom)->get_curve_keys().size() :
@@ -1055,9 +1055,9 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
       Mesh *mesh = static_cast<Mesh *>(geom);
       apply = apply && mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE;
     }
-    else if (geom->is_hair()) {
-      /* Can't apply non-uniform scale to curves, this can't be represented by
-       * control points and radius alone. */
+    else if (geom->is_hair() || geom->is_pointcloud()) {
+      /* Can't apply non-uniform scale to curves and points, this can't be
+       * represented by control points and radius alone. */
       float scale;
       apply = apply && transform_uniform_scale(object->tfm, scale);
     }

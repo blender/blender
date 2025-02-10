@@ -14,6 +14,7 @@
 #include "BKE_compositor.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 #include "DNA_layer_types.h"
@@ -121,7 +122,7 @@ static void add_used_passes_recursive(const bNodeTree *node_tree,
       continue;
     }
 
-    switch (node->type) {
+    switch (node->type_legacy) {
       case NODE_GROUP:
       case NODE_CUSTOM_GROUP: {
         const bNodeTree *node_group_tree = reinterpret_cast<const bNodeTree *>(node->id);

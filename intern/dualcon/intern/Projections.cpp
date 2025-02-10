@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "MEM_guardedalloc.h"
-
 #include "Projections.h"
-#include <math.h>
+#include <cmath>
+
+#include <algorithm>
 
 const int vertmap[8][3] = {
     {0, 0, 0},
@@ -180,12 +180,8 @@ CubeTriangleIsect::CubeTriangleIsect(int64_t cube[2][3],
     for (i = 1; i < 8; i++) {
       int64_t proj = (vertmap[i][0] * cube_proj.edges[0] + vertmap[i][1] * cube_proj.edges[1] +
                       vertmap[i][2] * cube_proj.edges[2]);
-      if (proj > max) {
-        max = proj;
-      }
-      if (proj < min) {
-        min = proj;
-      }
+      max = std::max(proj, max);
+      min = std::min(proj, min);
     }
     cube_proj.min = min;
     cube_proj.max = max;
@@ -201,13 +197,8 @@ CubeTriangleIsect::CubeTriangleIsect(int64_t cube[2][3],
     inherit->tri_proj[axis][0] = vts[0];
     inherit->tri_proj[axis][1] = vts[0];
     for (i = 1; i < 3; i++) {
-      if (vts[i] < inherit->tri_proj[axis][0]) {
-        inherit->tri_proj[axis][0] = vts[i];
-      }
-
-      if (vts[i] > inherit->tri_proj[axis][1]) {
-        inherit->tri_proj[axis][1] = vts[i];
-      }
+      inherit->tri_proj[axis][0] = std::min(vts[i], inherit->tri_proj[axis][0]);
+      inherit->tri_proj[axis][1] = std::max(vts[i], inherit->tri_proj[axis][1]);
     }
   }
 }
@@ -271,7 +262,7 @@ unsigned char CubeTriangleIsect::getBoxMask()
 /**
  * Shifting a cube to a new origin
  */
-void CubeTriangleIsect::shift(int off[3])
+void CubeTriangleIsect::shift(const int off[3])
 {
   for (int i = 0; i < NUM_AXES; i++) {
     cubeProj[i].origin += (off[0] * cubeProj[i].edges[0] + off[1] * cubeProj[i].edges[1] +

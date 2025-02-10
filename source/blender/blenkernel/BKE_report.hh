@@ -8,10 +8,9 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
 #include "DNA_windowmanager_types.h"
 
 /**

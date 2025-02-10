@@ -18,6 +18,14 @@ namespace blender::gpu {
 class VKSampler;
 class VKDescriptorSetTracker;
 class VKVertexBuffer;
+class VKPixelBuffer;
+
+/** Additional modifiers when requesting image views. */
+enum class VKImageViewFlags {
+  DEFAULT = 0,
+  NO_SWIZZLING = 1 << 0,
+};
+ENUM_OPERATORS(VKImageViewFlags, VKImageViewFlags::NO_SWIZZLING)
 
 class VKTexture : public Texture {
   friend class VKDescriptorSetTracker;
@@ -59,6 +67,7 @@ class VKTexture : public Texture {
   int layer_offset_ = 0;
   bool use_stencil_ = false;
 
+  char swizzle_[4] = {'r', 'g', 'b', 'a'};
   VKImageViewInfo image_view_info_ = {eImageViewUsage::ShaderBinding,
                                       IndexRange(0, VK_REMAINING_ARRAY_LAYERS),
                                       IndexRange(0, VK_REMAINING_MIP_LEVELS),
@@ -86,6 +95,13 @@ class VKTexture : public Texture {
   void *read(int mip, eGPUDataFormat format) override;
   void read_sub(
       int mip, eGPUDataFormat format, const int region[6], IndexRange layers, void *r_data);
+  void update_sub(int mip,
+                  int offset[3],
+                  int extent[3],
+                  eGPUDataFormat format,
+                  const void *data,
+                  VKPixelBuffer *pixel_buffer);
+
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) override;
   void update_sub(int offset[3],
@@ -122,7 +138,7 @@ class VKTexture : public Texture {
   /**
    * Get the current image view for this texture.
    */
-  const VKImageView &image_view_get(VKImageViewArrayed arrayed);
+  const VKImageView &image_view_get(VKImageViewArrayed arrayed, VKImageViewFlags flags);
 
  protected:
   bool init_internal() override;

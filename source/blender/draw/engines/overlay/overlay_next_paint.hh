@@ -10,9 +10,11 @@
 
 #include "BKE_image.hh"
 #include "BKE_paint.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
 #include "overlay_next_base.hh"
@@ -92,8 +94,10 @@ class Paints : Overlay {
       /* Support masked transparency in Workbench.
        * EEVEE can't be supported since depth won't match. */
       const eDrawType shading_type = eDrawType(state.v3d->shading.type);
-      const bool masked_transparency_support = (shading_type <= OB_SOLID) ||
-                                               BKE_scene_uses_blender_workbench(state.scene);
+      const bool masked_transparency_support = ((shading_type == OB_SOLID) ||
+                                                (shading_type >= OB_SOLID &&
+                                                 BKE_scene_uses_blender_workbench(state.scene))) &&
+                                               !state.xray_enabled;
       const bool shadeless = shading_type == OB_WIRE;
       const bool draw_contours = state.overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS;
 

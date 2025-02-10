@@ -12,10 +12,6 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
-#include "DNA_anim_types.h"
-
-#include "RNA_access.hh"
-
 #include "ANIM_action.hh"
 
 namespace blender::animrig {
@@ -96,7 +92,6 @@ class EvaluationResult {
   EvaluationResult(const EvaluationResult &other) = default;
   ~EvaluationResult() = default;
 
- public:
   operator bool() const
   {
     return !this->is_empty();

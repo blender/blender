@@ -6,7 +6,6 @@
  * \ingroup edlattice
  */
 
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -15,7 +14,6 @@
 #include "CLG_log.h"
 
 #include "BLI_array_utils.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -39,8 +37,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "lattice_intern.hh"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.lattice"};

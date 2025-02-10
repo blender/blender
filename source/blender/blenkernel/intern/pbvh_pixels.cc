@@ -14,9 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
 
-#include "BKE_global.hh"
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"
 
@@ -277,7 +275,7 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<MeshNode *> &r_nodes_to_upda
       continue;
     }
     r_nodes_to_update.append(&node);
-    node.flag_ = static_cast<Node::Flags>(node.flag_ | Node::RebuildPixels);
+    node.flag_ = (node.flag_ | Node::RebuildPixels);
 
     if (node.pixels_ == nullptr) {
       NodeData *node_data = MEM_new<NodeData>(__func__);

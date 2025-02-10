@@ -10,9 +10,7 @@
 
 #define SNAP_MIN_DISTANCE 30
 
-/* For enum. */
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
+#include "transform.hh"
 
 bool peelObjectsTransform(TransInfo *t,
                           const float mval[2],
@@ -68,13 +66,13 @@ void transform_snap_sequencer_image_apply_translate(TransInfo *t, float vec[2]);
 
 /* `transform_snap_animation.cc` */
 void snapFrameTransform(
-    TransInfo *t, eSnapMode autosnap, float val_initial, float val_final, float *r_val_final);
+    TransInfo *t, eSnapMode snap_mode, float val_initial, float val_final, float *r_val_final);
 /**
  * This function is used by Animation Editor specific transform functions to do
  * the Snap Keyframe to Nearest Frame/Marker.
  */
 void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,
-                                    eSnapMode autosnap,
+                                    eSnapMode snap_mode,
                                     float *r_val_final);
 bool transform_snap_nla_calc(TransInfo *t, float *vec);

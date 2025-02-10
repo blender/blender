@@ -6,8 +6,6 @@
  * \ingroup edsculpt
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
 
@@ -16,13 +14,13 @@
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
@@ -36,8 +34,6 @@
 #include "sculpt_smooth.hh"
 
 #include "IMB_imbuf.hh"
-
-#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>
@@ -405,8 +401,8 @@ static void do_paint_brush_task(const Scene &scene,
   const float density = ss.cache->paint_brush.density;
   if (density < 1.0f) {
     for (const int i : verts.index_range()) {
-      const float hash_noise = float(
-          BLI_hash_int_01(ss.cache->paint_brush.density_seed * 1000 * verts[i]));
+      const float hash_noise = BLI_hash_int_01(ss.cache->paint_brush.density_seed * 1000 *
+                                               verts[i]);
       if (hash_noise > density) {
         const float noise = density * hash_noise;
         factors[i] *= noise;
@@ -547,8 +543,7 @@ void do_paint_brush(const Scene &scene,
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
-      ss.cache->paint_brush.density_seed = float(
-          BLI_hash_int_01(ss.cache->location_symm[0] * 1000));
+      ss.cache->paint_brush.density_seed = BLI_hash_int_01(ss.cache->location_symm[0] * 1000);
     }
     return;
   }
@@ -573,7 +568,7 @@ void do_paint_brush(const Scene &scene,
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
   if (!color_attribute) {
     return;
@@ -860,7 +855,7 @@ void do_smear_brush(const Depsgraph &depsgraph,
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
-  const MeshAttributeData attribute_data(mesh.attributes());
+  const MeshAttributeData attribute_data(mesh);
 
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
   if (!color_attribute) {

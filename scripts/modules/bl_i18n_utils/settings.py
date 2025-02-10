@@ -244,9 +244,11 @@ _str_whole_re = (
     # End of loop.
     "))*"
 )
-_ctxt_re_gen = lambda uid : r"(?P<ctxt_raw{uid}>(?:".format(uid=uid) + \
-                            _str_whole_re.format(_="_ctxt{uid}".format(uid=uid)) + \
-                            r")|(?:[A-Z_0-9]+))"
+_ctxt_re_gen = lambda uid: (
+    r"(?P<ctxt_raw{uid}>(?:".format(uid=uid) +
+    _str_whole_re.format(_="_ctxt{uid}".format(uid=uid)) +
+    r")|(?:[A-Z_0-9]+))"
+)
 _ctxt_re = _ctxt_re_gen("")
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +

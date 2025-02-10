@@ -15,8 +15,6 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 
-#include "BLT_translation.hh"
-
 namespace blender::bke {
 
 InstanceReference::InstanceReference(GeometrySet geometry_set)

@@ -6,7 +6,6 @@
  * \ingroup edobj
  */
 
-#include <cmath>
 #include <cstdlib>
 
 #include "DNA_object_types.h"

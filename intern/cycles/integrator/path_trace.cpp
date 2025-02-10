@@ -1047,7 +1047,7 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
 
   render_state_.has_denoised_result = false;
 
-  if (denoise_params.use && denoiser_) {
+  if (denoise_params.use && denoiser_ && !progress_->get_cancel()) {
     progress_set_status(layer_view_name, "Denoising");
 
     /* If GPU should be used is not based on file metadata. */

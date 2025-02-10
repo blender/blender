@@ -14,7 +14,6 @@
 #include "BLI_bounds.hh"
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
-#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -24,9 +23,6 @@
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-
 #include "MEM_guardedalloc.h"
 
 namespace blender::geometry {
@@ -34,18 +30,13 @@ namespace blender::geometry {
 /** Store information about an island's placement such as translation, rotation and reflection. */
 class UVPhi {
  public:
-  UVPhi();
+  UVPhi() = default;
   bool is_valid() const;
 
-  float2 translation;
-  float rotation;
-  // bool reflect;
+  float2 translation = float2(-1.0f, -1.0f);
+  float rotation = 0.0f;
+  // bool reflect = false;
 };
-
-UVPhi::UVPhi() : translation(-1.0f, -1.0f), rotation(0.0f)
-{
-  /* Initialize invalid. */
-}
 
 bool UVPhi::is_valid() const
 {
@@ -1156,8 +1147,8 @@ class Occupancy {
                      const float margin,
                      const bool write) const;
 
-  int bitmap_radix;              /* Width and Height of `bitmap`. */
-  float bitmap_scale_reciprocal; /* == 1.0f / `bitmap_scale`. */
+  int bitmap_radix = 800;               /* Width and Height of `bitmap`. */
+  float bitmap_scale_reciprocal = 1.0f; /* == 1.0f / `bitmap_scale`. */
  private:
   mutable Array<float> bitmap_;
 
@@ -1168,10 +1159,8 @@ class Occupancy {
   const float terminal = 1048576.0f; /* 4 * bitmap_radix < terminal < INT_MAX / 4. */
 };
 
-Occupancy::Occupancy(const float initial_scale)
-    : bitmap_radix(800), bitmap_(bitmap_radix * bitmap_radix, false)
+Occupancy::Occupancy(const float initial_scale) : bitmap_(bitmap_radix * bitmap_radix, false)
 {
-  bitmap_scale_reciprocal = 1.0f; /* lint, prevent uninitialized memory access. */
   increase_scale();
   bitmap_scale_reciprocal = bitmap_radix / initial_scale; /* Actually set the value. */
 }

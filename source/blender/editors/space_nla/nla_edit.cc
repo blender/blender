@@ -23,6 +23,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.hh"
 #include "BKE_report.hh"
@@ -67,6 +68,9 @@ void ED_nla_postop_refresh(bAnimContext *ac)
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     if (!ale->adt) {
+      continue;
+    }
+    if (ale->type != ANIMTYPE_ANIMDATA) {
       continue;
     }
     /* performing auto-blending, extend-mode validation, etc. */
@@ -2304,7 +2308,7 @@ static int nlaedit_clear_scale_exec(bContext *C, wmOperator * /*op*/)
       /* strip must be selected, and must be action-clip only
        * (transitions don't have scale) */
       if ((strip->flag & NLASTRIP_FLAG_SELECT) && (strip->type == NLASTRIP_TYPE_CLIP)) {
-        PointerRNA strip_ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
+        PointerRNA strip_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NlaStrip, strip);
         RNA_float_set(&strip_ptr, "scale", 1.0f);
       }
     }

@@ -4,8 +4,6 @@
 
 #ifdef WITH_OPENVDB
 
-#  include "openvdb/openvdb.h"
-
 #  include "testing/testing.h"
 
 #  include "DNA_volume_types.h"

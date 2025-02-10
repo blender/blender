@@ -58,6 +58,7 @@
 
 #include "BLI_bit_vector.hh"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 #include "BLI_vector.hh"
 
 namespace blender::bke::image::partial_update {

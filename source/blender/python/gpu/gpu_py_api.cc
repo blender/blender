@@ -14,8 +14,6 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
-
 #include "gpu_py_capabilities.hh"
 #include "gpu_py_compute.hh"
 #include "gpu_py_matrix.hh"

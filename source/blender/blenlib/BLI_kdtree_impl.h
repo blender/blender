@@ -14,6 +14,11 @@
 #define _BLI_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define BLI_kdtree_nd_(id) _BLI_CONCAT(KDTREE_PREFIX_ID, _##id)
 
+/* For auto-complete / `clangd`. */
+#ifndef KD_DIMS
+#  define KD_DIMS 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -13,6 +13,7 @@
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_screen.hh"
@@ -99,11 +100,11 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   bNode &group_input = params.add_node("NodeGroupInput");
 
   /* This is necessary to create the new sockets in the other input nodes. */
-  ED_node_tree_propagate_change(&params.C, CTX_data_main(&params.C), &params.node_tree);
+  BKE_main_ensure_invariants(*CTX_data_main(&params.C), params.node_tree.id);
 
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
   for (bNode *node : params.node_tree.all_nodes()) {
-    if (node->type == NODE_GROUP_INPUT) {
+    if (node->is_group_input()) {
       bNodeSocket *new_group_input_socket = bke::node_find_socket(
           node, SOCK_OUT, socket_iface->identifier);
       if (new_group_input_socket) {
@@ -342,7 +343,7 @@ static void link_drag_search_update_fn(
   const Vector<SocketLinkOperation *> filtered_items = search.query(string);
 
   for (SocketLinkOperation *item : filtered_items) {
-    if (!UI_search_item_add(items, item->name.c_str(), item, ICON_NONE, 0, 0)) {
+    if (!UI_search_item_add(items, item->name, item, ICON_NONE, 0, 0)) {
       break;
     }
   }
@@ -384,7 +385,7 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */
-  ED_node_tree_propagate_change(C, &bmain, &node_tree);
+  BKE_main_ensure_invariants(bmain, node_tree.id);
 
   /* Start translation operator with the new node. */
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_translate_attach_remove_on_cancel", true);

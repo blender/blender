@@ -70,6 +70,13 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
     return false;
   }
 
+  /* Update texture info in case memory moved to host. */
+  if (oneapi_device_->load_texture_info()) {
+    if (oneapi_device_->have_error()) {
+      return false;
+    }
+  }
+
   void **args = const_cast<void **>(_args.values);
 
   debug_enqueue_begin(kernel, signed_kernel_work_size);

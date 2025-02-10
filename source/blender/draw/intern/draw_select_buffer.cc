@@ -8,24 +8,29 @@
  * Utilities to read id buffer created in select_engine.
  */
 
+#include <cfloat>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
 #include "BLI_bitmap.h"
 #include "BLI_bitmap_draw_2d.h"
+#include "BLI_math_matrix.h"
 #include "BLI_rect.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
 
+#include "GPU_framebuffer.hh"
 #include "GPU_select.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.hh"
+#include "DRW_render.hh"
 #include "DRW_select_buffer.hh"
-
-#include "draw_manager_c.hh"
 
 #include "../engines/select/select_engine.hh"
 

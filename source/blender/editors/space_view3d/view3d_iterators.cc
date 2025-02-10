@@ -11,11 +11,10 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_math_geom.h"
 #include "BLI_rect.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -30,7 +29,6 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "ANIM_bone_collections.hh"
@@ -38,7 +36,6 @@
 #include "bmesh.hh"
 
 #include "ED_armature.hh"
-#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
 /* -------------------------------------------------------------------- */

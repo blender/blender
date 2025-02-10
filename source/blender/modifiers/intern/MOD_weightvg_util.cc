@@ -26,7 +26,6 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_modifier.hh"
-#include "BKE_scene.hh"
 #include "BKE_texture.h" /* Texture masking. */
 
 #include "UI_interface.hh"
@@ -34,7 +33,6 @@
 
 #include "RNA_access.hh"
 
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"

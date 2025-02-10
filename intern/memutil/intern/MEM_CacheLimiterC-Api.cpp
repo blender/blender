@@ -7,6 +7,7 @@
  */
 
 #include <cstddef>
+#include <list>
 
 #include "MEM_CacheLimiter.h"
 #include "MEM_CacheLimiterC-Api.h"
@@ -42,10 +43,10 @@ bool MEM_CacheLimiter_is_disabled(void)
 class MEM_CacheLimiterHandleCClass;
 class MEM_CacheLimiterCClass;
 
-typedef MEM_CacheLimiterHandle<MEM_CacheLimiterHandleCClass> handle_t;
-typedef MEM_CacheLimiter<MEM_CacheLimiterHandleCClass> cache_t;
-typedef std::list<MEM_CacheLimiterHandleCClass *, MEM_Allocator<MEM_CacheLimiterHandleCClass *>>
-    list_t;
+using handle_t = MEM_CacheLimiterHandle<MEM_CacheLimiterHandleCClass>;
+using cache_t = MEM_CacheLimiter<MEM_CacheLimiterHandleCClass>;
+using list_t =
+    std::list<MEM_CacheLimiterHandleCClass *, MEM_Allocator<MEM_CacheLimiterHandleCClass *>>;
 
 class MEM_CacheLimiterCClass {
  public:
@@ -130,7 +131,7 @@ MEM_CacheLimiterCClass::~MEM_CacheLimiterCClass()
 {
   // should not happen, but don't leak memory in this case...
   for (list_t::iterator it = cclass_list.begin(); it != cclass_list.end(); it++) {
-    (*it)->set_data(NULL);
+    (*it)->set_data(nullptr);
 
     delete *it;
   }

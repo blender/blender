@@ -155,7 +155,7 @@ class VolumeGridData : public ImplicitSharingMixin {
   explicit VolumeGridData(std::function<LazyLoadedGrid()> lazy_load_grid,
                           std::shared_ptr<openvdb::GridBase> meta_data_and_transform_grid = {});
 
-  ~VolumeGridData();
+  ~VolumeGridData() override;
 
   /**
    * Create a copy of the volume grid. This should generally only be done when the current grid is
@@ -245,7 +245,7 @@ class VolumeGridData : public ImplicitSharingMixin {
   void unload_tree_if_possible() const;
 
   void ensure_grid_loaded() const;
-  void delete_self();
+  void delete_self() override;
 };
 
 /**
@@ -382,7 +382,7 @@ inline GVolumeGrid::GVolumeGrid(const VolumeGridData *data) : data_(data) {}
 inline const VolumeGridData &GVolumeGrid::get() const
 {
   BLI_assert(*this);
-  return *data_.get();
+  return *data_;
 }
 
 inline const VolumeGridData *GVolumeGrid::release()

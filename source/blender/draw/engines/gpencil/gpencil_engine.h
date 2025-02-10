@@ -8,18 +8,16 @@
 
 #pragma once
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "DRW_render.hh"
 
 #include "BLI_bitmap.h"
-#include "BLI_bounds.hh"
 
 #include "BKE_grease_pencil.hh"
 
 #include "GPU_batch.hh"
 
 #include "draw_pass.hh"
+#include "draw_view_data.hh"
 
 #define GP_LIGHT
 
@@ -327,6 +325,8 @@ typedef struct GPENCIL_PrivateData {
   int mask_invert;
   /* Vertex Paint opacity. */
   float vertex_paint_opacity;
+  /* Force 3D depth rendering. */
+  bool force_stroke_order_3d;
 } GPENCIL_PrivateData;
 
 /* geometry batch cache functions */

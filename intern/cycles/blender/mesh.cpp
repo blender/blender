@@ -27,6 +27,7 @@
 
 #include "mikktspace.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
@@ -280,7 +281,8 @@ static void attr_create_generic(Scene *scene,
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   static const ustring u_velocity("velocity");
-  const ustring default_color_name{BKE_id_attributes_default_color_name(&b_mesh.id)};
+  const ustring default_color_name{
+      std::string_view(BKE_id_attributes_default_color_name(&b_mesh.id).value_or(""))};
 
   b_attributes.foreach_attribute([&](const blender::bke::AttributeIter &iter) {
     const ustring name{std::string_view(iter.name)};
@@ -1166,9 +1168,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
 
   for (const SocketType &socket : new_mesh.type->inputs) {
     /* Those sockets are updated in sync_object, so do not modify them. */
-    if (socket.name == "use_motion_blur" || socket.name == "motion_steps" ||
-        socket.name == "used_shaders")
-    {
+    if (socket.name == "use_motion_blur" || socket.name == "used_shaders") {
       continue;
     }
     mesh->set_value(socket, new_mesh, socket);

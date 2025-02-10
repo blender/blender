@@ -26,7 +26,6 @@
 
 #include "ED_sequencer.hh"
 
-#include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
 #include "MEM_guardedalloc.h"
@@ -161,7 +160,7 @@ static void InputCustomRatioFlip(TransInfo * /*t*/,
 
     distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length : 0.0;
 
-    output[0] = (length != 0.0) ? double(distance / length) : 0.0;
+    output[0] = (length != 0.0) ? (distance / length) : 0.0;
   }
 }
 
@@ -295,12 +294,12 @@ static void calcSpringFactor(MouseInput *mi)
   }
 }
 
-static int transform_seq_slide_strip_cursor_get(const Strip *seq)
+static int transform_seq_slide_strip_cursor_get(const Strip *strip)
 {
-  if ((seq->flag & SEQ_LEFTSEL) != 0) {
+  if ((strip->flag & SEQ_LEFTSEL) != 0) {
     return WM_CURSOR_LEFT_HANDLE;
   }
-  if ((seq->flag & SEQ_RIGHTSEL) != 0) {
+  if ((strip->flag & SEQ_RIGHTSEL) != 0) {
     return WM_CURSOR_RIGHT_HANDLE;
   }
   return WM_CURSOR_NSEW_SCROLL;
@@ -427,6 +426,10 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       mi->apply = InputCustomRatioFlip;
       t->helpline = HLP_CARROW;
       break;
+    case INPUT_ERROR:
+      mi->apply = nullptr;
+      t->helpline = HLP_ERROR;
+      break;
     case INPUT_NONE:
     default:
       mi->apply = nullptr;
@@ -467,6 +470,10 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
         t->flag |= T_MODAL_CURSOR_SET;
         WM_cursor_modal_set(win, WM_CURSOR_NONE);
       }
+      break;
+    case HLP_ERROR:
+      t->flag |= T_MODAL_CURSOR_SET;
+      WM_cursor_modal_set(win, WM_CURSOR_STOP);
       break;
     default:
       break;

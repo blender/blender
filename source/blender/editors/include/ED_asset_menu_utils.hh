@@ -15,6 +15,7 @@
 #include "RNA_types.hh"
 
 struct uiLayout;
+struct AssetWeakReference;
 
 namespace blender::asset_system {
 class AssetCatalogTreeItem;

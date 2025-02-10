@@ -11,7 +11,6 @@
 #include "DNA_listBase.h"
 
 #include "ANIM_action.hh"
-#include "ANIM_action_legacy.hh"
 
 struct ListBase;
 struct Scene;
@@ -20,12 +19,12 @@ struct SeqAnimationBackup;
 
 bool SEQ_animation_keyframes_exist(Scene *scene);
 bool SEQ_animation_drivers_exist(Scene *scene);
-void SEQ_free_animdata(Scene *scene, Strip *seq);
-void SEQ_offset_animdata(Scene *scene, Strip *seq, int ofs);
+void SEQ_free_animdata(Scene *scene, Strip *strip);
+void SEQ_offset_animdata(Scene *scene, Strip *strip, int ofs);
 /**
  * Return whether the fcurve targets the given sequence.
  */
-bool SEQ_fcurve_matches(const Strip &seq, const FCurve &fcurve);
+bool SEQ_fcurve_matches(const Strip &strip, const FCurve &fcurve);
 struct SeqAnimationBackup {
   /* `curves` and `channelbag` here represent effectively the same data (the
    * fcurves that animate the Scene that the sequence belongs to), just for
@@ -47,4 +46,6 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup);
 /**
  * Duplicate F-Curves and drivers used by `seq` from `backup` to `scene`.
  */
-void SEQ_animation_duplicate_backup_to_scene(Scene *scene, Strip *seq, SeqAnimationBackup *backup);
+void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
+                                             Strip *strip,
+                                             SeqAnimationBackup *backup);

@@ -6,7 +6,6 @@
  * \ingroup edgrease_pencil
  */
 
-#include "BLI_string.h"
 #include "BLI_task.hh"
 
 #include "BKE_context.hh"
@@ -31,9 +30,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include <iostream>
-#include <ostream>
 
 static CLG_LogRef LOG = {"ed.undo.greasepencil"};
 
@@ -73,7 +69,6 @@ class StepDrawingGeometryBase {
   /* Data from #GreasePencilDrawingBase that needs to be saved in undo steps. */
   uint32_t flag_;
 
- protected:
   /**
    * Ensures that the drawing from the given array at the current index exists,
    * and has the proposer type.
@@ -203,7 +198,6 @@ class StepObject {
   std::string active_node_name_;
   CustomData layers_data_ = {};
 
- private:
   void encode_drawings(const GreasePencil &grease_pencil, StepEncodeStatus &encode_status)
   {
     const Span<const GreasePencilDrawingBase *> drawings = grease_pencil.drawings();

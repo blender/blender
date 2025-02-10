@@ -10,7 +10,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_viewer_path.hh"
+#include "DNA_viewer_path_types.h"
 
 struct Main;
 struct SpaceNode;

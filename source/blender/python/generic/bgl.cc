@@ -14,23 +14,24 @@
 
 #include <Python.h>
 
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "GPU_context.hh"
-#include "GPU_state.hh"
 
 #include "py_capi_utils.hh"
 
-#include "BKE_global.hh"
-
 #include <epoxy/gl.h>
 
-#include "bgl.h"
+#include <algorithm>
 
 #include "CLG_log.h"
+
+/* Forward declare API's defines here. */
+#define USE_BGL_DEPRECATED_API
+#include "bgl.hh" /* Own include. */
+#undef USE_BGL_DEPRECATED_API
 
 static CLG_LogRef LOG = {"bgl"};
 
@@ -909,15 +910,9 @@ static PyObject *Buffer_slice(Buffer *self, Py_ssize_t begin, Py_ssize_t end)
 {
   PyObject *list;
 
-  if (begin < 0) {
-    begin = 0;
-  }
-  if (end > self->dimensions[0]) {
-    end = self->dimensions[0];
-  }
-  if (begin > end) {
-    begin = end;
-  }
+  begin = std::max<Py_ssize_t>(begin, 0);
+  end = std::min<Py_ssize_t>(end, self->dimensions[0]);
+  begin = std::min(begin, end);
 
   list = PyList_New(end - begin);
 
@@ -968,15 +963,9 @@ static int Buffer_ass_slice(Buffer *self, Py_ssize_t begin, Py_ssize_t end, PyOb
   int err = 0;
   Py_ssize_t count;
 
-  if (begin < 0) {
-    begin = 0;
-  }
-  if (end > self->dimensions[0]) {
-    end = self->dimensions[0];
-  }
-  if (begin > end) {
-    begin = end;
-  }
+  begin = std::max<Py_ssize_t>(begin, 0);
+  end = std::min<Py_ssize_t>(end, self->dimensions[0]);
+  begin = std::min(begin, end);
 
   if (!PySequence_Check(seq)) {
     PyErr_Format(PyExc_TypeError,

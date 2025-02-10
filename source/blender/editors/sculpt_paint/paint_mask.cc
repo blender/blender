@@ -16,7 +16,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_base.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 

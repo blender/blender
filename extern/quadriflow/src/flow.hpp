@@ -7,17 +7,12 @@
 #include <vector>
 
 #include "config.hpp"
-
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/boykov_kolmogorov_max_flow.hpp>
-#include <boost/graph/edmonds_karp_max_flow.hpp>
-#include <boost/graph/push_relabel_max_flow.hpp>
+#include "../patches/boykov_kolmogorov_max_flow.hpp"
 
 #include <lemon/network_simplex.h>
 #include <lemon/preflow.h>
 #include <lemon/smart_graph.h>
 
-using namespace boost;
 using namespace Eigen;
 
 namespace qflow {
@@ -34,78 +29,52 @@ class MaxFlowHelper {
 
 class BoykovMaxFlowHelper : public MaxFlowHelper {
    public:
-    typedef int EdgeWeightType;
-    typedef adjacency_list_traits<vecS, vecS, directedS> Traits;
-    // clang-format off
-    typedef adjacency_list < vecS, vecS, directedS,
-        property < vertex_name_t, std::string,
-        property < vertex_index_t, long,
-        property < vertex_color_t, boost::default_color_type,
-        property < vertex_distance_t, long,
-        property < vertex_predecessor_t, Traits::edge_descriptor > > > > >,
-
-        property < edge_capacity_t, EdgeWeightType,
-        property < edge_residual_capacity_t, EdgeWeightType,
-        property < edge_reverse_t, Traits::edge_descriptor > > > > Graph;
-    // clang-format on
-
-   public:
-    BoykovMaxFlowHelper() { rev = get(edge_reverse, g); }
-    void resize(int n, int m) {
-        vertex_descriptors.resize(n);
-        for (int i = 0; i < n; ++i) vertex_descriptors[i] = add_vertex(g);
+    BoykovMaxFlowHelper() = default;
+    void resize(int n, int m) override {
+        num_verts = n;
+        num_edges = 0;
+        flow.resize(num_verts, m * 2);
     }
-    int compute() {
-        EdgeWeightType flow =
-            boykov_kolmogorov_max_flow(g, vertex_descriptors.front(), vertex_descriptors.back());
-        return flow;
+    int compute() override {
+        return flow.max_flow(0, num_verts - 1);
     }
-    void addDirectEdge(Traits::vertex_descriptor& v1, Traits::vertex_descriptor& v2,
-                       property_map<Graph, edge_reverse_t>::type& rev, const int capacity,
-                       const int inv_capacity, Graph& g, Traits::edge_descriptor& e1,
-                       Traits::edge_descriptor& e2) {
-        e1 = add_edge(v1, v2, g).first;
-        e2 = add_edge(v2, v1, g).first;
-        put(edge_capacity, g, e1, capacity);
-        put(edge_capacity, g, e2, inv_capacity);
-
-        rev[e1] = e2;
-        rev[e2] = e1;
-    }
-    void addEdge(int x, int y, int c, int rc, int v, int cost = 1) {
-        Traits::edge_descriptor e1, e2;
-        addDirectEdge(vertex_descriptors[x], vertex_descriptors[y], rev, c, rc, g, e1, e2);
+    void addEdge(int x, int y, int c, int rc, int v, int cost = 1) override {
+        const int e1 = num_edges++;
+        const int e2 = num_edges++;
+        flow.set_edge(e1, e2, x, y, c);
+        flow.set_edge(e2, e1, y, x, rc);
         if (v != -1) {
-            edge_to_variables[e1] = std::make_pair(v, -1);
-            edge_to_variables[e2] = std::make_pair(v, 1);
+            edge_to_variables.emplace_back(v, -1);
+            edge_to_variables.emplace_back(v, 1);
+        }
+        else {
+            edge_to_variables.emplace_back(-1, -1);
+            edge_to_variables.emplace_back(-1, -1);
         }
     }
-    void applyTo(std::vector<Vector2i>& edge_diff) {
-        property_map<Graph, edge_capacity_t>::type capacity = get(edge_capacity, g);
-        property_map<Graph, edge_residual_capacity_t>::type residual_capacity =
-            get(edge_residual_capacity, g);
-
-        graph_traits<Graph>::vertex_iterator u_iter, u_end;
-        graph_traits<Graph>::out_edge_iterator ei, e_end;
-        for (tie(u_iter, u_end) = vertices(g); u_iter != u_end; ++u_iter)
-            for (tie(ei, e_end) = out_edges(*u_iter, g); ei != e_end; ++ei)
-                if (capacity[*ei] > 0) {
-                    int flow = (capacity[*ei] - residual_capacity[*ei]);
+    void applyTo(std::vector<Vector2i>& edge_diff) override {
+        for (int vert = 0; vert < num_verts; vert++) {
+            for (int edge : flow.vertex_out_edges(vert)) {
+                const int capacity = flow.edge_capacity(edge);
+                const int residual_capacity = flow.edge_residual_capacity(edge);
+                if (capacity > 0) {
+                    int flow = (capacity - residual_capacity);
                     if (flow > 0) {
-                        auto it = edge_to_variables.find(*ei);
-                        if (it != edge_to_variables.end()) {
-                            edge_diff[it->second.first / 2][it->second.first % 2] +=
-                                it->second.second * flow;
+                        std::pair<int, int> e2v = edge_to_variables[edge];
+                        if (e2v.first != -1) {
+                            edge_diff[e2v.first / 2][e2v.first % 2] += e2v.second * flow;
                         }
                     }
                 }
+            }
+        }
     }
 
    private:
-    Graph g;
-    property_map<Graph, edge_reverse_t>::type rev;
-    std::vector<Traits::vertex_descriptor> vertex_descriptors;
-    std::map<Traits::edge_descriptor, std::pair<int, int>> edge_to_variables;
+    BoykovKolmogorovMaxFlow flow;
+    std::vector<std::pair<int, int>> edge_to_variables;
+    int num_verts = 0;
+    int num_edges = 0;
 };
 
 class NetworkSimplexFlowHelper : public MaxFlowHelper {

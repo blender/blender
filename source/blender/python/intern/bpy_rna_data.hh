@@ -8,6 +8,8 @@
 
 #pragma once
 
-int BPY_rna_data_context_type_ready(void);
+#include <Python.h>
+
+int BPY_rna_data_context_type_ready();
 
 extern PyMethodDef BPY_rna_data_context_method_def;

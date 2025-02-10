@@ -177,11 +177,13 @@ struct _mtl_sampler {
      * in the texture. */
     ushort aligned_width;
 
-    int2 to_internal_coord(IntCoord coord) const
+    /* Convert 2D coordinates to the backing 2D texture coordinates. */
+    int2 to_internal_coord(thread TextureT * /*texture*/, IntCoord coord) const
     {
       return coord.xy;
     }
-    uint to_linear_coord(IntCoord coord) const
+    /* Convert 2D coordinates to the memory location in the 2D texture memory buffer. */
+    uint to_linear_coord(thread TextureT * /*texture*/, IntCoord coord) const
     {
       return coord.x + coord.y * aligned_width;
     }
@@ -190,7 +192,22 @@ struct _mtl_sampler {
   template<typename U> struct AtomicEmulation<U, 3, true> {
     /** Buffer to do atomic operations on. */
     device U *buffer;
-    /** Required to pixel location inside the backing texture 2D space, and texture size query. */
+    /**
+     * Required for pixel location inside the backing texture 2D space, and texture size query.
+     *
+     * IMPORTANT: Note that the slices are not contiguous in the backing texture as we simply use
+     * it for linear storage.
+     * For instance, for a [2,2,2] texture store in a [6x4] backing texture:
+     *
+     * \code{.unparsed}
+     * 001122
+     * 334455
+     * 667788
+     * xxxxxx
+     * \endcode
+     *
+     * The numbers are rows in the 3D texture.
+     */
     ushort3 texture_size;
     /* Aligned width matches the number of buffer elements in bytes_per_row. This may be greater
      * than the texture's native width to satisfy device alignment rules. We need to use the padded
@@ -198,14 +215,26 @@ struct _mtl_sampler {
      * in the texture. */
     ushort aligned_width;
 
-    int2 to_internal_coord(IntCoord coord) const
+    /* Convert 3D coordinates to the backing 2D texture coordinates. */
+    int2 to_internal_coord(thread TextureT *texture, IntCoord coord) const
     {
-      return int2(coord.x, coord.y + texture_size.y * coord.z);
+      /* Index of a pixel in the data array. Assuming data layout is scan-line. */
+      uint linear_pixel = uint(coord.x) + uint(coord.y) * texture_size.x +
+                          uint(coord.z) * (texture_size.x * texture_size.y);
+
+      uint backing_tex_width = texture->get_width();
+      /* Coordinate inside the backing texture. */
+      uint y = linear_pixel / backing_tex_width;
+      /* Avoid use of modulo operator for speed. */
+      uint x = linear_pixel - y * backing_tex_width;
+      return int2(x, y);
     }
-    uint to_linear_coord(IntCoord coord) const
+
+    /* Convert 3D coordinates to the memory location in the 2D texture memory buffer. */
+    uint to_linear_coord(thread TextureT *texture, IntCoord coord) const
     {
-      uint row = coord.y + coord.z * texture_size.y;
-      return coord.x + row * aligned_width;
+      uint2 co = uint2(to_internal_coord(texture, coord));
+      return co.x + co.y * uint(aligned_width);
     }
   };
 
@@ -350,29 +379,29 @@ struct _mtl_sampler {
 #undef NON_ARRAY_FN
 
 #ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
-  /* Atomic samplers only support `textureFetch` as the texture layout doesn't allow filtering. */
+  /* Atomic samplers only support `texelFetch` as the texture layout doesn't allow filtering. */
 
 #  define ATOMIC_FN template<bool At = Atomic, ENABLE_IF(At == true)>
 
   ATOMIC_FN DataVec fetch(IntCoord coord) const
   {
-    int2 coord_2d = atomic.to_internal_coord(coord);
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
     return texture->sample(_mtl_fetch_samp, float2(coord_2d));
   }
   ATOMIC_FN DataVec fetch(IntCoord coord, level lod, IntDeriv offset = {0}) const
   {
-    int2 coord_2d = atomic.to_internal_coord(coord);
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
     return texture->sample(_mtl_fetch_samp, float2(coord_2d), lod, offset);
   }
 
   ATOMIC_FN DataVec load(IntCoord coord) const
   {
-    int2 coord_2d = atomic.to_internal_coord(coord);
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
     return texture->read(uint2(coord_2d), 0);
   }
   ATOMIC_FN void store(DataVec data, IntCoord coord) const
   {
-    int2 coord_2d = atomic.to_internal_coord(coord);
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
     texture->write(data, uint2(coord_2d), 0);
   }
 
@@ -380,31 +409,31 @@ struct _mtl_sampler {
 
   AtomicT atomic_min(IntCoord coord, AtomicT data) const
   {
-    return atomicMin(atomic.buffer[atomic.to_linear_coord(coord)], data);
+    return atomicMin(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
   }
   AtomicT atomic_max(IntCoord coord, AtomicT data) const
   {
-    return atomicMax(atomic.buffer[atomic.to_linear_coord(coord)], data);
+    return atomicMax(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
   }
   AtomicT atomic_add(IntCoord coord, AtomicT data) const
   {
-    return atomicAdd(atomic.buffer[atomic.to_linear_coord(coord)], data);
+    return atomicAdd(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
   }
   AtomicT atomic_and(IntCoord coord, AtomicT data) const
   {
-    return atomicAnd(atomic.buffer[atomic.to_linear_coord(coord)], data);
+    return atomicAnd(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
   }
   AtomicT atomic_or(IntCoord coord, AtomicT data) const
   {
-    return atomicOr(atomic.buffer[atomic.to_linear_coord(coord)], data);
+    return atomicOr(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
   }
   AtomicT atomic_xor(IntCoord coord, AtomicT data) const
   {
-    return atomicXor(atomic.buffer[atomic.to_linear_coord(coord)], data);
+    return atomicXor(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
   }
   AtomicT atomic_exchange(IntCoord coord, AtomicT data) const
   {
-    return atomicExchange(atomic.buffer[atomic.to_linear_coord(coord)], data);
+    return atomicExchange(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
   }
 
 #else
@@ -639,30 +668,51 @@ void imageStoreFast(SamplerT texture, IntCoord coord, DataVec data)
 
 IMAGE_FN AtomicT imageAtomicMin(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_min(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicMax(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_max(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicAdd(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_add(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicAnd(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_and(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicOr(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_or(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicXor(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_xor(coord, data);
 }
 IMAGE_FN AtomicT imageAtomicExchange(SamplerT texture, IntCoord coord, AtomicT data)
 {
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
   return texture.atomic_exchange(coord, data);
 }
 

@@ -10,8 +10,6 @@
 
 #include <algorithm>
 
-#include "BLI_utildefines.h"
-
 namespace blender::binary_search {
 
 /**

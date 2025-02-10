@@ -12,6 +12,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::compositor {
 
@@ -46,7 +47,6 @@ class SymmetricBlurWeights : public CachedResource {
  public:
   Result result;
 
- public:
   SymmetricBlurWeights(Context &context, int type, float2 radius);
 
   ~SymmetricBlurWeights();

@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_task.hh"
-
 #include "DNA_modifier_types.h"
 
 #include "BKE_attribute.hh"
@@ -20,6 +18,8 @@
 #include "NOD_rna_define.hh"
 
 #include "GEO_randomize.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "node_geometry_util.hh"
 
@@ -231,9 +231,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSubdivisionSurface", GEO_NODE_SUBDIVISION_SURFACE);
+  ntype.ui_name = "Subdivision Surface";
+  ntype.ui_description =
+      "Divide mesh faces to form a smooth surface, using the Catmull-Clark subdivision method";
   ntype.enum_name_legacy = "SUBDIVISION_SURFACE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;

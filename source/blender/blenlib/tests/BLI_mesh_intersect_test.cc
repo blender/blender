@@ -154,7 +154,7 @@ static int find_edge_pos_in_tri(const Vert *v0, const Vert *v1, const Face *f)
   for (int pos : f->index_range()) {
     int nextpos = f->next_pos(pos);
     if (((*f)[pos] == v0 && (*f)[nextpos] == v1) || ((*f)[pos] == v1 && (*f)[nextpos] == v0)) {
-      return int(pos);
+      return pos;
     }
   }
   return -1;

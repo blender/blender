@@ -6,13 +6,14 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+
+#include "IMB_colormanagement.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -571,7 +572,7 @@ static const mf::MultiFunction *get_multi_function(const bNode &node)
           static auto fn = mf::build::SI2_SO<ColorGeometry4f, ColorGeometry4f, bool>(
               "Brighter",
               [](ColorGeometry4f a, ColorGeometry4f b) {
-                return rgb_to_grayscale(a) > rgb_to_grayscale(b);
+                return IMB_colormanagement_get_luminance(a) > IMB_colormanagement_get_luminance(b);
               },
               exec_preset_all);
           return &fn;
@@ -580,7 +581,7 @@ static const mf::MultiFunction *get_multi_function(const bNode &node)
           static auto fn = mf::build::SI2_SO<ColorGeometry4f, ColorGeometry4f, bool>(
               "Darker",
               [](ColorGeometry4f a, ColorGeometry4f b) {
-                return rgb_to_grayscale(a) < rgb_to_grayscale(b);
+                return IMB_colormanagement_get_luminance(a) < IMB_colormanagement_get_luminance(b);
               },
               exec_preset_all);
           return &fn;
@@ -686,13 +687,13 @@ static void node_rna(StructRNA *srna)
                 return !ELEM(item.value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER);
               });
         }
-        else if (data->data_type == SOCK_STRING) {
+        if (data->data_type == SOCK_STRING) {
           return enum_items_filter(
               rna_enum_node_compare_operation_items, [](const EnumPropertyItem &item) {
                 return ELEM(item.value, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL);
               });
         }
-        else if (data->data_type == SOCK_RGBA) {
+        if (data->data_type == SOCK_RGBA) {
           return enum_items_filter(rna_enum_node_compare_operation_items,
                                    [](const EnumPropertyItem &item) {
                                      return ELEM(item.value,
@@ -702,10 +703,8 @@ static void node_rna(StructRNA *srna)
                                                  NODE_COMPARE_COLOR_DARKER);
                                    });
         }
-        else {
-          return enum_items_filter(rna_enum_node_compare_operation_items,
-                                   [](const EnumPropertyItem & /*item*/) { return false; });
-        }
+        return enum_items_filter(rna_enum_node_compare_operation_items,
+                                 [](const EnumPropertyItem & /*item*/) { return false; });
       });
 
   prop = RNA_def_node_enum(
@@ -737,8 +736,10 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeCompare", FN_NODE_COMPARE);
+  ntype.ui_name = "Compare";
   ntype.enum_name_legacy = "COMPARE";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.updatefunc = node_update;

@@ -1,0 +1,23 @@
+diff --git a/common/sys/sycl.h b/common/sys/sycl.h
+index f246f0d08..6bef829fc 100644
+--- a/common/sys/sycl.h
++++ b/common/sys/sycl.h
+@@ -282,18 +282,6 @@ namespace embree
+     return sycl::inclusive_scan_over_group(this_sub_group(),x,binary_op,init);
+   }
+ 
+-  template <typename T> __forceinline T sub_group_shuffle(T x, sycl::id<1> local_id) {
+-    return this_sub_group().shuffle(x, local_id);
+-  }
+-
+-  template <typename T> __forceinline T sub_group_shuffle_down(T x, uint32_t delta) {
+-    return this_sub_group().shuffle_down(x, delta);
+-  }
+-  
+-  template <typename T> __forceinline T sub_group_shuffle_up(T x, uint32_t delta) {
+-    return this_sub_group().shuffle_up(x, delta);
+-  }
+-
+   template <typename T> __forceinline T sub_group_load(const void* src) {
+     return this_sub_group().load(sycl::multi_ptr<T,sycl::access::address_space::global_space>((T*)src));
+   }

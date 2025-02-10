@@ -13,12 +13,9 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -153,6 +150,8 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 #  include <fmt/format.h>
 
 #  include "DNA_object_types.h"
+
+#  include "BLI_math_vector.h"
 
 #  include "BKE_curve.hh"
 #  include "BKE_curveprofile.h"
@@ -388,6 +387,7 @@ static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA 
 {
   Nurb *nu = static_cast<Nurb *>(ptr->data);
   rna_iterator_array_begin(iter,
+                           ptr,
                            static_cast<void *>(nu->bp),
                            sizeof(BPoint),
                            nu->pntsv > 0 ? nu->pntsu * nu->pntsv : nu->pntsu,
@@ -430,10 +430,10 @@ static PointerRNA rna_Curve_bevelObject_get(PointerRNA *ptr)
   Object *ob = cu->bevobj;
 
   if (ob) {
-    return rna_pointer_inherit_refine(ptr, &RNA_Object, ob);
+    return RNA_id_pointer_create(reinterpret_cast<ID *>(ob));
   }
 
-  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -503,10 +503,10 @@ static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
   Object *ob = cu->taperobj;
 
   if (ob) {
-    return rna_pointer_inherit_refine(ptr, &RNA_Object, ob);
+    return RNA_id_pointer_create(reinterpret_cast<ID *>(ob));
   }
 
-  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -749,10 +749,10 @@ static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
   nu = static_cast<Nurb *>(BLI_findlink(nurbs, cu->actnu));
 
   if (nu) {
-    return rna_pointer_inherit_refine(ptr, &RNA_Spline, nu);
+    return RNA_pointer_create_with_parent(*ptr, &RNA_Spline, nu);
   }
 
-  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_Curve_active_spline_set(PointerRNA *ptr,
@@ -819,7 +819,7 @@ static std::optional<std::string> rna_TextBox_path(const PointerRNA *ptr)
 static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
-  rna_iterator_listbase_begin(iter, BKE_curve_nurbs_get(cu), nullptr);
+  rna_iterator_listbase_begin(iter, ptr, BKE_curve_nurbs_get(cu), nullptr);
 }
 
 static bool rna_Curve_is_editmode_get(PointerRNA *ptr)

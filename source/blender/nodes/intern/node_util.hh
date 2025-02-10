@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_node_types.h"
+
 struct bNode;
 namespace blender::bke {
 struct bNodeInstanceHash;

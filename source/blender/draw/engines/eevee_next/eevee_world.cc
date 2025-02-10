@@ -8,8 +8,7 @@
 
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
-#include "BKE_world.h"
-#include "BLI_math_rotation.h"
+#include "BKE_node_legacy_types.hh"
 #include "DEG_depsgraph_query.hh"
 #include "NOD_shader.h"
 

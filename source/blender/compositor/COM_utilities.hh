@@ -47,7 +47,7 @@ bool is_output_linked_to_node_conditioned(DOutputSocket output,
 int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
                                                   FunctionRef<bool(DInputSocket)> condition);
 
-/** A node is a pixel node if it defines a method to get a shader node operation. */
+/** A node is a pixel node if it defines a method to get a pixel node operation. */
 bool is_pixel_node(DNode node);
 
 /** Get the input descriptor of the given input socket. */

@@ -8,10 +8,7 @@
  * The ray-tracing module class handles ray generation, scheduling, tracing and denoising.
  */
 
-#include <fstream>
-#include <iostream>
-
-#include "BKE_global.hh"
+#include "draw_manager_profiling.hh"
 
 #include "eevee_instance.hh"
 

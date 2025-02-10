@@ -59,7 +59,7 @@ def drawlayout(context, layout, mode='non-panel'):
     col.separator()
 
     col = layout.column(align=True)
-    col.operator(operators.NWFrameSelected.bl_idname, icon='STICKY_UVS_LOC')
+    col.operator('node.join', icon='STICKY_UVS_LOC')
     col.separator()
 
     col = layout.column(align=True)

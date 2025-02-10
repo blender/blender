@@ -214,7 +214,7 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData *array,
 #define BEZT_BINARYSEARCH_THRESH 0.01f /* was 0.00001, but giving errors */
 
 /* -------- Data Management  -------- */
-FCurve *BKE_fcurve_create(void);
+FCurve *BKE_fcurve_create();
 /**
  * Frees the F-Curve itself too, so make sure #BLI_remlink is called before calling this.
  */
@@ -352,13 +352,15 @@ int BKE_fcurve_bezt_binarysearch_index(const BezTriple array[],
  */
 FCurvePathCache *BKE_fcurve_pathcache_create(blender::Span<FCurve *> fcurves);
 void BKE_fcurve_pathcache_destroy(FCurvePathCache *fcache);
-FCurve *BKE_fcurve_pathcache_find(FCurvePathCache *fcache, const char rna_path[], int array_index);
+FCurve *BKE_fcurve_pathcache_find(const FCurvePathCache *fcache,
+                                  const char rna_path[],
+                                  int array_index);
 /**
  * Fill in an array of F-Curve, leave NULL when not found.
  *
  * \return The number of F-Curves found.
  */
-int BKE_fcurve_pathcache_find_array(FCurvePathCache *fcache,
+int BKE_fcurve_pathcache_find_array(const FCurvePathCache *fcache,
                                     const char *rna_path,
                                     FCurve **fcurve_result,
                                     int fcurve_result_len);
@@ -447,13 +449,13 @@ void BKE_fcurve_deselect_all_keys(FCurve &fcu);
 bool BKE_fcurve_is_cyclic(const FCurve *fcu);
 
 /* Type of infinite cycle for a curve. */
-typedef enum eFCU_Cycle_Type {
+enum eFCU_Cycle_Type {
   FCU_CYCLE_NONE = 0,
   /* The cycle repeats identically to the base range. */
   FCU_CYCLE_PERFECT,
   /* The cycle accumulates the change between start and end keys. */
   FCU_CYCLE_OFFSET,
-} eFCU_Cycle_Type;
+};
 
 /**
  * Checks if the F-Curve has a Cycles modifier, and returns the type of the cycle behavior.

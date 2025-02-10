@@ -10,6 +10,12 @@
 
 #pragma once
 
+struct ScrArea;
+struct bContext;
+struct uiBut;
+struct wmEvent;
+struct wmWindow;
+
 /* `interface_eyedropper.cc` */
 
 void eyedropper_draw_cursor_text_window(const wmWindow *window, const char *name);
@@ -42,7 +48,7 @@ void eyedropper_win_area_find(const bContext *C,
  * \note Exposed by 'eyedropper_intern.hh' for use with color band picking.
  */
 struct Eyedropper;
-void eyedropper_color_sample_fl(bContext *C,
+bool eyedropper_color_sample_fl(bContext *C,
                                 struct Eyedropper *eye,
                                 const int event_xy[2],
                                 float r_col[3]);

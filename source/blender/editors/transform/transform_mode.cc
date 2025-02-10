@@ -10,7 +10,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_legacy_types.h"
+#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
@@ -297,6 +297,11 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
             add_v3_v3(cob.matrix[3], tc->mat[3]);
           }
         }
+        else if (con->ownspace == CONSTRAINT_SPACE_POSE) {
+          /* Bone space without considering object transformations. */
+          mul_m3_v3(td->mtx, cob.matrix[3]);
+          mul_m3_v3(tc->imat3, cob.matrix[3]);
+        }
         else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
           /* Skip... incompatible spacetype. */
           continue;
@@ -316,6 +321,10 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
           if (tc->use_local_mat) {
             sub_v3_v3(cob.matrix[3], tc->mat[3]);
           }
+          mul_m3_v3(td->smtx, cob.matrix[3]);
+        }
+        else if (con->ownspace == CONSTRAINT_SPACE_POSE) {
+          mul_m3_v3(tc->mat3, cob.matrix[3]);
           mul_m3_v3(td->smtx, cob.matrix[3]);
         }
 
@@ -540,7 +549,7 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
 
     ofs += BLI_snprintf_rlen(
         str + ofs, str_size - ofs, IFACE_("Rotation: %s %s %s"), &c[0], t->con.text, t->proptext);
@@ -841,7 +850,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
   char tvec[NUM_STR_REP_LEN * 3];
   size_t ofs = 0;
   if (hasNumInput(&t->num)) {
-    outputNumInput(&(t->num), tvec, &t->scene->unit);
+    outputNumInput(&(t->num), tvec, t->scene->unit);
   }
   else {
     BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", vec[0]);
@@ -1060,7 +1069,7 @@ void ElementResize(const TransInfo *t,
       float ratio = values_final_evil[0];
       float transformed_value = td->ival * fabs(ratio);
       *td->val = blender::math::max(
-          blender::math::interpolate(transformed_value, td->ival, gp_falloff), 0.001f);
+          blender::math::interpolate(td->ival, transformed_value, gp_falloff), 0.001f);
     }
   }
   else {

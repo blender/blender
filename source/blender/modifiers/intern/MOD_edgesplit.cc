@@ -67,8 +67,9 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   if (do_split_angle) {
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
       /* check for 1 edge having 2 face users */
-      BMLoop *l1, *l2;
-      if ((l1 = e->l) && (l2 = e->l->radial_next) != l1) {
+      BMLoop *l1 = e->l;
+      BMLoop *l2 = (e->l) ? e->l->radial_next : nullptr;
+      if (l1 && l2 != l1) {
         if (/* 3+ faces on this edge, always split */
             UNLIKELY(l1 != l2->radial_next) ||
             /* O degree angle setting, we want to split on all edges. */

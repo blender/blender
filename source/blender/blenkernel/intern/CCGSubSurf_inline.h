@@ -8,7 +8,14 @@
 
 #pragma once
 
-#include <math.h>
+#include "BLI_assert.h"
+#include "BLI_compiler_compat.h"
+
+#include "CCGSubSurf_intern.h"
+
+#include <cmath>
+#include <cstdint>
+#include <cstring>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,14 +52,14 @@ BLI_INLINE int ccg_edgebase(int level)
 
 /* **** */
 
-BLI_INLINE byte *VERT_getLevelData(CCGVert *v)
+BLI_INLINE uint8_t *VERT_getLevelData(CCGVert *v)
 {
-  return (byte *)(&(v)[1]);
+  return (uint8_t *)(&(v)[1]);
 }
 
-BLI_INLINE byte *EDGE_getLevelData(CCGEdge *e)
+BLI_INLINE uint8_t *EDGE_getLevelData(CCGEdge *e)
 {
-  return (byte *)(&(e)[1]);
+  return (uint8_t *)(&(e)[1]);
 }
 
 BLI_INLINE CCGVert **FACE_getVerts(CCGFace *f)
@@ -65,9 +72,9 @@ BLI_INLINE CCGEdge **FACE_getEdges(CCGFace *f)
   return (CCGEdge **)(&(FACE_getVerts(f)[f->numVerts]));
 }
 
-BLI_INLINE byte *FACE_getCenterData(CCGFace *f)
+BLI_INLINE uint8_t *FACE_getCenterData(CCGFace *f)
 {
-  return (byte *)(&(FACE_getEdges(f)[(f)->numVerts]));
+  return (uint8_t *)(&(FACE_getEdges(f)[(f)->numVerts]));
 }
 
 /* **** */
@@ -98,8 +105,8 @@ BLI_INLINE void *ccg_face_getIECo(CCGFace *f, int lvl, int S, int x, int levels,
 {
   int maxGridSize = ccg_gridsize(levels);
   int spacing = ccg_spacing(levels, lvl);
-  byte *gridBase = FACE_getCenterData(f) +
-                   dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
+  uint8_t *gridBase = FACE_getCenterData(f) +
+                      dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
   return &gridBase[dataSize * x * spacing];
 }
 
@@ -108,8 +115,8 @@ BLI_INLINE void *ccg_face_getIENo(
 {
   int maxGridSize = ccg_gridsize(levels);
   int spacing = ccg_spacing(levels, lvl);
-  byte *gridBase = FACE_getCenterData(f) +
-                   dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
+  uint8_t *gridBase = FACE_getCenterData(f) +
+                      dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
   return &gridBase[dataSize * x * spacing + normalDataOffset];
 }
 
@@ -118,8 +125,8 @@ BLI_INLINE void *ccg_face_getIFCo(
 {
   int maxGridSize = ccg_gridsize(levels);
   int spacing = ccg_spacing(levels, lvl);
-  byte *gridBase = FACE_getCenterData(f) +
-                   dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
+  uint8_t *gridBase = FACE_getCenterData(f) +
+                      dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
   return &gridBase[dataSize * (maxGridSize + (y * maxGridSize + x) * spacing)];
 }
 
@@ -128,8 +135,8 @@ BLI_INLINE float *ccg_face_getIFNo(
 {
   int maxGridSize = ccg_gridsize(levels);
   int spacing = ccg_spacing(levels, lvl);
-  byte *gridBase = FACE_getCenterData(f) +
-                   dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
+  uint8_t *gridBase = FACE_getCenterData(f) +
+                      dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
   return (float *)&gridBase[dataSize * (maxGridSize + (y * maxGridSize + x) * spacing) +
                             normalDataOffset];
 }

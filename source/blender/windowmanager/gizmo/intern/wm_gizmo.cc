@@ -6,16 +6,13 @@
  * \ingroup wm
  */
 
-#include <new>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-
-#include "GPU_batch.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -39,6 +36,8 @@
 /* Own includes. */
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
+
+using blender::StringRef;
 
 static void wm_gizmo_register(wmGizmoGroup *gzgroup, wmGizmo *gz);
 
@@ -65,7 +64,8 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   else {
     gz->properties = blender::bke::idprop::create_group("wmGizmoProperties").release();
   }
-  *gz->ptr = RNA_pointer_create(static_cast<ID *>(G_MAIN->wm.first), gzt->srna, gz->properties);
+  *gz->ptr = RNA_pointer_create_discrete(
+      static_cast<ID *>(G_MAIN->wm.first), gzt->srna, gz->properties);
 
   WM_gizmo_properties_sanitize(gz->ptr, false);
 
@@ -95,7 +95,7 @@ wmGizmo *WM_gizmo_new_ptr(const wmGizmoType *gzt, wmGizmoGroup *gzgroup, Pointer
   return gz;
 }
 
-wmGizmo *WM_gizmo_new(const char *idname, wmGizmoGroup *gzgroup, PointerRNA *properties)
+wmGizmo *WM_gizmo_new(const StringRef idname, wmGizmoGroup *gzgroup, PointerRNA *properties)
 {
   const wmGizmoType *gzt = WM_gizmotype_find(idname, false);
   return WM_gizmo_new_ptr(gzt, gzgroup, properties);
@@ -583,10 +583,10 @@ void WM_gizmo_calc_matrix_final(const wmGizmo *gz, float r_mat[4][4])
 
 void WM_gizmo_properties_create_ptr(PointerRNA *ptr, wmGizmoType *gzt)
 {
-  *ptr = RNA_pointer_create(nullptr, gzt->srna, nullptr);
+  *ptr = RNA_pointer_create_discrete(nullptr, gzt->srna, nullptr);
 }
 
-void WM_gizmo_properties_create(PointerRNA *ptr, const char *gtstring)
+void WM_gizmo_properties_create(PointerRNA *ptr, const StringRef gtstring)
 {
   const wmGizmoType *gzt = WM_gizmotype_find(gtstring, false);
 
@@ -594,11 +594,11 @@ void WM_gizmo_properties_create(PointerRNA *ptr, const char *gtstring)
     WM_gizmo_properties_create_ptr(ptr, (wmGizmoType *)gzt);
   }
   else {
-    *ptr = RNA_pointer_create(nullptr, &RNA_GizmoProperties, nullptr);
+    *ptr = RNA_pointer_create_discrete(nullptr, &RNA_GizmoProperties, nullptr);
   }
 }
 
-void WM_gizmo_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *gtstring)
+void WM_gizmo_properties_alloc(PointerRNA **ptr, IDProperty **properties, const StringRef gtstring)
 {
   if (*properties == nullptr) {
     *properties = blender::bke::idprop::create_group("wmOpItemProp").release();

@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 /**
  * \param use_snap_center: Snap verts onto the plane.
  * \param use_tag: Only bisect tagged edges and faces.

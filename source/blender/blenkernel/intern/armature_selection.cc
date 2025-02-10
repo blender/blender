@@ -6,14 +6,13 @@
  * \ingroup bke
  */
 
+#include "ANIM_bone_collections.hh"
+
 #include "BKE_armature.hh"
 
 #include "BLI_listbase.h"
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-
-#include "ANIM_bone_collections.hh"
 
 namespace blender::bke {
 
@@ -55,13 +54,7 @@ BoneNameSet BKE_armature_find_selected_bone_names(const bArmature *armature)
 
   /* Iterate over the selected bones to fill the set of bone names. */
   auto callback = [&](Bone *bone) { selected_bone_names.add(bone->name); };
-  SelectedBonesResult result = BKE_armature_find_selected_bones(armature, callback);
-
-  /* If no bones are selected, act as if all are. */
-  if (result.all_bones_selected || result.no_bones_selected) {
-    return BoneNameSet();
-  }
-
+  BKE_armature_find_selected_bones(armature, callback);
   return selected_bone_names;
 }
 

@@ -23,11 +23,11 @@ class TreeElementStrip : public AbstractTreeElement {
  public:
   TreeElementStrip(TreeElement &legacy_te, Strip &strip);
 
-  bool expand_poll(const SpaceOutliner &) const override;
-  void expand(SpaceOutliner &) const override;
+  bool expand_poll(const SpaceOutliner & /*soops*/) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
   Strip &get_strip() const;
-  SequenceType get_strip_type() const;
+  StripType get_strip_type() const;
 };
 
 /* -------------------------------------------------------------------- */

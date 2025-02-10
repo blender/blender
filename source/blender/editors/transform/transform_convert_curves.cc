@@ -21,7 +21,6 @@
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_object_types.hh"
 
 #include "ED_curves.hh"
 
@@ -87,7 +86,7 @@ static void calculate_curve_point_distances_for_proportional_editing(
 {
   Array<bool, 32> visited(positions.size(), false);
 
-  InplacePriorityQueue<float, std::less<float>> queue(r_distances);
+  InplacePriorityQueue<float, std::less<>> queue(r_distances);
   while (!queue.is_empty()) {
     int64_t index = queue.pop_index();
     if (visited[index]) {
@@ -248,7 +247,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
 
       index_mask::ExprBuilder builder;
       const index_mask::Expr &selected_bezier_points = builder.intersect(
-          {&bezier_points, &selection_per_attribute[0]});
+          {&bezier_points, selection_per_attribute.data()});
 
       /* Select bezier handles that must be transformed because the control point is
        * selected. */
@@ -544,7 +543,7 @@ void curve_populate_trans_data_structs(
             center = point_positions[domain_i];
           }
           else {
-            center = td.iloc;
+            center = *elem;
           }
 
           copy_v3_v3(td.iloc, *elem);

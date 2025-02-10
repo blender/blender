@@ -59,7 +59,7 @@ static void applyBakeTime(TransInfo *t)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
 
     if (time >= 0.0f) {
       SNPRINTF(str, IFACE_("Time: +%s %s"), c, t->proptext);

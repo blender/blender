@@ -22,7 +22,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_memarena.h"
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"

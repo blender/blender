@@ -20,12 +20,14 @@
 #include "BLI_memarena.h"
 #include "BLI_task.h"
 
-#include "BKE_attribute.hh"
+#include "BKE_attribute.h"
 #include "BKE_customdata.hh"
 #include "BKE_multires.hh"
 
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
+
+using blender::StringRef;
 
 /* edge and vertex share, currently there's no need to have different logic */
 static void bm_data_interp_from_elem(CustomData *data_layer,
@@ -282,7 +284,7 @@ static bool quad_co(const float v1[3],
 
 static void mdisp_axis_from_quad(const float v1[3],
                                  const float v2[3],
-                                 float[3] /*v3[3]*/,
+                                 float /*v3*/[3],
                                  const float v4[3],
                                  float r_axis_x[3],
                                  float r_axis_y[3])
@@ -850,7 +852,7 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
   }
 }
 
-void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name)
+void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const StringRef name)
 {
   CustomData olddata = *data;
   olddata.layers = (olddata.layers) ?
@@ -867,7 +869,7 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
   }
 }
 
-void BM_data_layer_ensure_named(BMesh *bm, CustomData *data, int type, const char *name)
+void BM_data_layer_ensure_named(BMesh *bm, CustomData *data, int type, const StringRef name)
 {
   if (CustomData_get_named_layer_index(data, eCustomDataType(type), name) == -1) {
     BM_data_layer_add_named(bm, data, type, name);
@@ -901,21 +903,21 @@ void BM_uv_map_ensure_select_and_pin_attrs(BMesh *bm)
   }
 }
 
-void BM_uv_map_ensure_vert_select_attr(BMesh *bm, const char *uv_map_name)
+void BM_uv_map_ensure_vert_select_attr(BMesh *bm, const StringRef uv_map_name)
 {
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   BM_data_layer_ensure_named(
       bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(uv_map_name, name));
 }
 
-void BM_uv_map_ensure_edge_select_attr(BMesh *bm, const char *uv_map_name)
+void BM_uv_map_ensure_edge_select_attr(BMesh *bm, const StringRef uv_map_name)
 {
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   BM_data_layer_ensure_named(
       bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(uv_map_name, name));
 }
 
-void BM_uv_map_ensure_pin_attr(BMesh *bm, const char *uv_map_name)
+void BM_uv_map_ensure_pin_attr(BMesh *bm, const StringRef uv_map_name)
 {
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   BM_data_layer_ensure_named(
@@ -942,7 +944,7 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
   }
 }
 
-bool BM_data_layer_free_named(BMesh *bm, CustomData *data, const char *name)
+bool BM_data_layer_free_named(BMesh *bm, CustomData *data, StringRef name)
 {
   CustomData olddata = *data;
   olddata.layers = (olddata.layers) ?

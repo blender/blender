@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2024 Blender Authors
+ * SPDX-FileCopyrightText: 2024-2025 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,6 +14,11 @@
 #include "IMB_imbuf_enums.h"
 
 #ifdef WITH_FFMPEG
+
+extern "C" {
+#  include <libavutil/rational.h>
+}
+
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVCodec;
@@ -60,8 +65,17 @@ struct MovieReader {
   int64_t cur_key_frame_pts;
   AVPacket *cur_packet;
 
+  AVRational frame_rate = {1, 1};
+
   bool seek_before_decode;
   bool is_float;
+
+  /* When set, never seek within the video, and only ever decode one frame.
+   * This is a workaround for some Ogg files that have full audio but only
+   * one frame of "album art" as a video stream in non-Theora format.
+   * ffmpeg crashes/aborts when trying to seek within them
+   * (https://trac.ffmpeg.org/ticket/10755). */
+  bool never_seek_decode_one_frame = false;
 #endif
 
   char index_dir[768];

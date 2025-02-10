@@ -10,6 +10,7 @@
 
 #include "intern/builder/deg_builder_key.h"
 
+#include "RNA_access.hh"
 #include "RNA_path.hh"
 
 namespace blender::deg {
@@ -18,9 +19,9 @@ namespace blender::deg {
 /** \name Time source
  * \{ */
 
-string TimeSourceKey::identifier() const
+std::string TimeSourceKey::identifier() const
 {
-  return string("TimeSourceKey");
+  return std::string("TimeSourceKey");
 }
 
 /** \} */
@@ -29,14 +30,14 @@ string TimeSourceKey::identifier() const
 /** \name Component
  * \{ */
 
-string ComponentKey::identifier() const
+std::string ComponentKey::identifier() const
 {
   const char *idname = (id) ? id->name : "<None>";
-  string result = string("ComponentKey(");
+  std::string result = std::string("ComponentKey(");
   result += idname;
-  result += ", " + string(nodeTypeAsString(type));
+  result += ", " + std::string(nodeTypeAsString(type));
   if (name[0] != '\0') {
-    result += ", '" + string(name) + "'";
+    result += ", '" + std::string(name) + "'";
   }
   result += ')';
   return result;
@@ -48,14 +49,14 @@ string ComponentKey::identifier() const
 /** \name Operation
  * \{ */
 
-string OperationKey::identifier() const
+std::string OperationKey::identifier() const
 {
-  string result = string("OperationKey(");
-  result += "type: " + string(nodeTypeAsString(component_type));
-  result += ", component name: '" + string(component_name) + "'";
-  result += ", operation code: " + string(operationCodeAsString(opcode));
+  std::string result = std::string("OperationKey(");
+  result += "type: " + std::string(nodeTypeAsString(component_type));
+  result += ", component name: '" + std::string(component_name) + "'";
+  result += ", operation code: " + std::string(operationCodeAsString(opcode));
   if (name[0] != '\0') {
-    result += ", '" + string(name) + "'";
+    result += ", '" + std::string(name) + "'";
   }
   result += ")";
   return result;
@@ -97,11 +98,11 @@ RNAPathKey::RNAPathKey(const PointerRNA &target_prop,
   }
 }
 
-string RNAPathKey::identifier() const
+std::string RNAPathKey::identifier() const
 {
   const char *id_name = (id) ? id->name : "<No ID>";
   const char *prop_name = (prop) ? RNA_property_identifier(prop) : "<No Prop>";
-  return string("RnaPathKey(") + "id: " + id_name + ", prop: '" + prop_name + "')";
+  return std::string("RnaPathKey(") + "id: " + id_name + ", prop: '" + prop_name + "')";
 }
 
 /** \} */

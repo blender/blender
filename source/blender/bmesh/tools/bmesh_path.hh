@@ -8,6 +8,13 @@
  * \ingroup bmesh
  */
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
+
+#include "bmesh_class.hh"
+
+struct LinkNode;
+
 struct BMCalcPathParams {
   uint use_topology_distance : 1;
   uint use_step_face : 1;

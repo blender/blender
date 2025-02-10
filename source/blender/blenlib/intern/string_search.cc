@@ -481,6 +481,7 @@ void extract_normalized_words(StringRef str,
 
 void StringSearchBase::add_impl(const StringRef str, void *user_data, const float weight)
 {
+  BLI_assert(BLI_str_utf8_invalid_byte(str.data(), str.size()) == -1);
   Vector<StringRef, 64> words;
   Vector<int, 64> word_group_ids;
   string_search::extract_normalized_words(str, allocator_, words, word_group_ids);

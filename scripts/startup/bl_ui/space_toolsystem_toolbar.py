@@ -2036,9 +2036,10 @@ class _defs_weight_paint:
         if context is None:
             return VIEW3D_PT_tools_active._tools_select
         ob = context.active_object
-        if (ob and ob.type == 'MESH' and
-            (ob.data.use_paint_mask or
-             ob.data.use_paint_mask_vertex)):
+        if (
+                ob and ob.type == 'MESH' and
+                (ob.data.use_paint_mask or ob.data.use_paint_mask_vertex)
+        ):
             return VIEW3D_PT_tools_active._tools_select
         elif context.pose_object:
             return VIEW3D_PT_tools_active._tools_select
@@ -2351,10 +2352,10 @@ class _defs_grease_pencil_paint:
             row.use_property_split = False
             row.prop(props, "mode", expand=True)
 
-            if props.mode == "MATERIAL":
+            if props.mode == 'MATERIAL':
                 col = layout.column()
                 col.prop(props, "material_mode")
-            elif props.mode == "PALETTE":
+            elif props.mode == 'PALETTE':
                 tool_settings = context.tool_settings
                 settings = tool_settings.gpencil_paint
 

@@ -41,7 +41,7 @@ class GHOST_ISystemPaths {
    * Destructor.
    * Protected default constructor to force use of static dispose member.
    */
-  virtual ~GHOST_ISystemPaths() {}
+  virtual ~GHOST_ISystemPaths() = default;
 
  public:
   /**

@@ -8,16 +8,13 @@
 
 #include "paint_intern.hh"
 
-#include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
-#include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"
-#include "ED_curves_sculpt.hh"
 
 struct ARegion;
 struct RegionView3D;
@@ -26,11 +23,11 @@ struct View3D;
 struct Object;
 struct Brush;
 struct Scene;
-namespace blender {
-namespace bke {
+
+namespace blender::bke {
 struct BVHTreeFromMesh;
 }
-}  // namespace blender
+
 struct ReportList;
 
 namespace blender::ed::sculpt_paint {
@@ -162,13 +159,15 @@ void report_invalid_uv_map(ReportList *reports);
 struct CurvesConstraintSolver {
  private:
   bool use_surface_collision_;
+  float surface_collision_distance_;
   Array<float3> start_positions_;
   Array<float> segment_lengths_;
 
  public:
   void initialize(const bke::CurvesGeometry &curves,
                   const IndexMask &curve_selection,
-                  const bool use_surface_collision);
+                  const bool use_surface_collision,
+                  const float surface_collision_distance);
 
   void solve_step(bke::CurvesGeometry &curves,
                   const IndexMask &curve_selection,

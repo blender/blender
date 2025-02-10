@@ -16,7 +16,6 @@
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
-#include "BLI_sys_types.h"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
@@ -72,7 +71,7 @@ struct SubdivCCGCoord {
 
   /* Returns the coordinate for the index in an array sized to contain all grid vertices (including
    * duplicates). */
-  inline static SubdivCCGCoord from_index(const CCGKey &key, int index)
+  static SubdivCCGCoord from_index(const CCGKey &key, int index)
   {
     const int grid_index = index / key.grid_area;
     const int index_in_grid = index - grid_index * key.grid_area;

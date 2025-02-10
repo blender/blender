@@ -6,11 +6,6 @@
  * \ingroup nodes
  */
 
-#include <cstdio>
-
-#include "BLI_string.h"
-
-#include "DNA_color_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
@@ -31,8 +26,6 @@
 
 #include "NOD_composite.hh"
 #include "node_composite_util.hh"
-
-#include "COM_compositor.hh"
 
 static void composite_get_from_context(const bContext *C,
                                        blender::bke::bNodeTreeType * /*treetype*/,
@@ -77,7 +70,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
     /* move over the compbufs */
     /* right after #blender::bke::node_tree_copy_tree() `oldsock` pointers are valid */
 
-    if (node->type == CMP_NODE_VIEWER) {
+    if (node->type_legacy == CMP_NODE_VIEWER) {
       if (node->id) {
         if (node->flag & NODE_DO_OUTPUT) {
           local_node->id = (ID *)node->id;
@@ -100,13 +93,13 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 
   LISTBASE_FOREACH (bNode *, lnode, &localtree->nodes) {
     if (bNode *orig_node = blender::bke::node_find_node_by_name(ntree, lnode->name)) {
-      if (lnode->type == CMP_NODE_VIEWER) {
+      if (lnode->type_legacy == CMP_NODE_VIEWER) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
           /* image_merge does sanity check for pointers */
           BKE_image_merge(bmain, (Image *)orig_node->id, (Image *)lnode->id);
         }
       }
-      else if (lnode->type == CMP_NODE_MOVIEDISTORTION) {
+      else if (lnode->type_legacy == CMP_NODE_MOVIEDISTORTION) {
         /* special case for distortion node: distortion context is allocating in exec function
          * and to achieve much better performance on further calls this context should be
          * copied back to original node */
@@ -150,15 +143,15 @@ blender::bke::bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Composite = MEM_cnew<blender::bke::bNodeTreeType>(
+  blender::bke::bNodeTreeType *tt = ntreeType_Composite = MEM_new<blender::bke::bNodeTreeType>(
       __func__);
 
   tt->type = NTREE_COMPOSIT;
-  STRNCPY(tt->idname, "CompositorNodeTree");
-  STRNCPY(tt->group_idname, "CompositorNodeGroup");
-  STRNCPY(tt->ui_name, N_("Compositor"));
+  tt->idname = "CompositorNodeTree";
+  tt->group_idname = "CompositorNodeGroup";
+  tt->ui_name = N_("Compositor");
   tt->ui_icon = ICON_NODE_COMPOSITING;
-  STRNCPY(tt->ui_description, N_("Compositing nodes"));
+  tt->ui_description = N_("Compositing nodes");
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;
@@ -182,10 +175,10 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree)
   }
 
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == CMP_NODE_R_LAYERS) {
+    if (node->type_legacy == CMP_NODE_R_LAYERS) {
       node_cmp_rlayers_outputs(ntree, node);
     }
-    else if (node->type == CMP_NODE_CRYPTOMATTE &&
+    else if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
              node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
     {
       node->typeinfo->updatefunc(ntree, node);
@@ -205,16 +198,16 @@ void ntreeCompositTagRender(Scene *scene)
   {
     if (sce_iter->nodetree) {
       for (bNode *node : sce_iter->nodetree->all_nodes()) {
-        if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {
+        if (node->id == (ID *)scene || node->type_legacy == CMP_NODE_COMPOSITE) {
           BKE_ntree_update_tag_node_property(sce_iter->nodetree, node);
         }
-        else if (node->type == CMP_NODE_TEXTURE) /* uses scene size_x/size_y */ {
+        else if (node->type_legacy == CMP_NODE_TEXTURE) /* uses scene size_x/size_y */ {
           BKE_ntree_update_tag_node_property(sce_iter->nodetree, node);
         }
       }
     }
   }
-  BKE_ntree_update_main(G_MAIN, nullptr);
+  BKE_ntree_update(*G_MAIN);
 }
 
 void ntreeCompositClearTags(bNodeTree *ntree)
@@ -227,7 +220,7 @@ void ntreeCompositClearTags(bNodeTree *ntree)
 
   for (bNode *node : ntree->all_nodes()) {
     node->runtime->need_exec = 0;
-    if (node->type == NODE_GROUP) {
+    if (node->is_group()) {
       ntreeCompositClearTags((bNodeTree *)node->id);
     }
   }

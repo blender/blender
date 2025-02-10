@@ -8,10 +8,14 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "mathutils.hh"
+
 extern PyTypeObject matrix_Type;
 extern PyTypeObject matrix_access_Type;
 
-typedef unsigned short ushort;
+using ushort = unsigned short;
 
 #define MatrixObject_Check(v) PyObject_TypeCheck((v), &matrix_Type)
 #define MatrixObject_CheckExact(v) (Py_TYPE(v) == &matrix_Type)

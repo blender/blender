@@ -21,6 +21,7 @@
 
 #ifdef WIN32
 #  include "BLI_fileops_types.h"
+#  include "BLI_string_utils.hh"
 #  include "BLI_winstuff.h"
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
@@ -45,7 +46,6 @@
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 #include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_utildefines.h"
 
@@ -1212,7 +1212,12 @@ int BLI_delete_soft(const char *filepath, const char **r_error_message)
 
   /* May contain `:` delimiter characters according to version 1.5 of the spec:
    * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html */
-  const char *xdg_current_desktop = getenv("XDG_CURRENT_DESKTOP");
+  const char *xdg_current_desktop = [] {
+    /* Account for VSCode overriding this value (TSK!), see: #133921. */
+    const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
+    const char *value = getenv(key);
+    return value ? value : getenv(key + 9);
+  }();
   const char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
   if ((xdg_current_desktop && BLI_string_elem_split_by_delim(xdg_current_desktop, ':', "KDE")) ||

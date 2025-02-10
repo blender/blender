@@ -2,24 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <memory>
-
 #include "BLI_assert.h"
-#include "BLI_map.hh"
-#include "BLI_math_base.h"
-#include "BLI_math_base.hh"
-#include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_timeit.hh"
-#include "BLI_vector.hh"
-
-#include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "DNA_node_types.h"
 
 #include "NOD_derived_node_tree.hh"
-#include "NOD_node_declaration.hh"
 
 #include "BKE_node.hh"
 
@@ -61,7 +50,7 @@ void NodeOperation::evaluate()
 
 void NodeOperation::compute_preview()
 {
-  if (context().should_compute_node_previews() && is_node_preview_needed(node())) {
+  if (bool(context().needed_outputs() & OutputTypes::Previews) && is_node_preview_needed(node())) {
     compositor::compute_preview(context(), node(), *get_preview_result());
   }
 }

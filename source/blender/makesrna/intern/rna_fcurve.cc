@@ -6,20 +6,15 @@
  * \ingroup RNA
  */
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "BLT_translation.hh"
 
-#include "BKE_action.hh"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -27,13 +22,7 @@
 
 #include "WM_types.hh"
 
-#include "ED_keyframes_edit.hh"
 #include "ED_keyframing.hh"
-
-#ifdef RNA_RUNTIME
-#  include "ANIM_action.hh"
-#  include "ANIM_fcurve.hh"
-#endif
 
 const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
     {FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
@@ -189,6 +178,22 @@ static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = 
 
 #  include <algorithm>
 
+#  include "DNA_scene_types.h"
+
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
+#  include "ANIM_action.hh"
+#  include "ANIM_fcurve.hh"
+
+#  include "BKE_anim_data.hh"
+#  include "BKE_fcurve.hh"
+#  include "BKE_fcurve_driver.h"
+#  include "BKE_report.hh"
+
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
+
 #  include "WM_api.hh"
 
 static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
@@ -214,15 +219,6 @@ static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
       return &RNA_UnknownType;
   }
 }
-
-/* ****************************** */
-
-#  include "BKE_anim_data.hh"
-#  include "BKE_fcurve.hh"
-#  include "BKE_fcurve_driver.h"
-
-#  include "DEG_depsgraph.hh"
-#  include "DEG_depsgraph_build.hh"
 
 /**
  * \warning this isn't efficient but it's unavoidable
@@ -421,9 +417,7 @@ static int rna_DriverTarget_RnaPath_length(PointerRNA *ptr)
   if (dtar->rna_path) {
     return strlen(dtar->rna_path);
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static void rna_DriverTarget_RnaPath_set(PointerRNA *ptr, const char *value)
@@ -575,9 +569,7 @@ static int rna_FCurve_RnaPath_length(PointerRNA *ptr)
   if (fcu->rna_path) {
     return strlen(fcu->rna_path);
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
@@ -611,7 +603,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value, ReportList *
            vid);
     return;
   }
-  else if (value.data && (pid != vid)) {
+  if (value.data && (pid != vid)) {
     /* ids differ, can't do this, should raise an error */
     printf("ERROR: IDs differ - ptr=%p vs value=%p\n", pid, vid);
     return;
@@ -748,7 +740,7 @@ static PointerRNA rna_FCurve_active_modifier_get(PointerRNA *ptr)
 {
   FCurve *fcu = (FCurve *)ptr->data;
   FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
-  return rna_pointer_inherit_refine(ptr, &RNA_FModifier, fcm);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_FModifier, fcm);
 }
 
 static void rna_FCurve_active_modifier_set(PointerRNA *ptr,
@@ -793,9 +785,7 @@ static void rna_FModifier_start_frame_set(PointerRNA *ptr, float value)
   fcm->sfra = value;
 
   /* XXX: maintain old offset? */
-  if (fcm->sfra >= fcm->efra) {
-    fcm->efra = fcm->sfra;
-  }
+  fcm->efra = std::max(fcm->sfra, fcm->efra);
 }
 
 static void rna_FModifier_end_frame_set(PointerRNA *ptr, float value)
@@ -806,9 +796,7 @@ static void rna_FModifier_end_frame_set(PointerRNA *ptr, float value)
   fcm->efra = value;
 
   /* XXX: maintain old offset? */
-  if (fcm->efra <= fcm->sfra) {
-    fcm->sfra = fcm->efra;
-  }
+  fcm->sfra = std::min(fcm->efra, fcm->sfra);
 }
 
 static void rna_FModifier_start_frame_range(
@@ -932,9 +920,7 @@ static void rna_FModifierLimits_minx_set(PointerRNA *ptr, float value)
 
   data->rect.xmin = value;
 
-  if (data->rect.xmin >= data->rect.xmax) {
-    data->rect.xmax = data->rect.xmin;
-  }
+  data->rect.xmax = std::max(data->rect.xmin, data->rect.xmax);
 }
 
 static void rna_FModifierLimits_maxx_set(PointerRNA *ptr, float value)
@@ -944,9 +930,7 @@ static void rna_FModifierLimits_maxx_set(PointerRNA *ptr, float value)
 
   data->rect.xmax = value;
 
-  if (data->rect.xmax <= data->rect.xmin) {
-    data->rect.xmin = data->rect.xmax;
-  }
+  data->rect.xmin = std::min(data->rect.xmax, data->rect.xmin);
 }
 
 static void rna_FModifierLimits_miny_set(PointerRNA *ptr, float value)
@@ -956,9 +940,7 @@ static void rna_FModifierLimits_miny_set(PointerRNA *ptr, float value)
 
   data->rect.ymin = value;
 
-  if (data->rect.ymin >= data->rect.ymax) {
-    data->rect.ymax = data->rect.ymin;
-  }
+  data->rect.ymax = std::max(data->rect.ymin, data->rect.ymax);
 }
 
 static void rna_FModifierLimits_maxy_set(PointerRNA *ptr, float value)
@@ -968,9 +950,7 @@ static void rna_FModifierLimits_maxy_set(PointerRNA *ptr, float value)
 
   data->rect.ymax = value;
 
-  if (data->rect.ymax <= data->rect.ymin) {
-    data->rect.ymin = data->rect.ymax;
-  }
+  data->rect.ymin = std::min(data->rect.ymax, data->rect.ymin);
 }
 
 static void rna_FModifierLimits_minx_range(
@@ -1666,6 +1646,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
       prop,
       "Strength",
       "Amplitude of the noise - the amount that it modifies the underlying curve");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_update");
 
   prop = RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);
@@ -2297,6 +2278,7 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "hide");
   RNA_def_property_enum_items(prop, rna_enum_beztriple_keyframe_type_items);
   RNA_def_property_ui_text(prop, "Type", "Type of keyframe (for visual purposes only)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, "rna_Keyframe_update");
 
   prop = RNA_def_property(srna, "easing", PROP_ENUM, PROP_NONE);

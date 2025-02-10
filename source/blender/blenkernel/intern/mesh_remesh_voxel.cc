@@ -13,8 +13,6 @@
 #include <cstring>
 #include <ctime>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
@@ -26,15 +24,11 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_customdata.hh"
-#include "BKE_editmesh.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remesh_voxel.hh" /* own include */
-#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 
+#include "bmesh.hh"
 #include "bmesh_tools.hh"
 
 #ifdef WITH_OPENVDB

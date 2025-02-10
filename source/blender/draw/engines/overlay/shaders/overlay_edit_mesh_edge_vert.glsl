@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -32,6 +33,7 @@ VertIn input_assembly(uint in_vertex_id)
 struct GeomOut {
   vec4 gpu_position;
   vec4 final_color;
+  vec3 world_pos;
   float edge_coord;
 };
 
@@ -39,6 +41,7 @@ void export_vertex(GeomOut geom_out)
 {
   geometry_out.finalColor = geom_out.final_color;
   geometry_noperspective_out.edgeCoord = geom_out.edge_coord;
+  view_clipping_distances(geom_out.world_pos);
   gl_Position = geom_out.gpu_position;
 }
 
@@ -61,23 +64,22 @@ void do_vertex(const uint strip_index,
                uint out_vertex_id,
                uint out_primitive_id,
                vec4 final_color,
-               vec4 position,
+               vec4 ndc_position,
+               vec3 world_position,
                float coord,
                vec2 offset)
 {
   GeomOut geom_out;
+  geom_out.world_pos = world_position;
   geom_out.final_color = final_color;
   geom_out.edge_coord = coord;
-  geom_out.gpu_position = position;
+  geom_out.gpu_position = ndc_position;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
-  geom_out.gpu_position.xy += offset * 2.0 * position.w;
+  geom_out.gpu_position.xy += offset * 2.0 * ndc_position.w;
   strip_EmitVertex(strip_index, out_vertex_id, out_primitive_id, geom_out);
 }
 
-void geometry_main(VertOut geom_in[2],
-                   uint out_vertex_id,
-                   uint out_primitive_id,
-                   uint out_invocation_id)
+void geometry_main(VertOut geom_in[2], uint out_vert_id, uint out_prim_id, uint out_invocation_id)
 {
   vec2 ss_pos[2];
 
@@ -121,19 +123,18 @@ void geometry_main(VertOut geom_in[2],
   bool horizontal = line.x > line.y;
   edge_ofs = (horizontal) ? edge_ofs.zyz : edge_ofs.xzz;
 
-  /* Due to an AMD glitch, this line was moved out of the `do_vertex`
-   * function (see #62792). */
-  // view_clipping_distances_set(geom_in[0]);
-  do_vertex(
-      0, out_vertex_id, out_primitive_id, geom_in[0].final_color, pos0, half_size, edge_ofs.xy);
-  do_vertex(
-      1, out_vertex_id, out_primitive_id, geom_in[0].final_color, pos0, -half_size, -edge_ofs.xy);
+  vec3 wpos0 = geom_in[0].world_position;
+  vec3 wpos1 = geom_in[1].world_position;
 
-  // view_clipping_distances_set(geom_in[1]);
-  vec4 final_color = (geom_in[0].select_override == 0u) ? geom_in[1].final_color :
-                                                          geom_in[0].final_color;
-  do_vertex(2, out_vertex_id, out_primitive_id, final_color, pos1, half_size, edge_ofs.xy);
-  do_vertex(3, out_vertex_id, out_primitive_id, final_color, pos1, -half_size, -edge_ofs.xy);
+  vec4 final_color1 = geom_in[0].final_color;
+  vec4 final_color2 = (geom_in[0].select_override == 0u) ? geom_in[1].final_color :
+                                                           geom_in[0].final_color;
+
+  do_vertex(0, out_vert_id, out_prim_id, final_color1, pos0, wpos0, half_size, edge_ofs.xy);
+  do_vertex(1, out_vert_id, out_prim_id, final_color1, pos0, wpos0, -half_size, -edge_ofs.xy);
+
+  do_vertex(2, out_vert_id, out_prim_id, final_color2, pos1, wpos1, half_size, edge_ofs.xy);
+  do_vertex(3, out_vert_id, out_prim_id, final_color2, pos1, wpos1, -half_size, -edge_ofs.xy);
 }
 
 void main()

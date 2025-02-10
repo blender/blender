@@ -36,7 +36,8 @@ enum Container
 	CONTAINER_MP2,
 	CONTAINER_MP3,
 	CONTAINER_OGG,
-	CONTAINER_WAV
+	CONTAINER_WAV,
+	CONTAINER_AAC
 };
 
 /// Audio codecs for writers.

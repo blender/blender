@@ -116,8 +116,10 @@ struct wmEventHandler_Op {
 
   /** Store context for this handler for derived/modal handlers. */
   struct {
-    /* To override the window, and hence the screen. Set for few cases only, usually window/screen
-     * can be taken from current context. */
+    /**
+     * To override the window, and hence the screen.
+     * Set for few cases only, usually window/screen can be taken from current context.
+     */
     wmWindow *win;
 
     ScrArea *area;

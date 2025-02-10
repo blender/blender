@@ -74,6 +74,12 @@ void ED_preview_ensure_dbase(bool with_gpencil);
 void ED_preview_free_dbase();
 
 /**
+ * For preview icons loaded from disk (deferred loading), use the size of the source image, and
+ * only scale to the display size when drawing. Then we actually know the final display size
+ * (so we don't scale twice), and can scale on the GPU while drawing.
+ */
+bool ED_preview_use_image_size(const PreviewImage *preview, eIconSizes size);
+/**
  * Check if \a id is supported by the automatic preview render.
  */
 bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint = nullptr);

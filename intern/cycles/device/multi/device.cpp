@@ -340,7 +340,6 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    /* The tile buffers are allocated on each device (see below), so copy to all of them */
     for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
@@ -363,6 +362,58 @@ class MultiDevice : public Device {
     mem.device = this;
     mem.device_pointer = key;
     stats.mem_alloc(mem.device_size - existing_size);
+  }
+
+  void mem_move_to_host(device_memory &mem) override
+  {
+    assert(mem.type == MEM_GLOBAL || mem.type == MEM_TEXTURE);
+
+    device_ptr existing_key = mem.device_pointer;
+    device_ptr key = (existing_key) ? existing_key : unique_key++;
+    size_t existing_size = mem.device_size;
+
+    for (const vector<SubDevice *> &island : peer_islands) {
+      SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
+      mem.device = owner_sub->device.get();
+      mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
+      mem.device_size = existing_size;
+
+      if (!owner_sub->device->is_host_mapped(
+              mem.shared_pointer, mem.device_pointer, owner_sub->device.get()))
+      {
+        owner_sub->device->mem_move_to_host(mem);
+        owner_sub->ptr_map[key] = mem.device_pointer;
+
+        /* Need to create texture objects and update pointer in kernel globals on all devices */
+        for (SubDevice *island_sub : island) {
+          if (island_sub != owner_sub) {
+            island_sub->device->mem_move_to_host(mem);
+          }
+        }
+      }
+    }
+
+    mem.device = this;
+    mem.device_pointer = key;
+    stats.mem_alloc(mem.device_size - existing_size);
+  }
+
+  bool is_host_mapped(const void *shared_pointer,
+                      const device_ptr key,
+                      Device *sub_device) override
+  {
+    if (key == 0) {
+      return false;
+    }
+
+    for (const SubDevice &sub : devices) {
+      if (sub.device.get() == sub_device) {
+        return sub_device->is_host_mapped(shared_pointer, sub.ptr_map.at(key), sub_device);
+      }
+    }
+
+    assert(!"is_host_mapped failed to find matching device");
+    return false;
   }
 
   void mem_copy_from(

@@ -20,10 +20,8 @@ GHOST_WindowManager::GHOST_WindowManager()
 {
 }
 
-GHOST_WindowManager::~GHOST_WindowManager()
-{
-  /* m_windows is freed by GHOST_System::disposeWindow */
-}
+/* m_windows is freed by GHOST_System::disposeWindow */
+GHOST_WindowManager::~GHOST_WindowManager() = default;
 
 GHOST_TSuccess GHOST_WindowManager::addWindow(GHOST_IWindow *window)
 {

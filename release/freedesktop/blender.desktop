@@ -84,7 +84,6 @@ Icon=blender
 Terminal=false
 Type=Application
 PrefersNonDefaultGPU=true
-X-KDE-RunOnDiscreteGpu=true
 Categories=Graphics;3DGraphics;
 MimeType=application/x-blender;
 StartupWMClass=Blender

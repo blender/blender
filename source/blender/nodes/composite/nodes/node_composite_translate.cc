@@ -6,13 +6,14 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_assert.h"
 #include "BLI_math_matrix.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -26,7 +27,8 @@ static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .compositor_domain_priority(0)
+      .compositor_realization_mode(CompositorInputRealizationMode::None);
   b.add_input<decl::Float>("X")
       .default_value(0.0f)
       .min(-10000.0f)
@@ -49,8 +51,8 @@ static void node_composit_init_translate(bNodeTree * /*ntree*/, bNode *node)
 static void node_composit_buts_translate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "wrap_axis", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -61,25 +63,23 @@ class TranslateOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &result = get_result("Image");
+    Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
 
-    float x = get_input("X").get_single_value_default(0.0f);
-    float y = get_input("Y").get_single_value_default(0.0f);
-    if (get_use_relative()) {
+    float x = this->get_input("X").get_single_value_default(0.0f);
+    float y = this->get_input("Y").get_single_value_default(0.0f);
+    if (this->get_use_relative()) {
       x *= input.domain().size.x;
       y *= input.domain().size.y;
     }
 
     const float2 translation = float2(x, y);
-    const float3x3 transformation = math::from_location<float3x3>(translation);
 
-    RealizationOptions realization_options = input.get_realization_options();
-    realization_options.wrap_x = get_wrap_x();
-    realization_options.wrap_y = get_wrap_y();
-    realization_options.interpolation = get_interpolation();
-
-    transform(context(), input, result, transformation, realization_options);
+    input.pass_through(output);
+    output.transform(math::from_location<float3x3>(translation));
+    output.get_realization_options().interpolation = this->get_interpolation();
+    output.get_realization_options().repeat_x = this->get_repeat_x();
+    output.get_realization_options().repeat_y = this->get_repeat_y();
   }
 
   Interpolation get_interpolation()
@@ -102,14 +102,18 @@ class TranslateOperation : public NodeOperation {
     return node_storage(bnode()).relative;
   }
 
-  bool get_wrap_x()
+  bool get_repeat_x()
   {
-    return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY);
+    return ELEM(node_storage(bnode()).wrap_axis,
+                CMP_NODE_TRANSLATE_REPEAT_AXIS_X,
+                CMP_NODE_TRANSLATE_REPEAT_AXIS_XY);
   }
 
-  bool get_wrap_y()
+  bool get_repeat_y()
   {
-    return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY);
+    return ELEM(node_storage(bnode()).wrap_axis,
+                CMP_NODE_TRANSLATE_REPEAT_AXIS_Y,
+                CMP_NODE_TRANSLATE_REPEAT_AXIS_XY);
   }
 };
 
@@ -126,8 +130,11 @@ void register_node_type_cmp_translate()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeTranslate", CMP_NODE_TRANSLATE);
+  ntype.ui_name = "Translate";
+  ntype.ui_description = "Offset an image";
   ntype.enum_name_legacy = "TRANSLATE";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_translate_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_translate;
   ntype.initfunc = file_ns::node_composit_init_translate;

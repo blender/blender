@@ -64,7 +64,6 @@ class Graph {
  public:
   Attributes attributes;
 
- public:
   Node &new_node(StringRef label);
   Cluster &new_cluster(StringRef label = "");
 
@@ -93,7 +92,6 @@ class Cluster {
 
   Cluster(Graph &graph) : graph_(graph) {}
 
- public:
   void export__declare_nodes_and_clusters(std::stringstream &ss) const;
 
   std::string name() const
@@ -129,7 +127,6 @@ class Node {
 
   Node(Graph &graph) : graph_(graph) {}
 
- public:
   void set_parent_cluster(Cluster *cluster);
   void set_parent_cluster(Cluster &cluster)
   {
@@ -203,7 +200,6 @@ class Edge : blender::NonCopyable, blender::NonMovable {
  public:
   Attributes attributes;
 
- public:
   Edge(NodePort a, NodePort b) : a_(std::move(a)), b_(std::move(b)) {}
 
   void set_arrowhead(Attr_arrowType type)

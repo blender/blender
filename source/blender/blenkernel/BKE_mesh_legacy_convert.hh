@@ -8,14 +8,13 @@
  * \ingroup bke
  */
 
-#include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 
 struct CustomData;
 struct Main;
 struct Mesh;
 struct MFace;
+struct CustomDataLayer;
 
 namespace blender::bke {
 

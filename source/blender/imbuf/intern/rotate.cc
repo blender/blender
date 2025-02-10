@@ -12,7 +12,6 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "imbuf.hh"
 
 bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
 {

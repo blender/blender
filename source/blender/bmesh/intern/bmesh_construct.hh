@@ -8,9 +8,11 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
 #include "bmesh_core.hh"
 
 struct BMAllocTemplate;
+struct BMCustomDataCopyMap;
 struct Mesh;
 
 /**

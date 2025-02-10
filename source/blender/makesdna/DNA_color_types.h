@@ -147,6 +147,10 @@ typedef struct Histogram {
   float co[2][2];
 } Histogram;
 
+/* Multiplier to map YUV U,V range (+-0.436, +-0.615) to +-0.5 on both axes. */
+#define SCOPES_VEC_U_SCALE float(0.5f / 0.436f)
+#define SCOPES_VEC_V_SCALE float(0.5f / 0.615f)
+
 typedef struct Scopes {
   int ok;
   int sample_full;

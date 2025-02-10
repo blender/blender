@@ -19,6 +19,7 @@
  * destructor might not be called in that case.
  */
 
+#include "BLI_hash_tables.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_string_ref.hh"
 

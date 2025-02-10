@@ -12,7 +12,6 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_time.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 

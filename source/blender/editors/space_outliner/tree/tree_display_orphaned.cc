@@ -11,7 +11,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_utildefines.h"
 
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"

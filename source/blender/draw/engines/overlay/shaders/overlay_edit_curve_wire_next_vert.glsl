@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
 
@@ -36,8 +37,8 @@ void main()
     ls_P += normalSize * radius * (flip * ls_N - ls_T);
   }
 
-  vec3 world_pos = point_object_to_world(ls_P);
-  gl_Position = point_world_to_ndc(world_pos);
+  vec3 world_pos = drw_point_object_to_world(ls_P);
+  gl_Position = drw_point_world_to_homogenous(world_pos);
 
   finalColor = colorWireEdit;
 

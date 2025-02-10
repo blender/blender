@@ -44,10 +44,9 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
         object_, nullptr, CONSTRAINT_TYPE_TRANSFORM_CACHE);
     bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
 
-    std::string prim_path = use_parent_xform_ ? prim_.GetParent().GetPath().GetAsString() :
-                                                prim_path_;
+    pxr::SdfPath prim_path = use_parent_xform_ ? prim_.GetParent().GetPath() : prim_path_;
 
-    STRNCPY(data->object_path, prim_path.c_str());
+    STRNCPY(data->object_path, prim_path.GetAsString().c_str());
 
     data->cache_file = settings_->get_cache_file();
     id_us_plus(&data->cache_file->id);
@@ -59,9 +58,9 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
   set_props(use_parent_xform(), motionSampleTime);
 }
 
-std::string USDXformReader::object_prim_path() const
+pxr::SdfPath USDXformReader::object_prim_path() const
 {
-  return get_xformable().GetPrim().GetPath().GetAsString();
+  return get_xformable().GetPrim().GetPath();
 }
 
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,

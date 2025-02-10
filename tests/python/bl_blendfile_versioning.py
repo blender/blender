@@ -83,11 +83,12 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
         slice_stride_base = total_len // slice_range
         slice_stride_remain = total_len % slice_range
 
-        def gen_indices(i): return (
-            (i * (slice_stride_base + 1))
-            if i < slice_stride_remain else
-            (slice_stride_remain * (slice_stride_base + 1)) + ((i - slice_stride_remain) * slice_stride_base)
-        )
+        def gen_indices(i):
+            return (
+                (i * (slice_stride_base + 1))
+                if i < slice_stride_remain else
+                (slice_stride_remain * (slice_stride_base + 1)) + ((i - slice_stride_remain) * slice_stride_base)
+            )
         slice_indices = [(gen_indices(i), gen_indices(i + 1)) for i in range(slice_range)]
         return slice_indices[slice_index]
 

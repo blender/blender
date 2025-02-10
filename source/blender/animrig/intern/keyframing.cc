@@ -195,8 +195,8 @@ void CombinedKeyingResult::generate_reports(ReportList *reports, const eReportTy
   BKE_report(reports, report_level, error_message.c_str());
 }
 
-const std::optional<StringRefNull> default_channel_group_for_path(
-    const PointerRNA *animated_struct, const StringRef prop_rna_path)
+std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *animated_struct,
+                                                            const StringRef prop_rna_path)
 {
   if (animated_struct->type == &RNA_PoseBone) {
     bPoseChannel *pose_channel = static_cast<bPoseChannel *>(animated_struct->data);
@@ -1154,7 +1154,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
                                         struct_pointer,
                                         prop,
                                         channel_group,
-                                        rna_path_id_to_prop->c_str(),
+                                        *rna_path_id_to_prop,
                                         nla_frame,
                                         rna_values.as_span(),
                                         insert_key_flags_adjusted,

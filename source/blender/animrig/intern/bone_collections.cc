@@ -30,7 +30,6 @@
 #include "intern/bone_collections_internal.hh"
 
 #include <cstring>
-#include <string>
 
 using std::strcmp;
 

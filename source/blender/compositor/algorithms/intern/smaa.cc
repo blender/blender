@@ -9,7 +9,6 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_vector.hh"
-#include "BLI_smaa_textures.h"
 
 #include "IMB_colormanagement.hh"
 
@@ -1283,8 +1282,9 @@ static float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 
 #if !defined(SMAA_DISABLE_DIAG_DETECTION)
     }
-    else
+    else {
       e.x = 0.0f; /* Skip vertical processing. */
+    }
 #endif
   }
 
@@ -1377,36 +1377,35 @@ static float4 SMAANeighborhoodBlendingPS(float2 texcoord,
 
     return color;
   }
-  else {
-    bool h = math::max(a.x, a.z) > math::max(a.y, a.w); /* `max(horizontal) > max(vertical)`. */
 
-    /* Calculate the blending offsets: */
-    float4 blendingOffset = float4(0.0f, a.y, 0.0f, a.w);
-    float2 blendingWeight = float2(a.y, a.w);
-    SMAAMovc(float4(h), blendingOffset, float4(a.x, 0.0f, a.z, 0.0f));
-    SMAAMovc(float2(h), blendingWeight, float2(a.x, a.z));
-    blendingWeight /= math::dot(blendingWeight, float2(1.0f, 1.0f));
+  bool h = math::max(a.x, a.z) > math::max(a.y, a.w); /* `max(horizontal) > max(vertical)`. */
 
-    /* Calculate the texture coordinates: */
-    float4 blendingCoord = float4(texcoord, texcoord) + blendingOffset / float4(size, -size);
+  /* Calculate the blending offsets: */
+  float4 blendingOffset = float4(0.0f, a.y, 0.0f, a.w);
+  float2 blendingWeight = float2(a.y, a.w);
+  SMAAMovc(float4(h), blendingOffset, float4(a.x, 0.0f, a.z, 0.0f));
+  SMAAMovc(float2(h), blendingWeight, float2(a.x, a.z));
+  blendingWeight /= math::dot(blendingWeight, float2(1.0f, 1.0f));
 
-    /* We exploit bilinear filtering to mix current pixel with the chosen neighbor: */
-    float4 color = blendingWeight.x * SMAASampleLevelZero(colorTex, blendingCoord.xy());
-    color += blendingWeight.y * SMAASampleLevelZero(colorTex, blendingCoord.zw());
+  /* Calculate the texture coordinates: */
+  float4 blendingCoord = float4(texcoord, texcoord) + blendingOffset / float4(size, -size);
+
+  /* We exploit bilinear filtering to mix current pixel with the chosen neighbor: */
+  float4 color = blendingWeight.x * SMAASampleLevelZero(colorTex, blendingCoord.xy());
+  color += blendingWeight.y * SMAASampleLevelZero(colorTex, blendingCoord.zw());
 
 #if SMAA_REPROJECTION
-    /* Anti-alias velocity for proper reprojection in a later stage: */
-    float2 velocity = blendingWeight.x *
-                      SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.xy()));
-    velocity += blendingWeight.y *
-                SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.zw()));
+  /* Anti-alias velocity for proper reprojection in a later stage: */
+  float2 velocity = blendingWeight.x *
+                    SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.xy()));
+  velocity += blendingWeight.y *
+              SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.zw()));
 
-    /* Pack velocity into the alpha channel: */
-    color.a = math::sqrt(5.0f * math::length(velocity));
+  /* Pack velocity into the alpha channel: */
+  color.a = math::sqrt(5.0f * math::length(velocity));
 #endif
 
-    return color;
-  }
+  return color;
 }
 
 static float3 get_luminance_coefficients(ResultType type)

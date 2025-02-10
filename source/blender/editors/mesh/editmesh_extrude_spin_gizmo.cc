@@ -430,7 +430,8 @@ static void gizmo_mesh_spin_init_message_subscribe(const bContext *C,
   msg_sub_value_gz_tag_refresh.user_data = gzgroup->parent_gzmap;
   msg_sub_value_gz_tag_refresh.notify = WM_gizmo_do_msg_notify_tag_refresh;
 
-  PointerRNA cursor_ptr = RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor);
+  PointerRNA cursor_ptr = RNA_pointer_create_discrete(
+      &scene->id, &RNA_View3DCursor, &scene->cursor);
   /* All cursor properties. */
   WM_msg_subscribe_rna(mbus, &cursor_ptr, nullptr, &msg_sub_value_gz_tag_refresh, __func__);
 
@@ -539,8 +540,8 @@ static void gizmo_spin_exec(GizmoGroupData_SpinRedo *ggd)
   }
 
   wmOperator *op = ggd->data.op;
-  if (op == WM_operator_last_redo((bContext *)ggd->data.context)) {
-    ED_undo_operator_repeat((bContext *)ggd->data.context, op);
+  if (op == WM_operator_last_redo(ggd->data.context)) {
+    ED_undo_operator_repeat(ggd->data.context, op);
   }
 }
 
@@ -1018,7 +1019,7 @@ static void gizmo_mesh_spin_redo_draw_prepare(const bContext * /*C*/, wmGizmoGro
 {
   GizmoGroupData_SpinRedo *ggd = static_cast<GizmoGroupData_SpinRedo *>(gzgroup->customdata);
   if (ggd->data.op->next) {
-    ggd->data.op = WM_operator_last_redo((bContext *)ggd->data.context);
+    ggd->data.op = WM_operator_last_redo(ggd->data.context);
   }
 
   /* Not essential, just avoids feedback loop where matrices

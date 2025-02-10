@@ -9,7 +9,7 @@
 #include "BLI_linear_allocator_chunked_list.hh"
 #include "BLI_set.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::linear_allocator::tests {
 

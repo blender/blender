@@ -196,6 +196,12 @@ class UnitTesting(unittest.TestCase):
         self.assertTrue(os.path.isdir(args.directory),
                         "Given path is not a directory: {}" .
                         format(args.directory))
+        # Add sanitizer libraries if needed.
+        if args.is_sanitizer_build:
+            ALLOWED_LIBS.extend([
+                "libasan.so",
+                "libubsan.so",
+            ])
         # Add all libraries the we bundle to the allowed list
         ALLOWED_LIBS.extend(glob.glob("*.so", root_dir=args.directory + "/lib"))
         # Add OIDN libs that do not have an `.so` symbolic-link.

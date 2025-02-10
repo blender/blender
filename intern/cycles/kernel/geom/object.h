@@ -69,7 +69,7 @@ ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals kg,
 {
   const uint motion_offset = kernel_data_fetch(objects, object).motion_offset;
   const ccl_global DecomposedTransform *motion = &kernel_data_fetch(object_motion, motion_offset);
-  const uint num_steps = kernel_data_fetch(objects, object).numsteps * 2 + 1;
+  const uint num_steps = kernel_data_fetch(objects, object).num_tfm_steps;
 
   Transform tfm;
   transform_motion_array_interpolate(&tfm, motion, num_steps, time);
@@ -496,7 +496,7 @@ ccl_device_inline float3 bvh_clamp_direction(const float3 dir)
 
 ccl_device_inline float3 bvh_inverse_direction(const float3 dir)
 {
-  return rcp(dir);
+  return reciprocal(dir);
 }
 
 /* Transform ray into object space to enter static object in BVH */

@@ -20,7 +20,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_mmap.h"
-#include "BLI_utildefines.h"
 
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"
@@ -30,9 +29,9 @@
 
 #include "MEM_guardedalloc.h"
 
-bool imb_is_a_webp(const uchar *buf, size_t size)
+bool imb_is_a_webp(const uchar *mem, size_t size)
 {
-  if (WebPGetInfo(buf, size, nullptr, nullptr)) {
+  if (WebPGetInfo(mem, size, nullptr, nullptr)) {
     return true;
   }
   return false;

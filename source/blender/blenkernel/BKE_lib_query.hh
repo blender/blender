@@ -22,7 +22,6 @@
 #include "DNA_ID.h"
 
 #include "BLI_function_ref.hh"
-#include "BLI_sys_types.h"
 
 #include <array>
 

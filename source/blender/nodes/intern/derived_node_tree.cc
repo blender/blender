@@ -96,7 +96,7 @@ void DerivedNodeTree::foreach_node_in_context_recursive(const DTreeContext &cont
   }
 }
 
-const bNodeInstanceKey DNode::instance_key() const
+bNodeInstanceKey DNode::instance_key() const
 {
   return bke::node_instance_key(context()->instance_key(), &context()->btree(), bnode());
 }

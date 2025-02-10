@@ -46,6 +46,7 @@ __all__ = (
     "unregister_tool",
     "user_resource",
     "execfile",
+    "expose_bundled_modules",
 )
 
 from _bpy import (
@@ -418,8 +419,8 @@ def script_paths_pref():
 
 def script_paths_system_environment():
     """Returns a list of system script directories from environment variables."""
-    if env_system_path := _os.environ.get("BLENDER_SYSTEM_SCRIPTS"):
-        return [_os.path.normpath(env_system_path)]
+    if env_system_paths := _os.environ.get("BLENDER_SYSTEM_SCRIPTS"):
+        return [_os.path.normpath(p) for p in env_system_paths.split(_os.pathsep) if p]
     return []
 
 
@@ -1021,9 +1022,9 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
     Register a tool in the toolbar.
 
     :arg tool_cls: A tool subclass.
-    :type tool_cls: :class:`bpy.types.WorkSpaceTool`
+    :type tool_cls: type[:class:`bpy.types.WorkSpaceTool`]
     :arg after: Optional identifiers this tool will be added after.
-    :type after: Sequence[str] | None
+    :type after: Sequence[str] | set[str] | None
     :arg separator: When true, add a separator before this tool.
     :type separator: bool
     :arg group: When true, add a new nested group of tools.
@@ -1355,3 +1356,27 @@ def make_rna_paths(struct_name, prop_name, enum_name):
         else:
             src = src_rna = struct_name
     return src, src_rna, src_enum
+
+
+def expose_bundled_modules():
+    """
+    For Blender as a Python module, add bundled VFX library python bindings
+    to ``sys.path``. These may be used instead of dedicated packages, to ensure
+    the libraries are compatible with Blender.
+    """
+    # For Blender executable there is nothing to do, already exposed.
+    if not _bpy.app.module:
+        return
+    # System installations do not bundle additional modules,
+    # these are expected to be installed on the system too.
+    if not _bpy.app.portable:
+        return
+
+    version_dir = _os.path.normpath(_os.path.join(_bpy.__file__, "..", "..", "..", ".."))
+    packages_dir = _os.path.join(version_dir, "python", "lib")
+    if _sys.platform != "win32":
+        packages_dir = _os.path.join(packages_dir, "python{:d}.{:d}".format(*_sys.version_info[:2]))
+    packages_dir = _os.path.join(packages_dir, "site-packages")
+
+    if packages_dir not in _sys.path:
+        _sys.path.insert(0, packages_dir)

@@ -9,6 +9,9 @@
 #pragma once
 
 struct Main;
+struct Scene;
+struct View3D;
+struct ViewLayer;
 struct wmWindowManager;
 
 /* `info_stats.cc` */

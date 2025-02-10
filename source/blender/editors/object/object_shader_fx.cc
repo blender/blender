@@ -6,12 +6,8 @@
  * \ingroup edobj
  */
 
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "MEM_guardedalloc.h"
 
 #include "DNA_grease_pencil_types.h"
 #include "DNA_object_types.h"

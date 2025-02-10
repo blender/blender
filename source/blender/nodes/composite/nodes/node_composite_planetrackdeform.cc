@@ -42,8 +42,8 @@ NODE_STORAGE_FUNCS(NodePlaneTrackDeformData)
 
 static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_realization_options(
-      CompositorInputRealizationOptions::None);
+  b.add_input<decl::Color>("Image").compositor_realization_mode(
+      CompositorInputRealizationMode::Transforms);
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Plane");
 }
@@ -86,14 +86,14 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *tracking_object;
     uiLayout *col;
-    PointerRNA tracking_ptr = RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking);
+    PointerRNA tracking_ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTracking, tracking);
 
     col = uiLayoutColumn(layout, false);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
     tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);
     if (tracking_object) {
-      PointerRNA object_ptr = RNA_pointer_create(
+      PointerRNA object_ptr = RNA_pointer_create_discrete(
           &clip->id, &RNA_MovieTrackingObject, tracking_object);
 
       uiItemPointerR(
@@ -435,8 +435,13 @@ void register_node_type_cmp_planetrackdeform()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_PLANETRACKDEFORM, "Plane Track Deform", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodePlaneTrackDeform", CMP_NODE_PLANETRACKDEFORM);
+  ntype.ui_name = "Plane Track Deform";
+  ntype.ui_description =
+      "Replace flat planes in footage by another image, detected by plane tracks from motion "
+      "tracking";
   ntype.enum_name_legacy = "PLANETRACKDEFORM";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_planetrackdeform_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_planetrackdeform;
   ntype.initfunc_api = file_ns::init;

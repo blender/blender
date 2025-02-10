@@ -33,6 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_screen.hh"
@@ -43,7 +44,6 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "DEG_depsgraph.hh"
@@ -362,7 +362,7 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
     const Vector<const blender::bke::bNodeTreeZone *> zone_stack =
         tree_zones->get_zone_stack_for_node(group_node->identifier);
     for (const blender::bke::bNodeTreeZone *zone : zone_stack) {
-      switch (zone->output_node->type) {
+      switch (zone->output_node->type_legacy) {
         case GEO_NODE_SIMULATION_OUTPUT: {
           compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone->output_node);
           break;
@@ -404,7 +404,7 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 
   /* select the first tree type for valid type */
   for (const bke::bNodeTreeType *treetype : bke::node_tree_types_get()) {
-    STRNCPY(snode->tree_idname, treetype->idname);
+    STRNCPY(snode->tree_idname, treetype->idname.c_str());
     break;
   }
 
@@ -669,28 +669,6 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-/* Returns true if an image editor exists that views the compositor result. */
-static bool is_compositor_viewer_image_visible(const bContext *C)
-{
-  wmWindowManager *window_manager = CTX_wm_manager(C);
-  LISTBASE_FOREACH (wmWindow *, window, &window_manager->windows) {
-    bScreen *screen = WM_window_get_active_screen(window);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *space_link = static_cast<SpaceLink *>(area->spacedata.first);
-      if (!space_link || space_link->spacetype != SPACE_IMAGE) {
-        continue;
-      }
-      const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(space_link);
-      Image *image = ED_space_image(space_image);
-      if (image && image->source == IMA_SRC_VIEWER) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 static void node_area_refresh(const bContext *C, ScrArea *area)
 {
   /* default now: refresh node is starting preview */
@@ -704,11 +682,7 @@ static void node_area_refresh(const bContext *C, ScrArea *area)
       if (scene->use_nodes) {
         if (snode->runtime->recalc_regular_compositing) {
           snode->runtime->recalc_regular_compositing = false;
-          /* Only start compositing if its result will be visible either in the backdrop or in a
-           * viewer image. */
-          if (snode->flag & SNODE_BACKDRAW || is_compositor_viewer_image_visible(C)) {
-            ED_node_composite_job(C, snode->nodetree, scene);
-          }
+          ED_node_composite_job(C, snode->nodetree, scene);
         }
       }
     }
@@ -876,6 +850,11 @@ static bool node_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /
   return WM_drag_is_ID_type(drag, ID_MA) && !UI_but_active_drop_name(C);
 }
 
+static bool node_color_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
+{
+  return (drag->type == WM_DRAG_COLOR) && !UI_but_active_drop_color(C);
+}
+
 static void node_group_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
@@ -943,6 +922,8 @@ static void node_dropboxes()
                  node_id_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  nullptr);
+  WM_dropbox_add(
+      lb, "NODE_OT_add_color", node_color_drop_poll, UI_drop_color_copy, nullptr, nullptr);
 }
 
 /* ************* end drop *********** */

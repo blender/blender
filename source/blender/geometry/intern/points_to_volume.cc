@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_matrix.hh"
+#include "BLI_math_base.hh"
 
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"

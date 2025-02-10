@@ -242,9 +242,7 @@ static uint8_t find_min_value(const uint8_t *arr, uint8_t start_idx, uint8_t len
 {
   uint8_t min_v = UINT8_MAX;
   for (int i = 0; i < len; i++) {
-    if (arr[start_idx + i] < min_v) {
-      min_v = arr[start_idx + i];
-    }
+    min_v = std::min(arr[start_idx + i], min_v);
   }
   return min_v;
 }

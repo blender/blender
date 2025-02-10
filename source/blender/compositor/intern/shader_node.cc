@@ -14,6 +14,7 @@
 
 #include "COM_shader_node.hh"
 #include "COM_utilities.hh"
+#include "COM_utilities_gpu_material.hh"
 #include "COM_utilities_type_conversion.hh"
 
 namespace blender::compositor {
@@ -26,43 +27,20 @@ ShaderNode::ShaderNode(DNode node) : node_(node)
   populate_outputs();
 }
 
-GPUNodeStack *ShaderNode::get_inputs_array()
+void ShaderNode::compile(GPUMaterial *material)
 {
-  return inputs_.data();
+  node_->typeinfo->gpu_fn(
+      material, const_cast<bNode *>(node_.bnode()), nullptr, inputs_.data(), outputs_.data());
 }
 
-GPUNodeStack *ShaderNode::get_outputs_array()
+GPUNodeStack &ShaderNode::get_input(const StringRef identifier)
 {
-  return outputs_.data();
+  return get_shader_node_input(*node_, inputs_.data(), identifier);
 }
 
-GPUNodeStack &ShaderNode::get_input(StringRef identifier)
+GPUNodeStack &ShaderNode::get_output(const StringRef identifier)
 {
-  return inputs_[node_.input_by_identifier(identifier)->index()];
-}
-
-GPUNodeStack &ShaderNode::get_output(StringRef identifier)
-{
-  return outputs_[node_.output_by_identifier(identifier)->index()];
-}
-
-GPUNodeLink *ShaderNode::get_input_link(StringRef identifier)
-{
-  GPUNodeStack &input = get_input(identifier);
-  if (input.link) {
-    return input.link;
-  }
-  return GPU_uniform(input.vec);
-}
-
-const DNode &ShaderNode::node() const
-{
-  return node_;
-}
-
-const bNode &ShaderNode::bnode() const
-{
-  return *node_;
+  return get_shader_node_output(*node_, outputs_.data(), identifier);
 }
 
 static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)

@@ -4,7 +4,7 @@
 
 #include <atomic>
 
-#include "BKE_mesh.hh"
+#include "DNA_mesh_types.h"
 
 #include "node_geometry_util.hh"
 
@@ -126,8 +126,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_MESH_FACE_GROUP_BOUNDARIES, "Face Group Boundaries", NODE_CLASS_INPUT);
+      &ntype, "GeometryNodeMeshFaceSetBoundaries", GEO_NODE_MESH_FACE_GROUP_BOUNDARIES);
+  ntype.ui_name = "Face Group Boundaries";
+  ntype.ui_description =
+      "Find edges on the boundaries between groups of faces with the same ID value";
   ntype.enum_name_legacy = "MESH_FACE_SET_BOUNDARIES";
+  ntype.nclass = NODE_CLASS_INPUT;
   bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

@@ -149,7 +149,7 @@ ImBuf *imb_thumbnail_jpeg(const char *filepath,
 /** \name Format: BMP (#IMB_FTYPE_BMP)
  * \{ */
 
-bool imb_is_a_bmp(const unsigned char *buf, size_t size);
+bool imb_is_a_bmp(const unsigned char *mem, size_t size);
 ImBuf *imb_load_bmp(const unsigned char *mem,
                     size_t size,
                     int flags,
@@ -163,7 +163,7 @@ bool imb_save_bmp(ImBuf *ibuf, const char *filepath, int flags);
 /** \name Format: CINEON (#IMB_FTYPE_CINEON)
  * \{ */
 
-bool imb_is_a_cineon(const unsigned char *buf, size_t size);
+bool imb_is_a_cineon(const unsigned char *mem, size_t size);
 bool imb_save_cineon(ImBuf *buf, const char *filepath, int flags);
 ImBuf *imb_load_cineon(const unsigned char *mem,
                        size_t size,
@@ -176,7 +176,7 @@ ImBuf *imb_load_cineon(const unsigned char *mem,
 /** \name Format: DPX (#IMB_FTYPE_DPX)
  * \{ */
 
-bool imb_is_a_dpx(const unsigned char *buf, size_t size);
+bool imb_is_a_dpx(const unsigned char *mem, size_t size);
 bool imb_save_dpx(ImBuf *ibuf, const char *filepath, int flags);
 ImBuf *imb_load_dpx(const unsigned char *mem,
                     size_t size,
@@ -189,7 +189,7 @@ ImBuf *imb_load_dpx(const unsigned char *mem,
 /** \name Format: HDR (#IMB_FTYPE_RADHDR)
  * \{ */
 
-bool imb_is_a_hdr(const unsigned char *buf, size_t size);
+bool imb_is_a_hdr(const unsigned char *mem, size_t size);
 ImBuf *imb_load_hdr(const unsigned char *mem,
                     size_t size,
                     int flags,
@@ -202,7 +202,7 @@ bool imb_save_hdr(ImBuf *ibuf, const char *filepath, int flags);
 /** \name Format: TIFF (#IMB_FTYPE_TIF)
  * \{ */
 
-bool imb_is_a_tiff(const unsigned char *buf, size_t size);
+bool imb_is_a_tiff(const unsigned char *mem, size_t size);
 /**
  * Loads a TIFF file.
  * \param mem: Memory containing the TIFF file.
@@ -238,7 +238,7 @@ bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags);
 /** \name Format: WEBP (#IMB_FTYPE_WEBP)
  * \{ */
 
-bool imb_is_a_webp(const unsigned char *buf, size_t size);
+bool imb_is_a_webp(const unsigned char *mem, size_t size);
 ImBuf *imb_loadwebp(const unsigned char *mem,
                     size_t size,
                     int flags,
@@ -259,7 +259,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int flags);
 
 void imb_init_dds();
 
-bool imb_is_a_dds(const unsigned char *buf, size_t size);
+bool imb_is_a_dds(const unsigned char *mem, size_t size);
 
 ImBuf *imb_load_dds(const unsigned char *mem,
                     size_t size,
@@ -272,7 +272,7 @@ ImBuf *imb_load_dds(const unsigned char *mem,
 /** \name Format: PSD (#IMB_FTYPE_PSD)
  * \{ */
 
-bool imb_is_a_psd(const unsigned char *buf, size_t size);
+bool imb_is_a_psd(const unsigned char *mem, size_t size);
 
 ImBuf *imb_load_psd(const unsigned char *mem,
                     size_t size,

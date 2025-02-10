@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 #include "GPU_vertex_format.hh"
 
 extern PyTypeObject BPyGPUVertFormat_Type;

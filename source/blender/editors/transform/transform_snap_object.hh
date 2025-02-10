@@ -8,8 +8,15 @@
 
 #pragma once
 
+#include "DNA_scene_types.h"
+
+#include "BLI_kdopbvh.hh"
 #include "BLI_map.hh"
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "ED_transform_snap_object_context.hh"
 
 #define MAX_CLIPPLANE_LEN 6
 
@@ -17,11 +24,22 @@
   (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | \
    SCE_SNAP_TO_EDGE_PERPENDICULAR)
 
+struct BMEdge;
+struct BMFace;
+struct BMVert;
+struct Depsgraph;
+struct ID;
+struct ListBase;
+struct Object;
+struct RegionView3D;
+struct Scene;
+struct View3D;
+
 struct SnapObjectContext {
   Scene *scene;
 
   struct SnapCache {
-    virtual ~SnapCache(){};
+    virtual ~SnapCache() = default;
   };
   blender::Map<const ID *, std::unique_ptr<SnapCache>> editmesh_caches;
 
@@ -129,7 +147,6 @@ class SnapData {
   /* Read and write. */
   BVHTreeNearest nearest_point;
 
- public:
   /* Constructor. */
   SnapData(SnapObjectContext *sctx,
            const blender::float4x4 &obmat = blender::float4x4::identity());

@@ -10,6 +10,7 @@
 
 #include "tree_element.hh"
 
+struct Object;
 struct ParticleSystem;
 
 namespace blender::ed::outliner {

@@ -10,6 +10,7 @@
 #include <cfloat>
 #include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -24,6 +25,8 @@
 #include "BLI_asan.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_bits.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -47,6 +50,15 @@ static CLG_LogRef LOG = {"rna.define"};
 #else
 #  define ASSERT_SOFT_HARD_LIMITS (void)0
 #endif
+
+/**
+ * Several types cannot use all their bytes to store a bit-set (bit-shift operations on negative
+ * numbers are "arithmetic", i.e. preserve the sign, i.e. are not "pure" binary shifting).
+ *
+ * Currently, all signed types and `uint64_t` cannot use their left-most bit (i.e. sign bit).
+ */
+#define IS_DNATYPE_BOOLEAN_BITSHIFT_FULLRANGE_COMPAT(_str) \
+  STR_ELEM(_str, "char", "uchar", "ushort", "uint", "uint8_t", "uint16_t", "uint32_t")
 
 /* Global used during defining */
 
@@ -654,7 +666,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 static bool rna_range_from_int_type(const char *dnatype, int r_range[2])
 {
   /* Type `char` is unsigned too. */
-  if (STREQ(dnatype, "char") || STREQ(dnatype, "uchar")) {
+  if (STR_ELEM(dnatype, "char", "uchar")) {
     r_range[0] = CHAR_MIN;
     r_range[1] = CHAR_MAX;
     return true;
@@ -1577,6 +1589,24 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
     return;
   }
 
+  /* For boolean arrays using bitflags, ensure that the DNA member is an array, and not a scalar
+   * value.
+   *
+   * NOTE: when using #RNA_def_property_boolean_bitset_array_sdna, #RNA_def_property_array will be
+   * called _before_ defining #dp->booleanbit, so this check won't be triggered. */
+  if (DefRNA.preprocess && DefRNA.verify && prop->type == PROP_BOOLEAN) {
+    PropertyDefRNA *dp = rna_find_struct_property_def(DefRNA.laststruct, prop);
+    if (dp && dp->booleanbit && dp->dnaarraylength < length) {
+      CLOG_ERROR(&LOG,
+                 "\"%s.%s\", cannot define a bitflags boolean array wrapping a scalar DNA member. "
+                 "`RNA_def_property_boolean_bitset_array_sdna` should be used instead.",
+                 srna->identifier,
+                 prop->identifier);
+      DefRNA.error = true;
+      return;
+    }
+  }
+
   switch (prop->type) {
     case PROP_BOOLEAN:
     case PROP_INT:
@@ -1707,7 +1737,7 @@ void RNA_def_property_ui_range(
       fprop->softmin = float(min);
       fprop->softmax = float(max);
       fprop->step = float(step);
-      fprop->precision = int(precision);
+      fprop->precision = precision;
       break;
     }
     default:
@@ -2310,10 +2340,12 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop,
   return dp;
 }
 
-void RNA_def_property_boolean_sdna(PropertyRNA *prop,
-                                   const char *structname,
-                                   const char *propname,
-                                   int64_t bit)
+static void rna_def_property_boolean_sdna(PropertyRNA *prop,
+                                          const char *structname,
+                                          const char *propname,
+                                          const int64_t booleanbit,
+                                          const bool booleannegative,
+                                          const int length)
 {
   PropertyDefRNA *dp;
   BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
@@ -2330,75 +2362,143 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop,
     return;
   }
 
-  if ((dp = rna_def_property_sdna(prop, structname, propname))) {
+  BLI_assert(length > 0);
 
-    if (!DefRNA.silent) {
-      /* Error check to ensure floats are not wrapped as integers/booleans. */
-      if (dp->dnatype && *dp->dnatype && IS_DNATYPE_BOOLEAN_COMPAT(dp->dnatype) == 0) {
+  /* In 'bitset array' case, ensure that the booleanbit value has a single bit enabled, and find
+   * its 'index'. */
+  uint bit_index = 0;
+  if (length > 1) {
+    if (booleanbit <= 0) {
+      CLOG_ERROR(&LOG,
+                 "%s.%s is using a null or negative 'booleanbit' value of %" PRId64
+                 ", which is invalid "
+                 "for 'bitset arrays' boolean properties.",
+                 srna->identifier,
+                 prop->identifier,
+                 booleanbit);
+      DefRNA.error = true;
+      return;
+    }
+
+    bit_index = bitscan_forward_uint64(*reinterpret_cast<const uint64_t *>(&booleanbit));
+    if ((booleanbit & ~(1 << bit_index)) != 0) {
+      CLOG_ERROR(&LOG,
+                 "%s.%s is using a multi-bit 'booleanbit' value of %" PRId64
+                 ", which is invalid for "
+                 "'bitset arrays' boolean properties.",
+                 srna->identifier,
+                 prop->identifier,
+                 booleanbit);
+      DefRNA.error = true;
+      return;
+    }
+  }
+
+  dp = rna_def_property_sdna(prop, structname, propname);
+  if (!dp) {
+    return;
+  }
+
+  if (!DefRNA.silent) {
+    /* Error check to ensure floats are not wrapped as integers/booleans. */
+    if (dp->dnatype && *dp->dnatype && IS_DNATYPE_BOOLEAN_COMPAT(dp->dnatype) == 0) {
+      CLOG_ERROR(&LOG,
+                 "%s.%s is a '%s' but wrapped as type '%s'.",
+                 srna->identifier,
+                 prop->identifier,
+                 dp->dnatype,
+                 RNA_property_typename(prop->type));
+      DefRNA.error = true;
+      return;
+    }
+  }
+
+  const bool is_bitset_array = (length > 1);
+  if (is_bitset_array) {
+    if (DefRNA.verify) {
+      const short max_length = (dp->dnasize * 8) -
+                               (IS_DNATYPE_BOOLEAN_BITSHIFT_FULLRANGE_COMPAT(dp->dnatype) ? 0 : 1);
+      if ((bit_index + length) > max_length) {
         CLOG_ERROR(&LOG,
-                   "%s.%s is a '%s' but wrapped as type '%s'.",
+                   "%s.%s is a '%s' of %d bytes, but wrapped as type '%s' 'bitset array' of %d "
+                   "items starting at bit %u.",
                    srna->identifier,
                    prop->identifier,
                    dp->dnatype,
-                   RNA_property_typename(prop->type));
+                   dp->dnasize,
+                   RNA_property_typename(prop->type),
+                   length,
+                   bit_index);
         DefRNA.error = true;
         return;
       }
     }
+    RNA_def_property_array(prop, length);
+  }
 
-    dp->booleanbit = bit;
+  /* NOTE: #dp->booleanbit must be defined _after_ calling #RNA_def_property_array when defining a
+   * 'bitset array'. */
+  dp->booleanbit = booleanbit;
+  dp->booleannegative = booleannegative;
 
 #ifndef RNA_RUNTIME
-    /* Set the default if possible. */
-    if (dp->dnaoffset != -1) {
-      int SDNAnr = DNA_struct_find_index_wrapper(DefRNA.sdna, dp->dnastructname);
-      if (SDNAnr != -1) {
-        const void *default_data = DNA_default_table[SDNAnr];
-        if (default_data) {
-          default_data = POINTER_OFFSET(default_data, dp->dnaoffset);
-          bool has_default = true;
-          if (prop->totarraylength > 0) {
-            has_default = false;
-            if (debugSRNA_defaults) {
-              fprintf(stderr, "%s default: unsupported boolean array default\n", __func__);
-            }
+  /* Set the default if possible. */
+  if (dp->dnaoffset != -1) {
+    int SDNAnr = DNA_struct_find_index_wrapper(DefRNA.sdna, dp->dnastructname);
+    if (SDNAnr != -1) {
+      const void *default_data = DNA_default_table[SDNAnr];
+      if (default_data) {
+        default_data = POINTER_OFFSET(default_data, dp->dnaoffset);
+        bool has_default = true;
+        if (prop->totarraylength > 0) {
+          has_default = false;
+          if (debugSRNA_defaults) {
+            fprintf(stderr, "%s default: unsupported boolean array default\n", __func__);
+          }
+        }
+        else {
+          if (STREQ(dp->dnatype, "char")) {
+            bprop->defaultvalue = *(const char *)default_data & booleanbit;
+          }
+          else if (STREQ(dp->dnatype, "short")) {
+            bprop->defaultvalue = *(const short *)default_data & booleanbit;
+          }
+          else if (STREQ(dp->dnatype, "int")) {
+            bprop->defaultvalue = *(const int *)default_data & booleanbit;
           }
           else {
-            if (STREQ(dp->dnatype, "char")) {
-              bprop->defaultvalue = *(const char *)default_data & bit;
+            has_default = false;
+            if (debugSRNA_defaults) {
+              fprintf(
+                  stderr, "%s default: unsupported boolean type (%s)\n", __func__, dp->dnatype);
             }
-            else if (STREQ(dp->dnatype, "short")) {
-              bprop->defaultvalue = *(const short *)default_data & bit;
-            }
-            else if (STREQ(dp->dnatype, "int")) {
-              bprop->defaultvalue = *(const int *)default_data & bit;
-            }
-            else {
-              has_default = false;
-              if (debugSRNA_defaults) {
-                fprintf(
-                    stderr, "%s default: unsupported boolean type (%s)\n", __func__, dp->dnatype);
-              }
+          }
+
+          if (has_default) {
+            if (dp->booleannegative) {
+              bprop->defaultvalue = !bprop->defaultvalue;
             }
 
-            if (has_default) {
-              if (dp->booleannegative) {
-                bprop->defaultvalue = !bprop->defaultvalue;
-              }
-
-              if (debugSRNA_defaults) {
-                fprintf(stderr, "value=%d, ", bprop->defaultvalue);
-                print_default_info(dp);
-              }
+            if (debugSRNA_defaults) {
+              fprintf(stderr, "value=%d, ", bprop->defaultvalue);
+              print_default_info(dp);
             }
           }
         }
       }
     }
-#else
-    UNUSED_VARS(bprop);
-#endif
   }
+#else
+  UNUSED_VARS(bprop);
+#endif
+}
+
+void RNA_def_property_boolean_sdna(PropertyRNA *prop,
+                                   const char *structname,
+                                   const char *propname,
+                                   int64_t booleanbit)
+{
+  rna_def_property_boolean_sdna(prop, structname, propname, booleanbit, false, 1);
 }
 
 void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop,
@@ -2406,15 +2506,16 @@ void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop,
                                             const char *propname,
                                             int64_t booleanbit)
 {
-  PropertyDefRNA *dp;
+  rna_def_property_boolean_sdna(prop, structname, propname, booleanbit, true, 1);
+}
 
-  RNA_def_property_boolean_sdna(prop, structname, propname, booleanbit);
-
-  dp = rna_find_struct_property_def(DefRNA.laststruct, prop);
-
-  if (dp) {
-    dp->booleannegative = true;
-  }
+void RNA_def_property_boolean_bitset_array_sdna(PropertyRNA *prop,
+                                                const char *structname,
+                                                const char *propname,
+                                                const int64_t booleanbit,
+                                                const int length)
+{
+  rna_def_property_boolean_sdna(prop, structname, propname, booleanbit, false, length);
 }
 
 void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname)

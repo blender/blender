@@ -19,8 +19,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "GPU_texture.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -72,7 +70,8 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
   if (node->id) {
     MovieClip *clip = (MovieClip *)node->id;
     uiLayout *col;
-    PointerRNA tracking_ptr = RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking);
+    PointerRNA tracking_ptr = RNA_pointer_create_discrete(
+        &clip->id, &RNA_MovieTracking, &clip->tracking);
 
     col = uiLayoutColumn(layout, true);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
@@ -169,8 +168,11 @@ void register_node_type_cmp_keyingscreen()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, "CompositorNodeKeyingScreen", CMP_NODE_KEYINGSCREEN);
+  ntype.ui_name = "Keying Screen";
+  ntype.ui_description = "Create plates for use as a color reference for keying nodes";
   ntype.enum_name_legacy = "KEYINGSCREEN";
+  ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_keyingscreen_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_keyingscreen;
   ntype.initfunc_api = file_ns::node_composit_init_keyingscreen;

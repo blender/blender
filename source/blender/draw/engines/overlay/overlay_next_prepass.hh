@@ -30,7 +30,7 @@ class ImagePrepass : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_image() && !res.is_selection();
+    enabled_ = state.is_space_image() && state.is_image_valid && !res.is_selection();
 
     if (!enabled_) {
       return;
@@ -72,7 +72,7 @@ class Prepass : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_v3d();
+    enabled_ = state.is_space_v3d() && (!state.xray_enabled || res.is_selection());
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -169,10 +169,19 @@ class Prepass : Overlay {
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
     ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
-    select::ID select_id = res.select_id(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
-      mesh_ps_->draw(batch.batch, handle, select_id.get());
+      select::ID select_id = use_material_slot_selection_ ?
+                                 res.select_id(ob_ref, (batch.material_slot + 1) << 16) :
+                                 res.select_id(ob_ref);
+
+      if (res.is_selection()) {
+        /* Conservative shader needs expanded draw-call. */
+        mesh_ps_->draw_expand(batch.batch, GPU_PRIM_TRIS, 1, 1, handle, select_id.get());
+      }
+      else {
+        mesh_ps_->draw(batch.batch, handle, select_id.get());
+      }
     }
   }
 
@@ -181,7 +190,11 @@ class Prepass : Overlay {
                    Resources &res,
                    const State &state) final
   {
-    if (!enabled_) {
+    bool is_solid = ob_ref.object->dt >= OB_SOLID ||
+                    (state.v3d->shading.type == OB_RENDER &&
+                     !(ob_ref.object->visibility_flag & OB_HIDE_CAMERA));
+
+    if (!enabled_ || !is_solid) {
       return;
     }
 
@@ -203,7 +216,7 @@ class Prepass : Overlay {
       case OB_MESH:
         if (use_material_slot_selection_) {
           /* TODO(fclem): Improve the API. */
-          const int materials_len = DRW_cache_object_material_count_get(ob_ref.object);
+          const int materials_len = BKE_object_material_used_with_fallback_eval(*ob_ref.object);
           Array<GPUMaterial *> materials(materials_len, nullptr);
           geom_list = DRW_cache_mesh_surface_shaded_get(ob_ref.object, materials);
         }
@@ -243,7 +256,7 @@ class Prepass : Overlay {
         pass = curves_ps_;
         break;
       case OB_GREASE_PENCIL:
-        if (!res.is_selection()) {
+        if (!res.is_selection() && state.is_render_depth_available) {
           /* Disable during display, only enable for selection.
            * The grease pencil engine already renders it properly. */
           return;

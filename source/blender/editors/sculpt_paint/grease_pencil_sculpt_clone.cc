@@ -17,6 +17,8 @@
 #include "grease_pencil_intern.hh"
 #include "paint_intern.hh"
 
+#include <numeric>
+
 namespace blender::ed::sculpt_paint::greasepencil {
 
 class CloneOperation : public GreasePencilStrokeOperationCommon {
@@ -47,18 +49,21 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
    * - Continuous: Create multiple copies during the stroke (disabled)
    *
    * Here we only have the GPv2 behavior that actually works for now. */
-  this->foreach_editable_drawing(
-      C, [&](const GreasePencilStrokeParams &params, const DeltaProjectionFunc &projection_fn) {
+  this->foreach_editable_drawing_with_automask(
+      C,
+      [&](const GreasePencilStrokeParams &params,
+          const IndexMask & /*point_mask*/,
+          const DeltaProjectionFunc &projection_fn) {
         /* Only insert on the active layer. */
         if (&params.layer != grease_pencil.get_active_layer()) {
           return false;
         }
 
-        /* TODO Could become a tool setting. */
+        /* TODO: Could become a tool setting. */
         const bool keep_world_transform = false;
-        const float4x4 clipboard_to_layer = math::invert(params.layer.to_world_space(object));
-        const IndexRange pasted_curves = ed::greasepencil::clipboard_paste_strokes(
-            bmain, object, params.drawing, clipboard_to_layer, keep_world_transform, false);
+        const float4x4 object_to_layer = math::invert(params.layer.to_object_space(object));
+        const IndexRange pasted_curves = ed::greasepencil::paste_all_strokes_from_clipboard(
+            bmain, object, object_to_layer, keep_world_transform, false, params.drawing);
         if (pasted_curves.is_empty()) {
           return false;
         }

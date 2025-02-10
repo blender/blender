@@ -6,10 +6,6 @@
  * \ingroup modifiers
  */
 
-#include <cstdio>
-
-#include "BLI_utildefines.h"
-
 #include "BLT_translation.hh"
 
 #include "DNA_object_force_types.h"

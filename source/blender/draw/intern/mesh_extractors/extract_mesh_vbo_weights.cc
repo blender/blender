@@ -11,7 +11,6 @@
 #include "BLI_array_utils.hh"
 
 #include "BKE_deform.hh"
-#include "BKE_mesh.hh"
 
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"

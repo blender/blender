@@ -26,8 +26,6 @@
 
 #include "RNA_prototypes.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 

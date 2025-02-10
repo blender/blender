@@ -6,8 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include <climits>
-
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -257,9 +255,7 @@ class DefocusOperation : public NodeOperation {
     if (node_storage(bnode()).no_zbuf) {
       return compute_defocus_radius_from_scale();
     }
-    else {
-      return compute_defocus_radius_from_depth();
-    }
+    return compute_defocus_radius_from_depth();
   }
 
   Result compute_defocus_radius_from_scale()
@@ -516,7 +512,7 @@ class DefocusOperation : public NodeOperation {
   }
 
   /* Returns the f-stop number. Fallback to 1e-3 for zero f-stop. */
-  const float get_f_stop()
+  float get_f_stop()
   {
     return math::max(1e-3f, node_storage(bnode()).fstop);
   }
@@ -560,8 +556,11 @@ void register_node_type_cmp_defocus()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeDefocus", CMP_NODE_DEFOCUS);
+  ntype.ui_name = "Defocus";
+  ntype.ui_description = "Apply depth of field in 2D, using a Z depth map or mask";
   ntype.enum_name_legacy = "DEFOCUS";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_defocus_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_defocus;
   ntype.initfunc = file_ns::node_composit_init_defocus;

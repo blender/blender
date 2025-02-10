@@ -8,6 +8,8 @@
  * \ingroup pythonintern
  */
 
+#include <Python.h>
+
 struct AnimationEvalContext;
 struct ChannelDriver;
 struct DriverTarget;

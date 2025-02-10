@@ -13,7 +13,7 @@
 #include "BKE_gpencil_legacy.h"
 
 #include "BLI_link_utils.h"
-#include "BLI_memblock.h"
+#include "BLI_math_matrix.h"
 
 #include "DRW_render.hh"
 
@@ -281,7 +281,7 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
     grp.push_constant("targetPixelOffset", float2(ob_center));
     grp.push_constant("accumOffset", float2(pixel_size[0], 0.0f));
     int samp_count = (pixel_size[0] / vp_size_inv[0] > 3.0) ? 2 : 1;
-    grp.push_constant("sampCount", int(use_antialiasing ? samp_count : 0));
+    grp.push_constant("sampCount", (use_antialiasing ? samp_count : 0));
     grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
@@ -293,7 +293,7 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
     grp.push_constant("targetPixelSize", float2(pixsize_uniform));
     grp.push_constant("accumOffset", float2(0.0f, pixel_size[1]));
     int samp_count = (pixel_size[1] / vp_size_inv[1] > 3.0) ? 2 : 1;
-    grp.push_constant("sampCount", int(use_antialiasing ? samp_count : 0));
+    grp.push_constant("sampCount", (use_antialiasing ? samp_count : 0));
     grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }

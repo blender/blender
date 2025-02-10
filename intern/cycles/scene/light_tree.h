@@ -12,6 +12,7 @@
 #include "util/types.h"
 #include "util/vector.h"
 
+#include <atomic>
 #include <variant>
 
 CCL_NAMESPACE_BEGIN

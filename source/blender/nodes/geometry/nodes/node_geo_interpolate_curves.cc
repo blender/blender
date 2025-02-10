@@ -8,10 +8,13 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_length_parameterize.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_task.hh"
 
 #include "BKE_curves.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "GEO_randomize.hh"
 
@@ -871,9 +874,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_INTERPOLATE_CURVES, "Interpolate Curves", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeInterpolateCurves", GEO_NODE_INTERPOLATE_CURVES);
+  ntype.ui_name = "Interpolate Curves";
+  ntype.ui_description = "Generate new curves on points by interpolating between existing curves";
   ntype.enum_name_legacy = "INTERPOLATE_CURVES";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

@@ -11,6 +11,7 @@
 #include "kernel/closure/bsdf_phong_ramp.h"
 #include "kernel/closure/bsdf_diffuse_ramp.h"
 #include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/closure/bsdf_burley.h"
 #include "kernel/closure/bsdf_sheen.h"
 #include "kernel/closure/bsdf_transparent.h"
 #include "kernel/closure/bsdf_ray_portal.h"
@@ -139,6 +140,11 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *eta = 1.0f;
       break;
 #  ifdef __OSL__
+    case CLOSURE_BSDF_BURLEY_ID:
+      label = bsdf_burley_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
+      *sampled_roughness = one_float2();
+      *eta = 1.0f;
+      break;
     case CLOSURE_BSDF_PHONG_RAMP_ID:
       label = bsdf_phong_ramp_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf, sampled_roughness);
       *eta = 1.0f;
@@ -280,6 +286,10 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
       *eta = 1.0f;
       break;
 #  ifdef __OSL__
+    case CLOSURE_BSDF_BURLEY_ID:
+      *roughness = one_float2();
+      *eta = 1.0f;
+      break;
     case CLOSURE_BSDF_PHONG_RAMP_ID:
       alpha = phong_ramp_exponent_to_roughness(((const ccl_private PhongRampBsdf *)sc)->exponent);
       *roughness = make_float2(alpha, alpha);
@@ -383,6 +393,9 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
       label = LABEL_REFLECT | LABEL_DIFFUSE;
       break;
 #  ifdef __OSL__
+    case CLOSURE_BSDF_BURLEY_ID:
+      label = LABEL_REFLECT | LABEL_DIFFUSE;
+      break;
     case CLOSURE_BSDF_PHONG_RAMP_ID:
       label = LABEL_REFLECT | LABEL_GLOSSY;
       break;
@@ -487,6 +500,9 @@ ccl_device_inline
       eval = bsdf_oren_nayar_eval(sc, sd->wi, wo, pdf);
       break;
 #  ifdef __OSL__
+    case CLOSURE_BSDF_BURLEY_ID:
+      eval = bsdf_burley_eval(sc, sd->wi, wo, pdf);
+      break;
     case CLOSURE_BSDF_PHONG_RAMP_ID:
       eval = bsdf_phong_ramp_eval(sc, sd->wi, wo, pdf);
       break;

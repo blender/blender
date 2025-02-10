@@ -13,6 +13,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
+#include "BLI_hash.hh"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -33,6 +34,14 @@
 
 #include "rna_access_internal.hh"
 #include "rna_internal.hh"
+
+int64_t RNAPath::hash() const
+{
+  if (key.has_value()) {
+    return blender::get_default_hash(path, key.value());
+  }
+  return blender::get_default_hash(path, index.value_or(0));
+};
 
 bool operator==(const RNAPath &left, const RNAPath &right)
 {
@@ -729,7 +738,7 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
   if (UNLIKELY(rna_path[0] == '\0')) {
     return nullptr;
   }
-  size_t rna_path_len = size_t(strlen(rna_path)) - 1;
+  size_t rna_path_len = strlen(rna_path) - 1;
   if (rna_path[rna_path_len] != ']') {
     return nullptr;
   }
@@ -1337,7 +1346,7 @@ std::optional<std::string> RNA_path_struct_property_py(PointerRNA *ptr,
   }
 
   if ((index == -1) || (RNA_property_array_check(prop) == false)) {
-    return *data_path;
+    return data_path;
   }
   return fmt::format("{}[{}]", data_path.value_or(""), index);
 }

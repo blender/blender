@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -176,8 +175,12 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_AXES_TO_ROTATION, "Axes to Rotation", NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeAxesToRotation", FN_NODE_AXES_TO_ROTATION);
+  ntype.ui_name = "Axes to Rotation";
+  ntype.ui_description =
+      "Create a rotation from a primary and (ideally orthogonal) secondary axis";
   ntype.enum_name_legacy = "AXES_TO_ROTATION";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.build_multi_function = node_build_multi_function;

@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "select_lib.glsl"
 
 vec4 color_from_id(float color_id)
@@ -47,7 +48,7 @@ void main()
   ls_cell_location = ls_cell_location * 2.0 - 1.0;
 
   vec3 ws_cell_location = (model_mat * vec4(ls_cell_location, 1.0)).xyz;
-  gl_Position = point_world_to_ndc(ws_cell_location);
+  gl_Position = drw_point_world_to_homogenous(ws_cell_location);
   gl_PointSize = sizeVertex * 2.0;
 
   finalColor = color_from_id(color_id);

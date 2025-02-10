@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "BLI_math_vector.hh"
 
-#include "BKE_mesh.hh"
+#include "DNA_mesh_types.h"
 
 #include "node_geometry_util.hh"
 
@@ -64,12 +66,8 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
 
       for (const int vert : corner_verts.slice(face)) {
         float dot = math::dot(reference_normal, positions[vert]);
-        if (dot > max) {
-          max = dot;
-        }
-        if (dot < min) {
-          min = dot;
-        }
+        max = std::max(dot, max);
+        min = std::min(dot, min);
       }
       return max - min < thresholds[i] / 2.0f;
     };
@@ -112,8 +110,13 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, "Is Face Planar", NODE_CLASS_INPUT);
+      &ntype, "GeometryNodeInputMeshFaceIsPlanar", GEO_NODE_INPUT_MESH_FACE_IS_PLANAR);
+  ntype.ui_name = "Is Face Planar";
+  ntype.ui_description =
+      "Retrieve whether all triangles in a face are on the same plane, i.e. whether they have the "
+      "same normal";
   ntype.enum_name_legacy = "MESH_FACE_IS_PLANAR";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = geo_node_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

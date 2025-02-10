@@ -63,7 +63,7 @@ bool AssetCatalogTreeItem::has_children() const
 void AssetCatalogTreeItem::foreach_item_recursive(const AssetCatalogTreeItem::ChildMap &children,
                                                   const ItemIterFn callback)
 {
-  for (auto &[key, item] : children) {
+  for (const auto &[key, item] : children) {
     callback(item);
     foreach_item_recursive(item.children_, callback);
   }
@@ -71,7 +71,7 @@ void AssetCatalogTreeItem::foreach_item_recursive(const AssetCatalogTreeItem::Ch
 
 void AssetCatalogTreeItem::foreach_child(const ItemIterFn callback) const
 {
-  for (auto &[key, item] : children_) {
+  for (const auto &[key, item] : children_) {
     callback(item);
   }
 }
@@ -122,7 +122,7 @@ void AssetCatalogTree::foreach_item(AssetCatalogTreeItem::ItemIterFn callback) c
 
 void AssetCatalogTree::foreach_root_item(const ItemIterFn callback) const
 {
-  for (auto &[key, item] : root_items_) {
+  for (const auto &[key, item] : root_items_) {
     callback(item);
   }
 }

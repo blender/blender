@@ -6,7 +6,6 @@
 
 #include "BLI_function_ref.hh"
 
-#include "spreadsheet_column.hh"
 #include "spreadsheet_column_values.hh"
 
 namespace blender::ed::spreadsheet {

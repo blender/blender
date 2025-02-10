@@ -13,7 +13,6 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_sys_types.h"
 
 struct BMEditMesh;
 struct BPoint;

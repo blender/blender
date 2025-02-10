@@ -50,8 +50,8 @@ list(GET OPENPGL_INSTALLED_VCTOOLS -1 OPENPGL_VCTOOLS_VERSION)
 
 # Configure our in file and temporarily store it in the build dir
 # (with modified extension so nothing else picks it up)
-# This feels icky, but boost does something similar, and we haven't called
-# `ExternalProject_Add` yet, so the OpenPGL dir does not yet exist.
+# This feels icky, but we haven't called `ExternalProject_Add` yet,
+# so the OpenPGL dir does not yet exist.
 configure_file(
   ${PATCH_DIR}/openpgl_Directory.Build.Props.in
   ${BUILD_DIR}/openpgl_Directory.Build.Props_temp

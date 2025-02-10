@@ -19,6 +19,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
 #include "eevee_instance.hh"

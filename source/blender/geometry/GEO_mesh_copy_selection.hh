@@ -6,7 +6,7 @@
 
 #include <optional>
 
-#include "BLI_index_mask.hh"
+#include "BLI_virtual_array.hh"
 
 #include "BKE_attribute_filter.hh"
 

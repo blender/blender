@@ -18,7 +18,6 @@
 
 #include "RNA_access.hh"
 
-#include "GPU_immediate.hh"
 #include "GPU_viewport.hh"
 
 #include "ED_sequencer.hh"
@@ -83,7 +82,7 @@ struct SeqChannelDrawContext {
 };
 
 struct StripDrawContext {
-  Strip *seq;
+  Strip *strip;
   const FCurve *curve = nullptr; /* Curve for overlay, if any (blend factor or volume). */
 
   /* Strip boundary in timeline space. Content start/end is clamped by left/right handle. */
@@ -140,15 +139,15 @@ void sequencer_draw_preview(const bContext *C,
 bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene);
 int sequencer_draw_get_transform_preview_frame(Scene *scene);
 
-void sequencer_special_update_set(Strip *seq);
+void sequencer_special_update_set(Strip *strip);
 /* Get handle width in 2d-View space. */
-float sequence_handle_size_get_clamped(const Scene *scene, Strip *seq, float pixelx);
+float strip_handle_draw_size_get(const Scene *scene, Strip *strip, float pixelx);
 
 /* UNUSED */
 /* void seq_reset_imageofs(SpaceSeq *sseq); */
 
 /**
- * Rendering using opengl will change the current viewport/context.
+ * Rendering using the GPU will change the current viewport/context.
  * This is why we need the \a region, to set back the render area.
  *
  * TODO: do not rely on such hack and just update the \a ibuf outside of
@@ -174,15 +173,15 @@ void channel_draw_context_init(const bContext *C,
 
 /* `sequencer_edit.cc` */
 
-void seq_rectf(const Scene *scene, const Strip *seq, rctf *r_rect);
+void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect);
 Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel);
-void recurs_sel_seq(Strip *seq_meta);
-int seq_effect_find_selected(Scene *scene,
-                             Strip *activeseq,
-                             int type,
-                             Strip **r_selseq1,
-                             Strip **r_selseq2,
-                             const char **r_error_str);
+void recurs_sel_seq(Strip *strip_meta);
+bool strip_effect_get_new_inputs(Scene *scene,
+                                 bool ignore_active,
+                                 int num_inputs,
+                                 Strip **r_seq1,
+                                 Strip **r_seq2,
+                                 const char **r_error_str);
 
 /* Operator helpers. */
 bool sequencer_edit_poll(bContext *C);
@@ -277,11 +276,8 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot);
 void SEQUENCER_OT_select_box(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
-Strip *find_nearest_seq(const Scene *scene,
-                        const View2D *v2d,
-                        const int mval[2],
-                        eSeqHandle *r_hand);
-bool seq_point_image_isect(const Scene *scene, const Strip *seq, float point_view[2]);
+
+bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
 
 /* `sequencer_add.cc` */
 
@@ -334,7 +330,7 @@ void SEQUENCER_OT_rename_channel(wmOperatorType *ot);
 
 /* `sequencer_preview.cc` */
 
-void sequencer_preview_add_sound(const bContext *C, const Strip *seq);
+void sequencer_preview_add_sound(const bContext *C, const Strip *strip);
 
 /* `sequencer_add.cc` */
 
@@ -373,13 +369,13 @@ void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
                                   blender::Span<StripDrawContext> strips);
 void sequencer_retiming_speed_draw(const TimelineDrawContext *timeline_ctx,
                                    const StripDrawContext &strip_ctx);
-void realize_fake_keys(const Scene *scene, Strip *seq);
-SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Strip *seq, const int mval[2]);
+void realize_fake_keys(const Scene *scene, Strip *strip);
+SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Strip *strip, const int mval[2]);
 SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Strip **r_seq);
-int left_fake_key_frame_get(const bContext *C, const Strip *seq);
-int right_fake_key_frame_get(const bContext *C, const Strip *seq);
+int left_fake_key_frame_get(const bContext *C, const Strip *strip);
+int right_fake_key_frame_get(const bContext *C, const Strip *strip);
 bool retiming_keys_can_be_displayed(const SpaceSeq *sseq);
-rctf seq_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Strip *seq);
+rctf strip_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Strip *strip);
 
 /* `sequencer_text_edit.cc` */
 bool sequencer_text_editing_active_poll(bContext *C);
@@ -394,8 +390,8 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot);
-blender::int2 seq_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
-blender::IndexRange seq_text_selection_range_get(const TextVars *data);
+blender::int2 strip_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
+blender::IndexRange strip_text_selection_range_get(const TextVars *data);
 
 /* `sequencer_timeline_draw.cc` */
 blender::Vector<Strip *> sequencer_visible_strips_get(const bContext *C);

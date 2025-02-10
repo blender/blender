@@ -6,7 +6,6 @@
  * \ingroup spscript
  */
 
-#include <cmath>
 #include <cstdlib>
 
 #include "WM_api.hh"

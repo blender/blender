@@ -20,7 +20,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLT_translation.hh"
 
@@ -93,7 +93,7 @@ void read_influence_data(BlendDataReader *reader,
 
 void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
-  PointerRNA ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
+  PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   const bool use_layer_pass = RNA_boolean_get(ptr, "use_layer_pass_filter");
   uiLayout *row, *col, *sub, *subsub;
@@ -125,7 +125,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
 
 void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
-  PointerRNA ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
+  PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   const bool use_material_pass = RNA_boolean_get(ptr, "use_material_pass_filter");
   uiLayout *row, *col, *sub, *subsub;
@@ -152,7 +152,7 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
 
 void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
-  PointerRNA ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
+  PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group_name") != 0;
   uiLayout *row, *col, *sub;
 
@@ -191,9 +191,9 @@ static Vector<int> get_grease_pencil_material_passes(const Object *ob)
 {
   short *totcol = BKE_object_material_len_p(const_cast<Object *>(ob));
   Vector<int> result(*totcol, 0);
-  Material *ma = nullptr;
   for (short i = 0; i < *totcol; i++) {
-    if ((ma = BKE_object_material_get(const_cast<Object *>(ob), i + 1))) {
+    const Material *ma = BKE_object_material_get(const_cast<Object *>(ob), i + 1);
+    if (ma) {
       /* Pass index of the grease pencil material. */
       result[i] = ma->gp_style->index;
     }
@@ -323,8 +323,21 @@ VArray<float> get_influence_vertex_weights(const bke::CurvesGeometry &curves,
     return VArray<float>::ForSingle(1.0f, curves.point_num);
   }
   /* Vertex group weights, with zero weight as fallback. */
-  return *curves.attributes().lookup_or_default<float>(
+  VArray<float> influence_weights = *curves.attributes().lookup_or_default<float>(
       influence_data.vertex_group_name, bke::AttrDomain::Point, 0.0f);
+
+  if (influence_data.flag & GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP) {
+    Array<float> influence_weights_inverted(influence_weights.size());
+    threading::parallel_for(
+        influence_weights_inverted.index_range(), 8192, [&](const IndexRange range) {
+          for (const int i : range) {
+            influence_weights_inverted[i] = 1.0f - influence_weights[i];
+          }
+        });
+    return VArray<float>::ForContainer(influence_weights_inverted);
+  }
+
+  return influence_weights;
 }
 
 Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease_pencil,

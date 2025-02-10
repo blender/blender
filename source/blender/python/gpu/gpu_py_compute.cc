@@ -11,8 +11,6 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
-
 #include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
 #include "GPU_state.hh"

@@ -15,6 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
@@ -104,7 +105,7 @@ static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmGizmoGroupType 
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_VIEWER)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_VIEWER)) {
       return true;
     }
   }
@@ -150,7 +151,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *
     /* Need to set property here for undo. TODO: would prefer to do this in _init. */
     SpaceNode *snode = CTX_wm_space_node(C);
 #if 0
-    PointerRNA nodeptr = RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode);
+    PointerRNA nodeptr = RNA_pointer_create_discrete(snode->id, &RNA_SpaceNodeEditor, snode);
     WM_gizmo_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
     WM_gizmo_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 #endif
@@ -301,7 +302,7 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_CROP)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_CROP)) {
       /* ignore 'use_crop_size', we can't usefully edit the crop in this case. */
       if ((node->custom1 & (1 << 0)) == 0) {
         return true;
@@ -359,7 +360,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
     bNode *node = bke::node_get_active(snode->edittree);
 
     crop_group->update_data.context = (bContext *)C;
-    crop_group->update_data.ptr = RNA_pointer_create(
+    crop_group->update_data.ptr = RNA_pointer_create_discrete(
         (ID *)snode->edittree, &RNA_CompositorNodeCrop, node);
     crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr,
                                                             "relative");
@@ -418,7 +419,7 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_SUNBEAMS)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_SUNBEAMS)) {
       return true;
     }
   }
@@ -472,7 +473,7 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
     bNode *node = bke::node_get_active(snode->edittree);
 
     /* Need to set property here for undo. TODO: would prefer to do this in _init. */
-    PointerRNA nodeptr = RNA_pointer_create(
+    PointerRNA nodeptr = RNA_pointer_create_discrete(
         (ID *)snode->edittree, &RNA_CompositorNodeSunBeams, node);
     WM_gizmo_target_property_def_rna(gz, "offset", &nodeptr, "source", -1);
 
@@ -525,7 +526,7 @@ static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmGizmoGroupType
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_CORNERPIN)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_CORNERPIN)) {
       return true;
     }
   }
@@ -591,7 +592,8 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
       if (sock->type == SOCK_VECTOR) {
         wmGizmo *gz = cpin_group->gizmos[i++];
 
-        PointerRNA sockptr = RNA_pointer_create((ID *)snode->edittree, &RNA_NodeSocket, sock);
+        PointerRNA sockptr = RNA_pointer_create_discrete(
+            (ID *)snode->edittree, &RNA_NodeSocket, sock);
         WM_gizmo_target_property_def_rna(gz, "offset", &sockptr, "default_value", -1);
 
         WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);

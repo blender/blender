@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+struct StructRNA;
+
 PyObject *BPY_rna_props();
 /**
  * Run this on exit, clearing all Python callback users and disable the RNA callback,

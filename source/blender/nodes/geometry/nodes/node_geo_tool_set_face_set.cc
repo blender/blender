@@ -2,9 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.hh"
-
-#include "UI_resources.hh"
+#include "DNA_mesh_types.h"
 
 #include "node_geometry_util.hh"
 
@@ -56,8 +54,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_TOOL_SET_FACE_SET, "Set Face Set", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeToolSetFaceSet", GEO_NODE_TOOL_SET_FACE_SET);
+  ntype.ui_name = "Set Face Set";
+  ntype.ui_description = "Set sculpt face set values for faces";
   ntype.enum_name_legacy = "TOOL_SET_FACE_SET";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_tool_node;

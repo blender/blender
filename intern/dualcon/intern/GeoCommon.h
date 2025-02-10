@@ -17,28 +17,28 @@
  */
 
 // 3d point with integer coordinates
-typedef struct {
+struct Point3i {
   int x, y, z;
-} Point3i;
+};
 
-typedef struct {
+struct BoundingBox {
   Point3i begin;
   Point3i end;
-} BoundingBox;
+};
 
 // triangle that points to three vertices
-typedef struct {
+struct Triangle {
   float vt[3][3];
-} Triangle;
+};
 
 // 3d point with float coordinates
-typedef struct {
+struct Point3f {
   float x, y, z;
-} Point3f;
+};
 
-typedef struct {
+struct BoundingBoxf {
   Point3f begin;
   Point3f end;
-} BoundingBoxf;
+};
 
 #endif /* __GEOCOMMON_H__ */

@@ -33,7 +33,7 @@ set(SRC_GLSL_COMP
 )
 
 # Compile shaders with shader code.
-if (WITH_GPU_SHADER_CPP_COMPILATION)
+if(WITH_GPU_SHADER_CPP_COMPILATION)
   with_shader_cpp_compilation_config()
   # TODO Remove
   add_definitions(-DUSE_GPU_SHADER_CREATE_INFO)

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "BLI_string_ref.hh"
@@ -81,31 +82,33 @@ class AttributeOwner {
  * Create a new attribute layer.
  */
 struct CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
-                                          const char *name,
+                                          blender::StringRef name,
                                           eCustomDataType type,
                                           blender::bke::AttrDomain domain,
                                           struct ReportList *reports);
-bool BKE_attribute_remove(AttributeOwner &owner, const char *name, struct ReportList *reports);
+bool BKE_attribute_remove(AttributeOwner &owner,
+                          blender::StringRef name,
+                          struct ReportList *reports);
 
 /**
  * Creates a duplicate attribute layer.
  */
 struct CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
-                                                const char *name,
+                                                blender::StringRef name,
                                                 struct ReportList *reports);
 
 struct CustomDataLayer *BKE_attribute_find(const AttributeOwner &owner,
-                                           const char *name,
+                                           blender::StringRef name,
                                            eCustomDataType type,
                                            blender::bke::AttrDomain domain);
 
 const struct CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
-                                                   const char *name,
+                                                   blender::StringRef name,
                                                    eCustomDataMask type,
                                                    AttrDomainMask domain_mask);
 
 struct CustomDataLayer *BKE_attribute_search_for_write(AttributeOwner &owner,
-                                                       const char *name,
+                                                       blender::StringRef name,
                                                        eCustomDataMask type,
                                                        AttrDomainMask domain_mask);
 
@@ -113,10 +116,10 @@ blender::bke::AttrDomain BKE_attribute_domain(const AttributeOwner &owner,
                                               const struct CustomDataLayer *layer);
 int BKE_attribute_domain_size(const AttributeOwner &owner, int domain);
 int BKE_attribute_data_length(AttributeOwner &owner, struct CustomDataLayer *layer);
-bool BKE_attribute_required(const AttributeOwner &owner, const char *name);
+bool BKE_attribute_required(const AttributeOwner &owner, blender::StringRef name);
 bool BKE_attribute_rename(AttributeOwner &owner,
-                          const char *old_name,
-                          const char *new_name,
+                          blender::StringRef old_name,
+                          blender::StringRef new_name,
                           struct ReportList *reports);
 
 int BKE_attributes_length(const AttributeOwner &owner,
@@ -124,7 +127,7 @@ int BKE_attributes_length(const AttributeOwner &owner,
                           eCustomDataMask mask);
 
 struct CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner);
-void BKE_attributes_active_set(AttributeOwner &owner, const char *name);
+void BKE_attributes_active_set(AttributeOwner &owner, blender::StringRef name);
 void BKE_attributes_active_clear(AttributeOwner &owner);
 int *BKE_attributes_active_index_p(AttributeOwner &owner);
 
@@ -141,18 +144,22 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
                            AttrDomainMask domain_mask,
                            eCustomDataMask layer_mask);
 
-const char *BKE_id_attributes_active_color_name(const struct ID *id);
-const char *BKE_id_attributes_default_color_name(const struct ID *id);
-void BKE_id_attributes_active_color_set(struct ID *id, const char *name);
+std::optional<blender::StringRef> BKE_id_attributes_active_color_name(const struct ID *id);
+std::optional<blender::StringRef> BKE_id_attributes_default_color_name(const struct ID *id);
+void BKE_id_attributes_active_color_set(struct ID *id, std::optional<blender::StringRef> name);
 void BKE_id_attributes_active_color_clear(struct ID *id);
-void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
+void BKE_id_attributes_default_color_set(struct ID *id, std::optional<blender::StringRef> name);
 
-const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
+const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id,
+                                                           blender::StringRef name);
 bool BKE_color_attribute_supported(const struct Mesh &mesh, const blender::StringRef name);
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner,
                                            const blender::StringRef name);
 
-const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer);
-const char *BKE_uv_map_edge_select_name_get(const char *uv_map_name, char *buffer);
-const char *BKE_uv_map_pin_name_get(const char *uv_map_name, char *buffer);
+[[nodiscard]] blender::StringRef BKE_uv_map_vert_select_name_get(blender::StringRef uv_map_name,
+                                                                 char *buffer);
+[[nodiscard]] blender::StringRef BKE_uv_map_edge_select_name_get(blender::StringRef uv_map_name,
+                                                                 char *buffer);
+[[nodiscard]] blender::StringRef BKE_uv_map_pin_name_get(blender::StringRef uv_map_name,
+                                                         char *buffer);

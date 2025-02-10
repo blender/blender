@@ -9,11 +9,9 @@
 
 #pragma once
 
-#include "RE_engine.h"
-
-#include "BKE_curves.hh"
-
 #include "BLI_index_mask.hh"
+
+#include "transform.hh"
 
 struct BMEditMesh;
 struct BMesh;
@@ -28,6 +26,9 @@ struct Strip;
 
 namespace blender::bke::crazyspace {
 struct GeometryDeformation;
+}
+namespace blender::bke {
+class CurvesGeometry;
 }
 
 struct TransConvertTypeInfo {
@@ -193,7 +194,7 @@ void curve_populate_trans_data_structs(
     const blender::float4x4 &transform,
     const blender::bke::crazyspace::GeometryDeformation &deformation,
     std::optional<blender::MutableSpan<float>> value_attribute,
-    const blender::Span<blender::IndexMask> points_to_transform_indices,
+    const blender::Span<blender::IndexMask> points_to_transform_per_attr,
     const blender::IndexMask &affected_curves,
     bool use_connected_only,
     const blender::IndexMask &bezier_curves,

@@ -6,13 +6,10 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_base.h"
 #include "BLI_math_vector_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
-
-#include "GPU_shader.hh"
 
 #include "COM_bokeh_kernel.hh"
 #include "COM_node_operation.hh"
@@ -107,8 +104,11 @@ void register_node_type_cmp_bokehimage()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeBokehImage", CMP_NODE_BOKEHIMAGE);
+  ntype.ui_name = "Bokeh Image";
+  ntype.ui_description = "Generate image with bokeh shape for use with the Bokeh Blur filter node";
   ntype.enum_name_legacy = "BOKEHIMAGE";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_bokehimage_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_bokehimage;
   ntype.flag |= NODE_PREVIEW;

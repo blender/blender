@@ -8,7 +8,6 @@
 
 #include "BLI_math_vector.h"
 #include "node_texture_util.hh"
-#include <cmath>
 
 static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_VECTOR, N_("Coordinate 1"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE},
@@ -45,8 +44,10 @@ void register_node_type_tex_distance()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_DISTANCE, "Distance", NODE_CLASS_CONVERTER);
+  tex_node_type_base(&ntype, "TextureNodeDistance", TEX_NODE_DISTANCE);
+  ntype.ui_name = "Distance";
   ntype.enum_name_legacy = "DISTANCE";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 

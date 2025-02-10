@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
+
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
@@ -304,7 +306,7 @@ void SnapData::register_result(SnapObjectContext *sctx,
 
 void SnapData::register_result(SnapObjectContext *sctx, const Object *ob_eval, const ID *id_eval)
 {
-  this->register_result(sctx, ob_eval, id_eval, this->obmat_, &this->nearest_point);
+  register_result(sctx, ob_eval, id_eval, this->obmat_, &this->nearest_point);
 }
 
 void SnapData::register_result_raycast(SnapObjectContext *sctx,
@@ -325,9 +327,7 @@ void SnapData::register_result_raycast(SnapObjectContext *sctx,
     sctx->ret.obmat = obmat;
     sctx->ret.ob = ob_eval;
     sctx->ret.data = id_eval;
-    if (hit->dist <= sctx->ret.ray_depth_max) {
-      sctx->ret.ray_depth_max = hit->dist;
-    }
+    sctx->ret.ray_depth_max = std::min(hit->dist, sctx->ret.ray_depth_max);
 
     if (is_in_front) {
       sctx->runtime.occlusion_plane_in_front = occlusion_plane_create(

@@ -14,7 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
@@ -268,7 +268,7 @@ static void wm_jobs_update_progress_bars(wmWindowManager *wm)
 
   /* If there are running jobs, set the global progress indicator. */
   if (jobs_progress > 0) {
-    float progress = total_progress / float(jobs_progress);
+    float progress = total_progress / jobs_progress;
 
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WM_progress_set(win, progress);

@@ -23,7 +23,7 @@ class USDPointsWriter final : public USDAbstractWriter {
   ~USDPointsWriter() final = default;
 
  protected:
-  virtual void do_write(HierarchyContext &context) override;
+  void do_write(HierarchyContext &context) override;
 
  private:
   void write_generic_data(const bke::AttributeIter &attr,
@@ -37,8 +37,6 @@ class USDPointsWriter final : public USDAbstractWriter {
   void write_velocities(const PointCloud *points,
                         const pxr::UsdGeomPoints &usd_points,
                         pxr::UsdTimeCode timecode);
-
-  void set_extents(const pxr::UsdPrim &prim, pxr::UsdTimeCode timecode);
 };
 
 }  // namespace blender::io::usd

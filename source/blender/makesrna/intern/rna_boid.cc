@@ -7,15 +7,9 @@
  */
 
 #include <cfloat>
-#include <climits>
 #include <cstdlib>
 
 #include "DNA_boid_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -103,6 +97,7 @@ static const EnumPropertyItem boidruleset_type_items[] = {
 #  include <fmt/format.h>
 
 #  include "BLI_math_base.h"
+#  include "BLI_string.h"
 
 #  include "BKE_context.hh"
 #  include "BKE_particle.h"
@@ -180,10 +175,10 @@ static PointerRNA rna_BoidState_active_boid_rule_get(PointerRNA *ptr)
 
   for (; rule; rule = rule->next) {
     if (rule->flag & BOIDRULE_CURRENT) {
-      return rna_pointer_inherit_refine(ptr, &RNA_BoidRule, rule);
+      return RNA_pointer_create_with_parent(*ptr, &RNA_BoidRule, rule);
     }
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_BoidRule, nullptr);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_BoidRule, nullptr);
 }
 static void rna_BoidState_active_boid_rule_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
@@ -251,10 +246,10 @@ static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)
 
   for (; state; state = state->next) {
     if (state->flag & BOIDSTATE_CURRENT) {
-      return rna_pointer_inherit_refine(ptr, &RNA_BoidState, state);
+      return RNA_pointer_create_with_parent(*ptr, &RNA_BoidState, state);
     }
   }
-  return rna_pointer_inherit_refine(ptr, &RNA_BoidState, nullptr);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_BoidState, nullptr);
 }
 static void rna_BoidSettings_active_boid_state_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)

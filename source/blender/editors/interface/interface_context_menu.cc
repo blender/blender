@@ -12,7 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_fileops.h"
@@ -22,7 +21,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_addon.h"
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_screen.hh"
@@ -183,7 +181,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 
   BLI_assert(kmi != nullptr);
 
-  PointerRNA ptr = RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi);
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_func_handle_set(block, but_shortcut_name_func, but);
@@ -244,7 +242,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
   km = WM_keymap_guess_opname(C, idname);
   kmi = WM_keymap_item_find_id(km, kmi_id);
 
-  PointerRNA ptr = RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi);
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_func_handle_set(block, but_shortcut_name_func, but);
@@ -419,7 +417,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
           }
         }
 #else
-        STRNCPY(drawstr, idname);
+        drawstr = idname;
 #endif
       }
       else if (but->tip_label_func) {
@@ -1433,7 +1431,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
     return;
   }
 
-  PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_Panel, panel);
+  PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Panel, panel);
 
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);

@@ -180,7 +180,7 @@ static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
     };
 
     Scene *scene = CTX_data_scene(C);
-    PointerRNA toolsettings_ptr = RNA_pointer_create(
+    PointerRNA toolsettings_ptr = RNA_pointer_create_discrete(
         &scene->id, &RNA_ToolSettings, scene->toolsettings);
 
     for (int i = 0; i < ARRAY_SIZE(props); i++) {

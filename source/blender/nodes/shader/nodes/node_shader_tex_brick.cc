@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
@@ -206,7 +208,7 @@ class BrickFunction : public mf::MultiFunction {
 
     const float tint = clamp_f(
         brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias, 0.0f, 1.0f);
-    float min_dist = std::min(std::min(x, y), std::min(brick_width - x, row_height - y));
+    float min_dist = std::min({x, y, brick_width - x, row_height - y});
 
     float mortar;
     if (min_dist >= mortar_size) {
@@ -299,8 +301,11 @@ void register_node_type_sh_tex_brick()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE);
+  sh_fn_node_type_base(&ntype, "ShaderNodeTexBrick", SH_NODE_TEX_BRICK);
+  ntype.ui_name = "Brick Texture";
+  ntype.ui_description = "Generate a procedural texture producing bricks";
   ntype.enum_name_legacy = "TEX_BRICK";
+  ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_brick_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_brick;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

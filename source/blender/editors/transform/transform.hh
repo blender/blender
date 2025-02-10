@@ -15,8 +15,6 @@
 #include "ED_view3d.hh"
 
 #include "DNA_listBase.h"
-#include "DNA_object_enums.h"
-#include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -258,6 +256,7 @@ enum eTHelpline {
   HLP_VARROW = 4,
   HLP_CARROW = 5,
   HLP_TRACKBALL = 6,
+  HLP_ERROR = 7,
 };
 
 enum eTOType {
@@ -959,6 +958,7 @@ enum MouseInputMode {
   INPUT_VERTICAL_ABSOLUTE,
   INPUT_CUSTOM_RATIO,
   INPUT_CUSTOM_RATIO_FLIP,
+  INPUT_ERROR,
 };
 
 void initMouseInput(TransInfo *t,

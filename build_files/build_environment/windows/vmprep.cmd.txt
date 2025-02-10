@@ -1,0 +1,146 @@
+@echo off
+REM  ###########################################################################
+REM  #
+REM  # Note: This file has a .txt extention so it cannot be directly run from a 
+REM  # blender source clone, it is meant to run on a clean windows install and
+REM  # nothing else. DO NOT REMOVE THE .TXT extention. See instructions below on
+REM  # how to execute this script. 
+REM  #
+REM  ###########################################################################
+
+echo ###########################################################################
+echo #
+echo # This sets up a Virtual Machine for building the blender dependencies, No 
+echo # additional software nor a clone of the blender repository is required 
+echo # before running this script. A Clean installation of Windows will suffice. 
+echo # Obtain this script on the VM by running from an *administrator* command 
+echo # prompt : 
+echo # 
+echo # curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/vmprep.cmd.txt -o %USERPROFILE%/vmprep.cmd
+echo # 
+echo # Then run it using %USERPROFILE%/vmprep.cmd
+echo # 
+echo # This will install :
+echo # - Visual Studio 2019 16.11.26 Buildtools with the required workloads in 
+echo #   the c:\vs2019bt\ folder         
+echo # - Meson 1.6.0 
+echo # - Visual Studio 2010 X64 redist (required for the yaml binary) 
+echo # - Git 2.38.0
+echo # - CMake 3.24.2
+echo # - Cuda 12.8.0
+echo # - HIP 5.7.1
+echo #
+echo # Additionally this will also create and populate the following folders :
+echo #
+echo # - C:\install\    - This is a temporary folder with installation files 
+echo #                    needed by this script.
+echo # - C:\t\          - This is a temporary folder for the python dependencies
+echo #                    to build in, as they would have build issues if the 
+echo #                    default user profile path is used as it is too long. 
+echo # - c:\blendergit\blender 
+echo #                  - This is the blender source repository
+echo # - c:\db          - This is the build folder for the dependencies 
+echo #                    it has a short name to sidestep any long path issues.
+echo ###########################################################################
+echo #
+echo # Since this will download and install a whole bunch of stuff the following
+echo # disclamer is seemingly required:
+echo # 
+echo # *WARNING WARNING WARNING*
+echo # *WARNING WARNING WARNING*
+echo # 
+echo # DO NOT RUN THIS ON ANYTHING BUT A CLEAN WINDOWS INSTALL, IF YOU DO, AND IT
+echo # MESSES UP YOUR WORKSTATION, THATS ON YOU...
+echo # 
+echo # *WARNING WARNING WARNING*
+echo # *WARNING WARNING WARNING*
+echo #
+echo # hit ctrl-break right now to abort.. last chance
+echo #
+pause 
+
+echo create install folder
+mkdir c:\install
+
+echo create shortly named temp folder
+mkdir C:\t
+
+echo Obtaining Visual Studio build tools installer
+curl https://download.visualstudio.microsoft.com/download/pr/48ee919d-ab7d-45bc-a595-a2262643c3bc/295fdfc1de25116a75b2d6e0944284f2f79c0778ffab798ae9db35d187e8ab99/vs_BuildTools.exe -o c:\install\vs_BuildTools.exe
+echo Obtaining Visual studio blender installer configuration 
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/vsconfig_2019 -o c:\install\.vsconfig_2019
+echo Installing Visual Studio 2019 Build tools 
+c:\install\vs_BuildTools.exe --wait --passive --installPath c:\vs2019bt\ --config c:\install\.vsconfig_2019
+
+echo Obtaining git
+curl -L https://github.com/git-for-windows/git/releases/download/v2.38.0.windows.1/Git-2.38.0-64-bit.exe -o c:\install\Git-2.38.0-64-bit.exe
+echo Installing git
+start /wait c:\install\Git-2.38.0-64-bit.exe /silent
+
+echo Obtaining CMake
+curl -L https://github.com/Kitware/CMake/releases/download/v3.24.2/cmake-3.24.2-windows-x86_64.msi -o c:\install\cmake-3.24.2-windows-x86_64.msi
+echo Installing cmake 
+start /wait msiexec /passive /ic:\install\cmake-3.24.2-windows-x86_64.msi ADD_CMAKE_TO_PATH="System"
+
+echo Obtaining meson 
+curl -L https://github.com/mesonbuild/meson/releases/download/1.6.0/meson-1.6.0-64.msi -o c:\install\meson-1.6.0-64.msi
+echo Installing meson
+start /wait msiexec /passive /i	c:\install\meson-1.6.0-64.msi
+
+echo Obtaining Visual studio 2010 x64 redist
+curl https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe  -o c:\install\vcredist_x64.exe
+echo Installing Visual studio 2010 x64 redist
+start /wait c:\install\vcredist_x64.exe /passive /norestart
+
+echo Obtaining cuda 12.8.0
+curl https://developer.download.nvidia.com/compute/cuda/12.8.0/local_installers/cuda_12.8.0_571.96_windows.exe  -o c:\install\cuda_12.8.0_571.96_windows.exe
+echo Installing  cuda 12.8.0
+echo *********************************************************************
+echo ** CUDA is a bit of a pain to install due to it lacking features   **
+echo ** for unattended installs, the installer should have just started **
+echo ** manually install it to c:\tools\cuda\12.8.0\ this HAS to be the **
+echo ** place, don't use anything else, This folder has been created    **
+echo ** so you should be able to just browse to it in the installer     **
+echo *********************************************************************
+mkdir c:\tools\cuda\12.8.0\
+start /wait c:\install\cuda_12.8.0_571.96_windows.exe
+
+echo Obtaining Hip SDK 5.7.1
+curl https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe  -o c:\install\AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe
+echo Installing Hip SDK 5.7.1
+REM this will exit anhow, so adding /wait doesn't do anything, so there's a manual pause later on
+mkdir C:\tools\rocm
+start c:\install\AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe 
+
+echo *********************************************************************
+echo ** HIP is a bit of a pain to install due to it lacking features    **
+echo ** for unattended installs, the installer should have just started **
+echo ** manually install it to C:\tools\rocm this HAS to be the place   **
+echo ** don't use anything else, This folder has been created           **
+echo ** so you should be able to just browse to it in the installer     **
+echo *********************************************************************
+pause 
+
+echo Cloning Blender repository
+mkdir c:\blendergit
+cd c:\blendergit
+REM Git won't be in the path yet, use full path 
+"C:\Program Files\Git\cmd\git.exe" clone https://projects.blender.org/blender/blender.git
+
+mkdir c:\db
+echo Obtaining vmbuild.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/vmbuild.cmd.txt -o c:\db\vmbuild.cmd
+echo Obtaining nuke.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke.cmd -o c:\db\nuke.cmd
+echo Obtaining nuke_python.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke_python.cmd -o c:\db\nuke_python.cmd
+echo Obtaining nuke_embree.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke_embree.cmd -o c:\db\nuke_embree.cmd
+echo Obtaining nuke_shaderc.cmd
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/nuke_shaderc.cmd -o c:\db\nuke_shaderc.cmd
+
+echo *******************************************************************
+echo ** Environment variables have changed, please close this console **
+echo ** open "x64 Native Tools Command Prompt for VS 2019" and run    **
+echo ** "cd c:\db && vmbuild.cmd" to start a build.                   **
+echo *******************************************************************

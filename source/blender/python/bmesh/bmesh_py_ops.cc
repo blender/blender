@@ -12,7 +12,6 @@
 #include <Python.h>
 
 #include "BLI_dynstr.h"
-#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 

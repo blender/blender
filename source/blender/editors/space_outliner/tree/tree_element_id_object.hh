@@ -10,6 +10,8 @@
 
 #include "tree_element_id.hh"
 
+struct Object;
+
 namespace blender::ed::outliner {
 
 class TreeElementIDObject final : public TreeElementID {
@@ -18,7 +20,7 @@ class TreeElementIDObject final : public TreeElementID {
  public:
   TreeElementIDObject(TreeElement &legacy_te, Object &object);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_data() const;

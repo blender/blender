@@ -13,7 +13,6 @@
 #include <cstdlib>
 
 #include "BLI_stack.h"
-#include "BLI_utildefines.h"
 
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"
@@ -166,8 +165,8 @@ void solve_cycles(CyclesSolverState *state)
         OperationNode *to = (OperationNode *)rel->to;
         eCyclicCheckVisitedState to_state = get_node_visited_state(to);
         if (to_state == NODE_IN_STACK) {
-          string cycle_str = "  " + to->full_identifier() + " depends on\n  " +
-                             node->full_identifier() + " via '" + rel->name + "'\n";
+          std::string cycle_str = "  " + to->full_identifier() + " depends on\n  " +
+                                  node->full_identifier() + " via '" + rel->name + "'\n";
           StackEntry *current = entry;
           while (current->node != to) {
             BLI_assert(current != nullptr);

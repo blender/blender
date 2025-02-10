@@ -6,7 +6,8 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_vector.hh"
+#include <algorithm>
+
 #include "BLI_task.hh"
 
 #include "DNA_sequence_types.h"
@@ -218,12 +219,8 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
         temp3 = temp1 - widthf * (1 - fac);
         temp4 = temp1 + widthf * fac;
       }
-      if (temp3 < 0) {
-        temp3 = 0;
-      }
-      if (temp4 > 2.0f * float(M_PI)) {
-        temp4 = 2.0f * float(M_PI);
-      }
+      temp3 = std::max<float>(temp3, 0);
+      temp4 = std::min(temp4, 2.0f * float(M_PI));
 
       if (temp2 < temp3) {
         output = 0;
@@ -285,13 +282,13 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
   return output;
 }
 
-static void init_wipe_effect(Strip *seq)
+static void init_wipe_effect(Strip *strip)
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
+  if (strip->effectdata) {
+    MEM_freeN(strip->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
+  strip->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
 }
 
 static int num_inputs_wipe()
@@ -299,9 +296,9 @@ static int num_inputs_wipe()
   return 2;
 }
 
-static void free_wipe_effect(Strip *seq, const bool /*do_id_user*/)
+static void free_wipe_effect(Strip *strip, const bool /*do_id_user*/)
 {
-  MEM_SAFE_FREE(seq->effectdata);
+  MEM_SAFE_FREE(strip->effectdata);
 }
 
 static void copy_wipe_effect(Strip *dst, const Strip *src, const int /*flag*/)
@@ -311,10 +308,10 @@ static void copy_wipe_effect(Strip *dst, const Strip *src, const int /*flag*/)
 
 template<typename T>
 static void do_wipe_effect(
-    const Strip *seq, float fac, int width, int height, const T *rect1, const T *rect2, T *out)
+    const Strip *strip, float fac, int width, int height, const T *rect1, const T *rect2, T *out)
 {
   using namespace blender;
-  const WipeVars *wipe = (const WipeVars *)seq->effectdata;
+  const WipeVars *wipe = (const WipeVars *)strip->effectdata;
   const WipeZone wipezone = precalc_wipe_zone(wipe, width, height);
 
   threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
@@ -357,7 +354,7 @@ static void do_wipe_effect(
 }
 
 static ImBuf *do_wipe_effect(const SeqRenderData *context,
-                             Strip *seq,
+                             Strip *strip,
                              float /*timeline_frame*/,
                              float fac,
                              ImBuf *ibuf1,
@@ -366,7 +363,7 @@ static ImBuf *do_wipe_effect(const SeqRenderData *context,
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2);
 
   if (out->float_buffer.data) {
-    do_wipe_effect(seq,
+    do_wipe_effect(strip,
                    fac,
                    context->rectx,
                    context->recty,
@@ -375,7 +372,7 @@ static ImBuf *do_wipe_effect(const SeqRenderData *context,
                    out->float_buffer.data);
   }
   else {
-    do_wipe_effect(seq,
+    do_wipe_effect(strip,
                    fac,
                    context->rectx,
                    context->recty,

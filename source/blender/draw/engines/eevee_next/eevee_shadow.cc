@@ -8,14 +8,14 @@
  * The shadow module manages shadow update tagging & shadow rendering.
  */
 
-#include "BKE_global.hh"
 #include "BLI_math_matrix.hh"
 #include "GPU_compute.hh"
 
 #include "eevee_instance.hh"
 
+#include "draw_cache.hh"
 #include "draw_debug.hh"
-#include <iostream>
+#include "draw_manager_profiling.hh"
 
 namespace blender::eevee {
 

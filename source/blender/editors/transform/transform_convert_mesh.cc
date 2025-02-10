@@ -18,7 +18,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
-#include "BLI_utildefines_stack.h"
 
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
@@ -861,18 +860,10 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
       }
 
       if (data.axismtx) {
-        if (createSpaceNormalTangent(data.axismtx[i], no, tangent)) {
-          /* Pass. */
-        }
-        else {
-          if (normalize_v3(no) != 0.0f) {
-            axis_dominant_v3_to_m3(data.axismtx[i], no);
-            invert_m3(data.axismtx[i]);
-          }
-          else {
-            unit_m3(data.axismtx[i]);
-          }
-        }
+        normalize_v3(no);
+        normalize_v3(tangent);
+
+        createSpaceNormalTangent_or_fallback(data.axismtx[i], no, tangent);
       }
     }
 
@@ -2348,7 +2339,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
   /* Alloc and initialize the #TransDataEdgeSlideVert. */
 
   Array<TransDataEdgeSlideVert> r_sv(td_selected_len);
-  TransDataEdgeSlideVert *sv = &r_sv[0];
+  TransDataEdgeSlideVert *sv = r_sv.data();
   int sv_index = 0;
   td = tc->data;
   for (int i = 0; i < tc->data_len; i++, td++) {

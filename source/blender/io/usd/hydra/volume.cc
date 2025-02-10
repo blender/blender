@@ -9,7 +9,7 @@
 #include <pxr/usd/usdVol/tokens.h>
 #include <pxr/usdImaging/usdVolImaging/tokens.h>
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_volume.hh"
 #include "BLI_index_range.hh"
 #include "DNA_volume_types.h"

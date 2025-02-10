@@ -26,4 +26,4 @@ SeqRenderData *seq_prefetch_get_original_context(const SeqRenderData *context);
 /**
  * For cache context swapping.
  */
-Strip *seq_prefetch_get_original_sequence(Strip *seq, Scene *scene);
+Strip *seq_prefetch_get_original_sequence(Strip *strip, Scene *scene);

@@ -22,7 +22,7 @@ set(SRC
   py_capi_rna.cc
   py_capi_utils.cc
 
-  bgl.h
+  bgl.hh
   bl_math_py_api.hh
   blf_py_api.hh
   idprop_py_api.hh

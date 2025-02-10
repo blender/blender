@@ -56,6 +56,7 @@ class Armatures : Overlay {
     PassSimple::Sub *shape_outline = nullptr;
     /* Custom bone wire-frame. */
     PassSimple::Sub *shape_wire = nullptr;
+    PassSimple::Sub *shape_wire_strip = nullptr;
     /* Envelopes. */
     PassSimple::Sub *envelope_fill = nullptr;
     PassSimple::Sub *envelope_outline = nullptr;
@@ -102,6 +103,7 @@ class Armatures : Overlay {
     Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_fill;
     Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_outline;
     Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire;
+    Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire_strip;
 
     BoneInstanceBuf &custom_shape_fill_get_buffer(gpu::Batch *geom)
     {
@@ -119,6 +121,11 @@ class Armatures : Overlay {
 
     BoneInstanceBuf &custom_shape_wire_get_buffer(gpu::Batch *geom)
     {
+      if (geom->prim_type == GPU_PRIM_LINE_STRIP) {
+        return *custom_shape_wire_strip.lookup_or_add_cb(geom, [this]() {
+          return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWireStrip");
+        });
+      }
       return *custom_shape_wire.lookup_or_add_cb(geom, [this]() {
         return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWire");
       });
@@ -281,6 +288,7 @@ class Armatures : Overlay {
         sub.shader_set(res.shaders.armature_shape_wire.get());
         sub.push_constant("alpha", 1.0f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
         opaque_.shape_wire = &sub;
       }
       if (use_wire_alpha) {
@@ -290,10 +298,34 @@ class Armatures : Overlay {
         sub.bind_texture("depthTex", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
         transparent_.shape_wire = &sub;
       }
       else {
         transparent_.shape_wire = opaque_.shape_wire;
+      }
+
+      {
+        auto &sub = armature_ps_.sub("opaque.shape_wire_strip");
+        sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
+        sub.shader_set(res.shaders.armature_shape_wire_strip.get());
+        sub.push_constant("alpha", 1.0f);
+        sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
+        opaque_.shape_wire_strip = &sub;
+      }
+      if (use_wire_alpha) {
+        auto &sub = armature_ps_.sub("transparent.shape_wire_strip");
+        sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
+        sub.shader_set(res.shaders.armature_shape_wire_strip.get());
+        sub.bind_texture("depthTex", depth_tex);
+        sub.push_constant("alpha", wire_alpha * 0.6f);
+        sub.push_constant("do_smooth_wire", do_smooth_wire);
+        sub.push_constant("use_arrow_drawing", false);
+        transparent_.shape_wire_strip = &sub;
+      }
+      else {
+        transparent_.shape_wire_strip = opaque_.shape_wire_strip;
       }
     }
     /* Degrees of freedom. */
@@ -427,6 +459,7 @@ class Armatures : Overlay {
       bb.custom_shape_fill.clear();
       bb.custom_shape_outline.clear();
       bb.custom_shape_wire.clear();
+      bb.custom_shape_wire_strip.clear();
     };
 
     shape_instance_bufs_begin_sync(transparent_);
@@ -564,6 +597,7 @@ class Armatures : Overlay {
 
       using CustomShapeBuf = MutableMapItem<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>>;
 
+      gpu::Batch *arrow_batch = res.shapes.arrows.get();
       for (CustomShapeBuf item : bb.custom_shape_fill.items()) {
         item.value->end_sync(*bb.shape_fill, item.key);
       }
@@ -571,7 +605,22 @@ class Armatures : Overlay {
         item.value->end_sync(*bb.shape_outline, item.key, GPU_PRIM_LINES, 1);
       }
       for (CustomShapeBuf item : bb.custom_shape_wire.items()) {
+        /* WORKAROUND: This shape needs a special vertex shader path that should be triggered by
+         * its `vclass` attribute. However, to avoid many changes in the primitive expansion API,
+         * we create a specific path inside the shader only for this shape batch and infer the
+         * value of the `vclass` attribute based on the vertex index. */
+        if (item.key == arrow_batch) {
+          bb.shape_wire->push_constant("use_arrow_drawing", true);
+        }
+
         item.value->end_sync(*bb.shape_wire, item.key, GPU_PRIM_TRIS, 2);
+
+        if (item.key == arrow_batch) {
+          bb.shape_wire->push_constant("use_arrow_drawing", false);
+        }
+      }
+      for (CustomShapeBuf item : bb.custom_shape_wire_strip.items()) {
+        item.value->end_sync(*bb.shape_wire_strip, item.key, GPU_PRIM_TRIS, 2);
       }
     };
 
@@ -590,7 +639,6 @@ class Armatures : Overlay {
   }
 
   /* Public for the time of the Overlay Next port to avoid duplicated logic. */
- public:
   static void draw_armature_pose(Armatures::DrawContext *ctx);
   static void draw_armature_edit(Armatures::DrawContext *ctx);
 

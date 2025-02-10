@@ -14,9 +14,11 @@ from bpy.app.translations import contexts as i18n_contexts
 
 
 def _lang_module_get(sc):
-    return __import__("console_" + sc.language,
-                      # for python 3.3, maybe a bug???
-                      level=0)
+    return __import__(
+        "console_" + sc.language,
+        # for python 3.3, maybe a bug???
+        level=0,
+    )
 
 
 class ConsoleExec(Operator):

@@ -8,9 +8,14 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_curve_types.h"
+
+#include "IO_orientation.hh"
+
+struct OBJExportParams;
 
 namespace blender::io::obj {
 

@@ -7,7 +7,11 @@
 #include <cstdint>
 #include <string>
 
+#include "BLI_map.hh"
+
 #include "COM_cached_resource.hh"
+
+struct GPUShader;
 
 namespace blender::compositor {
 

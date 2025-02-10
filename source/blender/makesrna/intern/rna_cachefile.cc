@@ -11,7 +11,6 @@
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -25,9 +24,11 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_string.h"
+#  include "BLI_math_base.h"
 
 #  include "BKE_cachefile.hh"
+#  include "BKE_context.hh"
+#  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -64,14 +65,14 @@ static void rna_CacheFile_dependency_update(Main *bmain, Scene *scene, PointerRN
 static void rna_CacheFile_object_paths_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   CacheFile *cache_file = (CacheFile *)ptr->data;
-  rna_iterator_listbase_begin(iter, &cache_file->object_paths, nullptr);
+  rna_iterator_listbase_begin(iter, ptr, &cache_file->object_paths, nullptr);
 }
 
 static PointerRNA rna_CacheFile_active_layer_get(PointerRNA *ptr)
 {
   CacheFile *cache_file = (CacheFile *)ptr->owner_id;
-  return rna_pointer_inherit_refine(
-      ptr, &RNA_CacheFileLayer, BKE_cachefile_get_active_layer(cache_file));
+  return RNA_pointer_create_with_parent(
+      *ptr, &RNA_CacheFileLayer, BKE_cachefile_get_active_layer(cache_file));
 }
 
 static void rna_CacheFile_active_layer_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)

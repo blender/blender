@@ -9,13 +9,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_ghash.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -73,7 +69,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "CLG_log.h"
 #include "bmesh.hh"
 
 #include <cmath>
@@ -102,36 +97,47 @@ static int set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  /* Only mesh geometry supports attributes properly. */
-  if (bke::object::pbvh_get(ob)->type() != bke::pbvh::Type::Mesh) {
-    return OPERATOR_CANCELLED;
-  }
-
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
-  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  attributes.remove(".sculpt_persistent_co");
-  attributes.remove(".sculpt_persistent_no");
-  attributes.remove(".sculpt_persistent_disp");
+  switch (bke::object::pbvh_get(ob)->type()) {
+    case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+      attributes.remove(".sculpt_persistent_co");
+      attributes.remove(".sculpt_persistent_no");
+      attributes.remove(".sculpt_persistent_disp");
 
-  const bke::AttributeReader positions = attributes.lookup<float3>("position");
-  if (positions.sharing_info && positions.varray.is_span()) {
-    attributes.add<float3>(".sculpt_persistent_co",
-                           bke::AttrDomain::Point,
-                           bke::AttributeInitShared(positions.varray.get_internal_span().data(),
-                                                    *positions.sharing_info));
-  }
-  else {
-    attributes.add<float3>(".sculpt_persistent_co",
-                           bke::AttrDomain::Point,
-                           bke::AttributeInitVArray(positions.varray));
-  }
+      const bke::AttributeReader positions = attributes.lookup<float3>("position");
+      if (positions.sharing_info && positions.varray.is_span()) {
+        attributes.add<float3>(
+            ".sculpt_persistent_co",
+            bke::AttrDomain::Point,
+            bke::AttributeInitShared(positions.varray.get_internal_span().data(),
+                                     *positions.sharing_info));
+      }
+      else {
+        attributes.add<float3>(".sculpt_persistent_co",
+                               bke::AttrDomain::Point,
+                               bke::AttributeInitVArray(positions.varray));
+      }
 
-  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(*depsgraph, ob);
-  attributes.add<float3>(".sculpt_persistent_no",
-                         bke::AttrDomain::Point,
-                         bke::AttributeInitVArray(VArray<float3>::ForSpan(vert_normals)));
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(*depsgraph, ob);
+      attributes.add<float3>(".sculpt_persistent_no",
+                             bke::AttrDomain::Point,
+                             bke::AttributeInitVArray(VArray<float3>::ForSpan(vert_normals)));
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
+      ss->sculpt_persistent_co = subdiv_ccg.positions;
+      ss->sculpt_persistent_no = subdiv_ccg.normals;
+      ss->sculpt_persistent_disp = {};
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      return OPERATOR_CANCELLED;
+    }
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -1278,7 +1284,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
       uiItemR(layout, op->ptr, "use_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
-        PointerRNA sculpt_ptr = RNA_pointer_create(&scene->id, &RNA_Sculpt, sd);
+        PointerRNA sculpt_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Sculpt, sd);
         uiTemplateCurveMapping(
             layout, &sculpt_ptr, "automasking_cavity_curve_op", 'v', false, false, false, false);
       }

@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_linklist.h"
-#include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
@@ -18,7 +17,7 @@
 #include "ED_grease_pencil.hh"
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 struct LineartBoundingArea;
 struct LineartEdge;

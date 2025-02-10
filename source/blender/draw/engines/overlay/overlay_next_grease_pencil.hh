@@ -9,14 +9,19 @@
 #pragma once
 
 #include "BLI_bounds.hh"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
+
+#include "DNA_material_types.h"
 
 #include "ED_grease_pencil.hh"
 
+#include "draw_cache.hh"
 #include "draw_manager_text.hh"
 
 #include "overlay_next_base.hh"

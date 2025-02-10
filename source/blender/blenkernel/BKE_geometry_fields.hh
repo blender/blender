@@ -10,6 +10,7 @@
  * Common field utilities and field definitions for geometry components.
  */
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_geometry_set.hh"
 
 #include "FN_field.hh"
@@ -126,7 +127,7 @@ class GreasePencilLayerFieldContext : public fn::FieldContext {
 
   GVArray get_varray_for_input(const fn::FieldInput &field_input,
                                const IndexMask &mask,
-                               ResourceScope &scope) const;
+                               ResourceScope &scope) const override;
 };
 
 class InstancesFieldContext : public fn::FieldContext {
@@ -375,11 +376,17 @@ class IDAttributeFieldInput : public GeometryFieldInput {
 
 VArray<float3> curve_normals_varray(const CurvesGeometry &curves, AttrDomain domain);
 
-VArray<float3> mesh_normals_varray(const Mesh &mesh, const IndexMask &mask, AttrDomain domain);
+VArray<float3> mesh_normals_varray(const Mesh &mesh,
+                                   const IndexMask &mask,
+                                   AttrDomain domain,
+                                   bool no_corner_normals = false);
 
 class NormalFieldInput : public GeometryFieldInput {
+  bool legacy_corner_normals_ = false;
+
  public:
-  NormalFieldInput() : GeometryFieldInput(CPPType::get<float3>())
+  NormalFieldInput(const bool legacy_corner_normals = false)
+      : GeometryFieldInput(CPPType::get<float3>()), legacy_corner_normals_(legacy_corner_normals)
   {
     category_ = Category::Generated;
   }

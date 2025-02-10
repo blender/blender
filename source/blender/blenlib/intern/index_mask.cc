@@ -4,7 +4,6 @@
 
 #include <fmt/format.h>
 #include <iostream>
-#include <mutex>
 
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
@@ -17,14 +16,13 @@
 #include "BLI_index_mask_expression.hh"
 #include "BLI_index_ranges_builder.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_bits.h"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_virtual_array.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::index_mask {
 
@@ -642,6 +640,19 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
       universe, GrainSize(512), memory, [&](const int64_t index) { return bools[index]; });
 }
 
+template<typename T>
+IndexMask IndexMask::from_ranges(OffsetIndices<T> offsets,
+                                 const IndexMask &mask,
+                                 IndexMaskMemory &memory)
+{
+  Vector<IndexMaskSegment, 16> segments;
+  mask.foreach_range([&](const IndexRange mask_range) {
+    const IndexRange range = offsets[mask_range];
+    index_range_to_mask_segments(range, segments);
+  });
+  return IndexMask::from_segments(segments, memory);
+}
+
 IndexMask IndexMask::from_union(const IndexMask &mask_a,
                                 const IndexMask &mask_b,
                                 IndexMaskMemory &memory)
@@ -1188,5 +1199,11 @@ template IndexMask IndexMask::from_indices(Span<int32_t>, IndexMaskMemory &);
 template IndexMask IndexMask::from_indices(Span<int64_t>, IndexMaskMemory &);
 template void IndexMask::to_indices(MutableSpan<int32_t>) const;
 template void IndexMask::to_indices(MutableSpan<int64_t>) const;
+template IndexMask IndexMask::from_ranges(OffsetIndices<int32_t>,
+                                          const IndexMask &,
+                                          IndexMaskMemory &);
+template IndexMask IndexMask::from_ranges(OffsetIndices<int64_t>,
+                                          const IndexMask &,
+                                          IndexMaskMemory &);
 
 }  // namespace blender::index_mask

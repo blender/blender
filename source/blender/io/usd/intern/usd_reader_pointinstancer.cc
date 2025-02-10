@@ -8,6 +8,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
@@ -246,7 +247,7 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
                      group_output,
                      static_cast<bNodeSocket *>(group_output->inputs.first));
 
-  BKE_ntree_update_main_tree(bmain, ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
 
   BKE_object_modifier_set_active(object_, md);
 
@@ -298,7 +299,7 @@ void USDPointInstancerReader::set_collection(Main *bmain, Collection &coll)
   if (socket_data->value != &coll) {
     socket_data->value = &coll;
     BKE_ntree_update_tag_socket_property(ntree, sock);
-    BKE_ntree_update_main_tree(bmain, ntree, nullptr);
+    BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
   }
 }
 

@@ -3,10 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "../eevee_next/eevee_lut.hh" /* TODO: find somewhere to share blue noise Table. */
+
 #include "BKE_studiolight.h"
+
+#include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+
 #include "IMB_imbuf_types.hh"
 
+#include "draw_common_c.hh"
 #include "workbench_private.hh"
 
 namespace blender::workbench {

@@ -8,7 +8,7 @@ if "%BUILD_WITH_SCCACHE%"=="1" (
 )
 
 if "%WITH_CLANG%"=="1" (
-	set CLANG_CMAKE_ARGS=-T"ClangCl"
+	set CLANG_CMAKE_ARGS=-T"ClangCl" -DWITH_WINDOWS_EXTERNAL_MANIFEST=ON 
 )
 
 if "%WITH_ASAN%"=="1" (

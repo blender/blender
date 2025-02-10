@@ -22,7 +22,7 @@ class GHOST_SystemPaths : public GHOST_ISystemPaths {
    * Destructor.
    * Protected default constructor to force use of static dispose member.
    */
-  virtual ~GHOST_SystemPaths() {}
+  ~GHOST_SystemPaths() override = default;
 
  public:
   /**
@@ -30,23 +30,23 @@ class GHOST_SystemPaths : public GHOST_ISystemPaths {
    * "unpack and run" path, then look for properly installed path, including versioning.
    * \return Unsigned char string pointing to system directory (eg `/usr/share/blender/`).
    */
-  virtual const char *getSystemDir(int version, const char *versionstr) const = 0;
+  const char *getSystemDir(int version, const char *versionstr) const override = 0;
 
   /**
    * Determine the base directory in which user configuration is stored, including versioning.
    * If needed, it will create the base directory.
    * \return Unsigned char string pointing to user directory (eg `~/.blender/`).
    */
-  virtual const char *getUserDir(int version, const char *versionstr) const = 0;
+  const char *getUserDir(int version, const char *versionstr) const override = 0;
 
   /**
    * Determine the directory of the current binary.
    * \return Unsigned char string pointing to the binary directory.
    */
-  virtual const char *getBinaryDir() const = 0;
+  const char *getBinaryDir() const override = 0;
 
   /**
    * Add the file to the operating system most recently used files
    */
-  virtual void addToSystemRecentFiles(const char *filepath) const = 0;
+  void addToSystemRecentFiles(const char *filepath) const override = 0;
 };

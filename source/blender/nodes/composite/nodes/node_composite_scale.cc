@@ -23,7 +23,6 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
-#include "COM_algorithm_transform.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -37,6 +36,7 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
       .compositor_domain_priority(0);
   b.add_input<decl::Float>("X")
       .default_value(1.0f)
@@ -99,16 +99,18 @@ class ScaleOperation : public NodeOperation {
 
   void execute_constant_size()
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
 
-    const float2 scale = get_scale();
+    const float2 scale = this->get_scale();
     const math::AngleRadian rotation = 0.0f;
-    const float2 translation = get_translation();
+    const float2 translation = this->get_translation();
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
-    transform(context(), input, output, transformation, input.get_realization_options());
+    input.pass_through(output);
+    output.transform(transformation);
+    output.get_realization_options().interpolation = input.get_realization_options().interpolation;
   }
 
   void execute_variable_size()
@@ -317,8 +319,11 @@ void register_node_type_cmp_scale()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SCALE, "Scale", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeScale", CMP_NODE_SCALE);
+  ntype.ui_name = "Scale";
+  ntype.ui_description = "Change the size of the image";
   ntype.enum_name_legacy = "SCALE";
+  ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_scale_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_scale;
   ntype.updatefunc = file_ns::node_composite_update_scale;

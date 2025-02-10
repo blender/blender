@@ -9,6 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_span.hh"
 
 #include "DNA_defaults.h"
@@ -334,7 +335,6 @@ static void panel_draw(const bContext *C, Panel *panel)
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
   }
 
   modifier_panel_end(layout, ptr);

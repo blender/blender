@@ -20,7 +20,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
@@ -168,8 +168,6 @@ static void modify_stroke_color(Object &ob,
                                 const MutableSpan<ColorGeometry4f> vertex_colors)
 {
   const bool use_weight_as_factor = (tmd.flag & MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR);
-  const bool invert_vertex_group = (tmd.influence.flag &
-                                    GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP);
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
 
   bke::AttributeAccessor attributes = curves.attributes();
@@ -187,11 +185,11 @@ static void modify_stroke_color(Object &ob,
   };
 
   auto get_point_factor = [&](const int64_t point_i) {
+    const float weight = vgroup_weights[point_i];
     if (use_weight_as_factor) {
-      const float weight = vgroup_weights[point_i];
-      return invert_vertex_group ? 1.0f - weight : weight;
+      return weight;
     }
-    return tmd.factor;
+    return tmd.factor * weight;
   };
 
   const GreasePencilTintModifierMode tint_mode = GreasePencilTintModifierMode(tmd.tint_mode);
@@ -244,8 +242,6 @@ static void modify_fill_color(Object &ob,
                               const IndexMask &curves_mask)
 {
   const bool use_weight_as_factor = (tmd.flag & MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR);
-  const bool invert_vertex_group = (tmd.influence.flag &
-                                    GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP);
   const bke::CurvesGeometry &curves = drawing.strokes();
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   const GreasePencilTintModifierMode tint_mode = GreasePencilTintModifierMode(tmd.tint_mode);
@@ -272,13 +268,17 @@ static void modify_fill_color(Object &ob,
   };
 
   auto get_curve_factor = [&](const int64_t curve_i) {
-    if (use_weight_as_factor) {
-      /* Use the first stroke point as vertex weight. */
-      const IndexRange points = points_by_curve[curve_i];
-      const float weight = points.is_empty() ? 1.0f : vgroup_weights[points.first()];
-      return invert_vertex_group ? 1.0f - weight : weight;
+    /* Use the first stroke point as vertex weight. */
+    const IndexRange points = points_by_curve[curve_i];
+    const float vgroup_weight_first = vgroup_weights[points.first()];
+    float stroke_weight = vgroup_weight_first;
+    if (points.is_empty() || (stroke_weight <= 0.0f)) {
+      return 0.0f;
     }
-    return tmd.factor;
+    if (use_weight_as_factor) {
+      return stroke_weight;
+    }
+    return tmd.factor * stroke_weight;
   };
 
   switch (tint_mode) {

@@ -178,7 +178,7 @@ static void preview_endjob(void *data)
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
 
-void sequencer_preview_add_sound(const bContext *C, const Strip *seq)
+void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
 {
   wmJob *wm_job;
   PreviewJob *pj;
@@ -202,7 +202,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *seq)
       BLI_mutex_unlock(pj->mutex);
 
       /* Clear the sound loading tag to that it can be reattempted. */
-      clear_sound_waveform_loading_tag(seq->sound);
+      clear_sound_waveform_loading_tag(strip->sound);
       WM_event_add_notifier(C, NC_SCENE | ND_SPACE_SEQUENCER, CTX_data_scene(C));
       return;
     }
@@ -223,7 +223,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *seq)
 
   PreviewJobAudio *audiojob = MEM_cnew<PreviewJobAudio>("preview_audio");
   audiojob->bmain = CTX_data_main(C);
-  audiojob->sound = seq->sound;
+  audiojob->sound = strip->sound;
 
   BLI_addtail(&pj->previews, audiojob);
   pj->total++;

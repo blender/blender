@@ -13,8 +13,6 @@
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_euler.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -24,6 +22,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_node_tree_update.hh"
@@ -37,8 +36,6 @@
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
-#include "NOD_socket_declarations.hh"
-#include "NOD_socket_declarations_geometry.hh"
 
 using namespace blender;
 using blender::bke::SocketValueVariant;
@@ -328,7 +325,7 @@ static const char *get_current_socket_identifier_for_future_socket(
     const bNodeSocket &socket,
     const Span<const SocketDeclaration *> socket_decls)
 {
-  switch (node.type) {
+  switch (node.type_legacy) {
     case FN_NODE_RANDOM_VALUE: {
       return get_identifier_from_decl({"Min", "Max", "Value"}, socket, socket_decls);
     }
@@ -560,7 +557,7 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
     if (ntype->inputs && ntype->inputs[0].type >= 0) {
       verify_socket_template_list(ntree, node, SOCK_IN, &node->inputs, ntype->inputs);
     }
-    if (ntype->outputs && ntype->outputs[0].type >= 0 && node->type != CMP_NODE_R_LAYERS) {
+    if (ntype->outputs && ntype->outputs[0].type >= 0 && node->type_legacy != CMP_NODE_R_LAYERS) {
       verify_socket_template_list(ntree, node, SOCK_OUT, &node->outputs, ntype->outputs);
     }
   }
@@ -857,11 +854,11 @@ static bke::bNodeSocketType *make_standard_socket_type(int type, int subtype)
   bke::bNodeSocketType *stype;
   StructRNA *srna;
 
-  stype = MEM_cnew<bke::bNodeSocketType>("node socket C type");
-  stype->free_self = (void (*)(bke::bNodeSocketType *stype))MEM_freeN;
-  STRNCPY(stype->idname, socket_idname.c_str());
-  STRNCPY(stype->label, socket_label.c_str());
-  STRNCPY(stype->subtype_label, socket_subtype_label.c_str());
+  stype = MEM_new<bke::bNodeSocketType>(__func__);
+  stype->free_self = [](bke::bNodeSocketType *type) { MEM_delete(type); };
+  stype->idname = socket_idname;
+  stype->label = socket_label;
+  stype->subtype_label = socket_subtype_label;
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
@@ -901,9 +898,9 @@ static bke::bNodeSocketType *make_socket_type_virtual()
   bke::bNodeSocketType *stype;
   StructRNA *srna;
 
-  stype = MEM_cnew<bke::bNodeSocketType>("node socket C type");
-  stype->free_self = (void (*)(bke::bNodeSocketType *stype))MEM_freeN;
-  STRNCPY(stype->idname, socket_idname);
+  stype = MEM_new<bke::bNodeSocketType>(__func__);
+  stype->free_self = [](bke::bNodeSocketType *type) { MEM_delete(type); };
+  stype->idname = socket_idname;
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
