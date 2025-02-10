@@ -583,63 +583,82 @@ static int preprocess_include(char *maindata, const int maindata_len)
 
   memcpy(temp, maindata, maindata_len);
 
-  /* remove all c++ comments */
+  /* remove all strings literals and comments */
   /* replace all enters/tabs/etc with spaces */
-  char *cp = temp;
-  int a = maindata_len;
-  bool comment = false;
-  while (a--) {
-    if (cp[0] == '/' && cp[1] == '/') {
-      comment = true;
+  bool c_comment = false;
+  bool cxx_comment = false;
+  bool string_literal = false;
+  for (char *cp = temp; cp < temp + maindata_len; cp++) {
+    if (string_literal) {
+      if (cp[0] == '"') {
+        /* End string literal */
+        string_literal = false;
+      }
+      else if (cp[0] == '\\' && cp[1] == '"') {
+        /* Skip escaped quote in string literal. */
+        cp[0] = ' ';
+        cp++;
+      }
+      cp[0] = ' ';
     }
-    else if (*cp == '\n') {
-      comment = false;
+    else if (cxx_comment) {
+      if (*cp == '\n') {
+        cxx_comment = false;
+      }
+      cp[0] = ' ';
     }
-    if (comment || *cp < 32 || *cp > 128) {
-      *cp = 32;
+    else if (c_comment) {
+      if (cp[0] == '*' && cp[1] == '/') {
+        /* End C comment */
+        c_comment = false;
+        cp[0] = ' ';
+        cp++;
+      }
+      cp[0] = ' ';
     }
-    cp++;
+    else if (cp[0] == '"') {
+      /* Start string literal. */
+      string_literal = true;
+      cp[0] = ' ';
+    }
+    else if (cp[0] == '/' && cp[1] == '/') {
+      /* Start C++ comment */
+      cxx_comment = true;
+      cp[0] = ' ';
+      cp++;
+      cp[0] = ' ';
+    }
+    else if (cp[0] == '/' && cp[1] == '*') {
+      /* Start C comment */
+      c_comment = true;
+      cp[0] = ' ';
+      cp++;
+      cp[0] = ' ';
+    }
+    else if (cp[0] < ' ' || cp[0] > 128) {
+      cp[0] = ' ';
+    }
   }
 
   /* No need for leading '#' character. */
   const char *cpp_block_start = "ifdef __cplusplus";
   const char *cpp_block_end = "endif";
 
-  /* data from temp copy to maindata, remove comments and double spaces */
-  cp = temp;
+  /* data from temp copy to maindata, remove irrelevant identifiers and double spaces */
   char *md = maindata;
   int newlen = 0;
-  comment = false;
-  a = maindata_len;
-  int square_bracket_level = 0;
   bool skip_until_closing_brace = false;
-  while (a--) {
-
-    if (cp[0] == '/' && cp[1] == '*') {
-      BLI_assert(comment == false);
-      comment = true;
-      cp[0] = cp[1] = 32;
+  int square_bracket_level = 0;
+  for (char *cp = temp; cp < temp + maindata_len; cp++) {
+    if (cp[0] == '[') {
+      square_bracket_level++;
     }
-    if (cp[0] == '*' && cp[1] == '/') {
-      BLI_assert(comment == true);
-      comment = false;
-      cp[0] = cp[1] = 32;
-    }
-
-    if (comment == false) {
-      if (cp[0] == '[') {
-        square_bracket_level++;
-      }
-      else if (cp[0] == ']') {
-        square_bracket_level--;
-      }
+    else if (cp[0] == ']') {
+      square_bracket_level--;
     }
 
     /* do not copy when: */
-    if (comment) {
-      /* pass */
-    }
-    else if (cp[0] == ' ' && (square_bracket_level > 0)) {
+    if (cp[0] == ' ' && (square_bracket_level > 0)) {
       /* NOTE(@ideasman42): This is done to allow `member[C_STYLE_COMMENT 1024]`,
        * which is then read as `member[1024]`.
        * It's important to skip the spaces here,
@@ -653,13 +672,11 @@ static int preprocess_include(char *maindata, const int maindata_len)
     } /* skip special keywords */
     else if (match_identifier(cp, "DNA_DEPRECATED")) {
       /* single values are skipped already, so decrement 1 less */
-      a -= 13;
-      cp += 13;
+      cp += strlen("DNA_DEPRECATED") - 1;
     }
     else if (match_identifier(cp, "DNA_DEFINE_CXX_METHODS")) {
       /* single values are skipped already, so decrement 1 less */
-      a -= 21;
-      cp += 21;
+      cp += strlen("DNA_DEFINE_CXX_METHODS") - 1;
       skip_until_closing_brace = true;
     }
     else if (skip_until_closing_brace) {
@@ -675,7 +692,6 @@ static int preprocess_include(char *maindata, const int maindata_len)
       }
       else {
         const int skip_offset = end_ptr - cp + strlen(cpp_block_end);
-        a -= skip_offset;
         cp += skip_offset;
       }
     }
@@ -684,7 +700,6 @@ static int preprocess_include(char *maindata, const int maindata_len)
       md++;
       newlen++;
     }
-    cp++;
   }
 
   BLI_assert(square_bracket_level == 0);
@@ -796,6 +811,36 @@ static int convert_include(const char *filepath)
           while (*md1 != '}') {
             if (md1 > mainend) {
               break;
+            }
+
+            /* Skip default value initializers. */
+            if (*md1 == '=') {
+              int braces_depth = 0;
+              int brackets_depth = 0;
+              while (true) {
+                if (md1 > mainend) {
+                  break;
+                }
+
+                if (*md1 == '{') {
+                  braces_depth++;
+                }
+                else if (*md1 == '}') {
+                  braces_depth--;
+                }
+                else if (*md1 == '(') {
+                  brackets_depth++;
+                }
+                else if (*md1 == ')') {
+                  brackets_depth--;
+                }
+                else if (braces_depth == 0 && brackets_depth == 0 && ELEM(*md1, ';', ',')) {
+                  break;
+                }
+
+                *md1 = 0;
+                md1++;
+              }
             }
 
             if (ELEM(*md1, ',', ' ')) {
