@@ -793,6 +793,7 @@ else()
     output
     vector
 
+    pixel_nodes
     multiple_node_setups
   )
 
@@ -823,6 +824,7 @@ if(WITH_GPU_COMPOSITOR_TESTS)
       output
       vector
 
+      pixel_nodes
       multiple_node_setups
     )
 
