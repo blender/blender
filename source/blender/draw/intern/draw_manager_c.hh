@@ -175,7 +175,6 @@ struct DRWManager {
   GPUFrameBuffer *default_framebuffer;
   float size[2];
   float inv_size[2];
-  float pixsize;
 
   struct {
     uint is_select : 1;

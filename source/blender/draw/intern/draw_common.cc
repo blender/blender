@@ -205,7 +205,7 @@ void DRW_globals_update()
   gb->size_edge = U.pixelsize * max_ff(1.0f, UI_GetThemeValuef(TH_EDGE_WIDTH)) / 2.0f;
   gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (1.0f * (gb->size_edge * float(M_SQRT1_2))));
 
-  gb->pixel_fac = *DRW_viewport_pixelsize_get();
+  gb->pixel_fac = (ctx->rv3d) ? ctx->rv3d->pixsize : 1.0f;
 
   copy_v2_v2(&gb->size_viewport[0], DRW_viewport_size_get());
   copy_v2_v2(&gb->size_viewport[2], &gb->size_viewport[0]);

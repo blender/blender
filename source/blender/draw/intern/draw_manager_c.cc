@@ -296,11 +296,6 @@ const float *DRW_viewport_invert_size_get()
   return DST.inv_size;
 }
 
-const float *DRW_viewport_pixelsize_get()
-{
-  return &DST.pixsize;
-}
-
 /* Not a viewport variable, we could split this out. */
 static void drw_context_state_init()
 {
@@ -460,7 +455,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
   dst->default_framebuffer = dfbl->default_fb;
 
   if (rv3d != nullptr) {
-    dst->pixsize = rv3d->pixsize;
     blender::draw::View::default_set(float4x4(rv3d->viewmat), float4x4(rv3d->winmat));
   }
   else if (region) {
@@ -478,9 +472,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     winmat[3][1] = -1.0f;
 
     blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
-  }
-  else {
-    dst->pixsize = 1.0f;
   }
 
   /* fclem: Is this still needed ? */
