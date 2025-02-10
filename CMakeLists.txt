@@ -651,7 +651,7 @@ Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even 
   OFF
 )
 set(CYCLES_TEST_DEVICES CPU CACHE STRING "\
-Run regression tests on the specified device types (CPU CUDA OPTIX HIP)"
+Run regression tests on the specified device types (CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)"
 )
 option(WITH_CYCLES_TEST_OSL "\
 Run additional Cycles test with OSL enabled"
