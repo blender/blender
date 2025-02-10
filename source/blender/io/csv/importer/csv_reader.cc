@@ -123,10 +123,10 @@ static void parse_csv_cell(CsvData &csv_data,
         std::string column_name = csv_data.get_column_name(col_index);
         BKE_reportf(import_params.reports,
                     RPT_ERROR,
-                    "CSV Import: file '%s' has an unexpected value at row %lld for column %s of "
+                    "CSV Import: file '%s' has an unexpected value at row %d for column %s of "
                     "type Integer",
                     import_params.filepath,
-                    row_index,
+                    int(row_index),
                     column_name.c_str());
       }
       break;
@@ -139,10 +139,10 @@ static void parse_csv_cell(CsvData &csv_data,
         std::string column_name = csv_data.get_column_name(col_index);
         BKE_reportf(import_params.reports,
                     RPT_ERROR,
-                    "CSV Import: file '%s' has an unexpected value at row %lld for column %s of "
+                    "CSV Import: file '%s' has an unexpected value at row %d for column %s of "
                     "type Float",
                     import_params.filepath,
-                    row_index,
+                    int(row_index),
                     column_name.c_str());
       }
       break;
@@ -151,9 +151,9 @@ static void parse_csv_cell(CsvData &csv_data,
       std::string column_name = csv_data.get_column_name(col_index);
       BKE_reportf(import_params.reports,
                   RPT_ERROR,
-                  "CSV Import: file '%s' has an unsupported value at row %lld for column %s",
+                  "CSV Import: file '%s' has an unsupported value at row %d for column %s",
                   import_params.filepath,
-                  row_index,
+                  int(row_index),
                   column_name.c_str());
       break;
     }
