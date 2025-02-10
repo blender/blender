@@ -12,13 +12,13 @@
 
 #include "BLI_smaa_textures.h"
 
-void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd)
+void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
 {
   const float *size_f = DRW_viewport_size_get();
   const int2 size(size_f[0], size_f[1]);
   const float4 metrics = {1.0f / size[0], 1.0f / size[1], float(size[0]), float(size[1])};
 
-  if (pd->simplify_antialias) {
+  if (inst->simplify_antialias) {
     /* No AA fallback. */
     blender::draw::PassSimple &pass = inst->smaa_resolve_ps;
     pass.init();
@@ -28,7 +28,7 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd)
     pass.bind_texture("colorTex", &inst->color_tx);
     pass.bind_texture("revealTex", &inst->reveal_tx);
     pass.push_constant("doAntiAliasing", false);
-    pass.push_constant("onlyAlpha", pd->draw_wireframe);
+    pass.push_constant("onlyAlpha", inst->draw_wireframe);
     pass.push_constant("viewportMetrics", metrics);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     return;
@@ -64,7 +64,7 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd)
     pass.bind_texture("colorTex", &inst->color_tx);
     pass.bind_texture("revealTex", &inst->reveal_tx);
     pass.push_constant("viewportMetrics", metrics);
-    pass.push_constant("lumaWeight", pd->scene->grease_pencil_settings.smaa_threshold);
+    pass.push_constant("lumaWeight", inst->scene->grease_pencil_settings.smaa_threshold);
     pass.clear_color(float4(0.0f));
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
@@ -91,7 +91,7 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd)
     pass.bind_texture("colorTex", &inst->color_tx);
     pass.bind_texture("revealTex", &inst->reveal_tx);
     pass.push_constant("doAntiAliasing", true);
-    pass.push_constant("onlyAlpha", pd->draw_wireframe);
+    pass.push_constant("onlyAlpha", inst->draw_wireframe);
     pass.push_constant("viewportMetrics", metrics);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
@@ -103,9 +103,7 @@ void GPENCIL_antialiasing_draw(GPENCIL_Data *vedata)
 
   blender::draw::Manager *manager = DRW_manager_get();
 
-  GPENCIL_PrivateData *pd = vedata->stl->pd;
-
-  if (!pd->simplify_antialias) {
+  if (!inst->simplify_antialias) {
     GPU_framebuffer_bind(inst->smaa_edge_fb);
     manager->submit(inst->smaa_edge_ps);
 
@@ -113,6 +111,6 @@ void GPENCIL_antialiasing_draw(GPENCIL_Data *vedata)
     manager->submit(inst->smaa_weight_ps);
   }
 
-  GPU_framebuffer_bind(pd->scene_fb);
+  GPU_framebuffer_bind(inst->scene_fb);
   manager->submit(inst->smaa_resolve_ps);
 }

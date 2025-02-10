@@ -36,17 +36,18 @@
 /** \name Object
  * \{ */
 
-GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
+GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_Instance *inst,
                                           Object *ob,
                                           const bool is_stroke_order_3d,
                                           const blender::Bounds<float3> bounds)
 {
   using namespace blender;
-  GPENCIL_tObject *tgp_ob = static_cast<GPENCIL_tObject *>(BLI_memblock_alloc(pd->gp_object_pool));
+  GPENCIL_tObject *tgp_ob = static_cast<GPENCIL_tObject *>(
+      BLI_memblock_alloc(inst->gp_object_pool));
 
   tgp_ob->layers.first = tgp_ob->layers.last = nullptr;
   tgp_ob->vfx.first = tgp_ob->vfx.last = nullptr;
-  tgp_ob->camera_z = dot_v3v3(pd->camera_z_axis, ob->object_to_world().location());
+  tgp_ob->camera_z = dot_v3v3(inst->camera_z_axis, ob->object_to_world().location());
   tgp_ob->is_drawmode3d = is_stroke_order_3d;
   tgp_ob->object_scale = mat4_to_scale(ob->object_to_world().ptr());
 
@@ -81,10 +82,10 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
   mul_m4_m4m4(mat, ob->object_to_world().ptr(), mat);
   if (blender::draw::View::default_get().is_persp()) {
     /* BBox center to camera vector. */
-    sub_v3_v3v3(tgp_ob->plane_normal, pd->camera_pos, mat[3]);
+    sub_v3_v3v3(tgp_ob->plane_normal, inst->camera_pos, mat[3]);
   }
   else {
-    copy_v3_v3(tgp_ob->plane_normal, pd->camera_z_axis);
+    copy_v3_v3(tgp_ob->plane_normal, inst->camera_z_axis);
   }
   /* World to BBox space. */
   invert_m4(mat);
@@ -111,10 +112,10 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
 
   /* Add to corresponding list if is in front. */
   if (ob->dtx & OB_DRAW_IN_FRONT) {
-    BLI_LINKS_APPEND(&pd->tobjects_infront, tgp_ob);
+    BLI_LINKS_APPEND(&inst->tobjects_infront, tgp_ob);
   }
   else {
-    BLI_LINKS_APPEND(&pd->tobjects, tgp_ob);
+    BLI_LINKS_APPEND(&inst->tobjects, tgp_ob);
   }
 
   return tgp_ob;
@@ -143,35 +144,36 @@ static int gpencil_tobject_dist_sort(const void *a, const void *b)
   return 0;
 }
 
-void gpencil_object_cache_sort(GPENCIL_PrivateData *pd)
+void gpencil_object_cache_sort(GPENCIL_Instance *inst)
 {
   /* Sort object by distance to the camera. */
-  if (pd->tobjects.first) {
-    pd->tobjects.first = gpencil_tobject_sort_fn_r(pd->tobjects.first, gpencil_tobject_dist_sort);
+  if (inst->tobjects.first) {
+    inst->tobjects.first = gpencil_tobject_sort_fn_r(inst->tobjects.first,
+                                                     gpencil_tobject_dist_sort);
     /* Relink last pointer. */
-    while (pd->tobjects.last->next) {
-      pd->tobjects.last = pd->tobjects.last->next;
+    while (inst->tobjects.last->next) {
+      inst->tobjects.last = inst->tobjects.last->next;
     }
   }
-  if (pd->tobjects_infront.first) {
-    pd->tobjects_infront.first = gpencil_tobject_sort_fn_r(pd->tobjects_infront.first,
-                                                           gpencil_tobject_dist_sort);
+  if (inst->tobjects_infront.first) {
+    inst->tobjects_infront.first = gpencil_tobject_sort_fn_r(inst->tobjects_infront.first,
+                                                             gpencil_tobject_dist_sort);
     /* Relink last pointer. */
-    while (pd->tobjects_infront.last->next) {
-      pd->tobjects_infront.last = pd->tobjects_infront.last->next;
+    while (inst->tobjects_infront.last->next) {
+      inst->tobjects_infront.last = inst->tobjects_infront.last->next;
     }
   }
 
   /* Join both lists, adding in front. */
-  if (pd->tobjects_infront.first != nullptr) {
-    if (pd->tobjects.last != nullptr) {
-      pd->tobjects.last->next = pd->tobjects_infront.first;
-      pd->tobjects.last = pd->tobjects_infront.last;
+  if (inst->tobjects_infront.first != nullptr) {
+    if (inst->tobjects.last != nullptr) {
+      inst->tobjects.last->next = inst->tobjects_infront.first;
+      inst->tobjects.last = inst->tobjects_infront.last;
     }
     else {
       /* Only in front objects. */
-      pd->tobjects.first = pd->tobjects_infront.first;
-      pd->tobjects.last = pd->tobjects_infront.last;
+      inst->tobjects.first = inst->tobjects_infront.first;
+      inst->tobjects.last = inst->tobjects_infront.last;
     }
   }
 }
@@ -182,35 +184,35 @@ void gpencil_object_cache_sort(GPENCIL_PrivateData *pd)
 /** \name Layer
  * \{ */
 
-static float grease_pencil_layer_final_opacity_get(const GPENCIL_PrivateData *pd,
+static float grease_pencil_layer_final_opacity_get(const GPENCIL_Instance *inst,
                                                    const Object *ob,
                                                    const GreasePencil &grease_pencil,
                                                    const blender::bke::greasepencil::Layer &layer)
 {
-  const bool is_obact = ((pd->obact) && (pd->obact == ob));
-  const bool is_fade = (pd->fade_layer_opacity > -1.0f) && (is_obact) &&
+  const bool is_obact = ((inst->obact) && (inst->obact == ob));
+  const bool is_fade = (inst->fade_layer_opacity > -1.0f) && (is_obact) &&
                        !grease_pencil.is_layer_active(&layer);
 
   /* Defines layer opacity. For active object depends of layer opacity factor, and
    * for no active object, depends if the fade grease pencil objects option is enabled. */
-  if (!pd->is_render) {
+  if (!inst->is_render) {
     if (is_obact && is_fade) {
-      return layer.opacity * pd->fade_layer_opacity;
+      return layer.opacity * inst->fade_layer_opacity;
     }
-    if (!is_obact && (pd->fade_gp_object_opacity > -1.0f)) {
-      return layer.opacity * pd->fade_gp_object_opacity;
+    if (!is_obact && (inst->fade_gp_object_opacity > -1.0f)) {
+      return layer.opacity * inst->fade_gp_object_opacity;
     }
   }
   return layer.opacity;
 }
 
-static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_PrivateData *pd,
+static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_Instance *inst,
                                                            const GreasePencil &grease_pencil,
                                                            const int onion_id,
                                                            float *r_alpha)
 {
   const bool use_onion = (onion_id != 0);
-  if (use_onion && pd->do_onion) {
+  if (use_onion && inst->do_onion) {
     const bool use_onion_custom_col = (grease_pencil.onion_skinning_settings.flag &
                                        GP_ONION_SKINNING_USE_CUSTOM_COLORS) != 0;
     const bool use_onion_fade = (grease_pencil.onion_skinning_settings.flag &
@@ -236,7 +238,7 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_Private
     *r_alpha *= onion_factor;
     *r_alpha = (onion_factor > 0.0f) ? clamp_f(*r_alpha, 0.1f, 1.0f) :
                                        clamp_f(*r_alpha, 0.01f, 1.0f);
-    *r_alpha *= pd->xray_alpha;
+    *r_alpha *= inst->xray_alpha;
 
     return onion_col_custom;
   }
@@ -244,11 +246,11 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_Private
   /* Layer tint is not a property in GPv3 anymore. It's only used for onion skinning. The previous
    * property is replaced by a tint modifier during conversion. */
   float4 layer_tint(0.0f);
-  if (GPENCIL_SIMPLIFY_TINT(pd->scene)) {
+  if (GPENCIL_SIMPLIFY_TINT(inst->scene)) {
     layer_tint[3] = 0.0f;
   }
   *r_alpha = 1.0f;
-  *r_alpha *= pd->xray_alpha;
+  *r_alpha *= inst->xray_alpha;
 
   return layer_tint;
 }
@@ -285,7 +287,6 @@ GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
 }
 
 GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
-                                              GPENCIL_PrivateData *pd,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
                                               const int onion_id,
@@ -298,14 +299,14 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
 
   const bool is_in_front = (ob->dtx & OB_DRAW_IN_FRONT);
 
-  const bool override_vertcol = (pd->v3d_color_type != -1);
+  const bool override_vertcol = (inst->v3d_color_type != -1);
   /* In draw mode and vertex paint mode it's possible to draw vertex colors so we want to make sure
    * to render them. Otherwise this can lead to unexpected behavior. */
-  const bool is_vert_col_mode = (pd->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
+  const bool is_vert_col_mode = (inst->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
                                 (ob->mode & OB_MODE_VERTEX_PAINT) != 0 ||
-                                (ob->mode & OB_MODE_PAINT_GREASE_PENCIL) != 0 || pd->is_render;
-  const bool is_viewlayer_render = pd->is_render && !layer.view_layer_name().is_empty() &&
-                                   STREQ(pd->view_layer->name, layer.view_layer_name().c_str());
+                                (ob->mode & OB_MODE_PAINT_GREASE_PENCIL) != 0 || inst->is_render;
+  const bool is_viewlayer_render = inst->is_render && !layer.view_layer_name().is_empty() &&
+                                   STREQ(inst->view_layer->name, layer.view_layer_name().c_str());
   const bool disable_masks_render = is_viewlayer_render &&
                                     (layer.base.flag &
                                      GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER) != 0;
@@ -313,24 +314,24 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
                    !BLI_listbase_is_empty(&layer.masks);
 
   const float vert_col_opacity = (override_vertcol) ?
-                                     (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
-                                     (pd->is_render ? 1.0f : pd->vertex_paint_opacity);
+                                     (is_vert_col_mode ? inst->vertex_paint_opacity : 0.0f) :
+                                     (inst->is_render ? 1.0f : inst->vertex_paint_opacity);
   /* Negate thickness sign to tag that strokes are in screen space (this is no longer used in
    * GPv3). Convert to world units (by default, 1 meter = 1000 pixels). */
   const float thickness_scale = blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
   /* If the layer is used as a mask (but is otherwise not visible in the render), render it with a
    * opacity of 0 so that it can still mask other layers. */
   const float layer_opacity = !is_used_as_mask ? grease_pencil_layer_final_opacity_get(
-                                                     pd, ob, grease_pencil, layer) :
+                                                     inst, ob, grease_pencil, layer) :
                                                  0.0f;
 
-  float layer_alpha = pd->xray_alpha;
+  float layer_alpha = inst->xray_alpha;
   const float4 layer_tint = grease_pencil_layer_final_tint_and_alpha_get(
-      pd, grease_pencil, onion_id, &layer_alpha);
+      inst, grease_pencil, onion_id, &layer_alpha);
 
   /* Create the new layer descriptor. */
-  int64_t id = pd->gp_layer_pool->append_and_get_index({});
-  GPENCIL_tLayer *tgp_layer = &(*pd->gp_layer_pool)[id];
+  int64_t id = inst->gp_layer_pool->append_and_get_index({});
+  GPENCIL_tLayer *tgp_layer = &(*inst->gp_layer_pool)[id];
   BLI_LINKS_APPEND(&tgp_ob->layers, tgp_layer);
   tgp_layer->layer_id = *grease_pencil.get_layer_index(layer);
   tgp_layer->is_onion = onion_id != 0;
@@ -343,9 +344,9 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
     bool valid_mask = false;
     /* WARNING: only #GP_MAX_MASKBITS amount of bits.
      * TODO(fclem): Find a better system without any limitation. */
-    tgp_layer->mask_bits = static_cast<BLI_bitmap *>(BLI_memblock_alloc(pd->gp_maskbit_pool));
+    tgp_layer->mask_bits = static_cast<BLI_bitmap *>(BLI_memblock_alloc(inst->gp_maskbit_pool));
     tgp_layer->mask_invert_bits = static_cast<BLI_bitmap *>(
-        BLI_memblock_alloc(pd->gp_maskbit_pool));
+        BLI_memblock_alloc(inst->gp_maskbit_pool));
     BLI_bitmap_set_all(tgp_layer->mask_bits, false, GP_MAX_MASKBITS);
 
     LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &layer.masks) {
@@ -370,7 +371,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
     }
 
     if (valid_mask) {
-      pd->use_mask_fb = true;
+      inst->use_mask_fb = true;
     }
     else {
       tgp_layer->mask_bits = nullptr;
@@ -400,7 +401,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
 
     if (ELEM(layer.blend_mode, GP_LAYER_BLEND_SUBTRACT, GP_LAYER_BLEND_HARDLIGHT)) {
       /* For these effect to propagate, we need a signed floating point buffer. */
-      pd->use_signed_fb = true;
+      inst->use_signed_fb = true;
     }
 
     if (tgp_layer->blend_ps == nullptr) {
@@ -414,7 +415,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
     pass.push_constant("blendOpacity", layer_opacity);
     pass.bind_texture("colorBuf", &inst->color_layer_tx);
     pass.bind_texture("revealBuf", &inst->reveal_layer_tx);
-    pass.bind_texture("maskBuf", (is_masked) ? &inst->mask_tx : &pd->dummy_tx);
+    pass.bind_texture("maskBuf", (is_masked) ? &inst->mask_tx : &inst->dummy_tx);
     pass.state_stencil(0xFF, 0xFF, 0xFF);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
@@ -426,7 +427,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
 
-    pd->use_layer_fb = true;
+    inst->use_layer_fb = true;
   }
 
   /* Geometry pass */
@@ -437,8 +438,8 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
 
     PassSimple &pass = *tgp_layer->geom_ps;
 
-    GPUTexture **depth_tex = (is_in_front) ? &pd->dummy_depth : &pd->scene_depth_tx;
-    GPUTexture **mask_tex = (is_masked) ? &inst->mask_tx : &pd->dummy_tx;
+    GPUTexture **depth_tex = (is_in_front) ? &inst->dummy_depth : &inst->scene_depth_tx;
+    GPUTexture **mask_tex = (is_masked) ? &inst->mask_tx : &inst->dummy_tx;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND_ALPHA_PREMUL;
     /* For 2D mode, we render all strokes with uniform depth (increasing with stroke id). */
@@ -458,13 +459,13 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
     pass.push_constant("gpThicknessWorldScale", thickness_scale);
     pass.push_constant("gpVertexColorOpacity", vert_col_opacity);
 
-    pass.bind_texture("gpFillTexture", pd->dummy_tx);
-    pass.bind_texture("gpStrokeTexture", pd->dummy_tx);
+    pass.bind_texture("gpFillTexture", inst->dummy_tx);
+    pass.bind_texture("gpStrokeTexture", inst->dummy_tx);
 
     /* If random color type, need color by layer. */
     float4 gpl_color;
     copy_v4_v4(gpl_color, layer_tint);
-    if (pd->v3d_color_type == V3D_SHADING_RANDOM_COLOR) {
+    if (inst->v3d_color_type == V3D_SHADING_RANDOM_COLOR) {
       grease_pencil_layer_random_color_get(ob, layer, gpl_color);
       gpl_color[3] = 1.0f;
     }

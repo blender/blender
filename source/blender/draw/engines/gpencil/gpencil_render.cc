@@ -246,7 +246,7 @@ void GPENCIL_render_to_image(void *ved,
   GPENCIL_render_init(vedata, engine, render_layer, depsgraph, rect);
   GPENCIL_engine_init(vedata);
 
-  vedata->stl->pd->camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  vedata->instance->camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 
   /* Loop over all objects and create draw structure. */
   GPENCIL_cache_init(vedata);

@@ -27,16 +27,16 @@
 /** \name Material
  * \{ */
 
-static GPENCIL_MaterialPool *gpencil_material_pool_add(GPENCIL_PrivateData *pd)
+static GPENCIL_MaterialPool *gpencil_material_pool_add(GPENCIL_Instance *inst)
 {
   GPENCIL_MaterialPool *matpool = static_cast<GPENCIL_MaterialPool *>(
-      BLI_memblock_alloc(pd->gp_material_pool));
+      BLI_memblock_alloc(inst->gp_material_pool));
   matpool->next = nullptr;
   matpool->used_count = 0;
   if (matpool->ubo == nullptr) {
     matpool->ubo = GPU_uniformbuf_create(sizeof(matpool->mat_data));
   }
-  pd->last_material_pool = matpool;
+  inst->last_material_pool = matpool;
   return matpool;
 }
 
@@ -87,7 +87,7 @@ static void gpencil_shade_color(float color[3])
 
 /* Apply all overrides from the solid viewport mode to the GPencil material. */
 static MaterialGPencilStyle *gpencil_viewport_material_overrides(
-    GPENCIL_PrivateData *pd,
+    GPENCIL_Instance *inst,
     Object *ob,
     int color_type,
     MaterialGPencilStyle *gp_style,
@@ -128,7 +128,7 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
       gp_style = &gp_style_tmp;
       gp_style->stroke_style = GP_MATERIAL_STROKE_STYLE_SOLID;
       gp_style->fill_style = GP_MATERIAL_FILL_STYLE_SOLID;
-      copy_v3_v3(gp_style->fill_rgba, pd->v3d_single_color);
+      copy_v3_v3(gp_style->fill_rgba, inst->v3d_single_color);
       gp_style->fill_rgba[3] = 1.0f;
       copy_v4_v4(gp_style->stroke_rgba, gp_style->fill_rgba);
       if (lighting_mode != V3D_LIGHTING_FLAT) {
@@ -158,12 +158,12 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
   return gp_style;
 }
 
-GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
+GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_Instance *inst,
                                                    Object *ob,
                                                    int *ofs,
                                                    const bool is_vertex_mode)
 {
-  GPENCIL_MaterialPool *matpool = pd->last_material_pool;
+  GPENCIL_MaterialPool *matpool = inst->last_material_pool;
 
   int mat_len = BKE_object_material_used_with_fallback_eval(*ob);
 
@@ -174,21 +174,21 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
     *ofs = matpool->used_count;
   }
   else {
-    matpool = gpencil_material_pool_add(pd);
+    matpool = gpencil_material_pool_add(inst);
     *ofs = 0;
   }
 
   /* Force vertex color in solid mode with vertex paint mode. Same behavior as meshes. */
-  int color_type = (pd->v3d_color_type != -1 && is_vertex_mode) ? V3D_SHADING_VERTEX_COLOR :
-                                                                  pd->v3d_color_type;
+  int color_type = (inst->v3d_color_type != -1 && is_vertex_mode) ? V3D_SHADING_VERTEX_COLOR :
+                                                                    inst->v3d_color_type;
   const eV3DShadingLightingMode lighting_mode = eV3DShadingLightingMode(
-      (pd->v3d != nullptr) ? eV3DShadingLightingMode(pd->v3d->shading.light) :
-                             V3D_LIGHTING_STUDIO);
+      (inst->v3d != nullptr) ? eV3DShadingLightingMode(inst->v3d->shading.light) :
+                               V3D_LIGHTING_STUDIO);
 
   GPENCIL_MaterialPool *pool = matpool;
   for (int i = 0; i < mat_len; i++) {
     if ((i > 0) && (pool->used_count == GPENCIL_MATERIAL_BUFFER_LEN)) {
-      pool->next = gpencil_material_pool_add(pd);
+      pool->next = gpencil_material_pool_add(inst);
       pool = pool->next;
     }
     int mat_id = pool->used_count++;
@@ -232,7 +232,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
       mat_data->flag |= GP_FILL_HOLDOUT;
     }
 
-    gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style, lighting_mode);
+    gp_style = gpencil_viewport_material_overrides(inst, ob, color_type, gp_style, lighting_mode);
 
     /* Dots or Squares rotation. */
     mat_data->alignment_rot[0] = cosf(gp_style->alignment_rotation);
@@ -326,17 +326,17 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
 /** \name Lights
  * \{ */
 
-GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_PrivateData *pd)
+GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_Instance *inst)
 {
   GPENCIL_LightPool *lightpool = static_cast<GPENCIL_LightPool *>(
-      BLI_memblock_alloc(pd->gp_light_pool));
+      BLI_memblock_alloc(inst->gp_light_pool));
   lightpool->light_used = 0;
   /* Tag light list end. */
   lightpool->light_data[0].color[0] = -1.0;
   if (lightpool->ubo == nullptr) {
     lightpool->ubo = GPU_uniformbuf_create(sizeof(lightpool->light_data));
   }
-  pd->last_light_pool = lightpool;
+  inst->last_light_pool = lightpool;
   return lightpool;
 }
 
@@ -413,12 +413,12 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
   }
 }
 
-GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object * /*ob*/)
+GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_Instance *inst, Object * /*ob*/)
 {
-  GPENCIL_LightPool *lightpool = pd->last_light_pool;
+  GPENCIL_LightPool *lightpool = inst->last_light_pool;
 
   if (lightpool == nullptr) {
-    lightpool = gpencil_light_pool_add(pd);
+    lightpool = gpencil_light_pool_add(inst);
   }
   /* TODO(fclem): Light linking. */
   // gpencil_light_pool_populate(lightpool, ob);

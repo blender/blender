@@ -44,7 +44,7 @@ static bool effect_is_active(ShaderFxData *fx, bool is_edit, bool is_viewport)
 }
 
 struct gpIterVfxData {
-  GPENCIL_PrivateData *pd;
+  GPENCIL_Instance *inst;
   GPENCIL_tObject *tgp_ob;
   GPUFrameBuffer **target_fb;
   GPUFrameBuffer **source_fb;
@@ -63,8 +63,8 @@ static PassSimple &gpencil_vfx_pass_create(
 {
   UNUSED_VARS(name);
 
-  int64_t id = iter->pd->gp_vfx_pool->append_and_get_index({});
-  GPENCIL_tVfx *tgp_vfx = &(*iter->pd->gp_vfx_pool)[id];
+  int64_t id = iter->inst->gp_vfx_pool->append_and_get_index({});
+  GPENCIL_tVfx *tgp_vfx = &(*iter->inst->gp_vfx_pool)[id];
   tgp_vfx->target_fb = iter->target_fb;
 
   PassSimple &pass = *tgp_vfx->vfx_ps;
@@ -89,7 +89,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
     return;
   }
 
-  if ((fx->flag & FX_BLUR_DOF_MODE) && iter->pd->camera == nullptr) {
+  if ((fx->flag & FX_BLUR_DOF_MODE) && iter->inst->camera == nullptr) {
     /* No blur outside camera view (or when DOF is disabled on the camera). */
     return;
   }
@@ -104,7 +104,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
 
   if (fx->flag & FX_BLUR_DOF_MODE) {
     /* Compute circle of confusion size. */
-    float coc = (iter->pd->dof_params[0] / -w) - iter->pd->dof_params[1];
+    float coc = (iter->inst->dof_params[0] / -w) - iter->inst->dof_params[1];
     copy_v2_fl(blur_size, fabsf(coc));
   }
   else {
@@ -470,7 +470,7 @@ static void gpencil_vfx_glow(GlowShaderFxData *fx, Object * /*ob*/, gpIterVfxDat
    * revealage in alpha channel. */
   if (fx->blend_mode == eGplBlendMode_Subtract || use_glow_under) {
     /* For this effect to propagate, we need a signed floating point buffer. */
-    iter->pd->use_signed_fb = true;
+    iter->inst->use_signed_fb = true;
   }
 
   {
@@ -589,11 +589,10 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
                                 const bool is_edit_mode)
 {
   GPENCIL_Instance *inst = vedata->instance;
-  GPENCIL_PrivateData *pd = vedata->stl->pd;
 
   /* These may not be allocated yet, use address of future pointer. */
   gpIterVfxData iter{};
-  iter.pd = pd;
+  iter.inst = inst;
   iter.tgp_ob = tgp_ob;
   iter.target_fb = &inst->layer_fb;
   iter.source_fb = &inst->object_fb;
@@ -603,9 +602,9 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
   iter.source_reveal_tx = &inst->reveal_object_tx;
 
   /* If simplify enabled, nothing more to do. */
-  if (!pd->simplify_fx) {
+  if (!inst->simplify_fx) {
     LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
-      if (effect_is_active(fx, is_edit_mode, pd->is_viewport)) {
+      if (effect_is_active(fx, is_edit_mode, inst->is_viewport)) {
         switch (fx->type) {
           case eShaderFxType_Blur:
             gpencil_vfx_blur((BlurShaderFxData *)fx, ob, &iter);
@@ -641,7 +640,7 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
     }
   }
 
-  if ((!pd->simplify_fx && tgp_ob->vfx.first != nullptr) || tgp_ob->do_mat_holdout) {
+  if ((!inst->simplify_fx && tgp_ob->vfx.first != nullptr) || tgp_ob->do_mat_holdout) {
     /* We need an extra pass to combine result to main buffer. */
     iter.target_fb = &inst->gpencil_fb;
 
@@ -658,7 +657,7 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
     grp.push_constant("isFirstPass", false);
     grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
-    pd->use_object_fb = true;
-    pd->use_layer_fb = true;
+    inst->use_object_fb = true;
+    inst->use_layer_fb = true;
   }
 }
