@@ -1671,6 +1671,8 @@ OSL_NOISE_IMPL(osl_snoise, snoise)
 
 /* Texturing */
 
+ccl_device_extern void osl_init_texture_options(ccl_private ShaderGlobals *sg, void *opt) {}
+
 ccl_device_extern ccl_private OSLTextureOptions *osl_get_texture_options(
     ccl_private ShaderGlobals *sg)
 {
