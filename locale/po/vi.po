@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-12-30 20:42+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -81,6 +81,10 @@ msgstr "Các Nhóm Đường Cong-F"
 
 msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
 msgstr "Nhóm các Đường Cong-F dành cho mục đích hiển thị, ví dụ như trong bảng hành động và trình biên soạn đồ thị"
+
+
+msgid "Slot"
+msgstr "Khe"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -285,62 +289,6 @@ msgstr "Bộ sưu tập các nhóm hành động"
 
 msgid "Action Layer"
 msgstr "Tầng Lớp Hành Động"
-
-
-msgid "Influence"
-msgstr "Ảnh Hưởng"
-
-
-msgid "How much of this layer is used when blending into the lower layers"
-msgstr "Lượng tầng lớp này sẽ được pha trộn vào các tầng lớp bên dưới là bao nhiêu"
-
-
-msgid "Mix Mode"
-msgstr "Chế Độ Hòa Trộn"
-
-
-msgid "How animation of this layer is blended into the lower layers"
-msgstr "Phương pháp pha trộn hoạt họa của tầng lớp này vào các tầng lớp thấp hơn"
-
-
-msgid "Replace"
-msgstr "Thay Thế"
-
-
-msgid "Channels in this layer override the same channels from underlying layers"
-msgstr "Các kênh trong tầng lớp này sẽ vượt quyền các kênh tương đồng từ các tầng lớp bên dưới"
-
-
-msgid "Offset"
-msgstr "Dịch Chuyển"
-
-
-msgid "Channels in this layer are added to underlying layers as sequential operations"
-msgstr "Các kênh trong tầng lớp này sẽ được cộng với các tầng lớp bên dưới theo thao tác tuần tự"
-
-
-msgid "Add"
-msgstr "Thêm"
-
-
-msgid "Channels in this layer are added to underlying layers on a per-channel basis"
-msgstr "Các kênh trong tầng lớp này sẽ được cộng với các tầng lớp bên dưới trên cơ sở từng kênh một"
-
-
-msgid "Subtract"
-msgstr "Khấu Trừ"
-
-
-msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
-msgstr "Các kênh trong tầng lớp này được trừ với các tầng lớp bên dưới trên cơ sở từng kênh một"
-
-
-msgid "Multiply"
-msgstr "Nhân"
-
-
-msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
-msgstr "Các kênh trong tầng lớp này được nhân với các tầng lớp bên dưới trên cơ sở từng kênh một"
 
 
 msgid "Strips"
@@ -987,6 +935,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Phương pháp kết hợp kết quả của các Hành Động đang Hoạt Động với kết quả của ngăn xếp NLA"
 
 
+msgid "Replace"
+msgstr "Thay Thế"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Các giá trị của dải phim thay thế các kết quả tích lũy bằng lượng chỉ định bởi ảnh hưởng"
 
@@ -999,12 +951,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Các giá trị của dải được kết hợp với những kết quả đã tích tụ thông qua cách sử dụng các phép tính cộng, nhân, hoặc Quatenion thích hợp, dựa trên thể loại của kênh"
 
 
+msgid "Add"
+msgstr "Thêm"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Kết quả cân trọng của dải phim sẽ được cộng vào các kết quả đã tích tụ"
 
 
+msgid "Subtract"
+msgstr "Khấu Trừ"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Kết quả cân trọng của dải phim sẽ được khấu trừ khỏi kết quả đã tích tụ"
+
+
+msgid "Multiply"
+msgstr "Nhân"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5833,6 +5797,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "Trong máy quay phim vượt quyền cục bộ, cho dù hình nền này là từ máy quay phim tham chiếu kết nối, hay là cục bộ đối với cái vượt quyền"
 
 
+msgid "Offset"
+msgstr "Dịch Chuyển"
+
+
 msgid "Rotation"
 msgstr "Xoay Chiều"
 
@@ -7482,6 +7450,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Lượng sai số thặng dư, trong radian, cho các ràng buộc tác động đến định hướng"
 
 
+msgid "Influence"
+msgstr "Ảnh Hưởng"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Lượng ảnh hưởng của ràng buộc trong giải nghiệm cuối cùng"
 
@@ -7872,6 +7844,10 @@ msgstr "Tối Thiểu"
 
 msgid "Minimum value for target channel range"
 msgstr "Giá trị tối thiểu cho phạm vi của kênh mục tiêu"
+
+
+msgid "Mix Mode"
+msgstr "Chế Độ Hòa Trộn"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -28789,14 +28765,6 @@ msgid "Maintained by community developers"
 msgstr "Được bảo hành bởi các lập trình viên của cộng đồng"
 
 
-msgid "Testing"
-msgstr "Thử Nghiệm"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Các tập lệnh mới được đóng góp (sẽ bị loại trừ khỏi các bản xây dựng phát hành)"
-
-
 msgid "Addon Tags"
 msgstr "Thẻ Bổ Sung"
 
@@ -33585,12 +33553,28 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Metaball"
-msgstr "Siêu Cầu"
-
-
 msgid "Show/Hide"
 msgstr "Hiện/Ẩn Giấu"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
+msgid "Special Characters"
+msgstr "Các Ký Tự Đặc Biệt"
+
+
+msgid "Kerning"
+msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgid "Metaball"
+msgstr "Siêu Cầu"
 
 
 msgid "Names"
@@ -33599,10 +33583,6 @@ msgstr "Tên"
 
 msgid "Bone Roll"
 msgstr "Lăn Xương"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
 
 
 msgid "Pivot Point"
@@ -33803,18 +33783,6 @@ msgstr "Đặt Cường Độ Mặt"
 
 msgid "Merge"
 msgstr "Hợp Nhất"
-
-
-msgid "Special Characters"
-msgstr "Các Ký Tự Đặc Biệt"
-
-
-msgid "Kerning"
-msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
-
-
-msgid "Text"
-msgstr "Văn Bản"
 
 
 msgid "Keyframe Insert Pie"
@@ -53509,11 +53477,6 @@ msgstr "Sao Chép Tư Thế làm Tài Sản"
 
 
 msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Kiến Tạo Tài Sản Tư Thế"
-
-
-msgctxt "Operator"
 msgid "Paste as New Asset"
 msgstr "Dán thành Tài Sản Mới"
 
@@ -71856,14 +71819,6 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Đường Cong từ các đối tượng Khung Lưới hoặc Văn Bản"
 
 
-msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-msgstr "Khung Lưới từ các đối tượng Đường Cong, Bề Mặt, Siêu Cầu, Văn Bản hoặc Đám Mây Điểm"
-
-
-msgid "Point Cloud from Mesh objects"
-msgstr "Đám Mây Điểm từ các vật thể Khung Lưới"
-
-
 msgid "Curves from evaluated curve data"
 msgstr "Đường cong từ dữ liệu đường cong đã tính toán"
 
@@ -76974,10 +76929,6 @@ msgstr "Kiến Tạo tài sản tư thế cho mỗi dấu mốc tư thế trong 
 
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "Kiến Tạo tài sản tư thế mới trên bảng nhớ tạm của hệ thống, để dán vào Trình Duyệt Tài Sản"
-
-
-msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
-msgstr "Kiến Tạo một Hành Động mới có chứa tư thế của xương đã chọn và đánh dấu nó là Tài Sản. Tài sản sẽ được lưu trữ trong tập tin blend hiện tại"
 
 
 msgid "Activate New Action"
@@ -89002,6 +88953,14 @@ msgid "Transform Orientations"
 msgstr "Các Định Hướng Biến Hóa"
 
 
+msgid "glTF Variants"
+msgstr "Biến Thể glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Biến Thể Nguyên Vật Liệu glTF"
+
+
 msgid "Stroke Placement"
 msgstr "Phương Pháp Đặt Nét Vẽ"
 
@@ -89030,12 +88989,8 @@ msgid "Multi Frame"
 msgstr "Đa Khung Hình"
 
 
-msgid "glTF Variants"
-msgstr "Biến Thể glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Biến Thể Nguyên Vật Liệu glTF"
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
 
 
 msgid "Auto-Masking"
@@ -89056,10 +89011,6 @@ msgstr "Tỷ Lệ Phình Ra/Thu Lại của Đường Cong"
 
 msgid "Viewport Debug"
 msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
-
-
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
 
 
 msgid "VR"
@@ -89393,10 +89344,6 @@ msgstr "Hộp Văn Bản"
 
 msgid "OpenVDB File"
 msgstr "Tập Tin OpenVDB"
-
-
-msgid "Slot"
-msgstr "Khe"
 
 
 msgid "Create Pose Asset"
@@ -93094,10 +93041,6 @@ msgstr "Đảo Nghịch Trục Lăn (Z)"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Độ mẫn cảm nói chung của Chuột 3D khi lia"
-
-
-msgid "Show Navigation Guide"
-msgstr "Hiển Thị Hướng Dẫn về Điều Hướng"
 
 
 msgid "Display the center and axis during rotation"
@@ -115596,6 +115539,11 @@ msgstr "Áp Dụng Tư Thế Đảo Ngược"
 
 
 msgctxt "Operator"
+msgid "Remove Selected Bones"
+msgstr "Xóa các Xương đã Chọn"
+
+
+msgctxt "Operator"
 msgid "Blend Pose"
 msgstr "Pha Trộn Tư Thế"
 
@@ -115603,10 +115551,6 @@ msgstr "Pha Trộn Tư Thế"
 msgctxt "Operator"
 msgid "Blend Pose Flipped"
 msgstr "Pha Trộn Tư Thế Đảo Chiều"
-
-
-msgid "Action %s marked Fake User to prevent loss"
-msgstr "Hành động %s đã được đánh dấu là có Người Dùng Giả để tránh bị xóa mất đi"
 
 
 msgid "Pose Asset copied, use Paste As New Asset in any Asset Browser to paste"
@@ -115625,18 +115569,6 @@ msgid "Converted %d poses to pose assets"
 msgstr "Đã chuyển đổi %d tư thế thành tài sản tư thế rồi"
 
 
-msgid "An active armature object in pose mode is needed"
-msgstr "Cần có một đối tượng khung rối đang hoạt động ở chế độ tư thế"
-
-
-msgid "Asset Browser must be set to the Current File library"
-msgstr "Trình Duyệt Tài Sản phải được đặt là thư viện Tập Tin Hiện Tại"
-
-
-msgid "No keyframes were found for this pose"
-msgstr "Không có khung khóa nào tìm thấy được cho tư thế này cả"
-
-
 msgid "No animation data found to create asset from"
 msgstr "Không tìm thấy dữ liệu hoạt họa nào để kiến tạo tài sản từ đó được cả"
 
@@ -115647,6 +115579,10 @@ msgstr "Tài sản có số lượng người dùng khác 0 một cách bất ng
 
 msgid "Current editor is not an asset browser"
 msgstr "Trình biên soạn hiện tại không phải là một trình duyệt tài sản"
+
+
+msgid "Asset Browser must be set to the Current File library"
+msgstr "Trình Duyệt Tài Sản phải được đặt là thư viện Tập Tin Hiện Tại"
 
 
 msgid "Clipboard is empty"
@@ -117589,11 +117525,6 @@ msgstr "Ấn Định Xương đã Chọn"
 
 
 msgctxt "Operator"
-msgid "Remove Selected Bones"
-msgstr "Xóa các Xương đã Chọn"
-
-
-msgctxt "Operator"
 msgid "Deselect Bones"
 msgstr "Hủy Chọn Xương"
 
@@ -117844,26 +117775,6 @@ msgid "Only Axis Aligned"
 msgstr "Duy Thẳng Hàng theo Trục"
 
 
-msgid "View in Render"
-msgstr "Hiển Thị trong Kết Xuất"
-
-
-msgid "Thickness Scale"
-msgstr "Tỷ Lệ Độ Dày"
-
-
-msgid "Edit Line Color"
-msgstr "Màu Đường Biên Soạn"
-
-
-msgid "Keyframes Before"
-msgstr "Số Khung Khóa Đứng Trước"
-
-
-msgid "Keyframes After"
-msgstr "Số Khung Khóa Đứng Sau"
-
-
 msgid "Stroke Thickness"
 msgstr "Độ Dày của Nét Vẽ"
 
@@ -117928,6 +117839,14 @@ msgstr "Sao Chép Toàn Bộ các Tầng Lớp sang cái Đã Chọn"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "Xóa nhóm"
+
+
+msgid "Keyframes Before"
+msgstr "Số Khung Khóa Đứng Trước"
+
+
+msgid "Keyframes After"
+msgstr "Số Khung Khóa Đứng Sau"
 
 
 msgid "Interpolation U"
@@ -126352,6 +126271,18 @@ msgid "Workbench"
 msgstr "Bàn Công Việc"
 
 
+msgid "Create"
+msgstr "Kiến Tạo"
+
+
+msgid "Failed to load asset library"
+msgstr "Không nạp được thư viện tài sản"
+
+
+msgid "Asset blend file is not editable"
+msgstr "Tập tin blend về tài sản không thể biên soạn được"
+
+
 msgid "NLA Strip Controls"
 msgstr "Các Điều Khiển cho Dải NLA"
 
@@ -126820,10 +126751,6 @@ msgstr "Xương trong dây chuyền không thể lựa chọn được"
 
 msgid "Move to New Bone Collection"
 msgstr "Di Chuyển đến Bộ Sưu Tập Xương Mới"
-
-
-msgid "Create"
-msgstr "Kiến Tạo"
 
 
 msgid "Bone collection with index %d not found on Armature %s"
@@ -127499,14 +127426,6 @@ msgid "The object has only one layer"
 msgstr "Đối tượng chỉ có một tầng lớp"
 
 
-msgid "No active Grease Pencil layer"
-msgstr "Không có tầng lớp Bút Chì Dầu nào đang hoạt động cả"
-
-
-msgid "Active layer is locked or hidden"
-msgstr "Tầng đang hoạt động bị khóa lại hoặc bị ẩn giấu"
-
-
 msgid "No Grease Pencil frame to draw on"
 msgstr "Không có khung hình Bút Chì Dầu nào để vẽ lên cả"
 
@@ -127569,6 +127488,14 @@ msgstr "Các nét nướng đã được xóa hết rồi"
 
 msgid "No active object, or active object isn't a Grease Pencil object"
 msgstr "Không có đối tượng nào là đang hoạt động, hoặc đối tượng đang hoạt động không phải là đối tượng Bút Chì Dầu"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "Không có tầng lớp Bút Chì Dầu nào đang hoạt động cả"
+
+
+msgid "Active layer is locked or hidden"
+msgstr "Tầng đang hoạt động bị khóa lại hoặc bị ẩn giấu"
 
 
 msgid "Active Vertex Group is locked"
@@ -131318,10 +131245,6 @@ msgid "Unable to activate brush, wrong object mode"
 msgstr "Không thể kích hoạt đầu bút vẽ được, chế độ đối tượng không đúng"
 
 
-msgid "Failed to load asset library"
-msgstr "Không nạp được thư viện tài sản"
-
-
 msgid "Unable to activate just-saved brush asset"
 msgstr "Không thể kích hoạt tài sản đầu bút vừa lưu xong"
 
@@ -131340,10 +131263,6 @@ msgstr "Thư viện tài sản không thể biên soạn được"
 
 msgid "Asset file is not editable"
 msgstr "Tập tin tài sản không thể biên soạn được"
-
-
-msgid "Asset blend file is not editable"
-msgstr "Tập tin blend về tài sản không thể biên soạn được"
 
 
 msgid "Original surface mesh is empty"
@@ -132580,10 +132499,6 @@ msgstr "Không có hình ảnh nào đã bị thay đổi cả"
 
 msgid "Images cannot be copied while rendering"
 msgstr "Không thể sao chép các hình ảnh trong khi kết xuất được"
-
-
-msgid "Packing movies or image sequences not supported"
-msgstr "Không hỗ trợ đóng gói phim hoặc chuỗi hình ảnh"
 
 
 msgid "Image is not editable"
@@ -135846,10 +135761,6 @@ msgstr "Tên hiển thị của khe hành động không được để trống"
 
 msgid "Action slot identifiers should be at least three characters"
 msgstr "ID của khe hành động phải có ít nhất ba ký tự"
-
-
-msgid "Action slot identifier set with unexpected prefix \"%s\" (expected \"%s\")."
-msgstr "ID của khe hành động được đặt với tiền tố không mong muốn \"%s\" (kỳ vọng \"%s\")."
 
 
 msgid "Only armature objects are supported"
@@ -141024,14 +140935,6 @@ msgid "Blend between diffuse surface and subsurface scattering. Typically should
 msgstr "Pha trộn giữa tán xạ khuếch tán bề mặt và tán xạ dưới bề mặt. Thông thường thì phải bằng 0 hoặc 1 (hoặc là khuếch tán hoàn toàn, hoặc là dưới bề mặt)"
 
 
-msgid "Scattering radius to use for subsurface component (multiplied with Scale)"
-msgstr "Bán kính tán xạ sử dụng cho phần tử dưới bề mặt (nhân với Tỷ Lệ)"
-
-
-msgid "Scale of the subsurface scattering (multiplied with Radius)"
-msgstr "Tỷ lệ tán xạ dưới bề mặt (nhân với Bán Kính)"
-
-
 msgid "Index of Refraction (IOR) used for rays that enter the subsurface component"
 msgstr "Chỉ Số Khúc Xạ (IOR) được sử dụng cho các tia xạ đi vào phần tử dưới bề mặt"
 
@@ -143015,10 +142918,6 @@ msgstr "Định Dạng Đồ Họa Véc Tơ Có Thể Mở Rộng (SVG) 1.1"
 
 msgid "Import SVG as curves"
 msgstr "Nhập Khẩu SVG thành đường cong"
-
-
-msgid "Subclasses Error"
-msgstr "Lỗi Kế Thừa Lớp"
 
 
 msgid "UV Layout"

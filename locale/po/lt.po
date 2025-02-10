@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-11-14 16:56+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -157,26 +157,6 @@ msgstr "Pasirinkti"
 
 msgid "Expanded"
 msgstr "Išplėsta/-s"
-
-
-msgid "Mix Mode"
-msgstr "Maišymo veiksena"
-
-
-msgid "Replace"
-msgstr "Pakeisti"
-
-
-msgid "Add"
-msgstr "Pridėti"
-
-
-msgid "Subtract"
-msgstr "Atimti"
-
-
-msgid "Multiply"
-msgstr "Dauginti"
 
 
 msgid "Strips"
@@ -448,8 +428,24 @@ msgid "Action"
 msgstr "Veiksmas"
 
 
+msgid "Replace"
+msgstr "Pakeisti"
+
+
 msgid "Combine"
 msgstr "Sujungti"
+
+
+msgid "Add"
+msgstr "Pridėti"
+
+
+msgid "Subtract"
+msgstr "Atimti"
+
+
+msgid "Multiply"
+msgstr "Dauginti"
 
 
 msgid "Hold"
@@ -1494,6 +1490,10 @@ msgstr "Įvestis"
 
 msgid "Error"
 msgstr "Klaida"
+
+
+msgid "Mix Mode"
+msgstr "Maišymo veiksena"
 
 
 msgid "X"
@@ -3161,16 +3161,16 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
+msgid "Text"
+msgstr "Tekstas"
+
+
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
 msgid "Track"
 msgstr "Sekti"
-
-
-msgid "Text"
-msgstr "Tekstas"
 
 
 msgid "Animals"

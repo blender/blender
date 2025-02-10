@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2025-01-31 04:04+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -279,62 +279,6 @@ msgstr "Kelompok Aksi"
 
 msgid "Collection of action groups"
 msgstr "Koleksi kelompok aksi"
-
-
-msgid "Influence"
-msgstr "Pengaruh"
-
-
-msgid "How much of this layer is used when blending into the lower layers"
-msgstr "Berapa banyak lapisan ini digunakan saat dicampur ke lapisan bawahnya"
-
-
-msgid "Mix Mode"
-msgstr "Mode Campur"
-
-
-msgid "How animation of this layer is blended into the lower layers"
-msgstr "Bagaimana animasi lapisan ini dicampur ke lapisan di bawahnya"
-
-
-msgid "Replace"
-msgstr "Menggantikan"
-
-
-msgid "Channels in this layer override the same channels from underlying layers"
-msgstr "Saluran di lapisan ini menimpa saluran sama dari lapisan yang mendasarinya"
-
-
-msgid "Offset"
-msgstr "Offset"
-
-
-msgid "Channels in this layer are added to underlying layers as sequential operations"
-msgstr "Saluran-saluran di lapisan ini ditambahkan ke lapisan yang mendasarinya sebagai operasi-operasi berurutan"
-
-
-msgid "Add"
-msgstr "Baru"
-
-
-msgid "Channels in this layer are added to underlying layers on a per-channel basis"
-msgstr "Saluran-saluran di lapisan ini ditambahkan ke lapisan yang mendasarinya dengan basis tiap-saluran"
-
-
-msgid "Subtract"
-msgstr "Mengurangi"
-
-
-msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
-msgstr "Saluran-saluran di lapisan ini dikurangi ke lapisan yang mendasarinya dengan basis tiap-saluran"
-
-
-msgid "Multiply"
-msgstr "Mengalikan/kalikan"
-
-
-msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
-msgstr "Saluran-saluran di lapisan ini dikalikan dengan lapisan yang mendasarinya dengan basis tiap-saluran"
 
 
 msgid "Strips"
@@ -918,6 +862,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metode yang digunakan untuk menggabungkan hasil Aksi Aktif dengan hasil stack NLA"
 
 
+msgid "Replace"
+msgstr "Menggantikan"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Nilai strip menggantikan hasil akumulasi dengan jumlah yang ditentukan oleh pengaruh"
 
@@ -930,12 +878,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Nilai strip digabungkan dengan hasil akumulasi dengan tepat menggunakan pertambahan, perkalian, atau matematika kuaternion, berdasarkan tipe saluran"
 
 
+msgid "Add"
+msgstr "Baru"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Hasil tertimbang strip ditambahkan ke hasil akumulasi"
 
 
+msgid "Subtract"
+msgstr "Mengurangi"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Hasil tertimbang strip dihapus dari hasil akumulasi"
+
+
+msgid "Multiply"
+msgstr "Mengalikan/kalikan"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5436,6 +5396,10 @@ msgid "Override Background Image"
 msgstr "Menimpa Gambar Latar Belakang"
 
 
+msgid "Offset"
+msgstr "Offset"
+
+
 msgid "Rotation"
 msgstr "Rotasi"
 
@@ -6485,6 +6449,10 @@ msgid "Rotation error"
 msgstr "Rotasi error"
 
 
+msgid "Influence"
+msgstr "Pengaruh"
+
+
 msgid "Disable"
 msgstr "Matikan"
 
@@ -6683,6 +6651,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Nilai minimum untuk jarak saluran target"
+
+
+msgid "Mix Mode"
+msgstr "Mode Campur"
 
 
 msgid "Before Original (Full)"
@@ -15167,6 +15139,10 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Text"
+msgstr "Teks"
+
+
 msgid "Metaball"
 msgstr "Metabola"
 
@@ -15225,10 +15201,6 @@ msgstr "Kait"
 
 msgid "Merge"
 msgstr "Menggabungkan"
-
-
-msgid "Text"
-msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -28063,14 +28035,6 @@ msgid "Only Axis Aligned"
 msgstr "Hanya Sumbu yang Disejajarkan"
 
 
-msgid "Keyframes Before"
-msgstr "Keyframe Sebelum"
-
-
-msgid "Keyframes After"
-msgstr "Keyframe Setelah"
-
-
 msgid "Autolock Inactive Layers"
 msgstr "Autoblok Layer Tidak Aktif"
 
@@ -28107,6 +28071,14 @@ msgstr "Salin Layer ke Terpilih"
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
 msgstr "Salin Semua Layer ke Terseleksi"
+
+
+msgid "Keyframes Before"
+msgstr "Keyframe Sebelum"
+
+
+msgid "Keyframes After"
+msgstr "Keyframe Setelah"
 
 
 msgid "Interpolation U"

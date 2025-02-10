@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
-"PO-Revision-Date: 2025-02-02 08:56+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
+"PO-Revision-Date: 2025-02-05 17:31+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -83,6 +83,10 @@ msgstr "函数曲线组"
 
 msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
 msgstr "用于显示用途的函数曲线组，例如，在动画摄影表和曲线编辑器中"
+
+
+msgid "Slot"
+msgstr "槽"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -287,62 +291,6 @@ msgstr "动作组集合"
 
 msgid "Action Layer"
 msgstr "动作层"
-
-
-msgid "Influence"
-msgstr "影响"
-
-
-msgid "How much of this layer is used when blending into the lower layers"
-msgstr "当混合到下方的层时，该层的使用量是多少"
-
-
-msgid "Mix Mode"
-msgstr "混合模式"
-
-
-msgid "How animation of this layer is blended into the lower layers"
-msgstr "如何将此层的动画混合到下方的层中"
-
-
-msgid "Replace"
-msgstr "替换"
-
-
-msgid "Channels in this layer override the same channels from underlying layers"
-msgstr "此层中的通道会覆盖下方层中的相同通道"
-
-
-msgid "Offset"
-msgstr "偏移量"
-
-
-msgid "Channels in this layer are added to underlying layers as sequential operations"
-msgstr "此层中的通道按顺序计算添加到下方层"
-
-
-msgid "Add"
-msgstr "相加"
-
-
-msgid "Channels in this layer are added to underlying layers on a per-channel basis"
-msgstr "此层中的通道按每个通道与下方层相加"
-
-
-msgid "Subtract"
-msgstr "相减"
-
-
-msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
-msgstr "此层中的通道按每个通道与下方层相减"
-
-
-msgid "Multiply"
-msgstr "正片叠底(相乘)"
-
-
-msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
-msgstr "此层中的通道按每个通道与下方层相乘"
 
 
 msgid "Strips"
@@ -998,6 +946,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "用于合并活动动作和 NLA 堆结果的方法"
 
 
+msgid "Replace"
+msgstr "替换"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "使用片段数值替换影响力指定的量累积结果"
 
@@ -1010,12 +962,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "根据通道类型，适当地使用加法、乘法或四元数运算，将片段值与累积结果合并"
 
 
+msgid "Add"
+msgstr "相加"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "将片段的加权结果添加到累积结果中"
 
 
+msgid "Subtract"
+msgstr "相减"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "从累积结果中移除片段的加权结果"
+
+
+msgid "Multiply"
+msgstr "正片叠底(相乘)"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5874,6 +5838,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "在本地重写摄像机中，此背景图像是来自关联的参考摄像机，还是来自重写的本地"
 
 
+msgid "Offset"
+msgstr "偏移量"
+
+
 msgid "Rotation"
 msgstr "旋转"
 
@@ -7539,6 +7507,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "对方向起作用的约束的残余误差量, 以弧度计"
 
 
+msgid "Influence"
+msgstr "影响"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "最终结果的约束影响数量"
 
@@ -7929,6 +7901,10 @@ msgstr "最小值"
 
 msgid "Minimum value for target channel range"
 msgstr "目标通道范围的最小值"
+
+
+msgid "Mix Mode"
+msgstr "混合模式"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -29371,14 +29347,6 @@ msgid "Maintained by community developers"
 msgstr "由社区开发者进行维护"
 
 
-msgid "Testing"
-msgstr "测试版"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "新近贡献的脚本 (不包含在发布版本中)"
-
-
 msgid "Addon Tags"
 msgstr "插件标签"
 
@@ -34307,12 +34275,28 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
-msgid "Metaball"
-msgstr "融球"
-
-
 msgid "Show/Hide"
 msgstr "显示 / 隐藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Special Characters"
+msgstr "特殊字符"
+
+
+msgid "Kerning"
+msgstr "字距"
+
+
+msgid "Text"
+msgstr "文本"
+
+
+msgid "Metaball"
+msgstr "融球"
 
 
 msgid "Names"
@@ -34321,10 +34305,6 @@ msgstr "名称"
 
 msgid "Bone Roll"
 msgstr "骨骼扭转"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -34525,18 +34505,6 @@ msgstr "设置面强度"
 
 msgid "Merge"
 msgstr "合并"
-
-
-msgid "Special Characters"
-msgstr "特殊字符"
-
-
-msgid "Kerning"
-msgstr "字距"
-
-
-msgid "Text"
-msgstr "文本"
 
 
 msgid "Keyframe Insert Pie"
@@ -46950,16 +46918,36 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "使用相对(输入图像大小的分数)的值来定义移动"
 
 
+msgid "Repeats image on a specific axis"
+msgstr "在指定的轴向上重复图像"
+
+
+msgid "No repeating"
+msgstr "无重复"
+
+
 msgid "X Axis"
 msgstr "X 轴"
+
+
+msgid "Repeats on the X axis"
+msgstr "沿 X 轴重复"
 
 
 msgid "Y Axis"
 msgstr "Y 轴"
 
 
+msgid "Repeats on the Y axis"
+msgstr "沿 Y 轴重复"
+
+
 msgid "Both Axes"
 msgstr "两个轴"
+
+
+msgid "Repeats on both axes"
+msgstr "沿两轴向重复"
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -54600,11 +54588,6 @@ msgstr "转换旧版姿态库"
 msgctxt "Operator"
 msgid "Copy Pose as Asset"
 msgstr "复制姿态作为资产"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "创建姿态资产"
 
 
 msgctxt "Operator"
@@ -71590,6 +71573,15 @@ msgid "Add a collection info node to the current node editor"
 msgstr "向当前节点编辑器添加集合信息节点"
 
 
+msgctxt "Operator"
+msgid "Add Color"
+msgstr "添加颜色"
+
+
+msgid "Add a color node to the current node editor"
+msgstr "在当前节点编辑器中添加一个颜色节点"
+
+
 msgid "Source color"
 msgstr "源色彩"
 
@@ -73330,14 +73322,6 @@ msgstr "要转换的目标物体类型"
 
 msgid "Curve from Mesh or Text objects"
 msgstr "网格或文本物体转换为曲线"
-
-
-msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-msgstr "从曲线、曲面、融球、文本、点云物体转换为网格"
-
-
-msgid "Point Cloud from Mesh objects"
-msgstr "从网格物体转为点云"
 
 
 msgid "Curves from evaluated curve data"
@@ -78463,10 +78447,6 @@ msgstr "为当前动作中的每个姿态标记创建姿态资产"
 
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "在剪贴板上创建新的姿态资产，以供粘贴到资产浏览器中"
-
-
-msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
-msgstr "创建包含所选骨骼姿态的新动作，并将其标记为资产。该资产将被存储在当前blend文件中"
 
 
 msgid "Activate New Action"
@@ -90729,6 +90709,14 @@ msgid "Transform Orientations"
 msgstr "变换坐标系"
 
 
+msgid "glTF Variants"
+msgstr "glTF 变体"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材质变体"
+
+
 msgid "Stroke Placement"
 msgstr "笔画放置"
 
@@ -90757,12 +90745,12 @@ msgid "Multi Frame"
 msgstr "多次绘制"
 
 
-msgid "glTF Variants"
-msgstr "glTF 变体"
+msgid "glTF"
+msgstr "glTF"
 
 
-msgid "glTF Material Variants"
-msgstr "glTF 材质变体"
+msgid "glTF Animations"
+msgstr "glTF 动画"
 
 
 msgid "Auto-Masking"
@@ -90783,14 +90771,6 @@ msgstr "曲线生长/收缩缩放"
 
 msgid "Viewport Debug"
 msgstr "视口调试"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 动画"
 
 
 msgid "VR"
@@ -91133,10 +91113,6 @@ msgstr "文本框"
 
 msgid "OpenVDB File"
 msgstr "OpenVDB文件"
-
-
-msgid "Slot"
-msgstr "槽"
 
 
 msgid "Create Pose Asset"
@@ -94852,10 +94828,6 @@ msgstr "反转滚动 (Z) 轴"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "3D 鼠标的整体敏感度"
-
-
-msgid "Show Navigation Guide"
-msgstr "显示导航指南"
 
 
 msgid "Display the center and axis during rotation"
@@ -116592,6 +116564,16 @@ msgid "Collide Extensions"
 msgstr "冲突扩展"
 
 
+msgctxt "WindowManager"
+msgid "Enable Snap"
+msgstr "启用吸附"
+
+
+msgctxt "WindowManager"
+msgid "Disable Snap"
+msgstr "禁用吸附"
+
+
 msgid "Checking for Extension Updates"
 msgstr "正在检查扩展更新"
 
@@ -118061,6 +118043,11 @@ msgstr "应用翻转姿态"
 
 
 msgctxt "Operator"
+msgid "Remove Selected Bones"
+msgstr "移除选定的骨骼"
+
+
+msgctxt "Operator"
 msgid "Blend Pose"
 msgstr "混合姿态"
 
@@ -118068,10 +118055,6 @@ msgstr "混合姿态"
 msgctxt "Operator"
 msgid "Blend Pose Flipped"
 msgstr "翻转混合姿态"
-
-
-msgid "Action %s marked Fake User to prevent loss"
-msgstr "动作 %s 已标记伪用户已防止丢失"
 
 
 msgid "Pose Asset copied, use Paste As New Asset in any Asset Browser to paste"
@@ -118090,18 +118073,6 @@ msgid "Converted %d poses to pose assets"
 msgstr "已转换 %d 姿态为姿态资产"
 
 
-msgid "An active armature object in pose mode is needed"
-msgstr "需要在姿态模式下有一个活动骨架物体"
-
-
-msgid "Asset Browser must be set to the Current File library"
-msgstr "资产浏览器必须设置为当前文件库"
-
-
-msgid "No keyframes were found for this pose"
-msgstr "没有发现此姿态的关键帧"
-
-
 msgid "No animation data found to create asset from"
 msgstr "未发现创建资产的动画数据"
 
@@ -118112,6 +118083,10 @@ msgstr "意外的资产非零用户计数，请将此作为bug报错"
 
 msgid "Current editor is not an asset browser"
 msgstr "当前编辑器不是资产浏览器"
+
+
+msgid "Asset Browser must be set to the Current File library"
+msgstr "资产浏览器必须设置为当前文件库"
 
 
 msgid "Clipboard is empty"
@@ -120098,11 +120073,6 @@ msgstr "指定选中的骨骼"
 
 
 msgctxt "Operator"
-msgid "Remove Selected Bones"
-msgstr "移除选定的骨骼"
-
-
-msgctxt "Operator"
 msgid "Deselect Bones"
 msgstr "取消选择骨骼"
 
@@ -120353,26 +120323,6 @@ msgid "Only Axis Aligned"
 msgstr "仅轴向对齐"
 
 
-msgid "View in Render"
-msgstr "渲染结果中可见"
-
-
-msgid "Thickness Scale"
-msgstr "粗细缩放"
-
-
-msgid "Edit Line Color"
-msgstr "编辑线条颜色"
-
-
-msgid "Keyframes Before"
-msgstr "关键帧前"
-
-
-msgid "Keyframes After"
-msgstr "关键帧后"
-
-
 msgid "Stroke Thickness"
 msgstr "笔画宽度"
 
@@ -120437,6 +120387,14 @@ msgstr "全部复制到选中项"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "删除组"
+
+
+msgid "Keyframes Before"
+msgstr "关键帧前"
+
+
+msgid "Keyframes After"
+msgstr "关键帧后"
 
 
 msgid "Interpolation U"
@@ -129018,6 +128976,18 @@ msgid "Workbench"
 msgstr "工作台"
 
 
+msgid "Create"
+msgstr "创建"
+
+
+msgid "Failed to load asset library"
+msgstr "加载资产库失败"
+
+
+msgid "Asset blend file is not editable"
+msgstr "资产blend文件不可编辑"
+
+
 msgid "NLA Strip Controls"
 msgstr "NLA 片段控件"
 
@@ -129488,10 +129458,6 @@ msgid "Move to New Bone Collection"
 msgstr "移动到新的骨骼集合"
 
 
-msgid "Create"
-msgstr "创建"
-
-
 msgid "Bone collection with index %d not found on Armature %s"
 msgstr "编号为 %d 的骨骼集合无法在骨架 %s 上找到"
 
@@ -129666,6 +129632,14 @@ msgstr "滑动工具"
 
 msgid "Cancel"
 msgstr "取消"
+
+
+msgid "Axis Constraint"
+msgstr "轴向约束"
+
+
+msgid "Bone Visibility"
+msgstr "骨骼可见性"
 
 
 msgid "No keyframes to slide between"
@@ -130181,14 +130155,6 @@ msgid "The object has only one layer"
 msgstr "该物体只有一个层"
 
 
-msgid "No active Grease Pencil layer"
-msgstr "无活动蜡笔图层"
-
-
-msgid "Active layer is locked or hidden"
-msgstr "活动层被锁定或隐藏"
-
-
 msgid "No Grease Pencil frame to draw on"
 msgstr "无可用于绘制的蜡笔帧"
 
@@ -130263,6 +130229,14 @@ msgstr "细分"
 
 msgid "Grab"
 msgstr "抓起"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "无活动蜡笔图层"
+
+
+msgid "Active layer is locked or hidden"
+msgstr "活动层被锁定或隐藏"
 
 
 msgid "Active Vertex Group is locked"
@@ -131466,6 +131440,14 @@ msgid "Show Hidden Region"
 msgstr "显示隐藏的区块"
 
 
+msgid "Active object has negative scale"
+msgstr "活动物体存在负向缩放"
+
+
+msgid "Active object has non-uniform scale"
+msgstr "活动物体存在非均匀缩放"
+
+
 msgid "Click to open the info editor"
 msgstr "单击打开信息编辑器"
 
@@ -132222,6 +132204,10 @@ msgstr "线条画"
 
 msgid "Cannot create editmode armature"
 msgstr "无法在编辑模式下创建骨架"
+
+
+msgid "Image objects can only be added in Object Mode"
+msgstr "图像物体只能在物体模式下添加"
 
 
 msgid "Converting some non-editable object/object data, enforcing 'Keep Original' option to True"
@@ -134086,10 +134072,6 @@ msgid "Unable to activate brush, wrong object mode"
 msgstr "无法激活笔刷, 物体模式错误"
 
 
-msgid "Failed to load asset library"
-msgstr "加载资产库失败"
-
-
 msgid "Unable to activate just-saved brush asset"
 msgstr "无法激活刚保存的笔刷资产"
 
@@ -134108,10 +134090,6 @@ msgstr "资产库不可编辑"
 
 msgid "Asset file is not editable"
 msgstr "资产文件不可编辑"
-
-
-msgid "Asset blend file is not editable"
-msgstr "资产blend文件不可编辑"
 
 
 msgid "Original surface mesh is empty"
@@ -135246,6 +135224,14 @@ msgid "Deleted %u drivers"
 msgstr "删除 %u 个驱动器"
 
 
+msgid "Modify Sharpness"
+msgstr "修改锐度"
+
+
+msgid "Modify Curve Bend"
+msgstr "修改曲线弯曲"
+
+
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
 msgstr "通过指定函数曲线与原始曲线的偏差程度来精简函数曲线"
 
@@ -135376,10 +135362,6 @@ msgstr "没有图像被更改"
 
 msgid "Images cannot be copied while rendering"
 msgstr "渲染时图像不能拷贝"
-
-
-msgid "Packing movies or image sequences not supported"
-msgstr "不支持打包影片或图像序列"
 
 
 msgid "Image is not editable"
@@ -135756,6 +135738,14 @@ msgstr "无法添加一个遮罩节点"
 
 msgid "Could not add material"
 msgstr "无法添加材质"
+
+
+msgid "Could not add a color node"
+msgstr "无法添加颜色节点"
+
+
+msgid "Could not find node color socket"
+msgstr "无法找到节点颜色接口"
 
 
 msgid ""
@@ -137330,6 +137320,10 @@ msgid "Gizmos hidden in this view"
 msgstr "在该视图中隐藏操控器"
 
 
+msgid "Up/Down"
+msgstr "上/下"
+
+
 msgid "Cannot navigate a camera from an external library or non-editable override"
 msgstr "无法从外部库或不可编辑的重写中导航摄像机"
 
@@ -138762,10 +138756,6 @@ msgstr "动作槽显示的名称不能为空"
 
 msgid "Action slot identifiers should be at least three characters"
 msgstr "动作槽标识符应至少包含三个字符"
-
-
-msgid "Action slot identifier set with unexpected prefix \"%s\" (expected \"%s\")."
-msgstr "动作槽标识符设置了意外的前缀 \"%s\" (预期的 \"%s\")."
 
 
 msgid "Only armature objects are supported"
@@ -144109,14 +144099,6 @@ msgid "Blend between diffuse surface and subsurface scattering. Typically should
 msgstr "漫反射表面和次表面散射之间的混合。通常应为0或1（完全漫反射或次表面）"
 
 
-msgid "Scattering radius to use for subsurface component (multiplied with Scale)"
-msgstr "用于次表面的散射半径（乘以缩放值）"
-
-
-msgid "Scale of the subsurface scattering (multiplied with Radius)"
-msgstr "次表面散射的缩放值（乘以半径）"
-
-
 msgid "Index of Refraction (IOR) used for rays that enter the subsurface component"
 msgstr "用于进入次表面的光线的折射率(IOR)"
 
@@ -146212,10 +146194,6 @@ msgstr "可缩放矢量图形 (SVG) 1.1 格式"
 
 msgid "Import SVG as curves"
 msgstr "导入SVG为曲线"
-
-
-msgid "Subclasses Error"
-msgstr "子类错误"
 
 
 msgid "UV Layout"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -37,6 +37,10 @@ msgstr "Vrednost"
 
 msgid "F-Curves"
 msgstr "F-kriva"
+
+
+msgid "Slot"
+msgstr "Slot"
 
 
 msgid "Action Group"
@@ -183,34 +187,6 @@ msgid "Expanded"
 msgstr "Prošireno"
 
 
-msgid "Influence"
-msgstr "Uticaj"
-
-
-msgid "Mix Mode"
-msgstr "Režim mešanja"
-
-
-msgid "Replace"
-msgstr "Zameni"
-
-
-msgid "Offset"
-msgstr "Odstojanje"
-
-
-msgid "Add"
-msgstr "Dodaj"
-
-
-msgid "Subtract"
-msgstr "Oduzimanje"
-
-
-msgid "Multiply"
-msgstr "Umnoženo"
-
-
 msgid "Strips"
 msgstr "Trake"
 
@@ -297,6 +273,22 @@ msgstr "Trajna putanja do podataka"
 
 msgid "Action"
 msgstr "Akcija"
+
+
+msgid "Replace"
+msgstr "Zameni"
+
+
+msgid "Add"
+msgstr "Dodaj"
+
+
+msgid "Subtract"
+msgstr "Oduzimanje"
+
+
+msgid "Multiply"
+msgstr "Umnoženo"
 
 
 msgid "Nothing"
@@ -1457,6 +1449,10 @@ msgid "Image"
 msgstr "Slika"
 
 
+msgid "Offset"
+msgstr "Odstojanje"
+
+
 msgid "Rotation"
 msgstr "Rotacija"
 
@@ -2034,6 +2030,10 @@ msgid "Constraint modifying the transformation of objects and bones"
 msgstr "Ograničenje koji menja transformaciju objekata i kostiju"
 
 
+msgid "Influence"
+msgstr "Uticaj"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Nivo koji će uticaj ovog ograničenja imati na krajnji rezultat"
 
@@ -2232,6 +2232,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Postavlja minimalnu Y vrednost renderovanog okvira"
+
+
+msgid "Mix Mode"
+msgstr "Režim mešanja"
 
 
 msgid "Transform Channel"
@@ -8634,12 +8638,16 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
 msgid "Names"
@@ -8736,10 +8744,6 @@ msgstr "Mod izbora mreže"
 
 msgid "Merge"
 msgstr "Sjedini"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
 
 
 msgid "Basic"
@@ -19984,10 +19988,6 @@ msgid "Text Boxes"
 msgstr "Blok teksta"
 
 
-msgid "Slot"
-msgstr "Slot"
-
-
 msgid "Filters"
 msgstr "Filter"
 
@@ -20805,10 +20805,6 @@ msgstr "Izvrnuta osa skretanja (Y)"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Izvrnuta osa okretanja (Z)"
-
-
-msgid "Show Navigation Guide"
-msgstr "Promena pogleda"
 
 
 msgid "Turntable"

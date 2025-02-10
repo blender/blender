@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2025-01-30 15:41+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -81,6 +81,10 @@ msgstr "Skupine F-krivulj"
 
 msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
 msgstr "Združevanje F-krivulj, da je njihov prikaz v animacijskem načrtu, urejevalniku grafov itd. preglednejši"
+
+
+msgid "Slot"
+msgstr "Polje"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -285,62 +289,6 @@ msgstr "Zbirka skupin akcij"
 
 msgid "Action Layer"
 msgstr "Akcijska plast"
-
-
-msgid "Influence"
-msgstr "Vpliv"
-
-
-msgid "How much of this layer is used when blending into the lower layers"
-msgstr "Koliko te plasti se uporabi, ko se jo zliva s spodnjimi plastmi"
-
-
-msgid "Mix Mode"
-msgstr "Način mešanja"
-
-
-msgid "How animation of this layer is blended into the lower layers"
-msgstr "Kako se animacija te plasti zliva s spodnjimi plastmi"
-
-
-msgid "Replace"
-msgstr "Zamenjaj"
-
-
-msgid "Channels in this layer override the same channels from underlying layers"
-msgstr "Kanali na tej plasti povozijo enake kanale s spodnjih plasti"
-
-
-msgid "Offset"
-msgstr "Odmik"
-
-
-msgid "Channels in this layer are added to underlying layers as sequential operations"
-msgstr "Kanali s te plasti se prištejejo spodnjim plastem v obliki zaporednih operacij"
-
-
-msgid "Add"
-msgstr "Prištej"
-
-
-msgid "Channels in this layer are added to underlying layers on a per-channel basis"
-msgstr "Kanali na tej plasti se prištejejo spodnjim plastem, vsak kanal ločeno"
-
-
-msgid "Subtract"
-msgstr "Odštej"
-
-
-msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
-msgstr "Kanali na tej plasti se odštejejo od spodnjih plasti, vsak kanal ločeno"
-
-
-msgid "Multiply"
-msgstr "Zmnoži"
-
-
-msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
-msgstr "Kanali na tej plasti se zmnožijo s spodnjimi plastmi, vsak kanal ločeno"
 
 
 msgid "Strips"
@@ -991,6 +939,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda, po kateri naj se rezultat aktivne akcije združi z rezultatom sklada NLA"
 
 
+msgid "Replace"
+msgstr "Zamenjaj"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Vrednost traku zamenja dozdajšnji skupni rezultat v tolikšni meri, kot to določa faktor vpliva"
 
@@ -1003,12 +955,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Vrednosti traku se združijo z dozdajšnjimi rezultati. Glede na vrsto kanala se uporabi seštevanje, množenje ali računanje s kvaternioni"
 
 
+msgid "Add"
+msgstr "Prištej"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Utežen rezultat traku se prišteje dozdajšnjemu skupnemu rezultatu"
 
 
+msgid "Subtract"
+msgstr "Odštej"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Utežen rezultat traku se odšteje od dozdajšnjega skupnega rezultata"
+
+
+msgid "Multiply"
+msgstr "Zmnoži"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5777,6 +5741,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "Za lokalno povoženo kamero. Ali ta slika ozadja prihaja iz povezane kamere ali je lokalna glede na povožnjo"
 
 
+msgid "Offset"
+msgstr "Odmik"
+
+
 msgid "Rotation"
 msgstr "Rotacija"
 
@@ -7442,6 +7410,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Količina presežne napake, izražene v radianih, za omejevalnike, ki omejujejo usmerjenost"
 
 
+msgid "Influence"
+msgstr "Vpliv"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Količina vpliva, ki ga bo imel omejevalnik na končno rešitev"
 
@@ -7832,6 +7804,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Najmanjša možna vrednost na intervalu tarčnega kanala"
+
+
+msgid "Mix Mode"
+msgstr "Način mešanja"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -20304,10 +20280,6 @@ msgid "Community"
 msgstr "Skupnost"
 
 
-msgid "Testing"
-msgstr "Testiranje"
-
-
 msgid "Addon Tags"
 msgstr "Značke dodatkov"
 
@@ -23059,12 +23031,28 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Metaball"
-msgstr "Metažoga"
-
-
 msgid "Show/Hide"
 msgstr "Pokaži / skrij"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
+
+
+msgid "Special Characters"
+msgstr "Posebni znaki"
+
+
+msgid "Kerning"
+msgstr "Spodsekavanje"
+
+
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
 
 
 msgid "Names"
@@ -23073,10 +23061,6 @@ msgstr "Imena"
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
-
-
-msgid "Clean Up"
-msgstr "Počisti"
 
 
 msgid "Pivot Point"
@@ -23241,18 +23225,6 @@ msgstr "Nastavi moč lica"
 
 msgid "Merge"
 msgstr "Združi"
-
-
-msgid "Special Characters"
-msgstr "Posebni znaki"
-
-
-msgid "Kerning"
-msgstr "Spodsekavanje"
-
-
-msgid "Text"
-msgstr "Besedilo"
 
 
 msgid "Animals"
@@ -31594,11 +31566,6 @@ msgstr "Nastavi delitev"
 msgctxt "Operator"
 msgid "Dirty Vertex Colors"
 msgstr "Umazane barve oglišč"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Ustvari pozirno sredstvo"
 
 
 msgctxt "Operator"
@@ -44692,20 +44659,20 @@ msgid "Multi Frame"
 msgstr "Multiokvir"
 
 
-msgid "Auto-Masking"
-msgstr "Samodejno maskiranje"
-
-
-msgid "Viewport Debug"
-msgstr "Razhroščevanje 3D pogleda"
-
-
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "Animacije glTF"
+
+
+msgid "Auto-Masking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Viewport Debug"
+msgstr "Razhroščevanje 3D pogleda"
 
 
 msgid "VR"
@@ -45035,10 +45002,6 @@ msgstr "Besedilna polja"
 
 msgid "OpenVDB File"
 msgstr "Datoteka OpenVDB"
-
-
-msgid "Slot"
-msgstr "Polje"
 
 
 msgid "Create Pose Asset"
@@ -46881,10 +46844,6 @@ msgstr "Zakleni obzorje"
 
 msgid "Orbit Sensitivity"
 msgstr "Občutljivost kroženja"
-
-
-msgid "Show Navigation Guide"
-msgstr "Pokaži navigacijske smernike"
 
 
 msgid "Turntable"
@@ -53312,26 +53271,6 @@ msgid "Only Axis Aligned"
 msgstr "Samo z osjo poravnano"
 
 
-msgid "View in Render"
-msgstr "Prikaži v upodobitvi"
-
-
-msgid "Thickness Scale"
-msgstr "Skaliranje debeline"
-
-
-msgid "Edit Line Color"
-msgstr "Uredi barvo črte"
-
-
-msgid "Keyframes Before"
-msgstr "Ključni okvirji prej"
-
-
-msgid "Keyframes After"
-msgstr "Ključni okvirji potem"
-
-
 msgid "Stroke Thickness"
 msgstr "Debelina poteze"
 
@@ -53396,6 +53335,14 @@ msgstr "Kopiraj vse plasti v izbrano"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "Izbriši skupino"
+
+
+msgid "Keyframes Before"
+msgstr "Ključni okvirji prej"
+
+
+msgid "Keyframes After"
+msgstr "Ključni okvirji potem"
 
 
 msgid "Interpolation U"
@@ -60640,6 +60587,10 @@ msgid "Workbench"
 msgstr "Delovni pogon"
 
 
+msgid "Create"
+msgstr "Ustvari"
+
+
 msgid "CombinedAction"
 msgstr "KombiniranaAkcija"
 
@@ -60676,10 +60627,6 @@ msgstr "B"
 
 msgid "Delete selected bones?"
 msgstr "Naj izbrišem izbrane kosti?"
-
-
-msgid "Create"
-msgstr "Ustvari"
 
 
 msgid "Blend to Neighbor"
@@ -62706,10 +62653,6 @@ msgstr "Prikazna imena akcijskih polj ne smejo biti prazna"
 
 msgid "Action slot identifiers should be at least three characters"
 msgstr "Identifikatorji akcijskih polj naj bodo dolgi vsaj tri znake"
-
-
-msgid "Action slot identifier set with unexpected prefix \"%s\" (expected \"%s\")."
-msgstr "Identifikator akcijskega polja ima nepričakovano predpono \"%s\" (pričakoval sem \"%s\")."
 
 
 msgid "Cannot set slot without an assigned Action."
@@ -65202,10 +65145,6 @@ msgstr "Format Scalable Vector Graphics (SVG) 1.1"
 
 msgid "Import SVG as curves"
 msgstr "Uvozi SVG kot krivulje"
-
-
-msgid "Subclasses Error"
-msgstr "Napaka podrazredov"
 
 
 msgid "UV Layout"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-11-08 04:56+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -76,22 +76,6 @@ msgid "Select"
 msgstr "Избор"
 
 
-msgid "Replace"
-msgstr "Замени"
-
-
-msgid "Add"
-msgstr "Добави"
-
-
-msgid "Subtract"
-msgstr "Основа"
-
-
-msgid "Multiply"
-msgstr "Умножение"
-
-
 msgid "Module"
 msgstr "Модул"
 
@@ -114,6 +98,22 @@ msgstr "Дъно"
 
 msgid "Action"
 msgstr "Действие"
+
+
+msgid "Replace"
+msgstr "Замени"
+
+
+msgid "Add"
+msgstr "Добави"
+
+
+msgid "Subtract"
+msgstr "Основа"
+
+
+msgid "Multiply"
+msgstr "Умножение"
 
 
 msgid "Nothing"
@@ -1140,6 +1140,10 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
+msgid "Text"
+msgstr "Текст"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
@@ -1170,10 +1174,6 @@ msgstr "Междинни Кадри"
 
 msgid "Merge"
 msgstr "Слей"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Languages..."

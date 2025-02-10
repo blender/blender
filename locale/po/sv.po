@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -61,6 +61,10 @@ msgstr "Samling av AOV"
 
 msgid "F-Curves"
 msgstr "F-kurvor"
+
+
+msgid "Slot"
+msgstr "Plats"
 
 
 msgid "Groups of F-Curves"
@@ -197,30 +201,6 @@ msgstr "Expanderad"
 
 msgid "Expanded in Graph Editor"
 msgstr "Expanderad i grafredigeraren"
-
-
-msgid "Influence"
-msgstr "Inflytande"
-
-
-msgid "Replace"
-msgstr "Ersätt"
-
-
-msgid "Offset"
-msgstr "Förskjutning"
-
-
-msgid "Add"
-msgstr "Addera"
-
-
-msgid "Subtract"
-msgstr "Subtrahera"
-
-
-msgid "Multiply"
-msgstr "Multiplicera"
 
 
 msgid "Collection of timeline markers"
@@ -494,8 +474,24 @@ msgid "Animation data for data-block"
 msgstr "Animationsdata för datablock"
 
 
+msgid "Replace"
+msgstr "Ersätt"
+
+
 msgid "Combine"
 msgstr "Kombinera"
+
+
+msgid "Add"
+msgstr "Addera"
+
+
+msgid "Subtract"
+msgstr "Subtrahera"
+
+
+msgid "Multiply"
+msgstr "Multiplicera"
 
 
 msgid "Nothing"
@@ -2140,6 +2136,10 @@ msgid "Image"
 msgstr "Bild"
 
 
+msgid "Offset"
+msgstr "Förskjutning"
+
+
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -2254,6 +2254,10 @@ msgstr "Alpha"
 
 msgid "Position"
 msgstr "Position"
+
+
+msgid "Influence"
+msgstr "Inflytande"
 
 
 msgid "World Space"
@@ -5205,20 +5209,24 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Metaball"
-msgstr "Metaboll"
-
-
 msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
-msgid "Names"
-msgstr "Namn"
-
-
 msgid "Clean Up"
 msgstr "Städa upp"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Pivot Point"
@@ -5279,10 +5287,6 @@ msgstr "Snabbeffekter"
 
 msgid "Asset"
 msgstr "Tillgång"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Catalog"
@@ -11630,10 +11634,6 @@ msgid "Threads"
 msgstr "Trådar"
 
 
-msgid "Slot"
-msgstr "Plats"
-
-
 msgid "Bookmarks"
 msgstr "Bokmärken"
 
@@ -12147,10 +12147,6 @@ msgstr "Invertera Y-axel"
 
 msgid "Invert Z Axis"
 msgstr "Invertera Z-axel"
-
-
-msgid "Show Navigation Guide"
-msgstr "Visa navigationsguide"
 
 
 msgid "Display the center and axis during rotation"

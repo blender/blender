@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -57,6 +57,10 @@ msgstr "Lista AOV"
 
 msgid "Collection of AOVs"
 msgstr "Kolekcja AOV"
+
+
+msgid "Slot"
+msgstr "Gniazdo"
 
 
 msgid "Action F-Curves"
@@ -241,30 +245,6 @@ msgstr "Grupy akcji"
 
 msgid "Collection of action groups"
 msgstr "Kolekcja grup akcji"
-
-
-msgid "Influence"
-msgstr "Wpływ"
-
-
-msgid "Replace"
-msgstr "Zastąp"
-
-
-msgid "Offset"
-msgstr "Odstęp"
-
-
-msgid "Add"
-msgstr "Dodaj"
-
-
-msgid "Subtract"
-msgstr "Odejmij"
-
-
-msgid "Multiply"
-msgstr "Pomnóż"
 
 
 msgid "Action Pose Markers"
@@ -714,16 +694,32 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda używana do mieszania rezultatu aktywnej akcji z rezultatem ścieżek NLA"
 
 
+msgid "Replace"
+msgstr "Zastąp"
+
+
 msgid "Combine"
 msgstr "Połącz"
+
+
+msgid "Add"
+msgstr "Dodaj"
 
 
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Ważony rezultat paska jest dodawany do rezultatu całkowitego"
 
 
+msgid "Subtract"
+msgstr "Odejmij"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Ważony rezultat paska jest usuwany z połączonego rezultatu"
+
+
+msgid "Multiply"
+msgstr "Pomnóż"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -3569,6 +3565,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "Parametry określające która warstwa, przebieg oraz klatka obrazu są wyświetlane"
 
 
+msgid "Offset"
+msgstr "Odstęp"
+
+
 msgid "Rotation"
 msgstr "Obrót"
 
@@ -4504,6 +4504,10 @@ msgstr "Wielkość szczątkowego błędu w jednostkach Blendera dla ogranicznik�
 
 msgid "Amount of residual error in radians for constraints that work on orientation"
 msgstr "Wielkość szczątkowego błędu w radianach dla ograniczników które zmieniają orientacje"
+
+
+msgid "Influence"
+msgstr "Wpływ"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -11181,16 +11185,20 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Metaball"
-msgstr "Metakula"
-
-
 msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
 
 
 msgid "Clean Up"
 msgstr "Sprzątanie"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Snap"
@@ -11267,10 +11275,6 @@ msgstr "Dane ściany"
 
 msgid "Merge"
 msgstr "Scal"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Catalog"
@@ -12929,11 +12933,6 @@ msgstr "Zaznacz kamerę"
 msgctxt "Operator"
 msgid "Copy Pose as Asset"
 msgstr "Kopiuj pozę jako prefabrykat"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Utwórz prefabrykat pozy"
 
 
 msgctxt "Operator"
@@ -16681,10 +16680,6 @@ msgstr "Prowadzenie po ścieżce"
 
 msgid "Geometry Data"
 msgstr "Dane geometrii"
-
-
-msgid "Slot"
-msgstr "Gniazdo"
 
 
 msgid "Advanced Filter"
@@ -22563,12 +22558,12 @@ msgid "Nothing selected"
 msgstr "Nic nie zaznaczono"
 
 
-msgid "No active Grease Pencil layer"
-msgstr "Brak aktywnej warstwy Grease Pencil"
-
-
 msgid "No Grease Pencil frame to draw on"
 msgstr "Brak ramki Grease Pencil, na której można rysować"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "Brak aktywnej warstwy Grease Pencil"
 
 
 msgid "Could not resolve path '%s'"
