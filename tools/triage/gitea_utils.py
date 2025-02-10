@@ -165,11 +165,13 @@ def gitea_json_issue_events_filter(
         event_type: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     """
-    Filter all comments and events on the issue list.
+    Filter all comments and events on the issue list. If both labels and event_type are provided,
+    an event is included if either the label or event type matches.
     :param issue_fullname: string in the format "{owner}/{repo}/issues/{number}"
     :param date_start: if provided, only comments updated since the specified time are returned.
     :param date_end: if provided, only comments updated before the provided time are returned.
-    :param labels: list of labels. Fetch only events that have any of this labels.
+    :param labels: list of labels. Fetch only events that have any of these labels (plus, events
+       passing the event_type check if set)
     :param event_type: set of types of events in {"close", "commit_ref"...}.
     :return: List of comments or events.
     """
@@ -194,9 +196,9 @@ def gitea_json_issue_events_filter(
 
         if labels and event["type"] == "label" and event["label"]["name"] in labels:
             pass
-        elif not event_type or event["type"] in event_type:
+        elif event_type and event["type"] in event_type:
             pass
-        else:
+        elif labels or event_type:
             continue
 
         result.append(event)
