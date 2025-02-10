@@ -45,8 +45,8 @@ elseif(APPLE)
   # -----------------------------------------------------------------------------
   # Build `blender-thumbnailer.appex` app extension.
   set(SRC_APPEX
-    src/thumbnail_provider.mm
     src/thumbnail_provider.h
+    src/thumbnail_provider.mm
   )
 
   add_executable(blender-thumbnailer MACOSX_BUNDLE ${SRC} ${SRC_APPEX})

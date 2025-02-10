@@ -1107,14 +1107,14 @@ if(WIN32)
   option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
   mark_as_advanced(WITH_WINDOWS_FIND_MODULES)
 
-# The python debugger in Visual Studio for has been broken for years
-# but the upstream project over at https://github.com/microsoft/PTVS
-# show hopeful signs of life once in a while, so there is hope that
-# at one point this will start working again. That being said people
-# do keep turning this option on and end up disappointed it isn't
-# working and they spend a whole bunch of time on trying to get it to
-# work. So for now rather than removing this functionality
-# completely, just disable it.
+  # The python debugger in Visual Studio for has been broken for years
+  # but the upstream project over at https://github.com/microsoft/PTVS
+  # show hopeful signs of life once in a while, so there is hope that
+  # at one point this will start working again. That being said people
+  # do keep turning this option on and end up disappointed it isn't
+  # working and they spend a whole bunch of time on trying to get it to
+  # work. So for now rather than removing this functionality
+  # completely, just disable it.
 
   if(WINDOWS_PYTHON_DEBUG)
     # No need for a python version check here, anything over python 3.6 isn't working.
@@ -1122,11 +1122,11 @@ if(WIN32)
     set(WINDOWS_PYTHON_DEBUG OFF)
   endif()
 
-#  option(WINDOWS_PYTHON_DEBUG "\
-#Include the files needed for debugging python scripts with visual studio 2017+."
-#    OFF
-#  )
-#  mark_as_advanced(WINDOWS_PYTHON_DEBUG)
+  # option(WINDOWS_PYTHON_DEBUG "\
+  # Include the files needed for debugging python scripts with visual studio 2017+."
+  #   OFF
+  # )
+  # mark_as_advanced(WINDOWS_PYTHON_DEBUG)
 
   option(WITH_WINDOWS_BUNDLE_CRT "Bundle the C runtime for install free distribution." ON)
   mark_as_advanced(WITH_WINDOWS_BUNDLE_CRT)
