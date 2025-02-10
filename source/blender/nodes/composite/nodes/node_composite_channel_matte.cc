@@ -22,8 +22,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* ******************* Channel Matte Node ********************************* */
@@ -157,37 +155,28 @@ static float get_min_limit(const bNode &node)
   return node_storage(node).t2;
 }
 
-class ChannelMatteShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const float color_space = int(get_color_space(bnode()));
-    const float matte_channel = get_matte_channel(bnode());
-    const float2 limit_channels = float2(get_limit_channels(bnode()));
-    const float max_limit = get_max_limit(bnode());
-    const float min_limit = get_min_limit(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_channel_matte",
-                   inputs,
-                   outputs,
-                   GPU_constant(&color_space),
-                   GPU_constant(&matte_channel),
-                   GPU_constant(limit_channels),
-                   GPU_uniform(&max_limit),
-                   GPU_uniform(&min_limit));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new ChannelMatteShaderNode(node);
+  const float color_space = int(get_color_space(*node));
+  const float matte_channel = get_matte_channel(*node);
+  const float2 limit_channels = float2(get_limit_channels(*node));
+  const float max_limit = get_max_limit(*node);
+  const float min_limit = get_min_limit(*node);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_channel_matte",
+                        inputs,
+                        outputs,
+                        GPU_constant(&color_space),
+                        GPU_constant(&matte_channel),
+                        GPU_constant(limit_channels),
+                        GPU_uniform(&max_limit),
+                        GPU_uniform(&min_limit));
 }
 
 template<CMPNodeChannelMatteColorSpace ColorSpace>
@@ -309,7 +298,7 @@ void register_node_type_cmp_channel_matte()
   ntype.initfunc = file_ns::node_composit_init_channel_matte;
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

@@ -116,12 +116,11 @@ void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
   ShaderOperation *operation = static_cast<ShaderOperation *>(thunk);
   operation->material_ = material;
   for (DNode node : operation->compile_unit_) {
-    ShaderNode *shader_node = node->typeinfo->get_compositor_shader_node(node);
-    operation->shader_nodes_.add_new(node, std::unique_ptr<ShaderNode>(shader_node));
+    operation->shader_nodes_.add_new(node, std::make_unique<ShaderNode>(node));
 
     operation->link_node_inputs(node);
 
-    shader_node->compile(material);
+    operation->shader_nodes_.lookup(node)->compile(material);
 
     operation->populate_results_for_node(node);
   }

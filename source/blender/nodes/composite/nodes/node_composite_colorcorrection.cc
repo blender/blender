@@ -21,8 +21,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* ******************* Color Correction ********************************* */
@@ -313,64 +311,55 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
 
 using namespace blender::compositor;
 
-class ColorCorrectionShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    float enabled_channels[3];
-    get_enabled_channels(enabled_channels);
-    float luminance_coefficients[3];
-    IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-
-    const NodeColorCorrection &node_color_correction = node_storage(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_color_correction",
-                   inputs,
-                   outputs,
-                   GPU_constant(enabled_channels),
-                   GPU_uniform(&node_color_correction.startmidtones),
-                   GPU_uniform(&node_color_correction.endmidtones),
-                   GPU_uniform(&node_color_correction.master.saturation),
-                   GPU_uniform(&node_color_correction.master.contrast),
-                   GPU_uniform(&node_color_correction.master.gamma),
-                   GPU_uniform(&node_color_correction.master.gain),
-                   GPU_uniform(&node_color_correction.master.lift),
-                   GPU_uniform(&node_color_correction.shadows.saturation),
-                   GPU_uniform(&node_color_correction.shadows.contrast),
-                   GPU_uniform(&node_color_correction.shadows.gamma),
-                   GPU_uniform(&node_color_correction.shadows.gain),
-                   GPU_uniform(&node_color_correction.shadows.lift),
-                   GPU_uniform(&node_color_correction.midtones.saturation),
-                   GPU_uniform(&node_color_correction.midtones.contrast),
-                   GPU_uniform(&node_color_correction.midtones.gamma),
-                   GPU_uniform(&node_color_correction.midtones.gain),
-                   GPU_uniform(&node_color_correction.midtones.lift),
-                   GPU_uniform(&node_color_correction.highlights.saturation),
-                   GPU_uniform(&node_color_correction.highlights.contrast),
-                   GPU_uniform(&node_color_correction.highlights.gamma),
-                   GPU_uniform(&node_color_correction.highlights.gain),
-                   GPU_uniform(&node_color_correction.highlights.lift),
-                   GPU_constant(luminance_coefficients));
-  }
-
-  void get_enabled_channels(float enabled_channels[3])
-  {
-    for (int i = 0; i < 3; i++) {
-      enabled_channels[i] = (bnode().custom1 & (1 << i)) ? 1.0f : 0.0f;
-    }
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static void get_enabled_channels(const bNode &node, float enabled_channels[3])
 {
-  return new ColorCorrectionShaderNode(node);
+  for (int i = 0; i < 3; i++) {
+    enabled_channels[i] = (node.custom1 & (1 << i)) ? 1.0f : 0.0f;
+  }
+}
+
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
+{
+  float enabled_channels[3];
+  get_enabled_channels(*node, enabled_channels);
+  float luminance_coefficients[3];
+  IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+  const NodeColorCorrection &node_color_correction = node_storage(*node);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_color_correction",
+                        inputs,
+                        outputs,
+                        GPU_constant(enabled_channels),
+                        GPU_uniform(&node_color_correction.startmidtones),
+                        GPU_uniform(&node_color_correction.endmidtones),
+                        GPU_uniform(&node_color_correction.master.saturation),
+                        GPU_uniform(&node_color_correction.master.contrast),
+                        GPU_uniform(&node_color_correction.master.gamma),
+                        GPU_uniform(&node_color_correction.master.gain),
+                        GPU_uniform(&node_color_correction.master.lift),
+                        GPU_uniform(&node_color_correction.shadows.saturation),
+                        GPU_uniform(&node_color_correction.shadows.contrast),
+                        GPU_uniform(&node_color_correction.shadows.gamma),
+                        GPU_uniform(&node_color_correction.shadows.gain),
+                        GPU_uniform(&node_color_correction.shadows.lift),
+                        GPU_uniform(&node_color_correction.midtones.saturation),
+                        GPU_uniform(&node_color_correction.midtones.contrast),
+                        GPU_uniform(&node_color_correction.midtones.gamma),
+                        GPU_uniform(&node_color_correction.midtones.gain),
+                        GPU_uniform(&node_color_correction.midtones.lift),
+                        GPU_uniform(&node_color_correction.highlights.saturation),
+                        GPU_uniform(&node_color_correction.highlights.contrast),
+                        GPU_uniform(&node_color_correction.highlights.gamma),
+                        GPU_uniform(&node_color_correction.highlights.gain),
+                        GPU_uniform(&node_color_correction.highlights.lift),
+                        GPU_constant(luminance_coefficients));
 }
 
 static float4 color_correction(const float4 &color,
@@ -524,7 +513,7 @@ void register_node_type_cmp_colorcorrection()
   ntype.initfunc = file_ns::node_composit_init_colorcorrection;
   blender::bke::node_type_storage(
       &ntype, "NodeColorCorrection", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

@@ -20,8 +20,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* ******************* Color Matte ********************************************************** */
@@ -96,33 +94,24 @@ static float get_value_epsilon(const bNode &node)
   return node_storage(node).t3;
 }
 
-class ColorMatteShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const float hue_epsilon = get_hue_epsilon(bnode());
-    const float saturation_epsilon = get_saturation_epsilon(bnode());
-    const float value_epsilon = get_value_epsilon(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_color_matte",
-                   inputs,
-                   outputs,
-                   GPU_uniform(&hue_epsilon),
-                   GPU_uniform(&saturation_epsilon),
-                   GPU_uniform(&value_epsilon));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new ColorMatteShaderNode(node);
+  const float hue_epsilon = get_hue_epsilon(*node);
+  const float saturation_epsilon = get_saturation_epsilon(*node);
+  const float value_epsilon = get_value_epsilon(*node);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_color_matte",
+                        inputs,
+                        outputs,
+                        GPU_uniform(&hue_epsilon),
+                        GPU_uniform(&saturation_epsilon),
+                        GPU_uniform(&value_epsilon));
 }
 
 static void color_matte(const float4 color,
@@ -192,7 +181,7 @@ void register_node_type_cmp_color_matte()
   ntype.initfunc = file_ns::node_composit_init_color_matte;
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

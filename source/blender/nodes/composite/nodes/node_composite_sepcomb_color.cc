@@ -12,8 +12,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
@@ -91,48 +89,37 @@ static void cmp_node_separate_color_update(bNodeTree * /*ntree*/, bNode *node)
 
 using namespace blender::compositor;
 
-class SeparateColorShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    GPU_stack_link(material, &bnode(), get_shader_function_name(), inputs, outputs);
-  }
-
-  const char *get_shader_function_name()
-  {
-    switch (node_storage(bnode()).mode) {
-      case CMP_NODE_COMBSEP_COLOR_RGB:
-        return "node_composite_separate_rgba";
-      case CMP_NODE_COMBSEP_COLOR_HSV:
-        return "node_composite_separate_hsva";
-      case CMP_NODE_COMBSEP_COLOR_HSL:
-        return "node_composite_separate_hsla";
-      case CMP_NODE_COMBSEP_COLOR_YUV:
-        return "node_composite_separate_yuva_itu_709";
-      case CMP_NODE_COMBSEP_COLOR_YCC:
-        switch (node_storage(bnode()).ycc_mode) {
-          case BLI_YCC_ITU_BT601:
-            return "node_composite_separate_ycca_itu_601";
-          case BLI_YCC_ITU_BT709:
-            return "node_composite_separate_ycca_itu_709";
-          case BLI_YCC_JFIF_0_255:
-            return "node_composite_separate_ycca_jpeg";
-        }
-    }
-
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new SeparateColorShaderNode(node);
+  switch (node_storage(*node).mode) {
+    case CMP_NODE_COMBSEP_COLOR_RGB:
+      return GPU_stack_link(material, node, "node_composite_separate_rgba", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_HSV:
+      return GPU_stack_link(material, node, "node_composite_separate_hsva", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_HSL:
+      return GPU_stack_link(material, node, "node_composite_separate_hsla", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_YUV:
+      return GPU_stack_link(
+          material, node, "node_composite_separate_yuva_itu_709", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_YCC:
+      switch (node_storage(*node).ycc_mode) {
+        case BLI_YCC_ITU_BT601:
+          return GPU_stack_link(
+              material, node, "node_composite_separate_ycca_itu_601", inputs, outputs);
+        case BLI_YCC_ITU_BT709:
+          return GPU_stack_link(
+              material, node, "node_composite_separate_ycca_itu_709", inputs, outputs);
+        case BLI_YCC_JFIF_0_255:
+          return GPU_stack_link(
+              material, node, "node_composite_separate_ycca_jpeg", inputs, outputs);
+      }
+  }
+
+  return false;
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -250,7 +237,7 @@ void register_node_type_cmp_separate_color()
   blender::bke::node_type_storage(
       &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::cmp_node_separate_color_update;
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
@@ -299,48 +286,37 @@ static void cmp_node_combine_color_update(bNodeTree * /*ntree*/, bNode *node)
 
 using namespace blender::compositor;
 
-class CombineColorShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    GPU_stack_link(material, &bnode(), get_shader_function_name(), inputs, outputs);
-  }
-
-  const char *get_shader_function_name()
-  {
-    switch (node_storage(bnode()).mode) {
-      case CMP_NODE_COMBSEP_COLOR_RGB:
-        return "node_composite_combine_rgba";
-      case CMP_NODE_COMBSEP_COLOR_HSV:
-        return "node_composite_combine_hsva";
-      case CMP_NODE_COMBSEP_COLOR_HSL:
-        return "node_composite_combine_hsla";
-      case CMP_NODE_COMBSEP_COLOR_YUV:
-        return "node_composite_combine_yuva_itu_709";
-      case CMP_NODE_COMBSEP_COLOR_YCC:
-        switch (node_storage(bnode()).ycc_mode) {
-          case BLI_YCC_ITU_BT601:
-            return "node_composite_combine_ycca_itu_601";
-          case BLI_YCC_ITU_BT709:
-            return "node_composite_combine_ycca_itu_709";
-          case BLI_YCC_JFIF_0_255:
-            return "node_composite_combine_ycca_jpeg";
-        }
-    }
-
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new CombineColorShaderNode(node);
+  switch (node_storage(*node).mode) {
+    case CMP_NODE_COMBSEP_COLOR_RGB:
+      return GPU_stack_link(material, node, "node_composite_combine_rgba", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_HSV:
+      return GPU_stack_link(material, node, "node_composite_combine_hsva", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_HSL:
+      return GPU_stack_link(material, node, "node_composite_combine_hsla", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_YUV:
+      return GPU_stack_link(
+          material, node, "node_composite_combine_yuva_itu_709", inputs, outputs);
+    case CMP_NODE_COMBSEP_COLOR_YCC:
+      switch (node_storage(*node).ycc_mode) {
+        case BLI_YCC_ITU_BT601:
+          return GPU_stack_link(
+              material, node, "node_composite_combine_ycca_itu_601", inputs, outputs);
+        case BLI_YCC_ITU_BT709:
+          return GPU_stack_link(
+              material, node, "node_composite_combine_ycca_itu_709", inputs, outputs);
+        case BLI_YCC_JFIF_0_255:
+          return GPU_stack_link(
+              material, node, "node_composite_combine_ycca_jpeg", inputs, outputs);
+      }
+  }
+
+  return false;
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -476,7 +452,7 @@ void register_node_type_cmp_combine_color()
   blender::bke::node_type_storage(
       &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::cmp_node_combine_color_update;
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

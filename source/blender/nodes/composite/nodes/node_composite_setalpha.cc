@@ -17,8 +17,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* **************** SET ALPHA ******************** */
@@ -59,27 +57,20 @@ static CMPNodeSetAlphaMode get_mode(const bNode &node)
   return static_cast<CMPNodeSetAlphaMode>(node_storage(node).mode);
 }
 
-class SetAlphaShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    if (get_mode(bnode()) == CMP_NODE_SETALPHA_MODE_APPLY) {
-      GPU_stack_link(material, &bnode(), "node_composite_set_alpha_apply", inputs, outputs);
-      return;
-    }
-
-    GPU_stack_link(material, &bnode(), "node_composite_set_alpha_replace", inputs, outputs);
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new SetAlphaShaderNode(node);
+  switch (get_mode(*node)) {
+    case CMP_NODE_SETALPHA_MODE_APPLY:
+      return GPU_stack_link(material, node, "node_composite_set_alpha_apply", inputs, outputs);
+    case CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA:
+      return GPU_stack_link(material, node, "node_composite_set_alpha_replace", inputs, outputs);
+  }
+
+  return false;
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -122,7 +113,7 @@ void register_node_type_cmp_setalpha()
   ntype.initfunc = file_ns::node_composit_init_setalpha;
   blender::bke::node_type_storage(
       &ntype, "NodeSetAlpha", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

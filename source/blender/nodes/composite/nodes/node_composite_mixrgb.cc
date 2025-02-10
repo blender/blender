@@ -18,7 +18,7 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
+#include "COM_utilities_gpu_material.hh"
 
 #include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
@@ -90,90 +90,82 @@ static bool get_should_clamp(const bNode &node)
   return node.custom2 & SHD_MIXRGB_CLAMP;
 }
 
-class MixRGBShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    if (get_use_alpha(bnode())) {
-      GPU_link(material,
-               "multiply_by_alpha",
-               get_input_link("Fac"),
-               get_input_link("Image_001"),
-               &get_input("Fac").link);
-    }
-
-    GPU_stack_link(material, &bnode(), get_shader_function_name(), inputs, outputs);
-
-    if (!get_should_clamp(bnode())) {
-      return;
-    }
-
-    const float min[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    const float max[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    GPU_link(material,
-             "clamp_color",
-             get_output("Image").link,
-             GPU_constant(min),
-             GPU_constant(max),
-             &get_output("Image").link);
-  }
-
-  const char *get_shader_function_name()
-  {
-    switch (get_mode(bnode())) {
-      case MA_RAMP_BLEND:
-        return "mix_blend";
-      case MA_RAMP_ADD:
-        return "mix_add";
-      case MA_RAMP_MULT:
-        return "mix_mult";
-      case MA_RAMP_SUB:
-        return "mix_sub";
-      case MA_RAMP_SCREEN:
-        return "mix_screen";
-      case MA_RAMP_DIV:
-        return "mix_div";
-      case MA_RAMP_DIFF:
-        return "mix_diff";
-      case MA_RAMP_EXCLUSION:
-        return "mix_exclusion";
-      case MA_RAMP_DARK:
-        return "mix_dark";
-      case MA_RAMP_LIGHT:
-        return "mix_light";
-      case MA_RAMP_OVERLAY:
-        return "mix_overlay";
-      case MA_RAMP_DODGE:
-        return "mix_dodge";
-      case MA_RAMP_BURN:
-        return "mix_burn";
-      case MA_RAMP_HUE:
-        return "mix_hue";
-      case MA_RAMP_SAT:
-        return "mix_sat";
-      case MA_RAMP_VAL:
-        return "mix_val";
-      case MA_RAMP_COLOR:
-        return "mix_color";
-      case MA_RAMP_SOFT:
-        return "mix_soft";
-      case MA_RAMP_LINEAR:
-        return "mix_linear";
-    }
-
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static const char *get_shader_function_name(const bNode &node)
 {
-  return new MixRGBShaderNode(node);
+  switch (get_mode(node)) {
+    case MA_RAMP_BLEND:
+      return "mix_blend";
+    case MA_RAMP_ADD:
+      return "mix_add";
+    case MA_RAMP_MULT:
+      return "mix_mult";
+    case MA_RAMP_SUB:
+      return "mix_sub";
+    case MA_RAMP_SCREEN:
+      return "mix_screen";
+    case MA_RAMP_DIV:
+      return "mix_div";
+    case MA_RAMP_DIFF:
+      return "mix_diff";
+    case MA_RAMP_EXCLUSION:
+      return "mix_exclusion";
+    case MA_RAMP_DARK:
+      return "mix_dark";
+    case MA_RAMP_LIGHT:
+      return "mix_light";
+    case MA_RAMP_OVERLAY:
+      return "mix_overlay";
+    case MA_RAMP_DODGE:
+      return "mix_dodge";
+    case MA_RAMP_BURN:
+      return "mix_burn";
+    case MA_RAMP_HUE:
+      return "mix_hue";
+    case MA_RAMP_SAT:
+      return "mix_sat";
+    case MA_RAMP_VAL:
+      return "mix_val";
+    case MA_RAMP_COLOR:
+      return "mix_color";
+    case MA_RAMP_SOFT:
+      return "mix_soft";
+    case MA_RAMP_LINEAR:
+      return "mix_linear";
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
+{
+  if (get_use_alpha(*node)) {
+    GPU_link(material,
+             "multiply_by_alpha",
+             get_shader_node_input_link(*node, inputs, "Fac"),
+             get_shader_node_input_link(*node, inputs, "Image_001"),
+             &get_shader_node_input(*node, inputs, "Fac").link);
+  }
+
+  const bool is_valid = GPU_stack_link(
+      material, node, get_shader_function_name(*node), inputs, outputs);
+
+  if (!is_valid || !get_should_clamp(*node)) {
+    return is_valid;
+  }
+
+  const float min[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float max[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  return GPU_link(material,
+                  "clamp_color",
+                  get_shader_node_output(*node, outputs, "Image").link,
+                  GPU_constant(min),
+                  GPU_constant(max),
+                  &get_shader_node_output(*node, outputs, "Image").link);
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -252,8 +244,8 @@ void register_node_type_cmp_mix_rgb()
   ntype.flag |= NODE_PREVIEW;
   ntype.declare = file_ns::cmp_node_mixrgb_declare;
   ntype.labelfunc = node_blend_label;
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

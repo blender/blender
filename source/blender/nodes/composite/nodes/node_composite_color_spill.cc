@@ -19,8 +19,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* ******************* Color Spill Suppression ********************************* */
@@ -167,35 +165,26 @@ static float get_limit_scale(const bNode &node)
   return node_storage(node).limscale;
 }
 
-class ColorSpillShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const float spill_channel = get_spill_channel(bnode());
-    const float3 spill_scale = get_spill_scale(bnode());
-    const float2 limit_channels = float2(get_limit_channels(bnode()));
-    const float limit_scale = get_limit_scale(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_color_spill",
-                   inputs,
-                   outputs,
-                   GPU_constant(&spill_channel),
-                   GPU_uniform(spill_scale),
-                   GPU_constant(limit_channels),
-                   GPU_uniform(&limit_scale));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new ColorSpillShaderNode(node);
+  const float spill_channel = get_spill_channel(*node);
+  const float3 spill_scale = get_spill_scale(*node);
+  const float2 limit_channels = float2(get_limit_channels(*node));
+  const float limit_scale = get_limit_scale(*node);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_color_spill",
+                        inputs,
+                        outputs,
+                        GPU_constant(&spill_channel),
+                        GPU_uniform(spill_scale),
+                        GPU_constant(limit_channels),
+                        GPU_uniform(&limit_scale));
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -237,7 +226,7 @@ void register_node_type_cmp_color_spill()
   ntype.initfunc = file_ns::node_composit_init_color_spill;
   blender::bke::node_type_storage(
       &ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

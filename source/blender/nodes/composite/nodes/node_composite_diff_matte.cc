@@ -19,8 +19,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* ******************* channel Difference Matte ********************************* */
@@ -76,31 +74,22 @@ static float get_falloff(const bNode &node)
   return node_storage(node).t2;
 }
 
-class DifferenceMatteShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const float tolerance = get_tolerance(bnode());
-    const float falloff = get_falloff(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_difference_matte",
-                   inputs,
-                   outputs,
-                   GPU_uniform(&tolerance),
-                   GPU_uniform(&falloff));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new DifferenceMatteShaderNode(node);
+  const float tolerance = get_tolerance(*node);
+  const float falloff = get_falloff(*node);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_difference_matte",
+                        inputs,
+                        outputs,
+                        GPU_uniform(&tolerance),
+                        GPU_uniform(&falloff));
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -147,7 +136,7 @@ void register_node_type_cmp_diff_matte()
   ntype.initfunc = file_ns::node_composit_init_diff_matte;
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

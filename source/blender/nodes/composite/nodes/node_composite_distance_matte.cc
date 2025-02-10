@@ -20,8 +20,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* ******************* channel Distance Matte ********************************* */
@@ -89,42 +87,35 @@ static float get_falloff(const bNode &node)
   return node_storage(node).t2;
 }
 
-class DistanceMatteShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const float tolerance = get_tolerance(bnode());
-    const float falloff = get_falloff(bnode());
-
-    if (get_color_space(bnode()) == CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA) {
-      GPU_stack_link(material,
-                     &bnode(),
-                     "node_composite_distance_matte_rgba",
-                     inputs,
-                     outputs,
-                     GPU_uniform(&tolerance),
-                     GPU_uniform(&falloff));
-      return;
-    }
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_distance_matte_ycca",
-                   inputs,
-                   outputs,
-                   GPU_uniform(&tolerance),
-                   GPU_uniform(&falloff));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new DistanceMatteShaderNode(node);
+  const float tolerance = get_tolerance(*node);
+  const float falloff = get_falloff(*node);
+
+  switch (get_color_space(*node)) {
+    case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA:
+      return GPU_stack_link(material,
+                            node,
+                            "node_composite_distance_matte_rgba",
+                            inputs,
+                            outputs,
+                            GPU_uniform(&tolerance),
+                            GPU_uniform(&falloff));
+    case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA:
+      return GPU_stack_link(material,
+                            node,
+                            "node_composite_distance_matte_ycca",
+                            inputs,
+                            outputs,
+                            GPU_uniform(&tolerance),
+                            GPU_uniform(&falloff));
+  }
+
+  return false;
 }
 
 static void distance_key_rgba(const float4 &color,
@@ -214,7 +205,7 @@ void register_node_type_cmp_distance_matte()
   ntype.initfunc = file_ns::node_composit_init_distance_matte;
   blender::bke::node_type_storage(
       &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

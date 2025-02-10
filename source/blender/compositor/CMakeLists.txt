@@ -139,7 +139,10 @@ set(SRC
 
   derived_resources/COM_denoised_auxiliary_pass.hh
 
+  utilities/intern/gpu_material.cc
+
   utilities/COM_utilities_diagonals.hh
+  utilities/COM_utilities_gpu_material.hh
   utilities/COM_utilities_type_conversion.hh
 )
 

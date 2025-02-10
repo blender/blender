@@ -100,7 +100,8 @@ int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
 
 bool is_pixel_node(DNode node)
 {
-  return node->typeinfo->get_compositor_shader_node;
+  BLI_assert(bool(node->typeinfo->gpu_fn) == bool(node->typeinfo->build_multi_function));
+  return node->typeinfo->gpu_fn && node->typeinfo->build_multi_function;
 }
 
 InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)

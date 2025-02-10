@@ -77,7 +77,6 @@ class InverseEvalParams;
 namespace compositor {
 class Context;
 class NodeOperation;
-class ShaderNode;
 }  // namespace compositor
 }  // namespace blender
 
@@ -133,8 +132,6 @@ using NodeGatherAddOperationsFunction =
 using NodeGetCompositorOperationFunction =
     blender::compositor::NodeOperation *(*)(blender::compositor::Context &context,
                                             blender::nodes::DNode node);
-using NodeGetCompositorShaderNodeFunction =
-    blender::compositor::ShaderNode *(*)(blender::nodes::DNode node);
 using NodeExtraInfoFunction = void (*)(blender::nodes::NodeExtraInfoParams &params);
 using NodeInverseElemEvalFunction =
     void (*)(blender::nodes::value_elem::InverseElemEvalParams &params);
@@ -332,10 +329,6 @@ struct bNodeType {
   /* Get an instance of this node's compositor operation. Freeing the instance is the
    * responsibility of the caller. */
   NodeGetCompositorOperationFunction get_compositor_operation = nullptr;
-
-  /* Get an instance of this node's compositor shader node. Freeing the instance is the
-   * responsibility of the caller. */
-  NodeGetCompositorShaderNodeFunction get_compositor_shader_node = nullptr;
 
   /* A message to display in the node header for unsupported compositor nodes. The message
    * is assumed to be static and thus require no memory handling. This field is to be removed when

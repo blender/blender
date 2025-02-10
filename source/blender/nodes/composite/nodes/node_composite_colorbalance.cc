@@ -24,8 +24,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "IMB_colormanagement.hh"
 
 #include "BLI_math_color.hh"
@@ -237,62 +235,57 @@ static float3x3 get_white_point_matrix(const bNode &node)
   return xyz_to_scene * adaption * scene_to_xyz;
 }
 
-class ColorBalanceShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
+{
+  const NodeColorBalance &node_color_balance = node_storage(*node);
 
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const NodeColorBalance &node_color_balance = node_storage(bnode());
-
-    if (get_color_balance_method(bnode()) == CMP_NODE_COLOR_BALANCE_LGG) {
+  switch (get_color_balance_method(*node)) {
+    case CMP_NODE_COLOR_BALANCE_LGG: {
       const float3 lift = node_color_balance.lift;
       const float3 gamma = node_color_balance.gamma;
       const float3 gain = node_color_balance.gain;
       const float3 sanitized_gamma = get_sanitized_gamma(gamma);
 
-      GPU_stack_link(material,
-                     &bnode(),
-                     "node_composite_color_balance_lgg",
-                     inputs,
-                     outputs,
-                     GPU_uniform(lift),
-                     GPU_uniform(sanitized_gamma),
-                     GPU_uniform(gain));
+      return GPU_stack_link(material,
+                            node,
+                            "node_composite_color_balance_lgg",
+                            inputs,
+                            outputs,
+                            GPU_uniform(lift),
+                            GPU_uniform(sanitized_gamma),
+                            GPU_uniform(gain));
     }
-    else if (get_color_balance_method(bnode()) == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
+    case CMP_NODE_COLOR_BALANCE_ASC_CDL: {
       const float3 offset = node_color_balance.offset;
       const float3 power = node_color_balance.power;
       const float3 slope = node_color_balance.slope;
       const float3 full_offset = node_color_balance.offset_basis + offset;
 
-      GPU_stack_link(material,
-                     &bnode(),
-                     "node_composite_color_balance_asc_cdl",
-                     inputs,
-                     outputs,
-                     GPU_uniform(full_offset),
-                     GPU_uniform(power),
-                     GPU_uniform(slope));
+      return GPU_stack_link(material,
+                            node,
+                            "node_composite_color_balance_asc_cdl",
+                            inputs,
+                            outputs,
+                            GPU_uniform(full_offset),
+                            GPU_uniform(power),
+                            GPU_uniform(slope));
     }
-    else if (get_color_balance_method(bnode()) == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
-      const float3x3 matrix = get_white_point_matrix(bnode());
-      GPU_stack_link(material,
-                     &bnode(),
-                     "node_composite_color_balance_whitepoint",
-                     inputs,
-                     outputs,
-                     GPU_uniform(blender::float4x4(matrix).base_ptr()));
+    case CMP_NODE_COLOR_BALANCE_WHITEPOINT: {
+      const float3x3 matrix = get_white_point_matrix(*node);
+      return GPU_stack_link(material,
+                            node,
+                            "node_composite_color_balance_whitepoint",
+                            inputs,
+                            outputs,
+                            GPU_uniform(blender::float4x4(matrix).base_ptr()));
     }
   }
-};
 
-static ShaderNode *get_compositor_shader_node(DNode node)
-{
-  return new ColorBalanceShaderNode(node);
+  return false;
 }
 
 static float4 color_balance_lgg(const float factor,
@@ -399,7 +392,7 @@ void register_node_type_cmp_colorbalance()
   ntype.initfunc = file_ns::node_composit_init_colorbalance;
   blender::bke::node_type_storage(
       &ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

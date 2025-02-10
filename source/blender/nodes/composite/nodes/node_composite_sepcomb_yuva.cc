@@ -15,8 +15,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* **************** SEPARATE YUVA ******************** */
@@ -36,22 +34,13 @@ static void cmp_node_sepyuva_declare(NodeDeclarationBuilder &b)
 
 using namespace blender::compositor;
 
-class SeparateYUVAShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    GPU_stack_link(material, &bnode(), "node_composite_separate_yuva_itu_709", inputs, outputs);
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new SeparateYUVAShaderNode(node);
+  return GPU_stack_link(material, node, "node_composite_separate_yuva_itu_709", inputs, outputs);
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -81,7 +70,7 @@ void register_node_type_cmp_sepyuva()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_sepyuva_declare;
   ntype.gather_link_search_ops = nullptr;
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);
@@ -119,22 +108,13 @@ static void cmp_node_combyuva_declare(NodeDeclarationBuilder &b)
 
 using namespace blender::compositor;
 
-class CombineYUVAShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    GPU_stack_link(material, &bnode(), "node_composite_combine_yuva_itu_709", inputs, outputs);
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new CombineYUVAShaderNode(node);
+  return GPU_stack_link(material, node, "node_composite_combine_yuva_itu_709", inputs, outputs);
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -166,7 +146,7 @@ void register_node_type_cmp_combyuva()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_combyuva_declare;
   ntype.gather_link_search_ops = nullptr;
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

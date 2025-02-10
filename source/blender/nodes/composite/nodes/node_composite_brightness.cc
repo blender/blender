@@ -20,8 +20,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* **************** Brightness and Contrast  ******************** */
@@ -55,29 +53,19 @@ static bool get_use_premultiply(const bNode &node)
   return node.custom1;
 }
 
-class BrightContrastShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const float use_premultiply = get_use_premultiply(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_bright_contrast",
-                   inputs,
-                   outputs,
-                   GPU_constant(&use_premultiply));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new BrightContrastShaderNode(node);
+  const float use_premultiply = get_use_premultiply(*node);
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_bright_contrast",
+                        inputs,
+                        outputs,
+                        GPU_constant(&use_premultiply));
 }
 
 /* The algorithm is by Werner D. Streidt, extracted of OpenCV `demhist.c`:
@@ -156,7 +144,7 @@ void register_node_type_cmp_brightcontrast()
   ntype.declare = file_ns::cmp_node_brightcontrast_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_brightcontrast;
   ntype.initfunc = file_ns::node_composit_init_brightcontrast;
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

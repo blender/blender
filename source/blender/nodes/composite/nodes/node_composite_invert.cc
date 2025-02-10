@@ -18,8 +18,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 /* **************** INVERT ******************** */
@@ -66,31 +64,22 @@ static bool should_invert_alpha(const bNode &node)
   return node.custom1 & CMP_CHAN_A;
 }
 
-class InvertShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    const float do_rgb = should_invert_rgb(bnode());
-    const float do_alpha = should_invert_alpha(bnode());
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_invert",
-                   inputs,
-                   outputs,
-                   GPU_constant(&do_rgb),
-                   GPU_constant(&do_alpha));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new InvertShaderNode(node);
+  const float do_rgb = should_invert_rgb(*node);
+  const float do_alpha = should_invert_alpha(*node);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_invert",
+                        inputs,
+                        outputs,
+                        GPU_constant(&do_rgb),
+                        GPU_constant(&do_alpha));
 }
 
 template<bool ShouldInvertRGB, bool ShouldInvertAlpha>
@@ -168,7 +157,7 @@ void register_node_type_cmp_invert()
   ntype.declare = file_ns::cmp_node_invert_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_invert;
   ntype.initfunc = file_ns::node_composit_init_invert;
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

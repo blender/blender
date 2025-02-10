@@ -46,36 +46,15 @@ class ShaderNode {
   /* Construct the node by populating both its inputs and outputs. */
   ShaderNode(DNode node);
 
-  virtual ~ShaderNode() = default;
-
   /* Compile the node by adding the appropriate GPU material graph nodes and linking the
    * appropriate resources. */
-  virtual void compile(GPUMaterial *material) = 0;
-
-  /* Returns a contiguous array containing the GPU node stacks of each input. */
-  GPUNodeStack *get_inputs_array();
-
-  /* Returns a contiguous array containing the GPU node stacks of each output. */
-  GPUNodeStack *get_outputs_array();
+  void compile(GPUMaterial *material);
 
   /* Returns the GPU node stack of the input with the given identifier. */
-  GPUNodeStack &get_input(StringRef identifier);
+  GPUNodeStack &get_input(const StringRef identifier);
 
   /* Returns the GPU node stack of the output with the given identifier. */
-  GPUNodeStack &get_output(StringRef identifier);
-
-  /* Returns the GPU node link of the input with the given identifier, if the input is not linked,
-   * a uniform link carrying the value of the input will be created a returned. It is expected that
-   * the caller will use the returned link in a GPU material, otherwise, the link may not be
-   * properly freed. */
-  GPUNodeLink *get_input_link(StringRef identifier);
-
- protected:
-  /* Returns a reference to the derived node that this operation represents. */
-  const DNode &node() const;
-
-  /* Returns a reference to the node this operations represents. */
-  const bNode &bnode() const;
+  GPUNodeStack &get_output(const StringRef identifier);
 
  private:
   /* Populate the inputs of the node. The input link is set to nullptr and is expected to be

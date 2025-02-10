@@ -20,8 +20,6 @@
 
 #include "GPU_material.hh"
 
-#include "COM_shader_node.hh"
-
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_huecorrect_cc {
@@ -65,44 +63,35 @@ static CurveMapping *get_curve_mapping(const bNode &node)
   return static_cast<CurveMapping *>(node.storage);
 }
 
-class HueCorrectShaderNode : public ShaderNode {
- public:
-  using ShaderNode::ShaderNode;
-
-  void compile(GPUMaterial *material) override
-  {
-    GPUNodeStack *inputs = get_inputs_array();
-    GPUNodeStack *outputs = get_outputs_array();
-
-    CurveMapping *curve_mapping = get_curve_mapping(bnode());
-
-    BKE_curvemapping_init(curve_mapping);
-    float *band_values;
-    int band_size;
-    BKE_curvemapping_table_RGBA(curve_mapping, &band_values, &band_size);
-    float band_layer;
-    GPUNodeLink *band_texture = GPU_color_band(material, band_size, band_values, &band_layer);
-
-    float range_minimums[CM_TOT];
-    BKE_curvemapping_get_range_minimums(curve_mapping, range_minimums);
-    float range_dividers[CM_TOT];
-    BKE_curvemapping_compute_range_dividers(curve_mapping, range_dividers);
-
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_hue_correct",
-                   inputs,
-                   outputs,
-                   band_texture,
-                   GPU_constant(&band_layer),
-                   GPU_uniform(range_minimums),
-                   GPU_uniform(range_dividers));
-  }
-};
-
-static ShaderNode *get_compositor_shader_node(DNode node)
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
 {
-  return new HueCorrectShaderNode(node);
+  CurveMapping *curve_mapping = get_curve_mapping(*node);
+
+  BKE_curvemapping_init(curve_mapping);
+  float *band_values;
+  int band_size;
+  BKE_curvemapping_table_RGBA(curve_mapping, &band_values, &band_size);
+  float band_layer;
+  GPUNodeLink *band_texture = GPU_color_band(material, band_size, band_values, &band_layer);
+
+  float range_minimums[CM_TOT];
+  BKE_curvemapping_get_range_minimums(curve_mapping, range_minimums);
+  float range_dividers[CM_TOT];
+  BKE_curvemapping_compute_range_dividers(curve_mapping, range_dividers);
+
+  return GPU_stack_link(material,
+                        node,
+                        "node_composite_hue_correct",
+                        inputs,
+                        outputs,
+                        band_texture,
+                        GPU_constant(&band_layer),
+                        GPU_uniform(range_minimums),
+                        GPU_uniform(range_dividers));
 }
 
 static float4 hue_correct(const float factor, const float4 &color, const CurveMapping *curve_map)
@@ -165,7 +154,7 @@ void register_node_type_cmp_huecorrect()
   blender::bke::node_type_size(&ntype, 320, 140, 500);
   ntype.initfunc = file_ns::node_composit_init_huecorrect;
   blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
   blender::bke::node_register_type(&ntype);

@@ -18,6 +18,7 @@
 #include "COM_context.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
+#include "COM_shader_node.hh"
 
 namespace blender::compositor {
 
