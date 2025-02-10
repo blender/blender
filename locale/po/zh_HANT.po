@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
-"PO-Revision-Date: 2025-01-31 18:56+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
+"PO-Revision-Date: 2025-02-05 18:51+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -73,6 +73,10 @@ msgstr "F 曲線"
 
 msgid "F-Curve Groups"
 msgstr "F 曲線群組"
+
+
+msgid "Slot"
+msgstr "槽"
 
 
 msgid "Collection of f-curve groups"
@@ -273,34 +277,6 @@ msgstr "動作群組的集盒"
 
 msgid "Action Layer"
 msgstr "動作層"
-
-
-msgid "Influence"
-msgstr "影響"
-
-
-msgid "Mix Mode"
-msgstr "混合模式"
-
-
-msgid "Replace"
-msgstr "替換"
-
-
-msgid "Offset"
-msgstr "偏移"
-
-
-msgid "Add"
-msgstr "加"
-
-
-msgid "Subtract"
-msgstr "減"
-
-
-msgid "Multiply"
-msgstr "相乘"
 
 
 msgid "Strips"
@@ -559,7 +535,7 @@ msgstr "動作片段"
 
 
 msgid "Keyframe"
-msgstr "鍵幀"
+msgstr "關鍵影格"
 
 
 msgid "Action Strips"
@@ -703,7 +679,7 @@ msgstr "gltfpack 二進位檔的路徑"
 
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
-msgstr "在著色器編輯器中顯示 glTF 設定節點 (選單 添加 > 輸出)"
+msgstr "在著色器編輯器中顯示 glTF 設定節點 (選單 新增 > 輸出)"
 
 
 msgid "        Filter by Name"
@@ -842,6 +818,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "用於合成作用中動作的結果和 NLA 堆疊結果的方法"
 
 
+msgid "Replace"
+msgstr "替換"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "根據影響所指定的量來替換累積結果的片段值"
 
@@ -854,12 +834,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "根據頻道類型，妥善以加法、乘法或四元數等數學方法來結合累積貨運算出結果的片段值"
 
 
+msgid "Add"
+msgstr "加"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
-msgstr "片段的權重結果被添加到累積的結果"
+msgstr "片段的權重結果被新增到累積的結果"
+
+
+msgid "Subtract"
+msgstr "減"
 
 
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "從累積的結果移除片段的權重結果"
+
+
+msgid "Multiply"
+msgstr "相乘"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1007,11 +999,11 @@ msgstr "在目前之前"
 
 
 msgid "End Frame"
-msgstr "結束幀"
+msgstr "結束影格"
 
 
 msgid "Start Frame"
-msgstr "起始幀"
+msgstr "起始影格"
 
 
 msgid "Frame Step"
@@ -1019,7 +1011,7 @@ msgstr "幀步"
 
 
 msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
-msgstr "在路徑中顯示的幀數 (不適用「鍵幀上」洋蔥皮化方法)"
+msgstr "在路徑中顯示的幀數 (不適用「關鍵影格上」洋蔥皮化方法)"
 
 
 msgid "Has Motion Paths"
@@ -1043,7 +1035,7 @@ msgstr "所有鍵"
 
 
 msgid "From the first keyframe to the last"
-msgstr "從第一個鍵幀到最後一個"
+msgstr "從第一個關鍵影格到最後一個"
 
 
 msgid "Selected Keys"
@@ -1051,7 +1043,7 @@ msgstr "選取的鍵"
 
 
 msgid "From the first selected keyframe to the last"
-msgstr "從第一個選擇的關鍵幀到最後一個"
+msgstr "從第一個選擇的關鍵影格到最後一個"
 
 
 msgid "Scene Frame Range"
@@ -1067,7 +1059,7 @@ msgstr "手動範圍"
 
 
 msgid "Manually determined frame range"
-msgstr "手動決定框幀範圍"
+msgstr "手動決定影格範圍"
 
 
 msgid "Show Frame Numbers"
@@ -1079,27 +1071,27 @@ msgstr "在運動路徑上顯示幀編號"
 
 
 msgid "All Action Keyframes"
-msgstr "所有的作用中鍵幀"
+msgstr "所有的作用中關鍵影格"
 
 
 msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
-msgstr "對於骨骼運動路徑，針對全部動作所尋鍵幀，而不是只搜尋群組中符合名稱的鍵幀 (較慢)"
+msgstr "對於骨骼運動路徑，針對全部動作所尋關鍵影格，而不是只搜尋群組中符合名稱的關鍵影格 (較慢)"
 
 
 msgid "Highlight Keyframes"
-msgstr "標明鍵幀"
+msgstr "標明關鍵影格"
 
 
 msgid "Emphasize position of keyframes on Motion Paths"
-msgstr "在運動路徑中強調鍵幀的位置"
+msgstr "在運動路徑中強調關鍵影格的位置"
 
 
 msgid "Show Keyframe Numbers"
-msgstr "顯示鍵幀編號"
+msgstr "顯示關鍵影格編號"
 
 
 msgid "Show frame numbers of Keyframes on Motion Paths"
-msgstr "在運動路徑上顯示鍵幀編號"
+msgstr "在運動路徑上顯示關鍵影格編號"
 
 
 msgid "Paths Type"
@@ -1111,11 +1103,11 @@ msgstr "運動路徑要顯示的範圍類型"
 
 
 msgid "Around Frame"
-msgstr "框幀周圍"
+msgstr "影格周圍"
 
 
 msgid "Display Paths of poses within a fixed number of frames around the current frame"
-msgstr "在框幀周圍顯示固定幀數內姿勢的路徑"
+msgstr "在影格周圍顯示固定幀數內姿勢的路徑"
 
 
 msgid "In Range"
@@ -1227,7 +1219,7 @@ msgstr "律表"
 
 
 msgid "Adjust timing of keyframes"
-msgstr "調整鍵幀的時機"
+msgstr "調整關鍵影格的時機"
 
 
 msgid "Graph Editor"
@@ -1235,7 +1227,7 @@ msgstr "圖表編輯器"
 
 
 msgid "Edit drivers and keyframe interpolation"
-msgstr "編輯驅動器與鍵幀插補"
+msgstr "編輯驅動器與關鍵影格插補"
 
 
 msgid "Nonlinear Animation"
@@ -2080,7 +2072,7 @@ msgstr "通遞上色"
 
 
 msgid "Add diffuse contribution"
-msgstr "添加漫射貢獻"
+msgstr "新增漫射貢獻"
 
 
 msgid "Add direct lighting contribution"
@@ -2088,11 +2080,11 @@ msgstr "加入直接照明貢獻"
 
 
 msgid "Add emission contribution"
-msgstr "添加發光效益"
+msgstr "新增發光效益"
 
 
 msgid "Add glossy contribution"
-msgstr "添加光澤貢獻"
+msgstr "新增光澤貢獻"
 
 
 msgid "Add indirect lighting contribution"
@@ -2100,7 +2092,7 @@ msgstr "加入間接照明貢獻"
 
 
 msgid "Add transmission contribution"
-msgstr "添加穿透貢獻"
+msgstr "新增穿透貢獻"
 
 
 msgid "Selected to Active"
@@ -2661,6 +2653,10 @@ msgstr "主要字型"
 
 msgid "Collection of fonts"
 msgstr "字型的集盒"
+
+
+msgid "Main Annotations"
+msgstr "主註記"
 
 
 msgid "Main Grease Pencils"
@@ -3899,7 +3895,7 @@ msgstr "曲線長度"
 
 
 msgid "Length of newly added curves when it is not interpolated from other curves"
-msgstr "未從其他曲線進行插值時新添加的曲線其長度"
+msgstr "未從其他曲線進行插值時新新增的曲線其長度"
 
 
 msgid "Curve Radius"
@@ -4506,7 +4502,7 @@ msgstr "剪輯使用者"
 
 
 msgid "Parameters defining which frame of the movie clip is displayed"
-msgstr "定義影片剪輯要顯示何框幀的參數"
+msgstr "定義影片剪輯要顯示何影格的參數"
 
 
 msgctxt "Camera"
@@ -4525,11 +4521,11 @@ msgstr "前方"
 
 
 msgid "Frame Method"
-msgstr "框幀方法"
+msgstr "影格方法"
 
 
 msgid "How the image fits in the camera frame"
-msgstr "影像要如何適應攝影機框幀的大小"
+msgstr "影像要如何適應攝影機影格的大小"
 
 
 msgid "Stretch"
@@ -4557,7 +4553,11 @@ msgstr "影像使用者"
 
 
 msgid "Parameters defining which layer, pass and frame of the image is displayed"
-msgstr "定義要顯示影像的哪一層、通遞和框幀的參數"
+msgstr "定義要顯示影像的哪一層、通遞和影格的參數"
+
+
+msgid "Offset"
+msgstr "偏移"
 
 
 msgid "Rotation"
@@ -4589,7 +4589,7 @@ msgstr "顯示於前景"
 
 
 msgid "Show this image in front of objects in viewport"
-msgstr "在視圖中將此影像顯示於物體前方"
+msgstr "在視圖區中將此影像顯示於物體前方"
 
 
 msgid "Background Source"
@@ -5841,6 +5841,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "約束作用於方向的殘餘弧度錯誤"
 
 
+msgid "Influence"
+msgstr "影響"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "約束對最終解決方案的影響量"
 
@@ -6169,6 +6173,10 @@ msgid "Minimum value for target channel range"
 msgstr "目標通道範圍的最小值"
 
 
+msgid "Mix Mode"
+msgstr "混合模式"
+
+
 msgid "Target object"
 msgstr "目標物體"
 
@@ -6434,7 +6442,7 @@ msgstr "反轉 Z 軸位置"
 
 
 msgid "Add original location into copied location"
-msgstr "添加原始位置至複製的位置"
+msgstr "新增原始位置至複製的位置"
 
 
 msgid "Copy X"
@@ -6694,7 +6702,7 @@ msgstr "於攝影機空間用來定義深度的物體，透過投影至此物體
 
 
 msgid "How the footage fits in the camera frame"
-msgstr "連續鏡頭要如何適應攝影機框幀"
+msgstr "連續鏡頭要如何適應攝影機影格"
 
 
 msgid "Movie tracking object to follow (if empty, camera object is used)"
@@ -7844,7 +7852,7 @@ msgstr "半徑"
 
 msgctxt "Mesh"
 msgid "Preset"
-msgstr "預設檔"
+msgstr "預設集"
 
 
 msgctxt "Mesh"
@@ -7898,7 +7906,7 @@ msgstr "評估模式"
 
 
 msgid "Viewport"
-msgstr "視圖"
+msgstr "視圖區"
 
 
 msgid "Render"
@@ -8098,7 +8106,7 @@ msgstr "顯示蠟筆"
 
 
 msgid "Include visualization of Grease Pencil related animation data and frames"
-msgstr "具現化蠟筆相關動畫資料與框幀"
+msgstr "具現化蠟筆相關動畫資料與影格"
 
 
 msgid "Display Hair"
@@ -8867,11 +8875,11 @@ msgstr "收縮"
 
 
 msgid "Simulation end frame"
-msgstr "模擬結束幀"
+msgstr "模擬結束影格"
 
 
 msgid "Simulation start frame"
-msgstr "模擬起始幀"
+msgstr "模擬起始影格"
 
 
 msgid "Sub-Steps"
@@ -9395,15 +9403,15 @@ msgstr "外推"
 
 
 msgid "Method used for evaluating value of F-Curve outside first and last keyframes"
-msgstr "用於評估第一與最後鍵幀外 F 曲線值的方法"
+msgstr "用於評估第一與最後關鍵影格外 F 曲線值的方法"
 
 
 msgid "Hold values of endpoint keyframes"
-msgstr "保留端點鍵幀的值"
+msgstr "保留端點關鍵影格的值"
 
 
 msgid "Use slope of curve leading in/out of endpoint keyframes"
-msgstr "使用端點鍵幀的曲線導入/出斜度"
+msgstr "使用端點關鍵影格的曲線導入/出斜度"
 
 
 msgid "Group"
@@ -9415,7 +9423,7 @@ msgstr "此 F 曲線所屬的動作群組"
 
 
 msgid "F-Curve and its keyframes are hidden in the Graph Editor graphs"
-msgstr "F 曲線與其鍵幀在圖表編輯器的圖表中為隱藏"
+msgstr "F 曲線與其關鍵影格在圖表編輯器的圖表中為隱藏"
 
 
 msgid "False when F-Curve could not be evaluated in past, so should be skipped when evaluating"
@@ -9423,11 +9431,11 @@ msgstr "當 F 曲線無法於過去評估時為假，因此評估時應略過"
 
 
 msgid "Keyframes"
-msgstr "鍵幀"
+msgstr "關鍵影格"
 
 
 msgid "User-editable keyframes"
-msgstr "使用者可編輯的鍵幀"
+msgstr "使用者可編輯的關鍵影格"
 
 
 msgid "F-Curve's settings cannot be edited"
@@ -9459,7 +9467,7 @@ msgstr "已選取 F 曲線編輯中"
 
 
 msgid "Keyframe Points"
-msgstr "關鍵幀點"
+msgstr "關鍵影格點"
 
 
 msgid "F-Curve Modifiers"
@@ -9748,11 +9756,11 @@ msgstr "QuickTime"
 
 
 msgid "Keyframe Interval"
-msgstr "關鍵幀間隔"
+msgstr "關鍵影格間隔"
 
 
 msgid "Max B-Frames"
-msgstr "最大 B 框幀"
+msgstr "最大 B 影格"
 
 
 msgid "Max Rate"
@@ -9808,7 +9816,7 @@ msgstr "混入"
 
 
 msgid "Number of frames from start frame for influence to take effect"
-msgstr "從起始幀開始要發揮影響的幀數"
+msgstr "從起始影格開始要發揮影響的幀數"
 
 
 msgid "Blend Out"
@@ -9816,15 +9824,15 @@ msgstr "混出"
 
 
 msgid "Number of frames from end frame for influence to fade out"
-msgstr "從結束幀起要影響淡出的幀數"
+msgstr "從結束影格起要影響淡出的幀數"
 
 
 msgid "Frame that modifier's influence ends (if Restrict Frame Range is in use)"
-msgstr "修改器影響結束的框幀 (如果正在使用「限定框幀區間」)"
+msgstr "修改器影響結束的影格 (如果正在使用「限定影格區間」)"
 
 
 msgid "Frame that modifier's influence starts (if Restrict Frame Range is in use)"
-msgstr "修改器開始影響的框幀 (如果正在使用「限定框幀區間」)"
+msgstr "修改器開始影響的影格 (如果正在使用「限定影格區間」)"
 
 
 msgid "Amount of influence F-Curve Modifier will have when not fading in/out"
@@ -9886,7 +9894,7 @@ msgstr "循環"
 
 
 msgid "Cyclic extend/repeat keyframe sequence"
-msgstr "循環擴展/重複鍵幀序段"
+msgstr "循環擴展/重複關鍵影格序段"
 
 
 msgctxt "Action"
@@ -9895,7 +9903,7 @@ msgstr "噪訊"
 
 
 msgid "Add pseudo-random noise on top of F-Curves"
-msgstr "於 F 曲線之上添加偽隨機噪訊"
+msgstr "於 F 曲線之上新增偽隨機噪訊"
 
 
 msgctxt "Action"
@@ -9925,11 +9933,11 @@ msgstr "F 曲線修改器的效果將被預設係數影響"
 
 
 msgid "Restrict Frame Range"
-msgstr "限定框幀區間"
+msgstr "限定影格區間"
 
 
 msgid "F-Curve Modifier is only applied for the specified frame range to help mask off effects in order to chain them"
-msgstr "F 曲線修改器僅會套用指定的框幀區間，以幫助效果遮罩時能將它們鏈接起來"
+msgstr "F 曲線修改器僅會套用指定的影格區間，以幫助效果遮罩時能將它們鏈接起來"
 
 
 msgid "Cycles F-Modifier"
@@ -9945,7 +9953,7 @@ msgstr "之後循環"
 
 
 msgid "Maximum number of cycles to allow after last keyframe (0 = infinite)"
-msgstr "在最後一個鍵幀之後允許的最大循環數 (0 = 無限)"
+msgstr "在最後一個關鍵影格之後允許的最大循環數 (0 = 無限)"
 
 
 msgid "Before Cycles"
@@ -9953,7 +9961,7 @@ msgstr "之前循環"
 
 
 msgid "Maximum number of cycles to allow before first keyframe (0 = infinite)"
-msgstr "在第一個鍵幀前允許的最大循環數 (0 = 無限)"
+msgstr "在第一個關鍵影格前允許的最大循環數 (0 = 無限)"
 
 
 msgid "After Mode"
@@ -9961,7 +9969,7 @@ msgstr "之後模式"
 
 
 msgid "Cycling mode to use after last keyframe"
-msgstr "在最後一個鍵幀之後循環要使用的模式"
+msgstr "在最後一個關鍵影格之後循環要使用的模式"
 
 
 msgid "No Cycles"
@@ -9977,7 +9985,7 @@ msgstr "重復運動"
 
 
 msgid "Repeat keyframe range as-is"
-msgstr "重復鍵幀區間如其"
+msgstr "重復關鍵影格區間如其"
 
 
 msgid "Repeat with Offset"
@@ -9985,7 +9993,7 @@ msgstr "重復附帶偏移"
 
 
 msgid "Repeat keyframe range, but with offset based on gradient between start and end values"
-msgstr "重復鍵幀區間，但基於開始值與結束值之間的梯度進行偏移"
+msgstr "重復關鍵影格區間，但基於開始值與結束值之間的梯度進行偏移"
 
 
 msgid "Repeat Mirrored"
@@ -9993,7 +10001,7 @@ msgstr "重復已鏡像"
 
 
 msgid "Alternate between forward and reverse playback of keyframe range"
-msgstr "在鍵幀區間的往前與往後播放間替換"
+msgstr "在關鍵影格區間的往前與往後播放間替換"
 
 
 msgid "Before Mode"
@@ -10001,7 +10009,7 @@ msgstr "之前模式"
 
 
 msgid "Cycling mode to use before first keyframe"
-msgstr "在第一個鍵幀前循環要使用的模式"
+msgstr "在第一個關鍵影格前循環要使用的模式"
 
 
 msgid "Envelope F-Modifier"
@@ -10101,7 +10109,7 @@ msgstr "要由函式偏移時間的常數因子"
 
 
 msgid "Additive"
-msgstr "添加性"
+msgstr "新增性"
 
 
 msgid "Values generated by this modifier are applied on top of the existing values instead of overwriting them"
@@ -10209,19 +10217,19 @@ msgstr "步進插補 F 修改器"
 
 
 msgid "Hold each interpolated value from the F-Curve for several frames without changing the timing"
-msgstr "為數個框幀留住來自 F 曲線的每個插補值，但不更改時機"
+msgstr "為數個影格留住來自 F 曲線的每個插補值，但不更改時機"
 
 
 msgid "Frame that modifier's influence ends (if applicable)"
-msgstr "修改器結束影響的框幀 (如果可用)"
+msgstr "修改器結束影響的影格 (如果可用)"
 
 
 msgid "Reference number of frames before frames get held (use to get hold for '1-3' vs '5-7' holding patterns)"
-msgstr "在框幀留住之前的框幀參照編號 (使用以取得「1-3」對「5-7」的留住樣式)"
+msgstr "在影格留住之前的影格參照編號 (使用以取得「1-3」對「5-7」的留住樣式)"
 
 
 msgid "Frame that modifier's influence starts (if applicable)"
-msgstr "修改器的影響開始的框幀 (如果可用)"
+msgstr "修改器的影響開始的影格 (如果可用)"
 
 
 msgid "Step Size"
@@ -10233,19 +10241,19 @@ msgstr "要留住其值的幀數"
 
 
 msgid "Use End Frame"
-msgstr "使用結束幀"
+msgstr "使用結束影格"
 
 
 msgid "Restrict modifier to only act before its 'end' frame"
-msgstr "限定修改器僅在其「結束」框幀之前行動"
+msgstr "限定修改器僅在其「結束」影格之前行動"
 
 
 msgid "Use Start Frame"
-msgstr "使用起始幀"
+msgstr "使用起始影格"
 
 
 msgid "Restrict modifier to only act after its 'start' frame"
-msgstr "限定修改器僅在其「開始」框幀之後行動"
+msgstr "限定修改器僅在其「開始」影格之後行動"
 
 
 msgid "Envelope Control Point"
@@ -10257,11 +10265,11 @@ msgstr "封套 F 修改器的控制點"
 
 
 msgid "Frame"
-msgstr "框幀"
+msgstr "影格"
 
 
 msgid "Frame this control-point occurs on"
-msgstr "此控制點發生作用的框幀"
+msgstr "此控制點發生作用的影格"
 
 
 msgid "Upper bound of envelope at this control-point"
@@ -11121,11 +11129,11 @@ msgstr "流體領域設定"
 
 
 msgid "Margin added around fluid to minimize boundary interference"
-msgstr "流體周圍添加邊距以讓邊界干擾降到最小"
+msgstr "流體周圍新增邊距以讓邊界干擾降到最小"
 
 
 msgid "Additional"
-msgstr "添加性"
+msgstr "新增性"
 
 
 msgid "Maximum number of additional cells"
@@ -11778,7 +11786,7 @@ msgstr "流動類型"
 
 
 msgid "Add smoke"
-msgstr "添加煙霧"
+msgstr "新增煙霧"
 
 
 msgid "Fire + Smoke"
@@ -11786,7 +11794,7 @@ msgstr "火燒 + 煙霧"
 
 
 msgid "Add fire and smoke"
-msgstr "添加火燒與煙霧"
+msgstr "新增火燒與煙霧"
 
 
 msgid "Fire"
@@ -11794,11 +11802,11 @@ msgstr "火燒"
 
 
 msgid "Add fire"
-msgstr "添加火燒"
+msgstr "新增火燒"
 
 
 msgid "Add liquid"
-msgstr "添加液體"
+msgstr "新增液體"
 
 
 msgid "Flame Rate"
@@ -12362,7 +12370,7 @@ msgstr "檢視映射快取"
 
 
 msgid "Collection of related sketches on a particular frame"
-msgstr "特定框幀上的相關草圖集盒"
+msgstr "特定影格上的相關草圖集盒"
 
 
 msgid "Frame Number"
@@ -12370,15 +12378,15 @@ msgstr "幀號"
 
 
 msgid "The frame on which this sketch appears"
-msgstr "此草圖出現的框幀"
+msgstr "此草圖出現的影格"
 
 
 msgid "Frame is selected for editing in the Dope Sheet"
-msgstr "框幀被選取以在律表中編輯"
+msgstr "影格被選取以在律表中編輯"
 
 
 msgid "Freehand curves defining the sketch on this frame"
-msgstr "在此框幀上定義草圖的隨手畫曲線"
+msgstr "在此影格上定義草圖的隨手畫曲線"
 
 
 msgid "Grease Pencil Interpolate Settings"
@@ -12394,11 +12402,11 @@ msgstr "相關草圖的集盒"
 
 
 msgid "Active Frame"
-msgstr "作用中框幀"
+msgstr "作用中影格"
 
 
 msgid "Frame currently being displayed for this layer"
-msgstr "此層正顯示的框幀"
+msgstr "此層正顯示的影格"
 
 
 msgid "After Color"
@@ -12406,7 +12414,7 @@ msgstr "之後色彩"
 
 
 msgid "Base color for ghosts after the active frame"
-msgstr "在作用中框幀之後的鬼影基礎色"
+msgstr "在作用中影格之後的鬼影基礎色"
 
 
 msgid "Frames After"
@@ -12418,7 +12426,7 @@ msgstr "之前色彩"
 
 
 msgid "Base color for ghosts before the active frame"
-msgstr "在作用中框幀之前的鬼影基礎色"
+msgstr "在作用中影格之前的鬼影基礎色"
 
 
 msgid "Frames Before"
@@ -12426,11 +12434,11 @@ msgstr "之前幀數"
 
 
 msgid "Frames"
-msgstr "框幀"
+msgstr "影格"
 
 
 msgid "Sketches for this layer on different frames"
-msgstr "此層於不同框幀上的草圖"
+msgstr "此層於不同影格上的草圖"
 
 
 msgid "Layer name"
@@ -12446,15 +12454,15 @@ msgstr "已鎖定"
 
 
 msgid "Protect layer from further editing and/or frame changes"
-msgstr "保護層不受往後編輯與/或框幀更動而跟著更改"
+msgstr "保護層不受往後編輯與/或影格更動而跟著更改"
 
 
 msgid "Frame Locked"
-msgstr "框幀已鎖定"
+msgstr "影格已鎖定"
 
 
 msgid "Lock current frame displayed by layer"
-msgstr "鎖定依層顯示的目前框幀"
+msgstr "鎖定依層顯示的目前影格"
 
 
 msgid "Layer is selected for editing in the Dope Sheet"
@@ -12687,6 +12695,10 @@ msgid "Tool Init"
 msgstr "工具初始化"
 
 
+msgid "Use fallback tools keymap"
+msgstr "使用後備工具按鍵對應"
+
+
 msgid "Add fallback tools keymap to this gizmo type"
 msgstr "為此操縱器類型加入後備工具按鍵對應"
 
@@ -12772,11 +12784,11 @@ msgstr "參照"
 
 
 msgid "Grease Pencil Frame"
-msgstr "蠟筆框幀"
+msgstr "蠟筆影格"
 
 
 msgid "Grease Pencil Frames"
-msgstr "蠟筆框幀"
+msgstr "蠟筆影格"
 
 
 msgid "Grease Pencil Layer"
@@ -12888,7 +12900,7 @@ msgstr "重復"
 
 
 msgid "Frame Start"
-msgstr "框幀起始"
+msgstr "影格起始"
 
 
 msgid "Statistical view of the levels of color in an image"
@@ -13010,7 +13022,7 @@ msgstr "構成動作的個別 F 曲線"
 
 
 msgid "Frame Range"
-msgstr "框幀區間"
+msgstr "影格區間"
 
 
 msgid "Groups"
@@ -13211,11 +13223,11 @@ msgstr "繪製時擦除 alpha"
 
 
 msgid "Add Alpha"
-msgstr "添加 Alpha"
+msgstr "新增 Alpha"
 
 
 msgid "Add alpha while painting"
-msgstr "繪製時添加 Alpha"
+msgstr "繪製時新增 Alpha"
 
 
 msgid "Kernel Radius"
@@ -13354,11 +13366,11 @@ msgstr "筆刷捏擠可弄皺的程度"
 
 
 msgid "Add Color"
-msgstr "添加色彩"
+msgstr "新增色彩"
 
 
 msgid "Color of cursor when adding"
-msgstr "添加時的游標色彩"
+msgstr "新增時的游標色彩"
 
 
 msgid "Subtract Color"
@@ -13379,7 +13391,7 @@ msgstr "可編輯的衰減曲線"
 
 msgctxt "Curve"
 msgid "Curve Preset"
-msgstr "曲線預設檔"
+msgstr "曲線預設集"
 
 
 msgctxt "Curve"
@@ -13458,7 +13470,7 @@ msgstr "方向"
 
 
 msgid "Add effect of brush"
-msgstr "添加筆刷的效果"
+msgstr "新增筆刷的效果"
 
 
 msgid "Subtract effect of brush"
@@ -13594,7 +13606,7 @@ msgstr "遮罩油印蠟紙維度"
 
 
 msgid "Dimensions of mask stencil in viewport"
-msgstr "視接口中遮罩油印蠟紙的維度"
+msgstr "視圖區中遮罩油印蠟紙的維度"
 
 
 msgid "Mask Stencil Position"
@@ -13602,7 +13614,7 @@ msgstr "遮罩油印蠟紙位置"
 
 
 msgid "Position of mask stencil in viewport"
-msgstr "視接口中遮罩油印蠟紙的位置"
+msgstr "視圖區中遮罩油印蠟紙的位置"
 
 
 msgid "Mask Texture"
@@ -13798,7 +13810,7 @@ msgstr "油印蠟紙維度"
 
 
 msgid "Dimensions of stencil in viewport"
-msgstr "視接口中的油印蠟紙維度"
+msgstr "視圖區中的油印蠟紙維度"
 
 
 msgid "Stencil Position"
@@ -13806,7 +13818,7 @@ msgstr "油印蠟紙位置"
 
 
 msgid "Position of stencil in viewport"
-msgstr "視接口中的油印蠟紙位置"
+msgstr "視圖區中的油印蠟紙位置"
 
 
 msgid "How powerful the effect of the brush is when applied"
@@ -13846,7 +13858,7 @@ msgstr "紋理取樣偏差"
 
 
 msgid "Value added to texture samples"
-msgstr "添加至紋理取樣的值"
+msgstr "新增至紋理取樣的值"
 
 
 msgid "Texture Slot"
@@ -13950,7 +13962,7 @@ msgstr "使用游標疊層"
 
 
 msgid "Show cursor in viewport"
-msgstr "於視接口中顯示游標"
+msgstr "於視圖區中顯示游標"
 
 
 msgid "Override Overlay"
@@ -14110,7 +14122,7 @@ msgstr "使用紋理疊層"
 
 
 msgid "Show texture in viewport"
-msgstr "於視接口中顯示紋理"
+msgstr "於視圖區中顯示紋理"
 
 
 msgid "Restore Mesh"
@@ -14150,7 +14162,7 @@ msgstr "前進"
 
 
 msgid "Frame Offset"
-msgstr "框幀偏移"
+msgstr "影格偏移"
 
 
 msgid "Sequence"
@@ -15455,7 +15467,7 @@ msgstr "使用自訂鬼影色彩"
 
 
 msgid "Use custom colors for ghost frames"
-msgstr "鬼影框幀使用自訂色彩"
+msgstr "鬼影影格使用自訂色彩"
 
 
 msgid "Fade"
@@ -16460,11 +16472,11 @@ msgstr "算繪時的多角化解析度"
 
 
 msgid "Viewport Size"
-msgstr "視接口大小"
+msgstr "視圖區大小"
 
 
 msgid "Polygonization resolution in the 3D viewport"
-msgstr "3D 視接口中的多角形化解析度"
+msgstr "3D 視圖區中的多角形化解析度"
 
 
 msgid "Update"
@@ -16732,7 +16744,7 @@ msgstr "增減位置"
 
 
 msgid "Extra translation added to the location of the object"
-msgstr "添加至物體位置的額外平移"
+msgstr "新增至物體位置的額外平移"
 
 
 msgid "Delta Rotation (Euler)"
@@ -16740,7 +16752,7 @@ msgstr "增減旋轉 (尤拉)"
 
 
 msgid "Extra rotation added to the rotation of the object (when using Euler rotations)"
-msgstr "添加至物體旋轉的額外旋轉 (當使用尤拉旋轉時)"
+msgstr "新增至物體旋轉的額外旋轉 (當使用尤拉旋轉時)"
 
 
 msgid "Delta Rotation (Quaternion)"
@@ -16748,7 +16760,7 @@ msgstr "增減旋轉 (四元數)"
 
 
 msgid "Extra rotation added to the rotation of the object (when using Quaternion rotations)"
-msgstr "添加至物體旋轉的額外旋轉 (當使用四元數旋轉時)"
+msgstr "新增至物體旋轉的額外旋轉 (當使用四元數旋轉時)"
 
 
 msgid "Delta Scale"
@@ -16756,7 +16768,7 @@ msgstr "增減縮放"
 
 
 msgid "Extra scaling added to the scale of the object"
-msgstr "添加至物體縮放的額外縮放"
+msgstr "新增至物體縮放的額外縮放"
 
 
 msgid "Object boundary display type"
@@ -16788,7 +16800,7 @@ msgstr "空體顯示大小"
 
 
 msgid "Size of display for empties in the viewport"
-msgstr "在視接口中顯示空體的大小"
+msgstr "在視圖區中顯示空體的大小"
 
 
 msgid "Empty Display Type"
@@ -16796,7 +16808,7 @@ msgstr "空體顯示類型"
 
 
 msgid "Viewport display style for empties"
-msgstr "視接口顯示的空體樣式"
+msgstr "視圖區顯示的空體樣式"
 
 
 msgid "Plain Axes"
@@ -17481,7 +17493,7 @@ msgstr "停止發射粒子的幀數"
 
 
 msgid "Frame number to start emitting particles"
-msgstr "開始發射粒子的框幀編號"
+msgstr "開始發射粒子的影格編號"
 
 
 msgid "Grid Randomness"
@@ -17489,7 +17501,7 @@ msgstr "格線隨機"
 
 
 msgid "Add random offset to the grid locations"
-msgstr "添加隨機偏移至格線位置"
+msgstr "新增隨機偏移至格線位置"
 
 
 msgid "The resolution of the particle grid"
@@ -18172,15 +18184,15 @@ msgstr "EEVEE"
 
 
 msgid "Current Frame"
-msgstr "目前框幀"
+msgstr "目前影格"
 
 
 msgid "Current Frame Final"
-msgstr "目前框幀最終"
+msgstr "目前影格最終"
 
 
 msgid "Current frame with subframe and time remapping applied"
-msgstr "套用細分幀與時間重新映射的目前框幀"
+msgstr "套用細分幀與時間重新映射的目前影格"
 
 
 msgid "Final frame of the playback/rendering range"
@@ -18188,19 +18200,19 @@ msgstr "回播/算繪範圍的最終幀"
 
 
 msgid "Preview Range End Frame"
-msgstr "預覽範圍結束幀"
+msgstr "預覽範圍結束影格"
 
 
 msgid "Alternative end frame for UI playback"
-msgstr "UI 播放控制的替代結束幀"
+msgstr "UI 播放控制的替代結束影格"
 
 
 msgid "Preview Range Start Frame"
-msgstr "預覽範圍起始幀"
+msgstr "預覽範圍起始影格"
 
 
 msgid "Alternative start frame for UI playback"
-msgstr "UI 播放控制的替代起始幀"
+msgstr "UI 播放控制的替代起始影格"
 
 
 msgid "First frame of the playback/rendering range"
@@ -18252,11 +18264,11 @@ msgstr "可用的所有鍵處理集 (此場景的「內建」與「絕對鍵處�
 
 
 msgid "Lock Frame Selection"
-msgstr "鎖定框幀選取"
+msgstr "鎖定影格選取"
 
 
 msgid "Don't allow frame to be selected with mouse outside of frame range"
-msgstr "不允許滑鼠在框幀區間外選取"
+msgstr "不允許滑鼠在影格區間外選取"
 
 
 msgid "Compositing node tree"
@@ -18300,15 +18312,15 @@ msgstr "不要同步，播放每一幀"
 
 
 msgid "Frame Dropping"
-msgstr "框幀丟落處理"
+msgstr "影格丟落處理"
 
 
 msgid "Drop frames if playback is too slow"
-msgstr "如果播放太慢則丟落框幀"
+msgstr "如果播放太慢則丟落影格"
 
 
 msgid "Sync to audio playback, dropping frames"
-msgstr "同步音訊播放，丟落框幀"
+msgstr "同步音訊播放，丟落影格"
 
 
 msgid "Timeline Markers"
@@ -19541,11 +19553,11 @@ msgstr "輪環使用木頭紋理"
 
 
 msgid "Add noise to standard wood"
-msgstr "添加噪訊至標準木紋"
+msgstr "新增噪訊至標準木紋"
 
 
 msgid "Add noise to rings"
-msgstr "添加噪訊至輪環"
+msgstr "新增噪訊至輪環"
 
 
 msgid "Vector Font"
@@ -19682,11 +19694,11 @@ msgstr "操作器註冊"
 
 
 msgid "Preset Name"
-msgstr "預設檔名稱"
+msgstr "預設集名稱"
 
 
 msgid "Name for new preset"
-msgstr "新預設檔的名稱"
+msgstr "新的預設集名稱"
 
 
 msgid "Windows"
@@ -19882,11 +19894,11 @@ msgstr "解算器不重復迭代，甚至首幀都不 (從靜止姿勢開始)"
 
 
 msgid "The solver reiterates (converges) on the first frame but not on subsequent frame"
-msgstr "解算器重復迭代 (收斂) 首幀，但後續框幀則無"
+msgstr "解算器重復迭代 (收斂) 首幀，但後續影格則無"
 
 
 msgid "The solver reiterates (converges) on all frames"
-msgstr "解算器重復迭代 (收斂) 所有框幀"
+msgstr "解算器重復迭代 (收斂) 所有影格"
 
 
 msgid "Solver"
@@ -19914,7 +19926,7 @@ msgstr "以數值過濾達成減幅的最小平方法"
 
 
 msgid "Divide the frame interval into this many steps"
-msgstr "劃分框幀間隔為這麼多步"
+msgstr "劃分影格間隔為這麼多步"
 
 
 msgid "Max Step"
@@ -20062,7 +20074,7 @@ msgstr "Cinema (48)"
 
 
 msgid "Use OpenJPEG Cinema Preset (48fps)"
-msgstr "使用 Open JPEG Cinema 預設檔 (48fps)"
+msgstr "使用 Open JPEG Cinema 預設集 (48fps)"
 
 
 msgid "Cinema"
@@ -20070,7 +20082,7 @@ msgstr "Cinema"
 
 
 msgid "Use OpenJPEG Cinema Preset"
-msgstr "使用 Open JPEG Cinema 預設檔"
+msgstr "使用 Open JPEG Cinema 預設集"
 
 
 msgid "YCC"
@@ -20130,7 +20142,7 @@ msgstr "影片要使用的影像數量"
 
 
 msgid "Global starting frame of the movie/sequence, assuming first picture has a #1"
-msgstr "影片/序段的全域起始幀，假定第一張圖片有個 #1"
+msgstr "影片/序段的全域起始影格，假定第一張圖片有個 #1"
 
 
 msgid "Layer in multilayer image"
@@ -20162,7 +20174,7 @@ msgstr "自動重新整理"
 
 
 msgid "Always refresh image on frame changes"
-msgstr "總是在框幀變動後重新整理"
+msgstr "總是在影格變動後重新整理"
 
 
 msgid "Cycle the images in the movie"
@@ -20202,7 +20214,7 @@ msgstr "按鍵組態"
 
 
 msgid "Active key configuration (preset)"
-msgstr "作用中鍵組態 (預設檔)"
+msgstr "作用中鍵組態 (預設集)"
 
 
 msgid "Key Map"
@@ -21475,7 +21487,7 @@ msgstr "插補法"
 
 
 msgid "Interpolation method to use for segment of the F-Curve from this Keyframe until the next Keyframe"
-msgstr "從此鍵幀直至下個鍵幀 F 曲線的分段要使用的插補方法"
+msgstr "從此關鍵影格直至下個關鍵影格 F 曲線的分段要使用的插補方法"
 
 
 msgctxt "Action"
@@ -21565,7 +21577,7 @@ msgstr "右控制桿選取狀態"
 
 
 msgid "Type of keyframe (for visual purposes only)"
-msgstr "鍵幀的類型 (僅適用於視覺用途)"
+msgstr "關鍵影格的類型 (僅適用於視覺用途)"
 
 
 msgid "Keying Set"
@@ -21573,7 +21585,7 @@ msgstr "鍵處理集"
 
 
 msgid "Settings that should be keyframed together"
-msgstr "應一同鍵幀處理的設定值"
+msgstr "應一同關鍵影格處理的設定值"
 
 
 msgid "A short description of the keying set"
@@ -21589,7 +21601,7 @@ msgstr "UI 名稱"
 
 
 msgid "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)"
-msgstr "鍵處理集定義要被鍵幀處理的特定路徑/設定值 (例：不依賴情境資訊)"
+msgstr "鍵處理集定義要被關鍵影格處理的特定路徑/設定值 (例：不依賴情境資訊)"
 
 
 msgid "Paths"
@@ -21597,7 +21609,7 @@ msgstr "路徑"
 
 
 msgid "Keying Set Paths to define settings that get keyframed together"
-msgstr "定義取得一同被鍵幀處理的設定其鍵處理集路徑"
+msgstr "定義取得一同被關鍵影格處理的設定其鍵處理集路徑"
 
 
 msgid "Type Info"
@@ -21609,15 +21621,15 @@ msgstr "定義內建鍵處理集的回傳函式"
 
 
 msgid "Only insert keyframes where they're needed in the relevant F-Curves"
-msgstr "僅在依賴的 F 曲線需要鍵幀時才插入鍵幀"
+msgstr "僅在依賴的 F 曲線需要關鍵影格時才插入關鍵影格"
 
 
 msgid "Insert keyframes based on 'visual transforms'"
-msgstr "基於「視覺變換」插入鍵幀"
+msgstr "基於「視覺變換」插入關鍵影格"
 
 
 msgid "Insert a keyframe on each of the already existing F-Curves"
-msgstr "在每個已存在 F 曲線上插入鍵幀"
+msgstr "在每個已存在 F 曲線上插入關鍵影格"
 
 
 msgid "Available"
@@ -21625,11 +21637,11 @@ msgstr "可用"
 
 
 msgid "Insert keyframes for additional location offset"
-msgstr "為額外的位置偏移插入鍵幀"
+msgstr "為額外的位置偏移插入關鍵影格"
 
 
 msgid "Insert keyframes for additional rotation offset"
-msgstr "為額外的旋轉偏移插入鍵幀"
+msgstr "為額外的旋轉偏移插入關鍵影格"
 
 
 msgid "Delta Rotation"
@@ -21637,15 +21649,15 @@ msgstr "增減旋轉"
 
 
 msgid "Insert a keyframe on each of the location and rotation channels"
-msgstr "在每個位置通道與旋轉通道上插入鍵幀"
+msgstr "在每個位置通道與旋轉通道上插入關鍵影格"
 
 
 msgid "Insert a keyframe on each of the location and scale channels"
-msgstr "在每個位置通道與縮放通道上插入鍵幀"
+msgstr "在每個位置通道與縮放通道上插入關鍵影格"
 
 
 msgid "Insert a keyframe on each of the rotation and scale channels"
-msgstr "在每個旋轉與縮放通道上插入鍵幀"
+msgstr "在每個旋轉與縮放通道上插入關鍵影格"
 
 
 msgid "Rotation & Scale"
@@ -21665,19 +21677,19 @@ msgstr "可視縮放"
 
 
 msgid "Insert a keyframe on each of the location, rotation, and scale channels"
-msgstr "在每個位置、旋轉、縮放等通道上插入鍵幀"
+msgstr "在每個位置、旋轉、縮放等通道上插入關鍵影格"
 
 
 msgid "Insert a keyframe on each of the location channels"
-msgstr "在每個位置通道上插入鍵幀"
+msgstr "在每個位置通道上插入關鍵影格"
 
 
 msgid "Insert a keyframe on each of the rotation channels"
-msgstr "在每個旋轉通道上插入鍵幀"
+msgstr "在每個旋轉通道上插入關鍵影格"
 
 
 msgid "Insert a keyframe on each of the scale channels"
-msgstr "在每個縮放通道上插入鍵幀"
+msgstr "在每個縮放通道上插入關鍵影格"
 
 
 msgid "Whole Character"
@@ -21729,7 +21741,7 @@ msgstr "ID 塊"
 
 
 msgid "ID-Block that keyframes for Keying Set should be added to (for Absolute Keying Sets only)"
-msgstr "鍵處理集的鍵幀應添加至的 ID 塊 (僅適用於「絕對」鍵處理集)"
+msgstr "鍵處理集的關鍵影格應新增至的 ID 塊 (僅適用於「絕對」鍵處理集)"
 
 
 msgid "Entire Array"
@@ -22350,7 +22362,7 @@ msgstr "交混遮罩分層的方法"
 
 
 msgid "Merge Add"
-msgstr "合併添加"
+msgstr "合併新增"
 
 
 msgid "Merge Subtract"
@@ -22387,7 +22399,7 @@ msgstr "限制檢視"
 
 
 msgid "Restrict visibility in the viewport"
-msgstr "視接口中的限制可見性"
+msgstr "視圖區中的限制可見性"
 
 
 msgid "Restrict Render"
@@ -22403,7 +22415,7 @@ msgstr "限制選取"
 
 
 msgid "Restrict selection in the viewport"
-msgstr "視接口的限制選取項"
+msgstr "視圖區的限制選取項"
 
 
 msgid "Invert the mask black/white"
@@ -22652,12 +22664,28 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Metaball"
-msgstr "變幻球"
-
-
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Names"
@@ -22666,10 +22694,6 @@ msgstr "名稱"
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -22830,18 +22854,6 @@ msgstr "面資料"
 
 msgid "Merge"
 msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Text"
-msgstr "文字"
 
 
 msgid "Basic"
@@ -23032,7 +23044,7 @@ msgstr "節點色彩特殊項"
 
 
 msgid "Add Modifier"
-msgstr "添加修改器"
+msgstr "新增修改器"
 
 
 msgid "Generate"
@@ -23044,7 +23056,7 @@ msgstr "物理"
 
 
 msgid "Frame Rate Presets"
-msgstr "幀率預設檔"
+msgstr "幀率預設集"
 
 
 msgid "Lineset Specials"
@@ -23177,11 +23189,11 @@ msgstr "擴充套件設定"
 
 
 msgid "Presets"
-msgstr "預設檔"
+msgstr "預設集"
 
 
 msgid "KeyPresets"
-msgstr "按鍵預設檔"
+msgstr "按鍵預設集"
 
 
 msgid "Save & Load"
@@ -23220,7 +23232,7 @@ msgstr "燈光群組同步"
 
 
 msgid "Operator Presets"
-msgstr "操作器預設檔"
+msgstr "操作器預設集"
 
 
 msgid "Region Toggle"
@@ -23588,7 +23600,7 @@ msgstr "算繪時使用修改器"
 
 
 msgid "Display modifier in viewport"
-msgstr "在視接口中顯示修改器"
+msgstr "在視圖區中顯示修改器"
 
 
 msgid "Vertex Weight Proximity"
@@ -23644,7 +23656,7 @@ msgstr "時間偏移"
 
 
 msgid "Offset keyframes"
-msgstr "偏移關鍵幀"
+msgstr "偏移關鍵影格"
 
 
 msgid "Texture Mapping"
@@ -23956,7 +23968,7 @@ msgstr "合併第一個與最後一個複本內的頂點"
 
 
 msgid "Add another object's transformation to the total offset"
-msgstr "將另一個物體的變換添加至總計偏移中"
+msgstr "將另一個物體的變換新增至總計偏移中"
 
 
 msgid "Relative Offset"
@@ -23964,7 +23976,7 @@ msgstr "相對偏移"
 
 
 msgid "Add an offset relative to the object's bounding box"
-msgstr "添加個相對於物體邊界方塊的偏移"
+msgstr "新增個相對於物體邊界方塊的偏移"
 
 
 msgid "Bevel Modifier"
@@ -24144,7 +24156,7 @@ msgstr "建置效果需要的總時間"
 
 
 msgid "Start frame of the effect"
-msgstr "效果的起始幀"
+msgstr "效果的起始影格"
 
 
 msgid "Seed for random if used"
@@ -25268,7 +25280,7 @@ msgstr "加權重"
 
 
 msgid "Frame Scale"
-msgstr "框幀縮放"
+msgstr "影格縮放"
 
 
 msgid "Evaluation time in seconds"
@@ -25276,7 +25288,7 @@ msgstr "評估時間單位為秒"
 
 
 msgid "Fixed Frame"
-msgstr "固定框幀"
+msgstr "固定影格"
 
 
 msgid "Custom Range"
@@ -25436,11 +25448,11 @@ msgstr "評估係數"
 
 
 msgid "Evaluation Frame"
-msgstr "評估框幀"
+msgstr "評估影格"
 
 
 msgid "The frame to evaluate (starting at 0)"
-msgstr "要評估的框幀 (起始於 0)"
+msgstr "要評估的影格 (起始於 0)"
 
 
 msgid "Influence of the deformation"
@@ -25448,7 +25460,7 @@ msgstr "變形的影響"
 
 
 msgid "Add this to the start frame"
-msgstr "將這加入起始幀"
+msgstr "將這加入起始影格"
 
 
 msgid "Use the time from the scene"
@@ -25468,7 +25480,7 @@ msgstr "控制播放計時的方法"
 
 
 msgid "Control playback using a frame-number (ignoring time FPS and start frame from the file)"
-msgstr "以幀數控制播放 (忽略時間 FPS 與檔案的起始幀)"
+msgstr "以幀數控制播放 (忽略時間 FPS 與檔案的起始影格)"
 
 
 msgid "Control playback using time in seconds"
@@ -25584,7 +25596,7 @@ msgstr "層級"
 
 
 msgid "Number of subdivisions to use in the viewport"
-msgstr "視接口中要使用的細分數"
+msgstr "視圖區中要使用的細分數"
 
 
 msgid "Render Levels"
@@ -25672,7 +25684,7 @@ msgstr "濤度"
 
 
 msgid "Choppiness of the wave's crest (adds some horizontal component to the displacement)"
-msgstr "波浪峰嵴的翻滾程度 (對錯置添加一些水平部份)"
+msgstr "波浪峰嵴的翻滾程度 (對錯置新增一些水平部份)"
 
 
 msgid "Damp reflected waves going in opposite direction to the wind"
@@ -25712,7 +25724,7 @@ msgstr "烘培結束"
 
 
 msgid "End frame of the ocean baking"
-msgstr "海洋烘焙的結束幀"
+msgstr "海洋烘焙的結束影格"
 
 
 msgid "Bake Start"
@@ -25720,7 +25732,7 @@ msgstr "烘焙開始"
 
 
 msgid "Start frame of the ocean baking"
-msgstr "海洋烘焙的起始幀"
+msgstr "海洋烘焙的起始影格"
 
 
 msgid "Method of modifying geometry"
@@ -26313,7 +26325,7 @@ msgstr "僅邊框"
 
 
 msgid "Only add the rim to the original data"
-msgstr "僅添加邊框至原始資料"
+msgstr "僅新增邊框至原始資料"
 
 
 msgid "Angle Clamp"
@@ -26465,7 +26477,7 @@ msgstr "編輯群組中的頂點權重"
 
 
 msgid "Add Threshold"
-msgstr "添加閾值"
+msgstr "新增閾值"
 
 
 msgid "Default Weight"
@@ -26568,11 +26580,11 @@ msgstr "移除閾值"
 
 
 msgid "Group Add"
-msgstr "群組添加"
+msgstr "群組新增"
 
 
 msgid "Add vertices with weight over threshold to vgroup"
-msgstr "將權重超過閾值的頂點添加至點群組"
+msgstr "將權重超過閾值的頂點新增至點群組"
 
 
 msgid "Group Remove"
@@ -26964,11 +26976,11 @@ msgstr "前方色彩"
 
 
 msgid "End frame of the stored range"
-msgstr "儲藏範圍的結束幀"
+msgstr "儲藏範圍的結束影格"
 
 
 msgid "Starting frame of the stored range"
-msgstr "儲藏範圍的起始幀"
+msgstr "儲藏範圍的起始影格"
 
 
 msgid "Edit Path"
@@ -26992,7 +27004,7 @@ msgstr "線條"
 
 
 msgid "Use straight lines between keyframe points"
-msgstr "在關鍵幀點之間使用直線型"
+msgstr "在關鍵影格點之間使用直線型"
 
 
 msgid "Motion Path Points"
@@ -27000,7 +27012,7 @@ msgstr "運動路徑點"
 
 
 msgid "Cached positions per frame"
-msgstr "每個框幀快取的位置"
+msgstr "每個影格快取的位置"
 
 
 msgid "Use Bone Heads"
@@ -27132,7 +27144,7 @@ msgstr "重建的平均錯誤"
 
 
 msgid "Frame number marker is keyframed on"
-msgstr "標記被鍵幀於何幀號"
+msgstr "標記被關鍵影格於何幀號"
 
 
 msgid "Movie tracking data"
@@ -27348,19 +27360,19 @@ msgstr "追蹤用的比對移動標記資料"
 
 
 msgid "Marker position at frame in normalized coordinates"
-msgstr "於規一化座標系中標記位置的框幀"
+msgstr "於規一化座標系中標記位置的影格"
 
 
 msgid "Keyframed"
-msgstr "經鍵幀處理"
+msgstr "經關鍵影格處理"
 
 
 msgid "Whether the position of the marker is keyframed or tracked"
-msgstr "標記的位置是否經鍵幀處理或被追蹤"
+msgstr "標記的位置是否經關鍵影格處理或被追蹤"
 
 
 msgid "Is marker muted for current frame"
-msgstr "為目前框幀閉鎖的標記"
+msgstr "為目前影格閉鎖的標記"
 
 
 msgid "Pattern Bounding Box"
@@ -27408,19 +27420,19 @@ msgstr "用於攝影機追蹤用的物體"
 
 
 msgid "Keyframe A"
-msgstr "鍵幀 A"
+msgstr "關鍵影格 A"
 
 
 msgid "First keyframe used for reconstruction initialization"
-msgstr "用來重建初始化過程的第一鍵幀"
+msgstr "用來重建初始化過程的第一關鍵影格"
 
 
 msgid "Keyframe B"
-msgstr "鍵幀 B"
+msgstr "關鍵影格 B"
 
 
 msgid "Second keyframe used for reconstruction initialization"
-msgstr "用來重建初始化過程的第二鍵幀"
+msgstr "用來重建初始化過程的第二關鍵影格"
 
 
 msgid "Unique name of object"
@@ -27452,7 +27464,7 @@ msgstr "邊角"
 
 
 msgid "Array of coordinates which represents UI rectangle corners in frame normalized coordinates"
-msgstr "代表框幀規一化座標中 UI 矩形方塊的四角座標陣列"
+msgstr "代表影格規一化座標中 UI 矩形方塊的四角座標陣列"
 
 
 msgid "Movie tracking plane track data"
@@ -27488,11 +27500,11 @@ msgstr "平面軌道已選取"
 
 
 msgid "Auto Keyframe"
-msgstr "自動關鍵幀"
+msgstr "自動關鍵影格"
 
 
 msgid "Automatic keyframe insertion when moving plane corners"
-msgstr "移動平面角落時自動插入關鍵幀"
+msgstr "移動平面角落時自動插入關鍵影格"
 
 
 msgid "Collection of solved cameras"
@@ -27556,11 +27568,11 @@ msgstr "對軌道的效果，有較大的重新投射錯誤"
 
 
 msgid "Tracked Frames"
-msgstr "追蹤的框幀"
+msgstr "追蹤的影格"
 
 
 msgid "Effect on tracks which are tracked less than the specified amount of frames"
-msgstr "針對軌道的效果，追蹤會比指定的框幀量還少"
+msgstr "針對軌道的效果，追蹤會比指定的影格量還少"
 
 
 msgid "Correlation"
@@ -27572,7 +27584,7 @@ msgstr "在符合的樣式與仍被視為成功追蹤的參照之間校正的預
 
 
 msgid "Frames Limit"
-msgstr "框幀限制"
+msgstr "影格限制"
 
 
 msgid "Every tracking cycle, this number of frames are tracked"
@@ -27588,7 +27600,7 @@ msgstr "用於追蹤的預設運動模型"
 
 
 msgid "Search for markers that are perspectively deformed (homography) between frames"
-msgstr "搜尋框幀之間個別變形 (單應性) 的標記"
+msgstr "搜尋影格之間個別變形 (單應性) 的標記"
 
 
 msgid "Affine"
@@ -27596,23 +27608,23 @@ msgstr "仿射"
 
 
 msgid "Search for markers that are affine-deformed (t, r, k, and skew) between frames"
-msgstr "搜尋框幀之間仿射變形 (t、r、k 與螺旋) 的標記"
+msgstr "搜尋影格之間仿射變形 (t、r、k 與螺旋) 的標記"
 
 
 msgid "Search for markers that are translated, rotated, and scaled between frames"
-msgstr "搜尋框幀之間平移、旋轉、縮放的標記"
+msgstr "搜尋影格之間平移、旋轉、縮放的標記"
 
 
 msgid "Search for markers that are translated and scaled between frames"
-msgstr "搜尋框幀之間平移、縮放的標記"
+msgstr "搜尋影格之間平移、縮放的標記"
 
 
 msgid "Search for markers that are translated and rotated between frames"
-msgstr "搜尋框幀之間平移、旋轉的標記"
+msgstr "搜尋影格之間平移、旋轉的標記"
 
 
 msgid "Search for markers that are translated between frames"
-msgstr "搜尋框幀之間平移的標記"
+msgstr "搜尋影格之間平移的標記"
 
 
 msgid "Pattern Match"
@@ -27620,11 +27632,11 @@ msgstr "樣式比對"
 
 
 msgid "Track pattern from given frame when tracking marker to next frame"
-msgstr "當追蹤標記時從給定框幀至下一幀的追蹤樣式"
+msgstr "當追蹤標記時從給定影格至下一幀的追蹤樣式"
 
 
 msgid "Track pattern from keyframe to next frame"
-msgstr "從鍵幀至下一幀的追蹤樣式"
+msgstr "從關鍵影格至下一幀的追蹤樣式"
 
 
 msgid "Previous frame"
@@ -27632,7 +27644,7 @@ msgstr "上一幀"
 
 
 msgid "Track pattern from current frame to next frame"
-msgstr "從目前框幀至下一幀的追蹤樣式"
+msgstr "從目前影格至下一幀的追蹤樣式"
 
 
 msgid "Pattern Size"
@@ -27736,7 +27748,7 @@ msgstr "從連續鏡頭使用紅色通道供追蹤"
 
 
 msgid "Keyframe Selection"
-msgstr "關鍵幀選取"
+msgstr "關鍵影格選取"
 
 
 msgid "Tripod Motion"
@@ -27756,7 +27768,7 @@ msgstr "作用中軌道索引"
 
 
 msgid "Anchor Frame"
-msgstr "錨定框幀"
+msgstr "錨定影格"
 
 
 msgid "Interpolate"
@@ -27848,7 +27860,7 @@ msgstr "綁束從此軌道重建的位置"
 
 
 msgid "Color of the track in the Movie Clip Editor and the 3D viewport after a solve"
-msgstr "影片剪輯編輯器中的軌道與解算之後 3D 視接口中的色彩"
+msgstr "影片剪輯編輯器中的軌道與解算之後 3D 視圖區中的色彩"
 
 
 msgid "Minimal value of correlation between matched pattern and reference that is still treated as successful tracking"
@@ -27936,19 +27948,19 @@ msgstr "此片段參照的動作"
 
 
 msgid "Action End Frame"
-msgstr "動作結束幀"
+msgstr "動作結束影格"
 
 
 msgid "Last frame from action to use"
-msgstr "要使用的動作其最後框幀"
+msgstr "要使用的動作其最後影格"
 
 
 msgid "Action Start Frame"
-msgstr "動作起始幀"
+msgstr "動作起始影格"
 
 
 msgid "First frame from action to use"
-msgstr "要使用的動作其第一框幀"
+msgstr "要使用的動作其第一影格"
 
 
 msgid "NLA Strip is active"
@@ -28000,7 +28012,7 @@ msgstr "片段時間"
 
 
 msgid "Frame of referenced Action to evaluate"
-msgstr "要評估的參照動作其框幀"
+msgstr "要評估的參照動作其影格"
 
 
 msgid "NLA Strips"
@@ -29120,7 +29132,7 @@ msgstr "旋轉 45"
 
 
 msgid "Simple star filter: add 45 degree rotation offset"
-msgstr "簡單星光過濾器：添加 45 度旋轉偏移"
+msgstr "簡單星光過濾器：新增 45 度旋轉偏移"
 
 
 msgid "Hue Correct"
@@ -29848,7 +29860,7 @@ msgstr "軌道位置"
 
 
 msgid "Frame to be used for relative position"
-msgstr "相對位置要使用的框幀"
+msgstr "相對位置要使用的影格"
 
 
 msgid "Which marker position to use for output"
@@ -29868,7 +29880,7 @@ msgstr "輸出標記相對於軌道第一個標記的位置"
 
 
 msgid "Relative Frame"
-msgstr "相對框幀"
+msgstr "相對影格"
 
 
 msgid "Output position of a marker relative to marker at given frame number"
@@ -29876,7 +29888,7 @@ msgstr "輸出一標記相對於給定幀號之標記的位置"
 
 
 msgid "Absolute Frame"
-msgstr "絕對框幀"
+msgstr "絕對影格"
 
 
 msgid "Output absolute position of a marker at given frame number"
@@ -30135,6 +30147,10 @@ msgid "Instance Scale"
 msgstr "實例縮放"
 
 
+msgid "Output a single material"
+msgstr "輸出單一材質"
+
+
 msgid "Edge Angle"
 msgstr "線角"
 
@@ -30144,7 +30160,7 @@ msgstr "具名的屬性"
 
 
 msgid "Is Viewport"
-msgstr "是視接口"
+msgstr "是視圖區"
 
 
 msgid "Merge by Distance"
@@ -30257,7 +30273,7 @@ msgstr "警告"
 
 msgctxt "NodeTree"
 msgid "Frame"
-msgstr "框幀"
+msgstr "影格"
 
 
 msgid "Label Font Size"
@@ -30269,7 +30285,7 @@ msgstr "顯示標籤用的字型大小"
 
 
 msgid "Shrink the frame to minimal bounding box"
-msgstr "將框幀收縮至最小邊界方塊"
+msgstr "將影格收縮至最小邊界方塊"
 
 
 msgid "Group Input"
@@ -30301,7 +30317,7 @@ msgstr "材質著色器節點"
 
 
 msgid "Add Shader"
-msgstr "添加著色器"
+msgstr "新增著色器"
 
 
 msgid "Ambient Occlusion"
@@ -30766,7 +30782,7 @@ msgstr "針對方塊投影，在一側與一側之間使用的交混量"
 
 
 msgid "Level of detail in the added turbulent noise"
-msgstr "添加的擾動噪訊詳細等級"
+msgstr "新增的擾動噪訊詳細等級"
 
 
 msgid "Normalize outputs to 0.0 to 1.0 range"
@@ -31580,21 +31596,21 @@ msgstr "新增素材標籤"
 
 
 msgid "Add or remove a Camera Preset"
-msgstr "添加或移除攝影機預設檔"
+msgstr "新增或移除攝影機預設集"
 
 
 msgctxt "Operator"
 msgid "Add Camera Preset"
-msgstr "添加攝影機預設檔"
+msgstr "新增攝影機預設集"
 
 
 msgid "Add or remove a Safe Areas Preset"
-msgstr "添加或移除安全區域預設檔"
+msgstr "新增或移除安全區域預設集"
 
 
 msgctxt "Operator"
 msgid "Add Safe Area Preset"
-msgstr "添加安全區域預設檔"
+msgstr "新增安全區域預設集"
 
 
 msgid "Create vertex cloud using coordinates of reconstructed tracks"
@@ -31607,7 +31623,7 @@ msgstr "3D 標記至網格"
 
 
 msgid "Add or remove a Tracking Camera Intrinsics Preset"
-msgstr "添加或移除追蹤用攝影機的內在預設檔"
+msgstr "新增或移除追蹤用攝影機的內在預設集"
 
 
 msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
@@ -31653,12 +31669,12 @@ msgstr "設置追蹤用場景"
 
 
 msgid "Add or remove a Clip Track Color Preset"
-msgstr "添加或移除剪輯軌道色彩預設檔"
+msgstr "新增或移除剪輯軌道色彩預設集"
 
 
 msgctxt "Operator"
 msgid "Add Track Color Preset"
-msgstr "添加軌道色彩預設檔"
+msgstr "新增軌道色彩預設集"
 
 
 msgid "Copy tracking settings from active track to default settings"
@@ -31680,21 +31696,21 @@ msgstr "連結空體至軌道"
 
 
 msgid "Add or remove a motion tracking settings preset"
-msgstr "添加或移除運動追蹤用設定值預設檔"
+msgstr "新增或移除運動追蹤用設定值預設集"
 
 
 msgctxt "Operator"
 msgid "Add Tracking Settings Preset"
-msgstr "添加追蹤用設定值預設檔"
+msgstr "新增追蹤用設定值預設集"
 
 
 msgid "Add or remove a Cloth Preset"
-msgstr "添加或移除布料預設檔"
+msgstr "新增或移除布料預設集"
 
 
 msgctxt "Operator"
 msgid "Add Cloth Preset"
-msgstr "添加布料預設檔"
+msgstr "新增布料預設集"
 
 
 msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
@@ -31740,7 +31756,7 @@ msgstr "主控臺語言"
 
 msgctxt "Operator"
 msgid "Add Target"
-msgstr "添加目標"
+msgstr "新增目標"
 
 
 msgctxt "Operator"
@@ -31890,12 +31906,12 @@ msgstr "設定擴充套件標籤"
 
 
 msgid "Add or remove a Fluid Preset"
-msgstr "添加或移除流體預設檔"
+msgstr "新增或移除流體預設集"
 
 
 msgctxt "Operator"
 msgid "Add Fluid Preset"
-msgstr "添加流體預設檔"
+msgstr "新增流體預設集"
 
 
 msgctxt "Operator"
@@ -31955,7 +31971,7 @@ msgstr "基於鏡像的網格於 X 軸複製鏡像 UV 座標"
 
 msgctxt "Operator"
 msgid "Add Torus"
-msgstr "添加圓環體"
+msgstr "新增圓環體"
 
 
 msgctxt "Operator"
@@ -31964,12 +31980,12 @@ msgstr "烘焙動作"
 
 
 msgid "Add a node to the active tree"
-msgstr "添加一個節點至作用中樹"
+msgstr "新增節點至作用中樹"
 
 
 msgctxt "Operator"
 msgid "Add Node"
-msgstr "添加節點"
+msgstr "新增節點"
 
 
 msgid "Toggle collapsed nodes and hide unused sockets"
@@ -31987,12 +32003,12 @@ msgstr "新增項目"
 
 
 msgid "Add or remove a Node Color Preset"
-msgstr "添加或移除節點色彩預設檔"
+msgstr "新增或移除節點色彩預設集"
 
 
 msgctxt "Operator"
 msgid "Add Node Color Preset"
-msgstr "添加節點色彩預設檔"
+msgstr "新增節點色彩預設集"
 
 
 msgid "Add an Image Sequence"
@@ -32015,7 +32031,7 @@ msgstr "親代節點樹"
 
 msgctxt "Operator"
 msgid "Add Modifier"
-msgstr "添加修改器"
+msgstr "新增修改器"
 
 
 msgctxt "Operator"
@@ -32131,12 +32147,12 @@ msgstr "髒亂頂點色彩"
 
 
 msgid "Add or remove a Hair Dynamics Preset"
-msgstr "添加或移除毛髮動力學預設檔"
+msgstr "新增或移除毛髮動力學預設集"
 
 
 msgctxt "Operator"
 msgid "Add Hair Dynamics Preset"
-msgstr "添加毛髮動力學預設檔"
+msgstr "新增毛髮動力學預設集"
 
 
 msgctxt "Operator"
@@ -32236,12 +32252,12 @@ msgstr "測試按鍵組態是否有衝突"
 
 
 msgid "Add key map item"
-msgstr "添加按鍵對應項目"
+msgstr "新增按鍵對應項目"
 
 
 msgctxt "Operator"
 msgid "Add Key Map Item"
-msgstr "添加按鍵對應項目"
+msgstr "新增按鍵對應項目"
 
 
 msgid "Remove key map item"
@@ -32327,38 +32343,38 @@ msgstr "安裝主題..."
 
 
 msgid "Add or remove a white balance preset"
-msgstr "添加或移除白平衡預設檔"
+msgstr "新增或移除白平衡預設集"
 
 
 msgid "Add an Integrator Preset"
-msgstr "添加一項整合器預設檔"
+msgstr "新增一項整合器預設集"
 
 
 msgctxt "Operator"
 msgid "Add Integrator Preset"
-msgstr "添加整合器預設檔"
+msgstr "新增整合器預設集"
 
 
 msgid "Add an Performance Preset"
-msgstr "添加一項效能預設檔"
+msgstr "新增一項效能預設集"
 
 
 msgctxt "Operator"
 msgid "Add Performance Preset"
-msgstr "添加效能預設檔"
+msgstr "新增效能預設集"
 
 
 msgid "Add a Sampling Preset"
-msgstr "添加一個取樣預設檔"
+msgstr "新增一個取樣預設集"
 
 
 msgctxt "Operator"
 msgid "Add Sampling Preset"
-msgstr "添加取樣預設檔"
+msgstr "新增取樣預設集"
 
 
 msgid "Play back rendered frames/movies using an external player"
-msgstr "使用外部播放器來播放算繪的框幀/影片"
+msgstr "使用外部播放器來播放算繪的影格/影片"
 
 
 msgctxt "Operator"
@@ -32367,21 +32383,21 @@ msgstr "播放算繪的動畫"
 
 
 msgid "Add or remove a Render Preset"
-msgstr "添加或移除算繪預設檔"
+msgstr "新增或移除算繪預設集"
 
 
 msgctxt "Operator"
 msgid "Add Render Preset"
-msgstr "添加算繪預設檔"
+msgstr "新增算繪預設集"
 
 
 msgid "Bake rigid body transformations of selected objects to keyframes"
-msgstr "將所選物體的剛體變換烘焙至鍵幀"
+msgstr "將所選物體的剛體變換烘焙至關鍵影格"
 
 
 msgctxt "Operator"
 msgid "Bake to Keyframes"
-msgstr "烘焙至關鍵幀"
+msgstr "烘焙至關鍵影格"
 
 
 msgid "Create rigid body constraints between selected rigid bodies"
@@ -32404,12 +32420,12 @@ msgstr "複製剛體設定"
 
 msgctxt "Operator"
 msgid "Add Edge Marks to Keying Set"
-msgstr "添加邊線標記至鍵處理集"
+msgstr "新增邊線標記至鍵處理集"
 
 
 msgctxt "Operator"
 msgid "Add Face Marks to Keying Set"
-msgstr "添加面標記至鍵處理集"
+msgstr "新增面標記至鍵處理集"
 
 
 msgctxt "Operator"
@@ -32427,12 +32443,12 @@ msgstr "開啟樣式模組檔"
 
 
 msgid "Load a preset"
-msgstr "載入預設檔"
+msgstr "載入預設集"
 
 
 msgctxt "Operator"
 msgid "Execute a Python Preset"
-msgstr "執行一個 Python 預設檔"
+msgstr "執行一個 Python 預設集"
 
 
 msgid "Do cross-fading volume animation of two selected sound strips"
@@ -32454,7 +32470,7 @@ msgstr "新增淡化"
 
 
 msgid "Add or remove a Text Editor Preset"
-msgstr "添加或移除文字編輯器預設檔"
+msgstr "新增或移除文字編輯器預設集"
 
 
 msgctxt "Operator"
@@ -32697,17 +32713,17 @@ msgstr "操作器枚舉圓派"
 
 
 msgid "Add or remove an Operator Preset"
-msgstr "添加或移除操作器預設檔"
+msgstr "新增或移除操作器預設集"
 
 
 msgctxt "Operator"
 msgid "Operator Preset"
-msgstr "操作器預設檔"
+msgstr "操作器預設集"
 
 
 msgctxt "Operator"
 msgid "Clean Up Operator Presets"
-msgstr "清理操作器預設檔"
+msgstr "清理操作器預設集"
 
 
 msgid "Open a path in a file browser"
@@ -32726,7 +32742,7 @@ msgstr "批次生成預覽"
 
 msgctxt "Operator"
 msgid "Add Property"
-msgstr "添加屬性"
+msgstr "新增屬性"
 
 
 msgid "Jump to a different tab inside the properties editor"
@@ -32776,29 +32792,29 @@ msgstr "重複呼叫"
 
 msgctxt "Operator"
 msgid "Bake Keyframes"
-msgstr "烘焙關鍵幀"
+msgstr "烘焙關鍵影格"
 
 
 msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "在所選鍵幀的每個框幀之間都插入鍵幀"
+msgstr "在所選關鍵影格的每個影格之間都插入關鍵影格"
 
 
 msgctxt "Operator"
 msgid "Clean Keyframes"
-msgstr "清理鍵幀"
+msgstr "清理關鍵影格"
 
 
 msgid "Simplify F-Curves by removing closely spaced keyframes"
-msgstr "透過移除空間相近的鍵幀來簡化 F 曲線"
+msgstr "透過移除空間相近的關鍵影格來簡化 F 曲線"
 
 
 msgctxt "Operator"
 msgid "Select Keyframes"
-msgstr "選取鍵幀"
+msgstr "選取關鍵影格"
 
 
 msgid "Select keyframes by clicking on them"
-msgstr "點擊鍵幀來選取它們"
+msgstr "點擊關鍵影格來選取它們"
 
 
 msgid "Only Channel"
@@ -32806,7 +32822,7 @@ msgstr "僅通道"
 
 
 msgid "Select all the keyframes in the channel under the mouse"
-msgstr "選取滑鼠下通道中的所有鍵幀"
+msgstr "選取滑鼠下通道中的所有關鍵影格"
 
 
 msgid "Column Select"
@@ -32814,7 +32830,7 @@ msgstr "欄選取"
 
 
 msgid "Select all keyframes that occur on the same frame as the one under the mouse"
-msgstr "選取所有如滑鼠游標下也出現在相同框幀上的鍵幀"
+msgstr "選取所有如滑鼠游標下也出現在相同影格上的關鍵影格"
 
 
 msgid "Extend Select"
@@ -32831,16 +32847,16 @@ msgstr "滑鼠 Y"
 
 msgctxt "Operator"
 msgid "Copy Keyframes"
-msgstr "複製關鍵幀"
+msgstr "複製關鍵影格"
 
 
 msgctxt "Operator"
 msgid "Delete Keyframes"
-msgstr "刪除關鍵幀"
+msgstr "刪除關鍵影格"
 
 
 msgid "Remove all selected keyframes"
-msgstr "移除所有選取的關鍵幀"
+msgstr "移除所有選取的關鍵影格"
 
 
 msgid "Confirm"
@@ -32849,11 +32865,11 @@ msgstr "確認"
 
 msgctxt "Operator"
 msgid "Duplicate Keyframes"
-msgstr "建立關鍵幀複本"
+msgstr "建立關鍵影格複本"
 
 
 msgid "Make a copy of all selected keyframes"
-msgstr "為所有選取的鍵幀製作出副本"
+msgstr "為所有選取的關鍵影格製作出副本"
 
 
 msgctxt "Operator"
@@ -32862,11 +32878,11 @@ msgstr "製作複本"
 
 
 msgid "Make a copy of all selected keyframes and move them"
-msgstr "為所有選取的鍵幀製作出副本並移動它們"
+msgstr "為所有選取的關鍵影格製作出副本並移動它們"
 
 
 msgid "Duplicate Keyframes"
-msgstr "製作鍵幀複本"
+msgstr "製作關鍵影格複本"
 
 
 msgid "Transform selected items by mode type"
@@ -32882,7 +32898,7 @@ msgstr "常量外推"
 
 
 msgid "Values on endpoint keyframes are held"
-msgstr "端點鍵幀上的值會保留"
+msgstr "端點關鍵影格上的值會保留"
 
 
 msgid "Linear Extrapolation"
@@ -32890,7 +32906,7 @@ msgstr "線性外推"
 
 
 msgid "Straight-line slope of end segments are extended past the endpoint keyframes"
-msgstr "末端區段斜率會以直線延伸出最末端鍵幀"
+msgstr "末端區段斜率會以直線延伸出最末端關鍵影格"
 
 
 msgid "Make Cyclic (F-Modifier)"
@@ -32911,38 +32927,38 @@ msgstr "移除循環 F 修改器，如果不再需要"
 
 msgctxt "Operator"
 msgid "Jump to Keyframes"
-msgstr "跳至鍵幀"
+msgstr "跳至關鍵影格"
 
 
 msgid "Set the current frame to the average frame value of selected keyframes"
-msgstr "將目前框幀設定至所選鍵幀的平均框幀值"
+msgstr "將目前影格設定至所選關鍵影格的平均影格值"
 
 
 msgctxt "Operator"
 msgid "Set Keyframe Handle Type"
-msgstr "設定鍵幀控制桿類型"
+msgstr "設定關鍵影格控制桿類型"
 
 
 msgid "Set type of handle for selected keyframes"
-msgstr "為所選鍵幀設定控制桿類型"
+msgstr "為所選關鍵影格設定控制桿類型"
 
 
 msgctxt "Operator"
 msgid "Set Keyframe Interpolation"
-msgstr "設定鍵幀插補"
+msgstr "設定關鍵影格插補"
 
 
 msgid "Set interpolation mode for the F-Curve segments starting from the selected keyframes"
-msgstr "為從所選鍵幀開始的 F 曲線分段設定插補模式"
+msgstr "為從所選關鍵影格開始的 F 曲線分段設定插補模式"
 
 
 msgctxt "Operator"
 msgid "Insert Keyframes"
-msgstr "插入鍵幀"
+msgstr "插入關鍵影格"
 
 
 msgid "Insert keyframes for the specified channels"
-msgstr "在指定通道中插入鍵幀"
+msgstr "在指定通道中插入關鍵影格"
 
 
 msgid "All Channels"
@@ -32959,11 +32975,11 @@ msgstr "於作用中群組內"
 
 msgctxt "Operator"
 msgid "Set Keyframe Type"
-msgstr "設定鍵幀類型"
+msgstr "設定關鍵影格類型"
 
 
 msgid "Set type of keyframe for the selected keyframes"
-msgstr "為所選的鍵幀設定鍵幀類型"
+msgstr "為所選的關鍵影格設定關鍵影格類型"
 
 
 msgid "Breakdown"
@@ -33007,19 +33023,19 @@ msgstr "鏡像鍵"
 
 
 msgid "Flip selected keyframes over the selected mirror line"
-msgstr "將所選的鏡像線作為中線翻轉選取的鍵幀"
+msgstr "將所選的鏡像線作為中線翻轉選取的關鍵影格"
 
 
 msgid "Flip times of selected keyframes using the current frame as the mirror line"
-msgstr "將目前框幀作為鏡像線把所選的鍵幀翻轉過來"
+msgstr "將目前影格作為鏡像線把所選的關鍵影格翻轉過來"
 
 
 msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-msgstr "翻轉所選鍵幀的值 (例：負值變為正值，反之亦然)"
+msgstr "翻轉所選關鍵影格的值 (例：負值變為正值，反之亦然)"
 
 
 msgid "Flip times of selected keyframes using the first selected marker as the reference point"
-msgstr "將第一個選取的標記作為參照點翻轉所選鍵幀的時間"
+msgstr "將第一個選取的標記作為參照點翻轉所選關鍵影格的時間"
 
 
 msgctxt "Operator"
@@ -33033,7 +33049,7 @@ msgstr "建立新的動作"
 
 msgctxt "Operator"
 msgid "Paste Keyframes"
-msgstr "貼上鍵幀"
+msgstr "貼上關鍵影格"
 
 
 msgid "Flipped"
@@ -33073,27 +33089,27 @@ msgstr "覆寫貼上範圍內的鍵，範圍為所有複製的鍵"
 
 
 msgid "Paste time offset of keys"
-msgstr "貼上框幀的時間偏移"
+msgstr "貼上影格的時間偏移"
 
 
 msgid "Paste keys starting at current frame"
-msgstr "從目前框幀開始貼上鍵"
+msgstr "從目前影格開始貼上鍵"
 
 
 msgid "Frame End"
-msgstr "框幀結束"
+msgstr "影格結束"
 
 
 msgid "Paste keys ending at current frame"
-msgstr "讓鍵的貼上結束於目前框幀"
+msgstr "讓鍵的貼上結束於目前影格"
 
 
 msgid "Frame Relative"
-msgstr "框幀相對"
+msgstr "影格相對"
 
 
 msgid "Paste keys relative to the current frame when copying"
-msgstr "複製時將鍵貼上至目前框幀的相對位置"
+msgstr "複製時將鍵貼上至目前影格的相對位置"
 
 
 msgid "No Offset"
@@ -33105,7 +33121,7 @@ msgstr "從原時間點貼上鍵"
 
 
 msgid "Set Preview Range based on extents of selected Keyframes"
-msgstr "根據選取鍵幀的範圍設定預覽範圍"
+msgstr "根據選取關鍵影格的範圍設定預覽範圍"
 
 
 msgctxt "Operator"
@@ -33114,7 +33130,7 @@ msgstr "全選"
 
 
 msgid "Toggle selection of all keyframes"
-msgstr "切換所有鍵幀的選取"
+msgstr "切換所有關鍵影格的選取"
 
 
 msgid "Selection action to execute"
@@ -33151,7 +33167,7 @@ msgstr "框選"
 
 
 msgid "Select all keyframes within the specified region"
-msgstr "選取指定區域內的所有鍵幀"
+msgstr "選取指定區域內的所有關鍵影格"
 
 
 msgid "Axis Range"
@@ -33184,15 +33200,15 @@ msgstr "圈選"
 
 
 msgid "Select all keyframes on the specified frame(s)"
-msgstr "在指定的框幀上選取所有鍵幀"
+msgstr "在指定的影格上選取所有關鍵影格"
 
 
 msgid "On Selected Keyframes"
-msgstr "於所選鍵幀"
+msgstr "於所選關鍵影格"
 
 
 msgid "On Current Frame"
-msgstr "於目前框幀"
+msgstr "於目前影格"
 
 
 msgid "On Selected Markers"
@@ -33209,7 +33225,7 @@ msgstr "套索選取"
 
 
 msgid "Select keyframe points using lasso selection"
-msgstr "使用套索選取來選取關鍵幀的點"
+msgstr "使用套索選取來選取關鍵影格的點"
 
 
 msgid "Stabilize Stroke"
@@ -33222,7 +33238,7 @@ msgstr "選取左/右"
 
 
 msgid "Select keyframes to the left or the right of the current frame"
-msgstr "選取目前框幀左右的鍵幀"
+msgstr "選取目前影格左右的關鍵影格"
 
 
 msgid "Check if Select Left or Right"
@@ -33235,7 +33251,7 @@ msgstr "縮減選取"
 
 
 msgid "Deselect keyframes on ends of selection islands"
-msgstr "取消選取島塊末端的鍵幀選取"
+msgstr "取消選取島塊末端的關鍵影格選取"
 
 
 msgctxt "Operator"
@@ -33244,7 +33260,7 @@ msgstr "選取連結者"
 
 
 msgid "Select keyframes occurring in the same F-Curves as selected ones"
-msgstr "選取如所選鍵幀一樣，出現於相同 F 曲線中的鍵幀"
+msgstr "選取如所選關鍵影格一樣，出現於相同 F 曲線中的關鍵影格"
 
 
 msgctxt "Operator"
@@ -33253,7 +33269,7 @@ msgstr "擴展選取"
 
 
 msgid "Select keyframes beside already selected ones"
-msgstr "擴展選取至已選取的鍵幀之外的鍵幀"
+msgstr "擴展選取至已選取的關鍵影格之外的關鍵影格"
 
 
 msgctxt "Operator"
@@ -33262,11 +33278,11 @@ msgstr "吸附鍵"
 
 
 msgid "Snap selected keyframes to the times specified"
-msgstr "將選取的關鍵幀吸附至指定的時間"
+msgstr "將選取的關鍵影格吸附至指定的時間"
 
 
 msgid "Snap selected keyframes to the current frame"
-msgstr "將所選的關鍵幀吸附至目前幀"
+msgstr "將所選的關鍵影格吸附至目前幀"
 
 
 msgid "Snap selected keyframes to the nearest (whole) frame (use to fix accidental subframe offsets)"
@@ -33274,11 +33290,11 @@ msgstr "將選定的關鍵帧吸附至最近的 ( 整個 ) 幀 ( 用於修復意
 
 
 msgid "Snap selected keyframes to the nearest second"
-msgstr "將選取的關鍵幀吸附至第二近的框幀"
+msgstr "將選取的關鍵影格吸附至第二近的影格"
 
 
 msgid "Snap selected keyframes to the nearest marker"
-msgstr "將選取的關鍵幀吸附至最近的標記處"
+msgstr "將選取的關鍵影格吸附至最近的標記處"
 
 
 msgid "Create New Action"
@@ -33304,12 +33320,12 @@ msgstr "聚焦視窗中所有物件"
 
 
 msgid "Reset viewable area to show full keyframe range"
-msgstr "重設可檢視的區域以顯示完整的鍵幀區間"
+msgstr "重設可檢視的區域以顯示完整的關鍵影格區間"
 
 
 msgctxt "Operator"
 msgid "Go to Current Frame"
-msgstr "前往目前的框幀"
+msgstr "前往目前的影格"
 
 
 msgctxt "Operator"
@@ -33318,12 +33334,12 @@ msgstr "聚焦視窗中的選取物"
 
 
 msgid "Reset viewable area to show selected keyframes range"
-msgstr "重設可檢視的區域以顯示所選鍵幀的範圍"
+msgstr "重設可檢視的區域以顯示所選關鍵影格的範圍"
 
 
 msgctxt "Operator"
 msgid "Change Frame"
-msgstr "更改框幀"
+msgstr "更改影格"
 
 
 msgid "Interactively change the current frame number"
@@ -33332,7 +33348,7 @@ msgstr "以互動方式更改目前幀號"
 
 msgctxt "Operator"
 msgid "Select Channel Keyframes"
-msgstr "選取通道鍵幀"
+msgstr "選取通道關鍵影格"
 
 
 msgid "Include Handles"
@@ -33340,7 +33356,7 @@ msgstr "包括控制桿"
 
 
 msgid "Include handles of keyframes when calculating extents"
-msgstr "當計算範圍時包括鍵幀的控制桿"
+msgstr "當計算範圍時包括關鍵影格的控制桿"
 
 
 msgctxt "Operator"
@@ -33532,7 +33548,7 @@ msgstr "複製突顯按鈕的驅動器"
 
 msgctxt "Operator"
 msgid "Add Driver"
-msgstr "添加驅動器"
+msgstr "新增驅動器"
 
 
 msgctxt "Operator"
@@ -33551,20 +33567,20 @@ msgstr "刪除所有陣列的元素其驅動器"
 
 msgctxt "Operator"
 msgid "Set End Frame"
-msgstr "設定結束幀"
+msgstr "設定結束影格"
 
 
 msgctxt "Operator"
 msgid "Clear Keyframe (Buttons)"
-msgstr "清除鍵幀 (按鈕)"
+msgstr "清除關鍵影格 (按鈕)"
 
 
 msgid "Clear all keyframes on the currently active property"
-msgstr "清除目前作用中屬性上的所有鍵幀"
+msgstr "清除目前作用中屬性上的所有關鍵影格"
 
 
 msgid "Clear keyframes from all elements of the array"
-msgstr "清除陣列所有元素的鍵幀"
+msgstr "清除陣列所有元素的關鍵影格"
 
 
 msgctxt "Operator"
@@ -33573,16 +33589,16 @@ msgstr "移除動畫"
 
 
 msgid "Remove all keyframe animation for selected objects"
-msgstr "為所選物體移除所有的鍵幀動畫"
+msgstr "為所選物體移除所有的關鍵影格動畫"
 
 
 msgctxt "Operator"
 msgid "Delete Keying-Set Keyframe"
-msgstr "刪除鍵處理集的鍵幀"
+msgstr "刪除鍵處理集的關鍵影格"
 
 
 msgid "Delete keyframes on the current frame for all properties in the specified Keying Set"
-msgstr "於指定鍵處理集中的所有屬性刪除目前框幀的鍵幀"
+msgstr "於指定鍵處理集中的所有屬性刪除目前影格的關鍵影格"
 
 
 msgid "The Keying Set to use"
@@ -33591,57 +33607,57 @@ msgstr "要使用的鍵處理集"
 
 msgctxt "Operator"
 msgid "Delete Keyframe (Buttons)"
-msgstr "刪除鍵幀 (按鈕)"
+msgstr "刪除關鍵影格 (按鈕)"
 
 
 msgid "Delete current keyframe of current UI-active property"
-msgstr "刪除目前 UI 作用中屬性的目前鍵幀"
+msgstr "刪除目前 UI 作用中屬性的目前關鍵影格"
 
 
 msgid "Delete keyframes from all elements of the array"
-msgstr "刪除陣列所有元素的鍵幀"
+msgstr "刪除陣列所有元素的關鍵影格"
 
 
 msgctxt "Operator"
 msgid "Delete Keying-Set Keyframe (by name)"
-msgstr "刪除鍵處理集的鍵幀 (依名稱)"
+msgstr "刪除鍵處理集的關鍵影格 (依名稱)"
 
 
 msgctxt "Operator"
 msgid "Delete Keyframe"
-msgstr "刪除鍵幀"
+msgstr "刪除關鍵影格"
 
 
 msgctxt "Operator"
 msgid "Insert Keyframe"
-msgstr "插入鍵幀"
+msgstr "插入關鍵影格"
 
 
 msgctxt "Operator"
 msgid "Insert Keyframe (Buttons)"
-msgstr "插入鍵幀 (按鈕)"
+msgstr "插入關鍵影格 (按鈕)"
 
 
 msgid "Insert a keyframe for current UI-active property"
-msgstr "為目前 UI 作用中屬性插入鍵幀"
+msgstr "為目前 UI 作用中屬性插入關鍵影格"
 
 
 msgid "Insert a keyframe for all element of the array"
-msgstr "為所有陣列中的元素插入鍵幀"
+msgstr "為所有陣列中的元素插入關鍵影格"
 
 
 msgctxt "Operator"
 msgid "Insert Keyframe (by name)"
-msgstr "插入鍵幀 (依名稱)"
+msgstr "插入關鍵影格 (依名稱)"
 
 
 msgctxt "Operator"
 msgid "Insert Keyframe Menu"
-msgstr "插入鍵幀選單"
+msgstr "插入關鍵影格選單"
 
 
 msgid "Insert Keyframes for specified Keying Set, with menu of available Keying Sets if undefined"
-msgstr "若未定義，則為指定的鍵處理集入鍵幀，附可用鍵處理集的選單"
+msgstr "若未定義，則為指定的鍵處理集入關鍵影格，附可用鍵處理集的選單"
 
 
 msgid "Always Show Menu"
@@ -33655,7 +33671,7 @@ msgstr "設定作用中鍵處理集"
 
 msgctxt "Operator"
 msgid "Add Empty Keying Set"
-msgstr "添加空白鍵處理集"
+msgstr "新增空白鍵處理集"
 
 
 msgid "Filter folders"
@@ -33668,7 +33684,7 @@ msgstr "過濾文字"
 
 msgctxt "Operator"
 msgid "Add Empty Keying Set Path"
-msgstr "添加空白鍵處理集路徑"
+msgstr "新增空白鍵處理集路徑"
 
 
 msgctxt "Operator"
@@ -33683,15 +33699,15 @@ msgstr "移除作用中鍵處理集"
 
 msgctxt "Operator"
 msgid "Add to Keying Set"
-msgstr "添加至鍵處理集"
+msgstr "新增至鍵處理集"
 
 
 msgid "Add current UI-active property to current keying set"
-msgstr "添加目前的 UI 作用中屬性至目前的鍵處理集"
+msgstr "新增目前的 UI 作用中屬性至目前的鍵處理集"
 
 
 msgid "Add all elements of the array to a Keying Set"
-msgstr "添加陣列的所有元素至鍵處理集中"
+msgstr "新增陣列的所有元素至鍵處理集中"
 
 
 msgctxt "Operator"
@@ -33719,12 +33735,12 @@ msgstr "設定預覽範圍"
 
 
 msgid "Interactively define frame range used for playback"
-msgstr "以互動方式定義框幀用來播放的範圍"
+msgstr "以互動方式定義影格用來播放的範圍"
 
 
 msgctxt "Operator"
 msgid "Set Start Frame"
-msgstr "設定起始幀"
+msgstr "設定起始影格"
 
 
 msgid "Isolate"
@@ -33770,7 +33786,7 @@ msgstr "頂部/底部"
 
 msgctxt "Operator"
 msgid "Add Bone"
-msgstr "添加骨骼"
+msgstr "新增骨骼"
 
 
 msgid "Name of the newly created bone"
@@ -34203,11 +34219,11 @@ msgstr "儲存素材編目"
 
 msgctxt "Operator"
 msgid "Add Boid Rule"
-msgstr "添加群集個體規則"
+msgstr "新增群集個體規則"
 
 
 msgid "Add a boid rule to the current boid state"
-msgstr "為目前群集個體狀態添加個個體規則"
+msgstr "為目前群集個體狀態新增個個體規則"
 
 
 msgctxt "Operator"
@@ -34239,11 +34255,11 @@ msgstr "在清單中上移群集個體規則"
 
 msgctxt "Operator"
 msgid "Add Boid State"
-msgstr "添加群集個體狀態"
+msgstr "新增群集個體狀態"
 
 
 msgid "Add a boid state to the particle system"
-msgstr "添加個群集個體狀態到粒子系統"
+msgstr "新增個群集個體狀態到粒子系統"
 
 
 msgctxt "Operator"
@@ -34299,7 +34315,7 @@ msgstr "新素材要使用的編目"
 
 msgctxt "Operator"
 msgid "Preset"
-msgstr "預設檔"
+msgstr "預設集"
 
 
 msgid "Set brush shape"
@@ -34345,11 +34361,11 @@ msgstr "筆刷大小的縮放係數"
 
 msgctxt "Operator"
 msgid "Curve Falloff Preset"
-msgstr "曲線衰減預設檔"
+msgstr "曲線衰減預設集"
 
 
 msgid "Set Curve Falloff Preset"
-msgstr "設定曲線衰減預設檔"
+msgstr "設定曲線衰減預設集"
 
 
 msgctxt "Operator"
@@ -34433,7 +34449,7 @@ msgstr "重新整理封存檔"
 
 
 msgid "Name of the preset, used to make the path name"
-msgstr "預設檔的名稱，用於建立路徑名稱"
+msgstr "預設集的名稱，用於建立路徑名稱"
 
 
 msgid "Include Focal Length"
@@ -34441,12 +34457,12 @@ msgstr "包含焦距"
 
 
 msgid "Include focal length into the preset"
-msgstr "將焦距納入預設檔"
+msgstr "將焦距納入預設集"
 
 
 msgctxt "Operator"
 msgid "Add Marker"
-msgstr "添加標記"
+msgstr "新增標記"
 
 
 msgid "Place new marker at specified location"
@@ -34454,12 +34470,12 @@ msgstr "放置新標記於指定位置"
 
 
 msgid "Location of marker on frame"
-msgstr "框幀上標記的位置"
+msgstr "影格上標記的位置"
 
 
 msgctxt "Operator"
 msgid "Add Marker at Click"
-msgstr "點按時添加標記"
+msgstr "點按時新增標記"
 
 
 msgid "Place new marker at the desired (clicked) position"
@@ -34468,24 +34484,24 @@ msgstr "在所要 (點按的) 位置上放置新標記"
 
 msgctxt "Operator"
 msgid "Add Marker and Move"
-msgstr "添加標記並移動"
+msgstr "新增標記並移動"
 
 
 msgid "Add new marker and move it on movie"
-msgstr "添加新標記並在影片上移動"
+msgstr "新增新標記並在影片上移動"
 
 
 msgid "Add Marker"
-msgstr "添加標記"
+msgstr "新增標記"
 
 
 msgctxt "Operator"
 msgid "Add Marker and Slide"
-msgstr "添加標記並滑動"
+msgstr "新增標記並滑動"
 
 
 msgid "Add new marker and slide it with mouse until mouse button release"
-msgstr "添加新標記並以滑鼠滑動它，滑動效果會在滑鼠按鈕釋放之後停止"
+msgstr "新增新標記並以滑鼠滑動它，滑動效果會在滑鼠按鈕釋放之後停止"
 
 
 msgctxt "Operator"
@@ -34529,11 +34545,11 @@ msgstr "清除要執行的動作"
 
 
 msgid "Clear path up to current frame"
-msgstr "清除上達目前框幀的路徑"
+msgstr "清除上達目前影格的路徑"
 
 
 msgid "Clear path at remaining frames (after current)"
-msgstr "清除剩餘 (在目前之後) 框幀的路徑"
+msgstr "清除剩餘 (在目前之後) 影格的路徑"
 
 
 msgid "Clear the whole path"
@@ -34577,7 +34593,7 @@ msgstr "刪除標記"
 
 
 msgid "Delete marker for current frame from selected tracks"
-msgstr "從所選軌道刪除目前框幀的標記"
+msgstr "從所選軌道刪除目前影格的標記"
 
 
 msgctxt "Operator"
@@ -34607,11 +34623,11 @@ msgstr "為偵測到的特徵放置"
 
 
 msgid "Whole Frame"
-msgstr "整個框幀"
+msgstr "整個影格"
 
 
 msgid "Place markers across the whole frame"
-msgstr "放置標記橫越整個框幀"
+msgstr "放置標記橫越整個影格"
 
 
 msgctxt "Operator"
@@ -34658,11 +34674,11 @@ msgstr "要選取通道的滑鼠位置"
 
 msgctxt "Operator"
 msgid "Jump to Frame"
-msgstr "跳至框幀"
+msgstr "跳至影格"
 
 
 msgid "Jump to special frame"
-msgstr "跳至特殊框幀"
+msgstr "跳至特殊影格"
 
 
 msgid "Position to jump to"
@@ -34682,7 +34698,7 @@ msgstr "前個失敗"
 
 
 msgid "Jump to previous failed frame"
-msgstr "跳至前個失敗的框幀"
+msgstr "跳至前個失敗的影格"
 
 
 msgid "Next Failed"
@@ -34690,16 +34706,16 @@ msgstr "下個失敗"
 
 
 msgid "Jump to next failed frame"
-msgstr "跳至下個失敗的框幀"
+msgstr "跳至下個失敗的影格"
 
 
 msgctxt "Operator"
 msgid "Center Current Frame"
-msgstr "置中目前框幀"
+msgstr "置中目前影格"
 
 
 msgid "Scroll view so current frame would be centered"
-msgstr "捲動檢視來讓目前框幀置中"
+msgstr "捲動檢視來讓目前影格置中"
 
 
 msgctxt "Operator"
@@ -34774,7 +34790,7 @@ msgstr "結合所選軌道"
 
 
 msgid "Delete a keyframe from selected tracks at current frame"
-msgstr "從所選軌道刪除目前幀的鍵幀"
+msgstr "從所選軌道刪除目前幀的關鍵影格"
 
 
 msgctxt "Operator"
@@ -34844,7 +34860,7 @@ msgstr "開啟剪輯"
 
 
 msgid "Load a sequence of frames or a movie file"
-msgstr "載入框幀序段或影片檔"
+msgstr "載入影格序段或影片檔"
 
 
 msgctxt "Operator"
@@ -34858,7 +34874,7 @@ msgstr "預取幀數"
 
 
 msgid "Prefetch frames from disk for faster playback/tracking"
-msgstr "從磁碟預取框幀可加快回放或追蹤的速度"
+msgstr "從磁碟預取影格可加快回放或追蹤的速度"
 
 
 msgctxt "Operator"
@@ -34918,7 +34934,7 @@ msgstr "選取來自特定群組的所有軌道"
 
 
 msgid "Select all keyframed tracks"
-msgstr "選取所有鍵幀的軌道"
+msgstr "選取所有關鍵影格的軌道"
 
 
 msgid "Select all estimated tracks"
@@ -35011,11 +35027,11 @@ msgstr "設定縮放"
 
 msgctxt "Operator"
 msgid "Set Scene Frames"
-msgstr "設定場景框幀"
+msgstr "設定場景影格"
 
 
 msgid "Set scene's start and end frame to match clip's start frame and length"
-msgstr "設定場景的起始與終末框幀以符合剪輯的起始幀與長度"
+msgstr "設定場景的起始與終末影格以符合剪輯的起始影格與長度"
 
 
 msgctxt "Operator"
@@ -35029,15 +35045,15 @@ msgstr "使用兩個所選軌道之間的距離設定物體解算縮放"
 
 msgctxt "Operator"
 msgid "Set Solver Keyframe"
-msgstr "設定解算器鍵幀"
+msgstr "設定解算器關鍵影格"
 
 
 msgid "Set keyframe used by solver"
-msgstr "設定解算器使用的鍵幀"
+msgstr "設定解算器使用的關鍵影格"
 
 
 msgid "Keyframe to set"
-msgstr "要設定的鍵幀"
+msgstr "要設定的關鍵影格"
 
 
 msgctxt "Operator"
@@ -35069,7 +35085,7 @@ msgstr "從軌道解算攝影機動態"
 
 msgctxt "Operator"
 msgid "Add Stabilization Tracks"
-msgstr "添加穩定處理軌道"
+msgstr "新增穩定處理軌道"
 
 
 msgctxt "Operator"
@@ -35079,7 +35095,7 @@ msgstr "移除穩定處理軌道"
 
 msgctxt "Operator"
 msgid "Add Stabilization Rotation Tracks"
-msgstr "添加穩定處理旋轉軌道"
+msgstr "新增穩定處理旋轉軌道"
 
 
 msgctxt "Operator"
@@ -35125,11 +35141,11 @@ msgstr "在影像序列中而不是單一影像中進行標記的追蹤"
 
 msgctxt "Operator"
 msgid "Add Tracking Object"
-msgstr "添加追蹤用物體"
+msgstr "新增追蹤用物體"
 
 
 msgid "Add new object for tracking"
-msgstr "添加個追蹤用的物體"
+msgstr "新增個追蹤用的物體"
 
 
 msgctxt "Operator"
@@ -35150,7 +35166,7 @@ msgstr "適應檢視"
 
 
 msgid "Fit frame to the viewport"
-msgstr "讓框幀適應視接口"
+msgstr "讓影格適應視圖區"
 
 
 msgctxt "Operator"
@@ -35513,11 +35529,11 @@ msgstr "自動動畫製作路徑"
 
 
 msgid "Add default animation for path used by constraint if it isn't animated already"
-msgstr "若約束所使用的路徑尚未有動畫的話，則為它添加預設動畫"
+msgstr "若約束所使用的路徑尚未有動畫的話，則為它新增預設動畫"
 
 
 msgid "First frame of path animation"
-msgstr "路徑動畫的起始幀"
+msgstr "路徑動畫的起始影格"
 
 
 msgid "Number of frames that path animation should take"
@@ -35569,16 +35585,16 @@ msgstr "進入編輯模式"
 
 
 msgid "Location for the newly added object"
-msgstr "新添加物體的位置"
+msgstr "新新增物體的位置"
 
 
 msgid "Rotation for the newly added object"
-msgstr "新添加物體的旋轉"
+msgstr "新新增物體的旋轉"
 
 
 msgctxt "Operator"
 msgid "Add Circle"
-msgstr "添加圓"
+msgstr "新增圓"
 
 
 msgid "Handles"
@@ -35719,7 +35735,7 @@ msgstr "製作選取控制點的複本"
 
 msgctxt "Operator"
 msgid "Add Duplicate"
-msgstr "添加複本"
+msgstr "新增複本"
 
 
 msgid "Duplicate curve and move"
@@ -35827,7 +35843,7 @@ msgstr "切換選取"
 
 msgctxt "Operator"
 msgid "Add Nurbs Circle"
-msgstr "添加 Nurbs 圓"
+msgstr "新增 Nurbs 圓"
 
 
 msgid "Construct a Nurbs Circle"
@@ -35836,7 +35852,7 @@ msgstr "建立一個 Nurbs 圓"
 
 msgctxt "Operator"
 msgid "Add Nurbs Curve"
-msgstr "添加 Nurbs 曲線"
+msgstr "新增 Nurbs 曲線"
 
 
 msgid "Construct a Nurbs Curve"
@@ -35845,7 +35861,7 @@ msgstr "建立一條 Nurbs 曲線"
 
 msgctxt "Operator"
 msgid "Add Path"
-msgstr "添加路徑"
+msgstr "新增路徑"
 
 
 msgid "Construct a Path"
@@ -36015,7 +36031,7 @@ msgstr "切換所選雲形線的方向"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
-msgstr "添加新的控制點 (僅連結至選取的終端曲線項，如果有的話)"
+msgstr "新增新的控制點 (僅連結至選取的終端曲線項，如果有的話)"
 
 
 msgid "Location to add new vertex at"
@@ -36041,7 +36057,7 @@ msgstr "切換輸出分層"
 
 
 msgid "Add or remove Dynamic Paint output data layer"
-msgstr "添加或移除動態繪製輸出資料分層"
+msgstr "新增或移除動態繪製輸出資料分層"
 
 
 msgid "Output Toggle"
@@ -36058,11 +36074,11 @@ msgstr "輸出 B"
 
 msgctxt "Operator"
 msgid "Add Surface Slot"
-msgstr "添加表面槽"
+msgstr "新增表面槽"
 
 
 msgid "Add a new Dynamic Paint surface slot"
-msgstr "添加個新動態繪製表面槽"
+msgstr "新增個新動態繪製表面槽"
 
 
 msgctxt "Operator"
@@ -36141,11 +36157,11 @@ msgstr "用來匯出檔案的檔案路徑"
 
 
 msgid "End frame to export"
-msgstr "匯出的結束幀"
+msgstr "匯出的結束影格"
 
 
 msgid "Starting frame to export"
-msgstr "匯出的起始幀"
+msgstr "匯出的起始影格"
 
 
 msgid "Scale the BVH by this value"
@@ -36515,11 +36531,11 @@ msgstr "自動將所有的外部檔案包進 .blend 檔中"
 
 msgctxt "Operator"
 msgid "Add Bookmark"
-msgstr "添加書籤"
+msgstr "新增書籤"
 
 
 msgid "Add a bookmark for the selected/active directory"
-msgstr "為選取的/作用中的資料夾添加書籤"
+msgstr "為選取的/作用中的資料夾新增書籤"
 
 
 msgctxt "Operator"
@@ -37256,6 +37272,10 @@ msgid "Name of color attribute"
 msgstr "色彩特性名稱"
 
 
+msgid "Viewport Is Perspective"
+msgstr "視圖區採透視法"
+
+
 msgctxt "Operator"
 msgid "Gizmo Select"
 msgstr "操縱器選取"
@@ -37268,7 +37288,7 @@ msgstr "操縱器調校"
 
 msgctxt "Operator"
 msgid "Annotation Draw"
-msgstr "註解描繪"
+msgstr "註記描繪"
 
 
 msgid "Make annotations on the active data"
@@ -37325,7 +37345,7 @@ msgstr "穩定筆觸半徑"
 
 msgctxt "Operator"
 msgid "Delete Active Frame"
-msgstr "刪除作用中框幀"
+msgstr "刪除作用中影格"
 
 
 msgctxt "Operator"
@@ -37344,19 +37364,19 @@ msgstr "分解"
 
 msgctxt "Operator"
 msgid "Click-Insert Keyframes"
-msgstr "點擊-插入鍵幀"
+msgstr "點擊-插入關鍵影格"
 
 
 msgid "Insert new keyframe at the cursor position for the active F-Curve"
-msgstr "為作用中 F 曲線在游標位置插入新的鍵幀"
+msgstr "為作用中 F 曲線在游標位置插入新的關鍵影格"
 
 
 msgid "Frame to insert keyframe on"
-msgstr "插入鍵幀的於何框幀"
+msgstr "插入關鍵影格的於何影格"
 
 
 msgid "Value for keyframe on"
-msgstr "鍵幀上的值"
+msgstr "關鍵影格上的值"
 
 
 msgid "Only Curves"
@@ -37364,7 +37384,7 @@ msgstr "僅曲線"
 
 
 msgid "Select all the keyframes in the curve"
-msgstr "選取曲線上的所有鍵幀"
+msgstr "選取曲線上的所有關鍵影格"
 
 
 msgctxt "Operator"
@@ -37374,11 +37394,11 @@ msgstr "設定游標"
 
 msgctxt "Operator"
 msgid "Decimate Keyframes"
-msgstr "削減鍵幀"
+msgstr "削減關鍵影格"
 
 
 msgid "Decimate F-Curves by removing keyframes that influence the curve shape the least"
-msgstr "使用對曲線形狀影響最小的關鍵幀來削減函數曲線"
+msgstr "使用對曲線形狀影響最小的關鍵影格來削減函數曲線"
 
 
 msgid "How much the new decimated curve is allowed to deviate from the original"
@@ -37408,7 +37428,7 @@ msgstr "非連續性尤拉過濾器"
 
 msgctxt "Operator"
 msgid "Add F-Curve Modifier"
-msgstr "添加 F 修改器"
+msgstr "新增 F 修改器"
 
 
 msgid "Only Active"
@@ -37416,7 +37436,7 @@ msgstr "僅作用項"
 
 
 msgid "Only add F-Modifier to active F-Curve"
-msgstr "僅對作用中的 F 曲線添加 F 曲線"
+msgstr "僅對作用中的 F 曲線新增 F 曲線"
 
 
 msgctxt "Operator"
@@ -37434,11 +37454,11 @@ msgstr "貼上 F 修改器"
 
 
 msgid "Add copied F-Modifiers to the selected F-Curves"
-msgstr "添加複製的 F 修改器至所選的 F 曲線"
+msgstr "新增複製的 F 修改器至所選的 F 曲線"
 
 
 msgid "Place the cursor on the midpoint of selected keyframes"
-msgstr "將游標放置至所選鍵幀的中點"
+msgstr "將游標放置至所選關鍵影格的中點"
 
 
 msgctxt "Operator"
@@ -37474,15 +37494,15 @@ msgstr "為所選 F 曲線建立快照 (殘影) 為背景來輔助作用中的�
 
 msgctxt "Operator"
 msgid "Jump to Keyframe"
-msgstr "跳到鍵幀"
+msgstr "跳到關鍵影格"
 
 
 msgid "Jump to previous/next keyframe"
-msgstr "跳到上一個/下一個鍵幀"
+msgstr "跳到上一個/下一個關鍵影格"
 
 
 msgid "Next Keyframe"
-msgstr "下一鍵幀"
+msgstr "下一關鍵影格"
 
 
 msgctxt "Operator"
@@ -37491,11 +37511,11 @@ msgstr "配對坡度"
 
 
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-msgstr "將游標值 (Y/水平部份) 作為鏡像線翻轉所選鍵幀的值"
+msgstr "將游標值 (Y/水平部份) 作為鏡像線翻轉所選關鍵影格的值"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
-msgstr "翻轉所選框幀的時間，可有效反轉它們出現的順序"
+msgstr "翻轉所選影格的時間，可有效反轉它們出現的順序"
 
 
 msgid "From Left"
@@ -37524,11 +37544,11 @@ msgstr "套用權重化移動代表可讓所選 F 曲線減少凹凸不平"
 
 
 msgid "Snap selected keyframes to the chosen times/values"
-msgstr "將所選的關鍵幀吸附至選擇的時間/值"
+msgstr "將所選的關鍵影格吸附至選擇的時間/值"
 
 
 msgid "Set values of selected keyframes to the cursor value (Y/Horizontal component)"
-msgstr "設定所選鍵幀的值為游標值 (Y/水平部份)"
+msgstr "設定所選關鍵影格的值為游標值 (Y/水平部份)"
 
 
 msgid "Flatten Handles"
@@ -37565,7 +37585,7 @@ msgstr "輸出為平方曲線 (負值總是 -1，而正值總是 1)"
 
 
 msgid "Reset viewable area to show selected keyframe range"
-msgstr "重設可視區域以顯示所選鍵幀的範圍"
+msgstr "重設可視區域以顯示所選關鍵影格的範圍"
 
 
 msgid "No Reproject"
@@ -37637,7 +37657,7 @@ msgstr "Grease Pencil 橡皮擦套索"
 
 msgctxt "Operator"
 msgid "Insert Blank Frame"
-msgstr "插入空白框幀"
+msgstr "插入空白影格"
 
 
 msgctxt "Operator"
@@ -37716,7 +37736,7 @@ msgstr "結合"
 
 msgctxt "Operator"
 msgid "Add New Layer"
-msgstr "添加新層"
+msgstr "新增新層"
 
 
 msgctxt "Operator"
@@ -37907,6 +37927,10 @@ msgstr "在歸一化其他頂點群組時保持作用中群組的值"
 msgctxt "Operator"
 msgid "Weight Paint Sample Weight"
 msgstr "權重繪製取樣權重"
+
+
+msgid "Add a new render slot"
+msgstr "新增新的算繪槽"
 
 
 msgctxt "Operator"
@@ -38195,7 +38219,7 @@ msgstr "設定檢視的遠近調焦比率"
 
 
 msgid "Starting frame for the animation"
-msgstr "動畫的起始幀"
+msgstr "動畫的起始影格"
 
 
 msgid "Convert rotations to quaternions"
@@ -38215,7 +38239,7 @@ msgstr "縮放 FPS"
 
 
 msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "將幀率從 BVH 縮放成目前場景，否則每個 BVH 框幀會直接映射成 Blender 框幀"
+msgstr "將幀率從 BVH 縮放成目前場景，否則每個 BVH 影格會直接映射成 Blender 影格"
 
 
 msgid "Import vertex color attributes"
@@ -38356,11 +38380,11 @@ msgstr "選取未有群組的頂點"
 
 msgctxt "Operator"
 msgid "Add Time Marker"
-msgstr "添加時間標記"
+msgstr "新增時間標記"
 
 
 msgid "Add a new time marker"
-msgstr "添加一個新的時間標記"
+msgstr "新增新的時間標記"
 
 
 msgctxt "Operator"
@@ -38436,11 +38460,11 @@ msgstr "更改所有時間標記的選取"
 
 msgctxt "Operator"
 msgid "Add Feather Vertex"
-msgstr "添加羽毛頂點"
+msgstr "新增羽毛頂點"
 
 
 msgid "Add vertex to feather"
-msgstr "添加頂點至羽毛"
+msgstr "新增頂點至羽毛"
 
 
 msgid "Location of vertex in normalized space"
@@ -38449,15 +38473,15 @@ msgstr "歸一化空間中的頂點位置"
 
 msgctxt "Operator"
 msgid "Add Feather Vertex and Slide"
-msgstr "添加羽毛頂點並滑動"
+msgstr "新增羽毛頂點並滑動"
 
 
 msgid "Add new vertex to feather and slide it"
-msgstr "添加新的頂點至羽毛並滑動它"
+msgstr "新增新的頂點至羽毛並滑動它"
 
 
 msgid "Add Feather Vertex"
-msgstr "添加羽毛頂點"
+msgstr "新增羽毛頂點"
 
 
 msgid "Slide Point"
@@ -38470,24 +38494,24 @@ msgstr "滑動控制點"
 
 msgctxt "Operator"
 msgid "Add Vertex"
-msgstr "添加頂點"
+msgstr "新增頂點"
 
 
 msgid "Add vertex to active spline"
-msgstr "添加頂點至作用中雲形線"
+msgstr "新增頂點至作用中雲形線"
 
 
 msgctxt "Operator"
 msgid "Add Vertex and Slide"
-msgstr "添加頂點並滑動"
+msgstr "新增頂點並滑動"
 
 
 msgid "Add new vertex and slide it"
-msgstr "添加新頂點並滑動它"
+msgstr "新增新頂點並滑動它"
 
 
 msgid "Add Vertex"
-msgstr "添加頂點"
+msgstr "新增頂點"
 
 
 msgid "Toggle cyclic for selected splines"
@@ -38549,11 +38573,11 @@ msgstr "移動作用分層的方向"
 
 msgctxt "Operator"
 msgid "Add Mask Layer"
-msgstr "添加遮罩分層"
+msgstr "新增遮罩分層"
 
 
 msgid "Add new mask layer for masking"
-msgstr "為遮罩添加遮罩分層"
+msgstr "為遮罩新增遮罩分層"
 
 
 msgid "Name of new mask layer"
@@ -38586,7 +38610,7 @@ msgstr "設定遮罩的親子關係"
 
 
 msgid "Add new circle-shaped spline"
-msgstr "添加新的圓形雲形線"
+msgstr "新增新的圓形雲形線"
 
 
 msgid "Location of new circle"
@@ -38599,11 +38623,11 @@ msgstr "新圓形的大小"
 
 msgctxt "Operator"
 msgid "Add Square"
-msgstr "添加方"
+msgstr "新增方"
 
 
 msgid "Add new square-shaped spline"
-msgstr "添加新的方形雲形線"
+msgstr "新增新的方形雲形線"
 
 
 msgid "Select spline points"
@@ -38663,7 +38687,7 @@ msgstr "重新設定所選外形的鍵點"
 
 
 msgid "Recalculate animation data on selected points for frames selected in the dopesheet"
-msgstr "為律表中所選的框幀其所選點上重新計算動畫資料"
+msgstr "為律表中所選的影格其所選點上重新計算動畫資料"
 
 
 msgctxt "Operator"
@@ -38694,7 +38718,7 @@ msgstr "新增材質"
 
 
 msgid "Add a new material"
-msgstr "添加一個新材質"
+msgstr "新增新的材質"
 
 
 msgctxt "Operator"
@@ -38794,7 +38818,7 @@ msgstr "從外形鍵混入外形"
 
 
 msgid "Add rather than blend between shapes"
-msgstr "添加上去而不是在外形之間交混"
+msgstr "新增上去而不是在外形之間交混"
 
 
 msgid "Blending factor"
@@ -38944,7 +38968,7 @@ msgstr "比較色彩特性"
 
 msgctxt "Operator"
 msgid "Add Custom Split Normals Data"
-msgstr "添加自訂切割法線資料"
+msgstr "新增自訂切割法線資料"
 
 
 msgid "Clear vertex sculpt masking data from the mesh"
@@ -39086,7 +39110,7 @@ msgstr "建立邊線/面"
 
 
 msgid "Add an edge or face to selected"
-msgstr "添加一條邊線或一個面至所選項"
+msgstr "新增一條邊線或一個面至所選項"
 
 
 msgctxt "Operator"
@@ -39498,7 +39522,7 @@ msgstr "圈切"
 
 
 msgid "Add a new loop between existing loops"
-msgstr "在既有迴圈之間添加一個新的迴圈"
+msgstr "在既有迴圈之間，新增新的迴圈"
 
 
 msgctxt "Operator"
@@ -39717,7 +39741,7 @@ msgstr "使用三角形扇"
 
 msgctxt "Operator"
 msgid "Add Cone"
-msgstr "添加圓錐體"
+msgstr "新增圓錐體"
 
 
 msgid "Construct a conic mesh"
@@ -39738,7 +39762,7 @@ msgstr "半徑 2"
 
 msgctxt "Operator"
 msgid "Add Cube"
-msgstr "添加立方體"
+msgstr "新增立方體"
 
 
 msgid "Construct a cube mesh"
@@ -39747,7 +39771,7 @@ msgstr "建立一個立方體網格"
 
 msgctxt "Operator"
 msgid "Add Cylinder"
-msgstr "添加圓柱體"
+msgstr "新增圓柱體"
 
 
 msgid "Construct a cylinder mesh"
@@ -39760,7 +39784,7 @@ msgstr "蓋帽填入類型"
 
 msgctxt "Operator"
 msgid "Add Grid"
-msgstr "添加格線"
+msgstr "新增格線"
 
 
 msgid "X Subdivisions"
@@ -39773,12 +39797,12 @@ msgstr "Y 細分"
 
 msgctxt "Operator"
 msgid "Add Ico Sphere"
-msgstr "添加 Ico 球體"
+msgstr "新增 Ico 球體"
 
 
 msgctxt "Operator"
 msgid "Add Monkey"
-msgstr "添加猴頭"
+msgstr "新增猴頭"
 
 
 msgid "Construct a Suzanne mesh"
@@ -39787,7 +39811,7 @@ msgstr "建立一個 Suzanne 網格"
 
 msgctxt "Operator"
 msgid "Add Plane"
-msgstr "添加平面"
+msgstr "新增平面"
 
 
 msgid "Construct a filled planar mesh with 4 vertices"
@@ -39860,7 +39884,7 @@ msgstr "為圓環體維度使用外/內半徑"
 
 msgctxt "Operator"
 msgid "Add UV Sphere"
-msgstr "添加 UV 球體"
+msgstr "新增 UV 球體"
 
 
 msgctxt "Operator"
@@ -39934,7 +39958,7 @@ msgstr "螺旋"
 
 
 msgid "Extrude selected vertices in screw-shaped rotation around the cursor in indicated viewport"
-msgstr "從指示的視接口中以螺旋外形圍繞游標擠出所選的頂點"
+msgstr "從指示的視圖區中以螺旋外形圍繞游標擠出所選的頂點"
 
 
 msgid "Turns"
@@ -40337,7 +40361,7 @@ msgstr "反轉所選元素的目前順序"
 
 
 msgid "Extrude selected vertices in a circle around the cursor in indicated viewport"
-msgstr "在指示的視接口中圍以繞游標的圓擠出所選的點"
+msgstr "在指示的視圖區中圍以繞游標的圓擠出所選的點"
 
 
 msgid "Auto Merge"
@@ -40458,7 +40482,7 @@ msgstr "取消細分"
 
 msgctxt "Operator"
 msgid "Add UV Map"
-msgstr "添加 UV 映射"
+msgstr "新增 UV 映射"
 
 
 msgctxt "Operator"
@@ -40592,11 +40616,11 @@ msgstr "僅為作用中片段同步作用中的長度"
 
 msgctxt "Operator"
 msgid "Add Action Strip"
-msgstr "添加動作片段"
+msgstr "新增動作片段"
 
 
 msgid "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track"
-msgstr "添加一個動作剪輯片段 (例，一個參照動作的 NLA 片段) 至作用中軌道"
+msgstr "新增動作剪輯片段 (例：參照動作的 NLA 片段) 至作用中軌道"
 
 
 msgctxt "Operator"
@@ -40667,11 +40691,11 @@ msgstr "烘焙動畫到物體上再清除親代 (僅用於物體)"
 
 
 msgid "End frame for baking"
-msgstr "烘焙的結束幀"
+msgstr "烘焙的結束影格"
 
 
 msgid "Start frame for baking"
-msgstr "烘焙的起始幀"
+msgstr "烘焙的起始影格"
 
 
 msgid "Only Selected Bones"
@@ -40687,7 +40711,7 @@ msgstr "視覺鍵處理"
 
 
 msgid "Keyframe from the final transformations (with constraints applied)"
-msgstr "最終變換的鍵幀 (含套用約束)"
+msgstr "最終變換的關鍵影格 (含套用約束)"
 
 
 msgctxt "Operator"
@@ -40728,11 +40752,11 @@ msgstr "複製片段"
 
 msgctxt "Operator"
 msgid "Add F-Modifier"
-msgstr "添加 F 修改器"
+msgstr "新增 F 修改器"
 
 
 msgid "Only add a F-Modifier of the specified type to the active strip"
-msgstr "僅添加指定類型的 F 修改器至作用中片段"
+msgstr "僅新增指定類型的 F 修改器至作用中片段"
 
 
 msgid "Copy the F-Modifier(s) of the active NLA-Strip"
@@ -40740,7 +40764,7 @@ msgstr "複製選取的非線性動畫片段F修改器"
 
 
 msgid "Add copied F-Modifiers to the selected NLA-Strips"
-msgstr "添加複製的 F 修改器至選取的 NLA 片段"
+msgstr "新增複製的 F 修改器至選取的 NLA 片段"
 
 
 msgctxt "Operator"
@@ -40802,7 +40826,7 @@ msgstr "使用框選並抓取 NLA 片段"
 
 
 msgid "Select strips to the left or the right of the current frame"
-msgstr "選取目前框幀前後左右的片段"
+msgstr "選取目前影格前後左右的片段"
 
 
 msgctxt "Operator"
@@ -40811,7 +40835,7 @@ msgstr "包含所選的物體"
 
 
 msgid "Make selected objects appear in NLA Editor by adding Animation Data"
-msgstr "以添加動畫資料方式讓所選的物體出現在 NLA 編輯器中"
+msgstr "以新增動畫資料方式讓所選的物體出現在 NLA 編輯器中"
 
 
 msgctxt "Operator"
@@ -40825,11 +40849,11 @@ msgstr "移動片段的開頭至指定時間"
 
 msgctxt "Operator"
 msgid "Add Sound Clip"
-msgstr "添加聲音剪輯"
+msgstr "新增聲音剪輯"
 
 
 msgid "Add a strip for controlling when speaker plays its sound clip"
-msgstr "當喇叭播放其聲音檢即時添加控制用的片段"
+msgstr "當喇叭播放其聲音檢即時新增控制用的片段"
 
 
 msgctxt "Operator"
@@ -40852,11 +40876,11 @@ msgstr "在軌道內交換選取片段的順序"
 
 msgctxt "Operator"
 msgid "Add Tracks"
-msgstr "添加軌道"
+msgstr "新增軌道"
 
 
 msgid "Add NLA-Tracks above/after the selected tracks"
-msgstr "在選取的軌道前/後添加 NLA 軌道"
+msgstr "在選取的軌道前/後新增 NLA 軌道"
 
 
 msgid "Above Selected"
@@ -40864,7 +40888,7 @@ msgstr "在選取之前"
 
 
 msgid "Add a new NLA Track above every existing selected one"
-msgstr "在每個既有選取項之前添加一個新 NLA 軌道"
+msgstr "在每個既有選取項之前，新增新的 NLA 軌道"
 
 
 msgctxt "Operator"
@@ -40878,11 +40902,11 @@ msgstr "刪除所選 NLA 軌道及其包含的片段"
 
 msgctxt "Operator"
 msgid "Add Transition"
-msgstr "添加過渡"
+msgstr "新增過渡"
 
 
 msgid "Add a transition strip between two adjacent selected strips"
-msgstr "在兩個相鄰的選取片段之間添加一個過渡片段"
+msgstr "在兩個相鄰的選取片段之間，新增過渡片段"
 
 
 msgctxt "Operator"
@@ -40891,7 +40915,7 @@ msgstr "進入調整模式"
 
 
 msgid "Enter tweaking mode for the action referenced by the active strip to edit its keyframes"
-msgstr "為作用中片段所參照的動作來進入調整模式以編輯它的關鍵幀"
+msgstr "為作用中片段所參照的動作來進入調整模式以編輯它的關鍵影格"
 
 
 msgid "Isolate Action"
@@ -40915,6 +40939,10 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "重設可檢視區域以顯示選取的片段範圍"
 
 
+msgid "Add a collection info node to the current node editor"
+msgstr "在目前節點編輯器中，新增集盒資訊節點"
+
+
 msgid "Source color"
 msgstr "來源色彩"
 
@@ -40929,11 +40957,11 @@ msgstr "來源色彩已經過伽碼校正"
 
 msgctxt "Operator"
 msgid "Add File Node"
-msgstr "添加檔案節點"
+msgstr "新增檔案節點"
 
 
 msgid "Add a file node to the current node editor"
-msgstr "在目前節點編輯器中添加一個檔案節點"
+msgstr "在目前節點編輯器中，新增檔案節點"
 
 
 msgid "Settings to be applied on the newly created node"
@@ -40944,13 +40972,25 @@ msgid "Start transform operator after inserting the node"
 msgstr "在插入節點後啟動變換操作器"
 
 
+msgid "Add an existing node group to the current node editor"
+msgstr "在目前節點編輯器中，新增既有節點群組"
+
+
+msgid "Add a node group asset to the active node tree"
+msgstr "新增節點群組素材至作用中節點樹"
+
+
 msgctxt "Operator"
 msgid "Add Mask Node"
-msgstr "添加遮罩節點"
+msgstr "新增遮罩節點"
 
 
 msgid "Add a mask node to the current node editor"
-msgstr "在目前節點編輯器中添加一個遮罩節點"
+msgstr "在目前節點編輯器中，新增遮罩節點"
+
+
+msgid "Add a material node to the current node editor"
+msgstr "在目前節點編輯器中，新增材質節點"
 
 
 msgid "Node Type"
@@ -40961,13 +41001,17 @@ msgid "Node type"
 msgstr "節點類型"
 
 
+msgid "Add an object info node to the current node editor"
+msgstr "在目前節點編輯器中，新增物體資訊節點"
+
+
 msgctxt "Operator"
 msgid "Add Reroute"
-msgstr "添加重新路由"
+msgstr "新增重新路由"
 
 
 msgid "Add a reroute node"
-msgstr "添加重新路由節點"
+msgstr "新增重新路由節點"
 
 
 msgctxt "Operator"
@@ -40976,7 +41020,7 @@ msgstr "連接節點"
 
 
 msgid "Attach active node to a frame"
-msgstr "將作用中節點連接至一框幀"
+msgstr "將作用中節點連接至一影格"
 
 
 msgctxt "Operator"
@@ -41013,7 +41057,7 @@ msgstr "拉近/拉遠背景影像"
 
 msgctxt "Operator"
 msgid "Add Item"
-msgstr "添加項目"
+msgstr "新增項目"
 
 
 msgid "Clear the boundaries for viewer operations"
@@ -41045,7 +41089,7 @@ msgstr "斷開並移動"
 
 
 msgid "Detach nodes, move and attach to frame"
-msgstr "斷開節點，移動並連接至框幀"
+msgstr "斷開節點，移動並連接至影格"
 
 
 msgid "Attach Nodes"
@@ -41086,7 +41130,7 @@ msgstr "移動並連接"
 
 
 msgid "Move nodes and attach to frame"
-msgstr "移動節點並連接至框幀"
+msgstr "移動節點並連接至影格"
 
 
 msgid "Duplicate selected nodes keeping input links and move them"
@@ -41174,7 +41218,7 @@ msgstr "結合節點"
 
 
 msgid "Attach selected nodes to a new common frame"
-msgstr "將所選節點連接上新的常用框幀"
+msgstr "將所選節點連接上新的常用影格"
 
 
 msgctxt "Operator"
@@ -41297,11 +41341,11 @@ msgstr "為所選節點切換選項按鈕顯示"
 
 msgctxt "Operator"
 msgid "Add File Node Socket"
-msgstr "添加檔案節點接口"
+msgstr "新增檔案節點接口"
 
 
 msgid "Add a new input to a file output node"
-msgstr "添加個新輸入至檔案輸出節點"
+msgstr "新增個新輸入至檔案輸出節點"
 
 
 msgctxt "Operator"
@@ -41454,15 +41498,15 @@ msgstr "設定檢視器操作的邊界"
 
 msgctxt "Operator"
 msgid "Add Object"
-msgstr "添加物體"
+msgstr "新增物體"
 
 
 msgid "Add an object to the scene"
-msgstr "添加物體至場景中"
+msgstr "新增物體至場景中"
 
 
 msgid "Add named object"
-msgstr "添加已命名的物體"
+msgstr "新增已命名的物體"
 
 
 msgid "Duplicate object but not object data, linking to the original data"
@@ -41499,11 +41543,11 @@ msgstr "場景原點"
 
 msgctxt "Operator"
 msgid "Add Armature"
-msgstr "添加骨架"
+msgstr "新增骨架"
 
 
 msgid "Add an armature object to the scene"
-msgstr "添加一個骨架物體至場景中"
+msgstr "新增骨架物體至場景中"
 
 
 msgctxt "Operator"
@@ -41563,11 +41607,11 @@ msgstr "凌駕作用中 UV 圖層的 UV 圖層"
 
 msgctxt "Operator"
 msgid "Add Camera"
-msgstr "添加攝影機"
+msgstr "新增攝影機"
 
 
 msgid "Add a camera object to the scene"
-msgstr "向添加一個攝影機物體至場景中"
+msgstr "新增攝影機物體至場景中"
 
 
 msgctxt "Operator"
@@ -41582,16 +41626,16 @@ msgstr "連結至集盒"
 
 msgctxt "Operator"
 msgid "Add Constraint"
-msgstr "添加約束"
+msgstr "新增約束"
 
 
 msgid "Add a constraint to the active object"
-msgstr "為作用中物體添加一項約束"
+msgstr "為作用中物體新增一項約束"
 
 
 msgctxt "Operator"
 msgid "Add Constraint (with Targets)"
-msgstr "添加約束 (加目標)"
+msgstr "新增約束 (加目標)"
 
 
 msgctxt "Operator"
@@ -41624,9 +41668,13 @@ msgid "Name of the modifier to edit"
 msgstr "要編輯的修改器名稱"
 
 
+msgid "Add a curves object with random curves to the scene"
+msgstr "新增帶有隨機曲線的曲線物體至場景中"
+
+
 msgctxt "Operator"
 msgid "Add Object Data Instance"
-msgstr "添加物體資料實例"
+msgstr "新增物體資料實例"
 
 
 msgctxt "Operator"
@@ -41707,24 +41755,24 @@ msgstr "維持親子關係"
 
 msgctxt "Operator"
 msgid "Add Effector"
-msgstr "添加作用器"
+msgstr "新增作用器"
 
 
 msgid "Add an empty object with a physics effector to the scene"
-msgstr "添加一個帶有物理作用器的空物體至場景中"
+msgstr "新增帶有物理作用器的空物體至場景中"
 
 
 msgctxt "Operator"
 msgid "Add Empty"
-msgstr "添加空體"
+msgstr "新增空體"
 
 
 msgid "Add an empty object to the scene"
-msgstr "添加空物體至場景中"
+msgstr "新增空物體至場景中"
 
 
 msgid "Add an empty image type to scene with data"
-msgstr "添加空影像類型至含資料的場景中"
+msgstr "新增空影像類型至含資料的場景中"
 
 
 msgctxt "Operator"
@@ -41743,6 +41791,10 @@ msgstr "切換力場"
 
 msgid "Toggle object's force field"
 msgstr "切換物體的力場"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "新增蠟筆物體至場景中"
 
 
 msgctxt "Operator"
@@ -41858,6 +41910,10 @@ msgid "Laplacian Deform Bind"
 msgstr "拉普拉斯變形綁定"
 
 
+msgid "Add a light object to the scene"
+msgstr "新增燈光物體至場景中"
+
+
 msgid "Subset"
 msgstr "子集"
 
@@ -41945,11 +42001,11 @@ msgstr "建立單使用者物體"
 
 msgctxt "Operator"
 msgid "Add Material Slot"
-msgstr "添加材質槽"
+msgstr "新增材質槽"
 
 
 msgid "Add a new material slot"
-msgstr "添加一個新材質槽"
+msgstr "新增一個新材質槽"
 
 
 msgctxt "Operator"
@@ -42008,11 +42064,11 @@ msgstr "在網格變形修改器中將網格綁定至罩體"
 
 msgctxt "Operator"
 msgid "Add Metaball"
-msgstr "添加變幻球"
+msgstr "新增變幻球"
 
 
 msgid "Add an metaball object to the scene"
-msgstr "添加一個變幻球物體至場景中"
+msgstr "新增一個變幻球物體至場景中"
 
 
 msgid "Primitive"
@@ -42132,7 +42188,7 @@ msgstr "多解析細分"
 
 
 msgid "Add a new level of subdivision"
-msgstr "添加一個細分的新等級"
+msgstr "新增一個細分的新等級"
 
 
 msgctxt "Operator"
@@ -42273,11 +42329,11 @@ msgstr "沿 X 軸對稱地套用權重，用於封套/自動頂點群組建立"
 
 msgctxt "Operator"
 msgid "Add Particle System Slot"
-msgstr "添加一個粒子系統槽"
+msgstr "新增一個粒子系統槽"
 
 
 msgid "Add a particle system"
-msgstr "添加一個粒子系統"
+msgstr "新增一個粒子系統"
 
 
 msgctxt "Operator"
@@ -42533,11 +42589,11 @@ msgstr "影片扭曲"
 
 msgctxt "Operator"
 msgid "Add Shape Key"
-msgstr "添加外形鍵"
+msgstr "新增外形鍵"
 
 
 msgid "Add shape key to the object"
-msgstr "為該物體添加外形鍵"
+msgstr "為該物體新增外形鍵"
 
 
 msgid "From Mix"
@@ -42683,20 +42739,20 @@ msgstr "將所選頂點標記為根部"
 
 msgctxt "Operator"
 msgid "Add Speaker"
-msgstr "添加喇叭"
+msgstr "新增喇叭"
 
 
 msgid "Add a speaker object to the scene"
-msgstr "添加一個喇叭至場景中"
+msgstr "新增一個喇叭至場景中"
 
 
 msgctxt "Operator"
 msgid "Add Text"
-msgstr "添加文字"
+msgstr "新增文字"
 
 
 msgid "Add a text object to the scene"
-msgstr "添加一個文字物體至場景中"
+msgstr "新增一個文字物體至場景中"
 
 
 msgctxt "Operator"
@@ -42744,11 +42800,11 @@ msgstr "重置數值"
 
 msgctxt "Operator"
 msgid "Add Vertex Group"
-msgstr "添加頂點群組"
+msgstr "新增頂點群組"
 
 
 msgid "Add a new vertex group to the active object"
-msgstr "添加新的頂點群組至作用中物體"
+msgstr "新增新的頂點群組至作用中物體"
 
 
 msgctxt "Operator"
@@ -42809,7 +42865,7 @@ msgstr "反向作用中頂點群組的權重"
 
 
 msgid "Add Weights"
-msgstr "添加權重"
+msgstr "新增權重"
 
 
 msgid "Remove Weights"
@@ -42822,7 +42878,7 @@ msgstr "頂點群組等級"
 
 
 msgid "Add some offset and multiply with some gain the weights of the active vertex group"
-msgstr "添加一些偏移並乘以一些以增加作用中頂點群組的權重"
+msgstr "新增一些偏移並乘以一些以增加作用中頂點群組的權重"
 
 
 msgid "Value to multiply weights by"
@@ -42830,7 +42886,7 @@ msgstr "要乘至權重的值"
 
 
 msgid "Value to add to weights"
-msgstr "要添加至權重的值"
+msgstr "要新增至權重的值"
 
 
 msgctxt "Operator"
@@ -43071,7 +43127,7 @@ msgstr "將物體的視覺變換套用至其自身資料"
 
 msgctxt "Operator"
 msgid "Add Volume"
-msgstr "添加容體"
+msgstr "新增容體"
 
 
 msgctxt "Operator"
@@ -43159,7 +43215,7 @@ msgstr "建立集盒複本（連結）"
 
 
 msgid "Enable viewport display in the view layers"
-msgstr "啟用檢視層中的視圖顯示"
+msgstr "啟用檢視層中的視圖區顯示"
 
 
 msgctxt "Operator"
@@ -43227,11 +43283,11 @@ msgstr "階層"
 
 msgctxt "Operator"
 msgid "Add Drivers for Selected"
-msgstr "為所選項添加驅動器"
+msgstr "為所選項新增驅動器"
 
 
 msgid "Add drivers to selected items"
-msgstr "為所選項目添加驅動器"
+msgstr "為所選項目新增驅動器"
 
 
 msgctxt "Operator"
@@ -43279,7 +43335,7 @@ msgstr "貼上"
 
 
 msgid "Add Fake User"
-msgstr "添加偽使用者"
+msgstr "新增偽使用者"
 
 
 msgid "Clear Fake User"
@@ -43335,11 +43391,11 @@ msgstr "使用作用項"
 
 msgctxt "Operator"
 msgid "Keying Set Add Selected"
-msgstr "鍵處理集添加所選項"
+msgstr "鍵處理集新增所選項"
 
 
 msgid "Add selected items (blue-gray rows) to active Keying Set"
-msgstr "添加所選的項目 (藍-灰列) 至作用中鍵處理集"
+msgstr "新增所選的項目 (藍-灰列) 至作用中鍵處理集"
 
 
 msgctxt "Operator"
@@ -43857,11 +43913,11 @@ msgstr "色版"
 
 msgctxt "Operator"
 msgid "Add New Palette"
-msgstr "添加新色版"
+msgstr "新增新色版"
 
 
 msgid "Add new palette"
-msgstr "添加新色版"
+msgstr "新增新色版"
 
 
 msgctxt "Operator"
@@ -43987,7 +44043,7 @@ msgstr "新增粒子設定"
 
 
 msgid "Add new particle settings"
-msgstr "添加一個新的粒子設定"
+msgstr "新增一個新的粒子設定"
 
 
 msgctxt "Operator"
@@ -43996,7 +44052,7 @@ msgstr "新增粒子目標"
 
 
 msgid "Add a new particle target"
-msgstr "添加一個新的粒子目標"
+msgstr "新增一個新的粒子目標"
 
 
 msgctxt "Operator"
@@ -44087,7 +44143,7 @@ msgstr "形狀剪切"
 
 
 msgid "Subdivide selected particles segments (adds keys)"
-msgstr "細分所選粒子分段 (添加鍵)"
+msgstr "細分所選粒子分段 (新增鍵)"
 
 
 msgctxt "Operator"
@@ -44197,15 +44253,15 @@ msgstr "自訂屬性"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
-msgstr "與目前框幀緊鄰的後一個鍵幀幀號"
+msgstr "與目前影格緊鄰的後一個關鍵影格幀號"
 
 
 msgid "Previous Keyframe"
-msgstr "上一鍵幀"
+msgstr "上一關鍵影格"
 
 
 msgid "Frame number of keyframe immediately before the current frame"
-msgstr "與目前框幀緊鄰的前一個鍵幀幀號"
+msgstr "與目前影格緊鄰的前一個關鍵影格幀號"
 
 
 msgctxt "Operator"
@@ -44214,15 +44270,15 @@ msgstr "姿勢分解器"
 
 
 msgid "Create a suitable breakdown pose on the current frame"
-msgstr "於目前的框幀上建立合適的分解姿勢"
+msgstr "於目前的影格上建立合適的分解姿勢"
 
 
 msgid "Add a constraint to the active bone"
-msgstr "為作用中骨骼添加一項約束"
+msgstr "為作用中骨骼新增一項約束"
 
 
 msgid "Add a constraint to the active bone, with target (where applicable) set to the selected Objects/Bones"
-msgstr "為作用中骨骼添加一項約束，並將目標設為 (如果可用的話) 所選的物體/骨骼"
+msgstr "為作用中骨骼新增一項約束，並將目標設為 (如果可用的話) 所選的物體/骨骼"
 
 
 msgctxt "Operator"
@@ -44250,11 +44306,11 @@ msgstr "標記所選的骨骼讓它在姿勢模式下看不見"
 
 msgctxt "Operator"
 msgid "Add IK to Bone"
-msgstr "添加 IK 至骨骼"
+msgstr "新增 IK 至骨骼"
 
 
 msgid "Add IK Constraint to the active Bone"
-msgstr "為作用中骨骼添加 IK 約束"
+msgstr "為作用中骨骼新增 IK 約束"
 
 
 msgid "With Targets"
@@ -44346,11 +44402,11 @@ msgstr "增生姿勢"
 
 
 msgid "Copy selected aspects of the current pose to subsequent poses already keyframed"
-msgstr "將目前姿勢的所選部份複製到後續已設定鍵幀的姿勢中"
+msgstr "將目前姿勢的所選部份複製到後續已設定關鍵影格的姿勢中"
 
 
 msgid "Frame to stop propagating frames to (for 'Before Frame' mode)"
-msgstr "停止增生框幀至何框幀 (僅用於「指定框幀之前」模式)"
+msgstr "停止增生影格至何影格 (僅用於「指定影格之前」模式)"
 
 
 msgid "Terminate Mode"
@@ -44358,43 +44414,43 @@ msgstr "終止模式"
 
 
 msgid "Method used to determine when to stop propagating pose to keyframes"
-msgstr "用來決定何時停止增生姿勢至鍵幀上的方法"
+msgstr "用來決定何時停止增生姿勢至關鍵影格上的方法"
 
 
 msgid "To Next Keyframe"
-msgstr "至下一鍵幀"
+msgstr "至下一關鍵影格"
 
 
 msgid "Propagate pose to first keyframe following the current frame only"
-msgstr "姿勢僅增生至目前框幀之後的第一個鍵幀"
+msgstr "姿勢僅增生至目前影格之後的第一個關鍵影格"
 
 
 msgid "To Last Keyframe"
-msgstr "至上一鍵幀"
+msgstr "至上一關鍵影格"
 
 
 msgid "Propagate pose to the last keyframe only (i.e. making action cyclic)"
-msgstr "姿勢僅增生至上一個鍵幀 (例如，讓動作循環)"
+msgstr "姿勢僅增生至上一個關鍵影格 (例如，讓動作循環)"
 
 
 msgid "Before Frame"
-msgstr "指定框幀之前"
+msgstr "指定影格之前"
 
 
 msgid "Propagate pose to all keyframes between current frame and 'Frame' property"
-msgstr "姿勢增生至目前框幀與「框幀」屬性之間的所有鍵幀"
+msgstr "姿勢增生至目前影格與「影格」屬性之間的所有關鍵影格"
 
 
 msgid "Before Last Keyframe"
-msgstr "最後鍵幀之前"
+msgstr "最後關鍵影格之前"
 
 
 msgid "Propagate pose to all keyframes from current frame until no more are found"
-msgstr "姿勢從目前框幀起向後增生，直至找不到鍵幀為止"
+msgstr "姿勢從目前影格起向後增生，直至找不到關鍵影格為止"
 
 
 msgid "Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame"
-msgstr "姿勢增生至目前框幀之後所有出現在含場景標記的框幀上之鍵幀"
+msgstr "姿勢增生至目前影格之後所有出現在含場景標記的影格上之關鍵影格"
 
 
 msgid "Flip quaternion values to achieve desired rotations, while maintaining the same orientations"
@@ -44610,11 +44666,11 @@ msgstr "移除既有的主題檔案，如果存在的話"
 
 msgctxt "Operator"
 msgid "Add New Cache"
-msgstr "添加新快取"
+msgstr "新增新快取"
 
 
 msgid "Add new cache"
-msgstr "添加新快取"
+msgstr "新增新快取"
 
 
 msgctxt "Operator"
@@ -44668,11 +44724,11 @@ msgstr "刪除目前快取"
 
 msgctxt "Operator"
 msgid "Viewport Render"
-msgstr "視接口算繪"
+msgstr "視圖區算繪"
 
 
 msgid "Take a snapshot of the active viewport"
-msgstr "擷取使用中視接口的快照"
+msgstr "擷取使用中視圖區的快照"
 
 
 msgid "Render files from the animation range of this scene"
@@ -44680,7 +44736,7 @@ msgstr "算繪來自此場景動畫範圍的檔案"
 
 
 msgid "Render Keyframes Only"
-msgstr "僅算繪鍵幀"
+msgstr "僅算繪關鍵影格"
 
 
 msgid "Render using the sequencer's OpenGL display"
@@ -44721,11 +44777,11 @@ msgstr "要算繪的場景，如果未指定的話為目前場景"
 
 
 msgid "Use 3D Viewport"
-msgstr "使用 3D 視接口"
+msgstr "使用 3D 視圖區"
 
 
 msgid "When inside a 3D viewport, use layers and camera of the viewport"
-msgstr "當在 3D 視接口內時，使用視接口的層與攝影機"
+msgstr "當在 3D 視圖區內時，使用視圖區的層與攝影機"
 
 
 msgctxt "Operator"
@@ -44840,11 +44896,11 @@ msgstr "樞紐位置位在選取的物體位置"
 
 msgctxt "Operator"
 msgid "Add Rigid Body Constraint"
-msgstr "添加剛體約束"
+msgstr "新增剛體約束"
 
 
 msgid "Add Rigid Body Constraint to active object"
-msgstr "添加剛體約束至作用中物體"
+msgstr "新增剛體約束至作用中物體"
 
 
 msgid "Rigid Body Constraint Type"
@@ -44870,7 +44926,7 @@ msgstr "根據體積為剛體物體自動計算其質量值"
 
 
 msgid "Material Preset"
-msgstr "材質預設檔"
+msgstr "材質預設集"
 
 
 msgid "Type of material that objects are made of (determines material density)"
@@ -44879,11 +44935,11 @@ msgstr "物體成份的材質類型 (決定材質密度)"
 
 msgctxt "Operator"
 msgid "Add Rigid Body"
-msgstr "添加剛體"
+msgstr "新增剛體"
 
 
 msgid "Add active object as Rigid Body"
-msgstr "添加作用中物體為剛體"
+msgstr "新增作用中物體為剛體"
 
 
 msgid "Rigid Body Type"
@@ -44913,11 +44969,11 @@ msgstr "從物體移除剛體設定"
 
 msgctxt "Operator"
 msgid "Add Rigid Bodies"
-msgstr "添加剛體"
+msgstr "新增剛體"
 
 
 msgid "Add selected objects as Rigid Bodies"
-msgstr "將所選的物體添加為剛體"
+msgstr "將所選的物體新增為剛體"
 
 
 msgctxt "Operator"
@@ -44948,11 +45004,11 @@ msgstr "類方塊外形 (例如立方)，也包含平面 (例如地面)"
 
 msgctxt "Operator"
 msgid "Add Rigid Body World"
-msgstr "添加剛體世界"
+msgstr "新增剛體世界"
 
 
 msgid "Add Rigid Body simulation world to the current scene"
-msgstr "添加剛體模擬世界至目前場景"
+msgstr "新增剛體模擬世界至目前場景"
 
 
 msgctxt "Operator"
@@ -44975,20 +45031,20 @@ msgstr "刪除作用中的場景"
 
 msgctxt "Operator"
 msgid "Add Alpha Transparency Modifier"
-msgstr "添加 Alpha 透明修改器"
+msgstr "新增 Alpha 透明修改器"
 
 
 msgid "Add an alpha transparency modifier to the line style associated with the active lineset"
-msgstr "將 alpha 透明修改器添加至與作用中線條集關連的線條樣式中"
+msgstr "將 alpha 透明修改器新增至與作用中線條集關連的線條樣式中"
 
 
 msgctxt "Operator"
 msgid "Add Line Color Modifier"
-msgstr "添加線條色彩修改器"
+msgstr "新增線條色彩修改器"
 
 
 msgid "Add a line color modifier to the line style associated with the active lineset"
-msgstr "將線條色彩修改器添加至與作用中線條集關連的線條樣式中"
+msgstr "將線條色彩修改器新增至與作用中線條集關連的線條樣式中"
 
 
 msgid "Name of the modifier to work on"
@@ -45013,16 +45069,16 @@ msgstr "厚度修改器類型"
 
 msgctxt "Operator"
 msgid "Add Stroke Geometry Modifier"
-msgstr "添加筆觸幾何修改器"
+msgstr "新增筆觸幾何修改器"
 
 
 msgid "Add a stroke geometry modifier to the line style associated with the active lineset"
-msgstr "將筆觸幾何修改器添加至與作用中線條集關連的線條樣式中"
+msgstr "將筆觸幾何修改器新增至與作用中線條集關連的線條樣式中"
 
 
 msgctxt "Operator"
 msgid "Add Line Set"
-msgstr "添加線條集"
+msgstr "新增線條集"
 
 
 msgid "Add a line set into the list of line sets"
@@ -45085,11 +45141,11 @@ msgstr "從修改器清單中移除修改器"
 
 msgctxt "Operator"
 msgid "Add Freestyle Module"
-msgstr "添加 Freestyle 模組"
+msgstr "新增 Freestyle 模組"
 
 
 msgid "Add a style module into the list of modules"
-msgstr "添加樣式模組至模組清單中"
+msgstr "新增樣式模組至模組清單中"
 
 
 msgctxt "Operator"
@@ -45129,11 +45185,11 @@ msgstr "建立 Freestyle 筆觸材質以供測試"
 
 msgctxt "Operator"
 msgid "Add Line Thickness Modifier"
-msgstr "添加線條厚度修改器"
+msgstr "新增線條厚度修改器"
 
 
 msgid "Add a line thickness modifier to the line style associated with the active lineset"
-msgstr "將線條厚度修改器添加至與作用中線條集關連的線條樣式中"
+msgstr "將線條厚度修改器新增至與作用中線條集關連的線條樣式中"
 
 
 msgctxt "Operator"
@@ -45142,7 +45198,7 @@ msgstr "新增場景"
 
 
 msgid "Add new scene by type"
-msgstr "依類型添加新場景"
+msgstr "依類型新增新場景"
 
 
 msgctxt "Scene"
@@ -45196,11 +45252,11 @@ msgstr "完整副本"
 
 msgctxt "Operator"
 msgid "Add Render View"
-msgstr "添加算繪檢視"
+msgstr "新增算繪檢視"
 
 
 msgid "Add a render view"
-msgstr "添加算繪檢視"
+msgstr "新增算繪檢視"
 
 
 msgctxt "Operator"
@@ -45284,15 +45340,15 @@ msgstr "取消動畫"
 
 
 msgid "Cancel animation, returning to the original frame"
-msgstr "取消動畫，返回原始框幀"
+msgstr "取消動畫，返回原始影格"
 
 
 msgid "Restore Frame"
-msgstr "還原框幀"
+msgstr "還原影格"
 
 
 msgid "Restore the frame when animation was initialized"
-msgstr "當動畫初始化時還原框幀"
+msgstr "當動畫初始化時還原影格"
 
 
 msgctxt "Operator"
@@ -45317,7 +45373,7 @@ msgstr "同步"
 
 
 msgid "Drop frames to maintain framerate"
-msgstr "丟落框幀以維持幀率"
+msgstr "丟落影格以維持幀率"
 
 
 msgctxt "Operator"
@@ -45407,7 +45463,7 @@ msgstr "跳至端點"
 
 
 msgid "Jump to first/last frame in frame range"
-msgstr "跳至框幀區間的首幀/末幀位置"
+msgstr "跳至影格區間的首幀/末幀位置"
 
 
 msgid "Last Frame"
@@ -45415,16 +45471,16 @@ msgstr "末幀"
 
 
 msgid "Jump to the last frame of the frame range"
-msgstr "跳轉到框幀區間的末幀位置"
+msgstr "跳轉到影格區間的末幀位置"
 
 
 msgctxt "Operator"
 msgid "Frame Offset"
-msgstr "框幀偏移"
+msgstr "影格偏移"
 
 
 msgid "Move current frame forward/backward by a given number"
-msgstr "以給定的數目往前/往後移動目前的框幀"
+msgstr "以給定的數目往前/往後移動目前的影格"
 
 
 msgctxt "Operator"
@@ -45446,7 +45502,7 @@ msgstr "新增畫面"
 
 
 msgid "Add a new screen"
-msgstr "添加一個新螢幕"
+msgstr "新增一個新螢幕"
 
 
 msgctxt "Operator"
@@ -45779,7 +45835,7 @@ msgstr "亂數重置面集色彩"
 
 
 msgid "Generates a new set of random colors to render the Face Sets in the viewport"
-msgstr "在視接口中使用一組新的隨機色彩重設所有面集"
+msgstr "在視圖區中使用一組新的隨機色彩重設所有面集"
 
 
 msgid "Contiguous"
@@ -45985,11 +46041,11 @@ msgstr "交錯淡化效果片段類型"
 
 msgctxt "Sequence"
 msgid "Add"
-msgstr "添加"
+msgstr "新增"
 
 
 msgid "Add effect strip type"
-msgstr "添加效果片段類型"
+msgstr "新增效果片段類型"
 
 
 msgctxt "Sequence"
@@ -46112,7 +46168,7 @@ msgstr "使用佔位器"
 
 
 msgid "Use placeholders for missing frames of the strip"
-msgstr "為遺失的片段框幀使用佔位器"
+msgstr "為遺失的片段影格使用佔位器"
 
 
 msgctxt "Operator"
@@ -46134,11 +46190,11 @@ msgstr "在一定時間內滑動序段片段"
 
 msgctxt "Operator"
 msgid "Add Effect Strip"
-msgstr "添加特效片段"
+msgstr "新增特效片段"
 
 
 msgid "Add an effect to the sequencer, most are applied on top of existing strips"
-msgstr "為序段編輯器添加一項效果，大多套用在既有的片段之上"
+msgstr "為序段編輯器新增一項效果，大多套用在既有的片段之上"
 
 
 msgid "Channel to place this strip into"
@@ -46146,11 +46202,11 @@ msgstr "放置此片段的通道"
 
 
 msgid "End frame for the color strip"
-msgstr "色彩片段的結束幀"
+msgstr "色彩片段的結束影格"
 
 
 msgid "Start frame of the sequence strip"
-msgstr "序段片段的起始幀"
+msgstr "序段片段的起始影格"
 
 
 msgid "Allow Overlap"
@@ -46185,11 +46241,11 @@ msgstr "插入間隔"
 
 
 msgid "Insert gap at current frame to first strips at the right, independent of selection or locked state of strips"
-msgstr "於目前框幀到右方的第一個片段之間插入間隔，插入不受制於片段選取與否或為上鎖狀態"
+msgstr "於目前影格到右方的第一個片段之間插入間隔，插入不受制於片段選取與否或為上鎖狀態"
 
 
 msgid "Frames to insert after current strip"
-msgstr "要在目前片段之後插入的框幀"
+msgstr "要在目前片段之後插入的影格"
 
 
 msgctxt "Operator"
@@ -46198,7 +46254,7 @@ msgstr "移除間隙"
 
 
 msgid "Remove gap at current frame to first strip at the right, independent of selection or locked state of strips"
-msgstr "移除目前框幀到右方第一片段之間的間隙，移除不受制於片段選取與否或為上鎖狀態"
+msgstr "移除目前影格到右方第一片段之間的間隙，移除不受制於片段選取與否或為上鎖狀態"
 
 
 msgid "All Gaps"
@@ -46206,12 +46262,12 @@ msgstr "全部間隔"
 
 
 msgid "Do all gaps to right of current frame"
-msgstr "在目前框幀的右方執行所有間隔"
+msgstr "在目前影格的右方執行所有間隔"
 
 
 msgctxt "Operator"
 msgid "Add Image Strip"
-msgstr "添加影像片段"
+msgstr "新增影像片段"
 
 
 msgid "Add an image or image sequence to the sequencer"
@@ -46228,7 +46284,7 @@ msgstr "對於影像序列片段，將為每張影像建立一個片段"
 
 
 msgid "Length of each frame"
-msgstr "每框幀的長度"
+msgstr "每影格的長度"
 
 
 msgctxt "Operator"
@@ -46238,7 +46294,7 @@ msgstr "鎖定片段"
 
 msgctxt "Operator"
 msgid "Add Mask Strip"
-msgstr "添加遮罩片段"
+msgstr "新增遮罩片段"
 
 
 msgid "Add a mask strip to the sequencer"
@@ -46262,7 +46318,7 @@ msgstr "切換後設片段"
 
 msgctxt "Operator"
 msgid "Add Movie Strip"
-msgstr "添加影片片段"
+msgstr "新增影片片段"
 
 
 msgid "Add a movie strip to the sequencer"
@@ -46275,7 +46331,7 @@ msgstr "載入影片的音效"
 
 msgctxt "Operator"
 msgid "Add MovieClip Strip"
-msgstr "添加影片剪輯片段"
+msgstr "新增影片剪輯片段"
 
 
 msgid "Add a movieclip strip to the sequencer"
@@ -46297,7 +46353,7 @@ msgstr "清除片段偏移"
 
 
 msgid "Clear strip offsets from the start and end frames"
-msgstr "從起始幀與結束幀清除片段偏移"
+msgstr "從起始影格與結束影格清除片段偏移"
 
 
 msgctxt "Operator"
@@ -46350,16 +46406,16 @@ msgstr "按照作用中序段來設定算繪的大小及寬長比"
 
 
 msgid "Timeline Frame"
-msgstr "時間軸框幀"
+msgstr "時間軸影格"
 
 
 msgid "Use mouse to sample color in current frame"
-msgstr "使用滑鼠取樣目前框幀中的色彩"
+msgstr "使用滑鼠取樣目前影格中的色彩"
 
 
 msgctxt "Operator"
 msgid "Add Scene Strip"
-msgstr "添加場景片段"
+msgstr "新增場景片段"
 
 
 msgid "Select a strip (last selected becomes the \"active strip\")"
@@ -46466,7 +46522,7 @@ msgstr "片段吸附至目前幀"
 
 
 msgid "Frame where selected strips will be snapped"
-msgstr "所選片段會被吸附的框幀"
+msgstr "所選片段會被吸附的影格"
 
 
 msgctxt "Operator"
@@ -46492,7 +46548,7 @@ msgstr "跳至片段"
 
 
 msgid "Move frame to previous edit point"
-msgstr "將框幀移動至上一個編輯點"
+msgstr "將影格移動至上一個編輯點"
 
 
 msgid "Next Strip"
@@ -46501,11 +46557,11 @@ msgstr "下個片段"
 
 msgctxt "Operator"
 msgid "Add Strip Modifier"
-msgstr "添加片段修改器"
+msgstr "新增片段修改器"
 
 
 msgid "Add a modifier to the strip"
-msgstr "添加修改器到片段"
+msgstr "新增修改器到片段"
 
 
 msgid "Graphs"
@@ -46725,7 +46781,7 @@ msgstr "更新動畫旗幟"
 
 msgctxt "Operator"
 msgid "Add Surface Circle"
-msgstr "添加曲面圓"
+msgstr "新增曲面圓"
 
 
 msgid "Construct a Nurbs surface Circle"
@@ -46734,7 +46790,7 @@ msgstr "建立一個 Nurbs 表面圓"
 
 msgctxt "Operator"
 msgid "Add Surface Curve"
-msgstr "添加曲線線"
+msgstr "新增曲線線"
 
 
 msgid "Construct a Nurbs surface Curve"
@@ -46743,7 +46799,7 @@ msgstr "建立一個 Nurbs 表面圓"
 
 msgctxt "Operator"
 msgid "Add Surface Cylinder"
-msgstr "添加曲面圓柱體"
+msgstr "新增曲面圓柱體"
 
 
 msgid "Construct a Nurbs surface Cylinder"
@@ -46752,7 +46808,7 @@ msgstr "建立一個 Nurbs 表面圓柱體"
 
 msgctxt "Operator"
 msgid "Add Surface Sphere"
-msgstr "添加曲面球體"
+msgstr "新增曲面球體"
 
 
 msgid "Construct a Nurbs surface Sphere"
@@ -46761,7 +46817,7 @@ msgstr "建立一個 Nurbs 表面球體"
 
 msgctxt "Operator"
 msgid "Add Surface Patch"
-msgstr "添加曲面片"
+msgstr "新增曲面片"
 
 
 msgid "Construct a Nurbs surface Patch"
@@ -46770,7 +46826,7 @@ msgstr "建立一個 Nurbs 表面補釘"
 
 msgctxt "Operator"
 msgid "Add Surface Torus"
-msgstr "添加曲面圓環體"
+msgstr "新增曲面圓環體"
 
 
 msgid "Construct a Nurbs surface Torus"
@@ -46783,7 +46839,7 @@ msgstr "新增紋理"
 
 
 msgid "Add a new texture"
-msgstr "添加一個新紋理"
+msgstr "新增一個新紋理"
 
 
 msgctxt "Operator"
@@ -48286,11 +48342,11 @@ msgstr "將攝影機檢視設為作用中檢視"
 
 msgctxt "Operator"
 msgid "Camera Fit Frame to Selected"
-msgstr "攝影機適應框幀至所選項"
+msgstr "攝影機適應影格至所選項"
 
 
 msgid "Move the camera so selected objects are framed"
-msgstr "移動攝影機來讓選取的物體被加入框幀"
+msgstr "移動攝影機來讓選取的物體被加入影格"
 
 
 msgid "Clear the boundaries of the border render and disable border render"
@@ -48321,7 +48377,7 @@ msgstr "設定 3D 游標的位置"
 
 
 msgid "Preset viewpoint to use"
-msgstr "要使用的預設檔視點"
+msgstr "要使用的預設集視點"
 
 
 msgctxt "Operator"
@@ -48428,11 +48484,11 @@ msgstr "旋轉檢視"
 
 msgctxt "Operator"
 msgid "Ruler Add"
-msgstr "添加尺規"
+msgstr "新增尺規"
 
 
 msgid "Add ruler"
-msgstr "添加尺規"
+msgstr "新增尺規"
 
 
 msgctxt "Operator"
@@ -48566,7 +48622,7 @@ msgstr "檢視所有區塊的選取部份"
 
 
 msgid "Use a preset viewpoint"
-msgstr "使用預設檔視點"
+msgstr "使用預設集視點"
 
 
 msgid "Align Active"
@@ -49694,7 +49750,7 @@ msgstr "切換 VR 作業階段"
 
 msgctxt "Operator"
 msgid "Add Workspace"
-msgstr "添加工作空間"
+msgstr "新增工作空間"
 
 
 msgctxt "Operator"
@@ -50095,7 +50151,7 @@ msgstr "骨骼約束"
 
 
 msgid "Viewport Display"
-msgstr "視接口顯示"
+msgstr "視圖區顯示"
 
 
 msgid "Custom Shape"
@@ -50103,7 +50159,7 @@ msgstr "自訂形狀"
 
 
 msgid "Camera Presets"
-msgstr "攝影機預設檔"
+msgstr "攝影機預設集"
 
 
 msgid "2D Cursor"
@@ -50155,7 +50211,7 @@ msgstr "預先定義的軌道色彩"
 
 
 msgid "Color Presets"
-msgstr "布料預設檔"
+msgstr "布料預設集"
 
 
 msgid "Tracking Settings"
@@ -50176,11 +50232,11 @@ msgstr "預定義的追蹤設定"
 
 
 msgid "Tracking Presets"
-msgstr "追蹤預設檔"
+msgstr "追蹤預設集"
 
 
 msgid "Cloth Presets"
-msgstr "布料預設檔"
+msgstr "布料預設集"
 
 
 msgid "Restrictions"
@@ -50204,7 +50260,7 @@ msgstr "光線可見性"
 
 
 msgid "Integrator Presets"
-msgstr "整合器預設檔"
+msgstr "整合器預設集"
 
 
 msgid "Post Processing"
@@ -50212,7 +50268,7 @@ msgstr "後製"
 
 
 msgid "Sampling Presets"
-msgstr "取樣預設檔"
+msgstr "取樣預設集"
 
 
 msgid "Film"
@@ -50303,10 +50359,6 @@ msgid "OpenVDB File"
 msgstr "OpenVDB 檔案"
 
 
-msgid "Slot"
-msgstr "槽"
-
-
 msgid "Filters"
 msgstr "過濾器"
 
@@ -50334,7 +50386,7 @@ msgstr "儲藏卷宗"
 
 
 msgid "Fluid Presets"
-msgstr "流體預設檔"
+msgstr "流體預設集"
 
 
 msgid "Scopes"
@@ -50434,7 +50486,7 @@ msgstr "Freestyle 線條"
 
 
 msgid "Material Presets"
-msgstr "材質預設檔"
+msgstr "材質預設集"
 
 
 msgid "Backdrop"
@@ -50513,7 +50565,7 @@ msgstr "碰撞"
 
 
 msgid "Hair Dynamics Presets"
-msgstr "毛髮動力學預設檔"
+msgstr "毛髮動力學預設集"
 
 
 msgid "Structure"
@@ -50629,7 +50681,7 @@ msgstr "白平衡"
 
 
 msgid "White Balance Presets"
-msgstr "白平衡預設檔"
+msgstr "白平衡預設集"
 
 
 msgid "Denoising"
@@ -50664,6 +50716,10 @@ msgid "FFmpeg Presets"
 msgstr "FFmpeg 預設集"
 
 
+msgid "Format Presets"
+msgstr "幀率預設集"
+
+
 msgid "Hydra Debug"
 msgstr "Hydra 除錯"
 
@@ -50681,7 +50737,7 @@ msgstr "備註"
 
 
 msgid "Keyframing Settings"
-msgstr "鍵幀處理設定"
+msgstr "關鍵影格處理設定"
 
 
 msgid "Cache Settings"
@@ -50710,7 +50766,7 @@ msgstr "特徵權重"
 
 
 msgid "Auto Keyframing"
-msgstr "自動插入關鍵幀"
+msgstr "自動插入關鍵影格"
 
 
 msgid "Playback"
@@ -51022,7 +51078,7 @@ msgstr "平滑毛髮"
 
 
 msgid "Add hairs"
-msgstr "添加毛髮"
+msgstr "新增毛髮"
 
 
 msgctxt "Operator"
@@ -51142,7 +51198,7 @@ msgstr "VR 作業階段"
 
 
 msgid "Viewport Feedback"
-msgstr "視接口回饋"
+msgstr "視圖區回饋"
 
 
 msgctxt "Render Layer"
@@ -51291,7 +51347,7 @@ msgstr "粒子與發射器之間保持的距離"
 
 
 msgid "How many frames to fade"
-msgstr "要淡化多少框幀"
+msgstr "要淡化多少影格"
 
 
 msgid "A valid edit mode exists"
@@ -51355,7 +51411,7 @@ msgstr "淡化時間"
 
 
 msgid "Fade paths and keys further away from current frame"
-msgstr "淡化遠離目前框幀的路徑與鍵"
+msgstr "淡化遠離目前影格的路徑與鍵"
 
 
 msgid "Keep Lengths"
@@ -51459,7 +51515,7 @@ msgstr "毛髮的布料動力學"
 
 
 msgid "The current simulation time step size, as a fraction of a frame"
-msgstr "目前模擬時間步大小，為一框幀的碎部"
+msgstr "目前模擬時間步大小，為一影格的碎部"
 
 
 msgid "Multiple Caches"
@@ -51807,11 +51863,11 @@ msgstr "快取檔案路徑"
 
 
 msgid "Frame on which the simulation stops"
-msgstr "模擬停止的框幀位置"
+msgstr "模擬停止的影格位置"
 
 
 msgid "Frame on which the simulation starts"
-msgstr "模擬開始的框幀位置"
+msgstr "模擬開始的影格位置"
 
 
 msgid "Cache Step"
@@ -51819,7 +51875,7 @@ msgstr "快取步"
 
 
 msgid "Number of frames between cached frames"
-msgstr "快取框幀之間的幀數"
+msgstr "快取影格之間的幀數"
 
 
 msgid "Cache Index"
@@ -51895,7 +51951,7 @@ msgstr "自動 IK"
 
 
 msgid "Add temporary IK constraints while grabbing bones in Pose Mode"
-msgstr "當在姿勢模式中抓取骨骼時添加暫時 IK 約束"
+msgstr "當在姿勢模式中抓取骨骼時新增暫時 IK 約束"
 
 
 msgid "Channel defining pose data for a bone in a Pose"
@@ -52175,11 +52231,11 @@ msgstr "自動鍵處理模式"
 
 
 msgid "Mode of automatic keyframe insertion for Objects and Bones (default setting used for new Scenes)"
-msgstr "物體與骨骼其自動插入鍵幀的模式 (用於新場景的預設設定)"
+msgstr "物體與骨骼其自動插入關鍵影格的模式 (用於新場景的預設設定)"
 
 
 msgid "Add/Replace"
-msgstr "添加/替換"
+msgstr "新增/替換"
 
 
 msgid "Grease Pencil Eraser Radius"
@@ -52207,11 +52263,11 @@ msgstr "新控制桿類型"
 
 
 msgid "Handle type for handles of new keyframes"
-msgstr "新鍵幀的控制桿類型"
+msgstr "新關鍵影格的控制桿類型"
 
 
 msgid "Interpolation mode used for first keyframe on newly added F-Curves (subsequent keyframes take interpolation from preceding keyframe)"
-msgstr "新添加的 F 曲線上第一個鍵幀所使用的插補模式 (後續鍵幀會從前導鍵幀取得插補方法)"
+msgstr "新新增的 F 曲線上第一個關鍵影格所使用的插補模式 (後續關鍵影格會從前導關鍵影格取得插補方法)"
 
 
 msgid "Material Link To"
@@ -52235,7 +52291,7 @@ msgstr "對齊物體至"
 
 
 msgid "Align newly added objects to the world coordinate system"
-msgstr "將新添加的物體對齊世界座標系"
+msgstr "將新新增的物體對齊世界座標系"
 
 
 msgid "Sculpt/Paint Overlay Color"
@@ -52247,7 +52303,7 @@ msgstr "紋理疊層的色彩"
 
 
 msgid "Only keyframes of selected F-Curves are visible and editable"
-msgstr "僅所選 F 曲線的鍵幀可見且可被編輯"
+msgstr "僅所選 F 曲線的關鍵影格可見且可被編輯"
 
 
 msgid "Undo Memory Size"
@@ -52275,7 +52331,7 @@ msgstr "啟用自動鍵處理"
 
 
 msgid "Automatic keyframe insertion for Objects and Bones (default setting used for new Scenes)"
-msgstr "為物體與骨骼自動插入關鍵幀 (用於新場景的預設設定)"
+msgstr "為物體與骨骼自動插入關鍵影格 (用於新場景的預設設定)"
 
 
 msgid "Show Auto Keying Warning"
@@ -52367,19 +52423,19 @@ msgstr "新 F 曲線色彩 - XYZ 至 RGB"
 
 
 msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis"
-msgstr "新添加的變換 F 曲線其色彩 (位置、旋轉、縮放)，以及基於變換軸的色彩"
+msgstr "新新增的變換 F 曲線其色彩 (位置、旋轉、縮放)，以及基於變換軸的色彩"
 
 
 msgid "Auto Keyframe Insert Available"
-msgstr "自動插入可用鍵幀"
+msgstr "自動插入可用關鍵影格"
 
 
 msgid "Keyframe Insert Needed"
-msgstr "需要時插入鍵幀"
+msgstr "需要時插入關鍵影格"
 
 
 msgid "Allow Negative Frames"
-msgstr "允許負數框幀"
+msgstr "允許負數影格"
 
 
 msgid "Current frame number can be manually set to a negative value"
@@ -52435,15 +52491,15 @@ msgstr "動畫播放器"
 
 
 msgid "Path to a custom animation/frame sequence player"
-msgstr "自訂動畫/框幀序段播放器的路徑"
+msgstr "自訂動畫/影格序段播放器的路徑"
 
 
 msgid "Animation Player Preset"
-msgstr "動畫播放器預設檔"
+msgstr "動畫播放器預設集"
 
 
 msgid "Preset configs for external animation players"
-msgstr "外部動畫播放器的預設檔組態"
+msgstr "外部動畫播放器的預設集組態"
 
 
 msgid "Built-in animation player"
@@ -52459,7 +52515,7 @@ msgstr "FrameCycler"
 
 
 msgid "Frame player from IRIDAS"
-msgstr "來自 IRIDAS 的框幀播放器"
+msgstr "來自 IRIDAS 的影格播放器"
 
 
 msgid "RV"
@@ -52467,7 +52523,7 @@ msgstr "RV"
 
 
 msgid "Frame player from Tweak Software"
-msgstr "來自 Tweak Software 的框幀播放器"
+msgstr "來自 Tweak Software 的影格播放器"
 
 
 msgid "MPlayer"
@@ -52667,7 +52723,7 @@ msgstr "檢視導覽方法"
 
 
 msgid "Which method to use for viewport navigation"
-msgstr "選取視接口的導覽方法"
+msgstr "選取視圖區的導覽方法"
 
 
 msgid "Interactively walk or free navigate around the scene"
@@ -52726,10 +52782,6 @@ msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "3D 滑鼠搖鏡的整體敏感度"
 
 
-msgid "Show Navigation Guide"
-msgstr "顯示導航指引"
-
-
 msgid "Display the center and axis during rotation"
 msgstr "在旋轉過程中顯示中心和座標軸"
 
@@ -52739,7 +52791,7 @@ msgstr "NDOF 檢視旋轉"
 
 
 msgid "Rotation style in the viewport"
-msgstr "視接口中的旋轉風格"
+msgstr "視圖區中的旋轉風格"
 
 
 msgid "Turntable"
@@ -52747,11 +52799,11 @@ msgstr "可旋轉"
 
 
 msgid "Use turntable style rotation in the viewport"
-msgstr "視接口使用可旋轉風格來旋轉"
+msgstr "視圖區使用可旋轉風格來旋轉"
 
 
 msgid "Use trackball style rotation in the viewport"
-msgstr "視接口使用軌跡球風格來旋轉"
+msgstr "視圖區使用軌跡球風格來旋轉"
 
 
 msgid "Invert Zoom"
@@ -52851,7 +52903,7 @@ msgstr "調焦樣式"
 
 
 msgid "Which style to use for viewport scaling"
-msgstr "選取視接口縮放處理的風格"
+msgstr "選取視圖區縮放處理的風格"
 
 
 msgid "Continue"
@@ -53163,7 +53215,7 @@ msgstr "編輯攝影棚燈光"
 
 
 msgid "View the result of the studio light editor in the viewport"
-msgstr "在視圖中檢視攝影棚燈光編輯器的結果"
+msgstr "在視圖區中檢視攝影棚燈光編輯器的結果"
 
 
 msgid "VBO Time Out"
@@ -53571,7 +53623,7 @@ msgstr "2D 檢視最小格線間距"
 
 
 msgid "Minimum number of pixels between each gridline in 2D Viewports"
-msgstr "2D 視接口中每個格線之間的最小像素數"
+msgstr "2D 視圖區中每個格線之間的最小像素數"
 
 
 msgid "Zoom Keyframes"
@@ -53591,7 +53643,7 @@ msgstr "我們要拉近的游標前後秒數"
 
 
 msgid "How zooming to frame focuses around current frame"
-msgstr "拉近動作如何聚焦到目前框幀周圍d"
+msgstr "拉近動作如何聚焦到目前影格周圍d"
 
 
 msgid "Keep Range"
@@ -53855,7 +53907,7 @@ msgstr "Embree"
 
 
 msgid "Viewport BVH Type"
-msgstr "視接口 BVH 類型"
+msgstr "視圖區 BVH 類型"
 
 
 msgid "Choose between faster updates, or faster render"
@@ -53999,15 +54051,15 @@ msgstr "暫停預覽"
 
 
 msgid "Pause all viewport preview renders"
-msgstr "暫停所有視接口的預覽算繪"
+msgstr "暫停所有視圖區的預覽算繪"
 
 
 msgid "Viewport Samples"
-msgstr "視圖樣本數"
+msgstr "視圖區樣本數"
 
 
 msgid "Number of samples to render in the viewport, unlimited if 0"
-msgstr "視圖中要算繪的樣本數，如果 0 則為無限制"
+msgstr "視圖區中要算繪的樣本數，如果 0 則為無限制"
 
 
 msgid "Number of samples to render for each pixel"
@@ -54568,7 +54620,7 @@ msgstr "抖動強度"
 
 
 msgid "Amount of dithering noise added to the rendered image to break up banding"
-msgstr "添加至算繪影像的晃動噪訊量，用以阻斷條帶產生"
+msgstr "新增至算繪影像的晃動噪訊量，用以阻斷條帶產生"
 
 
 msgid "Engine"
@@ -54600,7 +54652,7 @@ msgstr "幀率基礎"
 
 
 msgid "Frame Map New"
-msgstr "框幀的新映射"
+msgstr "影格的新映射"
 
 
 msgid "How many frames the Map Old will last"
@@ -54608,7 +54660,7 @@ msgstr "舊映射會持續多少幀"
 
 
 msgid "Frame Map Old"
-msgstr "框幀的舊映射"
+msgstr "影格的舊映射"
 
 
 msgid "Old mapping value in frames"
@@ -54826,11 +54878,11 @@ msgstr "裁切到算繪範圍內"
 
 
 msgid "Crop the rendered frame to the defined render region size"
-msgstr "將算繪出來的框幀裁切到定義的算繪範圍大小內"
+msgstr "將算繪出來的影格裁切到定義的算繪範圍大小內"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
-msgstr "為算繪的檔案添加副檔名 (例如：檔案名稱 + .jpg)"
+msgstr "為算繪的檔案新增副檔名 (例如：檔案名稱 + .jpg)"
 
 
 msgid "Draw stylized strokes using Freestyle"
@@ -54962,7 +55014,7 @@ msgstr "戳記時間"
 
 
 msgid "Include the rendered frame timecode as HH:MM:SS.FF in image metadata"
-msgstr "在影像中介資料中納入算繪的框幀時間碼為 HH:MM:SS.FF"
+msgstr "在影像中介資料中納入算繪的影格時間碼為 HH:MM:SS.FF"
 
 
 msgid "Setup Stereo Mode"
@@ -55426,7 +55478,7 @@ msgstr "彈簧幀"
 
 
 msgid "Create springs for this number of frames since particles birth (0 is always)"
-msgstr "為此數量的框幀自粒子生出起 (0 為總是) 建立彈簧"
+msgstr "為此數量的影格自粒子生出起 (0 為總是) 建立彈簧"
 
 
 msgid "Creates viscosity for expanding fluid"
@@ -55803,7 +55855,7 @@ msgstr "最終影像"
 
 
 msgid "Show Annotation"
-msgstr "顯示註解"
+msgstr "顯示註記"
 
 
 msgid "Show Metadata"
@@ -56000,7 +56052,7 @@ msgstr "外形鍵"
 
 
 msgid "Frame for absolute keys"
-msgstr "絕對鍵的框幀"
+msgstr "絕對鍵的影格"
 
 
 msgid "Interpolation type for absolute shape keys"
@@ -56036,7 +56088,7 @@ msgstr "滑桿的最小值"
 
 
 msgid "Value of shape key at the current frame"
-msgstr "目前框幀的外形鍵數值"
+msgstr "目前影格的外形鍵數值"
 
 
 msgid "Vertex weight group, to blend with basis shape"
@@ -56252,11 +56304,11 @@ msgstr "改變彈簧長度至收縮/擴張 (單位 %) 0 以停用"
 
 
 msgid "Maximal # solver steps/frame"
-msgstr "最大 # 解算器步數/框幀"
+msgstr "最大 # 解算器步數/影格"
 
 
 msgid "Minimal # solver steps/frame"
-msgstr "最小 # 解算器步數/框幀"
+msgstr "最小 # 解算器步數/影格"
 
 
 msgid "Use velocities for automagic step sizes"
@@ -56312,7 +56364,7 @@ msgstr "剛度四角形"
 
 
 msgid "Add diagonal springs on 4-gons"
-msgstr "於 4 角形添加對角彈簧"
+msgstr "於 4 角形新增對角彈簧"
 
 
 msgid "Goal Vertex Group"
@@ -56357,7 +56409,7 @@ msgstr "剪輯編輯器空間資料"
 
 msgctxt "MovieClip"
 msgid "Annotation Source"
-msgstr "註解來源"
+msgstr "註記來源"
 
 
 msgid "2D Cursor Location"
@@ -56373,7 +56425,7 @@ msgstr "鎖定至選取項"
 
 
 msgid "Lock viewport to selected markers during playback"
-msgstr "播放時將視接口鎖定至所選的標記"
+msgstr "播放時將視圖區鎖定至所選的標記"
 
 
 msgid "Lock to Time Cursor"
@@ -56437,7 +56489,7 @@ msgstr "顯示藍色通道"
 
 
 msgid "Show blue channel in the frame"
-msgstr "顯示框幀中的藍色通道"
+msgstr "顯示影格中的藍色通道"
 
 
 msgid "Show Bundles"
@@ -56497,7 +56549,7 @@ msgstr "顯示綠色通道"
 
 
 msgid "Show green channel in the frame"
-msgstr "顯示框幀中的綠色通道"
+msgstr "顯示影格中的綠色通道"
 
 
 msgid "Show grid showing lens distortion"
@@ -56533,7 +56585,7 @@ msgstr "顯示紅色通道"
 
 
 msgid "Show red channel in the frame"
-msgstr "顯示框幀中的紅色通道"
+msgstr "顯示影格中的紅色通道"
 
 
 msgid "Adjust Last Operation"
@@ -56569,7 +56621,7 @@ msgstr "顯示軌道如何移動的路徑"
 
 
 msgid "Display frame in grayscale mode"
-msgstr "以灰階模式顯示框幀"
+msgstr "以灰階模式顯示影格"
 
 
 msgid "Manual Calibration"
@@ -56687,7 +56739,7 @@ msgstr "動畫資料的過濾用設定"
 
 
 msgid "Edit all keyframes in scene"
-msgstr "編輯場景中的所有鍵幀"
+msgstr "編輯場景中的所有關鍵影格"
 
 
 msgid "Timeline and playback controls"
@@ -56699,7 +56751,7 @@ msgstr "動作編輯器"
 
 
 msgid "Edit keyframes in active object's Object-level action"
-msgstr "編輯作用中物體的物體層級動作鍵幀"
+msgstr "編輯作用中物體的物體層級動作關鍵影格"
 
 
 msgid "Shape Key Editor"
@@ -56707,7 +56759,7 @@ msgstr "外形鍵編輯器"
 
 
 msgid "Edit keyframes in active object's Shape Keys action"
-msgstr "編輯作用中物體的外形鍵動作鍵幀"
+msgstr "編輯作用中物體的外形鍵動作關鍵影格"
 
 
 msgid "Edit timings for all Grease Pencil sketches in file"
@@ -56743,7 +56795,7 @@ msgstr "在 F 曲線通道的旁邊顯示滑桿"
 
 
 msgid "Automatically merge nearby keyframes"
-msgstr "自動合併相近鍵幀"
+msgstr "自動合併相近關鍵影格"
 
 
 msgid "Sync Markers"
@@ -56751,7 +56803,7 @@ msgstr "同步標記"
 
 
 msgid "Sync Markers with keyframe edits"
-msgstr "將標記與鍵幀的編輯同步"
+msgstr "將標記與關鍵影格的編輯同步"
 
 
 msgid "Realtime Updates"
@@ -56759,7 +56811,7 @@ msgstr "即時更新"
 
 
 msgid "When transforming keyframes, changes to the animation data are flushed to other views"
-msgstr "當變換關鍵幀時，對動畫資料的更改將沖出至其他檢視中"
+msgstr "當變換關鍵影格時，對動畫資料的更改將沖出至其他檢視中"
 
 
 msgid "Space File Browser"
@@ -56831,7 +56883,7 @@ msgstr "圖表編輯器實例有開啟殘影曲線儲存"
 
 
 msgid "Edit animation/keyframes displayed as 2D curves"
-msgstr "編輯動畫/鍵幀顯示為 2D 曲線"
+msgstr "編輯動畫/關鍵影格顯示為 2D 曲線"
 
 
 msgid "Edit drivers"
@@ -56867,11 +56919,11 @@ msgstr "使用規一處理"
 
 
 msgid "Only Selected Keyframes Handles"
-msgstr "僅選取的鍵幀控制桿"
+msgstr "僅選取的關鍵影格控制桿"
 
 
 msgid "Only show and edit handles of selected keyframes"
-msgstr "僅顯示且僅編輯所選項目鍵幀的控制桿"
+msgstr "僅顯示且僅編輯所選項目關鍵影格的控制桿"
 
 
 msgid "Space Image Editor"
@@ -57075,7 +57127,7 @@ msgstr "游標位置"
 
 
 msgid "Location for adding new nodes"
-msgstr "添加新節點的位置"
+msgstr "新增新節點的位置"
 
 
 msgid "Edit Tree"
@@ -57436,11 +57488,11 @@ msgstr "顯示矩形區域疊層"
 
 
 msgid "Show reference frame only"
-msgstr "僅顯示參照框幀"
+msgstr "僅顯示參照影格"
 
 
 msgid "Show current frame only"
-msgstr "僅顯示目前框幀"
+msgstr "僅顯示目前影格"
 
 
 msgid "No display"
@@ -57636,7 +57688,7 @@ msgstr "鏡頭"
 
 
 msgid "Viewport lens angle"
-msgstr "視接口鏡頭角度"
+msgstr "視圖區鏡頭角度"
 
 
 msgid "Lock to Bone"
@@ -57676,7 +57728,7 @@ msgstr "同步鏡像 VR 作業階段"
 
 
 msgid "Synchronize the viewer perspective of virtual reality sessions with this 3D viewport"
-msgstr "在此 3D 視接口內同步虛擬實境作業階段的檢視器畫面"
+msgstr "在此 3D 視圖區內同步虛擬實境作業階段的檢視器畫面"
 
 
 msgid "3D Region"
@@ -57892,7 +57944,7 @@ msgstr "軌道顯示類型"
 
 
 msgid "Viewport display style for tracks"
-msgstr "軌道的視接口顯示樣式"
+msgstr "軌道的視圖區顯示樣式"
 
 
 msgid "Use Local Camera"
@@ -58081,7 +58133,7 @@ msgstr "立體模式"
 
 
 msgid "Squeezed Frame"
-msgstr "擠壓式框幀"
+msgstr "擠壓式影格"
 
 
 msgid "Combine both views in a squeezed image"
@@ -58129,11 +58181,11 @@ msgstr "此片段在控制桿套用之後的內容長度"
 
 
 msgid "End frame displayed in the sequence editor after offsets are applied"
-msgstr "序段編輯器中在套用偏移之後顯示的結束幀"
+msgstr "序段編輯器中在套用偏移之後顯示的結束影格"
 
 
 msgid "Start frame displayed in the sequence editor after offsets are applied, setting this is equivalent to moving the handle, not the actual start frame"
-msgstr "在序段編輯器中套用偏移之後的起始幀，設定它等於移動控制桿，而不是移動實際的起始幀"
+msgstr "在序段編輯器中套用偏移之後的起始影格，設定它等於移動控制桿，而不是移動實際的起始影格"
 
 
 msgid "End Offset"
@@ -58249,7 +58301,7 @@ msgstr "轉換輸入為浮點資料"
 
 
 msgid "Reverse Frames"
-msgstr "逆轉框幀"
+msgstr "逆轉影格"
 
 
 msgid "Input 1"
@@ -58369,7 +58421,7 @@ msgstr "輸入的片段的百分比"
 
 
 msgid "Multiply the current speed of the sequence with this number or remap current frame to this frame"
-msgstr "序段的目前速度與此數字相乘或將目前框幀重新映射至此框幀"
+msgstr "序段的目前速度與此數字相乘或將目前影格重新映射至此影格"
 
 
 msgid "Percentage of input strip length"
@@ -58523,7 +58575,7 @@ msgstr "攝影機凌駕"
 
 
 msgid "Show Annotations in OpenGL previews"
-msgstr "在 OpenGL 預覽顯示註解"
+msgstr "在 OpenGL 預覽顯示註記"
 
 
 msgid "Playback volume of the sound"
@@ -58579,7 +58631,7 @@ msgstr "序段片段的裁切參數"
 
 
 msgid "Sequence strip data for a single frame"
-msgstr "單一框幀的序段片段資料"
+msgstr "單一影格的序段片段資料"
 
 
 msgid "Orig FPS"
@@ -59244,7 +59296,7 @@ msgstr "之後路徑"
 
 
 msgid "Color of path after current frame"
-msgstr "在目前框幀之後的路徑其色彩"
+msgstr "在目前影格之後的路徑其色彩"
 
 
 msgid "Path Before"
@@ -59252,7 +59304,7 @@ msgstr "之前路徑"
 
 
 msgid "Color of path before current frame"
-msgstr "在目前框幀之前的路徑其色彩"
+msgstr "在目前影格之前的路徑其色彩"
 
 
 msgid "Selected Marker"
@@ -59328,83 +59380,83 @@ msgstr "律表通道"
 
 
 msgid "Color of Keyframe"
-msgstr "鍵幀的色彩"
+msgstr "關鍵影格的色彩"
 
 
 msgid "Keyframe Border"
-msgstr "鍵幀邊框"
+msgstr "關鍵影格邊框"
 
 
 msgid "Color of keyframe border"
-msgstr "鍵幀邊框的色彩"
+msgstr "關鍵影格邊框的色彩"
 
 
 msgid "Keyframe Border Selected"
-msgstr "選取的鍵幀邊框"
+msgstr "選取的關鍵影格邊框"
 
 
 msgid "Color of selected keyframe border"
-msgstr "選取的鍵幀邊框色彩"
+msgstr "選取的關鍵影格邊框色彩"
 
 
 msgid "Breakdown Keyframe"
-msgstr "分解鍵幀"
+msgstr "分解關鍵影格"
 
 
 msgid "Color of breakdown keyframe"
-msgstr "分解鍵幀的色彩"
+msgstr "分解關鍵影格的色彩"
 
 
 msgid "Breakdown Keyframe Selected"
-msgstr "選取分解鍵幀"
+msgstr "選取分解關鍵影格"
 
 
 msgid "Color of selected breakdown keyframe"
-msgstr "選取的分解鍵幀色彩"
+msgstr "選取的分解關鍵影格色彩"
 
 
 msgid "Extreme Keyframe"
-msgstr "極端鍵幀"
+msgstr "極端關鍵影格"
 
 
 msgid "Color of extreme keyframe"
-msgstr "極端鍵幀的色彩"
+msgstr "極端關鍵影格的色彩"
 
 
 msgid "Extreme Keyframe Selected"
-msgstr "選取的極端鍵幀"
+msgstr "選取的極端關鍵影格"
 
 
 msgid "Color of selected extreme keyframe"
-msgstr "選取的極端鍵幀色彩"
+msgstr "選取的極端關鍵影格色彩"
 
 
 msgid "Jitter Keyframe"
-msgstr "抖動鍵幀"
+msgstr "抖動關鍵影格"
 
 
 msgid "Color of jitter keyframe"
-msgstr "抖動鍵幀的色彩"
+msgstr "抖動關鍵影格的色彩"
 
 
 msgid "Jitter Keyframe Selected"
-msgstr "選取的抖動鍵幀"
+msgstr "選取的抖動關鍵影格"
 
 
 msgid "Color of selected jitter keyframe"
-msgstr "選取的抖動鍵幀色彩"
+msgstr "選取的抖動關鍵影格色彩"
 
 
 msgid "Keyframe Scale Factor"
-msgstr "鍵幀縮放係數"
+msgstr "關鍵影格縮放係數"
 
 
 msgid "Keyframe Selected"
-msgstr "選取的鍵幀"
+msgstr "選取的關鍵影格"
 
 
 msgid "Color of selected keyframe"
-msgstr "所選鍵幀的色彩"
+msgstr "所選關鍵影格的色彩"
 
 
 msgid "Long Key"
@@ -59700,7 +59752,7 @@ msgstr "過濾器節點"
 
 
 msgid "Frame Node"
-msgstr "框幀節點"
+msgstr "影格節點"
 
 
 msgid "Group Node"
@@ -59944,7 +59996,7 @@ msgstr "語法內建"
 
 
 msgid "Syntax Comment"
-msgstr "語法註解"
+msgstr "語法評註"
 
 
 msgid "Syntax Numbers"
@@ -60268,7 +60320,7 @@ msgstr "時間軸中提醒某些點的標記"
 
 
 msgid "The frame on which the timeline marker appears"
-msgstr "時間軸標記出現於其上的框幀"
+msgstr "時間軸標記出現於其上的影格"
 
 
 msgid "Marker selection state"
@@ -60304,11 +60356,11 @@ msgstr "自動鍵處理模式"
 
 
 msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "物體、骨骼與遮罩的自動關鍵幀插入模式"
+msgstr "物體、骨骼與遮罩的自動關鍵影格插入模式"
 
 
 msgid "Add & Replace"
-msgstr "添加與替換"
+msgstr "新增與替換"
 
 
 msgid "Grease Pencil Interpolate"
@@ -60425,7 +60477,7 @@ msgstr "快抓貼附時僅使用筆劃的最前與最後部份"
 
 
 msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
-msgstr "確保所有骨骼變形頂點群組當權重繪製時添加高至 1.0"
+msgstr "確保所有骨骼變形頂點群組當權重繪製時新增高至 1.0"
 
 
 msgid "Automerge"
@@ -60437,23 +60489,23 @@ msgstr "顯示簡潔色彩列表而非縮圖"
 
 
 msgid "Cycle-Aware Keying"
-msgstr "循環意識鍵幀處理"
+msgstr "循環意識關鍵影格處理"
 
 
 msgid "Auto Keying"
-msgstr "自動插入關鍵幀"
+msgstr "自動插入關鍵影格"
 
 
 msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "自動為物體、骨骼與遮罩插入關鍵幀"
+msgstr "自動為物體、骨骼與遮罩插入關鍵影格"
 
 
 msgid "Auto Keyframe Insert Keying Set"
-msgstr "自動插入關鍵幀的鍵處理集"
+msgstr "自動插入關鍵影格的鍵處理集"
 
 
 msgid "Automatic keyframe insertion using active Keying Set only"
-msgstr "只使用作用中鍵處理集進行關鍵幀自動插入"
+msgstr "只使用作用中鍵處理集進行關鍵影格自動插入"
 
 
 msgid "Weight Paint Lock-Relative"
@@ -61176,7 +61228,7 @@ msgstr "世界"
 
 msgctxt "View3D"
 msgid "Viewport"
-msgstr "視圖"
+msgstr "視圖區"
 
 
 msgid "Cavity Ridge"
@@ -61302,7 +61354,7 @@ msgstr "攝影棚燈光在 Z 軸的旋轉"
 
 
 msgid "Viewport Shading"
-msgstr "視接口著色"
+msgstr "視圖區著色"
 
 
 msgid "Method to display/shade objects in the 3D View"
@@ -61688,11 +61740,11 @@ msgstr "震動"
 
 
 msgid "VR viewport far clipping distance"
-msgstr "VR 視圖遠方截割距離"
+msgstr "VR 視圖區遠方截割距離"
 
 
 msgid "VR viewport near clipping distance"
-msgstr "VR 視圖近處截割距離"
+msgstr "VR 視圖區近處截割距離"
 
 
 msgctxt "Color"
@@ -62343,7 +62395,7 @@ msgstr "遮罩編輯"
 
 msgctxt "WindowManager"
 msgid "Frames"
-msgstr "框幀"
+msgstr "影格"
 
 
 msgctxt "WindowManager"
@@ -62567,7 +62619,7 @@ msgstr "沒有可見標籤。"
 
 msgctxt "Operator"
 msgid "Report a Bug"
-msgstr "回報臭蟲"
+msgstr "回報程式臭蟲"
 
 
 msgctxt "Operator"
@@ -62655,7 +62707,7 @@ msgstr "顯示於"
 
 
 msgid "Viewports"
-msgstr "視圖"
+msgstr "視圖區"
 
 
 msgid "Renders"
@@ -62703,7 +62755,7 @@ msgstr "AO 係數"
 
 
 msgid "Viewport Bounces"
-msgstr "視圖彈跳次數"
+msgstr "視圖區彈跳次數"
 
 
 msgid "Render Bounces"
@@ -62996,7 +63048,7 @@ msgstr "圖像為打包狀態，需要外部編輯時請先解包"
 
 
 msgid "Modifiers cannot be added to object: "
-msgstr "無法為物體添加修改器： "
+msgstr "無法為物體新增修改器： "
 
 
 msgid "Active object is not a mesh"
@@ -63004,11 +63056,11 @@ msgstr "作用中物體非網格"
 
 
 msgid "New Preset"
-msgstr "新增預設檔"
+msgstr "新增預設集"
 
 
 msgid "Failed to execute the preset: "
-msgstr "執行預設檔失敗： "
+msgstr "執行預設集失敗： "
 
 
 msgid "Select 2 sound strips"
@@ -63111,11 +63163,11 @@ msgstr "指派"
 
 
 msgid "Bug"
-msgstr "臭蟲"
+msgstr "程式臭蟲/臭蟲"
 
 
 msgid "Release Notes"
-msgstr "發行註記"
+msgstr "發行備註"
 
 
 msgid "Read about what's new in this version of Blender"
@@ -63283,7 +63335,7 @@ msgstr "幀號"
 
 
 msgid "Keyframe Numbers"
-msgstr "鍵幀號"
+msgstr "關鍵影格號"
 
 
 msgid "After"
@@ -63309,7 +63361,7 @@ msgstr "計算..."
 
 
 msgid "+ Non-Grouped Keyframes"
-msgstr "+ 未群組的鍵幀"
+msgstr "+ 未群組的關鍵影格"
 
 
 msgid "Before"
@@ -63318,12 +63370,12 @@ msgstr "在這之前"
 
 msgctxt "Operator"
 msgid "Add Object Constraint"
-msgstr "添加物體約束"
+msgstr "新增物體約束"
 
 
 msgctxt "Operator"
 msgid "Add Bone Constraint"
-msgstr "添加骨骼約束"
+msgstr "新增骨骼約束"
 
 
 msgctxt "Operator"
@@ -63384,7 +63436,7 @@ msgstr "控制旋轉"
 
 msgctxt "Operator"
 msgid "Add Image"
-msgstr "添加影像"
+msgstr "新增影像"
 
 
 msgid "Passepartout"
@@ -63850,7 +63902,7 @@ msgstr "使用粒子的半徑"
 
 msgctxt "Operator"
 msgid "Add Canvas"
-msgstr "添加畫布"
+msgstr "新增畫布"
 
 
 msgctxt "Operator"
@@ -63868,7 +63920,7 @@ msgstr "色彩分層"
 
 msgctxt "Operator"
 msgid "Add Brush"
-msgstr "添加筆刷"
+msgstr "新增筆刷"
 
 
 msgid "Wave Clamp"
@@ -64113,6 +64165,10 @@ msgid "Set Floor"
 msgstr "設定地面"
 
 
+msgid "Viewport Gizmos"
+msgstr "視圖區操縱器"
+
+
 msgid "3D Markers"
 msgstr "3D 標記"
 
@@ -64178,12 +64234,12 @@ msgstr "使用暴力法"
 
 msgctxt "Operator"
 msgid "Set Keyframe A"
-msgstr "設定關鍵幀 A"
+msgstr "設定關鍵影格 A"
 
 
 msgctxt "Operator"
 msgid "Set Keyframe B"
-msgstr "設定關鍵幀 B"
+msgstr "設定關鍵影格 B"
 
 
 msgctxt "Operator"
@@ -64265,12 +64321,12 @@ msgstr "切換圖表編輯器"
 
 msgctxt "Operator"
 msgid "Before Current Frame"
-msgstr "在目前框幀之前"
+msgstr "在目前影格之前"
 
 
 msgctxt "Operator"
 msgid "After Current Frame"
-msgstr "在目前框幀之後"
+msgstr "在目前影格之後"
 
 
 msgctxt "Operator"
@@ -64290,7 +64346,7 @@ msgstr "吸附"
 
 msgctxt "Operator"
 msgid "Keyframe Type"
-msgstr "鍵幀類型"
+msgstr "關鍵影格類型"
 
 
 msgctxt "Operator"
@@ -64325,7 +64381,7 @@ msgstr "所選鍵所在欄"
 
 msgctxt "Operator"
 msgid "Column on Current Frame"
-msgstr "目前框幀所在欄"
+msgstr "目前影格所在欄"
 
 
 msgctxt "Operator"
@@ -64688,7 +64744,7 @@ msgstr "連結到"
 
 msgctxt "Operator"
 msgid "Remove from Frame"
-msgstr "從框幀上移除"
+msgstr "從影格上移除"
 
 
 msgctxt "Operator"
@@ -65171,7 +65227,7 @@ msgstr "交集"
 
 
 msgid "Annotation:"
-msgstr "註解："
+msgstr "註記："
 
 
 msgctxt "Operator"
@@ -65206,7 +65262,7 @@ msgstr "算繪動畫"
 
 msgctxt "Operator"
 msgid "Render Audio..."
-msgstr "算奏音訊..."
+msgstr "算繪音訊..."
 
 
 msgctxt "Operator"
@@ -65320,7 +65376,7 @@ msgstr "算繪影像"
 
 msgctxt "Operator"
 msgid "Release Notes"
-msgstr "發行註記"
+msgstr "發行備註"
 
 
 msgctxt "Operator"
@@ -65436,7 +65492,7 @@ msgstr "鍵幀處理"
 
 
 msgid "Auto-Keyframing"
-msgstr "自動鍵幀處理"
+msgstr "自動關鍵影格處理"
 
 
 msgid "Enable in New Scenes"
@@ -65686,7 +65742,12 @@ msgstr "切換透視法 / 正視法"
 
 msgctxt "Operator"
 msgid "Viewport Render Image"
-msgstr "視接口算繪影像"
+msgstr "視圖區算繪影像"
+
+
+msgctxt "Operator"
+msgid "Viewport Render Keyframes"
+msgstr "視圖區算繪關鍵影格"
 
 
 msgctxt "Operator"
@@ -65955,12 +66016,12 @@ msgstr "設為區域..."
 
 msgctxt "Operator"
 msgid "Delete Keyframes..."
-msgstr "刪除鍵幀..."
+msgstr "刪除關鍵影格..."
 
 
 msgctxt "Operator"
 msgid "Clear Keyframes..."
-msgstr "清除鍵幀..."
+msgstr "清除關鍵影格..."
 
 
 msgctxt "Operator"
@@ -66442,7 +66503,7 @@ msgstr "從視角投射（界限）"
 
 msgctxt "Operator"
 msgid "Viewport Render Animation"
-msgstr "視接口算繪動畫"
+msgstr "視圖區算繪動畫"
 
 
 msgctxt "Operator"
@@ -66497,12 +66558,12 @@ msgstr "背景"
 
 msgctxt "Operator"
 msgid "Add Active"
-msgstr "添加主動"
+msgstr "新增主動"
 
 
 msgctxt "Operator"
 msgid "Add Passive"
-msgstr "添加被動"
+msgstr "新增被動"
 
 
 msgid "All Transforms to Deltas"
@@ -66864,7 +66925,7 @@ msgstr "<無 ID 指標>"
 
 
 msgid "No F-Curve to add keyframes to"
-msgstr "無 F 曲線可添加鍵幀"
+msgstr "無 F 曲線可新增鍵幀"
 
 
 msgid "No RNA pointer available to retrieve values for keyframing from"
@@ -66908,11 +66969,11 @@ msgstr "鍵處理集"
 
 
 msgid ", cannot have single-frame paths"
-msgstr "，無法有單框幀路徑"
+msgstr "，無法有單影格路徑"
 
 
 msgid "Motion path frame extents invalid for %s (%d to %d)%s"
-msgstr "%s 運動路徑框幀範圍無效 (%d 到 %d)%s"
+msgstr "%s 運動路徑影格範圍無效 (%d 到 %d)%s"
 
 
 msgid "Documents"
@@ -67293,7 +67354,7 @@ msgstr "粒子"
 
 
 msgid "%i frames found!"
-msgstr "找不到 %i 幀框幀！"
+msgstr "找不到 %i 幀影格！"
 
 
 msgid "%i points found!"
@@ -67313,7 +67374,7 @@ msgstr "%i 個巢格已快取"
 
 
 msgid "%i frames on disk"
-msgstr "%i 幀框幀於磁碟"
+msgstr "%i 幀影格於磁碟"
 
 
 msgid "%s, cache is outdated!"
@@ -67669,6 +67730,14 @@ msgid "Workbench"
 msgstr "工作台"
 
 
+msgid "Create"
+msgstr "建立"
+
+
+msgid "Asset blend file is not editable"
+msgstr "素材 blend 檔案不可編輯"
+
+
 msgid "Toggle visibility of Channels in Graph Editor for editing"
 msgstr "在圖表編輯器中切換通道可見度以供編輯"
 
@@ -67706,7 +67775,7 @@ msgstr "貼上驅動器：無可貼上的驅動器"
 
 
 msgid "Could not add driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "無法添加驅動器，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
+msgstr "無法新增驅動器，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
 
 
 msgid "Could not find driver to copy, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -67726,7 +67795,7 @@ msgstr "<未知修改器>"
 
 
 msgid "Add a new control-point to the envelope on the current frame"
-msgstr "添加新的控制點到目前此框幀的封套"
+msgstr "新增新的控制點到目前此影格的封套"
 
 
 msgid "Delete envelope control point"
@@ -67768,11 +67837,11 @@ msgstr "無作用中鍵處理集"
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"
-msgstr "鍵處理集「%s」- 已成功加入 %d 個關鍵幀"
+msgstr "鍵處理集「%s」- 已成功加入 %d 個關鍵影格"
 
 
 msgid "Successfully added %d keyframes for keying set '%s'"
-msgstr "已成功添加 %d 幀鍵幀，鍵處理集「%s」"
+msgstr "已成功新增 %d 幀鍵幀，鍵處理集「%s」"
 
 
 msgid "Successfully removed %d keyframes for keying set '%s'"
@@ -67796,7 +67865,7 @@ msgstr "無法移除內建的鍵處理集"
 
 
 msgid "Cannot add property to built in keying set"
-msgstr "無法添加屬性至內建的鍵處理集"
+msgstr "無法新增屬性至內建的鍵處理集"
 
 
 msgid "Cannot remove property from built in keying set"
@@ -67804,7 +67873,7 @@ msgstr "無法從內建的鍵處理集中移除屬性"
 
 
 msgid "Property added to Keying Set: '%s'"
-msgstr "屬性已添加至鍵處理集：「%s」"
+msgstr "屬性已新增至鍵處理集：「%s」"
 
 
 msgid "No region view3d available"
@@ -67837,10 +67906,6 @@ msgstr "作用中物體並非選取的骨架"
 
 msgid "Separated bones"
 msgstr "隔開的骨骼"
-
-
-msgid "Create"
-msgstr "建立"
 
 
 msgid "Bone Heat Weighting: failed to find solution for one or more bones"
@@ -68103,7 +68168,7 @@ msgstr "無法刪除鎖定的層"
 
 
 msgid "No active frame to delete"
-msgstr "無作用中框幀可刪除"
+msgstr "無作用中影格可刪除"
 
 
 msgid "Grey"
@@ -68221,12 +68286,12 @@ msgstr "刪除驅動器"
 
 msgctxt "Operator"
 msgid "Add All to Keying Set"
-msgstr "全部添加至鍵處理集"
+msgstr "全部新增至鍵處理集"
 
 
 msgctxt "Operator"
 msgid "Add Single to Keying Set"
-msgstr "添加單項至鍵處理集"
+msgstr "新增單項至鍵處理集"
 
 
 msgctxt "Operator"
@@ -68469,7 +68534,7 @@ msgstr "C"
 
 
 msgid "Preset"
-msgstr "預設檔"
+msgstr "預設集"
 
 
 msgid "Reverse Path"
@@ -69067,15 +69132,15 @@ msgstr "解析錯誤位於 %s"
 
 
 msgid "Cannot add vertices in edit mode"
-msgstr "無法在編輯模式中添加頂點"
+msgstr "無法在編輯模式中新增頂點"
 
 
 msgid "Cannot add edges in edit mode"
-msgstr "無法在編輯模式中添加邊線"
+msgstr "無法在編輯模式中新增邊線"
 
 
 msgid "Cannot add loops in edit mode"
-msgstr "無法在編輯中添加線圈"
+msgstr "無法在編輯中新增線圈"
 
 
 msgid "Cannot remove vertices in edit mode"
@@ -69320,7 +69385,7 @@ msgstr "物體「%s」烘焙發生問題"
 
 
 msgid "Add IK"
-msgstr "添加 IK"
+msgstr "新增 IK"
 
 
 msgid "To Active Bone"
@@ -69456,7 +69521,7 @@ msgstr "容體「%s」包含點，只支援體素格線"
 
 
 msgid "No frames to bake"
-msgstr "無框幀可烘焙"
+msgstr "無影格可烘焙"
 
 
 msgid "Bake failed: no Dynamic Paint modifier found"
@@ -69476,7 +69541,7 @@ msgstr "連結中的資料組塊不允許編輯快取"
 
 
 msgid "No Rigid Body World to add Rigid Body Constraint to"
-msgstr "無剛體約束可添加的剛體世界"
+msgstr "無剛體約束可新增的剛體世界"
 
 
 msgid "Object has no Rigid Body Constraint to remove"
@@ -69700,7 +69765,7 @@ msgstr "3D 檢視 "
 
 
 msgid "Frame:"
-msgstr "框幀："
+msgstr "影格："
 
 
 msgid "Time:"
@@ -69736,7 +69801,7 @@ msgstr "寫入錯誤：無法儲存 %s"
 
 
 msgid "Skipping existing frame \"%s\""
-msgstr "正略過既有框幀「%s」"
+msgstr "正略過既有影格「%s」"
 
 
 msgid "Unable to remove material slot in edit mode"
@@ -69821,10 +69886,6 @@ msgstr "素材庫不可編輯"
 
 msgid "Asset file is not editable"
 msgstr "素材檔案不可編輯"
-
-
-msgid "Asset blend file is not editable"
-msgstr "素材 blend 檔案不可編輯"
 
 
 msgctxt "GPencil"
@@ -69993,11 +70054,11 @@ msgstr "搜尋區域："
 
 
 msgid "Marker is disabled at current frame"
-msgstr "目前框幀的標記已停用"
+msgstr "目前影格的標記已停用"
 
 
 msgid "Marker is enabled at current frame"
-msgstr "目前框幀的標記已啟用"
+msgstr "目前影格的標記已啟用"
 
 
 msgid ", %d float channel(s)"
@@ -70025,11 +70086,11 @@ msgstr "，未能載入"
 
 
 msgid "Frame: %d / %d"
-msgstr "框幀：%d / %d"
+msgstr "影格：%d / %d"
 
 
 msgid "Frame: - / %d"
-msgstr "框幀：- / %d"
+msgstr "影格：- / %d"
 
 
 msgid "File: %s"
@@ -70057,7 +70118,7 @@ msgstr "用於攝影機追蹤用的物體無法刪除"
 
 
 msgid "Feature detection requires valid clip frame"
-msgstr "特徵偵測需要有效的剪輯框幀"
+msgstr "特徵偵測需要有效的剪輯影格"
 
 
 msgid "No object to apply orientation on"
@@ -70294,15 +70355,15 @@ msgstr "<無 ID>"
 
 
 msgid "No active F-Curve to add a keyframe to. Select an editable F-Curve first"
-msgstr "無作用中 F 曲線可添加鍵幀。請先選取可編輯的 F 曲線"
+msgstr "無作用中 F 曲線可新增鍵幀。請先選取可編輯的 F 曲線"
 
 
 msgid "No selected F-Curves to add keyframes to"
-msgstr "無選取的 F 曲線可添加鍵幀"
+msgstr "無選取的 F 曲線可新增鍵幀"
 
 
 msgid "No channels to add keyframes to"
-msgstr "無通道可添加鍵幀"
+msgstr "無通道可新增鍵幀"
 
 
 msgid "Keyframes cannot be added to sampled F-Curves"
@@ -70314,7 +70375,7 @@ msgstr "作用中 F 曲線不可編輯"
 
 
 msgid "Remove F-Modifiers from F-Curve to add keyframes"
-msgstr "從 F 曲線移除 F 修改器以添加鍵幀"
+msgstr "從 F 曲線移除 F 修改器以新增鍵幀"
 
 
 msgid "Unsupported audio format"
@@ -70330,7 +70391,7 @@ msgstr "無可修正的尤拉旋轉，請確保所有組件的每個旋轉都有
 
 
 msgid "Modifier could not be added (see console for details)"
-msgstr "無法添加修改器 (請查看主控臺瞭解細節)"
+msgstr "無法新增修改器 (請查看主控臺瞭解細節)"
 
 
 msgid "No F-Modifiers available to be copied"
@@ -70413,10 +70474,6 @@ msgid "No images have been changed"
 msgstr "影像未有更動"
 
 
-msgid "Packing movies or image sequences not supported"
-msgstr "不支援打包影片或影像序列"
-
-
 msgid "Unpacking movies or image sequences not supported"
 msgstr "不支援解包影片或影像序列"
 
@@ -70486,7 +70543,7 @@ msgstr "作用中片段名稱"
 
 
 msgid "No valid action to add"
-msgstr "無有效的動作可添加"
+msgstr "無有效的動作可新增"
 
 
 msgid "Internal Error - AnimData block is not valid"
@@ -70502,7 +70559,7 @@ msgstr "標籤大小"
 
 
 msgid "Frame: %d"
-msgstr "框幀：%d"
+msgstr "影格：%d"
 
 
 msgid "Matte Objects:"
@@ -70622,7 +70679,7 @@ msgstr "斷開連接"
 
 
 msgid "Add node to input"
-msgstr "添加節點到輸入"
+msgstr "新增節點到輸入"
 
 
 msgid "Remove nodes connected to the input"
@@ -71511,7 +71568,7 @@ msgstr "Freestyle：算繪筆觸"
 
 
 msgid "Error writing frame"
-msgstr "寫入框幀時發生錯誤"
+msgstr "寫入影格時發生錯誤"
 
 
 msgid "No valid formats found"
@@ -71635,7 +71692,7 @@ msgstr "內建鍵處理集並不完整，似乎遺失類型資訊"
 
 
 msgid "Armature '%s' not in edit mode, cannot add an editbone"
-msgstr "骨架「%s」並非處於編輯模式，無法添加編輯骨骼"
+msgstr "骨架「%s」並非處於編輯模式，無法新增編輯骨骼"
 
 
 msgid "Armature '%s' not in edit mode, cannot remove an editbone"
@@ -71687,7 +71744,7 @@ msgstr "F 曲線中找不到 F 曲線修改器「%s」"
 
 
 msgid "Already a control point at frame %.6f"
-msgstr "框幀 %.6f 已有控制點"
+msgstr "影格 %.6f 已有控制點"
 
 
 msgid "Flame"
@@ -71728,19 +71785,19 @@ msgstr "檢視層「%s」不包含物體「%s」"
 
 
 msgid "Failed to add the color modifier"
-msgstr "無法添加色彩修改器"
+msgstr "無法新增色彩修改器"
 
 
 msgid "Failed to add the alpha modifier"
-msgstr "無法添加 alpha 修改器"
+msgstr "無法新增 alpha 修改器"
 
 
 msgid "Failed to add the thickness modifier"
-msgstr "無法添加厚度修改器"
+msgstr "無法新增厚度修改器"
 
 
 msgid "Failed to add the geometry modifier"
-msgstr "無法添加幾何修改器"
+msgstr "無法新增幾何修改器"
 
 
 msgid "Color modifier '%s' could not be removed"
@@ -71800,7 +71857,7 @@ msgstr "此類型找不到 Mtex"
 
 
 msgid "Maximum number of textures added %d"
-msgstr "已添加紋理的最大數目 %d"
+msgstr "已新增紋理的最大數目 %d"
 
 
 msgid "Index %d is invalid"
@@ -71824,7 +71881,7 @@ msgstr "無法建立新片段"
 
 
 msgid "Unable to add strip (the track does not have any space to accommodate this new strip)"
-msgstr "無法添加片段 (軌道沒有任何空間可適應這條新片段)"
+msgstr "無法新增片段 (軌道沒有任何空間可適應這條新片段)"
 
 
 msgid "NLA strip '%s' not found in track '%s'"
@@ -71901,7 +71958,7 @@ msgstr "節點類型 %s 尚未定義"
 
 
 msgid "Cannot add node of type %s to node tree '%s'"
-msgstr "無法添加類型 %s 的節點至「%s」節點樹中"
+msgstr "無法新增類型 %s 的節點至「%s」節點樹中"
 
 
 msgid "Unable to locate node '%s' in node tree"
@@ -72272,7 +72329,7 @@ msgstr "截割"
 
 
 msgid "Levels Viewport"
-msgstr "層級視圖"
+msgstr "層級視圖區"
 
 
 msgid "Unsubdivide"
@@ -72325,7 +72382,7 @@ msgstr "粒子實例"
 
 
 msgid "Steps Viewport"
-msgstr "步階視圖"
+msgstr "步階視圖區"
 
 
 msgid "SimpleDeform"
@@ -72507,7 +72564,7 @@ msgstr "基礎路徑："
 
 
 msgid "Add Input"
-msgstr "添加輸入"
+msgstr "新增輸入"
 
 
 msgid "Layer:"
@@ -73117,7 +73174,7 @@ msgstr "所有算繪分層已停用"
 
 
 msgid "No frames rendered, skipped to not overwrite"
-msgstr "無算繪的框幀，跳過而不覆寫"
+msgstr "無算繪的影格，跳過而不覆寫"
 
 
 msgid "No camera found in scene \"%s\""
@@ -74025,7 +74082,11 @@ msgstr "分段長度"
 
 
 msgid "Viewport Amount"
-msgstr "視圖量"
+msgstr "視圖區量"
+
+
+msgid "Percentage of amount used for the viewport"
+msgstr "視圖區使用的百分比"
 
 
 msgid "Hair Material"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -241,34 +241,6 @@ msgstr "Vikundi vya Vitendo"
 
 msgid "Collection of action groups"
 msgstr "Mkusanyiko wa vikundi vya vitendo"
-
-
-msgid "Influence"
-msgstr "Ushawishi"
-
-
-msgid "Mix Mode"
-msgstr "Hali ya Mchanganyiko"
-
-
-msgid "Replace"
-msgstr "Badilisha"
-
-
-msgid "Offset"
-msgstr "Kupunguza"
-
-
-msgid "Add"
-msgstr "Ongeza"
-
-
-msgid "Subtract"
-msgstr "Ondoa"
-
-
-msgid "Multiply"
-msgstr "Zidisha"
 
 
 msgid "Strips"
@@ -754,6 +726,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Njia inayotumika kuchanganya matokeo ya Kitendo Amilifu na matokeo ya mrundikano wa NLA"
 
 
+msgid "Replace"
+msgstr "Badilisha"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Thamani za ukanda huchukua nafasi ya matokeo yaliyokusanywa kwa kiasi kilichobainishwa na ushawishi"
 
@@ -766,12 +742,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Thamani za ukanda huunganishwa na matokeo yaliyokusanywa kwa kutumia ipasavyo kujumlisha, kuzidisha au hesabu ya quaternion, kulingana na aina ya kituo"
 
 
+msgid "Add"
+msgstr "Ongeza"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Tokeo la uzani la ukanda huongezwa kwa matokeo yaliyokusanywa"
 
 
+msgid "Subtract"
+msgstr "Ondoa"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Matokeo ya uzani wa strip huondolewa kutoka kwa matokeo yaliyokusanywa"
+
+
+msgid "Multiply"
+msgstr "Zidisha"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -4810,6 +4798,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "Katika kamera ya ndani ya kubatilisha, iwe picha hii ya usuli inatoka kwa kamera ya marejeleo iliyounganishwa, au ni ya ndani kwa ubatilishaji."
 
 
+msgid "Offset"
+msgstr "Kupunguza"
+
+
 msgid "Rotation"
 msgstr "Mzunguko"
 
@@ -6283,6 +6275,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Kiasi cha makosa ya mabaki katika radiani kwa vizuizi vinavyofanya kazi kwenye mwelekeo"
 
 
+msgid "Influence"
+msgstr "Ushawishi"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Kiasi cha kizuizi cha ushawishi kitakuwa kwenye suluhisho la mwisho"
 
@@ -6649,6 +6645,10 @@ msgstr "Kima cha chini"
 
 msgid "Minimum value for target channel range"
 msgstr "Thamani ya chini zaidi kwa masafa lengwa ya kituo"
+
+
+msgid "Mix Mode"
+msgstr "Hali ya Mchanganyiko"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -28813,16 +28813,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
 msgid "Clean Up"
 msgstr "Safisha"
+
+
+msgid "Text"
+msgstr "Maandishi"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Pivot Point"
@@ -28867,10 +28871,6 @@ msgstr "Mikusanyo ya Mifupa"
 
 msgid "Merge"
 msgstr "Unganisha"
-
-
-msgid "Text"
-msgstr "Maandishi"
 
 
 msgid "Keyframe Insert Pie"
@@ -45143,11 +45143,6 @@ msgstr "Badilisha Maktaba ya Uwekaji Urithi"
 msgctxt "Operator"
 msgid "Copy Pose as Asset"
 msgstr "Nakili Msimamo Kama Mali"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Unda Mali ya Kuweka"
 
 
 msgctxt "Operator"
@@ -65705,10 +65700,6 @@ msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Brow
 msgstr "Unda kipengee kipya kwenye ubao wa kunakili, ili kubandikwe kwenye Kivinjari cha Mali."
 
 
-msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
-msgstr "Unda Kitendo kipya ambacho kina mkao wa mifupa iliyochaguliwa, na uweke alama kama Kipengee."
-
-
 msgid "Activate New Action"
 msgstr "Amilisha Kitendo Kipya"
 
@@ -78632,10 +78623,6 @@ msgstr "Mhimili wa Geuza Roll (Z)."
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Unyeti wa jumla wa Kipanya cha 3D kwa kugeuza"
-
-
-msgid "Show Navigation Guide"
-msgstr "Onyesha Mwongozo wa Urambazaji"
 
 
 msgid "Display the center and axis during rotation"
@@ -96786,12 +96773,13 @@ msgstr "Weka Mkao Umepinduliwa"
 
 
 msgctxt "Operator"
+msgid "Remove Selected Bones"
+msgstr "Ondoa Mifupa Iliyochaguliwa"
+
+
+msgctxt "Operator"
 msgid "Blend Pose"
 msgstr "Pozi ya Mchanganyiko"
-
-
-msgid "Action %s marked Fake User to prevent loss"
-msgstr "Kitendo %s kimetiwa alama ya Mtumiaji Bandia ili kuzuia upotevu"
 
 
 msgid "Pose Asset copied, use Paste As New Asset in any Asset Browser to paste"
@@ -96806,18 +96794,6 @@ msgid "Converted %d poses to pose assets"
 msgstr "Mitindo %d iliyogeuzwa ili kuweka mali"
 
 
-msgid "An active armature object in pose mode is needed"
-msgstr "Kifaa kinachotumika katika hali ya mkao kinahitajika"
-
-
-msgid "Asset Browser must be set to the Current File library"
-msgstr "Kivinjari cha Mali lazima kiwekwe kwenye maktaba ya Faili ya Sasa"
-
-
-msgid "No keyframes were found for this pose"
-msgstr "Hakuna fremu muhimu zilizopatikana kwa pozi hili"
-
-
 msgid "No animation data found to create asset from"
 msgstr "Hakuna data ya uhuishaji iliyopatikana kuunda kipengee kutoka"
 
@@ -96828,6 +96804,10 @@ msgstr "Idadi isiyotarajiwa ya watumiaji wasio wa sifuri kwa kipengee, tafadhali
 
 msgid "Current editor is not an asset browser"
 msgstr "Kihariri cha sasa sio kivinjari cha mali"
+
+
+msgid "Asset Browser must be set to the Current File library"
+msgstr "Kivinjari cha Mali lazima kiwekwe kwenye maktaba ya Faili ya Sasa"
 
 
 msgid "Clipboard is empty"
@@ -97884,11 +97864,6 @@ msgstr "Teua Mifupa Iliyochaguliwa"
 
 
 msgctxt "Operator"
-msgid "Remove Selected Bones"
-msgstr "Ondoa Mifupa Iliyochaguliwa"
-
-
-msgctxt "Operator"
 msgid "Deselect Bones"
 msgstr "Ondoa Kuchagua Mifupa"
 
@@ -98092,14 +98067,6 @@ msgid "Only Axis Aligned"
 msgstr "Mhimili Pekee Uliopangwa"
 
 
-msgid "Keyframes Before"
-msgstr "Fremu Muhimu Kabla"
-
-
-msgid "Keyframes After"
-msgstr "Fremu Muhimu Baada ya"
-
-
 msgid "Stroke Thickness"
 msgstr "Unene wa Kiharusi"
 
@@ -98150,6 +98117,14 @@ msgstr "Nakili Safu hadi Iliyochaguliwa"
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
 msgstr "Nakili Tabaka Zote kwa Zilizochaguliwa"
+
+
+msgid "Keyframes Before"
+msgstr "Fremu Muhimu Kabla"
+
+
+msgid "Keyframes After"
+msgstr "Fremu Muhimu Baada ya"
 
 
 msgid "Interpolation U"
@@ -104925,6 +104900,10 @@ msgid "Workbench"
 msgstr "benchi ya kazi"
 
 
+msgid "Create"
+msgstr "Unda"
+
+
 msgid "NLA Strip Controls"
 msgstr "Udhibiti wa Ukanda wa NLA"
 
@@ -105315,10 +105294,6 @@ msgstr "Mifupa iliyotenganishwa"
 
 msgid "Unselectable bone in chain"
 msgstr "Mfupa usiochaguliwa katika mnyororo"
-
-
-msgid "Create"
-msgstr "Unda"
 
 
 msgid "Bone collection with index %d not found on Armature %s"
@@ -105864,14 +105839,6 @@ msgid "The object has only one layer"
 msgstr "Kitu kina tabaka moja tu"
 
 
-msgid "No active Grease Pencil layer"
-msgstr "Hakuna safu inayotumika ya Penseli ya Grisi"
-
-
-msgid "Active layer is locked or hidden"
-msgstr "Safu inayotumika imefungwa au kufichwa"
-
-
 msgid "No Grease Pencil frame to draw on"
 msgstr "Hakuna fremu ya Penseli ya Grisi ya kuchora"
 
@@ -105894,6 +105861,14 @@ msgstr "Tabaka tayari limeongezwa"
 
 msgid "Unable to find layer to add"
 msgstr "Haijaweza kupata safu ya kuongeza"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "Hakuna safu inayotumika ya Penseli ya Grisi"
+
+
+msgid "Active layer is locked or hidden"
+msgstr "Safu inayotumika imefungwa au kufichwa"
 
 
 msgid "Could not resolve path '%s'"
@@ -110010,10 +109985,6 @@ msgstr "Hakuna picha zilizobadilishwa"
 
 msgid "Images cannot be copied while rendering"
 msgstr "Picha haziwezi kunakiliwa wakati wa kutoa"
-
-
-msgid "Packing movies or image sequences not supported"
-msgstr "Kupakia filamu au mifuatano ya picha haitumiki"
 
 
 msgid "Unpacking movies or image sequences not supported"
@@ -116436,14 +116407,6 @@ msgstr "Tint ya Kanzu"
 
 msgid "Blend between diffuse surface and subsurface scattering. Typically should be zero or one (either fully diffuse or subsurface)"
 msgstr "Mchanganyiko kati ya uso mtawanyiko na utawanyiko wa chini ya uso."
-
-
-msgid "Scattering radius to use for subsurface component (multiplied with Scale)"
-msgstr "Kipenyo cha kutawanya cha kutumia kwa sehemu ya chini ya uso (kilichozidishwa kwa Mizani)"
-
-
-msgid "Scale of the subsurface scattering (multiplied with Radius)"
-msgstr "Kipimo cha mtawanyiko wa sehemu ya chini ya ardhi (kilichozidishwa na Radius)"
 
 
 msgid "Tint dielectric reflection at normal incidence for artistic control, and metallic reflection at near-grazing incidence to simulate complex index of refraction"

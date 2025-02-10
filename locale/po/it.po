@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2025-01-12 22:56+0000\n"
 "Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -77,6 +77,10 @@ msgstr "Le singole Curve-F che animano lo slot"
 
 msgid "F-Curve Groups"
 msgstr "Gruppi Curva-F"
+
+
+msgid "Slot"
+msgstr "Slot"
 
 
 msgid "Collection of f-curve groups"
@@ -273,34 +277,6 @@ msgstr "Raccolta di gruppi di azioni"
 
 msgid "Action Layer"
 msgstr "Livello Azione"
-
-
-msgid "Influence"
-msgstr "Influenza"
-
-
-msgid "Mix Mode"
-msgstr "Modalità Miscela"
-
-
-msgid "Replace"
-msgstr "Sostituisci"
-
-
-msgid "Offset"
-msgstr "Offset"
-
-
-msgid "Add"
-msgstr "Aggiungi"
-
-
-msgid "Subtract"
-msgstr "Sottrai"
-
-
-msgid "Multiply"
-msgstr "Moltiplica"
 
 
 msgid "Strips"
@@ -894,6 +870,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metodo utilizzato per combinare i risultati dell'Azione Attiva con i risultati della pila NLA"
 
 
+msgid "Replace"
+msgstr "Sostituisci"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "I valori dello spezzone sostituiscono i risultati accumulati con l'ammontare specificato dall'influenza"
 
@@ -906,12 +886,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "I valori degli spezzoni vengono combinati con i risultati accumulati utilizzando opportunamente l'addizione, la moltiplicazione o la matematica dei quaternioni, in base al tipo di canale"
 
 
+msgid "Add"
+msgstr "Aggiungi"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Il risultato pesato dello spezzone viene aggiunto a quelli accumulati"
 
 
+msgid "Subtract"
+msgstr "Sottrai"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Il risultato pesato dello spezzone viene rimosso da quelli accumulati"
+
+
+msgid "Multiply"
+msgstr "Moltiplica"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5276,6 +5268,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "In una camera di sostituzione locale, se questa immagine di sfondo proviene dalla camera di riferimento collegata o se è locale rispetto a quella di sostituzione"
 
 
+msgid "Offset"
+msgstr "Offset"
+
+
 msgid "Rotation"
 msgstr "Rotazione"
 
@@ -6517,6 +6513,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Ammontare di errore residuo in radianti per i vincoli che funzionano sull'orientamento"
 
 
+msgid "Influence"
+msgstr "Influenza"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Ammontare del vincolo di influenza sulla soluzione finale"
 
@@ -6851,6 +6851,10 @@ msgstr "Minimo"
 
 msgid "Minimum value for target channel range"
 msgstr "Valore minimo per l'intervallo del canale obiettivo"
+
+
+msgid "Mix Mode"
+msgstr "Modalità Miscela"
 
 
 msgid "Before Original (Full)"
@@ -23434,12 +23438,24 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Names"
@@ -23448,10 +23464,6 @@ msgstr "Nomi"
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
 
 
 msgid "Pivot Point"
@@ -23592,14 +23604,6 @@ msgstr "Dati Faccia"
 
 msgid "Merge"
 msgstr "Unisci"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Text"
-msgstr "Testo"
 
 
 msgid "Basic"
@@ -47885,10 +47889,6 @@ msgid "Text Boxes"
 msgstr "Caselle di Testo"
 
 
-msgid "Slot"
-msgstr "Slot"
-
-
 msgid "Filters"
 msgstr "Filtri"
 
@@ -49897,10 +49897,6 @@ msgstr "Inverti Asse Rollio (Z)"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Sensibilità globale del mouse 3D per il pan"
-
-
-msgid "Show Navigation Guide"
-msgstr "Mostra Guida Navigazione"
 
 
 msgid "Display the center and axis during rotation"
@@ -57537,10 +57533,6 @@ msgid "Custom..."
 msgstr "Personalizzato..."
 
 
-msgid "Keyframes Before"
-msgstr "Keyframe Precedenti"
-
-
 msgid "Stroke Thickness"
 msgstr "Spessore Tratto"
 
@@ -57605,6 +57597,10 @@ msgstr "Copia Tutti i Layers alla Selezione"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "Cancella Gruppo"
+
+
+msgid "Keyframes Before"
+msgstr "Keyframe Precedenti"
 
 
 msgid "Interpolation U"
@@ -61000,6 +60996,10 @@ msgid "Select ID"
 msgstr "Seleziona ID"
 
 
+msgid "Create"
+msgstr "Crea"
+
+
 msgid "NLA Strip Controls"
 msgstr "Controlli Spezzoni NLA"
 
@@ -61170,10 +61170,6 @@ msgstr "Ossa separate"
 
 msgid "Unselectable bone in chain"
 msgstr "Osso non selezionabile nella catena"
-
-
-msgid "Create"
-msgstr "Crea"
 
 
 msgid "No active Keying Set to use"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -245,30 +245,6 @@ msgstr "Toimintaryhmät"
 
 msgid "Collection of action groups"
 msgstr "Toimintaryhmäkokoelma"
-
-
-msgid "Mix Mode"
-msgstr "Sekoitustila"
-
-
-msgid "Replace"
-msgstr "Korvaa"
-
-
-msgid "Offset"
-msgstr "Siirros"
-
-
-msgid "Add"
-msgstr "Lisää"
-
-
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgid "Multiply"
-msgstr "Kerro"
 
 
 msgid "Action Pose Markers"
@@ -566,8 +542,24 @@ msgid "Active Action for this data-block"
 msgstr "Aktiiviset toiminnot tälle data-palikalle"
 
 
+msgid "Replace"
+msgstr "Korvaa"
+
+
 msgid "Combine"
 msgstr "Yhdistä"
+
+
+msgid "Add"
+msgstr "Lisää"
+
+
+msgid "Subtract"
+msgstr "Vähennä"
+
+
+msgid "Multiply"
+msgstr "Kerro"
 
 
 msgid "Nothing"
@@ -3189,6 +3181,10 @@ msgid "Override Background Image"
 msgstr "Ohita taustakuva"
 
 
+msgid "Offset"
+msgstr "Siirros"
+
+
 msgid "Rotation"
 msgstr "Kierto"
 
@@ -3648,6 +3644,10 @@ msgstr "Maksimi"
 
 msgid "Minimum"
 msgstr "Minimi"
+
+
+msgid "Mix Mode"
+msgstr "Sekoitustila"
 
 
 msgid "Target object"
@@ -7340,12 +7340,16 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
+
+
+msgid "Text"
+msgstr "Teksti"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Names"
@@ -7398,10 +7402,6 @@ msgstr "Satunnainen maski"
 
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
-
-
-msgid "Text"
-msgstr "Teksti"
 
 
 msgid "Basic"
@@ -13979,6 +13979,10 @@ msgid "Workbench"
 msgstr "Työtila"
 
 
+msgid "Create"
+msgstr "Luo"
+
+
 msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
@@ -13993,10 +13997,6 @@ msgstr "Poista muunnin"
 
 msgid "Separated bones"
 msgstr "Erotetut luut"
-
-
-msgid "Create"
-msgstr "Luo"
 
 
 msgid "Cancel"

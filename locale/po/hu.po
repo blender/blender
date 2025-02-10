@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -179,34 +179,6 @@ msgstr "Kijelölés"
 
 msgid "Action group is selected"
 msgstr "Akció csoport kijelölve"
-
-
-msgid "Influence"
-msgstr "Befolyás"
-
-
-msgid "Mix Mode"
-msgstr "Keverési mód"
-
-
-msgid "Replace"
-msgstr "Lecserél"
-
-
-msgid "Offset"
-msgstr "Eltolás"
-
-
-msgid "Add"
-msgstr "Hozzáadás"
-
-
-msgid "Subtract"
-msgstr "Különbség"
-
-
-msgid "Multiply"
-msgstr "Többszörözés"
 
 
 msgid "Active"
@@ -435,8 +407,24 @@ msgid "Action"
 msgstr "Akció"
 
 
+msgid "Replace"
+msgstr "Lecserél"
+
+
 msgid "Combine"
 msgstr "Kombinálás"
+
+
+msgid "Add"
+msgstr "Hozzáadás"
+
+
+msgid "Subtract"
+msgstr "Különbség"
+
+
+msgid "Multiply"
+msgstr "Többszörözés"
 
 
 msgid "Motion Paths"
@@ -1206,6 +1194,10 @@ msgid "Image"
 msgstr "Kép"
 
 
+msgid "Offset"
+msgstr "Eltolás"
+
+
 msgid "Rotation"
 msgstr "Forgatás"
 
@@ -1421,6 +1413,10 @@ msgstr "Bemenet"
 
 msgid "Error"
 msgstr "Hiba"
+
+
+msgid "Influence"
+msgstr "Befolyás"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -1713,6 +1709,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "A célobjektum csatorna-tartományának minimum értéke"
+
+
+msgid "Mix Mode"
+msgstr "Keverési mód"
 
 
 msgid "Target object"
@@ -6610,16 +6610,20 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Metaball"
-msgstr "Meta test"
-
-
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
 msgid "Clean Up"
 msgstr "Tisztítás"
+
+
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Mirror"
@@ -6660,10 +6664,6 @@ msgstr "Nyom"
 
 msgid "Merge"
 msgstr "Összefésülés"
-
-
-msgid "Text"
-msgstr "Szöveg"
 
 
 msgctxt "MovieClip"

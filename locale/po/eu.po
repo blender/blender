@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -167,6 +167,14 @@ msgid "Expanded"
 msgstr "Hedatua"
 
 
+msgid "Active"
+msgstr "Aktibo"
+
+
+msgid "Action"
+msgstr "Akzioa"
+
+
 msgid "Replace"
 msgstr "Ordezkatu"
 
@@ -177,14 +185,6 @@ msgstr "Gehitu"
 
 msgid "Multiply"
 msgstr "Biderkatu"
-
-
-msgid "Active"
-msgstr "Aktibo"
-
-
-msgid "Action"
-msgstr "Akzioa"
 
 
 msgid "Heads"
@@ -561,12 +561,12 @@ msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
 
 
-msgid "Relations"
-msgstr "Loturak"
-
-
 msgid "Text"
 msgstr "Testua"
+
+
+msgid "Relations"
+msgstr "Loturak"
 
 
 msgid "UV"

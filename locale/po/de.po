@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-12-08 20:56+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -61,6 +61,10 @@ msgstr "Sammlung von AOVs"
 
 msgid "F-Curves"
 msgstr "F-Kurven"
+
+
+msgid "Slot"
+msgstr "Position"
 
 
 msgid "Action F-Curves"
@@ -245,34 +249,6 @@ msgstr "Aktionsgruppen"
 
 msgid "Collection of action groups"
 msgstr "Gruppe von Aktionsgruppen"
-
-
-msgid "Influence"
-msgstr "Einfluss"
-
-
-msgid "Mix Mode"
-msgstr "Mischmodus"
-
-
-msgid "Replace"
-msgstr "Ersetzen"
-
-
-msgid "Offset"
-msgstr "Versatz"
-
-
-msgid "Add"
-msgstr "Hinzufügen"
-
-
-msgid "Subtract"
-msgstr "Subtrahieren"
-
-
-msgid "Multiply"
-msgstr "Multiplizieren"
 
 
 msgid "Strips"
@@ -648,6 +624,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Methode zum Kombinieren des Ergebnisses von aktiven Aktionen mit dem Ergebnis des NLA-Stapels"
 
 
+msgid "Replace"
+msgstr "Ersetzen"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Die Streifenwerte ersetzen die akkumulierten Ergebnisse um den durch den Einfluss festgelegten Betrag"
 
@@ -660,12 +640,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Die Streifenwerte werden mit akkumulierten Ergebnissen kombiniert, indem Addition, Multiplikation oder Quaternion-Mathematik entsprechend dem Kanaltyp verwendet werden"
 
 
+msgid "Add"
+msgstr "Hinzufügen"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Das gewichtete Ergebnis des Streifens wird zu den akkumulierten Ergebnissen addiert"
 
 
+msgid "Subtract"
+msgstr "Subtrahieren"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Das gewichtete Ergebnis des Streifens wird aus den akkumulierten Ergebnissen entfernt"
+
+
+msgid "Multiply"
+msgstr "Multiplizieren"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -4167,6 +4159,10 @@ msgid "Override Background Image"
 msgstr "Hintergrundbild überschreiben"
 
 
+msgid "Offset"
+msgstr "Versatz"
+
+
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -5528,6 +5524,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Menge des Restfehlers in Bogenmaß für Abhängigkeiten, die auf die Orientierung wirken"
 
 
+msgid "Influence"
+msgstr "Einfluss"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Menge der Einflussbeschränkung auf die endgültige Lösung"
 
@@ -5858,6 +5858,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Minimaler Wert für Zielkanalspanne"
+
+
+msgid "Mix Mode"
+msgstr "Mischmodus"
 
 
 msgid "Before Original (Full)"
@@ -18896,20 +18900,32 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
 msgid "Clean Up"
 msgstr "Aufräumen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Pivot Point"
@@ -19066,18 +19082,6 @@ msgstr "Flächendaten"
 
 msgid "Merge"
 msgstr "Zusammenführen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Assets"
@@ -40518,10 +40522,6 @@ msgid "OpenVDB File"
 msgstr "OpenVDB Datei"
 
 
-msgid "Slot"
-msgstr "Position"
-
-
 msgid "Filters"
 msgstr "Filter"
 
@@ -42541,10 +42541,6 @@ msgstr "Schwenkachse (Y) umkehren"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Rollachse (Z) umkehren"
-
-
-msgid "Show Navigation Guide"
-msgstr "Navigation anzeigen"
 
 
 msgid "Navigation style in the viewport"
@@ -51277,14 +51273,6 @@ msgid "Only Axis Aligned"
 msgstr "Nur Achsen ausgerichtet"
 
 
-msgid "Keyframes Before"
-msgstr "Schlüsselbild zuvor"
-
-
-msgid "Keyframes After"
-msgstr "Schlüsselbild danach"
-
-
 msgid "Stroke Thickness"
 msgstr "Strichdicke"
 
@@ -51335,6 +51323,14 @@ msgstr "Ebene in ausgewählte kopieren"
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
 msgstr "Alle Ebenen in ausgewählte Ebenen kopieren"
+
+
+msgid "Keyframes Before"
+msgstr "Schlüsselbild zuvor"
+
+
+msgid "Keyframes After"
+msgstr "Schlüsselbild danach"
 
 
 msgid "Interpolation U"
@@ -55892,6 +55888,10 @@ msgid "Select ID"
 msgstr "ID Auswählen"
 
 
+msgid "Create"
+msgstr "Erstellen"
+
+
 msgid "Display channel regardless of object selection"
 msgstr "Anzeigekanal unabhängig von Objektauswahl"
 
@@ -56002,10 +56002,6 @@ msgstr "Aktives Objekt ist kein ausgewählter Anker"
 
 msgid "Separated bones"
 msgstr "Getrennte Knochen"
-
-
-msgid "Create"
-msgstr "Erstellen"
 
 
 msgid "Cancel"

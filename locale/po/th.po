@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -168,26 +168,6 @@ msgstr "ขยาย"
 
 msgid "Action Groups"
 msgstr "กลุ่มการกระทำ"
-
-
-msgid "Mix Mode"
-msgstr "โหมดผสม"
-
-
-msgid "Replace"
-msgstr "แทนที่"
-
-
-msgid "Add"
-msgstr "เพิ่ม"
-
-
-msgid "Subtract"
-msgstr "ลบ"
-
-
-msgid "Multiply"
-msgstr "คูณ"
 
 
 msgctxt "ID"
@@ -379,6 +359,22 @@ msgstr "ล่าง"
 
 msgid "Action"
 msgstr "กระทำ"
+
+
+msgid "Replace"
+msgstr "แทนที่"
+
+
+msgid "Add"
+msgstr "เพิ่ม"
+
+
+msgid "Subtract"
+msgstr "ลบ"
+
+
+msgid "Multiply"
+msgstr "คูณ"
 
 
 msgid "End Frame"
@@ -788,6 +784,10 @@ msgstr "แคชการปรับเปลี่ยน"
 
 msgid "Armature"
 msgstr "โครงร่าง"
+
+
+msgid "Mix Mode"
+msgstr "โหมดผสม"
 
 
 msgid "Rotation X"
@@ -1864,6 +1864,10 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Text"
+msgstr "ช้อความ"
+
+
 msgid "Metaball"
 msgstr "เมตาบอล"
 
@@ -1942,10 +1946,6 @@ msgstr "ข้อมูลด้าน"
 
 msgid "Merge"
 msgstr "ผสาน"
-
-
-msgid "Text"
-msgstr "ช้อความ"
 
 
 msgid "Zoom"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -61,6 +61,10 @@ msgstr "KÇD'ler Koleksiyonu"
 
 msgid "F-Curves"
 msgstr "F-Eğrileri"
+
+
+msgid "Slot"
+msgstr "Yuva"
 
 
 msgid "Action F-Curves"
@@ -245,34 +249,6 @@ msgstr "Eylem Grupları"
 
 msgid "Collection of action groups"
 msgstr "Eylem grupları koleksiyonu"
-
-
-msgid "Influence"
-msgstr "Etkilemek"
-
-
-msgid "Mix Mode"
-msgstr "Karıştırma Kipi"
-
-
-msgid "Replace"
-msgstr "Değiştir"
-
-
-msgid "Offset"
-msgstr "Ofset"
-
-
-msgid "Add"
-msgstr "Topla"
-
-
-msgid "Subtract"
-msgstr "Çıkar"
-
-
-msgid "Multiply"
-msgstr "Çarp"
 
 
 msgid "Strips"
@@ -818,6 +794,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Active Action'ın sonucunu NLA yığınının sonucuyla birleştirmek için kullanılan yöntem"
 
 
+msgid "Replace"
+msgstr "Değiştir"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Şerit değerleri, etki tarafından belirtilen miktarda birikmiş sonuçları değiştirir"
 
@@ -830,12 +810,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Şerit değerleri, kanal türüne göre toplama, çarpma veya dörtlü matematiğinin uygun şekilde kullanılmasıyla birikmiş sonuçlarla birleştirilir"
 
 
+msgid "Add"
+msgstr "Topla"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Şeridin ağırlıklı sonucu, toplanan sonuçlara eklenir"
 
 
+msgid "Subtract"
+msgstr "Çıkar"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Şeridin ağırlıklı sonucu, birikmiş sonuçlardan kaldırılır"
+
+
+msgid "Multiply"
+msgstr "Çarp"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5335,6 +5327,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "Yerel bir geçersiz kılma kamerasında, bu arka plan görüntüsünün bağlı referans kameradan gelip gelmediği veya geçersiz kılmaya yerel olup olmadığı"
 
 
+msgid "Offset"
+msgstr "Ofset"
+
+
 msgid "Rotation"
 msgstr "Döndürme"
 
@@ -6876,6 +6872,10 @@ msgid "Rotation error"
 msgstr "Döndürme hatası"
 
 
+msgid "Influence"
+msgstr "Etkilemek"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Kısıtlamanın nihai çözüm üzerindeki etki miktarı"
 
@@ -7038,6 +7038,10 @@ msgstr "Asgari"
 
 msgid "Minimum value for target channel range"
 msgstr "Hedef kanal aralığı için minimum değer"
+
+
+msgid "Mix Mode"
+msgstr "Karıştırma Kipi"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -29246,12 +29250,28 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Metaball"
-msgstr "Metabol"
-
-
 msgid "Show/Hide"
 msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Metaball"
+msgstr "Metabol"
 
 
 msgid "Names"
@@ -29260,10 +29280,6 @@ msgstr "Adlar"
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
 
 
 msgid "Pivot Point"
@@ -29464,18 +29480,6 @@ msgstr "Yüz Gücünü Ayarla"
 
 msgid "Merge"
 msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Text"
-msgstr "Metin"
 
 
 msgid "Keyframe Insert Pie"
@@ -46835,11 +46839,6 @@ msgstr "Eski Poz Kütüphanesini Dönüştür"
 msgctxt "Operator"
 msgid "Copy Pose as Asset"
 msgstr "Pozu Varlık Olarak Kopyala"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Poz Varlığı Oluştur"
 
 
 msgctxt "Operator"
@@ -79198,6 +79197,14 @@ msgid "Transform Orientations"
 msgstr "Dönüştürme Yönlendirmeleri"
 
 
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
+
+
 msgid "Stroke Placement"
 msgstr "İnme Yerleşimi"
 
@@ -79220,14 +79227,6 @@ msgstr "Stereoskopi"
 
 msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
-
-
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
 
 
 msgid "Auto-Masking"
@@ -79557,10 +79556,6 @@ msgstr "Metin Kutuları"
 
 msgid "OpenVDB File"
 msgstr "OpenVDB Dosyası"
-
-
-msgid "Slot"
-msgstr "Yuva"
 
 
 msgid "Create Pose Asset"
@@ -82936,10 +82931,6 @@ msgstr "Ters Döndürme (Z) Eksenini"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "3D Mouse'un kaydırma için genel hassasiyeti"
-
-
-msgid "Show Navigation Guide"
-msgstr "Gezinme Rehberini Göster"
 
 
 msgid "Display the center and axis during rotation"
@@ -103497,6 +103488,11 @@ msgstr "Pozu Ters Çevir'i Uygula"
 
 
 msgctxt "Operator"
+msgid "Remove Selected Bones"
+msgstr "Seçili Kemikleri Kaldır"
+
+
+msgctxt "Operator"
 msgid "Blend Pose"
 msgstr "Harmanlama Pozu"
 
@@ -103504,10 +103500,6 @@ msgstr "Harmanlama Pozu"
 msgctxt "Operator"
 msgid "Blend Pose Flipped"
 msgstr "Harman Pozu Ters Çevrildi"
-
-
-msgid "Action %s marked Fake User to prevent loss"
-msgstr "Eylem %s, kaybı önlemek için Sahte Kullanıcı olarak işaretlendi"
 
 
 msgid "Pasted %d assets"
@@ -103522,24 +103514,16 @@ msgid "Converted %d poses to pose assets"
 msgstr "%d pozu poz varlıklarına dönüştürdü"
 
 
-msgid "An active armature object in pose mode is needed"
-msgstr "Poz modunda etkin bir armatür nesnesine ihtiyaç vardır"
-
-
-msgid "Asset Browser must be set to the Current File library"
-msgstr "Varlık Tarayıcısı Geçerli Dosya kitaplığına ayarlanmalıdır"
-
-
-msgid "No keyframes were found for this pose"
-msgstr "Bu poz için hiçbir anahtar kare bulunamadı"
-
-
 msgid "No animation data found to create asset from"
 msgstr "Varlık oluşturmak için animasyon verisi bulunamadı"
 
 
 msgid "Current editor is not an asset browser"
 msgstr "Mevcut düzenleyici bir varlık tarayıcısı değildir"
+
+
+msgid "Asset Browser must be set to the Current File library"
+msgstr "Varlık Tarayıcısı Geçerli Dosya kitaplığına ayarlanmalıdır"
 
 
 msgid "Clipboard is empty"
@@ -105279,11 +105263,6 @@ msgstr "Seçili Kemikleri Ata"
 
 
 msgctxt "Operator"
-msgid "Remove Selected Bones"
-msgstr "Seçili Kemikleri Kaldır"
-
-
-msgctxt "Operator"
 msgid "Deselect Bones"
 msgstr "Kemikleri Seçimden Çıkar"
 
@@ -105530,14 +105509,6 @@ msgid "Only Axis Aligned"
 msgstr "Sadece Eksen Hizalı"
 
 
-msgid "Keyframes Before"
-msgstr "Anahtar Kareler Öncesi"
-
-
-msgid "Keyframes After"
-msgstr "Anahtar Kareler Sonrası"
-
-
 msgid "Stroke Thickness"
 msgstr "Darbe Kalınlığı"
 
@@ -105593,6 +105564,14 @@ msgstr "Tüm Katmanları Seçili Katmanlara Kopyala"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "Grubu Sil"
+
+
+msgid "Keyframes Before"
+msgstr "Anahtar Kareler Öncesi"
+
+
+msgid "Keyframes After"
+msgstr "Anahtar Kareler Sonrası"
 
 
 msgid "Interpolation U"
@@ -113373,6 +113352,18 @@ msgid "Workbench"
 msgstr "Çalışma tezgahı"
 
 
+msgid "Create"
+msgstr "Yaratmak"
+
+
+msgid "Failed to load asset library"
+msgstr "Varlık kütüphanesi yüklenemedi"
+
+
+msgid "Asset blend file is not editable"
+msgstr "Varlık karışım dosyası düzenlenemez"
+
+
 msgid "NLA Strip Controls"
 msgstr "NLA Şerit Kontrolleri"
 
@@ -113761,10 +113752,6 @@ msgstr "Ayrılmış kemikler"
 
 msgid "Unselectable bone in chain"
 msgstr "Zincirdeki seçilemeyen kemik"
-
-
-msgid "Create"
-msgstr "Yaratmak"
 
 
 msgid "Bone collection with index %d not found on Armature %s"
@@ -114343,10 +114330,6 @@ msgid "The object has only one layer"
 msgstr "Nesnenin yalnızca bir katmanı var"
 
 
-msgid "Active layer is locked or hidden"
-msgstr "Etkin katman kilitli veya gizli"
-
-
 msgid "No Grease Pencil frame to draw on"
 msgstr "Üzerine çizim yapmak için Grease Pencil çerçevesi yok"
 
@@ -114389,6 +114372,10 @@ msgstr "Tüm Çizgi Sanatı nesneleri artık pişirmelerden temizlendi"
 
 msgid "Baked strokes are cleared"
 msgstr "Pişmiş vuruşlar temizlendi"
+
+
+msgid "Active layer is locked or hidden"
+msgstr "Etkin katman kilitli veya gizli"
 
 
 msgid "Active Vertex Group is locked"
@@ -117710,10 +117697,6 @@ msgid "Unable to activate brush, wrong object mode"
 msgstr "Fırça etkinleştirilemiyor, yanlış nesne modu"
 
 
-msgid "Failed to load asset library"
-msgstr "Varlık kütüphanesi yüklenemedi"
-
-
 msgid "Unable to activate just-saved brush asset"
 msgstr "Az önce kaydedilen fırça varlığı etkinleştirilemiyor"
 
@@ -117732,10 +117715,6 @@ msgstr "Varlık kütüphanesi düzenlenemez"
 
 msgid "Asset file is not editable"
 msgstr "Varlık dosyası düzenlenemez"
-
-
-msgid "Asset blend file is not editable"
-msgstr "Varlık karışım dosyası düzenlenemez"
 
 
 msgid "Original surface mesh is empty"
@@ -118876,10 +118855,6 @@ msgstr "Hiçbir görüntü değiştirilmedi"
 
 msgid "Images cannot be copied while rendering"
 msgstr "Görüntüler oluşturulurken kopyalanamaz"
-
-
-msgid "Packing movies or image sequences not supported"
-msgstr "Film veya görüntü dizilerinin paketlenmesi desteklenmiyor"
 
 
 msgid "Image is not editable"
@@ -125907,14 +125882,6 @@ msgstr "Parlaklık Tonu"
 
 msgid "Controls the transparency of the surface, with 1.0 fully opaque"
 msgstr "Yüzeyin şeffaflığını kontrol eder, 1.0 tam opak"
-
-
-msgid "Scattering radius to use for subsurface component (multiplied with Scale)"
-msgstr "Yeraltı bileşeni için kullanılacak saçılma yarıçapı (Ölçek ile çarpılır)"
-
-
-msgid "Scale of the subsurface scattering (multiplied with Radius)"
-msgstr "Yeraltı saçılmasının ölçeği (Yarıçap ile çarpılır)"
 
 
 msgid "Controls the tangent direction for anisotropy"

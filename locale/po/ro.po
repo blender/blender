@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -241,26 +241,6 @@ msgstr "Grupuri de acțiune"
 
 msgid "Collection of action groups"
 msgstr "Colecție de grupuri de acțiune"
-
-
-msgid "Replace"
-msgstr "Înlocuire"
-
-
-msgid "Offset"
-msgstr "Decalaj"
-
-
-msgid "Add"
-msgstr "Adăugare"
-
-
-msgid "Subtract"
-msgstr "Scădere"
-
-
-msgid "Multiply"
-msgstr "Înmulțire"
 
 
 msgid "Action Pose Markers"
@@ -546,6 +526,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda folosită pentru combinarea rezultatului Combinării Acțiuni cu rezultatul stack-ului NLA"
 
 
+msgid "Replace"
+msgstr "Înlocuire"
+
+
 msgid "Combine"
 msgstr "Combinare"
 
@@ -554,12 +538,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Valorile benzii sunt combinate cu rezultatele acumulate utilizând în mod corespunzător adunarea, multiplicarea sau matematica cuaternară, pe baza tipului de canal"
 
 
+msgid "Add"
+msgstr "Adăugare"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Rezultatul ponderat al benzii se adaugă la rezultatele acumulate"
 
 
+msgid "Subtract"
+msgstr "Scădere"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Rezultatul ponderat al benzii este eliminat din rezultate acumulate"
+
+
+msgid "Multiply"
+msgstr "Înmulțire"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1794,6 +1790,10 @@ msgstr "Colecție de căi ale obiectelor"
 
 msgid "Image"
 msgstr "Imagine"
+
+
+msgid "Offset"
+msgstr "Decalaj"
 
 
 msgid "Rotation"

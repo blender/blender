@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
-"PO-Revision-Date: 2025-02-02 08:56+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
+"PO-Revision-Date: 2025-02-04 16:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -81,6 +81,10 @@ msgstr "Grupos de curvas-f"
 
 msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
 msgstr "Grupos de curvas-f para propósitos de visualización en, por ejemplo, la planilla de tiempos y el editor de curvas"
+
+
+msgid "Slot"
+msgstr "Contenedor"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -287,62 +291,6 @@ msgid "Action Layer"
 msgstr "Capa de la acción"
 
 
-msgid "Influence"
-msgstr "Influencia"
-
-
-msgid "How much of this layer is used when blending into the lower layers"
-msgstr "En qué medida será usada esta capa, al fundirla con las capas de abajo"
-
-
-msgid "Mix Mode"
-msgstr "Modo de mezcla"
-
-
-msgid "How animation of this layer is blended into the lower layers"
-msgstr "Cómo se fundirá la animación de esta capa con las capas de abajo"
-
-
-msgid "Replace"
-msgstr "Reemplazar"
-
-
-msgid "Channels in this layer override the same channels from underlying layers"
-msgstr "Los canales de esta capa sobrescribirán a los canales correspondientes de las capas de abajo"
-
-
-msgid "Offset"
-msgstr "Desplazamiento"
-
-
-msgid "Channels in this layer are added to underlying layers as sequential operations"
-msgstr "Los canales de esta capa se adicionarán a los de las capas de abajo, como operaciones secuenciales"
-
-
-msgid "Add"
-msgstr "Adicionar"
-
-
-msgid "Channels in this layer are added to underlying layers on a per-channel basis"
-msgstr "Los canales de esta capa se adicionarán a los de las capas de abajo, canal a canal"
-
-
-msgid "Subtract"
-msgstr "Sustraer"
-
-
-msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
-msgstr "Los canales de esta capa se sustraerán de los de las capas de abajo, canal a canal"
-
-
-msgid "Multiply"
-msgstr "Multiplicar"
-
-
-msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
-msgstr "Los canales de esta capa se multiplicarán por los de las capas de abajo, canal a canal"
-
-
 msgid "Strips"
 msgstr "Clips"
 
@@ -442,6 +390,10 @@ msgstr "Estado expandido del contenedor"
 msgctxt "ID"
 msgid "Target ID Type"
 msgstr "Tipo de ID objetivo"
+
+
+msgid "Type of data-block that this slot is intended to animate; can be set when 'UNSPECIFIED' but is otherwise read-only"
+msgstr "Tipo de bloque de datos que este contenedor está destinado a animar; podrá especificarse cuando esté como 'No especificado', en caso contrario será de sólo lectura"
 
 
 msgctxt "ID"
@@ -996,6 +948,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Método usado para combinar el resultado de la acción activa con el resultado de la lista de ANL"
 
 
+msgid "Replace"
+msgstr "Reemplazar"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Los valores del clip reemplazan los resultados acumulados en la magnitud especificada por la influencia"
 
@@ -1008,12 +964,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Los valores del clip son combinados con los resultados acumulados, usando adición, multiplicación o matemática de cuaternios, según corresponda por el tipo de canal"
 
 
+msgid "Add"
+msgstr "Adicionar"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "El resultado ponderado del clip es sumado a los resultados acumulados"
 
 
+msgid "Subtract"
+msgstr "Sustraer"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "El resultado ponderado del clip es restado de los resultados acumulados"
+
+
+msgid "Multiply"
+msgstr "Multiplicar"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5872,6 +5840,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "En una cámara con una redefinición local, define si esta imagen de fondo proviene de la referencia externa o es local de la redefinición"
 
 
+msgid "Offset"
+msgstr "Desplazamiento"
+
+
 msgid "Rotation"
 msgstr "Rotación"
 
@@ -7537,6 +7509,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Magnitud del error residual en radianes para las restricciones que actúan sobre la orientacion"
 
 
+msgid "Influence"
+msgstr "Influencia"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Magnitud de la influencia que la restricción ejercerá sobre la solución final"
 
@@ -7927,6 +7903,10 @@ msgstr "Mínimo"
 
 msgid "Minimum value for target channel range"
 msgstr "Valor mínimo del rango del canal del objetivo"
+
+
+msgid "Mix Mode"
+msgstr "Modo de mezcla"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -25971,6 +25951,10 @@ msgid "Display the object's name"
 msgstr "Muestra el nombre del objeto"
 
 
+msgid "Solo Active Shape Key"
+msgstr "Sólo forma clave activa"
+
+
 msgid "Only show the active shape key at full value"
 msgstr "Muestra únicamente la forma clave activa, a máxima intensidad"
 
@@ -29367,14 +29351,6 @@ msgstr "Comunidad"
 
 msgid "Maintained by community developers"
 msgstr "Mantenidos por desarrolladores de la comunidad"
-
-
-msgid "Testing"
-msgstr "A prueba"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Scripts recientemente contribuidos (excluidos de las versiones lanzadas)"
 
 
 msgid "Addon Tags"
@@ -34305,12 +34281,28 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Show/Hide"
 msgstr "Mostrar / Ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Names"
@@ -34319,10 +34311,6 @@ msgstr "Nombres"
 
 msgid "Bone Roll"
 msgstr "Giro de huesos"
-
-
-msgid "Clean Up"
-msgstr "Limpiar"
 
 
 msgid "Pivot Point"
@@ -34523,18 +34511,6 @@ msgstr "Definir intensidad de caras"
 
 msgid "Merge"
 msgstr "Fusionar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Text"
-msgstr "Texto"
 
 
 msgid "Keyframe Insert Pie"
@@ -44490,12 +44466,28 @@ msgid "Create matte based on differences in color channels"
 msgstr "Permite crear un mate basado en las diferencias en los canales de color"
 
 
+msgid "RGB (Red, Green, Blue) color space"
+msgstr "Espacio de color RVA (Rojo, Verde, Azul)"
+
+
+msgid "HSV (Hue, Saturation, Value) color space"
+msgstr "Espacio de color TSV (Tono, Saturación, Valor)"
+
+
 msgid "YUV"
 msgstr "YUV"
 
 
+msgid "YUV (Y - luma, U V - chroma) color space"
+msgstr "Espacio de color YUV (Y - luma, U V - croma)"
+
+
 msgid "YCbCr"
 msgstr "YCbCr"
+
+
+msgid "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"
+msgstr "Espacio de color YCbCr (Y - luma, Cb - croma como azul-luma, Cr - croma como rojo-luma)"
 
 
 msgctxt "Color"
@@ -45019,6 +45011,26 @@ msgstr "Permite obtener una imagen, a partir de la composición de canales de co
 
 msgid "Mode of color processing"
 msgstr "Modo de procesamiento del color"
+
+
+msgid "Use RGB (Red, Green, Blue) color processing"
+msgstr "Usar procesamiento de color RVA (Rojo, Verde, Azul)"
+
+
+msgid "Use HSV (Hue, Saturation, Value) color processing"
+msgstr "Usar procesamiento de color TSV (Tono, Saturación, Valor)"
+
+
+msgid "Use HSL (Hue, Saturation, Lightness) color processing"
+msgstr "Usar procesamiento de color TSL (Tono, Saturación, Luminosidad)"
+
+
+msgid "Use YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color processing"
+msgstr "Usar procesamiento de color YCbCr (Y - luma, Cb - croma como azul-luma, Cr - croma como rojo-luma)"
+
+
+msgid "Use YUV (Y - luma, U V - chroma) color processing"
+msgstr "Usar procesamiento de color YUV (Y - luma, U V - croma)"
 
 
 msgid "Color space used for YCbCrA processing"
@@ -46948,16 +46960,36 @@ msgid "Use relative (fraction of input image size) values to define translation"
 msgstr "Usar valores relativos (como fracción del tamaño de la imagen original) para definir la traslación"
 
 
+msgid "Repeats image on a specific axis"
+msgstr "Repite la imagen en un eje específico"
+
+
+msgid "No repeating"
+msgstr "No repetir"
+
+
 msgid "X Axis"
 msgstr "Eje X"
+
+
+msgid "Repeats on the X axis"
+msgstr "Repetir en el eje X"
 
 
 msgid "Y Axis"
 msgstr "Eje Y"
 
 
+msgid "Repeats on the Y axis"
+msgstr "Repetir en el eje Y"
+
+
 msgid "Both Axes"
 msgstr "Ambos ejes"
+
+
+msgid "Repeats on both axes"
+msgstr "Repetir en ambos ejes"
 
 
 msgid "Map values to colors with the use of a gradient"
@@ -54286,6 +54318,19 @@ msgid "Parent Node Tree"
 msgstr "Árbol de nodos superior"
 
 
+msgid "Activate a specific compositor viewer node using 1,2,..,9 keys"
+msgstr "Activa un nodo Visor específico usando las teclas 1,2,..,9"
+
+
+msgctxt "Operator"
+msgid "Fast Preview"
+msgstr "Previsualización rápida"
+
+
+msgid "Create a compositor viewer shortcut for the selected node by pressing ctrl+1,2,..9"
+msgstr "Crea un atajo para un nodo Visor en el compositor para el nodo seleccionado, presionando ctrl+1,2,..9"
+
+
 msgctxt "Operator"
 msgid "Add Modifier"
 msgstr "Agregar modificador"
@@ -54598,11 +54643,6 @@ msgstr "Convertir biblioteca de poses antigua"
 msgctxt "Operator"
 msgid "Copy Pose as Asset"
 msgstr "Copiar pose como recurso"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Crear recurso de pose"
 
 
 msgctxt "Operator"
@@ -71588,6 +71628,15 @@ msgid "Add a collection info node to the current node editor"
 msgstr "Agrega un nodo de información de colección al editor de nodos actual"
 
 
+msgctxt "Operator"
+msgid "Add Color"
+msgstr "Agregar color"
+
+
+msgid "Add a color node to the current node editor"
+msgstr "Agrega un nodo color al editor de nodos actual"
+
+
 msgid "Source color"
 msgstr "Color original"
 
@@ -71602,6 +71651,10 @@ msgstr "El color original tiene su gama corregido"
 
 msgid "Has Alpha"
 msgstr "Tiene alfa"
+
+
+msgid "The source color contains an Alpha component"
+msgstr "El color de origen contiene un componente Alfa"
 
 
 msgctxt "Operator"
@@ -72958,6 +73011,14 @@ msgid "Set the boundaries for viewer operations"
 msgstr "Define límites para las operaciones en la vista"
 
 
+msgid "Viewer Index"
+msgstr "Identificador del visor"
+
+
+msgid "Index corresponding to the shortcut, e.g. number key 1 corresponds to index 1 etc.."
+msgstr "Identificador correspondiente al atajo, p.ej: el número 1 corresponderá al identificador 1, etc.."
+
+
 msgctxt "Operator"
 msgid "Add Object"
 msgstr "Agregar objeto"
@@ -73328,14 +73389,6 @@ msgstr "Tipo de objeto al cual convertir"
 
 msgid "Curve from Mesh or Text objects"
 msgstr "Curva a partir de mallas o textos"
-
-
-msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-msgstr "Malla a partir de curvas, superficies, metabolas, textos o nubes de puntos"
-
-
-msgid "Point Cloud from Mesh objects"
-msgstr "Nube de puntos a partir de mallas"
 
 
 msgid "Curves from evaluated curve data"
@@ -78461,10 +78514,6 @@ msgstr "Crea un recurso de pose para cada marcador de pose en la acción actual"
 
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "Crea un nuevo recurso de pose en el portapapeles, para ser pegado en el Explorador de recursos"
-
-
-msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
-msgstr "Crea una nueva acción que contendrá la pose de los huesos seleccionados y la marcará como un recurso. El recurso será almacenado en el archivo blend actual"
 
 
 msgid "Activate New Action"
@@ -89155,8 +89204,12 @@ msgid "Specify a custom scene meters per unit value"
 msgstr "Especificar un valor personalizado de metros por unidad de la escena"
 
 
+msgid "World Dome Light"
+msgstr "Bóveda de luz global"
+
+
 msgid "Convert the world material to a USD dome light. Currently works for simple materials, consisting of an environment texture connected to a background shader, with an optional vector multiply of the texture color"
-msgstr "Convierte el material del entorno a una luz de tipo cúpula de USD. Actualmente funciona para materiales simples, consiste en una textura de entorno conectada a un sombreador de fondo, con una multiplicación vectorial opcional para el color de la textura"
+msgstr "Convierte el material del entorno a una luz de tipo bóveda de USD. Actualmente funciona para materiales simples, consiste en una textura de entorno conectada a un sombreador de fondo, con una multiplicación vectorial opcional para el color de la textura"
 
 
 msgid "Namespace"
@@ -89509,7 +89562,7 @@ msgstr "Agregar todos los objetos importados a una nueva colección"
 
 
 msgid "Convert the first discovered USD dome light to a world background shader"
-msgstr "Convierte la primera luz de tipo cúpula de USD detectada a un sombreador de entorno"
+msgstr "Convierte la primera luz de tipo bóveda de USD detectada a un sombreador de entorno"
 
 
 msgid "Import All Materials"
@@ -90727,6 +90780,14 @@ msgid "Transform Orientations"
 msgstr "Orientación de transformación"
 
 
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
 msgid "Stroke Placement"
 msgstr "Ubicación del trazo"
 
@@ -90755,12 +90816,12 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
+msgid "glTF"
+msgstr "glTF"
 
 
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
 
 
 msgid "Auto-Masking"
@@ -90781,14 +90842,6 @@ msgstr "Escala expandir/contraer curvas"
 
 msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
 
 
 msgid "VR"
@@ -91131,10 +91184,6 @@ msgstr "Marcos de texto"
 
 msgid "OpenVDB File"
 msgstr "Archivo OpenVDB"
-
-
-msgid "Slot"
-msgstr "Contenedor"
 
 
 msgid "Create Pose Asset"
@@ -94850,10 +94899,6 @@ msgstr "Invertir eje de balanceo (Z)"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Sensibilidad global del ratón 3D para desplazamientos"
-
-
-msgid "Show Navigation Guide"
-msgstr "Mostrar guía de navegación"
 
 
 msgid "Display the center and axis during rotation"
@@ -115018,6 +115063,16 @@ msgstr "Disminuir subdivisión"
 
 
 msgctxt "WindowManager"
+msgid "Change Radius"
+msgstr "Cambiar radio"
+
+
+msgctxt "WindowManager"
+msgid "Change Opacity"
+msgstr "Cambiar opacidad"
+
+
+msgctxt "WindowManager"
 msgid "Knife Tool Modal Map"
 msgstr "Herramienta Cortar (modal)"
 
@@ -116590,6 +116645,56 @@ msgid "Collide Extensions"
 msgstr "Colisionar extensiones"
 
 
+msgctxt "WindowManager"
+msgid "Generic Gizmo"
+msgstr "Manipulador genérico"
+
+
+msgctxt "WindowManager"
+msgid "Generic Gizmo Drag"
+msgstr "Manipulador genérico - Arrastrar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Gizmo Click Drag"
+msgstr "Manipulador genérico - Clic arrastrar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Gizmo Maybe Drag"
+msgstr "Manipulador genérico - Arrastrar quizás"
+
+
+msgctxt "WindowManager"
+msgid "Generic Gizmo Select"
+msgstr "Manipulador genérico - Seleccionar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Gizmo Tweak Modal Map"
+msgstr "Manipulador genérico - Retocar mapa modal"
+
+
+msgctxt "WindowManager"
+msgid "Enable Precision"
+msgstr "Activar precisión"
+
+
+msgctxt "WindowManager"
+msgid "Disable Precision"
+msgstr "Desactivar precisión"
+
+
+msgctxt "WindowManager"
+msgid "Enable Snap"
+msgstr "Activar adherencia"
+
+
+msgctxt "WindowManager"
+msgid "Disable Snap"
+msgstr "Desactivar adherencia"
+
+
 msgid "Checking for Extension Updates"
 msgstr "Comprobando actualizaciones de extensiones"
 
@@ -118059,6 +118164,11 @@ msgstr "Aplicar pose invertida"
 
 
 msgctxt "Operator"
+msgid "Remove Selected Bones"
+msgstr "Eliminar huesos seleccionados"
+
+
+msgctxt "Operator"
 msgid "Blend Pose"
 msgstr "Fundir pose"
 
@@ -118066,10 +118176,6 @@ msgstr "Fundir pose"
 msgctxt "Operator"
 msgid "Blend Pose Flipped"
 msgstr "Fundir pose (invertida)"
-
-
-msgid "Action %s marked Fake User to prevent loss"
-msgstr "La acción %s fue marcada con un usuario ficticio para prevenir su pérdida"
 
 
 msgid "Pose Asset copied, use Paste As New Asset in any Asset Browser to paste"
@@ -118088,18 +118194,6 @@ msgid "Converted %d poses to pose assets"
 msgstr "Se convirtieron %d poses a recursos de pose"
 
 
-msgid "An active armature object in pose mode is needed"
-msgstr "Se necesita un objeto de esqueleto activo en modo Pose"
-
-
-msgid "Asset Browser must be set to the Current File library"
-msgstr "El Explorador de recursos debe ser configurado para mostrar los recursos del Archivo actual"
-
-
-msgid "No keyframes were found for this pose"
-msgstr "No se encontraron fotogramas clave para esta pose"
-
-
 msgid "No animation data found to create asset from"
 msgstr "No se encontraron datos de animación a partir de los cuales crear el recurso"
 
@@ -118110,6 +118204,10 @@ msgstr "Se encontró un número no nulo de usuarios para el recurso, por favor r
 
 msgid "Current editor is not an asset browser"
 msgstr "El editor actual no es un Explorador de recursos"
+
+
+msgid "Asset Browser must be set to the Current File library"
+msgstr "El Explorador de recursos debe ser configurado para mostrar los recursos del Archivo actual"
 
 
 msgid "Clipboard is empty"
@@ -119186,6 +119284,22 @@ msgid "{:d} duplicates found in {:d} mesh(es), mirror may be incomplete"
 msgstr "Se encontraron {:d} duplicados en {:d} mallas, la simetría podría estar incompleta"
 
 
+msgid "Assigned shortcut {:d} to {:s}"
+msgstr "Atajo asignado {:d} a {:s}"
+
+
+msgid "Select a node to assign a shortcut"
+msgstr "Seleccionar un nodo para asignarle un atajo"
+
+
+msgid "Unable to set shortcut, selected node is not a viewer node or does not support viewing"
+msgstr "No fue posible establecer un atajo, el nodo seleccionado no es un nodo Visor o no soporta visualización"
+
+
+msgid "Shortcut {:d} is not assigned to a Viewer node yet"
+msgstr "El atajo {:d} aún no se encuentra asignado a un nodo Visor"
+
+
 msgid "Node has no attribute {:s}"
 msgstr "El nodo no contiene un atributo {:s}"
 
@@ -120096,11 +120210,6 @@ msgstr "Asignar huesos seleccionados"
 
 
 msgctxt "Operator"
-msgid "Remove Selected Bones"
-msgstr "Eliminar huesos seleccionados"
-
-
-msgctxt "Operator"
 msgid "Deselect Bones"
 msgstr "Deseleccionar huesos"
 
@@ -120351,26 +120460,6 @@ msgid "Only Axis Aligned"
 msgstr "Sólo alineada al eje"
 
 
-msgid "View in Render"
-msgstr "Ver en procesamiento"
-
-
-msgid "Thickness Scale"
-msgstr "Escala del grosor"
-
-
-msgid "Edit Line Color"
-msgstr "Color de edición de líneas"
-
-
-msgid "Keyframes Before"
-msgstr "Claves anteriores"
-
-
-msgid "Keyframes After"
-msgstr "Claves posteriores"
-
-
 msgid "Stroke Thickness"
 msgstr "Grosor del trazo"
 
@@ -120435,6 +120524,14 @@ msgstr "Copiar todas las capas a seleccionados"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "Borrar grupo"
+
+
+msgid "Keyframes Before"
+msgstr "Claves anteriores"
+
+
+msgid "Keyframes After"
+msgstr "Claves posteriores"
 
 
 msgid "Interpolation U"
@@ -129016,6 +129113,18 @@ msgid "Workbench"
 msgstr "Workbench"
 
 
+msgid "Create"
+msgstr "Crear"
+
+
+msgid "Failed to load asset library"
+msgstr "No fue posible cargar biblioteca de recursos"
+
+
+msgid "Asset blend file is not editable"
+msgstr "El archivo .blend del recurso no es editable"
+
+
 msgid "NLA Strip Controls"
 msgstr "Controles de clips de ANL"
 
@@ -129486,10 +129595,6 @@ msgid "Move to New Bone Collection"
 msgstr "Mover a nueva colección de huesos"
 
 
-msgid "Create"
-msgstr "Crear"
-
-
 msgid "Bone collection with index %d not found on Armature %s"
 msgstr "No se ha encontrado la colección de huesos con identificador %d en el esqueleto %s"
 
@@ -129664,6 +129769,18 @@ msgstr "Deslizar"
 
 msgid "Cancel"
 msgstr "Cancelar"
+
+
+msgid "Axis Constraint"
+msgstr "Restringir eje"
+
+
+msgid "Axis Only"
+msgstr "Sólo eje"
+
+
+msgid "Bone Visibility"
+msgstr "Visibilidad del hueso"
 
 
 msgid "No keyframes to slide between"
@@ -130179,14 +130296,6 @@ msgid "The object has only one layer"
 msgstr "El objeto contiene sólo una capa"
 
 
-msgid "No active Grease Pencil layer"
-msgstr "No hay ninguna capa activa de Grease Pencil"
-
-
-msgid "Active layer is locked or hidden"
-msgstr "La capa activa se encuentra bloqueada u oculta"
-
-
 msgid "No Grease Pencil frame to draw on"
 msgstr "No hay ningún fotograma de Grease Pencil sobre el cual dibujar"
 
@@ -130261,6 +130370,14 @@ msgstr "subdivisiones"
 
 msgid "Grab"
 msgstr "Mover"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "No hay ninguna capa activa de Grease Pencil"
+
+
+msgid "Active layer is locked or hidden"
+msgstr "La capa activa se encuentra bloqueada u oculta"
 
 
 msgid "Active Vertex Group is locked"
@@ -131464,6 +131581,14 @@ msgid "Show Hidden Region"
 msgstr "Mostrar región oculta"
 
 
+msgid "Active object has negative scale"
+msgstr "El objeto activo tiene una escala negativa"
+
+
+msgid "Active object has non-uniform scale"
+msgstr "El objeto activo tiene una escala no uniforme"
+
+
 msgid "Click to open the info editor"
 msgstr "Hacer clic para abrir el editor Info"
 
@@ -132220,6 +132345,10 @@ msgstr "Arte_lineal"
 
 msgid "Cannot create editmode armature"
 msgstr "No es posible crear un esqueleto en modo edición"
+
+
+msgid "Image objects can only be added in Object Mode"
+msgstr "Los objetos de tipo imagen sólo pueden ser agregados en modo Objeto"
 
 
 msgid "Converting some non-editable object/object data, enforcing 'Keep Original' option to True"
@@ -134084,10 +134213,6 @@ msgid "Unable to activate brush, wrong object mode"
 msgstr "No fue posible activar el pincel, tipo de modo incorrecto"
 
 
-msgid "Failed to load asset library"
-msgstr "No fue posible cargar biblioteca de recursos"
-
-
 msgid "Unable to activate just-saved brush asset"
 msgstr "No es posible activar el recurso de pincel recién guardado"
 
@@ -134106,10 +134231,6 @@ msgstr "La biblioteca de recursos no es editable"
 
 msgid "Asset file is not editable"
 msgstr "El archivo del recurso no es editable"
-
-
-msgid "Asset blend file is not editable"
-msgstr "El archivo .blend del recurso no es editable"
 
 
 msgid "Original surface mesh is empty"
@@ -135244,6 +135365,14 @@ msgid "Deleted %u drivers"
 msgstr "Se borraron %u controladores"
 
 
+msgid "Modify Sharpness"
+msgstr "Modificar definición"
+
+
+msgid "Modify Curve Bend"
+msgstr "Modificar flexión de curva"
+
+
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
 msgstr "Permite diezmar curvas-f especificando cuánto podrán desviarse de su forma original"
 
@@ -135374,10 +135503,6 @@ msgstr "No se ha cambiado ninguna imagen"
 
 msgid "Images cannot be copied while rendering"
 msgstr "No es posible copiar imágenes mientras se encuentra en curso el procesamiento"
-
-
-msgid "Packing movies or image sequences not supported"
-msgstr "No se soporta empacar películas o secuencias de imágenes"
 
 
 msgid "Image is not editable"
@@ -135754,6 +135879,14 @@ msgstr "No se pudo agregar nodo de máscara"
 
 msgid "Could not add material"
 msgstr "No se pudo agregar un material"
+
+
+msgid "Could not add a color node"
+msgstr "No se pudo agregar nodo de color"
+
+
+msgid "Could not find node color socket"
+msgstr "No se pudo encontrar conector de nodo de color"
 
 
 msgid ""
@@ -137328,6 +137461,14 @@ msgid "Gizmos hidden in this view"
 msgstr "Manipuladores ocultos en esta vista"
 
 
+msgid "Up/Down"
+msgstr "Arriba / Abajo"
+
+
+msgid "Free Look"
+msgstr "Vista libre"
+
+
 msgid "Cannot navigate a camera from an external library or non-editable override"
 msgstr "No es posible navegar una cámara de una biblioteca externa o de una redefinición no editable"
 
@@ -137342,6 +137483,22 @@ msgstr "No es posible volar desde un objeto con restricciones"
 
 msgid "Cannot dolly when the view offset is locked"
 msgstr "No es posible avanzar cuando el desplazamiento de la vista se encuentra bloqueado"
+
+
+msgid "Local Up/Down"
+msgstr "Arriba / Abajo local"
+
+
+msgid "Jump"
+msgstr "Saltar"
+
+
+msgid "Teleport"
+msgstr "Teletransportación"
+
+
+msgid "Z Axis Correction"
+msgstr "Corrección de eje Z"
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -137650,6 +137807,10 @@ msgstr "Empujar / Tirar: %s%s %s"
 
 msgid "Push/Pull: %.4f%s %s"
 msgstr "Empujar / Tirar: %.4f%s %s"
+
+
+msgid "Transform is set to only affect location"
+msgstr "La transformación está definida para afectar sólo a la posición"
 
 
 msgid "Rotation is not supported in the Dope Sheet Editor"
@@ -138760,10 +138921,6 @@ msgstr "Los nombres públicos de contenedores de acción no pueden estar vacíos
 
 msgid "Action slot identifiers should be at least three characters"
 msgstr "Los nombres públicos de contenedores de acción deben contener al menos tres caracteres"
-
-
-msgid "Action slot identifier set with unexpected prefix \"%s\" (expected \"%s\")."
-msgstr "Contenedor de acción renombrado con un prefijo \"%s\" inesperado (se esperaba \"%s\")."
 
 
 msgid "Only armature objects are supported"
@@ -144107,14 +144264,6 @@ msgid "Blend between diffuse surface and subsurface scattering. Typically should
 msgstr "Mezcla entre una superficie difusa o transluminiscente. Típicamente debería ser cero o uno (o completamente difusa o completamente transluminiscente)"
 
 
-msgid "Scattering radius to use for subsurface component (multiplied with Scale)"
-msgstr "Factor (multiplicado por la Escala) que determinará el radio de dispersión de la transluminiscencia, para cada canal de color"
-
-
-msgid "Scale of the subsurface scattering (multiplied with Radius)"
-msgstr "Escala de transluminiscencia (que, multiplicada por los factores de Radio, determinará el radio de dispersión en cada canal de color)"
-
-
 msgid "Index of Refraction (IOR) used for rays that enter the subsurface component"
 msgstr "Índice de refracción (IR) usado para los rayos que penetran al componente de transluminiscencia"
 
@@ -144731,11 +144880,11 @@ msgstr "Color de absorción"
 
 
 msgid "Blackbody Intensity"
-msgstr "Intensidad del cuerpo negro"
+msgstr "Emisión como cuerpo negro"
 
 
 msgid "Blackbody Tint"
-msgstr "Tinte del cuerpo negro"
+msgstr "Tinte de cuerpo negro"
 
 
 msgid "Temperature Attribute"
@@ -146210,10 +146359,6 @@ msgstr "Formato Scalable Vector Graphics (SVG) 1.1"
 
 msgid "Import SVG as curves"
 msgstr "Importar SVG como curvas"
-
-
-msgid "Subclasses Error"
-msgstr "Error de sub clases"
 
 
 msgid "UV Layout"

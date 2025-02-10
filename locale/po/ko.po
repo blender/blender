@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -61,6 +61,10 @@ msgstr "AOV 컬렉션"
 
 msgid "F-Curves"
 msgstr "F-커브"
+
+
+msgid "Slot"
+msgstr "슬롯"
 
 
 msgid "Action F-Curves"
@@ -241,34 +245,6 @@ msgstr "액션 그룹"
 
 msgid "Collection of action groups"
 msgstr "액션 그룹의 컬렉션"
-
-
-msgid "Influence"
-msgstr "영향"
-
-
-msgid "Mix Mode"
-msgstr "조합 모드"
-
-
-msgid "Replace"
-msgstr "바꾸기"
-
-
-msgid "Offset"
-msgstr "오프셋"
-
-
-msgid "Add"
-msgstr "추가"
-
-
-msgid "Subtract"
-msgstr "빼기"
-
-
-msgid "Multiply"
-msgstr "곱하기"
 
 
 msgid "Strips"
@@ -621,6 +597,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "NLA 스택의 결과와 함께 활성 액선의 결과를 컴포지팅하기 위해 사용된 방법"
 
 
+msgid "Replace"
+msgstr "바꾸기"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "스트립 값은 누적 결과를 영향력을 기반으로 지정된 양에 의해 대체합니다"
 
@@ -633,12 +613,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "스트립 값은 채널 유형에 따라 더하기, 곱하기 또는 쿼터니언 수학을 적절하게 사용하여 누적 결과와 결합됩니다"
 
 
+msgid "Add"
+msgstr "추가"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "스트립의 가중된 결과는 누적된 결과로 추가됨"
 
 
+msgid "Subtract"
+msgstr "빼기"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "스트립의 가중된 결과는 누적된 결과에서 제거됨"
+
+
+msgid "Multiply"
+msgstr "곱하기"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -3564,6 +3556,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "이미지의 레이어, 패스 및 프레임을 정의하는 매개 변수"
 
 
+msgid "Offset"
+msgstr "오프셋"
+
+
 msgid "Rotation"
 msgstr "회전"
 
@@ -4881,6 +4877,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "오리엔테이션에서 작동하는 제약들에 대해 라디안 단위의 예측 오차의 양"
 
 
+msgid "Influence"
+msgstr "영향"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "최종 솔루션에 미치는 영향력 제약의 양"
 
@@ -5215,6 +5215,10 @@ msgstr "최소치"
 
 msgid "Minimum value for target channel range"
 msgstr "대상 채널 범위에 대한 최소의 값"
+
+
+msgid "Mix Mode"
+msgstr "조합 모드"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -23902,12 +23906,28 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Show/Hide"
 msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Names"
@@ -23916,10 +23936,6 @@ msgstr "이름"
 
 msgid "Bone Roll"
 msgstr "본 롤"
-
-
-msgid "Clean Up"
-msgstr "정리"
 
 
 msgid "Pivot Point"
@@ -24084,18 +24100,6 @@ msgstr "페이스 강도를 설정"
 
 msgid "Merge"
 msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
 
 
 msgid "Basic"
@@ -55747,10 +55751,6 @@ msgid "Text Boxes"
 msgstr "텍스트 박스"
 
 
-msgid "Slot"
-msgstr "슬롯"
-
-
 msgid "Filters"
 msgstr "필터"
 
@@ -58347,10 +58347,6 @@ msgstr "반전 롤 (Z) 축"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "패닝에 대한 3D 마우스의 전반적인 감도"
-
-
-msgid "Show Navigation Guide"
-msgstr "네비게이션 가이드를 표시"
 
 
 msgid "Display the center and axis during rotation"
@@ -70243,14 +70239,6 @@ msgid "Interpolation Tilt"
 msgstr "보간 틸트"
 
 
-msgid "Keyframes Before"
-msgstr "키 프레임 이전"
-
-
-msgid "Keyframes After"
-msgstr "키 프레임 이후"
-
-
 msgid "Stroke Thickness"
 msgstr "스트로크 두께"
 
@@ -70272,6 +70260,14 @@ msgstr "모두 잠금"
 msgctxt "Operator"
 msgid "Merge Down"
 msgstr "아래로 병합"
+
+
+msgid "Keyframes Before"
+msgstr "키 프레임 이전"
+
+
+msgid "Keyframes After"
+msgstr "키 프레임 이후"
 
 
 msgid "Interpolation U"
