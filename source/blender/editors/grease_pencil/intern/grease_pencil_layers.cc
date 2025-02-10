@@ -891,9 +891,9 @@ static int grease_pencil_layer_mask_add_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    if (BLI_findstring(&active_layer.masks,
-                       mask_name,
-                       offsetof(GreasePencilLayerMask, layer_name)) != nullptr)
+    if (BLI_findstring_ptr(&active_layer.masks,
+                           mask_name,
+                           offsetof(GreasePencilLayerMask, layer_name)) != nullptr)
     {
       BKE_report(op->reports, RPT_ERROR, "Layer already added");
       return OPERATOR_CANCELLED;
