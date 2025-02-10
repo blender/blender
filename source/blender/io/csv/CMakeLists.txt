@@ -7,10 +7,6 @@ set(INC
   importer
   ../common
   ../../blenkernel
-  ../../bmesh
-  ../../editors/include
-  ../../makesrna
-  ../../windowmanager
 )
 
 set(INC_SYS
