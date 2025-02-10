@@ -11,7 +11,7 @@ buildbot:
     cuda11:
         version: '11.4.1'
     cuda12:
-        version: '12.1.1'
+        version: '12.8.0'
     hip:
         windows:
             version: '5.7.32000'
