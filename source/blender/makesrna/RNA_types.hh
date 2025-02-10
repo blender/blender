@@ -99,7 +99,7 @@ struct PointerRNA {
 extern const PointerRNA PointerRNA_NULL;
 
 struct PropertyPointerRNA {
-  PointerRNA ptr;
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
 };
 
@@ -107,10 +107,10 @@ struct PropertyPointerRNA {
  * Stored result of a RNA path lookup (as used by anim-system)
  */
 struct PathResolvedRNA {
-  PointerRNA ptr;
-  PropertyRNA *prop;
+  PointerRNA ptr = {};
+  PropertyRNA *prop = nullptr;
   /** -1 for non-array access. */
-  int prop_index;
+  int prop_index = -1;
 };
 
 /* Property */
