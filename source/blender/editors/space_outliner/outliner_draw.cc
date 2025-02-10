@@ -2810,7 +2810,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           case STRIP_TYPE_ADD:
           case STRIP_TYPE_SUB:
           case STRIP_TYPE_MUL:
-          case STRIP_TYPE_OVERDROP:
           case STRIP_TYPE_ALPHAOVER:
           case STRIP_TYPE_ALPHAUNDER:
           case STRIP_TYPE_COLORMIX:

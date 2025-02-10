@@ -790,7 +790,6 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
       {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
       {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
       {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-      {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
       {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
       {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", ""},
       {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},

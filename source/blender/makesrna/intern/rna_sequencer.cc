@@ -801,8 +801,6 @@ static StructRNA *rna_Strip_refine(PointerRNA *ptr)
       return &RNA_GammaCrossStrip;
     case STRIP_TYPE_MUL:
       return &RNA_MultiplyStrip;
-    case STRIP_TYPE_OVERDROP:
-      return &RNA_OverDropStrip;
     case STRIP_TYPE_MULTICAM:
       return &RNA_MulticamStrip;
     case STRIP_TYPE_ADJUSTMENT:
@@ -2018,7 +2016,6 @@ static const EnumPropertyItem blend_mode_items[] = {
     {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
     {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
     {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-    {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2087,7 +2084,6 @@ static void rna_def_strip(BlenderRNA *brna)
       {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
       {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
       {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-      {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
       {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
       {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", ""},
       {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
@@ -3621,7 +3617,6 @@ static EffectInfo def_effects[] = {
      rna_def_multicam,
      0},
     {"MultiplyStrip", "Multiply Strip", "Multiply Strip", nullptr, 2},
-    {"OverDropStrip", "Over Drop Strip", "Over Drop Strip", nullptr, 2},
     {"SpeedControlStrip",
      "SpeedControl Strip",
      "Sequence strip to control the speed of other strips",

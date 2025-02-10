@@ -363,7 +363,6 @@ static void color3ubv_from_seq(const Scene *curscene,
     case STRIP_TYPE_MUL:
     case STRIP_TYPE_ALPHAOVER:
     case STRIP_TYPE_ALPHAUNDER:
-    case STRIP_TYPE_OVERDROP:
     case STRIP_TYPE_GLOW:
     case STRIP_TYPE_MULTICAM:
     case STRIP_TYPE_ADJUSTMENT:
@@ -386,9 +385,6 @@ static void color3ubv_from_seq(const Scene *curscene,
       }
       else if (strip->type == STRIP_TYPE_ALPHAUNDER) {
         rgb_byte_set_hue_float_offset(r_col, 0.19);
-      }
-      else if (strip->type == STRIP_TYPE_OVERDROP) {
-        rgb_byte_set_hue_float_offset(r_col, 0.22);
       }
       else if (strip->type == STRIP_TYPE_COLORMIX) {
         rgb_byte_set_hue_float_offset(r_col, 0.25);

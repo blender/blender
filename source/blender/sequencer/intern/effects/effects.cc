@@ -211,9 +211,6 @@ SeqEffectHandle get_sequence_effect_impl(int strip_type)
     case STRIP_TYPE_ALPHAOVER:
       alpha_over_effect_get_handle(rval);
       break;
-    case STRIP_TYPE_OVERDROP:
-      over_drop_effect_get_handle(rval);
-      break;
     case STRIP_TYPE_ALPHAUNDER:
       alpha_under_effect_get_handle(rval);
       break;
