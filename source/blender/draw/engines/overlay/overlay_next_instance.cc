@@ -747,7 +747,7 @@ bool Instance::object_is_rendered_transparent(const Object *object, const State 
     return false;
   }
 
-  if (state.xray_enabled) {
+  if (!state.is_solid()) {
     return true;
   }
 
