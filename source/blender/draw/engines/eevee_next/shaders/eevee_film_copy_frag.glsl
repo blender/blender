@@ -16,8 +16,8 @@
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_film_copy_frag)
 
-#include "common_math_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 vec4 cryptomatte_false_color(float hash)
 {

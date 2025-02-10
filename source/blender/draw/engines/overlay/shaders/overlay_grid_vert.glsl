@@ -9,8 +9,8 @@
  * interpolation.
  */
 
-#include "common_math_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 void main()
 {

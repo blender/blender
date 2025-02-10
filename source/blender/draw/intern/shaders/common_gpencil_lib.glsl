@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "common_math_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #ifndef DRW_GPENCIL_INFO
 #  error Missing additional info draw_gpencil
@@ -239,7 +241,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     vec2 ss2 = gpencil_project_to_screenspace(ndc2, viewport_size);
     /* Screen-space Lines tangents. */
     float line_len;
-    vec2 line = safe_normalize_len(ss2 - ss1, line_len);
+    vec2 line = safe_normalize_and_get_length(ss2 - ss1, line_len);
     vec2 line_adj = safe_normalize((use_curr) ? (ss1 - ss_adj) : (ss_adj - ss2));
 
     float thickness = abs((use_curr) ? thickness1 : thickness2);

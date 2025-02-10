@@ -8,7 +8,7 @@
 
 #include "draw_view_info.hh"
 
-#include "common_math_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view_finalize)
 
