@@ -517,22 +517,6 @@ DEPS_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_ARCH: "yaml-cpp",
                                   },
             ),
-    Package(name="Pcre Library Devel",
-            sub_packages=(
-                Package(name="Pcre Library", is_mandatory=False,
-                        distro_package_names={DISTRO_ID_DEBIAN: ...,
-                                              DISTRO_ID_FEDORA: ...,
-                                              DISTRO_ID_SUSE: "libpcre1",  # this is... a dependency joke?
-                                              DISTRO_ID_ARCH: ...,
-                                              },
-                        ),
-            ),
-            distro_package_names={DISTRO_ID_DEBIAN: ...,
-                                  DISTRO_ID_FEDORA: "pcre-devel",  # Missing dependency of collada package?
-                                  DISTRO_ID_SUSE: "pcre-devel",  # Missing dependency of collada package?
-                                  DISTRO_ID_ARCH: ...,
-                                  },
-            ),
     Package(name="Deflate Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libdeflate-dev",
                                   DISTRO_ID_FEDORA: "libdeflate-devel",

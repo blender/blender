@@ -216,9 +216,7 @@ endif()
 
 if(WITH_OPENCOLLADA)
   find_package(OpenCOLLADA)
-  find_library(PCRE_LIBRARIES NAMES pcre HINTS ${LIBDIR}/opencollada/lib)
   find_library(XML2_LIBRARIES NAMES xml2 HINTS ${LIBDIR}/opencollada/lib)
-  print_found_status("PCRE" "${PCRE_LIBRARIES}")
   print_found_status("XML2" "${XML2_LIBRARIES}")
 endif()
 
