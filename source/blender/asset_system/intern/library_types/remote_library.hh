@@ -13,8 +13,11 @@
 namespace blender::asset_system {
 
 class RemoteAssetLibrary : public AssetLibrary {
+  std::string remote_url_;
+
  public:
-  RemoteAssetLibrary();
+  RemoteAssetLibrary(StringRef remote_url);
+  std::optional<AssetLibraryReference> library_reference() const override;
 };
 
 }  // namespace blender::asset_system

@@ -129,7 +129,7 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(StringRefNull remote
     return lib;
   }
 
-  std::unique_ptr<RemoteAssetLibrary> lib_uptr = std::make_unique<RemoteAssetLibrary>();
+  std::unique_ptr<RemoteAssetLibrary> lib_uptr = std::make_unique<RemoteAssetLibrary>(remote_url);
   AssetLibrary *lib = lib_uptr.get();
 
   remote_libraries_.add_new(remote_url, std::move(lib_uptr));

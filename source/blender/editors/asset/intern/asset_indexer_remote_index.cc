@@ -56,7 +56,7 @@ static std::optional<RemoteIndexAssetEntry> indexer_entry_from_asset_dictionary(
 
   /* 'id': name of the asset. Required string. */
   if (const std::optional<StringRef> name = dictionary.lookup_str("name")) {
-    name->copy(indexer_entry.datablock_info.name);
+    name->copy_utf8_truncated(indexer_entry.datablock_info.name);
   }
   else {
     *r_failure_reason = "could not read asset name, 'name' field not set";

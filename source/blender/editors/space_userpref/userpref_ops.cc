@@ -205,7 +205,8 @@ static int preferences_asset_library_add_exec(bContext *C, wmOperator *op)
   U.runtime.is_dirty = true;
 
   {
-    PointerRNA new_repo_ptr = RNA_pointer_create(nullptr, &RNA_UserAssetLibrary, new_library);
+    PointerRNA new_repo_ptr = RNA_pointer_create_discrete(
+        nullptr, &RNA_UserAssetLibrary, new_library);
     PointerRNA *pointers[] = {&new_repo_ptr};
 
     BKE_callback_exec(
@@ -247,12 +248,12 @@ static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
       RNA_enum_get(ptr, "type"));
   switch (library_type) {
     case bUserAssetLibraryAddType::Remote: {
-      uiItemR(layout, op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       break;
     }
     case bUserAssetLibraryAddType::Local: {
       BLI_assert_unreachable();
-      uiItemR(layout, op->ptr, "name", UI_ITEM_R_IMMEDIATE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "name", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       break;
     }
   }
