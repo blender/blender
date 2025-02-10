@@ -117,6 +117,8 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    */
   /* TODO support region zoom. */
   std::shared_ptr<int> custom_height_ = nullptr;
+  /** Scroll offset in items, also see #uiViewState.scroll_offset. Clamped before creating the
+   * button layout. */
   std::shared_ptr<int> scroll_value_ = nullptr;
 
   friend class AbstractTreeViewItem;
