@@ -2018,8 +2018,7 @@ void ED_vgroup_mirror(Object *ob,
                       int *r_totfail)
 {
   using namespace blender;
-  /* TODO: vgroup locking.
-   * TODO: face masking. */
+  /* TODO: vgroup locking. */
 
   const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
   int totmirr = 0, totfail = 0;
@@ -2109,8 +2108,8 @@ void ED_vgroup_mirror(Object *ob,
     }
     else {
       /* object mode / weight paint */
-      const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-
+      const bool use_sel = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
+                           0;
       if (me->deform_verts().is_empty()) {
         goto cleanup;
       }
@@ -2127,8 +2126,8 @@ void ED_vgroup_mirror(Object *ob,
           if ((vidx_mirr = mesh_get_x_mirror_vert(ob, nullptr, vidx, use_topology)) != -1) {
             if (vidx != vidx_mirr) {
               if (!BLI_BITMAP_TEST(vert_tag, vidx_mirr)) {
-                const bool sel = use_vert_sel ? select_vert[vidx] : true;
-                const bool sel_mirr = use_vert_sel ? select_vert[vidx_mirr] : true;
+                const bool sel = use_sel ? select_vert[vidx] : true;
+                const bool sel_mirr = use_sel ? select_vert[vidx_mirr] : true;
 
                 if (sel || sel_mirr) {
                   dvert_mirror_op(&dverts[vidx],
