@@ -936,13 +936,10 @@ static void GPENCIL_instance_free(void *instance)
   delete reinterpret_cast<GPENCIL_Instance *>(instance);
 }
 
-static const DrawEngineDataSize GPENCIL_data_size = DRW_VIEWPORT_DATA_SIZE(GPENCIL_Data);
-
 DrawEngineType draw_engine_gpencil_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("GpencilMode"),
-    /*vedata_size*/ &GPENCIL_data_size,
     /*engine_init*/ &GPENCIL_engine_init,
     /*engine_free*/ &GPENCIL_engine_free,
     /*instance_free*/ &GPENCIL_instance_free,

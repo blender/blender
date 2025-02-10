@@ -316,10 +316,6 @@ struct GPENCIL_Instance {
 
 struct GPENCIL_Data {
   void *engine_type; /* Required */
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
   struct GPENCIL_Instance *instance;
 
   char info[GPU_INFO_SIZE];

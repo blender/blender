@@ -531,10 +531,6 @@ using namespace blender;
 
 struct WORKBENCH_Data {
   DrawEngineType *engine_type;
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
   workbench::Instance *instance;
 
   char info[GPU_INFO_SIZE];
@@ -798,13 +794,10 @@ static void workbench_render_update_passes(RenderEngine *engine,
 
 extern "C" {
 
-static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
-
 DrawEngineType draw_engine_workbench = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("Workbench"),
-    /*vedata_size*/ &workbench_data_size,
     /*engine_init*/ &workbench_engine_init,
     /*engine_free*/ &workbench_engine_free,
     /*instance_free*/ &workbench_instance_free,

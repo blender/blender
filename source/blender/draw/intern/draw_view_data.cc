@@ -120,28 +120,12 @@ void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewpo
 static void draw_viewport_engines_data_clear(ViewportEngineData *data, bool clear_instance_data)
 {
   DrawEngineType *engine_type = data->engine_type->draw_engine;
-  const DrawEngineDataSize *data_size = engine_type->vedata_size;
-
-  for (int i = 0; data->fbl && i < data_size->fbl_len; i++) {
-    GPU_FRAMEBUFFER_FREE_SAFE(data->fbl->framebuffers[i]);
-  }
-  for (int i = 0; data->txl && i < data_size->txl_len; i++) {
-    GPU_TEXTURE_FREE_SAFE(data->txl->textures[i]);
-  }
-  for (int i = 0; data->stl && i < data_size->stl_len; i++) {
-    MEM_SAFE_FREE(data->stl->storage[i]);
-  }
 
   if (clear_instance_data && data->instance_data) {
     BLI_assert(engine_type->instance_free != nullptr);
     engine_type->instance_free(data->instance_data);
     data->instance_data = nullptr;
   }
-
-  MEM_SAFE_FREE(data->fbl);
-  MEM_SAFE_FREE(data->txl);
-  MEM_SAFE_FREE(data->psl);
-  MEM_SAFE_FREE(data->stl);
 
   if (data->text_draw_cache) {
     DRW_text_cache_destroy(data->text_draw_cache);
@@ -189,17 +173,6 @@ ViewportEngineData *DRW_view_data_engine_data_get_ensure(DRWViewData *view_data,
 {
   for (ViewportEngineData &engine : view_data->engines) {
     if (engine.engine_type->draw_engine == engine_type) {
-      if (engine.fbl == nullptr) {
-        const DrawEngineDataSize *data_size = engine_type->vedata_size;
-        engine.fbl = (FramebufferList *)MEM_calloc_arrayN(
-            data_size->fbl_len, sizeof(GPUFrameBuffer *), "FramebufferList");
-        engine.txl = (TextureList *)MEM_calloc_arrayN(
-            data_size->txl_len, sizeof(GPUTexture *), "TextureList");
-        engine.psl = (PassList *)MEM_calloc_arrayN(
-            data_size->psl_len, sizeof(DRWPass *), "PassList");
-        engine.stl = (StorageList *)MEM_calloc_arrayN(
-            data_size->stl_len, sizeof(void *), "StorageList");
-      }
       return &engine;
     }
   }

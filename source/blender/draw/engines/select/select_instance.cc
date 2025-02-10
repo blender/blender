@@ -25,11 +25,6 @@ using Instance = overlay::Instance;
 
 struct SELECT_NextData {
   void *engine_type;
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
-
   Instance *instance;
 };
 
@@ -83,13 +78,10 @@ static void SELECT_next_instance_free(void *instance_)
   delete instance;
 }
 
-static const DrawEngineDataSize SELECT_next_data_size = DRW_VIEWPORT_DATA_SIZE(SELECT_NextData);
-
 DrawEngineType draw_engine_select_next_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("Select-Next"),
-    /*vedata_size*/ &SELECT_next_data_size,
     /*engine_init*/ &SELECT_next_engine_init,
     /*engine_free*/ nullptr,
     /*instance_free*/ &SELECT_next_instance_free,

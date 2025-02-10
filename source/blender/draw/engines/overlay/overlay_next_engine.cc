@@ -96,13 +96,10 @@ static void OVERLAY_next_engine_free()
 /** \name Engine Type
  * \{ */
 
-static const DrawEngineDataSize overlay_data_size = DRW_VIEWPORT_DATA_SIZE(OVERLAY_Data);
-
 DrawEngineType draw_engine_overlay_next_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("Overlay"),
-    /*vedata_size*/ &overlay_data_size,
     /*engine_init*/ &OVERLAY_next_engine_init,
     /*engine_free*/ &OVERLAY_next_engine_free,
     /*instance_free*/ &OVERLAY_next_instance_free,

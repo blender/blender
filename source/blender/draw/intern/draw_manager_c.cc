@@ -880,9 +880,6 @@ static void drw_engines_init()
   DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     PROFILE_START(stime);
 
-    const DrawEngineDataSize *data_size = engine->vedata_size;
-    memset(data->psl->passes, 0, sizeof(*data->psl->passes) * data_size->psl_len);
-
     if (engine->engine_init) {
       engine->engine_init(data);
     }

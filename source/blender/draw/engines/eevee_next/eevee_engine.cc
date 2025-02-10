@@ -23,10 +23,6 @@ using namespace blender;
 
 struct EEVEE_Data {
   DrawEngineType *engine_type;
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
   eevee::Instance *instance;
 
   char info[GPU_INFO_SIZE];
@@ -187,15 +183,12 @@ static void eevee_render_update_passes(RenderEngine *engine, Scene *scene, ViewL
   eevee::Instance::update_passes(engine, scene, view_layer);
 }
 
-static const DrawEngineDataSize eevee_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);
-
 extern "C" {
 
 DrawEngineType draw_engine_eevee_next_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("EEVEE"),
-    /*vedata_size*/ &eevee_data_size,
     /*engine_init*/ &eevee_engine_init,
     /*engine_free*/ &eevee_engine_free,
     /*instance_free*/ &eevee_instance_free,

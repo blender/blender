@@ -46,10 +46,6 @@ struct SELECTID_Instance {
 
 struct SELECTID_Data {
   void *engine_type;
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
   SELECTID_Instance *instance;
 
   char info[GPU_INFO_SIZE];

@@ -62,34 +62,10 @@ struct BoundSphere {
   float center[3], radius;
 };
 
-/* declare members as empty (unused) */
-typedef char DRWViewportEmptyList;
-
-#define DRW_VIEWPORT_LIST_SIZE(list) \
-  (sizeof(list) == sizeof(DRWViewportEmptyList) ? 0 : (sizeof(list) / sizeof(void *)))
-
-/* Unused members must be either pass list or 'char *' when not used. */
-#define DRW_VIEWPORT_DATA_SIZE(ty) \
-  { \
-    DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->fbl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->txl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->psl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->stl)), \
-  }
-
-struct DrawEngineDataSize {
-  int fbl_len;
-  int txl_len;
-  int psl_len;
-  int stl_len;
-};
-
 struct DrawEngineType {
   DrawEngineType *next, *prev;
 
   char idname[32];
-
-  const DrawEngineDataSize *vedata_size;
 
   void (*engine_init)(void *vedata);
   void (*engine_free)();

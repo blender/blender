@@ -330,13 +330,10 @@ static void select_instance_free(void *instance)
 /** \name Engine Type
  * \{ */
 
-static const DrawEngineDataSize select_data_size = DRW_VIEWPORT_DATA_SIZE(SELECTID_Data);
-
 DrawEngineType draw_engine_select_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("Select ID"),
-    /*vedata_size*/ &select_data_size,
     /*engine_init*/ &select_engine_init,
     /*engine_free*/ &select_engine_free,
     /*instance_free*/ select_instance_free,
