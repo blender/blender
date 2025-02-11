@@ -453,9 +453,7 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
 #define ANIMDATA_HAS_DRIVERS(id) ((id)->adt && (id)->adt->drivers.first)
 
 /* quick macro to test if AnimData is usable for NLA */
-#define ANIMDATA_HAS_NLA(id) \
-  ((id)->adt && (id)->adt->nla_tracks.first && \
-   (!(id)->adt->action || (id)->adt->action->wrap().is_action_legacy()))
+#define ANIMDATA_HAS_NLA(id) ((id)->adt && (id)->adt->nla_tracks.first)
 
 /**
  * Quick macro to test for all three above usability tests, performing the appropriate provided
@@ -508,7 +506,8 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
             nlaOk \
           } \
           else if (!(ac->ads->filterflag & ADS_FILTER_NLA_NOACT) || \
-                   ANIMDATA_HAS_ACTION_LEGACY(id)) { \
+                   ANIMDATA_HAS_ACTION_LAYERED(id)) \
+          { \
             nlaOk \
           } \
         } \
