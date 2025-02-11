@@ -90,6 +90,7 @@ set(SRC
   intern/gpu_shader_log.cc
   intern/gpu_state.cc
   intern/gpu_storage_buffer.cc
+  intern/gpu_texture_pool.cc
   intern/gpu_texture.cc
   intern/gpu_uniform_buffer.cc
   intern/gpu_vertex_buffer.cc
@@ -122,6 +123,7 @@ set(SRC
   GPU_shader_shared.hh
   GPU_state.hh
   GPU_storage_buffer.hh
+  GPU_texture_pool.hh
   GPU_texture.hh
   GPU_uniform_buffer.hh
   GPU_vertex_buffer.hh

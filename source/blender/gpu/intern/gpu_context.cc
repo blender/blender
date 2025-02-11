@@ -65,6 +65,7 @@ Context::Context()
   thread_ = pthread_self();
   is_active_ = false;
   matrix_state = GPU_matrix_state_create();
+  texture_pool = new TexturePool();
 
   context_id = Context::context_counter;
   Context::context_counter++;
@@ -80,6 +81,7 @@ Context::~Context()
 
   GPU_matrix_state_discard(matrix_state);
   GPU_BATCH_DISCARD_SAFE(polyline_batch);
+  delete texture_pool;
   delete state_manager;
   delete imm;
 }

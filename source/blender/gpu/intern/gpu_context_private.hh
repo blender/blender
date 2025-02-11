@@ -14,6 +14,7 @@
 
 #include "GPU_batch.hh"
 #include "GPU_context.hh"
+#include "GPU_texture_pool.hh"
 
 #include "gpu_debug_private.hh"
 #include "gpu_framebuffer_private.hh"
@@ -66,6 +67,9 @@ class Context {
 
   /** Dummy triangle batch for polyline workaround. */
   Batch *polyline_batch = nullptr;
+
+  /** Texture pool used to recycle temporary texture (or render target) memory. */
+  TexturePool *texture_pool = nullptr;
 
  protected:
   /** Thread on which this context is active. */
