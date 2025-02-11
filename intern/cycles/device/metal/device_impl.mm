@@ -725,7 +725,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
      * pointer recalculation */
     mem.device_pointer = device_ptr(mmem.get());
 
-    if (metal_buffer.storageMode == MTLResourceStorageModeShared) {
+    if (metal_buffer.storageMode == MTLStorageModeShared) {
       /* Replace host pointer with our host allocation. */
 
       if (mem.host_pointer && mem.host_pointer != mmem->hostPtr) {
