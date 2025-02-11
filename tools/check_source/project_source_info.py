@@ -4,8 +4,10 @@
 
 
 __all__ = (
+    "cmake_dir_set",
     "build_info",
     "SOURCE_DIR",
+    "CMAKE_DIR",
 )
 
 
@@ -38,6 +40,19 @@ SOURCE_DIR = join(dirname(__file__), "..", "..")
 SOURCE_DIR = normpath(SOURCE_DIR)
 SOURCE_DIR = abspath(SOURCE_DIR)
 
+# copied from project_info.py
+CMAKE_DIR = "."
+
+
+def cmake_dir_set(cmake_dir: str) -> None:
+    """
+    Callers may not run this tool from the CWD, in this case,
+    allow the value to be set.
+    """
+    # Use a method in case any other values need to be updated in the future.
+    global CMAKE_DIR
+    CMAKE_DIR = cmake_dir
+
 
 def is_c_header(filename: str) -> bool:
     ext = os.path.splitext(filename)[1]
@@ -51,10 +66,6 @@ def is_c(filename: str) -> bool:
 
 def is_c_any(filename: str) -> bool:
     return is_c(filename) or is_c_header(filename)
-
-
-# copied from project_info.py
-CMAKE_DIR = "."
 
 
 def cmake_cache_var_iter() -> Iterator[tuple[str, str, str]]:
@@ -102,14 +113,27 @@ def makefile_log() -> list[str]:
 
     if make_exe_basename.startswith(("make", "gmake")):
         print("running 'make' with --dry-run ...")
-        process = subprocess.Popen([make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
-                                   stdout=subprocess.PIPE,
-                                   )
+        process = subprocess.Popen(
+            (
+                make_exe,
+                "-C", CMAKE_DIR,
+                "--always-make",
+                "--dry-run",
+                "--keep-going",
+                "VERBOSE=1",
+            ),
+            stdout=subprocess.PIPE,
+        )
     elif make_exe_basename.startswith("ninja"):
         print("running 'ninja' with -t commands ...")
-        process = subprocess.Popen([make_exe, "-t", "commands"],
-                                   stdout=subprocess.PIPE,
-                                   )
+        process = subprocess.Popen(
+            (
+                make_exe,
+                "-C", CMAKE_DIR,
+                "-t", "commands",
+            ),
+            stdout=subprocess.PIPE,
+        )
 
     if process is None:
         print("Can't execute process")
