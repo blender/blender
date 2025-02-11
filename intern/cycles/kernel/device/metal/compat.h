@@ -267,6 +267,7 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #define atanf(x) atan(float(x))
 #define floorf(x) floor(float(x))
 #define ceilf(x) ceil(float(x))
+#define roundf(x) round(float(x))
 #define hypotf(x, y) hypot(float(x), float(y))
 #define atan2f(x, y) atan2(float(x), float(y))
 #define fmaxf(x, y) fmax(float(x), float(y))

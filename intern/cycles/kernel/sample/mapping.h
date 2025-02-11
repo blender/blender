@@ -208,4 +208,17 @@ ccl_device float2 regular_polygon_sample(const float corners, float rotation, co
   return make_float2(cr * p.x - sr * p.y, sr * p.x + cr * p.y);
 }
 
+/* Generate random variable x following geometric distribution p(x) = r * (1 - r)^x, 0 <= p <= 1.
+ * Also compute the probability mass function pmf.
+ * The sampled order is truncated at `cut_off`. */
+ccl_device_inline int sample_geometric_distribution(const float rand,
+                                                    const float r,
+                                                    ccl_private float &pmf,
+                                                    const int cut_off = INT_MAX)
+{
+  const int n = min(int(floorf(logf(rand) / logf(1.0f - r))), cut_off);
+  pmf = (n == cut_off) ? powf(1.0f - r, n) : r * powf(1.0f - r, n);
+  return n;
+}
+
 CCL_NAMESPACE_END

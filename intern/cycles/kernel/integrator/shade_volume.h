@@ -78,20 +78,21 @@ struct EquiangularCoefficients {
   Interval<float> t_range;
 };
 
-/* Evaluate shader to get extinction coefficient at P. */
-ccl_device_inline bool shadow_volume_shader_sample(KernelGlobals kg,
-                                                   IntegratorShadowState state,
-                                                   ccl_private ShaderData *ccl_restrict sd,
-                                                   ccl_private Spectrum *ccl_restrict extinction)
+/* Evaluate extinction coefficient at `sd->P`. */
+template<const bool shadow, typename IntegratorGenericState>
+ccl_device_inline Spectrum volume_shader_eval_extinction(KernelGlobals kg,
+                                                         const IntegratorGenericState state,
+                                                         ccl_private ShaderData *ccl_restrict sd,
+                                                         uint32_t path_flag)
 {
-  volume_shader_eval<true>(kg, state, sd, PATH_RAY_SHADOW);
+  /* Use emission flag to avoid storing phase function. */
+  /* TODO(weizhen): we could add another flag to skip evaluating the emission, but we've run out of
+   * bits for the path flag.*/
+  path_flag |= PATH_RAY_EMISSION;
 
-  if (!(sd->flag & SD_EXTINCTION)) {
-    return false;
-  }
+  volume_shader_eval<shadow>(kg, state, sd, path_flag);
 
-  *extinction = sd->closure_transparent_extinction;
-  return true;
+  return (sd->flag & SD_EXTINCTION) ? sd->closure_transparent_extinction : zero_spectrum();
 }
 
 /* Evaluate shader to get absorption, scattering and emission at P. */
@@ -601,8 +602,136 @@ ccl_device bool volume_integrate_advance(KernelGlobals kg,
  * These functions are used to attenuate shadow rays to lights. Both absorption
  * and scattering will block light, represented by the extinction coefficient. */
 
-/* heterogeneous volume: integrate stepping through the volume until we
- * reach the end, get absorbed entirely, or run out of iterations */
+/* Advance until the majorant optical depth is at least one, or we have reached the end of the
+ * volume. Because telescoping has to take at least one sample per segment, having a larger
+ * segment helps to take less samples. */
+ccl_device_inline bool volume_octree_advance_shadow(KernelGlobals kg,
+                                                    const ccl_private Ray *ccl_restrict ray,
+                                                    ccl_private ShaderData *ccl_restrict sd,
+                                                    const IntegratorShadowState state,
+                                                    ccl_private RNGState *rng_state,
+                                                    const uint32_t path_flag,
+                                                    ccl_private OctreeTracing &octree,
+                                                    ccl_private VolumeStep &vstep)
+{
+  /* Advance random number offset. */
+  rng_state->rng_offset += PRNG_BOUNCE_NUM;
+
+  Extrema<float> sigma = octree.t.is_empty() ? Extrema<float>(FLT_MAX, -FLT_MAX) : octree.sigma;
+  const float tmin = octree.t.min;
+
+  while (octree.t.is_empty() || sigma.range() * octree.t.length() < 1.0f) {
+    if (!volume_octree_advance<true>(kg, ray, sd, state, rng_state, path_flag, octree, vstep)) {
+      return !octree.t.is_empty();
+    }
+
+    octree.sigma = sigma = merge(sigma, octree.sigma);
+    octree.t.min = tmin;
+  }
+
+  return true;
+}
+
+/* Compute transmittance along the ray using
+ * "Unbiased and consistent rendering using biased estimators" by Misso et. al,
+ * https://cs.dartmouth.edu/~wjarosz/publications/misso22unbiased.html
+ *
+ * The telescoping sum is
+ *         T = T_k + \sum_{j=k}^\infty(T_{j+1} - T_{j})
+ * where T_k is a biased estimation of the transmittance T by taking k samples,
+ * and (T_{j+1} - T_{j}) is the debiasing term.
+ * We decide the order k based on the optical thickness, and randomly pick a debiasing term of
+ * order j to evaluate.
+ * In the practice we take the powers of 2 to reuse samples for all orders.
+ *
+ * \param sigma_c: the difference between the density majorant and minorant
+ * \param t: the ray segment between which we compute the transmittance
+ */
+template<const bool shadow, typename IntegratorGenericState>
+ccl_device Spectrum volume_transmittance(KernelGlobals kg,
+                                         IntegratorGenericState state,
+                                         const ccl_private Ray *ray,
+                                         ccl_private ShaderData *ccl_restrict sd,
+                                         const float sigma_c,
+                                         const Interval<float> t,
+                                         const ccl_private RNGState *rng_state,
+                                         const uint32_t path_flag)
+{
+  constexpr float r = 0.9f;
+  const float ray_length = t.length();
+
+  /* Expected number of steps with residual ratio tracking. */
+  const float expected_steps = sigma_c * ray_length;
+  /* Number of samples for the biased estimator. */
+  const int k = clamp(int(roundf(expected_steps)), 1, kernel_data.integrator.volume_max_steps);
+
+  /* Sample the evaluation order of the debiasing term. */
+  /* Use the same random number for all pixels to sync the workload on GPU. */
+  /* TODO(weizhen): need to check if such correlation introduces artefacts. */
+  const float rand = path_rng_1D(
+      kg, 0, rng_state->sample, rng_state->rng_offset + PRNG_VOLUME_EXPANSION_ORDER);
+  /* A hard cut-off to prevent taking too many samples on the GPU. The probability of going beyond
+   * this order is 1e-5f. */
+  constexpr int cut_off = 4;
+  float pmf;
+  /* Number of independent estimators of T_k. */
+  const int N = (sigma_c == 0.0f) ?
+                    1 :
+                    power_of_2(sample_geometric_distribution(rand, r, pmf, cut_off));
+
+  /* Total number of density evaluations. */
+  const int samples = N * k;
+
+  const float shade_offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SHADE_OFFSET);
+  const float step_size = ray_length / float(samples);
+
+  if (N == 1) {
+    /* Only compute the biased estimator. */
+    Spectrum tau_k = zero_spectrum();
+    for (int i = 0; i < k; i++) {
+      const float shade_t = min(t.max, t.min + (shade_offset + i) * step_size);
+      sd->P = ray->P + ray->D * shade_t;
+      tau_k += volume_shader_eval_extinction<shadow>(kg, state, sd, path_flag);
+    }
+    return exp(-tau_k * step_size);
+  }
+
+  /* Estimations of optical thickness. */
+  Spectrum tau_j[2];
+  tau_j[0] = zero_spectrum();
+  tau_j[1] = zero_spectrum();
+  Spectrum tau_j_1 = zero_spectrum();
+
+  Spectrum T_k = zero_spectrum();
+  for (int n = 0; n < N; n++) {
+    Spectrum tau_k = zero_spectrum();
+    for (int i = 0; i < k; i++) {
+      const int step = i * N + n;
+      const float shade_t = min(t.max, t.min + (shade_offset + step) * step_size);
+      sd->P = ray->P + ray->D * shade_t;
+
+      const Spectrum tau = step_size *
+                           volume_shader_eval_extinction<shadow>(kg, state, sd, path_flag);
+
+      tau_k += tau * N;
+      tau_j[step % 2] += tau * 2.0f;
+      tau_j_1 += tau;
+    }
+    T_k += exp(-tau_k);
+  }
+
+  const Spectrum T_j_1 = exp(-tau_j_1);
+
+  /* Eq (16). This is the secondary estimator which averages a few independent estimations. */
+  T_k /= float(N);
+  const Spectrum T_j = 0.5f * (exp(-tau_j[0]) + exp(-tau_j[1]));
+
+  /* Eq (14), single-term primary estimator. */
+  return T_k + (T_j_1 - T_j) / pmf;
+}
+
+/* Compute the volumetric transmittance of the segment [ray->tmin, ray->tmax],
+ * used for the shadow ray throughput. */
 ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
                                             IntegratorShadowState state,
                                             ccl_private Ray *ccl_restrict ray,
@@ -617,43 +746,29 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
   sd->lcg_state = lcg_state_init(
       rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0xd9111870);
 
-  Spectrum tp = *throughput;
+  path_state_rng_scramble(&rng_state, 0x8647ace4);
 
   /* Prepare for stepping. */
   VolumeStep vstep;
   volume_step_init(kg, &rng_state, ray->tmin, &vstep);
 
-  OctreeTracing octree(ray->tmin);
   const uint32_t path_flag = PATH_RAY_SHADOW;
 
-  /* compute extinction at the start */
-  Spectrum sum = zero_spectrum();
-  for (; volume_integrate_advance<true>(kg, ray, sd, state, &rng_state, path_flag, octree, vstep);)
-  {
-    /* compute attenuation over segment */
-    Spectrum sigma_t = zero_spectrum();
-    if (shadow_volume_shader_sample(kg, state, sd, &sigma_t)) {
-      /* Compute `expf()` only for every Nth step, to save some calculations
-       * because `exp(a)*exp(b) = exp(a+b)`, also do a quick #VOLUME_THROUGHPUT_EPSILON
-       * check then. */
-      sum += (-sigma_t * vstep.t.length());
-      if ((vstep.step & 0x07) == 0) { /* TODO: Other interval? */
-        tp = *throughput * exp(sum);
+  OctreeTracing octree(ray->tmin);
+  if (!volume_octree_setup<true>(kg, ray, sd, state, &rng_state, path_flag, octree, vstep)) {
+    return;
+  }
 
-        /* stop if nearly all light is blocked */
-        if (reduce_max(tp) < VOLUME_THROUGHPUT_EPSILON) {
-          break;
-        }
-      }
+  while (volume_octree_advance_shadow(kg, ray, sd, state, &rng_state, path_flag, octree, vstep)) {
+    const float sigma = octree.sigma.range();
+    *throughput *= volume_transmittance<true>(
+        kg, state, ray, sd, sigma, octree.t, &rng_state, path_flag);
+
+    if (reduce_max(fabs(*throughput)) < VOLUME_THROUGHPUT_EPSILON) {
+      return;
     }
+    octree.t.min = octree.t.max;
   }
-
-  if (vstep.t.max == ray->tmax) {
-    /* Update throughput in case we haven't done it above. */
-    tp = *throughput * exp(sum);
-  }
-
-  *throughput = tp;
 }
 
 /* Equi-angular sampling as in:
