@@ -1535,6 +1535,7 @@ static void node_set_typeinfo(const bContext *C,
   else {
     node->typeinfo = &NodeTypeUndefined;
   }
+  BKE_ntree_update_tag_node_type(ntree, node);
 }
 
 /* WARNING: default_value must either be null or match the typeinfo at this point.
@@ -1658,6 +1659,34 @@ bNodeTreeType *node_tree_type_find(const StringRef idname)
   return *value;
 }
 
+static void defer_free_tree_type(bNodeTreeType *tree_type)
+{
+  static ResourceScope scope;
+  scope.add_destruct_call([tree_type]() { MEM_delete(tree_type); });
+}
+
+static void defer_free_node_type(bNodeType *ntype)
+{
+  static ResourceScope scope;
+  scope.add_destruct_call([ntype]() {
+    /* May be null if the type is statically allocated. */
+    if (ntype->free_self) {
+      ntype->free_self(ntype);
+    }
+  });
+}
+
+static void defer_free_socket_type(bNodeSocketType *stype)
+{
+  static ResourceScope scope;
+  scope.add_destruct_call([stype]() {
+    /* May be null if the type is statically allocated. */
+    if (stype->free_self) {
+      stype->free_self(stype);
+    }
+  });
+}
+
 void node_tree_type_add(bNodeTreeType *nt)
 {
   get_node_tree_type_map().add(nt);
@@ -1674,7 +1703,11 @@ static void ntree_free_type(void *treetype_v)
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, nullptr, treetype, nullptr, nullptr, true);
-  MEM_delete(treetype);
+
+  /* Defer freeing the tree type, because it may still be referenced by trees in depsgraph
+   * copies. We can't just remove these tree types, because the depsgraph may exist completely
+   * separate from original data. */
+  defer_free_tree_type(treetype);
 }
 
 void node_tree_type_free_link(const bNodeTreeType *nt)
@@ -1719,13 +1752,15 @@ static void node_free_type(void *nodetype_v)
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, nullptr, nullptr, nodetype, nullptr, true);
 
+  /* Setting this to null is necessary for the case of static node types. When running tests,
+   * they may be registered and unregistered multiple times. */
   delete nodetype->static_declaration;
   nodetype->static_declaration = nullptr;
 
-  /* Can be null when the type is not dynamically allocated. */
-  if (nodetype->free_self) {
-    nodetype->free_self(nodetype);
-  }
+  /* Defer freeing the node type, because it may still be referenced by nodes in depsgraph
+   * copies. We can't just remove these node types, because the depsgraph may exist completely
+   * separate from original data. */
+  defer_free_node_type(nodetype);
 }
 
 void node_register_type(bNodeType *nt)
@@ -1813,7 +1848,10 @@ static void node_free_socket_type(void *socktype_v)
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, nullptr, nullptr, nullptr, socktype, true);
 
-  socktype->free_self(socktype);
+  /* Defer freeing the socket type, because it may still be referenced by nodes in depsgraph
+   * copies. We can't just remove these socket types, because the depsgraph may exist completely
+   * separate from original data. */
+  defer_free_socket_type(socktype);
 }
 
 void node_register_socket_type(bNodeSocketType *st)

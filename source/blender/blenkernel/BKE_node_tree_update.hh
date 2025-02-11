@@ -38,6 +38,7 @@ void BKE_ntree_update_tag_node_new(bNodeTree *ntree, bNode *node);
 void BKE_ntree_update_tag_node_removed(bNodeTree *ntree);
 void BKE_ntree_update_tag_node_mute(bNodeTree *ntree, bNode *node);
 void BKE_ntree_update_tag_node_internal_link(bNodeTree *ntree, bNode *node);
+void BKE_ntree_update_tag_node_type(bNodeTree *ntree, bNode *node);
 
 void BKE_ntree_update_tag_socket_property(bNodeTree *ntree, bNodeSocket *socket);
 void BKE_ntree_update_tag_socket_new(bNodeTree *ntree, bNodeSocket *socket);
