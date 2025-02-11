@@ -837,6 +837,8 @@ if(WITH_GTESTS)
     intern/volume_test.cc
   )
   set(TEST_INC
+    # WARNING: this is a bad-level include which is only acceptable for tests
+    # and even then it would be good if the dependency could be removed.
     ../editors/include
   )
   set(TEST_LIB

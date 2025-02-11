@@ -300,6 +300,11 @@ def addon_draw_item_expanded(
         row.label(text=mod.__file__, translate=False)
 
         # Add a button to quickly open the add-on's folder for accessing its files and assets.
+        #
+        # Only show this with a developer UI since extensions should be
+        # usable without direct file-system access / manipulation.
+        # If non-technical users need this for some task then we could consider alternative solutions,
+        # see: #128474 discussion for details.
         if show_developer_ui:
             import os
             row.operator("wm.path_open", text="", icon='FILE_FOLDER').filepath = os.path.dirname(mod.__file__)
