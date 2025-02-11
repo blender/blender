@@ -31,6 +31,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_geom.h"

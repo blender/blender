@@ -16,6 +16,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"

@@ -8,6 +8,8 @@
 
 #include "DNA_curve_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_curve.hh"
 #include "BKE_object.hh"
 

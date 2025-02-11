@@ -19,6 +19,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_material.hh"

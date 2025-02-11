@@ -35,6 +35,7 @@ using namespace Freestyle;
 
 #include "BLT_translation.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

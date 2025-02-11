@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "GPU_matrix.hh"

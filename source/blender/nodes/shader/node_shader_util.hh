@@ -11,6 +11,8 @@
 #include <cfloat>
 #include <optional>
 
+#include "BLI_listbase.h"  // IWYU pragma: export
+
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 

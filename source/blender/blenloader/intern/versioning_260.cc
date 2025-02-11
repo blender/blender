@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "BKE_idprop.hh"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 /* allow readfile to use deprecated functionality */

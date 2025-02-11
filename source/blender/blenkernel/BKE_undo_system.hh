@@ -9,8 +9,10 @@
 
 #include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
+
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
 
 struct Main;
 struct UndoStep;

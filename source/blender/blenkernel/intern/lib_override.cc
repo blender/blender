@@ -23,6 +23,7 @@
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

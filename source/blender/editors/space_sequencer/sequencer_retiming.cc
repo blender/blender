@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
 #include "BLI_set.hh"

@@ -32,6 +32,7 @@
 #include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_string.h"

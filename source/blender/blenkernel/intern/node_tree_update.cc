@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_noise.hh"

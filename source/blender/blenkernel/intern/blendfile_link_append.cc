@@ -25,8 +25,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"

@@ -26,6 +26,7 @@
 
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

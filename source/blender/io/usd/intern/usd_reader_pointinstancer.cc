@@ -13,6 +13,7 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_string.h"
 

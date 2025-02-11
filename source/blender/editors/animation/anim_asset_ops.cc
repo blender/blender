@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_listbase.h"
+
 #include "BKE_asset.hh"
 #include "BKE_asset_edit.hh"
 #include "BKE_context.hh"

@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include "DNA_userdef_types.h"
+
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 

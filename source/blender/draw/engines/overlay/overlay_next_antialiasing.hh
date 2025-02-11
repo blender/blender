@@ -44,6 +44,8 @@
 
 #include "overlay_next_base.hh"
 
+#include "DNA_userdef_types.h"
+
 namespace blender::draw::overlay {
 
 class AntiAliasing : Overlay {

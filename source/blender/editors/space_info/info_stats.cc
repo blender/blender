@@ -19,6 +19,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLF_api.hh"

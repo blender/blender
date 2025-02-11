@@ -13,6 +13,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_rect.h"
 

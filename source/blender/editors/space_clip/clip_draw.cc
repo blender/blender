@@ -16,6 +16,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_rect.h"

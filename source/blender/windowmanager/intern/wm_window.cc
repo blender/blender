@@ -29,6 +29,7 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
@@ -48,6 +49,7 @@
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
+#include "BKE_wm_runtime.hh"
 #include "BKE_workspace.hh"
 
 #include "RNA_access.hh"

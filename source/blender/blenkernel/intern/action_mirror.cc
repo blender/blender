@@ -17,6 +17,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"

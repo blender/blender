@@ -14,6 +14,7 @@
 #include "AS_asset_library.hh"
 
 #include "BLI_function_ref.hh"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "BKE_context.hh"

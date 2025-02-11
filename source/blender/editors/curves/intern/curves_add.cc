@@ -6,6 +6,7 @@
  * \ingroup edcurves
  */
 
+#include "BLI_listbase.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_rand.hh"
 

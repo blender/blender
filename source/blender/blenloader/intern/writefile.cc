@@ -87,6 +87,7 @@
 #include "DNA_key_types.h"
 #include "DNA_print.hh"
 #include "DNA_sdna_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_endian_defines.h"
 #include "BLI_fileops.hh"

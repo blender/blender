@@ -12,6 +12,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_color.hh"
+#include "BLI_listbase.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"

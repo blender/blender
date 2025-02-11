@@ -33,10 +33,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_dynstr.h"
 #include "BLI_endian_switch.h"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"

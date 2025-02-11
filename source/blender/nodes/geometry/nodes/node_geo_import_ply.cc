@@ -4,6 +4,7 @@
 
 #include "node_geometry_util.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "BKE_report.hh"

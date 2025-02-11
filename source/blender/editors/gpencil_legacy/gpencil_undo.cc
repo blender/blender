@@ -13,6 +13,7 @@
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"

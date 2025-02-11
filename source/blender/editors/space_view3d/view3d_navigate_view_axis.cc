@@ -9,6 +9,8 @@
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 
+#include "DNA_userdef_types.h"
+
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"

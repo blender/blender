@@ -22,6 +22,7 @@
  * the wanted viewlayer/pass for each previewed node.
  */
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "DNA_camera_types.h"

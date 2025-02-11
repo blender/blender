@@ -21,6 +21,8 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
+#include "DNA_userdef_types.h"
+
 #include "BKE_appdir.hh"
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"

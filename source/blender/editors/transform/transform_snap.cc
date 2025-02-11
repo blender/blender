@@ -6,9 +6,12 @@
  * \ingroup edtransform
  */
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_time.h"
+
+#include "DNA_userdef_types.h"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"

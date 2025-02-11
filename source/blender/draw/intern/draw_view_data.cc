@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "BLI_listbase.h"
 #include "BLI_vector.hh"
 
 #include "GPU_viewport.hh"

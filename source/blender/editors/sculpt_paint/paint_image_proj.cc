@@ -20,6 +20,7 @@
 #endif
 
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"

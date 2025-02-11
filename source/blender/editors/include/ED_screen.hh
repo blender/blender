@@ -10,6 +10,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
 #include "WM_types.hh"

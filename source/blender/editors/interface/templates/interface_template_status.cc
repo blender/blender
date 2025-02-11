@@ -17,6 +17,7 @@
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"

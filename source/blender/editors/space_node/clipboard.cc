@@ -4,6 +4,8 @@
 
 #include "DNA_space_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"

@@ -16,11 +16,16 @@
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_subdiv_modifier.hh"
+
 #include "DEG_depsgraph_query.hh"
+
 #include "DNA_brush_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_userdef_types.h"
+
 #include "ED_view3d.hh"
+
 #include "GPU_capabilities.hh"
 
 #include "draw_cache.hh"

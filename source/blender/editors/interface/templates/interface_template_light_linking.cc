@@ -11,6 +11,8 @@
 
 #include <fmt/format.h>
 
+#include "BLI_listbase.h"
+
 #include "BLT_translation.hh"
 
 #include "DNA_collection_types.h"

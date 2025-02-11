@@ -12,6 +12,7 @@
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_time.h"
 

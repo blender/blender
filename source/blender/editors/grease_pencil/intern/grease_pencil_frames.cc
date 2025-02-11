@@ -9,6 +9,8 @@
 #include <algorithm>
 
 #include "BKE_curves.hh"
+
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"

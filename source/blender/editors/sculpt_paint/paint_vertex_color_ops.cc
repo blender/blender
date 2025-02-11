@@ -12,6 +12,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_vector.hh"

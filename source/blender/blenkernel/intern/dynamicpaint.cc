@@ -14,6 +14,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_kdtree.h"
+#include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"

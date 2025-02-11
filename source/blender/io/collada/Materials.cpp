@@ -4,6 +4,7 @@
 
 #include "Materials.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "BKE_node.hh"

@@ -15,6 +15,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_string.h"
 #include "BLI_task.h"

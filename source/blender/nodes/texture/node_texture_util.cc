@@ -22,6 +22,8 @@
  * over other previous ones.
  */
 
+#include "BLI_listbase.h"
+
 #include "BKE_node_runtime.hh"
 
 #include "NOD_texture.h"

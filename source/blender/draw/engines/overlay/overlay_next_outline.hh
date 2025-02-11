@@ -13,6 +13,8 @@
 
 #include "draw_common.hh"
 
+#include "DNA_userdef_types.h"
+
 namespace blender::draw::overlay {
 
 /**

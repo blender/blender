@@ -16,6 +16,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"

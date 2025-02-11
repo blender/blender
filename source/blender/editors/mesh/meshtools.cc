@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"

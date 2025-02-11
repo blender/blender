@@ -10,6 +10,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 

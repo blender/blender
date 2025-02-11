@@ -17,6 +17,7 @@
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"

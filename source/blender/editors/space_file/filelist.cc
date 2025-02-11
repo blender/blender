@@ -35,6 +35,7 @@
 #include "BLI_fnmatch.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_stack.h"
@@ -60,6 +61,7 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "ED_fileselect.hh"
 

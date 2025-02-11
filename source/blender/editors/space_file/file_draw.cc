@@ -19,6 +19,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
+#include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"

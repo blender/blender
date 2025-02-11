@@ -6,8 +6,11 @@
  * \ingroup edtransform
  */
 
-#include "BKE_armature.hh"
 #include "DNA_armature_types.h"
+
+#include "BLI_listbase.h"
+
+#include "BKE_armature.hh"
 
 #include "ED_armature.hh"
 #include "ED_transform_snap_object_context.hh"

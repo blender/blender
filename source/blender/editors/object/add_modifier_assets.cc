@@ -7,6 +7,7 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_multi_value_map.hh"
 #include "BLI_string.h"
 

@@ -59,8 +59,10 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "BLF_api.hh"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
+
+#include "BLF_api.hh"
 #include "GHOST_C-api.h"
 
 #include "DEG_depsgraph.hh"

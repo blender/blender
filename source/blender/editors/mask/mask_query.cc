@@ -11,6 +11,7 @@
 #include "BKE_context.hh"
 #include "BKE_mask.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 

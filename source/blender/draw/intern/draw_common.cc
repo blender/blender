@@ -6,8 +6,9 @@
  * \ingroup draw
  */
 
-#include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+
 #include "DRW_render.hh"
 
 #include "GPU_texture.hh"

@@ -11,6 +11,7 @@
 #include "BLI_assert.h"
 #include "BLI_index_mask.hh"
 #include "BLI_index_range.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"

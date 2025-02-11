@@ -27,6 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BIK_api.h"
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"

@@ -10,6 +10,7 @@
 
 #include "DNA_brush_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"

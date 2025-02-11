@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_userdef_types.h"
+
 #include "ED_view3d.hh"
 
 #include "overlay_next_base.hh"

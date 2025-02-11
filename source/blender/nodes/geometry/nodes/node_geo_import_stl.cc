@@ -4,8 +4,10 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_report.hh"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
+
+#include "BKE_report.hh"
 
 #include "IO_stl.hh"
 

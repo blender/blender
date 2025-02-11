@@ -14,6 +14,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_userdef_types.h"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

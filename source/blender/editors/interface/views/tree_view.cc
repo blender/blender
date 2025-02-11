@@ -24,6 +24,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_multi_value_map.hh"
 
 #include "UI_tree_view.hh"

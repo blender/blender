@@ -19,6 +19,7 @@
 #include "BLI_atomic_disjoint_set.hh"
 #include "BLI_dial_2d.h"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_axis_angle.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"

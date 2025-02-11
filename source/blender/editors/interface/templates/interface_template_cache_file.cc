@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 

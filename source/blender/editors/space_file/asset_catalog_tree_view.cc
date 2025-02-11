@@ -14,6 +14,7 @@
 
 #include "BKE_asset.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string_ref.hh"
 
 #include "BLT_translation.hh"

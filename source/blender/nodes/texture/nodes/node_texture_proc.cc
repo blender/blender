@@ -8,6 +8,7 @@
 
 #include "BKE_material.hh"
 #include "BKE_texture.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "DNA_material_types.h"
 #include "node_texture_util.hh"

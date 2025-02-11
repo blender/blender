@@ -16,6 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8.h"
@@ -31,6 +32,7 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"

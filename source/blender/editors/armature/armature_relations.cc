@@ -16,6 +16,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

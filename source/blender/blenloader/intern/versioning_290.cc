@@ -43,6 +43,7 @@
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_tracking_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 

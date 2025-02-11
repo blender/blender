@@ -15,6 +15,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

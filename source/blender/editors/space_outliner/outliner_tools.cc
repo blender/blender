@@ -29,6 +29,7 @@
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"

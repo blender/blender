@@ -8,6 +8,7 @@
 
 #pragma once
 
+/** NOTE: Keep in sync with eUserPref_GPUBackendType. */
 enum eGPUBackendType {
   GPU_BACKEND_NONE = 0,
   GPU_BACKEND_OPENGL = 1 << 0,

@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"

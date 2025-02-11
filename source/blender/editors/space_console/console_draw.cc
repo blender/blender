@@ -8,10 +8,12 @@
 
 #include <cstring>
 
+#include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 

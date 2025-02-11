@@ -9,6 +9,8 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"

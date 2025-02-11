@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 

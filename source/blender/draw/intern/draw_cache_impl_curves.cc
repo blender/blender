@@ -24,6 +24,7 @@
 
 #include "DNA_curves_types.h"
 #include "DNA_object_types.h"
+#include "DNA_userdef_types.h"
 
 #include "DEG_depsgraph_query.hh"
 

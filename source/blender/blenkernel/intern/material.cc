@@ -32,6 +32,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_volume_types.h"
 
 #include "BLI_array_utils.h"

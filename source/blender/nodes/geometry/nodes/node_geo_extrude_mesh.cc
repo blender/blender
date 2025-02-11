@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
+#include "BLI_listbase.h"
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 

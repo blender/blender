@@ -13,6 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_nla.hh"
 
 #include "ED_anim_api.hh"

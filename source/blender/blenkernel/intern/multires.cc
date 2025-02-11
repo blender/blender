@@ -18,6 +18,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_index_mask.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_task.h"
 

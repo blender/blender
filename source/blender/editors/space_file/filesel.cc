@@ -38,8 +38,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_userdef_default.h"
-
 #include "BLT_translation.hh"
 
 #include "BKE_appdir.hh"
@@ -47,6 +45,8 @@
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
+
+#include "BLO_userdef_default.h"
 
 #include "BLF_api.hh"
 

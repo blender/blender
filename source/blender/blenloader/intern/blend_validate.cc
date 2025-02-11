@@ -15,6 +15,7 @@
 
 #include "CLG_log.h"
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_linklist.h"

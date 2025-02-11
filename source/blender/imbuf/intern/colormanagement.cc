@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color.hh"
 #include "BLI_path_utils.hh"

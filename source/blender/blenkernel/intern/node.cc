@@ -26,6 +26,7 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_color.hh"

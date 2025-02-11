@@ -8,6 +8,7 @@
 #include "node_util.hh"
 
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_node.hh"
 

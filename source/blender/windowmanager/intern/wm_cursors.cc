@@ -15,6 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_global.hh"

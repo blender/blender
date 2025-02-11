@@ -12,6 +12,8 @@
 
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 

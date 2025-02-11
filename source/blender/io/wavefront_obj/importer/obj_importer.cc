@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"

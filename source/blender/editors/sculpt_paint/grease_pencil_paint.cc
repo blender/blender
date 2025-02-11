@@ -19,6 +19,7 @@
 #include "BLI_bounds.hh"
 #include "BLI_color.hh"
 #include "BLI_length_parameterize.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_noise.hh"

@@ -10,7 +10,6 @@
 #include <cstring>
 #include <optional>
 
-#include "DNA_object_enums.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_asset_types.h"
@@ -20,9 +19,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_enums.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 

@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

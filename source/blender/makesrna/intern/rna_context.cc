@@ -50,6 +50,7 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "DNA_asset_types.h"
+#  include "DNA_userdef_types.h"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"

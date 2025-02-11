@@ -8,6 +8,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_node.hh"

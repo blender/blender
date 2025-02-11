@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_time.h"
 
 #include "BLT_translation.hh"

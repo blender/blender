@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "BLI_listbase.h"
+#include "DNA_listBase.h"
+
+#include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
+#include "BLI_utildefines.h"
 #include "BLI_utility_mixins.hh"
 
 /** \file

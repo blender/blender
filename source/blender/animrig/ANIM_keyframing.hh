@@ -15,6 +15,7 @@
 #include "BLI_string_ref.hh"
 
 #include "DNA_anim_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "RNA_path.hh"

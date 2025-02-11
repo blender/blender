@@ -14,6 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_lasso_2d.hh"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"

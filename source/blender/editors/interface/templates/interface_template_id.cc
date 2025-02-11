@@ -18,6 +18,7 @@
 #include "BKE_main_invariants.hh"
 #include "BKE_packedFile.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_search.hh"
 

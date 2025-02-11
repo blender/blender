@@ -12,6 +12,7 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_function_ref.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 

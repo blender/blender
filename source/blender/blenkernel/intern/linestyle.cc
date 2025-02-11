@@ -20,6 +20,7 @@
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"

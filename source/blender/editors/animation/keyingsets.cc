@@ -15,6 +15,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_report.hh"

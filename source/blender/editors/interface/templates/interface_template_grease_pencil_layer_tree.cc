@@ -6,6 +6,8 @@
  * \ingroup edinterface
  */
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 

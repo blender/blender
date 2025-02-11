@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 /* Types --------------------------------------------------------------- */

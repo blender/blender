@@ -22,6 +22,7 @@
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string.h"
 #include "BLI_utility_mixins.hh"

@@ -21,6 +21,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"

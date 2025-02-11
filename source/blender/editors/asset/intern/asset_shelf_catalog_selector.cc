@@ -15,6 +15,8 @@
 
 #include "DNA_screen_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
