@@ -742,7 +742,7 @@ static bool rna_Property_is_required_get(PointerRNA *ptr)
 static bool rna_Property_is_argument_optional_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  return (prop->flag_parameter & PARM_PYFUNC_OPTIONAL) != 0;
+  return (prop->flag_parameter & PARM_PYFUNC_REGISTER_OPTIONAL) != 0;
 }
 
 static bool rna_Property_is_never_none_get(PointerRNA *ptr)

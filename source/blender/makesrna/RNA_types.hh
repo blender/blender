@@ -452,15 +452,17 @@ enum ParameterFlag {
   PARM_OUTPUT = (1 << 1),
   PARM_RNAPTR = (1 << 2),
   /**
-   * This allows for non-breaking API updates,
-   * when adding non-critical new parameter to a callback function.
+   * This allows for non-breaking API updates when adding non-critical new parameters
+   * to functions which Python classes register.
    * This way, old Python code defining functions without that parameter would still work.
-   * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
+   *
+   * WARNING: any parameter after the first #PARM_PYFUNC_REGISTER_OPTIONAL
+   * one will be considered as optional!
    * \note only for input parameters!
    */
-  PARM_PYFUNC_OPTIONAL = (1 << 3),
+  PARM_PYFUNC_REGISTER_OPTIONAL = (1 << 3),
 };
-ENUM_OPERATORS(ParameterFlag, PARM_PYFUNC_OPTIONAL)
+ENUM_OPERATORS(ParameterFlag, PARM_PYFUNC_REGISTER_OPTIONAL)
 
 struct CollectionPropertyIterator;
 struct Link;

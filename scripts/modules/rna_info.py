@@ -468,7 +468,7 @@ class InfoPropertyRNA:
             if not self.is_required:
                 type_info.append("optional")
             if self.is_argument_optional:
-                type_info.append("optional argument")
+                type_info.append("optional for registration")
         else:  # readonly is only useful for self's, not args
             if self.is_readonly:
                 type_info.append("readonly")

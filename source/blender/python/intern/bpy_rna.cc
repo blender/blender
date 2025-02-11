@@ -9084,7 +9084,7 @@ int pyrna_deferred_register_class(StructRNA *srna, PyTypeObject *py_class)
 
 /*-------------------- Type Registration ------------------------*/
 
-static int rna_function_arg_count(FunctionRNA *func, int *min_count)
+static int rna_function_register_arg_count(FunctionRNA *func, int *min_count)
 {
   const ListBase *lb = RNA_function_defined_parameters(func);
   PropertyRNA *parm;
@@ -9096,7 +9096,7 @@ static int rna_function_arg_count(FunctionRNA *func, int *min_count)
   LISTBASE_FOREACH (Link *, link, lb) {
     parm = (PropertyRNA *)link;
     if (!(RNA_parameter_flag(parm) & PARM_OUTPUT)) {
-      if (!done_min_count && (RNA_parameter_flag(parm) & PARM_PYFUNC_OPTIONAL)) {
+      if (!done_min_count && (RNA_parameter_flag(parm) & PARM_PYFUNC_REGISTER_OPTIONAL)) {
         /* From now on, the following parameters are optional in a Python function. */
         if (min_count) {
           *min_count = count;
@@ -9208,14 +9208,14 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
       }
     }
 
-    func_arg_count = rna_function_arg_count(func, &func_arg_min_count);
+    func_arg_count = rna_function_register_arg_count(func, &func_arg_min_count);
 
     if (func_arg_count >= 0) { /* -1 if we don't care. */
       arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
 
       /* NOTE: the number of args we check for and the number of args we give to
-       * '@staticmethods' are different (quirk of Python),
-       * this is why rna_function_arg_count() doesn't return the value -1. */
+       * `@staticmethods` are different (quirk of Python),
+       * this is why #rna_function_register_arg_count() doesn't return the value -1. */
       if (is_staticmethod) {
         func_arg_count++;
         func_arg_min_count++;
@@ -9330,7 +9330,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
   PropertyRNA *parm;
   ParameterIterator iter;
   PointerRNA funcptr;
-  int err = 0, i, ret_len = 0, arg_count;
+  int err = 0, i, ret_len = 0;
   const int flag = RNA_function_flag(func);
   const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
   const bool is_classmethod = (flag & FUNC_NO_SELF) && (flag & FUNC_USE_SELF_TYPE);
@@ -9467,6 +9467,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
                                  (is_staticmethod ? PyMethod_Check(item) : PyFunction_Check(item));
     if (item_type_valid) {
       funcptr = RNA_pointer_create_discrete(nullptr, &RNA_Function, func);
+      int arg_count;
+
+      /* NOTE: registration will have already checked the argument count matches
+       * #rna_function_register_arg_count so there is no need to inspect the RNA function. */
 
       if (is_staticmethod) {
         arg_count =
@@ -9476,10 +9480,6 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       else {
         arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
       }
-#if 0
-      /* First arg is included in 'item'. */
-      args = PyTuple_New(rna_function_arg_count(func));
-#endif
       args = PyTuple_New(arg_count); /* First arg is included in 'item'. */
 
       if (is_staticmethod) {
