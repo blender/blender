@@ -20,11 +20,13 @@
 #include <pxr/usd/usdGeom/cone.h>
 #include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/cylinder.h>
+#include <pxr/usd/usdGeom/plane.h>
 #include <pxr/usd/usdGeom/sphere.h>
 #include <pxr/usdImaging/usdImaging/capsuleAdapter.h>
 #include <pxr/usdImaging/usdImaging/coneAdapter.h>
 #include <pxr/usdImaging/usdImaging/cubeAdapter.h>
 #include <pxr/usdImaging/usdImaging/cylinderAdapter.h>
+#include <pxr/usdImaging/usdImaging/planeAdapter.h>
 #include <pxr/usdImaging/usdImaging/sphereAdapter.h>
 
 namespace blender::io::usd {
@@ -113,6 +115,12 @@ bool USDShapeReader::read_mesh_values(double motionSampleTime,
 
   if (prim_.IsA<pxr::UsdGeomSphere>()) {
     read_values<pxr::UsdImagingSphereAdapter>(
+        motionSampleTime, positions, face_indices, face_counts);
+    return true;
+  }
+
+  if (prim_.IsA<pxr::UsdGeomPlane>()) {
+    read_values<pxr::UsdImagingPlaneAdapter>(
         motionSampleTime, positions, face_indices, face_counts);
     return true;
   }
@@ -298,6 +306,13 @@ bool USDShapeReader::is_time_varying()
   if (prim_.IsA<pxr::UsdGeomSphere>()) {
     pxr::UsdGeomSphere geom(prim_);
     return geom.GetRadiusAttr().ValueMightBeTimeVarying();
+  }
+
+  if (prim_.IsA<pxr::UsdGeomPlane>()) {
+    pxr::UsdGeomPlane geom(prim_);
+    return (geom.GetWidthAttr().ValueMightBeTimeVarying() ||
+            geom.GetLengthAttr().ValueMightBeTimeVarying() ||
+            geom.GetAxisAttr().ValueMightBeTimeVarying());
   }
 
   BKE_reportf(reports(),

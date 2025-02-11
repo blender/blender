@@ -30,6 +30,7 @@
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
+#include <pxr/usd/usdGeom/plane.h>
 #include <pxr/usd/usdGeom/pointInstancer.h>
 #include <pxr/usd/usdGeom/points.h>
 #include <pxr/usd/usdGeom/scope.h>
@@ -222,7 +223,7 @@ bool USDStageReader::is_primitive_prim(const pxr::UsdPrim &prim) const
 {
   return (prim.IsA<pxr::UsdGeomCapsule>() || prim.IsA<pxr::UsdGeomCylinder>() ||
           prim.IsA<pxr::UsdGeomCone>() || prim.IsA<pxr::UsdGeomCube>() ||
-          prim.IsA<pxr::UsdGeomSphere>());
+          prim.IsA<pxr::UsdGeomSphere>() || prim.IsA<pxr::UsdGeomPlane>());
 }
 
 USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim)
