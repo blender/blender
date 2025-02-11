@@ -23,7 +23,6 @@ KERNEL_DATA_ARRAY(KernelObject, objects)
 KERNEL_DATA_ARRAY(Transform, object_motion_pass)
 KERNEL_DATA_ARRAY(DecomposedTransform, object_motion)
 KERNEL_DATA_ARRAY(uint, object_flag)
-KERNEL_DATA_ARRAY(float, object_volume_step)
 KERNEL_DATA_ARRAY(uint, object_prim_offset)
 
 /* cameras */

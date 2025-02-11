@@ -23,7 +23,6 @@ class Volume : public Mesh {
 
   Volume();
 
-  NODE_SOCKET_API(float, step_size)
   NODE_SOCKET_API(bool, object_space)
   NODE_SOCKET_API(float, velocity_scale)
 

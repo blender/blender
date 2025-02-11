@@ -33,7 +33,6 @@ NODE_DEFINE(Volume)
 {
   NodeType *type = NodeType::add("volume", create, NodeType::NONE, Mesh::get_node_type());
 
-  SOCKET_FLOAT(step_size, "Step Size", 0.0f);
   SOCKET_BOOLEAN(object_space, "Object Space", false);
   SOCKET_FLOAT(velocity_scale, "Velocity Scale", 1.0f);
 
@@ -42,7 +41,6 @@ NODE_DEFINE(Volume)
 
 Volume::Volume() : Mesh(get_node_type(), Geometry::VOLUME)
 {
-  step_size = 0.0f;
   object_space = false;
 }
 

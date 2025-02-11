@@ -125,8 +125,10 @@ ccl_device float volume_phase_get_g(const ccl_private ShaderVolumeClosure *svc)
 
 /* Volume sampling utilities. */
 
-/* todo: this value could be tweaked or turned into a probability to avoid
- * unnecessary work in volumes and subsurface scattering. */
+/* Ignore paths that have volume throughput below this value, to avoid unnecessary work
+ * and precision issues.
+ * TODO: this value could be tweaked or turned into a probability to avoid unnecessary work in
+ * volumes and subsurface scattering. */
 #define VOLUME_THROUGHPUT_EPSILON 1e-6f
 
 ccl_device Spectrum volume_color_transmittance(Spectrum sigma, const float t)

@@ -221,4 +221,11 @@ ccl_device_inline int sample_geometric_distribution(const float rand,
   return n;
 }
 
+/* Generate random variable x following exponential distribution p(x) = lambda * exp(-lambda * x),
+ * where lambda > 0 is the rate parameter. */
+ccl_device_inline float sample_exponential_distribution(const float rand, const float inv_lambda)
+{
+  return -logf(1.0f - rand) * inv_lambda;
+}
+
 CCL_NAMESPACE_END

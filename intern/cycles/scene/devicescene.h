@@ -42,7 +42,6 @@ class DeviceScene {
   device_vector<Transform> object_motion_pass;
   device_vector<DecomposedTransform> object_motion;
   device_vector<uint> object_flag;
-  device_vector<float> object_volume_step;
   device_vector<uint> object_prim_offset;
 
   /* cameras */
