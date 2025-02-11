@@ -813,9 +813,7 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 
 #define RNA_POINTER_INVALIDATE(ptr) \
   { \
-    /* this is checked for validity */ \
-    (ptr)->type = NULL; /* should not be needed but prevent bad pointer access, just in case */ \
-    (ptr)->owner_id = NULL; \
+    *(ptr) = PointerRNA_NULL; \
   } \
   (void)0
 
