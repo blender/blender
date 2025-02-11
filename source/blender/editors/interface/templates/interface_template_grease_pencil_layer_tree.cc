@@ -476,10 +476,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, group_.as_node().parent_group()->use_masks());
     }
-    const int icon_mask = (group_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ?
-                              ICON_CLIPUV_DEHLT :
-                              ICON_CLIPUV_HLT;
-    uiItemR(sub, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, icon_mask);
+    uiItemR(sub, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
     sub = uiLayoutRow(&row, true);
     if (group_.as_node().parent_group()) {
