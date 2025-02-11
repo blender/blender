@@ -890,7 +890,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   WM_cursor_set(window, WM_CURSOR_DEFAULT);
 
   /* create handle */
-  uiPopupBlockHandle *handle = MEM_cnew<uiPopupBlockHandle>(__func__);
+  uiPopupBlockHandle *handle = MEM_new<uiPopupBlockHandle>(__func__);
 
   /* store context for operator */
   handle->ctx_area = CTX_wm_area(C);
@@ -999,7 +999,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 
   ui_popup_block_remove(C, handle);
 
-  MEM_freeN(handle);
+  MEM_delete(handle);
 }
 
 /** \} */

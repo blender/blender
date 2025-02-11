@@ -265,15 +265,14 @@ struct uiSelectContextElem {
 };
 
 struct uiSelectContextStore {
-  uiSelectContextElem *elems;
-  int elems_len;
-  bool do_free;
-  bool is_enabled;
+  blender::Vector<uiSelectContextElem> elems;
+  bool do_free = false;
+  bool is_enabled = false;
   /* When set, simply copy values (don't apply difference).
    * Rules are:
    * - dragging numbers uses delta.
    * - typing in values will assign to all. */
-  bool is_copy;
+  bool is_copy = false;
 };
 
 static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore *selctx_data);
@@ -323,8 +322,8 @@ static void ui_selectcontext_apply(bContext *C,
 
 /* a simple version of uiHandleButtonData when accessing multiple buttons */
 struct uiButMultiState {
-  double origvalue;
-  uiBut *but;
+  double origvalue = 0.0f;
+  uiBut *but = nullptr;
 
 #  ifdef USE_ALLSELECT
   uiSelectContextStore select_others;
@@ -343,27 +342,27 @@ struct uiHandleButtonMulti {
     INIT_DISABLE,
   } init;
 
-  bool has_mbuts; /* any buttons flagged UI_BUT_DRAG_MULTI */
-  LinkNode *mbuts;
-  uiButStore *bs_mbuts;
+  bool has_mbuts = false; /* any buttons flagged UI_BUT_DRAG_MULTI */
+  LinkNode *mbuts = nullptr;
+  uiButStore *bs_mbuts = nullptr;
 
-  bool is_proportional;
+  bool is_proportional = false;
 
   /* In some cases we directly apply the changes to multiple buttons,
    * so we don't want to do it twice. */
-  bool skip;
+  bool skip = false;
 
   /* before activating, we need to check gesture direction accumulate signed cursor movement
    * here so we can tell if this is a vertical motion or not. */
-  float drag_dir[2];
+  float drag_dir[2] = {0.0f, 0.0f};
 
   /* values copied direct from event->xy
    * used to detect buttons between the current and initial mouse position */
-  int drag_start[2];
+  int drag_start[2] = {0, 0};
 
   /* store x location once INIT_SETUP is set,
    * moving outside this sets INIT_ENABLE */
-  int drag_lock_x;
+  int drag_lock_x = 0;
 };
 
 #endif /* USE_DRAG_MULTINUM */
@@ -373,82 +372,90 @@ struct uiHandleButtonMulti {
  */
 struct uiTextEdit {
   /** The currently displayed/edited string, use 'ui_textedit_string_set' to assign new strings. */
-  char *edit_string;
+  char *edit_string = nullptr;
   /* Maximum string size the button accepts, and as such the maximum size for #edit_string
    * (including terminator). */
-  int max_string_size;
+  int max_string_size = 0;
   /* Allow reallocating #edit_string and using #max_string_size to track alloc size (maxlen + 1) */
-  bool is_str_dynamic;
-  char *original_string;
+  bool is_str_dynamic = false;
+  char *original_string = nullptr;
 
   /* Button text selection:
    * extension direction, selextend, inside ui_do_but_TEX */
-  int sel_pos_init;
+  int sel_pos_init = 0;
 
   /* Text field undo. */
-  uiUndoStack_Text *undo_stack_text;
+  uiUndoStack_Text *undo_stack_text = nullptr;
 };
 
 struct uiHandleButtonData {
-  wmWindowManager *wm;
-  wmWindow *window;
-  ScrArea *area;
-  ARegion *region;
+  wmWindowManager *wm = nullptr;
+  wmWindow *window = nullptr;
+  ScrArea *area = nullptr;
+  ARegion *region = nullptr;
 
-  bool interactive;
+  bool interactive = false;
 
   /* overall state */
-  uiHandleButtonState state;
-  int retval;
+  uiHandleButtonState state = {};
+  int retval = 0;
   /* booleans (could be made into flags) */
-  bool cancel, escapecancel;
-  bool applied, applied_interactive;
+  bool cancel = false;
+  bool escapecancel = false;
+  bool applied = false;
+  bool applied_interactive = false;
   /* Button is being applied through an extra icon. */
-  bool apply_through_extra_icon;
-  bool changed_cursor;
-  wmTimer *flashtimer;
+  bool apply_through_extra_icon = false;
+  bool changed_cursor = false;
+  wmTimer *flashtimer = nullptr;
 
   uiTextEdit text_edit;
 
-  double value, origvalue, startvalue;
+  double value = 0.0f;
+  double origvalue = 0.0f;
+  double startvalue = 0.0f;
   float vec[3], origvec[3];
-  ColorBand *coba;
+  ColorBand *coba = nullptr;
 
   /* True when alt is held and the preference for displaying tooltips should be ignored. */
-  bool tooltip_force;
+  bool tooltip_force = false;
   /**
    * Behave as if #UI_BUT_DISABLED is set (without drawing grayed out).
    * Needed so non-interactive labels can be activated for the purpose of showing tool-tips,
    * without them blocking interaction with nodes, see: #97386.
    */
-  bool disable_force;
+  bool disable_force = false;
 
   /**
    * Semi-modal buttons: Instead of capturing all events, pass on events that aren't relevant to
    * own handling. This way a text button (e.g. a search/filter field) can stay active while the
    * remaining UI stays interactive. Only few button types support this well currently.
    */
-  bool is_semi_modal;
+  bool is_semi_modal = false;
 
   /* auto open */
-  bool used_mouse;
-  wmTimer *autoopentimer;
+  bool used_mouse = false;
+  wmTimer *autoopentimer = nullptr;
 
   /* auto open (hold) */
-  wmTimer *hold_action_timer;
+  wmTimer *hold_action_timer = nullptr;
 
   /* number editing / dragging */
   /* coords are Window/uiBlock relative (depends on the button) */
-  int draglastx, draglasty;
-  int dragstartx, dragstarty;
-  bool dragchange, draglock;
-  int dragsel;
-  float dragf, dragfstart;
-  CBData *dragcbd;
+  int draglastx = 0;
+  int draglasty = 0;
+  int dragstartx = 0;
+  int dragstarty = 0;
+  bool dragchange = false;
+  bool draglock = false;
+  int dragsel = 0;
+  float dragf = 0.0f;
+  float dragfstart = 0.0f;
+  CBData *dragcbd = nullptr;
 
   /** Soft min/max with #UI_DRAG_MAP_SOFT_RANGE_PIXEL_MAX applied. */
-  float drag_map_soft_min;
-  float drag_map_soft_max;
+  float drag_map_soft_min = 0.0f;
+  float drag_map_soft_max = 0.0f;
 
 #ifdef USE_CONT_MOUSE_CORRECT
   /* when ungrabbing buttons which are #ui_but_is_cursor_warp(),
@@ -459,10 +466,10 @@ struct uiHandleButtonData {
 #endif
 
   /* Menu open, see: #UI_screen_free_active_but_highlight. */
-  uiPopupBlockHandle *menu;
+  uiPopupBlockHandle *menu = nullptr;
 
   /* Search box see: #UI_screen_free_active_but_highlight. */
-  ARegion *searchbox;
+  ARegion *searchbox = nullptr;
 #ifdef USE_KEYNAV_LIMIT
   uiKeyNavLock searchbox_keynav_state;
 #endif
@@ -476,11 +483,11 @@ struct uiHandleButtonData {
   uiSelectContextStore select_others;
 #endif
 
-  uiBlockInteraction_Handle *custom_interaction_handle;
+  uiBlockInteraction_Handle *custom_interaction_handle = nullptr;
 
   /* post activate */
-  uiButtonActivateType posttype;
-  uiBut *postbut;
+  uiButtonActivateType posttype = {};
+  uiBut *postbut = nullptr;
 };
 
 struct uiAfterFunc {
@@ -1391,7 +1398,7 @@ static void ui_multibut_add(uiHandleButtonData *data, uiBut *but)
   BLI_assert(but->flag & UI_BUT_DRAG_MULTI);
   BLI_assert(data->multi_data.has_mbuts);
 
-  uiButMultiState *mbut_state = MEM_cnew<uiButMultiState>(__func__);
+  uiButMultiState *mbut_state = MEM_new<uiButMultiState>(__func__);
   mbut_state->but = but;
   mbut_state->origvalue = ui_but_value_get(but);
 #  ifdef USE_ALLSELECT
@@ -1425,7 +1432,7 @@ static void ui_multibut_restore(bContext *C, uiHandleButtonData *data, uiBlock *
         ui_but_value_set(but, mbut_state->origvalue);
 
 #  ifdef USE_ALLSELECT
-        if (mbut_state->select_others.elems_len > 0) {
+        if (!mbut_state->select_others.elems.is_empty()) {
           ui_selectcontext_apply(
               C, but, &mbut_state->select_others, mbut_state->origvalue, mbut_state->origvalue);
         }
@@ -1445,12 +1452,7 @@ static void ui_multibut_free(uiHandleButtonData *data, uiBlock *block)
     while (list) {
       LinkNode *next = list->next;
       uiButMultiState *mbut_state = static_cast<uiButMultiState *>(list->link);
-
-      if (mbut_state->select_others.elems) {
-        MEM_freeN(mbut_state->select_others.elems);
-      }
-
-      MEM_freeN(list->link);
+      MEM_delete(mbut_state);
       MEM_freeN(list);
       list = next;
     }
@@ -1579,11 +1581,11 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 #  ifdef USE_ALLSELECT
     if (data->select_others.is_enabled) {
       /* init once! */
-      if (mbut_state->select_others.elems_len == 0) {
+      if (mbut_state->select_others.elems.is_empty()) {
         ui_selectcontext_begin(C, but, &mbut_state->select_others);
       }
-      if (mbut_state->select_others.elems_len == 0) {
-        mbut_state->select_others.elems_len = -1;
+      if (mbut_state->select_others.elems.is_empty()) {
+        mbut_state->select_others.elems.clear();
       }
     }
 
@@ -1872,13 +1874,11 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
     if (UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path) &&
         !lb.is_empty())
     {
-      selctx_data->elems_len = lb.size();
-      selctx_data->elems = static_cast<uiSelectContextElem *>(
-          MEM_mallocN(sizeof(uiSelectContextElem) * selctx_data->elems_len, __func__));
+      selctx_data->elems.resize(lb.size());
 
       int i;
       PointerRNA *link;
-      for (i = 0, link = lb.data(); i < selctx_data->elems_len; i++, link++) {
+      for (i = 0, link = lb.data(); i < selctx_data->elems.size(); i++, link++) {
         if (!UI_context_copy_to_selected_check(&ptr,
                                                link,
                                                prop,
@@ -1887,7 +1887,7 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
                                                &lptr,
                                                &lprop))
         {
-          selctx_data->elems_len -= 1;
+          selctx_data->elems.pop_last();
           i -= 1;
           continue;
         }
@@ -1926,13 +1926,11 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
 #  endif
         }
       }
-      success = (selctx_data->elems_len != 0);
+      success = !selctx_data->elems.is_empty();
     }
   }
 
-  if (selctx_data->elems_len == 0) {
-    MEM_SAFE_FREE(selctx_data->elems);
-  }
+  selctx_data->elems.clear();
 
   /* caller can clear */
   selctx_data->do_free = true;
@@ -1947,9 +1945,7 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
 static void ui_selectcontext_end(uiBut *but, uiSelectContextStore *selctx_data)
 {
   if (selctx_data->do_free) {
-    if (selctx_data->elems) {
-      MEM_freeN(selctx_data->elems);
-    }
+    selctx_data->elems.clear();
   }
 
   but->flag &= ~UI_BUT_IS_SELECT_CONTEXT;
@@ -1961,7 +1957,7 @@ static void ui_selectcontext_apply(bContext *C,
                                    const double value,
                                    const double value_orig)
 {
-  if (selctx_data->elems) {
+  if (!selctx_data->elems.is_empty()) {
     PropertyRNA *prop = but->rnaprop;
     PropertyRNA *lprop = but->rnaprop;
     const int index = but->rnaindex;
@@ -2025,9 +2021,8 @@ static void ui_selectcontext_apply(bContext *C,
 
           tmparray[index] = true;
 
-          for (int i = 0; i < selctx_data->elems_len; i++) {
-            uiSelectContextElem *other = &selctx_data->elems[i];
-            PointerRNA lptr = other->ptr;
+          for (uiSelectContextElem &other : selctx_data->elems) {
+            PointerRNA lptr = other.ptr;
             RNA_property_boolean_set_array(&lptr, lprop, tmparray);
             RNA_property_update(C, &lptr, lprop);
           }
@@ -2040,12 +2035,11 @@ static void ui_selectcontext_apply(bContext *C,
     }
 #  endif
 
-    for (int i = 0; i < selctx_data->elems_len; i++) {
-      uiSelectContextElem *other = &selctx_data->elems[i];
-      PointerRNA lptr = other->ptr;
+    for (uiSelectContextElem &other : selctx_data->elems) {
+      PointerRNA lptr = other.ptr;
 
       if (rna_type == PROP_FLOAT) {
-        float other_value = std::get<float>(delta) + (use_delta ? other->val_f : 0.0f);
+        float other_value = std::get<float>(delta) + (use_delta ? other.val_f : 0.0f);
         CLAMP(other_value, std::get<float>(min), std::get<float>(max));
         if (is_array) {
           RNA_property_float_set_index(&lptr, lprop, index, other_value);
@@ -2055,7 +2049,7 @@ static void ui_selectcontext_apply(bContext *C,
         }
       }
       else if (rna_type == PROP_INT) {
-        int other_value = std::get<int>(delta) + (use_delta ? other->val_i : 0);
+        int other_value = std::get<int>(delta) + (use_delta ? other.val_i : 0);
         CLAMP(other_value, std::get<int>(min), std::get<int>(max));
         if (is_array) {
           RNA_property_int_set_index(&lptr, lprop, index, other_value);
@@ -2294,7 +2288,7 @@ static void ui_apply_but(
     }
     else
 #  endif
-        if (data->select_others.elems_len == 0)
+        if (data->select_others.elems.is_empty())
     {
       wmWindow *win = CTX_wm_window(C);
       const wmEvent *event = win->eventstate;
@@ -2310,9 +2304,9 @@ static void ui_apply_but(
         }
       }
     }
-    if (data->select_others.elems_len == 0) {
+    if (data->select_others.elems.is_empty()) {
       /* Don't check again. */
-      data->select_others.elems_len = -1;
+      data->select_others.elems.clear();
     }
 #endif
   }
@@ -8735,7 +8729,7 @@ static void button_activate_init(bContext *C,
   BLI_assert(ui_region_find_active_but(region) == nullptr);
 
   /* setup struct */
-  uiHandleButtonData *data = MEM_cnew<uiHandleButtonData>(__func__);
+  uiHandleButtonData *data = MEM_new<uiHandleButtonData>(__func__);
   data->wm = CTX_wm_manager(C);
   data->window = CTX_wm_window(C);
   data->area = CTX_wm_area(C);
@@ -8880,9 +8874,8 @@ static void button_activate_exit(
       /* only RNA from this button is used */
       uiBut but_temp = *but;
       uiSelectContextStore *selctx_data = &data->select_others;
-      for (int i = 0; i < selctx_data->elems_len; i++) {
-        uiSelectContextElem *other = &selctx_data->elems[i];
-        but_temp.rnapoin = other->ptr;
+      for (uiSelectContextElem &other : selctx_data->elems) {
+        but_temp.rnapoin = other.ptr;
         ui_apply_but_autokey(C, &but_temp);
       }
     }
@@ -8947,7 +8940,8 @@ static void button_activate_exit(
   BLI_assert(!but->semi_modal_state || but->semi_modal_state == but->active);
   but->semi_modal_state = nullptr;
   /* clean up button */
-  MEM_SAFE_FREE(but->active);
+  MEM_delete(but->active);
+  but->active = nullptr;
 
   but->flag &= ~(UI_HOVER | UI_SELECT);
   but->flag |= UI_BUT_LAST_ACTIVE;
@@ -9316,7 +9310,7 @@ void ui_but_execute_begin(bContext * /*C*/, ARegion *region, uiBut *but, void **
    * some functions we call don't use data (as they should be doing) */
   uiHandleButtonData *data;
   *active_back = but->active;
-  data = MEM_cnew<uiHandleButtonData>(__func__);
+  data = MEM_new<uiHandleButtonData>(__func__);
   but->active = data;
   BLI_assert(region != nullptr);
   data->region = region;

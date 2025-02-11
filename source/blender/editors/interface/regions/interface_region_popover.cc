@@ -371,7 +371,7 @@ uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_but
 
   /* Create in advance so we can let buttons point to #uiPopupBlockHandle::retvalue
    * (and other return values) already. */
-  pup->block->handle = MEM_cnew<uiPopupBlockHandle>(__func__);
+  pup->block->handle = MEM_new<uiPopupBlockHandle>(__func__);
 
   return pup;
 }
