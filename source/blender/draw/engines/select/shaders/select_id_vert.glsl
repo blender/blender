@@ -16,7 +16,7 @@ void main()
   vec3 world_pos = drw_point_object_to_world(pos);
   vec3 view_pos = drw_point_world_to_view(world_pos);
   gl_Position = drw_point_view_to_homogenous(view_pos);
-  gl_PointSize = size_vertex;
+  gl_PointSize = vertex_size;
 
   /* Offset Z position for retopology selection occlusion. */
   gl_Position.z += get_homogenous_z_offset(
