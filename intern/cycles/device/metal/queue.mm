@@ -874,7 +874,7 @@ void MetalDeviceQueue::prepare_resources(DeviceKernel /*kernel*/)
 
 id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel kernel)
 {
-  bool concurrent = (kernel < DEVICE_KERNEL_INTEGRATOR_NUM);
+  bool concurrent = int(kernel) < int(DEVICE_KERNEL_INTEGRATOR_NUM);
 
   if (profiling_enabled_) {
     /* Close the current encoder to ensure we're able to capture per-encoder timing data. */

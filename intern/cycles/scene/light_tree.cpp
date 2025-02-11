@@ -489,8 +489,9 @@ void LightTree::recursive_build(const Child child,
 
     /* Recursively build the left branch. */
     if (middle - start > MIN_EMITTERS_PER_THREAD) {
-      task_pool.push(
-          [=] { recursive_build(left, node, start, middle, emitters, bit_trail, depth + 1); });
+      task_pool.push([this, node, start, middle, emitters, bit_trail, depth] {
+        recursive_build(left, node, start, middle, emitters, bit_trail, depth + 1);
+      });
     }
     else {
       recursive_build(left, node, start, middle, emitters, bit_trail, depth + 1);
@@ -498,7 +499,7 @@ void LightTree::recursive_build(const Child child,
 
     /* Recursively build the right branch. */
     if (end - middle > MIN_EMITTERS_PER_THREAD) {
-      task_pool.push([=] {
+      task_pool.push([this, node, middle, end, emitters, bit_trail, depth] {
         recursive_build(right, node, middle, end, emitters, bit_trail | (1u << depth), depth + 1);
       });
     }

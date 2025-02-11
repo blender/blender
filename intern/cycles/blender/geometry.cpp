@@ -149,7 +149,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   /* Store the shaders immediately for the object attribute code. */
   geom->set_used_shaders(used_shaders);
 
-  auto sync_func = [=]() mutable {
+  auto sync_func = [this, geom_type, b_depsgraph, b_ob_info, geom]() mutable {
     if (progress.get_cancel()) {
       return;
     }
@@ -229,7 +229,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
-  auto sync_func = [=]() mutable {
+  auto sync_func = [this, b_depsgraph, b_ob_info, use_particle_hair, motion_step, geom]() mutable {
     if (progress.get_cancel()) {
       return;
     }
