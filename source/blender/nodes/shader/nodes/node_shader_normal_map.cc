@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_node_types.h"
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
@@ -138,6 +139,7 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem color = get_input_value("Color", NodeItem::Type::Vector3);
   NodeItem strength = get_input_value("Strength", NodeItem::Type::Float);
 
+#  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
   std::string space;
   switch (normal_map_node->space) {
     case SHD_SPACE_TANGENT:
@@ -159,6 +161,25 @@ NODE_SHADER_MATERIALX_BEGIN
   return create_node("normalmap",
                      NodeItem::Type::Vector3,
                      {{"in", color}, {"scale", strength}, {"space", val(space)}});
+#  else
+  if (normal_map_node->space == SHD_SPACE_TANGENT) {
+    return create_node("normalmap", NodeItem::Type::Vector3, {{"in", color}, {"scale", strength}});
+  }
+
+  /* Object space not supported yet. Despite the 1.38 implementation accepting
+   * object space argument, that seems to work either. */
+  NodeItem tangent = val(MaterialX::Vector3(1.0f, 0.0f, 0.0f));
+  NodeItem bitangent = val(MaterialX::Vector3(0.0f, 1.0f, 0.0f));
+  NodeItem normal = val(MaterialX::Vector3(0.0f, 0.0f, 1.0f));
+
+  return create_node("normalmap",
+                     NodeItem::Type::Vector3,
+                     {{"in", color},
+                      {"scale", strength},
+                      {"tangent", tangent},
+                      {"bitangent", bitangent},
+                      {"normal", normal}});
+#  endif
 }
 #endif
 NODE_SHADER_MATERIALX_END
