@@ -103,8 +103,6 @@ def do_ignore(filepath: str, ignore_prefix_list: Sequence[str] | None) -> bool:
 
 
 def makefile_log() -> list[str]:
-    import subprocess
-    import time
 
     # support both make and ninja
     make_exe = cmake_cache_var_or_exit("CMAKE_MAKE_PROGRAM")
@@ -113,7 +111,7 @@ def makefile_log() -> list[str]:
 
     if make_exe_basename.startswith(("make", "gmake")):
         print("running 'make' with --dry-run ...")
-        process = subprocess.Popen(
+        with subprocess.Popen(
             (
                 make_exe,
                 "-C", CMAKE_DIR,
@@ -123,33 +121,27 @@ def makefile_log() -> list[str]:
                 "VERBOSE=1",
             ),
             stdout=subprocess.PIPE,
-        )
+        ) as proc:
+            stdout_data, stderr_data = proc.communicate()
+
     elif make_exe_basename.startswith("ninja"):
         print("running 'ninja' with -t commands ...")
-        process = subprocess.Popen(
+        with subprocess.Popen(
             (
                 make_exe,
                 "-C", CMAKE_DIR,
                 "-t", "commands",
             ),
             stdout=subprocess.PIPE,
-        )
-
-    if process is None:
-        print("Can't execute process")
+        ) as proc:
+            stdout_data, stderr_data = proc.communicate()
+    else:
+        print("CMAKE_MAKE_PROGRAM: \"{:s}\" is not known (make/gmake/ninja)")
         sys.exit(1)
+    del stderr_data
 
-    while process.poll():
-        time.sleep(1)
-
-    # We know this is always true based on the input arguments to `Popen`.
-    assert process.stdout is not None
-    stdout: IO[bytes] = process.stdout
-
-    out = stdout.read()
-    stdout.close()
-    print("done!", len(out), "bytes")
-    return out.decode("utf-8", errors="ignore").split("\n")
+    print("done!", len(stdout_data), "bytes")
+    return stdout_data.decode("utf-8", errors="ignore").split("\n")
 
 
 def build_info(
@@ -225,7 +217,6 @@ def build_defines_as_source() -> str:
     Returns a string formatted as an include:
         '#defines A=B\n#define....'
     """
-    import subprocess
     # Works for both GCC and CLANG.
     cmd = (cmake_cache_var_or_exit("CMAKE_C_COMPILER"), "-dM", "-E", "-")
     process = subprocess.Popen(
