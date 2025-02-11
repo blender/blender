@@ -15,6 +15,7 @@ class DictionaryValue;
 
 namespace blender::ed::asset::index {
 
-AssetMetaData *asset_metadata_from_dictionary(const blender::io::serialize::DictionaryValue &entry);
+AssetMetaData *asset_metadata_from_dictionary(
+    const blender::io::serialize::DictionaryValue &entry);
 
 }
