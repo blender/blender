@@ -682,7 +682,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
   if (block->handle) {
     memcpy(block->handle, handle, sizeof(uiPopupBlockHandle));
-    MEM_freeN(handle);
+    MEM_delete(handle);
     handle = block->handle;
   }
   else {
