@@ -2136,12 +2136,29 @@ static bool wm_file_write(bContext *C,
   BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_PRE, filepath);
 
   /* Check if file write permission is OK. */
-  if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
-    BKE_reportf(
-        reports, RPT_ERROR, "Cannot save blend file, path \"%s\" is not writable", filepath);
+  if (const int st_mode = BLI_exists(filepath)) {
+    bool ok = true;
 
-    BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_POST_FAIL, filepath);
-    return false;
+    if (!BLI_file_is_writable(filepath)) {
+      BKE_reportf(
+          reports, RPT_ERROR, "Cannot save blend file, path \"%s\" is not writable", filepath);
+      ok = false;
+    }
+    else if (S_ISDIR(st_mode)) {
+      /* While the UI mostly prevents this, it's possible to save to an existing
+       * directory from Python because the path is used unmodified.
+       * Besides it being unlikely the user wants to replace a directory,
+       * the file versioning logic (to create `*.blend1` files)
+       * would rename the directory with a `1` suffix, see #134101. */
+      BKE_reportf(
+          reports, RPT_ERROR, "Cannot save blend file, path \"%s\" is a directory", filepath);
+      ok = false;
+    }
+
+    if (!ok) {
+      BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_POST_FAIL, filepath);
+      return false;
+    }
   }
 
   blender::ed::asset::pre_save_assets(bmain);
