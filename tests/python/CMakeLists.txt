@@ -358,6 +358,11 @@ add_blender_test(
   --run-all-tests
 )
 
+add_blender_test(
+  object_api
+  --python ${TEST_PYTHON_DIR}/bl_object.py
+)
+
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 add_blender_test(
