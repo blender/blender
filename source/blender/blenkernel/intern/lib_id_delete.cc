@@ -261,8 +261,8 @@ static size_t id_delete(Main *bmain,
   const int remapping_flags = (ID_REMAP_STORE_NEVER_NULL_USAGE | ID_REMAP_FORCE_NEVER_NULL_USAGE |
                                ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS | extra_remapping_flags);
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  const int base_count = set_listbasepointers(bmain, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*bmain);
+  const int base_count = lbarray.size();
 
   BKE_main_lock(bmain);
   BKE_layer_collection_resync_forbid();

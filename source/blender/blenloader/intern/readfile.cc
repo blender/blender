@@ -333,15 +333,13 @@ static void oldnewmap_free(OldNewMap *onm)
 
 static void add_main_to_main(Main *mainvar, Main *from)
 {
-  ListBase *lbarray[INDEX_ID_MAX], *fromarray[INDEX_ID_MAX];
-  int a;
-
   if (from->is_read_invalid) {
     mainvar->is_read_invalid = true;
   }
 
-  set_listbasepointers(mainvar, lbarray);
-  a = set_listbasepointers(from, fromarray);
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  MainListsArray fromarray = BKE_main_lists_get(*from);
+  int a = fromarray.size();
   while (a--) {
     BLI_movelisttolist(lbarray[a], fromarray[a]);
   }
@@ -433,8 +431,8 @@ void blo_split_main(ListBase *mainlist, Main *main)
     lib_main_array[i] = libmain;
   }
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  i = set_listbasepointers(main, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*main);
+  i = lbarray.size();
   while (i--) {
     ID *id = static_cast<ID *>(lbarray[i]->first);
     if (id == nullptr || GS(id->name) == ID_LI) {
@@ -2625,12 +2623,12 @@ static bool read_libblock_is_identical(FileData *fd, BHead *bhead)
 static void read_undo_reuse_noundo_local_ids(FileData *fd)
 {
   Main *old_bmain = static_cast<Main *>(fd->old_mainlist->first);
-  ListBase *lbarray[INDEX_ID_MAX];
 
   BLI_assert(old_bmain->curlib == nullptr);
   BLI_assert(BLI_listbase_is_single(fd->mainlist));
 
-  int i = set_listbasepointers(old_bmain, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*old_bmain);
+  int i = lbarray.size();
   while (i--) {
     if (BLI_listbase_is_empty(lbarray[i])) {
       continue;
@@ -4434,10 +4432,9 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
   STRNCPY(main_newid->filepath, mainptr->filepath);
   main_newid->curlib = mainptr->curlib;
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  ListBase *lbarray_newid[INDEX_ID_MAX];
-  int i = set_listbasepointers(mainptr, lbarray);
-  set_listbasepointers(main_newid, lbarray_newid);
+  MainListsArray lbarray = BKE_main_lists_get(*mainptr);
+  MainListsArray lbarray_newid = BKE_main_lists_get(*main_newid);
+  int i = lbarray.size();
   while (i--) {
     BLI_listbase_clear(lbarray_newid[i]);
 
@@ -4612,9 +4609,8 @@ void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
 
 static int has_linked_ids_to_read(Main *mainvar)
 {
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a = set_listbasepointers(mainvar, lbarray);
-
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  int a = lbarray.size();
   while (a--) {
     LISTBASE_FOREACH (ID *, id, lbarray[a]) {
       if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder &&
@@ -4687,9 +4683,8 @@ static void read_library_linked_ids(FileData *basefd,
 {
   blender::Map<std::string, ID *> loaded_ids;
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a = set_listbasepointers(mainvar, lbarray);
-
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  int a = lbarray.size();
   while (a--) {
     ID *id = static_cast<ID *>(lbarray[a]->first);
 
@@ -4748,9 +4743,8 @@ static void read_library_clear_weak_links(FileData *basefd, ListBase *mainlist, 
 {
   /* Any remaining weak links at this point have been lost, silently drop
    * those by setting them to nullptr pointers. */
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a = set_listbasepointers(mainvar, lbarray);
-
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  int a = lbarray.size();
   while (a--) {
     ID *id = static_cast<ID *>(lbarray[a]->first);
 

@@ -1205,10 +1205,8 @@ void BKE_main_id_tag_idcode(Main *mainvar, const short type, const int tag, cons
 
 void BKE_main_id_tag_all(Main *mainvar, const int tag, const bool value)
 {
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a;
-
-  a = set_listbasepointers(mainvar, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  int a = lbarray.size();
   while (a--) {
     BKE_main_id_tag_listbase(lbarray[a], tag, value);
   }
@@ -1232,9 +1230,8 @@ void BKE_main_id_flag_listbase(ListBase *lb, const int flag, const bool value)
 
 void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
 {
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a;
-  a = set_listbasepointers(bmain, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*bmain);
+  int a = lbarray.size();
   while (a--) {
     BKE_main_id_flag_listbase(lbarray[a], flag, value);
   }
@@ -2101,7 +2098,7 @@ void BKE_library_make_local(Main *bmain,
    * once this function is finished.  This allows to avoid any unneeded duplication of IDs, and
    * hence all time lost afterwards to remove orphaned linked data-blocks. */
 
-  ListBase *lbarray[INDEX_ID_MAX];
+  MainListsArray lbarray = BKE_main_lists_get(*bmain);
 
   LinkNode *todo_ids = nullptr;
   LinkNode *copied_ids = nullptr;
@@ -2121,7 +2118,7 @@ void BKE_library_make_local(Main *bmain,
 #endif
 
   /* Step 1: Detect data-blocks to make local. */
-  for (int a = set_listbasepointers(bmain, lbarray); a--;) {
+  for (int a = lbarray.size(); a--;) {
     ID *id = static_cast<ID *>(lbarray[a]->first);
 
     /* Do not explicitly make local non-linkable IDs (shape-keys, in fact),

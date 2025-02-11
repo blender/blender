@@ -1157,7 +1157,7 @@ typedef enum IDRecalcFlag {
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by
- * #set_listbasepointers, and by extension, controls the default order in which each ID type is
+ * #BKE_main_lists_get, and by extension, controls the default order in which each ID type is
  * processed during standard 'foreach' looping over all IDs of a #Main data-base.
  *
  * About Order:
@@ -1171,7 +1171,7 @@ typedef enum IDRecalcFlag {
  *   #Material <- #Mesh <- #Object <- #Collection <- #Scene
  *
  * Default order of processing of IDs in 'foreach' macros (#FOREACH_MAIN_ID_BEGIN and the like),
- * built on top of #set_listbasepointers, is actually reversed compared to the order defined here,
+ * built on top of #BKE_main_lists_get, is actually reversed compared to the order defined here,
  * since processing usually needs to happen on users before it happens on used IDs (when freeing
  * e.g.).
  *

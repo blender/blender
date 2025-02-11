@@ -1047,12 +1047,10 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 276, 5)) {
-    ListBase *lbarray[INDEX_ID_MAX];
-    int a;
-
     /* Important to clear all non-persistent flags from older versions here,
      * otherwise they could collide with any new persistent flag we may add in the future. */
-    a = set_listbasepointers(bmain, lbarray);
+    MainListsArray lbarray = BKE_main_lists_get(*bmain);
+    int a = lbarray.size();
     while (a--) {
       LISTBASE_FOREACH (ID *, id, lbarray[a]) {
         id->flag &= ID_FLAG_FAKEUSER;

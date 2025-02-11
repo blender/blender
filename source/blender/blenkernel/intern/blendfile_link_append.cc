@@ -1775,9 +1775,6 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
                                     Library *library,
                                     const bool do_reload)
 {
-  ListBase *lbarray[INDEX_ID_MAX];
-  int lba_idx;
-
   Main *bmain = lapp_context->params->bmain;
 
   /* All override rules need to be up to date, since there will be no do_version here, otherwise
@@ -1786,7 +1783,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   BKE_lib_override_library_main_operations_create(bmain, true, nullptr);
 
   /* Remove all IDs to be reloaded from Main. */
-  lba_idx = set_listbasepointers(bmain, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*bmain);
+  int lba_idx = lbarray.size();
   while (lba_idx--) {
     ID *id = static_cast<ID *>(lbarray[lba_idx]->first);
     const short idcode = id ? GS(id->name) : 0;
@@ -1948,7 +1946,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   /* Some datablocks can get reloaded/replaced 'silently' because they are not linkable
    * (shape keys e.g.), so we need another loop here to clear old ones if possible. */
-  lba_idx = set_listbasepointers(bmain, lbarray);
+  lbarray = BKE_main_lists_get(*bmain);
+  lba_idx = lbarray.size();
   while (lba_idx--) {
     ID *id, *id_next;
     for (id = static_cast<ID *>(lbarray[lba_idx]->first); id; id = id_next) {
@@ -1962,7 +1961,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   /* Get rid of no more used libraries... */
   BKE_main_id_tag_idcode(bmain, ID_LI, ID_TAG_DOIT, true);
-  lba_idx = set_listbasepointers(bmain, lbarray);
+  lbarray = BKE_main_lists_get(*bmain);
+  lba_idx = lbarray.size();
   while (lba_idx--) {
     ID *id;
     for (id = static_cast<ID *>(lbarray[lba_idx]->first); id; id = static_cast<ID *>(id->next)) {

@@ -20,6 +20,8 @@
  * - `BKE_main_` should be used for functions in that file.
  */
 
+#include <array>
+
 #include "DNA_listBase.h"
 
 #include "BLI_compiler_attrs.h"
@@ -491,8 +493,8 @@ void BKE_main_library_weak_reference_remove_item(
 
 #define FOREACH_MAIN_LISTBASE_BEGIN(_bmain, _lb) \
   { \
-    ListBase *_lbarray[INDEX_ID_MAX]; \
-    int _i = set_listbasepointers((_bmain), _lbarray); \
+    MainListsArray _lbarray = BKE_main_lists_get(*(_bmain)); \
+    size_t _i = _lbarray.size(); \
     while (_i--) { \
       (_lb) = _lbarray[_i];
 
@@ -572,20 +574,19 @@ const char *BKE_main_blendfile_path_from_global();
  */
 ListBase *which_libbase(Main *bmain, short type);
 
-// #define INDEX_ID_MAX 41
+/** Subtracting 1, because #INDEX_ID_NULL is ignored here. */
+using MainListsArray = std::array<ListBase *, INDEX_ID_MAX - 1>;
+
 /**
- * Put the pointers to all the #ListBase structs in given `bmain` into the `*lb[INDEX_ID_MAX]`
- * array, and return the number of those for convenience.
+ * Returns the pointers to all the #ListBase structs in given `bmain`.
  *
  * This is useful for generic traversal of all the blocks in a #Main (by traversing all the lists
  * in turn), without worrying about block types.
  *
- * \param lb: Array of lists #INDEX_ID_MAX in length.
- *
  * \note The order of each ID type #ListBase in the array is determined by the `INDEX_ID_<IDTYPE>`
  * enum definitions in `DNA_ID.h`. See also the #FOREACH_MAIN_ID_BEGIN macro in `BKE_main.hh`
  */
-int set_listbasepointers(Main *bmain, ListBase *lb[]);
+MainListsArray BKE_main_lists_get(Main &bmain);
 
 #define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \

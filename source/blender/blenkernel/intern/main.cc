@@ -66,8 +66,6 @@ void BKE_main_init(Main &bmain)
 void BKE_main_clear(Main &bmain)
 {
   /* Also call when reading a file, erase all, etc */
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a;
 
   /* Since we are removing whole main, no need to bother 'properly' (and slowly) removing each ID
    * from it. */
@@ -76,7 +74,8 @@ void BKE_main_clear(Main &bmain)
 
   MEM_SAFE_FREE(bmain.blen_thumb);
 
-  a = set_listbasepointers(&bmain, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(bmain);
+  int a = lbarray.size();
   while (a--) {
     ListBase *lb = lbarray[a];
     ID *id, *id_next;
@@ -930,69 +929,70 @@ ListBase *which_libbase(Main *bmain, short type)
   return nullptr;
 }
 
-int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
+MainListsArray BKE_main_lists_get(Main &bmain)
 {
+  MainListsArray lb{};
   /* Libraries may be accessed from pretty much any other ID. */
-  lb[INDEX_ID_LI] = &(bmain->libraries);
+  lb[INDEX_ID_LI] = &bmain.libraries;
 
-  lb[INDEX_ID_IP] = &(bmain->ipo);
+  lb[INDEX_ID_IP] = &bmain.ipo;
 
   /* Moved here to avoid problems when freeing with animato (aligorith). */
-  lb[INDEX_ID_AC] = &(bmain->actions);
+  lb[INDEX_ID_AC] = &bmain.actions;
 
-  lb[INDEX_ID_KE] = &(bmain->shapekeys);
+  lb[INDEX_ID_KE] = &bmain.shapekeys;
 
   /* Referenced by gpencil, so needs to be before that to avoid crashes. */
-  lb[INDEX_ID_PAL] = &(bmain->palettes);
+  lb[INDEX_ID_PAL] = &bmain.palettes;
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
-  lb[INDEX_ID_GD_LEGACY] = &(bmain->gpencils);
-  lb[INDEX_ID_GP] = &(bmain->grease_pencils);
+  lb[INDEX_ID_GD_LEGACY] = &bmain.gpencils;
+  lb[INDEX_ID_GP] = &bmain.grease_pencils;
 
-  lb[INDEX_ID_NT] = &(bmain->nodetrees);
-  lb[INDEX_ID_IM] = &(bmain->images);
-  lb[INDEX_ID_TE] = &(bmain->textures);
-  lb[INDEX_ID_MA] = &(bmain->materials);
-  lb[INDEX_ID_VF] = &(bmain->fonts);
+  lb[INDEX_ID_NT] = &bmain.nodetrees;
+  lb[INDEX_ID_IM] = &bmain.images;
+  lb[INDEX_ID_TE] = &bmain.textures;
+  lb[INDEX_ID_MA] = &bmain.materials;
+  lb[INDEX_ID_VF] = &bmain.fonts;
 
   /* Important!: When adding a new object type,
    * the specific data should be inserted here. */
 
-  lb[INDEX_ID_AR] = &(bmain->armatures);
+  lb[INDEX_ID_AR] = &bmain.armatures;
 
-  lb[INDEX_ID_CF] = &(bmain->cachefiles);
-  lb[INDEX_ID_ME] = &(bmain->meshes);
-  lb[INDEX_ID_CU_LEGACY] = &(bmain->curves);
-  lb[INDEX_ID_MB] = &(bmain->metaballs);
-  lb[INDEX_ID_CV] = &(bmain->hair_curves);
-  lb[INDEX_ID_PT] = &(bmain->pointclouds);
-  lb[INDEX_ID_VO] = &(bmain->volumes);
+  lb[INDEX_ID_CF] = &bmain.cachefiles;
+  lb[INDEX_ID_ME] = &bmain.meshes;
+  lb[INDEX_ID_CU_LEGACY] = &bmain.curves;
+  lb[INDEX_ID_MB] = &bmain.metaballs;
+  lb[INDEX_ID_CV] = &bmain.hair_curves;
+  lb[INDEX_ID_PT] = &bmain.pointclouds;
+  lb[INDEX_ID_VO] = &bmain.volumes;
 
-  lb[INDEX_ID_LT] = &(bmain->lattices);
-  lb[INDEX_ID_LA] = &(bmain->lights);
-  lb[INDEX_ID_CA] = &(bmain->cameras);
+  lb[INDEX_ID_LT] = &bmain.lattices;
+  lb[INDEX_ID_LA] = &bmain.lights;
+  lb[INDEX_ID_CA] = &bmain.cameras;
 
-  lb[INDEX_ID_TXT] = &(bmain->texts);
-  lb[INDEX_ID_SO] = &(bmain->sounds);
-  lb[INDEX_ID_GR] = &(bmain->collections);
-  lb[INDEX_ID_PAL] = &(bmain->palettes);
-  lb[INDEX_ID_PC] = &(bmain->paintcurves);
-  lb[INDEX_ID_BR] = &(bmain->brushes);
-  lb[INDEX_ID_PA] = &(bmain->particles);
-  lb[INDEX_ID_SPK] = &(bmain->speakers);
-  lb[INDEX_ID_LP] = &(bmain->lightprobes);
+  lb[INDEX_ID_TXT] = &bmain.texts;
+  lb[INDEX_ID_SO] = &bmain.sounds;
+  lb[INDEX_ID_GR] = &bmain.collections;
+  lb[INDEX_ID_PAL] = &bmain.palettes;
+  lb[INDEX_ID_PC] = &bmain.paintcurves;
+  lb[INDEX_ID_BR] = &bmain.brushes;
+  lb[INDEX_ID_PA] = &bmain.particles;
+  lb[INDEX_ID_SPK] = &bmain.speakers;
+  lb[INDEX_ID_LP] = &bmain.lightprobes;
 
-  lb[INDEX_ID_WO] = &(bmain->worlds);
-  lb[INDEX_ID_MC] = &(bmain->movieclips);
-  lb[INDEX_ID_SCR] = &(bmain->screens);
-  lb[INDEX_ID_OB] = &(bmain->objects);
-  lb[INDEX_ID_LS] = &(bmain->linestyles); /* referenced by scenes */
-  lb[INDEX_ID_SCE] = &(bmain->scenes);
-  lb[INDEX_ID_WS] = &(bmain->workspaces); /* before wm, so it's freed after it! */
-  lb[INDEX_ID_WM] = &(bmain->wm);
-  lb[INDEX_ID_MSK] = &(bmain->masks);
+  lb[INDEX_ID_WO] = &bmain.worlds;
+  lb[INDEX_ID_MC] = &bmain.movieclips;
+  lb[INDEX_ID_SCR] = &bmain.screens;
+  lb[INDEX_ID_OB] = &bmain.objects;
+  /* referenced by scenes */
+  lb[INDEX_ID_LS] = &bmain.linestyles;
+  lb[INDEX_ID_SCE] = &bmain.scenes;
+  /* before wm, so it's freed after it! */
+  lb[INDEX_ID_WS] = &bmain.workspaces;
+  lb[INDEX_ID_WM] = &bmain.wm;
+  lb[INDEX_ID_MSK] = &bmain.masks;
 
-  lb[INDEX_ID_NULL] = nullptr;
-
-  return (INDEX_ID_MAX - 1);
+  return lb;
 }
