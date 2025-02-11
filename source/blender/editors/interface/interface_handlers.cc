@@ -11601,6 +11601,16 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
           }
           break;
 
+        case WINDEACTIVATE: {
+          /* Prevent waiting for the pie key release if it was released outside of focus. */
+          wmWindow *win = CTX_wm_window(C);
+          if (win) {
+            win->pie_event_type_lock = EVENT_NONE;
+          }
+          menu->menuretval = UI_RETURN_CANCEL;
+          break;
+        }
+
         case EVT_ESCKEY:
         case RIGHTMOUSE:
           menu->menuretval = UI_RETURN_CANCEL;
