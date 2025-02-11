@@ -353,6 +353,7 @@ static void drw_viewport_data_reset(DRWData *drw_data)
   DRW_instance_data_list_resize(drw_data->idatalist);
   DRW_instance_data_list_reset(drw_data->idatalist);
   DRW_texture_pool_reset(drw_data->texture_pool);
+  blender::gpu::TexturePool::get().reset();
 }
 
 void DRW_viewport_data_free(DRWData *drw_data)
@@ -1793,6 +1794,7 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
 
   GPU_depth_test(GPU_DEPTH_NONE);
 
+  blender::gpu::TexturePool::get().reset(true);
   drw_manager_exit(&DST);
 
   /* Restore Drawing area. */
@@ -1880,6 +1882,8 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
 
   DRW_smoke_exit(DST.vmempool);
 
+  blender::gpu::TexturePool::get().reset(true);
+
   drw_manager_exit(&DST);
   DRW_cache_free_old_subdiv();
 
@@ -1966,7 +1970,6 @@ void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, Depsgraph *deps
 
 void DRW_custom_pipeline_end()
 {
-
   DRW_smoke_exit(DST.vmempool);
 
   GPU_framebuffer_restore();
@@ -1980,6 +1983,7 @@ void DRW_custom_pipeline_end()
     GPU_finish();
   }
 
+  blender::gpu::TexturePool::get().reset(true);
   drw_manager_exit(&DST);
 }
 
