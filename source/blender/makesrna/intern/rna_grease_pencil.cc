@@ -914,6 +914,21 @@ static void rna_def_grease_pencil_tree_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Channel Color", "Color of the channel in the dope sheet");
   RNA_def_property_update(prop, NC_GPENCIL | NA_EDITED, nullptr);
 
+  /* Next tree node. */
+  prop = RNA_def_property(srna, "next_node", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "next");
+  RNA_def_property_struct_type(prop, "GreasePencilTreeNode");
+  RNA_def_property_ui_text(prop, "Next Node", "The layer tree node after (i.e. above) this one");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+
+  /* Previous tree node. */
+  prop = RNA_def_property(srna, "prev_node", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "prev");
+  RNA_def_property_struct_type(prop, "GreasePencilTreeNode");
+  RNA_def_property_ui_text(
+      prop, "Previous Node", "The layer tree node before (i.e. below) this one");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+
   /* Parent group. */
   prop = RNA_def_property(srna, "parent_group", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayerGroup");
