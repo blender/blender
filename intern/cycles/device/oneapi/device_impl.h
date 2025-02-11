@@ -88,6 +88,10 @@ class OneapiDevice : public GPUDevice {
   void tex_copy_to(device_texture &mem);
   void tex_free(device_texture &mem);
 
+  /* Host side memory, override for more efficient copies. */
+  void *host_alloc(const MemoryType type, const size_t size) override;
+  void host_free(const MemoryType type, void *host_pointer, const size_t size) override;
+
   /* Device side memory. */
   void get_device_memory_info(size_t &total, size_t &free) override;
   bool alloc_device(void *&device_pointer, const size_t size) override;
