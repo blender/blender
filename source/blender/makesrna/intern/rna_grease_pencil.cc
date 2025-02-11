@@ -582,19 +582,6 @@ static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED | NA_SELECTED, grease_pencil);
 }
 
-static PointerRNA rna_GreasePencilLayerGroup_parent_group_get(PointerRNA *ptr)
-{
-  blender::bke::greasepencil::LayerGroup &layer_group =
-      static_cast<GreasePencilLayerTreeGroup *>(ptr->data)->wrap();
-  blender::bke::greasepencil::LayerGroup *parent_group = layer_group.as_node().parent_group();
-  /* Return None when group is in the root group. */
-  if (!parent_group || parent_group == rna_grease_pencil(ptr)->root_group_ptr) {
-    return PointerRNA_NULL;
-  }
-  return RNA_pointer_create_with_parent(
-      *ptr, &RNA_GreasePencilLayerGroup, static_cast<void *>(parent_group));
-}
-
 static PointerRNA rna_GreasePencil_active_group_get(PointerRNA *ptr)
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
