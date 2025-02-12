@@ -17,7 +17,6 @@
 #include "COM_reduce_to_single_value_operation.hh"
 #include "COM_result.hh"
 #include "COM_simple_operation.hh"
-#include "COM_texture_pool.hh"
 
 namespace blender::compositor {
 
@@ -184,11 +183,6 @@ void Operation::release_unneeded_results()
 Context &Operation::context() const
 {
   return context_;
-}
-
-TexturePool &Operation::texture_pool() const
-{
-  return context_.texture_pool();
 }
 
 void Operation::evaluate_input_processors()

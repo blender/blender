@@ -36,84 +36,11 @@
 
 #include "GPU_context.hh"
 #include "GPU_state.hh"
+#include "GPU_texture_pool.hh"
 
 #include "render_types.h"
 
 namespace blender::render {
-
-/**
- * Render Texture Pool
- *
- * TODO: should share pool with draw manager. It needs some globals initialization figured out
- * there first.
- */
-class TexturePool : public compositor::TexturePool {
- private:
-  /** Textures that are not yet used and are available to be acquired. After evaluation, any
-   * texture in this map should be freed because it was not acquired in the evaluation and is thus
-   * unused. Textures removed from this map should be moved to the textures_in_use_ map when
-   * acquired. */
-  Map<compositor::TexturePoolKey, Vector<GPUTexture *>> available_textures_;
-  /** Textures that were acquired in this compositor evaluation. After evaluation, those textures
-   * are moved to the available_textures_ map to be acquired in the next evaluation. */
-  Map<compositor::TexturePoolKey, Vector<GPUTexture *>> textures_in_use_;
-
- public:
-  virtual ~TexturePool()
-  {
-    for (Vector<GPUTexture *> &available_textures : available_textures_.values()) {
-      for (GPUTexture *texture : available_textures) {
-        GPU_texture_free(texture);
-      }
-    }
-
-    for (Vector<GPUTexture *> &textures_in_use : textures_in_use_.values()) {
-      for (GPUTexture *texture : textures_in_use) {
-        GPU_texture_free(texture);
-      }
-    }
-  }
-
-  GPUTexture *allocate_texture(int2 size, eGPUTextureFormat format) override
-  {
-    const compositor::TexturePoolKey key(size, format);
-    Vector<GPUTexture *> &available_textures = available_textures_.lookup_or_add_default(key);
-    GPUTexture *texture = nullptr;
-    if (available_textures.is_empty()) {
-      texture = GPU_texture_create_2d("compositor_texture_pool",
-                                      size.x,
-                                      size.y,
-                                      1,
-                                      format,
-                                      GPU_TEXTURE_USAGE_GENERAL,
-                                      nullptr);
-    }
-    else {
-      texture = available_textures.pop_last();
-    }
-
-    textures_in_use_.lookup_or_add_default(key).append(texture);
-    return texture;
-  }
-
-  /** Should be called after compositor evaluation to free unused textures and reset the texture
-   * pool. */
-  void free_unused_and_reset()
-  {
-    /* Free all textures in the available textures vectors. The fact that they still exist in those
-     * vectors after evaluation means they were not acquired during the evaluation, and are thus
-     * consequently no longer used. */
-    for (Vector<GPUTexture *> &available_textures : available_textures_.values()) {
-      for (GPUTexture *texture : available_textures) {
-        GPU_texture_free(texture);
-      }
-    }
-
-    /* Move all textures in-use to be available textures for the next evaluation. */
-    available_textures_ = textures_in_use_;
-    textures_in_use_.clear();
-  }
-};
 
 /**
  * Render Context Data
@@ -169,8 +96,8 @@ class Context : public compositor::Context {
   Vector<ImBuf *> cached_cpu_passes_;
 
  public:
-  Context(const ContextInputData &input_data, TexturePool &texture_pool)
-      : compositor::Context(texture_pool),
+  Context(const ContextInputData &input_data)
+      : compositor::Context(),
         input_data_(input_data),
         output_result_(this->create_result(compositor::ResultType::Color)),
         viewer_output_result_(this->create_result(compositor::ResultType::Color))
@@ -623,7 +550,6 @@ class Compositor {
   /* Render instance for GPU context to run compositor in. */
   Render &render_;
 
-  std::unique_ptr<TexturePool> texture_pool_;
   std::unique_ptr<Context> context_;
 
   /* Stores the execution device and precision used in the last evaluation of the compositor. Those
@@ -636,8 +562,7 @@ class Compositor {
  public:
   Compositor(Render &render, const ContextInputData &input_data) : render_(render)
   {
-    texture_pool_ = std::make_unique<TexturePool>();
-    context_ = std::make_unique<Context>(input_data, *texture_pool_);
+    context_ = std::make_unique<Context>(input_data);
 
     uses_gpu_ = context_->use_gpu();
     used_precision_ = context_->get_precision();
@@ -659,7 +584,6 @@ class Compositor {
     }
 
     context_.reset();
-    texture_pool_.reset();
 
     /* See comment above on context enabling. */
     if (uses_gpu_) {
@@ -708,9 +632,10 @@ class Compositor {
 
     context_->output_to_render_result();
     context_->viewer_output_to_viewer_image();
-    texture_pool_->free_unused_and_reset();
 
     if (context_->use_gpu()) {
+      blender::gpu::TexturePool::get().reset();
+
       void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
       if (BLI_thread_is_main() || re_system_gpu_context == nullptr) {
         DRW_gpu_context_disable();

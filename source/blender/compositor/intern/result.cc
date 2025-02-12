@@ -17,6 +17,7 @@
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
+#include "GPU_texture_pool.hh"
 
 #include "COM_context.hh"
 #include "COM_derived_resources.hh"
@@ -489,7 +490,7 @@ void Result::free()
   switch (storage_type_) {
     case ResultStorageType::GPU:
       if (is_from_pool_) {
-        context_->texture_pool().release(this->gpu_texture());
+        gpu::TexturePool::get().release_texture(this->gpu_texture());
       }
       else {
         GPU_texture_free(this->gpu_texture());
@@ -575,7 +576,8 @@ void Result::allocate_data(int2 size, bool from_pool)
     storage_type_ = ResultStorageType::GPU;
     is_from_pool_ = from_pool;
     if (from_pool) {
-      gpu_texture_ = context_->texture_pool().acquire(size, this->get_gpu_texture_format());
+      gpu_texture_ = gpu::TexturePool::get().acquire_texture(
+          size.x, size.y, this->get_gpu_texture_format(), GPU_TEXTURE_USAGE_GENERAL);
     }
     else {
       gpu_texture_ = GPU_texture_create_2d(__func__,

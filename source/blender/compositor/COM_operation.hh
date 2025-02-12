@@ -15,7 +15,6 @@
 #include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
-#include "COM_texture_pool.hh"
 
 namespace blender::compositor {
 
@@ -166,9 +165,6 @@ class Operation {
 
   /* Returns a reference to the compositor context. */
   Context &context() const;
-
-  /* Returns a reference to the texture pool of the compositor context. */
-  TexturePool &texture_pool() const;
 
  private:
   /* Evaluate the input processors. If the input processors were already added they will be
