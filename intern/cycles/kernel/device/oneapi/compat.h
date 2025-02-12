@@ -125,21 +125,21 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 /* GPU thread, block, grid size and index */
 
 #ifndef WITH_ONEAPI_SYCL_HOST_TASK
-#  define ccl_gpu_thread_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_id(0))
-#  define ccl_gpu_block_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_range(0))
-#  define ccl_gpu_block_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group(0))
-#  define ccl_gpu_grid_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group_range(0))
-#  define ccl_gpu_warp_size (sycl::ext::oneapi::experimental::this_sub_group().get_local_range()[0])
+#  define ccl_gpu_thread_idx_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_local_id(0))
+#  define ccl_gpu_block_dim_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_local_range(0))
+#  define ccl_gpu_block_idx_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_group(0))
+#  define ccl_gpu_grid_dim_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_group_range(0))
+#  define ccl_gpu_warp_size (sycl::ext::oneapi::this_work_item::get_sub_group().get_local_range()[0])
 #  define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
 
-#  define ccl_gpu_global_id_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_id(0))
-#  define ccl_gpu_global_size_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_range(0))
+#  define ccl_gpu_global_id_x() (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_global_id(0))
+#  define ccl_gpu_global_size_x() (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_global_range(0))
 
 /* GPU warp synchronization */
-#  define ccl_gpu_syncthreads() sycl::ext::oneapi::experimental::this_nd_item<1>().barrier()
-#  define ccl_gpu_local_syncthreads() sycl::ext::oneapi::experimental::this_nd_item<1>().barrier(sycl::access::fence_space::local_space)
+#  define ccl_gpu_syncthreads() sycl::ext::oneapi::this_work_item::get_nd_item<1>().barrier()
+#  define ccl_gpu_local_syncthreads() sycl::ext::oneapi::this_work_item::get_nd_item<1>().barrier(sycl::access::fence_space::local_space)
 #  ifdef __SYCL_DEVICE_ONLY__
-#    define ccl_gpu_ballot(predicate) (sycl::ext::oneapi::group_ballot(sycl::ext::oneapi::experimental::this_sub_group(), predicate).count())
+#    define ccl_gpu_ballot(predicate) (sycl::ext::oneapi::group_ballot(sycl::ext::oneapi::this_work_item::get_sub_group(), predicate).count())
 #  else
 #    define ccl_gpu_ballot(predicate) (predicate ? 1 : 0)
 #  endif

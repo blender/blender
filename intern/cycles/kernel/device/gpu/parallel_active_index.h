@@ -41,7 +41,7 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
   return;
 #  endif /* WITH_ONEAPI_SYCL_HOST_TASK */
 
-  const sycl::nd_item<1> &item_id = sycl::ext::oneapi::experimental::this_nd_item<1>();
+  const sycl::nd_item<1> &item_id = sycl::ext::oneapi::this_work_item::get_nd_item<1>();
   const uint blocksize = item_id.get_local_range(0);
 
   sycl::multi_ptr<int[GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE + 1],
