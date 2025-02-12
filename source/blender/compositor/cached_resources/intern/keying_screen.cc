@@ -143,7 +143,7 @@ KeyingScreen::KeyingScreen(Context &context,
     return;
   }
 
-  this->result.allocate_texture(Domain(size));
+  this->result.allocate_texture(Domain(size), false);
   if (context.use_gpu()) {
     this->compute_gpu(context, smoothness, marker_positions, marker_colors);
   }
