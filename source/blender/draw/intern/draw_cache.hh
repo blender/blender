@@ -42,26 +42,11 @@ void DRW_shape_cache_free();
 /* 3D cursor */
 blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines);
 
-/* Common Shapes */
-blender::gpu::Batch *DRW_cache_groundline_get();
-/* Grid */
-blender::gpu::Batch *DRW_cache_grid_get();
-/**
- * Use this one for rendering full-screen passes. For 3D objects use #DRW_cache_quad_get().
- */
-blender::gpu::Batch *DRW_cache_fullscreen_quad_get();
 /* Just a regular quad with 4 vertices. */
 blender::gpu::Batch *DRW_cache_quad_get();
-/* Just a regular quad with 4 vertices - wires. */
-blender::gpu::Batch *DRW_cache_quad_wires_get();
 blender::gpu::Batch *DRW_cache_cube_get();
-blender::gpu::Batch *DRW_cache_normal_arrow_get();
 
 blender::gpu::Batch *DRW_cache_sphere_get(eDRWLevelOfDetail level_of_detail);
-
-/* Dummy VBOs */
-
-blender::gpu::Batch *DRW_gpencil_dummy_buffer_get();
 
 /* Common Object */
 
@@ -77,79 +62,6 @@ blender::gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Obj
  * Returns the vertbuf used by shaded surface batch.
  */
 blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob);
-
-/* Empties */
-blender::gpu::Batch *DRW_cache_plain_axes_get();
-blender::gpu::Batch *DRW_cache_single_arrow_get();
-blender::gpu::Batch *DRW_cache_empty_cube_get();
-blender::gpu::Batch *DRW_cache_circle_get();
-blender::gpu::Batch *DRW_cache_empty_sphere_get();
-blender::gpu::Batch *DRW_cache_empty_cylinder_get();
-blender::gpu::Batch *DRW_cache_empty_cone_get();
-blender::gpu::Batch *DRW_cache_empty_capsule_cap_get();
-blender::gpu::Batch *DRW_cache_empty_capsule_body_get();
-
-/* Force Field */
-
-blender::gpu::Batch *DRW_cache_field_wind_get();
-blender::gpu::Batch *DRW_cache_field_force_get();
-blender::gpu::Batch *DRW_cache_field_vortex_get();
-
-/* Screen-aligned circle. */
-
-blender::gpu::Batch *DRW_cache_field_curve_get();
-blender::gpu::Batch *DRW_cache_field_tube_limit_get();
-blender::gpu::Batch *DRW_cache_field_cone_limit_get();
-
-/* Screen-aligned dashed circle */
-
-blender::gpu::Batch *DRW_cache_field_sphere_limit_get();
-
-/* Lights */
-
-blender::gpu::Batch *DRW_cache_light_icon_inner_lines_get();
-blender::gpu::Batch *DRW_cache_light_icon_outer_lines_get();
-blender::gpu::Batch *DRW_cache_light_icon_sun_rays_get();
-blender::gpu::Batch *DRW_cache_light_point_lines_get();
-blender::gpu::Batch *DRW_cache_light_sun_lines_get();
-blender::gpu::Batch *DRW_cache_light_spot_lines_get();
-blender::gpu::Batch *DRW_cache_light_area_disk_lines_get();
-blender::gpu::Batch *DRW_cache_light_area_square_lines_get();
-blender::gpu::Batch *DRW_cache_light_spot_volume_get();
-
-/* Camera */
-
-blender::gpu::Batch *DRW_cache_camera_frame_get();
-blender::gpu::Batch *DRW_cache_camera_volume_get();
-blender::gpu::Batch *DRW_cache_camera_volume_wire_get();
-blender::gpu::Batch *DRW_cache_camera_tria_wire_get();
-blender::gpu::Batch *DRW_cache_camera_tria_get();
-blender::gpu::Batch *DRW_cache_camera_distances_get();
-
-/* Speaker */
-
-blender::gpu::Batch *DRW_cache_speaker_get();
-
-/* Probe */
-
-blender::gpu::Batch *DRW_cache_lightprobe_cube_get();
-blender::gpu::Batch *DRW_cache_lightprobe_grid_get();
-blender::gpu::Batch *DRW_cache_lightprobe_planar_get();
-
-/* Bones */
-
-blender::gpu::Batch *DRW_cache_bone_octahedral_get();
-blender::gpu::Batch *DRW_cache_bone_octahedral_wire_get();
-blender::gpu::Batch *DRW_cache_bone_box_get();
-blender::gpu::Batch *DRW_cache_bone_box_wire_get();
-blender::gpu::Batch *DRW_cache_bone_envelope_solid_get();
-blender::gpu::Batch *DRW_cache_bone_envelope_outline_get();
-blender::gpu::Batch *DRW_cache_bone_point_get();
-blender::gpu::Batch *DRW_cache_bone_point_wire_outline_get();
-blender::gpu::Batch *DRW_cache_bone_stick_get();
-blender::gpu::Batch *DRW_cache_bone_arrows_get();
-blender::gpu::Batch *DRW_cache_bone_dof_sphere_get();
-blender::gpu::Batch *DRW_cache_bone_dof_lines_get();
 
 /* Meshes */
 
@@ -217,7 +129,6 @@ blender::gpu::Batch *DRW_cache_particles_get_edit_inner_points(Object *object,
 blender::gpu::Batch *DRW_cache_particles_get_edit_tip_points(Object *object,
                                                              ParticleSystem *psys,
                                                              PTCacheEdit *edit);
-blender::gpu::Batch *DRW_cache_particles_get_prim(int type);
 
 /* Volume */
 
