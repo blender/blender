@@ -9649,7 +9649,20 @@ static void bpy_class_free(void *pyob_ptr)
     }
   }
 #endif
-  Py_DECREF(self);
+
+#ifdef WITH_PYTHON_MODULE
+  /* NOTE(@ideasman42) When finalizing the modules that store the types may have been cleared.
+   * This can cause negative a negative reference count base-classes used by the RNA types
+   * which asserts in debug builds of Python.
+   *
+   * If this is a reference counting issue on Blender's side that should be fixed
+   * however the problem is quite specific and more a technical issue.
+   * So skip clearing the reference when finalizing, see: #125376. */
+  if (!Py_IsFinalizing())
+#endif
+  {
+    Py_DECREF(self);
+  }
 
   PyGILState_Release(gilstate);
 }
