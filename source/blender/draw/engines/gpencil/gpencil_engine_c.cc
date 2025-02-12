@@ -47,7 +47,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "draw_manager_profiling.hh"
+#include "GPU_debug.hh"
 
 /* *********** FUNCTIONS *********** */
 
@@ -722,7 +722,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata,
    * the masks already rendered in the buffer, and drawing only the layers not already drawn. */
   bool cleared = false;
 
-  DRW_stats_group_start("GPencil Mask");
+  GPU_debug_group_begin("GPencil Mask");
 
   GPU_framebuffer_bind(inst->mask_fb);
 
@@ -757,7 +757,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata,
     manager->submit(inst->mask_invert_ps);
   }
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 }
 
 static void GPENCIL_draw_object(GPENCIL_Data *vedata,
@@ -769,7 +769,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata,
 
   const float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
 
-  DRW_stats_group_start("GPencil Object");
+  GPU_debug_group_begin("GPencil Object");
 
   GPUFrameBuffer *fb_object = (ob->vfx.first) ? inst->object_fb : inst->gpencil_fb;
 
@@ -814,7 +814,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata,
     manager->submit(inst->merge_depth_ps, view);
   }
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 }
 
 static void GPENCIL_fast_draw_start(GPENCIL_Data *vedata)

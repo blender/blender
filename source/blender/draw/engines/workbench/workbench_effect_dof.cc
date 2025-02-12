@@ -21,7 +21,7 @@
 
 #include "BKE_camera.h"
 
-#include "draw_manager_profiling.hh"
+#include "GPU_debug.hh"
 
 namespace blender::workbench {
 /**
@@ -215,7 +215,7 @@ void DofPass::draw(Manager &manager, View &view, SceneResources &resources, int2
     return;
   }
 
-  DRW_stats_group_start("Depth Of Field");
+  GPU_debug_group_begin("Depth Of Field");
 
   int2 half_res = {max_ii(resolution.x / 2, 1), max_ii(resolution.y / 2, 1)};
   blur_tx_.acquire(
@@ -256,7 +256,7 @@ void DofPass::draw(Manager &manager, View &view, SceneResources &resources, int2
 
   blur_tx_.release();
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 }
 
 bool DofPass::is_enabled()

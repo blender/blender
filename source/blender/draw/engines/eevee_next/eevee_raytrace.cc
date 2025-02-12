@@ -8,7 +8,7 @@
  * The ray-tracing module class handles ray generation, scheduling, tracing and denoising.
  */
 
-#include "draw_manager_profiling.hh"
+#include "GPU_debug.hh"
 
 #include "eevee_instance.hh"
 
@@ -417,7 +417,7 @@ RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
 
   RayTraceResult result;
 
-  DRW_stats_group_start("Raytracing");
+  GPU_debug_group_begin("Raytracing");
 
   const bool has_active_closure = active_closures != CLOSURE_NONE;
 
@@ -433,7 +433,7 @@ RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
 
   if (has_active_closure) {
     if (use_horizon_scan) {
-      DRW_stats_group_start("Horizon Scan");
+      GPU_debug_group_begin("Horizon Scan");
 
       downsampled_in_radiance_tx_.acquire(tracing_res_horizon, RAYTRACE_RADIANCE_FORMAT, usage_rw);
       downsampled_in_normal_tx_.acquire(tracing_res_horizon, GPU_RGB10_A2, usage_rw);
@@ -464,11 +464,11 @@ RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
       downsampled_in_radiance_tx_.release();
       downsampled_in_normal_tx_.release();
 
-      DRW_stats_group_end();
+      GPU_debug_group_end();
     }
   }
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 
   rt_buffer.history_persmat = render_view.persmat();
 
@@ -512,7 +512,7 @@ RayTraceResultTexture RayTraceModule::trace(
 
   eGPUTextureUsage usage_rw = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
 
-  DRW_stats_group_start("Raytracing");
+  GPU_debug_group_begin("Raytracing");
 
   data_.thickness = options.screen_trace_thickness;
   data_.quality = 1.0f - 0.95f * options.screen_trace_quality;
@@ -633,7 +633,7 @@ RayTraceResultTexture RayTraceModule::trace(
 
   denoise_variance_tx_.release();
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 
   return result;
 }

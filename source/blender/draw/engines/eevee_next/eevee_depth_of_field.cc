@@ -25,7 +25,7 @@
 #include "GPU_platform.hh"
 #include "GPU_texture.hh"
 
-#include "draw_manager_profiling.hh"
+#include "GPU_debug.hh"
 
 #include "eevee_camera.hh"
 #include "eevee_instance.hh"
@@ -573,7 +573,7 @@ void DepthOfField::render(View &view,
     GPU_flush();
   }
 
-  DRW_stats_group_start("Depth of Field");
+  GPU_debug_group_begin("Depth of Field");
 
   Manager &drw = *inst_.manager;
 
@@ -582,7 +582,7 @@ void DepthOfField::render(View &view,
   constexpr eGPUTextureUsage usage_readwrite_attach = usage_readwrite |
                                                       GPU_TEXTURE_USAGE_ATTACHMENT;
   {
-    DRW_stats_group_start("Setup");
+    GPU_debug_group_begin("Setup");
     {
       bokeh_gather_lut_tx_.acquire(int2(DOF_BOKEH_LUT_SIZE), GPU_RG16F);
       bokeh_scatter_lut_tx_.acquire(int2(DOF_BOKEH_LUT_SIZE), GPU_R16F);
@@ -621,7 +621,7 @@ void DepthOfField::render(View &view,
       setup_color_tx_.release();
     }
     {
-      DRW_stats_group_start("Tile Prepare");
+      GPU_debug_group_begin("Tile Prepare");
 
       /* WARNING: If format changes, make sure dof_tile_* GLSL constants are properly encoded. */
       tiles_fg_tx_.previous().acquire(tile_res, GPU_R11F_G11F_B10F, usage_readwrite);
@@ -665,7 +665,7 @@ void DepthOfField::render(View &view,
       tiles_fg_tx_.previous().release();
       tiles_bg_tx_.previous().release();
 
-      DRW_stats_group_end();
+      GPU_debug_group_end();
     }
 
     downsample_tx_.acquire(quarter_res, GPU_RGBA16F, usage_readwrite);
@@ -680,11 +680,11 @@ void DepthOfField::render(View &view,
     /* Used by reduce pass. */
     downsample_tx_.release();
 
-    DRW_stats_group_end();
+    GPU_debug_group_end();
   }
 
   for (int is_background = 0; is_background < 2; is_background++) {
-    DRW_stats_group_start(is_background ? "Background Convolution" : "Foreground Convolution");
+    GPU_debug_group_begin(is_background ? "Background Convolution" : "Foreground Convolution");
 
     SwapChain<TextureFromPool, 2> &color_tx = is_background ? color_bg_tx_ : color_fg_tx_;
     SwapChain<TextureFromPool, 2> &weight_tx = is_background ? weight_bg_tx_ : weight_fg_tx_;
@@ -723,10 +723,10 @@ void DepthOfField::render(View &view,
     /* Used by scatter pass. */
     occlusion_tx_.release();
 
-    DRW_stats_group_end();
+    GPU_debug_group_end();
   }
   {
-    DRW_stats_group_start("Hole Fill");
+    GPU_debug_group_begin("Hole Fill");
 
     bokeh_gather_lut_tx_.release();
     bokeh_scatter_lut_tx_.release();
@@ -738,10 +738,10 @@ void DepthOfField::render(View &view,
 
     /* NOTE: We do not filter the hole-fill pass as effect is likely to not be noticeable. */
 
-    DRW_stats_group_end();
+    GPU_debug_group_end();
   }
   {
-    DRW_stats_group_start("Resolve");
+    GPU_debug_group_begin("Resolve");
 
     resolve_stable_color_tx_ = dof_buffer.stabilize_history_tx_;
 
@@ -757,10 +757,10 @@ void DepthOfField::render(View &view,
     hole_fill_weight_tx_.release();
     bokeh_resolve_lut_tx_.release();
 
-    DRW_stats_group_end();
+    GPU_debug_group_end();
   }
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 
   /* Swap buffers so that next effect has the right input. */
   std::swap(*input_tx, *output_tx);

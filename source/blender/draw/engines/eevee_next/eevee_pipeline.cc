@@ -17,7 +17,7 @@
 #include "eevee_pipeline.hh"
 #include "eevee_shadow.hh"
 
-#include "draw_manager_profiling.hh"
+#include "GPU_debug.hh"
 
 #include "draw_common.hh"
 
@@ -437,7 +437,7 @@ void ForwardPipeline::render(View &view,
     return;
   }
 
-  DRW_stats_group_start("Forward.Opaque");
+  GPU_debug_group_begin("Forward.Opaque");
 
   prepass_fb.bind();
   inst_.manager->submit(prepass_ps_, view);
@@ -453,7 +453,7 @@ void ForwardPipeline::render(View &view,
     inst_.manager->submit(opaque_ps_, view);
   }
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 
   inst_.volume.draw_resolve(view);
 
@@ -982,7 +982,7 @@ void DeferredPipeline::render(View &main_view,
 {
   GPUTexture *feedback_tx = nullptr;
 
-  DRW_stats_group_start("Deferred.Opaque");
+  GPU_debug_group_begin("Deferred.Opaque");
   feedback_tx = opaque_layer_.render(main_view,
                                      render_view,
                                      prepass_fb,
@@ -991,9 +991,9 @@ void DeferredPipeline::render(View &main_view,
                                      extent,
                                      rt_buffer_opaque_layer,
                                      feedback_tx);
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 
-  DRW_stats_group_start("Deferred.Refract");
+  GPU_debug_group_begin("Deferred.Refract");
   feedback_tx = refraction_layer_.render(main_view,
                                          render_view,
                                          prepass_fb,
@@ -1002,7 +1002,7 @@ void DeferredPipeline::render(View &main_view,
                                          extent,
                                          rt_buffer_refract_layer,
                                          feedback_tx);
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 }
 
 /** \} */

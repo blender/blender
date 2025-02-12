@@ -165,10 +165,6 @@ DrawData *DRW_drawdata_ensure(ID *id,
                               size_t size,
                               DrawDataInitCb init_cb,
                               DrawDataFreeCb free_cb);
-/**
- * Return nullptr if not a dupli or a pointer of pointer to the engine data.
- */
-void **DRW_duplidata_get(void *vedata);
 
 /* Settings. */
 
