@@ -9,6 +9,7 @@
  */
 
 #include "BLI_math_matrix.hh"
+#include "GPU_batch_utils.hh"
 #include "GPU_compute.hh"
 
 #include "eevee_instance.hh"
@@ -676,6 +677,10 @@ void ShadowModule::begin_sync()
   jittered_transparent_casters_.clear();
   update_casters_ = true;
 
+  if (box_batch_ == nullptr) {
+    box_batch_ = GPU_batch_unit_cube();
+  }
+
   {
     Manager &manager = *inst_.manager;
 
@@ -737,7 +742,6 @@ void ShadowModule::begin_sync()
       sub.bind_resources(inst_.hiz_buffer.front);
       sub.bind_resources(inst_.lights);
 
-      box_batch_ = DRW_cache_cube_get();
       tilemap_usage_transparent_ps_ = &sub;
     }
   }

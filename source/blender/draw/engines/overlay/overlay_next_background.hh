@@ -85,7 +85,7 @@ class Background : Overlay {
       bg_ps_.shader_set(res.shaders.background_clip_bound.get());
       bg_ps_.push_constant("ucolor", res.theme_settings.color_clipping_border);
       bg_ps_.push_constant("boundbox", bbox.data(), 8);
-      bg_ps_.draw(DRW_cache_cube_get());
+      bg_ps_.draw(res.shapes.cube_solid.get());
     }
 
     bg_ps_.state_set(pass_state);

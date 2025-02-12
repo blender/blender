@@ -366,7 +366,7 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRe
   };
 
   /* Use bounding box tag empty spaces. */
-  gpu::Batch *geom = DRW_cache_cube_get();
+  gpu::Batch *geom = inst_.volume.unit_cube_batch_get();
 
   bool is_rendered = false;
   is_rendered |= drawcall_add(material.volume_occupancy, geom, res_handle);

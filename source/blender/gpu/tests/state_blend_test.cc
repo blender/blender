@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "GPU_batch_utils.hh"
 #include "testing/testing.h"
 
 #include "gpu_testing.hh"
@@ -32,7 +33,7 @@ void blend_test(float4 source_a, float4 source_b, float4 expected_result)
   GPUTexture *color_texture = GPU_offscreen_color_texture(offscreen);
   GPU_texture_clear(color_texture, GPU_DATA_FLOAT, source_a);
 
-  Batch *batch = DRW_cache_quad_get();
+  Batch *batch = GPU_batch_unit_cube();
 
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_batch_uniform_4fv(batch, "color", source_b);
@@ -48,7 +49,7 @@ void blend_test(float4 source_a, float4 source_b, float4 expected_result)
   EXPECT_EQ(read_back, expected_result);
 
   GPU_offscreen_free(offscreen);
-  DRW_shape_cache_free();
+  GPU_BATCH_DISCARD_SAFE(batch);
 }
 
 static void test_blend_none()

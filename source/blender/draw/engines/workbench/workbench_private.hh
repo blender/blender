@@ -301,6 +301,14 @@ struct SceneResources {
   Texture dummy_tile_data_tx = {"dummy_tile_data"};
   Texture dummy_tile_array_tx = {"dummy_tile_array"};
 
+  gpu::Batch *volume_cube_batch = nullptr;
+
+  ~SceneResources()
+  {
+    /* TODO(fclem): Auto destruction. */
+    GPU_BATCH_DISCARD_SAFE(volume_cube_batch);
+  }
+
   void init(const SceneState &scene_state);
   void load_jitter_tx(int total_samples);
 };
@@ -487,12 +495,14 @@ class VolumePass {
 
  private:
   void draw_slice_ps(Manager &manager,
+                     SceneResources &resources,
                      PassMain::Sub &ps,
                      ObjectRef &ob_ref,
                      int slice_axis_enum,
                      float slice_depth);
 
   void draw_volume_ps(Manager &manager,
+                      SceneResources &resources,
                       PassMain::Sub &ps,
                       ObjectRef &ob_ref,
                       int taa_sample,

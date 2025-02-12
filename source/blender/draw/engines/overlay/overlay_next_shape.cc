@@ -6,6 +6,7 @@
  * \ingroup overlay
  */
 
+#include "GPU_batch_utils.hh"
 #include "draw_cache.hh"
 
 #include "overlay_next_private.hh"
@@ -711,6 +712,10 @@ ShapeCache::ShapeCache()
 
     cube = BatchPtr(
         GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
+  /* cube_solid */
+  {
+    cube_solid = BatchPtr(GPU_batch_unit_cube());
   }
   /* circle */
   {

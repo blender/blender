@@ -71,8 +71,12 @@ void VolumePass::object_sync_volume(Manager &manager,
   sub_ps.push_constant("volumeTextureToObject", float4x4(grid->texture_to_object));
 
   if (use_slice) {
-    draw_slice_ps(
-        manager, sub_ps, ob_ref, volume->display.slice_axis, volume->display.slice_depth);
+    draw_slice_ps(manager,
+                  resources,
+                  sub_ps,
+                  ob_ref,
+                  volume->display.slice_axis,
+                  volume->display.slice_depth);
   }
   else {
     float4x4 texture_to_world = ob->object_to_world() * float4x4(grid->texture_to_object);
@@ -82,7 +86,8 @@ void VolumePass::object_sync_volume(Manager &manager,
     GPU_texture_get_mipmap_size(grid->texture, 0, resolution);
     float3 slice_count = float3(resolution) * 5.0f;
 
-    draw_volume_ps(manager, sub_ps, ob_ref, scene_state.sample, slice_count, world_size);
+    draw_volume_ps(
+        manager, resources, sub_ps, ob_ref, scene_state.sample, slice_count, world_size);
   }
 }
 
@@ -171,7 +176,7 @@ void VolumePass::object_sync_modifier(Manager &manager,
   sub_ps.bind_texture("stencil_tx", &stencil_tx_);
 
   if (use_slice) {
-    draw_slice_ps(manager, sub_ps, ob_ref, settings.slice_axis, settings.slice_depth);
+    draw_slice_ps(manager, resources, sub_ps, ob_ref, settings.slice_axis, settings.slice_depth);
   }
   else {
     float3 world_size;
@@ -179,7 +184,8 @@ void VolumePass::object_sync_modifier(Manager &manager,
 
     float3 slice_count = float3(settings.res) * std::max(0.001f, settings.slice_per_voxel);
 
-    draw_volume_ps(manager, sub_ps, ob_ref, scene_state.sample, slice_count, world_size);
+    draw_volume_ps(
+        manager, resources, sub_ps, ob_ref, scene_state.sample, slice_count, world_size);
   }
 }
 
@@ -196,8 +202,12 @@ void VolumePass::draw(Manager &manager, View &view, SceneResources &resources)
   manager.submit(ps_, view);
 }
 
-void VolumePass::draw_slice_ps(
-    Manager &manager, PassMain::Sub &ps, ObjectRef &ob_ref, int slice_axis_enum, float slice_depth)
+void VolumePass::draw_slice_ps(Manager &manager,
+                               SceneResources &resources,
+                               PassMain::Sub &ps,
+                               ObjectRef &ob_ref,
+                               int slice_axis_enum,
+                               float slice_depth)
 {
   float4x4 view_mat_inv = blender::draw::View::default_get().viewinv();
 
@@ -210,15 +220,16 @@ void VolumePass::draw_slice_ps(
   /* 0.05f to achieve somewhat the same opacity as the full view. */
   float step_length = std::max(1e-16f, dimensions[axis] * 0.05f);
 
-  ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
+  ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_CULL_FRONT);
   ps.push_constant("slicePosition", slice_depth);
   ps.push_constant("sliceAxis", axis);
   ps.push_constant("stepLength", step_length);
 
-  ps.draw(DRW_cache_quad_get(), manager.resource_handle(ob_ref));
+  ps.draw(resources.volume_cube_batch, manager.resource_handle(ob_ref));
 }
 
 void VolumePass::draw_volume_ps(Manager &manager,
+                                SceneResources &resources,
                                 PassMain::Sub &ps,
                                 ObjectRef &ob_ref,
                                 int taa_sample,
@@ -236,7 +247,7 @@ void VolumePass::draw_volume_ps(Manager &manager,
   ps.push_constant("stepLength", step_length);
   ps.push_constant("noiseOfs", float(noise_offset));
 
-  ps.draw(DRW_cache_cube_get(), manager.resource_handle(ob_ref));
+  ps.draw(resources.volume_cube_batch, manager.resource_handle(ob_ref));
 }
 
 }  // namespace blender::workbench

@@ -212,3 +212,70 @@ blender::gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Common shapes (3D)
+ * \{ */
+
+blender::gpu::Batch *GPU_batch_unit_cube()
+{
+  using namespace blender;
+
+  static const std::array<float3, 8> bone_box_verts = {
+      float3{1.0f, -1.0f, 1.0f},
+      float3{1.0f, -1.0f, -1.0f},
+      float3{-1.0f, -1.0f, -1.0f},
+      float3{-1.0f, -1.0f, 1.0f},
+      float3{1.0f, 1.0f, 1.0f},
+      float3{1.0f, 1.0f, -1.0f},
+      float3{-1.0f, 1.0f, -1.0f},
+      float3{-1.0f, 1.0f, 1.0f},
+  };
+
+  static const std::array<int3, 12> bone_box_solid_tris = {
+      int3{0, 2, 1}, /* bottom */
+      int3{0, 3, 2},
+
+      int3{0, 1, 5}, /* sides */
+      int3{0, 5, 4},
+
+      int3{1, 2, 6},
+      int3{1, 6, 5},
+
+      int3{2, 3, 7},
+      int3{2, 7, 6},
+
+      int3{3, 0, 4},
+      int3{3, 4, 7},
+
+      int3{4, 5, 6}, /* top */
+      int3{4, 6, 7},
+  };
+
+  GPUVertFormat format = {0};
+  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+
+  const int tri_len = bone_box_solid_tris.size();
+  const int vert_len = bone_box_verts.size();
+
+  GPU_vertbuf_data_alloc(*vbo, vert_len);
+
+  GPUIndexBufBuilder elb;
+  GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tri_len, vert_len);
+
+  int v = 0;
+  for (int i = 0; i < vert_len; i++) {
+    GPU_vertbuf_vert_set(vbo, v++, &bone_box_verts[i]);
+  }
+
+  for (int i = 0; i < tri_len; i++) {
+    const int3 tri_indices = bone_box_solid_tris[i];
+    GPU_indexbuf_add_tri_verts(&elb, tri_indices[0], tri_indices[1], tri_indices[2]);
+  }
+
+  return GPU_batch_create_ex(
+      GPU_PRIM_TRIS, vbo, GPU_indexbuf_build(&elb), GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+}
+
+/** \} */

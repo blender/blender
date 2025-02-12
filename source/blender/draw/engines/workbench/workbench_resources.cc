@@ -9,6 +9,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
+#include "GPU_batch_utils.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "draw_common_c.hh"
@@ -190,6 +191,10 @@ void SceneResources::init(const SceneState &scene_state)
       GPU_RGBA8, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_READ, float4(0.0f, 0.0f, 0.0f, 0.0f));
   dummy_tile_data_tx.ensure_1d_array(
       GPU_RGBA8, 1, 1, GPU_TEXTURE_USAGE_SHADER_READ, float4(0.0f, 0.0f, 0.0f, 0.0f));
+
+  if (volume_cube_batch == nullptr) {
+    volume_cube_batch = GPU_batch_unit_cube();
+  }
 }
 
 }  // namespace blender::workbench

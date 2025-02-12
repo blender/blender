@@ -339,7 +339,11 @@ class ShadowModule {
 
  public:
   ShadowModule(Instance &inst, ShadowSceneData &data);
-  ~ShadowModule(){};
+
+  ~ShadowModule()
+  {
+    GPU_BATCH_DISCARD_SAFE(box_batch_);
+  }
 
   void init();
 
