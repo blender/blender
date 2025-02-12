@@ -25,6 +25,8 @@
 #include "BKE_context.hh"
 #include "BKE_report.hh"
 
+#include "BLT_translation.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -1278,6 +1280,24 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return retval;
 }
 
+static std::string sequencer_select_get_name(wmOperatorType *ot, PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "ignore_connections")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Unconnected)");
+  }
+  if (RNA_boolean_get(ptr, "linked_time")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Linked Time)");
+  }
+  if (RNA_boolean_get(ptr, "linked_handle")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Linked Handle)");
+  }
+  if (RNA_boolean_get(ptr, "side_of_frame")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Side of Frame)");
+  }
+
+  return ED_select_pick_get_name(ot, ptr);
+}
+
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1292,7 +1312,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   ot->invoke = sequencer_select_invoke;
   ot->modal = WM_generic_select_modal;
   ot->poll = ED_operator_sequencer_active;
-  ot->get_name = ED_select_pick_get_name;
+  ot->get_name = sequencer_select_get_name;
 
   /* Flags. */
   ot->flag = OPTYPE_UNDO;
