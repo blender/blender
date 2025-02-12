@@ -492,8 +492,6 @@ PyDoc_STRVAR(
     "\n"
     "   Remove (delete) several IDs at once.\n"
     "\n"
-    "   WARNING: Considered experimental feature currently.\n"
-    "\n"
     "   Note that this function is quicker than individual calls to :func:`remove()` "
     "(from :class:`bpy.types.BlendData`\n"
     "   ID collections), but less safe/versatile (it can break Blender, e.g. by removing "
@@ -512,8 +510,6 @@ static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject 
 
   PyObject *ids = nullptr;
 
-  PyObject *ret = nullptr;
-
   static const char *_keywords[] = {"ids", nullptr};
   static _PyArg_Parser _parser = {
       PY_ARG_PARSER_HEAD_COMPAT()
@@ -523,46 +519,39 @@ static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject 
       nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &ids)) {
-    return ret;
+    return nullptr;
   }
 
-  if (ids) {
-    BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
+  if (!ids) {
+    return nullptr;
+  }
 
-    PyObject *ids_fast = PySequence_Fast(ids, "batch_remove");
-    if (ids_fast == nullptr) {
-      goto error;
+  PyObject *ids_fast = PySequence_Fast(ids, "batch_remove");
+  if (ids_fast == nullptr) {
+    return nullptr;
+  }
+
+  PyObject **ids_array = PySequence_Fast_ITEMS(ids_fast);
+  Py_ssize_t ids_len = PySequence_Fast_GET_SIZE(ids_fast);
+  blender::Set<ID *> ids_to_delete;
+  for (; ids_len; ids_array++, ids_len--) {
+    ID *id;
+    if (!pyrna_id_FromPyObject(*ids_array, &id)) {
+      PyErr_Format(
+          PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(*ids_array)->tp_name);
+      Py_DECREF(ids_fast);
+      return nullptr;
     }
 
-    PyObject **ids_array = PySequence_Fast_ITEMS(ids_fast);
-    Py_ssize_t ids_len = PySequence_Fast_GET_SIZE(ids_fast);
-
-    for (; ids_len; ids_array++, ids_len--) {
-      ID *id;
-      if (!pyrna_id_FromPyObject(*ids_array, &id)) {
-        PyErr_Format(
-            PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(*ids_array)->tp_name);
-        Py_DECREF(ids_fast);
-        goto error;
-      }
-
-      id->tag |= ID_TAG_DOIT;
-    }
-    Py_DECREF(ids_fast);
-
-    BKE_id_multi_tagged_delete(bmain);
-    /* Force full redraw, mandatory to avoid crashes when running this from UI... */
-    WM_main_add_notifier(NC_WINDOW, nullptr);
+    ids_to_delete.add(id);
   }
-  else {
-    goto error;
-  }
+  Py_DECREF(ids_fast);
 
-  Py_INCREF(Py_None);
-  ret = Py_None;
+  BKE_id_multi_delete(bmain, ids_to_delete);
+  /* Force full redraw, mandatory to avoid crashes when running this from UI... */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
-error:
-  return ret;
+  Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(
