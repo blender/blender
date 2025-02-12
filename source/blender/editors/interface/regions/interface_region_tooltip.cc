@@ -1017,26 +1017,6 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
       }
     }
   }
-  else if (optype) {
-    PointerRNA *opptr = extra_icon ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
-                                     /* Allocated when needed, the button owns it. */
-                                     UI_but_operator_ptr_ensure(but);
-
-    /* So the context is passed to field functions (some Python field functions use it). */
-    WM_operator_properties_sanitize(opptr, false);
-
-    std::string str = ui_tooltip_text_python_from_op(C, optype, opptr);
-
-    /* Operator info. */
-    if (U.flag & USER_TOOLTIPS_PYTHON) {
-      UI_tooltip_text_field_add(*data,
-                                fmt::format(fmt::runtime(TIP_("Python: {}")), str),
-                                {},
-                                UI_TIP_STYLE_MONO,
-                                UI_TIP_LC_PYTHON,
-                                true);
-    }
-  }
 
   /* Button is disabled, we may be able to tell user why. */
   if ((but->flag & UI_BUT_DISABLED) || extra_icon) {
@@ -1071,6 +1051,25 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     if (disabled_msg_free) {
       MEM_freeN((void *)disabled_msg_orig);
     }
+  }
+
+  if (U.flag & USER_TOOLTIPS_PYTHON && optype && !rnaprop) {
+    PointerRNA *opptr = extra_icon ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
+                                     /* Allocated when needed, the button owns it. */
+                                     UI_but_operator_ptr_ensure(but);
+
+    /* So the context is passed to field functions (some Python field functions use it). */
+    WM_operator_properties_sanitize(opptr, false);
+
+    std::string str = ui_tooltip_text_python_from_op(C, optype, opptr);
+
+    /* Operator info. */
+    UI_tooltip_text_field_add(*data,
+                              fmt::format(fmt::runtime(TIP_("Python: {}")), str),
+                              {},
+                              UI_TIP_STYLE_MONO,
+                              UI_TIP_LC_PYTHON,
+                              true);
   }
 
   if ((U.flag & USER_TOOLTIPS_PYTHON) && !optype && !rna_struct.empty()) {
