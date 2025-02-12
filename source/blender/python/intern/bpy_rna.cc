@@ -7981,7 +7981,9 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
   /* Done with RNA instance. */
 }
 
-/* Return a borrowed reference. */
+/**
+ * \return borrowed reference.
+ */
 static PyObject *pyrna_srna_PyBase(StructRNA *srna)  //, PyObject *bpy_types_dict)
 {
   /* Assume RNA_struct_py_type_get(srna) was already checked. */
@@ -8009,6 +8011,11 @@ static PyObject *pyrna_srna_PyBase(StructRNA *srna)  //, PyObject *bpy_types_dic
  * return a borrowed reference. */
 static PyObject *bpy_types_dict = nullptr;
 
+/**
+ * Return the #PyTypeObject or null,
+ *
+ * \return borrowed reference.
+ */
 static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 {
   const char *idname = RNA_struct_identifier(srna);
@@ -8066,6 +8073,11 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
   return newclass;
 }
 
+/**
+ * Return the #PyTypeObject or null with an exception set.
+ *
+ * \return new reference.
+ */
 static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 {
   PyObject *newclass = nullptr;
@@ -8075,10 +8087,12 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
     newclass = nullptr; /* Nothing to do. */
   }                     /* The class may have already been declared & allocated. */
   else if ((newclass = static_cast<PyObject *>(RNA_struct_py_type_get(srna)))) {
+    /* Add a reference for the return value. */
     Py_INCREF(newclass);
-  } /* Check if bpy_types.py module has the class defined in it. */
+  } /* Check if `bpy_types.py` module has the class defined in it. */
   else if ((newclass = pyrna_srna_ExternalType(srna))) {
     pyrna_subtype_set_rna(newclass, srna);
+    /* Add a reference for the return value. */
     Py_INCREF(newclass);
   } /* create a new class instance with the C api
      * mainly for the purposing of matching the C/RNA type hierarchy */
@@ -8092,7 +8106,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
      *   )
      */
 
-    /* Assume RNA_struct_py_type_get(srna) was already checked. */
+    /* Assume `RNA_struct_py_type_get(srna)` was already checked. */
     PyObject *py_base = pyrna_srna_PyBase(srna);
     PyObject *metaclass;
     const char *idname = RNA_struct_identifier(srna);
@@ -8156,9 +8170,6 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
     if (newclass) {
       /* srna owns one, and the other is owned by the caller. */
       pyrna_subtype_set_rna(newclass, srna);
-
-      /* XXX, adding this back segfaults Blender on load. */
-      // Py_DECREF(newclass); /* let srna own */
     }
     else {
       /* This should not happen. */
@@ -8183,7 +8194,9 @@ static StructRNA *srna_from_ptr(PointerRNA *ptr)
   return ptr->type;
 }
 
-/* Always returns a new ref, be sure to decref when done. */
+/**
+ * \return new reference.
+ */
 static PyObject *pyrna_struct_Subtype(PointerRNA *ptr)
 {
   return pyrna_srna_Subtype(srna_from_ptr(ptr));
@@ -8194,6 +8207,8 @@ static PyObject *pyrna_struct_Subtype(PointerRNA *ptr)
 /**
  * A lower level version of #pyrna_struct_CreatePyObject,
  * use this when type (`tp`) needs to be set to a non-standard value.
+ *
+ * \return new reference.
  */
 static PyObject *pyrna_struct_CreatePyObject_from_type(const PointerRNA *ptr,
                                                        PyTypeObject *tp,
