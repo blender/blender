@@ -9,6 +9,7 @@ void node_light_path(out float is_camera_ray,
                      out float is_singular_ray,
                      out float is_reflection_ray,
                      out float is_transmission_ray,
+                     out float is_volume_scatter_ray,
                      out float ray_length,
                      out float ray_depth,
                      out float diffuse_depth,
@@ -32,4 +33,5 @@ void node_light_path(out float is_camera_ray,
   ray_length = g_data.ray_length;
   /* Not supported. */
   transparent_depth = 0.0;
+  is_volume_scatter_ray = 0.0;
 }

@@ -15,6 +15,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Is Singular Ray");
   b.add_output<decl::Float>("Is Reflection Ray");
   b.add_output<decl::Float>("Is Transmission Ray");
+  b.add_output<decl::Float>("Is Volume Scatter Ray");
   b.add_output<decl::Float>("Ray Length");
   b.add_output<decl::Float>("Ray Depth");
   b.add_output<decl::Float>("Diffuse Depth");
