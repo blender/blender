@@ -48,6 +48,8 @@
 #include "BKE_tracking.h"
 #include "BKE_unit.hh"
 
+#include "BLT_translation.hh"
+
 #include "GHOST_C-api.h"
 
 #include "IMB_colormanagement.hh"
@@ -3456,9 +3458,26 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   MEM_SAFE_FREE(text_edit.edit_string);
 
-  /* Clear the status bar. */
   WorkspaceStatus status(C);
-  status.item(" ", ICON_NONE);
+
+#if defined(__APPLE__)
+  const int ctrl_icon = ICON_KEY_COMMAND;
+#else
+  const int ctrl_icon = ICON_EVENT_CTRL;
+#endif
+
+  status.item(IFACE_("Confirm"), ICON_EVENT_RETURN);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+
+  if (!is_num_but) {
+    status.item(IFACE_("Select All"), ctrl_icon, ICON_EVENT_A);
+    status.item(IFACE_("Copy"), ctrl_icon, ICON_EVENT_C);
+    status.item(IFACE_("Paste"), ctrl_icon, ICON_EVENT_V);
+  }
+
+  if (but->autocomplete_func || data->searchbox) {
+    status.item(IFACE_("Autocomplete"), ICON_EVENT_TAB);
+  }
 
 #ifdef USE_DRAG_MULTINUM
   /* this can happen from multi-drag */
@@ -8589,9 +8608,14 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
       else {
         WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, nullptr, true);
       }
-      /* Clear the status bar. */
       WorkspaceStatus status(C);
-      status.item(" ", ICON_NONE);
+      status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+#if defined(__APPLE__)
+      status.item(IFACE_("Snap"), ICON_KEY_COMMAND);
+#else
+      status.item(IFACE_("Snap"), ICON_EVENT_CTRL);
+#endif
+      status.item(IFACE_("Precision"), ICON_EVENT_SHIFT);
     }
     ui_numedit_begin(but, data);
   }
