@@ -804,15 +804,15 @@ OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data,
                                                            long yStrideBytes)
 {
   try {
-    void *mem = MEM_mallocN(sizeof(PackedImageDesc), __func__);
-    PackedImageDesc *id = new (mem) PackedImageDesc(data,
-                                                    width,
-                                                    height,
-                                                    numChannels,
-                                                    BIT_DEPTH_F32,
-                                                    chanStrideBytes,
-                                                    xStrideBytes,
-                                                    yStrideBytes);
+    PackedImageDesc *id = MEM_new<PackedImageDesc>(__func__,
+                                                   data,
+                                                   width,
+                                                   height,
+                                                   numChannels,
+                                                   BIT_DEPTH_F32,
+                                                   chanStrideBytes,
+                                                   xStrideBytes,
+                                                   yStrideBytes);
 
     return (OCIO_PackedImageDesc *)id;
   }
