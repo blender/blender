@@ -102,10 +102,6 @@ struct VertShaded {
 
 /* Batch's only (freed as an array). */
 static struct DRWShapeCache {
-  blender::gpu::Batch *drw_procedural_verts;
-  blender::gpu::Batch *drw_procedural_lines;
-  blender::gpu::Batch *drw_procedural_tris;
-  blender::gpu::Batch *drw_procedural_tri_strips;
   blender::gpu::Batch *drw_cursor;
   blender::gpu::Batch *drw_cursor_only_circle;
   blender::gpu::Batch *drw_quad;
@@ -121,71 +117,6 @@ void DRW_shape_cache_free()
     GPU_BATCH_DISCARD_SAFE(*batch);
     batch++;
   }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Procedural Batches
- * \{ */
-
-blender::gpu::Batch *drw_cache_procedural_points_get()
-{
-  if (!SHC.drw_procedural_verts) {
-    /* TODO(fclem): get rid of this dummy VBO. */
-    GPUVertFormat format = {0};
-    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-    GPU_vertbuf_data_alloc(*vbo, 1);
-
-    SHC.drw_procedural_verts = GPU_batch_create_ex(
-        GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  }
-  return SHC.drw_procedural_verts;
-}
-
-blender::gpu::Batch *drw_cache_procedural_lines_get()
-{
-  if (!SHC.drw_procedural_lines) {
-    /* TODO(fclem): get rid of this dummy VBO. */
-    GPUVertFormat format = {0};
-    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-    GPU_vertbuf_data_alloc(*vbo, 1);
-
-    SHC.drw_procedural_lines = GPU_batch_create_ex(
-        GPU_PRIM_LINES, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  }
-  return SHC.drw_procedural_lines;
-}
-
-blender::gpu::Batch *drw_cache_procedural_triangles_get()
-{
-  if (!SHC.drw_procedural_tris) {
-    /* TODO(fclem): get rid of this dummy VBO. */
-    GPUVertFormat format = {0};
-    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-    GPU_vertbuf_data_alloc(*vbo, 1);
-
-    SHC.drw_procedural_tris = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  }
-  return SHC.drw_procedural_tris;
-}
-
-blender::gpu::Batch *drw_cache_procedural_triangle_strips_get()
-{
-  if (!SHC.drw_procedural_tri_strips) {
-    /* TODO(fclem): get rid of this dummy VBO. */
-    GPUVertFormat format = {0};
-    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-    GPU_vertbuf_data_alloc(*vbo, 1);
-
-    SHC.drw_procedural_tri_strips = GPU_batch_create_ex(
-        GPU_PRIM_TRI_STRIP, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  }
-  return SHC.drw_procedural_tri_strips;
 }
 
 /** \} */

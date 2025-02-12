@@ -80,7 +80,11 @@ Context::~Context()
   BLI_assert(back_right == nullptr);
 
   GPU_matrix_state_discard(matrix_state);
-  GPU_BATCH_DISCARD_SAFE(polyline_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_points_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_lines_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_triangles_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_triangle_strips_batch);
+  GPU_VERTBUF_DISCARD_SAFE(dummy_vbo);
   delete texture_pool;
   delete state_manager;
   delete imm;
@@ -109,20 +113,59 @@ Context *Context::get()
   return active_ctx;
 }
 
-Batch *Context::polyline_batch_get()
+VertBuf *Context::dummy_vbo_get()
 {
-  if (polyline_batch) {
-    return polyline_batch;
+  if (this->dummy_vbo) {
+    return this->dummy_vbo;
   }
 
   /* TODO(fclem): get rid of this dummy VBO. */
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(*vbo, 1);
+  this->dummy_vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*this->dummy_vbo, 1);
+  return this->dummy_vbo;
+}
 
-  polyline_batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  return polyline_batch;
+Batch *Context::procedural_points_batch_get()
+{
+  if (procedural_points_batch) {
+    return procedural_points_batch;
+  }
+
+  procedural_points_batch = GPU_batch_create(GPU_PRIM_POINTS, dummy_vbo_get(), nullptr);
+  return procedural_points_batch;
+}
+
+Batch *Context::procedural_lines_batch_get()
+{
+  if (procedural_lines_batch) {
+    return procedural_lines_batch;
+  }
+
+  procedural_lines_batch = GPU_batch_create(GPU_PRIM_LINES, dummy_vbo_get(), nullptr);
+  return procedural_lines_batch;
+}
+
+Batch *Context::procedural_triangles_batch_get()
+{
+  if (procedural_triangles_batch) {
+    return procedural_triangles_batch;
+  }
+
+  procedural_triangles_batch = GPU_batch_create(GPU_PRIM_TRIS, dummy_vbo_get(), nullptr);
+  return procedural_triangles_batch;
+}
+
+Batch *Context::procedural_triangle_strips_batch_get()
+{
+  if (procedural_triangle_strips_batch) {
+    return procedural_triangle_strips_batch;
+  }
+
+  procedural_triangle_strips_batch = GPU_batch_create(
+      GPU_PRIM_TRI_STRIP, dummy_vbo_get(), nullptr);
+  return procedural_triangle_strips_batch;
 }
 
 }  // namespace blender::gpu

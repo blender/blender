@@ -240,7 +240,7 @@ void DebugDraw::display_lines()
 
   command::StateSet::set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 
-  gpu::Batch *batch = drw_cache_procedural_lines_get();
+  gpu::Batch *batch = GPU_batch_procedural_lines_get();
   GPUShader *shader = DRW_shader_debug_draw_display_get();
   GPU_batch_set_shader(batch, shader);
   GPU_shader_uniform_mat4(shader, "persmat", persmat.ptr());

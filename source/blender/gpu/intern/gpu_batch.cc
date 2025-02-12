@@ -385,7 +385,7 @@ static void polyline_draw_workaround(
   GPU_batch_bind_as_resources(batch, batch->shader);
   blender::IndexRange range = GPU_batch_draw_expanded_parameter_get(
       batch->prim_type, GPU_PRIM_TRIS, vertex_count, vertex_first, 2);
-  Batch *tri_batch = Context::get()->polyline_batch_get();
+  Batch *tri_batch = Context::get()->procedural_triangles_batch_get();
   GPU_batch_set_shader(tri_batch, batch->shader);
 
   int vert_stride_count[3] = {(batch->prim_type == GPU_PRIM_LINES) ? 2 : 1, vertex_count, 0};
@@ -519,6 +519,26 @@ void GPU_batch_program_set_builtin(Batch *batch, eGPUBuiltinShader shader_id)
 void GPU_batch_program_set_imm_shader(Batch *batch)
 {
   GPU_batch_set_shader(batch, immGetShader());
+}
+
+blender::gpu::Batch *GPU_batch_procedural_points_get()
+{
+  return blender::gpu::Context::get()->procedural_points_batch_get();
+}
+
+blender::gpu::Batch *GPU_batch_procedural_lines_get()
+{
+  return blender::gpu::Context::get()->procedural_lines_batch_get();
+}
+
+blender::gpu::Batch *GPU_batch_procedural_triangles_get()
+{
+  return blender::gpu::Context::get()->procedural_triangles_batch_get();
+}
+
+blender::gpu::Batch *GPU_batch_procedural_triangle_strips_get()
+{
+  return blender::gpu::Context::get()->procedural_triangle_strips_batch_get();
 }
 
 /** \} */
