@@ -128,6 +128,10 @@ typedef struct uiWidgetColors {
 } uiWidgetColors;
 
 typedef struct uiWidgetStateColors {
+  unsigned char error[4];
+  unsigned char warning[4];
+  unsigned char info[4];
+  unsigned char success[4];
   unsigned char inner_anim[4];
   unsigned char inner_anim_sel[4];
   unsigned char inner_key[4];
@@ -437,12 +441,13 @@ typedef struct ThemeSpace {
 
   /* info */
   unsigned char info_selected[4], info_selected_text[4];
-  unsigned char info_error[4], info_error_text[4];
-  unsigned char info_warning[4], info_warning_text[4];
-  unsigned char info_info[4], info_info_text[4];
+  unsigned char info_error_text[4];
+  unsigned char info_warning_text[4];
+  unsigned char info_info_text[4];
   unsigned char info_debug[4], info_debug_text[4];
   unsigned char info_property[4], info_property_text[4];
   unsigned char info_operator[4], info_operator_text[4];
+  char _pad6[4];
 
   unsigned char paint_curve_pivot[4];
   unsigned char paint_curve_handle[4];

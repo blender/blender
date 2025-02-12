@@ -60,8 +60,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
   ThemeSpace *ts = nullptr;
   static uchar error[4] = {240, 0, 240, 255};
-  static uchar alert[4] = {240, 60, 60, 255};
   static uchar back[4] = {0, 0, 0, 255};
+  static uchar none[4] = {0, 0, 0, 0};
+  static uchar white[4] = {255, 255, 255, 255};
+  static uchar black[4] = {0, 0, 0, 255};
   static uchar setting = 0;
   const uchar *cp = error;
 
@@ -75,9 +77,27 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
     if (colorid < TH_THEMEUI) {
 
       switch (colorid) {
-
+        case TH_NONE:
+          cp = none;
+          break;
+        case TH_BLACK:
+          cp = black;
+          break;
+        case TH_WHITE:
+          cp = white;
+          break;
         case TH_REDALERT:
-          cp = alert;
+        case TH_ERROR:
+          cp = btheme->tui.wcol_state.error;
+          break;
+        case TH_WARNING:
+          cp = btheme->tui.wcol_state.warning;
+          break;
+        case TH_INFO:
+          cp = btheme->tui.wcol_state.info;
+          break;
+        case TH_SUCCESS:
+          cp = btheme->tui.wcol_state.success;
           break;
       }
     }
@@ -1034,20 +1054,11 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_INFO_SELECTED_TEXT:
           cp = ts->info_selected_text;
           break;
-        case TH_INFO_ERROR:
-          cp = ts->info_error;
-          break;
         case TH_INFO_ERROR_TEXT:
           cp = ts->info_error_text;
           break;
-        case TH_INFO_WARNING:
-          cp = ts->info_warning;
-          break;
         case TH_INFO_WARNING_TEXT:
           cp = ts->info_warning_text;
-          break;
-        case TH_INFO_INFO:
-          cp = ts->info_info;
           break;
         case TH_INFO_INFO_TEXT:
           cp = ts->info_info_text;
