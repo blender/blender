@@ -120,6 +120,19 @@ class LookdevModule {
 
   static constexpr int num_spheres = 2;
 
+  /**
+   * Shape resolution level of detail.
+   */
+  enum SphereLOD {
+    LOW = 0,
+    MEDIUM = 1,
+    HIGH = 2,
+
+    MAX, /* Max number of level of detail */
+  };
+
+  std::array<gpu::Batch *, MAX> sphere_lod_;
+
   /* Size and position of the look-dev spheres in world space. */
   float sphere_radius_;
   float3 sphere_position_;
@@ -156,6 +169,8 @@ class LookdevModule {
   void sync_display();
 
   float calc_viewport_scale();
+  SphereLOD calc_level_of_detail(const float viewport_scale);
+  blender::gpu::Batch *sphere_get(const SphereLOD level_of_detail);
 
   friend class LookdevView;
 };

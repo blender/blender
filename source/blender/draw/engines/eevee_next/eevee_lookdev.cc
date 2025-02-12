@@ -130,7 +130,87 @@ bool LookdevWorld::sync(const LookdevParameters &new_parameters)
 
 LookdevModule::LookdevModule(Instance &inst) : inst_(inst) {}
 
-LookdevModule::~LookdevModule() = default;
+LookdevModule::~LookdevModule()
+{
+  for (gpu::Batch *batch : sphere_lod_) {
+    GPU_BATCH_DISCARD_SAFE(batch);
+  }
+}
+
+blender::gpu::Batch *LookdevModule::sphere_get(const SphereLOD level_of_detail)
+{
+  BLI_assert(level_of_detail >= SphereLOD::LOW && level_of_detail < SphereLOD::MAX);
+
+  if (sphere_lod_[level_of_detail] != nullptr) {
+    return sphere_lod_[level_of_detail];
+  }
+
+  int lat_res;
+  int lon_res;
+  switch (level_of_detail) {
+    case 2:
+      lat_res = 80;
+      lon_res = 60;
+      break;
+    case 1:
+      lat_res = 64;
+      lon_res = 48;
+      break;
+    default:
+    case 0:
+      lat_res = 32;
+      lon_res = 24;
+      break;
+  }
+
+  GPUVertFormat format = {0};
+  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  struct Vert {
+    float x, y, z;
+    float nor_x, nor_y, nor_z;
+  };
+
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  int v_len = (lat_res - 1) * lon_res * 6;
+  GPU_vertbuf_data_alloc(*vbo, v_len);
+
+  const float lon_inc = 2 * M_PI / lon_res;
+  const float lat_inc = M_PI / lat_res;
+  float lon, lat;
+
+  int v = 0;
+  lon = 0.0f;
+
+  auto sphere_lat_lon_vert = [&](float lat, float lon) {
+    Vert vert;
+    vert.nor_x = vert.x = sinf(lat) * cosf(lon);
+    vert.nor_y = vert.y = cosf(lat);
+    vert.nor_z = vert.z = sinf(lat) * sinf(lon);
+    GPU_vertbuf_vert_set(vbo, v, &vert);
+    v++;
+  };
+
+  for (int i = 0; i < lon_res; i++, lon += lon_inc) {
+    lat = 0.0f;
+    for (int j = 0; j < lat_res; j++, lat += lat_inc) {
+      if (j != lat_res - 1) { /* Pole */
+        sphere_lat_lon_vert(lat + lat_inc, lon + lon_inc);
+        sphere_lat_lon_vert(lat + lat_inc, lon);
+        sphere_lat_lon_vert(lat, lon);
+      }
+      if (j != 0) { /* Pole */
+        sphere_lat_lon_vert(lat, lon + lon_inc);
+        sphere_lat_lon_vert(lat + lat_inc, lon + lon_inc);
+        sphere_lat_lon_vert(lat, lon);
+      }
+    }
+  }
+
+  sphere_lod_[level_of_detail] = GPU_batch_create_ex(
+      GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+  return sphere_lod_[level_of_detail];
+}
 
 void LookdevModule::init(const rcti *visible_rect)
 {
@@ -154,18 +234,18 @@ float LookdevModule::calc_viewport_scale()
   return viewport_scale;
 }
 
-static eDRWLevelOfDetail calc_level_of_detail(const float viewport_scale)
+LookdevModule::SphereLOD LookdevModule::calc_level_of_detail(const float viewport_scale)
 {
   float res_scale = clamp_f(
       (U.lookdev_sphere_size / 400.0f) * viewport_scale * UI_SCALE_FAC, 0.1f, 1.0f);
 
   if (res_scale > 0.7f) {
-    return DRW_LOD_HIGH;
+    return LookdevModule::SphereLOD::HIGH;
   }
   if (res_scale > 0.25f) {
-    return DRW_LOD_MEDIUM;
+    return LookdevModule::SphereLOD::MEDIUM;
   }
-  return DRW_LOD_LOW;
+  return LookdevModule::SphereLOD::LOW;
 }
 
 static int calc_sphere_extent(const float viewport_scale)
@@ -215,7 +295,7 @@ void LookdevModule::sync()
   model_m4 = math::scale(model_m4, float3(this->sphere_radius_));
 
   ResourceHandle handle = inst_.manager->resource_handle(model_m4);
-  gpu::Batch *geom = DRW_cache_sphere_get(calc_level_of_detail(viewport_scale));
+  gpu::Batch *geom = sphere_get(calc_level_of_detail(viewport_scale));
 
   sync_pass(spheres_[0].pass, geom, inst_.materials.metallic_mat, handle);
   sync_pass(spheres_[1].pass, geom, inst_.materials.diffuse_mat, handle);

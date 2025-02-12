@@ -61,17 +61,6 @@ using blender::Span;
 #define VCLASS_EMPTY_AXES_SHADOW (1 << 13)
 #define VCLASS_EMPTY_SIZE (1 << 14)
 
-/* Sphere shape resolution */
-/* Low */
-#define DRW_SPHERE_SHAPE_LATITUDE_LOW 32
-#define DRW_SPHERE_SHAPE_LONGITUDE_LOW 24
-/* Medium */
-#define DRW_SPHERE_SHAPE_LATITUDE_MEDIUM 64
-#define DRW_SPHERE_SHAPE_LONGITUDE_MEDIUM 48
-/* High */
-#define DRW_SPHERE_SHAPE_LATITUDE_HIGH 80
-#define DRW_SPHERE_SHAPE_LONGITUDE_HIGH 60
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -106,7 +95,6 @@ static struct DRWShapeCache {
   blender::gpu::Batch *drw_cursor_only_circle;
   blender::gpu::Batch *drw_quad;
   blender::gpu::Batch *drw_cube;
-  blender::gpu::Batch *drw_sphere_lod[DRW_LOD_MAX];
 } SHC = {nullptr};
 
 void DRW_shape_cache_free()
@@ -240,76 +228,6 @@ blender::gpu::Batch *DRW_cache_quad_get()
     SHC.drw_quad = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   }
   return SHC.drw_quad;
-}
-
-/* Sphere */
-static void sphere_lat_lon_vert(blender::gpu::VertBuf *vbo, int *v_ofs, float lat, float lon)
-{
-  float x = sinf(lat) * cosf(lon);
-  float y = cosf(lat);
-  float z = sinf(lat) * sinf(lon);
-  GPU_vertbuf_vert_set(vbo, *v_ofs, VertShaded{{x, y, z}, VCLASS_EMPTY_SCALED, {x, y, z}});
-  (*v_ofs)++;
-}
-
-blender::gpu::Batch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail)
-{
-  BLI_assert(level_of_detail >= DRW_LOD_LOW && level_of_detail < DRW_LOD_MAX);
-
-  if (!SHC.drw_sphere_lod[level_of_detail]) {
-    int lat_res;
-    int lon_res;
-
-    switch (level_of_detail) {
-      case DRW_LOD_LOW:
-        lat_res = DRW_SPHERE_SHAPE_LATITUDE_LOW;
-        lon_res = DRW_SPHERE_SHAPE_LONGITUDE_LOW;
-        break;
-      case DRW_LOD_MEDIUM:
-        lat_res = DRW_SPHERE_SHAPE_LATITUDE_MEDIUM;
-        lon_res = DRW_SPHERE_SHAPE_LONGITUDE_MEDIUM;
-        break;
-      case DRW_LOD_HIGH:
-        lat_res = DRW_SPHERE_SHAPE_LATITUDE_HIGH;
-        lon_res = DRW_SPHERE_SHAPE_LONGITUDE_HIGH;
-        break;
-      default:
-        return nullptr;
-    }
-
-    GPUVertFormat format = extra_vert_format();
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-    int v_len = (lat_res - 1) * lon_res * 6;
-    GPU_vertbuf_data_alloc(*vbo, v_len);
-
-    const float lon_inc = 2 * M_PI / lon_res;
-    const float lat_inc = M_PI / lat_res;
-    float lon, lat;
-
-    int v = 0;
-    lon = 0.0f;
-    for (int i = 0; i < lon_res; i++, lon += lon_inc) {
-      lat = 0.0f;
-      for (int j = 0; j < lat_res; j++, lat += lat_inc) {
-        if (j != lat_res - 1) { /* Pole */
-          sphere_lat_lon_vert(vbo, &v, lat + lat_inc, lon + lon_inc);
-          sphere_lat_lon_vert(vbo, &v, lat + lat_inc, lon);
-          sphere_lat_lon_vert(vbo, &v, lat, lon);
-        }
-        if (j != 0) { /* Pole */
-          sphere_lat_lon_vert(vbo, &v, lat, lon + lon_inc);
-          sphere_lat_lon_vert(vbo, &v, lat + lat_inc, lon + lon_inc);
-          sphere_lat_lon_vert(vbo, &v, lat, lon);
-        }
-      }
-    }
-
-    SHC.drw_sphere_lod[level_of_detail] = GPU_batch_create_ex(
-        GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  }
-  return SHC.drw_sphere_lod[level_of_detail];
 }
 
 /** \} */

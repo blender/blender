@@ -46,8 +46,6 @@ blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines);
 blender::gpu::Batch *DRW_cache_quad_get();
 blender::gpu::Batch *DRW_cache_cube_get();
 
-blender::gpu::Batch *DRW_cache_sphere_get(eDRWLevelOfDetail level_of_detail);
-
 /* Common Object */
 
 blender::gpu::Batch *DRW_cache_object_all_edges_get(Object *ob);
