@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <thread>
 
 #include "util/profiling.h"
