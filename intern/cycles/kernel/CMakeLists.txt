@@ -134,7 +134,6 @@ set(SRC_KERNEL_DEVICE_ONEAPI_HEADERS
   device/oneapi/context_intersect_begin.h
   device/oneapi/context_intersect_end.h
   device/oneapi/globals.h
-  device/oneapi/image.h
   device/oneapi/kernel.h
   device/oneapi/kernel_templates.h
   device/cpu/bvh.h
