@@ -565,6 +565,10 @@ void BKE_id_material_resize(Main *bmain, ID *id, short totcol, bool do_id_user)
   if (matar == nullptr) {
     return;
   }
+  if (totcol == *totcolp) {
+    /* Prevent depsgraph update and relations tag when nothing changed. */
+    return;
+  }
 
   if (do_id_user && totcol < (*totcolp)) {
     short i;
@@ -936,6 +940,11 @@ MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
 
 void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, bool do_id_user)
 {
+  if (totcol == ob->totcol) {
+    /* Prevent depsgraph update and relations tag when nothing changed. */
+    return;
+  }
+
   Material **newmatar;
   char *newmatbits;
 
