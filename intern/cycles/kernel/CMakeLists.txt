@@ -1064,6 +1064,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -mllvm -inlinehint-threshold=350
     -fsycl-device-code-split=per_kernel
     -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
+    --offload-compress
+    --offload-compression-level=19
     -shared
     -DWITH_ONEAPI
     -O2
