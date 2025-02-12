@@ -6485,7 +6485,7 @@ uiLayout *uiItemsAlertBox(uiBlock *block,
 uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
 {
   const uiStyle *style = UI_style_get_dpi();
-  const short icon_size = 64 * UI_SCALE_FAC;
+  const short icon_size = 40 * UI_SCALE_FAC;
   const int dialog_width = icon_size + (style->widget.points * size * UI_SCALE_FAC);
   return uiItemsAlertBox(block, style, dialog_width, icon, icon_size);
 }

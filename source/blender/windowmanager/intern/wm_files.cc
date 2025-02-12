@@ -4077,7 +4077,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
 
   const int dialog_width = std::max(int(400.0f * UI_SCALE_FAC),
                                     text_width + int(style->columnspace * 2.5));
-  const short icon_size = 64 * UI_SCALE_FAC;
+  const short icon_size = 40 * UI_SCALE_FAC;
   uiLayout *layout = uiItemsAlertBox(
       block, style, dialog_width + icon_size, ALERT_ICON_ERROR, icon_size);
 
@@ -4092,7 +4092,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   PointerRNA pref_ptr = RNA_pointer_create_discrete(nullptr, &RNA_PreferencesFilePaths, &U);
   uiItemR(layout, &pref_ptr, "use_scripts_auto_execute", UI_ITEM_NONE, checkbox_text, ICON_NONE);
 
-  uiItemS_ex(layout, 3.0f);
+  uiItemS_ex(layout, 2.0f);
 
   /* Buttons. */
   uiBut *but;
@@ -4752,7 +4752,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
 
   BKE_reports_free(&reports);
 
-  uiItemS_ex(layout, has_extra_checkboxes ? 2.0f : 4.0f);
+  uiItemS_ex(layout, 2.0f);
 
   /* Buttons. */
 #ifdef _WIN32

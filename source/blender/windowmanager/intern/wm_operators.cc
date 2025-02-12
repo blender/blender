@@ -1519,7 +1519,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   wmOperator *op = data->op;
   const uiStyle *style = UI_style_get_dpi();
   const bool small = data->size == WM_POPUP_SIZE_SMALL;
-  const short icon_size = (small ? 32 : 64) * UI_SCALE_FAC;
+  const short icon_size = (small ? 32 : 40) * UI_SCALE_FAC;
 
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
@@ -1581,8 +1581,13 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   }
 
   /* Message lines. */
-  for (auto &st : message_lines) {
-    uiItemL(layout, st, ICON_NONE);
+  if (message_lines.size() > 0) {
+    uiLayout *lines = uiLayoutColumn(layout, false);
+    uiLayoutSetScaleY(lines, 0.65f);
+    uiItemS_ex(lines, 0.1f);
+    for (auto &st : message_lines) {
+      uiItemL(lines, st, ICON_NONE);
+    }
   }
 
   if (data->include_properties) {
@@ -1590,7 +1595,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     uiTemplateOperatorPropertyButs(C, layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
   }
 
-  uiItemS_ex(layout, small ? 0.1f : 2.0f);
+  uiItemS_ex(layout, small ? 0.1f : 1.8f);
 
   /* Clear so the OK button is left alone. */
   UI_block_func_set(block, nullptr, nullptr, nullptr);
