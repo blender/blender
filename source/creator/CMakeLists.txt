@@ -1389,23 +1389,28 @@ elseif(WIN32)
           CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         )
       endif()
-      # MaterialX python bindings
-      install(
-        DIRECTORY ${LIBDIR}/materialx/python/Release/MaterialX
-        DESTINATION ${TARGETDIR_SITE_PACKAGES}/
-        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-        PATTERN "__pycache__" EXCLUDE           # * any cache *
-        PATTERN "*.pyc" EXCLUDE                 # * any cache *
-        PATTERN "*.pyo" EXCLUDE                 # * any cache *
-      )
-      install(
-        DIRECTORY ${LIBDIR}/materialx/python/Debug/MaterialX
-        DESTINATION ${TARGETDIR_SITE_PACKAGES}/
-        CONFIGURATIONS Debug
-        PATTERN "__pycache__" EXCLUDE           # * any cache *
-        PATTERN "*.pyc" EXCLUDE                 # * any cache *
-        PATTERN "*.pyo" EXCLUDE                 # * any cache *
-      )
+      # MaterialX python bindings.
+      # Check they exist so building against non `LIBDIR` Python works as expected.
+      if(EXISTS ${LIBDIR}/materialx/python/Release/MaterialX)
+        install(
+          DIRECTORY ${LIBDIR}/materialx/python/Release/MaterialX
+          DESTINATION ${TARGETDIR_SITE_PACKAGES}/
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
+      if(EXISTS ${LIBDIR}/materialx/python/Debug/MaterialX)
+        install(
+          DIRECTORY ${LIBDIR}/materialx/python/Debug/MaterialX
+          DESTINATION ${TARGETDIR_SITE_PACKAGES}/
+          CONFIGURATIONS Debug
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
     endif()
 
     if(WITH_PYTHON_INSTALL)
@@ -1729,29 +1734,40 @@ endif()
 # Windows already installs these, for Unix we need to pick just the VFX libs from
 # the site-packages directory.
 if(WITH_PYTHON_MODULE AND LIBDIR AND NOT WIN32)
-  install(
-    DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/MaterialX
-    DESTINATION ${TARGETDIR_SITE_PACKAGES})
-  install(
-    DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/OpenImageIO
-    DESTINATION ${TARGETDIR_SITE_PACKAGES})
-  install(
-    DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/PyOpenColorIO
-    DESTINATION ${TARGETDIR_SITE_PACKAGES})
-  install(
-    DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/oslquery
-    DESTINATION ${TARGETDIR_SITE_PACKAGES} OPTIONAL)
-  install(
-    DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/pxr
-    DESTINATION ${TARGETDIR_SITE_PACKAGES})
-  if(APPLE)
-    set(_openvdb_filename openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-darwin.so)
-  else()
-    set(_openvdb_filename openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-${CMAKE_SYSTEM_PROCESSOR}-linux-gnu.so)
+  # It's possible for a build using LIBDIR to reference a non-standard Python installation.
+  path_is_prefix(LIBDIR PYTHON_INCLUDE_DIR _is_python_in_libdir)
+  if(_is_python_in_libdir)
+    install(
+      DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/MaterialX
+      DESTINATION ${TARGETDIR_SITE_PACKAGES}
+    )
+    install(
+      DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/OpenImageIO
+      DESTINATION ${TARGETDIR_SITE_PACKAGES}
+    )
+    install(
+      DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/PyOpenColorIO
+      DESTINATION ${TARGETDIR_SITE_PACKAGES}
+    )
+    install(
+      DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/oslquery
+      DESTINATION ${TARGETDIR_SITE_PACKAGES} OPTIONAL
+    )
+    install(
+      DIRECTORY ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/pxr
+      DESTINATION ${TARGETDIR_SITE_PACKAGES}
+    )
+    if(APPLE)
+      set(_openvdb_filename openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-darwin.so)
+    else()
+      set(_openvdb_filename openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-${CMAKE_SYSTEM_PROCESSOR}-linux-gnu.so)
+    endif()
+    install(
+      FILES ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/${_openvdb_filename}
+      DESTINATION ${TARGETDIR_SITE_PACKAGES}
+    )
   endif()
-  install(
-    FILES ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/${_openvdb_filename}
-    DESTINATION ${TARGETDIR_SITE_PACKAGES})
+  unset(_is_python_in_libdir)
 endif()
 
 # -----------------------------------------------------------------------------
