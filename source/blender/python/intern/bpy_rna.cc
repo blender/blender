@@ -9994,6 +9994,14 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
     return nullptr;
   }
 
+  if ((srna->flag & STRUCT_RUNTIME) == 0) {
+    PyErr_Format(PyExc_RuntimeError,
+                 "unregister_class(...): "
+                 "can't unregister a built-in class '%.200s'",
+                 ((PyTypeObject *)py_class)->tp_name);
+    return nullptr;
+  }
+
   /* Check that we have a unregister callback for this type. */
   unreg = RNA_struct_unregister(srna);
 
