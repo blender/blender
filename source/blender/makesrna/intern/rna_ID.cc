@@ -219,6 +219,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_lib_query.hh"
 #  include "BKE_lib_remap.hh"
 #  include "BKE_library.hh"
+#  include "BKE_main_invariants.hh"
 #  include "BKE_material.hh"
 #  include "BKE_preview_image.hh"
 #  include "BKE_vfont.hh"
@@ -714,6 +715,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
+  BKE_main_ensure_invariants(*bmain, *newid);
 
   return newid;
 }
