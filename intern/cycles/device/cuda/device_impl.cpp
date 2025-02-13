@@ -537,7 +537,7 @@ void CUDADevice::free_device(void *device_pointer)
   cuda_assert(cuMemFree((CUdeviceptr)device_pointer));
 }
 
-bool CUDADevice::alloc_host(void *&shared_pointer, const size_t size)
+bool CUDADevice::shared_alloc(void *&shared_pointer, const size_t size)
 {
   CUDAContextScope scope(this);
 
@@ -546,14 +546,14 @@ bool CUDADevice::alloc_host(void *&shared_pointer, const size_t size)
   return mem_alloc_result == CUDA_SUCCESS;
 }
 
-void CUDADevice::free_host(void *shared_pointer)
+void CUDADevice::shared_free(void *shared_pointer)
 {
   CUDAContextScope scope(this);
 
   cuMemFreeHost(shared_pointer);
 }
 
-void *CUDADevice::transform_host_to_device_pointer(const void *shared_pointer)
+void *CUDADevice::shared_to_device_pointer(const void *shared_pointer)
 {
   CUDAContextScope scope(this);
   void *device_pointer = nullptr;
@@ -646,7 +646,7 @@ void CUDADevice::mem_zero(device_memory &mem)
     return;
   }
 
-  if (!(mem.is_host_mapped(this) && mem.host_pointer == mem.shared_pointer)) {
+  if (!(mem.is_shared(this) && mem.host_pointer == mem.shared_pointer)) {
     const CUDAContextScope scope(this);
     cuda_assert(cuMemsetD8((CUdeviceptr)mem.device_pointer, 0, mem.memory_size()));
   }

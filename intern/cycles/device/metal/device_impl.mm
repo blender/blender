@@ -731,7 +731,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
       if (mem.host_pointer && mem.host_pointer != mmem->hostPtr) {
         memcpy(mmem->hostPtr, mem.host_pointer, size);
 
-        util_aligned_free(mem.host_pointer, mem.memory_size());
+        host_free(mem.type, mem.host_pointer, mem.memory_size());
         mem.host_pointer = mmem->hostPtr;
       }
       mem.shared_pointer = mmem->hostPtr;

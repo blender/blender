@@ -335,18 +335,18 @@ void OneapiDevice::free_device(void *device_pointer)
   usm_free(device_queue_, device_pointer);
 }
 
-bool OneapiDevice::alloc_host(void *&shared_pointer, const size_t size)
+bool OneapiDevice::shared_alloc(void *&shared_pointer, const size_t size)
 {
   shared_pointer = usm_aligned_alloc_host(device_queue_, size, 64);
   return shared_pointer != nullptr;
 }
 
-void OneapiDevice::free_host(void *shared_pointer)
+void OneapiDevice::shared_free(void *shared_pointer)
 {
   usm_free(device_queue_, shared_pointer);
 }
 
-void *OneapiDevice::transform_host_to_device_pointer(const void *shared_pointer)
+void *OneapiDevice::shared_to_device_pointer(const void *shared_pointer)
 {
   /* Device and host pointer are in the same address space
    * as we're using Unified Shared Memory. */
