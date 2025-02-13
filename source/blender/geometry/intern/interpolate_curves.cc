@@ -455,17 +455,24 @@ void interpolate_curves_with_samples(const CurvesGeometry &from_curves,
                                         CD_PROP_FLOAT2,
                                         CD_PROP_FLOAT3);
     if (can_mix_attribute && !src_from.is_empty() && !src_to.is_empty()) {
+      const int max_curves = std::min(dst_curve_mask.min_array_size(),
+                                      std::min(src_from.size(), src_to.size()));
+      const IndexMask safe_dst_curve_mask = dst_curve_mask.slice_content(0, max_curves);
       GArray<> from_samples(dst.type(), dst.size());
       GArray<> to_samples(dst.type(), dst.size());
-      array_utils::copy(GVArray::ForSpan(src_from), dst_curve_mask, from_samples);
-      array_utils::copy(GVArray::ForSpan(src_to), dst_curve_mask, to_samples);
-      mix_arrays(from_samples, to_samples, mix_factors, dst_curve_mask, dst);
+      array_utils::copy(GVArray::ForSpan(src_from), safe_dst_curve_mask, from_samples);
+      array_utils::copy(GVArray::ForSpan(src_to), safe_dst_curve_mask, to_samples);
+      mix_arrays(from_samples, to_samples, mix_factors, safe_dst_curve_mask, dst);
     }
     else if (!src_from.is_empty()) {
-      array_utils::copy(GVArray::ForSpan(src_from), dst_curve_mask, dst);
+      const int max_curves = std::min(dst_curve_mask.min_array_size(), src_from.size());
+      const IndexMask safe_dst_curve_mask = dst_curve_mask.slice_content(0, max_curves);
+      array_utils::copy(GVArray::ForSpan(src_from), safe_dst_curve_mask, dst);
     }
     else if (!src_to.is_empty()) {
-      array_utils::copy(GVArray::ForSpan(src_to), dst_curve_mask, dst);
+      const int max_curves = std::min(dst_curve_mask.min_array_size(), src_to.size());
+      const IndexMask safe_dst_curve_mask = dst_curve_mask.slice_content(0, max_curves);
+      array_utils::copy(GVArray::ForSpan(src_to), safe_dst_curve_mask, dst);
     }
   }
 

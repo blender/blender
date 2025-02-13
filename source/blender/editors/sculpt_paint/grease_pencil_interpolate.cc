@@ -287,10 +287,10 @@ static bool find_curve_mapping_from_index(const GreasePencil &grease_pencil,
   }
   /* Discard additional elements of the larger selection. */
   if (from_selection.size() > to_selection.size()) {
-    from_selection.slice(0, to_selection.size());
+    from_selection = from_selection.slice(0, to_selection.size());
   }
   else if (to_selection.size() > from_selection.size()) {
-    to_selection.slice(0, from_selection.size());
+    to_selection = to_selection.slice(0, from_selection.size());
   }
 
   /* By default: copy the "from" curve and ignore the "to" curve. */
