@@ -62,9 +62,10 @@ static int bpy_cli_command_exec(bContext *C,
                                 const int argc,
                                 const char **argv)
 {
-  int exit_code = EXIT_FAILURE;
   PyGILState_STATE gilstate;
   bpy_context_set(C, &gilstate);
+
+  int exit_code = EXIT_FAILURE;
 
   /* For the most part `sys.argv[-argc:]` is sufficient & less trouble than re-creating this
    * list. Don't do this because:

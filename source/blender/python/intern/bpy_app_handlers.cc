@@ -292,10 +292,8 @@ PyObject *BPY_app_handlers_struct()
 
 void BPY_app_handlers_reset(const bool do_all)
 {
-  PyGILState_STATE gilstate;
+  PyGILState_STATE gilstate = PyGILState_Ensure();
   int pos = 0;
-
-  gilstate = PyGILState_Ensure();
 
   if (do_all) {
     for (pos = 0; pos < BKE_CB_EVT_TOT; pos++) {

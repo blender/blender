@@ -9407,11 +9407,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     C = BPY_context_get();
   }
 
+  bpy_context_set(C, &gilstate);
+
   /* Annoying! We need to check if the screen gets set to nullptr which is a
    * hint that the file was actually re-loaded. */
   const bool is_valid_wm = (CTX_wm_manager(C) != nullptr);
-
-  bpy_context_set(C, &gilstate);
 
   if (!(is_staticmethod || is_classmethod)) {
     /* Some data-types (operator, render engine) can store PyObjects for re-use. */
@@ -9704,10 +9704,9 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
 static void bpy_class_free(void *pyob_ptr)
 {
-  PyObject *self = (PyObject *)pyob_ptr;
-  PyGILState_STATE gilstate;
+  PyGILState_STATE gilstate = PyGILState_Ensure();
 
-  gilstate = PyGILState_Ensure();
+  PyObject *self = (PyObject *)pyob_ptr;
 
   /* Breaks re-registering classes. */
   // PyDict_Clear(((PyTypeObject *)self)->tp_dict);
@@ -9821,11 +9820,9 @@ void pyrna_alloc_types()
    * or any errors in "bpy_types.py" at load time, so errors don't go unnoticed. */
 
 #ifndef NDEBUG
-  PyGILState_STATE gilstate;
+  PyGILState_STATE gilstate = PyGILState_Ensure();
 
   PropertyRNA *prop;
-
-  gilstate = PyGILState_Ensure();
 
   /* Avoid doing this lookup for every getattr. */
   PointerRNA ptr = RNA_blender_rna_pointer_create();

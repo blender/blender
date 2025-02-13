@@ -44,10 +44,9 @@ static double handle_returned_value(PyObject *function, PyObject *ret)
 
 static double py_timer_execute(uintptr_t /*uuid*/, void *user_data)
 {
-  PyObject *function = static_cast<PyObject *>(user_data);
+  PyGILState_STATE gilstate = PyGILState_Ensure();
 
-  PyGILState_STATE gilstate;
-  gilstate = PyGILState_Ensure();
+  PyObject *function = static_cast<PyObject *>(user_data);
 
   PyObject *py_ret = PyObject_CallObject(function, nullptr);
   const double ret = handle_returned_value(function, py_ret);
@@ -59,11 +58,9 @@ static double py_timer_execute(uintptr_t /*uuid*/, void *user_data)
 
 static void py_timer_free(uintptr_t /*uuid*/, void *user_data)
 {
+  PyGILState_STATE gilstate = PyGILState_Ensure();
+
   PyObject *function = static_cast<PyObject *>(user_data);
-
-  PyGILState_STATE gilstate;
-  gilstate = PyGILState_Ensure();
-
   Py_DECREF(function);
 
   PyGILState_Release(gilstate);

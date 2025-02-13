@@ -248,10 +248,10 @@ static void py_rna_gizmo_handler_range_get_cb(const wmGizmo * /*gz*/,
                                               wmGizmoProperty *gz_prop,
                                               void *value_p)
 {
+  const PyGILState_STATE gilstate = PyGILState_Ensure();
+
   BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
       gz_prop->custom_func.user_data);
-
-  const PyGILState_STATE gilstate = PyGILState_Ensure();
 
   PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET], nullptr);
   if (ret == nullptr) {
@@ -302,10 +302,11 @@ fail:
 
 static void py_rna_gizmo_handler_free_cb(const wmGizmo * /*gz*/, wmGizmoProperty *gz_prop)
 {
+  const PyGILState_STATE gilstate = PyGILState_Ensure();
+
   BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
       gz_prop->custom_func.user_data);
 
-  const PyGILState_STATE gilstate = PyGILState_Ensure();
   for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
     Py_XDECREF(data->fn_slots[i]);
   }
