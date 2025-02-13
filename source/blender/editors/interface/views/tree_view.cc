@@ -660,6 +660,13 @@ bool AbstractTreeViewItem::toggle_collapsed()
   return this->set_collapsed(is_open_);
 }
 
+void AbstractTreeViewItem::toggle_collapsed_from_view(bContext &C)
+{
+  if (this->toggle_collapsed()) {
+    this->on_collapse_change(C, this->is_collapsed());
+  }
+}
+
 bool AbstractTreeViewItem::set_collapsed(const bool collapsed)
 {
   if (!this->is_collapsible()) {
@@ -671,6 +678,16 @@ bool AbstractTreeViewItem::set_collapsed(const bool collapsed)
 
   is_open_ = !collapsed;
   return true;
+}
+
+void AbstractTreeViewItem::on_collapse_change(bContext & /*C*/, const bool /*is_collapsed*/)
+{
+  /* Do nothing by default. */
+}
+
+std::optional<bool> AbstractTreeViewItem::should_be_collapsed() const
+{
+  return std::nullopt;
 }
 
 void AbstractTreeViewItem::uncollapse_by_default()
@@ -690,23 +707,6 @@ bool AbstractTreeViewItem::is_collapsible() const
     return false;
   }
   return this->supports_collapsing();
-}
-
-void AbstractTreeViewItem::on_collapse_change(bContext & /*C*/, const bool /*is_collapsed*/)
-{
-  /* Do nothing by default. */
-}
-
-std::optional<bool> AbstractTreeViewItem::should_be_collapsed() const
-{
-  return std::nullopt;
-}
-
-void AbstractTreeViewItem::toggle_collapsed_from_view(bContext &C)
-{
-  if (this->toggle_collapsed()) {
-    this->on_collapse_change(C, this->is_collapsed());
-  }
 }
 
 void AbstractTreeViewItem::change_state_delayed()

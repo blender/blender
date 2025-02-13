@@ -233,6 +233,19 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
    */
   virtual bool set_collapsed(bool collapsed);
   /**
+   * Called when the view changes an item's state from expanded to collapsed, or vice versa. Will
+   * only be called if the state change is triggered through the view, not through external
+   * changes. E.g. a click on an item calls it, a change in the value returned by
+   * #should_be_collapsed() to reflect an external state change does not.
+   */
+  virtual void on_collapse_change(bContext &C, bool is_collapsed);
+  /**
+   * If the result is not empty, it controls whether the item should be collapsed or not, usually
+   * depending on the data that the view represents.
+   */
+  virtual std::optional<bool> should_be_collapsed() const;
+
+  /**
    * Make this item be uncollapsed on first draw (may later be overridden by
    * #should_be_collapsed()). Must only be done during tree building.
    *
@@ -248,19 +261,6 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   bool is_collapsible() const;
 
   int count_parents() const;
-
-  /**
-   * Called when the view changes an item's state from expanded to collapsed, or vice versa. Will
-   * only be called if the state change is triggered through the view, not through external
-   * changes. E.g. a click on an item calls it, a change in the value returned by
-   * #should_be_collapsed() to reflect an external state change does not.
-   */
-  virtual void on_collapse_change(bContext &C, bool is_collapsed);
-  /**
-   * If the result is not empty, it controls whether the item should be collapsed or not, usually
-   * depending on the data that the view represents.
-   */
-  virtual std::optional<bool> should_be_collapsed() const;
 
  protected:
   /** See AbstractViewItem::get_rename_string(). */
