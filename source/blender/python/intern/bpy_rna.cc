@@ -8759,6 +8759,12 @@ void BPY_rna_types_finalize_external_types(PyObject *submodule)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name RNA Struct Access: #StructRNA
+ *
+ * Utilities for accessing & creating #StructRNA on demand.
+ * \{ */
+
 StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *error_prefix)
 {
   BPy_StructRNA *py_srna = nullptr;
@@ -8874,6 +8880,12 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
    * After this any errors will be raised in the script. */
   return pyrna_struct_as_srna(self, false, error_prefix);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Class Registration: Deferred
+ * \{ */
 
 static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item)
 {
@@ -9097,8 +9109,6 @@ int pyrna_deferred_register_class(StructRNA *srna, PyTypeObject *py_class)
   return pyrna_deferred_register_class_recursive(srna, py_class);
 }
 
-/*-------------------- Type Registration ------------------------*/
-
 static int rna_function_register_arg_count(FunctionRNA *func, int *min_count)
 {
   const ListBase *lb = RNA_function_defined_parameters(func);
@@ -9127,6 +9137,14 @@ static int rna_function_register_arg_count(FunctionRNA *func, int *min_count)
   }
   return count;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Class Registration: Utilities
+ *
+ * Mainly helpers for `register_class` & `unregister_class`.
+ * \{ */
 
 static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
                                         StructRNA *srna,
@@ -9761,6 +9779,10 @@ void BPY_free_srna_pytype(StructRNA *srna)
   }
 }
 
+/* -------------------------------------------------------------------- */
+/** \name RNA Class Register Method
+ * \{ */
+
 #define BPY_TYPEDEF_REGISTERABLE_DOC \
   "type[" \
   ":class:`bpy.types.Panel` | " \
@@ -9970,6 +9992,12 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props,
   return 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Class Unregister Method
+ * \{ */
+
 PyDoc_STRVAR(
     /* Wrap. */
     pyrna_unregister_class_doc,
@@ -10114,6 +10142,12 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
   Py_RETURN_NONE;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Support for extended via the C-API
+ * \{ */
+
 void pyrna_struct_type_extend_capi(StructRNA *srna, PyMethodDef *method, PyGetSetDef *getset)
 {
   /* See 'add_methods' in Python's 'typeobject.c'. */
@@ -10154,7 +10188,13 @@ void pyrna_struct_type_extend_capi(StructRNA *srna, PyMethodDef *method, PyGetSe
   Py_DECREF(type);
 }
 
-/* Access to 'owner_id' internal global. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Exported Methods
+ * \{ */
+
+/* Access to the 'owner_id' so work-spaces can filter by add-on. */
 
 static PyObject *pyrna_bl_owner_id_get(PyObject * /*self*/)
 {
@@ -10206,3 +10246,5 @@ PyMethodDef meth_bpy_owner_id_set = {
 #if (defined(__GNUC__) && !defined(__clang__))
 #  pragma GCC diagnostic pop
 #endif
+
+/** \} */
