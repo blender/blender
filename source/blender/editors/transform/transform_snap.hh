@@ -58,11 +58,15 @@ float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], co
 
 /* `transform_snap_sequencer.cc` */
 
-TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t);
-void transform_snap_sequencer_data_free(TransSeqSnapData *data);
-bool transform_snap_sequencer_calc(TransInfo *t);
-void transform_snap_sequencer_apply_seqslide(TransInfo *t, float *vec);
-void transform_snap_sequencer_image_apply_translate(TransInfo *t, float vec[2]);
+namespace blender::transform {
+
+TransSeqSnapData *snap_sequencer_data_alloc(const TransInfo *t);
+void snap_sequencer_data_free(TransSeqSnapData *data);
+bool snap_sequencer_calc(TransInfo *t);
+void snap_sequencer_apply_seqslide(TransInfo *t, float *vec);
+void snap_sequencer_image_apply_translate(TransInfo *t, float vec[2]);
+
+}  // namespace blender::transform
 
 /* `transform_snap_animation.cc` */
 void snapFrameTransform(

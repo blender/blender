@@ -818,7 +818,7 @@ static void initSnappingMode(TransInfo *t)
   }
   else if (t->spacetype == SPACE_SEQ) {
     if (t->tsnap.seq_context == nullptr) {
-      t->tsnap.seq_context = transform_snap_sequencer_data_alloc(t);
+      t->tsnap.seq_context = blender::transform::snap_sequencer_data_alloc(t);
     }
   }
 }
@@ -985,7 +985,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 void freeSnapping(TransInfo *t)
 {
   if ((t->spacetype == SPACE_SEQ) && t->tsnap.seq_context) {
-    transform_snap_sequencer_data_free(t->tsnap.seq_context);
+    blender::transform::snap_sequencer_data_free(t->tsnap.seq_context);
     t->tsnap.seq_context = nullptr;
   }
   else if (t->tsnap.object_context) {
@@ -1301,7 +1301,7 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
 static void snap_target_sequencer_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_SEQ);
-  if (transform_snap_sequencer_calc(t)) {
+  if (blender::transform::snap_sequencer_calc(t)) {
     t->tsnap.status |= (SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
   }
   else {
