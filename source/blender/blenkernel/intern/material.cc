@@ -1077,6 +1077,8 @@ void BKE_id_material_assign(Main *bmain, ID *id, Material *ma, short act)
   }
 
   BKE_objects_materials_sync_length_all(bmain, id);
+  DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_GEOMETRY);
+  DEG_relations_tag_update(bmain);
 }
 
 static void object_material_assign(
@@ -1172,6 +1174,9 @@ static void object_material_assign(
   if (ma) {
     id_us_plus(&ma->id);
   }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_GEOMETRY);
+  DEG_relations_tag_update(bmain);
 }
 
 void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
