@@ -1273,7 +1273,7 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo)
    * #direct_link_id_common in `readfile.cc` anyway. */
   temp_id->py_instance = nullptr;
   /* Clear runtime data struct. */
-  memset(&temp_id->runtime, 0, sizeof(temp_id->runtime));
+  temp_id->runtime = ID_Runtime{};
 }
 
 BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, BlendWriter *writer)

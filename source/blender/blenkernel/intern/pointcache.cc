@@ -338,7 +338,7 @@ static void ptcache_particle_read(
 
   if (old_data) {
     /* old format cache */
-    memcpy(&pa->state, old_data, sizeof(ParticleKey));
+    pa->state = *reinterpret_cast<const ParticleKey *>(old_data);
     return;
   }
 
@@ -421,9 +421,9 @@ static void ptcache_particle_interpolate(int index,
     return;
   }
 
-  memcpy(keys + 1, &pa->state, sizeof(ParticleKey));
+  keys[1] = pa->state;
   if (old_data) {
-    memcpy(keys + 2, old_data, sizeof(ParticleKey));
+    keys[2] = *reinterpret_cast<const ParticleKey *>(old_data);
   }
   else {
     BKE_ptcache_make_particle_key(keys + 2, 0, data, cfra2);

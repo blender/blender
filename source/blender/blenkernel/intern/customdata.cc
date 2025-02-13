@@ -317,13 +317,13 @@ static void layerInterp_mdeformvert(const void **sources,
     }
   }
   else {
-    memset(dvert, 0, sizeof(*dvert));
+    *dvert = MDeformVert{};
   }
 }
 
 static void layerConstruct_mdeformvert(void *data, const int count)
 {
-  memset(data, 0, sizeof(MDeformVert) * count);
+  std::fill_n(static_cast<MDeformVert *>(data), count, MDeformVert{});
 }
 
 /** \} */
@@ -675,7 +675,7 @@ static void layerFree_mdisps(void *data, const int count)
 
 static void layerConstruct_mdisps(void *data, const int count)
 {
-  memset(data, 0, sizeof(MDisps) * count);
+  std::fill_n(static_cast<MDisps *>(data), count, MDisps{});
 }
 
 static bool layerRead_mdisps(CDataFile *cdf, void *data, const int count)
@@ -789,7 +789,7 @@ static void layerFree_grid_paint_mask(void *data, const int count)
 
 static void layerConstruct_grid_paint_mask(void *data, const int count)
 {
-  memset(data, 0, sizeof(GridPaintMask) * count);
+  std::fill_n(static_cast<GridPaintMask *>(data), count, GridPaintMask{});
 }
 
 /** \} */
@@ -2693,7 +2693,7 @@ static void CustomData_external_free(CustomData *data)
 
 void CustomData_reset(CustomData *data)
 {
-  memset(data, 0, sizeof(*data));
+  *data = CustomData{};
   copy_vn_i(data->typemap, CD_NUMTYPES, -1);
 }
 
@@ -3032,7 +3032,7 @@ static CustomDataLayer *customData_add_layer__internal(
   /* Clear remaining data on the layer. The original data on the layer has been moved to another
    * index. Without this, it can happen that information from the previous layer at that index
    * leaks into the new layer. */
-  memset(&new_layer, 0, sizeof(CustomDataLayer));
+  new_layer = CustomDataLayer{};
 
   const int64_t size_in_bytes = int64_t(totelem) * type_info.size;
   const char *alloc_name = layerType_getName(type);

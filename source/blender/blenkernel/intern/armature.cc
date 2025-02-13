@@ -273,7 +273,7 @@ static void write_bone(BlendWriter *writer, Bone *bone)
 
   /* Write this bone, except for its runtime data. */
   const Bone_Runtime runtime_backup = bone->runtime;
-  memset(&bone->runtime, 0, sizeof(bone->runtime));
+  bone->runtime = Bone_Runtime{};
   BLO_write_struct(writer, Bone, bone);
   bone->runtime = runtime_backup;
 
@@ -315,7 +315,7 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
   arm->act_edbone = nullptr;
 
   const bArmature_Runtime runtime_backup = arm->runtime;
-  memset(&arm->runtime, 0, sizeof(arm->runtime));
+  arm->runtime = bArmature_Runtime{};
 
   /* Convert BoneCollections over to a listbase for writing. */
   BoneCollection **collection_array_backup = arm->collection_array;
@@ -369,7 +369,7 @@ static void direct_link_bones(BlendDataReader *reader, Bone *bone)
     direct_link_bones(reader, child);
   }
 
-  memset(&bone->runtime, 0, sizeof(bone->runtime));
+  bone->runtime = Bone_Runtime{};
 }
 
 static void direct_link_bone_collection(BlendDataReader *reader, BoneCollection *bcoll)
@@ -456,7 +456,7 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
 
   BKE_armature_bone_hash_make(arm);
 
-  memset(&arm->runtime, 0, sizeof(arm->runtime));
+  arm->runtime = bArmature_Runtime{};
   ANIM_armature_runtime_refresh(arm);
 }
 

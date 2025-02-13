@@ -88,10 +88,9 @@ TEST(BLI_uuid, comparison_byte_order_check)
 
 TEST(BLI_uuid, string_formatting)
 {
-  bUUID uuid;
+  bUUID uuid = {};
   std::string buffer(36, '\0');
 
-  memset(&uuid, 0, sizeof(uuid));
   BLI_uuid_format(buffer.data(), uuid);
   EXPECT_EQ("00000000-0000-0000-0000-000000000000", buffer);
   EXPECT_EQ("00000000-0000-0000-0000-000000000000", uuid.str());

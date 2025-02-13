@@ -12,6 +12,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -160,7 +161,7 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
 {
   SpaceGraph *sipon = static_cast<SpaceGraph *>(MEM_dupallocN(sl));
 
-  memset(&sipon->runtime, 0x0, sizeof(sipon->runtime));
+  sipon->runtime = SpaceGraph_Runtime{};
 
   /* clear or remove stuff from old */
   BLI_duplicatelist(&sipon->runtime.ghost_curves, &((SpaceGraph *)sl)->runtime.ghost_curves);
@@ -903,7 +904,7 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   SpaceGraph *sipo = (SpaceGraph *)sl;
 
   BLO_read_struct(reader, bDopeSheet, &sipo->ads);
-  memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
+  sipo->runtime = SpaceGraph_Runtime{};
 }
 
 static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)

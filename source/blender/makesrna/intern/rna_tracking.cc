@@ -746,9 +746,8 @@ static MovieTrackingMarker *rna_trackingMarkers_insert_frame(MovieTrackingTrack 
                                                              int framenr,
                                                              const float co[2])
 {
-  MovieTrackingMarker marker, *new_marker;
+  MovieTrackingMarker marker = {}, *new_marker;
 
-  memset(&marker, 0, sizeof(marker));
   marker.framenr = framenr;
   copy_v2_v2(marker.pos, co);
 
@@ -792,9 +791,8 @@ static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_find_frame(
 static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_insert_frame(
     MovieTrackingPlaneTrack *plane_track, int framenr)
 {
-  MovieTrackingPlaneMarker plane_marker, *new_plane_marker;
+  MovieTrackingPlaneMarker plane_marker = {}, *new_plane_marker;
 
-  memset(&plane_marker, 0, sizeof(plane_marker));
   plane_marker.framenr = framenr;
 
   /* a bit arbitrary, but better than creating zero markers */

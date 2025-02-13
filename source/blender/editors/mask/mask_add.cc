@@ -372,7 +372,7 @@ static bool add_vertex_extrude(const bContext *C,
     ref_point = &spline->points[point_index + 1];
     new_point = &spline->points[point_index];
     *ref_point = *new_point;
-    memset(new_point, 0, sizeof(*new_point));
+    *new_point = MaskSplinePoint{};
   }
   else {
     ref_point = &spline->points[point_index];

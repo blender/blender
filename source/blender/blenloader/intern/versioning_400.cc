@@ -3735,7 +3735,7 @@ static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)
   BLI_listbase_clear(&tracking.plane_tracks_legacy);
   tracking.act_track_legacy = nullptr;
   tracking.act_plane_track_legacy = nullptr;
-  memset(&tracking.reconstruction_legacy, 0, sizeof(tracking.reconstruction_legacy));
+  tracking.reconstruction_legacy = MovieTrackingReconstruction{};
 }
 
 static void version_movieclips_legacy_camera_object(Main *bmain)

@@ -3259,7 +3259,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
 {
   using namespace blender::animrig;
 
-  memset(r_action_strip, 0, sizeof(NlaStrip));
+  *r_action_strip = NlaStrip{};
 
   /* Set settings of dummy NLA strip from AnimData settings. */
   bAction *action = adt->action;

@@ -561,7 +561,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
     GPU_blend(GPU_BLEND_NONE);
   }
 
-  memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
+  region->runtime->drawrct = rcti{};
 
   UI_blocklist_free_inactive(C, region);
 
@@ -645,7 +645,7 @@ void ED_region_tag_redraw(ARegion *region)
     region->runtime->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_NO_REBUILD |
                                   RGN_DRAW_EDITOR_OVERLAYS);
     region->runtime->do_draw |= RGN_DRAW;
-    memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
+    region->runtime->drawrct = rcti{};
   }
 }
 
@@ -661,7 +661,7 @@ void ED_region_tag_redraw_no_rebuild(ARegion *region)
   if (region && !(region->runtime->do_draw & (RGN_DRAWING | RGN_DRAW))) {
     region->runtime->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_EDITOR_OVERLAYS);
     region->runtime->do_draw |= RGN_DRAW_NO_REBUILD;
-    memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
+    region->runtime->drawrct = rcti{};
   }
 }
 
@@ -1798,7 +1798,7 @@ static void region_rect_recursive(
   }
 
   /* Clear, initialize on demand. */
-  memset(&region->runtime->visible_rect, 0, sizeof(region->runtime->visible_rect));
+  region->runtime->visible_rect = rcti{};
 }
 
 static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *window_rect)

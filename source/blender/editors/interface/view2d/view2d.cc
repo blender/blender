@@ -2092,7 +2092,7 @@ void UI_view2d_text_cache_add(
 
     v2s->col.pack = *((const int *)col);
 
-    memset(&v2s->rect, 0, sizeof(v2s->rect));
+    v2s->rect = rcti{};
 
     v2s->mval[0] = mval[0];
     v2s->mval[1] = mval[1];

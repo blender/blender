@@ -38,7 +38,7 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
   if (psys->child) {
     /* only re-allocate if we have to */
     if (psys->part->childtype && psys->totchild == tot) {
-      memset(psys->child, 0, tot * sizeof(ChildParticle));
+      std::fill_n(psys->child, tot, ChildParticle{});
       return;
     }
 

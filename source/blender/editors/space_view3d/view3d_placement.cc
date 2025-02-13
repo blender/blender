@@ -368,7 +368,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
 
 static bool calc_bbox(InteractivePlaceData *ipd, BoundBox *bounds)
 {
-  memset(bounds, 0x0, sizeof(*bounds));
+  *bounds = BoundBox{};
 
   if (compare_v3v3(ipd->co_src, ipd->step[0].co_dst, FLT_EPSILON)) {
     return false;

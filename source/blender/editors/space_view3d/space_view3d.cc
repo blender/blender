@@ -302,7 +302,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
   View3D *v3do = (View3D *)sl;
   View3D *v3dn = static_cast<View3D *>(MEM_dupallocN(sl));
 
-  memset(&v3dn->runtime, 0x0, sizeof(v3dn->runtime));
+  v3dn->runtime = View3D_Runtime{};
 
   /* clear or remove stuff from old */
 
@@ -1547,7 +1547,7 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   View3D *v3d = (View3D *)sl;
 
-  memset(&v3d->runtime, 0x0, sizeof(v3d->runtime));
+  v3d->runtime = View3D_Runtime{};
 
   if (v3d->gpd) {
     BLO_read_struct(reader, bGPdata, &v3d->gpd);

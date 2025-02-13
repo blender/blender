@@ -58,7 +58,7 @@ void BKE_reports_init(ReportList *reports, int flag)
     return;
   }
 
-  memset(reports, 0, sizeof(ReportList));
+  *reports = ReportList{};
 
   reports->storelevel = RPT_INFO;
   reports->printlevel = RPT_ERROR;

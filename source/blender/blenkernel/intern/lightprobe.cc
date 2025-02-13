@@ -139,7 +139,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
           cache->data_layout, LIGHTPROBE_CACHE_ADAPTIVE_RESOLUTION, LIGHTPROBE_CACHE_UNIFORM_GRID))
   {
     /* Do not try to read data from incompatible layout. Clear all pointers. */
-    memset(cache, 0, sizeof(*cache));
+    *cache = LightProbeGridCacheFrame{};
     return;
   }
 

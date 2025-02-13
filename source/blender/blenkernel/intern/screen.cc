@@ -1335,7 +1335,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
   BLI_listbase_clear(&area->handlers);
   area->type = nullptr; /* spacetype callbacks */
 
-  memset(&area->runtime, 0x0, sizeof(area->runtime));
+  area->runtime = ScrArea_Runtime{};
 
   /* Should always be unset so that rna_Area_type_get works correctly. */
   area->butspacetype = SPACE_EMPTY;

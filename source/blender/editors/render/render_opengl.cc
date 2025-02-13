@@ -807,9 +807,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
     oglrender->rv3d = static_cast<RegionView3D *>(oglrender->region->regiondata);
 
     /* MUST be cleared on exit */
-    memset(&oglrender->scene->customdata_mask_modal,
-           0,
-           sizeof(oglrender->scene->customdata_mask_modal));
+    oglrender->scene->customdata_mask_modal = CustomData_MeshMasks{};
     ED_view3d_datamask(oglrender->scene,
                        oglrender->view_layer,
                        oglrender->v3d,
@@ -913,9 +911,7 @@ static void screen_opengl_render_end(OGLRender *oglrender)
 
   MEM_SAFE_FREE(oglrender->seq_data.ibufs_arr);
 
-  memset(&oglrender->scene->customdata_mask_modal,
-         0,
-         sizeof(oglrender->scene->customdata_mask_modal));
+  oglrender->scene->customdata_mask_modal = CustomData_MeshMasks{};
 
   if (oglrender->wm_job) { /* exec will not have a job */
     Depsgraph *depsgraph = oglrender->depsgraph;

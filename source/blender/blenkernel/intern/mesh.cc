@@ -338,21 +338,21 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   /* Cache only - don't write. */
   mesh->mface = nullptr;
   mesh->totface_legacy = 0;
-  memset(&mesh->fdata_legacy, 0, sizeof(mesh->fdata_legacy));
+  mesh->fdata_legacy = CustomData{};
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
     mesh->verts_num = 0;
-    memset(&mesh->vert_data, 0, sizeof(mesh->vert_data));
+    mesh->vert_data = CustomData{};
 
     mesh->edges_num = 0;
-    memset(&mesh->edge_data, 0, sizeof(mesh->edge_data));
+    mesh->edge_data = CustomData{};
 
     mesh->corners_num = 0;
-    memset(&mesh->corner_data, 0, sizeof(mesh->corner_data));
+    mesh->corner_data = CustomData{};
 
     mesh->faces_num = 0;
-    memset(&mesh->face_data, 0, sizeof(mesh->face_data));
+    mesh->face_data = CustomData{};
     mesh->face_offset_indices = nullptr;
   }
   else {

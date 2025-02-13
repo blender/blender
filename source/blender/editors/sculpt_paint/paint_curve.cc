@@ -220,7 +220,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
   pc->tot_points++;
 
   /* initialize new point */
-  memset(&pcp[add_index], 0, sizeof(PaintCurvePoint));
+  pcp[add_index] = PaintCurvePoint{};
   copy_v3_v3(pcp[add_index].bez.vec[0], vec);
   copy_v3_v3(pcp[add_index].bez.vec[1], vec);
   copy_v3_v3(pcp[add_index].bez.vec[2], vec);

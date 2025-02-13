@@ -1062,12 +1062,11 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                                         StructFreeFunc free)
 {
   blender::bke::bNodeTreeType *nt;
-  bNodeTree dummy_ntree;
+  bNodeTree dummy_ntree = {};
   bool have_function[4];
 
   /* setup dummy tree & tree type to store static properties in */
   blender::bke::bNodeTreeType dummy_nt = {};
-  memset(&dummy_ntree, 0, sizeof(bNodeTree));
   dummy_ntree.typeinfo = &dummy_nt;
   PointerRNA dummy_ntree_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NodeTree, &dummy_ntree);
 
@@ -1998,7 +1997,7 @@ static blender::bke::bNodeType *rna_Node_register_base(Main *bmain,
                                                        StructFreeFunc free)
 {
   blender::bke::bNodeType *nt;
-  bNode dummy_node;
+  bNode dummy_node = {};
   FunctionRNA *func;
   PropertyRNA *parm;
   bool have_function[10];
@@ -2008,7 +2007,6 @@ static blender::bke::bNodeType *rna_Node_register_base(Main *bmain,
   /* this does some additional initialization of default values */
   blender::bke::node_type_base_custom(dummy_nt, identifier, "", "CUSTOM", 0);
 
-  memset(&dummy_node, 0, sizeof(bNode));
   dummy_node.typeinfo = &dummy_nt;
   PointerRNA dummy_node_ptr = RNA_pointer_create_discrete(nullptr, basetype, &dummy_node);
 

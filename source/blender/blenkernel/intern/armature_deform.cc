@@ -270,7 +270,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
   const bool use_dverts = data->use_dverts;
   const int armature_def_nr = data->armature_def_nr;
 
-  DualQuat sumdq, *dq = nullptr;
+  DualQuat sumdq = {}, *dq = nullptr;
   const bPoseChannel *pchan;
   float *co, dco[3];
   float sumvec[3], summat[3][3];
@@ -282,7 +282,6 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
   const bool full_deform = vert_deform_mats != nullptr;
 
   if (use_quaternion) {
-    memset(&sumdq, 0, sizeof(DualQuat));
     dq = &sumdq;
   }
   else {

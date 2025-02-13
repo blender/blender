@@ -130,7 +130,7 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
 /** Reset runtime image fields when data-block is being initialized. */
 static void image_runtime_reset(Image *image)
 {
-  memset(&image->runtime, 0, sizeof(image->runtime));
+  image->runtime = Image_Runtime{};
   image->runtime.cache_mutex = MEM_mallocN<ThreadMutex>("image runtime cache_mutex");
   BLI_mutex_init(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
   image->runtime.update_count = 0;
@@ -3135,7 +3135,7 @@ static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *c
 
 void BKE_imageuser_default(ImageUser *iuser)
 {
-  memset(iuser, 0, sizeof(ImageUser));
+  *iuser = ImageUser{};
   iuser->frames = 100;
   iuser->sfra = 1;
 }

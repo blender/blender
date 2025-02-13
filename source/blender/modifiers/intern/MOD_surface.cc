@@ -14,6 +14,7 @@
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
@@ -49,7 +50,7 @@ static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const in
 
   BKE_modifier_copydata_generic(md_src, md_dst, flag);
 
-  memset(&surmd_dst->runtime, 0, sizeof(surmd_dst->runtime));
+  surmd_dst->runtime = SurfaceModifierData_Runtime{};
 }
 
 static void free_data(ModifierData *md)
@@ -176,7 +177,7 @@ static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
-  memset(&surmd->runtime, 0, sizeof(surmd->runtime));
+  surmd->runtime = SurfaceModifierData_Runtime{};
 }
 
 ModifierTypeInfo modifierType_Surface = {

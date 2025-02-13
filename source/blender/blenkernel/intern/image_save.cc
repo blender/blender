@@ -58,7 +58,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     iuser->scene = scene;
   }
 
-  memset(opts, 0, sizeof(*opts));
+  *opts = ImageSaveOptions{};
 
   opts->bmain = bmain;
   opts->scene = scene;

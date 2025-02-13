@@ -160,14 +160,13 @@ static StructRNA *rna_NodeSocket_register(Main *bmain,
                                           StructFreeFunc free)
 {
   blender::bke::bNodeSocketType *st;
-  bNodeSocket dummy_sock;
+  bNodeSocket dummy_sock = {};
   bool have_function[3];
 
   /* setup dummy socket & socket type to store static properties in */
   blender::bke::bNodeSocketType dummy_st = {};
   dummy_st.type = SOCK_CUSTOM;
 
-  memset(&dummy_sock, 0, sizeof(bNodeSocket));
   dummy_sock.typeinfo = &dummy_st;
   PointerRNA dummy_sock_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NodeSocket, &dummy_sock);
 

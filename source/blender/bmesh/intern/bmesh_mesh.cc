@@ -248,7 +248,7 @@ void BM_mesh_clear(BMesh *bm)
 
   /* free old mesh */
   BM_mesh_data_free(bm);
-  memset(bm, 0, sizeof(BMesh));
+  *bm = BMesh{};
 
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, &bm_mesh_allocsize_default, use_toolflags);

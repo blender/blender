@@ -143,7 +143,7 @@ static SpaceLink *action_duplicate(SpaceLink *sl)
 {
   SpaceAction *sactionn = static_cast<SpaceAction *>(MEM_dupallocN(sl));
 
-  memset(&sactionn->runtime, 0x0, sizeof(sactionn->runtime));
+  sactionn->runtime = SpaceAction_Runtime{};
 
   /* clear or remove stuff from old */
 
@@ -919,7 +919,7 @@ static int action_space_icon_get(const ScrArea *area)
 static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceAction *saction = (SpaceAction *)sl;
-  memset(&saction->runtime, 0x0, sizeof(saction->runtime));
+  saction->runtime = SpaceAction_Runtime{};
 }
 
 static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)

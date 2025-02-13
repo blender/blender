@@ -1362,12 +1362,11 @@ static void do_particle_interpolation(ParticleSystem *psys,
                                       ParticleKey *result)
 {
   PTCacheEditPoint *point = pind->epoint;
-  ParticleKey keys[4];
   int point_vel = (point && point->keys->vel);
   float real_t, dfra, keytime, invdt = 1.0f;
 
   /* billboards won't fill in all of these, so start cleared */
-  memset(keys, 0, sizeof(keys));
+  ParticleKey keys[4] = {};
 
   /* interpret timing and find keys */
   if (point) {
@@ -4600,7 +4599,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
   ParticleData *pa;
   ChildParticle *cpa;
   ParticleTexture ptex;
-  ParticleKey *par = nullptr, keys[4], tstate;
+  ParticleKey *par = nullptr, tstate;
   ParticleThreadContext ctx; /* fake thread context for child modifiers */
   ParticleInterpolationData pind;
 
@@ -4619,7 +4618,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
   short cpa_from;
 
   /* initialize keys to zero */
-  memset(keys, 0, sizeof(ParticleKey[4]));
+  ParticleKey keys[4] = {};
 
   t = state->time;
   CLAMP(t, 0.0f, 1.0f);

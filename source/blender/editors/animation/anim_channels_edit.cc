@@ -1627,7 +1627,8 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
   }
 
   /* Initialize memory for temp-group */
-  memset(tgrp, 0, sizeof(bActionGroup));
+  *tgrp = bActionGroup{};
+  tgrp->cs = ThemeWireColor{};
   tgrp->flag |= (AGRP_EXPANDED | AGRP_TEMP | AGRP_EXPANDED_G);
   STRNCPY(tgrp->name, "#TempGroup");
 

@@ -269,7 +269,7 @@ static ID **collection_owner_pointer_get(ID *id, const bool debug_relationship_a
 
 void BKE_collection_blend_write_prepare_nolib(BlendWriter * /*writer*/, Collection *collection)
 {
-  memset(&collection->runtime, 0, sizeof(collection->runtime));
+  collection->runtime = Collection_Runtime{};
   /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
   collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 }
@@ -337,7 +337,7 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
     collection->id.flag |= ID_FLAG_EMBEDDED_DATA;
   }
 
-  memset(&collection->runtime, 0, sizeof(collection->runtime));
+  collection->runtime = Collection_Runtime{};
   collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 
   collection->owner_id = owner_id;

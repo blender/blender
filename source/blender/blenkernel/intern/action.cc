@@ -1544,13 +1544,13 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 
 void BKE_pose_channel_runtime_reset(bPoseChannel_Runtime *runtime)
 {
-  memset(runtime, 0, sizeof(*runtime));
+  *runtime = bPoseChannel_Runtime{};
 }
 
 void BKE_pose_channel_runtime_reset_on_copy(bPoseChannel_Runtime *runtime)
 {
   const SessionUID uid = runtime->session_uid;
-  memset(runtime, 0, sizeof(*runtime));
+  *runtime = bPoseChannel_Runtime{};
   runtime->session_uid = uid;
 }
 
