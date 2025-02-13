@@ -201,6 +201,11 @@ static void strip_draw_context_set_retiming_overlay_visibility(TimelineDrawConte
   strip_ctx->can_draw_retiming_overlay &= retiming_keys_can_be_displayed(ctx->sseq);
 }
 
+static float strip_header_size_get(TimelineDrawContext *ctx)
+{
+  return min_ff(0.40f, 20 * UI_SCALE_FAC * ctx->pixely);
+}
+
 static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *strip)
 {
   using namespace seq;
@@ -256,7 +261,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   }
 
   if (strip_ctx.can_draw_text_overlay) {
-    strip_ctx.strip_content_top = strip_ctx.top - min_ff(0.40f, 20 * UI_SCALE_FAC * ctx->pixely);
+    strip_ctx.strip_content_top = strip_ctx.top - strip_header_size_get(ctx);
   }
   else {
     strip_ctx.strip_content_top = strip_ctx.top;
@@ -961,15 +966,13 @@ static void draw_strip_icons(TimelineDrawContext *timeline_ctx,
     }
 
     /* Draw icon in the title bar area. */
-    if ((timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) != 0 && !strip.strip_is_too_small &&
-        strip.can_draw_text_overlay)
-    {
+    if ((timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) != 0 && !strip.strip_is_too_small) {
       uchar col[4];
       get_strip_text_color(&strip, col);
 
       float icon_indent = 2.0f * strip.handle_width - 4 * timeline_ctx->pixelx * UI_SCALE_FAC;
       rctf rect;
-      rect.ymin = strip.strip_content_top;
+      rect.ymin = strip.top - strip_header_size_get(timeline_ctx);
       rect.ymax = strip.top;
       rect.xmin = max_ff(strip.left_handle, timeline_ctx->v2d->cur.xmin) + icon_indent;
       if (missing_data) {

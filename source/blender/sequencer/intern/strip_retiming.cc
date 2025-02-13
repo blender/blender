@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -178,17 +180,19 @@ bool SEQ_retiming_is_allowed(const Strip *strip)
               STRIP_TYPE_MASK);
 }
 
-static int strip_retiming_segment_length_get(const SeqRetimingKey *start_key)
+static double strip_retiming_segment_length_get(const SeqRetimingKey *start_key)
 {
   const SeqRetimingKey *end_key = start_key + 1;
   return end_key->strip_frame_index - start_key->strip_frame_index;
 }
 
-static float strip_retiming_segment_step_get(const SeqRetimingKey *start_key)
+/* Segment step can be a very small number, which is multiplied later. Therefore double is used to
+ * avoid loss of precision. */
+static double strip_retiming_segment_step_get(const SeqRetimingKey *start_key)
 {
   const SeqRetimingKey *end_key = start_key + 1;
-  const int segment_length = strip_retiming_segment_length_get(start_key);
-  const float segment_fac_diff = end_key->retiming_factor - start_key->retiming_factor;
+  const double segment_length = strip_retiming_segment_length_get(start_key);
+  const double segment_fac_diff = end_key->retiming_factor - start_key->retiming_factor;
   return segment_fac_diff / segment_length;
 }
 
@@ -292,13 +296,13 @@ float strip_retiming_evaluate(const Strip *strip, const float frame_index)
   const float segment_frame_index = frame_index - start_key->strip_frame_index;
 
   if (!SEQ_retiming_key_is_transition_start(start_key)) {
-    const float segment_step = strip_retiming_segment_step_get(start_key);
-    return std::min(1.0f, start_key->retiming_factor + segment_step * segment_frame_index);
+    const double segment_step = strip_retiming_segment_step_get(start_key);
+    return std::min(1.0f, start_key->retiming_factor + float(segment_step * segment_frame_index));
   }
 
   if (strip_retiming_transition_is_linear(strip, start_key)) {
-    const float segment_step = strip_retiming_segment_step_get(start_key - 1);
-    return std::min(1.0f, start_key->retiming_factor + segment_step * segment_frame_index);
+    const double segment_step = strip_retiming_segment_step_get(start_key - 1);
+    return std::min(1.0f, start_key->retiming_factor + float(segment_step * segment_frame_index));
   }
 
   /* Sanity check for transition type. */
@@ -375,25 +379,25 @@ void SEQ_retiming_transition_key_frame_set(const Scene *scene,
 {
   SeqRetimingKey *key_start = SEQ_retiming_transition_start_get(key);
   SeqRetimingKey *key_end = key_start + 1;
-  const int start_frame_index = key_start->strip_frame_index;
-  const int midpoint = key_start->original_strip_frame_index;
-  const int new_frame_index = content_frame_index_get(scene, strip, timeline_frame);
-  int new_midpoint_offset = new_frame_index - midpoint;
-  const float prev_segment_step = strip_retiming_segment_step_get(key_start - 1);
-  const float next_segment_step = strip_retiming_segment_step_get(key_end);
+  const float start_frame_index = key_start->strip_frame_index;
+  const float midpoint = key_start->original_strip_frame_index;
+  const float new_frame_index = content_frame_index_get(scene, strip, timeline_frame);
+  float new_midpoint_offset = new_frame_index - midpoint;
+  const double prev_segment_step = strip_retiming_segment_step_get(key_start - 1);
+  const double next_segment_step = strip_retiming_segment_step_get(key_end);
 
   /* Prevent keys crossing eachother. */
   SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
-  const int offset_max_left = midpoint - prev_segment_end->strip_frame_index - 1;
-  const int offset_max_right = next_segment_start->strip_frame_index - midpoint - 1;
-  new_midpoint_offset = abs(new_midpoint_offset);
-  new_midpoint_offset = min_iii(new_midpoint_offset, offset_max_left, offset_max_right);
-  new_midpoint_offset = max_ii(new_midpoint_offset, 1);
+  const float offset_max_left = midpoint - prev_segment_end->strip_frame_index - 1;
+  const float offset_max_right = next_segment_start->strip_frame_index - midpoint - 1;
+  new_midpoint_offset = fabs(new_midpoint_offset);
+  new_midpoint_offset = min_fff(new_midpoint_offset, offset_max_left, offset_max_right);
+  new_midpoint_offset = max_ff(new_midpoint_offset, 1);
 
   key_start->strip_frame_index = midpoint - new_midpoint_offset;
   key_end->strip_frame_index = midpoint + new_midpoint_offset;
 
-  const int offset = key_start->strip_frame_index - start_frame_index;
+  const float offset = key_start->strip_frame_index - start_frame_index;
   key_start->retiming_factor += offset * prev_segment_step;
   key_end->retiming_factor -= offset * next_segment_step;
 }
@@ -524,13 +528,18 @@ void SEQ_retiming_remove_key(Strip *strip, SeqRetimingKey *key)
   strip_retiming_remove_key_ex(strip, key);
 }
 
-static float strip_retiming_clamp_create_offset(SeqRetimingKey *key, float offset)
+static float strip_retiming_clamp_create_offset(const Scene *scene,
+                                                const Strip *strip,
+                                                SeqRetimingKey *key,
+                                                int offset)
 {
   SeqRetimingKey *prev_key = key - 1;
   SeqRetimingKey *next_key = key + 1;
-  const float prev_dist = key->strip_frame_index - prev_key->strip_frame_index;
-  const float next_dist = next_key->strip_frame_index - key->strip_frame_index;
-  return min_fff(offset, prev_dist - 1, next_dist - 1);
+  const int prev_dist = SEQ_retiming_key_timeline_frame_get(scene, strip, prev_key) -
+                        SEQ_retiming_key_timeline_frame_get(scene, strip, key);
+  const int next_dist = SEQ_retiming_key_timeline_frame_get(scene, strip, next_key) -
+                        SEQ_retiming_key_timeline_frame_get(scene, strip, key);
+  return std::clamp(offset, prev_dist + 1, next_dist - 1);
 }
 
 SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
@@ -545,7 +554,7 @@ SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
   }
 
   int clamped_offset = strip_retiming_clamp_create_offset(
-      key, offset * SEQ_time_media_playback_rate_factor_get(scene, strip));
+      scene, strip, key, offset * SEQ_time_media_playback_rate_factor_get(scene, strip));
 
   const int orig_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, strip, key);
   const float orig_retiming_factor = key->retiming_factor;
@@ -568,7 +577,10 @@ SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
   return new_key + 1;
 }
 
-SeqRetimingKey *SEQ_retiming_add_transition(Strip *strip, SeqRetimingKey *key, float offset)
+SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
+                                            Strip *strip,
+                                            SeqRetimingKey *key,
+                                            float offset)
 {
   BLI_assert(!SEQ_retiming_is_last_key(strip, key));
   BLI_assert(key->strip_frame_index != 0);
@@ -584,10 +596,10 @@ SeqRetimingKey *SEQ_retiming_add_transition(Strip *strip, SeqRetimingKey *key, f
     return nullptr;
   }
 
-  float clamped_offset = strip_retiming_clamp_create_offset(key, offset);
+  float clamped_offset = strip_retiming_clamp_create_offset(scene, strip, key, offset);
 
   const int orig_key_index = SEQ_retiming_key_index_get(strip, key);
-  const int orig_frame_index = key->strip_frame_index;
+  const float orig_frame_index = key->strip_frame_index;
   const float orig_retiming_factor = key->retiming_factor;
 
   SeqRetimingKey *transition_out = strip_retiming_add_key(strip,
@@ -603,34 +615,36 @@ SeqRetimingKey *SEQ_retiming_add_transition(Strip *strip, SeqRetimingKey *key, f
   return strip->retiming_keys + orig_key_index + 1;
 }
 
-static int strip_retiming_clamp_transition_offset(SeqRetimingKey *start_key, int offset)
+static float strip_retiming_clamp_transition_offset(const Scene *scene,
+                                                    const Strip *strip,
+                                                    SeqRetimingKey *start_key,
+                                                    float offset)
 {
   SeqRetimingKey *end_key = start_key + 1;
   SeqRetimingKey *prev_key = start_key - 1;
   SeqRetimingKey *next_key = start_key + 2;
-  const int prev_dist = start_key->strip_frame_index - prev_key->strip_frame_index;
-  const int next_dist = next_key->strip_frame_index - end_key->strip_frame_index;
+  const float prev_max_offset = prev_key->strip_frame_index - start_key->strip_frame_index;
+  const float next_max_offset = next_key->strip_frame_index - end_key->strip_frame_index;
+  const float min_step = SEQ_time_media_playback_rate_factor_get(scene, strip);
 
-  if (offset >= 0) {
-    return min_ii(offset, next_dist - 1);
-  }
-  return max_ii(offset, -(prev_dist - 1));
+  return std::clamp(offset, prev_max_offset + min_step, next_max_offset - min_step);
 }
 
 static void strip_retiming_transition_offset(const Scene *scene,
                                              Strip *strip,
                                              SeqRetimingKey *key,
-                                             const int offset)
+                                             const float offset)
 {
-  int clamped_offset = strip_retiming_clamp_transition_offset(key, offset);
-  const float duration = (key->original_strip_frame_index - key->strip_frame_index);
+  float clamped_offset = strip_retiming_clamp_transition_offset(scene, strip, key, offset);
+  const float duration = (key->original_strip_frame_index - key->strip_frame_index) /
+                         SEQ_time_media_playback_rate_factor_get(scene, strip);
   const bool was_selected = SEQ_retiming_selection_contains(SEQ_editing_get(scene), key);
 
   SeqRetimingKey *original_key = strip_retiming_remove_transition(strip, key);
-  original_key->strip_frame_index += clamped_offset *
-                                     SEQ_time_media_playback_rate_factor_get(scene, strip);
+  original_key->strip_frame_index += clamped_offset;
 
-  SeqRetimingKey *transition_out = SEQ_retiming_add_transition(strip, original_key, duration);
+  SeqRetimingKey *transition_out = SEQ_retiming_add_transition(
+      scene, strip, original_key, duration);
 
   if (was_selected) {
     SEQ_retiming_selection_append(transition_out);
@@ -643,6 +657,10 @@ static int strip_retiming_clamp_timeline_frame(const Scene *scene,
                                                SeqRetimingKey *key,
                                                const int timeline_frame)
 {
+  if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+    return timeline_frame;
+  }
+
   int prev_key_timeline_frame = -MAXFRAME;
   int next_key_timeline_frame = MAXFRAME;
 
@@ -656,70 +674,57 @@ static int strip_retiming_clamp_timeline_frame(const Scene *scene,
     next_key_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, strip, next_key);
   }
 
-  const int orig_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, strip, key);
-  int clamped_timeline_frame = timeline_frame;
-
-  if (timeline_frame < orig_timeline_frame) {
-    clamped_timeline_frame = max_ii(timeline_frame, prev_key_timeline_frame + 1);
-  }
-  else if (timeline_frame > orig_timeline_frame) {
-    clamped_timeline_frame = min_ii(timeline_frame, next_key_timeline_frame - 1);
-  }
-  return clamped_timeline_frame;
+  return std::clamp(timeline_frame, prev_key_timeline_frame + 1, next_key_timeline_frame - 1);
 }
 
 /* Remove and re-create transition. This way transition won't change length.
  * Alternative solution is to find where in arc segment the `y` value is closest to key
  * retiming factor, then trim transition to that point. This would change transition length. */
 
-static void strip_retiming_fix_transition(Strip *strip, SeqRetimingKey *key)
+static void strip_retiming_fix_transition(const Scene *scene, Strip *strip, SeqRetimingKey *key)
 {
   const int keys_num = strip->retiming_keys_num;
 
-  const float transition_duration = (key->original_strip_frame_index - key->strip_frame_index);
+  const float transition_duration = (key->original_strip_frame_index - key->strip_frame_index) /
+                                    SEQ_time_media_playback_rate_factor_get(scene, strip);
   SeqRetimingKey *orig_key = strip_retiming_remove_transition(strip, key);
-  SEQ_retiming_add_transition(strip, orig_key, transition_duration);
+  SEQ_retiming_add_transition(scene, strip, orig_key, transition_duration);
   BLI_assert(keys_num == strip->retiming_keys_num);
   UNUSED_VARS_NDEBUG(keys_num);
 }
 
-static void strip_retiming_fix_transitions(Strip *strip, SeqRetimingKey *key)
+static void strip_retiming_fix_transitions(const Scene *scene, Strip *strip, SeqRetimingKey *key)
 {
-  if (SEQ_retiming_key_index_get(strip, key) <= 1) {
-    return;
-  }
-
   const int key_index = SEQ_retiming_key_index_get(strip, key);
 
-  /* Store value, since handles array will be reallocated. */
-  bool is_last_key = SEQ_retiming_is_last_key(strip, key);
-
-  SeqRetimingKey *prev_key = key - 2;
-  if (SEQ_retiming_key_is_transition_start(prev_key)) {
-    strip_retiming_fix_transition(strip, prev_key);
+  if (!SEQ_retiming_is_last_key(strip, key)) {
+    SeqRetimingKey *next_key = key + 1;
+    if (SEQ_retiming_key_is_transition_start(next_key)) {
+      strip_retiming_fix_transition(scene, strip, next_key);
+    }
   }
 
-  if (is_last_key) {
+  if (key_index <= 1) {
     return;
   }
 
   SeqRetimingKey *next_key = &SEQ_retiming_keys_get(strip)[key_index + 1];
   if (SEQ_retiming_key_is_transition_start(next_key)) {
-    strip_retiming_fix_transition(strip, next_key);
+    strip_retiming_fix_transition(scene, strip, next_key);
   }
 }
 
 static void strip_retiming_key_offset(const Scene *scene,
                                       Strip *strip,
                                       SeqRetimingKey *key,
-                                      const int offset)
+                                      const float offset)
 {
   if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
     strip_retiming_transition_offset(scene, strip, key, offset);
   }
   else {
-    key->strip_frame_index += offset * SEQ_time_media_playback_rate_factor_get(scene, strip);
-    strip_retiming_fix_transitions(strip, key);
+    key->strip_frame_index += offset;
+    strip_retiming_fix_transitions(scene, strip, key);
   }
 }
 
@@ -745,7 +750,8 @@ void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
   const int orig_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, strip, key);
   const int clamped_timeline_frame = strip_retiming_clamp_timeline_frame(
       scene, strip, key, timeline_frame);
-  const int offset = clamped_timeline_frame - orig_timeline_frame;
+  const float offset = (clamped_timeline_frame - orig_timeline_frame) *
+                       SEQ_time_media_playback_rate_factor_get(scene, strip);
 
   const int key_count = SEQ_retiming_keys_get(strip).size();
   const int key_index = SEQ_retiming_key_index_get(strip, key);
@@ -759,7 +765,7 @@ void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
   else if (orig_timeline_frame == SEQ_time_left_handle_frame_get(scene, strip) ||
            key->strip_frame_index == 0)
   {
-    strip->start += offset;
+    strip->start += clamped_timeline_frame - orig_timeline_frame;
     for (int i = key_index + 1; i < key_count; i++) {
       SeqRetimingKey *key_iter = &SEQ_retiming_keys_get(strip)[i];
       strip_retiming_key_offset(scene, strip, key_iter, -offset);
