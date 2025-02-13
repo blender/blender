@@ -58,6 +58,11 @@ else()
   endif()
 endif()
 
+set(WINDOWS_ARM64_MIN_VSCMD_VER 17.12.3)
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64" AND $ENV{VSCMD_VER} VERSION_LESS WINDOWS_ARM64_MIN_VSCMD_VER)
+  message(FATAL_ERROR "Windows ARM64 requires VS2022 version ${WINDOWS_ARM64_MIN_VSCMD_VER} or greater - please update your VS2022 install!")
+endif()
+
 if(WITH_BLENDER AND NOT WITH_PYTHON_MODULE)
   set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT blender)
 endif()
