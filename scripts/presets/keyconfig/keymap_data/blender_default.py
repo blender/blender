@@ -7931,7 +7931,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_line(params):
         "3D View Tool: Paint Grease Pencil, Line",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_line", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_line", {"type": 'LEFTMOUSE', "value": 'PRESS'},
                 {"properties": []}),
             ("grease_pencil.primitive_line", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
                 {"properties": []}),
@@ -7965,7 +7965,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_box(params):
         "3D View Tool: Paint Grease Pencil, Box",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_box", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_box", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             ("grease_pencil.primitive_box", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": []}),
@@ -7983,7 +7983,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_circle(params):
         "3D View Tool: Paint Grease Pencil, Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_circle", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_circle", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             ("grease_pencil.primitive_circle", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": []}),
@@ -8001,7 +8001,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_arc(params):
         "3D View Tool: Paint Grease Pencil, Arc",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_arc", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_arc", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             ("grease_pencil.primitive_arc", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": []}),
@@ -8019,7 +8019,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_curve(params):
         "3D View Tool: Paint Grease Pencil, Curve",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_curve", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_curve", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             # Lasso select
             ("grease_pencil.select_lasso",
