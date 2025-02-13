@@ -47,11 +47,17 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
+static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "keep_last_segment", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+}
+
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveResample *data = MEM_cnew<NodeGeometryCurveResample>(__func__);
 
   data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
+  data->keep_last_segment = true;
   node->storage = data;
 }
 
@@ -106,7 +112,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
           const bke::CurvesFieldContext field_context{*src_curves_id, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
-              src_curves, field_context, selection, length);
+              src_curves, field_context, selection, length, {}, storage.keep_last_segment);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
@@ -122,7 +128,7 @@ static void node_geo_exec(GeoNodeExecParams params)
             const bke::GreasePencilLayerFieldContext field_context(
                 *grease_pencil, AttrDomain::Curve, layer_index);
             bke::CurvesGeometry dst_curves = geometry::resample_to_length(
-                src_curves, field_context, selection, length);
+                src_curves, field_context, selection, length, {}, storage.keep_last_segment);
             drawing->strokes_for_write() = std::move(dst_curves);
             drawing->tag_topology_changed();
           }
@@ -193,6 +199,13 @@ static void node_rna(StructRNA *srna)
                     "How to specify the amount of samples",
                     mode_items,
                     NOD_storage_enum_accessors(mode));
+
+  RNA_def_node_boolean(srna,
+                       "keep_last_segment",
+                       "Keep Last Segment",
+                       "Don't collapse a curves to single points if they are shorter than the "
+                       "given length. The collapsing behavior exists for compatibility reasons.",
+                       NOD_storage_boolean_accessors(keep_last_segment, 1));
 }
 
 static void node_register()
@@ -206,6 +219,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
+  ntype.draw_buttons_ex = node_layout_ex;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryCurveResample", node_free_standard_storage, node_copy_standard_storage);
   ntype.initfunc = node_init;

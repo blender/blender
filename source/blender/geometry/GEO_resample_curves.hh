@@ -38,16 +38,22 @@ CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
  * Create new curves resampled to make each segment have the length specified by the
  * #segment_length field input, rounded to make the length of each segment the same.
  * The accuracy will depend on the curve's resolution parameter.
+ *
+ * \param keep_last_segment: If false, curves that are too short are collapsed to a single point.
+ *   If true, they will have at least one segment after resampling. This mainly exists for
+ *   compatibility.
  */
 CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
                                   const IndexMask &selection,
                                   const VArray<float> &sample_lengths,
-                                  const ResampleCurvesOutputAttributeIDs &output_ids = {});
+                                  const ResampleCurvesOutputAttributeIDs &output_ids = {},
+                                  bool keep_last_segment = false);
 CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
                                   const fn::FieldContext &field_context,
                                   const fn::Field<bool> &selection_field,
                                   const fn::Field<float> &segment_length_field,
-                                  const ResampleCurvesOutputAttributeIDs &output_ids = {});
+                                  const ResampleCurvesOutputAttributeIDs &output_ids = {},
+                                  bool keep_last_segment = false);
 
 /**
  * Evaluate each selected curve to its implicit evaluated points.
