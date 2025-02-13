@@ -875,15 +875,8 @@ static int action_space_subtype_get(ScrArea *area)
 static void action_space_subtype_set(ScrArea *area, int value)
 {
   SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
-  if (value == SACTCONT_TIMELINE) {
-    if (sact->mode != SACTCONT_TIMELINE) {
-      sact->mode_prev = sact->mode;
-    }
-    sact->mode = value;
-  }
-  else {
-    sact->mode = sact->mode_prev;
-  }
+  sact->mode_prev = sact->mode;
+  sact->mode = value;
 }
 
 static void action_space_subtype_item_extend(bContext * /*C*/,
@@ -891,6 +884,12 @@ static void action_space_subtype_item_extend(bContext * /*C*/,
                                              int *totitem)
 {
   RNA_enum_items_add(item, totitem, rna_enum_space_action_mode_items);
+}
+
+static int action_space_subtype_prev_get(ScrArea *area)
+{
+  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  return sact->mode_prev;
 }
 
 static blender::StringRefNull action_space_name_get(const ScrArea *area)
@@ -941,6 +940,7 @@ void ED_spacetype_action()
   st->space_subtype_item_extend = action_space_subtype_item_extend;
   st->space_subtype_get = action_space_subtype_get;
   st->space_subtype_set = action_space_subtype_set;
+  st->space_subtype_prev_get = action_space_subtype_prev_get;
   st->space_name_get = action_space_name_get;
   st->space_icon_get = action_space_icon_get;
   st->blend_read_data = action_space_blend_read_data;
