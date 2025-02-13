@@ -359,7 +359,7 @@ static void free_displacement(Displacement *displacement)
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
   MEM_freeN(data->ptex_face_corner);
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 /* TODO(sergey): This seems to be generally used information, which almost
@@ -439,8 +439,7 @@ void displacement_attach_from_multires(Subdiv *subdiv, Mesh *mesh, const Multire
   }
   /* Allocate all required memory. */
   Displacement *displacement = MEM_cnew<Displacement>("multires displacement");
-  displacement->user_data = MEM_callocN(sizeof(MultiresDisplacementData),
-                                        "multires displacement data");
+  displacement->user_data = MEM_new<MultiresDisplacementData>("multires displacement data");
   displacement_init_data(displacement, subdiv, mesh, mmd);
   displacement_init_functions(displacement);
   /* Finish. */
