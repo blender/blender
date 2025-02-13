@@ -352,11 +352,11 @@ static void uilist_free_dyn_data(uiList *ui_list)
 
   if (dyn_data->custom_activate_opptr) {
     WM_operator_properties_free(dyn_data->custom_activate_opptr);
-    MEM_freeN(dyn_data->custom_activate_opptr);
+    MEM_delete(dyn_data->custom_activate_opptr);
   }
   if (dyn_data->custom_drag_opptr) {
     WM_operator_properties_free(dyn_data->custom_drag_opptr);
-    MEM_freeN(dyn_data->custom_drag_opptr);
+    MEM_delete(dyn_data->custom_drag_opptr);
   }
 
   MEM_SAFE_FREE(dyn_data->items_filter_flags);
