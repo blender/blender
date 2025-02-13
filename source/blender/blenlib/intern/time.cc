@@ -65,7 +65,7 @@ void BLI_time_sleep_ms(int ms)
 double BLI_time_now_seconds()
 {
   timeval tv;
-  timezone tz;
+  struct timezone tz;
 
   gettimeofday(&tv, &tz);
 
@@ -75,7 +75,7 @@ double BLI_time_now_seconds()
 long int BLI_time_now_seconds_i()
 {
   timeval tv;
-  timezone tz;
+  struct timezone tz;
 
   gettimeofday(&tv, &tz);
 
