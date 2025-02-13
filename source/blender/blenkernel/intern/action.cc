@@ -885,7 +885,7 @@ void action_group_colors_set(bActionGroup *grp, const BoneColor *color)
 {
   const blender::animrig::BoneColor &bone_color = color->wrap();
 
-  grp->customCol = (int)bone_color.palette_index;
+  grp->customCol = int(bone_color.palette_index);
 
   const ThemeWireColor *effective_color = bone_color.effective_color();
   if (effective_color) {

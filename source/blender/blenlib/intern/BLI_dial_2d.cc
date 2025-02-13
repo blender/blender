@@ -73,7 +73,7 @@ float BLI_dial_angle(Dial *dial, const float current_position[2])
     /* change of sign, we passed the 180 degree threshold. This means we need to add a turn.
      * to distinguish between transition from 0 to -1 and -PI to +PI,
      * use comparison with PI/2 */
-    if ((angle * dial->last_angle < 0.0f) && (fabsf(dial->last_angle) > (float)M_PI_2)) {
+    if ((angle * dial->last_angle < 0.0f) && (fabsf(dial->last_angle) > float(M_PI_2))) {
       if (dial->last_angle < 0.0f) {
         dial->rotations--;
       }
@@ -83,7 +83,7 @@ float BLI_dial_angle(Dial *dial, const float current_position[2])
     }
     dial->last_angle = angle;
 
-    return angle + 2.0f * (float)M_PI * dial->rotations;
+    return angle + 2.0f * float(M_PI) * dial->rotations;
   }
 
   return dial->last_angle;

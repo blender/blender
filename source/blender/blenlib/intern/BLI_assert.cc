@@ -33,14 +33,14 @@ void _BLI_assert_unreachable_print(const char *file, const int line, const char 
   fprintf(stderr, "Error found at %s:%d in %s.\n", file, line, function);
 }
 
-void _BLI_assert_print_backtrace(void)
+void _BLI_assert_print_backtrace()
 {
 #ifndef NDEBUG
   BLI_system_backtrace(stderr);
 #endif
 }
 
-void _BLI_assert_abort(void)
+void _BLI_assert_abort()
 {
   /* Wrap to remove 'noreturn' attribute since this suppresses missing return statements,
    * allowing changes to debug builds to accidentally to break release builds.

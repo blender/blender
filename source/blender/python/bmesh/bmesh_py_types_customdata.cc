@@ -1325,7 +1325,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
         ret = -1;
       }
       else {
-        tmp_val_len = std::min<unsigned long>(tmp_val_len, sizeof(mstring->s));
+        tmp_val_len = std::min<ulong>(tmp_val_len, sizeof(mstring->s));
         memcpy(mstring->s, tmp_val, tmp_val_len);
         mstring->s_len = tmp_val_len;
       }

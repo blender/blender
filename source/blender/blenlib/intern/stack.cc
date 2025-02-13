@@ -18,7 +18,7 @@
 
 #define USE_TOTELEM
 
-#define CHUNK_EMPTY ((size_t)-1)
+#define CHUNK_EMPTY size_t(-1)
 /* target chunks size: 64kb */
 #define CHUNK_SIZE_DEFAULT (1 << 16)
 /* ensure we get at least this many elems per chunk */

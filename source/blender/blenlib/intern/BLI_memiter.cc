@@ -58,7 +58,7 @@ struct BLI_memiter_elem {
 };
 
 struct BLI_memiter_chunk {
-  struct BLI_memiter_chunk *next;
+  BLI_memiter_chunk *next;
   /**
    * internal format is:
    * `[next_pointer, size:data, size:data, ..., negative_offset]`
@@ -84,7 +84,7 @@ struct BLI_memiter {
 
 BLI_INLINE uint data_offset_from_size(uint size)
 {
-  return PADUP(size, (uint)sizeof(data_t)) / (uint)sizeof(data_t);
+  return PADUP(size, uint(sizeof(data_t))) / uint(sizeof(data_t));
 }
 
 static void memiter_set_rewind_offset(BLI_memiter *mi)
@@ -144,8 +144,8 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 #endif
 
     uint chunk_size_in_bytes = mi->chunk_size_in_bytes_min;
-    if (UNLIKELY(chunk_size_in_bytes < elem_size + (uint)sizeof(data_t[2]))) {
-      chunk_size_in_bytes = elem_size + (uint)sizeof(data_t[2]);
+    if (UNLIKELY(chunk_size_in_bytes < elem_size + uint(sizeof(data_t[2])))) {
+      chunk_size_in_bytes = elem_size + uint(sizeof(data_t[2]));
     }
     uint chunk_size = data_offset_from_size(chunk_size_in_bytes);
     BLI_memiter_chunk *chunk = static_cast<BLI_memiter_chunk *>(MEM_mallocN(
@@ -255,7 +255,7 @@ void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
   if (mi->head != nullptr) {
     BLI_memiter_chunk *chunk = mi->head;
     BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
-    *r_size = (uint)elem->size;
+    *r_size = uint(elem->size);
     return elem->data;
   }
   return nullptr;
@@ -302,7 +302,7 @@ void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size)
       memiter_chunk_step(iter);
     }
     BLI_assert(iter->elem->size >= 0);
-    uint size = (uint)iter->elem->size;
+    uint size = uint(iter->elem->size);
     *r_size = size; /* <-- only difference */
     data_t *data = iter->elem->data;
     iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
@@ -319,7 +319,7 @@ void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
       memiter_chunk_step(iter);
     }
     BLI_assert(iter->elem->size >= 0);
-    uint size = (uint)iter->elem->size;
+    uint size = uint(iter->elem->size);
     data_t *data = iter->elem->data;
     iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
     return (void *)data;

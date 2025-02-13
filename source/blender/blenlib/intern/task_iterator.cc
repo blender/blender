@@ -111,7 +111,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
   }
 
   ParallelMempoolTaskData *mempool_iterator_data = mempool_iter_threadsafe_create(
-      mempool, (size_t)tasks_num);
+      mempool, size_t(tasks_num));
 
   for (int i = 0; i < tasks_num; i++) {
     void *userdata_chunk_local = nullptr;

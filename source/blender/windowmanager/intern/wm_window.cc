@@ -624,7 +624,7 @@ void WM_window_decoration_style_flags_set(const wmWindow *win,
                                           eWM_WindowDecorationStyleFlag style_flags)
 {
   BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES);
-  unsigned int ghost_style_flags = GHOST_kDecorationNone;
+  uint ghost_style_flags = GHOST_kDecorationNone;
 
   if (style_flags & WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR) {
     ghost_style_flags |= GHOST_kDecorationColoredTitleBar;

@@ -499,7 +499,7 @@ bool eyedropper_color_sample_fl(bContext *C,
   }
 
   /* Outside the Blender window if we support it. */
-  if ((WM_capabilities_flag() & WM_CAPABILITY_DESKTOP_SAMPLE)) {
+  if (WM_capabilities_flag() & WM_CAPABILITY_DESKTOP_SAMPLE) {
     if (WM_desktop_cursor_sample_read(r_col)) {
       IMB_colormanagement_srgb_to_scene_linear_v3(r_col, r_col);
       return true;

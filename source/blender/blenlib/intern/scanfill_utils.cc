@@ -27,7 +27,7 @@ struct PolyInfo {
 };
 
 struct ScanFillIsect {
-  struct ScanFillIsect *next, *prev;
+  ScanFillIsect *next, *prev;
   float co[3];
 
   /* newly created vertex */
@@ -41,7 +41,7 @@ struct ScanFillIsect {
 #define EFLAG_SET(eed, val) \
   { \
     CHECK_TYPE(eed, ScanFillEdge *); \
-    (eed)->user_flag = (eed)->user_flag | (uint)val; \
+    (eed)->user_flag = (eed)->user_flag | uint(val); \
   } \
   (void)0
 #if 0
@@ -56,7 +56,7 @@ struct ScanFillIsect {
 #define VFLAG_SET(eve, val) \
   { \
     CHECK_TYPE(eve, ScanFillVert *); \
-    (eve)->user_flag = (eve)->user_flag | (uint)val; \
+    (eve)->user_flag = (eve)->user_flag | uint(val); \
   } \
   (void)0
 #if 0
@@ -360,7 +360,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
                                   ListBase *remvertbase,
                                   ListBase *remedgebase)
 {
-  const uint poly_num = (uint)sf_ctx->poly_nr + 1;
+  const uint poly_num = uint(sf_ctx->poly_nr) + 1;
   bool changed = false;
 
   if (UNLIKELY(sf_ctx->poly_nr == SF_POLY_UNSET)) {

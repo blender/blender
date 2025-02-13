@@ -29,7 +29,7 @@ static int64_t memory_read_raw(FileReader *reader, void *buffer, size_t size)
   MemoryReader *mem = (MemoryReader *)reader;
 
   /* Don't read more bytes than there are available in the buffer. */
-  size_t readsize = std::min(size, (size_t)(mem->length - mem->reader.offset));
+  size_t readsize = std::min(size, size_t(mem->length - mem->reader.offset));
 
   memcpy(buffer, mem->data + mem->reader.offset, readsize);
   mem->reader.offset += readsize;
@@ -93,7 +93,7 @@ static int64_t memory_read_mmap(FileReader *reader, void *buffer, size_t size)
   MemoryReader *mem = (MemoryReader *)reader;
 
   /* Don't read more bytes than there are available in the buffer. */
-  size_t readsize = std::min(size, (size_t)(mem->length - mem->reader.offset));
+  size_t readsize = std::min(size, size_t(mem->length - mem->reader.offset));
 
   if (!BLI_mmap_read(mem->mmap, buffer, mem->reader.offset, readsize)) {
     return 0;

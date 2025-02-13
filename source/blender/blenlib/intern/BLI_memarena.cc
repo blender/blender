@@ -35,14 +35,14 @@
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 struct MemBuf {
-  struct MemBuf *next;
+  MemBuf *next;
   uchar data[0];
 };
 
 struct MemArena {
   uchar *curbuf;
   const char *name;
-  struct MemBuf *bufs;
+  MemBuf *bufs;
 
   size_t bufsize, cursize;
   size_t align;
@@ -50,13 +50,13 @@ struct MemArena {
   bool use_calloc;
 };
 
-static void memarena_buf_free_all(struct MemBuf *mb)
+static void memarena_buf_free_all(MemBuf *mb)
 {
   while (mb != nullptr) {
-    struct MemBuf *mb_next = mb->next;
+    MemBuf *mb_next = mb->next;
 
     /* Unpoison memory because #MEM_freeN might overwrite it. */
-    BLI_asan_unpoison(mb, (uint)MEM_allocN_len(mb));
+    BLI_asan_unpoison(mb, uint(MEM_allocN_len(mb)));
 
     MEM_freeN(mb);
     mb = mb_next;
@@ -110,8 +110,8 @@ static void memarena_curbuf_align(MemArena *ma)
 {
   uchar *tmp;
 
-  tmp = (uchar *)PADUP((intptr_t)ma->curbuf, (int)ma->align);
-  ma->cursize -= (size_t)(tmp - ma->curbuf);
+  tmp = (uchar *)PADUP(intptr_t(ma->curbuf), int(ma->align));
+  ma->cursize -= size_t(tmp - ma->curbuf);
   ma->curbuf = tmp;
 }
 
@@ -130,7 +130,7 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
       ma->cursize = ma->bufsize;
     }
 
-    struct MemBuf *mb = static_cast<MemBuf *>(
+    MemBuf *mb = static_cast<MemBuf *>(
         (ma->use_calloc ? MEM_callocN : MEM_mallocN)(sizeof(*mb) + ma->cursize, ma->name));
     ma->curbuf = mb->data;
     mb->next = ma->bufs;
@@ -190,7 +190,7 @@ void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
     if (ma_dst->bufs->next != nullptr) {
       /* Loop over `ma_src` instead of `ma_dst` since it's likely the destination is larger
        * when used for accumulating from multiple sources. */
-      struct MemBuf *mb_src = ma_src->bufs;
+      MemBuf *mb_src = ma_src->bufs;
       while (mb_src->next) {
         mb_src = mb_src->next;
       }
@@ -220,7 +220,7 @@ void BLI_memarena_clear(MemArena *ma)
     memarena_curbuf_align(ma);
 
     /* restore to original size */
-    const size_t curbuf_used = (size_t)(curbuf_prev - ma->curbuf);
+    const size_t curbuf_used = size_t(curbuf_prev - ma->curbuf);
     ma->cursize += curbuf_used;
 
     if (ma->use_calloc) {

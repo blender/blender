@@ -26,7 +26,7 @@
 
 void _bli_array_reverse(void *arr_v, uint arr_len, size_t arr_stride)
 {
-  const uint arr_stride_uint = (uint)arr_stride;
+  const uint arr_stride_uint = uint(arr_stride);
   const uint arr_half_stride = (arr_len / 2) * arr_stride_uint;
   uint i, i_end;
   char *arr = static_cast<char *>(arr_v);
@@ -65,7 +65,7 @@ void _bli_array_permute(
     void *arr, const uint arr_len, const size_t arr_stride, const uint *order, void *arr_temp)
 {
   const size_t len = arr_len * arr_stride;
-  const uint arr_stride_uint = (uint)arr_stride;
+  const uint arr_stride_uint = uint(arr_stride);
   void *arr_orig;
   uint i;
 
@@ -96,7 +96,7 @@ uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride)
     return arr_len;
   }
 
-  const uint arr_stride_uint = (uint)arr_stride;
+  const uint arr_stride_uint = uint(arr_stride);
   uint j = 0;
   for (uint i = 0; i < arr_len; i++) {
     if ((i == j) || (memcmp(POINTER_OFFSET(arr, arr_stride_uint * i),
@@ -118,7 +118,7 @@ int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const
   const char *arr_step = (const char *)arr;
   for (uint i = 0; i < arr_len; i++, arr_step += arr_stride) {
     if (memcmp(arr_step, p, arr_stride) == 0) {
-      return (int)i;
+      return int(i);
     }
   }
   return -1;
@@ -130,7 +130,7 @@ int _bli_array_rfindindex(const void *arr, uint arr_len, size_t arr_stride, cons
   for (uint i = arr_len; i-- != 0;) {
     arr_step -= arr_stride;
     if (memcmp(arr_step, p, arr_stride) == 0) {
-      return (int)i;
+      return int(i);
     }
   }
   return -1;
@@ -179,7 +179,7 @@ bool _bli_array_iter_span(const void *arr,
     return false;
   }
 
-  const uint arr_stride_uint = (uint)arr_stride;
+  const uint arr_stride_uint = uint(arr_stride);
   const void *item_prev;
   bool test_prev;
 
@@ -295,7 +295,7 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
              center[1] < arr_shape[1]);
 
   const char *arr = static_cast<const char *>(arr_v);
-  const int stride[2] = {arr_shape[0] * (int)elem_size, (int)elem_size};
+  const int stride[2] = {arr_shape[0] * int(elem_size), int(elem_size)};
 
   /* Test center first. */
   int ofs[2] = {center[0] * stride[1], center[1] * stride[0]};

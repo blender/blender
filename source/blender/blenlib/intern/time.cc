@@ -62,20 +62,20 @@ void BLI_time_sleep_ms(int ms)
 #  include <sys/time.h>
 #  include <unistd.h>
 
-double BLI_time_now_seconds(void)
+double BLI_time_now_seconds()
 {
-  struct timeval tv;
-  struct timezone tz;
+  timeval tv;
+  timezone tz;
 
   gettimeofday(&tv, &tz);
 
-  return ((double)tv.tv_sec + tv.tv_usec / 1000000.0);
+  return (double(tv.tv_sec) + tv.tv_usec / 1000000.0);
 }
 
-long int BLI_time_now_seconds_i(void)
+long int BLI_time_now_seconds_i()
 {
-  struct timeval tv;
-  struct timezone tz;
+  timeval tv;
+  timezone tz;
 
   gettimeofday(&tv, &tz);
 

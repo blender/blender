@@ -69,7 +69,7 @@ void BLI_astar_solution_init(BLI_AStarGraph *as_graph,
                              void *custom_data)
 {
   MemArena *mem = as_solution->mem;
-  size_t node_num = (size_t)as_graph->node_num;
+  size_t node_num = size_t(as_graph->node_num);
 
   if (mem == nullptr) {
     mem = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -124,7 +124,7 @@ void BLI_astar_graph_init(BLI_AStarGraph *as_graph, const int node_num, void *cu
   /* else memarena should be cleared */
 
   as_graph->node_num = node_num;
-  as_graph->nodes = BLI_memarena_calloc<BLI_AStarGNode>(mem, (size_t)node_num);
+  as_graph->nodes = BLI_memarena_calloc<BLI_AStarGNode>(mem, size_t(node_num));
 
   as_graph->custom_data = custom_data;
 }

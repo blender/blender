@@ -44,13 +44,13 @@ size_t BLI_timecode_string_from_time(char *str,
      *     VERY UNLIKELY to be more than 1-2 hours max? However, that would
      *     go against conventions...
      */
-    hours = (int)time / 3600;
+    hours = int(time) / 3600;
     time = fmodf(time, 3600);
   }
 
   if (time >= 60.0f) {
     /* minutes */
-    minutes = (int)time / 60;
+    minutes = int(time) / 60;
     time = fmodf(time, 60);
   }
 
@@ -59,8 +59,8 @@ size_t BLI_timecode_string_from_time(char *str,
      * Frames are derived from 'fraction' of second. We need to perform some additional rounding
      * to cope with 'half' frames, etc., which should be fine in most cases
      */
-    seconds = (int)time;
-    frames = round_fl_to_int((float)(((double)time - (double)seconds) * fps));
+    seconds = int(time);
+    frames = round_fl_to_int(float((double(time) - double(seconds)) * fps));
   }
   else {
     /* seconds (with pixel offset rounding) */
@@ -138,7 +138,7 @@ size_t BLI_timecode_string_from_time(char *str,
 
       /* precision of decimal part */
       const int ms_dp = (brevity_level <= 0) ? (1 - brevity_level) : 1;
-      const int ms = round_fl_to_int((time - (float)seconds) * 1000.0f);
+      const int ms = round_fl_to_int((time - float(seconds)) * 1000.0f);
 
       rlen = BLI_snprintf_rlen(
           str, maxncpy, "%s%02d:%02d:%02d,%0*d", neg, hours, minutes, seconds, ms_dp, ms);
@@ -174,10 +174,10 @@ size_t BLI_timecode_string_from_time_simple(char *str,
   size_t rlen;
 
   /* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-  const int hr = ((int)time_seconds) / (60 * 60);
-  const int min = (((int)time_seconds) / 60) % 60;
-  const int sec = ((int)time_seconds) % 60;
-  const int hun = (int)(fmod(time_seconds, 1.0) * 100);
+  const int hr = int(time_seconds) / (60 * 60);
+  const int min = (int(time_seconds) / 60) % 60;
+  const int sec = int(time_seconds) % 60;
+  const int hun = int(fmod(time_seconds, 1.0) * 100);
 
   if (hr) {
     rlen = BLI_snprintf_rlen(str, maxncpy, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);

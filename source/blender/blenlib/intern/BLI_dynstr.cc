@@ -33,12 +33,12 @@ struct DynStr {
 
 /***/
 
-DynStr *BLI_dynstr_new(void)
+DynStr *BLI_dynstr_new()
 {
   return MEM_cnew<DynStr>("DynStr");
 }
 
-DynStr *BLI_dynstr_new_memarena(void)
+DynStr *BLI_dynstr_new_memarena()
 {
   DynStr *ds = MEM_cnew<DynStr>("DynStr");
   ds->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);

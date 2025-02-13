@@ -24,19 +24,19 @@
 #define CHUNK_ELEM_MIN 32
 
 struct QueueChunk {
-  struct QueueChunk *next;
+  QueueChunk *next;
   char data[0];
 };
 
 struct _GSQueue {
-  struct QueueChunk *chunk_first; /* first active chunk to pop from */
-  struct QueueChunk *chunk_last;  /* last active chunk to push onto */
-  struct QueueChunk *chunk_free;  /* free chunks to reuse */
-  size_t chunk_first_index;       /* index into 'chunk_first' */
-  size_t chunk_last_index;        /* index into 'chunk_last' */
-  size_t chunk_elem_max;          /* number of elements per chunk */
-  size_t elem_size;               /* memory size of elements */
-  size_t elem_num;                /* total number of elements */
+  QueueChunk *chunk_first;  /* first active chunk to pop from */
+  QueueChunk *chunk_last;   /* last active chunk to push onto */
+  QueueChunk *chunk_free;   /* free chunks to reuse */
+  size_t chunk_first_index; /* index into 'chunk_first' */
+  size_t chunk_last_index;  /* index into 'chunk_last' */
+  size_t chunk_elem_max;    /* number of elements per chunk */
+  size_t elem_size;         /* memory size of elements */
+  size_t elem_num;          /* total number of elements */
 };
 
 static void *queue_get_first_elem(GSQueue *queue)
@@ -64,7 +64,7 @@ static size_t queue_chunk_elem_max_calc(const size_t elem_size, size_t chunk_siz
   }
 
   /* account for slop-space */
-  chunk_size -= (sizeof(struct QueueChunk) + MEM_SIZE_OVERHEAD);
+  chunk_size -= (sizeof(QueueChunk) + MEM_SIZE_OVERHEAD);
 
   return chunk_size / elem_size;
 }
@@ -81,10 +81,10 @@ GSQueue *BLI_gsqueue_new(const size_t elem_size)
   return queue;
 }
 
-static void queue_free_chunk(struct QueueChunk *data)
+static void queue_free_chunk(QueueChunk *data)
 {
   while (data) {
-    struct QueueChunk *data_next = data->next;
+    QueueChunk *data_next = data->next;
     MEM_freeN(data);
     data = data_next;
   }
@@ -103,7 +103,7 @@ void BLI_gsqueue_push(GSQueue *queue, const void *item)
   queue->elem_num++;
 
   if (UNLIKELY(queue->chunk_last_index == queue->chunk_elem_max)) {
-    struct QueueChunk *chunk;
+    QueueChunk *chunk;
     if (queue->chunk_free) {
       chunk = queue->chunk_free;
       queue->chunk_free = chunk->next;
@@ -141,7 +141,7 @@ void BLI_gsqueue_pop(GSQueue *queue, void *r_item)
   queue->elem_num--;
 
   if (UNLIKELY(queue->chunk_first_index == queue->chunk_elem_max || queue->elem_num == 0)) {
-    struct QueueChunk *chunk_free = queue->chunk_first;
+    QueueChunk *chunk_free = queue->chunk_first;
 
     queue->chunk_first = queue->chunk_first->next;
     queue->chunk_first_index = 0;

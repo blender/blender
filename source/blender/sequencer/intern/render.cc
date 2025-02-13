@@ -590,12 +590,8 @@ static void sequencer_preprocess_transform_crop(
       break;
   }
 
-  IMB_transform(in,
-                out,
-                IMB_TRANSFORM_MODE_CROP_SRC,
-                filter,
-                (float(*)[4])(matrix.base_ptr()),
-                &source_crop);
+  IMB_transform(
+      in, out, IMB_TRANSFORM_MODE_CROP_SRC, filter, (float(*)[4])matrix.base_ptr(), &source_crop);
 
   if (is_strip_covering_screen(context, strip)) {
     out->planes = in->planes;

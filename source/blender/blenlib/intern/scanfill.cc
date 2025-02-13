@@ -887,7 +887,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
 
   /* STEP 1: COUNT POLYS */
   if (sf_ctx->poly_nr != SF_POLY_UNSET) {
-    poly = (ushort)(sf_ctx->poly_nr + 1);
+    poly = ushort(sf_ctx->poly_nr + 1);
     sf_ctx->poly_nr = SF_POLY_UNSET;
   }
 
@@ -1025,7 +1025,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
    */
 
   /* STEP 3: MAKE POLYFILL STRUCT */
-  pflist = static_cast<PolyFill *>(MEM_mallocN(sizeof(*pflist) * (size_t)poly, "edgefill"));
+  pflist = static_cast<PolyFill *>(MEM_mallocN(sizeof(*pflist) * size_t(poly), "edgefill"));
   pf = pflist;
   for (a = 0; a < poly; a++) {
     pf->edges = pf->verts = 0;

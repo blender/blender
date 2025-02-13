@@ -134,7 +134,7 @@ BLI_mmap_file *BLI_mmap_open(int fd)
 {
   void *memory, *handle = nullptr;
   const size_t length = BLI_lseek(fd, 0, SEEK_END);
-  if (UNLIKELY(length == (size_t)-1)) {
+  if (UNLIKELY(length == size_t(-1))) {
     return nullptr;
   }
 

@@ -1324,7 +1324,7 @@ bool ED_mesh_pick_edge(bContext *C, Object *ob, const int mval[2], uint dist_px,
 
   edge_idx_best--;
 
-  if ((edge_idx_best != ORIGINDEX_NONE)) {
+  if (edge_idx_best != ORIGINDEX_NONE) {
     *r_index = edge_idx_best;
     return true;
   }

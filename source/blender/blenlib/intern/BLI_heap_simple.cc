@@ -52,7 +52,7 @@ static void heapsimple_down(HeapSimple *heap, uint start_i, const HeapSimpleNode
    * using index here can be modified to work with byte offset. */
   uint8_t *const tree_buf = (uint8_t *)heap->tree;
 
-#  define OFFSET(i) (i * (uint)sizeof(HeapSimpleNode))
+#  define OFFSET(i) (i * uint(sizeof(HeapSimpleNode)))
 #  define NODE(offset) (*(HeapSimpleNode *)(tree_buf + (offset)))
 #else
   HeapSimpleNode *const tree = heap->tree;
@@ -146,7 +146,7 @@ HeapSimple *BLI_heapsimple_new_ex(uint reserve_num)
   return heap;
 }
 
-HeapSimple *BLI_heapsimple_new(void)
+HeapSimple *BLI_heapsimple_new()
 {
   return BLI_heapsimple_new_ex(1);
 }

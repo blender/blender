@@ -41,7 +41,7 @@ struct HeapNode_Chunk {
  * \note keep type in sync with nodes_num in heap_node_alloc_chunk.
  */
 #define HEAP_CHUNK_DEFAULT_NUM \
-  (uint)(MEM_SIZE_OPTIMAL((1 << 16) - sizeof(HeapNode_Chunk)) / sizeof(HeapNode))
+  uint(MEM_SIZE_OPTIMAL((1 << 16) - sizeof(HeapNode_Chunk)) / sizeof(HeapNode))
 
 struct Heap {
   uint size;
@@ -183,7 +183,7 @@ Heap *BLI_heap_new_ex(uint reserve_num)
   return heap;
 }
 
-Heap *BLI_heap_new(void)
+Heap *BLI_heap_new()
 {
   return BLI_heap_new_ex(1);
 }

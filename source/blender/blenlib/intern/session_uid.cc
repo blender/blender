@@ -19,7 +19,7 @@ static const SessionUID global_session_uid_none = {BLI_session_uid_NONE};
  * It might eventually overflow, and easiest is to add more bits to it. */
 static SessionUID global_session_uid = {BLI_session_uid_NONE};
 
-SessionUID BLI_session_uid_generate(void)
+SessionUID BLI_session_uid_generate()
 {
   SessionUID result;
   result.uid_ = atomic_add_and_fetch_uint64(&global_session_uid.uid_, 1);

@@ -291,13 +291,13 @@ void BLI_box_pack_2d(
   if (sort_boxes) {
     /* Sort boxes, biggest first.
      * Be careful, qsort is not deterministic! */
-    qsort(boxarray, (size_t)len, sizeof(BoxPack), box_areasort);
+    qsort(boxarray, size_t(len), sizeof(BoxPack), box_areasort);
   }
 
   /* Add verts to the boxes, these are only used internally. */
-  vert = static_cast<BoxVert *>(MEM_mallocN(sizeof(BoxVert[4]) * (size_t)len, "BoxPack Verts"));
+  vert = static_cast<BoxVert *>(MEM_mallocN(sizeof(BoxVert[4]) * size_t(len), "BoxPack Verts"));
   vertex_pack_indices = static_cast<uint *>(
-      MEM_mallocN(sizeof(int[3]) * (size_t)len, "BoxPack Indices"));
+      MEM_mallocN(sizeof(int[3]) * size_t(len), "BoxPack Indices"));
 
   vs_ctx.vertarray = vert;
 
@@ -375,7 +375,7 @@ void BLI_box_pack_2d(
     vs_ctx.box_width = box->w;
     vs_ctx.box_height = box->h;
 
-    qsort_r(vertex_pack_indices, (size_t)verts_pack_len, sizeof(int), vertex_sort, &vs_ctx);
+    qsort_r(vertex_pack_indices, size_t(verts_pack_len), sizeof(int), vertex_sort, &vs_ctx);
 
 #ifdef USE_FREE_STRIP
     /* strip free vertices */

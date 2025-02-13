@@ -22,7 +22,7 @@ static char NO_DOCS[] = "NO DOCUMENTATION SPECIFIED";
 
 struct bArgDoc;
 struct bArgDoc {
-  struct bArgDoc *next, *prev;
+  bArgDoc *next, *prev;
   const char *short_arg;
   const char *long_arg;
   const char *documentation;
@@ -198,7 +198,7 @@ static void internalAdd(
            case_str == 1 ? "not " : "");
     printf("\tconflict with '%s' on pass %i, %scase sensitive\n\n",
            a->key->arg,
-           (int)a->key->pass,
+           int(a->key->pass),
            a->key->case_str == 1 ? "not " : "");
   }
 

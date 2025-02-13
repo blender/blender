@@ -26,7 +26,7 @@
 #  include <unistd.h>
 #endif
 
-int BLI_cpu_support_sse2(void)
+int BLI_cpu_support_sse2()
 {
 #if defined(__x86_64__) || defined(_M_X64)
   /* x86_64 always has SSE2 instructions */
@@ -130,13 +130,13 @@ static void __cpuid(
 }
 #endif
 
-char *BLI_cpu_brand_string(void)
+char *BLI_cpu_brand_string()
 {
 #if !defined(_M_ARM64)
   char buf[49] = {0};
   int result[4] = {0};
   __cpuid(result, 0x80000000);
-  if (result[0] >= (int)0x80000004) {
+  if (result[0] >= int(0x80000004)) {
     __cpuid((int *)(buf + 0), 0x80000002);
     __cpuid((int *)(buf + 16), 0x80000003);
     __cpuid((int *)(buf + 32), 0x80000004);
@@ -162,7 +162,7 @@ char *BLI_cpu_brand_string(void)
   return nullptr;
 }
 
-int BLI_cpu_support_sse42(void)
+int BLI_cpu_support_sse42()
 {
 #if !defined(_M_ARM64)
   int result[4], num;
@@ -171,7 +171,7 @@ int BLI_cpu_support_sse42(void)
 
   if (num >= 1) {
     __cpuid(result, 0x00000001);
-    return (result[2] & ((int)1 << 20)) != 0;
+    return (result[2] & (int(1) << 20)) != 0;
   }
 #endif
   return 0;
@@ -193,19 +193,19 @@ void BLI_hostname_get(char *buffer, size_t bufsize)
 #endif
 }
 
-size_t BLI_system_memory_max_in_megabytes(void)
+size_t BLI_system_memory_max_in_megabytes()
 {
   /* Maximum addressable bytes on this platform.
    *
    * NOTE: Due to the shift arithmetic this is a half of the memory. */
-  const size_t limit_bytes_half = (((size_t)1) << (sizeof(size_t[8]) - 1));
+  const size_t limit_bytes_half = size_t(1) << (sizeof(size_t[8]) - 1);
   /* Convert it to megabytes and return. */
   return (limit_bytes_half >> 20) * 2;
 }
 
-int BLI_system_memory_max_in_megabytes_int(void)
+int BLI_system_memory_max_in_megabytes_int()
 {
   const size_t limit_megabytes = BLI_system_memory_max_in_megabytes();
   /* NOTE: The result will fit into integer. */
-  return (int)min_zz(limit_megabytes, (size_t)INT_MAX);
+  return int(min_zz(limit_megabytes, size_t(INT_MAX)));
 }

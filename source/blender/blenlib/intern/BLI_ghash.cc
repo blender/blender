@@ -62,7 +62,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(hashsizes) == GHASH_MAX_SIZE, "Invalid 'hashsizes' 
 
 /* WARNING! Keep in sync with ugly _gh_Entry in header!!! */
 struct Entry {
-  struct Entry *next;
+  Entry *next;
 
   void *key;
 };
@@ -849,7 +849,7 @@ void BLI_ghash_clear_ex(GHash *gh,
   }
 
   ghash_buckets_reset(gh, nentries_reserve);
-  BLI_mempool_clear_ex(gh->entrypool, nentries_reserve ? (int)nentries_reserve : -1);
+  BLI_mempool_clear_ex(gh->entrypool, nentries_reserve ? int(nentries_reserve) : -1);
 }
 
 void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
@@ -1082,7 +1082,7 @@ void *BLI_gset_pop_key(GSet *gs, const void *key)
 
 int BLI_ghash_buckets_len(const GHash *gh)
 {
-  return (int)gh->nbuckets;
+  return int(gh->nbuckets);
 }
 int BLI_gset_buckets_len(const GSet *gs)
 {
@@ -1119,7 +1119,7 @@ double BLI_ghash_calc_quality_ex(const GHash *gh,
     return 0.0;
   }
 
-  mean = (double)gh->nentries / (double)gh->nbuckets;
+  mean = double(gh->nentries) / double(gh->nbuckets);
   if (r_load) {
     *r_load = mean;
   }
@@ -1138,14 +1138,14 @@ double BLI_ghash_calc_quality_ex(const GHash *gh,
       for (e = gh->buckets[i]; e; e = e->next) {
         count++;
       }
-      sum += ((double)count - mean) * ((double)count - mean);
+      sum += (double(count) - mean) * (double(count) - mean);
     }
-    *r_variance = sum / (double)(gh->nbuckets - 1);
+    *r_variance = sum / double(gh->nbuckets - 1);
   }
 
   {
     uint64_t sum = 0;
-    uint64_t overloaded_buckets_threshold = (uint64_t)max_ii(GHASH_LIMIT_GROW(1), 1);
+    uint64_t overloaded_buckets_threshold = uint64_t(max_ii(GHASH_LIMIT_GROW(1), 1));
     uint64_t sum_overloaded = 0;
     uint64_t sum_empty = 0;
 
@@ -1156,7 +1156,7 @@ double BLI_ghash_calc_quality_ex(const GHash *gh,
         count++;
       }
       if (r_biggest_bucket) {
-        *r_biggest_bucket = max_ii(*r_biggest_bucket, (int)count);
+        *r_biggest_bucket = max_ii(*r_biggest_bucket, int(count));
       }
       if (r_prop_overloaded_buckets && (count > overloaded_buckets_threshold)) {
         sum_overloaded++;
@@ -1167,13 +1167,13 @@ double BLI_ghash_calc_quality_ex(const GHash *gh,
       sum += count * (count + 1);
     }
     if (r_prop_overloaded_buckets) {
-      *r_prop_overloaded_buckets = (double)sum_overloaded / (double)gh->nbuckets;
+      *r_prop_overloaded_buckets = double(sum_overloaded) / double(gh->nbuckets);
     }
     if (r_prop_empty_buckets) {
-      *r_prop_empty_buckets = (double)sum_empty / (double)gh->nbuckets;
+      *r_prop_empty_buckets = double(sum_empty) / double(gh->nbuckets);
     }
-    return ((double)sum * (double)gh->nbuckets /
-            ((double)gh->nentries * (gh->nentries + 2 * gh->nbuckets - 1)));
+    return (double(sum) * double(gh->nbuckets) /
+            (double(gh->nentries) * (gh->nentries + 2 * gh->nbuckets - 1)));
   }
 }
 double BLI_gset_calc_quality_ex(const GSet *gs,

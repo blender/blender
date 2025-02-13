@@ -24,8 +24,8 @@ BLI_INLINE float D(const float *data, const int res[3], int x, int y, int z)
 /* returns highest integer <= x as integer (slightly faster than floor()) */
 BLI_INLINE int FLOORI(float x)
 {
-  const int r = (int)x;
-  return ((x >= 0.0f) || (float)r == x) ? r : (r - 1);
+  const int r = int(x);
+  return ((x >= 0.0f) || float(r) == x) ? r : (r - 1);
 }
 
 /**
@@ -45,9 +45,9 @@ float BLI_voxel_sample_trilinear(const float *data, const int res[3], const floa
 {
   if (data) {
 
-    const float xf = co[0] * (float)res[0] - 0.5f;
-    const float yf = co[1] * (float)res[1] - 0.5f;
-    const float zf = co[2] * (float)res[2] - 0.5f;
+    const float xf = co[0] * float(res[0]) - 0.5f;
+    const float yf = co[1] * float(res[1]) - 0.5f;
+    const float zf = co[2] * float(res[2]) - 0.5f;
 
     const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
 
@@ -64,9 +64,9 @@ float BLI_voxel_sample_trilinear(const float *data, const int res[3], const floa
         _clamp(z + 1, 0, res[2] - 1) * res[0] * res[1],
     };
 
-    const float dx = xf - (float)x;
-    const float dy = yf - (float)y;
-    const float dz = zf - (float)z;
+    const float dx = xf - float(x);
+    const float dy = yf - float(y);
+    const float dz = zf - float(z);
 
     const float u[2] = {1.0f - dx, dx};
     const float v[2] = {1.0f - dy, dy};

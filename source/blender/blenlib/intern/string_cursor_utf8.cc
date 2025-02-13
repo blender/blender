@@ -130,8 +130,8 @@ static eStrCursorDelimType cursor_delim_type_utf8(const char *ch_utf8,
   BLI_assert(ch_utf8_len >= 0);
   /* for full unicode support we really need to have large lookup tables to figure
    * out what's what in every possible char set - and python, glib both have these. */
-  size_t index = (size_t)pos;
-  uint uch = BLI_str_utf8_as_unicode_step_or_error(ch_utf8, (size_t)ch_utf8_len, &index);
+  size_t index = size_t(pos);
+  uint uch = BLI_str_utf8_as_unicode_step_or_error(ch_utf8, size_t(ch_utf8_len), &index);
   return cursor_delim_type_unicode(uch);
 }
 
@@ -151,7 +151,7 @@ bool BLI_str_cursor_step_next_utf8(const char *str, const int str_maxlen, int *p
     str_next = BLI_str_find_next_char_utf8(str_next, str_end);
   } while ((str_next < str_end) && (str_next[0] != 0) &&
            (BLI_str_utf8_char_width_or_error(str_next) == 0));
-  *pos += (int)(str_next - str_pos);
+  *pos += int(str_next - str_pos);
   *pos = std::min(*pos, str_maxlen);
 
   return true;
@@ -169,7 +169,7 @@ bool BLI_str_cursor_step_prev_utf8(const char *str, const int str_maxlen, int *p
     do {
       str_prev = BLI_str_find_prev_char_utf8(str_prev, str);
     } while ((str_prev > str) && (BLI_str_utf8_char_width_or_error(str_prev) == 0));
-    *pos -= (int)(str_pos - str_prev);
+    *pos -= int(str_pos - str_prev);
     return true;
   }
 
@@ -310,7 +310,7 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
 
     if (jump != STRCUR_JUMP_NONE) {
       const eStrCursorDelimType delim_type = (*pos < str_maxlen) ?
-                                                 cursor_delim_type_unicode((uint)str[*pos]) :
+                                                 cursor_delim_type_unicode(uint(str[*pos])) :
                                                  STRCUR_DELIM_NONE;
       /* jump between special characters (/,\,_,-, etc.),
        * look at function cursor_delim_type_unicode() for complete
@@ -318,7 +318,7 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
       while (*pos < str_maxlen) {
         if (BLI_str_cursor_step_next_utf32(str, str_maxlen, pos)) {
           if ((jump != STRCUR_JUMP_ALL) &&
-              (delim_type != cursor_delim_type_unicode((uint)str[*pos])))
+              (delim_type != cursor_delim_type_unicode(uint(str[*pos]))))
           {
             break;
           }
@@ -339,7 +339,7 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
 
     if (jump != STRCUR_JUMP_NONE) {
       const eStrCursorDelimType delim_type = (*pos > 0) ?
-                                                 cursor_delim_type_unicode((uint)str[(*pos) - 1]) :
+                                                 cursor_delim_type_unicode(uint(str[(*pos) - 1])) :
                                                  STRCUR_DELIM_NONE;
       /* jump between special characters (/,\,_,-, etc.),
        * look at function cursor_delim_type() for complete
@@ -348,7 +348,7 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
         const int pos_prev = *pos;
         if (BLI_str_cursor_step_prev_utf32(str, str_maxlen, pos)) {
           if ((jump != STRCUR_JUMP_ALL) &&
-              (delim_type != cursor_delim_type_unicode((uint)str[*pos])))
+              (delim_type != cursor_delim_type_unicode(uint(str[*pos]))))
           {
             /* left only: compensate for index/change in direction */
             if ((pos_orig - *pos) >= 1) {

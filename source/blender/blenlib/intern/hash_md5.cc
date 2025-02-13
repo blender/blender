@@ -45,7 +45,7 @@
 #endif
 
 #if UINT_MAX == UINT_MAX_32_BITS
-using md5_uint32 = unsigned int;
+using md5_uint32 = uint;
 #else
 #  if USHRT_MAX == UINT_MAX_32_BITS
 using md5_uint32 = unsigned short;

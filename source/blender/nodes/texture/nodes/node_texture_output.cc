@@ -79,7 +79,7 @@ static void unique_name(bNode *node)
       else {
         suffix = 0;
         new_len = len + 4;
-        new_len = std::min<unsigned long>(new_len, sizeof(tno->name) - 1);
+        new_len = std::min<ulong>(new_len, sizeof(tno->name) - 1);
       }
 
       STRNCPY(new_name, name);
