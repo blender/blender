@@ -170,6 +170,7 @@ class STORM_HYDRA_LIGHT_PT_light(Panel):
 
         main_col.prop(light, "color")
         main_col.prop(light, "energy")
+        main_col.prop(light, "exposure")
         main_col.separator()
 
         if light.type == 'POINT':

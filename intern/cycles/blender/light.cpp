@@ -75,7 +75,8 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
   }
 
   /* strength */
-  const float3 strength = get_float3(b_light.color()) * BL::PointLight(b_light).energy();
+  const float3 strength = get_float3(b_light.color()) *
+                          (BL::PointLight(b_light).energy() * exp2f(b_light.exposure()));
   light->set_strength(strength);
 
   /* shadow */

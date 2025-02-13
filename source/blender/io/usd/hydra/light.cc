@@ -85,7 +85,7 @@ void LightData::init()
   }
 
   data_[pxr::HdLightTokens->intensity] = intensity;
-  data_[pxr::HdLightTokens->exposure] = 0.0f;
+  data_[pxr::HdLightTokens->exposure] = light->exposure;
   data_[pxr::HdLightTokens->color] = pxr::GfVec3f(light->r, light->g, light->b);
   data_[pxr::HdLightTokens->diffuse] = light->diff_fac;
   data_[pxr::HdLightTokens->specular] = light->spec_fac;

@@ -142,8 +142,10 @@ void USDLightWriter::do_write(HierarchyContext &context)
                 intensity,
                 timecode,
                 usd_value_writer_);
-  set_attribute(
-      usd_light_api.CreateExposureAttr(pxr::VtValue(), true), 0.0f, timecode, usd_value_writer_);
+  set_attribute(usd_light_api.CreateExposureAttr(pxr::VtValue(), true),
+                light->exposure,
+                timecode,
+                usd_value_writer_);
   set_attribute(usd_light_api.CreateColorAttr(pxr::VtValue(), true),
                 pxr::GfVec3f(light->r, light->g, light->b),
                 timecode,

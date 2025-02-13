@@ -46,7 +46,8 @@ void LightsExporter::operator()(Object *ob)
   Light *la = (Light *)ob->data;
   std::string la_id(get_light_id(ob));
   std::string la_name(id_name(la));
-  COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
+  const float energy = la->energy * exp2f(la->exposure);
+  COLLADASW::Color col(la->r * energy, la->g * energy, la->b * energy);
 
   /* sun */
   if (la->type == LA_SUN) {

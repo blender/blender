@@ -91,6 +91,7 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
         col = layout.column()
         col.prop(light, "color")
         col.prop(light, "energy")
+        col.prop(light, "exposure")
 
         layout.separator()
 

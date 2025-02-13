@@ -161,7 +161,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   if (pxr::UsdAttribute exposure_attr = light_api.GetExposureAttr()) {
     float exposure = 0.0f;
     if (exposure_attr.Get(&exposure, motionSampleTime)) {
-      blight->energy *= pow(2.0f, exposure);
+      blight->exposure = exposure;
     }
   }
 
