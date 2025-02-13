@@ -8,7 +8,7 @@ This script is used to help cleaning RNA api.
 
 Typical line in the input file (elements in [] are optional).
 
-[comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
+[comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align description]
 
 Geterate output format from blender run this:
  ./blender.bin --background --python ./scripts/modules/rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
@@ -31,10 +31,11 @@ def usage():
     import sys
     scriptname = sys.argv[0]
     sort_choices_string = '|'.join(sort_choices)
-    message = "\nUSAGE:"
-    message += "\n%s input-file (.txt|.py) order-priority (%s).\n" % (font_bold(scriptname), sort_choices_string)
-    message += "%s -h for help\n" % font_bold(scriptname)
-    print(message)
+    print("".join((
+        "USAGE:\n",
+        "{:s} input-file (.txt|.py) order-priority ({:s}).\n".format(font_bold(scriptname), sort_choices_string),
+        "{:s} -h for help\n".format(font_bold(scriptname)),
+    )))
     exit()
 
 
@@ -42,14 +43,16 @@ def help():
     """
     Prints script' help.
     """
-    message = '\nHELP:'
-    message += '\nRun this script to re-format the edits you make in the input file.\n'
-    message += 'Do quick modification to important fields like \'to\' and don\'t care about fields like \'changed\' or \'description\' and save.\n'
-    message += 'The script outputs 3 files:\n'
-    message += '   1) *_clean.txt: is formatted same as the .txt input, can be edited by user.\n'
-    message += '   2) *_clean.py: is formatted same as the .py input, can be edited by user.\n'
-    message += '   3) rna_api.py is not formatted for readability and go under complete check. Can be used for rna cleanup.\n'
-    print(message)
+    print("".join((
+        'HELP:\n'
+        'Run this script to re-format the edits you make in the input file.\n'
+        'Do quick modification to important fields like \'to\' and don\'t care about ',
+        'fields like \'changed\' or \'description\' and save.\n'
+        'The script outputs 3 files:\n'
+        '   1) *_clean.txt: is formatted same as the .txt input, can be edited by user.\n'
+        '   2) *_clean.py: is formatted same as the .py input, can be edited by user.\n'
+        '   3) rna_api.py is not formatted for readability and go under complete check. Can be used for rna cleanup.\n',
+    )))
     usage()
 
 
@@ -260,7 +263,7 @@ def write_files(basename, props_list, props_length_max):
     f_py = open(basename + '_work.py', 'w')
 
     # reminder: props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
-    # [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
+    # [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align description]
     rna = py = txt = ''
     props_list = [['NOTE', 'CHANGED', 'CLASS', 'FROM', 'TO', 'KEYWORD-CHECK', 'TYPE', 'DESCRIPTION']] + props_list
     for props in props_list:

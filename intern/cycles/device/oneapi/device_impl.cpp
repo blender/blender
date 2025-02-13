@@ -879,7 +879,7 @@ void OneapiDevice::tex_free(device_texture &mem)
           (sycl::ext::oneapi::experimental::image_mem_handle::raw_handle_type)cmem.array};
 
       try {
-        /* We have allocated only standard textures, so we also dellocate only them. */
+        /* We have allocated only standard textures, so we also deallocate only them. */
         sycl::ext::oneapi::experimental::free_image_mem(
             imgHandle, sycl::ext::oneapi::experimental::image_type::standard, *queue);
       }
