@@ -1015,6 +1015,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   blas_ptr.copy_to_device();
   transform_headers.copy_to_device();
   {
+    if (instance_transform_matrix.data_size != frame_count) {
+      assert(!instance_transform_matrix.host_pointer);
+      instance_transform_matrix.host_and_device_free();
+    }
     instance_transform_matrix.host_pointer = transform_matrix.data();
     instance_transform_matrix.data_elements = sizeof(hiprtFrameMatrix);
     instance_transform_matrix.data_type = TYPE_UCHAR;
@@ -1069,6 +1073,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   if (bvh->custom_prim_info.size()) {
     size_t data_size = bvh->custom_prim_info.size();
+    if (custom_prim_info.data_size != data_size) {
+      assert(!custom_prim_info.host_pointer);
+      custom_prim_info.host_and_device_free();
+    }
     custom_prim_info.host_pointer = bvh->custom_prim_info.data();
     custom_prim_info.data_elements = 2;
     custom_prim_info.data_type = TYPE_INT;
@@ -1084,6 +1092,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   if (bvh->prims_time.size()) {
     size_t data_size = bvh->prims_time.size();
+    if (prims_time.data_size != data_size) {
+      assert(!prims_time.host_pointer);
+      prims_time.host_and_device_free();
+    }
     prims_time.host_pointer = bvh->prims_time.data();
     prims_time.data_elements = 2;
     prims_time.data_type = TYPE_FLOAT;
