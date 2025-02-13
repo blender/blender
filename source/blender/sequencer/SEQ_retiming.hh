@@ -30,7 +30,10 @@ bool SEQ_retiming_is_allowed(const Strip *strip);
  * become invalid.
  */
 SeqRetimingKey *SEQ_retiming_add_key(const Scene *scene, Strip *strip, int timeline_frame);
-SeqRetimingKey *SEQ_retiming_add_transition(Strip *strip, SeqRetimingKey *key, float offset);
+SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
+                                            Strip *strip,
+                                            SeqRetimingKey *key,
+                                            float offset);
 SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
                                               Strip *strip,
                                               SeqRetimingKey *key,
