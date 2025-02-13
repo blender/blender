@@ -313,6 +313,29 @@ class MultiDevice : public Device {
     return find_matching_mem_device(key, sub)->ptr_map[key];
   }
 
+  void *host_alloc(const MemoryType type, const size_t size) override
+  {
+    for (SubDevice &sub : devices) {
+      if (sub.device->info.type != DEVICE_CPU) {
+        return sub.device->host_alloc(type, size);
+      }
+    }
+
+    return Device::host_alloc(type, size);
+  }
+
+  void host_free(const MemoryType type, void *host_pointer, const size_t size) override
+  {
+    for (SubDevice &sub : devices) {
+      if (sub.device->info.type != DEVICE_CPU) {
+        sub.device->host_free(type, host_pointer, size);
+        return;
+      }
+    }
+
+    Device::host_free(type, host_pointer, size);
+  }
+
   void mem_alloc(device_memory &mem) override
   {
     device_ptr key = unique_key++;
@@ -378,7 +401,7 @@ class MultiDevice : public Device {
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
       mem.device_size = existing_size;
 
-      if (!owner_sub->device->is_host_mapped(
+      if (!owner_sub->device->is_shared(
               mem.shared_pointer, mem.device_pointer, owner_sub->device.get()))
       {
         owner_sub->device->mem_move_to_host(mem);
@@ -398,9 +421,7 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size - existing_size);
   }
 
-  bool is_host_mapped(const void *shared_pointer,
-                      const device_ptr key,
-                      Device *sub_device) override
+  bool is_shared(const void *shared_pointer, const device_ptr key, Device *sub_device) override
   {
     if (key == 0) {
       return false;
@@ -408,11 +429,11 @@ class MultiDevice : public Device {
 
     for (const SubDevice &sub : devices) {
       if (sub.device.get() == sub_device) {
-        return sub_device->is_host_mapped(shared_pointer, sub.ptr_map.at(key), sub_device);
+        return sub_device->is_shared(shared_pointer, sub.ptr_map.at(key), sub_device);
       }
     }
 
-    assert(!"is_host_mapped failed to find matching device");
+    assert(!"is_shared failed to find matching device");
     return false;
   }
 

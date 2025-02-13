@@ -255,7 +255,7 @@ class device_memory {
   void restore_device();
 
   bool is_resident(Device *sub_device) const;
-  bool is_host_mapped(Device *sub_device) const;
+  bool is_shared(Device *sub_device) const;
 
   /* No copying and allowed.
    *

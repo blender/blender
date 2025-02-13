@@ -247,9 +247,9 @@ class Device {
     return false;
   }
 
-  virtual bool is_host_mapped(const void * /*shared_pointer*/,
-                              const device_ptr /*device_pointer*/,
-                              Device * /*sub_device*/)
+  virtual bool is_shared(const void * /*shared_pointer*/,
+                         const device_ptr /*device_pointer*/,
+                         Device * /*sub_device*/)
   {
     return false;
   }
@@ -319,6 +319,9 @@ class Device {
   friend class MultiDevice;
   friend class DeviceServer;
   friend class device_memory;
+
+  virtual void *host_alloc(const MemoryType type, const size_t size);
+  virtual void host_free(const MemoryType type, void *host_pointer, const size_t size);
 
   virtual void mem_alloc(device_memory &mem) = 0;
   virtual void mem_copy_to(device_memory &mem) = 0;
@@ -398,22 +401,21 @@ class GPUDevice : public Device {
   /* total - amount of device memory, free - amount of available device memory */
   virtual void get_device_memory_info(size_t &total, size_t &free) = 0;
 
+  /* Device side memory. */
   virtual bool alloc_device(void *&device_pointer, const size_t size) = 0;
-
   virtual void free_device(void *device_pointer) = 0;
 
-  virtual bool alloc_host(void *&shared_pointer, const size_t size) = 0;
-
-  virtual void free_host(void *shared_pointer) = 0;
-
-  bool is_host_mapped(const void *shared_pointer,
-                      const device_ptr device_pointer,
-                      Device *sub_device) override;
-
+  /* Shared memory. */
+  virtual bool shared_alloc(void *&shared_pointer, const size_t size) = 0;
+  virtual void shared_free(void *shared_pointer) = 0;
+  bool is_shared(const void *shared_pointer,
+                 const device_ptr device_pointer,
+                 Device *sub_device) override;
   /* This function should return device pointer corresponding to shared pointer, which
-   * is host buffer, allocated in `alloc_host`. */
-  virtual void *transform_host_to_device_pointer(const void *shared_pointer) = 0;
+   * is host buffer, allocated in `shared_alloc`. */
+  virtual void *shared_to_device_pointer(const void *shared_pointer) = 0;
 
+  /* Memory copy. */
   virtual void copy_host_to_device(void *device_pointer,
                                    void *host_pointer,
                                    const size_t size) = 0;

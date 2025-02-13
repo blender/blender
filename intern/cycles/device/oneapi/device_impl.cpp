@@ -335,18 +335,18 @@ void OneapiDevice::free_device(void *device_pointer)
   usm_free(device_queue_, device_pointer);
 }
 
-bool OneapiDevice::alloc_host(void *&shared_pointer, const size_t size)
+bool OneapiDevice::shared_alloc(void *&shared_pointer, const size_t size)
 {
   shared_pointer = usm_aligned_alloc_host(device_queue_, size, 64);
   return shared_pointer != nullptr;
 }
 
-void OneapiDevice::free_host(void *shared_pointer)
+void OneapiDevice::shared_free(void *shared_pointer)
 {
   usm_free(device_queue_, shared_pointer);
 }
 
-void *OneapiDevice::transform_host_to_device_pointer(const void *shared_pointer)
+void *OneapiDevice::shared_to_device_pointer(const void *shared_pointer)
 {
   /* Device and host pointer are in the same address space
    * as we're using Unified Shared Memory. */
@@ -379,6 +379,35 @@ void *OneapiDevice::kernel_globals_device_pointer()
   return kg_memory_device_;
 }
 
+void *OneapiDevice::host_alloc(const MemoryType type, const size_t size)
+{
+  void *host_pointer = GPUDevice::host_alloc(type, size);
+
+#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
+  if (host_pointer) {
+    /* Import host_pointer into USM memory for faster host<->device data transfers. */
+    if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
+      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+      sycl::ext::oneapi::experimental::prepare_for_device_copy(host_pointer, size, *queue);
+    }
+  }
+#  endif
+
+  return host_pointer;
+}
+
+void OneapiDevice::host_free(const MemoryType type, void *host_pointer, const size_t size)
+{
+#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
+  if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
+    sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+    sycl::ext::oneapi::experimental::release_from_device_copy(host_pointer, *queue);
+  }
+#  endif
+
+  GPUDevice::host_free(type, host_pointer, size);
+}
+
 void OneapiDevice::mem_alloc(device_memory &mem)
 {
   if (mem.type == MEM_TEXTURE) {
@@ -394,14 +423,6 @@ void OneapiDevice::mem_alloc(device_memory &mem)
                  << string_human_readable_size(mem.memory_size()) << ")";
     }
     generic_alloc(mem);
-#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
-    /* Import host_pointer into USM memory for faster host<->device data transfers. */
-    if (mem.type == MEM_READ_WRITE || mem.type == MEM_READ_ONLY) {
-      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
-      sycl::ext::oneapi::experimental::prepare_for_device_copy(
-          mem.host_pointer, mem.memory_size(), *queue);
-    }
-#  endif
   }
 }
 
@@ -543,12 +564,6 @@ void OneapiDevice::mem_free(device_memory &mem)
     tex_free((device_texture &)mem);
   }
   else {
-#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
-    if (mem.type == MEM_READ_WRITE || mem.type == MEM_READ_ONLY) {
-      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
-      sycl::ext::oneapi::experimental::release_from_device_copy(mem.host_pointer, *queue);
-    }
-#  endif
     generic_free(mem);
   }
 }
