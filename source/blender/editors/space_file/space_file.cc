@@ -824,12 +824,19 @@ static void file_space_subtype_set(ScrArea *area, int value)
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     region->v2d.flag &= ~V2D_IS_INIT;
   }
+  sfile->browse_mode_prev = sfile->browse_mode;
   sfile->browse_mode = value;
 }
 
 static void file_space_subtype_item_extend(bContext * /*C*/, EnumPropertyItem **item, int *totitem)
 {
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
+}
+
+static int file_space_subtype_prev_get(ScrArea *area)
+{
+  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  return sfile->browse_mode_prev;
 }
 
 static blender::StringRefNull file_space_name_get(const ScrArea *area)
@@ -943,6 +950,7 @@ void ED_spacetype_file()
   st->space_subtype_item_extend = file_space_subtype_item_extend;
   st->space_subtype_get = file_space_subtype_get;
   st->space_subtype_set = file_space_subtype_set;
+  st->space_subtype_prev_get = file_space_subtype_prev_get;
   st->space_name_get = file_space_name_get;
   st->space_icon_get = file_space_icon_get;
   st->context = file_context;

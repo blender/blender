@@ -439,6 +439,7 @@ typedef struct ScrArea {
    */
   char butspacetype;
   short butspacetype_subtype;
+  short butspacetype_subtype_prev;
 
   /** Size. */
   short winx, winy;
@@ -453,7 +454,6 @@ typedef struct ScrArea {
    * runtime variable, updated by executing operators.
    */
   short region_active_win;
-  char _pad[2];
 
   /** Callbacks for this space type. */
   struct SpaceType *type;
