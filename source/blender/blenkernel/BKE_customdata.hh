@@ -124,11 +124,6 @@ bool CustomData_has_interp(const CustomData *data);
 bool CustomData_bmesh_has_free(const CustomData *data);
 
 /**
- * Checks if any of the custom-data layers is referenced.
- */
-bool CustomData_has_referenced(const CustomData *data);
-
-/**
  * Copies the "value" (e.g. `mloopuv` UV or `mloopcol` colors) from one block to
  * another, while not overwriting anything else (e.g. flags).  probably only
  * implemented for `mloopuv/mloopcol`, for now.
@@ -240,11 +235,6 @@ void CustomData_reset(CustomData *data);
  * Frees data associated with a CustomData object (doesn't free the object itself, though).
  */
 void CustomData_free(CustomData *data, int totelem);
-
-/**
- * Same as #CustomData_free, but only frees layers which matches the given mask.
- */
-void CustomData_free_typemask(CustomData *data, int totelem, eCustomDataMask mask);
 
 /**
  * Adds a layer of the given type to the #CustomData object. The new layer is initialized based on
@@ -585,13 +575,11 @@ void CustomData_set_layer_stencil(CustomData *data, eCustomDataType type, int n)
 void CustomData_set_layer_active_index(CustomData *data, eCustomDataType type, int n);
 void CustomData_set_layer_render_index(CustomData *data, eCustomDataType type, int n);
 void CustomData_set_layer_clone_index(CustomData *data, eCustomDataType type, int n);
-void CustomData_set_layer_stencil_index(CustomData *data, eCustomDataType type, int n);
 
 /**
  * Adds flag to the layer flags.
  */
 void CustomData_set_layer_flag(CustomData *data, eCustomDataType type, int flag);
-void CustomData_clear_layer_flag(CustomData *data, eCustomDataType type, int flag);
 
 void CustomData_bmesh_set_default(CustomData *data, void **block);
 void CustomData_bmesh_free_block(CustomData *data, void **block);
@@ -601,12 +589,6 @@ void CustomData_bmesh_alloc_block(CustomData *data, void **block);
  * Same as #CustomData_bmesh_free_block but zero the memory rather than freeing.
  */
 void CustomData_bmesh_free_block_data(CustomData *data, void *block);
-/**
- * A selective version of #CustomData_bmesh_free_block_data.
- */
-void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
-                                                      void *block,
-                                                      eCustomDataMask mask_exclude);
 
 /**
  * Query info over types.
