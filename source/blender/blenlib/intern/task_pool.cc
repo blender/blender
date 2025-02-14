@@ -423,7 +423,7 @@ bool TaskPool::tbb_task_pool_canceled()
 
 void TaskPool::background_task_pool_run(Task &&task)
 {
-  BLI_assert(ELEM(this->type, TASK_POOL_TBB, TASK_POOL_BACKGROUND_SERIAL));
+  BLI_assert(ELEM(this->type, TASK_POOL_BACKGROUND, TASK_POOL_BACKGROUND_SERIAL));
 
   Task *task_mem = MEM_new<Task>(__func__, std::move(task));
   BLI_thread_queue_push(this->background_queue, task_mem);
