@@ -1099,7 +1099,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
 
     if (but->rnaprop) {
       BLI_assert(but->rnaindex == -1);
-      has_alpha = RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4;
+      has_alpha = RNA_property_array_length(&but->rnapoin, but->rnaprop) >= 4;
       if (has_alpha) {
         color[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
       }

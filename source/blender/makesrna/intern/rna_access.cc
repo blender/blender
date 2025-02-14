@@ -3299,6 +3299,22 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
     rna_property_float_get_default_array_values(ptr, fprop, values);
   }
 }
+void RNA_property_float_get_array_at_most(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          float *values,
+                                          int values_num)
+{
+  BLI_assert(values_num >= 0);
+  const int array_num = RNA_property_array_length(ptr, prop);
+  if (values_num >= array_num) {
+    RNA_property_float_get_array(ptr, prop, values);
+    return;
+  }
+
+  blender::Array<float, RNA_STACK_ARRAY> value_buf(array_num);
+  RNA_property_float_get_array(ptr, prop, value_buf.data());
+  memcpy(values, value_buf.data(), sizeof(*values) * values_num);
+}
 
 void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, float values[2])
 {
@@ -3411,6 +3427,23 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
                          .release());
     }
   }
+}
+void RNA_property_float_set_array_at_most(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          const float *values,
+                                          int values_num)
+{
+  BLI_assert(values_num >= 0);
+  const int array_num = RNA_property_array_length(ptr, prop);
+  if (values_num >= array_num) {
+    RNA_property_float_set_array(ptr, prop, values);
+    return;
+  }
+
+  blender::Array<float, RNA_STACK_ARRAY> value_buf(array_num);
+  RNA_property_float_get_array(ptr, prop, value_buf.data());
+  memcpy(value_buf.data(), values, sizeof(*values) * values_num);
+  RNA_property_float_set_array(ptr, prop, value_buf.data());
 }
 
 void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, float value)
