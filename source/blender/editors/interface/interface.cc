@@ -1265,6 +1265,13 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
         continue;
       }
 
+      if (pass == 0 && ELEM(but->type, UI_BTYPE_ICON_TOGGLE, UI_BTYPE_ICON_TOGGLE_N)) {
+        /* Until 4.4, toggles did not get accelerator keys. Ignore them on the first pass to keep
+         * the most-used accelerator keys (those on the first letter) the same. In general it seems
+         * more desired to give operators priority over toggles. #134492 */
+        continue;
+      }
+
       if (but->menu_key != '\0') {
         continue;
       }
