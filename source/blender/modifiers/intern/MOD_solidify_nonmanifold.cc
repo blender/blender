@@ -78,10 +78,10 @@ static float clamp_nonzero(const float value, const float epsilon)
 struct NewEdgeRef;
 
 struct NewFaceRef {
-  blender::IndexRange face;
-  uint index;
-  bool reversed;
-  NewEdgeRef **link_edges;
+  blender::IndexRange face = {};
+  uint index = 0;
+  bool reversed = false;
+  NewEdgeRef **link_edges = nullptr;
 };
 
 struct OldEdgeFaceRef {

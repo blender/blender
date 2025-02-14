@@ -19,16 +19,16 @@
 using blender::Span;
 
 struct BMBVHTree {
-  BVHTree *tree;
+  BVHTree *tree = nullptr;
 
-  Span<std::array<BMLoop *, 3>> looptris;
+  Span<std::array<BMLoop *, 3>> looptris = {};
 
-  BMesh *bm;
+  BMesh *bm = nullptr;
 
-  const blender::float3 *cos_cage;
-  bool cos_cage_free;
+  const blender::float3 *cos_cage = nullptr;
+  bool cos_cage_free = false;
 
-  int flag;
+  int flag = 0;
 };
 
 BMBVHTree *BKE_bmbvh_new_from_editmesh(BMEditMesh *em,

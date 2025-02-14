@@ -32,43 +32,44 @@ struct MovieIndex;
 
 struct MovieReader {
   enum class State { Uninitialized, Failed, Valid };
-  int ib_flags;
-  State state;
-  int cur_position; /* index  0 = 1e,  1 = 2e, enz. */
-  int duration_in_frames;
-  int frs_sec;
-  double frs_sec_base;
-  double start_offset;
-  int x, y;
-  int video_rotation;
+  int ib_flags = 0;
+  State state = State::Uninitialized;
+  int cur_position = 0; /* index  0 = 1e,  1 = 2e, enz. */
+  int duration_in_frames = 0;
+  int frs_sec = 0;
+  double frs_sec_base = 0.0;
+  double start_offset = 0.0;
+  int x = 0;
+  int y = 0;
+  int video_rotation = 0;
 
   /* for number */
-  char filepath[1024];
+  char filepath[1024] = {};
 
-  int streamindex;
+  int streamindex = 0;
 
 #ifdef WITH_FFMPEG
-  AVFormatContext *pFormatCtx;
-  AVCodecContext *pCodecCtx;
-  const AVCodec *pCodec;
-  AVFrame *pFrameRGB;
-  AVFrame *pFrameDeinterlaced;
-  SwsContext *img_convert_ctx;
-  int videoStream;
+  AVFormatContext *pFormatCtx = nullptr;
+  AVCodecContext *pCodecCtx = nullptr;
+  const AVCodec *pCodec = nullptr;
+  AVFrame *pFrameRGB = nullptr;
+  AVFrame *pFrameDeinterlaced = nullptr;
+  SwsContext *img_convert_ctx = nullptr;
+  int videoStream = 0;
 
-  AVFrame *pFrame;
-  bool pFrame_complete;
-  AVFrame *pFrame_backup;
-  bool pFrame_backup_complete;
+  AVFrame *pFrame = nullptr;
+  bool pFrame_complete = false;
+  AVFrame *pFrame_backup = nullptr;
+  bool pFrame_backup_complete = false;
 
-  int64_t cur_pts;
-  int64_t cur_key_frame_pts;
-  AVPacket *cur_packet;
+  int64_t cur_pts = 0;
+  int64_t cur_key_frame_pts = 0;
+  AVPacket *cur_packet = nullptr;
 
   AVRational frame_rate = {1, 1};
 
-  bool seek_before_decode;
-  bool is_float;
+  bool seek_before_decode = false;
+  bool is_float = false;
 
   /* When set, never seek within the video, and only ever decode one frame.
    * This is a workaround for some Ogg files that have full audio but only
@@ -78,17 +79,17 @@ struct MovieReader {
   bool never_seek_decode_one_frame = false;
 #endif
 
-  char index_dir[768];
+  char index_dir[768] = {};
 
-  int proxies_tried;
-  int indices_tried;
+  int proxies_tried = 0;
+  int indices_tried = 0;
 
-  MovieReader *proxy_anim[IMB_PROXY_MAX_SLOT];
-  MovieIndex *record_run;
-  MovieIndex *no_gaps;
+  MovieReader *proxy_anim[IMB_PROXY_MAX_SLOT] = {};
+  MovieIndex *record_run = nullptr;
+  MovieIndex *no_gaps = nullptr;
 
-  char colorspace[64];
-  char suffix[64]; /* MAX_NAME - multiview */
+  char colorspace[64] = {};
+  char suffix[64] = {}; /* MAX_NAME - multiview */
 
-  IDProperty *metadata;
+  IDProperty *metadata = nullptr;
 };
