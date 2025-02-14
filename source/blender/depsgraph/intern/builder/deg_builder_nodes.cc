@@ -78,6 +78,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_movieclip.h"
+#include "BKE_nla.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
@@ -1254,7 +1255,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
   }
   /* NLA strips contain actions. */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    if (nlt->flag & NLATRACK_MUTED) {
+    if (!BKE_nlatrack_is_enabled(*adt, *nlt)) {
       continue;
     }
     build_animdata_nlastrip_targets(&nlt->strips);

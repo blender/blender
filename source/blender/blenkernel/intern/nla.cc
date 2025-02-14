@@ -667,6 +667,15 @@ void BKE_nlatrack_remove_and_free(ListBase *tracks, NlaTrack *nlt, bool do_id_us
   BKE_nlatrack_free(nlt, do_id_user);
 }
 
+bool BKE_nlatrack_is_enabled(const AnimData &adt, const NlaTrack &nlt)
+{
+  if (adt.flag & ADT_NLA_SOLO_TRACK) {
+    return (nlt.flag & NLATRACK_SOLO);
+  }
+
+  return !(nlt.flag & NLATRACK_MUTED);
+}
+
 /* *************************************************** */
 /* NLA Evaluation <-> Editing Stuff */
 

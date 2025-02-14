@@ -1272,7 +1272,7 @@ static void adt_apply_all_fcurves_cb(ID *id,
 
   /* NLA Data - Animation Data for Strips */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    if (nlt->flag & NLATRACK_MUTED) {
+    if (!BKE_nlatrack_is_enabled(*adt, *nlt)) {
       continue;
     }
     nlastrips_apply_all_curves_cb(id, &nlt->strips, func);

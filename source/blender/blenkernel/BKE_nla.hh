@@ -142,6 +142,14 @@ void BKE_nlatrack_remove(ListBase *tracks, NlaTrack *nlt);
 void BKE_nlatrack_remove_and_free(ListBase *tracks, NlaTrack *nlt, bool do_id_user);
 
 /**
+ * Return whether this NLA track is enabled.
+ *
+ * If any track is solo'ed: returns true when this is the solo'ed one.
+ * If no track is solo'ed: returns true when this track is not muted.
+ */
+bool BKE_nlatrack_is_enabled(const AnimData &adt, const NlaTrack &nlt);
+
+/**
  * Compute the length of the passed strip's clip, unless the clip length
  * is zero in which case a non-zero value is returned.
  *
