@@ -12,6 +12,7 @@ struct Depsgraph;
 struct Main;
 struct Mesh;
 struct Object;
+struct RegionView3D;
 struct ReportList;
 struct Scene;
 struct UndoType;
@@ -90,5 +91,20 @@ int active_update_and_get(bContext *C, Object &ob, const float mval_fl[2]);
  * \return #true if successful.
  */
 bool object_active_color_fill(Object &ob, const float fill_color[4], bool only_selected);
+
+/**
+ * Fully replace the sculpt mesh with a mesh outside of #Main. This implements various checks to
+ * avoid pushing full geometry-type undo steps when possible, allowing for better performance.
+ *
+ * \warning To avoid false negatives when detecting mesh changes, it is critical that the caller
+ * adds an owner to the attribute data arrays before modifying the original object's mesh. This
+ * allows constant time checks for whether the mesh has changed.
+ */
+void store_mesh_from_eval(const wmOperator &op,
+                          const Scene &scene,
+                          const Depsgraph &depsgraph,
+                          const RegionView3D *rv3d,
+                          Object &object,
+                          Mesh *new_mesh);
 
 }  // namespace blender::ed::sculpt_paint
