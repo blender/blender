@@ -658,6 +658,18 @@ struct bAnimChannelType {
    * - assume that setting has been checked to be valid for current context.
    */
   void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *r_type);
+
+  /**
+   * Called after a setting was changed via ANIM_channel_setting_set().
+   *
+   * \param ale is marked as 'const', as it could have been duplicated and taken out of context.
+   * This means that any hypothetical changes to `ale->update`, for example, will not be seen by
+   * any `ANIM_animdata_update()` call. So better to keep this `const` and avoid any manipulation.
+   * Also, because of the duplications, the ale's `prev` and `next` pointers will be dangling.
+   */
+  void (*setting_post_update)(Main &bmain,
+                              const bAnimListElem &ale,
+                              eAnimChannel_Settings setting);
 };
 
 /** \} */
@@ -683,7 +695,7 @@ float ANIM_UI_get_channel_button_width();
 /**
  * Get type info from given channel type.
  */
-const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
+const bAnimChannelType *ANIM_channel_get_typeinfo(const bAnimListElem *ale);
 
 /**
  * Print debug info string for the given channel.
