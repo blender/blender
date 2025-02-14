@@ -334,7 +334,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 BLI_NOINLINE static void calc_transform_translations(const float4x4 &elastic_transform_mat,
@@ -532,7 +532,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 void update_modal_transform(bContext *C, Object &ob)

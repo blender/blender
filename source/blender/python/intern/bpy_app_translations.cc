@@ -27,8 +27,14 @@
 #include "RNA_types.hh"
 
 #ifdef WITH_INTERNATIONAL
-#  include "BLI_ghash.h"
+
+#  include "BLI_map.hh"
 #  include "BLI_string.h"
+#  include "BLI_string_ref.hh"
+
+using blender::StringRef;
+using blender::StringRefNull;
+
 #endif
 
 /* ------------------------------------------------------------------- */
@@ -56,56 +62,47 @@ static BlenderAppTranslations *_translations = nullptr;
 /** \} */
 
 /* ------------------------------------------------------------------- */
-/** \name Helpers for GHash
+/** \name Helpers for hash
  * \{ */
 
 #ifdef WITH_INTERNATIONAL
 
-struct GHashKey {
-  const char *msgctxt;
-  const char *msgid;
+struct MessageKeyRef {
+  StringRef context;
+  StringRef str;
+
+  uint64_t hash() const
+  {
+    BLI_assert(this->context == BLT_I18NCONTEXT_DEFAULT_BPYRNA ||
+               !BLT_is_default_context(this->context));
+    return blender::get_default_hash(this->context, this->str);
+  }
 };
 
-static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
-{
-  GHashKey *key = static_cast<GHashKey *>(MEM_mallocN(sizeof(GHashKey), "Py i18n GHashKey"));
-  key->msgctxt = BLI_strdup(static_cast<const char *>(
-      BLT_is_default_context(static_cast<const char *>(msgctxt)) ? BLT_I18NCONTEXT_DEFAULT_BPYRNA :
-                                                                   msgctxt));
-  key->msgid = BLI_strdup(static_cast<const char *>(msgid));
-  return key;
-}
+struct MessageKey {
+  std::string context;
+  std::string str;
 
-static uint _ghashutil_keyhash(const void *ptr)
-{
-  const GHashKey *key = static_cast<const GHashKey *>(ptr);
-  const uint hash = BLI_ghashutil_strhash(key->msgctxt);
-  return hash ^ BLI_ghashutil_strhash(key->msgid);
-}
-
-static bool _ghashutil_keycmp(const void *a, const void *b)
-{
-  const GHashKey *A = static_cast<const GHashKey *>(a);
-  const GHashKey *B = static_cast<const GHashKey *>(b);
-
-  /* NOTE: comparing msgid first, most of the time it will be enough! */
-  if (BLI_ghashutil_strcmp(A->msgid, B->msgid) == false) {
-    return BLI_ghashutil_strcmp(A->msgctxt, B->msgctxt);
+  uint64_t hash() const
+  {
+    return blender::get_default_hash(this->context, this->str);
   }
-  return true; /* true means they are not equal! */
-}
 
-static void _ghashutil_keyfree(void *ptr)
+  static uint64_t hash_as(const MessageKeyRef &key)
+  {
+    return key.hash();
+  }
+};
+
+inline bool operator==(const MessageKey &a, const MessageKey &b)
 {
-  const GHashKey *key = static_cast<const GHashKey *>(ptr);
-
-  /* We assume both msgctxt and msgid were BLI_strdup'ed! */
-  MEM_freeN((void *)key->msgctxt);
-  MEM_freeN((void *)key->msgid);
-  MEM_freeN((void *)key);
+  return a.context == b.context && a.str == b.str;
 }
 
-#  define _ghashutil_valfree MEM_freeN
+inline bool operator==(const MessageKeyRef &a, const MessageKey &b)
+{
+  return a.context == b.context && a.str == b.str;
+}
 
 /** \} */
 
@@ -115,19 +112,20 @@ static void _ghashutil_keyfree(void *ptr)
 
 /**
  * We cache all messages available for a given locale
- * from all Python dictionaries into a single #GHash.
+ * from all Python dictionaries into a single #Map.
  * Changing of locale is not so common, while looking for a message translation is,
- * so let's try to optimize the later as much as we can!
+ * so let's try to optimize the latter as much as we can!
  * Note changing of locale, as well as (un)registering a message dict, invalidate that cache.
  */
-static GHash *_translations_cache = nullptr;
+static std::unique_ptr<blender::Map<MessageKey, std::string>> &get_translations_cache()
+{
+  static std::unique_ptr<blender::Map<MessageKey, std::string>> translations;
+  return translations;
+}
 
 static void _clear_translations_cache()
 {
-  if (_translations_cache) {
-    BLI_ghash_free(_translations_cache, _ghashutil_keyfree, _ghashutil_valfree);
-  }
-  _translations_cache = nullptr;
+  get_translations_cache().reset();
 }
 
 static void _build_translations_cache(PyObject *py_messages, const char *locale)
@@ -141,9 +139,9 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
   BLT_lang_locale_explode(
       locale, &language, nullptr, nullptr, &language_country, &language_variant);
 
-  /* Clear the cached ghash if needed, and create a new one. */
+  /* Clear the cached #blender::Map if needed, and create a new one. */
   _clear_translations_cache();
-  _translations_cache = BLI_ghash_new(_ghashutil_keyhash, _ghashutil_keycmp, __func__);
+  get_translations_cache() = std::make_unique<blender::Map<MessageKey, std::string>>();
 
   /* Iterate over all Python dictionaries. */
   while (PyDict_Next(py_messages, &pos, &uuid, &uuid_dict)) {
@@ -187,7 +185,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
         continue;
       }
 
-      /* Iterate over all translations of the found language dict, and populate our ghash cache. */
+      /* Iterate over all translations of the found language dict and populate our cache. */
       while (PyDict_Next(lang_dict, &ppos, &pykey, &trans)) {
         const char *msgctxt = nullptr, *msgid = nullptr;
         bool invalid_key = false;
@@ -239,10 +237,12 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 
         /* Do not overwrite existing keys! */
         if (BPY_app_translations_py_pgettext(msgctxt, msgid) == msgid) {
-          GHashKey *key = _ghashutil_keyalloc(msgctxt, msgid);
+          MessageKey key;
+          key.context = BLT_is_default_context(msgctxt) ? BLT_I18NCONTEXT_DEFAULT_BPYRNA : msgctxt;
+          key.str = msgid;
           Py_ssize_t trans_str_len;
           const char *trans_str = PyUnicode_AsUTF8AndSize(trans, &trans_str_len);
-          BLI_ghash_insert(_translations_cache, key, BLI_strdupn(trans_str, trans_str_len));
+          get_translations_cache()->add(key, std::string(trans_str, trans_str_len));
         }
       }
     }
@@ -258,7 +258,6 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 {
 #  define STATIC_LOCALE_SIZE 32 /* Should be more than enough! */
 
-  GHashKey key;
   static char locale[STATIC_LOCALE_SIZE] = "";
   const char *tmp;
 
@@ -268,7 +267,7 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
   }
 
   tmp = BLT_lang_get();
-  if (!STREQ(tmp, locale) || !_translations_cache) {
+  if (!STREQ(tmp, locale) || !get_translations_cache()) {
     PyGILState_STATE _py_state;
 
     STRNCPY(locale, tmp);
@@ -283,12 +282,15 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
   }
 
   /* And now, simply create the key (context, messageid) and find it in the cached dict! */
-  key.msgctxt = BLT_is_default_context(msgctxt) ? BLT_I18NCONTEXT_DEFAULT_BPYRNA : msgctxt;
-  key.msgid = msgid;
+  MessageKeyRef key;
+  key.context = BLT_is_default_context(msgctxt) ? BLT_I18NCONTEXT_DEFAULT_BPYRNA : msgctxt;
+  key.str = msgid;
 
-  tmp = static_cast<const char *>(BLI_ghash_lookup(_translations_cache, &key));
-
-  return tmp ? tmp : msgid;
+  const std::string *result = get_translations_cache()->lookup_ptr_as(key);
+  if (!result) {
+    return msgid;
+  }
+  return result->c_str();
 
 #  undef STATIC_LOCALE_SIZE
 }
@@ -336,7 +338,7 @@ static PyObject *app_translations_py_messages_register(BlenderAppTranslations *s
         PyExc_ValueError,
         "bpy.app.translations.register: translations message cache already contains some data for "
         "addon '%s'",
-        (const char *)PyUnicode_AsUTF8(module_name));
+        PyUnicode_AsUTF8(module_name));
     return nullptr;
   }
 
@@ -387,7 +389,7 @@ static PyObject *app_translations_py_messages_unregister(BlenderAppTranslations 
 
   if (PyDict_Contains(self->py_messages, module_name)) {
     PyDict_DelItem(self->py_messages, module_name);
-    /* Clear cached messages ghash! */
+    /* Clear cached messages map. */
     _clear_translations_cache();
   }
 #else
@@ -885,7 +887,7 @@ PyDoc_STRVAR(
     "\n");
 static PyTypeObject BlenderAppTranslationsType = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "bpy.app._translations_type",
+    /*tp_name*/ "bpy_app_translations",
     /*tp_basicsize*/ sizeof(BlenderAppTranslations),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,

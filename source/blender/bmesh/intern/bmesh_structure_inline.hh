@@ -39,7 +39,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
   if (v == e->v2) {
     return e->v2_disk_link.next;
   }
-  return NULL;
+  return nullptr;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
@@ -51,7 +51,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
   if (v == e->v2) {
     return e->v2_disk_link.prev;
   }
-  return NULL;
+  return nullptr;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2) BLI_INLINE BMEdge *bmesh_disk_edge_next(const BMEdge *e,

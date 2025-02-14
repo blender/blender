@@ -6,19 +6,10 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
-
-#include "BLI_utildefines.h"
-
-#include "BLT_translation.hh"
-
-#include "BKE_report.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-
-#include "DNA_windowmanager_types.h"
 
 #include "WM_api.hh"
 
@@ -26,7 +17,12 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BLT_translation.hh"
+
 #  include "BKE_context.hh"
+#  include "BKE_idprop.hh"
+#  include "BKE_report.hh"
+
 #  include "UI_interface.hh"
 
 #  include "ED_gizmo_library.hh"

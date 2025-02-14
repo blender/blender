@@ -578,9 +578,7 @@ class Map {
     if (ptr != nullptr) {
       return *ptr;
     }
-    else {
-      return Value(std::forward<ForwardValue>(default_value)...);
-    }
+    return Value(std::forward<ForwardValue>(default_value)...);
   }
 
   /**

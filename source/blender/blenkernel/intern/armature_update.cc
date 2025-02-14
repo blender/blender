@@ -18,13 +18,13 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_action.hh"
 #include "BKE_anim_path.h"
 #include "BKE_armature.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 

@@ -4,8 +4,6 @@
 
 #include "testing/testing.h"
 
-#include "BLI_string.h"
-
 #include "BKE_cryptomatte.h"
 #include "BKE_cryptomatte.hh"
 #include "BKE_image.hh"

@@ -9,6 +9,8 @@
  * BKE_customdata.hh contains the function prototypes for this file.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 /* Since we have versioning code here (CustomData_verify_versions()). */
@@ -312,9 +314,7 @@ static void layerInterp_mdeformvert(const void **sources,
     dvert->totweight = totweight;
     int i = 0;
     for (node = dest_dwlink; node; node = node->next, i++) {
-      if (node->dw.weight > 1.0f) {
-        node->dw.weight = 1.0f;
-      }
+      node->dw.weight = std::min(node->dw.weight, 1.0f);
       dvert->dw[i] = node->dw;
     }
   }
@@ -900,30 +900,14 @@ static void layerDoMinMax_mloopcol(const void *data, void *vmin, void *vmax)
   MLoopCol *min = static_cast<MLoopCol *>(vmin);
   MLoopCol *max = static_cast<MLoopCol *>(vmax);
 
-  if (m->r < min->r) {
-    min->r = m->r;
-  }
-  if (m->g < min->g) {
-    min->g = m->g;
-  }
-  if (m->b < min->b) {
-    min->b = m->b;
-  }
-  if (m->a < min->a) {
-    min->a = m->a;
-  }
-  if (m->r > max->r) {
-    max->r = m->r;
-  }
-  if (m->g > max->g) {
-    max->g = m->g;
-  }
-  if (m->b > max->b) {
-    max->b = m->b;
-  }
-  if (m->a > max->a) {
-    max->a = m->a;
-  }
+  min->r = std::min(m->r, min->r);
+  min->g = std::min(m->g, min->g);
+  min->b = std::min(m->b, min->b);
+  min->a = std::min(m->a, min->a);
+  max->r = std::max(m->r, max->r);
+  max->g = std::max(m->g, max->g);
+  max->b = std::max(m->b, max->b);
+  max->a = std::max(m->a, max->a);
 }
 
 static void layerInitMinMax_mloopcol(void *vmin, void *vmax)
@@ -3165,7 +3149,7 @@ static CustomDataLayer *customData_add_layer__internal(
   }
 
   if (!name.is_empty()) {
-    name.copy(new_layer.name);
+    name.copy_utf8_truncated(new_layer.name);
     CustomData_set_layer_unique_name(data, index);
   }
   else {
@@ -3790,7 +3774,7 @@ bool CustomData_set_layer_name(CustomData *data,
     return false;
   }
 
-  name.copy(data->layers[layer_index].name);
+  name.copy_utf8_truncated(data->layers[layer_index].name);
 
   return true;
 }
@@ -4570,9 +4554,7 @@ void CustomData_validate_layer_name(const CustomData *data,
     BLI_strncpy_utf8(outname, data->layers[index].name, MAX_CUSTOMDATA_LAYER_NAME);
   }
   else {
-    char name_c_str[MAX_CUSTOMDATA_LAYER_NAME];
-    name.copy(name_c_str);
-    BLI_strncpy_utf8(outname, name_c_str, MAX_CUSTOMDATA_LAYER_NAME);
+    name.copy_utf8_truncated(outname, MAX_CUSTOMDATA_LAYER_NAME);
   }
 }
 
@@ -5522,7 +5504,7 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
           name,
           structname,
           type,
-          (const void *)pt,
+          pt,
           size,
           pt_size);
     }

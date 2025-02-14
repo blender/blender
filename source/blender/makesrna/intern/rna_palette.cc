@@ -8,9 +8,6 @@
 
 #include <cstdlib>
 
-#include "BLI_utildefines.h"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"
@@ -72,7 +69,7 @@ static PointerRNA rna_Palette_active_color_get(PointerRNA *ptr)
     return rna_pointer_inherit_refine(ptr, &RNA_PaletteColor, color);
   }
 
-  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
+  return PointerRNA_NULL;
 }
 
 static void rna_Palette_active_color_set(PointerRNA *ptr,

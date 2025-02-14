@@ -11,17 +11,13 @@
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 
 #include "spreadsheet_column_values.hh"
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_layout.hh"
 
-#include "DNA_collection_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-#include "DNA_userdef_types.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

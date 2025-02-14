@@ -23,38 +23,37 @@ namespace blender {
  * Those should eventually be de-duplicated with functions in BLI_math_base.h.
  * \{ */
 
-template<typename IntT> inline constexpr IntT ceil_division(const IntT x, const IntT y)
+template<typename IntT> constexpr IntT ceil_division(const IntT x, const IntT y)
 {
   BLI_assert(x >= 0);
   BLI_assert(y >= 0);
   return x / y + ((x % y) != 0);
 }
 
-template<typename IntT> inline constexpr IntT floor_division(const IntT x, const IntT y)
+template<typename IntT> constexpr IntT floor_division(const IntT x, const IntT y)
 {
   BLI_assert(x >= 0);
   BLI_assert(y >= 0);
   return x / y;
 }
 
-inline constexpr int64_t ceil_division_by_fraction(const int64_t x,
-                                                   const int64_t numerator,
-                                                   const int64_t denominator)
+constexpr int64_t ceil_division_by_fraction(const int64_t x,
+                                            const int64_t numerator,
+                                            const int64_t denominator)
 {
   return int64_t(ceil_division(uint64_t(x) * uint64_t(denominator), uint64_t(numerator)));
 }
 
-inline constexpr int64_t floor_multiplication_with_fraction(const int64_t x,
-                                                            const int64_t numerator,
-                                                            const int64_t denominator)
+constexpr int64_t floor_multiplication_with_fraction(const int64_t x,
+                                                     const int64_t numerator,
+                                                     const int64_t denominator)
 {
   return int64_t((uint64_t(x) * uint64_t(numerator) / uint64_t(denominator)));
 }
 
-inline constexpr int64_t total_slot_amount_for_usable_slots(
-    const int64_t min_usable_slots,
-    const int64_t max_load_factor_numerator,
-    const int64_t max_load_factor_denominator)
+constexpr int64_t total_slot_amount_for_usable_slots(const int64_t min_usable_slots,
+                                                     const int64_t max_load_factor_numerator,
+                                                     const int64_t max_load_factor_denominator)
 {
   return power_of_2_max(ceil_division_by_fraction(
       min_usable_slots, max_load_factor_numerator, max_load_factor_denominator));

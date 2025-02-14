@@ -10,17 +10,13 @@
 
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "ED_view3d.hh"
 
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
 

@@ -12,10 +12,8 @@
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_lib_id.hh"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
 
 void BKE_id_eval_properties_copy(ID *id_cow, ID *id)
 {

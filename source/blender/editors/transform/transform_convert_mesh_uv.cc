@@ -531,7 +531,7 @@ struct UVGroups {
         continue;
       }
 
-      const float2 &uv_orig = BM_ELEM_CD_GET_FLOAT_P(l_orig, offsets.uv);
+      const float2 uv_orig = BM_ELEM_CD_GET_FLOAT_P(l_orig, offsets.uv);
       groups_offs_indices_.append(groups_offs_buffer_.size());
 
       BMIter liter;
@@ -569,7 +569,7 @@ struct UVGroups {
   Array<TransDataVertSlideVert> sd_array_create_and_init(TransDataContainer *tc)
   {
     Array<TransDataVertSlideVert> r_sv(this->sd_len);
-    TransDataVertSlideVert *sv = &r_sv[0];
+    TransDataVertSlideVert *sv = r_sv.data();
     for (const int group_index : this->groups().index_range()) {
       for (int td_index : this->td_indices_get(group_index)) {
         TransData *td = &tc->data[td_index];
@@ -584,7 +584,7 @@ struct UVGroups {
   Array<TransDataEdgeSlideVert> sd_array_create_and_init_edge(TransDataContainer *tc)
   {
     Array<TransDataEdgeSlideVert> r_sv(this->sd_len);
-    TransDataEdgeSlideVert *sv = &r_sv[0];
+    TransDataEdgeSlideVert *sv = r_sv.data();
     for (const int group_index : this->groups().index_range()) {
       for (int td_index : this->td_indices_get(group_index)) {
         TransData *td = &tc->data[td_index];
@@ -661,7 +661,7 @@ Array<TransDataVertSlideVert> transform_mesh_uv_vert_slide_data_create(
       BMLoop *l = static_cast<BMLoop *>(td->extra);
 
       for (BMLoop *l_dst : {l->prev, l->next}) {
-        const float2 &uv_dest = BM_ELEM_CD_GET_FLOAT_P(l_dst, offsets.uv);
+        const float2 uv_dest = BM_ELEM_CD_GET_FLOAT_P(l_dst, offsets.uv);
         Span<float3> uvs_added = r_loc_dst_buffer.as_span().drop_front(size_prev);
 
         bool skip = std::any_of(
@@ -738,14 +738,14 @@ static bool mesh_uv_group_is_inner(const TransDataContainer *tc,
     return false;
   }
 
-  const float2 &uv_a_prev = BM_ELEM_CD_GET_FLOAT_P(l_a_prev, offsets.uv);
-  const float2 &uv_b_prev = BM_ELEM_CD_GET_FLOAT_P(l_b_prev, offsets.uv);
+  const float2 uv_a_prev = BM_ELEM_CD_GET_FLOAT_P(l_a_prev, offsets.uv);
+  const float2 uv_b_prev = BM_ELEM_CD_GET_FLOAT_P(l_b_prev, offsets.uv);
   if (!compare_v2v2(uv_a_prev, uv_b_prev, FLT_EPSILON)) {
     return false;
   }
 
-  const float2 &uv_a_next = BM_ELEM_CD_GET_FLOAT_P(l_a_next, offsets.uv);
-  const float2 &uv_b_next = BM_ELEM_CD_GET_FLOAT_P(l_b_next, offsets.uv);
+  const float2 uv_a_next = BM_ELEM_CD_GET_FLOAT_P(l_a_next, offsets.uv);
+  const float2 uv_b_next = BM_ELEM_CD_GET_FLOAT_P(l_b_next, offsets.uv);
   if (!compare_v2v2(uv_a_next, uv_b_next, FLT_EPSILON)) {
     return false;
   }
@@ -772,8 +772,8 @@ static bool bm_loop_uv_calc_opposite_co(const BMLoop *l_tmp,
 
   l_iter = l_first;
   do {
-    const float2 &uv_iter = BM_ELEM_CD_GET_FLOAT_P(l_iter, offsets.uv);
-    const float2 &uv_iter_next = BM_ELEM_CD_GET_FLOAT_P(l_iter->next, offsets.uv);
+    const float2 uv_iter = BM_ELEM_CD_GET_FLOAT_P(l_iter, offsets.uv);
+    const float2 uv_iter_next = BM_ELEM_CD_GET_FLOAT_P(l_iter->next, offsets.uv);
     float lambda;
     if (isect_ray_seg_v2(uv_tmp, ray_direction, uv_iter, uv_iter_next, &lambda, nullptr) ||
         isect_ray_seg_v2(uv_tmp, -ray_direction, uv_iter, uv_iter_next, &lambda, nullptr))
@@ -808,8 +808,8 @@ static float2 isect_face_dst(const BMLoop *l,
   }
 
   BMLoop *l_prev = l->prev;
-  const float2 &uv_prev = BM_ELEM_CD_GET_FLOAT_P(l_prev, offsets.uv);
-  const float2 &uv_next = BM_ELEM_CD_GET_FLOAT_P(l_next, offsets.uv);
+  const float2 uv_prev = BM_ELEM_CD_GET_FLOAT_P(l_prev, offsets.uv);
+  const float2 uv_next = BM_ELEM_CD_GET_FLOAT_P(l_next, offsets.uv);
 
   float2 ray_dir = (uv - uv_prev) + (uv_next - uv);
   ray_dir = math::orthogonal(ray_dir * aspect);
@@ -1038,7 +1038,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
 
         for (int td_index_curr : uv_groups->td_indices_get(curr.i)) {
           BMLoop *l_curr = static_cast<BMLoop *>(tc->data[td_index_curr].extra);
-          const float2 &src = BM_ELEM_CD_GET_FLOAT_P(l_curr, offsets.uv);
+          const float2 src = BM_ELEM_CD_GET_FLOAT_P(l_curr, offsets.uv);
 
           for (int td_index_next : td_indices_next) {
             BMLoop *l_next = static_cast<BMLoop *>(tc->data[td_index_next].extra);
@@ -1058,7 +1058,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
               l2_dst = l_next->prev;
             }
 
-            const float2 &dst = BM_ELEM_CD_GET_FLOAT_P(l1_dst, offsets.uv);
+            const float2 dst = BM_ELEM_CD_GET_FLOAT_P(l1_dst, offsets.uv);
 
             /* Sometimes the sliding direction may fork (`isect_curr_dirs` is `true`).
              * In this case, the resulting direction is the intersection of the destinations. */
@@ -1082,12 +1082,12 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
             next.fdata[best_dir].f = l_curr->f;
             if (BM_elem_index_get(l2_dst) != -1 || next.vert_is_inner) {
               /* Case where the vertex slides over the face. */
-              const float2 &src_next = BM_ELEM_CD_GET_FLOAT_P(l_next, offsets.uv);
+              const float2 src_next = BM_ELEM_CD_GET_FLOAT_P(l_next, offsets.uv);
               next.fdata[best_dir].dst = isect_face_dst(l_next, src_next, t->aspect, offsets);
             }
             else {
               /* Case where the vertex slides over an edge. */
-              const float2 &dst_next = BM_ELEM_CD_GET_FLOAT_P(l2_dst, offsets.uv);
+              const float2 dst_next = BM_ELEM_CD_GET_FLOAT_P(l2_dst, offsets.uv);
               next.fdata[best_dir].dst = dst_next;
             }
 
@@ -1120,7 +1120,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
         else {
           sv_first = &sv;
           float2 iloc = sv.td->iloc;
-          const float2 &aspect = t->aspect;
+          const float2 aspect = t->aspect;
           if (curr.fdata[0].f) {
             float2 dst = curr.fdata[0].dst * aspect;
             sv.dir_side[0] = float3(dst - iloc, 0.0f);

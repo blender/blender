@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
-
 #include "DNA_space_types.h"
 #include "DNA_tracking_types.h"
 

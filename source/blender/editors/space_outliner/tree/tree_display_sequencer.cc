@@ -8,7 +8,6 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
 

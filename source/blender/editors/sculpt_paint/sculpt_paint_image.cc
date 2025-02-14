@@ -168,7 +168,7 @@ template<typename ImageBuffer> class PaintingKernel {
   const char *last_used_color_space_ = nullptr;
 
  public:
-  explicit PaintingKernel() {}
+  explicit PaintingKernel() = default;
 
   bool paint(const Brush &brush,
              const PackedPixelRow &pixel_row,

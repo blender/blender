@@ -262,13 +262,15 @@ class SampleCurveFunction : public mf::MultiFunction {
     };
 
     if (!geometry_set_.has_curves()) {
-      return return_default();
+      return_default();
+      return;
     }
 
     const Curves &curves_id = *geometry_set_.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     if (curves.is_empty()) {
-      return return_default();
+      return_default();
+      return;
     }
     curves.ensure_can_interpolate_to_evaluated();
     Span<float3> evaluated_positions = curves.evaluated_positions();

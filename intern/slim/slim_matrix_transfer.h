@@ -15,7 +15,7 @@ namespace slim {
 
 struct SLIMData;
 
-typedef std::unique_ptr<SLIMData> SLIMDataPtr;
+using SLIMDataPtr = std::unique_ptr<SLIMData>;
 
 /**
  * MatrixTransferChart holds all information and data matrices to be

@@ -108,14 +108,14 @@ class GHOST_EventManager {
   void disposeEvents();
 
   /** A stack with events. */
-  typedef std::deque<const GHOST_IEvent *> TEventStack;
+  using TEventStack = std::deque<const GHOST_IEvent *>;
 
   /** The event stack. */
   std::deque<const GHOST_IEvent *> m_events;
   std::deque<const GHOST_IEvent *> m_handled_events;
 
   /** A vector with event consumers. */
-  typedef std::vector<GHOST_IEventConsumer *> TConsumerVector;
+  using TConsumerVector = std::vector<GHOST_IEventConsumer *>;
 
   /** The list with event consumers. */
   TConsumerVector m_consumers;

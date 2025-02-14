@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
+
 #include "DNA_brush_types.h"
 
 #include "BLI_math_matrix.h"
@@ -1296,9 +1298,7 @@ void calculatePropRatio(TransInfo *t)
            * Certain corner cases with connectivity and individual centers
            * can give values of rdist larger than propsize.
            */
-          if (dist < 0.0f) {
-            dist = 0.0f;
-          }
+          dist = std::max(dist, 0.0f);
 
           switch (t->prop_mode) {
             case PROP_SHARP:

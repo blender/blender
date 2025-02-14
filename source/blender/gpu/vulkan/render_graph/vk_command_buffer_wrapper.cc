@@ -11,103 +11,27 @@
 #include "vk_device.hh"
 
 namespace blender::gpu::render_graph {
-VKCommandBufferWrapper::VKCommandBufferWrapper(const VKWorkarounds &workarounds)
+VKCommandBufferWrapper::VKCommandBufferWrapper(VkCommandBuffer vk_command_buffer,
+                                               const VKWorkarounds &workarounds)
+    : vk_command_buffer_(vk_command_buffer)
 {
-  vk_command_pool_create_info_ = {};
-  vk_command_pool_create_info_.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  vk_command_pool_create_info_.queueFamilyIndex = 0;
-
-  vk_command_buffer_allocate_info_ = {};
-  vk_command_buffer_allocate_info_.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  vk_command_buffer_allocate_info_.commandPool = VK_NULL_HANDLE;
-  vk_command_buffer_allocate_info_.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  vk_command_buffer_allocate_info_.commandBufferCount = 1;
-
-  vk_command_buffer_begin_info_ = {};
-  vk_command_buffer_begin_info_.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  vk_command_buffer_begin_info_.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-  vk_fence_create_info_ = {};
-  vk_fence_create_info_.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-  vk_fence_create_info_.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-  vk_submit_info_ = {};
-  vk_submit_info_.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  vk_submit_info_.waitSemaphoreCount = 0;
-  vk_submit_info_.pWaitSemaphores = nullptr;
-  vk_submit_info_.pWaitDstStageMask = nullptr;
-  vk_submit_info_.commandBufferCount = 1;
-  vk_submit_info_.pCommandBuffers = &vk_command_buffer_;
-  vk_submit_info_.signalSemaphoreCount = 0;
-  vk_submit_info_.pSignalSemaphores = nullptr;
-
   use_dynamic_rendering = !workarounds.dynamic_rendering;
   use_dynamic_rendering_local_read = !workarounds.dynamic_rendering_local_read;
 }
 
-VKCommandBufferWrapper::~VKCommandBufferWrapper()
-{
-  VKDevice &device = VKBackend::get().device;
-  device.free_command_pool_buffers(vk_command_pool_);
-  if (vk_command_pool_ != VK_NULL_HANDLE) {
-    vkDestroyCommandPool(device.vk_handle(), vk_command_pool_, nullptr);
-    vk_command_pool_ = VK_NULL_HANDLE;
-  }
-  if (vk_fence_ != VK_NULL_HANDLE) {
-    vkDestroyFence(device.vk_handle(), vk_fence_, nullptr);
-    vk_fence_ = VK_NULL_HANDLE;
-  }
-}
-
 void VKCommandBufferWrapper::begin_recording()
 {
-  VKDevice &device = VKBackend::get().device;
-  if (vk_command_pool_ == VK_NULL_HANDLE) {
-    vk_command_pool_create_info_.queueFamilyIndex = device.queue_family_get();
-    vkCreateCommandPool(
-        device.vk_handle(), &vk_command_pool_create_info_, nullptr, &vk_command_pool_);
-    vk_command_buffer_allocate_info_.commandPool = vk_command_pool_;
-    vk_command_pool_create_info_.queueFamilyIndex = 0;
-  }
-  if (vk_fence_ == VK_NULL_HANDLE) {
-    vkCreateFence(device.vk_handle(), &vk_fence_create_info_, nullptr, &vk_fence_);
-  }
-  BLI_assert(vk_command_buffer_ == VK_NULL_HANDLE);
-  vkAllocateCommandBuffers(
-      device.vk_handle(), &vk_command_buffer_allocate_info_, &vk_command_buffer_);
-
-  vkBeginCommandBuffer(vk_command_buffer_, &vk_command_buffer_begin_info_);
+  VkCommandBufferBeginInfo vk_command_buffer_begin_info = {
+      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      nullptr,
+      VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+      nullptr};
+  vkBeginCommandBuffer(vk_command_buffer_, &vk_command_buffer_begin_info);
 }
 
 void VKCommandBufferWrapper::end_recording()
 {
   vkEndCommandBuffer(vk_command_buffer_);
-}
-
-void VKCommandBufferWrapper::submit_with_cpu_synchronization(VkFence vk_fence)
-{
-  if (vk_fence == VK_NULL_HANDLE) {
-    vk_fence = vk_fence_;
-  }
-  VKDevice &device = VKBackend::get().device;
-  vkResetFences(device.vk_handle(), 1, &vk_fence);
-  {
-    std::scoped_lock lock(device.queue_mutex_get());
-    vkQueueSubmit(device.queue_get(), 1, &vk_submit_info_, vk_fence);
-  }
-  device.discard_pool_for_current_thread(true).discard_command_buffer(vk_command_buffer_,
-                                                                      vk_command_pool_);
-  vk_command_buffer_ = nullptr;
-}
-
-void VKCommandBufferWrapper::wait_for_cpu_synchronization(VkFence vk_fence)
-{
-  if (vk_fence == VK_NULL_HANDLE) {
-    vk_fence = vk_fence_;
-  }
-  VKDevice &device = VKBackend::get().device;
-  while (vkWaitForFences(device.vk_handle(), 1, &vk_fence, true, UINT64_MAX) == VK_TIMEOUT) {
-  }
 }
 
 void VKCommandBufferWrapper::bind_pipeline(VkPipelineBindPoint pipeline_bind_point,

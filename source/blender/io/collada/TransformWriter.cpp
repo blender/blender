@@ -7,11 +7,12 @@
  */
 
 #include "BLI_math_matrix.h"
-#include "BLI_sys_types.h"
 
 #include "BKE_object.hh"
 
 #include "TransformWriter.h"
+
+#include "collada_utils.h"
 
 void TransformWriter::add_joint_transform(COLLADASW::Node &node,
                                           float mat[4][4],

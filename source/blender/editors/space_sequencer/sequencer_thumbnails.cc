@@ -15,15 +15,16 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
+#include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
 #include "GPU_matrix.hh"
 #include "GPU_shader_shared.hh"
 #include "GPU_texture.hh"
+#include "GPU_uniform_buffer.hh"
 
 #include "IMB_colormanagement.hh"
 
 #include "SEQ_render.hh"
-#include "SEQ_sequencer.hh"
 #include "SEQ_thumbnail_cache.hh"
 
 #include "WM_api.hh"

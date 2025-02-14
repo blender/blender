@@ -11,9 +11,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_armature.hh"
@@ -276,7 +277,7 @@ void armature_select_mirrored_ex(bArmature *arm, const int flag)
   /* Select mirrored bones */
   if (arm->flag & ARM_MIRROR_EDIT) {
     LISTBASE_FOREACH (EditBone *, curBone, arm->edbo) {
-      if (ANIM_bonecoll_is_visible_editbone(arm, curBone)) {
+      if (EBONE_VISIBLE(arm, curBone)) {
         if (curBone->flag & flag) {
           EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, curBone);
           if (ebone_mirr) {
@@ -303,7 +304,7 @@ void armature_tag_select_mirrored(bArmature *arm)
   /* Select mirrored bones */
   if (arm->flag & ARM_MIRROR_EDIT) {
     LISTBASE_FOREACH (EditBone *, curBone, arm->edbo) {
-      if (ANIM_bonecoll_is_visible_editbone(arm, curBone)) {
+      if (EBONE_VISIBLE(arm, curBone)) {
         if (curBone->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) {
           EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, curBone);
           if (ebone_mirr && (ebone_mirr->flag & BONE_SELECTED) == 0) {
@@ -342,7 +343,7 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
    * eg. from 3d viewport. */
 
   /* no layer check, correct mirror is more important */
-  if (!check_select || ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
+  if (!check_select || (EBONE_VISIBLE(arm, ebo) && (ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL)))) {
     EditBone *eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
     if (eboflip) {
       /* We assume X-axis flipping for now. */

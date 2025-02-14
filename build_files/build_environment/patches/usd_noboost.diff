@@ -1,0 +1,11 @@
+--- a/cmake/defaults/Packages.cmake	2025-01-22 08:14:27
++++ b/cmake/defaults/Packages.cmake	2025-01-22 08:14:41
+@@ -20,7 +20,7 @@
+ find_package(Threads REQUIRED)
+ set(PXR_THREAD_LIBS "${CMAKE_THREAD_LIBS_INIT}")
+ 
+-if((PXR_ENABLE_PYTHON_SUPPORT AND PXR_USE_BOOST_PYTHON) OR PXR_ENABLE_OPENVDB_SUPPORT)
++if(PXR_ENABLE_PYTHON_SUPPORT AND PXR_USE_BOOST_PYTHON)
+     # Find Boost package before getting any boost specific components as we need to
+     # disable boost-provided cmake config, based on the boost version found.
+     find_package(Boost REQUIRED)

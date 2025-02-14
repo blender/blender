@@ -20,9 +20,9 @@
 
 #include "UI_interface.hh"
 
-#include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
@@ -30,19 +30,30 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-static GHash *uilisttypes_hash = nullptr;
+using blender::StringRef;
 
-uiListType *WM_uilisttype_find(const char *idname, bool quiet)
+static auto &get_list_type_map()
 {
-  if (idname[0]) {
-    uiListType *ult = static_cast<uiListType *>(BLI_ghash_lookup(uilisttypes_hash, idname));
-    if (ult) {
-      return ult;
+  struct IDNameGetter {
+    StringRef operator()(const uiListType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<uiListType *, IDNameGetter> map;
+  return map;
+}
+
+uiListType *WM_uilisttype_find(const StringRef idname, bool quiet)
+{
+  if (!idname.is_empty()) {
+    if (uiListType *const *ult = get_list_type_map().lookup_key_ptr_as(idname)) {
+      return *ult;
     }
   }
 
   if (!quiet) {
-    printf("search for unknown uilisttype %s\n", idname);
+    printf("search for unknown uilisttype %s\n", std::string(idname).c_str());
   }
 
   return nullptr;
@@ -50,7 +61,7 @@ uiListType *WM_uilisttype_find(const char *idname, bool quiet)
 
 bool WM_uilisttype_add(uiListType *ult)
 {
-  BLI_ghash_insert(uilisttypes_hash, ult->idname, ult);
+  get_list_type_map().add(ult);
   return true;
 }
 
@@ -115,7 +126,8 @@ void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult)
 {
   wm_uilisttype_unlink(bmain, ult);
 
-  bool ok = BLI_ghash_remove(uilisttypes_hash, ult->idname, nullptr, MEM_freeN);
+  bool ok = get_list_type_map().remove(ult);
+  MEM_freeN(ult);
 
   BLI_assert(ok);
   UNUSED_VARS_NDEBUG(ok);
@@ -123,21 +135,19 @@ void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult)
 
 void WM_uilisttype_init()
 {
-  uilisttypes_hash = BLI_ghash_str_new_ex("uilisttypes_hash gh", 16);
+  get_list_type_map().reserve(16);
 }
 
 void WM_uilisttype_free()
 {
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, uilisttypes_hash) {
-    uiListType *ult = static_cast<uiListType *>(BLI_ghashIterator_getValue(&gh_iter));
+  for (uiListType *ult : get_list_type_map()) {
     if (ult->rna_ext.free) {
       ult->rna_ext.free(ult->rna_ext.data);
     }
+    MEM_freeN(ult);
   }
 
-  BLI_ghash_free(uilisttypes_hash, nullptr, MEM_freeN);
-  uilisttypes_hash = nullptr;
+  get_list_type_map().clear();
 }
 
 void WM_uilisttype_to_full_list_id(const uiListType *ult,

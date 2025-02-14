@@ -17,7 +17,6 @@
 
 #include "BKE_collection.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_material.hh"
@@ -855,7 +854,7 @@ static void modify_geometry_set(ModifierData *md,
     return;
   }
   GreasePencil &grease_pencil = *geometry_set->get_grease_pencil_for_write();
-  auto mmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
+  auto *mmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
 
   GreasePencilLineartModifierData *first_lineart =
       blender::ed::greasepencil::get_first_lineart_modifier(*ctx->object);

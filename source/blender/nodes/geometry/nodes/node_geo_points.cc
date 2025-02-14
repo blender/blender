@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <memory>
-
 #include "BKE_pointcloud.hh"
 #include "DNA_pointcloud_types.h"
 
@@ -16,6 +14,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Count").default_value(1).min(0).description(
       "The number of points to create");
   b.add_input<decl::Vector>("Position")
+      .subtype(PROP_TRANSLATION)
       .default_value(float3(0.0f))
       .supports_field()
       .description("The positions of the new points");
@@ -42,7 +41,7 @@ class PointsFieldContext : public FieldContext {
 
   GVArray get_varray_for_input(const FieldInput &field_input,
                                const IndexMask &mask,
-                               ResourceScope & /*scope*/) const
+                               ResourceScope & /*scope*/) const override
   {
     const bke::IDAttributeFieldInput *id_field_input =
         dynamic_cast<const bke::IDAttributeFieldInput *>(&field_input);

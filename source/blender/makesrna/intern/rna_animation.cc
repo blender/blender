@@ -12,6 +12,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_lib_override.hh"
 #include "BKE_nla.hh"
 
 #include "RNA_define.hh"
@@ -133,6 +134,63 @@ static void rna_AnimData_dependency_update(Main *bmain, Scene *scene, PointerRNA
   DEG_relations_tag_update(bmain);
 
   rna_AnimData_update(bmain, scene, ptr);
+}
+
+void rna_generic_action_slot_handle_override_diff(Main *bmain,
+                                                  RNAPropertyOverrideDiffContext &rnadiff_ctx,
+                                                  const bAction *action_a,
+                                                  const bAction *action_b)
+{
+  rna_property_override_diff_default(bmain, rnadiff_ctx);
+
+  if (rnadiff_ctx.comparison || (rnadiff_ctx.report_flag & RNA_OVERRIDE_MATCH_RESULT_CREATED)) {
+    /* Default diffing found a difference, no need to go further. */
+    return;
+  }
+
+  if (action_a == action_b) {
+    /* Action is unchanged, it's fine to mark the slot handle as unchanged as well. */
+    return;
+  }
+
+  /* Sign doesn't make sense here, as the numerical values are the same. */
+  rnadiff_ctx.comparison = 1;
+
+  /* The remainder of this function was taken from rna_property_override_diff_default(). It's just
+   * formatted a little differently to allow for early returns. */
+
+  const bool do_create = rnadiff_ctx.liboverride != nullptr &&
+                         (rnadiff_ctx.liboverride_flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
+                         rnadiff_ctx.rna_path != nullptr;
+  if (!do_create) {
+    /* Not enough info to create an override operation, so bail out. */
+    return;
+  }
+
+  /* Create the override operation. */
+  bool created = false;
+  IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
+      rnadiff_ctx.liboverride, rnadiff_ctx.rna_path, &created);
+
+  if (op && created) {
+    BKE_lib_override_library_property_operation_get(
+        op, LIBOVERRIDE_OP_REPLACE, nullptr, nullptr, {}, {}, -1, -1, true, nullptr, nullptr);
+    rnadiff_ctx.report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
+  }
+}
+
+/**
+ * Emit a 'diff' for the .slot_handle property whenever the .action property differs.
+ *
+ * \see rna_generic_action_slot_handle_override_diff()
+ */
+static void rna_AnimData_slot_handle_override_diff(Main *bmain,
+                                                   RNAPropertyOverrideDiffContext &rnadiff_ctx)
+{
+  const AnimData *adt_a = static_cast<AnimData *>(rnadiff_ctx.prop_a->ptr->data);
+  const AnimData *adt_b = static_cast<AnimData *>(rnadiff_ctx.prop_b->ptr->data);
+
+  rna_generic_action_slot_handle_override_diff(bmain, rnadiff_ctx, adt_a->action, adt_b->action);
 }
 
 static int rna_AnimData_action_editable(const PointerRNA *ptr, const char ** /*r_info*/)
@@ -277,7 +335,7 @@ PointerRNA rna_generic_action_slot_get(bAction *dna_action,
   if (!slot) {
     return PointerRNA_NULL;
   }
-  return RNA_pointer_create(&action.id, &RNA_ActionSlot, slot);
+  return RNA_pointer_create_discrete(&action.id, &RNA_ActionSlot, slot);
 }
 
 static PointerRNA rna_AnimData_action_slot_get(PointerRNA *ptr)
@@ -406,7 +464,7 @@ static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
   void *ret;
   int ok;
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ksi->rna_ext.srna, ksi);
   func = &rna_KeyingSetInfo_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -435,7 +493,7 @@ static void RKS_ITER_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks
   ParameterList list;
   FunctionRNA *func;
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ksi->rna_ext.srna, ksi);
   func = &rna_KeyingSetInfo_iterator_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -459,7 +517,7 @@ static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks,
   ParameterList list;
   FunctionRNA *func;
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ksi->rna_ext.srna, ksi);
   func = &rna_KeyingSetInfo_generate_func; /* RNA_struct_find_generate(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -521,7 +579,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   /* setup dummy type info to store static properties in */
   /* TODO: perhaps we want to get users to register
    * as if they're using 'KeyingSet' directly instead? */
-  PointerRNA dummy_ksi_ptr = RNA_pointer_create(nullptr, &RNA_KeyingSetInfo, &dummy_ksi);
+  PointerRNA dummy_ksi_ptr = RNA_pointer_create_discrete(nullptr, &RNA_KeyingSetInfo, &dummy_ksi);
 
   /* validate the python class */
   if (validate(&dummy_ksi_ptr, data, have_function) != 0) {
@@ -1682,6 +1740,8 @@ static void rna_def_animdata(BlenderRNA *brna)
                            "A number that identifies which sub-set of the Action is considered "
                            "to be for this data-block");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_funcs(
+      prop, "rna_AnimData_slot_handle_override_diff", nullptr, nullptr);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
 
   prop = RNA_def_property(srna, "last_slot_identifier", PROP_STRING, PROP_NONE);

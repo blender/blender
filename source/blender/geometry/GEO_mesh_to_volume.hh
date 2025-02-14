@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BLI_bounds.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"

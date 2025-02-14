@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
@@ -27,7 +28,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_derived_mesh.hh"
 #include "BKE_mesh_tangent.hh"
-#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_subsurf.hh"
 
@@ -526,14 +526,14 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
       /* Copy sharp faces and edges, for corner normals domain and tangents
        * to be computed correctly. */
-      if (sharp_edges) {
+      if (sharp_edges != nullptr) {
         bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
         attributes.add<bool>("sharp_edge",
                              bke::AttrDomain::Edge,
                              bke::AttributeInitVArray(VArray<bool>::ForSpan(
                                  Span<bool>(sharp_edges, temp_mesh->edges_num))));
       }
-      if (sharp_faces) {
+      if (sharp_faces != nullptr) {
         bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
         attributes.add<bool>("sharp_face",
                              bke::AttrDomain::Face,
@@ -633,7 +633,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     BLI_threadpool_end(&threads);
   }
   else {
-    do_multires_bake_thread(&handles[0]);
+    do_multires_bake_thread(handles.data());
   }
 
   for (i = 0; i < tot_thread; i++) {

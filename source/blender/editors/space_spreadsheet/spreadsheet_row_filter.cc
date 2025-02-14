@@ -5,23 +5,13 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
-#include "BLI_math_color.hh"
-#include "BLI_math_matrix.hh"
+#include "BLI_math_vector.hh"
 
-#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-
-#include "DEG_depsgraph_query.hh"
-
-#include "UI_interface.hh"
-#include "UI_resources.hh"
-
-#include "RNA_access.hh"
 
 #include "BKE_instances.hh"
 
 #include "spreadsheet_data_source_geometry.hh"
-#include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"
 #include "spreadsheet_row_filter.hh"
 

@@ -6,6 +6,7 @@
  * \ingroup imbuf
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "BLI_fileops.h"
@@ -309,9 +310,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
       if (!ibuf) {
         goto fail_rle;
       }
-      if (ibuf->planes > 32) {
-        ibuf->planes = 32;
-      }
+      ibuf->planes = std::min<int>(ibuf->planes, 32);
       base = (uint *)ibuf->byte_buffer.data;
 
       if (badorder) {
@@ -419,9 +418,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
       if (!ibuf) {
         goto fail_uncompressed;
       }
-      if (ibuf->planes > 32) {
-        ibuf->planes = 32;
-      }
+      ibuf->planes = std::min<int>(ibuf->planes, 32);
 
       base = (uint *)ibuf->byte_buffer.data;
 
@@ -925,7 +922,7 @@ static int compressrow(const uchar *lbuf, uchar *rlebuf, const int z, const int 
     }
   }
   *optr++ = 0;
-  return optr - (uchar *)rlebuf;
+  return optr - rlebuf;
 }
 
 bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)

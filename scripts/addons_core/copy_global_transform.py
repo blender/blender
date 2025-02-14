@@ -235,12 +235,12 @@ def _channelbag_for_id(animated_id: ID) -> ActionChannelbag | None:
     if action is None:
         return None
 
-    slot_handle = adt.action_slot_handle
+    slot = adt.action_slot
 
     for layer in action.layers:
         for strip in layer.strips:
             assert strip.type == 'KEYFRAME'
-            channelbag = strip.channels(slot_handle)
+            channelbag = strip.channelbag(slot)
             return channelbag
 
     return None
@@ -715,7 +715,6 @@ class TransformableObject(Transformable):
         yield from cbag.fcurves
 
 
-
 class TransformableBone(Transformable):
     arm_object: Object
     pose_bone: PoseBone
@@ -762,10 +761,10 @@ class FixToCameraCommon:
     # Operator method stubs to avoid PyLance/MyPy errors:
     @classmethod
     def poll_message_set(cls, message: str) -> None:
-        raise NotImplementedError()
+        super().poll_message_set(message)
 
     def report(self, level: set[str], message: str) -> None:
-        raise NotImplementedError()
+        super().report(level, message)
 
     # Implement in subclass:
     def _execute(self, context: Context, transformables: list[Transformable]) -> None:

@@ -5,8 +5,6 @@
 #ifndef __DUALCON_H__
 #define __DUALCON_H__
 
-#include "MEM_guardedalloc.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

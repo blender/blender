@@ -7,7 +7,6 @@
  */
 
 #include "GPU_init_exit.hh" /* interface */
-#include "BLI_sys_types.h"
 #include "GPU_batch.hh"
 
 #include "intern/gpu_codegen.hh"

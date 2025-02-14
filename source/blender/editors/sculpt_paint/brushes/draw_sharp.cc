@@ -175,7 +175,7 @@ static void offset_positions(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 void do_draw_sharp_brush(const Depsgraph &depsgraph,

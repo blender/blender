@@ -194,7 +194,7 @@ void curve_populate_trans_data_structs(
     const blender::float4x4 &transform,
     const blender::bke::crazyspace::GeometryDeformation &deformation,
     std::optional<blender::MutableSpan<float>> value_attribute,
-    const blender::Span<blender::IndexMask> points_to_transform_indices,
+    const blender::Span<blender::IndexMask> points_to_transform_per_attr,
     const blender::IndexMask &affected_curves,
     bool use_connected_only,
     const blender::IndexMask &bezier_curves,

@@ -43,7 +43,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
 
       /* Create custom data RNA pointer. */
       PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
-      *fx_ptr = RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx);
+      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
 
       UI_panel_add_instanced(C, region, &region->panels, panel_idname, fx_ptr);
     }
@@ -65,7 +65,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
       }
 
       PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
-      *fx_ptr = RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx);
+      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
       UI_panel_custom_data_set(panel, fx_ptr);
 
       panel = panel->next;

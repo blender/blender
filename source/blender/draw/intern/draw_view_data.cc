@@ -277,7 +277,7 @@ ViewportEngineData *DRW_view_data_enabled_engine_iter_step(DRWEngineIterator *it
 draw::Manager *DRW_manager_get()
 {
   BLI_assert(DST.view_data_active->manager);
-  return reinterpret_cast<draw::Manager *>(DST.view_data_active->manager);
+  return DST.view_data_active->manager;
 }
 
 draw::ObjectRef DRW_object_ref_get(Object *object)
@@ -291,7 +291,7 @@ void DRW_manager_begin_sync()
   if (DST.view_data_active->manager == nullptr) {
     return;
   }
-  reinterpret_cast<draw::Manager *>(DST.view_data_active->manager)->begin_sync();
+  DST.view_data_active->manager->begin_sync();
 }
 
 void DRW_manager_end_sync()
@@ -299,5 +299,5 @@ void DRW_manager_end_sync()
   if (DST.view_data_active->manager == nullptr) {
     return;
   }
-  reinterpret_cast<draw::Manager *>(DST.view_data_active->manager)->end_sync();
+  DST.view_data_active->manager->end_sync();
 }

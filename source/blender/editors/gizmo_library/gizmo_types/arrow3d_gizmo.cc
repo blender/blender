@@ -17,6 +17,7 @@
  * - `matrix[2]` is the arrow direction (for all arrows).
  */
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"

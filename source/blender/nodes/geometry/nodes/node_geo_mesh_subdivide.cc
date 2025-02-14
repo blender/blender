@@ -5,8 +5,6 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
-#include "UI_resources.hh"
-
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"

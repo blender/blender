@@ -45,7 +45,7 @@ static void glow_blur_bitmap(
   const float k = -1.0f / (2.0f * float(M_PI) * blur * blur);
   float weight = 0;
   for (int ix = 0; ix < halfWidth; ix++) {
-    weight = float(exp(k * (ix * ix)));
+    weight = exp(k * (ix * ix));
     filter[halfWidth - ix] = weight;
     filter[halfWidth + ix] = weight;
   }

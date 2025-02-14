@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_compiler_compat.h"
 
 #include "BKE_tracking.h"
 

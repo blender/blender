@@ -16,7 +16,6 @@
 
 #include "BKE_blendfile_link_append.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -25,7 +24,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "BLI_bit_span.hh"
-#  include "BLI_string_utils.hh"
+#  include "BLI_string.h"
 
 void rna_BlendImportContextLibrary_filepath_get(PointerRNA *ptr, char *value)
 {
@@ -151,28 +150,28 @@ PointerRNA rna_BlendImportContextItem_id_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_ID, ctx_item->new_id);
+  return RNA_id_pointer_create(ctx_item->new_id);
 }
 
 PointerRNA rna_BlendImportContextItem_source_library_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_Library, ctx_item->source_library);
+  return RNA_id_pointer_create(&ctx_item->source_library->id);
 }
 
 PointerRNA rna_BlendImportContextItem_library_override_id_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_ID, ctx_item->liboverride_id);
+  return RNA_id_pointer_create(ctx_item->liboverride_id);
 }
 
 PointerRNA rna_BlendImportContextItem_reusable_local_id_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
-  return rna_pointer_inherit_refine(&PointerRNA_NULL, &RNA_ID, ctx_item->reusable_local_id);
+  return RNA_id_pointer_create(ctx_item->reusable_local_id);
 }
 
 struct RNABlendImportContextItemsIterator {
@@ -226,7 +225,7 @@ int rna_BlendImportContext_import_items_len(PointerRNA *ptr)
 int rna_BlendImportContext_options_get(PointerRNA *ptr)
 {
   BlendfileLinkAppendContext *ctx = static_cast<BlendfileLinkAppendContext *>(ptr->data);
-  return int(ctx->params->flag);
+  return ctx->params->flag;
 }
 
 int rna_BlendImportContext_process_stage_get(PointerRNA *ptr)

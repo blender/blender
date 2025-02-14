@@ -6,9 +6,9 @@
  * \ingroup shader_fx
  */
 
-#include "BLI_math_base.h"
-
 #include "BLT_translation.hh"
+
+#include "BLI_math_base.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_query.hh"

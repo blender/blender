@@ -1,0 +1,126 @@
+diff --git a/pxr/base/arch/attributes.cpp b/pxr/base/arch/attributes.cpp
+index 1309d6f..de65e99 100644
+--- a/pxr/base/arch/attributes.cpp
++++ b/pxr/base/arch/attributes.cpp
+@@ -187,7 +187,7 @@ AddImage(const struct mach_header* mh, intptr_t slide)
+         return;
+     }
+ 
+-    const auto entries = GetConstructorEntries(mh, slide, "__DATA", "pxrctor");
++    const auto entries = GetConstructorEntries(mh, slide, "__DATA", "pxbctor");
+ 
+     // Execute in priority order.
+     for (size_t i = 0, n = entries.size(); i != n; ++i) {
+@@ -203,7 +203,7 @@ static
+ void
+ RemoveImage(const struct mach_header* mh, intptr_t slide)
+ {
+-    const auto entries = GetConstructorEntries(mh, slide, "__DATA", "pxrdtor");
++    const auto entries = GetConstructorEntries(mh, slide, "__DATA", "pxbdtor");
+ 
+     // Execute in reverse priority order.
+     for (size_t i = entries.size(); i-- != 0; ) {
+@@ -350,7 +350,7 @@ RunConstructors(HMODULE hModule)
+     // Do each HMODULE at most once.
+     if (visited->insert(hModule).second) {
+         // Execute in priority order.
+-        const auto entries = GetConstructorEntries(hModule, ".pxrctor");
++        const auto entries = GetConstructorEntries(hModule, ".pxbctor");
+         for (size_t i = 0, n = entries.size(); i != n; ++i) {
+             if (entries[i].function &&
+                 entries[i].version == static_cast<unsigned>(PXR_VERSION)) {
+@@ -370,7 +370,7 @@ RunDestructors(HMODULE hModule)
+     // Do each HMODULE at most once.
+     if (visited->insert(hModule).second) {
+         // Execute in reverse priority order.
+-        const auto entries = GetConstructorEntries(hModule, ".pxrdtor");
++        const auto entries = GetConstructorEntries(hModule, ".pxbdtor");
+         for (size_t i = entries.size(); i-- != 0; ) {
+             if (entries[i].function &&
+                 entries[i].version == static_cast<unsigned>(PXR_VERSION)) {
+diff --git a/pxr/base/arch/attributes.h b/pxr/base/arch/attributes.h
+index 1d2820d..424e060 100644
+--- a/pxr/base/arch/attributes.h
++++ b/pxr/base/arch/attributes.h
+@@ -225,22 +225,22 @@ struct Arch_ConstructorEntry {
+     unsigned int priority:8;    // Priority of function
+ };
+ 
+-// Emit a Arch_ConstructorEntry in the __Data,pxrctor section.
++// Emit a Arch_ConstructorEntry in the __Data,pxbctor section.
+ #   define ARCH_CONSTRUCTOR(_name, _priority, ...)                             \
+     static void _name(__VA_ARGS__);                                            \
+     static const Arch_ConstructorEntry _ARCH_CAT_NOEXPAND(arch_ctor_, _name)   \
+-        __attribute__((used, section("__DATA,pxrctor"))) = {                   \
++        __attribute__((used, section("__DATA,pxbctor"))) = {            \
+         reinterpret_cast<Arch_ConstructorEntry::Type>(&_name),                 \
+         static_cast<unsigned>(PXR_VERSION),                                    \
+         _priority                                                              \
+     };                                                                         \
+     static void _name(__VA_ARGS__)
+     
+-// Emit a Arch_ConstructorEntry in the __Data,pxrdtor section.
++// Emit a Arch_ConstructorEntry in the __Data,pxbdtor section.
+ #   define ARCH_DESTRUCTOR(_name, _priority, ...)                              \
+     static void _name(__VA_ARGS__);                                            \
+     static const Arch_ConstructorEntry _ARCH_CAT_NOEXPAND(arch_dtor_, _name)   \
+-        __attribute__((used, section("__DATA,pxrdtor"))) = {                   \
++        __attribute__((used, section("__DATA,pxbdtor"))) = {            \
+         reinterpret_cast<Arch_ConstructorEntry::Type>(&_name),                 \
+         static_cast<unsigned>(PXR_VERSION),                                    \
+         _priority                                                              \
+@@ -252,10 +252,10 @@ struct Arch_ConstructorEntry {
+ // The used attribute is required to prevent these apparently unused functions
+ // from being removed by the linker.
+ #   define ARCH_CONSTRUCTOR(_name, _priority, ...) \
+-        __attribute__((used, section(".pxrctor"), constructor((_priority) + 100))) \
++        __attribute__((used, section(".pxbctor"), constructor((_priority) + 100))) \
+         static void _name(__VA_ARGS__)
+ #   define ARCH_DESTRUCTOR(_name, _priority, ...) \
+-        __attribute__((used, section(".pxrdtor"), destructor((_priority) + 100))) \
++        __attribute__((used, section(".pxbdtor"), destructor((_priority) + 100))) \
+         static void _name(__VA_ARGS__)
+ 
+ #elif defined(ARCH_OS_WINDOWS)
+@@ -272,8 +272,8 @@ struct Arch_ConstructorEntry {
+     };
+ 
+ // Declare the special sections.
+-#   pragma section(".pxrctor", read)
+-#   pragma section(".pxrdtor", read)
++#   pragma section(".pxbctor", read)
++#   pragma section(".pxbdtor", read)
+ 
+ // Objects of this type run the ARCH_CONSTRUCTOR and ARCH_DESTRUCTOR functions
+ // for the library containing the object in the c'tor and d'tor, respectively.
+@@ -283,14 +283,14 @@ struct Arch_ConstructorInit {
+     ARCH_API ~Arch_ConstructorInit();
+ };
+ 
+-// Emit a Arch_ConstructorEntry in the .pxrctor section.  The namespace and
++// Emit a Arch_ConstructorEntry in the .pxbctor section.  The namespace and
+ // extern are to convince the compiler and linker to leave the object in the
+ // final library/executable instead of stripping it out.  In clang/gcc we use
+ // __attribute__((used)) to do that.
+ #   define ARCH_CONSTRUCTOR(_name, _priority, ...)                             \
+     static void _name(__VA_ARGS__);                                            \
+     namespace {                                                                \
+-    __declspec(allocate(".pxrctor"))                                           \
++    __declspec(allocate(".pxbctor"))                                    \
+     extern const Arch_ConstructorEntry                                         \
+     _ARCH_CAT_NOEXPAND(arch_ctor_, _name) = {                                  \
+         reinterpret_cast<Arch_ConstructorEntry::Type>(&_name),                 \
+@@ -301,11 +301,11 @@ struct Arch_ConstructorInit {
+     _ARCH_ENSURE_PER_LIB_INIT(Arch_ConstructorInit, _archCtorInit);            \
+     static void _name(__VA_ARGS__)
+ 
+-    // Emit a Arch_ConstructorEntry in the .pxrdtor section.
++    // Emit a Arch_ConstructorEntry in the .pxbdtor section.
+ #   define ARCH_DESTRUCTOR(_name, _priority, ...)                              \
+     static void _name(__VA_ARGS__);                                            \
+     namespace {                                                                \
+-    __declspec(allocate(".pxrdtor"))                                           \
++    __declspec(allocate(".pxbdtor"))                                    \
+     extern const Arch_ConstructorEntry                                         \
+     _ARCH_CAT_NOEXPAND(arch_dtor_, _name) = {                                  \
+         reinterpret_cast<Arch_ConstructorEntry::Type>(&_name),                 \

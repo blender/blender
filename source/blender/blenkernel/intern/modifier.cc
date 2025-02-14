@@ -13,7 +13,6 @@
 
 #include <cfloat>
 #include <chrono>
-#include <cmath>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdlib>
@@ -25,7 +24,6 @@
 #include "DNA_cloth_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_fluid_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
@@ -38,7 +36,6 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rand.hh"
-#include "BLI_session_uid.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
@@ -51,12 +48,14 @@
 #include "BKE_editmesh_cache.hh"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_topology_state.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
@@ -909,16 +908,53 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
   return mti->modify_mesh(md, ctx, mesh);
 }
 
-void BKE_modifier_deform_verts(ModifierData *md,
+bool BKE_modifier_deform_verts(ModifierData *md,
                                const ModifierEvalContext *ctx,
                                Mesh *mesh,
                                blender::MutableSpan<blender::float3> positions)
 {
+  using namespace blender::bke;
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  mti->deform_verts(md, ctx, mesh, positions);
-  if (mesh) {
-    mesh->tag_positions_changed();
+
+  if (mti->deform_verts) {
+    mti->deform_verts(md, ctx, mesh, positions);
+    if (mesh) {
+      mesh->tag_positions_changed();
+    }
+    return true;
   }
+  /* Try to emulate #deform_verts by deforming a mesh. */
+  if (mti->modify_geometry_set) {
+    /* Prepare mesh with vertices at the given positions. */
+    GeometrySet geometry;
+    if (mesh) {
+      geometry = GeometrySet::from_mesh(mesh, GeometryOwnershipType::ReadOnly);
+    }
+    else {
+      geometry = GeometrySet::from_mesh(BKE_mesh_new_nomain(positions.size(), 0, 0, 0));
+    }
+    Mesh *mesh_to_deform = geometry.get_mesh_for_write();
+    mesh_to_deform->vert_positions_for_write().copy_from(positions);
+    mesh_to_deform->tag_positions_changed();
+
+    /* Remember the topology of the mesh before passing it to the modifier. */
+    const MeshTopologyState old_topology{*mesh_to_deform};
+
+    /* Call the modifier and "hope" that it just deforms the mesh. */
+    mti->modify_geometry_set(md, ctx, &geometry);
+
+    /* Extract the deformed vertex positions if the topology has not changed. */
+    if (const Mesh *deformed_mesh = geometry.get_mesh()) {
+      if (old_topology.same_topology_as(*deformed_mesh)) {
+        positions.copy_from(deformed_mesh->vert_positions());
+        if (mesh) {
+          mesh->tag_positions_changed();
+        }
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,

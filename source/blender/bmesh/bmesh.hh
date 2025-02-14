@@ -175,12 +175,7 @@
  * - Use two different iterator types for BMO map/buffer types.
  */
 
-#include "BKE_customdata.hh"
-#include "DNA_customdata_types.h" /* BMesh struct in bmesh_class.hh uses */
-#include "DNA_listBase.h"         /* selection history uses */
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "bmesh_class.hh"  // IWYU pragma: export
 

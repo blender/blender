@@ -15,8 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -832,7 +832,7 @@ static void graph_id_remap(ScrArea * /*area*/,
   }
 
   mappings.apply(reinterpret_cast<ID **>(&sgraph->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
-  mappings.apply(reinterpret_cast<ID **>(&sgraph->ads->source), ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((&sgraph->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -865,6 +865,7 @@ static int graph_space_subtype_get(ScrArea *area)
 static void graph_space_subtype_set(ScrArea *area, int value)
 {
   SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+  sgraph->mode_prev = sgraph->mode;
   sgraph->mode = value;
 }
 
@@ -873,6 +874,12 @@ static void graph_space_subtype_item_extend(bContext * /*C*/,
                                             int *totitem)
 {
   RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
+}
+
+static int graph_space_subtype_prev_get(ScrArea *area)
+{
+  SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+  return sgraph->mode_prev;
 }
 
 static blender::StringRefNull graph_space_name_get(const ScrArea *area)
@@ -937,6 +944,7 @@ void ED_spacetype_ipo()
   st->space_subtype_item_extend = graph_space_subtype_item_extend;
   st->space_subtype_get = graph_space_subtype_get;
   st->space_subtype_set = graph_space_subtype_set;
+  st->space_subtype_prev_get = graph_space_subtype_prev_get;
   st->space_name_get = graph_space_name_get;
   st->space_icon_get = graph_space_icon_get;
   st->blend_read_data = graph_space_blend_read_data;

@@ -8,13 +8,8 @@
 
 #include <cstdlib>
 
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -25,7 +20,8 @@
 #  include <algorithm>
 #  include <fmt/format.h>
 
-#  include "DNA_object_types.h"
+#  include "DNA_curve_types.h"
+#  include "DNA_meshdata_types.h"
 #  include "DNA_scene_types.h"
 
 #  include "BKE_deform.hh"

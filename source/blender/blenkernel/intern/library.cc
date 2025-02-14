@@ -15,9 +15,11 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 

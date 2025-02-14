@@ -10,6 +10,7 @@
 #include "BLI_bounds.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"

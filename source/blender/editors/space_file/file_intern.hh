@@ -179,8 +179,8 @@ void file_params_rename_end(wmWindowManager *wm,
  */
 void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params);
 
-typedef void *onReloadFnData;
-typedef void (*onReloadFn)(SpaceFile *space_data, onReloadFnData custom_data);
+using onReloadFnData = void *;
+using onReloadFn = void (*)(SpaceFile *space_data, onReloadFnData custom_data);
 struct SpaceFile_Runtime {
   /* Called once after the file browser has reloaded. Reset to NULL after calling.
    * Use file_on_reload_callback_register() to register a callback. */

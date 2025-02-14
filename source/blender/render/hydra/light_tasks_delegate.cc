@@ -28,7 +28,7 @@ pxr::VtValue LightTasksDelegate::Get(pxr::SdfPath const &id, pxr::TfToken const 
     if (id == simple_task_id_) {
       return pxr::VtValue(simple_task_params_);
     }
-    else if (id == skydome_task_id_) {
+    if (id == skydome_task_id_) {
       return pxr::VtValue(skydome_task_params_);
     }
   }

@@ -9,12 +9,7 @@
 #include <cstdlib>
 
 #include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
-
-#include "BLI_utildefines.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

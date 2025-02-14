@@ -20,6 +20,7 @@ class AllAssetLibrary : public AssetLibrary {
  public:
   AllAssetLibrary();
 
+  std::optional<AssetLibraryReference> library_reference() const override;
   void refresh_catalogs() override;
 
   /**

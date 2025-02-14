@@ -6,10 +6,7 @@
 
 #include "RNA_enum_types.hh"
 
-#include "BKE_mesh.hh"
 #include "BKE_node.hh"
-
-#include "DNA_meshdata_types.h"
 
 #include "NOD_rna_define.hh"
 

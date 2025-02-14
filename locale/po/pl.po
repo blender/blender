@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -57,6 +57,10 @@ msgstr "Lista AOV"
 
 msgid "Collection of AOVs"
 msgstr "Kolekcja AOV"
+
+
+msgid "Slot"
+msgstr "Gniazdo"
 
 
 msgid "Action F-Curves"
@@ -243,30 +247,6 @@ msgid "Collection of action groups"
 msgstr "Kolekcja grup akcji"
 
 
-msgid "Influence"
-msgstr "Wpływ"
-
-
-msgid "Replace"
-msgstr "Zastąp"
-
-
-msgid "Offset"
-msgstr "Odstęp"
-
-
-msgid "Add"
-msgstr "Dodaj"
-
-
-msgid "Subtract"
-msgstr "Odejmij"
-
-
-msgid "Multiply"
-msgstr "Pomnóż"
-
-
 msgid "Action Pose Markers"
 msgstr "Znaczniki akcji póz"
 
@@ -293,6 +273,10 @@ msgstr "Indeks aktywnego znacznika pozy"
 
 msgid "Active"
 msgstr "Aktywny"
+
+
+msgid "Show Expanded"
+msgstr "Pokaż rozwinięty"
 
 
 msgctxt "ID"
@@ -488,10 +472,6 @@ msgstr "Obszar roboczy"
 msgctxt "ID"
 msgid "World"
 msgstr "Świat"
-
-
-msgid "Show Expanded"
-msgstr "Pokaż rozwinięty"
 
 
 msgid "Add-on"
@@ -714,16 +694,32 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda używana do mieszania rezultatu aktywnej akcji z rezultatem ścieżek NLA"
 
 
+msgid "Replace"
+msgstr "Zastąp"
+
+
 msgid "Combine"
 msgstr "Połącz"
+
+
+msgid "Add"
+msgstr "Dodaj"
 
 
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Ważony rezultat paska jest dodawany do rezultatu całkowitego"
 
 
+msgid "Subtract"
+msgstr "Odejmij"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Ważony rezultat paska jest usuwany z połączonego rezultatu"
+
+
+msgid "Multiply"
+msgstr "Pomnóż"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -3569,6 +3565,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "Parametry określające która warstwa, przebieg oraz klatka obrazu są wyświetlane"
 
 
+msgid "Offset"
+msgstr "Odstęp"
+
+
 msgid "Rotation"
 msgstr "Obrót"
 
@@ -4504,6 +4504,10 @@ msgstr "Wielkość szczątkowego błędu w jednostkach Blendera dla ogranicznik�
 
 msgid "Amount of residual error in radians for constraints that work on orientation"
 msgstr "Wielkość szczątkowego błędu w radianach dla ograniczników które zmieniają orientacje"
+
+
+msgid "Influence"
+msgstr "Wpływ"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -11181,8 +11185,20 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Local View"
-msgstr "Widok lokalny"
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Snap"
@@ -11193,84 +11209,72 @@ msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
-msgid "Apply"
-msgstr "Zastosuj"
-
-
 msgid "Mirror"
 msgstr "Odbicie lustrzane"
 
 
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
+msgid "Local View"
+msgstr "Widok lokalny"
 
 
-msgid "Convert"
-msgstr "Konwertuj"
-
-
-msgid "Asset"
-msgstr "Prefabrykat"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
-
-
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Merge"
-msgstr "Scal"
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
 
 
 msgid "Navigation"
 msgstr "Nawigacja"
 
 
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Asset"
+msgstr "Prefabrykat"
+
+
+msgid "Convert"
+msgstr "Konwertuj"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
+
+
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Catalog"
@@ -12929,11 +12933,6 @@ msgstr "Zaznacz kamerę"
 msgctxt "Operator"
 msgid "Copy Pose as Asset"
 msgstr "Kopiuj pozę jako prefabrykat"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Utwórz prefabrykat pozy"
 
 
 msgctxt "Operator"
@@ -16595,10 +16594,6 @@ msgid "Transform Mode"
 msgstr "Tryb transformacji"
 
 
-msgid "UV Sculpting"
-msgstr "Rzeźbienie UV"
-
-
 msgid "Palette Color"
 msgstr "Kolor palety"
 
@@ -16685,10 +16680,6 @@ msgstr "Prowadzenie po ścieżce"
 
 msgid "Geometry Data"
 msgstr "Dane geometrii"
-
-
-msgid "Slot"
-msgstr "Gniazdo"
 
 
 msgid "Advanced Filter"
@@ -18868,6 +18859,10 @@ msgstr "Sortuj według nazwy"
 
 msgid "Radius of the brush"
 msgstr "Promień pędzla"
+
+
+msgid "UV Sculpting"
+msgstr "Rzeźbienie UV"
 
 
 msgid "Face Orientation"
@@ -22405,6 +22400,10 @@ msgid "Keying Set does not contain any paths"
 msgstr "Zestaw Kluczowania nie zawiera żadnych ścieżek"
 
 
+msgid "Cancel"
+msgstr "Anuluj"
+
+
 msgid "No keyframes to slide between"
 msgstr "Brak klatek kluczowych między którymi można ślizgać"
 
@@ -22559,16 +22558,12 @@ msgid "Nothing selected"
 msgstr "Nic nie zaznaczono"
 
 
-msgid "No active Grease Pencil layer"
-msgstr "Brak aktywnej warstwy Grease Pencil"
-
-
 msgid "No Grease Pencil frame to draw on"
 msgstr "Brak ramki Grease Pencil, na której można rysować"
 
 
-msgid "Cancel"
-msgstr "Anuluj"
+msgid "No active Grease Pencil layer"
+msgstr "Brak aktywnej warstwy Grease Pencil"
 
 
 msgid "Could not resolve path '%s'"
@@ -24394,14 +24389,6 @@ msgid "Duplicate Current"
 msgstr "Duplikuj bieżący"
 
 
-msgid "ON"
-msgstr "WŁ"
-
-
-msgid "OFF"
-msgstr "WYŁ"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Aktywna grupa jest zablokowana, rezygnuję"
 
@@ -24543,10 +24530,6 @@ msgstr "Aktywna Klatka Kluczowa"
 
 msgid "Action must have at least one keyframe or F-Modifier"
 msgstr "Akcja musi posiadać przynajmniej jedną klatkę kluczową lub modyfikator F"
-
-
-msgid "Action has already been stashed"
-msgstr "Akcja została już przytrzymana (stashed)"
 
 
 msgid "Keyframe pasting is not available for mask mode"
@@ -24699,10 +24682,6 @@ msgstr "Nie zaznaczono plików do otwarcia"
 
 msgid "Cannot read '%s': %s"
 msgstr "Nie udało się odczytać '%s': %s"
-
-
-msgid "Use LMB click to define location where place the marker"
-msgstr "Użyj LPM klik do zdefiniowania pozycji markera"
 
 
 msgid "Delete selected tracks?"
@@ -26531,6 +26510,10 @@ msgid "Collection Masks"
 msgstr "Kolekcja masek"
 
 
+msgid "Levels Viewport"
+msgstr "Poziomy rzutni"
+
+
 msgid "Bake Path"
 msgstr "Wypal ścieżkę"
 
@@ -26541,10 +26524,6 @@ msgstr "Usuń przeliczenie"
 
 msgid "Create Armature"
 msgstr "Utwórz szkielet"
-
-
-msgid "Levels Viewport"
-msgstr "Poziomy rzutni"
 
 
 msgid "VertexWeightEdit"
@@ -27119,6 +27098,14 @@ msgstr "To nie jest biblioteka"
 
 msgid "Nothing indicated"
 msgstr "Nic nie wskazano"
+
+
+msgid "ON"
+msgstr "WŁ"
+
+
+msgid "OFF"
+msgstr "WYŁ"
 
 
 msgid "unsupported format"

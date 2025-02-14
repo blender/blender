@@ -6,9 +6,7 @@
  * \ingroup spseq
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 
 #include "DNA_sequence_types.h"
 
@@ -17,9 +15,10 @@
 
 #include "BLF_api.hh"
 
-#include "GPU_batch.hh"
+#include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
+#include "GPU_vertex_format.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -30,9 +29,7 @@
 
 #include "UI_view2d.hh"
 
-#include "SEQ_connect.hh"
 #include "SEQ_retiming.hh"
-#include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
 /* Own include. */
@@ -152,7 +149,9 @@ static bool retiming_fake_key_frame_clicked(const bContext *C,
   const float right_distance = fabs(UI_view2d_view_to_region_x(v2d, right_x) - mval[0]);
 
   r_frame = (left_distance < right_distance) ? left_frame : right_frame;
-  return min_ff(left_distance, right_distance) < RETIME_KEY_MOUSEOVER_THRESHOLD;
+
+  /* Fake key threshold is doubled to make them easier to select. */
+  return min_ff(left_distance, right_distance) < RETIME_KEY_MOUSEOVER_THRESHOLD * 2;
 }
 
 void realize_fake_keys(const Scene *scene, Strip *strip)

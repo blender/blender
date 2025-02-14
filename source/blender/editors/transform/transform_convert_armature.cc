@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
+
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 
@@ -1053,7 +1055,7 @@ static void recalcData_edit_armature(TransInfo *t)
 
       if (ebo_parent) {
         /* If this bone has a parent tip that has been moved. */
-        if (ebo_parent->flag & BONE_TIPSEL) {
+        if (EBONE_VISIBLE(arm, ebo_parent) && (ebo_parent->flag & BONE_TIPSEL)) {
           copy_v3_v3(ebo->head, ebo_parent->tail);
           if (t->mode == TFM_BONE_ENVELOPE) {
             ebo->rad_head = ebo_parent->rad_tail;
@@ -1075,9 +1077,7 @@ static void recalcData_edit_armature(TransInfo *t)
         ebo->rad_tail = 0.10f * ebo->length;
         ebo->dist = 0.25f * ebo->length;
         if (ebo->parent) {
-          if (ebo->rad_head > ebo->parent->rad_tail) {
-            ebo->rad_head = ebo->parent->rad_tail;
-          }
+          ebo->rad_head = std::min(ebo->rad_head, ebo->parent->rad_tail);
         }
       }
       else if (t->mode != TFM_BONE_ENVELOPE) {

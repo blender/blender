@@ -41,6 +41,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "ED_armature.hh"
+#include "ED_curves.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 
@@ -301,6 +302,17 @@ struct XFormObjectData_GreasePencil {
   GreasePencilPointCoordinates elem_array[0];
 };
 
+struct CurvesPointCoordinates {
+  /* Radius is needs to be stored here as it is tied to object scale. */
+  float3 co;
+  float radius;
+};
+
+struct XFormObjectData_Curves {
+  XFormObjectData base;
+  CurvesPointCoordinates elem_array[0];
+};
+
 XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
 {
   XFormObjectData *xod_base = nullptr;
@@ -473,6 +485,27 @@ XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
       xod_base = &xod->base;
       break;
     }
+    case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(id);
+      const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+      const int elem_array_len = curves.points_num();
+
+      XFormObjectData_Curves *xod = static_cast<XFormObjectData_Curves *>(
+          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
+      memset(xod, 0x0, sizeof(*xod));
+
+      const Span<float3> positions = curves.positions();
+      const VArraySpan<float> radii = curves.radius();
+
+      CurvesPointCoordinates *cpc = xod->elem_array;
+      for (const int i : curves.points_range()) {
+        cpc->co = positions[i];
+        cpc->radius = radii[i];
+        cpc++;
+      }
+      xod_base = &xod->base;
+      break;
+    }
     default: {
       break;
     }
@@ -638,6 +671,21 @@ void data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
           *grease_pencil, xod->elem_array, float4x4(mat));
       break;
     }
+    case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(xod_base->id);
+      bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+      MutableSpan<float3> positions = curves.positions_for_write();
+      MutableSpan<float> radii = curves.radius_for_write();
+      XFormObjectData_Curves *xod = reinterpret_cast<XFormObjectData_Curves *>(xod_base);
+      CurvesPointCoordinates *cpc = xod->elem_array;
+      const float scalef = mat4_to_scale(mat);
+      for (const int i : curves.points_range()) {
+        positions[i] = math::transform_point(float4x4(mat), cpc->co);
+        radii[i] = cpc->radius * scalef;
+        cpc++;
+      }
+      break;
+    }
     default: {
       break;
     }
@@ -739,6 +787,20 @@ void data_xform_restore(XFormObjectData *xod_base)
       BKE_grease_pencil_point_coords_apply(*grease_pencil, xod->elem_array);
       break;
     }
+    case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(xod_base->id);
+      bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+      MutableSpan<float3> positions = curves.positions_for_write();
+      MutableSpan<float> radii = curves.radius_for_write();
+      XFormObjectData_Curves *xod = reinterpret_cast<XFormObjectData_Curves *>(xod_base);
+      CurvesPointCoordinates *cpc = xod->elem_array;
+      for (const int i : curves.points_range()) {
+        positions[i] = cpc->co;
+        radii[i] = cpc->radius;
+        cpc++;
+      }
+      break;
+    }
     default: {
       break;
     }
@@ -795,6 +857,13 @@ void data_xform_tag_update(XFormObjectData *xod_base)
       /* Generic update. */
       GreasePencil *grease_pencil = (GreasePencil *)xod_base->id;
       DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+      break;
+    }
+    case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(xod_base->id);
+      bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+      curves.tag_positions_changed();
+      DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
 

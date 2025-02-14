@@ -72,7 +72,9 @@
 
 #include "RNA_define.hh"
 
-#include "GPU_compilation_subprocess.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GPU_compilation_subprocess.hh"
+#endif
 
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"
@@ -94,9 +96,7 @@
 
 #ifdef WITH_LIBMV
 #  include "libmv-capi.h"
-#endif
-
-#ifdef WITH_CYCLES_LOGGING
+#elif defined(WITH_CYCLES_LOGGING)
 #  include "CCL_api.h"
 #endif
 

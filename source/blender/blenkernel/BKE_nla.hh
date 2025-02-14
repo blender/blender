@@ -40,7 +40,7 @@ struct PropertyRNA;
  * Create new NLA Track.
  * The returned pointer is owned by the caller.
  */
-struct NlaTrack *BKE_nlatrack_new(void);
+struct NlaTrack *BKE_nlatrack_new();
 
 /**
  * Frees the given NLA strip, and calls #BKE_nlastrip_remove_and_free to
@@ -140,6 +140,14 @@ void BKE_nlatrack_remove(ListBase *tracks, NlaTrack *nlt);
  * and the track itself.
  */
 void BKE_nlatrack_remove_and_free(ListBase *tracks, NlaTrack *nlt, bool do_id_user);
+
+/**
+ * Return whether this NLA track is enabled.
+ *
+ * If any track is solo'ed: returns true when this is the solo'ed one.
+ * If no track is solo'ed: returns true when this track is not muted.
+ */
+bool BKE_nlatrack_is_enabled(const AnimData &adt, const NlaTrack &nlt);
 
 /**
  * Compute the length of the passed strip's clip, unless the clip length

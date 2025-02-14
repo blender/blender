@@ -1509,7 +1509,7 @@ typedef enum eTimecodeStyles {
 
 /** #UserDef.ndof_flag (3D mouse options) */
 typedef enum eNdof_Flag {
-  NDOF_SHOW_GUIDE = (1 << 0),
+  NDOF_SHOW_GUIDE_ORBIT_AXIS = (1 << 0),
   NDOF_FLY_HELICOPTER = (1 << 1),
   NDOF_LOCK_HORIZON = (1 << 2),
 
@@ -1536,6 +1536,9 @@ typedef enum eNdof_Flag {
   NDOF_PANZ_INVERT_AXIS = (1 << 14),
   NDOF_TURNTABLE = (1 << 15),
   NDOF_CAMERA_PAN_ZOOM = (1 << 16),
+  NDOF_ORBIT_CENTER_AUTO = (1 << 17),
+  NDOF_ORBIT_CENTER_SELECTED = (1 << 18),
+  NDOF_SHOW_GUIDE_ORBIT_CENTER = (1 << 19),
 } eNdof_Flag;
 
 #define NDOF_PIXELS_PER_SECOND 600.0f

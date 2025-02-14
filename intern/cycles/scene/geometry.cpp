@@ -40,7 +40,7 @@ NODE_ABSTRACT_DEFINE(Geometry)
 {
   NodeType *type = NodeType::add("geometry_base", nullptr);
 
-  SOCKET_UINT(motion_steps, "Motion Steps", 3);
+  SOCKET_UINT(motion_steps, "Motion Steps", 0);
   SOCKET_BOOLEAN(use_motion_blur, "Use Motion Blur", false);
   SOCKET_NODE_ARRAY(used_shaders, "Shaders", Shader::get_node_type());
 
@@ -636,7 +636,7 @@ void GeometryManager::device_update_displacement_images(Device *device,
           }
 
           ImageSlotTextureNode *image_node = static_cast<ImageSlotTextureNode *>(node);
-          for (int i = 0; i < image_node->handle.num_tiles(); i++) {
+          for (int i = 0; i < image_node->handle.num_svm_slots(); i++) {
             const int slot = image_node->handle.svm_slot(i);
             if (slot != -1) {
               bump_images.insert(slot);

@@ -21,7 +21,7 @@ class TreeElementViewLayerBase final : public AbstractTreeElement {
  public:
   TreeElementViewLayerBase(TreeElement &legacy_te, Scene &scene);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 };
 
 class TreeElementViewLayer final : public AbstractTreeElement {

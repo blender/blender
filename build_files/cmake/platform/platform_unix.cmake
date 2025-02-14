@@ -341,19 +341,6 @@ endif()
 if(WITH_OPENCOLLADA)
   find_package_wrapper(OpenCOLLADA)
   if(OPENCOLLADA_FOUND)
-    if(WITH_STATIC_LIBS)
-      # PCRE is bundled with OpenCollada without headers, so can't use
-      # find_package reliably to detect it.
-      # NOTE: newer fork no longer depends on PCRE: see !122270.
-      if(EXISTS ${LIBDIR}/opencollada/lib/libpcre.a)
-        set(PCRE_LIBRARIES ${LIBDIR}/opencollada/lib/libpcre.a)
-      else()
-        # Quiet warnings.
-        set(PCRE_LIBRARIES "")
-      endif()
-    else()
-      find_package_wrapper(PCRE)
-    endif()
     find_package_wrapper(XML2)
   else()
     set_and_warn_library_found("OpenCollada" OPENCOLLADA_FOUND WITH_OPENCOLLADA)
@@ -383,7 +370,7 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
       set(OSL_ROOT ${CYCLES_OSL})
     endif()
   endif()
-  find_package_wrapper(OSL)
+  find_package_wrapper(OSL 1.13.4)
   set_and_warn_library_found("OSL" OSL_FOUND WITH_CYCLES_OSL)
 
   if(OSL_FOUND)
@@ -424,9 +411,9 @@ if(DEFINED LIBDIR)
     ${SYCL_ROOT_DIR}/lib/libsycl.so.*
     ${SYCL_ROOT_DIR}/lib/libpi_*.so
     ${SYCL_ROOT_DIR}/lib/libur_*.so
+    ${SYCL_ROOT_DIR}/lib/libur_*.so.*
   )
   list(FILTER _sycl_runtime_libraries EXCLUDE REGEX ".*\.py")
-  list(REMOVE_ITEM _sycl_runtime_libraries "${SYCL_ROOT_DIR}/lib/libpi_opencl.so")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
@@ -463,6 +450,18 @@ if(WITH_MATERIALX)
   set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
 endif()
 add_bundled_libraries(materialx/lib)
+
+# With Blender 4.4 libraries there is no more Boost. But Linux distros may have
+# older versions of libs like USD with a header dependency on Boost, so can't
+# remove this entirely yet.
+if(WITH_BOOST)
+  if(DEFINED LIBDIR AND NOT EXISTS "${LIBDIR}/boost")
+    set(WITH_BOOST OFF)
+    set(BOOST_LIBRARIES)
+    set(BOOST_PYTHON_LIBRARIES)
+    set(BOOST_INCLUDE_DIR)
+  endif()
+endif()
 
 if(WITH_BOOST)
   # uses in build instructions to override include and library variables

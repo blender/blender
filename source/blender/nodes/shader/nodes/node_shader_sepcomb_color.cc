@@ -9,9 +9,6 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
-#include "UI_interface.hh"
-#include "UI_resources.hh"
-
 static void node_combsep_color_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeCombSepColor *data = MEM_cnew<NodeCombSepColor>(__func__);

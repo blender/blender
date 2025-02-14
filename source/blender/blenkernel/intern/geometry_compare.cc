@@ -2,11 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+#include <numeric>
+
 #include "BLI_array.hh"
 #include "BLI_math_base.h"
 #include "BLI_ordered_edge.hh"
 #include "BLI_span.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.hh"
@@ -454,9 +458,7 @@ static void calc_smallest_corner_ids(const Span<int> face_offsets,
     const IndexRange corners = IndexRange(face_start, face_end - face_start);
     for (const int corner_i : corners.drop_front(1)) {
       const int corner_id = corner_set_ids[corners_to_sorted[corner_i]];
-      if (corner_id < smallest) {
-        smallest = corner_id;
-      }
+      smallest = std::min(corner_id, smallest);
     }
     smallest_corner_ids[face_i] = smallest;
   }

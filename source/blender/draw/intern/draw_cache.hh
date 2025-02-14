@@ -72,7 +72,6 @@ blender::gpu::Batch *DRW_cache_object_loose_edges_get(Object *ob);
 blender::Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
     Object *ob, blender::Span<const GPUMaterial *> materials);
 blender::gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob);
-int DRW_cache_object_material_count_get(const Object *ob);
 
 /**
  * Returns the vertbuf used by shaded surface batch.

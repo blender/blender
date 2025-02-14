@@ -4,7 +4,6 @@
 
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.hh"
-#include "BLI_task.hh"
 
 #include "NOD_rna_define.hh"
 

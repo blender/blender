@@ -8,17 +8,13 @@
 
 #include <cstring>
 #include <fmt/format.h>
-#include <iostream>
 #include <sstream>
 #include <string>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -29,7 +25,6 @@
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -40,13 +35,10 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_bake_data_block_map.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_customdata.hh"
-#include "BKE_geometry_fields.hh"
-#include "BKE_geometry_set_instances.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
@@ -87,7 +79,6 @@
 
 #include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_spreadsheet.hh"
 #include "ED_undo.hh"
 #include "ED_viewer_path.hh"
 
@@ -98,11 +89,6 @@
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_usage_inference.hh"
-
-#include "FN_field.hh"
-#include "FN_lazy_function_execute.hh"
-#include "FN_lazy_function_graph_executor.hh"
-#include "FN_multi_function.hh"
 
 namespace lf = blender::fn::lazy_function;
 namespace geo_log = blender::nodes::geo_eval_log;
@@ -276,7 +262,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
   walk(user_data, ob, md, &ptr, prop);
 }
@@ -1461,7 +1447,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
     bmain_ = DEG_get_bmain(depsgraph);
   }
 
-  nodes::BakeNodeBehavior *get(const int id) const
+  nodes::BakeNodeBehavior *get(const int id) const override
   {
     if (!modifier_cache_) {
       return nullptr;
@@ -2298,7 +2284,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
         continue;
       }
       NodesModifierPanel *panel = find_panel_by_id(ctx.nmd, sub_interface_panel.identifier);
-      PointerRNA panel_ptr = RNA_pointer_create(
+      PointerRNA panel_ptr = RNA_pointer_create_discrete(
           ctx.md_ptr->owner_id, &RNA_NodesModifierPanel, panel);
       PanelLayout panel_layout = uiLayoutPanelProp(&ctx.C, layout, &panel_ptr, "is_open");
       uiItemL(panel_layout.header, IFACE_(sub_interface_panel.name), ICON_NONE);
@@ -2837,10 +2823,9 @@ ModifierTypeInfo modifierType_Nodes = {
     /*srna*/ &RNA_NodesModifier,
     /*type*/ ModifierTypeType::Constructive,
     /*flags*/
-    static_cast<ModifierTypeFlag>(
-        eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
-        eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
-        eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_AcceptsGreasePencil),
+    (eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
+     eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
+     eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_AcceptsGreasePencil),
     /*icon*/ ICON_GEOMETRY_NODES,
 
     /*copy_data*/ blender::copy_data,

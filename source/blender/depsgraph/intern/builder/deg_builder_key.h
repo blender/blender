@@ -9,14 +9,12 @@
 #pragma once
 
 #include "intern/builder/deg_builder_rna.h"
-#include "intern/depsgraph_type.hh"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_id.hh"
 #include "intern/node/deg_node_operation.hh"
 
 #include "DNA_ID.h"
 
-#include "RNA_access.hh"
 #include "RNA_types.hh"
 
 struct ID;
@@ -27,18 +25,17 @@ namespace blender::deg {
 struct TimeSourceKey {
   TimeSourceKey() = default;
 
-  string identifier() const;
+  std::string identifier() const;
 };
 
 struct ComponentKey {
   ComponentKey() = default;
 
-  inline ComponentKey(const ID *id, NodeType type, const char *name = "")
-      : id(id), type(type), name(name)
+  ComponentKey(const ID *id, NodeType type, const char *name = "") : id(id), type(type), name(name)
   {
   }
 
-  string identifier() const;
+  std::string identifier() const;
 
   const ID *id = nullptr;
   NodeType type = NodeType::UNDEFINED;
@@ -48,13 +45,8 @@ struct ComponentKey {
 struct OperationKey {
   OperationKey() = default;
 
-  inline OperationKey(const ID *id, NodeType component_type, const char *name, int name_tag = -1)
-      : id(id),
-        component_type(component_type),
-        component_name(""),
-        opcode(OperationCode::OPERATION),
-        name(name),
-        name_tag(name_tag)
+  OperationKey(const ID *id, NodeType component_type, const char *name, int name_tag = -1)
+      : id(id), component_type(component_type), name(name), name_tag(name_tag)
   {
   }
 
@@ -66,19 +58,13 @@ struct OperationKey {
       : id(id),
         component_type(component_type),
         component_name(component_name),
-        opcode(OperationCode::OPERATION),
         name(name),
         name_tag(name_tag)
   {
   }
 
   OperationKey(const ID *id, NodeType component_type, OperationCode opcode)
-      : id(id),
-        component_type(component_type),
-        component_name(""),
-        opcode(opcode),
-        name(""),
-        name_tag(-1)
+      : id(id), component_type(component_type), opcode(opcode)
   {
   }
 
@@ -86,12 +72,7 @@ struct OperationKey {
                NodeType component_type,
                const char *component_name,
                OperationCode opcode)
-      : id(id),
-        component_type(component_type),
-        component_name(component_name),
-        opcode(opcode),
-        name(""),
-        name_tag(-1)
+      : id(id), component_type(component_type), component_name(component_name), opcode(opcode)
   {
   }
 
@@ -100,15 +81,9 @@ struct OperationKey {
                OperationCode opcode,
                const char *name,
                int name_tag = -1)
-      : id(id),
-        component_type(component_type),
-        component_name(""),
-        opcode(opcode),
-        name(name),
-        name_tag(name_tag)
+      : id(id), component_type(component_type), opcode(opcode), name(name), name_tag(name_tag)
   {
   }
-
   OperationKey(const ID *id,
                NodeType component_type,
                const char *component_name,
@@ -130,7 +105,7 @@ struct OperationKey {
   OperationKey(const OperationKey &other) = default;
   OperationKey &operator=(const OperationKey &other) = default;
 
-  string identifier() const;
+  std::string identifier() const;
 
   const ID *id = nullptr;
   NodeType component_type = NodeType::UNDEFINED;
@@ -183,8 +158,8 @@ struct PersistentOperationKey : public OperationKey {
   PersistentOperationKey &operator=(const PersistentOperationKey &other) = delete;
 
  private:
-  string component_name_storage_;
-  string name_storage_;
+  std::string component_name_storage_;
+  std::string name_storage_;
 };
 
 struct RNAPathKey {
@@ -194,7 +169,7 @@ struct RNAPathKey {
              RNAPointerSource source);
   RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop, RNAPointerSource source);
 
-  string identifier() const;
+  std::string identifier() const;
 
   ID *id;
   PointerRNA ptr;

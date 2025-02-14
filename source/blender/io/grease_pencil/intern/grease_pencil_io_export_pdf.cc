@@ -2,19 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_attribute.hh"
-#include "BKE_curves.hh"
+#include "BLI_bounds.hh"
+
 #include "BKE_grease_pencil.hh"
-#include "BKE_material.hh"
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_grease_pencil_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
-
-#include "ED_view3d.hh"
 
 #include "grease_pencil_io.hh"
 #include "grease_pencil_io_intern.hh"

@@ -221,6 +221,35 @@ class Action : public ::bAction {
   void slot_display_name_set(Main &bmain, Slot &slot, StringRefNull new_display_name);
 
   /**
+   * Set the slot display name (the part of the identifier after the two-letter
+   * ID prefix), and ensure the resulting identifier is unique.
+   *
+   * This has to be done on the Action level to ensure each slot has a unique
+   * identifier within the Action.
+   *
+   * \note This does NOT propagate the resulting slot identifier to the slot's
+   * users.
+   *
+   * \see #Action::slot_display_name_set
+   * \see #Action::slot_identifier_propagate
+   */
+  void slot_display_name_define(Slot &slot, StringRefNull new_display_name);
+
+  /**
+   * Set the slot's target ID type, updating the identifier prefix to match and
+   * ensuring that the resulting identifier is unique.
+   *
+   * This has to be done on the Action level to ensure each slot has a unique
+   * identifier within the Action.
+   *
+   * \note This does NOT propagate the identifier to the slot's users. That is
+   * the caller's responsibility.
+   *
+   * \see #Action::slot_identifier_propagate
+   */
+  void slot_idtype_define(Slot &slot, ID_Type idtype);
+
+  /**
    * Set the slot identifier, ensure it is unique, and propagate the new identifier to
    * all data-blocks that use it.
    *
@@ -317,6 +346,15 @@ class Action : public ::bAction {
    * \return true when the layer was found & removed, false if it wasn't found.
    */
   bool slot_remove(Slot &slot_to_remove);
+
+  /**
+   * Move the given slot to position `to_slot_index` among the slots of the
+   * action.
+   *
+   * `slot` must belong to this action, and `to_slot_index` must be a
+   * valid index in the slot array.
+   */
+  void slot_move_to_index(Slot &slot, int to_slot_index);
 
   /**
    * Set the active Slot, ensuring only one Slot is flagged as the Active one.
@@ -771,12 +809,37 @@ class Slot : public ::ActionSlot {
   static_assert(sizeof(NlaStrip::last_slot_identifier) == identifier_length_max);
 
   /**
-   * Return the prefix of this Slot's identifier.
+   * Return a string that represents the Slot's 'idtype'.
    *
-   * This corresponds to the intended ID type (`idtype`) of the slot, e.g "OB"
-   * for object, "CA" for camera, etc.
+   * E.g "OB" for object, "CA" for camera, etc.
+   *
+   * This is different from `identifier_prefix()`: this constructs a
+   * string directly from the actual 'idtype' field of the Slot, whereas
+   * `identifier_prefix()` returns the first two characters of the
+   * identifier string.
+   *
+   * This distinction matters in some lower-level code where the two can
+   * momentarily be out of sync, although this should always be corrected before
+   * exiting such code so that it's never observable in higher-level code.
+   *
+   * \see identifier_prefix()
+   * \see identifier_ensure_prefix()
    */
-  std::string identifier_prefix_for_idtype() const;
+  std::string idtype_string() const;
+
+  /**
+   * Return the two-character type prefix of this Slot's identifier.
+   *
+   * This corresponds to the intended ID type of the slot, e.g "OB" for object,
+   * "CA" for camera, etc.
+   *
+   * This is subtly different from `idtype_string()`. See its documentation for
+   * details.
+   *
+   * \see idtype_string()
+   * \see identifier_ensure_prefix()
+   */
+  StringRef identifier_prefix() const;
 
   /**
    * Return this Slot's identifier without the prefix, also known as the
@@ -784,7 +847,7 @@ class Slot : public ::ActionSlot {
    *
    * E.g. if the identifier is "OBCube", then "Cube" is returned.
    *
-   * \see identifier_prefix_for_idtype
+   * \see identifier_prefix()
    */
   StringRefNull identifier_without_prefix() const;
 
@@ -807,14 +870,15 @@ class Slot : public ::ActionSlot {
    * method returning `false` should NOT be taken as a guarantee that this Slot
    * will never be used by the given ID or other IDs of the same type.
    *
-   * \see identifier_prefix_for_idtype() \see has_idtype()
+   * \see idtype_string()
+   * \see has_idtype()
    */
   bool is_suitable_for(const ID &animated_id) const;
 
   /**
    * Return whether this Slot has a specified intended ID type (`idtype`) set.
    *
-   * \see identifier_prefix_for_idtype()
+   * \see idtype_string()
    * \see is_suitable_for()
    */
   bool has_idtype() const;
@@ -956,11 +1020,13 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
    * Should only be called when there is no `Channelbag` for this slot yet.
    */
   Channelbag &channelbag_for_slot_add(const Slot &slot);
+  Channelbag &channelbag_for_slot_add(slot_handle_t slot_handle);
 
   /**
    * Find the channelbag for the given slot, or if none exists, create it.
    */
   Channelbag &channelbag_for_slot_ensure(const Slot &slot);
+  Channelbag &channelbag_for_slot_ensure(slot_handle_t slot_handle);
 
   /**
    * Remove the given channelbag from this strip data.
@@ -1086,7 +1152,7 @@ class Channelbag : public ::ActionChannelbag {
    *
    * \see fcurve_remove
    */
-  void fcurve_remove_by_index(int64_t fcurve_array_index);
+  void fcurve_remove_by_index(int64_t fcurve_index);
 
   /**
    * Detach an F-Curve from the Channelbag.
@@ -1122,7 +1188,7 @@ class Channelbag : public ::ActionChannelbag {
    * `fcurve` must belong to this channel bag, and `to_fcurve_index` must be a
    * valid index in the fcurve array.
    */
-  void fcurve_move(FCurve &fcurve, int to_fcurve_index);
+  void fcurve_move_to_index(FCurve &fcurve, int to_fcurve_index);
 
   /**
    * Remove all F-Curves from this Channelbag.
@@ -1202,7 +1268,7 @@ class Channelbag : public ::ActionChannelbag {
    * `group` must belong to this channel bag, and `to_group_index` must be a
    * valid index in the channel group array.
    */
-  void channel_group_move(bActionGroup &group, int to_group_index);
+  void channel_group_move_to_index(bActionGroup &group, int to_group_index);
 
   /**
    * Assigns the given FCurve to the given channel group.

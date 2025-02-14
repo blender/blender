@@ -80,6 +80,9 @@ struct HierarchyContext {
    */
   bool is_parent;
 
+  /* When true this is duplisource object. This flag is used to identify instance prototypes. */
+  bool is_duplisource;
+
   /*********** Determined during writer creation: ***************/
   float parent_matrix_inv_world[4][4]; /* Inverse of the parent's world matrix. */
   std::string export_path; /* Hierarchical path, such as "/grandparent/parent/object_name". */
@@ -107,6 +110,7 @@ struct HierarchyContext {
   bool is_instance() const;
   void mark_as_instance_of(const std::string &reference_export_path);
   void mark_as_not_instanced();
+  bool is_prototype() const;
 
   bool is_object_visible(enum eEvaluationMode evaluation_mode) const;
 };
@@ -205,14 +209,16 @@ bool operator==(const ObjectIdentifier &obj_ident_a, const ObjectIdentifier &obj
 class AbstractHierarchyIterator {
  public:
   /* Mapping from export path to writer. */
-  typedef std::map<std::string, AbstractHierarchyWriter *> WriterMap;
+  using WriterMap = std::map<std::string, AbstractHierarchyWriter *>;
   /* All the children of some object, as per the export hierarchy. */
-  typedef std::set<HierarchyContext *> ExportChildren;
+  using ExportChildren = std::set<HierarchyContext *>;
   /* Mapping from an object and its duplicator to the object's export-children. */
-  typedef std::map<ObjectIdentifier, ExportChildren> ExportGraph;
+  using ExportGraph = std::map<ObjectIdentifier, ExportChildren>;
   /* Mapping from ID to its export path. This is used for instancing; given an
    * instanced datablock, the export path of the original can be looked up. */
-  typedef std::map<ID *, std::string> ExportPathMap;
+  using ExportPathMap = std::map<ID *, std::string>;
+  /* IDs of all duplisource objects, used to identify instance prototypes. */
+  using DupliSources = std::set<ID *>;
 
  protected:
   ExportGraph export_graph_;
@@ -221,6 +227,7 @@ class AbstractHierarchyIterator {
   Depsgraph *depsgraph_;
   WriterMap writers_;
   ExportSubset export_subset_;
+  DupliSources duplisources_;
 
  public:
   explicit AbstractHierarchyIterator(Main *bmain, Depsgraph *depsgraph);
@@ -274,7 +281,7 @@ class AbstractHierarchyIterator {
                                       const ExportGraph::key_type &graph_index) const;
 
   void determine_export_paths(const HierarchyContext *parent_context);
-  void determine_duplication_references(const HierarchyContext *parent_context,
+  bool determine_duplication_references(const HierarchyContext *parent_context,
                                         const std::string &indent);
 
   /* These three functions create writers and call their write() method. */
@@ -290,8 +297,8 @@ class AbstractHierarchyIterator {
   std::string get_object_name(const Object *object) const;
   std::string get_object_data_name(const Object *object) const;
 
-  typedef AbstractHierarchyWriter *(AbstractHierarchyIterator::*create_writer_func)(
-      const HierarchyContext *);
+  using create_writer_func =
+      AbstractHierarchyWriter *(AbstractHierarchyIterator::*)(const HierarchyContext *);
   /* Ensure that a writer exists; if it doesn't, call create_func(context).
    *
    * The create_func function should be one of the create_XXXX_writer(context) functions declared
@@ -343,6 +350,18 @@ class AbstractHierarchyIterator {
 
   /* Called by release_writers() to free what the create_XXX_writer() functions allocated. */
   virtual void release_writer(AbstractHierarchyWriter *writer) = 0;
+
+  /* Return true if data writers should be created for this context. */
+  virtual bool include_data_writers(const HierarchyContext *) const
+  {
+    return true;
+  }
+
+  /* Return true if children of the context should be converted to writers. */
+  virtual bool include_child_writers(const HierarchyContext *) const
+  {
+    return true;
+  }
 
   AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
   ExportChildren &graph_children(const HierarchyContext *context);

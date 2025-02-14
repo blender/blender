@@ -6,8 +6,6 @@
  * \ingroup spoutliner
  */
 
-#include "DNA_listBase.h"
-
 #include "DNA_outliner_types.h"
 
 #include "../outliner_intern.hh"

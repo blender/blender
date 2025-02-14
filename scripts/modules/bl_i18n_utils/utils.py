@@ -75,10 +75,11 @@ def locale_explode(locale):
     m = _locale_explode_re.match(locale)
     if m:
         lang, country, variant = m.groups()
-        return (lang, country, variant,
-                "%s_%s" % (lang, country) if country else None,
-                "%s@%s" % (lang, variant) if variant else None)
-
+        return (
+            lang, country, variant,
+            "{:s}_{:s}".format(lang, country) if country else None,
+            "{:s}@{:s}".format(lang, variant) if variant else None
+        )
     try:
         import bpy.app.translations as bpy_translations
         assert ret == bpy_translations.locale_explode(locale)

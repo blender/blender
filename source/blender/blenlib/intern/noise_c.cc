@@ -8,6 +8,8 @@
 
 #include <math.h>
 
+#include <algorithm>
+
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
 
@@ -1512,9 +1514,7 @@ float BLI_noise_mg_hybrid_multi_fractal(float x,
   float pwHL = powf(lacunarity, -H);
   float pwr = pwHL; /* starts with i=1 instead of 0 */
   for (int i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = std::min(weight, 1.0f);
     float signal = (noisefunc(x, y, z) + offset) * pwr;
     pwr *= pwHL;
     result += weight * signal;

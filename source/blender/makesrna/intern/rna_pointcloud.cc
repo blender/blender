@@ -13,12 +13,7 @@
 
 #include "rna_internal.hh"
 
-#include "DNA_pointcloud_types.h"
-
 #include "BKE_attribute.h"
-
-#include "BLI_math_base.h"
-#include "BLI_string.h"
 
 #ifdef RNA_RUNTIME
 

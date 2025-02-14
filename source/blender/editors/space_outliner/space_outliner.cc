@@ -9,13 +9,12 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include <cstdio>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_mempool.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -31,7 +30,6 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "UI_resources.hh"

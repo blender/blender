@@ -33,7 +33,7 @@ bool EIG_invert_m4_m4(float inverse[4][4], const float matrix[4][4])
   bool invertible = true;
   M.computeInverseWithCheck(R, invertible, 0.0f);
   if (!invertible) {
-    R = R.Zero();
+    R = Matrix4f::Zero();
   }
   memcpy(inverse, R.data(), sizeof(float) * 4 * 4);
   return invertible;

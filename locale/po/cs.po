@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -61,6 +61,10 @@ msgstr "Kolekce s AOVs"
 
 msgid "F-Curves"
 msgstr "F-Křivky"
+
+
+msgid "Slot"
+msgstr "Slot"
 
 
 msgid "Action F-Curves"
@@ -247,30 +251,6 @@ msgid "Collection of action groups"
 msgstr "Kolekce akčních skupin"
 
 
-msgid "Mix Mode"
-msgstr "Mixážní režim"
-
-
-msgid "Replace"
-msgstr "Nahradit"
-
-
-msgid "Offset"
-msgstr "Odsazení"
-
-
-msgid "Add"
-msgstr "Přidat"
-
-
-msgid "Subtract"
-msgstr "Odečíst"
-
-
-msgid "Multiply"
-msgstr "Násobit"
-
-
 msgid "Strips"
 msgstr "NLA Proužky"
 
@@ -301,6 +281,10 @@ msgstr "Index aktivní značky pozice"
 
 msgid "Active"
 msgstr "Aktivní"
+
+
+msgid "Show Expanded"
+msgstr "Zobrazit rozbalené"
 
 
 msgctxt "ID"
@@ -481,10 +465,6 @@ msgstr "Pracovní prostor"
 msgctxt "ID"
 msgid "World"
 msgstr "Okolí"
-
-
-msgid "Show Expanded"
-msgstr "Zobrazit rozbalené"
 
 
 msgid "Keyframe"
@@ -707,6 +687,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda použitá pro kombinování výsledku aktivní akce s výsledkem zásobníku NLA"
 
 
+msgid "Replace"
+msgstr "Nahradit"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Hodnoty proužku nahrazují akumulované výsledky částkou určenou vlivem"
 
@@ -719,12 +703,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Hodnoty proužku jsou kombinovány s nashromážděným výsledkem vhodným použitím sčítání, násobení nebo kvarternionové matematiky na základě typu kanálu"
 
 
+msgid "Add"
+msgstr "Přidat"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Vážený výsledek proužku se přidá k akumulovaným výsledkům"
 
 
+msgid "Subtract"
+msgstr "Odečíst"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Vážený výsledek proužku je odstraněn z nahromaděných výsledků"
+
+
+msgid "Multiply"
+msgstr "Násobit"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -3194,6 +3190,10 @@ msgid "Image User"
 msgstr "Prohlížeč obrázků"
 
 
+msgid "Offset"
+msgstr "Odsazení"
+
+
 msgid "Rotation"
 msgstr "Rotace"
 
@@ -4353,6 +4353,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Vzdálenost meli linkami orientační sítě"
+
+
+msgid "Mix Mode"
+msgstr "Mixážní režim"
 
 
 msgid "Target object"
@@ -10466,10 +10470,6 @@ msgid "Display the object's name"
 msgstr "Zobrazit aktivní objekt se všemi možnými hranami"
 
 
-msgid "Shape Key Lock"
-msgstr "Samochytavé Klíče"
-
-
 msgid "Display the object's texture space"
 msgstr "Zobrazit koncový frame animované textury"
 
@@ -13641,8 +13641,32 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Local View"
-msgstr "Lokální pohled"
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Pivot Point"
@@ -13657,108 +13681,84 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "UV Mapping"
 msgstr "UV mapování"
 
 
-msgid "Apply"
-msgstr "Použít"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Navigation"
+msgstr "Navigace"
 
 
 msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
-msgid "Navigation"
-msgstr "Navigace"
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
 
 
 msgid "Basic"
@@ -16689,10 +16689,6 @@ msgid "Channel Key"
 msgstr "Kanál"
 
 
-msgid "RGB color space"
-msgstr "Barevný prostor RGB"
-
-
 msgid "High"
 msgstr "Výška"
 
@@ -17047,6 +17043,10 @@ msgstr "Ostatní"
 
 msgid "Distance Key"
 msgstr "Vzdálenost"
+
+
+msgid "RGB color space"
+msgstr "Barevný prostor RGB"
 
 
 msgid "Double Edge Mask"
@@ -17431,10 +17431,6 @@ msgstr "Metoda, která se má použít k filtrování transformace"
 
 msgid "Translate"
 msgstr "Posunout"
-
-
-msgid "Wrapping"
-msgstr "Mapování"
 
 
 msgid "X Axis"
@@ -31218,10 +31214,6 @@ msgid "Use Deform Only"
 msgstr "Použít Pouze Deformace"
 
 
-msgid "UV Sculpting"
-msgstr "UV sochařství"
-
-
 msgid "Properties of vertex and weight paint mode"
 msgstr "Textový editor"
 
@@ -31310,16 +31302,16 @@ msgid "2D Cursor"
 msgstr "2D Kursor"
 
 
+msgid "Footage"
+msgstr "Záběr"
+
+
 msgid "Predefined tracking camera intrinsics"
 msgstr "Předdefinovaná vnitřní nastavení tracking kamery"
 
 
 msgid "Clip Display"
 msgstr "Zobrazení klipu"
-
-
-msgid "Footage"
-msgstr "Záběr"
 
 
 msgid "Footage Settings"
@@ -31496,10 +31488,6 @@ msgstr "Textury"
 
 msgid "OpenVDB File"
 msgstr "OpenVDB Soubor"
-
-
-msgid "Slot"
-msgstr "Slot"
 
 
 msgid "Filters"
@@ -33173,10 +33161,6 @@ msgstr "Převrátit Osu X"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Určuje délku životnosti vlny"
-
-
-msgid "Show Navigation Guide"
-msgstr "Zobrazit navigační příručku"
 
 
 msgid "Display the center and axis during rotation"
@@ -37685,6 +37669,10 @@ msgid "Solid Light"
 msgstr "Barva speculární složky difůzního světla"
 
 
+msgid "UV Sculpting"
+msgstr "UV sochařství"
+
+
 msgid "Index number of the vertex group"
 msgstr "Odstranit skupinu vertexů"
 
@@ -41760,8 +41748,8 @@ msgid "Relax Pose"
 msgstr "Relaxovat pózu"
 
 
-msgid "G/R/S/B/[C] - Custom Properties only (C to clear) | %s"
-msgstr "G/R/S/B/[C] - Pouze vlastní vlastnosti (C k vymazání) | %s"
+msgid "Cancel"
+msgstr "Zrušit"
 
 
 msgid "No keyframes to slide between"
@@ -41894,10 +41882,6 @@ msgstr "Vrstva již byla přidána"
 
 msgid "Unable to find layer to add"
 msgstr "Nelze najít vrstvu, která by se přidala"
-
-
-msgid "Cancel"
-msgstr "Zrušit"
 
 
 msgid "Failed to set value"
@@ -44008,10 +43992,6 @@ msgstr "Vlastní Kamera"
 
 msgid "Bisect"
 msgstr "Půlit"
-
-
-msgid "Level Viewport"
-msgstr "Výchozí 3D Pohled"
 
 
 msgid "Unsubdivide"

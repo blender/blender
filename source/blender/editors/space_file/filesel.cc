@@ -6,8 +6,6 @@
  * \ingroup spfile
  */
 
-#include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include <sys/stat.h>
@@ -32,9 +30,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_fnmatch.h"
 #include "BLI_math_base.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLO_userdef_default.h"
@@ -61,7 +62,6 @@
 #include "UI_interface_icons.hh"
 #include "UI_view2d.hh"
 
-#include "AS_asset_representation.hh"
 #include "AS_essentials_library.hh"
 
 #include "file_intern.hh"

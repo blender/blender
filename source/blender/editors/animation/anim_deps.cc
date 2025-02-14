@@ -21,8 +21,8 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_set.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.hh"

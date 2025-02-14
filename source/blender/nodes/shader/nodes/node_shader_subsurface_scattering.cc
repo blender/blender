@@ -16,8 +16,13 @@ namespace blender::nodes::node_shader_subsurface_scattering_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Float>("Scale").default_value(0.05f).min(0.0f).max(1000.0f);
-  b.add_input<decl::Vector>("Radius").default_value({1.0f, 0.2f, 0.1f}).min(0.0f).max(100.0f);
+  b.add_input<decl::Float>("Scale").default_value(0.05f).min(0.0f).max(1000.0f).description(
+      "Scale factor of the subsurface scattering radius");
+  b.add_input<decl::Vector>("Radius")
+      .default_value({1.0f, 0.2f, 0.1f})
+      .min(0.0f)
+      .max(100.0f)
+      .description("Scattering radius per color channel (RGB), multiplied with Scale");
   b.add_input<decl::Float>("IOR").default_value(1.4f).min(1.01f).max(3.8f).subtype(PROP_FACTOR);
   b.add_input<decl::Float>("Roughness")
       .default_value(1.0f)
@@ -55,16 +60,9 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", &in[6].link);
   }
 
-  bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs, 2);
-  bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
-  /* For some reason it seems that the socket value is in ARGB format. */
-  bool use_subsurf = GPU_material_sss_profile_create(mat, &socket_data->value[1]);
-
-  float use_sss = (use_subsurf) ? 1.0f : 0.0f;
-
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SUBSURFACE);
 
-  return GPU_stack_link(mat, node, "node_subsurface_scattering", in, out, GPU_constant(&use_sss));
+  return GPU_stack_link(mat, node, "node_subsurface_scattering", in, out);
 }
 
 static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *node)
@@ -91,7 +89,11 @@ NODE_SHADER_MATERIALX_BEGIN
 
   NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
+#  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
   NodeItem radius = get_input_value("Radius", NodeItem::Type::Vector3);
+#  else
+  NodeItem radius = get_input_value("Radius", NodeItem::Type::Color3);
+#  endif
   NodeItem anisotropy = get_input_value("Anisotropy", NodeItem::Type::Float);
   NodeItem normal = get_input_link("Normal", NodeItem::Type::Vector3);
 

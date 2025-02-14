@@ -6,8 +6,8 @@
  * \ingroup edgpencil
  */
 
+#include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -346,12 +346,8 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
         BLI_addtail(&copied_frames, new_frame);
 
         /* extend extents for keyframes encountered */
-        if (gpf->framenum < gpencil_anim_copy_firstframe) {
-          gpencil_anim_copy_firstframe = gpf->framenum;
-        }
-        if (gpf->framenum > gpencil_anim_copy_lastframe) {
-          gpencil_anim_copy_lastframe = gpf->framenum;
-        }
+        gpencil_anim_copy_firstframe = std::min(gpf->framenum, gpencil_anim_copy_firstframe);
+        gpencil_anim_copy_lastframe = std::max(gpf->framenum, gpencil_anim_copy_lastframe);
       }
     }
 
@@ -516,7 +512,7 @@ static bool gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
 static bool gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
-    gpf->framenum = int(scene->r.cfra);
+    gpf->framenum = scene->r.cfra;
   }
   return false;
 }
@@ -524,8 +520,7 @@ static bool gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
 static bool gpencil_frame_snap_nearmarker(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
-    gpf->framenum = int(
-        ED_markers_find_nearest_marker_time(&scene->markers, float(gpf->framenum)));
+    gpf->framenum = ED_markers_find_nearest_marker_time(&scene->markers, float(gpf->framenum));
   }
   return false;
 }

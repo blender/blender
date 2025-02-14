@@ -6,11 +6,8 @@
  * \ingroup gpu
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_debug.hh"
@@ -334,9 +331,18 @@ GPUShader *GPU_shader_create_from_python(std::optional<StringRefNull> vertcode,
                                          std::optional<StringRefNull> fragcode,
                                          std::optional<StringRefNull> geomcode,
                                          std::optional<StringRefNull> libcode,
-                                         const std::optional<StringRefNull> defines,
+                                         std::optional<StringRefNull> defines,
                                          const std::optional<StringRefNull> name)
 {
+  std::string defines_cat = "#define GPU_RAW_PYTHON_SHADER\n";
+  if (defines) {
+    defines_cat += defines.value();
+    defines = defines_cat;
+  }
+  else {
+    defines = defines_cat;
+  }
+
   std::string libcodecat;
 
   if (!libcode) {

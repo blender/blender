@@ -8,9 +8,11 @@
 
 #include "IK_QJacobian.h"
 
+#include <algorithm>
+
 IK_QJacobian::IK_QJacobian() : m_sdls(true), m_min_damp(1.0) {}
 
-IK_QJacobian::~IK_QJacobian() {}
+IK_QJacobian::~IK_QJacobian() = default;
 
 void IK_QJacobian::ArmMatrices(int dof, int task_size)
 {
@@ -65,7 +67,7 @@ void IK_QJacobian::ArmMatrices(int dof, int task_size)
   }
 }
 
-void IK_QJacobian::SetBetas(int id, int, const Vector3d &v)
+void IK_QJacobian::SetBetas(int id, int /*size*/, const Vector3d &v)
 {
   m_beta[id + 0] = v.x();
   m_beta[id + 1] = v.y();
@@ -260,9 +262,7 @@ void IK_QJacobian::InvertSDLS()
       // find largest absolute dTheta
       // multiply with weight to prevent unnecessary damping
       abs_dtheta = fabs(m_d_theta_tmp[j]) * m_weight_sqrt[j];
-      if (abs_dtheta > max_dtheta) {
-        max_dtheta = abs_dtheta;
-      }
+      max_dtheta = std::max(abs_dtheta, max_dtheta);
     }
 
     M *= wInv;
@@ -281,16 +281,12 @@ void IK_QJacobian::InvertSDLS()
       // better to go a little to slow than to far
 
       double dofdamp = damp / m_weight[j];
-      if (dofdamp > 1.0) {
-        dofdamp = 1.0;
-      }
+      dofdamp = std::min(dofdamp, 1.0);
 
       m_d_theta[j] += 0.80 * dofdamp * m_d_theta_tmp[j];
     }
 
-    if (damp < m_min_damp) {
-      m_min_damp = damp;
-    }
+    m_min_damp = std::min(damp, m_min_damp);
   }
 
   // weight + prevent from doing angle updates with angles > max_angle_change
@@ -301,9 +297,7 @@ void IK_QJacobian::InvertSDLS()
 
     abs_angle = fabs(m_d_theta[j]);
 
-    if (abs_angle > max_angle) {
-      max_angle = abs_angle;
-    }
+    max_angle = std::max(abs_angle, max_angle);
   }
 
   if (max_angle > max_angle_change) {
@@ -364,9 +358,7 @@ void IK_QJacobian::InvertDLS()
 
   lambda *= lambda;
 
-  if (lambda > 10) {
-    lambda = 10;
-  }
+  lambda = std::min<double>(lambda, 10);
 
   // immediately multiply with Beta, so we can do matrix*vector products
   // rather than matrix*matrix products
@@ -419,9 +411,7 @@ double IK_QJacobian::AngleUpdateNorm() const
 
   for (i = 0; i < m_d_theta.size(); i++) {
     dtheta_abs = fabs(m_d_theta[i] * m_d_norm_weight[i]);
-    if (dtheta_abs > mx) {
-      mx = dtheta_abs;
-    }
+    mx = std::max(dtheta_abs, mx);
   }
 
   return mx;

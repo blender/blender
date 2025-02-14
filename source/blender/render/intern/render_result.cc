@@ -19,11 +19,9 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
 #include "BKE_image_save.hh"

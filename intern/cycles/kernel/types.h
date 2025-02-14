@@ -1187,16 +1187,6 @@ struct ccl_align(16) ShaderData
   float3 ray_P;
   float ray_dP;
 
-#ifdef __OSL__
-#  ifdef __KERNEL_GPU__
-  ccl_private uint8_t *osl_closure_pool;
-#  else
-  const struct ThreadKernelGlobalsCPU *osl_globals;
-  const struct IntegratorStateCPU *osl_path_state;
-  const struct IntegratorShadowStateCPU *osl_shadow_path_state;
-#  endif
-#endif
-
   /* LCG state for closures that require additional random numbers. */
   uint lcg_state;
 
@@ -1527,7 +1517,8 @@ struct KernelObject {
   float dupli_uv[2];
 
   int numkeys;
-  int numsteps;
+  int num_geom_steps;
+  int num_tfm_steps;
   int numverts;
 
   uint patch_map_offset;
@@ -1549,6 +1540,8 @@ struct KernelObject {
 
   /* Volume velocity scale. */
   float velocity_scale;
+
+  int pad[3];
 
   /* TODO: separate array to avoid memory overhead when not used. */
   uint64_t light_set_membership;

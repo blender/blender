@@ -13,8 +13,8 @@
 
 #include "ED_asset_indexer.hh"
 
+#include "DNA_ID.h"
 #include "DNA_asset_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_fileops.h"
 #include "BLI_hash.hh"
@@ -25,7 +25,6 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
-#include "BLI_uuid.h"
 
 #include "AS_asset_catalog.hh"
 #include "BKE_appdir.hh"
@@ -219,7 +218,7 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
 
   indexer_entry.idcode = GS(idcode_name.data());
 
-  idcode_name.substr(2).copy(indexer_entry.datablock_info.name);
+  idcode_name.substr(2).copy_utf8_truncated(indexer_entry.datablock_info.name);
 
   AssetMetaData *asset_data = BKE_asset_metadata_create();
   indexer_entry.datablock_info.asset_data = asset_data;
@@ -251,7 +250,7 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   }
 
   if (const std::shared_ptr<Value> *value = entry.lookup(ATTRIBUTE_ENTRIES_PROPERTIES)) {
-    asset_data->properties = convert_from_serialize_value(*value->get());
+    asset_data->properties = convert_from_serialize_value(**value);
   }
 }
 

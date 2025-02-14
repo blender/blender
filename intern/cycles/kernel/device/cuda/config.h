@@ -62,8 +62,8 @@
 #    define GPU_KERNEL_MAX_REGISTERS 48
 #  endif
 
-/* 7.x, 8.x */
-#elif __CUDA_ARCH__ <= 899
+/* 7.x, 8.x, 12.x */
+#elif __CUDA_ARCH__ <= 1299
 #  define GPU_MULTIPRESSOR_MAX_REGISTERS 65536
 #  define GPU_MULTIPROCESSOR_MAX_BLOCKS 32
 #  define GPU_BLOCK_MAX_THREADS 1024

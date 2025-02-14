@@ -13,6 +13,7 @@
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
+#include "GPU_common.hh"
 #include "GPU_vertex_format.hh"
 
 enum GPUVertBufStatus {

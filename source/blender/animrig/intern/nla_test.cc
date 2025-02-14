@@ -7,7 +7,6 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
-#include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -18,9 +17,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
-
-#include <limits>
 
 #include "CLG_log.h"
 #include "testing/testing.h"

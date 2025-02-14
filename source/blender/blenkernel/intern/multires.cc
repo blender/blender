@@ -23,9 +23,10 @@
 
 #include "BKE_ccg.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh_legacy_derived_mesh.hh"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"

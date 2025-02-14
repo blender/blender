@@ -9,8 +9,6 @@
 
 #include "DNA_node_types.h"
 
-#include "NOD_derived_node_tree.hh"
-
 namespace blender::compositor {
 
 class Context;

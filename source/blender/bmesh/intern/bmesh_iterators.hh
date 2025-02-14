@@ -31,7 +31,7 @@
  *
  * be sure to keep 'bm_iter_itype_htype_map' in sync with any changes
  */
-typedef enum BMIterType {
+enum BMIterType {
   BM_VERTS_OF_MESH = 1,
   BM_EDGES_OF_MESH = 2,
   BM_FACES_OF_MESH = 3,
@@ -53,7 +53,7 @@ typedef enum BMIterType {
    * input loop's edge. */
   BM_LOOPS_OF_LOOP = 12,
   BM_LOOPS_OF_EDGE = 13,
-} BMIterType;
+};
 
 #define BM_ITYPE_MAX 14
 
@@ -147,8 +147,8 @@ struct BMIter__loop_of_face {
   BMLoop *l_first, *l_next;
 };
 
-typedef void (*BMIter__begin_cb)(void *);
-typedef void *(*BMIter__step_cb)(void *);
+using BMIter__begin_cb = void (*)(void *);
+using BMIter__step_cb = void *(*)(void *);
 
 /* Iterator Structure */
 /* NOTE: some of these vars are not used,
@@ -279,7 +279,7 @@ BMITER_CB_DEF(loop_of_face);
 
 #undef BMITER_CB_DEF
 
-#include "intern/bmesh_iterators_inline.hh"
+#include "intern/bmesh_iterators_inline.hh" /* IWYU pragma: export */
 
 #define BM_ITER_CHECK_TYPE_DATA(data) \
   CHECK_TYPE_ANY(data, void *, BMFace *, BMEdge *, BMVert *, BMLoop *, BMElem *)

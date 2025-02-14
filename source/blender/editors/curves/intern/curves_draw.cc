@@ -32,6 +32,7 @@
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "UI_resources.hh"
 
@@ -988,7 +989,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
 
     BLI_mempool_iter iter;
     BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
-    for (auto *selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)); selem;
+    for (const auto *selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)); selem;
          selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)), points_iter++)
     {
       const int64_t i = *points_iter;
@@ -1091,7 +1092,7 @@ static int curves_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     else {
       if ((cps->depth_mode == CURVE_PAINT_PROJECT_SURFACE) && (v3d->shading.type > OB_WIRE)) {
         /* needed or else the draw matrix can be incorrect */
-        view3d_operator_needs_opengl(C);
+        view3d_operator_needs_gpu(C);
 
         eV3DDepthOverrideMode depth_mode = V3D_DEPTH_ALL;
         if (cps->flag & CURVE_PAINT_FLAG_DEPTH_ONLY_SELECTED) {

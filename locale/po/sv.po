@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -61,6 +61,10 @@ msgstr "Samling av AOV"
 
 msgid "F-Curves"
 msgstr "F-kurvor"
+
+
+msgid "Slot"
+msgstr "Plats"
 
 
 msgid "Groups of F-Curves"
@@ -199,36 +203,16 @@ msgid "Expanded in Graph Editor"
 msgstr "Expanderad i grafredigeraren"
 
 
-msgid "Influence"
-msgstr "Inflytande"
-
-
-msgid "Replace"
-msgstr "Ersätt"
-
-
-msgid "Offset"
-msgstr "Förskjutning"
-
-
-msgid "Add"
-msgstr "Addera"
-
-
-msgid "Subtract"
-msgstr "Subtrahera"
-
-
-msgid "Multiply"
-msgstr "Multiplicera"
-
-
 msgid "Collection of timeline markers"
 msgstr "Samling av tidslinjemarkörer"
 
 
 msgid "Active"
 msgstr "Aktiv"
+
+
+msgid "Show Expanded"
+msgstr "Visa utvikt"
 
 
 msgctxt "ID"
@@ -406,10 +390,6 @@ msgid "World"
 msgstr "Värld"
 
 
-msgid "Show Expanded"
-msgstr "Visa utvikt"
-
-
 msgid "Keyframe"
 msgstr "Keyframe"
 
@@ -494,8 +474,24 @@ msgid "Animation data for data-block"
 msgstr "Animationsdata för datablock"
 
 
+msgid "Replace"
+msgstr "Ersätt"
+
+
 msgid "Combine"
 msgstr "Kombinera"
+
+
+msgid "Add"
+msgstr "Addera"
+
+
+msgid "Subtract"
+msgstr "Subtrahera"
+
+
+msgid "Multiply"
+msgstr "Multiplicera"
 
 
 msgid "Nothing"
@@ -2140,6 +2136,10 @@ msgid "Image"
 msgstr "Bild"
 
 
+msgid "Offset"
+msgstr "Förskjutning"
+
+
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -2254,6 +2254,10 @@ msgstr "Alpha"
 
 msgid "Position"
 msgstr "Position"
+
+
+msgid "Influence"
+msgstr "Inflytande"
 
 
 msgid "World Space"
@@ -5205,8 +5209,24 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Local View"
-msgstr "Lokal vy"
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Pivot Point"
@@ -5217,72 +5237,56 @@ msgid "Snap"
 msgstr "Snäpp"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
 msgid "Mirror"
 msgstr "Spegla"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Local View"
+msgstr "Lokal vy"
 
 
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
+msgid "Align View"
+msgstr "Justera vy"
 
 
 msgid "Align View to Active"
 msgstr "Justera vy till aktiv"
 
 
-msgid "Align View"
-msgstr "Justera vy"
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
 
 
 msgid "Catalog"
@@ -11601,10 +11605,6 @@ msgid "Dither"
 msgstr "Rastrering"
 
 
-msgid "UV Sculpting"
-msgstr "UV-skulptering"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -11632,10 +11632,6 @@ msgstr "Ljusgrupper"
 
 msgid "Threads"
 msgstr "Trådar"
-
-
-msgid "Slot"
-msgstr "Plats"
 
 
 msgid "Bookmarks"
@@ -12151,10 +12147,6 @@ msgstr "Invertera Y-axel"
 
 msgid "Invert Z Axis"
 msgstr "Invertera Z-axel"
-
-
-msgid "Show Navigation Guide"
-msgstr "Visa navigationsguide"
 
 
 msgid "Display the center and axis during rotation"
@@ -13217,6 +13209,10 @@ msgstr "Lägg till & ersätt"
 
 msgid "Select Mode"
 msgstr "Markeringsläge"
+
+
+msgid "UV Sculpting"
+msgstr "UV-skulptering"
 
 
 msgid "Weight value of a vertex in a vertex group"
@@ -15909,6 +15905,10 @@ msgid "Sculpting"
 msgstr "Skulptering"
 
 
+msgid "Cancel"
+msgstr "Avbryt"
+
+
 msgid "Path is empty, cannot save"
 msgstr "Sökvägen är tom, kan inte spara"
 
@@ -15923,10 +15923,6 @@ msgstr "Kan inte spara katalog med tillgångar innan Blender-filen har sparats"
 
 msgid "No changes to be saved"
 msgstr "Inga ändringar att spara"
-
-
-msgid "Cancel"
-msgstr "Avbryt"
 
 
 msgctxt "WindowManager"

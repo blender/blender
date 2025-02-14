@@ -42,13 +42,11 @@ set(SRC_KERNEL_DEVICE_OPTIX
 if(WITH_CYCLES_OSL)
   math(EXPR OSL_LIBRARY_VERSION_CODE "${OSL_LIBRARY_VERSION_MAJOR} * 10000 + ${OSL_LIBRARY_VERSION_MINOR} * 100 + ${OSL_LIBRARY_VERSION_PATCH}")
 
-  if(OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
-    set(SRC_KERNEL_DEVICE_OPTIX
-      ${SRC_KERNEL_DEVICE_OPTIX}
-      osl/services_optix.cu
-      device/optix/kernel_osl.cu
-    )
-  endif()
+  set(SRC_KERNEL_DEVICE_OPTIX
+    ${SRC_KERNEL_DEVICE_OPTIX}
+    osl/services_optix.cu
+    device/optix/kernel_osl.cu
+  )
 endif()
 
 set(SRC_KERNEL_DEVICE_ONEAPI
@@ -136,7 +134,6 @@ set(SRC_KERNEL_DEVICE_ONEAPI_HEADERS
   device/oneapi/context_intersect_begin.h
   device/oneapi/context_intersect_end.h
   device/oneapi/globals.h
-  device/oneapi/image.h
   device/oneapi/kernel.h
   device/oneapi/kernel_templates.h
   device/cpu/bvh.h
@@ -146,6 +143,7 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/alloc.h
   closure/bsdf.h
   closure/bsdf_ashikhmin_velvet.h
+  closure/bsdf_burley.h
   closure/bsdf_diffuse.h
   closure/bsdf_diffuse_ramp.h
   closure/bsdf_microfacet.h
@@ -614,6 +612,14 @@ if(WITH_CYCLES_CUDA_BINARIES)
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 11.1+, skipped.")
       endif()
+    elseif(${arch} MATCHES ".*_10." OR ${arch} MATCHES ".*_120")
+      if("${CUDA_VERSION}" GREATER_EQUAL 128) # Support for sm_100, sm_101, sm_120 was introduced in CUDA 12.8
+        set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
+        set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
+        set(cuda_version ${CUDA_VERSION})
+      else()
+        message(STATUS "CUDA binaries for ${arch} require CUDA 12.8+, skipped.")
+      endif()
     else()
       set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
       set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
@@ -1002,7 +1008,7 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     kernel_optix_shader_raytrace
     "device/optix/kernel_shader_raytrace.cu"
     "--keep-device-functions")
-  if(WITH_CYCLES_OSL AND OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
+  if(WITH_CYCLES_OSL)
     cycles_optix_kernel_add(
       kernel_optix_osl
       "device/optix/kernel_osl.cu"
@@ -1057,6 +1063,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -mllvm -inlinehint-threshold=350
     -fsycl-device-code-split=per_kernel
     -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
+    --offload-compress
+    --offload-compression-level=19
     -shared
     -DWITH_ONEAPI
     -O2
@@ -1280,7 +1288,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
         "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
         "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
       COMMAND_EXPAND_LISTS
-      DEPENDS ${cycles_oneapi_kernel_sources})
+      DEPENDS ${cycles_oneapi_kernel_sources} ${SYCL_COMPILER})
   else()
     if(NOT IGC_INSTALL_DIR)
       get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
@@ -1306,7 +1314,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
         "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug_str}>"
         "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release_str}>"
       COMMAND_EXPAND_LISTS
-      DEPENDS ${cycles_oneapi_kernel_sources})
+      DEPENDS ${cycles_oneapi_kernel_sources} ${SYCL_COMPILER})
   endif()
 
   # install dynamic libraries required at runtime

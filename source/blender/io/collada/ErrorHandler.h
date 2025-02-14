@@ -8,11 +8,6 @@
 
 #pragma once
 
-#include <algorithm> /* sort() */
-#include <map>
-#include <string>
-#include <vector>
-
 #include "COLLADASaxFWLIErrorHandler.h"
 
 /** \brief Handler class for parser errors
@@ -23,7 +18,7 @@ class ErrorHandler : public COLLADASaxFWL::IErrorHandler {
   ErrorHandler();
 
   /** handle any error thrown by the parser. */
-  bool virtual handleError(const COLLADASaxFWL::IError *error);
+  bool handleError(const COLLADASaxFWL::IError *error) override;
   /** True if there was an error during parsing. */
   bool hasError()
   {

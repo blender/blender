@@ -41,16 +41,16 @@
 namespace blender::ui {
 
 struct EyedropperColorband {
-  int event_xy_last[2];
+  int event_xy_last[2] = {};
   /* Alpha is currently fixed at 1.0, may support in future. */
-  Vector<float4> color_buffer;
-  bool sample_start;
-  ColorBand init_color_band;
-  ColorBand *color_band;
-  PointerRNA ptr;
-  PropertyRNA *prop;
-  bool is_undo;
-  bool is_set;
+  Vector<float4> color_buffer = {};
+  bool sample_start = false;
+  ColorBand init_color_band = {};
+  ColorBand *color_band = nullptr;
+  PointerRNA ptr = {};
+  PropertyRNA *prop = nullptr;
+  bool is_undo = false;
+  bool is_set = false;
 };
 
 /* For user-data only. */
@@ -105,7 +105,7 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  EyedropperColorband *eye = MEM_new<EyedropperColorband>(__func__, EyedropperColorband{});
+  EyedropperColorband *eye = MEM_new<EyedropperColorband>(__func__);
   eye->color_band = band;
   eye->init_color_band = *eye->color_band;
   eye->ptr = rna_update_ptr;

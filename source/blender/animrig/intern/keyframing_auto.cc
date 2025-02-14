@@ -11,9 +11,6 @@
 #include "BKE_fcurve.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"

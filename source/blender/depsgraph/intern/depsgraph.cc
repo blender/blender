@@ -10,13 +10,8 @@
 
 #include "intern/depsgraph.hh" /* own include */
 
-#include <algorithm>
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_console.h"
-#include "BLI_hash.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
@@ -29,7 +24,6 @@
 #include "intern/depsgraph_physics.hh"
 #include "intern/depsgraph_registry.hh"
 #include "intern/depsgraph_relation.hh"
-#include "intern/depsgraph_update.hh"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 

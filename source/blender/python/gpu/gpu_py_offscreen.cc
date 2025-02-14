@@ -24,6 +24,7 @@
 
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
 #include "GPU_viewport.hh"
 

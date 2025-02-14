@@ -285,6 +285,24 @@ void gather_group_to_group(const OffsetIndices<int> src_offsets,
   });
 }
 
+void gather_ranges_to_groups(const Span<IndexRange> src_ranges,
+                             const OffsetIndices<int> dst_offsets,
+                             const GSpan src,
+                             GMutableSpan dst)
+{
+  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    Span<T> src_span = src.typed<T>();
+    MutableSpan<T> dst_span = dst.typed<T>();
+
+    threading::parallel_for(src_ranges.index_range(), 512, [&](const IndexRange range) {
+      for (const int i : range) {
+        dst_span.slice(dst_offsets[i]).copy_from(src_span.slice(src_ranges[i]));
+      }
+    });
+  });
+}
+
 void gather_to_groups(const OffsetIndices<int> dst_offsets,
                       const IndexMask &src_selection,
                       const GSpan src,

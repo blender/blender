@@ -11,6 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_math_geom.h"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
@@ -191,7 +192,7 @@ static void accumululate_material_counts_mesh(
             }
             return count;
           },
-          std::plus<int>());
+          std::plus<>());
     }
     else {
       all_tri_counts.local().first() = poly_to_tri_count(mr.faces_num, mr.corners_num);
@@ -533,7 +534,7 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
 {
   std::unique_ptr<MeshRenderData> mr = std::make_unique<MeshRenderData>();
   mr->toolsettings = ts;
-  mr->materials_num = BKE_object_material_count_with_fallback_eval(&object);
+  mr->materials_num = BKE_object_material_used_with_fallback_eval(object);
 
   mr->object_to_world = object_to_world;
 

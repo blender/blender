@@ -45,7 +45,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   const bool is_zone_input_node = current_node->type_legacy ==
                                   GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT;
   bNode &output_node = const_cast<bNode &>(*zone->output_node);
-  PointerRNA output_node_ptr = RNA_pointer_create(
+  PointerRNA output_node_ptr = RNA_pointer_create_discrete(
       current_node_ptr->owner_id, &RNA_Node, &output_node);
   auto &storage = *static_cast<NodeGeometryForeachGeometryElementOutput *>(output_node.storage);
 
@@ -166,7 +166,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   const NodeGeometryForeachGeometryElementInput &storage = node_storage(node);
   bNode *output_node = tree.node_by_id(storage.output_node_id);
 
-  PointerRNA output_node_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Node, output_node);
+  PointerRNA output_node_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Node, output_node);
   uiItemR(layout, &output_node_ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 

@@ -602,7 +602,7 @@ struct StageInterfaceInfo {
 
   StageInterfaceInfo(const char *name_, const char *instance_name_ = "")
       : name(name_), instance_name(instance_name_){};
-  ~StageInterfaceInfo(){};
+  ~StageInterfaceInfo() = default;
 
   using Self = StageInterfaceInfo;
 
@@ -659,11 +659,11 @@ struct ShaderCreateInfo {
   /** Manually set builtins. */
   BuiltinBits builtins_ = BuiltinBits::NONE;
   /** Manually set generated code. */
-  std::string vertex_source_generated = "";
-  std::string fragment_source_generated = "";
-  std::string compute_source_generated = "";
-  std::string geometry_source_generated = "";
-  std::string typedef_source_generated = "";
+  std::string vertex_source_generated;
+  std::string fragment_source_generated;
+  std::string compute_source_generated;
+  std::string geometry_source_generated;
+  std::string typedef_source_generated;
   /** Manually set generated dependencies. */
   Vector<StringRefNull, 0> dependencies_generated;
 
@@ -898,7 +898,7 @@ struct ShaderCreateInfo {
 
  public:
   ShaderCreateInfo(const char *name) : name_(name){};
-  ~ShaderCreateInfo(){};
+  ~ShaderCreateInfo() = default;
 
   using Self = ShaderCreateInfo;
 
@@ -1026,14 +1026,14 @@ struct ShaderCreateInfo {
     constant.name = name;
     switch (type) {
       case Type::INT:
-        constant.value.i = static_cast<int>(default_value);
+        constant.value.i = int(default_value);
         break;
       case Type::BOOL:
       case Type::UINT:
-        constant.value.u = static_cast<uint>(default_value);
+        constant.value.u = uint(default_value);
         break;
       case Type::FLOAT:
-        constant.value.f = static_cast<float>(default_value);
+        constant.value.f = float(default_value);
         break;
       default:
         BLI_assert_msg(0, "Only scalar types can be used as constants");
@@ -1385,13 +1385,13 @@ struct ShaderCreateInfo {
     };
 
     /* TODO(@fclem): Order the resources. */
-    for (auto &res : info.batch_resources_) {
+    for (const auto &res : info.batch_resources_) {
       print_resource(res);
     }
-    for (auto &res : info.pass_resources_) {
+    for (const auto &res : info.pass_resources_) {
       print_resource(res);
     }
-    for (auto &res : info.geometry_resources_) {
+    for (const auto &res : info.geometry_resources_) {
       print_resource(res);
     }
     return stream;
@@ -1399,17 +1399,17 @@ struct ShaderCreateInfo {
 
   bool has_resource_type(Resource::BindType bind_type) const
   {
-    for (auto &res : batch_resources_) {
+    for (const auto &res : batch_resources_) {
       if (res.bind_type == bind_type) {
         return true;
       }
     }
-    for (auto &res : pass_resources_) {
+    for (const auto &res : pass_resources_) {
       if (res.bind_type == bind_type) {
         return true;
       }
     }
-    for (auto &res : geometry_resources_) {
+    for (const auto &res : geometry_resources_) {
       if (res.bind_type == bind_type) {
         return true;
       }

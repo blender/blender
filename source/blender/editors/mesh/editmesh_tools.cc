@@ -8112,8 +8112,8 @@ static void point_normals_update_statusbar(bContext *C, wmOperator *op)
 {
   WorkspaceStatus status(C);
 
-  status.opmodal(IFACE_("Cancel"), op->type, EDBM_CLNOR_MODAL_CANCEL);
   status.opmodal(IFACE_("Confirm"), op->type, EDBM_CLNOR_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, EDBM_CLNOR_MODAL_CANCEL);
   status.opmodal(IFACE_("Reset"), op->type, EDBM_CLNOR_MODAL_POINTTO_RESET);
 
   status.opmodal(IFACE_("Invert"),
@@ -8304,7 +8304,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 
       case EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED: {
         new_mode = EDBM_CLNOR_POINTTO_MODE_COORDINATES;
-        view3d_operator_needs_opengl(C);
+        view3d_operator_needs_gpu(C);
         SelectPick_Params params{};
         params.sel_op = SEL_OP_SET;
         if (EDBM_select_pick(C, event->mval, &params)) {
@@ -8489,7 +8489,7 @@ static void edbm_point_normals_ui(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -8981,7 +8981,7 @@ static void edbm_average_normals_ui(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -9235,7 +9235,7 @@ static void edbm_normals_tools_ui(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   /* Main auto-draw call */
   uiDefAutoButsRNA(layout,

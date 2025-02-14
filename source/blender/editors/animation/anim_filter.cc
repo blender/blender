@@ -29,7 +29,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
@@ -453,9 +452,7 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
 #define ANIMDATA_HAS_DRIVERS(id) ((id)->adt && (id)->adt->drivers.first)
 
 /* quick macro to test if AnimData is usable for NLA */
-#define ANIMDATA_HAS_NLA(id) \
-  ((id)->adt && (id)->adt->nla_tracks.first && \
-   (!(id)->adt->action || (id)->adt->action->wrap().is_action_legacy()))
+#define ANIMDATA_HAS_NLA(id) ((id)->adt && (id)->adt->nla_tracks.first)
 
 /**
  * Quick macro to test for all three above usability tests, performing the appropriate provided
@@ -508,7 +505,8 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
             nlaOk \
           } \
           else if (!(ac->ads->filterflag & ADS_FILTER_NLA_NOACT) || \
-                   ANIMDATA_HAS_ACTION_LEGACY(id)) { \
+                   ANIMDATA_HAS_ACTION_LAYERED(id)) \
+          { \
             nlaOk \
           } \
         } \
@@ -2262,7 +2260,7 @@ static size_t animdata_filter_grease_pencil(bAnimContext *ac,
 {
   size_t items = 0;
   Scene *scene = ac->scene;
-  ViewLayer *view_layer = (ViewLayer *)ac->view_layer;
+  ViewLayer *view_layer = ac->view_layer;
   bDopeSheet *ads = ac->ads;
 
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -3636,7 +3634,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
 {
   bDopeSheet *ads = ac->ads;
   Scene *scene = (Scene *)ads->source;
-  ViewLayer *view_layer = (ViewLayer *)ac->view_layer;
+  ViewLayer *view_layer = ac->view_layer;
   size_t items = 0;
 
   /* check that we do indeed have a scene */

@@ -6,9 +6,9 @@
  * \ingroup depsgraph
  */
 
-#include "intern/builder/deg_builder_transitive.h"
+#include "DEG_depsgraph_debug.hh"
 
-#include "MEM_guardedalloc.h"
+#include "intern/builder/deg_builder_transitive.h"
 
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"

@@ -8,6 +8,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "BLO_readfile.hh"
@@ -23,7 +24,6 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 
@@ -441,9 +441,8 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   else {
     int min_seq_startdisp = INT_MAX;
     LISTBASE_FOREACH (Strip *, seq, &scene_src->ed->seqbase) {
-      if (SEQ_time_left_handle_frame_get(scene_src, seq) < min_seq_startdisp) {
-        min_seq_startdisp = SEQ_time_left_handle_frame_get(scene_src, seq);
-      }
+      min_seq_startdisp = std::min(SEQ_time_left_handle_frame_get(scene_src, seq),
+                                   min_seq_startdisp);
     }
     /* Paste strips relative to the current-frame. */
     ofs = scene_dst->r.cfra - min_seq_startdisp;

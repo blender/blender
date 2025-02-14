@@ -22,7 +22,6 @@
 
 #include "GPU_shader.hh"
 #include "GPU_storage_buffer.hh"
-#include "GPU_texture.hh"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -144,7 +143,7 @@ KeyingScreen::KeyingScreen(Context &context,
     return;
   }
 
-  this->result.allocate_texture(Domain(size));
+  this->result.allocate_texture(Domain(size), false);
   if (context.use_gpu()) {
     this->compute_gpu(context, smoothness, marker_positions, marker_colors);
   }

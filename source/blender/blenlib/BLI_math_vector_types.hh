@@ -158,6 +158,14 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
   {
   }
 
+  /**
+   * Prevent up-cast of dimensions (creating a bigger vector initialized with data
+   * from a smaller one) by deleting all copy constructors accepting smaller vectors
+   * as source.
+   */
+  template<typename U, int OtherSize, BLI_ENABLE_IF(OtherSize < Size)>
+  VecBase(const VecBase<U, OtherSize> &other) = delete;
+
   /** Masking. */
 
   template<typename U, int OtherSize, BLI_ENABLE_IF(OtherSize > Size)>

@@ -8,8 +8,6 @@
 
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
 #include "CLG_log.h"
 
 #include "DNA_object_types.h"
@@ -17,8 +15,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-
-#include "BLT_translation.hh"
 
 #include "BKE_blender_undo.hh"
 #include "BKE_callbacks.hh"
@@ -52,7 +48,6 @@
 #include "RNA_enum_types.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 
 using blender::Set;
 using blender::Vector;

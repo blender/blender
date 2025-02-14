@@ -23,6 +23,7 @@ set(HEADER_SRC
   globals.h
   osl.h
   services.h
+  services_shared.h
   types.h
 )
 

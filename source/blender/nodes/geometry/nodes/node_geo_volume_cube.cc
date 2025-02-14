@@ -79,7 +79,7 @@ class Grid3DFieldContext : public FieldContext {
 
   GVArray get_varray_for_input(const FieldInput &field_input,
                                const IndexMask & /*mask*/,
-                               ResourceScope & /*scope*/) const
+                               ResourceScope & /*scope*/) const override
   {
     const bke::AttributeFieldInput *attribute_field_input =
         dynamic_cast<const bke::AttributeFieldInput *>(&field_input);

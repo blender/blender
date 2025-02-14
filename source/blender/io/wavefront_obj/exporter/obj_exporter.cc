@@ -173,7 +173,7 @@ static void write_mesh_objects(const Span<std::unique_ptr<OBJMesh>> exportable_a
     }
     mtlindices.reserve(count);
   }
-  for (auto &obj_mesh : exportable_as_mesh) {
+  for (const auto &obj_mesh : exportable_as_mesh) {
     OBJMesh &obj = *obj_mesh;
     if (mtl_writer) {
       mtlindices.append(mtl_writer->add_materials(obj));
@@ -198,7 +198,7 @@ static void write_mesh_objects(const Span<std::unique_ptr<OBJMesh>> exportable_a
   Vector<IndexOffsets> index_offsets;
   index_offsets.reserve(count);
   IndexOffsets offsets{0, 0, 0};
-  for (auto &obj_mesh : exportable_as_mesh) {
+  for (const auto &obj_mesh : exportable_as_mesh) {
     OBJMesh &obj = *obj_mesh;
     index_offsets.append(offsets);
     offsets.vertex_offset += obj.tot_vertices();

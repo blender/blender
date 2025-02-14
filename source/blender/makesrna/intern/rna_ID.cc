@@ -219,6 +219,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_lib_query.hh"
 #  include "BKE_lib_remap.hh"
 #  include "BKE_library.hh"
+#  include "BKE_main_invariants.hh"
 #  include "BKE_material.hh"
 #  include "BKE_preview_image.hh"
 #  include "BKE_vfont.hh"
@@ -353,7 +354,7 @@ static PointerRNA rna_ID_original_get(PointerRNA *ptr)
 {
   ID *id = (ID *)ptr->data;
 
-  return rna_pointer_inherit_refine(ptr, &RNA_ID, DEG_get_original_id(id));
+  return RNA_id_pointer_create(DEG_get_original_id(id));
 }
 
 short RNA_type_to_ID_code(const StructRNA *type)
@@ -654,8 +655,10 @@ IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
 
 bool rna_PropertyGroup_unregister(Main * /*bmain*/, StructRNA *type)
 {
+#  ifdef WITH_PYTHON
   /* Ensure that a potential py object representing this RNA type is properly dereferenced. */
   BPY_free_srna_pytype(type);
+#  endif
 
   RNA_struct_free(&BLENDER_RNA, type);
   return true;
@@ -670,7 +673,7 @@ StructRNA *rna_PropertyGroup_register(Main * /*bmain*/,
                                       StructFreeFunc /*free*/)
 {
   /* create dummy pointer */
-  PointerRNA dummy_ptr = RNA_pointer_create(nullptr, &RNA_PropertyGroup, nullptr);
+  PointerRNA dummy_ptr = RNA_pointer_create_discrete(nullptr, &RNA_PropertyGroup, nullptr);
 
   /* validate the python class */
   if (validate(&dummy_ptr, data, nullptr) != 0) {
@@ -712,6 +715,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
+  BKE_main_ensure_invariants(*bmain, *newid);
 
   return newid;
 }

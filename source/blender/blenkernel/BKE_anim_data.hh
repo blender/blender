@@ -143,7 +143,7 @@ void BKE_animdata_copy_id_action(Main *bmain, ID *id);
 void BKE_animdata_duplicate_id_action(Main *bmain, ID *id, uint duplicate_flags);
 
 /* Merge copies of data from source AnimData block */
-typedef enum eAnimData_MergeCopy_Modes {
+enum eAnimData_MergeCopy_Modes {
   /* Keep destination action */
   ADT_MERGECOPY_KEEP_DST = 0,
 
@@ -152,7 +152,7 @@ typedef enum eAnimData_MergeCopy_Modes {
 
   /* Use src action (but just reference the existing version) */
   ADT_MERGECOPY_SRC_REF = 2,
-} eAnimData_MergeCopy_Modes;
+};
 
 /**
  * Merge copies of the data from the src AnimData into the destination AnimData.

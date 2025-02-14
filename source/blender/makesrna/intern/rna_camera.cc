@@ -14,7 +14,6 @@
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"
@@ -28,6 +27,7 @@
 
 #  include "BKE_camera.h"
 #  include "BKE_object.hh"
+#  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

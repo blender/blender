@@ -77,7 +77,7 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange &job,
 
   /* compute number of bins to use and precompute scaling factor for binning */
   num_bins = min(size_t(MAX_BINS), size_t(4.0f + 0.05f * size()));
-  scale = rcp(cent_bounds_.size()) * make_float3((float)num_bins);
+  scale = reciprocal(cent_bounds_.size()) * make_float3((float)num_bins);
 
   /* initialize binning counter and bounds */
   BoundBox bin_bounds[MAX_BINS][4]; /* bounds for every bin in every dimension */

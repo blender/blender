@@ -21,6 +21,7 @@
 #include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
 #include "GPU_platform.hh"
+#include "GPU_state.hh"
 
 #include <algorithm> /* For `min/max`. */
 #include <cstring>
@@ -529,7 +530,7 @@ void GPU_indexbuf_create_subrange_in_place(IndexBuf *elem,
 
 void GPU_indexbuf_read(IndexBuf *elem, uint32_t *data)
 {
-  return elem->read(data);
+  elem->read(data);
 }
 
 void GPU_indexbuf_discard(IndexBuf *elem)

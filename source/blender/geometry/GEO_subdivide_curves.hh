@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "BLI_function_ref.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_virtual_array.hh"
 

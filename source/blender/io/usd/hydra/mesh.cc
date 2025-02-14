@@ -14,7 +14,6 @@
 #include "BKE_customdata.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 
 #include "hydra_scene_delegate.hh"
 #include "mesh.hh"
@@ -120,7 +119,7 @@ pxr::SdfPath MeshData::material_id(pxr::SdfPath const &id) const
 
 void MeshData::available_materials(Set<pxr::SdfPath> &paths) const
 {
-  for (auto &sm : submeshes_) {
+  for (const auto &sm : submeshes_) {
     if (sm.mat_data && !sm.mat_data->prim_id.IsEmpty()) {
       paths.add(sm.mat_data->prim_id);
     }

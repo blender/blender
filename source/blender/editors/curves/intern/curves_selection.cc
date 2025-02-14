@@ -457,7 +457,7 @@ bool has_anything_selected(const GSpan selection)
   if (selection.type().is<bool>()) {
     return selection.typed<bool>().contains(true);
   }
-  else if (selection.type().is<float>()) {
+  if (selection.type().is<float>()) {
     for (const float elem : selection.typed<float>()) {
       if (elem > 0.0f) {
         return true;
@@ -837,7 +837,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
               return;
             }
 
-            best_match = {curve, std::sqrt(distance_proj_sq)};
+            best_match = {curve, distance_proj_sq};
             return;
           }
 
@@ -853,7 +853,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
               return;
             }
 
-            best_match = {curve, std::sqrt(distance_proj_sq)};
+            best_match = {curve, distance_proj_sq};
           };
           for (const int segment_i : points.drop_back(1)) {
             process_segment(segment_i, segment_i + 1);

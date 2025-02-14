@@ -14,15 +14,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_bit_vector.hh"
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -31,7 +30,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -50,7 +48,6 @@
 #include "BKE_material.hh"
 #include "BKE_nla.hh"
 #include "BKE_node.hh"
-#include "BKE_report.hh"
 #include "BKE_texture.h"
 
 #include "ANIM_action.hh"
@@ -67,8 +64,6 @@
 #include "BLO_read_write.hh"
 
 #include "nla_private.h"
-
-#include "atomic_ops.h"
 
 #include "CLG_log.h"
 
@@ -956,7 +951,7 @@ static void nlastrip_evaluate_controls(NlaStrip *strip,
   if (strip->fcurves.first) {
 
     /* create RNA-pointer needed to set values */
-    PointerRNA strip_ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
+    PointerRNA strip_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NlaStrip, strip);
 
     /* execute these settings as per normal */
     Vector<FCurve *> strip_fcurves = listbase_to_vector<FCurve>(strip->fcurves);
@@ -3205,21 +3200,9 @@ static void animsys_evaluate_nla_domain(PointerRNA *ptr, NlaEvalData *channels, 
 
   /* NLA Data - Animation Data for Strips */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    /* solo and muting are mutually exclusive... */
-    if (adt->flag & ADT_NLA_SOLO_TRACK) {
-      /* skip if there is a solo track, but this isn't it */
-      if ((nlt->flag & NLATRACK_SOLO) == 0) {
-        continue;
-      }
-      /* else - mute doesn't matter */
+    if (!BKE_nlatrack_is_enabled(*adt, *nlt)) {
+      continue;
     }
-    else {
-      /* no solo tracks - skip track if muted */
-      if (nlt->flag & NLATRACK_MUTED) {
-        continue;
-      }
-    }
-
     nla_eval_domain_strips(ptr, channels, &nlt->strips, touched_actions);
   }
 
@@ -3330,21 +3313,7 @@ static bool is_nlatrack_evaluatable(const AnimData *adt, const NlaTrack *nlt)
     return false;
   }
 
-  /* Solo and muting are mutually exclusive. */
-  if (adt->flag & ADT_NLA_SOLO_TRACK) {
-    /* Skip if there is a solo track, but this isn't it. */
-    if ((nlt->flag & NLATRACK_SOLO) == 0) {
-      return false;
-    }
-  }
-  else {
-    /* Skip track if muted. */
-    if (nlt->flag & NLATRACK_MUTED) {
-      return false;
-    }
-  }
-
-  return true;
+  return BKE_nlatrack_is_enabled(*adt, *nlt);
 }
 
 /**

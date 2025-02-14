@@ -10,7 +10,6 @@
  * Copyright (C) 2001 NaN Technologies B.V.
  */
 
-#include <stdexcept>
 #include <vector>
 
 #include "GHOST_ISystem.hh"

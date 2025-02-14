@@ -5,6 +5,8 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
+#include "MemoryAllocator.h"
+
 struct gridQueueEle {
   int x, y, z;
   UCHAR dir;
@@ -19,8 +21,8 @@ class GridQueue {
  public:
   GridQueue()
   {
-    head = NULL;
-    tail = NULL;
+    head = nullptr;
+    tail = nullptr;
     numEles = 0;
   }
 
@@ -34,15 +36,15 @@ class GridQueue {
     return numEles;
   }
 
-  void pushQueue(int st[3], int dir)
+  void pushQueue(const int st[3], int dir)
   {
     gridQueueEle *ele = new gridQueueEle;
     ele->x = st[0];
     ele->y = st[1];
     ele->z = st[2];
     ele->dir = (UCHAR)dir;
-    ele->next = NULL;
-    if (head == NULL) {
+    ele->next = nullptr;
+    if (head == nullptr) {
       head = ele;
     }
     else {
@@ -54,7 +56,7 @@ class GridQueue {
 
   int popQueue(int st[3], int &dir)
   {
-    if (head == NULL) {
+    if (head == nullptr) {
       return 0;
     }
 
@@ -67,8 +69,8 @@ class GridQueue {
     head = head->next;
     delete temp;
 
-    if (head == NULL) {
-      tail = NULL;
+    if (head == nullptr) {
+      tail = nullptr;
     }
     numEles--;
 

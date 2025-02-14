@@ -43,7 +43,7 @@ struct BLaplacianSystem {
   /* Data. */
   float min_area;
 };
-typedef BLaplacianSystem LaplacianSystem;
+using LaplacianSystem = BLaplacianSystem;
 
 static bool vert_is_boundary(BMVert *v);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, int a_numVerts);

@@ -15,7 +15,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
-#include "BLI_bounds.hh"
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
 

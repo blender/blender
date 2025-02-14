@@ -610,7 +610,7 @@ def draw_attribute_warnings(context, layout):
     layout.label(text=rpt_("Name collisions: ") + ", ".join(set(colliding_names)), icon='ERROR', translate=False)
 
 
-class ColorAttributesListBase():
+class ColorAttributesListBase:
     display_domain_names = {
         'POINT': "Vertex",
         'EDGE': "Edge",
@@ -679,7 +679,7 @@ class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):
         layout.prop(attribute, "name", text="", icon='GROUP_VCOL')
 
 
-class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
+class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
     bl_label = "Color Attributes"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {

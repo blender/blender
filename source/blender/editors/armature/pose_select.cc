@@ -11,13 +11,10 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -427,7 +424,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
   Bone *bone, *curBone, *next = nullptr;
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  view3d_operator_needs_opengl(C);
+  view3d_operator_needs_gpu(C);
 
   Base *base = nullptr;
   bone = ED_armature_pick_bone(C, event->mval, !extend, &base);

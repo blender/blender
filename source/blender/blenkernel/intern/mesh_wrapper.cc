@@ -20,17 +20,9 @@
  * as well as supporting converting the mesh into regular mesh.
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-
-#include "BLI_ghash.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_editmesh.hh"
@@ -40,13 +32,9 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
-#include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 #include "BKE_subdiv_modifier.hh"
-
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 using blender::float3;
 using blender::Span;
@@ -97,7 +85,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
   blender::threading::isolate_task([&]() {
-    switch (static_cast<eMeshWrapperType>(mesh->runtime->wrapper_type)) {
+    switch (mesh->runtime->wrapper_type) {
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD: {
         break; /* Quiet warning. */
@@ -322,7 +310,7 @@ int BKE_mesh_wrapper_face_len(const Mesh *mesh)
 static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
 {
   using namespace blender::bke;
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)mesh->runtime->subsurf_runtime_data;
+  SubsurfRuntimeData *runtime_data = mesh->runtime->subsurf_runtime_data;
   if (runtime_data == nullptr || runtime_data->settings.level == 0) {
     return mesh;
   }

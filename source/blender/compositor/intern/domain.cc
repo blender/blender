@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -24,6 +25,11 @@ void Domain::transform(const float3x3 &input_transformation)
 Domain Domain::identity()
 {
   return Domain(int2(1), float3x3::identity());
+}
+
+bool Domain::is_equal(const Domain &a, const Domain &b, const float epsilon)
+{
+  return a.size == b.size && math::is_equal(a.transformation, b.transformation, epsilon);
 }
 
 bool operator==(const Domain &a, const Domain &b)

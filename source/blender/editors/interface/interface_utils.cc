@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -688,9 +689,7 @@ int UI_calc_float_precision(int prec, double value)
         dec_flag = dec_flag >> 1;
       }
 
-      if (test_prec > prec) {
-        prec = test_prec;
-      }
+      prec = std::max(test_prec, prec);
     }
   }
 

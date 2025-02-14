@@ -14,9 +14,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -362,7 +363,7 @@ bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)
   std::scoped_lock lock(*reports->lock);
 
   LISTBASE_FOREACH (Report *, report, &reports->list) {
-    fprintf((FILE *)fp, "%s  # %s\n", report->message, report->typestr);
+    fprintf(fp, "%s  # %s\n", report->message, report->typestr);
   }
 
   return true;

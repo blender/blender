@@ -263,7 +263,6 @@ ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(get_node_type())
 {
   colorspace = u_colorspace_raw;
   animated = false;
-  tiles.push_back_slow(1001);
 }
 
 ShaderNode *ImageTextureNode::clone(ShaderGraph *graph) const
@@ -289,8 +288,10 @@ void ImageTextureNode::cull_tiles(Scene *scene, ShaderGraph *graph)
   /* Box projection computes its own UVs that always lie in the
    * 1001 tile, so there's no point in loading any others. */
   if (projection == NODE_IMAGE_PROJ_BOX) {
-    tiles.clear();
-    tiles.push_back_slow(1001);
+    if (tiles.size()) {
+      tiles.clear();
+      tiles.push_back_slow(1001);
+    }
     return;
   }
 
@@ -301,8 +302,8 @@ void ImageTextureNode::cull_tiles(Scene *scene, ShaderGraph *graph)
     return;
   }
 
-  /* Only check UVs for tile culling if there are multiple tiles. */
-  if (tiles.size() < 2) {
+  /* Only check UVs for tile culling when using tiles. */
+  if (tiles.size() == 0) {
     return;
   }
 
@@ -396,7 +397,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
   if (projection != NODE_IMAGE_PROJ_BOX) {
     /* If there only is one image (a very common case), we encode it as a negative value. */
     int num_nodes;
-    if (handle.num_tiles() == 1) {
+    if (handle.num_tiles() == 0) {
       num_nodes = -handle.svm_slot();
     }
     else {
@@ -429,7 +430,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
     }
   }
   else {
-    assert(handle.num_tiles() == 1);
+    assert(handle.num_svm_slots() == 1);
     compiler.add_node(NODE_TEX_IMAGE_BOX,
                       handle.svm_slot(),
                       compiler.encode_uchar4(vector_offset,
@@ -471,7 +472,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
                                    alpha_type == IMAGE_ALPHA_IGNORE);
   const bool is_tiled = (filename.find("<UDIM>") != string::npos ||
                          filename.find("<UVTILE>") != string::npos) ||
-                        handle.num_tiles() > 1;
+                        handle.num_tiles() > 0;
 
   compiler.parameter(this, "projection");
   compiler.parameter(this, "projection_blend");

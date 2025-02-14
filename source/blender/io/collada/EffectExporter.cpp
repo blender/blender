@@ -7,25 +7,21 @@
  */
 
 #include <map>
-#include <set>
 
-#include "COLLADAFWColorOrTexture.h"
 #include "COLLADASWEffectProfile.h"
 
-#include "DocumentExporter.h"
 #include "EffectExporter.h"
 #include "MaterialExporter.h"
+#include "Materials.h"
 
 #include "collada_internal.h"
 #include "collada_utils.h"
 
 #include "DNA_mesh_types.h"
-#include "DNA_world_types.h"
 
 #include "BKE_collection.hh"
 #include "BKE_customdata.hh"
 #include "BKE_material.hh"
-#include "BKE_mesh.hh"
 
 static std::string getActiveUVLayerName(Object *ob)
 {

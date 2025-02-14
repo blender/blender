@@ -45,6 +45,9 @@ ccl_device Spectrum bsdf_oren_nayar_get_intensity(const ccl_private ShaderClosur
 {
   const ccl_private OrenNayarBsdf *bsdf = (const ccl_private OrenNayarBsdf *)sc;
   const float nl = max(dot(n, l), 0.0f);
+  if (bsdf->b <= 0.0f) {
+    return make_spectrum(nl * M_1_PI_F);
+  }
   const float nv = max(dot(n, v), 0.0f);
   float t = dot(l, v) - nl * nv;
 

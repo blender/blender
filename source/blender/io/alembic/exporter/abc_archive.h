@@ -29,7 +29,7 @@ namespace blender::io::alembic {
  * metadata. */
 class ABCArchive {
  public:
-  typedef std::set<double> Frames;
+  using Frames = std::set<double>;
 
   Alembic::Abc::OArchive *archive;
 

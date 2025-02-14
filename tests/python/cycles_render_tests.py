@@ -20,6 +20,8 @@ BLOCKLIST_ALL = [
     "hair_instancer_uv.blend",
     "principled_hair_directcoloring.blend",
     "visibility_particles.blend",
+    # Temporarily blocked for 4.4 lib upgrade, due to PNG alpha minor difference.
+    "image_log_osl.blend",
 ]
 
 # Blocklist that disables OSL specific tests for configurations that do not support OSL backend.
@@ -50,8 +52,6 @@ BLOCKLIST_OSL = [
     'image_alpha_ignore.blend',
     'image_log.blend',
     'image_non_color.blend',
-    # Along with differences in image sampling, UDIM in OSL doesn't respect extrapolation settings
-    # This has been reported in 124847 for further investigation
     'image_mapping_udim.blend',
     # OSL handles bump + displacement differently from SVM. There are OSL variants of these tests
     'both_displacement.blend',
@@ -61,14 +61,12 @@ BLOCKLIST_OSL = [
     # TODO: Tests that need investigating into why they're failing, and how to fix that.
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
-    # Noise differences in Principled BSDF mixing/layering
-    'principled_bsdf_.*.blend',
 ]
 
 BLOCKLIST_OPTIX = [
     # Ray intersection precision issues
-    'T50164.blend',
-    'T43865.blend',
+    'big_triangles_50164.blend',
+    'big_plane_43865.blend',
 ]
 
 BLOCKLIST_OPTIX_OSL = [
@@ -113,8 +111,8 @@ if platform.system() == "Darwin":
 BLOCKLIST_GPU = [
     # Uninvestigated differences with GPU.
     'image_log.blend',
-    'T40964.blend',
-    'T45609.blend',
+    'glass_mix_40964.blend',
+    'filter_glossy_refraction_45609.blend',
     'smoke_color.blend',
     'bevel_mblur.blend',
     # Inconsistency between Embree and Hair primitive on GPU.
@@ -128,7 +126,7 @@ BLOCKLIST_GPU = [
     'transparent_shadow_hair.*.blend',
     "microfacet_hair_orientation.blend",
     # Inconsistent handling of overlapping objects.
-    "T41143.blend",
+    "sobol_uniform_41143.blend",
     "visibility_particles.blend",
     # No path guiding on GPU.
     "guiding*.blend",
@@ -139,21 +137,23 @@ class CyclesReport(render_report.Report):
     def __init__(self, title, output_dir, oiiotool, device=None, blocklist=[], osl=False):
         # Split device name in format "<device_type>[-<RT>]" into individual
         # tokens, setting the RT suffix to an empty string if its not specified.
-        device, suffix = (device.split("-") + [""])[:2]
+        self.device, suffix = (device.split("-") + [""])[:2]
         self.use_hwrt = (suffix == "RT")
-
-        super().__init__(title, output_dir, oiiotool, device, blocklist)
-
-        if self.use_hwrt:
-            self.title = self.title + " RT"
-            self.output_dir = self.output_dir + "_rt"
-
         self.osl = osl
+
+        variation = self.device
+        if suffix:
+            variation += ' ' + suffix
         if self.osl:
-            self.title += " OSL"
+            variation += ' OSL'
+
+        super().__init__(title, output_dir, oiiotool, variation, blocklist)
 
     def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
         return arguments_cb(filepath, base_output_filepath, self.use_hwrt, self.osl)
+
+    def _get_arguments_suffix(self):
+        return ['--', '--cycles-device', self.device] if self.device else []
 
 
 def get_arguments(filepath, output_filepath, use_hwrt=False, osl=False):
@@ -262,6 +262,11 @@ def main():
     test_dir_name = Path(args.testdir).name
     if (test_dir_name in {'motion_blur', 'integrator'}) or ((args.osl) and (test_dir_name in {'shader', 'hair'})):
         report.set_fail_threshold(0.032)
+
+    # Layer mixing is different between SVM and OSL, so a few tests have
+    # noticably different noise causing OSL Principled BSDF tests to fail.
+    if ((args.osl) and (test_dir_name == 'principled_bsdf')):
+        report.set_fail_threshold(0.06)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 

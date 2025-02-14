@@ -17,7 +17,6 @@
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
-#include "DNA_action_defaults.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
@@ -37,7 +36,6 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "DNA_defaults.h"
 #include "DNA_defs.h"
 #include "DNA_genfile.h"
 #include "DNA_particle_types.h"
@@ -48,6 +46,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_numbers.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -55,7 +54,6 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_action.hh"
@@ -991,9 +989,17 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
     return 1.0f - blender::math::clamp(-mix, 0.0f, 1.0f);
   };
 
-  /* Function to remap the Size property to its new range. See function description. */
+  /* Find the render size to guess the Size value. The node tree might not belong to a scene, so we
+   * just assume an arbitrary HDTV 1080p render size. */
   blender::int2 render_size;
-  BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
+  if (scene) {
+    BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
+  }
+  else {
+    render_size = blender::int2(1920, 1080);
+  }
+
+  /* Function to remap the Size property to its new range. See function description. */
   const int max_render_size = blender::math::reduce_max(render_size);
   auto size_to_linear = [&](const int size) {
     if (storage->type == CMP_NODE_GLARE_BLOOM) {
@@ -1127,8 +1133,15 @@ static void do_version_glare_node_bloom_strength(const Scene *scene,
   /* See the get_quality_factor method in the glare code. */
   const int quality_factor = 1 << storage->quality;
 
+  /* Find the render size to guess the Strength value. The node tree might not belong to a scene,
+   * so we just assume an arbitrary HDTV 1080p render size. */
   blender::int2 render_size;
-  BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
+  if (scene) {
+    BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
+  }
+  else {
+    render_size = blender::int2(1920, 1080);
+  }
 
   const blender::int2 highlights_size = render_size / quality_factor;
 
@@ -1186,6 +1199,103 @@ static void do_version_glare_node_bloom_strength_recursive(
   }
 
   node_trees_already_versioned.add_new(node_tree);
+}
+
+/* Previously, color to float implicit conversion happened by taking the average, while now it uses
+ * luminance coefficients. So we need to convert all implicit conversions manually by adding a
+ * normal node to sum the color components then divide them by an appropriate factor. The normal
+ * node compute negative the dot product with its output vector, which is normalized. So if we
+ * supply a vector of (-1, -1, -1), we will get the dot product multiplied by 1 / sqrt(3) due to
+ * normalization. So if we want the average, we need to multiply by the normalization factor, then
+ * divide by 3. */
+static void do_version_color_to_float_conversion(bNodeTree *node_tree)
+{
+  /* Stores a mapping between an output and the final link of the versioning node tree that was
+   * added for it, in order to share the same versioning node tree with potentially multiple
+   * outgoing links from that same output. */
+  blender::Map<bNodeSocket *, bNodeLink *> color_to_float_links;
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (!(link->fromsock->type == SOCK_RGBA && link->tosock->type == SOCK_FLOAT)) {
+      continue;
+    }
+
+    /* If that output was versioned before, just connect the existing link. */
+    bNodeLink *existing_link = color_to_float_links.lookup_default(link->fromsock, nullptr);
+    if (existing_link) {
+      version_node_add_link(*node_tree,
+                            *existing_link->fromnode,
+                            *existing_link->fromsock,
+                            *link->tonode,
+                            *link->tosock);
+      blender::bke::node_remove_link(node_tree, link);
+      continue;
+    }
+
+    /* Add a hidden dot product node. */
+    bNode *dot_product_node = blender::bke::node_add_static_node(
+        nullptr, node_tree, CMP_NODE_NORMAL);
+    dot_product_node->flag |= NODE_HIDDEN;
+    dot_product_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 10.0f;
+    dot_product_node->location[1] = link->fromnode->location[1];
+
+    /* Link the source socket to the dot product input. */
+    bNodeSocket *dot_product_input = version_node_add_socket_if_not_exist(
+        node_tree, dot_product_node, SOCK_IN, SOCK_VECTOR, PROP_NONE, "Normal", "Normal");
+    version_node_add_link(
+        *node_tree, *link->fromnode, *link->fromsock, *dot_product_node, *dot_product_input);
+
+    /* Assign (-1, -1, -1) to the dot product output, which stores the second vector for the
+     * dot product. Notice that negative sign, since the node actually returns negative the dot
+     * product. */
+    bNodeSocket *dot_product_normal_output = version_node_add_socket_if_not_exist(
+        node_tree, dot_product_node, SOCK_OUT, SOCK_VECTOR, PROP_NONE, "Normal", "Normal");
+    copy_v3_fl(dot_product_normal_output->default_value_typed<bNodeSocketValueVector>()->value,
+               -1.0f);
+
+    /* Add a hidden multiply node. */
+    bNode *multiply_node = blender::bke::node_add_static_node(nullptr, node_tree, CMP_NODE_MATH);
+    multiply_node->custom1 = NODE_MATH_MULTIPLY;
+    multiply_node->flag |= NODE_HIDDEN;
+    multiply_node->location[0] = dot_product_node->location[0] + dot_product_node->width + 10.0f;
+    multiply_node->location[1] = dot_product_node->location[1];
+
+    /* Link the dot product output with the first input of the multiply node. */
+    bNodeSocket *dot_product_dot_output = version_node_add_socket_if_not_exist(
+        node_tree, dot_product_node, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Dot", "Dot");
+    bNodeSocket *multiply_input_a = static_cast<bNodeSocket *>(
+        BLI_findlink(&multiply_node->inputs, 0));
+    version_node_add_link(
+        *node_tree, *dot_product_node, *dot_product_dot_output, *multiply_node, *multiply_input_a);
+
+    /* Set the second input to  sqrt(3) / 3 as described in the function description. */
+    bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
+        BLI_findlink(&multiply_node->inputs, 1));
+    multiply_input_b->default_value_typed<bNodeSocketValueFloat>()->value =
+        blender::math::numbers::sqrt3 / 3.0f;
+
+    /* Link the multiply node output to the link target. */
+    bNodeSocket *multiply_output = version_node_add_socket_if_not_exist(
+        node_tree, multiply_node, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Value", "Value");
+    bNodeLink *final_link = &version_node_add_link(
+        *node_tree, *multiply_node, *multiply_output, *link->tonode, *link->tosock);
+
+    /* Add the new link to the cache. */
+    color_to_float_links.add_new(link->fromsock, final_link);
+
+    /* Remove the old link. */
+    blender::bke::node_remove_link(node_tree, link);
+  }
+}
+
+static void do_version_viewer_shortcut(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy != CMP_NODE_VIEWER) {
+      continue;
+    }
+    /* custom1 was previously used for Tile Order for the Tiled Compositor. */
+    node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
+  }
 }
 
 static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
@@ -1532,6 +1642,15 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         replace_rna_path_prefix(*driver, "sequence_editor.sequences", "sequence_editor.strips");
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 27)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_color_to_float_conversion(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**
@@ -3029,18 +3148,17 @@ static void versioning_node_group_sort_sockets_recursive(bNodeTreeInterfacePanel
       /* Keep sockets above panels. */
       return a->item_type == NODE_INTERFACE_SOCKET;
     }
-    else {
-      /* Keep outputs above inputs. */
-      if (a->item_type == NODE_INTERFACE_SOCKET) {
-        const bNodeTreeInterfaceSocket *sa = reinterpret_cast<const bNodeTreeInterfaceSocket *>(a);
-        const bNodeTreeInterfaceSocket *sb = reinterpret_cast<const bNodeTreeInterfaceSocket *>(b);
-        const bool is_output_a = sa->flag & NODE_INTERFACE_SOCKET_OUTPUT;
-        const bool is_output_b = sb->flag & NODE_INTERFACE_SOCKET_OUTPUT;
-        if (is_output_a != is_output_b) {
-          return is_output_a;
-        }
+    /* Keep outputs above inputs. */
+    if (a->item_type == NODE_INTERFACE_SOCKET) {
+      const bNodeTreeInterfaceSocket *sa = reinterpret_cast<const bNodeTreeInterfaceSocket *>(a);
+      const bNodeTreeInterfaceSocket *sb = reinterpret_cast<const bNodeTreeInterfaceSocket *>(b);
+      const bool is_output_a = sa->flag & NODE_INTERFACE_SOCKET_OUTPUT;
+      const bool is_output_b = sb->flag & NODE_INTERFACE_SOCKET_OUTPUT;
+      if (is_output_a != is_output_b) {
+        return is_output_a;
       }
     }
+
     return false;
   };
 
@@ -5205,9 +5323,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     /* LIGHT_PROBE_RESOLUTION_64 has been removed in EEVEE-Next as the tedrahedral mapping is to
      * low res to be usable. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->eevee.gi_cubemap_resolution < 128) {
-        scene->eevee.gi_cubemap_resolution = 128;
-      }
+      scene->eevee.gi_cubemap_resolution = std::max(scene->eevee.gi_cubemap_resolution, 128);
     }
   }
 
@@ -5545,13 +5661,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 5)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
-      sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_RETIMING;
-    }
-  }
-
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 6)) {
     add_subsurf_node_limit_surface_option(*bmain);
   }
@@ -5714,6 +5823,22 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         brush->mask_stencil_pos[0] = default_brush->mask_stencil_pos[0];
         brush->mask_stencil_pos[1] = default_brush->mask_stencil_pos[1];
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 27)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_viewer_shortcut(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 28)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_RETIMING;
     }
   }
 

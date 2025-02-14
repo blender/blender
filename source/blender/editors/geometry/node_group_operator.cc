@@ -19,7 +19,6 @@
 #include "WM_api.hh"
 
 #include "BKE_asset.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
@@ -120,7 +119,7 @@ static const bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, Repor
   return group;
 }
 
-GeoOperatorLog::~GeoOperatorLog() {}
+GeoOperatorLog::~GeoOperatorLog() = default;
 
 /**
  * The socket value log is stored statically so it can be used in the node editor. A fancier

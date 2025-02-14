@@ -24,7 +24,7 @@ BMFace *BM_face_copy(BMesh *bm,
                      bool copy_edges);
 BMFace *BM_face_copy(BMesh *bm, BMFace *f, bool copy_verts, bool copy_edges);
 
-typedef enum eBMCreateFlag {
+enum eBMCreateFlag {
   BM_CREATE_NOP = 0,
   /** Faces and edges only. */
   BM_CREATE_NO_DOUBLE = (1 << 1),
@@ -34,7 +34,7 @@ typedef enum eBMCreateFlag {
    * arguments or setting defaults, speeds up conversion when data is converted all at once.
    */
   BM_CREATE_SKIP_CD = (1 << 2),
-} eBMCreateFlag;
+};
 
 /**
  * \brief Main function for creating a new vertex.

@@ -403,6 +403,23 @@ std::string GHOST_WindowWin32::getTitle() const
   return title;
 }
 
+GHOST_TSuccess GHOST_WindowWin32::applyWindowDecorationStyle()
+{
+  /* DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR */
+  constexpr DWORD caption_color_attr = 35;
+
+  if (m_windowDecorationStyleFlags & GHOST_kDecorationColoredTitleBar) {
+    const float *color = m_windowDecorationStyleSettings.colored_titlebar_bg_color;
+    const COLORREF colorref = RGB(
+        char(color[0] * 255.0f), char(color[1] * 255.0f), char(color[2] * 255.0f));
+    if (!SUCCEEDED(DwmSetWindowAttribute(m_hWnd, caption_color_attr, &colorref, sizeof(colorref))))
+    {
+      return GHOST_kFailure;
+    }
+  }
+  return GHOST_kSuccess;
+}
+
 void GHOST_WindowWin32::getWindowBounds(GHOST_Rect &bounds) const
 {
   RECT rect;

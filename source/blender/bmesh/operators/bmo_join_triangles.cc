@@ -11,6 +11,8 @@
  * - convert triangles to any sided faces, not just quads.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
@@ -703,8 +705,7 @@ static float compute_alignment(const JoinEdgesState &s,
   }
 
   /* Pick the best option and average the four components. */
-  const float best_error = std::min(std::min(error[0], error[1]), std::min(error[2], error[3])) /
-                           4.0f;
+  const float best_error = std::min({error[0], error[1], error[2], error[3]}) / 4.0f;
 
   ASSERT_VALID_ERROR_METRIC(best_error);
 
@@ -714,9 +715,7 @@ static float compute_alignment(const JoinEdgesState &s,
   float alignment = 1.0f - (best_error / (M_PI / 4.0f));
 
   /* if alignment is *truly* awful, then do nothing. Don't make a join worse. */
-  if (alignment < 0.0f) {
-    alignment = 0.0f;
-  }
+  alignment = std::max(alignment, 0.0f);
 
   ASSERT_VALID_ERROR_METRIC(alignment);
 
@@ -835,9 +834,7 @@ static void reprioritize_join(JoinEdgesState &s,
    * the priority queue. Limiting improvement at 99% ensures those quads tend to retain their bad
    * sort, meaning they end up surrounded by quads that define a good grid,
    * then they merge last, which tends to produce better results. */
-  if (multiplier > maximum_improvement) {
-    multiplier = maximum_improvement;
-  }
+  multiplier = std::min(multiplier, maximum_improvement);
 
   ASSERT_VALID_ERROR_METRIC(multiplier);
 
@@ -965,7 +962,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   DelimitData delimit_data = bm_edge_delmimit_data_from_op(bm, op);
 
   /* Initial setup of state. */
-  JoinEdgesState s = {0};
+  JoinEdgesState s = {nullptr};
   s.topo_influnce = BMO_slot_float_get(op->slots_in, "topology_influence");
   s.use_topo_influence = (s.topo_influnce != 0.0f);
   s.edge_queue = BLI_heap_new();

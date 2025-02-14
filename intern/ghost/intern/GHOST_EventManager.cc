@@ -14,7 +14,7 @@
 #include "GHOST_Debug.hh"
 #include <algorithm>
 
-GHOST_EventManager::GHOST_EventManager() {}
+GHOST_EventManager::GHOST_EventManager() = default;
 
 GHOST_EventManager::~GHOST_EventManager()
 {

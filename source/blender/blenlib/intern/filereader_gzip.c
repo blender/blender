@@ -6,9 +6,9 @@
  * \ingroup bli
  */
 
+#include <stdio.h>
 #include <zlib.h>
 
-#include "BLI_blenlib.h"
 #include "BLI_filereader.h"
 
 #include "MEM_guardedalloc.h"
@@ -66,7 +66,7 @@ static void gzip_close(FileReader *reader)
   if (inflateEnd(&gzip->strm) != Z_OK) {
     printf("close gzip stream error\n");
   }
-  MEM_freeN((void *)gzip->in_buf);
+  MEM_freeN(gzip->in_buf);
 
   gzip->base->close(gzip->base);
   MEM_freeN(gzip);

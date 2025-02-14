@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.hh"
 #include "BLI_math_vector.h"

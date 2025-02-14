@@ -6,7 +6,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
@@ -688,13 +687,13 @@ static void node_rna(StructRNA *srna)
                 return !ELEM(item.value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER);
               });
         }
-        else if (data->data_type == SOCK_STRING) {
+        if (data->data_type == SOCK_STRING) {
           return enum_items_filter(
               rna_enum_node_compare_operation_items, [](const EnumPropertyItem &item) {
                 return ELEM(item.value, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL);
               });
         }
-        else if (data->data_type == SOCK_RGBA) {
+        if (data->data_type == SOCK_RGBA) {
           return enum_items_filter(rna_enum_node_compare_operation_items,
                                    [](const EnumPropertyItem &item) {
                                      return ELEM(item.value,
@@ -704,10 +703,8 @@ static void node_rna(StructRNA *srna)
                                                  NODE_COMPARE_COLOR_DARKER);
                                    });
         }
-        else {
-          return enum_items_filter(rna_enum_node_compare_operation_items,
-                                   [](const EnumPropertyItem & /*item*/) { return false; });
-        }
+        return enum_items_filter(rna_enum_node_compare_operation_items,
+                                 [](const EnumPropertyItem & /*item*/) { return false; });
       });
 
   prop = RNA_def_node_enum(

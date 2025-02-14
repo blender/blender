@@ -23,7 +23,6 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
-#include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
@@ -31,7 +30,6 @@
 #include "WM_types.hh"
 
 struct ARegion;
-struct GHashIterator;
 struct GPUViewport;
 struct ID;
 struct IDProperty;
@@ -187,11 +185,19 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_INPUT_IME = (1 << 6),
   /** Trackpad physical scroll detection. */
   WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION = (1 << 7),
+  /** Support for window decoration styles. */
+  WM_CAPABILITY_WINDOW_DECORATION_STYLES = (1 << 8),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
-ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION)
+ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_WINDOW_DECORATION_STYLES)
 
+/**
+ * Return the capabilities of the windowing system.
+ *
+ * \note Some callers need to check `G.background == false` before this function.
+ * See inline code-comments for details.
+ */
 eWM_CapabilitiesFlag WM_capabilities_flag();
 
 void WM_check(bContext *C);
@@ -286,6 +292,7 @@ void WM_window_rect_calc(const wmWindow *win, rcti *r_rect);
  * \note Depends on #UI_SCALE_FAC. Should that be outdated, call #WM_window_set_dpi first.
  */
 void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect);
+bool WM_window_is_main_top_level(const wmWindow *win);
 bool WM_window_is_fullscreen(const wmWindow *win);
 bool WM_window_is_maximized(const wmWindow *win);
 
@@ -375,6 +382,41 @@ void WM_window_set_dpi(const wmWindow *win);
 void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title = nullptr);
 
 bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check);
+
+/* Window Decoration Styles. */
+
+/**
+ * Flags for #WM_window_decoration_set_style().
+ *
+ * \note To be kept in sync with #GHOST_TWindowDecorationFlags.
+ */
+enum eWM_WindowDecorationStyleFlag {
+  /** No decoration styling. */
+  WM_WINDOW_DECORATION_STYLE_NONE = 0,
+  /** Colored TitleBar. */
+  WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR = (1 << 0),
+};
+ENUM_OPERATORS(eWM_WindowDecorationStyleFlag, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR)
+
+/**
+ * Get the window decoration style flags.
+ */
+eWM_WindowDecorationStyleFlag WM_window_decoration_style_flags_get(const wmWindow *win);
+/**
+ * Set window decoration style flags.
+ * Use before calling #WM_window_decoration_style_apply.
+ */
+void WM_window_decoration_style_flags_set(const wmWindow *win,
+                                          eWM_WindowDecorationStyleFlag style_flags);
+/**
+ * Apply the window decoration style using the current style flags and by parsing style
+ * settings from the current Blender theme.
+ * The screen parameter is optional, and can be passed for enhanced theme parsing.
+ *
+ * \note Avoid calling this function directly, prefer sending an #NC_WINDOW
+ * notification when #WM_CAPABILITY_WINDOW_DECORATION_STYLES is supported instead.
+ */
+void WM_window_decoration_style_apply(const wmWindow *win, const bScreen *screen = nullptr);
 
 /* `wm_files.cc`. */
 
@@ -1183,8 +1225,7 @@ std::optional<std::string> WM_context_path_resolve_full(bContext *C, const Point
 /* `wm_operator_type.cc` */
 
 wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);
-using wmOperatorTypeMap = blender::Map<std::string, wmOperatorType *>;
-const wmOperatorTypeMap &WM_operatortype_map();
+blender::Span<wmOperatorType *> WM_operatortypes_registered_get();
 void WM_operatortype_append(void (*opfunc)(wmOperatorType *ot));
 void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
                                 void *userdata);
@@ -1272,7 +1313,7 @@ void WM_operator_type_modal_from_exec_for_object_edit_coords(wmOperatorType *ot)
  * Called on initialize #WM_init()
  */
 void WM_uilisttype_init();
-uiListType *WM_uilisttype_find(const char *idname, bool quiet);
+uiListType *WM_uilisttype_find(blender::StringRef idname, bool quiet);
 bool WM_uilisttype_add(uiListType *ult);
 void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult);
 void WM_uilisttype_free();
@@ -1303,8 +1344,8 @@ const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list);
  * \note Called on initialize #WM_init().
  */
 void WM_menutype_init();
-MenuType *WM_menutype_find(const char *idname, bool quiet);
-void WM_menutype_iter(GHashIterator *ghi);
+MenuType *WM_menutype_find(blender::StringRef idname, bool quiet);
+blender::Span<MenuType *> WM_menutypes_registered_get();
 bool WM_menutype_add(MenuType *mt);
 void WM_menutype_freelink(MenuType *mt);
 void WM_menutype_free();
@@ -1324,7 +1365,7 @@ void WM_menutype_idname_visit_for_search(
  */
 void WM_paneltype_init();
 void WM_paneltype_clear();
-PanelType *WM_paneltype_find(const char *idname, bool quiet);
+PanelType *WM_paneltype_find(blender::StringRef idname, bool quiet);
 bool WM_paneltype_add(PanelType *pt);
 void WM_paneltype_remove(PanelType *pt);
 
@@ -1463,6 +1504,7 @@ wmDrag *WM_drag_data_create(
  */
 void WM_event_start_prepared_drag(bContext *C, wmDrag *drag);
 void WM_event_drag_image(wmDrag *drag, const ImBuf *imb, float scale);
+void WM_event_drag_preview_icon(wmDrag *drag, int icon_id);
 void WM_drag_free(wmDrag *drag);
 void WM_drag_data_free(eWM_DragDataType dragtype, void *poin);
 void WM_drag_free_list(ListBase *lb);
@@ -1783,7 +1825,7 @@ ImBuf *WM_clipboard_image_get();
  *
  * \param ibuf: the image to set the clipboard to.
  */
-bool WM_clipboard_image_set(ImBuf *ibuf) ATTR_NONNULL(1);
+bool WM_clipboard_image_set_byte_buffer(ImBuf *ibuf) ATTR_NONNULL(1);
 
 /* Progress. */
 

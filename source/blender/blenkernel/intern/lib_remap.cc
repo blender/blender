@@ -11,7 +11,6 @@
 #include "CLG_log.h"
 
 #include "BLI_array.hh"
-#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_collection_types.h"
@@ -419,7 +418,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
         break;
     }
     BKE_modifiers_test_object(ob);
-    BKE_object_materials_test(bmain, ob, new_id);
+    BKE_object_materials_sync_length(bmain, ob, new_id);
   }
 }
 

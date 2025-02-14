@@ -728,7 +728,7 @@ ShapeCache::ShapeCache()
     circle = BatchPtr(
         GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
   }
-  /* empty_spehere */
+  /* empty_sphere */
   {
     Vector<Vertex> verts = sphere_axes_circles(1.0f, VCLASS_EMPTY_SCALED, 32);
 
@@ -867,20 +867,23 @@ ShapeCache::ShapeCache()
        * Fractional part of Z is a positive offset at axis unit position. */
       int flag = VCLASS_EMPTY_AXES | VCLASS_SCREENALIGNED;
       /* Center to axis line. */
+      /* NOTE: overlay_armature_shape_wire_vert.glsl expects the axis verts at the origin to be the
+       * only ones with this coordinates (it derives the VCLASS from it). */
+      float pos_on_axis = float(axis) + 1e-8f;
       verts.append({{0.0f, 0.0f, 0.0f}, 0});
-      verts.append({{0.0f, 0.0f, float(axis)}, flag});
+      verts.append({{0.0f, 0.0f, pos_on_axis}, flag});
       /* Axis end marker. */
       constexpr int marker_fill_layer = 6;
       for (int j = 1; j < marker_fill_layer + 1; j++) {
         for (float2 axis_marker_vert : axis_marker) {
-          verts.append({{axis_marker_vert * ((4.0f * j) / marker_fill_layer), float(axis)}, flag});
+          verts.append({{axis_marker_vert * ((4.0f * j) / marker_fill_layer), pos_on_axis}, flag});
         }
       }
       /* Axis name. */
       const Vector<float2> *axis_names[3] = {&x_axis_name, &y_axis_name, &z_axis_name};
       for (float2 axis_name_vert : *(axis_names[axis])) {
         int flag = VCLASS_EMPTY_AXES | VCLASS_EMPTY_AXES_NAME | VCLASS_SCREENALIGNED;
-        verts.append({{axis_name_vert * 4.0f, axis + 0.25f}, flag});
+        verts.append({{axis_name_vert * 4.0f, pos_on_axis + 0.25f}, flag});
       }
     }
     arrows = BatchPtr(
@@ -985,7 +988,7 @@ ShapeCache::ShapeCache()
   {
     Vector<Vertex> verts;
     for (const uint3 &tri : bone_box_solid_tris) {
-      for (const int i : IndexRange(tri.type_length)) {
+      for (const int i : IndexRange(uint3::type_length)) {
         const int v = tri[i];
         const float x = bone_box_verts[v][2];
         const float y = bone_box_verts[v][0];

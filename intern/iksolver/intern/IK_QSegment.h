@@ -11,8 +11,6 @@
 #include "IK_Math.h"
 #include "IK_QJacobian.h"
 
-#include <vector>
-
 /**
  * An IK_Qsegment encodes information about a segments
  * local coordinate system.
@@ -91,7 +89,7 @@ class IK_QSegment {
   }
 
   // the max distance of the end of this bone from the local origin.
-  const double MaxExtension() const
+  double MaxExtension() const
   {
     return m_max_extension;
   }
@@ -101,12 +99,12 @@ class IK_QSegment {
   Vector3d TranslationChange() const;
 
   // the start and end of the segment
-  const Vector3d GlobalStart() const
+  Vector3d GlobalStart() const
   {
     return m_global_start;
   }
 
-  const Vector3d GlobalEnd() const
+  Vector3d GlobalEnd() const
   {
     return m_global_transform.translation();
   }
@@ -154,14 +152,14 @@ class IK_QSegment {
 
   // update the angles using the dTheta's computed using the jacobian matrix
   virtual bool UpdateAngle(const IK_QJacobian &, Vector3d &, bool *) = 0;
-  virtual void Lock(int, IK_QJacobian &, Vector3d &) {}
+  virtual void Lock(int /*dof*/, IK_QJacobian & /*jacobian*/, Vector3d & /*delta*/) {}
   virtual void UpdateAngleApply() = 0;
 
   // set joint limits
-  virtual void SetLimit(int, double, double) {}
+  virtual void SetLimit(int /*axis*/, double /*lmin*/, double /*lmmax*/) {}
 
   // set joint weights (per axis)
-  virtual void SetWeight(int, double) {}
+  virtual void SetWeight(int /*axis*/, double /*weight*/) {}
 
   virtual void SetBasis(const Matrix3d &basis)
   {
@@ -180,6 +178,7 @@ class IK_QSegment {
   IK_QSegment(int num_DoF, bool translational);
 
   // remove child as a child of this segment
+  void extracted();
   void RemoveChild(IK_QSegment *child);
 
   // tree structure variables
@@ -218,16 +217,16 @@ class IK_QSphericalSegment : public IK_QSegment {
  public:
   IK_QSphericalSegment();
 
-  Vector3d Axis(int dof) const;
+  Vector3d Axis(int dof) const override;
 
-  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp);
-  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta);
-  void UpdateAngleApply();
+  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp) override;
+  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta) override;
+  void UpdateAngleApply() override;
 
   bool ComputeClampRotation(Vector3d &clamp);
 
-  void SetLimit(int axis, double lmin, double lmax);
-  void SetWeight(int axis, double weight);
+  void SetLimit(int axis, double lmin, double lmax) override;
+  void SetWeight(int axis, double weight) override;
 
  private:
   Matrix3d m_new_basis;
@@ -241,17 +240,19 @@ class IK_QNullSegment : public IK_QSegment {
  public:
   IK_QNullSegment();
 
-  bool UpdateAngle(const IK_QJacobian &, Vector3d &, bool *)
+  bool UpdateAngle(const IK_QJacobian & /*jacobian*/,
+                   Vector3d & /*delta*/,
+                   bool * /*clamp*/) override
   {
     return false;
   }
-  void UpdateAngleApply() {}
+  void UpdateAngleApply() override {}
 
-  Vector3d Axis(int) const
+  Vector3d Axis(int /*dof*/) const override
   {
     return Vector3d(0, 0, 0);
   }
-  void SetBasis(const Matrix3d &)
+  void SetBasis(const Matrix3d & /*basis*/) override
   {
     m_basis.setIdentity();
   }
@@ -262,15 +263,15 @@ class IK_QRevoluteSegment : public IK_QSegment {
   // axis: the axis of the DoF, in range 0..2
   IK_QRevoluteSegment(int axis);
 
-  Vector3d Axis(int dof) const;
+  Vector3d Axis(int dof) const override;
 
-  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp);
-  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta);
-  void UpdateAngleApply();
+  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp) override;
+  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta) override;
+  void UpdateAngleApply() override;
 
-  void SetLimit(int axis, double lmin, double lmax);
-  void SetWeight(int axis, double weight);
-  void SetBasis(const Matrix3d &basis);
+  void SetLimit(int axis, double lmin, double lmax) override;
+  void SetWeight(int axis, double weight) override;
+  void SetBasis(const Matrix3d &basis) override;
 
  private:
   int m_axis;
@@ -284,15 +285,15 @@ class IK_QSwingSegment : public IK_QSegment {
   // XZ DOF, uses one direct rotation
   IK_QSwingSegment();
 
-  Vector3d Axis(int dof) const;
+  Vector3d Axis(int dof) const override;
 
-  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp);
-  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta);
-  void UpdateAngleApply();
+  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp) override;
+  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta) override;
+  void UpdateAngleApply() override;
 
-  void SetLimit(int axis, double lmin, double lmax);
-  void SetWeight(int axis, double weight);
-  void SetBasis(const Matrix3d &basis);
+  void SetLimit(int axis, double lmin, double lmax) override;
+  void SetWeight(int axis, double weight) override;
+  void SetBasis(const Matrix3d &basis) override;
 
  private:
   Matrix3d m_new_basis;
@@ -307,15 +308,15 @@ class IK_QElbowSegment : public IK_QSegment {
   // X or Z, then rotate around Y (twist)
   IK_QElbowSegment(int axis);
 
-  Vector3d Axis(int dof) const;
+  Vector3d Axis(int dof) const override;
 
-  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp);
-  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta);
-  void UpdateAngleApply();
+  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp) override;
+  void Lock(int dof, IK_QJacobian &jacobian, Vector3d &delta) override;
+  void UpdateAngleApply() override;
 
-  void SetLimit(int axis, double lmin, double lmax);
-  void SetWeight(int axis, double weight);
-  void SetBasis(const Matrix3d &basis);
+  void SetLimit(int axis, double lmin, double lmax) override;
+  void SetWeight(int axis, double weight) override;
+  void SetBasis(const Matrix3d &basis) override;
 
  private:
   int m_axis;
@@ -334,16 +335,16 @@ class IK_QTranslateSegment : public IK_QSegment {
   IK_QTranslateSegment(int axis1, int axis2);
   IK_QTranslateSegment();
 
-  Vector3d Axis(int dof) const;
+  Vector3d Axis(int dof) const override;
 
-  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp);
-  void Lock(int, IK_QJacobian &, Vector3d &);
-  void UpdateAngleApply();
+  bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta, bool *clamp) override;
+  void Lock(int /*dof*/, IK_QJacobian & /*jacobian*/, Vector3d & /*delta*/) override;
+  void UpdateAngleApply() override;
 
-  void SetWeight(int axis, double weight);
-  void SetLimit(int axis, double lmin, double lmax);
+  void SetWeight(int axis, double weight) override;
+  void SetLimit(int axis, double lmin, double lmax) override;
 
-  void Scale(double scale);
+  void Scale(double scale) override;
 
  private:
   int m_axis[3];

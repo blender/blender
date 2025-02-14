@@ -28,7 +28,6 @@
 
 #include "NOD_derived_node_tree.hh"
 #include "NOD_multi_function.hh"
-#include "NOD_node_declaration.hh"
 
 #include "COM_context.hh"
 #include "COM_domain.hh"
@@ -74,8 +73,9 @@ static const CPPType &get_cpp_type(ResultType type)
   return CPPType::get<float>();
 }
 
-/* Adds the single value parameter of the given input to the given parameter_builder. */
-static void add_single_value_parameter(mf::ParamsBuilder &parameter_builder, const Result &input)
+/* Adds the single value input parameter of the given input to the given parameter_builder. */
+static void add_single_value_input_parameter(mf::ParamsBuilder &parameter_builder,
+                                             const Result &input)
 {
   BLI_assert(input.is_single_value());
   switch (input.type()) {
@@ -100,6 +100,58 @@ static void add_single_value_parameter(mf::ParamsBuilder &parameter_builder, con
   }
 }
 
+/* Adds the single value output parameter of the given output to the given parameter_builder. */
+static void add_single_value_output_parameter(mf::ParamsBuilder &parameter_builder, Result &output)
+{
+  output.allocate_single_value();
+  switch (output.type()) {
+    case ResultType::Float:
+      parameter_builder.add_uninitialized_single_output(&output.get_single_value<float>());
+      return;
+    case ResultType::Int:
+      parameter_builder.add_uninitialized_single_output(&output.get_single_value<int>());
+      return;
+    case ResultType::Color:
+      parameter_builder.add_uninitialized_single_output(&output.get_single_value<float4>());
+      return;
+    case ResultType::Vector:
+      parameter_builder.add_uninitialized_single_output(&output.get_single_value<float4>());
+      return;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+/* Upload the single value output value to the GPU. The set_single_value method already does that,
+ * so we can call it on its own value. */
+static void upload_single_value_output_to_gpu(Result &output)
+{
+  switch (output.type()) {
+    case ResultType::Float:
+      output.set_single_value(output.get_single_value<float>());
+      return;
+    case ResultType::Int:
+      output.set_single_value(output.get_single_value<int>());
+      return;
+    case ResultType::Color:
+      output.set_single_value(output.get_single_value<float4>());
+      return;
+    case ResultType::Vector:
+      output.set_single_value(output.get_single_value<float4>());
+      return;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
 void MultiFunctionProcedureOperation::execute()
 {
   const Domain domain = compute_domain();
@@ -107,13 +159,15 @@ void MultiFunctionProcedureOperation::execute()
   const IndexMask mask = IndexMask(size);
   mf::ParamsBuilder parameter_builder{*procedure_executor_, &mask};
 
+  const bool is_single_value = this->is_single_value_operation();
+
   /* For each of the parameters, either add an input or an output depending on its interface type,
    * allocating the outputs when needed. */
   for (int i = 0; i < procedure_.params().size(); i++) {
     if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Input) {
       Result &input = get_input(parameter_identifiers_[i]);
       if (input.is_single_value()) {
-        add_single_value_parameter(parameter_builder, input);
+        add_single_value_input_parameter(parameter_builder, input);
       }
       else {
         const GSpan span{get_cpp_type(input.type()), input.data(), size};
@@ -121,15 +175,30 @@ void MultiFunctionProcedureOperation::execute()
       }
     }
     else {
-      Result &result = get_result(parameter_identifiers_[i]);
-      result.allocate_texture(domain);
-      const GMutableSpan span{get_cpp_type(result.type()), result.data(), size};
-      parameter_builder.add_uninitialized_single_output(span);
+      Result &output = get_result(parameter_identifiers_[i]);
+      if (is_single_value) {
+        add_single_value_output_parameter(parameter_builder, output);
+      }
+      else {
+        output.allocate_texture(domain);
+        const GMutableSpan span{get_cpp_type(output.type()), output.data(), size};
+        parameter_builder.add_uninitialized_single_output(span);
+      }
     }
   }
 
   mf::ContextBuilder context_builder;
   procedure_executor_->call_auto(mask, parameter_builder, context_builder);
+
+  /* In case of single value GPU execution, the single values need to be uploaded to the GPU. */
+  if (is_single_value && this->context().use_gpu()) {
+    for (int i = 0; i < procedure_.params().size(); i++) {
+      if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Output) {
+        Result &output = get_result(parameter_identifiers_[i]);
+        upload_single_value_output_to_gpu(output);
+      }
+    }
+  }
 }
 
 void MultiFunctionProcedureOperation::build_procedure()
@@ -478,6 +547,20 @@ void MultiFunctionProcedureOperation::populate_operation_result(DOutputSocket ou
 
   procedure_builder_.add_output_parameter(*variable);
   parameter_identifiers_.append(output_identifier);
+}
+
+bool MultiFunctionProcedureOperation::is_single_value_operation()
+{
+  /* Return true if all inputs are single values. */
+  for (int i = 0; i < procedure_.params().size(); i++) {
+    if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Input) {
+      Result &input = this->get_input(parameter_identifiers_[i]);
+      if (!input.is_single_value()) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 }  // namespace blender::compositor

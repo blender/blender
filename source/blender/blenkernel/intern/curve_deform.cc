@@ -8,8 +8,6 @@
  * Deform coordinates by a curve object (used by modifier).
  */
 
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 

@@ -1,15 +1,23 @@
-diff -Naur openvdb-8.0.0/openvdb/openvdb/CMakeLists.txt openvdb/openvdb/openvdb/CMakeLists.txt
---- openvdb-8.0.0/openvdb/openvdb/CMakeLists.txt	2020-12-24 10:13:14 -0700
-+++ openvdb/openvdb/openvdb/CMakeLists.txt	2021-02-05 11:18:33 -0700
-@@ -146,6 +148,7 @@
-         Boost::disable_autolinking  # add -DBOOST_ALL_NO_LIB
-       )
+diff -Naur openvdb-12.0.0/openvdb/openvdb/CMakeLists.txt openvdb/openvdb/openvdb/CMakeLists.txt
+--- openvdb-12.0.0/openvdb/openvdb/CMakeLists.txt	2024-10-31 16:59:05.000000000 -0700
++++ openvdb/openvdb/openvdb/CMakeLists.txt	2024-12-11 08:47:05.635327200 -0800
+@@ -148,6 +148,15 @@
    endif()
-+  add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE -DOPENVDB_OPENEXR_STATICLIB)
  endif()
  
- if(USE_EXR)
-@@ -379,7 +382,12 @@
++add_compile_definitions(
++  #Blender: prevent implicit TBB linkage 
++  __TBB_NO_IMPLICIT_LINKAGE 
++  #Blender: OpenEXR is static 
++  OPENVDB_OPENEXR_STATICLIB 
++  #Blender: Link the debug python libs rather than the release ones
++  $<$<CONFIG:Debug>:Py_DEBUG>
++)
++
+ if(USE_BLOSC)
+   # Find Blosc libraries
+   find_package(Blosc ${MINIMUM_BLOSC_VERSION} REQUIRED)
+@@ -608,7 +617,12 @@
  # imported targets.
  
  if(OPENVDB_CORE_SHARED)
@@ -23,9 +31,23 @@ diff -Naur openvdb-8.0.0/openvdb/openvdb/CMakeLists.txt openvdb/openvdb/openvdb/
  endif()
  
  if(OPENVDB_CORE_STATIC)
-diff -Naur openvdb-8.0.0/openvdb/openvdb/version.rc.in openvdb/openvdb/openvdb/version.rc.in
---- openvdb-8.0.0/openvdb/openvdb/version.rc.in	1969-12-31 17:00:00 -0700
-+++ openvdb/openvdb/openvdb/version.rc.in	2021-02-05 11:18:33 -0700
+diff -Naur openvdb-12.0.0/openvdb/openvdb/python/CMakeLists.txt openvdb/openvdb/openvdb/python/CMakeLists.txt
+--- openvdb-12.0.0/openvdb/openvdb/python/CMakeLists.txt	2024-10-31 16:59:05.000000000 -0700
++++ openvdb/openvdb/openvdb/python/CMakeLists.txt	2024-12-11 09:02:05.377733900 -0800
+@@ -22,7 +22,9 @@
+ option(OPENVDB_BUILD_PYTHON_UNITTESTS [=[
+ "Include the OpenVDB Python unit test. Requires a python interpreter]=]
+ ${OPENVDB_BUILD_UNITTESTS})
+-
++#blender: prevent double _d for the python module 
++set(CMAKE_DEBUG_POSTFIX "")
++add_compile_definitions($<$<CONFIG:Debug>:Py_DEBUG> __TBB_NO_IMPLICIT_LINKAGE)
+ #########################################################################
+ 
+ message(STATUS "----------------------------------------------------")
+diff -Naur openvdb-12.0.0/openvdb/openvdb/version.rc.in openvdb/openvdb/openvdb/version.rc.in
+--- openvdb-12.0.0/openvdb/openvdb/version.rc.in	1969-12-31 16:00:00.000000000 -0800
++++ openvdb/openvdb/openvdb/version.rc.in	2024-12-11 08:47:05.697536200 -0800
 @@ -0,0 +1,48 @@
 +#include <winver.h>
 +

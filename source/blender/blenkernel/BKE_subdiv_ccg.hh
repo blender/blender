@@ -71,7 +71,7 @@ struct SubdivCCGCoord {
 
   /* Returns the coordinate for the index in an array sized to contain all grid vertices (including
    * duplicates). */
-  inline static SubdivCCGCoord from_index(const CCGKey &key, int index)
+  static SubdivCCGCoord from_index(const CCGKey &key, int index)
   {
     const int grid_index = index / key.grid_area;
     const int index_in_grid = index - grid_index * key.grid_area;

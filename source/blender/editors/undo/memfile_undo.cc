@@ -9,7 +9,6 @@
  */
 
 #include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -17,7 +16,6 @@
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_enums.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -42,8 +40,6 @@
 #include "../blenloader/BLO_undofile.hh"
 
 #include "undo_intern.hh"
-
-#include <cstdio>
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System

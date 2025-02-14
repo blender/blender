@@ -758,7 +758,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
         GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_iter->data);
 
-        float4x4 mat_local;
+        float4x4 mat_local = float4x4::identity();
         if (use_mat_local) {
           mat_local = obedit->world_to_object() * ob_iter->object_to_world();
         }
@@ -773,13 +773,16 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                   bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
                       *depsgraph, *ob, info.layer_index, info.frame_number);
 
+              const float4x4 layer_transform =
+                  mat_local * grease_pencil.layer(info.layer_index).to_object_space(*ob_iter);
+
               IndexMaskMemory memory;
               const IndexMask selected_points = ed::curves::retrieve_selected_points(curves,
                                                                                      memory);
               const Span<float3> positions = deformation.positions;
               totsel += selected_points.size();
               selected_points.foreach_index([&](const int point_i) {
-                run_coord_with_matrix(positions[point_i], use_mat_local, mat_local.ptr());
+                run_coord_with_matrix(positions[point_i], true, layer_transform.ptr());
               });
             });
       }
@@ -1034,7 +1037,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
           copy_v3_v3(r_pivot_pos, ss->pivot_pos);
           return true;
         }
-        else if (blender::ed::object::calc_active_center(ob, false, r_pivot_pos)) {
+        if (blender::ed::object::calc_active_center(ob, false, r_pivot_pos)) {
           return true;
         }
       }
@@ -1156,7 +1159,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   }
   TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(scene,
                                                                                    orient_flag);
-  PointerRNA orient_ref_ptr = RNA_pointer_create(
+  PointerRNA orient_ref_ptr = RNA_pointer_create_discrete(
       &scene->id, &RNA_TransformOrientationSlot, orient_slot);
   const ToolSettings *ts = scene->toolsettings;
 
@@ -1173,7 +1176,8 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   if ((ts->transform_pivot_point == V3D_AROUND_CURSOR) || (orient_slot->type == V3D_ORIENT_CURSOR))
   {
     /* We could be more specific here, for now subscribe to any cursor change. */
-    PointerRNA cursor_ptr = RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor);
+    PointerRNA cursor_ptr = RNA_pointer_create_discrete(
+        &scene->id, &RNA_View3DCursor, &scene->cursor);
     WM_msg_subscribe_rna(mbus, &cursor_ptr, nullptr, &msg_sub_value_gz_tag_refresh, __func__);
   }
 
@@ -1190,7 +1194,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
     }
   }
 
-  PointerRNA toolsettings_ptr = RNA_pointer_create(
+  PointerRNA toolsettings_ptr = RNA_pointer_create_discrete(
       &scene->id, &RNA_ToolSettings, scene->toolsettings);
 
   if (ELEM(type_fn, VIEW3D_GGT_xform_gizmo, VIEW3D_GGT_xform_shear)) {
@@ -1213,7 +1217,8 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
     }
   }
 
-  PointerRNA view3d_ptr = RNA_pointer_create(&screen->id, &RNA_SpaceView3D, area->spacedata.first);
+  PointerRNA view3d_ptr = RNA_pointer_create_discrete(
+      &screen->id, &RNA_SpaceView3D, area->spacedata.first);
 
   if (type_fn == VIEW3D_GGT_xform_gizmo) {
     GizmoGroup *ggd = static_cast<GizmoGroup *>(gzgroup->customdata);

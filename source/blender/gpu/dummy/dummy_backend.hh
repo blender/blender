@@ -9,7 +9,6 @@
 #pragma once
 
 #include "gpu_backend.hh"
-#include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
 
 #include "dummy_batch.hh"

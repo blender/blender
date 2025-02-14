@@ -6,14 +6,12 @@
  * \ingroup edasset
  */
 
-#include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
 #include "DNA_screen_types.h"
 
-#include "BKE_asset.hh"
 #include "BKE_report.hh"
 
 #include "BLT_translation.hh"
@@ -143,7 +141,7 @@ void draw_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
 {
   uiLayout *col = uiLayoutColumn(&layout, false);
   uiLayoutSetContextString(col, "asset_catalog_path", item.catalog_path().c_str());
-  uiItemM(col, menu_name.c_str(), IFACE_(item.get_name().c_str()), ICON_NONE);
+  uiItemM(col, menu_name, IFACE_(item.get_name().c_str()), ICON_NONE);
 }
 
 }  // namespace blender::ed::asset

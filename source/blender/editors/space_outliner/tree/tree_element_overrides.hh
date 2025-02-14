@@ -38,10 +38,9 @@ class TreeElementOverridesBase final : public AbstractTreeElement {
  public:
   ID &id;
 
- public:
   TreeElementOverridesBase(TreeElement &legacy_te, ID &id);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
   StringRefNull get_warning() const override;
 };
@@ -59,7 +58,6 @@ class TreeElementOverridesProperty : public AbstractTreeElement {
   StringRefNull rna_path;
   bool is_rna_path_valid;
 
- public:
   TreeElementOverridesProperty(TreeElement &legacy_te, TreeElementOverridesData &override_data);
 
   StringRefNull get_warning() const override;

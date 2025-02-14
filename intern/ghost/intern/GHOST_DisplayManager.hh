@@ -82,7 +82,7 @@ class GHOST_DisplayManager {
                                                   const GHOST_DisplaySetting &setting);
 
  protected:
-  typedef std::vector<GHOST_DisplaySetting> GHOST_DisplaySettings;
+  using GHOST_DisplaySettings = std::vector<GHOST_DisplaySetting>;
 
   /**
    * Finds the best display settings match.

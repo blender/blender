@@ -6,10 +6,10 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
+#include "GPU_state.hh"
 #include "GPU_vertex_buffer.hh"
 #include "GPU_vertex_format.hh"
 
-#include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "gpu_testing.hh"

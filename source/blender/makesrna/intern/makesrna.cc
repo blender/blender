@@ -616,7 +616,7 @@ static bool rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
 }
 
 /**
- * Return the identifier for an enum which is defined in "RNA_enum_items.hh".
+ * Return the identifier for an enum which is defined in `RNA_enum_items.hh`.
  *
  * Prevents expanding duplicate enums bloating the binary size.
  */
@@ -3022,7 +3022,8 @@ static void rna_def_struct_function_impl_cpp(FILE *f, StructRNA *srna, FunctionD
         }
         else {
           fprintf(f,
-                  "\t\tresult = RNA_pointer_create((::ID *) ptr.owner_id, &RNA_%s, retdata);\n",
+                  "\t\tresult = RNA_pointer_create_discrete((::ID *) ptr.owner_id, &RNA_%s, "
+                  "retdata);\n",
                   (const char *)pprop->type);
         }
       }
@@ -4477,7 +4478,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       fprintf(f, ", ");
       rna_float_print(f, fprop->step);
       fprintf(f, ", ");
-      rna_int_print(f, int(fprop->precision));
+      rna_int_print(f, fprop->precision);
       fprintf(f, ", ");
       fprintf(f,
               "%s, %s",
@@ -4915,7 +4916,12 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"DNA_scene_types.h\"\n");
   fprintf(f, "#include \"DNA_node_types.h\"\n");
 
-  fprintf(f, "#include \"BLI_blenlib.h\"\n\n");
+  fprintf(f, "#include \"BLI_fileops.h\"\n\n");
+  fprintf(f, "#include \"BLI_listbase.h\"\n\n");
+  fprintf(f, "#include \"BLI_path_utils.hh\"\n\n");
+  fprintf(f, "#include \"BLI_rect.h\"\n\n");
+  fprintf(f, "#include \"BLI_string.h\"\n\n");
+  fprintf(f, "#include \"BLI_string_utf8.h\"\n\n");
   fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
 
   fprintf(f, "#include \"BKE_context.hh\"\n");

@@ -11,7 +11,6 @@
 #include "BLI_assert.h"
 #include "BLI_linklist.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -37,7 +36,6 @@
 #include "UI_resources.hh"
 
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_algorithm_extract_alpha.hh"
 #include "COM_node_operation.hh"
@@ -833,7 +831,7 @@ void register_node_type_cmp_rlayers()
   ntype.poll = file_ns::node_composit_poll_rlayers;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.compositor_unsupported_message = N_(
-      "Render passes not supported in the Viewport compositor");
+      "Render passes in the Viewport compositor are only supported in EEVEE");
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_storage(&ntype,
                                   std::nullopt,

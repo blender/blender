@@ -20,7 +20,7 @@ class TreeElementIDArmature final : public TreeElementID {
  public:
   TreeElementIDArmature(TreeElement &legacy_te, bArmature &arm);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_edit_bones() const;

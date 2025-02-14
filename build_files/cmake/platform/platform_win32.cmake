@@ -58,6 +58,22 @@ else()
   endif()
 endif()
 
+set(WINDOWS_ARM64_MIN_VSCMD_VER 17.12.3)
+# We have a minimum version of VSCMD for ARM64 (ie, the version the libs were compiled against)
+# This checks for the version on initial run, and caches it, so users do not have to run the VS CMD window every time
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+  set(VC_VSCMD_VER $ENV{VSCMD_VER} CACHE STRING "Version of the VSCMD initially run from")
+  mark_as_advanced(VC_VSCMD_VER)
+  set(VSCMD_VER ${VC_VSCMD_VER})
+  if(DEFINED VSCMD_VER)
+    if(VSCMD_VER VERSION_LESS WINDOWS_ARM64_MIN_VSCMD_VER)
+      message(FATAL_ERROR "Windows ARM64 requires VS2022 version ${WINDOWS_ARM64_MIN_VSCMD_VER} or greater - please update your VS2022 install!")
+    endif()
+  else()
+    message(FATAL_ERROR "Unable to detect the Visual Studio CMD version, try running from the visual studio developer prompt.")
+  endif()
+endif()
+
 if(WITH_BLENDER AND NOT WITH_PYTHON_MODULE)
   set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT blender)
 endif()
@@ -99,7 +115,7 @@ endif()
 list(APPEND PLATFORM_LINKLIBS
   ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32 version
   advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp Shlwapi
-  pathcch Shcore Dwmapi Crypt32
+  pathcch Shcore Dwmapi Crypt32 Bcrypt
 )
 
 if(WITH_INPUT_IME)
@@ -178,8 +194,8 @@ remove_cc_flag(
 )
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
-  string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /MP /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
-  string(APPEND CMAKE_C_FLAGS   " /MP /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
+  string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /MP /nologo /J /Gd /showFilenames /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
+  string(APPEND CMAKE_C_FLAGS   " /MP /nologo /J /Gd /showFilenames -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
 else()
   string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj")
   string(APPEND CMAKE_C_FLAGS   " /nologo /J /Gd /MP /bigobj")
@@ -515,13 +531,6 @@ if(WITH_OPENCOLLADA)
   endif()
 
   list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
-  if(EXISTS ${OPENCOLLADA}/lib/opencollada/pcre.lib)
-    set(PCRE_LIBRARIES
-      optimized ${OPENCOLLADA}/lib/opencollada/pcre.lib
-
-      debug ${OPENCOLLADA}/lib/opencollada/pcre_d.lib
-    )
-  endif()
 endif()
 
 if(WITH_CODEC_FFMPEG)
@@ -652,30 +661,40 @@ if(WITH_PYTHON)
 endif()
 
 if(NOT WITH_WINDOWS_FIND_MODULES)
-  # even if boost is off, we still need to install the dlls when we use our lib folder since
-  # some of the other dependencies may need them. For this to work, BOOST_VERSION,
-  # BOOST_POSTFIX, and BOOST_DEBUG_POSTFIX need to be set.
   set(BOOST ${LIBDIR}/boost)
   set(BOOST_INCLUDE_DIR ${BOOST}/include)
   set(BOOST_LIBPATH ${BOOST}/lib)
-  set(BOOST_VERSION_HEADER ${BOOST_INCLUDE_DIR}/boost/version.hpp)
-  if(EXISTS ${BOOST_VERSION_HEADER})
-    file(STRINGS "${BOOST_VERSION_HEADER}" BOOST_LIB_VERSION REGEX "#define BOOST_LIB_VERSION ")
-    if(BOOST_LIB_VERSION MATCHES "#define BOOST_LIB_VERSION \"([0-9_]+)\"")
-      set(BOOST_VERSION "${CMAKE_MATCH_1}")
-    endif()
-  endif()
-  if(NOT BOOST_VERSION)
-    message(FATAL_ERROR "Unable to determine Boost version")
-  endif()
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-    set(BOOST_POSTFIX "vc143-mt-a64-${BOOST_VERSION}")
-    set(BOOST_DEBUG_POSTFIX "vc143-mt-gyd-a64-${BOOST_VERSION}")
-    set(BOOST_PREFIX "")
+
+  # With Blender 4.4 libraries there is no more Boost. This code is only
+  # here until we can reasonably assume everyone has upgraded to them.
+  if(EXISTS "${LIBDIR}" AND NOT EXISTS "${BOOST}")
+    set(WITH_BOOST OFF)
+    set(BOOST_LIBRARIES)
+    set(BOOST_PYTHON_LIBRARIES)
+    set(BOOST_INCLUDE_DIR)
   else()
-    set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
-    set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
-    set(BOOST_PREFIX "")
+    # For older libraries when boost is off, we still need to install the dlls when
+    # since some of the other dependencies may need them. For this to work, BOOST_VERSION,
+    # BOOST_POSTFIX, and BOOST_DEBUG_POSTFIX need to be set.
+    set(BOOST_VERSION_HEADER ${BOOST_INCLUDE_DIR}/boost/version.hpp)
+    if(EXISTS ${BOOST_VERSION_HEADER})
+      file(STRINGS "${BOOST_VERSION_HEADER}" BOOST_LIB_VERSION REGEX "#define BOOST_LIB_VERSION ")
+      if(BOOST_LIB_VERSION MATCHES "#define BOOST_LIB_VERSION \"([0-9_]+)\"")
+        set(BOOST_VERSION "${CMAKE_MATCH_1}")
+      endif()
+    endif()
+    if(NOT BOOST_VERSION)
+      message(FATAL_ERROR "Unable to determine Boost version")
+    endif()
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+      set(BOOST_POSTFIX "vc143-mt-a64-${BOOST_VERSION}")
+      set(BOOST_DEBUG_POSTFIX "vc143-mt-gyd-a64-${BOOST_VERSION}")
+      set(BOOST_PREFIX "")
+    else()
+      set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
+      set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
+      set(BOOST_PREFIX "")
+    endif()
   endif()
 endif()
 
@@ -910,10 +929,17 @@ endif()
 if(WITH_TBB)
   windows_find_package(TBB)
   if(NOT TBB_FOUND)
-    set(TBB_LIBRARIES
-      optimized ${LIBDIR}/tbb/lib/tbb.lib
-      debug ${LIBDIR}/tbb/lib/tbb_debug.lib
-    )
+    if(EXISTS ${LIBDIR}/tbb/lib/tbb12.lib) # 4.4
+      set(TBB_LIBRARIES
+        optimized ${LIBDIR}/tbb/lib/tbb12.lib
+        debug ${LIBDIR}/tbb/lib/tbb12_debug.lib
+      )
+    else() # 4.3-
+      set(TBB_LIBRARIES
+        optimized ${LIBDIR}/tbb/lib/tbb.lib
+        debug ${LIBDIR}/tbb/lib/tbb_debug.lib
+      )
+    endif()
     set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
     set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
     if(WITH_TBB_MALLOC_PROXY)
@@ -1040,11 +1066,19 @@ if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
     )
 
     if(EMBREE_SYCL_SUPPORT)
-      set(EMBREE_LIBRARIES
-        ${EMBREE_LIBRARIES}
-        optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
-        debug ${LIBDIR}/embree/lib/embree4_sycl_d.lib
-      )
+      # MSVC debug version of embree may have been compiled without SYCL support
+      if(EXISTS ${LIBDIR}/embree/lib/embree4_sycl_d.lib)
+        set(EMBREE_LIBRARIES
+          ${EMBREE_LIBRARIES}
+          optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
+          debug ${LIBDIR}/embree/lib/embree4_sycl_d.lib
+        )
+      else()
+        set(EMBREE_LIBRARIES
+          ${EMBREE_LIBRARIES}
+          optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
+        )
+      endif()
     endif()
 
     if(EMBREE_STATIC_LIB)
@@ -1069,11 +1103,19 @@ if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
       )
 
       if(EMBREE_SYCL_SUPPORT)
-        set(EMBREE_LIBRARIES
-          ${EMBREE_LIBRARIES}
-          optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
-          debug ${LIBDIR}/embree/lib/embree_rthwif_d.lib
-        )
+        # MSVC debug version of embree may have been compiled without SYCL support
+        if(EXISTS ${LIBDIR}/embree/lib/embree_rthwif_d.lib)
+          set(EMBREE_LIBRARIES
+            ${EMBREE_LIBRARIES}
+            optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
+            debug ${LIBDIR}/embree/lib/embree_rthwif_d.lib
+          )
+        else()
+          set(EMBREE_LIBRARIES
+            ${EMBREE_LIBRARIES}
+            optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
+          )
+        endif()
       endif()
     endif()
   endif()
@@ -1302,7 +1344,7 @@ endif()
 get_filename_component(_msvc_path ${CMAKE_C_COMPILER} DIRECTORY)
 # Environment variables to run precompiled executables that needed libraries.
 list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)
-set(PLATFORM_ENV_BUILD_DIRS "${_msvc_path}\;${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${PATH}")
+set(PLATFORM_ENV_BUILD_DIRS "${_msvc_path}\;${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${LIBDIR}/opencolorio/bin\;${PATH}")
 set(PLATFORM_ENV_BUILD "PATH=${PLATFORM_ENV_BUILD_DIRS}")
 # Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like:
 # `idiff` and `abcls` use the release mode dlls.

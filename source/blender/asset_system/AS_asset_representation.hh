@@ -26,6 +26,7 @@
 
 struct AssetMetaData;
 struct ID;
+struct PreviewImage;
 
 namespace blender::asset_system {
 
@@ -33,7 +34,7 @@ class AssetLibrary;
 
 class AssetRepresentation : NonCopyable, NonMovable {
   /** Pointer back to the asset library that owns this asset representation. */
-  const AssetLibrary &owner_asset_library_;
+  AssetLibrary &owner_asset_library_;
   /**
    * Uniquely identifies the asset within the asset library. Currently this is always a path (path
    * within the asset library).
@@ -44,6 +45,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
     std::string name;
     int id_type = 0;
     std::unique_ptr<AssetMetaData> metadata_ = nullptr;
+    PreviewImage *preview_ = nullptr;
   };
   std::variant<ExternalAsset, ID *> asset_;
 
@@ -55,15 +57,13 @@ class AssetRepresentation : NonCopyable, NonMovable {
                       StringRef name,
                       int id_type,
                       std::unique_ptr<AssetMetaData> metadata,
-                      const AssetLibrary &owner_asset_library);
+                      AssetLibrary &owner_asset_library);
   /**
    * Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable.
    */
-  AssetRepresentation(StringRef relative_asset_path,
-                      ID &id,
-                      const AssetLibrary &owner_asset_library);
-  ~AssetRepresentation() = default;
+  AssetRepresentation(StringRef relative_asset_path, ID &id, AssetLibrary &owner_asset_library);
+  ~AssetRepresentation();
 
   /**
    * Create a weak reference for this asset that can be written to files, but can break under a
@@ -71,6 +71,23 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * A weak reference can only be created if an asset representation is owned by an asset library.
    */
   AssetWeakReference make_weak_reference() const;
+
+  /**
+   * Makes sure the asset ready to load a preview, if necessary.
+   *
+   * For local IDs it calls #BKE_previewimg_id_ensure(). For others, this sets loading information
+   * to the preview but doesn't actually load it. To load it, attach its
+   * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
+   * #BKE_previewimg_ensure() (not asynchronous).
+   */
+  void ensure_previewable();
+  /**
+   * Get the preview of this asset.
+   *
+   * This will only return a preview for local ID assets or after #ensure_previewable() was
+   * called.
+   */
+  PreviewImage *get_preview() const;
 
   StringRefNull get_name() const;
   ID_Type get_id_type() const;
@@ -100,7 +117,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
   ID *local_id() const;
   /** Returns if this asset is stored inside this current file, and as such fully editable. */
   bool is_local_id() const;
-  const AssetLibrary &owner_asset_library() const;
+  AssetLibrary &owner_asset_library() const;
 };
 
 }  // namespace blender::asset_system

@@ -5,14 +5,11 @@
 #include "ModelReader.h"
 #include "dualcon.h"
 #include "octree.h"
+#include <algorithm>
 #include <cassert>
 
-#include <cstdio>
-#include <float.h>
-
-#if defined(_WIN32)
-#  define isnan(n) _isnan(n)
-#endif
+#include <cfloat>
+#include <cmath>
 
 static void veccopy(float dst[3], const float src[3])
 {
@@ -42,7 +39,7 @@ class DualConInputReader : public ModelReader {
     reset();
   }
 
-  void reset()
+  void reset() override
   {
     curtri = 0;
     maxsize = 0;
@@ -54,9 +51,7 @@ class DualConInputReader : public ModelReader {
     /* initialize maxsize */
     for (int i = 0; i < 3; i++) {
       float d = max[i] - min[i];
-      if (d > maxsize) {
-        maxsize = d;
-      }
+      maxsize = std::max(d, maxsize);
     }
 
     /* redo the bounds */
@@ -71,10 +66,10 @@ class DualConInputReader : public ModelReader {
     maxsize *= 1 / scale;
   }
 
-  Triangle *getNextTriangle()
+  Triangle *getNextTriangle() override
   {
     if (curtri == input_mesh->tottri) {
-      return NULL;
+      return nullptr;
     }
 
     Triangle *t = new Triangle();
@@ -89,7 +84,7 @@ class DualConInputReader : public ModelReader {
     /* remove triangle if it contains invalid coords */
     for (int i = 0; i < 3; i++) {
       const float *co = t->vt[i];
-      if (isnan(co[0]) || isnan(co[1]) || isnan(co[2])) {
+      if (std::isnan(co[0]) || std::isnan(co[1]) || std::isnan(co[2])) {
         delete t;
         return getNextTriangle();
       }
@@ -98,7 +93,7 @@ class DualConInputReader : public ModelReader {
     return t;
   }
 
-  int getNextTriangle(int t[3])
+  int getNextTriangle(int t[3]) override
   {
     if (curtri == input_mesh->tottri) {
       return 0;
@@ -114,31 +109,31 @@ class DualConInputReader : public ModelReader {
     return 1;
   }
 
-  int getNumTriangles()
+  int getNumTriangles() override
   {
     return tottri;
   }
 
-  int getNumVertices()
+  int getNumVertices() override
   {
     return input_mesh->totco;
   }
 
-  float getBoundingBox(float origin[3])
+  float getBoundingBox(float origin[3]) override
   {
     veccopy(origin, min);
     return maxsize;
   }
 
   /* output */
-  void getNextVertex(float /*v*/[3])
+  void getNextVertex(float /*v*/[3]) override
   {
     /* not used */
   }
 
   /* stubs */
-  void printInfo() {}
-  int getMemory()
+  void printInfo() override {}
+  int getMemory() override
   {
     return sizeof(DualConInputReader);
   }

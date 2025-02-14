@@ -41,8 +41,7 @@ static VkImageAspectFlags to_vk_image_aspect_single_bit(const VkImageAspectFlags
 VKTexture::~VKTexture()
 {
   if (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
-    VKDevice &device = VKBackend::get().device;
-    device.discard_pool_for_current_thread().discard_image(vk_image_, allocation_);
+    VKDiscardPool::discard_pool_get().discard_image(vk_image_, allocation_);
     vk_image_ = VK_NULL_HANDLE;
     allocation_ = VK_NULL_HANDLE;
   }
@@ -83,7 +82,7 @@ void VKTexture::generate_mipmap()
   update_mipmaps.vk_image_aspect = to_vk_image_aspect_flag_bits(device_format_);
   update_mipmaps.mipmaps = mipmaps_;
   update_mipmaps.layer_count = vk_layer_count(1);
-  context.render_graph.add_node(update_mipmaps);
+  context.render_graph().add_node(update_mipmaps);
 }
 
 void VKTexture::copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspect)
@@ -101,7 +100,7 @@ void VKTexture::copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspe
   copy_image.vk_image_aspect = to_vk_image_aspect_flag_bits(device_format_get());
 
   VKContext &context = *VKContext::get();
-  context.render_graph.add_node(copy_image);
+  context.render_graph().add_node(copy_image);
 }
 
 void VKTexture::copy_to(Texture *tex)
@@ -142,7 +141,7 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
 
   VKContext &context = *VKContext::get();
 
-  context.render_graph.add_node(clear_color_image);
+  context.render_graph().add_node(clear_color_image);
 }
 
 void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
@@ -171,7 +170,7 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
       VK_REMAINING_MIP_LEVELS;
 
   VKContext &context = *VKContext::get();
-  context.render_graph.add_node(clear_depth_stencil_image);
+  context.render_graph().add_node(clear_depth_stencil_image);
 }
 
 void VKTexture::swizzle_set(const char swizzle_mask[4])
@@ -195,10 +194,13 @@ void VKTexture::read_sub(
   VKBuffer staging_buffer;
   size_t device_memory_size = sample_len * to_bytesize(device_format_);
   staging_buffer.create(device_memory_size,
-                        GPU_USAGE_DYNAMIC,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                        /* Although we are only reading, we need to set the host access random bit
+                           to improve the performance on AMD GPUs. */
+                        VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
+                            VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
   render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
   render_graph::VKCopyImageToBufferNode::Data &node_data = copy_image_to_buffer.node_data;
@@ -220,9 +222,12 @@ void VKTexture::read_sub(
 
   VKContext &context = *VKContext::get();
   context.rendering_end();
-  context.render_graph.add_node(copy_image_to_buffer);
+  context.render_graph().add_node(copy_image_to_buffer);
   context.descriptor_set_get().upload_descriptor_sets();
-  context.render_graph.submit_for_read();
+
+  context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
+                             RenderGraphFlushFlags::RENEW_RENDER_GRAPH |
+                             RenderGraphFlushFlags::WAIT_FOR_COMPLETION);
 
   convert_device_to_host(
       r_data, staging_buffer.mapped_memory_get(), sample_len, format, format_, device_format_);
@@ -311,10 +316,11 @@ void VKTexture::update_sub(int mip,
   VkBuffer vk_buffer = VK_NULL_HANDLE;
   if (data) {
     staging_buffer.create(device_memory_size,
-                          GPU_USAGE_DYNAMIC,
                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
     vk_buffer = staging_buffer.vk_handle();
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
      * other cases we unpack the rows to reduce the size of the staging buffer and data transfer.
@@ -362,7 +368,7 @@ void VKTexture::update_sub(int mip,
   node_data.region.imageSubresource.baseArrayLayer = start_layer;
   node_data.region.imageSubresource.layerCount = layers;
 
-  context.render_graph.add_node(copy_buffer_to_image);
+  context.render_graph().add_node(copy_buffer_to_image);
 }
 
 void VKTexture::update_sub(

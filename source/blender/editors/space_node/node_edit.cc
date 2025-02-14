@@ -75,6 +75,7 @@
 #include "node_intern.hh" /* own include */
 
 #include "COM_compositor.hh"
+#include "COM_context.hh"
 #include "COM_profiler.hh"
 
 namespace blender::ed::space_node {
@@ -109,6 +110,7 @@ struct CompoJob {
   bool cancelled;
 
   compositor::Profiler profiler;
+  compositor::OutputTypes needed_outputs;
 };
 
 float node_socket_calculate_height(const bNodeSocket &socket)
@@ -246,6 +248,12 @@ static void compo_initjob(void *cjv)
     DEG_debug_name_set(compositor_runtime.preview_depsgraph, "COMPOSITOR");
   }
 
+  /* Update the viewer layer of the compositor since it changed since the depsgraph was created. */
+  if (DEG_get_input_view_layer(compositor_runtime.preview_depsgraph) != view_layer) {
+    DEG_graph_replace_owners(compositor_runtime.preview_depsgraph, bmain, scene, view_layer);
+    DEG_graph_tag_relations_update(compositor_runtime.preview_depsgraph);
+  }
+
   cj->compositor_depsgraph = compositor_runtime.preview_depsgraph;
   DEG_graph_build_for_compositor_preview(cj->compositor_depsgraph, cj->ntree);
 
@@ -308,14 +316,15 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
-    COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler);
+    COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      COM_execute(cj->re, &scene->r, scene, ntree, srv->name, nullptr, &cj->profiler);
+      COM_execute(
+          cj->re, &scene->r, scene, ntree, srv->name, nullptr, &cj->profiler, cj->needed_outputs);
     }
   }
 
@@ -378,8 +387,63 @@ static bool is_compositing_possible(const bContext *C)
   return true;
 }
 
+/* Returns the compositor outputs that need to be computed because their result is visible to the
+ * user. */
+static blender::compositor::OutputTypes get_compositor_needed_outputs(const bContext *C)
+{
+  blender::compositor::OutputTypes needed_outputs = blender::compositor::OutputTypes::None;
+
+  wmWindowManager *window_manager = CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, window, &window_manager->windows) {
+    bScreen *screen = WM_window_get_active_screen(window);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      SpaceLink *space_link = static_cast<SpaceLink *>(area->spacedata.first);
+      if (!space_link || !ELEM(space_link->spacetype, SPACE_NODE, SPACE_IMAGE)) {
+        continue;
+      }
+      if (space_link->spacetype == SPACE_NODE) {
+        const SpaceNode *space_node = reinterpret_cast<const SpaceNode *>(space_link);
+        if (space_node->flag & SNODE_BACKDRAW) {
+          needed_outputs |= blender::compositor::OutputTypes::Viewer;
+        }
+        if (space_node->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) {
+          needed_outputs |= blender::compositor::OutputTypes::Previews;
+        }
+      }
+      else if (space_link->spacetype == SPACE_IMAGE) {
+        const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(space_link);
+        Image *image = ED_space_image(space_image);
+        if (!image || image->source != IMA_SRC_VIEWER) {
+          continue;
+        }
+        if (image->type == IMA_TYPE_R_RESULT) {
+          needed_outputs |= blender::compositor::OutputTypes::Composite;
+        }
+        else if (image->type == IMA_TYPE_COMPOSITE) {
+          needed_outputs |= blender::compositor::OutputTypes::Viewer;
+        }
+      }
+
+      /* All outputs are already needed, return early. */
+      if (needed_outputs ==
+          (blender::compositor::OutputTypes::Composite | blender::compositor::OutputTypes::Viewer |
+           blender::compositor::OutputTypes::Previews))
+      {
+        return needed_outputs;
+      }
+    }
+  }
+
+  return needed_outputs;
+}
+
 void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner)
 {
+  blender::compositor::OutputTypes needed_outputs = get_compositor_needed_outputs(C);
+  if (needed_outputs == blender::compositor::OutputTypes::None) {
+    return;
+  }
+
   using namespace blender::ed::space_node;
 
   Main *bmain = CTX_data_main(C);
@@ -416,6 +480,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   cj->view_layer = view_layer;
   cj->ntree = nodetree;
   cj->recalc_flags = compo_get_recalc_flags(C);
+  cj->needed_outputs = needed_outputs;
 
   /* Set up job. */
   WM_jobs_customdata_set(wm_job, cj, compo_freejob);
@@ -681,7 +746,6 @@ void snode_set_context(const bContext &C)
 void ED_node_set_active(
     Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed)
 {
-  const bool was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE) != 0;
   if (r_active_texture_changed) {
     *r_active_texture_changed = false;
   }
@@ -729,7 +793,7 @@ void ED_node_set_active(
 
     BKE_main_ensure_invariants(*bmain, ntree->id);
 
-    if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+    if (node->flag & NODE_ACTIVE_TEXTURE) {
       /* If active texture changed, free GLSL materials. */
       LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
         if (ma->nodetree && ma->use_nodes &&
@@ -952,10 +1016,12 @@ wmKeyMap *node_resize_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-/* Compute the nearest 1D coordinate corresponding to the nearest grid in node. */
+/* Compute the nearest 1D coordinate corresponding to the nearest grid in node editors. */
 static float nearest_node_grid_coord(float co)
 {
-  float grid_size = grid_size_get();
+  /* Size and location of nodes are independent of UI scale, so grid size should be independent of
+   * UI scale as well. */
+  float grid_size = grid_size_get() / UI_SCALE_FAC;
   float rest = fmod(co, grid_size);
   float offset = rest - grid_size / 2 >= 0 ? grid_size : 0;
 

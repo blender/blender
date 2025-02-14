@@ -4,8 +4,6 @@
 
 #include "BLI_string_utf8.h"
 
-#include <iomanip>
-
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_string_length_cc {

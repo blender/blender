@@ -14,7 +14,7 @@
 #  include <io.h> /* for open close read */
 #endif
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_filereader.h"
 
 #include "MEM_guardedalloc.h"

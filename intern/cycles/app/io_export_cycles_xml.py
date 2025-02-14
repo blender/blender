@@ -54,7 +54,7 @@ class CyclesXMLSettings(bpy.types.PropertyGroup):
 # User Interface Drawing Code.
 
 
-class RenderButtonsPanel():
+class RenderButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"

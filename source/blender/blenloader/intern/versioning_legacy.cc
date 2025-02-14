@@ -24,6 +24,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -36,7 +37,6 @@
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
@@ -46,9 +46,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -57,7 +57,6 @@
 #include "BKE_constraint.h"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_fcurve.hh"
 #include "BKE_lattice.hh"
 #include "BKE_main.hh" /* for Main */
 #include "BKE_mesh.hh" /* for ME_ defines (patching) */
@@ -132,9 +131,7 @@ static void bone_version_238(ListBase *lb)
       bone->rad_tail = 0.1f * bone->length;
 
       bone->dist -= bone->rad_head;
-      if (bone->dist <= 0.0f) {
-        bone->dist = 0.0f;
-      }
+      bone->dist = std::max(bone->dist, 0.0f);
     }
     bone_version_238(&bone->childbase);
   }
@@ -488,8 +485,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* tex->extend and tex->imageflag have changed: */
     Tex *tex = static_cast<Tex *>(bmain->textures.first);
     while (tex) {
-      if (tex->id.tag & ID_TAG_NEED_LINK) {
-
+      if (BLO_readfile_id_runtime_tags(tex->id).needs_linking) {
         if (tex->extend == 0) {
           if (tex->xrepeat || tex->yrepeat) {
             tex->extend = TEX_REPEAT;
@@ -2230,7 +2226,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 245, 8)) {
     Scene *sce;
     Object *ob;
-    PartEff *paf = nullptr;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next))
@@ -2252,7 +2247,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
 
       /* convert old particles to new system */
-      if ((paf = BKE_object_do_version_give_parteff_245(ob))) {
+      PartEff *paf = BKE_object_do_version_give_parteff_245(ob);
+      if (paf) {
         ParticleSystem *psys;
         ModifierData *md;
         ParticleSystemModifierData *psmd;
@@ -2273,7 +2269,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         part->id.lib = ob->id.lib;
 
         part->id.us--;
-        part->id.tag |= (ob->id.tag & ID_TAG_NEED_LINK);
+        BLO_readfile_id_runtime_tags_for_write(part->id).needs_linking =
+            BLO_readfile_id_runtime_tags(ob->id).needs_linking;
 
         psys->totpart = 0;
         psys->flag = PSYS_CURRENT;

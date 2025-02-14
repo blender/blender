@@ -12,8 +12,6 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h" /* SELECT */
 
-#include "BLI_utildefines.h"
-
 #include "BKE_tracking.h"
 
 #include "IMB_imbuf_types.hh"

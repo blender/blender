@@ -10,27 +10,19 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_brush_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_mask_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
-#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.hh"
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
+#include "IMB_imbuf_enums.h"
 #include "IMB_moviecache.hh"
 
 #include "BKE_context.hh"
@@ -39,7 +31,6 @@
 
 #include "BIF_glutil.hh"
 
-#include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"

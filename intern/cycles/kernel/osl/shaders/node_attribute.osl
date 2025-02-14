@@ -19,15 +19,15 @@ shader node_attribute(string bump_offset = "center",
   Alpha = data[3];
 
   if (bump_offset == "dx") {
-    Color += Dx(Color);
-    Vector += Dx(Vector);
-    Fac += Dx(Fac);
-    Alpha += Dx(Alpha);
+    Color += Dx(Color) * BUMP_DX;
+    Vector += Dx(Vector) * BUMP_DX;
+    Fac += Dx(Fac) * BUMP_DX;
+    Alpha += Dx(Alpha) * BUMP_DX;
   }
   else if (bump_offset == "dy") {
-    Color += Dy(Color);
-    Vector += Dy(Vector);
-    Fac += Dy(Fac);
-    Alpha += Dy(Alpha);
+    Color += Dy(Color) * BUMP_DY;
+    Vector += Dy(Vector) * BUMP_DY;
+    Fac += Dy(Fac) * BUMP_DY;
+    Alpha += Dy(Alpha) * BUMP_DY;
   }
 }

@@ -691,7 +691,7 @@ static bool toolsystem_key_ensure_check(const bToolKey *tkey)
     case SPACE_VIEW3D:
       return true;
     case SPACE_IMAGE:
-      if (ELEM(tkey->mode, SI_MODE_PAINT, SI_MODE_UV)) {
+      if (ELEM(tkey->mode, SI_MODE_PAINT, SI_MODE_UV, SI_MODE_VIEW)) {
         return true;
       }
       break;
@@ -1101,6 +1101,8 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
       switch (tkey->mode) {
         case SI_MODE_PAINT:
           return "builtin.brush";
+        case SI_MODE_VIEW:
+          return "builtin.sample";
       }
       break;
     case SPACE_NODE: {
@@ -1262,7 +1264,7 @@ bool WM_toolsystem_ref_properties_get_ex(bToolRef *tref,
 {
   IDProperty *group = WM_toolsystem_ref_properties_get_idprops(tref);
   IDProperty *prop = group ? IDP_GetPropertyFromGroup(group, idname) : nullptr;
-  *r_ptr = RNA_pointer_create(nullptr, type, prop);
+  *r_ptr = RNA_pointer_create_discrete(nullptr, type, prop);
   return (prop != nullptr);
 }
 
@@ -1273,7 +1275,7 @@ void WM_toolsystem_ref_properties_ensure_ex(bToolRef *tref,
 {
   IDProperty *group = WM_toolsystem_ref_properties_ensure_idprops(tref);
   IDProperty *prop = idprops_ensure_named_group(group, idname);
-  *r_ptr = RNA_pointer_create(nullptr, type, prop);
+  *r_ptr = RNA_pointer_create_discrete(nullptr, type, prop);
 }
 
 void WM_toolsystem_ref_properties_init_for_keymap(bToolRef *tref,

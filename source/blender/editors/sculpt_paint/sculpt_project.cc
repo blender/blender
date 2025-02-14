@@ -8,7 +8,6 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 
-#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
@@ -201,7 +200,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
       break;
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 static void gesture_end(bContext &C, gesture::GestureData &gesture_data)

@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_utildefines.h"
-
 #include "BCMath.h"
 #include "BlenderContext.h"
 

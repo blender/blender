@@ -18,6 +18,7 @@ namespace blender::gpu {
 VKStorageBuffer::VKStorageBuffer(size_t size, GPUUsageType usage, const char *name)
     : StorageBuf(size, name), usage_(usage)
 {
+  UNUSED_VARS(usage_);
 }
 
 void VKStorageBuffer::update(const void *data)
@@ -43,10 +44,11 @@ void VKStorageBuffer::allocate()
                                                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
                                                 VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   buffer_.create(size_in_bytes_,
-                 usage_,
                  buffer_usage_flags,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                 VkMemoryPropertyFlags(0),
+                 VmaAllocationCreateFlags(0));
+  BLI_assert(buffer_.is_allocated());
   debug::object_label(buffer_.vk_handle(), name_);
 }
 
@@ -87,7 +89,7 @@ void VKStorageBuffer::copy_sub(VertBuf *src, uint dst_offset, uint src_offset, u
   copy_buffer.region.size = copy_size;
 
   VKContext &context = *VKContext::get();
-  context.render_graph.add_node(copy_buffer);
+  context.render_graph().add_node(copy_buffer);
 }
 
 void VKStorageBuffer::async_flush_to_host()

@@ -9,7 +9,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_material.hh"
 #include "BLI_array_utils.hh"
-#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"

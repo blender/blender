@@ -280,7 +280,7 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
 
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
   if (context->img_convert_frame != nullptr) {
-    BLI_assert(context->img_convert_ctx != NULL);
+    BLI_assert(context->img_convert_ctx != nullptr);
     /* Ensure the frame we are scaling to is writable as well. */
     av_frame_make_writable(context->current_frame);
     ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
@@ -1257,8 +1257,7 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
                                       bool preview,
                                       const char *suffix)
 {
-  MovieWriter *context = static_cast<MovieWriter *>(
-      MEM_callocN(sizeof(MovieWriter), "new FFMPEG context"));
+  MovieWriter *context = MEM_new<MovieWriter>("new FFMPEG context");
 
   context->ffmpeg_codec = AV_CODEC_ID_MPEG4;
   context->ffmpeg_audio_codec = AV_CODEC_ID_NONE;
@@ -1400,7 +1399,7 @@ static void ffmpeg_movie_close(MovieWriter *context)
   if (context->stamp_data) {
     MEM_freeN(context->stamp_data);
   }
-  MEM_freeN(context);
+  MEM_delete(context);
 }
 
 #endif /* WITH_FFMPEG */

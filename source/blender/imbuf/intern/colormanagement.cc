@@ -28,9 +28,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color.hh"
+#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -947,8 +947,7 @@ static OCIO_ConstCPUProcessorRcPtr *colorspace_to_scene_linear_cpu_processor(
           colorspace->name, global_role_scene_linear);
 
       if (processor != nullptr) {
-        colorspace->to_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)OCIO_processorGetCPUProcessor(
-            processor);
+        colorspace->to_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }
@@ -970,8 +969,7 @@ static OCIO_ConstCPUProcessorRcPtr *colorspace_from_scene_linear_cpu_processor(
           global_role_scene_linear, colorspace->name);
 
       if (processor != nullptr) {
-        colorspace->from_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)
-            OCIO_processorGetCPUProcessor(processor);
+        colorspace->from_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }
@@ -1010,8 +1008,7 @@ static OCIO_ConstCPUProcessorRcPtr *display_from_scene_linear_processor(
       }
 
       if (processor != nullptr) {
-        display->from_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)OCIO_processorGetCPUProcessor(
-            processor);
+        display->from_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }
@@ -1049,8 +1046,7 @@ static OCIO_ConstCPUProcessorRcPtr *display_to_scene_linear_processor(ColorManag
       }
 
       if (processor != nullptr) {
-        display->to_scene_linear = (OCIO_ConstCPUProcessorRcPtr *)OCIO_processorGetCPUProcessor(
-            processor);
+        display->to_scene_linear = OCIO_processorGetCPUProcessor(processor);
         OCIO_processorRelease(processor);
       }
     }
@@ -1773,13 +1769,13 @@ static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
   }
 }
 
-static void *do_display_buffer_apply_thread(void *handle_v)
+static void do_display_buffer_apply_thread(void *handle_v)
 {
   DisplayBufferThread *handle = (DisplayBufferThread *)handle_v;
   ColormanageProcessor *cm_processor = handle->cm_processor;
   if (cm_processor == nullptr) {
     do_display_buffer_apply_no_processor(handle);
-    return nullptr;
+    return;
   }
 
   float *display_buffer = handle->display_buffer;
@@ -1832,8 +1828,6 @@ static void *do_display_buffer_apply_thread(void *handle_v)
   }
 
   MEM_freeN(linear_buffer);
-
-  return nullptr;
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf,
@@ -2014,7 +2008,7 @@ static void processor_transform_init_handle(void *handle_v,
   handle->float_from_byte = float_from_byte;
 }
 
-static void *do_processor_transform_thread(void *handle_v)
+static void do_processor_transform_thread(void *handle_v)
 {
   ProcessorTransformThread *handle = (ProcessorTransformThread *)handle_v;
   uchar *byte_buffer = handle->byte_buffer;
@@ -2049,8 +2043,6 @@ static void *do_processor_transform_thread(void *handle_v)
           handle->cm_processor, float_buffer, width, height, channels, predivide);
     }
   }
-
-  return nullptr;
 }
 
 static void processor_transform_apply_threaded(uchar *byte_buffer,

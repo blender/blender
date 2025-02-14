@@ -435,8 +435,6 @@ class _draw_tool_settings_context_mode:
         # Brush falloff
         layout.popover("VIEW3D_PT_tools_brush_falloff")
 
-        # Active layer only switch
-        layout.prop(brush.gpencil_settings, "use_active_layer_only")
         return True
 
     @staticmethod
@@ -954,6 +952,12 @@ class VIEW3D_HT_header(Header):
                         panel="VIEW3D_PT_grease_pencil_guide",
                         text="Guides",
                     )
+            if object_mode == 'SCULPT_GREASE_PENCIL':
+                layout.popover(
+                    panel="VIEW3D_PT_grease_pencil_sculpt_automasking",
+                    text="",
+                    icon=VIEW3D_HT_header._grease_pencil_sculpt_automasking_icon(tool_settings.gpencil_sculpt),
+                )
 
         elif object_mode == 'SCULPT':
             # If the active tool supports it, show the canvas selector popover.
@@ -979,6 +983,9 @@ class VIEW3D_HT_header(Header):
                 canvas_source = tool_settings.paint_mode.canvas_source
                 icon = 'GROUP_VCOL' if canvas_source == 'COLOR_ATTRIBUTE' else canvas_source
                 row.popover(panel="VIEW3D_PT_slots_paint_canvas", icon=icon)
+                # TODO: Update this boolean condition so that the Canvas button is only active when
+                # the appropriate color types are selected in Solid mode, I.E. 'TEXTURE'
+                row.active = is_paint_tool
             else:
                 row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
 
@@ -1271,7 +1278,13 @@ class VIEW3D_MT_transform_base:
         layout.operator("transform.push_pull", text="Push/Pull")
 
         if context.mode in {
-                'EDIT_MESH', 'EDIT_ARMATURE', 'EDIT_SURFACE', 'EDIT_CURVE', 'EDIT_LATTICE', 'EDIT_METABALL',
+            'EDIT_MESH',
+            'EDIT_ARMATURE',
+            'EDIT_SURFACE',
+            'EDIT_CURVE',
+            'EDIT_CURVES',
+            'EDIT_LATTICE',
+            'EDIT_METABALL',
         }:
             layout.operator("transform.vertex_warp", text="Warp")
             layout.operator_context = 'EXEC_REGION_WIN'
@@ -2585,7 +2598,7 @@ class VIEW3D_MT_grease_pencil_add(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("object.grease_pencil_add", text="Empty", icon='EMPTY_AXIS').type = 'EMPTY'
+        layout.operator("object.grease_pencil_add", text="Blank", icon='EMPTY_AXIS').type = 'EMPTY'
         layout.operator("object.grease_pencil_add", text="Stroke", icon='STROKE').type = 'STROKE'
         layout.operator("object.grease_pencil_add", text="Monkey", icon='MONKEY').type = 'MONKEY'
         layout.separator()
@@ -4137,6 +4150,9 @@ class VIEW3D_MT_pose(Menu):
 
         layout.menu("VIEW3D_MT_pose_showhide")
         layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
+
+        layout.separator()
+        layout.operator("POSELIB.create_pose_asset")
 
 
 class VIEW3D_MT_pose_transform(Menu):
@@ -5722,7 +5738,8 @@ class VIEW3D_MT_edit_greasepencil(Menu):
         layout.separator()
 
         layout.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
-        layout.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
+        layout.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+        layout.operator("grease_pencil.paste", text="Paste by Layer").type = 'LAYER'
 
         layout.separator()
 
@@ -8116,9 +8133,10 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Copy/paste
-            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
-            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
             col.operator("grease_pencil.duplicate_move", text="Duplicate")
+            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
+            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+            col.operator("grease_pencil.paste", text="Paste by Layer").type = 'LAYER'
 
             col.separator()
 
@@ -8791,7 +8809,7 @@ class View3DAssetShelf(BrushAssetShelf):
     bl_space_type = "VIEW_3D"
 
 
-class AssetShelfHiddenByDefault():
+class AssetShelfHiddenByDefault:
     # Take #BrushAssetShelf.bl_options but remove the 'DEFAULT_VISIBLE' flag.
     bl_options = {option for option in BrushAssetShelf.bl_options if option != 'DEFAULT_VISIBLE'}
 

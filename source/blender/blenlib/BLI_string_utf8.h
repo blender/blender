@@ -21,6 +21,14 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst,
                              const char *__restrict src,
                              size_t dst_maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 /**
+ * A version of #BLI_strncpy_utf8_rlen that doesn't null terminate the string.
+ * \note Useful for C++ APIs that don't null terminate strings.
+ */
+size_t BLI_strncpy_utf8_rlen_unterminated(char *__restrict dst,
+                                          const char *__restrict src,
+                                          size_t dst_maxncpy);
+
+/**
  * Find first UTF-8 invalid byte in given \a str, of \a length bytes.
  *
  * \return the offset of the first invalid byte.

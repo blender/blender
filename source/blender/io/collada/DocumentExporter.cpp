@@ -6,79 +6,26 @@
  * \ingroup collada
  */
 
-#include <algorithm> /* std::find */
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include <vector>
 
 #include "COLLADASWAsset.h"
-#include "COLLADASWBaseInputElement.h"
-#include "COLLADASWBindMaterial.h"
 #include "COLLADASWCamera.h"
-#include "COLLADASWColorOrTexture.h"
-#include "COLLADASWConstants.h"
-#include "COLLADASWEffectProfile.h"
 #include "COLLADASWException.h"
-#include "COLLADASWImage.h"
-#include "COLLADASWInputList.h"
-#include "COLLADASWInstanceCamera.h"
-#include "COLLADASWInstanceController.h"
-#include "COLLADASWInstanceGeometry.h"
-#include "COLLADASWInstanceLight.h"
-#include "COLLADASWInstanceNode.h"
-#include "COLLADASWLibraryAnimations.h"
-#include "COLLADASWLibraryControllers.h"
-#include "COLLADASWLibraryEffects.h"
-#include "COLLADASWLibraryImages.h"
-#include "COLLADASWLibraryMaterials.h"
-#include "COLLADASWLibraryVisualScenes.h"
-#include "COLLADASWNode.h"
-#include "COLLADASWParamBase.h"
-#include "COLLADASWParamTemplate.h"
-#include "COLLADASWPrimitves.h"
-#include "COLLADASWSampler.h"
 #include "COLLADASWScene.h"
-#include "COLLADASWSource.h"
-#include "COLLADASWSurfaceInitOption.h"
-#include "COLLADASWTechnique.h"
-#include "COLLADASWTexture.h"
-#include "COLLADASWVertices.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_action_types.h"
-#include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_action.hh" /* pose functions */
 #include "BKE_animsys.h"
 #include "BKE_appdir.hh"
-#include "BKE_armature.hh"
 #include "BKE_blender_version.h"
 #include "BKE_customdata.hh"
 #include "BKE_fcurve.hh"
-#include "BKE_global.hh"
-#include "BKE_image.hh"
-#include "BKE_main.hh"
-#include "BKE_material.hh"
-#include "BKE_object.hh"
-#include "BKE_scene.hh"
 
 #include "ED_keyframing.hh"
 #ifdef WITH_BUILDINFO
@@ -94,8 +41,6 @@ extern "C" char build_hash[];
 #include "collada_utils.h"
 
 /* can probably go after refactor is complete */
-#include "InstanceWriter.h"
-#include "TransformWriter.h"
 
 #include "AnimationExporter.h"
 #include "ArmatureExporter.h"

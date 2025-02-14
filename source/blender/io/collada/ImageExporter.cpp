@@ -10,14 +10,10 @@
 #include "COLLADASWImage.h"
 
 #include "DNA_image_types.h"
-#include "DNA_texture_types.h"
 
-#include "BKE_customdata.hh"
-#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
 #include "BKE_main.hh"
-#include "BKE_mesh.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
@@ -26,7 +22,6 @@
 #include "IMB_imbuf_types.hh"
 
 #include "ImageExporter.h"
-#include "MaterialExporter.h"
 
 ImagesExporter::ImagesExporter(COLLADASW::StreamWriter *sw,
                                BCExportSettings &export_settings,
@@ -144,9 +139,6 @@ void ImagesExporter::exportImages(Scene *sce)
   for (iter = key_image_map.begin(); iter != key_image_map.end(); iter++) {
 
     Image *image = iter->second;
-    std::string uid(id_name(image));
-    std::string key = translate_id(uid);
-
     export_UV_Image(image, use_texture_copies);
   }
 

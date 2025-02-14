@@ -10,13 +10,8 @@
 
 #include <CLG_log.h>
 
-#include "DNA_ID.h"
-
-#include "BLI_utildefines.h"
-
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -1261,7 +1256,7 @@ static bool rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, Pointe
   StructRNA *srna = static_cast<StructRNA *>(
       index < brna->structs_len ? BLI_findlink(&brna->structs, index) : nullptr);
   if (srna != nullptr) {
-    *r_ptr = RNA_pointer_create(nullptr, &RNA_Struct, srna);
+    *r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, srna);
     return true;
   }
   else {
@@ -1275,7 +1270,7 @@ static bool rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr,
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
   StructRNA *srna = static_cast<StructRNA *>(BLI_ghash_lookup(brna->structs_map, (void *)key));
   if (srna != nullptr) {
-    *r_ptr = RNA_pointer_create(nullptr, &RNA_Struct, srna);
+    *r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, srna);
     return true;
   }
 

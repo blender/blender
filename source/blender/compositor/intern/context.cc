@@ -22,6 +22,11 @@ namespace blender::compositor {
 
 Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool) {}
 
+bool Context::treat_viewer_as_composite_output() const
+{
+  return false;
+}
+
 void Context::populate_meta_data_for_pass(const Scene * /*scene*/,
                                           int /*view_layer_id*/,
                                           const char * /*pass_name*/,

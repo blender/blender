@@ -7,7 +7,6 @@
  */
 
 #include <cstring>
-#include <limits>
 
 #include "BLI_math_vector.hh"
 #include "BLI_string.h"
@@ -494,7 +493,7 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /*srna*/ &RNA_MeshSequenceCacheModifier,
     /*type*/ ModifierTypeType::Constructive,
     /*flags*/
-    static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs),
+    (eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs),
     /*icon*/ ICON_MOD_MESHDEFORM, /* TODO: Use correct icon. */
 
     /*copy_data*/ copy_data,

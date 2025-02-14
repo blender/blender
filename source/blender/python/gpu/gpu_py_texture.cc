@@ -13,6 +13,7 @@
 
 #include <Python.h>
 
+#include "BLI_math_base.h"
 #include "BLI_string.h"
 
 #include "DNA_image_types.h"

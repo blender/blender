@@ -15,7 +15,7 @@
 #include "DNA_screen_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -575,7 +575,7 @@ static void nla_id_remap(ScrArea * /*area*/,
   }
 
   mappings.apply(reinterpret_cast<ID **>(&snla->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
-  mappings.apply(reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void nla_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

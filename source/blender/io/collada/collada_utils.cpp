@@ -6,18 +6,11 @@
  * \ingroup collada
  */
 
-/* COLLADABU_ASSERT, may be able to remove later */
-#include "COLLADABUPlatform.h"
-
-#include "COLLADAFWGeometry.h"
-#include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWNode.h"
 
 #include <set>
 #include <string>
-
-#include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -31,6 +24,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_string.h"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -38,6 +32,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
+#include "BKE_idprop.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -285,13 +280,13 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
 
   Mesh *mesh = BKE_mesh_copy_for_eval(*tmpmesh);
 
+  /* Ensure data exists if currently in edit mode. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
+
   if (triangulate) {
     bc_triangulate_mesh(mesh);
   }
   BKE_mesh_tessface_ensure(mesh);
-
-  /* Ensure data exists if currently in edit mode. */
-  BKE_mesh_wrapper_ensure_mdata(mesh);
 
   return mesh;
 }
@@ -655,7 +650,7 @@ int BoneExtended::get_use_connect()
 
 void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
 {
-  IDProperty *idgroup = (IDProperty *)ebone->prop;
+  IDProperty *idgroup = ebone->prop;
   if (idgroup == nullptr) {
     idgroup = blender::bke::idprop::create_group("RNA_EditBone ID properties").release();
     ebone->prop = idgroup;
@@ -701,7 +696,7 @@ float bc_get_property(Bone *bone, std::string key, float def)
         result = float(IDP_Int(property));
         break;
       case IDP_FLOAT:
-        result = float(IDP_Float(property));
+        result = IDP_Float(property);
         break;
       case IDP_DOUBLE:
         result = float(IDP_Double(property));

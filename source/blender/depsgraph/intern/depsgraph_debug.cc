@@ -8,11 +8,9 @@
  * Implementation of tools for debugging the depsgraph
  */
 
-#include "BLI_utildefines.h"
-
 #include "DNA_scene_types.h"
 
-#include "DNA_object_types.h"
+#include "BKE_global.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -22,7 +20,6 @@
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
-#include "intern/depsgraph_type.hh"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_id.hh"
 #include "intern/node/deg_node_time.hh"
@@ -224,13 +221,13 @@ void DEG_stats_simple(const Depsgraph *graph,
   }
 }
 
-static deg::string depsgraph_name_for_logging(Depsgraph *depsgraph)
+static std::string depsgraph_name_for_logging(Depsgraph *depsgraph)
 {
   const char *name = DEG_debug_name_get(depsgraph);
   if (name[0] == '\0') {
     return "";
   }
-  return "[" + deg::string(name) + "]: ";
+  return "[" + std::string(name) + "]: ";
 }
 
 void DEG_debug_print_begin(Depsgraph *depsgraph)

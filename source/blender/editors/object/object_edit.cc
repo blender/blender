@@ -8,7 +8,6 @@
 
 #include <cctype>
 #include <cfloat>
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
@@ -1241,7 +1240,7 @@ void motion_paths_recalc(bContext *C,
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  ListBase targets = {nullptr, nullptr};
+  blender::Vector<MPathTarget *> targets;
   LISTBASE_FOREACH (LinkData *, link, ld_objects) {
     Object *ob = static_cast<Object *>(link->data);
 
@@ -1254,7 +1253,7 @@ void motion_paths_recalc(bContext *C,
       ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
     }
 
-    animviz_get_object_motionpaths(ob, &targets);
+    animviz_build_motionpath_targets(ob, targets);
   }
 
   Depsgraph *depsgraph;
@@ -1268,14 +1267,13 @@ void motion_paths_recalc(bContext *C,
     free_depsgraph = false;
   }
   else {
-    depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, &targets);
+    depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, targets);
     free_depsgraph = true;
   }
 
-  /* recalculate paths, then free */
   animviz_calc_motionpaths(
-      depsgraph, bmain, scene, &targets, object_path_convert_range(range), true);
-  BLI_freelistN(&targets);
+      depsgraph, bmain, scene, targets, object_path_convert_range(range), true);
+  animviz_free_motionpath_targets(targets);
 
   if (range != OBJECT_PATH_CALC_RANGE_CURRENT_FRAME) {
     /* Tag objects for copy-on-eval - so paths will draw/redraw
@@ -1770,6 +1768,24 @@ void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
 /** \name Object Shade Auto Smooth Operator
  * \{ */
 
+/**
+ * Does a shallow check for whether the node group could be the the Smooth by Angle node group.
+ * This should become unnecessary once we asset embedding (#132167).
+ */
+static bool is_valid_smooth_by_angle_group(const bNodeTree &ntree)
+{
+  if (ntree.type != NTREE_GEOMETRY) {
+    return false;
+  }
+  if (ntree.interface_inputs().size() != 3) {
+    return false;
+  }
+  if (ntree.interface_outputs().size() != 1) {
+    return false;
+  }
+  return true;
+}
+
 static int shade_auto_smooth_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
@@ -1793,15 +1809,25 @@ static int shade_auto_smooth_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    ID *node_group_id = asset::asset_local_id_ensure_imported(bmain, *asset_representation);
-    if (!node_group_id) {
-      return OPERATOR_CANCELLED;
+    bNodeTree *node_group = nullptr;
+    while (!node_group) {
+      ID *node_group_id = asset::asset_local_id_ensure_imported(bmain, *asset_representation);
+      if (!node_group_id) {
+        return OPERATOR_CANCELLED;
+      }
+      if (GS(node_group_id->name) != ID_NT) {
+        return OPERATOR_CANCELLED;
+      }
+      node_group = reinterpret_cast<bNodeTree *>(node_group_id);
+      node_group->ensure_topology_cache();
+      if (is_valid_smooth_by_angle_group(*node_group)) {
+        break;
+      }
+      /* Remove the weak library reference, since the already loaded group is not valid anymore. */
+      MEM_SAFE_FREE((node_group_id->library_weak_reference));
+      /* Stay in the loop and load the asset again. */
+      node_group = nullptr;
     }
-    if (GS(node_group_id->name) != ID_NT) {
-      return OPERATOR_CANCELLED;
-    }
-    bNodeTree *node_group = reinterpret_cast<bNodeTree *>(node_group_id);
-    node_group->ensure_topology_cache();
 
     const StringRefNull angle_identifier = node_group->interface_inputs()[1]->identifier;
 

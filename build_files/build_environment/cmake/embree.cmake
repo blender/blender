@@ -87,9 +87,13 @@ ExternalProject_Add(external_embree
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/embree
 
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/embree/src/external_embree <
-    ${PATCH_DIR}/embree.diff
+  PATCH_COMMAND
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/embree/src/external_embree <
+      ${PATCH_DIR}/embree.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/embree/src/external_embree <
+      ${PATCH_DIR}/embree_1ace3ba33d.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree
@@ -138,9 +142,6 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/embree/lib/embree4_d.lib
         ${HARVEST_TARGET}/embree/lib/embree4_d.lib
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/embree/lib/embree4_sycl_d.lib
-        ${HARVEST_TARGET}/embree/lib/embree4_sycl_d.lib
 
       DEPENDEES install
     )

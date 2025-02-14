@@ -703,6 +703,11 @@ void gather_to_groups(OffsetIndices<int> dst_offsets,
                       GSpan src,
                       GMutableSpan dst);
 
+void gather_ranges_to_groups(Span<IndexRange> src_ranges,
+                             OffsetIndices<int> dst_offsets,
+                             GSpan src,
+                             GMutableSpan dst);
+
 /** \} */
 
 }  // namespace blender::bke::attribute_math

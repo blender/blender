@@ -8,7 +8,6 @@
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_scene.hh"
 
 #include "COM_compositor.hh"
 
@@ -55,7 +54,8 @@ void COM_execute(Render *render,
                  bNodeTree *node_tree,
                  const char *view_name,
                  blender::compositor::RenderContext *render_context,
-                 blender::compositor::Profiler *profiler)
+                 blender::compositor::Profiler *profiler,
+                 blender::compositor::OutputTypes needed_outputs)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other
@@ -77,8 +77,14 @@ void COM_execute(Render *render,
   compositor_init_node_previews(render_data, node_tree);
   compositor_reset_node_tree_status(node_tree);
 
-  RE_compositor_execute(
-      *render, *scene, *render_data, *node_tree, view_name, render_context, profiler);
+  RE_compositor_execute(*render,
+                        *scene,
+                        *render_data,
+                        *node_tree,
+                        view_name,
+                        render_context,
+                        profiler,
+                        needed_outputs);
 
   BLI_mutex_unlock(&g_compositor.mutex);
 }

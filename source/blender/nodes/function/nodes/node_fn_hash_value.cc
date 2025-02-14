@@ -4,11 +4,9 @@
 
 #include "BLI_hash.h"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_quaternion.hh"
 #include "BLI_noise.hh"
 
 #include "NOD_rna_define.hh"
-#include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"

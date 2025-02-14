@@ -52,7 +52,7 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C, const int node_type
   if (active_node->type_legacy != node_type) {
     return PointerRNA_NULL;
   }
-  return RNA_pointer_create(&snode->edittree->id, &RNA_Node, active_node);
+  return RNA_pointer_create_discrete(&snode->edittree->id, &RNA_Node, active_node);
 }
 
 inline void update_after_node_change(bContext *C, const PointerRNA node_ptr)

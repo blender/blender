@@ -10,8 +10,6 @@
 
 #include <cstring>
 
-#include "BLI_utildefines.h"
-
 #include "BKE_ccg.hh"
 #include "BKE_subdiv_ccg.hh"
 

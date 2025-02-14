@@ -82,7 +82,7 @@ static void transdata_elem_bend(const TransInfo *t,
                                 float angle,
                                 const BendCustomData *bend_data,
                                 const float warp_sta_local[3],
-                                const float[3] /*warp_end_local*/,
+                                const float /*warp_end_local*/[3],
                                 const float warp_end_radius_local[3],
                                 const float pivot_local[3],
 

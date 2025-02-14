@@ -10,8 +10,6 @@
 
 #include "GHOST_Types.h"
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,7 +19,7 @@ extern "C" {
  * \param event: The event received.
  * \param user_data: The callback's user data, supplied to #GHOST_CreateSystem.
  */
-typedef bool (*GHOST_EventCallbackProcPtr)(GHOST_EventHandle event, GHOST_TUserDataPtr user_data);
+using GHOST_EventCallbackProcPtr = bool (*)(GHOST_EventHandle event, GHOST_TUserDataPtr user_data);
 
 /**
  * Creates the one and only system.
@@ -594,6 +592,31 @@ extern char *GHOST_GetTitle(GHOST_WindowHandle windowhandle);
  * \return Indication if the backend implements file associated with window.
  */
 extern GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath);
+
+/**
+ * Return the current window decoration style flags.
+ */
+extern GHOST_TWindowDecorationStyleFlags GHOST_GetWindowDecorationStyleFlags(
+    GHOST_WindowHandle windowhandle);
+
+/**
+ * Set the window decoration style flags.
+ * \param styleFlags: Window decoration style flags.
+ */
+extern void GHOST_SetWindowDecorationStyleFlags(GHOST_WindowHandle windowhandle,
+                                                GHOST_TWindowDecorationStyleFlags styleFlags);
+
+/**
+ * Set the window decoration style settings.
+ * \param decorationSettings: Window decoration style settings.
+ */
+extern void GHOST_SetWindowDecorationStyleSettings(
+    GHOST_WindowHandle windowhandle, GHOST_WindowDecorationStyleSettings decorationSettings);
+
+/**
+ * Apply the window decoration style using the current flags and settings.
+ */
+extern GHOST_TSuccess GHOST_ApplyWindowDecorationStyle(GHOST_WindowHandle windowhandle);
 
 /**
  * Returns the window rectangle dimensions.

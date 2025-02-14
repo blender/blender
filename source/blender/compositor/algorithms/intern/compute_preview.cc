@@ -4,7 +4,6 @@
 
 #include "BLI_index_range.hh"
 #include "BLI_math_color.h"
-#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 
@@ -14,6 +13,7 @@
 #include "IMB_imbuf.hh"
 
 #include "GPU_shader.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
 
 #include "BKE_node.hh"
@@ -116,9 +116,7 @@ static int2 compute_preview_size(int2 size)
   if (size.x > size.y) {
     return int2(greater_dimension_size, int(greater_dimension_size * (float(size.y) / size.x)));
   }
-  else {
-    return int2(int(greater_dimension_size * (float(size.x) / size.y)), greater_dimension_size);
-  }
+  return int2(int(greater_dimension_size * (float(size.x) / size.y)), greater_dimension_size);
 }
 
 void compute_preview(Context &context, const DNode &node, const Result &input_result)

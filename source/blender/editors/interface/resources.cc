@@ -16,14 +16,12 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
-#include "BKE_main.hh"
-#include "BKE_mesh_runtime.hh"
 
 #include "BLO_userdef_default.h"
 

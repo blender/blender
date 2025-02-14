@@ -14,8 +14,6 @@
 #  error This is a C++ header.
 #endif
 
-#include <stdbool.h>
-
 #include "BLI_map.hh"
 
 #include "BKE_armature.hh"
@@ -313,6 +311,12 @@ inline bool ANIM_bone_is_visible(const bArmature *armature, const Bone *bone)
   return bone_itself_visible && ANIM_bone_in_visible_collection(armature, bone);
 }
 
+/**
+ * Returns true when the edit-bone's collection is visible.
+ *
+ * \note This alone is not enough to check bone visibility since the user may have hidden the bone.
+ * Use the #EBONE_VISIBLE macro to check bone visibility.
+ */
 bool ANIM_bonecoll_is_visible_editbone(const bArmature *armature, const EditBone *ebone);
 
 inline bool ANIM_bone_is_visible_editbone(const bArmature *armature, const EditBone *ebone)

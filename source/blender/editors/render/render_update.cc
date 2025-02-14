@@ -25,7 +25,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
@@ -51,8 +50,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
-
-#include <cstdio>
 
 /* -------------------------------------------------------------------- */
 /** \name Render Engines

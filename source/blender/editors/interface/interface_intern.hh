@@ -229,7 +229,7 @@ struct uiBut {
   /* When defined, and the button edits a string RNA property, the new name is _not_ set at all,
    * instead this function is called with the new name. */
   std::function<void(std::string &new_name)> rename_full_func = nullptr;
-  std::string rename_full_new = "";
+  std::string rename_full_new;
 
   /** Run an action when holding the button down. */
   uiButHandleHoldFunc hold_func = nullptr;
@@ -294,6 +294,7 @@ struct uiBut {
   eWM_DragDataType dragtype = WM_DRAG_ID;
   short dragflag = 0;
   void *dragpoin = nullptr;
+  BIFIconID drag_preview_icon_id;
   const ImBuf *imb = nullptr;
   float imb_scale = 0;
 
@@ -1325,8 +1326,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     blender::StringRef name,
                                     int iconid,
                                     const uchar text_col[4],
-                                    eFontStyle_Align text_align,
-                                    bool draw_as_icon = false);
+                                    eFontStyle_Align text_align);
 
 #define UI_TEXT_MARGIN_X 0.4f
 #define UI_POPUP_MARGIN (UI_SCALE_FAC * 12)
@@ -1350,6 +1350,8 @@ void uiStyleInit();
 /* interface_icons.cc */
 
 void ui_icon_ensure_deferred(const bContext *C, int icon_id, bool big);
+/** Is \a icon_id a preview icon that is being loaded/rendered? */
+bool ui_icon_is_preview_deferred_loading(int icon_id, bool big);
 int ui_id_icon_get(const bContext *C, ID *id, bool big);
 
 /* interface_icons_event.cc */

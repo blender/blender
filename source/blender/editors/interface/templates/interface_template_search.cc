@@ -31,7 +31,7 @@ static void template_search_exec_fn(bContext *C, void *arg_template, void *item)
   uiRNACollectionSearch *coll_search = &template_search->search_data;
   StructRNA *type = RNA_property_pointer_type(&coll_search->target_ptr, coll_search->target_prop);
 
-  PointerRNA item_ptr = RNA_pointer_create(nullptr, type, item);
+  PointerRNA item_ptr = RNA_pointer_create_discrete(nullptr, type, item);
   RNA_property_pointer_set(&coll_search->target_ptr, coll_search->target_prop, item_ptr, nullptr);
   RNA_property_update(C, &coll_search->target_ptr, coll_search->target_prop);
 }

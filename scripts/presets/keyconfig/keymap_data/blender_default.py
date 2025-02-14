@@ -235,6 +235,19 @@ NUMBERS_1 = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NI
 # Numeric order.
 NUMBERS_0 = ('ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE')
 
+NUMPAD_1 = (
+    'NUMPAD_1',
+    'NUMPAD_2',
+    'NUMPAD_3',
+    'NUMPAD_4',
+    'NUMPAD_5',
+    'NUMPAD_6',
+    'NUMPAD_7',
+    'NUMPAD_8',
+    'NUMPAD_9',
+    'NUMPAD_0',
+)
+
 
 # ------------------------------------------------------------------------------
 # Generic Utilities
@@ -1397,6 +1410,8 @@ def km_uv_editor(params):
          {"properties": [("clear", False)]}),
         ("uv.pin", {"type": 'P', "value": 'PRESS', "alt": True},
          {"properties": [("clear", True)]}),
+        ("uv.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
+        ("uv.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         op_menu("IMAGE_MT_uvs_unwrap", {"type": 'U', "value": 'PRESS'}),
         (
             op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'S', "value": 'PRESS', "shift": True})
@@ -2275,6 +2290,17 @@ def km_node_editor(params):
         ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
          {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
         *_template_items_context_menu("NODE_MT_context_menu", params.context_menu_event),
+        # Viewer shortcuts.
+        *(
+            ("node.viewer_shortcut_get", {"type": NUMBERS_0[i], "value": 'PRESS'},
+             {"properties": [("viewer_index", i)]})
+            for i in range(1, 10)
+        ),
+        *(
+            ("node.viewer_shortcut_set", {"type": NUMBERS_0[i], "value": 'PRESS', "ctrl": True},
+             {"properties": [("viewer_index", i)]})
+            for i in range(1, 10)
+        ),
     ])
 
     return keymap
@@ -2926,6 +2952,8 @@ def km_sequencercommon(params):
          {"properties": [("data_path", "scene.sequence_editor.show_overlay_frame")]}),
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", "space_data.view_type"), ("value_1", 'SEQUENCER'), ("value_2", 'PREVIEW')]}),
+        ("wm.context_toggle", {"type": 'TAB', "value": 'PRESS', "shift": True},
+         {"properties": [("data_path", "tool_settings.use_snap_sequencer")]}),
         ("sequencer.refresh_all", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
     ])
 
@@ -3056,6 +3084,8 @@ def km_sequencer(params):
          {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
         ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG', "alt": True},
          {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
+        ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG', "ctrl": True},
+         {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
@@ -3063,8 +3093,6 @@ def km_sequencer(params):
          {"properties": [("side", 'LEFT')]}),
         ("sequencer.select_side_of_frame", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("side", 'RIGHT')]}),
-        ("wm.context_toggle", {"type": 'TAB', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", "tool_settings.use_snap_sequencer")]}),
         ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
          {"properties": [("data_path", "space_data.show_overlays")]}),
         *_template_items_context_menu("SEQUENCER_MT_context_menu", params.context_menu_event),
@@ -4077,6 +4105,10 @@ def km_grease_pencil_sculpt_mode(params):
         # Active layer
         op_menu("GREASE_PENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
 
+        # Auto-masking menu.
+        op_menu_pie("VIEW3D_MT_grease_pencil_sculpt_automasking_pie", {
+                    "type": 'A', "value": 'PRESS', "shift": True, "alt": True}),
+
         *_template_paint_radial_control("gpencil_sculpt_paint"),
         *_template_asset_shelf_popup("VIEW3D_AST_brush_gpencil_sculpt", params.spacebar_action),
         *_template_items_context_panel("VIEW3D_PT_greasepencil_sculpt_context_menu", params.context_menu_event),
@@ -4660,7 +4692,7 @@ def _template_view3d_paint_mask_select_loop(params):
 def _template_node_select(*, type, value, select_passthrough):
     items = [
         ("node.select", {"type": type, "value": value},
-         {"properties": [("deselect_all", True), ("select_passthrough", select_passthrough)]}),
+         {"properties": [("select_passthrough", select_passthrough)]}),
         ("node.select", {"type": type, "value": value, "ctrl": True}, None),
         ("node.select", {"type": type, "value": value, "alt": True}, None),
         ("node.select", {"type": type, "value": value, "ctrl": True, "alt": True}, None),
@@ -6378,10 +6410,11 @@ def km_sculpt_expand_modal(_params):
         ("RECURSION_STEP_GEODESIC", {"type": 'R', "value": 'PRESS'}, None),
         ("RECURSION_STEP_TOPOLOGY", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("MOVE_TOGGLE", {"type": 'SPACE', "value": 'ANY', "any": True}, None),
-        *((e, {"type": NUMBERS_1[i], "value": 'PRESS', "any": True}, None) for i, e in enumerate(
-            ("FALLOFF_GEODESICS", "FALLOFF_TOPOLOGY", "FALLOFF_TOPOLOGY_DIAGONALS", "FALLOFF_SPHERICAL"))),
-        *((e, {"type": "NUMPAD_%i" % (i + 1), "value": 'PRESS', "any": True}, None) for i, e in enumerate(
-            ("FALLOFF_GEODESICS", "FALLOFF_TOPOLOGY", "FALLOFF_TOPOLOGY_DIAGONALS", "FALLOFF_SPHERICAL"))),
+        *((e, {"type": numseq_1[i], "value": 'PRESS', "any": True}, None)
+          for numseq_1 in (NUMBERS_1, NUMPAD_1)
+          for i, e in enumerate(
+            ('FALLOFF_GEODESICS', 'FALLOFF_TOPOLOGY', 'FALLOFF_TOPOLOGY_DIAGONALS', 'FALLOFF_SPHERICAL'),
+        )),
         ("SNAP_TOGGLE", {"type": 'LEFT_CTRL', "value": 'ANY'}, None),
         ("SNAP_TOGGLE", {"type": 'RIGHT_CTRL', "value": 'ANY'}, None),
         ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat": True}, None),
@@ -7886,6 +7919,8 @@ def km_grease_pencil_primitive_tool_modal_map(params):
         ("SCALE", {"type": 'S', "value": 'PRESS'}, None),
         ("INCREASE_SUBDIVISION", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("DECREASE_SUBDIVISION", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
+        ("CHANGE_RADIUS", {"type": 'F', "value": 'PRESS'}, None),
+        ("CHANGE_OPACITY", {"type": 'F', "value": 'PRESS', "shift": True}, None),
     ])
 
     return keymap
@@ -7896,7 +7931,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_line(params):
         "3D View Tool: Paint Grease Pencil, Line",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_line", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_line", {"type": 'LEFTMOUSE', "value": 'PRESS'},
                 {"properties": []}),
             ("grease_pencil.primitive_line", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
                 {"properties": []}),
@@ -7930,7 +7965,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_box(params):
         "3D View Tool: Paint Grease Pencil, Box",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_box", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_box", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             ("grease_pencil.primitive_box", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": []}),
@@ -7948,7 +7983,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_circle(params):
         "3D View Tool: Paint Grease Pencil, Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_circle", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_circle", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             ("grease_pencil.primitive_circle", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": []}),
@@ -7966,7 +8001,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_arc(params):
         "3D View Tool: Paint Grease Pencil, Arc",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_arc", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_arc", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             ("grease_pencil.primitive_arc", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": []}),
@@ -7984,7 +8019,7 @@ def km_3d_view_tool_paint_grease_pencil_primitive_curve(params):
         "3D View Tool: Paint Grease Pencil, Curve",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("grease_pencil.primitive_curve", params.tool_maybe_tweak_event,
+            ("grease_pencil.primitive_curve", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": []}),
             # Lasso select
             ("grease_pencil.select_lasso",

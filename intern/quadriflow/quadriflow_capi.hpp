@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct QuadriflowRemeshData {
+struct QuadriflowRemeshData {
   const float *verts;
   const int *faces;
   int totfaces;
@@ -27,7 +27,7 @@ typedef struct QuadriflowRemeshData {
   bool minimum_cost_flow;
   bool aggresive_sat;
   int rng_seed;
-} QuadriflowRemeshData;
+};
 
 void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
                              void (*update_cb)(void *, float progress, int *cancel),

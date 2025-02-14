@@ -6,8 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
 #include "BLI_array_utils.hh"
@@ -801,8 +799,8 @@ ModifierTypeInfo modifierType_Mask = {
     /*srna*/ &RNA_MaskModifier,
     /*type*/ ModifierTypeType::Nonconstructive,
     /*flags*/
-    (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-                       eModifierTypeFlag_SupportsEditmode),
+    (eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
+     eModifierTypeFlag_SupportsEditmode),
     /*icon*/ ICON_MOD_MASK,
 
     /*copy_data*/ BKE_modifier_copydata_generic,

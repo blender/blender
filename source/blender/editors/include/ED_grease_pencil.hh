@@ -39,14 +39,13 @@ struct ViewContext;
 struct BVHTree;
 struct GreasePencilLineartModifierData;
 struct RV3DMatrixStore;
-namespace blender {
-namespace bke {
+
+namespace blender::bke {
 enum class AttrDomain : int8_t;
 class CurvesGeometry;
 namespace crazyspace {
 }
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::bke
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -86,7 +85,7 @@ void ED_interpolatetool_modal_keymap(wmKeyConfig *keyconf);
 
 void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot);
 
-void ED_undosys_type_grease_pencil(UndoType *undo_type);
+void ED_undosys_type_grease_pencil(UndoType *ut);
 
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
@@ -161,7 +160,6 @@ class DrawingPlacement {
   DrawingPlacement &operator=(DrawingPlacement &&other);
   ~DrawingPlacement();
 
- public:
   bool use_project_to_surface() const;
   bool use_project_to_stroke() const;
 
@@ -563,19 +561,15 @@ void add_armature_envelope_weights(Scene &scene, Object &object, const Object &o
 void add_armature_automatic_weights(Scene &scene, Object &object, const Object &ob_armature);
 
 void clipboard_free();
-const bke::CurvesGeometry &clipboard_curves();
 /**
- * Paste curves from the clipboard into the drawing.
- * \param paste_back: Render behind existing curves by inserting curves at the front.
- * \param keep_world_transform: Keep the world transform of clipboard strokes unchanged.
- * \return Index range of the new curves in the drawing after pasting.
+ * Paste all the strokes in the clipboard layers into \a drawing.
  */
-IndexRange clipboard_paste_strokes(Main &bmain,
-                                   Object &object,
-                                   bke::greasepencil::Drawing &drawing,
-                                   const float4x4 &transform,
-                                   bool keep_world_transform,
-                                   bool paste_back);
+IndexRange paste_all_strokes_from_clipboard(Main &bmain,
+                                            Object &object,
+                                            const float4x4 &object_to_paste_layer,
+                                            bool keep_world_transform,
+                                            bool paste_back,
+                                            bke::greasepencil::Drawing &drawing);
 
 /**
  * Method used by the Fill tool to fit the render buffer to strokes.
@@ -929,5 +923,17 @@ bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &curves,
 
 /* Make sure selection domain is updated to match the current selection mode. */
 bool ensure_selection_domain(ToolSettings *ts, Object *object);
+
+/**
+ * Creates a new curve with one point at the beginning or end.
+ * \note Does not initialize the new curve or points.
+ */
+void add_single_curve(bke::CurvesGeometry &curves, bool at_end);
+
+/**
+ * Resize the first or last curve to `new_points_num` number of points.
+ * \note Does not initialize the new points.
+ */
+void resize_single_curve(bke::CurvesGeometry &curves, bool at_end, int new_points_num);
 
 }  // namespace blender::ed::greasepencil

@@ -8,8 +8,6 @@
  * Just a wrapper around #BM_mesh_edgesplit
  */
 
-#include "BLI_utildefines.h"
-
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 

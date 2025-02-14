@@ -10,6 +10,7 @@
  */
 
 #include "BLI_map.hh"
+#include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -146,7 +147,7 @@ class DrawCacheImpl : public DrawCache {
   BitVector<> dirty_topology_;
 
  public:
-  virtual ~DrawCacheImpl() override;
+  ~DrawCacheImpl() override;
 
   void tag_positions_changed(const IndexMask &node_mask) override;
   void tag_visibility_changed(const IndexMask &node_mask) override;

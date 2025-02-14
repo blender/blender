@@ -438,7 +438,7 @@ struct SlideOperationExecutor {
           if (hit.index < 0) {
             return;
           }
-          const float3 &hit_pos_su = hit.co;
+          const float3 hit_pos_su = hit.co;
           const float dist_sq_su = math::distance_squared(hit_pos_su, point_su);
           if (dist_sq_su < best_dist_sq_su) {
             best_dist_sq_su = dist_sq_su;

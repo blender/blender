@@ -8,6 +8,7 @@
  * Glyph rendering, texturing and caching. Wraps Freetype and OpenGL functions.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -26,9 +27,8 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
+#include "BLI_math_geom.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_threads.h"
 
 #include "BLF_api.hh"
 
@@ -48,7 +48,7 @@
 #  include "svg_icons.h"
 #endif /* WITH_HEADLESS */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /**
  * Convert glyph coverage amounts to lightness values. Uses a LUT that perceptually improves
@@ -123,9 +123,7 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
     /* Font does not have a face or does not contain "0" so use CSS fallback of 1/2 of em. */
     gc->fixed_width = int((font->ft_size->metrics.height / 2) >> 6);
   }
-  if (gc->fixed_width < 1) {
-    gc->fixed_width = 1;
-  }
+  gc->fixed_width = std::max(gc->fixed_width, 1);
 
   font->cache.append(std::move(gc));
 
@@ -429,7 +427,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(
       for (int64_t x = 0; x < int64_t(g->dims[0]); x++) {
         int64_t offs_in = (y * int64_t(dest_w) * 4) + (x * 4);
         int64_t offs_out = (y * int64_t(g->dims[0]) + x);
-        g->bitmap[offs_out] = uchar(float(srgb_to_grayscale_byte(&render_bmp[int64_t(offs_in)])) *
+        g->bitmap[offs_out] = uchar(float(srgb_to_grayscale_byte(&render_bmp[offs_in])) *
                                     (float(render_bmp[int64_t(offs_in + 3)]) / 255.0f));
       }
     }

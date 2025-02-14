@@ -9,6 +9,7 @@
 
 #include "BKE_volume.hh"
 #include "BKE_volume_render.hh"
+#include "BLI_math_geom.h"
 #include "BLI_rand.h"
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"

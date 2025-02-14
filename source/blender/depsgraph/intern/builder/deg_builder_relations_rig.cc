@@ -8,19 +8,16 @@
  * Methods for constructing depsgraph
  */
 
+#include "DEG_depsgraph_debug.hh"
 #include "intern/builder/deg_builder_relations.h"
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring> /* required for STREQ later on. */
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_customdata_types.h"
@@ -29,8 +26,8 @@
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_lib_query.hh"
 
+#include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
 #include "DEG_depsgraph.hh"
@@ -41,7 +38,6 @@
 #include "intern/builder/deg_builder_pchanmap.h"
 #include "intern/debug/deg_debug.h"
 #include "intern/node/deg_node.hh"
-#include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_operation.hh"
 
 #include "intern/depsgraph_relation.hh"
@@ -77,7 +73,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
    * one Init IK node per armature, this link has quite high risk of spurious dependency cycles.
    */
   const bool is_itasc = (object->pose->iksolver == IKSOLVER_ITASC);
-  PointerRNA con_ptr = RNA_pointer_create(&object->id, &RNA_Constraint, con);
+  PointerRNA con_ptr = RNA_pointer_create_discrete(&object->id, &RNA_Constraint, con);
   if (is_itasc || cache_->isAnyPropertyAnimated(&con_ptr)) {
     add_relation(pchan_local_key, init_ik_key, "IK Constraint -> Init IK Tree");
   }

@@ -5,11 +5,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause */
 
 #include <algorithm>
+#include <cfloat>
 #include <cmath>
 #include <cstdint>
 
+#include "BLI_math_base.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_base_safe.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
@@ -690,9 +691,7 @@ float perlin_hybrid_multi_fractal(T p,
   float weight = 1.0f;
 
   for (int i = 0; (weight > 0.001f) && (i <= int(detail)); i++) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = std::min(weight, 1.0f);
 
     float signal = (perlin_signed(p) + offset) * pwr;
     pwr *= roughness;
@@ -703,9 +702,7 @@ float perlin_hybrid_multi_fractal(T p,
 
   const float rmd = detail - floorf(detail);
   if ((rmd != 0.0f) && (weight > 0.001f)) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = std::min(weight, 1.0f);
     float signal = (perlin_signed(p) + offset) * pwr;
     value += rmd * weight * signal;
   }
@@ -1097,7 +1094,7 @@ float voronoi_distance(const float3 a, const float3 b, const VoronoiParams &para
     case NOISE_SHD_VORONOI_MANHATTAN:
       return std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(a.z - b.z);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
-      return std::max(std::abs(a.x - b.x), std::max(std::abs(a.y - b.y), std::abs(a.z - b.z)));
+      return std::max({std::abs(a.x - b.x), std::abs(a.y - b.y), std::abs(a.z - b.z)});
     case NOISE_SHD_VORONOI_MINKOWSKI:
       return std::pow(std::pow(std::abs(a.x - b.x), params.exponent) +
                           std::pow(std::abs(a.y - b.y), params.exponent) +
@@ -1119,8 +1116,7 @@ float voronoi_distance(const float4 a, const float4 b, const VoronoiParams &para
       return std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(a.z - b.z) + std::abs(a.w - b.w);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
       return std::max(
-          std::abs(a.x - b.x),
-          std::max(std::abs(a.y - b.y), std::max(std::abs(a.z - b.z), std::abs(a.w - b.w))));
+          {std::abs(a.x - b.x), std::abs(a.y - b.y), std::abs(a.z - b.z), std::abs(a.w - b.w)});
     case NOISE_SHD_VORONOI_MINKOWSKI:
       return std::pow(std::pow(std::abs(a.x - b.x), params.exponent) +
                           std::pow(std::abs(a.y - b.y), params.exponent) +

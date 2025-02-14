@@ -9,8 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_bitmap.h"
-#include "BLI_linklist.h"
 #include "BLI_math_vector.h"
 
 #include "BLT_translation.hh"
@@ -18,8 +16,6 @@
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
@@ -27,7 +23,6 @@
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -225,7 +220,6 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                     corner_verts,
                                     corner_edges,
                                     loop_to_face,
-                                    wn_data->vert_normals,
                                     wn_data->face_normals,
                                     wn_data->sharp_edges,
                                     wn_data->sharp_faces,
@@ -353,7 +347,6 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                                corner_verts,
                                                corner_edges,
                                                loop_to_face,
-                                               wn_data->vert_normals,
                                                face_normals,
                                                wn_data->sharp_edges,
                                                wn_data->sharp_faces,

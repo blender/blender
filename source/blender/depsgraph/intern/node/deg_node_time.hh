@@ -18,7 +18,7 @@ struct TimeSourceNode : public Node {
 
   /* TODO: evaluate() operation needed */
 
-  virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
+  void tag_update(Depsgraph *graph, eUpdateSource source) override;
 
   void flush_update_tag(Depsgraph *graph);
 

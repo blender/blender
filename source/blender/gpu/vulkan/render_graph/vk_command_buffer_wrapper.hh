@@ -25,8 +25,6 @@ class VKCommandBufferInterface {
 
   virtual void begin_recording() = 0;
   virtual void end_recording() = 0;
-  virtual void submit_with_cpu_synchronization(VkFence vk_fence = VK_NULL_HANDLE) = 0;
-  virtual void wait_for_cpu_synchronization(VkFence vk_fence = VK_NULL_HANDLE) = 0;
 
   virtual void bind_pipeline(VkPipelineBindPoint pipeline_bind_point, VkPipeline pipeline) = 0;
   virtual void bind_descriptor_sets(VkPipelineBindPoint pipeline_bind_point,
@@ -145,24 +143,13 @@ class VKCommandBufferInterface {
 
 class VKCommandBufferWrapper : public VKCommandBufferInterface {
  private:
-  VkCommandPoolCreateInfo vk_command_pool_create_info_;
-  VkCommandBufferAllocateInfo vk_command_buffer_allocate_info_;
-  VkCommandBufferBeginInfo vk_command_buffer_begin_info_;
-  VkFenceCreateInfo vk_fence_create_info_;
-  VkSubmitInfo vk_submit_info_;
-
-  VkCommandPool vk_command_pool_ = VK_NULL_HANDLE;
   VkCommandBuffer vk_command_buffer_ = VK_NULL_HANDLE;
-  VkFence vk_fence_ = VK_NULL_HANDLE;
 
  public:
-  VKCommandBufferWrapper(const VKWorkarounds &workarounds);
-  virtual ~VKCommandBufferWrapper();
+  VKCommandBufferWrapper(VkCommandBuffer vk_command_buffer, const VKWorkarounds &workarounds);
 
   void begin_recording() override;
   void end_recording() override;
-  void submit_with_cpu_synchronization(VkFence vk_fence) override;
-  void wait_for_cpu_synchronization(VkFence vk_fence) override;
 
   void bind_pipeline(VkPipelineBindPoint pipeline_bind_point, VkPipeline pipeline) override;
   void bind_descriptor_sets(VkPipelineBindPoint pipeline_bind_point,

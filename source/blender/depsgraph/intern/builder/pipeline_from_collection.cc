@@ -91,13 +91,14 @@ FromCollectionBuilderPipeline::FromCollectionBuilderPipeline(::Depsgraph *graph,
   }
 }
 
-unique_ptr<DepsgraphNodeBuilder> FromCollectionBuilderPipeline::construct_node_builder()
+std::unique_ptr<DepsgraphNodeBuilder> FromCollectionBuilderPipeline::construct_node_builder()
 {
   return std::make_unique<DepsgraphFromCollectionIDsNodeBuilder>(
       bmain_, deg_graph_, &builder_cache_, ids_);
 }
 
-unique_ptr<DepsgraphRelationBuilder> FromCollectionBuilderPipeline::construct_relation_builder()
+std::unique_ptr<DepsgraphRelationBuilder> FromCollectionBuilderPipeline::
+    construct_relation_builder()
 {
   return std::make_unique<DepsgraphFromCollectionIDsRelationBuilder>(
       bmain_, deg_graph_, &builder_cache_, ids_);

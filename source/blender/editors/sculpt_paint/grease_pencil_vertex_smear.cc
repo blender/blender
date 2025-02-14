@@ -71,7 +71,7 @@ void VertexSmearOperation::init_color_grid(const bContext &C, const float2 start
   const Scene &scene = *CTX_data_scene(&C);
   Paint &paint = *BKE_paint_get_active_from_context(&C);
   const Brush &brush = *BKE_paint_brush(&paint);
-  const bool is_masking = GPENCIL_ANY_VERTEX_MASK(
+  const bool use_selection_masking = GPENCIL_ANY_VERTEX_MASK(
       eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
   const float radius = brush_radius(scene, brush, 1.0f);
 
@@ -89,7 +89,8 @@ void VertexSmearOperation::init_color_grid(const bContext &C, const float2 start
   /* Initialize grid values. */
   this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory memory;
-    const IndexMask point_selection = point_selection_mask(params, is_masking, memory);
+    const IndexMask point_selection = point_mask_for_stroke_operation(
+        params, use_selection_masking, memory);
     if (point_selection.is_empty()) {
       return false;
     }
@@ -154,12 +155,13 @@ void VertexSmearOperation::on_stroke_extended(const bContext &C,
   const Brush &brush = *BKE_paint_brush(&paint);
   const float radius = brush_radius(scene, brush, extension_sample.pressure);
 
-  const bool is_masking = GPENCIL_ANY_VERTEX_MASK(
+  const bool use_selection_masking = GPENCIL_ANY_VERTEX_MASK(
       eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
 
   this->foreach_editable_drawing(C, GrainSize(1), [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory memory;
-    const IndexMask point_selection = point_selection_mask(params, is_masking, memory);
+    const IndexMask point_selection = point_mask_for_stroke_operation(
+        params, use_selection_masking, memory);
     if (point_selection.is_empty()) {
       return false;
     }

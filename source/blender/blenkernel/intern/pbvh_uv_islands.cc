@@ -1310,10 +1310,10 @@ bool UVPrimitive::has_shared_edge(const UVPrimitive &other) const
   return false;
 }
 
-bool UVPrimitive::has_shared_edge(const MeshData &mesh_data, const int primitive_i) const
+bool UVPrimitive::has_shared_edge(const MeshData &mesh_data, const int other_triangle_index) const
 {
   for (const UVEdge *uv_edge : edges) {
-    const int3 &tri = mesh_data.corner_tris[primitive_i];
+    const int3 &tri = mesh_data.corner_tris[other_triangle_index];
     int loop_1 = tri[2];
     for (int i = 0; i < 3; i++) {
       int loop_2 = tri[i];

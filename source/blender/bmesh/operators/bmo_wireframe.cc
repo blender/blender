@@ -10,9 +10,6 @@
 
 #include "DNA_material_types.h"
 
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
-
 #include "bmesh.hh"
 
 #include "tools/bmesh_wireframe.hh"

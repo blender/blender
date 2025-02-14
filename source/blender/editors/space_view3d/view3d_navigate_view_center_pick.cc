@@ -33,7 +33,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
     ED_view3d_smooth_view_force_finish(C, v3d, region);
 
-    view3d_operator_needs_opengl(C);
+    view3d_operator_needs_gpu(C);
 
     /* Ensure the depth buffer is updated for #ED_view3d_autodist. */
     ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, true, nullptr);

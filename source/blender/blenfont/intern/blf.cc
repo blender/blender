@@ -21,8 +21,6 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_fileops.h"
 #include "BLI_math_rotation.h"
 #include "BLI_path_utils.hh"
@@ -33,7 +31,7 @@
 #include "IMB_colormanagement.hh"
 
 #include "GPU_matrix.hh"
-#include "GPU_shader.hh"
+#include "GPU_state.hh"
 
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"

@@ -1027,9 +1027,6 @@ IndexMask retrieve_editable_strokes_by_material(Object &object,
 
   /* Get all the editable material indices */
   VectorSet<int> locked_material_indices = get_locked_material_indices(object);
-  if (locked_material_indices.is_empty()) {
-    return curves_range;
-  }
 
   const bke::AttributeAccessor attributes = curves.attributes();
 
@@ -1105,7 +1102,7 @@ IndexMask retrieve_editable_elements(Object &object,
   if (selection_domain == bke::AttrDomain::Curve) {
     return ed::greasepencil::retrieve_editable_strokes(object, drawing, info.layer_index, memory);
   }
-  else if (selection_domain == bke::AttrDomain::Point) {
+  if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_editable_points(object, drawing, info.layer_index, memory);
   }
   return {};
@@ -1216,7 +1213,7 @@ IndexMask retrieve_visible_bezier_handle_elements(Object &object,
     return ed::greasepencil::retrieve_editable_and_selected_strokes(
         object, drawing, layer_index, memory);
   }
-  else if (selection_domain == bke::AttrDomain::Point) {
+  if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_visible_bezier_handle_points(
         object, drawing, layer_index, memory);
   }
@@ -1276,7 +1273,7 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
     return ed::greasepencil::retrieve_editable_and_selected_strokes(
         object, drawing, layer_index, memory);
   }
-  else if (selection_domain == bke::AttrDomain::Point) {
+  if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_editable_and_selected_points(
         object, drawing, layer_index, memory);
   }
@@ -1436,12 +1433,12 @@ Array<PointTransferData> compute_topology_change(
             dst_transfer_data[dst_curve_points.first()];
         const PointTransferData &end_point_transfer = dst_transfer_data[dst_curve_points.last()];
 
-        if (start_point_transfer.is_cut) {
+        if (dst_start_caps && start_point_transfer.is_cut) {
           dst_start_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
         }
         /* The is_cut flag does not work for end points, but any end point that isn't the source
          * point must also be a cut. */
-        if (!end_point_transfer.is_src_end_point()) {
+        if (dst_end_caps && !end_point_transfer.is_src_end_point()) {
           dst_end_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
         }
       }
@@ -1634,6 +1631,127 @@ GreasePencil *from_context(bContext &C)
     }
   }
   return grease_pencil;
+}
+
+void add_single_curve(bke::CurvesGeometry &curves, const bool at_end)
+{
+  if (at_end) {
+    const int num_old_points = curves.points_num();
+    curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
+    curves.offsets_for_write().last(1) = num_old_points;
+    return;
+  }
+
+  curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
+  MutableSpan<int> offsets = curves.offsets_for_write();
+  offsets.first() = 0;
+
+  /* Loop through backwards to not overwrite the data. */
+  for (int i = curves.curves_num() - 2; i >= 0; i--) {
+    offsets[i + 1] = offsets[i] + 1;
+  }
+
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
+    GMutableSpan attribute_data = dst.span;
+
+    bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      MutableSpan<T> span_data = attribute_data.typed<T>();
+
+      /* Loop through backwards to not overwrite the data. */
+      for (int i = span_data.size() - 2; i >= 0; i--) {
+        span_data[i + 1] = span_data[i];
+      }
+    });
+    dst.finish();
+  });
+}
+
+void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const int new_points_num)
+{
+  BLI_assert(new_points_num >= 0);
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  const int curve_index = at_end ? curves.curves_range().last() : 0;
+  const int current_points_num = points_by_curve[curve_index].size();
+  if (new_points_num == current_points_num) {
+    return;
+  }
+
+  if (at_end) {
+    const int diff_points_num = new_points_num - current_points_num;
+    curves.resize(curves.points_num() + diff_points_num, curves.curves_num());
+    curves.offsets_for_write().last() = curves.points_num();
+    return;
+  }
+
+  if (current_points_num < new_points_num) {
+    const int last_active_point = points_by_curve[0].last();
+
+    const int added_points_num = new_points_num - current_points_num;
+
+    curves.resize(curves.points_num() + added_points_num, curves.curves_num());
+    MutableSpan<int> offsets = curves.offsets_for_write();
+    for (const int src_curve : curves.curves_range().drop_front(1)) {
+      offsets[src_curve] = offsets[src_curve] + added_points_num;
+    }
+    offsets.last() = curves.points_num();
+
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+    attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.domain != bke::AttrDomain::Point) {
+        return;
+      }
+
+      bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
+      GMutableSpan attribute_data = dst.span;
+
+      bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
+        using T = decltype(dummy);
+        MutableSpan<T> span_data = attribute_data.typed<T>();
+
+        /* Loop through backwards to not overwrite the data. */
+        for (int i = span_data.size() - 1 - added_points_num; i >= last_active_point; i--) {
+          span_data[i + added_points_num] = span_data[i];
+        }
+      });
+      dst.finish();
+    });
+  }
+  else {
+    /* First move the attribute data, then resize. */
+    const int removed_points_num = current_points_num - new_points_num;
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+    attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.domain != bke::AttrDomain::Point) {
+        return;
+      }
+
+      bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
+      GMutableSpan attribute_data = dst.span;
+
+      bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
+        using T = decltype(dummy);
+        MutableSpan<T> span_data = attribute_data.typed<T>();
+
+        for (const int i :
+             span_data.index_range().drop_front(new_points_num).drop_back(removed_points_num))
+        {
+          span_data[i] = span_data[i + removed_points_num];
+        }
+      });
+      dst.finish();
+    });
+
+    curves.resize(curves.points_num() - removed_points_num, curves.curves_num());
+    MutableSpan<int> offsets = curves.offsets_for_write();
+    for (const int src_curve : curves.curves_range().drop_front(1)) {
+      offsets[src_curve] = offsets[src_curve] - removed_points_num;
+    }
+    offsets.last() = curves.points_num();
+  }
 }
 
 }  // namespace blender::ed::greasepencil

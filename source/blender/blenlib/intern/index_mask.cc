@@ -4,7 +4,6 @@
 
 #include <fmt/format.h>
 #include <iostream>
-#include <mutex>
 
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
@@ -17,14 +16,13 @@
 #include "BLI_index_mask_expression.hh"
 #include "BLI_index_ranges_builder.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_bits.h"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_virtual_array.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::index_mask {
 

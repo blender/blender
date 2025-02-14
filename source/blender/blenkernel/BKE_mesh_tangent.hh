@@ -28,7 +28,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const int *corner_verts,
                                           float (*r_looptangent)[4],
                                           const float (*corner_normals)[3],
-                                          const float (*loopuv)[2],
+                                          const float (*loop_uvs)[2],
                                           int numLoops,
                                           blender::OffsetIndices<int> faces,
                                           ReportList *reports);

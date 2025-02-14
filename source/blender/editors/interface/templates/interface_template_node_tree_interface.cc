@@ -49,11 +49,11 @@ class NodeTreeInterfaceDragController : public AbstractViewItemDragController {
  public:
   explicit NodeTreeInterfaceDragController(NodeTreeInterfaceView &view,
                                            bNodeTreeInterfaceItem &item);
-  virtual ~NodeTreeInterfaceDragController() = default;
+  ~NodeTreeInterfaceDragController() override = default;
 
-  eWM_DragDataType get_drag_type() const;
+  eWM_DragDataType get_drag_type() const override;
 
-  void *create_drag_data() const;
+  void *create_drag_data() const override;
 };
 
 class NodeSocketDropTarget : public TreeViewItemDropTarget {

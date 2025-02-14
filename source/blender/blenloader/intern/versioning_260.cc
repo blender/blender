@@ -6,6 +6,8 @@
  * \ingroup blenloader
  */
 
+#include <algorithm>
+
 #include "BKE_idprop.hh"
 #include "BLI_utildefines.h"
 
@@ -42,10 +44,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_anim_visualization.h"
@@ -2313,9 +2317,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             num_inputs++;
 
             if (link->tonode) {
-              if (input_locx > link->tonode->locx_legacy - offsetx) {
-                input_locx = link->tonode->locx_legacy - offsetx;
-              }
+              input_locx = std::min(input_locx, link->tonode->locx_legacy - offsetx);
               input_locy += link->tonode->locy_legacy;
             }
           }
@@ -2332,9 +2334,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             num_outputs++;
 
             if (link->fromnode) {
-              if (output_locx < link->fromnode->locx_legacy + offsetx) {
-                output_locx = link->fromnode->locx_legacy + offsetx;
-              }
+              output_locx = std::max(output_locx, link->fromnode->locx_legacy + offsetx);
               output_locy += link->fromnode->locy_legacy;
             }
           }

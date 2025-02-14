@@ -8,7 +8,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_capabilities.hh"
 #include "GPU_shader.hh"
 
 #include "gpu_shader_private.hh"

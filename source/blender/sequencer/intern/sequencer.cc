@@ -17,7 +17,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"

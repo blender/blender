@@ -16,11 +16,7 @@ namespace blender::gpu {
 
 class VKFence : public Fence {
  private:
-  VkFence vk_fence_ = VK_NULL_HANDLE;
-  bool signalled_ = false;
-
- protected:
-  virtual ~VKFence();
+  TimelineValue timeline_value_;
 
  public:
   void signal() override;

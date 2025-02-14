@@ -4,35 +4,33 @@
 
 #pragma once
 
+#include <map>
+#include <set>
+#include <vector>
+
 #include "BCSampleData.h"
-#include "collada_utils.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BKE_armature.hh"
 #include "BKE_fcurve.hh"
-#include "BKE_material.hh"
+
+#include "RNA_types.hh"
 
 #include "ED_anim_api.hh"
-#include "ED_keyframes_edit.hh"
 
-#include "ANIM_fcurve.hh"
+using TangentPoint = float[2];
 
-typedef float(TangentPoint)[2];
+using BCFrameSet = std::set<float>;
+using BCFrames = std::vector<float>;
+using BCValues = std::vector<float>;
+using BCTimes = std::vector<float>;
+using BCValueMap = std::map<int, float>;
 
-typedef std::set<float> BCFrameSet;
-typedef std::vector<float> BCFrames;
-typedef std::vector<float> BCValues;
-typedef std::vector<float> BCTimes;
-typedef std::map<int, float> BCValueMap;
-
-typedef enum BC_animation_type {
+enum BC_animation_type {
   BC_ANIMATION_TYPE_OBJECT,
   BC_ANIMATION_TYPE_BONE,
   BC_ANIMATION_TYPE_CAMERA,
   BC_ANIMATION_TYPE_MATERIAL,
   BC_ANIMATION_TYPE_LIGHT,
-} BC_animation_type;
+};
 
 class BCCurveKey {
  private:
@@ -131,4 +129,4 @@ class BCAnimationCurve {
   int closest_index_below(float sample_frame) const;
 };
 
-typedef std::map<BCCurveKey, BCAnimationCurve *> BCAnimationCurveMap;
+using BCAnimationCurveMap = std::map<BCCurveKey, BCAnimationCurve *>;

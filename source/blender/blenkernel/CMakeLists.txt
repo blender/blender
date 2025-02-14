@@ -211,6 +211,7 @@ set(SRC
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
   intern/mesh_tangent.cc
+  intern/mesh_topology_state.cc
   intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
@@ -455,6 +456,7 @@ set(SRC
   BKE_mesh_runtime.hh
   BKE_mesh_sample.hh
   BKE_mesh_tangent.hh
+  BKE_mesh_topology_state.hh
   BKE_mesh_types.hh
   BKE_mesh_wrapper.hh
   BKE_modifier.hh
@@ -838,6 +840,8 @@ if(WITH_GTESTS)
     intern/volume_test.cc
   )
   set(TEST_INC
+    # WARNING: this is a bad-level include which is only acceptable for tests
+    # and even then it would be good if the dependency could be removed.
     ../editors/include
   )
   set(TEST_LIB

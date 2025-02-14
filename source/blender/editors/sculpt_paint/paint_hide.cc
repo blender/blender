@@ -143,7 +143,7 @@ void mesh_show_all(const Depsgraph &depsgraph, Object &object, const IndexMask &
 
   attributes.remove(".hide_vert");
   bke::mesh_hide_vert_flush(mesh);
-  bke::pbvh::update_visibility(object, pbvh);
+  pbvh.update_visibility(object);
 }
 
 void grids_show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_mask)
@@ -171,7 +171,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_
 
   BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg);
   BKE_pbvh_sync_visibility_from_verts(object);
-  bke::pbvh::update_visibility(object, pbvh);
+  pbvh.update_visibility(object);
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
 }
 
@@ -443,7 +443,7 @@ static void partialvis_update_bmesh_nodes(const Depsgraph &depsgraph,
   });
 
   pbvh.tag_visibility_changed(node_mask);
-  bke::pbvh::update_visibility(ob, pbvh);
+  pbvh.update_visibility(ob);
 }
 
 /** \} */
@@ -735,7 +735,7 @@ static void invert_visibility_mesh(const Depsgraph &depsgraph,
   hide_poly.finish();
   bke::mesh_hide_face_flush(mesh);
   pbvh.tag_visibility_changed(node_mask);
-  bke::pbvh::update_visibility(object, *bke::object::pbvh_get(object));
+  pbvh.update_visibility(object);
 }
 
 static void invert_visibility_grids(Depsgraph &depsgraph,
@@ -918,12 +918,13 @@ static void update_undo_state(const Depsgraph &depsgraph,
   });
 }
 
-static void update_node_visibility_from_face_changes(MutableSpan<bke::pbvh::MeshNode> nodes,
+static void update_node_visibility_from_face_changes(bke::pbvh::Tree &pbvh,
                                                      const IndexMask &node_mask,
                                                      const Span<bool> orig_hide_poly,
                                                      const Span<bool> new_hide_poly,
                                                      const Span<bool> hide_vert)
 {
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -942,7 +943,12 @@ static void update_node_visibility_from_face_changes(MutableSpan<bke::pbvh::Mesh
     }
   });
 
-  // TODO
+  IndexMaskMemory memory;
+  const IndexMask changed_nodes = IndexMask::from_bools(node_changed, memory);
+  if (pbvh.draw_data) {
+    /* Only tag draw data. Nodes have already been updated above. */
+    pbvh.draw_data->tag_visibility_changed(changed_nodes);
+  }
 }
 
 static void grow_shrink_visibility_mesh(const Depsgraph &depsgraph,
@@ -981,11 +987,7 @@ static void grow_shrink_visibility_mesh(const Depsgraph &depsgraph,
   flush_edge_changes(mesh, last_buffer);
 
   update_node_visibility_from_face_changes(
-      bke::object::pbvh_get(object)->nodes<bke::pbvh::MeshNode>(),
-      node_mask,
-      orig_hide_poly,
-      hide_poly,
-      last_buffer);
+      *bke::object::pbvh_get(object), node_mask, orig_hide_poly, hide_poly, last_buffer);
   array_utils::copy(last_buffer, hide_vert.span);
   hide_vert.finish();
 }
@@ -1072,7 +1074,7 @@ static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
   grid_hidden = std::move(last_buffer);
 
   pbvh.tag_visibility_changed(node_mask);
-  bke::pbvh::update_visibility(object, pbvh);
+  pbvh.update_visibility(object);
 
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
   BKE_pbvh_sync_visibility_from_verts(object);

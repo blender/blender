@@ -21,7 +21,7 @@ namespace blender::ed::curves {
 
 struct ClosestCurveDataBlock {
   Curves *curves_id = nullptr;
-  FindClosestData elem = {};
+  FindClosestData elem;
 };
 static ClosestCurveDataBlock find_closest_curve(const Depsgraph &depsgraph,
                                                 const ViewContext &vc,

@@ -52,12 +52,10 @@ ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
   globals->backfacing = (sd->flag & SD_BACKFACING);
 
   /* shader data to be used in services callbacks */
-  globals->renderstate = sd;
-#if OSL_LIBRARY_VERSION_CODE >= 11304
+  globals->sd = sd;
   globals->shadingStateUniform = nullptr;
   globals->thread_index = 0;
   globals->shade_index = 0;
-#endif
 
   /* hacky, we leave it to services to fetch actual object matrix */
   globals->shader2common = sd;
@@ -192,7 +190,13 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
 
 #  ifdef __KERNEL_OPTIX__
   uint8_t closure_pool[1024];
-  sd->osl_closure_pool = closure_pool;
+  globals.closure_pool = closure_pool;
+  if (path_flag & PATH_RAY_SHADOW) {
+    globals.shade_index = -state - 1;
+  }
+  else {
+    globals.shade_index = state + 1;
+  }
 
   unsigned int optix_dc_index = 2 /* NUM_CALLABLE_PROGRAM_GROUPS */ +
                                 (shader + type * kernel_data.max_shaders);

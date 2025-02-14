@@ -2,15 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.hh"
+#include "DNA_mesh_types.h"
 
-#include "BLI_map.hh"
-#include "BLI_set.hh"
 #include "BLI_task.hh"
 
 #include "node_geometry_util.hh"
-
-#include <set>
 
 namespace blender::nodes::node_geo_edge_paths_to_selection_cc {
 

@@ -79,7 +79,7 @@ BLI_INLINE void BMO_slot_map_int_insert(BMOperator *op,
   union {
     void *ptr;
     int val;
-  } t = {NULL};
+  } t = {nullptr};
   BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INT);
   BMO_slot_map_insert(op, slot, element, ((void)(t.val = val), t.ptr));
 }
@@ -93,7 +93,7 @@ BLI_INLINE void BMO_slot_map_bool_insert(BMOperator *op,
   union {
     void *ptr;
     bool val;
-  } t = {NULL};
+  } t = {nullptr};
   BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
   BMO_slot_map_insert(op, slot, element, ((void)(t.val = val), t.ptr));
 }
@@ -107,7 +107,7 @@ BLI_INLINE void BMO_slot_map_float_insert(BMOperator *op,
   union {
     void *ptr;
     float val;
-  } t = {NULL};
+  } t = {nullptr};
   BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_FLT);
   BMO_slot_map_insert(op, slot, element, ((void)(t.val = val), t.ptr));
 }
@@ -142,7 +142,7 @@ ATTR_NONNULL(1, 2)
 BLI_INLINE void BMO_slot_map_empty_insert(BMOperator *op, BMOpSlot *slot, const void *element)
 {
   BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_EMPTY);
-  BMO_slot_map_insert(op, slot, element, NULL);
+  BMO_slot_map_insert(op, slot, element, nullptr);
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
@@ -169,9 +169,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
   if (data) {
     return *(float *)data;
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
@@ -184,9 +182,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
   if (data) {
     return *(int *)data;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
@@ -199,9 +195,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
   if (data) {
     return *(bool *)data;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
@@ -213,7 +207,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
     return *val;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
@@ -225,5 +219,5 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
     return *val;
   }
 
-  return NULL;
+  return nullptr;
 }

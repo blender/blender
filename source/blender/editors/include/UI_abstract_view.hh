@@ -379,7 +379,7 @@ class AbstractViewItemDragController {
 
 template<class ViewType> ViewType &AbstractViewItemDragController::get_view() const
 {
-  static_assert(std::is_base_of<AbstractView, ViewType>::value,
+  static_assert(std::is_base_of_v<AbstractView, ViewType>,
                 "Type must derive from and implement the ui::AbstractView interface");
   return dynamic_cast<ViewType &>(view_);
 }

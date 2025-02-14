@@ -249,7 +249,7 @@ int UI_pie_menu_invoke_from_rna_enum(bContext *C,
   uiPieMenu *pie;
   uiLayout *layout;
 
-  PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
+  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
 
   if (!RNA_path_resolve(&ctx_ptr, path, &r_ptr, &r_prop)) {
     return OPERATOR_CANCELLED;

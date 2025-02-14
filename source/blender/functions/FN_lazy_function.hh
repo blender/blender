@@ -139,7 +139,6 @@ class Params {
   std::atomic<bool> allow_multi_threading_;
 #endif
 
- public:
   Params(const LazyFunction &fn, bool allow_multi_threading_initially);
 
   /**

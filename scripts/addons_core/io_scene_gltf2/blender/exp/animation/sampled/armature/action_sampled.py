@@ -13,7 +13,7 @@ from .channels import gather_armature_sampled_channels
 
 def gather_action_armature_sampled(armature_uuid: str,
                                    blender_action: typing.Optional[bpy.types.Action],
-                                   slot_handle: int,
+                                   slot_identifier: str,
                                    cache_key: str,
                                    export_settings):
 
@@ -21,12 +21,12 @@ def gather_action_armature_sampled(armature_uuid: str,
 
     try:
         channels, extra_channels = __gather_channels(
-            armature_uuid, blender_action.name if blender_action else cache_key, slot_handle if blender_action else None, export_settings)
+            armature_uuid, blender_action.name if blender_action else cache_key, slot_identifier if blender_action else None, export_settings)
     except RuntimeError as error:
         export_settings['log'].warning("Animation channels on action '{}' could not be exported. Cause: {}".format(name, error))
         return None
 
-    export_user_extensions('pre_gather_animation_hook', export_settings, channels, blender_action, slot_handle, blender_object)
+    export_user_extensions('pre_gather_animation_hook', export_settings, channels, blender_action, slot_identifier, blender_object)
 
     extra_samplers = []
     if export_settings['gltf_export_extra_animations']:
@@ -46,10 +46,10 @@ def gather_action_armature_sampled(armature_uuid: str,
     # To allow reuse of samplers in one animation : This will be done later, when we know all channels are here
 
     export_user_extensions('animation_channels_armature_sampled', export_settings,
-                           channels, blender_object, blender_action, slot_handle, cache_key)
+                           channels, blender_object, blender_action, slot_identifier, cache_key)
 
     return channels, extra_samplers
 
 
-def __gather_channels(armature_uuid, blender_action_name, slot_handle, export_settings) -> typing.List[gltf2_io.AnimationChannel]:
-    return gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_handle, export_settings)
+def __gather_channels(armature_uuid, blender_action_name, slot_identifier, export_settings) -> typing.List[gltf2_io.AnimationChannel]:
+    return gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_identifier, export_settings)

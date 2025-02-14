@@ -26,7 +26,7 @@ namespace blender::image_engine {
 struct ShaderParameters {
   ImageDrawFlags flags = ImageDrawFlags::DEFAULT;
   float4 shuffle;
-  float far_near[2];
+  float2 far_near;
   bool use_premul_alpha = false;
 
   void update(AbstractSpaceAccessor *space,
@@ -36,13 +36,13 @@ struct ShaderParameters {
   {
     flags = ImageDrawFlags::DEFAULT;
     shuffle = float4(1.0f);
-    copy_v2_fl2(far_near, 100.0f, 0.0f);
+    far_near = float2(100.0f, 0.0f);
 
     use_premul_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(image, image_buffer);
 
     if (scene->camera && scene->camera->type == OB_CAMERA) {
       const Camera *camera = static_cast<const Camera *>(scene->camera->data);
-      copy_v2_fl2(far_near, camera->clip_end, camera->clip_start);
+      far_near = float2(camera->clip_end, camera->clip_start);
     }
     space->get_shader_parameters(*this, image_buffer);
   }

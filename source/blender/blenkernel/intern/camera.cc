@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include <cstddef>
 #include <cstdlib>
 #include <optional>
 

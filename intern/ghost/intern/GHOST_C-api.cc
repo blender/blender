@@ -46,11 +46,9 @@ void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug)
   system->initDebug(debug);
 }
 
-GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle)
+GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle /*systemhandle*/)
 {
-  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
-
-  return system->disposeSystem();
+  return GHOST_ISystem::disposeSystem();
 }
 
 #if !(defined(WIN32) || defined(__APPLE__))
@@ -608,6 +606,33 @@ GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepa
   return window->setPath(filepath);
 }
 
+GHOST_TWindowDecorationStyleFlags GHOST_GetWindowDecorationStyleFlags(
+    GHOST_WindowHandle windowhandle)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  return window->getWindowDecorationStyleFlags();
+}
+
+void GHOST_SetWindowDecorationStyleFlags(GHOST_WindowHandle windowhandle,
+                                         GHOST_TWindowDecorationStyleFlags styleFlags)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  window->setWindowDecorationStyleFlags(styleFlags);
+}
+
+void GHOST_SetWindowDecorationStyleSettings(GHOST_WindowHandle windowhandle,
+                                            GHOST_WindowDecorationStyleSettings decorationSettings)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  window->setWindowDecorationStyleSettings(decorationSettings);
+}
+
+GHOST_TSuccess GHOST_ApplyWindowDecorationStyle(GHOST_WindowHandle windowhandle)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  return window->applyWindowDecorationStyle();
+}
+
 GHOST_RectangleHandle GHOST_GetWindowBounds(GHOST_WindowHandle windowhandle)
 {
   const GHOST_IWindow *window = (const GHOST_IWindow *)windowhandle;
@@ -771,7 +796,7 @@ GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle)
 void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const bool use)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
-  return system->setMultitouchGestures(use);
+  system->setMultitouchGestures(use);
 }
 
 void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api)
@@ -947,7 +972,7 @@ void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
 void GHOST_UseWindowFocus(bool use_focus)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->useWindowFocus(use_focus);
+  system->useWindowFocus(use_focus);
 }
 
 void GHOST_SetAutoFocus(bool auto_focus)

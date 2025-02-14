@@ -19,18 +19,7 @@
 #  include <pxr/usd/usdMtlx/utils.h>
 #endif
 
-#include "MEM_guardedalloc.h"
-
-#include "BKE_lib_id.hh"
-#include "BKE_material.hh"
-
-#include "RNA_access.hh"
-#include "RNA_prototypes.hh"
-#include "RNA_types.hh"
-
 #include "DEG_depsgraph_query.hh"
-
-#include "bpy_rna.hh"
 
 #include "hydra_scene_delegate.hh"
 #include "image.hh"
@@ -39,7 +28,6 @@
 #include "intern/usd_writer_material.hh"
 
 #ifdef WITH_MATERIALX
-#  include "shader/materialx/node_parser.h"
 
 #  include "shader/materialx/material.h"
 #endif

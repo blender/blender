@@ -259,7 +259,7 @@ class Instance {
     bool has_transparent_material = false;
 
     if (object_state.use_per_material_batches) {
-      const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
+      const int material_count = BKE_object_material_used_with_fallback_eval(*ob_ref.object);
 
       Span<gpu::Batch *> batches;
       if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {

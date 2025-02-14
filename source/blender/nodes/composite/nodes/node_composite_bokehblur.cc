@@ -12,8 +12,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "GPU_texture.hh"
-
 #include "COM_algorithm_parallel_reduction.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
@@ -31,7 +29,7 @@ static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
       .compositor_domain_priority(0);
   b.add_input<decl::Color>("Bokeh")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_realization_options(CompositorInputRealizationOptions::None);
+      .compositor_realization_mode(CompositorInputRealizationMode::Transforms);
   b.add_input<decl::Float>("Size")
       .default_value(1.0f)
       .min(0.0f)

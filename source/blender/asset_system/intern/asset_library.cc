@@ -228,7 +228,7 @@ void AssetLibrary::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappi
 {
   Set<AssetRepresentation *> removed_assets;
 
-  for (auto &asset_ptr : asset_storage_.local_id_assets) {
+  for (const auto &asset_ptr : asset_storage_.local_id_assets) {
     AssetRepresentation &asset = *asset_ptr;
     BLI_assert(asset.is_local_id());
 
@@ -254,6 +254,10 @@ void asset_library_on_save_post(Main *bmain,
 {
   AssetLibrary *asset_lib = static_cast<AssetLibrary *>(arg);
   asset_lib->on_blend_save_post(bmain, pointers, num_pointers);
+
+  if (asset_lib->library_type() == ASSET_LIBRARY_LOCAL) {
+    AssetLibraryService::destroy_runtime_current_file_library();
+  }
 }
 
 }  // namespace
@@ -355,6 +359,14 @@ AssetLibraryReference all_library_reference()
   all_library_ref.custom_library_index = -1;
   all_library_ref.type = ASSET_LIBRARY_ALL;
   return all_library_ref;
+}
+
+AssetLibraryReference current_file_library_reference()
+{
+  AssetLibraryReference library_ref{};
+  library_ref.custom_library_index = -1;
+  library_ref.type = ASSET_LIBRARY_LOCAL;
+  return library_ref;
 }
 
 void all_library_reload_catalogs_if_dirty()

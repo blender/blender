@@ -15,8 +15,6 @@
 #include "node_composite_util.hh"
 
 #include "BLI_assert.h"
-#include "BLI_dynstr.h"
-#include "BLI_hash_mm3.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -188,7 +186,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
          blender::bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session))
     {
       CryptomatteLayer *layer = MEM_cnew<CryptomatteLayer>(__func__);
-      layer_name.copy(layer->name);
+      layer_name.copy_utf8_truncated(layer->name);
       BLI_addtail(&n->runtime.layers, layer);
     }
   }

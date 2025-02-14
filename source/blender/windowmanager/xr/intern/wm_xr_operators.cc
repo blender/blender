@@ -35,6 +35,7 @@
 #include "GHOST_Types.h"
 
 #include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "MEM_guardedalloc.h"
 

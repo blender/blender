@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "common_view_clipping_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
 #include "select_lib.glsl"
 
 /* project to screen space */
@@ -129,9 +129,9 @@ void main()
 
   view_clipping_distances(wpos1);
 
-  vec4 p0 = point_world_to_ndc(wpos0);
-  vec4 p1 = point_world_to_ndc(wpos1);
-  vec4 p2 = point_world_to_ndc(wpos2);
+  vec4 p0 = drw_point_world_to_homogenous(wpos0);
+  vec4 p1 = drw_point_world_to_homogenous(wpos1);
+  vec4 p2 = drw_point_world_to_homogenous(wpos2);
 
   gl_Position = p1;
 

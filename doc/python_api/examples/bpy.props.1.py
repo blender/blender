@@ -4,7 +4,7 @@ Operator Example
 
 A common use of custom properties is for python based :class:`Operator`
 classes. Test this code by running it in the text editor, or by clicking the
-button in the 3D Viewport's Tools panel. The latter will show the properties
+button in the 3D View-port's Tools panel. The latter will show the properties
 in the Redo panel and allow you to change them.
 """
 import bpy

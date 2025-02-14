@@ -117,6 +117,8 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    */
   /* TODO support region zoom. */
   std::shared_ptr<int> custom_height_ = nullptr;
+  /** Scroll offset in items, also see #uiViewState.scroll_offset. Clamped before creating the
+   * button layout. */
   std::shared_ptr<int> scroll_value_ = nullptr;
 
   friend class AbstractTreeViewItem;
@@ -425,7 +427,7 @@ class TreeViewBuilder {
 template<class ItemT, typename... Args>
 inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
 {
-  static_assert(std::is_base_of<AbstractTreeViewItem, ItemT>::value,
+  static_assert(std::is_base_of_v<AbstractTreeViewItem, ItemT>,
                 "Type must derive from and implement the AbstractTreeViewItem interface");
 
   return dynamic_cast<ItemT &>(
@@ -434,7 +436,7 @@ inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
 
 template<class ViewType> ViewType &TreeViewItemDropTarget::get_view() const
 {
-  static_assert(std::is_base_of<AbstractTreeView, ViewType>::value,
+  static_assert(std::is_base_of_v<AbstractTreeView, ViewType>,
                 "Type must derive from and implement the ui::AbstractTreeView interface");
   return dynamic_cast<ViewType &>(view_item_.get_tree_view());
 }

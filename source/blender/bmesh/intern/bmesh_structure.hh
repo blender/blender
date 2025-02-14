@@ -140,4 +140,4 @@ BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2) ATTR_WARN_UNU
     ATTR_NONNULL();
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-#include "intern/bmesh_structure_inline.hh"
+#include "intern/bmesh_structure_inline.hh" /* IWYU pragma: export */

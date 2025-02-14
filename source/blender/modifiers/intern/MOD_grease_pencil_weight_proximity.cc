@@ -8,7 +8,6 @@
 
 #include "BLI_index_mask.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_string.h" /* For #STRNCPY. */
 
 #include "BLT_translation.hh"
 
@@ -127,7 +126,7 @@ static float get_distance_factor(float3 target_pos,
     }
     return 0.0f;
   }
-  else if (dist_max < dist_min) {
+  if (dist_max < dist_min) {
     if (dist > dist_min) {
       return 0.0f;
     }

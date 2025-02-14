@@ -9,6 +9,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_math_geom.h"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
 
@@ -1361,7 +1362,7 @@ static void do_bend_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 /** \} */
@@ -1643,7 +1644,7 @@ static void do_slide_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 /** \} */
@@ -1908,7 +1909,7 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 /** \} */
@@ -2179,7 +2180,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 /** \} */
@@ -2458,7 +2459,7 @@ static void do_twist_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 /** \} */
@@ -2820,7 +2821,7 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 /* -------------------------------------------------------------------- */

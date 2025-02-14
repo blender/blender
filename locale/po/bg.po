@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-11-08 04:56+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -76,22 +76,6 @@ msgid "Select"
 msgstr "Избор"
 
 
-msgid "Replace"
-msgstr "Замени"
-
-
-msgid "Add"
-msgstr "Добави"
-
-
-msgid "Subtract"
-msgstr "Основа"
-
-
-msgid "Multiply"
-msgstr "Умножение"
-
-
 msgid "Module"
 msgstr "Модул"
 
@@ -114,6 +98,22 @@ msgstr "Дъно"
 
 msgid "Action"
 msgstr "Действие"
+
+
+msgid "Replace"
+msgstr "Замени"
+
+
+msgid "Add"
+msgstr "Добави"
+
+
+msgid "Subtract"
+msgstr "Основа"
+
+
+msgid "Multiply"
+msgstr "Умножение"
 
 
 msgid "Nothing"
@@ -1140,36 +1140,36 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
+msgid "Text"
+msgstr "Текст"
 
 
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
 
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
+msgid "Light"
+msgstr "Светлина"
 
 
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
 
 
-msgid "Text"
-msgstr "Текст"
+msgid "Apply"
+msgstr "Прилагане"
 
 
-msgid "Light"
-msgstr "Светлина"
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
 
 
 msgid "Merge"

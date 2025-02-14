@@ -6,7 +6,6 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.hh"
@@ -14,6 +13,7 @@
 #include "GPU_texture.hh"
 
 #include "COM_context.hh"
+#include "COM_derived_resources.hh"
 #include "COM_domain.hh"
 #include "COM_result.hh"
 
@@ -484,11 +484,22 @@ void Result::free()
       integer_texture_ = nullptr;
       break;
   }
+
+  delete derived_resources_;
+  derived_resources_ = nullptr;
 }
 
 bool Result::should_compute()
 {
   return initial_reference_count_ != 0;
+}
+
+DerivedResources &Result::derived_resources()
+{
+  if (!derived_resources_) {
+    derived_resources_ = new DerivedResources();
+  }
+  return *derived_resources_;
 }
 
 ResultType Result::type() const

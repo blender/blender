@@ -6,8 +6,6 @@
  * \ingroup spoutliner
  */
 
-#include <cstdio>
-
 #include "DNA_armature_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_outliner_types.h"
@@ -15,8 +13,6 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_compiler_compat.h"
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
 #include "BKE_armature.hh"

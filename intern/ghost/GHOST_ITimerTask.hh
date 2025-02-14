@@ -28,7 +28,7 @@ class GHOST_ITimerTask {
   /**
    * Destructor.
    */
-  virtual ~GHOST_ITimerTask() {}
+  virtual ~GHOST_ITimerTask() = default;
 
   /**
    * Returns the timer callback.

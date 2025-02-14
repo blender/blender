@@ -29,8 +29,6 @@
 
 #include "BKE_blender_cli_command.hh" /* own include */
 
-#include "MEM_guardedalloc.h"
-
 /* -------------------------------------------------------------------- */
 /** \name Internal API
  * \{ */

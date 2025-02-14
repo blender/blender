@@ -14,8 +14,6 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
-#include "BKE_context.hh"
-
 #include "DNA_space_types.h"
 
 #include "ED_fileselect.hh"

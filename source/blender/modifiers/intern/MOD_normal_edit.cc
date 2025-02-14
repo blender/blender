@@ -25,7 +25,6 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -516,7 +515,6 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                              corner_verts,
                                              corner_edges,
                                              result->corner_to_face_map(),
-                                             result->vert_normals(),
                                              result->face_normals(),
                                              sharp_edges.span,
                                              sharp_faces,

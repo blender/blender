@@ -8,8 +8,6 @@
  * \ingroup bke
  */
 
-#include "DNA_curve_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

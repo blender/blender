@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_attribute_math.hh"
-#include "BKE_mesh.hh"
+#include "DNA_mesh_types.h"
+
 #include "BKE_mesh_sample.hh"
 #include "BKE_type_conversions.hh"
 

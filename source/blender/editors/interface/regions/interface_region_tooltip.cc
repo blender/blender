@@ -1099,7 +1099,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
 
     if (but->rnaprop) {
       BLI_assert(but->rnaindex == -1);
-      has_alpha = RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4;
+      has_alpha = RNA_property_array_length(&but->rnapoin, but->rnaprop) >= 4;
       if (has_alpha) {
         color[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
       }
@@ -1665,8 +1665,8 @@ static void ui_tooltip_from_image(Image &ima, uiTooltipData &data)
 
   if (ibuf) {
     uiTooltipImage image_data;
-    image_data.width = int(ibuf->x);
-    image_data.height = int(ibuf->y);
+    image_data.width = ibuf->x;
+    image_data.height = ibuf->y;
     image_data.ibuf = ibuf;
     image_data.border = true;
     image_data.background = uiTooltipImageBackground::Checkerboard_Themed;
@@ -1718,13 +1718,13 @@ static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
 
     if (ibuf) {
       /* Resize. */
-      float scale = float(200.0f * UI_SCALE_FAC) / float(std::max(ibuf->x, ibuf->y));
+      float scale = (200.0f * UI_SCALE_FAC) / float(std::max(ibuf->x, ibuf->y));
       IMB_scale(ibuf, scale * ibuf->x, scale * ibuf->y, IMBScaleFilter::Box, false);
       IMB_rect_from_float(ibuf);
 
       uiTooltipImage image_data;
-      image_data.width = int(ibuf->x);
-      image_data.height = int(ibuf->y);
+      image_data.width = ibuf->x;
+      image_data.height = ibuf->y;
       image_data.ibuf = ibuf;
       image_data.border = true;
       image_data.background = uiTooltipImageBackground::Checkerboard_Themed;

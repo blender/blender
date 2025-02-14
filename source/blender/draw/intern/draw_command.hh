@@ -15,6 +15,7 @@
 
 #include "BKE_global.hh"
 #include "BLI_map.hh"
+#include "BLI_math_base.h"
 #include "DRW_gpu_wrapper.hh"
 
 #include "draw_command_shared.hh"
@@ -372,8 +373,7 @@ struct Draw {
     BLI_assert(batch != nullptr);
     this->batch = batch;
     this->handle = handle;
-    BLI_assert(instance_len < SHRT_MAX);
-    this->instance_len = uint16_t(instance_len);
+    this->instance_len = uint16_t(min_uu(instance_len, USHRT_MAX));
     this->vertex_len = vertex_len;
     this->vertex_first = vertex_first;
     this->expand_prim_type = expanded_prim_type;

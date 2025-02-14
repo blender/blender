@@ -20,8 +20,6 @@
 #include "UI_resources.hh"
 
 #include "GPU_shader.hh"
-#include "GPU_state.hh"
-#include "GPU_texture.hh"
 
 #include "COM_algorithm_morphological_distance.hh"
 #include "COM_algorithm_morphological_distance_feather.hh"

@@ -10,7 +10,7 @@
 #define DNA_DEPRECATED_ALLOW
 #include <cstring>
 
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
@@ -1394,6 +1394,10 @@ void blo_do_versions_userdef(UserDef *userdef)
         keymap_update_mesh_texture_paint_brushes(keymap);
       }
     }
+  }
+
+  if (!USER_VERSION_ATLEAST(404, 28)) {
+    userdef->ndof_flag |= NDOF_SHOW_GUIDE_ORBIT_CENTER | NDOF_ORBIT_CENTER_AUTO;
   }
 
   /**

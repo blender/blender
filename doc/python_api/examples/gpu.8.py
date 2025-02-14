@@ -1,6 +1,6 @@
 """
-Copy Offscreen Rendering result back to RAM
--------------------------------------------
+Copy Off-screen Rendering result back to RAM
+--------------------------------------------
 
 This will create a new image with the given name.
 If it already exists, it will override the existing one.

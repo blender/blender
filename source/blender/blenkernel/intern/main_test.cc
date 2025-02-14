@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "CLG_log.h"
 
 #include "BLI_listbase.h"

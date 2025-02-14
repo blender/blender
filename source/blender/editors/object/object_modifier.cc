@@ -6,7 +6,6 @@
  * \ingroup edobj
  */
 
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 
@@ -36,6 +35,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
@@ -145,7 +145,7 @@ static void object_force_modifier_bind_simple_options(Depsgraph *depsgraph,
                                                       Object *object,
                                                       ModifierData *md)
 {
-  ModifierData *md_eval = (ModifierData *)BKE_modifier_get_evaluated(depsgraph, object, md);
+  ModifierData *md_eval = BKE_modifier_get_evaluated(depsgraph, object, md);
   const int mode = md_eval->mode;
   md_eval->mode |= eModifierMode_Realtime;
   object_force_modifier_update_for_bind(depsgraph, object);
@@ -1343,7 +1343,9 @@ static bool modifier_apply_obdata(ReportList *reports,
       multires_force_sculpt_rebuild(ob);
     }
 
-    if (mmd && mmd->totlvl && mti->type == ModifierTypeType::OnlyDeform) {
+    if (mmd && mmd->totlvl &&
+        (mti->type == ModifierTypeType::OnlyDeform || md_eval->type == eModifierType_Nodes))
+    {
       if (!multiresModifier_reshapeFromDeformModifier(depsgraph, ob, mmd, md_eval)) {
         BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
         return false;

@@ -57,10 +57,10 @@ BLI_INLINE void copy_yup_from_zup(short yup[3], const short zup[3])
 /* Names are given in (dst, src) order, just like
  * the parameters of copy_m44_axis_swap(). */
 
-typedef enum {
+enum AbcAxisSwapMode {
   ABC_ZUP_FROM_YUP = 1,
   ABC_YUP_FROM_ZUP = 2,
-} AbcAxisSwapMode;
+};
 
 /**
  * Create a rotation matrix for each axis from euler angles.
@@ -78,10 +78,10 @@ void create_swapped_rotation_matrix(float rot_x_mat[3][3],
  */
 void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMode mode);
 
-typedef enum {
+enum AbcMatrixMode {
   ABC_MATRIX_WORLD = 1,
   ABC_MATRIX_LOCAL = 2,
-} AbcMatrixMode;
+};
 
 /**
  * Recompute transform matrix of object in new coordinate system

@@ -115,11 +115,14 @@ typedef struct RegionView3D {
   char lpersp;
   char lview;
   char lview_axis_roll;
-  char _pad8[1];
+  char _pad8[4];
 
-  /** Active rotation from NDOF or elsewhere. */
-  float rot_angle;
-  float rot_axis[3];
+  char ndof_flag;
+  float ndof_ofs[3];
+
+  /** Active rotation from NDOF (run-time only). */
+  float ndof_rot_angle;
+  float ndof_rot_axis[3];
 } RegionView3D;
 
 typedef struct View3DCursor {
@@ -436,6 +439,12 @@ enum {
 
 /** #RegionView3D.viewlock */
 enum {
+  /**
+   * Used to lock axis views when quad-view is enabled.
+   *
+   * \note this implies locking the perspective as these views
+   * should use an orthographic projection.
+   */
   RV3D_LOCK_ROTATION = (1 << 0),
   RV3D_BOXVIEW = (1 << 1),
   RV3D_BOXCLIP = (1 << 2),
@@ -477,6 +486,25 @@ enum {
   RV3D_VIEW_AXIS_ROLL_90 = 1,
   RV3D_VIEW_AXIS_ROLL_180 = 2,
   RV3D_VIEW_AXIS_ROLL_270 = 3,
+};
+
+/** #RegionView3D::ndof_flag */
+enum {
+  /**
+   * When set, #RegionView3D::ndof_ofs may be used instead of #RegionView3D::ofs,
+   *
+   * This value will be recalculated when starting NDOF motion,
+   * however if the center can *not* be calculated, the previous value may be used.
+   *
+   * To prevent strange behavior some checks should be used
+   * to ensure the previously calculated value makes sense.
+   *
+   * The most common case is for perspective views, where orbiting around a point behind
+   * the view (while possible) often seems like a bug from a user perspective.
+   * We could consider other cases invalid too (values beyond the clipping plane for e.g.),
+   * although in practice these cases should be fairly rare.
+   */
+  RV3D_NDOF_OFS_IS_VALID = (1 << 0),
 };
 
 #define RV3D_CLIPPING_ENABLED(v3d, rv3d) \

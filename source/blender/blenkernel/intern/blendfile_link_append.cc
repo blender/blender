@@ -26,10 +26,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -356,7 +355,7 @@ void BKE_blendfile_link_append_context_init_done(BlendfileLinkAppendContext *lap
 {
   BLI_assert(lapp_context->process_stage == BlendfileLinkAppendContext::ProcessStage::Init);
 
-  PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_BlendImportContext, lapp_context);
+  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_BlendImportContext, lapp_context);
   PointerRNA *pointers[1] = {&ctx_ptr};
   BKE_callback_exec(lapp_context->params->bmain, pointers, 1, BKE_CB_EVT_BLENDIMPORT_PRE);
 }
@@ -369,7 +368,7 @@ void BKE_blendfile_link_append_context_finalize(BlendfileLinkAppendContext *lapp
                   BlendfileLinkAppendContext::ProcessStage::Instantiating));
   lapp_context->process_stage = BlendfileLinkAppendContext::ProcessStage::Done;
 
-  PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_BlendImportContext, lapp_context);
+  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_BlendImportContext, lapp_context);
   PointerRNA *pointers[1] = {&ctx_ptr};
   BKE_callback_exec(lapp_context->params->bmain, pointers, 1, BKE_CB_EVT_BLENDIMPORT_POST);
 }
@@ -809,7 +808,7 @@ static void loose_data_instantiate_obdata_process(LooseDataInstantiateContext *i
     Object *ob = BKE_object_add_only_object(bmain, type, id->name + 2);
     ob->data = id;
     id_us_plus(id);
-    BKE_object_materials_test(bmain, ob, static_cast<ID *>(ob->data));
+    BKE_object_materials_sync_length(bmain, ob, static_cast<ID *>(ob->data));
 
     loose_data_instantiate_object_base_instance_init(bmain,
                                                      active_collection,

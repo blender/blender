@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -247,36 +247,16 @@ msgid "Collection of action groups"
 msgstr "Toimintaryhmäkokoelma"
 
 
-msgid "Mix Mode"
-msgstr "Sekoitustila"
-
-
-msgid "Replace"
-msgstr "Korvaa"
-
-
-msgid "Offset"
-msgstr "Siirros"
-
-
-msgid "Add"
-msgstr "Lisää"
-
-
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgid "Multiply"
-msgstr "Kerro"
-
-
 msgid "Action Pose Markers"
 msgstr "Toiminto-asentomerkit"
 
 
 msgid "Active"
 msgstr "Aktiivinen"
+
+
+msgid "Show Expanded"
+msgstr "Näytä laajennettu"
 
 
 msgctxt "ID"
@@ -474,10 +454,6 @@ msgid "World"
 msgstr "Maailma"
 
 
-msgid "Show Expanded"
-msgstr "Näytä laajennettu"
-
-
 msgid "Add-on"
 msgstr "Lisäosa"
 
@@ -566,8 +542,24 @@ msgid "Active Action for this data-block"
 msgstr "Aktiiviset toiminnot tälle data-palikalle"
 
 
+msgid "Replace"
+msgstr "Korvaa"
+
+
 msgid "Combine"
 msgstr "Yhdistä"
+
+
+msgid "Add"
+msgstr "Lisää"
+
+
+msgid "Subtract"
+msgstr "Vähennä"
+
+
+msgid "Multiply"
+msgstr "Kerro"
 
 
 msgid "Nothing"
@@ -3189,6 +3181,10 @@ msgid "Override Background Image"
 msgstr "Ohita taustakuva"
 
 
+msgid "Offset"
+msgstr "Siirros"
+
+
 msgid "Rotation"
 msgstr "Kierto"
 
@@ -3648,6 +3644,10 @@ msgstr "Maksimi"
 
 msgid "Minimum"
 msgstr "Minimi"
+
+
+msgid "Mix Mode"
+msgstr "Sekoitustila"
 
 
 msgid "Target object"
@@ -7344,64 +7344,64 @@ msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
+msgid "Text"
+msgstr "Teksti"
 
 
 msgid "Metaball"
 msgstr "Metapallo"
 
 
-msgid "Text"
-msgstr "Teksti"
+msgid "Names"
+msgstr "Nimet"
 
 
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Light"
-msgstr "Valo"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Select Loops"
-msgstr "Valitse silmukat"
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
 
 
 msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
 
 
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Basic"
@@ -13979,6 +13979,10 @@ msgid "Workbench"
 msgstr "Työtila"
 
 
+msgid "Create"
+msgstr "Luo"
+
+
 msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
@@ -13995,8 +13999,8 @@ msgid "Separated bones"
 msgstr "Erotetut luut"
 
 
-msgid "Create"
-msgstr "Luo"
+msgid "Cancel"
+msgstr "Peruuta"
 
 
 msgid "No pose to copy"
@@ -14035,10 +14039,6 @@ msgstr "Pupillit"
 
 msgid "Nothing selected"
 msgstr "Mitään ei ole valittu"
-
-
-msgid "Cancel"
-msgstr "Peruuta"
 
 
 msgctxt "Operator"
@@ -14824,14 +14824,6 @@ msgstr "näyttö"
 
 msgid "Missing surface mesh"
 msgstr "Pinnan muoto puuttuu"
-
-
-msgid "ON"
-msgstr "Päällä"
-
-
-msgid "OFF"
-msgstr "Pois päältä"
 
 
 msgid "Trace"
@@ -16249,16 +16241,16 @@ msgid "Variance"
 msgstr "Varianssi"
 
 
+msgid "Bake Items"
+msgstr "Paista esineet"
+
+
 msgid "Bake to Disk"
 msgstr "Paista levylle"
 
 
 msgid "Bake Packed"
 msgstr "Paista pakatut"
-
-
-msgid "Bake Items"
-msgstr "Paista esineet"
 
 
 msgid "Mesh 1"
@@ -17190,6 +17182,14 @@ msgstr "Bksp"
 
 msgid "dbl-"
 msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "Päällä"
+
+
+msgid "OFF"
+msgstr "Pois päältä"
 
 
 msgid "unsupported format"

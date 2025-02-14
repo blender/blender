@@ -11,7 +11,7 @@
 
 // minimal float3 + util_math.h implementation for nishita sky model
 
-#include <math.h>
+#include <cmath>
 
 #ifndef M_PI_F
 #  define M_PI_F (3.1415926535897932f) /* pi */

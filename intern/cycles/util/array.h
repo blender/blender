@@ -274,10 +274,7 @@ template<typename T, const size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> clas
       return nullptr;
     }
     T *mem = (T *)util_aligned_malloc(sizeof(T) * N, alignment);
-    if (mem != nullptr) {
-      util_guarded_mem_alloc(sizeof(T) * N);
-    }
-    else {
+    if (mem == nullptr) {
       throw std::bad_alloc();
     }
     return mem;
@@ -286,8 +283,7 @@ template<typename T, const size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> clas
   void mem_free(T *mem, const size_t N)
   {
     if (mem != nullptr) {
-      util_guarded_mem_free(sizeof(T) * N);
-      util_aligned_free(mem);
+      util_aligned_free(mem, sizeof(T) * N);
     }
   }
 

@@ -605,7 +605,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     }
     return GHOST_kSuccess;
   }
-  else if (result != VK_SUCCESS) {
+  if (result != VK_SUCCESS) {
     fprintf(stderr,
             "Error: Failed to present swap chain image : %s\n",
             vulkan_error_as_string(result));

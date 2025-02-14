@@ -8,16 +8,16 @@
 
 #include "geometry_data_retrieval.h"
 
-#include "slim.h"
-#include "slim_matrix_transfer.h"
 #include <Eigen/Dense>
 
 #include "BLI_assert.h"
-#include "area_compensation.h"
-#include "geometry_data_retrieval.h"
-#include "least_squares_relocator.h"
 
-#include "BLI_assert.h"
+#include "slim.h"
+#include "slim_matrix_transfer.h"
+
+#include "area_compensation.h"
+#include "least_squares_relocator.h"
+#include "uv_initializer.h"
 
 using namespace Eigen;
 

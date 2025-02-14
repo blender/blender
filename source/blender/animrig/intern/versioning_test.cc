@@ -8,11 +8,8 @@
 #include "ANIM_versioning.hh"
 
 #include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "testing/testing.h"
 

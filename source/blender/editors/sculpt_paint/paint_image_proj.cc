@@ -11,7 +11,6 @@
 #include <cfloat>
 #include <climits>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -27,6 +26,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_task.h"
@@ -4960,7 +4960,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps,
   }
 
   if (LIKELY(accum_tot != 0)) {
-    mul_v4_fl(rgba, 1.0f / float(accum_tot));
+    mul_v4_fl(rgba, 1.0f / accum_tot);
 
     if (ps->mode == BRUSH_STROKE_INVERT) {
       /* subtract blurred image from normal image gives high pass filter */
@@ -5023,7 +5023,7 @@ static void do_projectpaint_soften(ProjPaintState *ps,
   if (LIKELY(accum_tot != 0)) {
     uchar *rgba_ub = projPixel->newColor.ch;
 
-    mul_v4_fl(rgba, 1.0f / float(accum_tot));
+    mul_v4_fl(rgba, 1.0f / accum_tot);
 
     if (ps->mode == BRUSH_STROKE_INVERT) {
       float rgba_pixel[4];
@@ -5812,7 +5812,7 @@ void paint_proj_stroke(const bContext *C,
     float *cursor = scene->cursor.location;
     const int mval_i[2] = {int(pos[0]), int(pos[1])};
 
-    view3d_operator_needs_opengl(C);
+    view3d_operator_needs_gpu(C);
 
     /* Ensure the depth buffer is updated for #ED_view3d_autodist. */
     ED_view3d_depth_override(
@@ -5960,7 +5960,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   if (mode == BRUSH_STROKE_INVERT) {
     /* Bypass regular stroke logic. */
     if (ps_handle->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
-      view3d_operator_needs_opengl(C);
+      view3d_operator_needs_gpu(C);
       ps_handle->is_clone_cursor_pick = true;
       return ps_handle;
     }
@@ -6280,12 +6280,8 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
   maxsize = GPU_max_texture_size();
 
-  if (w > maxsize) {
-    w = maxsize;
-  }
-  if (h > maxsize) {
-    h = maxsize;
-  }
+  w = std::min(w, maxsize);
+  h = std::min(h, maxsize);
 
   /* Create a copy of the overlays where they are all turned off, except the
    * texture paint overlay opacity */

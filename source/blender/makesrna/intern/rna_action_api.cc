@@ -17,9 +17,11 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_action.hh"
+#  include "BKE_report.hh"
 
-#  include "DNA_anim_types.h"
-#  include "DNA_curve_types.h"
+#  include "DNA_object_types.h"
+
+#  include "WM_api.hh"
 
 static void rna_Action_flip_with_pose(bAction *act, ReportList *reports, Object *ob)
 {

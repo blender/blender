@@ -1080,7 +1080,7 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
 
   undo::push_end(object);
 
-  bke::pbvh::update_visibility(object, pbvh);
+  pbvh.update_visibility(object);
 
   islands::invalidate(*object.sculpt);
   hide::tag_update_visibility(*C);
@@ -1483,8 +1483,6 @@ static void edit_modify_coordinates(
   undo::push_begin(scene, ob, op);
   undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
 
-  pbvh.tag_positions_changed(node_mask);
-
   switch (mode) {
     case EditMode::FairPositions:
       edit_fairing(depsgraph, sd, ob, active_face_set, MESH_FAIRING_DEPTH_POSITION, strength);
@@ -1496,7 +1494,8 @@ static void edit_modify_coordinates(
       BLI_assert_unreachable();
   }
 
-  bke::pbvh::update_bounds(depsgraph, ob, pbvh);
+  pbvh.tag_positions_changed(node_mask);
+  pbvh.update_bounds(depsgraph, ob);
   flush_update_step(C, UpdateType::Position);
   flush_update_done(C, ob, UpdateType::Position);
   undo::push_end(ob);

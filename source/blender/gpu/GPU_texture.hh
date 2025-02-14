@@ -17,8 +17,6 @@
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_state.hh"
-
 namespace blender::gpu {
 class VertBuf;
 }

@@ -10,13 +10,9 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_node.hh"
 
 #include "node_util.hh"
-
-#include "RNA_types.hh"
 
 struct bNode;
 struct bNodeStack;

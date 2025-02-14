@@ -50,4 +50,26 @@ PropertyRNA *RNA_def_node_enum(StructRNA *srna,
   return prop;
 }
 
+PropertyRNA *RNA_def_node_boolean(StructRNA *srna,
+                                  const char *identifier,
+                                  const char *ui_name,
+                                  const char *ui_description,
+                                  const BooleanRNAAccessors accessors,
+                                  std::optional<bool> default_value,
+                                  bool allow_animation)
+{
+  PropertyRNA *prop = RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs_runtime(prop, accessors.getter, accessors.setter);
+  if (default_value.has_value()) {
+    RNA_def_property_boolean_default(prop, *default_value);
+  }
+  RNA_def_property_ui_text(prop, ui_name, ui_description);
+  if (!allow_animation) {
+    RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  }
+  RNA_def_property_update_runtime(prop, rna_Node_socket_update);
+  RNA_def_property_update_notifier(prop, NC_NODE | NA_EDITED);
+  return prop;
+}
+
 }  // namespace blender::nodes

@@ -11,8 +11,9 @@
 #include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -22,9 +23,9 @@
 #include "BKE_linestyle.h"
 
 /* Function declarations. */
-static FreestyleLineSet *alloc_lineset(void);
+static FreestyleLineSet *alloc_lineset();
 static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset, const int flag);
-static FreestyleModuleConfig *alloc_module(void);
+static FreestyleModuleConfig *alloc_module();
 static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module);
 
 void BKE_freestyle_config_init(FreestyleConfig *config)

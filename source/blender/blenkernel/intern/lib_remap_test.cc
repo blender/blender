@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
-#include "BLI_utildefines.h"
-
 #include "CLG_log.h"
 
 #include "GHOST_Path-api.hh"
@@ -23,7 +21,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
@@ -31,8 +29,6 @@
 #include "IMB_imbuf.hh"
 
 #include "ED_node.hh"
-
-#include "MEM_guardedalloc.h"
 
 using namespace blender::bke::id;
 

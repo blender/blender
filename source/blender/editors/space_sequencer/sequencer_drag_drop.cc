@@ -11,7 +11,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
 
@@ -29,11 +30,11 @@
 #include "UI_view2d.hh"
 
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 
-#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "MOV_read.hh"
@@ -170,7 +171,6 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   SeqDropCoords *coords = &g_drop_coords;
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
-  eSeqHandle hand;
   View2D *v2d = &region->v2d;
 
   /* Update the position were we would place the strip if we complete the drag and drop action.
@@ -217,26 +217,20 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
     }
   }
 
-  if (strip_len < 1) {
-    /* Only check if there is a strip already under the mouse cursor. */
-    coords->is_intersecting = find_nearest_seq(scene, &region->v2d, mval, &hand);
-  }
-  else {
-    /* Check if there is a strip that would intersect with the new strip(s). */
-    coords->is_intersecting = false;
-    Strip dummy_seq{};
-    dummy_seq.machine = coords->channel;
-    dummy_seq.start = coords->start_frame;
-    dummy_seq.len = coords->strip_len;
-    dummy_seq.speed_factor = 1.0f;
-    dummy_seq.media_playback_rate = coords->playback_rate;
-    dummy_seq.flag = SEQ_AUTO_PLAYBACK_RATE;
-    Editing *ed = SEQ_editing_ensure(scene);
+  /* Check if there is a strip that would intersect with the new strip(s). */
+  coords->is_intersecting = false;
+  Strip dummy_seq{};
+  dummy_seq.machine = coords->channel;
+  dummy_seq.start = coords->start_frame;
+  dummy_seq.len = coords->strip_len;
+  dummy_seq.speed_factor = 1.0f;
+  dummy_seq.media_playback_rate = coords->playback_rate;
+  dummy_seq.flag = SEQ_AUTO_PLAYBACK_RATE;
+  Editing *ed = SEQ_editing_ensure(scene);
 
-    for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-      coords->is_intersecting = SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
-      dummy_seq.machine++;
-    }
+  for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
+    coords->is_intersecting = SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
+    dummy_seq.machine++;
   }
 
   return strip_len;

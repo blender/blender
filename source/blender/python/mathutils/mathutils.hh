@@ -89,18 +89,18 @@ PyMODINIT_FUNC PyInit_mathutils();
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff);
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);
 
-typedef struct Mathutils_Callback Mathutils_Callback;
+using Mathutils_Callback = struct Mathutils_Callback;
 
 /** Checks the user is still valid. */
-typedef int (*BaseMathCheckFunc)(BaseMathObject *);
+using BaseMathCheckFunc = int (*)(BaseMathObject *);
 /** Gets the vector from the user. */
-typedef int (*BaseMathGetFunc)(BaseMathObject *, int);
+using BaseMathGetFunc = int (*)(BaseMathObject *, int);
 /** Sets the users vector values once its modified. */
-typedef int (*BaseMathSetFunc)(BaseMathObject *, int);
+using BaseMathSetFunc = int (*)(BaseMathObject *, int);
 /** Same as #BaseMathGetFunc but only for an index. */
-typedef int (*BaseMathGetIndexFunc)(BaseMathObject *, int, int);
+using BaseMathGetIndexFunc = int (*)(BaseMathObject *, int, int);
 /** Same as #BaseMathSetFunc but only for an index. */
-typedef int (*BaseMathSetIndexFunc)(BaseMathObject *, int, int);
+using BaseMathSetIndexFunc = int (*)(BaseMathObject *, int, int);
 
 struct Mathutils_Callback {
   BaseMathCheckFunc check;

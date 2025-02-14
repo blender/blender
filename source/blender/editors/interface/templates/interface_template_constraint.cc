@@ -43,7 +43,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
 
   Object *ob = blender::ed::object::context_active_object(C);
 
-  PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_Constraint, con);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
   uiLayoutSetContextPointer(layout, "constraint", &ptr);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
@@ -111,7 +111,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   uiBlock *block = uiLayoutGetBlock(layout);
   UI_block_func_set(block, constraint_active_func, ob, con);
 
-  PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_Constraint, con);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
 
   if (block->panel) {
     UI_panel_context_pointer_set(block->panel, "constraint", &ptr);
@@ -308,7 +308,7 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
 
       /* Create custom data RNA pointer. */
       PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
-      *con_ptr = RNA_pointer_create(&ob->id, &RNA_Constraint, con);
+      *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
 
       Panel *new_panel = UI_panel_add_instanced(C, region, &region->panels, panel_idname, con_ptr);
 
@@ -343,7 +343,7 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
       }
 
       PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
-      *con_ptr = RNA_pointer_create(&ob->id, &RNA_Constraint, con);
+      *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
       UI_panel_custom_data_set(panel, con_ptr);
 
       panel = panel->next;

@@ -19,7 +19,7 @@ struct BMVert;
 struct BMesh;
 struct BVHTree;
 
-typedef struct BMBVHTree BMBVHTree;
+using BMBVHTree = struct BMBVHTree;
 
 typedef bool (*BMBVHTree_FaceFilter)(struct BMFace *f, void *userdata);
 

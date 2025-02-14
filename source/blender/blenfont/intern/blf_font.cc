@@ -10,7 +10,7 @@
  * Also low level functions for managing \a FontBLF.
  */
 
-#include <cmath>
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -28,7 +28,6 @@
 
 #include "DNA_vec_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
@@ -44,11 +43,12 @@
 
 #include "GPU_batch.hh"
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 #ifdef WIN32
 #  define FT_New_Face FT_New_Face__win32_compat
@@ -824,7 +824,7 @@ size_t blf_font_width_to_strlen(
   size_t i, i_prev;
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  const int width_i = int(width);
+  const int width_i = width;
 
   for (i_prev = i = 0, width_new = pen_x = 0, g_prev = nullptr; (i < str_len) && str[i];
        i_prev = i, width_new = pen_x, g_prev = g)
@@ -923,19 +923,11 @@ static void blf_font_boundbox_ex(FontBLF *font,
     const ft_pix gbox_ymin = g->box_ymin + pen_y;
     const ft_pix gbox_ymax = g->box_ymax + pen_y;
 
-    if (gbox_xmin < box_xmin) {
-      box_xmin = gbox_xmin;
-    }
-    if (gbox_ymin < box_ymin) {
-      box_ymin = gbox_ymin;
-    }
+    box_xmin = std::min(gbox_xmin, box_xmin);
+    box_ymin = std::min(gbox_ymin, box_ymin);
 
-    if (gbox_xmax > box_xmax) {
-      box_xmax = gbox_xmax;
-    }
-    if (gbox_ymax > box_ymax) {
-      box_ymax = gbox_ymax;
-    }
+    box_xmax = std::max(gbox_xmax, box_xmax);
+    box_ymax = std::max(gbox_ymax, box_ymax);
 
     pen_x = pen_x_next;
   }

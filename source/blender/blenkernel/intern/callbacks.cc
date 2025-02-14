@@ -7,7 +7,6 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_callbacks.hh"
 
@@ -54,7 +53,7 @@ void BKE_callback_exec_id_depsgraph(Main *bmain, ID *id, Depsgraph *depsgraph, e
 {
   PointerRNA id_ptr = RNA_id_pointer_create(id);
 
-  PointerRNA depsgraph_ptr = RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph);
+  PointerRNA depsgraph_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Depsgraph, depsgraph);
 
   PointerRNA *pointers[2] = {&id_ptr, &depsgraph_ptr};
 
@@ -65,7 +64,7 @@ void BKE_callback_exec_string(Main *bmain, eCbEvent evt, const char *str)
 {
   PrimitiveStringRNA data = {nullptr};
   data.value = str;
-  PointerRNA str_ptr = RNA_pointer_create(nullptr, &RNA_PrimitiveString, &data);
+  PointerRNA str_ptr = RNA_pointer_create_discrete(nullptr, &RNA_PrimitiveString, &data);
 
   PointerRNA *pointers[1] = {&str_ptr};
 

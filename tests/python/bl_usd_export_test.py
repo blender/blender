@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import math
+import os
 import pathlib
 import pprint
 import sys
@@ -11,6 +12,10 @@ import unittest
 from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade, UsdSkel, UsdUtils, UsdVol
 
 import bpy
+
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
+from modules.colored_print import (print_message, use_message_colors)
+
 
 args = None
 
@@ -21,16 +26,22 @@ class AbstractUSDTest(unittest.TestCase):
         cls._tempdir = tempfile.TemporaryDirectory()
         cls.testdir = args.testdir
         cls.tempdir = pathlib.Path(cls._tempdir.name)
-
-        return cls
+        if os.environ.get("BLENDER_TEST_COLOR") is not None:
+            use_message_colors()
 
     def setUp(self):
-        self.assertTrue(
-            self.testdir.exists(), "Test dir {0} should exist".format(self.testdir)
-        )
+        self.assertTrue(self.testdir.exists(), "Test dir {0} should exist".format(self.testdir))
+        print_message(self._testMethodName, 'SUCCESS', 'RUN')
 
     def tearDown(self):
         self._tempdir.cleanup()
+
+        result = self._outcome.result
+        ok = all(test != self for test, _ in result.errors + result.failures)
+        if not ok:
+            print_message(self._testMethodName, 'FAILURE', 'FAILED')
+        else:
+            print_message(self._testMethodName, 'SUCCESS', 'PASSED')
 
     def export_and_validate(self, **kwargs):
         """Export and validate the resulting USD file."""
@@ -773,7 +784,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(usd_vert_sharpness), 7)
         # A 1.0 crease is INFINITE (10) in USD
         self.assertAlmostEqual(min(usd_vert_sharpness), 0.1, 5)
-        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp < 1]), 6)
+        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp < 10]), 6)
         self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp == 10]), 1)
 
         mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/crease_edge/crease_edge"))
@@ -788,7 +799,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(usd_crease_sharpness), 10)
         # A 1.0 crease is INFINITE (10) in USD
         self.assertAlmostEqual(min(usd_crease_sharpness), 0.1, 5)
-        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 1]), 9)
+        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 10]), 9)
         self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp == 10]), 1)
 
     def test_export_mesh_triangulate(self):
@@ -924,6 +935,15 @@ class USDExportTest(AbstractUSDTest):
         scale_samples = UsdGeom.Xformable(prim).GetScaleOp().GetTimeSamples()
         self.assertEqual(loc_samples, [1.0, 2.0, 3.0, 4.0])
         self.assertEqual(rot_samples, [1.0])
+        self.assertEqual(scale_samples, [1.0])
+
+        prim = stage.GetPrimAtPath("/root/cube_anim_xform/cube_anim_child")
+        self.assertEqual(prim.GetTypeName(), "Xform")
+        loc_samples = UsdGeom.Xformable(prim).GetTranslateOp().GetTimeSamples()
+        rot_samples = UsdGeom.Xformable(prim).GetRotateXYZOp().GetTimeSamples()
+        scale_samples = UsdGeom.Xformable(prim).GetScaleOp().GetTimeSamples()
+        self.assertEqual(loc_samples, [1.0])
+        self.assertEqual(rot_samples, [1.0, 2.0, 3.0, 4.0])
         self.assertEqual(scale_samples, [1.0])
 
         # Validate the armature animation
@@ -1306,40 +1326,89 @@ class USDExportTest(AbstractUSDTest):
         """Test specifying stage meters per unit on export."""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
 
-        export_path = self.tempdir / "usd_export_units_test_cm.usda"
+        units = (
+            ("mm", 'MILLIMETERS', 0.001), ("cm", 'CENTIMETERS', 0.01), ("km", 'KILOMETERS', 1000),
+            ("in", 'INCHES', 0.0254), ("ft", 'FEET', 0.3048), ("yd", 'YARDS', 0.9144),
+            ("default", "", 1), ("custom", 'CUSTOM', 0.125)
+        )
+        for name, unit, value in units:
+            export_path = self.tempdir / f"usd_export_units_test_{name}.usda"
+            if name == "default":
+                self.export_and_validate(filepath=str(export_path))
+            elif name == "custom":
+                self.export_and_validate(filepath=str(export_path), convert_scene_units=unit, meters_per_unit=value)
+            else:
+                self.export_and_validate(filepath=str(export_path), convert_scene_units=unit)
+
+            # Verify that meters per unit were set correctly
+            stage = Usd.Stage.Open(str(export_path))
+            self.assertEqual(UsdGeom.GetStageMetersPerUnit(stage), value)
+
+    def test_export_native_instancing_true(self):
+        """Test exporting instanced objects to native (scne graph) instances."""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
+
+        export_path = self.tempdir / "usd_export_nested_instancing_true.usda"
         self.export_and_validate(
             filepath=str(export_path),
-            convert_scene_units='CENTIMETERS'
+            use_instancing=True
         )
 
-        # Verify that meters per unit were set correctly
+        # The USD should contain two instances of a plane which has two
+        # instances of a point cloud as children.
         stage = Usd.Stage.Open(str(export_path))
-        mpu = UsdGeom.GetStageMetersPerUnit(stage)
-        self.assertEqual(mpu, 0.01)
 
-        # Export with default meters units.
-        export_path = self.tempdir / "usd_export_units_test_default.usda"
-        self.export_and_validate(
-            filepath=str(export_path)
-        )
+        stats = UsdUtils.ComputeUsdStageStats(stage)
+        self.assertEqual(stats['totalInstanceCount'], 6, "Unexpected number of instances")
+        self.assertEqual(stats['prototypeCount'], 2, "Unexpected number of prototypes")
+        self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 1, "Unexpected number of primary meshes")
+        self.assertEqual(stats['primary']['primCountsByType']['Points'], 1, "Unexpected number of primary point clouds")
+        self.assertEqual(stats['prototypes']['primCountsByType']['Mesh'], 1, "Unexpected number of prototype meshes")
+        self.assertEqual(stats['prototypes']['primCountsByType']['Points'],
+                         1, "Unexpected number of prototype point clouds")
 
-        # Verify that meters per unit were set correctly
-        stage = Usd.Stage.Open(str(export_path))
-        mpu = UsdGeom.GetStageMetersPerUnit(stage)
-        self.assertEqual(mpu, 1.0)
+        # Get the prototypes root.
+        protos_root_path = Sdf.Path("/root/prototypes")
+        prim = stage.GetPrimAtPath(protos_root_path)
+        assert prim
+        self.assertTrue(prim.IsAbstract())
 
-        # Export with custom meters per unit.
-        export_path = self.tempdir / "usd_export_units_test_custom.usda"
+        # Get the first plane instance.
+        prim = stage.GetPrimAtPath("/root/plane_001/Plane_0")
+        assert prim
+        assert prim.IsInstance()
+
+        # Get the second plane instance.
+        prim = stage.GetPrimAtPath("/root/plane/Plane_0")
+        assert prim
+        assert prim.IsInstance()
+
+        # Ensure all the prototype paths are under the pototypes root.
+        for prim in stage.Traverse():
+            if prim.IsInstance():
+                arcs = Usd.PrimCompositionQuery.GetDirectReferences(prim).GetCompositionArcs()
+                for arc in arcs:
+                    target_path = arc.GetTargetPrimPath()
+                    self.assertTrue(target_path.HasPrefix(protos_root_path))
+
+    def test_export_native_instancing_false(self):
+        """Test exporting instanced objects with instancing disabled."""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
+
+        export_path = self.tempdir / "usd_export_nested_instancing_false.usda"
         self.export_and_validate(
             filepath=str(export_path),
-            convert_scene_units='CUSTOM',
-            meters_per_unit=0.1,
+            use_instancing=False
         )
 
-        # Verify that meters per unit were set correctly
+        # The USD should contain no instances.
         stage = Usd.Stage.Open(str(export_path))
-        mpu = UsdGeom.GetStageMetersPerUnit(stage)
-        self.assertAlmostEqual(mpu, 0.1)
+
+        stats = UsdUtils.ComputeUsdStageStats(stage)
+        self.assertEqual(stats['totalInstanceCount'], 0, "Unexpected number of instances")
+        self.assertEqual(stats['prototypeCount'], 0, "Unexpected number of prototypes")
+        self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 2, "Unexpected number of primary meshes")
+        self.assertEqual(stats['primary']['primCountsByType']['Points'], 4, "Unexpected number of primary point clouds")
 
     def test_texture_export_hook(self):
         """Exporting textures from on_material_export USD hook."""
@@ -1422,7 +1491,7 @@ class USDExportTest(AbstractUSDTest):
                             f"Exported texture {tex_path} doesn't exist")
 
 
-class USDHookBase():
+class USDHookBase:
     instructions = {}
     responses = {}
 
@@ -1548,7 +1617,7 @@ def main():
     parser.add_argument("--testdir", required=True, type=pathlib.Path)
     args, remaining = parser.parse_known_args(argv)
 
-    unittest.main(argv=remaining)
+    unittest.main(argv=remaining, verbosity=0)
 
 
 if __name__ == "__main__":

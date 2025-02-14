@@ -46,6 +46,7 @@
 
 #include "grease_pencil_intern.hh"
 
+#include <numeric>
 #include <optional>
 
 namespace blender::ed::sculpt_paint::greasepencil {
@@ -133,94 +134,6 @@ static void morph_points_to_curve(Span<float2> src, Span<float2> target, Mutable
   length_parameterize::interpolate<float2>(
       target, segment_indices, segment_factors, dst.drop_back(1));
   dst.last() = src.last();
-}
-
-/**
- * Creates a new curve with one point at the beginning or end.
- * \note Does not initialize the new curve or points.
- */
-static void create_blank_curve(bke::CurvesGeometry &curves, const bool on_back)
-{
-  if (!on_back) {
-    const int num_old_points = curves.points_num();
-    curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
-    curves.offsets_for_write().last(1) = num_old_points;
-    return;
-  }
-
-  curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
-  MutableSpan<int> offsets = curves.offsets_for_write();
-  offsets.first() = 0;
-
-  /* Loop through backwards to not overwrite the data. */
-  for (int i = curves.curves_num() - 2; i >= 0; i--) {
-    offsets[i + 1] = offsets[i] + 1;
-  }
-
-  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-
-  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-    GMutableSpan attribute_data = dst.span;
-
-    bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      MutableSpan<T> span_data = attribute_data.typed<T>();
-
-      /* Loop through backwards to not overwrite the data. */
-      for (int i = span_data.size() - 2; i >= 0; i--) {
-        span_data[i + 1] = span_data[i];
-      }
-    });
-    dst.finish();
-  });
-}
-
-/**
- * Extends the first or last curve by `new_points_num` number of points.
- * \note Does not initialize the new points.
- */
-static void extend_curve(bke::CurvesGeometry &curves, const bool on_back, const int new_points_num)
-{
-  if (!on_back) {
-    curves.resize(curves.points_num() + new_points_num, curves.curves_num());
-    curves.offsets_for_write().last() = curves.points_num();
-    return;
-  }
-
-  const int last_active_point = curves.points_by_curve()[0].last();
-
-  curves.resize(curves.points_num() + new_points_num, curves.curves_num());
-  MutableSpan<int> offsets = curves.offsets_for_write();
-
-  for (const int src_curve : curves.curves_range().drop_front(1)) {
-    offsets[src_curve] = offsets[src_curve] + new_points_num;
-  }
-  offsets.last() = curves.points_num();
-
-  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-
-  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.domain != bke::AttrDomain::Point) {
-      return;
-    }
-
-    bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-    GMutableSpan attribute_data = dst.span;
-
-    bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      MutableSpan<T> span_data = attribute_data.typed<T>();
-
-      /* Loop through backwards to not overwrite the data. */
-      for (int i = (span_data.size() - 1) - new_points_num; i >= last_active_point; i--) {
-        span_data[i + new_points_num] = span_data[i];
-      }
-    });
-    dst.finish();
-  });
-
-  curves.tag_topology_changed();
 }
 
 class PaintOperation : public GreasePencilStrokeOperation {
@@ -553,7 +466,7 @@ struct PaintOperationExecutor {
 
     /* Resize the curves geometry so there is one more curve with a single point. */
     bke::CurvesGeometry &curves = drawing_->strokes_for_write();
-    create_blank_curve(curves, on_back);
+    ed::greasepencil::add_single_curve(curves, on_back == false);
 
     const int active_curve = on_back ? curves.curves_range().first() :
                                        curves.curves_range().last();
@@ -575,72 +488,91 @@ struct PaintOperationExecutor {
       drawing_->fill_colors_for_write()[active_curve] = fill_color_;
       curve_attributes_to_skip.add("fill_color");
     }
-    bke::SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
-        "delta_time", bke::AttrDomain::Point);
-    delta_times.span[last_active_point] = 0.0f;
-    point_attributes_to_skip.add("delta_time");
-    delta_times.finish();
+    if (bke::SpanAttributeWriter<float> delta_times =
+            attributes.lookup_or_add_for_write_span<float>("delta_time", bke::AttrDomain::Point))
+    {
+      delta_times.span[last_active_point] = 0.0f;
+      point_attributes_to_skip.add("delta_time");
+      delta_times.finish();
+    }
 
     bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
         "material_index", bke::AttrDomain::Curve);
     bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
         "cyclic", bke::AttrDomain::Curve);
-    bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
-        "softness", bke::AttrDomain::Curve);
-    bke::SpanAttributeWriter<float> u_scale = attributes.lookup_or_add_for_write_span<float>(
-        "u_scale", bke::AttrDomain::Curve);
     cyclic.span[active_curve] = false;
     materials.span[active_curve] = material_index;
-    softness.span[active_curve] = softness_;
-    u_scale.span[active_curve] = 1.0f;
-    curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness", "u_scale"});
+    curve_attributes_to_skip.add_multiple({"material_index", "cyclic"});
     cyclic.finish();
     materials.finish();
-    softness.finish();
-    u_scale.finish();
+
+    if (bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+            "softness", bke::AttrDomain::Curve))
+    {
+      softness.span[active_curve] = softness_;
+      curve_attributes_to_skip.add("softness");
+      softness.finish();
+    }
+    if (bke::SpanAttributeWriter<float> u_scale = attributes.lookup_or_add_for_write_span<float>(
+            "u_scale", bke::AttrDomain::Curve))
+    {
+      u_scale.span[active_curve] = 1.0f;
+      curve_attributes_to_skip.add("u_scale");
+      u_scale.finish();
+    }
 
     if (settings_->uv_random > 0.0f || attributes.contains("rotation")) {
-      bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
-          "rotation", bke::AttrDomain::Point);
-      rotations.span[last_active_point] = start_rotation;
-      point_attributes_to_skip.add("rotation");
-      rotations.finish();
+      if (bke::SpanAttributeWriter<float> rotations =
+              attributes.lookup_or_add_for_write_span<float>("rotation", bke::AttrDomain::Point))
+      {
+        rotations.span[last_active_point] = start_rotation;
+        point_attributes_to_skip.add("rotation");
+        rotations.finish();
+      }
     }
 
     /* Only set the attribute if the type is not the default or if it already exists. */
     if (settings_->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("start_cap")) {
-      bke::SpanAttributeWriter<int8_t> start_caps =
-          attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve);
-      start_caps.span[active_curve] = settings_->caps_type;
-      curve_attributes_to_skip.add("start_cap");
-      start_caps.finish();
+      if (bke::SpanAttributeWriter<int8_t> start_caps =
+              attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve))
+      {
+        start_caps.span[active_curve] = settings_->caps_type;
+        curve_attributes_to_skip.add("start_cap");
+        start_caps.finish();
+      }
     }
 
     if (settings_->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("end_cap")) {
-      bke::SpanAttributeWriter<int8_t> end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
-          "end_cap", bke::AttrDomain::Curve);
-      end_caps.span[active_curve] = settings_->caps_type;
-      curve_attributes_to_skip.add("end_cap");
-      end_caps.finish();
+      if (bke::SpanAttributeWriter<int8_t> end_caps =
+              attributes.lookup_or_add_for_write_span<int8_t>("end_cap", bke::AttrDomain::Curve))
+      {
+        end_caps.span[active_curve] = settings_->caps_type;
+        curve_attributes_to_skip.add("end_cap");
+        end_caps.finish();
+      }
     }
 
     if (use_fill && (start_opacity < 1.0f || attributes.contains("fill_opacity"))) {
-      bke::SpanAttributeWriter<float> fill_opacities =
-          attributes.lookup_or_add_for_write_span<float>(
-              "fill_opacity",
-              bke::AttrDomain::Curve,
-              bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
-      fill_opacities.span[active_curve] = fill_opacity;
-      curve_attributes_to_skip.add("fill_opacity");
-      fill_opacities.finish();
+      if (bke::SpanAttributeWriter<float> fill_opacities =
+              attributes.lookup_or_add_for_write_span<float>(
+                  "fill_opacity",
+                  bke::AttrDomain::Curve,
+                  bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num()))))
+      {
+        fill_opacities.span[active_curve] = fill_opacity;
+        curve_attributes_to_skip.add("fill_opacity");
+        fill_opacities.finish();
+      }
     }
 
-    bke::SpanAttributeWriter<float> init_times = attributes.lookup_or_add_for_write_span<float>(
-        "init_time", bke::AttrDomain::Curve);
-    /* Truncating time in ms to uint32 then we don't lose precision in lower bits. */
-    init_times.span[active_curve] = float(uint64_t(self.start_time_ * double(1e3))) / float(1e3);
-    curve_attributes_to_skip.add("init_time");
-    init_times.finish();
+    if (bke::SpanAttributeWriter<float> init_times =
+            attributes.lookup_or_add_for_write_span<float>("init_time", bke::AttrDomain::Curve))
+    {
+      /* Truncating time in ms to uint32 then we don't lose precision in lower bits. */
+      init_times.span[active_curve] = float(uint64_t(self.start_time_ * 1e3)) / float(1e3);
+      curve_attributes_to_skip.add("init_time");
+      init_times.finish();
+    }
 
     curves.curve_types_for_write()[active_curve] = CURVE_TYPE_POLY;
     curve_attributes_to_skip.add("curve_type");
@@ -920,7 +852,8 @@ struct PaintOperationExecutor {
                                    int(math::floor(distance_px / max_spacing_px)) :
                                    1;
     /* Resize the curves geometry. */
-    extend_curve(curves, on_back, new_points_num);
+    ed::greasepencil::resize_single_curve(
+        curves, on_back == false, curve_points.size() + new_points_num);
 
     Set<std::string> point_attributes_to_skip;
     /* Subdivide new segment. */
@@ -959,14 +892,16 @@ struct PaintOperationExecutor {
 
     /* Randomize rotations. */
     if (use_settings_random_ && (settings_->uv_random > 0.0f || attributes.contains("rotation"))) {
-      bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
-          "rotation", bke::AttrDomain::Point);
-      const MutableSpan<float> new_rotations = rotations.span.slice(new_points);
-      for (const int i : IndexRange(new_points_num)) {
-        new_rotations[i] = randomize_rotation(self, extension_sample.pressure);
+      if (bke::SpanAttributeWriter<float> rotations =
+              attributes.lookup_or_add_for_write_span<float>("rotation", bke::AttrDomain::Point))
+      {
+        const MutableSpan<float> new_rotations = rotations.span.slice(new_points);
+        for (const int i : IndexRange(new_points_num)) {
+          new_rotations[i] = randomize_rotation(self, extension_sample.pressure);
+        }
+        point_attributes_to_skip.add("rotation");
+        rotations.finish();
       }
-      point_attributes_to_skip.add("rotation");
-      rotations.finish();
     }
 
     /* Randomize vertex color. */
@@ -988,15 +923,17 @@ struct PaintOperationExecutor {
       point_attributes_to_skip.add("vertex_color");
     }
 
-    bke::SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
-        "delta_time", bke::AttrDomain::Point);
     const double new_delta_time = BLI_time_now_seconds() - self.start_time_;
-    linear_interpolation<float>(float(self.delta_time_),
-                                float(new_delta_time),
-                                delta_times.span.slice(new_points),
-                                is_first_sample);
-    point_attributes_to_skip.add("delta_time");
-    delta_times.finish();
+    if (bke::SpanAttributeWriter<float> delta_times =
+            attributes.lookup_or_add_for_write_span<float>("delta_time", bke::AttrDomain::Point))
+    {
+      linear_interpolation<float>(float(self.delta_time_),
+                                  float(new_delta_time),
+                                  delta_times.span.slice(new_points),
+                                  is_first_sample);
+      point_attributes_to_skip.add("delta_time");
+      delta_times.finish();
+    }
 
     /* Update the accumulated distance along the stroke in pixels. */
     self.accum_distance_ += distance_px;
@@ -1421,6 +1358,25 @@ static void simplify_stroke(bke::greasepencil::Drawing &drawing,
   }
 }
 
+static void add_strokes_to_drawing(const bool on_back,
+                                   Curves *strokes,
+                                   bke::greasepencil::Drawing &drawing)
+{
+  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
+  std::array<bke::GeometrySet, 2> geometry_sets;
+  if (on_back) {
+    geometry_sets = {bke::GeometrySet::from_curves(strokes),
+                     bke::GeometrySet::from_curves(other_curves)};
+  }
+  else {
+    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
+                     bke::GeometrySet::from_curves(strokes)};
+  }
+  drawing.strokes_for_write() = std::move(
+      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
+  drawing.tag_topology_changed();
+}
+
 static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
                              const int active_curve,
                              const bool on_back)
@@ -1464,20 +1420,7 @@ static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
   drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
 
   /* Join the trimmed stroke into the drawing. */
-  Curves *trimmed_curve = bke::curves_new_nomain(std::move(stroke_trimmed));
-  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
-  std::array<bke::GeometrySet, 2> geometry_sets;
-  if (on_back) {
-    geometry_sets = {bke::GeometrySet::from_curves(trimmed_curve),
-                     bke::GeometrySet::from_curves(other_curves)};
-  }
-  else {
-    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
-                     bke::GeometrySet::from_curves(trimmed_curve)};
-  }
-  drawing.strokes_for_write() = std::move(
-      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
-  drawing.tag_topology_changed();
+  add_strokes_to_drawing(on_back, bke::curves_new_nomain(std::move(stroke_trimmed)), drawing);
 }
 
 static void outline_stroke(bke::greasepencil::Drawing &drawing,
@@ -1505,20 +1448,7 @@ static void outline_stroke(bke::greasepencil::Drawing &drawing,
   drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
 
   /* Join the outline stroke into the drawing. */
-  Curves *outline_curve = bke::curves_new_nomain(std::move(outline));
-  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
-  std::array<bke::GeometrySet, 2> geometry_sets;
-  if (on_back) {
-    geometry_sets = {bke::GeometrySet::from_curves(outline_curve),
-                     bke::GeometrySet::from_curves(other_curves)};
-  }
-  else {
-    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
-                     bke::GeometrySet::from_curves(outline_curve)};
-  }
-  drawing.strokes_for_write() = std::move(
-      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
-  drawing.tag_topology_changed();
+  add_strokes_to_drawing(on_back, bke::curves_new_nomain(std::move(outline)), drawing);
 }
 
 static int trim_end_points(bke::greasepencil::Drawing &drawing,
@@ -1697,6 +1627,55 @@ static void process_stroke_weights(const Scene &scene,
   });
 }
 
+static bke::CurvesGeometry get_single_stroke(const bke::CurvesGeometry &src, const int curve)
+{
+
+  const IndexRange points = src.points_by_curve()[curve];
+  bke::CurvesGeometry dst(points.size(), 1);
+
+  Array<int> src_offsets({points.first(), points.one_after_last()});
+  Array<int> dst_offsets({0, int(points.size())});
+
+  copy_attributes_group_to_group(src.attributes(),
+                                 bke::AttrDomain::Point,
+                                 bke::AttrDomain::Point,
+                                 {},
+                                 src_offsets.as_span(),
+                                 dst_offsets.as_span(),
+                                 IndexMask{1},
+                                 dst.attributes_for_write());
+
+  src_offsets = {curve, curve + 1};
+  dst_offsets = {0, 1};
+
+  copy_attributes_group_to_group(src.attributes(),
+                                 bke::AttrDomain::Curve,
+                                 bke::AttrDomain::Curve,
+                                 {},
+                                 src_offsets.as_span(),
+                                 dst_offsets.as_span(),
+                                 IndexMask{1},
+                                 dst.attributes_for_write());
+  return dst;
+}
+
+static void append_stroke_to_multiframe_drawings(
+    const bke::CurvesGeometry &src_strokes,
+    const int curve,
+    const int current_frame,
+    const bool on_back,
+    Span<ed::greasepencil::MutableDrawingInfo> drawings)
+{
+  const bke::CurvesGeometry stroke = get_single_stroke(src_strokes, curve);
+
+  for (const ed::greasepencil::MutableDrawingInfo &drawing_info : drawings) {
+    if (drawing_info.frame_number == current_frame) {
+      continue;
+    }
+    add_strokes_to_drawing(on_back, bke::curves_new_nomain(stroke), drawing_info.drawing);
+  }
+}
+
 void PaintOperation::on_stroke_done(const bContext &C)
 {
   using namespace blender::bke;
@@ -1731,6 +1710,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   bke::SpanAttributeWriter<float2> screen_space_positions =
       attributes.lookup_or_add_for_write_only_span<float2>(".draw_tool_screen_space_positions",
                                                            bke::AttrDomain::Point);
+  BLI_assert(screen_space_positions);
   screen_space_positions.span.slice(points).copy_from(this->screen_space_final_coords_);
   screen_space_positions.finish();
 
@@ -1754,7 +1734,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
       process_stroke_weights(*scene, *object, drawing, active_curve);
     }
     if ((settings->flag & GP_BRUSH_OUTLINE_STROKE) != 0) {
-      const float outline_radius = float(brush->unprojected_radius) * settings->outline_fac * 0.5f;
+      const float outline_radius = brush->unprojected_radius * settings->outline_fac * 0.5f;
       const int material_index = [&]() {
         Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
             CTX_data_main(&C), object, brush);
@@ -1788,6 +1768,18 @@ void PaintOperation::on_stroke_done(const bContext &C)
   }
 
   drawing.tag_topology_changed();
+
+  const bool use_multi_frame_editing = (scene->toolsettings->gpencil_flags &
+                                        GP_USE_MULTI_FRAME_EDITING) != 0;
+
+  if (use_multi_frame_editing) {
+    append_stroke_to_multiframe_drawings(
+        drawing.strokes(),
+        active_curve,
+        scene->r.cfra,
+        on_back,
+        ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil));
+  }
 
   /* Now we're done drawing. */
   grease_pencil.runtime->is_drawing_stroke = false;

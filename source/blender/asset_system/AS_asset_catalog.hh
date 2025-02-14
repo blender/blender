@@ -45,7 +45,7 @@ class AssetCatalogService {
    * Cached catalog tree storage. Lazy-created by #AssetCatalogService::catalog_tree().
    */
   std::unique_ptr<AssetCatalogTree> catalog_tree_;
-  std::mutex catalog_tree_mutex_;
+  std::recursive_mutex catalog_tree_mutex_;
 
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
   Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
@@ -58,7 +58,6 @@ class AssetCatalogService {
 
   struct read_only_tag {};
 
- public:
   explicit AssetCatalogService(const CatalogFilePath &asset_library_root = {});
   explicit AssetCatalogService(read_only_tag);
 
@@ -317,7 +316,6 @@ class AssetCatalog {
     bool has_unsaved_changes = false;
   } flags;
 
- public:
   AssetCatalog() = delete;
   AssetCatalog(CatalogID catalog_id, const AssetCatalogPath &path, const std::string &simple_name);
 

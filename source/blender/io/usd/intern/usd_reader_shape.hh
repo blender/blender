@@ -64,8 +64,7 @@ class USDShapeReader : public USDGeomReader {
    * This assumes mesh_from_prim() has been called.  */
   bool is_time_varying();
 
-  virtual bool topology_changed(const Mesh * /*existing_mesh*/,
-                                double /*motionSampleTime*/) override
+  bool topology_changed(const Mesh * /*existing_mesh*/, double /*motionSampleTime*/) override
   {
     return false;
   };

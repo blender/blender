@@ -2,12 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_base_safe.h"
-#include "BLI_math_rotation.hh"
-
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
-#include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -16,7 +12,6 @@
 #include "BKE_workspace.hh"
 
 #include "NOD_geometry_nodes_gizmos.hh"
-#include "NOD_inverse_eval_params.hh"
 #include "NOD_inverse_eval_path.hh"
 
 #include "DNA_modifier_types.h"
@@ -162,7 +157,7 @@ bool update_tree_gizmo_propagation(bNodeTree &tree)
   tree.ensure_topology_cache();
 
   if (tree.has_available_link_cycle()) {
-    const bool changed = tree.runtime->gizmo_propagation.get() != nullptr;
+    const bool changed = tree.runtime->gizmo_propagation != nullptr;
     tree.runtime->gizmo_propagation.reset();
     return changed;
   }

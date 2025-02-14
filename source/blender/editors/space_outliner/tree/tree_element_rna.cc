@@ -6,9 +6,6 @@
  * \ingroup spoutliner
  */
 
-#include <climits>
-#include <iostream>
-
 #include "BLI_string.h"
 
 #include "BLT_translation.hh"

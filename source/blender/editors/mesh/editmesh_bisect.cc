@@ -501,8 +501,8 @@ struct GizmoGroup {
 static void gizmo_bisect_exec(GizmoGroup *ggd)
 {
   wmOperator *op = ggd->data.op;
-  if (op == WM_operator_last_redo((bContext *)ggd->data.context)) {
-    ED_undo_operator_repeat((bContext *)ggd->data.context, op);
+  if (op == WM_operator_last_redo(ggd->data.context)) {
+    ED_undo_operator_repeat(ggd->data.context, op);
   }
 }
 
@@ -751,7 +751,7 @@ static void gizmo_mesh_bisect_draw_prepare(const bContext * /*C*/, wmGizmoGroup 
 {
   GizmoGroup *ggd = static_cast<GizmoGroup *>(gzgroup->customdata);
   if (ggd->data.op->next) {
-    ggd->data.op = WM_operator_last_redo((bContext *)ggd->data.context);
+    ggd->data.op = WM_operator_last_redo(ggd->data.context);
   }
   gizmo_mesh_bisect_update_from_op(ggd);
 }

@@ -94,12 +94,6 @@ class PixelOperation : public Operation {
  public:
   PixelOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
 
-  /* Create one of the concrete subclasses based on the context. Deleting the operation is the
-   * caller's responsibility. */
-  static PixelOperation *create_operation(Context &context,
-                                          PixelCompileUnit &compile_unit,
-                                          const Schedule &schedule);
-
   /* Returns the maximum number of outputs that the PixelOperation can have. Pixel compile units
    * need to be split into smaller units if the numbers of outputs they have is more than the
    * number returned by this method. */

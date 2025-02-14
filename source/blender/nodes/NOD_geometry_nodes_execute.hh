@@ -5,14 +5,12 @@
 #pragma once
 
 #include "BLI_compute_context.hh"
-#include "BLI_function_ref.hh"
 #include "BLI_generic_pointer.hh"
-#include "BLI_multi_value_map.hh"
 #include "BLI_resource_scope.hh"
-#include "BLI_set.hh"
+
+#include "DNA_node_types.h"
 
 #include "BKE_idprop.hh"
-#include "BKE_node.hh"
 
 struct bNodeTree;
 struct bNodeTreeInterfaceSocket;

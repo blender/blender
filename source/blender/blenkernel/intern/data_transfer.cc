@@ -625,8 +625,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
 
         name = CustomData_get_layer_name(cd_src, cddata_type, idx_src);
         data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
-
-        if ((idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name)) == -1) {
+        idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
+        if (idx_dst == -1) {
           if (use_create) {
             CustomData_add_layer_named(
                 cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
@@ -691,12 +691,11 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
                                                  cd_datatransfer_interp interp,
                                                  void *interp_data)
 {
-  int idx_src, idx_dst;
-  const void *data_src;
   void *data_dst = nullptr;
 
   if (CustomData_layertype_is_singleton(cddata_type)) {
-    if (!(data_src = CustomData_get_layer(cd_src, cddata_type))) {
+    const void *data_src = CustomData_get_layer(cd_src, cddata_type);
+    if (!data_src) {
       if (use_delete) {
         CustomData_free_layer(cd_dst, cddata_type, num_elem_dst, 0);
       }
@@ -727,25 +726,29 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
   else if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
     /* NOTE: use_delete has not much meaning in this case, ignored. */
 
+    int idx_src;
     if (fromlayers >= 0) { /* Real-layer index */
       idx_src = fromlayers;
     }
     else {
-      if ((idx_src = CustomData_get_active_layer(cd_src, cddata_type)) == -1) {
+      idx_src = CustomData_get_active_layer(cd_src, cddata_type);
+      if (idx_src == -1) {
         return true;
       }
     }
-    data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
+    const void *data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
     if (!data_src) {
       return true;
     }
 
+    int idx_dst;
     if (tolayers >= 0) { /* Real-layer index */
       idx_dst = tolayers;
       data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
     }
     else if (tolayers == DT_LAYERS_ACTIVE_DST) {
-      if ((idx_dst = CustomData_get_active_layer(cd_dst, cddata_type)) == -1) {
+      idx_dst = CustomData_get_active_layer(cd_dst, cddata_type);
+      if (idx_dst == -1) {
         if (!use_create) {
           return true;
         }
@@ -772,7 +775,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
       const char *name = CustomData_get_layer_name(cd_src, cddata_type, idx_src);
-      if ((idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name)) == -1) {
+      idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
+      if (idx_dst == -1) {
         if (!use_create) {
           return true;
         }

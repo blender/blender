@@ -20,7 +20,7 @@
 #include "BLI_heap_simple.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 #define HEAP_PARENT(i) (((i)-1) >> 1)
 

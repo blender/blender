@@ -18,8 +18,6 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
-#include "BKE_cryptomatte.h"
-
 struct ID;
 
 namespace blender::bke::cryptomatte {

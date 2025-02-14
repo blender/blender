@@ -6,14 +6,12 @@
  * \ingroup bmesh
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_array.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
-#include "BKE_attribute.hh"
+#include "BKE_attribute.h"
 #include "BKE_customdata.hh"
 
 #include "bmesh.hh"
@@ -97,7 +95,7 @@ void BM_face_uv_calc_center_median_weighted(const BMFace *f,
   } while ((l_iter = l_iter->next) != l_first);
 
   if (totw != 0.0f) {
-    mul_v2_fl(r_cent, 1.0f / float(totw));
+    mul_v2_fl(r_cent, 1.0f / totw);
   }
   /* Reverse aspect. */
   r_cent[0] /= aspect[0];

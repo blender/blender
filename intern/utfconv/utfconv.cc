@@ -280,9 +280,9 @@ static void utf_8_cut_end(char *inout8, size_t maxcutpoint)
 char *alloc_utf_8_from_16(const wchar_t *in16, size_t add)
 {
   size_t bsize = count_utf_8_from_16(in16);
-  char *out8 = NULL;
+  char *out8 = nullptr;
   if (!bsize) {
-    return NULL;
+    return nullptr;
   }
   out8 = (char *)malloc(sizeof(char) * (bsize + add));
   conv_utf_16_to_8(in16, out8, bsize);
@@ -292,9 +292,9 @@ char *alloc_utf_8_from_16(const wchar_t *in16, size_t add)
 wchar_t *alloc_utf16_from_8(const char *in8, size_t add)
 {
   size_t bsize = count_utf_16_from_8(in8);
-  wchar_t *out16 = NULL;
+  wchar_t *out16 = nullptr;
   if (!bsize) {
-    return NULL;
+    return nullptr;
   }
   out16 = (wchar_t *)malloc(sizeof(wchar_t) * (bsize + add));
   conv_utf_8_to_16(in8, out16, bsize);

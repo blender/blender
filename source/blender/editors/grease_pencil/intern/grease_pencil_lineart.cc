@@ -154,16 +154,15 @@ static bool lineart_mod_is_disabled(Scene *scene, GreasePencilLineartModifierDat
 static bool bake_strokes(Object *ob,
                          Depsgraph *dg,
                          LineartCache **lc,
-                         GreasePencilLineartModifierData *md,
+                         GreasePencilLineartModifierData *lmd,
                          int frame,
                          bool is_first)
 {
   /* Modifier data sanity check. */
-  if (lineart_mod_is_disabled(DEG_get_evaluated_scene(dg), md)) {
+  if (lineart_mod_is_disabled(DEG_get_evaluated_scene(dg), lmd)) {
     return false;
   }
 
-  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ob->data);
 
   blender::bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(lmd->target_layer);

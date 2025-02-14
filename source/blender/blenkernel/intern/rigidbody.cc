@@ -9,9 +9,7 @@
 
 #include <algorithm>
 #include <cfloat>
-#include <climits>
 #include <cmath>
-#include <cstddef>
 #include <cstdio>
 #include <cstring>
 
@@ -2197,9 +2195,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
     return;
   }
   /* make sure we don't go out of cache frame range */
-  if (ctime > endframe) {
-    ctime = endframe;
-  }
+  ctime = std::min<float>(ctime, endframe);
 
   /* don't try to run the simulation if we don't have a world yet but allow reading baked cache */
   if (rbw->shared->physics_world == nullptr && !(cache->flag & PTCACHE_BAKED)) {

@@ -2,10 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_math_vector.hh"
+
 #include "BKE_bvhutils.hh"
-#include "BKE_mesh.hh"
 
 #include "NOD_rna_define.hh"
 

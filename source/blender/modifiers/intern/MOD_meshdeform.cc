@@ -379,12 +379,12 @@ static void meshdeformModifier_do(ModifierData *md,
     BKE_modifier_set_error(ob, md, "Vertices changed from %d to %d", mmd->verts_num, verts_num);
     return;
   }
-  else if (mmd->cage_verts_num != cage_verts_num) {
+  if (mmd->cage_verts_num != cage_verts_num) {
     BKE_modifier_set_error(
         ob, md, "Cage vertices changed from %d to %d", mmd->cage_verts_num, cage_verts_num);
     return;
   }
-  else if (mmd->bindcagecos == nullptr) {
+  if (mmd->bindcagecos == nullptr) {
     BKE_modifier_set_error(ob, md, "Bind data missing");
     return;
   }

@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
-
 #include "rna_internal_types.hh"
 
 struct IDProperty;

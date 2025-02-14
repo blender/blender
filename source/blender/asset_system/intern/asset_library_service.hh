@@ -79,6 +79,11 @@ class AssetLibraryService {
       const AssetLibraryReference &library_reference);
   static bUserAssetLibrary *find_custom_preferences_asset_library_from_asset_weak_ref(
       const AssetWeakReference &asset_reference);
+  /**
+   * Call when the .blend file is saved or unloaded to destroy the runtime library. It's not
+   * represented as a on disk library.
+   */
+  static void destroy_runtime_current_file_library();
 
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);

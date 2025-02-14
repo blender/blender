@@ -6,10 +6,11 @@
  * \ingroup spfile
  */
 
-#include "BLI_utildefines.h"
-
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_linklist.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
@@ -46,6 +47,7 @@
 #include "filelist.hh"
 #include "fsmenu.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstdio>
@@ -3098,9 +3100,7 @@ static void filenum_newname(char *filename, size_t filename_maxncpy, int add)
   }
 
   pic += add;
-  if (pic < 0) {
-    pic = 0;
-  }
+  pic = std::max(pic, 0);
   BLI_path_sequence_encode(filename, filename_maxncpy, head, tail, digits, pic);
 }
 

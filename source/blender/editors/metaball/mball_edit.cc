@@ -11,15 +11,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_defs.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -784,11 +783,11 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
 
   BLI_rcti_init_pt_radius(&rect, mval, 12);
 
-  hits = view3d_opengl_select(&vc,
-                              &buffer,
-                              &rect,
-                              use_cycle ? VIEW3D_SELECT_PICK_ALL : VIEW3D_SELECT_PICK_NEAREST,
-                              VIEW3D_SELECT_FILTER_NOP);
+  hits = view3d_gpu_select(&vc,
+                           &buffer,
+                           &rect,
+                           use_cycle ? VIEW3D_SELECT_PICK_ALL : VIEW3D_SELECT_PICK_NEAREST,
+                           VIEW3D_SELECT_FILTER_NOP);
 
   if (hits == 0) {
     return false;

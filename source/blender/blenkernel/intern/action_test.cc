@@ -13,8 +13,6 @@
 
 #include "BLI_listbase.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "testing/testing.h"
 
 namespace blender::bke::tests {

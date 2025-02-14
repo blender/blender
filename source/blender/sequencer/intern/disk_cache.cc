@@ -19,13 +19,13 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "BKE_main.hh"

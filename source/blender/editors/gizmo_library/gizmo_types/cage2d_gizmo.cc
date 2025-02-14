@@ -27,7 +27,6 @@
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
 #include "GPU_select.hh"
-#include "GPU_shader.hh"
 #include "GPU_state.hh"
 
 #include "RNA_access.hh"

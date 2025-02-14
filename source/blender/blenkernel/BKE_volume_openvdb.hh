@@ -6,8 +6,8 @@
 
 #ifdef WITH_OPENVDB
 
-#  include <openvdb/openvdb.h>
-#  include <openvdb/points/PointDataGrid.h>
+#  include <openvdb/openvdb.h>              /* IWYU pragma: export */
+#  include <openvdb/points/PointDataGrid.h> /* IWYU pragma: export */
 #  include <optional>
 
 #  include "BLI_bounds_types.hh"

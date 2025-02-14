@@ -585,6 +585,12 @@ class NodeTreeMainUpdater {
             nodes::update_node_declaration_and_sockets(ntree, *node);
           }
         }
+        else if (node->is_undefined()) {
+          /* If a node has become undefined (it generally was unregistered from Python), it does
+           * not have a declaration anymore. */
+          delete node->runtime->declaration;
+          node->runtime->declaration = nullptr;
+        }
         if (ntype.updatefunc) {
           ntype.updatefunc(&ntree, node);
         }
@@ -1549,7 +1555,9 @@ class NodeTreeMainUpdater {
         }
         /* The Normal node has a special case, because the value stored in the first output
          * socket is used as input in the node. */
-        if (node.is_type("ShaderNodeNormal") && socket.index() == 1) {
+        if ((node.is_type("ShaderNodeNormal") || node.is_type("CompositorNodeNormal")) &&
+            socket.index() == 1)
+        {
           BLI_assert(STREQ(socket.name, "Dot"));
           const bNodeSocket &normal_output = node.output_socket(0);
           BLI_assert(STREQ(normal_output.name, "Normal"));
@@ -1707,6 +1715,11 @@ void BKE_ntree_update_tag_node_property(bNodeTree *ntree, bNode *node)
 }
 
 void BKE_ntree_update_tag_node_new(bNodeTree *ntree, bNode *node)
+{
+  add_node_tag(ntree, node, NTREE_CHANGED_NODE_PROPERTY);
+}
+
+void BKE_ntree_update_tag_node_type(bNodeTree *ntree, bNode *node)
 {
   add_node_tag(ntree, node, NTREE_CHANGED_NODE_PROPERTY);
 }

@@ -57,7 +57,7 @@ ccl_device_inline void motion_curve_keys_linear(KernelGlobals kg,
                                                 float4 keys[2])
 {
   /* get motion info */
-  const int numsteps = kernel_data_fetch(objects, object).numsteps;
+  const int numsteps = kernel_data_fetch(objects, object).num_geom_steps;
   const int numverts = kernel_data_fetch(objects, object).numverts;
 
   /* figure out which steps we need to fetch and their interpolation factor */
@@ -124,7 +124,7 @@ ccl_device_inline void motion_curve_keys(KernelGlobals kg,
                                          float4 keys[4])
 {
   /* get motion info */
-  const int numsteps = kernel_data_fetch(objects, object).numsteps;
+  const int numsteps = kernel_data_fetch(objects, object).num_geom_steps;
   const int numverts = kernel_data_fetch(objects, object).numverts;
 
   /* figure out which steps we need to fetch and their interpolation factor */

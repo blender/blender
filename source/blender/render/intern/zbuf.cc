@@ -13,6 +13,7 @@
 /* Common includes                                                           */
 /*---------------------------------------------------------------------------*/
 
+#include <algorithm>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -84,9 +85,7 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
     my2 = zspan->recty - 1;
   }
   /* clip bottom */
-  if (my0 < 0) {
-    my0 = 0;
-  }
+  my0 = std::max(my0, 0);
 
   if (my0 > my2) {
     return;
@@ -124,12 +123,8 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
     if (zspan->maxp1 == nullptr || zspan->maxp1[1] < maxv[1]) {
       zspan->maxp1 = maxv;
     }
-    if (my0 < zspan->miny1) {
-      zspan->miny1 = my0;
-    }
-    if (my2 > zspan->maxy1) {
-      zspan->maxy1 = my2;
-    }
+    zspan->miny1 = std::min(my0, zspan->miny1);
+    zspan->maxy1 = std::max(my2, zspan->maxy1);
   }
   else {
     //      printf("right span my0 %d my2 %d\n", my0, my2);
@@ -139,12 +134,8 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
     if (zspan->maxp2 == nullptr || zspan->maxp2[1] < maxv[1]) {
       zspan->maxp2 = maxv;
     }
-    if (my0 < zspan->miny2) {
-      zspan->miny2 = my0;
-    }
-    if (my2 > zspan->maxy2) {
-      zspan->maxy2 = my2;
-    }
+    zspan->miny2 = std::min(my0, zspan->miny2);
+    zspan->maxy2 = std::max(my2, zspan->maxy2);
   }
 
   for (y = my2; y >= my0; y--, xs0 += dx0) {
@@ -236,9 +227,7 @@ void zspan_scanconvert(ZSpan *zspan,
     if (sn2 >= rectx) {
       sn2 = rectx - 1;
     }
-    if (sn1 < 0) {
-      sn1 = 0;
-    }
+    sn1 = std::max(sn1, 0);
 
     u = ((double(sn1) * uxd) + uy0) - (i * uyd);
     v = ((double(sn1) * vxd) + vy0) - (i * vyd);

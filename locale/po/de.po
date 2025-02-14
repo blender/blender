@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-12-08 20:56+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -61,6 +61,10 @@ msgstr "Sammlung von AOVs"
 
 msgid "F-Curves"
 msgstr "F-Kurven"
+
+
+msgid "Slot"
+msgstr "Position"
 
 
 msgid "Action F-Curves"
@@ -247,34 +251,6 @@ msgid "Collection of action groups"
 msgstr "Gruppe von Aktionsgruppen"
 
 
-msgid "Influence"
-msgstr "Einfluss"
-
-
-msgid "Mix Mode"
-msgstr "Mischmodus"
-
-
-msgid "Replace"
-msgstr "Ersetzen"
-
-
-msgid "Offset"
-msgstr "Versatz"
-
-
-msgid "Add"
-msgstr "Hinzufügen"
-
-
-msgid "Subtract"
-msgstr "Subtrahieren"
-
-
-msgid "Multiply"
-msgstr "Multiplizieren"
-
-
 msgid "Strips"
 msgstr "Streifen"
 
@@ -307,9 +283,8 @@ msgid "Active"
 msgstr "Aktiv"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "ID-Stammtyp"
+msgid "Show Expanded"
+msgstr "Erweitertes anzeigen"
 
 
 msgctxt "ID"
@@ -497,10 +472,6 @@ msgid "World"
 msgstr "Welt"
 
 
-msgid "Show Expanded"
-msgstr "Erweitertes anzeigen"
-
-
 msgid "Keyframe"
 msgstr "Schlüsselbild"
 
@@ -653,6 +624,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Methode zum Kombinieren des Ergebnisses von aktiven Aktionen mit dem Ergebnis des NLA-Stapels"
 
 
+msgid "Replace"
+msgstr "Ersetzen"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Die Streifenwerte ersetzen die akkumulierten Ergebnisse um den durch den Einfluss festgelegten Betrag"
 
@@ -665,12 +640,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Die Streifenwerte werden mit akkumulierten Ergebnissen kombiniert, indem Addition, Multiplikation oder Quaternion-Mathematik entsprechend dem Kanaltyp verwendet werden"
 
 
+msgid "Add"
+msgstr "Hinzufügen"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Das gewichtete Ergebnis des Streifens wird zu den akkumulierten Ergebnissen addiert"
 
 
+msgid "Subtract"
+msgstr "Subtrahieren"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Das gewichtete Ergebnis des Streifens wird aus den akkumulierten Ergebnissen entfernt"
+
+
+msgid "Multiply"
+msgstr "Multiplizieren"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -4172,6 +4159,10 @@ msgid "Override Background Image"
 msgstr "Hintergrundbild überschreiben"
 
 
+msgid "Offset"
+msgstr "Versatz"
+
+
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -5533,6 +5524,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Menge des Restfehlers in Bogenmaß für Abhängigkeiten, die auf die Orientierung wirken"
 
 
+msgid "Influence"
+msgstr "Einfluss"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Menge der Einflussbeschränkung auf die endgültige Lösung"
 
@@ -5863,6 +5858,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Minimaler Wert für Zielkanalspanne"
+
+
+msgid "Mix Mode"
+msgstr "Mischmodus"
 
 
 msgid "Before Original (Full)"
@@ -11407,6 +11406,11 @@ msgid "Convenient groupings of F-Curves"
 msgstr "Beschränkung"
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "ID-Stammtyp"
+
+
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "Typ des ID-Blocks, für den die Aktion verwendet werden kann - NICHT ÄNDERN, ES SEI DENN, SIE WISSEN, WAS SIE TUN"
 
@@ -14655,10 +14659,6 @@ msgstr "Name anzeigen"
 
 msgid "Display the object's name"
 msgstr "Namen des Objekts anzeigen"
-
-
-msgid "Shape Key Lock"
-msgstr "Formschlüssel sperren"
 
 
 msgid "Display Texture Space"
@@ -18900,8 +18900,32 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Local View"
-msgstr "Lokale Ansicht"
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Pivot Point"
@@ -18924,164 +18948,140 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
 msgid "Mirror"
 msgstr "Spiegeln"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
+msgid "Viewpoint"
+msgstr "Ansicht"
 
 
 msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "Viewpoint"
-msgstr "Ansicht"
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
+
+
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
 
 
 msgid "Assets"
@@ -23221,28 +23221,12 @@ msgid "Channel Key"
 msgstr "Schlüsselkanal"
 
 
-msgid "RGB color space"
-msgstr "RGB Farbraum"
-
-
-msgid "HSV color space"
-msgstr "HSV Farbraum"
-
-
 msgid "YUV"
 msgstr "YUV"
 
 
-msgid "YUV color space"
-msgstr "YUV Farbraum"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "YCbCr color space"
-msgstr "YCbCr Farbraum"
 
 
 msgid "Limit by this channel's value"
@@ -23811,6 +23795,10 @@ msgstr "Feder"
 
 msgid "Distance Key"
 msgstr "Abstand"
+
+
+msgid "RGB color space"
+msgstr "RGB Farbraum"
 
 
 msgid "YCbCr suppression"
@@ -24434,40 +24422,16 @@ msgid "Translate"
 msgstr "Übersetzten"
 
 
-msgid "Wrapping"
-msgstr "Verpacken"
-
-
-msgid "Wrap image on a specific axis"
-msgstr "Wickle ein Bild um eine spezifische Achse"
-
-
-msgid "No wrapping on X and Y"
-msgstr "Kein verpacken bei X und Y"
-
-
 msgid "X Axis"
 msgstr "X-Achse"
-
-
-msgid "Wrap all pixels on the X axis"
-msgstr "Verpacke alle Pixel an der X Achse"
 
 
 msgid "Y Axis"
 msgstr "Y-Achse"
 
 
-msgid "Wrap all pixels on the Y axis"
-msgstr "Verpacke alle Pixel an der Y Achse"
-
-
 msgid "Both Axes"
 msgstr "Beide Achsen"
-
-
-msgid "Wrap all pixels on both axes"
-msgstr "Verpacke alle Pixel an beiden Achsen"
 
 
 msgid "Vector Blur"
@@ -33247,6 +33211,14 @@ msgid "Add Node Collection"
 msgstr "Knotensammlung hinzufügen"
 
 
+msgid "Source color"
+msgstr "Quellfarbe"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma korrigiert"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Dateiknoten hinzufügen"
@@ -38301,14 +38273,6 @@ msgid "Drop Color"
 msgstr "Farbe verwerfen"
 
 
-msgid "Source color"
-msgstr "Quellfarbe"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma korrigiert"
-
-
 msgctxt "Operator"
 msgid "Drop Name"
 msgstr "Name verwerfen"
@@ -40558,10 +40522,6 @@ msgid "OpenVDB File"
 msgstr "OpenVDB Datei"
 
 
-msgid "Slot"
-msgstr "Position"
-
-
 msgid "Filters"
 msgstr "Filter"
 
@@ -42581,10 +42541,6 @@ msgstr "Schwenkachse (Y) umkehren"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Rollachse (Z) umkehren"
-
-
-msgid "Show Navigation Guide"
-msgstr "Navigation anzeigen"
 
 
 msgid "Navigation style in the viewport"
@@ -51317,14 +51273,6 @@ msgid "Only Axis Aligned"
 msgstr "Nur Achsen ausgerichtet"
 
 
-msgid "Keyframes Before"
-msgstr "Schlüsselbild zuvor"
-
-
-msgid "Keyframes After"
-msgstr "Schlüsselbild danach"
-
-
 msgid "Stroke Thickness"
 msgstr "Strichdicke"
 
@@ -51375,6 +51323,14 @@ msgstr "Ebene in ausgewählte kopieren"
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
 msgstr "Alle Ebenen in ausgewählte Ebenen kopieren"
+
+
+msgid "Keyframes Before"
+msgstr "Schlüsselbild zuvor"
+
+
+msgid "Keyframes After"
+msgstr "Schlüsselbild danach"
 
 
 msgid "Interpolation U"
@@ -55932,6 +55888,10 @@ msgid "Select ID"
 msgstr "ID Auswählen"
 
 
+msgid "Create"
+msgstr "Erstellen"
+
+
 msgid "Display channel regardless of object selection"
 msgstr "Anzeigekanal unabhängig von Objektauswahl"
 
@@ -56044,12 +56004,8 @@ msgid "Separated bones"
 msgstr "Getrennte Knochen"
 
 
-msgid "Create"
-msgstr "Erstellen"
-
-
-msgid "[H] - Toggle bone visibility"
-msgstr "[H] - Knochensichtbarkeit umschalten"
+msgid "Cancel"
+msgstr "Abbrechen"
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -56196,10 +56152,6 @@ msgstr "Kein aktives Einzelbild zum Löschen"
 
 msgid "Nothing selected"
 msgstr "Nichts ausgewählt"
-
-
-msgid "Cancel"
-msgstr "Abbrechen"
 
 
 msgid "Could not resolve path '%s'"
@@ -57802,14 +57754,6 @@ msgid "File not found '%s'"
 msgstr "Datei nicht gefunden '%s'"
 
 
-msgid "ON"
-msgstr "AN"
-
-
-msgid "OFF"
-msgstr "AUS"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Aktive Gruppe ist gesperrt, abbrechen"
 
@@ -58164,10 +58108,6 @@ msgstr "Nicht unterstütztes Audioformat"
 
 msgid "No F-Modifiers to paste"
 msgstr "Kein F-Modifikator zum Einfügen"
-
-
-msgid "Decimate Keyframes"
-msgstr "Dezimierte Schlüsselbilder"
 
 
 msgid "Discard"
@@ -59554,10 +59494,6 @@ msgid "Offset Y"
 msgstr "Y-Versatz"
 
 
-msgid "Undistortion"
-msgstr "Entzerren"
-
-
 msgid "Dot"
 msgstr "Punkt"
 
@@ -60299,6 +60235,14 @@ msgstr "Rück"
 
 msgid "dbl-"
 msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "AN"
+
+
+msgid "OFF"
+msgstr "AUS"
 
 
 msgid "unsupported format"

@@ -141,7 +141,7 @@ void Manager::end_sync()
 
 void Manager::debug_bind()
 {
-#ifdef _DEBUG
+#ifdef WITH_DRAW_DEBUG
   if (DST.debug == nullptr) {
     return;
   }

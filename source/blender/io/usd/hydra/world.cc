@@ -15,9 +15,9 @@
 
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_math_rotation.h"
-#include "BLI_path_utils.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -46,15 +46,13 @@ void WorldData::init()
   data_.clear();
 
   float intensity = 1.0f;
-  float exposure = 1.0f;
-  pxr::GfVec3f color(1.0f, 1.0f, 1.0f);
   pxr::SdfAssetPath texture_file;
 
   if (scene_delegate_->shading_settings.use_scene_world) {
     const World *world = scene_delegate_->scene->world;
+    pxr::GfVec3f color(1.0f, 1.0f, 1.0f);
     ID_LOG(1, "%s", world->id.name);
 
-    exposure = world->exposure;
     if (world->use_nodes) {
       /* TODO: Create nodes parsing system */
 
@@ -65,7 +63,7 @@ void WorldData::init()
       const Span<bNodeSocket *> input_sockets = output_node->input_sockets();
       bNodeSocket *input_socket = nullptr;
 
-      for (auto socket : input_sockets) {
+      for (auto *socket : input_sockets) {
         if (STREQ(socket->name, "Surface")) {
           input_socket = socket;
           break;
@@ -133,8 +131,7 @@ void WorldData::init()
 
   data_[pxr::UsdLuxTokens->orientToStageUpAxis] = true;
   data_[pxr::HdLightTokens->intensity] = intensity;
-  data_[pxr::HdLightTokens->exposure] = exposure;
-  data_[pxr::HdLightTokens->color] = color;
+  data_[pxr::HdLightTokens->color] = pxr::GfVec3f(1.0f, 1.0f, 1.0f);
   data_[pxr::HdLightTokens->textureFile] = texture_file;
 
   write_transform();

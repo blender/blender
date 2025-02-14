@@ -32,6 +32,7 @@
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_subdiv.hh"
 
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::Int32ArraySamplePtr;
@@ -913,7 +914,8 @@ static void read_subd_sample(const std::string &iobject_full_name,
 
 static void read_vertex_creases(Mesh *mesh,
                                 const Int32ArraySamplePtr &indices,
-                                const FloatArraySamplePtr &sharpnesses)
+                                const FloatArraySamplePtr &sharpnesses,
+                                const ImportSettings *settings)
 {
   if (!(indices && sharpnesses && indices->size() == sharpnesses->size() && indices->size() != 0))
   {
@@ -931,13 +933,17 @@ static void read_vertex_creases(Mesh *mesh,
       continue;
     }
 
-    vertex_crease_data[idx] = (*sharpnesses)[i];
+    const float crease = settings->blender_archive_version_prior_44 ?
+                             (*sharpnesses)[i] :
+                             bke::subdiv::sharpness_to_crease((*sharpnesses)[i]);
+    vertex_crease_data[idx] = std::clamp(crease, 0.0f, 1.0f);
   }
 }
 
 static void read_edge_creases(Mesh *mesh,
                               const Int32ArraySamplePtr &indices,
-                              const FloatArraySamplePtr &sharpnesses)
+                              const FloatArraySamplePtr &sharpnesses,
+                              const ImportSettings *settings)
 {
   if (!(indices && sharpnesses)) {
     return;
@@ -962,8 +968,13 @@ static void read_edge_creases(Mesh *mesh,
       continue;
     }
 
-    creases.span[*index] = std::clamp((*sharpnesses)[s], 0.0f, 1.0f);
+    const float crease = settings->blender_archive_version_prior_44 ?
+                             (*sharpnesses)[s] :
+                             bke::subdiv::sharpness_to_crease((*sharpnesses)[s]);
+    creases.span[*index] = std::clamp(crease, 0.0f, 1.0f);
   }
+
+  creases.finish();
 }
 
 /* ************************************************************************** */
@@ -1029,9 +1040,9 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
     return;
   }
 
-  read_edge_creases(mesh, sample.getCreaseIndices(), sample.getCreaseSharpnesses());
+  read_edge_creases(mesh, sample.getCreaseIndices(), sample.getCreaseSharpnesses(), m_settings);
 
-  read_vertex_creases(mesh, sample.getCornerIndices(), sample.getCornerSharpnesses());
+  read_vertex_creases(mesh, sample.getCornerIndices(), sample.getCornerSharpnesses(), m_settings);
 
   if (m_settings->validate_meshes) {
     BKE_mesh_validate(mesh, false, false);

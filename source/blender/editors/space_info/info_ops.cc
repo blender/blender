@@ -6,7 +6,6 @@
  * \ingroup spinfo
  */
 
-#include <cstdio>
 #include <cstring>
 #include <fmt/format.h>
 
@@ -14,9 +13,6 @@
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -339,6 +335,11 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
 
   if (id == nullptr) {
     BKE_report(op->reports, RPT_WARNING, "No packed file");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!ID_IS_EDITABLE(id)) {
+    BKE_report(op->reports, RPT_WARNING, "Data-block using this packed file is not editable");
     return OPERATOR_CANCELLED;
   }
 

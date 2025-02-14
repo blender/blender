@@ -8,6 +8,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cstring>
 
 #include "CLG_log.h"
@@ -50,6 +51,7 @@
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_tracking_types.h"
+#include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
 #undef DNA_GENFILE_VERSIONING_MACROS
@@ -97,8 +99,6 @@
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
-
-#include "NOD_socket.hh"
 
 #include "versioning_common.hh"
 
@@ -3309,9 +3309,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
                                                                    &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
-                if (region->v2d.minzoom > 0.05f) {
-                  region->v2d.minzoom = 0.05f;
-                }
+                region->v2d.minzoom = std::min(region->v2d.minzoom, 0.05f);
               }
             }
           }

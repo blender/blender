@@ -17,7 +17,6 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_tempfile.h"
 #include "BLI_utildefines.h"
@@ -30,11 +29,10 @@
 
 #include "GHOST_Path-api.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "CLG_log.h"
 
 #ifdef WIN32
+#  include "BLI_string_utf8.h"
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
 #  include <io.h>
@@ -456,7 +454,7 @@ static blender::Vector<std::string> get_path_environment_multiple(const char *su
   const char *char_end = BLI_strchr_or_end(char_begin, separator);
   while (char_begin[0]) {
     const size_t base_path_len = char_end - char_begin;
-    if (base_path_len > 0 && base_path_len <= PATH_MAX) {
+    if (base_path_len > 0 && base_path_len < PATH_MAX) {
       char base_path[PATH_MAX];
       memcpy(base_path, char_begin, base_path_len);
       base_path[base_path_len] = '\0';

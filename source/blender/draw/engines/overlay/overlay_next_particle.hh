@@ -8,12 +8,15 @@
 
 #pragma once
 
+#include "BKE_material.hh"
 #include "BKE_pointcache.h"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_collection_types.h"
+#include "DNA_material_types.h"
 #include "DNA_particle_types.h"
 #include "ED_particle.hh"
 
+#include "draw_cache.hh"
 #include "overlay_next_base.hh"
 
 namespace blender::draw::overlay {

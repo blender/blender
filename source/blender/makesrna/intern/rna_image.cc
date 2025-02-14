@@ -9,25 +9,12 @@
 #include <cstdlib>
 
 #include "DNA_image_types.h"
-#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
-
-#include "BKE_image.hh"
-#include "BKE_image_format.hh"
-#include "BKE_main_invariants.hh"
-#include "BKE_node_tree_update.hh"
-
 #include "BLT_translation.hh"
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_build.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-
-#include "MOV_read.hh"
 
 #include "rna_internal.hh"
 
@@ -64,6 +51,12 @@ static const EnumPropertyItem image_source_items[] = {
 #  include "BLI_math_vector.h"
 
 #  include "BKE_global.hh"
+#  include "BKE_image.hh"
+#  include "BKE_image_format.hh"
+#  include "BKE_lib_id.hh"
+#  include "BKE_main.hh"
+#  include "BKE_main_invariants.hh"
+#  include "BKE_node_tree_update.hh"
 #  include "BKE_screen.hh"
 
 #  include "GPU_texture.hh"
@@ -71,9 +64,14 @@ static const EnumPropertyItem image_source_items[] = {
 #  include "IMB_imbuf.hh"
 #  include "IMB_imbuf_types.hh"
 
+#  include "MOV_read.hh"
+
 #  include "ED_node.hh"
 
 #  include "DNA_space_types.h"
+
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 static bool rna_Image_is_stereo_3d_get(PointerRNA *ptr)
 {
@@ -735,9 +733,7 @@ static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
     ImagePackedFile *imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first);
     return rna_pointer_inherit_refine(ptr, &RNA_PackedFile, imapf->packedfile);
   }
-  else {
-    return PointerRNA_NULL;
-  }
+  return PointerRNA_NULL;
 }
 
 static void rna_RenderSlot_clear(ID *id, RenderSlot *slot, ImageUser *iuser)

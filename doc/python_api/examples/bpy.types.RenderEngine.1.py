@@ -39,7 +39,7 @@ class CustomRenderEngine(bpy.types.RenderEngine):
         self.size_x = int(scene.render.resolution_x * scale)
         self.size_y = int(scene.render.resolution_y * scale)
 
-        # Fill the render result with a flat color. The framebuffer is
+        # Fill the render result with a flat color. The frame-buffer is
         # defined as a list of pixels, each pixel itself being a list of
         # R,G,B,A values.
         if self.is_preview:

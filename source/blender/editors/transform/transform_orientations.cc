@@ -1362,7 +1362,7 @@ int getTransformOrientation_ex(const Scene *scene,
         zero_v3(fallback_plane);
 
         LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-          if (ANIM_bonecoll_is_visible_editbone(arm, ebone)) {
+          if (EBONE_VISIBLE(arm, ebone)) {
             if (ebone->flag & BONE_SELECTED) {
               ED_armature_ebone_to_mat3(ebone, tmat);
               add_v3_v3(r_normal, tmat[2]);

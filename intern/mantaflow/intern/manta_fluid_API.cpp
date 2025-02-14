@@ -6,10 +6,8 @@
  * \ingroup intern_mantaflow
  */
 
-#include <cmath>
-
-#include "MANTA_main.h"
 #include "manta_fluid_API.h"
+#include "MANTA_main.h"
 
 /* Fluid functions */
 MANTA *manta_init(int *res, struct FluidModifierData *fmd)
@@ -303,8 +301,13 @@ bool manta_smoke_export_script(MANTA *smoke, FluidModifierData *fmd)
   return smoke->exportSmokeScript(fmd);
 }
 
-static void get_rgba(
-    float *r, float *g, float *b, float *a, int total_cells, float *data, int sequential)
+static void get_rgba(const float *r,
+                     const float *g,
+                     const float *b,
+                     const float *a,
+                     int total_cells,
+                     float *data,
+                     int sequential)
 {
   int i;
   /* Use offsets to map RGB grids to correct location in data grid. */
@@ -347,7 +350,10 @@ void manta_noise_get_rgba(MANTA *smoke, float *data, int sequential)
            sequential);
 }
 
-static void get_rgba_fixed_color(float color[3], int total_cells, float *data, int sequential)
+static void get_rgba_fixed_color(const float color[3],
+                                 int total_cells,
+                                 float *data,
+                                 int sequential)
 {
   int i;
   int m = 4, i_g = 1, i_b = 2, i_a = 3;

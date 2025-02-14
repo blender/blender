@@ -10,16 +10,8 @@
 
 #include "intern/builder/deg_builder_nodes.h"
 
-#include <cstdio>
 #include <cstdlib>
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
-
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
@@ -33,8 +25,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "intern/builder/deg_builder.h"
-#include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"

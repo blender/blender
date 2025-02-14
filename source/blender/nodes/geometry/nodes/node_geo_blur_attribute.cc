@@ -8,13 +8,11 @@
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
-#include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
-#include "BKE_grease_pencil.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 

@@ -8,15 +8,19 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_kdtree.h"
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -24,12 +28,7 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -40,7 +39,6 @@
 
 #include "BKE_armature.hh"
 #include "BKE_bvhutils.hh" /* bvh tree */
-#include "BKE_collection.hh"
 #include "BKE_collision.h"
 #include "BKE_colorband.hh"
 #include "BKE_constraint.h"
@@ -2113,7 +2111,7 @@ static void dynamicPaint_frameUpdate(
 
     /* loop through surfaces */
     for (; surface; surface = surface->next) {
-      int current_frame = int(scene->r.cfra);
+      int current_frame = scene->r.cfra;
       bool no_surface_data;
 
       /* free bake data if not required anymore */
@@ -2136,7 +2134,7 @@ static void dynamicPaint_frameUpdate(
       CLAMP(current_frame, surface->start_frame, surface->end_frame);
 
       if (no_surface_data || current_frame != surface->current_frame ||
-          int(scene->r.cfra) == surface->start_frame)
+          scene->r.cfra == surface->start_frame)
       {
         PointCache *cache = surface->pointcache;
         PTCacheID pid;
@@ -2149,18 +2147,17 @@ static void dynamicPaint_frameUpdate(
         BKE_ptcache_id_time(&pid, scene, float(scene->r.cfra), nullptr, nullptr, nullptr);
 
         /* reset non-baked cache at first frame */
-        if (int(scene->r.cfra) == surface->start_frame && !(cache->flag & PTCACHE_BAKED)) {
+        if (scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED)) {
           cache->flag |= PTCACHE_REDO_NEEDED;
           BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
           cache->flag &= ~PTCACHE_REDO_NEEDED;
         }
 
         /* try to read from cache */
-        bool can_simulate = (int(scene->r.cfra) == current_frame) &&
-                            !(cache->flag & PTCACHE_BAKED);
+        bool can_simulate = (scene->r.cfra == current_frame) && !(cache->flag & PTCACHE_BAKED);
 
         if (BKE_ptcache_read(&pid, float(scene->r.cfra), can_simulate)) {
-          BKE_ptcache_validate(cache, int(scene->r.cfra));
+          BKE_ptcache_validate(cache, scene->r.cfra);
         }
         /* if read failed and we're on surface range do recalculate */
         else if (can_simulate) {
@@ -2428,9 +2425,7 @@ static float dist_squared_to_corner_tris_uv_edges(const blender::Span<int3> corn
         mloopuv[corner_tris[tri_index][(i + 0)]],
         mloopuv[corner_tris[tri_index][(i + 1) % 3]]);
 
-    if (dist_squared < min_distance) {
-      min_distance = dist_squared;
-    }
+    min_distance = std::min(dist_squared, min_distance);
   }
 
   return min_distance;
@@ -4543,9 +4538,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
 
     const float str = 1.0f - smooth_range;
     /* if influence is greater, use this one */
-    if (str > strength) {
-      strength = str;
-    }
+    strength = std::max(str, strength);
   }
 
   if (strength > 0.001f) {

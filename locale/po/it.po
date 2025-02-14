@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2025-01-12 22:56+0000\n"
 "Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -77,6 +77,10 @@ msgstr "Le singole Curve-F che animano lo slot"
 
 msgid "F-Curve Groups"
 msgstr "Gruppi Curva-F"
+
+
+msgid "Slot"
+msgstr "Slot"
 
 
 msgid "Collection of f-curve groups"
@@ -275,34 +279,6 @@ msgid "Action Layer"
 msgstr "Livello Azione"
 
 
-msgid "Influence"
-msgstr "Influenza"
-
-
-msgid "Mix Mode"
-msgstr "Modalità Miscela"
-
-
-msgid "Replace"
-msgstr "Sostituisci"
-
-
-msgid "Offset"
-msgstr "Offset"
-
-
-msgid "Add"
-msgstr "Aggiungi"
-
-
-msgid "Subtract"
-msgstr "Sottrai"
-
-
-msgid "Multiply"
-msgstr "Moltiplica"
-
-
 msgid "Strips"
 msgstr "Spezzoni"
 
@@ -351,9 +327,20 @@ msgid "Slot Handle"
 msgstr "Maniglia dello Slot"
 
 
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "ID Root Type"
+msgid "Slot Identifier"
+msgstr "Identificatore Slot"
+
+
+msgid "Slot Display Name"
+msgstr "Nome Visualizzato Slot"
+
+
+msgid "Selection state of the slot"
+msgstr "Stato della selezione dello slot"
+
+
+msgid "Show Expanded"
+msgstr "Mostra Espanso"
 
 
 msgctxt "ID"
@@ -549,22 +536,6 @@ msgstr "Spazio di Lavoro"
 msgctxt "ID"
 msgid "World"
 msgstr "Mondo"
-
-
-msgid "Slot Identifier"
-msgstr "Identificatore Slot"
-
-
-msgid "Slot Display Name"
-msgstr "Nome Visualizzato Slot"
-
-
-msgid "Selection state of the slot"
-msgstr "Stato della selezione dello slot"
-
-
-msgid "Show Expanded"
-msgstr "Mostra Espanso"
 
 
 msgid "Action Slots"
@@ -899,6 +870,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metodo utilizzato per combinare i risultati dell'Azione Attiva con i risultati della pila NLA"
 
 
+msgid "Replace"
+msgstr "Sostituisci"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "I valori dello spezzone sostituiscono i risultati accumulati con l'ammontare specificato dall'influenza"
 
@@ -911,12 +886,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "I valori degli spezzoni vengono combinati con i risultati accumulati utilizzando opportunamente l'addizione, la moltiplicazione o la matematica dei quaternioni, in base al tipo di canale"
 
 
+msgid "Add"
+msgstr "Aggiungi"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Il risultato pesato dello spezzone viene aggiunto a quelli accumulati"
 
 
+msgid "Subtract"
+msgstr "Sottrai"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Il risultato pesato dello spezzone viene rimosso da quelli accumulati"
+
+
+msgid "Multiply"
+msgstr "Moltiplica"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -5281,6 +5268,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "In una camera di sostituzione locale, se questa immagine di sfondo proviene dalla camera di riferimento collegata o se è locale rispetto a quella di sostituzione"
 
 
+msgid "Offset"
+msgstr "Offset"
+
+
 msgid "Rotation"
 msgstr "Rotazione"
 
@@ -6522,6 +6513,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Ammontare di errore residuo in radianti per i vincoli che funzionano sull'orientamento"
 
 
+msgid "Influence"
+msgstr "Influenza"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Ammontare del vincolo di influenza sulla soluzione finale"
 
@@ -6856,6 +6851,10 @@ msgstr "Minimo"
 
 msgid "Minimum value for target channel range"
 msgstr "Valore minimo per l'intervallo del canale obiettivo"
+
+
+msgid "Mix Mode"
+msgstr "Modalità Miscela"
 
 
 msgid "Before Original (Full)"
@@ -13783,6 +13782,11 @@ msgid "Groups"
 msgstr "Gruppi"
 
 
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "ID Root Type"
+
+
 msgid "Is Empty"
 msgstr "È Vuoto"
 
@@ -18281,10 +18285,6 @@ msgstr "Mostra Nome"
 
 msgid "Display the object's name"
 msgstr "Mostra il nome dell'oggetto"
-
-
-msgid "Shape Key Lock"
-msgstr "Blocco Chiave Forma"
 
 
 msgid "Display Texture Space"
@@ -23438,8 +23438,32 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Local View"
-msgstr "Vista Locale"
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Pivot Point"
@@ -23454,156 +23478,132 @@ msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
 
 
-msgid "Face Data"
-msgstr "Dati Faccia"
-
-
-msgid "Propagate"
-msgstr "Propaga"
-
-
-msgid "In-Betweens"
-msgstr "Intermedio"
-
-
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
+msgid "Mirror"
+msgstr "Specchia"
 
 
 msgid "UV Mapping"
 msgstr "Mappatura UV"
 
 
-msgid "Apply"
-msgstr "Applica"
+msgid "Local View"
+msgstr "Vista Locale"
 
 
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
-
-
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Light"
-msgstr "Luce"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "Merge"
-msgstr "Unisci"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
+msgid "Viewpoint"
+msgstr "Punto di vista"
 
 
 msgid "Navigation"
 msgstr "Navigazione"
 
 
-msgid "Viewpoint"
-msgstr "Punto di vista"
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
+
+
+msgid "In-Betweens"
+msgstr "Intermedio"
+
+
+msgid "Propagate"
+msgstr "Propaga"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
+
+
+msgid "Merge"
+msgstr "Unisci"
 
 
 msgid "Basic"
@@ -29066,10 +29066,6 @@ msgid "Channel Key"
 msgstr "Canale Chiave"
 
 
-msgid "RGB color space"
-msgstr "Spazio Colore RGB"
-
-
 msgid "YCbCr"
 msgstr "YCbCr"
 
@@ -29558,6 +29554,10 @@ msgid "Distance Key"
 msgstr "Chiave Distanza"
 
 
+msgid "RGB color space"
+msgstr "Spazio Colore RGB"
+
+
 msgid "Double Edge Mask"
 msgstr "Maschera Doppio Lato"
 
@@ -29980,10 +29980,6 @@ msgstr "Fotogramma Assoluto"
 
 msgid "Translate"
 msgstr "Trasla"
-
-
-msgid "Wrapping"
-msgstr "Mappatura"
 
 
 msgid "X Axis"
@@ -39460,6 +39456,14 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "Ripristina l'area visibile per mostrare gli spezzoni selezionati"
 
 
+msgid "Source color"
+msgstr "Colore sorgente"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma Corretto"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "Aggiungi Nodo File"
@@ -45320,14 +45324,6 @@ msgid "Drop colors to buttons"
 msgstr "Assegna colori ai bottoni"
 
 
-msgid "Source color"
-msgstr "Colore sorgente"
-
-
-msgid "Gamma Corrected"
-msgstr "Gamma Corretto"
-
-
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "Modifica Sorgente"
@@ -47637,10 +47633,6 @@ msgid "Use only deformation modifiers (temporary disable all constructive modifi
 msgstr "Utilizza solo modificatori di deformazione (disabilita temporaneamente i modificatori di generazione salvo Multi-Risoluzione)"
 
 
-msgid "UV Sculpting"
-msgstr "Scultura UV"
-
-
 msgid "Restrict"
 msgstr "Restringi"
 
@@ -47895,10 +47887,6 @@ msgstr "Effetti"
 
 msgid "Text Boxes"
 msgstr "Caselle di Testo"
-
-
-msgid "Slot"
-msgstr "Slot"
 
 
 msgid "Filters"
@@ -49909,10 +49897,6 @@ msgstr "Inverti Asse Rollio (Z)"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Sensibilità globale del mouse 3D per il pan"
-
-
-msgid "Show Navigation Guide"
-msgstr "Mostra Guida Navigazione"
 
 
 msgid "Display the center and axis during rotation"
@@ -56335,6 +56319,10 @@ msgid "Color of the light's specular highlight"
 msgstr "Colore della luce speculare brillante"
 
 
+msgid "UV Sculpting"
+msgstr "Scultura UV"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Gruppo di vertici, utilizzato per deformare l'armatura e per altri usi"
 
@@ -57545,10 +57533,6 @@ msgid "Custom..."
 msgstr "Personalizzato..."
 
 
-msgid "Keyframes Before"
-msgstr "Keyframe Precedenti"
-
-
 msgid "Stroke Thickness"
 msgstr "Spessore Tratto"
 
@@ -57613,6 +57597,10 @@ msgstr "Copia Tutti i Layers alla Selezione"
 msgctxt "Operator"
 msgid "Delete Group"
 msgstr "Cancella Gruppo"
+
+
+msgid "Keyframes Before"
+msgstr "Keyframe Precedenti"
 
 
 msgid "Interpolation U"
@@ -61008,6 +60996,10 @@ msgid "Select ID"
 msgstr "Seleziona ID"
 
 
+msgid "Create"
+msgstr "Crea"
+
+
 msgid "NLA Strip Controls"
 msgstr "Controlli Spezzoni NLA"
 
@@ -61180,12 +61172,12 @@ msgid "Unselectable bone in chain"
 msgstr "Osso non selezionabile nella catena"
 
 
-msgid "Create"
-msgstr "Crea"
-
-
 msgid "No active Keying Set to use"
 msgstr "Nessun Gruppo Chiavi attivo da utilizzare"
+
+
+msgid "Cancel"
+msgstr "Annulla"
 
 
 msgid "No keyframes to slide between"
@@ -61326,10 +61318,6 @@ msgstr "Nessun fotogramma da cancellare"
 
 msgid "Nothing selected"
 msgstr "Nessuna selezione"
-
-
-msgid "Cancel"
-msgstr "Annulla"
 
 
 msgid "Could not resolve path '%s'"
@@ -62841,14 +62829,6 @@ msgid "File not found '%s'"
 msgstr "File non trovato '%s'"
 
 
-msgid "ON"
-msgstr "ON"
-
-
-msgid "OFF"
-msgstr "OFF"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Il gruppo attivo è bloccato, comando annullato"
 
@@ -62963,10 +62943,6 @@ msgstr "Curva-F Attiva"
 
 msgid "Active Keyframe"
 msgstr "Keyframe Attivo"
-
-
-msgid "Action has already been stashed"
-msgstr "L'azione è già stata accantonata"
 
 
 msgid "Delete selected keyframes?"
@@ -63248,14 +63224,6 @@ msgstr "Formato audio non supportato"
 
 msgid "No F-Modifiers to paste"
 msgstr "Nessun Modificatore-F da incollare"
-
-
-msgid "Decimate Keyframes"
-msgstr "Decima Keyframes"
-
-
-msgid "Ease Keys"
-msgstr "Allevia Chiavi (Keys)"
 
 
 msgid "Select Slot"
@@ -64229,10 +64197,6 @@ msgstr "Sovrascrivi %s"
 
 msgid "UV Vertex"
 msgstr "Vertice UV"
-
-
-msgid "Mode(TAB) %s, (S)nap %s, (M)idpoints %s, (L)imit %.2f (Alt Wheel adjust) %s, Switch (I)sland, shift select vertices"
-msgstr "Modo(TAB) %s, (S)nap %s, (M)ezzeria %s, (L)imita %.2f (Alt Rotellina aggiusta) %s, Inverti (I)sola, Shift seleziona vertici"
 
 
 msgid "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh"
@@ -65320,6 +65284,14 @@ msgstr "Win"
 
 msgid "dbl-"
 msgstr "doppio-"
+
+
+msgid "ON"
+msgstr "ON"
+
+
+msgid "OFF"
+msgstr "OFF"
 
 
 msgid "unsupported format"

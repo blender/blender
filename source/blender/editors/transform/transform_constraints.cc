@@ -7,7 +7,6 @@
  */
 
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -20,6 +19,7 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rect.h"

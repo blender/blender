@@ -29,11 +29,9 @@
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
-#include "BLI_linklist.h"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -1649,7 +1647,7 @@ static void singleuser_action_fn(bContext *C,
     IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
     PropertyRNA *prop;
 
-    PointerRNA ptr = RNA_pointer_create(&iat->id, &RNA_AnimData, iat->adt);
+    PointerRNA ptr = RNA_pointer_create_discrete(&iat->id, &RNA_AnimData, iat->adt);
     prop = RNA_struct_find_property(&ptr, "action");
 
     id_single_user(C, id, &ptr, prop);

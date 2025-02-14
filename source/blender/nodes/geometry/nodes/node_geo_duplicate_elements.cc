@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
-#include "BLI_map.hh"
 #include "BLI_noise.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -21,6 +20,8 @@
 #include "node_geometry_util.hh"
 
 #include "NOD_rna_define.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

@@ -47,7 +47,15 @@ extern BlenderRNA BLENDER_RNA;
 
 PointerRNA RNA_main_pointer_create(Main *main);
 PointerRNA RNA_id_pointer_create(ID *id);
-PointerRNA RNA_pointer_create(ID *id, StructRNA *type, void *data);
+/**
+ * Create a 'discrete', isolated PointerRNA of some data. It won't have any ancestor information
+ * available.
+ *
+ * \param id: The owner ID, may be null, in which case the PointerRNA won't have any ownership
+ * information at all.
+ */
+PointerRNA RNA_pointer_create_discrete(ID *id, StructRNA *type, void *data);
+
 bool RNA_pointer_is_null(const PointerRNA *ptr);
 
 bool RNA_path_resolved_create(PointerRNA *ptr,
@@ -399,9 +407,17 @@ int RNA_property_int_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int i
 float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value);
 void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *values);
+void RNA_property_float_get_array_at_most(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          float *values,
+                                          int values_num);
 void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, float values[2]);
 float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const float *values);
+void RNA_property_float_set_array_at_most(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          const float *values,
+                                          int values_num);
 void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, float value);
 float RNA_property_float_get_default(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_float_set_default(PropertyRNA *prop, float value);
@@ -772,9 +788,7 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 
 #define RNA_POINTER_INVALIDATE(ptr) \
   { \
-    /* this is checked for validity */ \
-    (ptr)->type = NULL; /* should not be needed but prevent bad pointer access, just in case */ \
-    (ptr)->owner_id = NULL; \
+    *(ptr) = PointerRNA_NULL; \
   } \
   (void)0
 

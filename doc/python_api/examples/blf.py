@@ -18,7 +18,7 @@ font_info = {
 def init():
     """init function - runs once"""
     import os
-    # Create a new font object, use external ttf file.
+    # Create a new font object, use external TTF file.
     font_path = bpy.path.abspath('//Zeyada.ttf')
     # Store the font indice - to use later.
     if os.path.exists(font_path):

@@ -256,9 +256,7 @@ static const char *clg_severity_as_text(enum CLG_Severity severity)
   if (ok) {
     return clg_severity_str[severity];
   }
-  else {
-    return "INVALID_SEVERITY";
-  }
+  return "INVALID_SEVERITY";
 }
 
 static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)

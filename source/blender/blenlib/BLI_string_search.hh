@@ -69,7 +69,6 @@ class StringSearchBase {
   const RecentCache *recent_cache_ = nullptr;
   MainWordsHeuristic main_words_heuristic_;
 
- protected:
   void add_impl(StringRef str, void *user_data, float weight);
   Vector<void *> query_impl(StringRef query) const;
 };

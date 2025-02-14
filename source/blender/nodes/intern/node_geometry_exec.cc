@@ -7,13 +7,12 @@
 #include "DNA_curves_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "BKE_curves.hh"
-#include "BKE_type_conversions.hh"
+#include "BKE_node_runtime.hh"
 
 #include "BLT_translation.hh"
 

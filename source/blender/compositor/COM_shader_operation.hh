@@ -7,8 +7,6 @@
 #include <memory>
 
 #include "BLI_map.hh"
-#include "BLI_string_ref.hh"
-#include "BLI_vector_set.hh"
 
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
@@ -18,7 +16,6 @@
 #include "NOD_derived_node_tree.hh"
 
 #include "COM_context.hh"
-#include "COM_operation.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
 
@@ -73,7 +70,7 @@ class ShaderOperation : public PixelOperation {
   ShaderOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
 
   /* Free the GPU material. */
-  ~ShaderOperation();
+  ~ShaderOperation() override;
 
   /* Allocate the output results, bind the shader and all its needed resources, then dispatch the
    * shader. */

@@ -18,7 +18,6 @@
 
 #include "RNA_access.hh"
 
-#include "GPU_immediate.hh"
 #include "GPU_viewport.hh"
 
 #include "ED_sequencer.hh"
@@ -142,13 +141,13 @@ int sequencer_draw_get_transform_preview_frame(Scene *scene);
 
 void sequencer_special_update_set(Strip *strip);
 /* Get handle width in 2d-View space. */
-float sequence_handle_size_get_clamped(const Scene *scene, Strip *strip, float pixelx);
+float strip_handle_draw_size_get(const Scene *scene, Strip *strip, float pixelx);
 
 /* UNUSED */
 /* void seq_reset_imageofs(SpaceSeq *sseq); */
 
 /**
- * Rendering using opengl will change the current viewport/context.
+ * Rendering using the GPU will change the current viewport/context.
  * This is why we need the \a region, to set back the render area.
  *
  * TODO: do not rely on such hack and just update the \a ibuf outside of
@@ -179,7 +178,7 @@ Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel);
 void recurs_sel_seq(Strip *strip_meta);
 bool strip_effect_get_new_inputs(Scene *scene,
                                  bool ignore_active,
-                                 int strip_type,
+                                 int num_inputs,
                                  Strip **r_seq1,
                                  Strip **r_seq2,
                                  const char **r_error_str);
@@ -277,10 +276,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot);
 void SEQUENCER_OT_select_box(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
-Strip *find_nearest_seq(const Scene *scene,
-                        const View2D *v2d,
-                        const int mval[2],
-                        eSeqHandle *r_hand);
+
 bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
 
 /* `sequencer_add.cc` */

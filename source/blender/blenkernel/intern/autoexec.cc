@@ -16,7 +16,6 @@
 
 #include "BLI_fnmatch.h"
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
 
 #ifdef WIN32
 #  include "BLI_string.h"

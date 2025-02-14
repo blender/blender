@@ -16,7 +16,6 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -592,6 +591,7 @@ static int scene_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *ev
     }
   }
 
+  ED_region_tag_redraw(CTX_wm_region(C));
   DEG_relations_tag_update(bmain);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);

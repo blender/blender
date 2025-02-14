@@ -9,6 +9,8 @@
 
 #include "BKE_fcurve.hh"
 
+#include "BLT_translation.hh"
+
 namespace blender::animrig::legacy {
 
 static Strip *first_keyframe_strip(Action &action)
@@ -22,6 +24,19 @@ static Strip *first_keyframe_strip(Action &action)
   }
 
   return nullptr;
+}
+
+Slot &slot_ensure(Action &action)
+{
+  assert_baklava_phase_1_invariants(action);
+
+  if (!action.slots().is_empty()) {
+    return *action.slot(0);
+  }
+
+  Slot &slot = action.slot_add();
+  action.slot_display_name_define(slot, DATA_(DEFAULT_LEGACY_SLOT_NAME));
+  return slot;
 }
 
 Channelbag *channelbag_get(Action &action)
@@ -42,21 +57,23 @@ Channelbag &channelbag_ensure(Action &action)
 {
   assert_baklava_phase_1_invariants(action);
 
-  /* Ensure a Slot. */
-  Slot *slot;
-  if (action.slots().is_empty()) {
-    slot = &action.slot_add();
+  Slot &slot = slot_ensure(action);
+
+  /* Ensure a Layer + keyframe Strip.
+   *
+   * Normally we would use `Action::layer_keystrip_ensure()` for this, but that
+   * doesn't let us specify the name of the layer if newly created. */
+  if (action.layers().is_empty()) {
+    action.layer_add(DATA_(DEFAULT_LEGACY_LAYER_NAME));
   }
-  else {
-    slot = action.slot(0);
+  if (action.layer(0)->strips().is_empty()) {
+    action.layer(0)->strip_add(action, Strip::Type::Keyframe);
   }
 
-  /* Ensure a Layer + keyframe Strip. */
-  action.layer_keystrip_ensure();
   Strip &keystrip = *action.layer(0)->strip(0);
 
   /* Ensure a Channelbag. */
-  return keystrip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(*slot);
+  return keystrip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
 }
 
 /* Lots of template args to support transparent non-const and const versions. */

@@ -14,7 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -162,6 +163,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
   /* May have been freed since drawing. */
   RenderResult *rr = BKE_image_acquire_renderresult(scene, image);
   if (UNLIKELY(rr == nullptr)) {
+    BKE_image_release_renderresult(scene, image, rr);
     return;
   }
 
@@ -234,6 +236,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
   /* may have been freed since drawing */
   rr = BKE_image_acquire_renderresult(scene, image);
   if (UNLIKELY(rr == nullptr)) {
+    BKE_image_release_renderresult(scene, image, rr);
     return;
   }
 
@@ -306,6 +309,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
   /* may have been freed since drawing */
   rr = BKE_image_acquire_renderresult(scene, image);
   if (UNLIKELY(rr == nullptr)) {
+    BKE_image_release_renderresult(scene, image, rr);
     return;
   }
 
@@ -413,6 +417,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
 
   rr = BKE_image_acquire_renderresult(scene, image);
   if (UNLIKELY(rr == nullptr)) {
+    BKE_image_release_renderresult(scene, image, rr);
     return false;
   }
 
@@ -692,7 +697,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 }
 
 struct RNAUpdateCb {
-  PointerRNA ptr;
+  PointerRNA ptr = {};
   PropertyRNA *prop;
   ImageUser *iuser;
 };
@@ -743,7 +748,7 @@ void uiTemplateImage(uiLayout *layout,
   ImageUser *iuser = static_cast<ImageUser *>(userptr->data);
 
   Scene *scene = CTX_data_scene(C);
-  BKE_image_user_frame_calc(ima, iuser, int(scene->r.cfra));
+  BKE_image_user_frame_calc(ima, iuser, scene->r.cfra);
 
   uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
   uiLayoutSetContextPointer(layout, "edit_image_user", userptr);
@@ -784,11 +789,16 @@ void uiTemplateImage(uiLayout *layout,
   }
 
   /* Set custom callback for property updates. */
-  RNAUpdateCb *cb = static_cast<RNAUpdateCb *>(MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb"));
+  RNAUpdateCb *cb = MEM_new<RNAUpdateCb>(__func__);
   cb->ptr = *ptr;
   cb->prop = prop;
   cb->iuser = iuser;
-  UI_block_funcN_set(block, rna_update_cb, cb, nullptr);
+  UI_block_funcN_set(block,
+                     rna_update_cb,
+                     cb,
+                     nullptr,
+                     but_func_argN_free<RNAUpdateCb>,
+                     but_func_argN_copy<RNAUpdateCb>);
 
   /* Disable editing if image was modified, to avoid losing changes. */
   const bool is_dirty = BKE_image_is_dirty(ima);

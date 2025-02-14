@@ -4,7 +4,6 @@
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BLI_task.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

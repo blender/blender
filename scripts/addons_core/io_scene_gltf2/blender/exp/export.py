@@ -53,6 +53,14 @@ def save(context, export_settings):
 def __export(export_settings):
     exporter = GlTF2Exporter(export_settings)
     __gather_gltf(exporter, export_settings)
+
+    # If the directory does not exist, create it
+    if not os.path.isdir(export_settings['gltf_filedirectory']):
+        os.makedirs(export_settings['gltf_filedirectory'])
+    if export_settings['gltf_format'] == "GLTF_SEPARATE" \
+            and not os.path.isdir(export_settings['gltf_texturedirectory']):
+        os.makedirs(export_settings['gltf_texturedirectory'])
+
     buffer = __create_buffer(exporter, export_settings)
     exporter.finalize_images()
 

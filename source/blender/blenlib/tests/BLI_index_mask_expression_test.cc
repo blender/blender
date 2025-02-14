@@ -6,10 +6,11 @@
 #include "BLI_index_mask_expression.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
-#include "BLI_strict_flags.h"
 #include "BLI_timeit.hh"
 
 #include "testing/testing.h"
+
+#include "BLI_strict_flags.h" /* IWYU pragma: keep */
 
 namespace blender::index_mask::tests {
 

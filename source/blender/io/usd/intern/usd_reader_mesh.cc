@@ -22,6 +22,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
+#include "BKE_subdiv.hh"
 
 #include "BLI_array.hh"
 #include "BLI_map.hh"
@@ -54,7 +55,6 @@ static CLG_LogRef LOG = {"io.usd"};
 namespace usdtokens {
 /* Materials */
 static const pxr::TfToken st("st", pxr::TfToken::Immortal);
-static const pxr::TfToken UVMap("UVMap", pxr::TfToken::Immortal);
 static const pxr::TfToken normalsPrimvar("normals", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
@@ -124,8 +124,7 @@ static void assign_materials(Main *bmain,
         continue;
       }
 
-      const bool have_import_hook = settings.mat_import_hook_sources.contains(
-          item.key.GetAsString());
+      const bool have_import_hook = settings.mat_import_hook_sources.contains(item.key);
 
       /* Add the Blender material. If we have an import hook which can handle this material
        * we don't import USD Preview Surface shaders. */
@@ -139,18 +138,17 @@ static void assign_materials(Main *bmain,
       }
 
       const std::string mat_name = make_safe_name(assigned_mat->id.name + 2, true);
-      settings.mat_name_to_mat.lookup_or_add_default(mat_name) = assigned_mat;
+      settings.mat_name_to_mat.add_new(mat_name, assigned_mat);
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the Blender material we created for the USD material with the given path. */
-        settings.usd_path_to_mat.lookup_or_add_default(item.key.GetAsString()) = assigned_mat;
+        settings.usd_path_to_mat.add_new(item.key, assigned_mat);
       }
 
       if (have_import_hook) {
         /* Defer invoking the hook to convert the material till we can do so from
          * the main thread. */
-        settings.usd_path_to_mat_for_hook.lookup_or_add_default(
-            item.key.GetAsString()) = assigned_mat;
+        settings.usd_path_to_mat_for_hook.add_new(item.key, assigned_mat);
       }
     }
 
@@ -416,12 +414,14 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
 
   /* It is fine to have fewer indices than vertices, but never the other way other. */
   if (corner_indices.size() > mesh->verts_num) {
-    CLOG_WARN(&LOG, "Too many vertex creases for mesh %s", prim_path_.c_str());
+    CLOG_WARN(&LOG, "Too many vertex creases for mesh %s", prim_path_.GetAsString().c_str());
     return;
   }
 
   if (corner_indices.size() != corner_sharpnesses.size()) {
-    CLOG_WARN(&LOG, "Vertex crease and sharpness count mismatch for mesh %s", prim_path_.c_str());
+    CLOG_WARN(&LOG,
+              "Vertex crease and sharpness count mismatch for mesh %s",
+              prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -431,7 +431,10 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   creases.span.fill(0.0f);
 
   for (size_t i = 0; i < corner_indices.size(); i++) {
-    creases.span[corner_indices[i]] = std::clamp(corner_sharpnesses[i], 0.0f, 1.0f);
+    const float crease = settings_->blender_stage_version_prior_44 ?
+                             corner_sharpnesses[i] :
+                             bke::subdiv::sharpness_to_crease(corner_sharpnesses[i]);
+    creases.span[corner_indices[i]] = std::clamp(crease, 0.0f, 1.0f);
   }
   creases.finish();
 }
@@ -452,7 +455,9 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
 
   /* There should be as many sharpness values as lengths. */
   if (crease_lengths.size() != crease_sharpness.size()) {
-    CLOG_WARN(&LOG, "Edge crease and sharpness count mismatch for mesh %s", prim_path_.c_str());
+    CLOG_WARN(&LOG,
+              "Edge crease and sharpness count mismatch for mesh %s",
+              prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -482,16 +487,24 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
     if (length < 2) {
       /* Since each crease must be at least one edge long, each element of this array must be at
        * least two. If this is not the case it would not be safe to continue. */
-      CLOG_WARN(&LOG, "Edge crease length %d is invalid for mesh %s", length, prim_path_.c_str());
+      CLOG_WARN(&LOG,
+                "Edge crease length %d is invalid for mesh %s",
+                length,
+                prim_path_.GetAsString().c_str());
       break;
     }
 
     if (index_start + length > crease_indices.size()) {
-      CLOG_WARN(&LOG, "Edge crease lengths are out of bounds for mesh %s", prim_path_.c_str());
+      CLOG_WARN(&LOG,
+                "Edge crease lengths are out of bounds for mesh %s",
+                prim_path_.GetAsString().c_str());
       break;
     }
 
-    const float sharpness = std::clamp(crease_sharpness[i], 0.0f, 1.0f);
+    float crease = settings_->blender_stage_version_prior_44 ?
+                       crease_sharpness[i] :
+                       bke::subdiv::sharpness_to_crease(crease_sharpness[i]);
+    crease = std::clamp(crease, 0.0f, 1.0f);
     for (size_t j = 0; j < length - 1; j++) {
       const int v1 = crease_indices[index_start + j];
       const int v2 = crease_indices[index_start + j + 1];
@@ -500,7 +513,7 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
         continue;
       }
 
-      creases.span[edge_i] = sharpness;
+      creases.span[edge_i] = crease;
     }
 
     index_start += length;
@@ -532,7 +545,9 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
   }
 
   if (normals_.size() != mesh->verts_num) {
-    CLOG_WARN(&LOG, "Vertex varying normals count mismatch for mesh '%s'", prim_path_.c_str());
+    CLOG_WARN(&LOG,
+              "Vertex varying normals count mismatch for mesh '%s'",
+              prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -549,7 +564,7 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh) const
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->corners_num) {
-    CLOG_WARN(&LOG, "Loop normal count mismatch for mesh '%s'", prim_path_.c_str());
+    CLOG_WARN(&LOG, "Loop normal count mismatch for mesh '%s'", prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -584,7 +599,8 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh) const
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->faces_num) {
-    CLOG_WARN(&LOG, "Uniform normal count mismatch for mesh '%s'", prim_path_.c_str());
+    CLOG_WARN(
+        &LOG, "Uniform normal count mismatch for mesh '%s'", prim_path_.GetAsString().c_str());
     return;
   }
 
@@ -847,7 +863,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   material_indices.finish();
   /* Build material name map if it's not built yet. */
   if (this->settings_->mat_name_to_mat.is_empty()) {
-    build_material_map(bmain, &this->settings_->mat_name_to_mat);
+    build_material_map(bmain, this->settings_->mat_name_to_mat);
   }
   utils::assign_materials(
       bmain, object_, mat_map, this->import_params_, this->prim_.GetStage(), *this->settings_);
@@ -916,22 +932,22 @@ void USDMeshReader::read_geometry(bke::GeometrySet &geometry_set,
   }
 }
 
-std::string USDMeshReader::get_skeleton_path() const
+pxr::SdfPath USDMeshReader::get_skeleton_path() const
 {
   /* Make sure we can apply UsdSkelBindingAPI to the prim.
    * Attempting to apply the API to instance proxies generates
    * a USD error. */
   if (!prim_ || prim_.IsInstanceProxy()) {
-    return "";
+    return {};
   }
 
   pxr::UsdSkelBindingAPI skel_api(prim_);
 
   if (pxr::UsdSkelSkeleton skel = skel_api.GetInheritedSkeleton()) {
-    return skel.GetPath().GetAsString();
+    return skel.GetPath();
   }
 
-  return "";
+  return {};
 }
 
 std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) const
@@ -954,13 +970,12 @@ std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) 
          * is constant over time. */
         return XformResult(pxr::GfMatrix4f(bind_xf), true);
       }
-      else {
-        BKE_reportf(reports(),
-                    RPT_WARNING,
-                    "%s: Couldn't compute geom bind transform for %s",
-                    __func__,
-                    prim_.GetPath().GetAsString().c_str());
-      }
+
+      BKE_reportf(reports(),
+                  RPT_WARNING,
+                  "%s: Couldn't compute geom bind transform for %s",
+                  __func__,
+                  prim_.GetPath().GetAsString().c_str());
     }
   }
 

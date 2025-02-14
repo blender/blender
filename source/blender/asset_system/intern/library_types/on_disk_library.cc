@@ -18,6 +18,14 @@ OnDiskAssetLibrary::OnDiskAssetLibrary(eAssetLibraryType library_type,
   this->on_blend_save_handler_register();
 }
 
+std::optional<AssetLibraryReference> OnDiskAssetLibrary::library_reference() const
+{
+  BLI_assert_msg(false,
+                 "Library references are only available for built-in libraries and libraries "
+                 "configured in the Preferences");
+  return {};
+}
+
 void OnDiskAssetLibrary::refresh_catalogs()
 {
   this->catalog_service().reload_catalogs();

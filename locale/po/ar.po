@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -38,6 +38,10 @@ msgstr "ﺔﻤﻴﻗ"
 
 msgid "F-Curves"
 msgstr "ﺔﻴﻧﺎﻴﺑ-ﻁﻮﻄﺧ"
+
+
+msgid "Slot"
+msgstr "ﺔﺤﺘﻓ"
 
 
 msgid "Action Group"
@@ -184,34 +188,6 @@ msgid "Expanded"
 msgstr "ﻊﺳﻮﻣ"
 
 
-msgid "Influence"
-msgstr "ﺮﻴﺛﺄﺘﻟﺍ"
-
-
-msgid "Mix Mode"
-msgstr "ﻂﻠﺨﻟﺍ ﻊﺿﻭ"
-
-
-msgid "Replace"
-msgstr "ﻝﺪﺒﺘﺳﺍ"
-
-
-msgid "Offset"
-msgstr "ﺡﺯﺃ"
-
-
-msgid "Add"
-msgstr "ﻒﺿﺃ"
-
-
-msgid "Subtract"
-msgstr "ﺡﺮﻃﺃ"
-
-
-msgid "Multiply"
-msgstr "ﻒﻋﺎﻀﺗ"
-
-
 msgid "Active"
 msgstr "ﻝﺎﻌﻓ"
 
@@ -336,12 +312,28 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "ﺔﻴﻄﺧ ﺮﻴﻐﻟﺍ ﺕﺎﻛﺮﺤﻟﺍ ﻡﺰﺣ ﺔﺠﻴﺘﻧ ﻭ ﺔﻴﻟﺎﺤﻟﺍ ﺔﻴﻠﻤﻌﻟﺍ ﺔﺠﻴﺘﻧ ﻦﻴﺑ ﻊﻤﺠﻠﻟ ﺔﻠﻤﻌﺘﺴﻤﻟﺍ ﺔﻠﻴﺳﻮﻟﺍ"
 
 
+msgid "Replace"
+msgstr "ﻝﺪﺒﺘﺳﺍ"
+
+
+msgid "Add"
+msgstr "ﻒﺿﺃ"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "ﺔﻤﻛﺍﺮﺘﻤﻟﺍ ﺞﺋﺎﺘﻨﻟﺍ ﻰﻟﺇ ﻑﺎﻀﺗ ﺔﺤﺟﺮﻤﻟﺍ ﻂﻳﺮﺸﻟﺍ ﺔﺠﻴﺘﻧ"
 
 
+msgid "Subtract"
+msgstr "ﺡﺮﻃﺃ"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "ﺔﻤﻛﺍﺮﺘﻤﻟﺍ ﺞﺋﺎﺘﻨﻟﺍ ﻦﻣ ﻑﺬﺤﺗ ﺔﺤﺟﺮﻤﻟﺍ ﻂﻳﺮﺸﻟﺍ ﺔﺠﻴﺘﻧ"
+
+
+msgid "Multiply"
+msgstr "ﻒﻋﺎﻀﺗ"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -2174,6 +2166,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "ﺓﺭﻮﺼﻠﻟ ﺭﺎﻃﺇ ﻭ ﺮﻤﻣ ,ﺔﻘﺒﻃ ﻱﺍ ﺽﺮﻋ ﺩﺪﺤﺗ ﻲﺘﻟﺍ ﻞﻣﺍﻮﻌﻟﺍ"
 
 
+msgid "Offset"
+msgstr "ﺡﺯﺃ"
+
+
 msgid "Rotation"
 msgstr "ﻥﺍﺭﻭﺪﻟﺍ"
 
@@ -3103,6 +3099,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "ﻩﺎﺠﺗﻹ﻿ﺍ ﻰﻠﻋ ﻞﻤﻌﺗ ﻲﺘﻟﺍ ﺩﻮﻴﻘﻠﻟ ﻥﺎﻳﺩﺍﺮﻟﺎﺑ ﻲﻘﺒﺘﻤﻟﺍ ﺄﻄﺨﻟﺍ ﺔﻴﻤﻛ"
 
 
+msgid "Influence"
+msgstr "ﺮﻴﺛﺄﺘﻟﺍ"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "ﺔﻴﺋﺎﻬﻨﻟﺍ ﺔﺠﻴﺘﻨﻟﺍ ﻰﻠﻋ ﺪﻴﻘﻟﺍ ﺮﻴﺛﺄﺗ ﺔﻴﻤﻛ"
 
@@ -3413,6 +3413,10 @@ msgstr "ﻰﻧﺩﻷ﻿ﺍ ﺪﺤﻟﺍ"
 
 msgid "Minimum value for target channel range"
 msgstr "ﻑﺪﻬﻟﺍ ﺓﺎﻨﻗ ﻕﺎﻄﻨﻟ ﻰﻧﺩﻷ﻿ﺍ ﺔﻤﻴﻘﻟﺍ"
+
+
+msgid "Mix Mode"
+msgstr "ﻂﻠﺨﻟﺍ ﻊﺿﻭ"
 
 
 msgid "Target object"
@@ -11820,10 +11824,6 @@ msgid "Display the object's name"
 msgstr "ﻦﺋﺎﻜﻟﺍ ﻢﺳﺍ ﺽﺮﻋﺇ"
 
 
-msgid "Shape Key Lock"
-msgstr "ﻞﻜﺸﻟﺍ ﺡﺎﺘﻔﻣ ﻞﻔﻗ"
-
-
 msgid "Display the object's texture space"
 msgstr "ﻦﺋﺎﻜﻟﺍ ﺞﻴﺴﻧ ءﺎﻀﻓ ﺽﺮﻋﺇ"
 
@@ -15904,36 +15904,16 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+msgid "Text"
+msgstr "ﺺﻧ"
 
 
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
-
-
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
-
-
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Apply"
-msgstr "ﻖﺒﻃ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Names"
@@ -15944,76 +15924,96 @@ msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
-msgid "Hooks"
-msgstr "ﺕﺎﻓﺎﻄﺧ"
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
 
 
-msgid "Make Single User"
-msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
+msgid "Proportional Editing Falloff"
+msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
 
 
-msgid "Quick Effects"
-msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
 
 
-msgid "Track"
-msgstr "ﺐﻘّﻌﺗ"
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
 
 
-msgid "Rigid Body"
-msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
-
-
-msgid "Relations"
-msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
-
-
-msgid "Text"
-msgstr "ﺺﻧ"
-
-
-msgid "Light"
-msgstr "ءﻮﺿ"
-
-
-msgid "Select More/Less"
-msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Select Linked"
-msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
-
-
-msgid "Select All by Trait"
-msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Similar"
-msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
 
 
 msgid "Align View"
 msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
 
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Select More/Less"
+msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Select Similar"
+msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
+
+
+msgid "Select All by Trait"
+msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Select Linked"
+msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
+
+
+msgid "Light"
+msgstr "ءﻮﺿ"
+
+
+msgid "Relations"
+msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
+
+
+msgid "Rigid Body"
+msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
+
+
+msgid "Apply"
+msgstr "ﻖﺒﻃ"
+
+
+msgid "Track"
+msgstr "ﺐﻘّﻌﺗ"
+
+
+msgid "Quick Effects"
+msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
+
+
+msgid "Make Single User"
+msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
+
+
+msgid "Hooks"
+msgstr "ﺕﺎﻓﺎﻄﺧ"
+
+
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
+
+
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
+
+
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
 
 
 msgctxt "MovieClip"
@@ -18962,10 +18962,6 @@ msgid "Channel Key"
 msgstr "ﺓﺎﻨﻘﻟﺍ ﺡﺎﺘﻔﻣ"
 
 
-msgid "RGB color space"
-msgstr "RGB ﻥﻮﻟ ﻝﺎﺠﻣ"
-
-
 msgid "High"
 msgstr "ﻲﻟﺎﻋ"
 
@@ -19348,6 +19344,10 @@ msgstr "ﺶﻣﺎﻬﻟﺍ"
 
 msgid "Distance Key"
 msgstr "ﺪﻌﺑ"
+
+
+msgid "RGB color space"
+msgstr "RGB ﻥﻮﻟ ﻝﺎﺠﻣ"
 
 
 msgid "Double Edge Mask"
@@ -19753,10 +19753,6 @@ msgstr "ﻲﺒﺴﻧ ﺭﺎﻃﺍ"
 
 msgid "Absolute Frame"
 msgstr "ﻖﻠﻄﻤﻟﺍ ﺭﺎﻃﻹ﻿ﺍ"
-
-
-msgid "Wrapping"
-msgstr "ءﺎﺴﻛﻹ﻿ﺍ"
 
 
 msgid "X Axis"
@@ -24991,6 +24987,14 @@ msgid "Exit Tweak Mode"
 msgstr "ﻂﺒﻀﻟﺍ ﻊﺿﻭ ﻦﻣ ﺝﺮﺧﺍ"
 
 
+msgid "Source color"
+msgstr "ﺭﺪﺼﻤﻟﺍ ﻥﻮﻟ"
+
+
+msgid "Gamma Corrected"
+msgstr "ﺔﻟﺪّﻌﻣ ﺓﺭﺎﻧﺇ"
+
+
 msgctxt "Operator"
 msgid "Add File Node"
 msgstr "ﻒﻠﻣ ﻒﺿﺍ ﺓﺪﻘﻋ"
@@ -27952,14 +27956,6 @@ msgid "Drop Color"
 msgstr "ﻥﻮﻠّﻟﺍ ﻖﻟﺃ"
 
 
-msgid "Source color"
-msgstr "ﺭﺪﺼﻤﻟﺍ ﻥﻮﻟ"
-
-
-msgid "Gamma Corrected"
-msgstr "ﺔﻟﺪّﻌﻣ ﺓﺭﺎﻧﺇ"
-
-
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "ﺭﺪﺼﻤﻟﺍ ﺭﺮﺣ"
@@ -28906,10 +28902,6 @@ msgid "Use Deform Only"
 msgstr "ﻂﻘﻓ ﻊﻳﻮﻄﺘﻟﺍ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "UV Sculpting"
-msgstr "UV ـﻟﺍ ﺖﺤﻧ"
-
-
 msgid "Restrict"
 msgstr "ﺮﺼﺣﺃ"
 
@@ -29060,10 +29052,6 @@ msgstr "ﺭﺎﺴﻤﻟﺍ ﺔﻛﺮﺣ"
 
 msgid "Text Boxes"
 msgstr "ﺔﺑﺎﺘﻜﻟﺍ ﺕﺎﻧﺎﺧ"
-
-
-msgid "Slot"
-msgstr "ﺔﺤﺘﻓ"
 
 
 msgid "Filters"
@@ -30664,10 +30652,6 @@ msgstr "ﺝﺮﺣﺪﺘﻟZ g ﺭﻮﺤﻣ ﺲﻜﻋﺇ"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "ﻚﻳﺮﺤﺘﻠﻟ ﺔﻴﺛﻼ﻿ﺜﻟﺍ ﺓﺭﺄﻔﻠﻟ ﺔﻣﺎﻌﻟﺍ ﺔﻴﺳﺎﺴﺤﻟﺍ"
-
-
-msgid "Show Navigation Guide"
-msgstr "ﺭﺎﺤﺑﻻ﻿ﺍ ﻞﻴﻟﺩ ﺮﻬﻇﺍ"
 
 
 msgid "Display the center and axis during rotation"
@@ -34290,6 +34274,10 @@ msgid "Color of the light's specular highlight"
 msgstr "ءﻮﻀﻟﺍ ﻖﻳﺮﺑ ﻉﻮﻄﺳ ﻥﻮﻟ"
 
 
+msgid "UV Sculpting"
+msgstr "UV ـﻟﺍ ﺖﺤﻧ"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "ﻯﺮﺧﺃ ﺽﺍﺮﻏﺃ ﻭ ﻞﻜﻴﻬﻟﺍ ﻪﻳﻮﺸﺘﻟ ﺔﻠﻤﻌﺘﺴﻣ ،ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
@@ -36702,6 +36690,10 @@ msgid "No active Keying Set to use"
 msgstr "ﻡﺍﺪﺨﺘﺳﻺ﻿ﻟ ﺔﻟﺎﻌّﻓ ﺢﻴﺗﺎﻔﻣ ﺔﻋﻮﻤﺠﻣ ﺪﺟﻮﺗ ﻻ﻿"
 
 
+msgid "Cancel"
+msgstr "ﻎﻟﺃ"
+
+
 msgid "No keyframes to slide between"
 msgstr "ﺭﺎﻃﻻ﻿ﺍ ﻊﺿ"
 
@@ -36779,10 +36771,6 @@ msgstr "ﻲﻧﺎﻴﺒﻟﺍ ﻰﻨﺤﻨﻤﻟﺍ ﻰﻠﻋ ﻝﺎﻌﻓ ﺭ�
 
 msgid "Nothing selected"
 msgstr "ﺭﺎﺘﺨﻣ ءﻲﺷ ﻻ﻿"
-
-
-msgid "Cancel"
-msgstr "ﻎﻟﺃ"
 
 
 msgid "Pin"

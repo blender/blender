@@ -10,14 +10,8 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_cloth_types.h"
-#include "DNA_dynamicpaint_types.h"
-#include "DNA_fluid_types.h"
 #include "DNA_object_force_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_pointcache_types.h"
-#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_define.hh"
@@ -106,7 +100,12 @@ static const EnumPropertyItem empty_vortex_shape_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
+#  include "DNA_cloth_types.h"
+#  include "DNA_dynamicpaint_types.h"
+#  include "DNA_fluid_types.h"
 #  include "DNA_modifier_types.h"
+#  include "DNA_particle_types.h"
+#  include "DNA_rigidbody_types.h"
 #  include "DNA_texture_types.h"
 
 #  include "BKE_collection.hh"

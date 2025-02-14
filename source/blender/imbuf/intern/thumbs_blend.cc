@@ -6,12 +6,8 @@
  * \ingroup imbuf
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "BLI_listbase.h" /* Needed due to import of BLO_readfile.hh */
-#include "BLI_utildefines.h"
 
 #include "BLO_readfile.hh"
 

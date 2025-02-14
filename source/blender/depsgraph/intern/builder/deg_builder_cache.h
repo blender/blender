@@ -10,13 +10,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "intern/depsgraph_type.hh"
+#include "RNA_types.hh"
 
-#include "RNA_access.hh"
+#include "BLI_map.hh"
+#include "BLI_set.hh"
 
 struct ID;
 struct PointerRNA;
 struct PropertyRNA;
+struct StructRNA;
 
 namespace blender::deg {
 

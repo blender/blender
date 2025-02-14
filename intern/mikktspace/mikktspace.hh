@@ -321,7 +321,7 @@ template<typename Mesh> class Mikktspace {
 
   struct VertexHash {
     Mikktspace<Mesh> *mikk;
-    inline uint operator()(const uint &k) const
+    uint operator()(const uint &k) const
     {
       return hash_float3x3(mikk->getPosition(k), mikk->getNormal(k), mikk->getTexCoord(k));
     }
@@ -329,7 +329,7 @@ template<typename Mesh> class Mikktspace {
 
   struct VertexEqual {
     Mikktspace<Mesh> *mikk;
-    inline bool operator()(const uint &kA, const uint &kB) const
+    bool operator()(const uint &kA, const uint &kB) const
     {
       return mikk->getTexCoord(kA) == mikk->getTexCoord(kB) &&
              mikk->getNormal(kA) == mikk->getNormal(kB) &&
@@ -620,8 +620,9 @@ template<typename Mesh> class Mikktspace {
           unpack_index(tB, iB, b.data);
           Mikktspace<Mesh>::Triangle &triB = mikk->triangles[tB];
 
-          if (b.key != a.key)
+          if (b.key != a.key) {
             break;
+          }
 
           if (triB.neighbor[iB] != UNSET_ENTRY) {
             continue;

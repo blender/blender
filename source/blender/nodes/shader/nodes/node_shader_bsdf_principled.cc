@@ -4,8 +4,6 @@
 
 #include <map>
 
-#include "BLI_string.h"
-
 #include "node_shader_util.hh"
 
 #include "UI_interface.hh"
@@ -100,7 +98,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(100.0f)
       .short_label("Radius")
-      .description("Scattering radius to use for subsurface component (multiplied with Scale)");
+      .description("Scattering radius per color channel (RGB), multiplied with Scale");
 #define SOCK_SUBSURFACE_RADIUS_ID 9
   sss.add_input<decl::Float>("Subsurface Scale")
       .default_value(0.05f)
@@ -108,7 +106,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(10.0f)
       .subtype(PROP_DISTANCE)
       .short_label("Scale")
-      .description("Scale of the subsurface scattering (multiplied with Radius)");
+      .description("Scale factor of the subsurface scattering radius");
 #define SOCK_SUBSURFACE_SCALE_ID 10
   sss.add_input<decl::Float>("Subsurface IOR")
       .default_value(1.4f)
@@ -351,14 +349,6 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_COAT;
   }
 
-  if (use_subsurf) {
-    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs,
-                                                      SOCK_SUBSURFACE_RADIUS_ID);
-    bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
-    /* For some reason it seems that the socket value is in ARGB format. */
-    use_subsurf = GPU_material_sss_profile_create(mat, &socket_data->value[1]);
-  }
-
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
 
   GPU_material_flag_set(mat, flag);
@@ -386,35 +376,41 @@ NODE_SHADER_MATERIALX_BEGIN
 
   /* NOTE: commented inputs aren't used for node creation. */
   auto bsdf_inputs = [&]() -> InputsType {
-    return {
-        {"base_color", get_input_value("Base Color", NodeItem::Type::Color3)},
-        {"diffuse_roughness", get_input_value("Diffuse Roughness", NodeItem::Type::Float)},
-        {"subsurface", get_input_value("Subsurface Weight", NodeItem::Type::Float)},
-        {"subsurface_scale", get_input_value("Subsurface Scale", NodeItem::Type::Float)},
-        {"subsurface_radius", get_input_value("Subsurface Radius", NodeItem::Type::Vector3)},
-        //{"subsurface_ior", get_input_value("Subsurface IOR", NodeItem::Type::Vector3)},
-        {"subsurface_anisotropy", get_input_value("Subsurface Anisotropy", NodeItem::Type::Float)},
-        {"metallic", get_input_value("Metallic", NodeItem::Type::Float)},
-        {"specular", get_input_value("Specular IOR Level", NodeItem::Type::Float)},
-        {"specular_tint", get_input_value("Specular Tint", NodeItem::Type::Color3)},
-        {"roughness", get_input_value("Roughness", NodeItem::Type::Float)},
-        {"anisotropic", get_input_value("Anisotropic", NodeItem::Type::Float)},
-        {"anisotropic_rotation", get_input_value("Anisotropic Rotation", NodeItem::Type::Float)},
-        {"sheen", get_input_value("Sheen Weight", NodeItem::Type::Float)},
-        {"sheen_roughness", get_input_value("Sheen Roughness", NodeItem::Type::Float)},
-        {"sheen_tint", get_input_value("Sheen Tint", NodeItem::Type::Color3)},
-        {"coat", get_input_value("Coat Weight", NodeItem::Type::Float)},
-        {"coat_roughness", get_input_value("Coat Roughness", NodeItem::Type::Float)},
-        {"coat_ior", get_input_value("Coat IOR", NodeItem::Type::Float)},
-        {"coat_tint", get_input_value("Coat Tint", NodeItem::Type::Color3)},
-        {"ior", get_input_value("IOR", NodeItem::Type::Float)},
-        {"transmission", get_input_value("Transmission Weight", NodeItem::Type::Float)},
-        {"thin_film_thickness", get_input_value("Thin Film Thickness", NodeItem::Type::Float)},
-        {"thin_film_IOR", get_input_value("Thin Film IOR", NodeItem::Type::Float)},
-        {"alpha", get_input_value("Alpha", NodeItem::Type::Float)},
-        {"normal", get_input_link("Normal", NodeItem::Type::Vector3)},
-        {"coat_normal", get_input_link("Coat Normal", NodeItem::Type::Vector3)},
-        {"tangent", get_input_link("Tangent", NodeItem::Type::Vector3)},
+    return
+    {
+      {"base_color", get_input_value("Base Color", NodeItem::Type::Color3)},
+          {"diffuse_roughness", get_input_value("Diffuse Roughness", NodeItem::Type::Float)},
+          {"subsurface", get_input_value("Subsurface Weight", NodeItem::Type::Float)},
+          {"subsurface_scale", get_input_value("Subsurface Scale", NodeItem::Type::Float)},
+#  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
+          {"subsurface_radius", get_input_value("Subsurface Radius", NodeItem::Type::Vector3)},
+#  else
+          {"subsurface_radius", get_input_value("Subsurface Radius", NodeItem::Type::Color3)},
+#  endif
+          //{"subsurface_ior", get_input_value("Subsurface IOR", NodeItem::Type::Vector3)},
+          {"subsurface_anisotropy",
+           get_input_value("Subsurface Anisotropy", NodeItem::Type::Float)},
+          {"metallic", get_input_value("Metallic", NodeItem::Type::Float)},
+          {"specular", get_input_value("Specular IOR Level", NodeItem::Type::Float)},
+          {"specular_tint", get_input_value("Specular Tint", NodeItem::Type::Color3)},
+          {"roughness", get_input_value("Roughness", NodeItem::Type::Float)},
+          {"anisotropic", get_input_value("Anisotropic", NodeItem::Type::Float)},
+          {"anisotropic_rotation", get_input_value("Anisotropic Rotation", NodeItem::Type::Float)},
+          {"sheen", get_input_value("Sheen Weight", NodeItem::Type::Float)},
+          {"sheen_roughness", get_input_value("Sheen Roughness", NodeItem::Type::Float)},
+          {"sheen_tint", get_input_value("Sheen Tint", NodeItem::Type::Color3)},
+          {"coat", get_input_value("Coat Weight", NodeItem::Type::Float)},
+          {"coat_roughness", get_input_value("Coat Roughness", NodeItem::Type::Float)},
+          {"coat_ior", get_input_value("Coat IOR", NodeItem::Type::Float)},
+          {"coat_tint", get_input_value("Coat Tint", NodeItem::Type::Color3)},
+          {"ior", get_input_value("IOR", NodeItem::Type::Float)},
+          {"transmission", get_input_value("Transmission Weight", NodeItem::Type::Float)},
+          {"thin_film_thickness", get_input_value("Thin Film Thickness", NodeItem::Type::Float)},
+          {"thin_film_IOR", get_input_value("Thin Film IOR", NodeItem::Type::Float)},
+          {"alpha", get_input_value("Alpha", NodeItem::Type::Float)},
+          {"normal", get_input_link("Normal", NodeItem::Type::Vector3)},
+          {"coat_normal", get_input_link("Coat Normal", NodeItem::Type::Vector3)},
+          {"tangent", get_input_link("Tangent", NodeItem::Type::Vector3)},
     };
   };
 

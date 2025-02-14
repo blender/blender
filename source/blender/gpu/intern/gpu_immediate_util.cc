@@ -8,7 +8,6 @@
  * GPU immediate mode drawing utilities
  */
 
-#include <cstdio>
 #include <cstring>
 
 #include "BLI_math_rotation.h"

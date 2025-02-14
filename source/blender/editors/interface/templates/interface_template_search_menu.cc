@@ -381,12 +381,12 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
   ListBase operator_items = {nullptr, nullptr};
 
   MemArena *memarena = data->memarena;
-  for (wmOperatorType *ot : WM_operatortype_map().values()) {
+  for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
     if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {
       continue;
     }
 
-    if (WM_operator_poll((bContext *)C, ot)) {
+    if (WM_operator_poll(C, ot)) {
       const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
 
       MenuSearch_Item *item = nullptr;
@@ -476,10 +476,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
      *   (exact number of items selected for example). See design doc #74158.
      * There is one exception,
      * as the outliner only exposes functionality via the context menu. */
-    GHashIterator iter;
-
-    for (WM_menutype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
-      MenuType *mt = (MenuType *)BLI_ghashIterator_getValue(&iter);
+    for (MenuType *mt : WM_menutypes_registered_get()) {
       if (BLI_str_endswith(mt->idname, "_context_menu")) {
         menu_tagged.add(mt);
       }
@@ -517,7 +514,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       /* Anything besides #SPACE_EMPTY is fine,
        * as this value is only included in the enum when set. */
       area_dummy.spacetype = SPACE_TOPBAR;
-      PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_Area, &area_dummy);
+      PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Area, &area_dummy);
       prop_ui_type = RNA_struct_find_property(&ptr, "ui_type");
       RNA_property_enum_items(C,
                               &ptr,
@@ -536,7 +533,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
       if (region != nullptr) {
-        PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_Area, area);
+        PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Area, area);
         const int space_type_ui = RNA_property_enum_get(&ptr, prop_ui_type);
 
         const int space_type_ui_index = RNA_enum_from_value(space_type_ui_items, space_type_ui);

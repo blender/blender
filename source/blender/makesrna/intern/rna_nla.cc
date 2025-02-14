@@ -10,16 +10,10 @@
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
-#include "DNA_scene_types.h"
 
 #include "ANIM_action.hh"
 #include "ANIM_nla.hh"
 
-#include "BLI_utildefines.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -493,6 +487,20 @@ static void rna_NlaStrip_action_slot_handle_set(
                                      strip->last_slot_identifier);
 }
 
+/**
+ * Emit a 'diff' for the .action_slot_handle property whenever the .action property differs.
+ *
+ * \see rna_generic_action_slot_handle_override_diff()
+ */
+static void rna_NlaStrip_action_slot_handle_override_diff(
+    Main *bmain, RNAPropertyOverrideDiffContext &rnadiff_ctx)
+{
+  const NlaStrip *strip_a = static_cast<NlaStrip *>(rnadiff_ctx.prop_a->ptr->data);
+  const NlaStrip *strip_b = static_cast<NlaStrip *>(rnadiff_ctx.prop_b->ptr->data);
+
+  rna_generic_action_slot_handle_override_diff(bmain, rnadiff_ctx, strip_a->act, strip_b->act);
+}
+
 static PointerRNA rna_NlaStrip_action_slot_get(PointerRNA *ptr)
 {
   NlaStrip *strip = (NlaStrip *)ptr->data;
@@ -914,6 +922,8 @@ static void rna_def_nlastrip(BlenderRNA *brna)
                            "A number that identifies which sub-set of the Action is considered "
                            "to be for this NLA strip");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_funcs(
+      prop, "rna_NlaStrip_action_slot_handle_override_diff", nullptr, nullptr);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_NlaStrip_dependency_update");
 
   prop = RNA_def_property(srna, "last_slot_identifier", PROP_STRING, PROP_NONE);

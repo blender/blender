@@ -6,9 +6,9 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cctype>
 #include <cfloat>
-#include <climits>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -2177,20 +2177,23 @@ static bool ui_but_drag_init(bContext *C,
       bool valid = false;
       uiDragColorHandle *drag_info = MEM_cnew<uiDragColorHandle>(__func__);
 
+      drag_info->has_alpha = ui_but_color_has_alpha(but);
+
       /* TODO: support more button pointer types. */
       if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
-        ui_but_v3_get(but, drag_info->color);
+        ui_but_v4_get(but, drag_info->color);
         drag_info->gamma_corrected = true;
         valid = true;
       }
       else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
-        ui_but_v3_get(but, drag_info->color);
+        ui_but_v4_get(but, drag_info->color);
         drag_info->gamma_corrected = false;
         valid = true;
       }
       else if (ELEM(but->pointype, UI_BUT_POIN_FLOAT, UI_BUT_POIN_CHAR)) {
-        ui_but_v3_get(but, drag_info->color);
-        copy_v3_v3(drag_info->color, (float *)but->poin);
+        ui_but_v4_get(but, drag_info->color);
+        copy_v4_v4(drag_info->color, (float *)but->poin);
+        drag_info->gamma_corrected = false;
         valid = true;
       }
 
@@ -2668,8 +2671,7 @@ static void ui_but_paste_color(bContext *C, uiBut *but, char *buf_paste)
 
       /* Some color properties are RGB, not RGBA. */
       const int array_len = get_but_property_array_length(but);
-      BLI_assert(ELEM(array_len, 3, 4));
-      ui_but_set_float_array(C, but, nullptr, rgba, array_len);
+      ui_but_set_float_array(C, but, nullptr, rgba, std::min(array_len, int(ARRAY_SIZE(rgba))));
     }
   }
   else {
@@ -3448,9 +3450,7 @@ const wmIMEData *ui_but_ime_data_get(uiBut *but)
   if (data && data->window) {
     return data->window->ime_data;
   }
-  else {
-    return nullptr;
-  }
+  return nullptr;
 }
 #endif /* WITH_INPUT_IME */
 
@@ -6513,11 +6513,11 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
               float *target = &brush->gradient->data[brush->gradient->cur].r;
 
               if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
-                RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
+                RNA_property_float_get_array_at_most(&but->rnapoin, but->rnaprop, target, 3);
                 IMB_colormanagement_srgb_to_scene_linear_v3(target, target);
               }
               else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
-                RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
+                RNA_property_float_get_array_at_most(&but->rnapoin, but->rnaprop, target, 3);
               }
               BKE_brush_tag_unsaved_changes(brush);
             }
@@ -6526,12 +6526,14 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
               bool updated = false;
 
               if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
-                RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
+                RNA_property_float_get_array_at_most(
+                    &but->rnapoin, but->rnaprop, color, ARRAY_SIZE(color));
                 BKE_brush_color_set(scene, paint, brush, color);
                 updated = true;
               }
               else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
-                RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
+                RNA_property_float_get_array_at_most(
+                    &but->rnapoin, but->rnaprop, color, ARRAY_SIZE(color));
                 IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
                 BKE_brush_color_set(scene, paint, brush, color);
                 updated = true;
@@ -6620,15 +6622,9 @@ static void clamp_axis_max_v3(float v[3], const float max)
   const float v_max = max_fff(v[0], v[1], v[2]);
   if (v_max > max) {
     mul_v3_fl(v, max / v_max);
-    if (v[0] > max) {
-      v[0] = max;
-    }
-    if (v[1] > max) {
-      v[1] = max;
-    }
-    if (v[2] > max) {
-      v[2] = max;
-    }
+    v[0] = std::min(v[0], max);
+    v[1] = std::min(v[1], max);
+    v[2] = std::min(v[2], max);
   }
 }
 
@@ -6722,8 +6718,8 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   }
 
   /* relative position within box */
-  x = (float(mx_fl) - but->rect.xmin) / BLI_rctf_size_x(&but->rect);
-  y = (float(my_fl) - but->rect.ymin) / BLI_rctf_size_y(&but->rect);
+  x = (mx_fl - but->rect.xmin) / BLI_rctf_size_x(&but->rect);
+  y = (my_fl - but->rect.ymin) / BLI_rctf_size_y(&but->rect);
   CLAMP(x, 0.0f, 1.0f);
   CLAMP(y, 0.0f, 1.0f);
 
@@ -7003,9 +6999,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
       if (hsv[2] == 0.0f) {
         hsv[2] = 0.0001f;
       }
-      if (hsv[2] >= 0.9999f) {
-        hsv[2] = 0.9999f;
-      }
+      hsv[2] = std::min(hsv[2], 0.9999f);
     }
   }
 
@@ -9337,7 +9331,7 @@ void ui_but_execute_end(bContext *C, ARegion * /*region*/, uiBut *but, void *act
     ui_apply_but_autokey(C, but);
   }
   /* use onfree event so undo is handled by caller and apply is already done above */
-  button_activate_exit((bContext *)C, but, but->active, false, true);
+  button_activate_exit(C, but, but->active, false, true);
   but->active = static_cast<uiHandleButtonData *>(active_back);
 }
 
@@ -11394,7 +11388,7 @@ static int ui_but_pie_menu_apply(bContext *C,
       menu->menuretval = UI_RETURN_CANCEL;
     }
     else {
-      button_activate_exit((bContext *)C, but, but->active, false, false);
+      button_activate_exit(C, but, but->active, false, false);
 
       menu->menuretval = UI_RETURN_OK;
     }
@@ -11613,6 +11607,16 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
             }
           }
           break;
+
+        case WINDEACTIVATE: {
+          /* Prevent waiting for the pie key release if it was released outside of focus. */
+          wmWindow *win = CTX_wm_window(C);
+          if (win) {
+            win->pie_event_type_lock = EVENT_NONE;
+          }
+          menu->menuretval = UI_RETURN_CANCEL;
+          break;
+        }
 
         case EVT_ESCKEY:
         case RIGHTMOUSE:

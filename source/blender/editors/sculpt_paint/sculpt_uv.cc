@@ -46,11 +46,11 @@
 
 #include "UI_view2d.hh"
 
-typedef enum eBrushUVSculptTool {
+enum eBrushUVSculptTool {
   UV_SCULPT_BRUSH_TYPE_GRAB = 0,
   UV_SCULPT_BRUSH_TYPE_RELAX = 1,
   UV_SCULPT_BRUSH_TYPE_PINCH = 2,
-} eBrushUVSculptTool;
+};
 
 enum {
   UV_SCULPT_BRUSH_TYPE_RELAX_LAPLACIAN = 0,

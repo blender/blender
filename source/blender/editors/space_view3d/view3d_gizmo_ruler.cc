@@ -7,6 +7,7 @@
  */
 
 #include "BLI_listbase.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
@@ -1001,7 +1002,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   GPU_matrix_pop_projection();
 }
 
-static int gizmo_ruler_test_select(bContext *, wmGizmo *gz, const int mval[2])
+static int gizmo_ruler_test_select(bContext * /*C*/, wmGizmo *gz, const int mval[2])
 {
   RulerItem *ruler_item_pick = (RulerItem *)gz;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
@@ -1308,7 +1309,7 @@ void VIEW3D_GGT_ruler(wmGizmoGroupType *gzgt)
 
 static bool view3d_ruler_poll(bContext *C)
 {
-  bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+  bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context(C);
   if ((tref_rt == nullptr) || !STREQ(view3d_gzgt_ruler_id, tref_rt->gizmo_group) ||
       CTX_wm_region_view3d(C) == nullptr)
   {

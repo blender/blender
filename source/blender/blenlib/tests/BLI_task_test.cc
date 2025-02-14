@@ -10,8 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_task.h"

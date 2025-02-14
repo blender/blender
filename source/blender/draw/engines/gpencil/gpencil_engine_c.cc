@@ -495,7 +495,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
     pass.bind_ubo("gp_materials", ubo_mat);
     pass.bind_texture("gpFillTexture", tex_fill);
     pass.bind_texture("gpStrokeTexture", tex_stroke);
-    pass.push_constant("gpMaterialOffset", int(mat_ofs));
+    pass.push_constant("gpMaterialOffset", mat_ofs);
     /* Since we don't use the sbuffer in GPv3, this is always 0. */
     pass.push_constant("gpStrokeIndexOffset", 0.0f);
     pass.push_constant("viewportSize", float2(DRW_viewport_size_get()));

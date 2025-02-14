@@ -24,7 +24,7 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name String Replace

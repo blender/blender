@@ -54,11 +54,6 @@ endif()
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# Global compile definitions since add_definitions() adds for all.
-# _DEBUG is a Visual Studio define, enabled for all platforms.
-set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-  $<$<CONFIG:Debug>:_DEBUG>
-)
 # -----------------------------------------------------------------------------
 # Set policy
 
@@ -216,20 +211,18 @@ Build \"BlendThumb.dll\" helper for Windows explorer integration to support extr
 thumbnails from `.blend` files."
     ON
   )
-else()
-  set(_option_default ON)
-  if(APPLE)
-    # In future, can be used with `quicklookthumbnailing/qlthumbnailreply`
-    # to create file thumbnails for say Finder.
-    # Turn it off for now, even though it can build on APPLE, it's not likely to be useful.
-    set(_option_default OFF)
-  endif()
+elseif(UNIX AND NOT APPLE)
   option(WITH_BLENDER_THUMBNAILER "\
 Build stand-alone \"blender-thumbnailer\" command-line thumbnail extraction utility, \
 intended for use by file-managers to extract PNG images from `.blend` files."
-    ${_option_default}
+    ON
   )
-  unset(_option_default)
+elseif(APPLE)
+  option(WITH_BLENDER_THUMBNAILER "\
+Build \"blender-thumbnailer.appex\" extension for Finder/ QuickLook thumbnail \
+support for blend files."
+    ON
+  )
 endif()
 
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
@@ -658,7 +651,7 @@ Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even 
   OFF
 )
 set(CYCLES_TEST_DEVICES CPU CACHE STRING "\
-Run regression tests on the specified device types (CPU CUDA OPTIX HIP)"
+Run regression tests on the specified device types (CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)"
 )
 option(WITH_CYCLES_TEST_OSL "\
 Run additional Cycles test with OSL enabled"
@@ -680,7 +673,7 @@ if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64"))
 
   option(WITH_CYCLES_CUDA_BINARIES "Build Cycles NVIDIA CUDA binaries" OFF)
   set(CYCLES_CUDA_BINARIES_ARCH
-    sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 sm_70 sm_75 sm_86 sm_89 compute_75
+    sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 sm_70 sm_75 sm_86 sm_89 sm_120 compute_75
     CACHE STRING "CUDA architectures to build binaries for"
   )
   option(WITH_CYCLES_CUDA_BUILD_SERIAL "\
@@ -975,7 +968,7 @@ Ensure string operations on fixed size buffers \
 mark_as_advanced(WITH_STRSIZE_DEBUG)
 
 # Compiler tool-chain.
-if(UNIX)
+if(UNIX AND NOT APPLE)
   if(CMAKE_COMPILER_IS_GNUCC)
     option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
     mark_as_advanced(WITH_LINKER_GOLD)
@@ -1114,11 +1107,26 @@ if(WIN32)
   option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
   mark_as_advanced(WITH_WINDOWS_FIND_MODULES)
 
-  option(WINDOWS_PYTHON_DEBUG "\
-Include the files needed for debugging python scripts with visual studio 2017+."
-    OFF
-  )
-  mark_as_advanced(WINDOWS_PYTHON_DEBUG)
+# The python debugger in Visual Studio for has been broken for years
+# but the upstream project over at https://github.com/microsoft/PTVS
+# show hopeful signs of life once in a while, so there is hope that
+# at one point this will start working again. That being said people
+# do keep turning this option on and end up disappointed it isn't
+# working and they spend a whole bunch of time on trying to get it to
+# work. So for now rather than removing this functionality
+# completely, just disable it.
+
+  if(WINDOWS_PYTHON_DEBUG)
+    # No need for a python version check here, anything over python 3.6 isn't working.
+    message(WARNING "Unsupported python version for VS debugger, disabling WINDOWS_PYTHON_DEBUG")
+    set(WINDOWS_PYTHON_DEBUG OFF)
+  endif()
+
+#  option(WINDOWS_PYTHON_DEBUG "\
+#Include the files needed for debugging python scripts with visual studio 2017+."
+#    OFF
+#  )
+#  mark_as_advanced(WINDOWS_PYTHON_DEBUG)
 
   option(WITH_WINDOWS_BUNDLE_CRT "Bundle the C runtime for install free distribution." ON)
   mark_as_advanced(WITH_WINDOWS_BUNDLE_CRT)

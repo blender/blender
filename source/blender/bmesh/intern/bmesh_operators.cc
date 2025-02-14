@@ -18,8 +18,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 

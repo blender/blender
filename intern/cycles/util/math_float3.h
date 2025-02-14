@@ -26,14 +26,17 @@ ccl_device_inline float3 one_float3()
   return make_float3(1.0f, 1.0f, 1.0f);
 }
 
-#if defined(__KERNEL_METAL__)
-
-ccl_device_inline float3 rcp(const float3 a)
+ccl_device_inline float3 reciprocal(const float3 a)
 {
+#ifdef __KERNEL_SSE__
+  /* Don't use _mm_rcp_ps due to poor precision. */
+  return float3(_mm_div_ps(_mm_set_ps1(1.0f), a.m128));
+#else
   return make_float3(1.0f / a.x, 1.0f / a.y, 1.0f / a.z);
+#endif
 }
 
-#else
+#ifndef __KERNEL_METAL__
 
 ccl_device_inline float3 operator-(const float3 &a)
 {
@@ -345,16 +348,6 @@ ccl_device_inline float3 ceil(const float3 a)
 ccl_device_inline float3 mix(const float3 a, const float3 b, const float t)
 {
   return a + t * (b - a);
-}
-
-ccl_device_inline float3 rcp(const float3 a)
-{
-#  ifdef __KERNEL_SSE__
-  /* Don't use _mm_rcp_ps due to poor precision. */
-  return float3(_mm_div_ps(_mm_set_ps1(1.0f), a.m128));
-#  else
-  return make_float3(1.0f / a.x, 1.0f / a.y, 1.0f / a.z);
-#  endif
 }
 
 ccl_device_inline float3 saturate(const float3 a)

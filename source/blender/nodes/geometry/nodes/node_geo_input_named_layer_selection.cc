@@ -4,8 +4,6 @@
 
 #include "BKE_geometry_fields.hh"
 
-#include "NOD_socket_search_link.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_input_named_layer_selection__cc {

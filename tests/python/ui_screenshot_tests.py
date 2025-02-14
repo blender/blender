@@ -15,7 +15,7 @@ def screenshot():
 
     # Force redraw and take screenshot.
     bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-    bpy.ops.screen.screenshot(filepath=output_path, full=True)
+    bpy.ops.screen.screenshot(filepath=output_path)
 
     bpy.ops.wm.quit_blender()
 
@@ -57,6 +57,7 @@ def create_argparse():
     parser.add_argument("--testdir", required=True)
     parser.add_argument("--outdir", required=True)
     parser.add_argument("--oiiotool", required=True)
+    parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
 
@@ -65,7 +66,7 @@ def main():
     args = parser.parse_args()
 
     from modules import render_report
-    report = render_report.Report("OpenGL Draw", args.outdir, args.oiiotool)
+    report = render_report.Report("Screenshot", args.outdir, args.oiiotool)
     ok = report.run(args.testdir, args.blender, get_arguments)
 
     sys.exit(not ok)

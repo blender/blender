@@ -36,7 +36,7 @@ bool BPY_is_pyconstraint(Text *text);
 
 /* global interpreter lock */
 
-typedef void *BPy_ThreadStatePtr;
+using BPy_ThreadStatePtr = void *;
 
 /**
  * Analogue of #PyEval_SaveThread()

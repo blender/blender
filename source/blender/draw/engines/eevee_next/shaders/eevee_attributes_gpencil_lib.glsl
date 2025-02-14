@@ -28,7 +28,7 @@ packed_float4 g_color;
 #ifdef OBINFO_LIB
 vec3 attr_load_orco(vec4 orco)
 {
-  vec3 lP = point_world_to_object(interp.P);
+  vec3 lP = drw_point_world_to_object(interp.P);
   return OrcoTexCoFactors[0].xyz + lP * OrcoTexCoFactors[1].xyz;
 }
 #endif

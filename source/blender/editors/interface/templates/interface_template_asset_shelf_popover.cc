@@ -26,7 +26,7 @@ namespace blender::ui {
 void template_asset_shelf_popover(uiLayout &layout,
                                   const bContext &C,
                                   const StringRefNull asset_shelf_id,
-                                  const StringRefNull name,
+                                  const StringRef name,
                                   const BIFIconID icon)
 {
   AssetShelfType *shelf_type = ed::asset::shelf::type_find_from_idname(asset_shelf_id);
@@ -53,7 +53,7 @@ void template_asset_shelf_popover(uiLayout &layout,
 
   ed::asset::shelf::ensure_asset_library_fetched(C, *shelf_type);
 
-  uiItemPopoverPanel(row, &C, "ASSETSHELF_PT_popover_panel", name.c_str(), icon);
+  uiItemPopoverPanel(row, &C, "ASSETSHELF_PT_popover_panel", name, icon);
   uiBut *but = static_cast<uiBut *>(block->buttons.last);
   if (use_preview_icon) {
     ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);

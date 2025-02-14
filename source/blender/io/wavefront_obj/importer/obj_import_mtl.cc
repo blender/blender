@@ -76,6 +76,7 @@ static Image *load_image_at_path(Main *bmain, const std::string &path, bool rela
   CLOG_INFO(&LOG, 1, "Loaded image from: '%s'", path.c_str());
   if (relative_paths) {
     BLI_path_rel(image->filepath, BKE_main_blendfile_path(bmain));
+    BLI_path_normalize(image->filepath);
   }
   return image;
 }

@@ -20,7 +20,9 @@
 
 namespace blender::deg {
 
-AnimationValueBackup::AnimationValueBackup(const string &rna_path, int array_index, float value)
+AnimationValueBackup::AnimationValueBackup(const std::string &rna_path,
+                                           int array_index,
+                                           float value)
     : rna_path(rna_path), array_index(array_index), value(value)
 {
 }

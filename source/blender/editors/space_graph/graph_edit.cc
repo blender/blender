@@ -19,7 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
@@ -458,13 +458,10 @@ void GRAPH_OT_click_insert(wmOperatorType *ot)
  * \note the back-end code for this is shared with the dope-sheet editor.
  * \{ */
 
-static short copy_graph_keys(bAnimContext *ac)
+static bool copy_graph_keys(bAnimContext *ac)
 {
   ListBase anim_data = {nullptr, nullptr};
-  int filter, ok = 0;
-
-  /* Clear buffer first. */
-  ANIM_fcurves_copybuf_free();
+  int filter;
 
   /* Filter data
    * - First time we try to filter more strictly, allowing only selected channels
@@ -484,7 +481,7 @@ static short copy_graph_keys(bAnimContext *ac)
   }
 
   /* Copy keyframes. */
-  ok = copy_animedit_keys(ac, &anim_data);
+  const bool ok = copy_animedit_keys(ac, &anim_data);
 
   /* Clean up. */
   ANIM_animdata_freelist(&anim_data);
@@ -496,33 +493,38 @@ static eKeyPasteError paste_graph_keys(bAnimContext *ac,
                                        const eKeyPasteOffset offset_mode,
                                        const eKeyPasteValueOffset value_offset_mode,
                                        const eKeyMergeMode merge_mode,
-                                       bool flip)
+                                       const bool flip)
 {
-  ListBase anim_data = {nullptr, nullptr};
-  int filter;
+  /* TODO: deduplicate this function and `paste_action_keys()` in `action_edit.cc`, */
 
-  /* Filter data
+  /* Determine paste context. */
+  KeyframePasteContext paste_context{};
+  paste_context.offset_mode = offset_mode;
+  paste_context.value_offset_mode = value_offset_mode;
+  paste_context.merge_mode = merge_mode;
+  paste_context.flip = flip;
+  paste_context.num_slots_selected = 0; /* Graph editor doesn't show slots. */
+
+  /* Find F-Curves to paste into, in two stages.
    * - First time we try to filter more strictly, allowing only selected channels
    *   to allow copying animation between channels
    * - Second time, we loosen things up if nothing was found the first time, allowing
    *   users to just paste keyframes back into the original curve again #31670.
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
-            ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-
-  if (ANIM_animdata_filter(ac,
-                           &anim_data,
-                           eAnimFilter_Flags(filter | ANIMFILTER_SEL),
-                           ac->data,
-                           eAnimCont_Types(ac->datatype)) == 0)
+  ListBase anim_data = {nullptr, nullptr};
   {
-    ANIM_animdata_filter(
-        ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+    const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                     ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY |
+                                     ANIMFILTER_NODUPLIS;
+    paste_context.num_fcurves_selected = ANIM_animdata_filter(
+        ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype);
+    if (paste_context.num_fcurves_selected == 0) {
+      ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+    }
   }
 
   /* Paste keyframes. */
-  const eKeyPasteError ok = paste_animedit_keys(
-      ac, &anim_data, offset_mode, value_offset_mode, merge_mode, flip);
+  const eKeyPasteError ok = paste_animedit_keys(ac, &anim_data, paste_context);
 
   /* Clean up. */
   ANIM_animdata_freelist(&anim_data);
@@ -542,7 +544,7 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
   }
 
   /* Copy keyframes. */
-  if (copy_graph_keys(&ac)) {
+  if (!copy_graph_keys(&ac)) {
     BKE_report(op->reports, RPT_ERROR, "No keyframes copied to the internal clipboard");
     return OPERATOR_CANCELLED;
   }

@@ -82,11 +82,6 @@ bool equivalent(const pxr::SdfValueTypeName &type_name1, const pxr::SdfValueType
 
 namespace blender::io::usd {
 
-/* TfToken objects are not cheap to construct, so we do it once. */
-namespace usdtokens {
-static const pxr::TfToken userProperties("userProperties", pxr::TfToken::Immortal);
-}  // namespace usdtokens
-
 static void set_string_prop(IDProperty *idgroup, const char *prop_name, const char *str_val)
 {
   if (!idgroup) {

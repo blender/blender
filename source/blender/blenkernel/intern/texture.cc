@@ -16,7 +16,6 @@
 
 #include "BLI_kdopbvh.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -34,7 +33,6 @@
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
 #include "BKE_brush.hh"

@@ -6,55 +6,27 @@
  * \ingroup RNA
  */
 
-#include <climits>
 #include <cstdlib>
 
-#include "DNA_anim_types.h"
-#include "DNA_movieclip_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_vfont_types.h"
 
-#include "BLI_iterator.h"
-#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string_utf8_symbols.h"
-#include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
-#include "BKE_sound.h"
 
-#include "IMB_metadata.hh"
-
-#include "MEM_guardedalloc.h"
-
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
 #include "UI_resources.hh"
 #include "rna_internal.hh"
 
-#include "SEQ_add.hh"
-#include "SEQ_channels.hh"
 #include "SEQ_effects.hh"
-#include "SEQ_iterator.hh"
-#include "SEQ_modifier.hh"
-#include "SEQ_prefetch.hh"
-#include "SEQ_proxy.hh"
-#include "SEQ_relations.hh"
-#include "SEQ_retiming.hh"
-#include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
-#include "SEQ_thumbnail_cache.hh"
-#include "SEQ_time.hh"
-#include "SEQ_transform.hh"
-#include "SEQ_utils.hh"
 
 #include "WM_types.hh"
 
@@ -117,8 +89,15 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "DNA_vfont_types.h"
+
+#  include "BLI_iterator.h"
+#  include "BLI_string_utils.hh"
+
+#  include "BKE_anim_data.hh"
 #  include "BKE_global.hh"
 #  include "BKE_idprop.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_movieclip.h"
 #  include "BKE_report.hh"
 
@@ -131,7 +110,23 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include "MOV_read.hh"
 
+#  include "SEQ_add.hh"
+#  include "SEQ_channels.hh"
 #  include "SEQ_edit.hh"
+#  include "SEQ_effects.hh"
+#  include "SEQ_iterator.hh"
+#  include "SEQ_modifier.hh"
+#  include "SEQ_prefetch.hh"
+#  include "SEQ_proxy.hh"
+#  include "SEQ_relations.hh"
+#  include "SEQ_retiming.hh"
+#  include "SEQ_select.hh"
+#  include "SEQ_sequencer.hh"
+#  include "SEQ_sound.hh"
+#  include "SEQ_thumbnail_cache.hh"
+#  include "SEQ_time.hh"
+#  include "SEQ_transform.hh"
+#  include "SEQ_utils.hh"
 
 struct StripSearchData {
   Strip *strip;
@@ -300,7 +295,7 @@ static bool rna_SequenceEditor_strips_all_lookup_string(PointerRNA *ptr,
 
   Strip *strip = SEQ_lookup_strip_by_name(scene, key);
   if (strip) {
-    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Strip, strip);
+    *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Strip, strip);
     return true;
   }
   return false;
@@ -885,7 +880,7 @@ static PointerRNA rna_MovieStrip_metadata_get(ID *scene_id, Strip *strip)
     return PointerRNA_NULL;
   }
 
-  PointerRNA ptr = RNA_pointer_create(scene_id, &RNA_IDPropertyWrapPtr, metadata);
+  PointerRNA ptr = RNA_pointer_create_discrete(scene_id, &RNA_IDPropertyWrapPtr, metadata);
   return ptr;
 }
 
@@ -2070,7 +2065,7 @@ static void rna_def_sequence_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Remove all modifiers from the sequence");
 }
 
-static void rna_def_sequence(BlenderRNA *brna)
+static void rna_def_strip(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
@@ -4009,7 +4004,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
   rna_def_strip_crop(brna);
   rna_def_strip_transform(brna);
 
-  rna_def_sequence(brna);
+  rna_def_strip(brna);
   rna_def_editor(brna);
   rna_def_channel(brna);
 

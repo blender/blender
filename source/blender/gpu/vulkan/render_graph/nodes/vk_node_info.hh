@@ -192,7 +192,7 @@ class VKNodeInfo : public NonCopyable {
    * files it is implemented as a template function.
    */
   template<typename Node, typename Storage>
-  static void set_node_data(Node &node, Storage & /* storage */, const CreateInfo &create_info);
+  static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info);
 
   /**
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.

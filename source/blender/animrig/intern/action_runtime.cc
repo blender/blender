@@ -17,8 +17,6 @@
 
 #include "BLI_set.hh"
 
-#include "DNA_anim_types.h"
-
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
 

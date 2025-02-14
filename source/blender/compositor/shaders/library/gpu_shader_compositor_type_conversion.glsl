@@ -63,14 +63,14 @@ vec4 vector_to_color(vec4 value)
  * Color to other.
  */
 
-float color_to_float(vec4 value)
+float color_to_float(vec4 value, vec3 luminance_coefficients)
 {
-  return dot(value.rgb, vec3(1.0)) / 3.0;
+  return dot(value.rgb, luminance_coefficients);
 }
 
-int color_to_int(vec4 value)
+int color_to_int(vec4 value, vec3 luminance_coefficients)
 {
-  return float_to_int(color_to_float(value));
+  return float_to_int(color_to_float(value, luminance_coefficients));
 }
 
 vec4 color_to_vector(vec4 value)
@@ -86,7 +86,7 @@ vec4 color_to_vector(vec4 value)
 
 float float_from_vec4(vec4 vector, vec3 luminance_coefficients)
 {
-  return dot(vector.rgb, vec3(1.0)) / 3.0;
+  return color_to_float(vector, luminance_coefficients);
 }
 
 float float_from_vec3(vec3 vector)

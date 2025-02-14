@@ -6,26 +6,19 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "DNA_anim_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "rna_internal.hh" /* own include */
 
 #ifdef WITH_ALEMBIC
-#  include "ABC_alembic.h"
 #endif
 
 #ifdef RNA_RUNTIME
@@ -263,7 +256,8 @@ void RNA_api_scene(StructRNA *srna)
   PropertyRNA *parm;
 
   func = RNA_def_function(srna, "frame_set", "rna_Scene_frame_set");
-  RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately");
+  RNA_def_function_ui_description(
+      func, "Set scene frame updating all objects and view layers immediately");
   parm = RNA_def_int(
       func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set", MINAFRAME, MAXFRAME);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
@@ -282,7 +276,7 @@ void RNA_api_scene(StructRNA *srna)
 
   /* Ray Cast */
   func = RNA_def_function(srna, "ray_cast", "rna_Scene_ray_cast");
-  RNA_def_function_ui_description(func, "Cast a ray onto in object space");
+  RNA_def_function_ui_description(func, "Cast a ray onto evaluated geometry in world-space");
 
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "The current dependency graph");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);

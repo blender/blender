@@ -114,6 +114,22 @@ struct BVHMetalBuildThrottler {
   }
 } g_bvh_build_throttler;
 
+/* macOS 15.2 and 15.3 has a bug in the dynamic BVH refitting which leads to missing geometry
+ * during render. The issue is fixed in the macOS 15.4, until then disable refitting even for
+ * the viewport.
+ * Note that dynamic BVH is still used on the scene level to speed up updates of instances and
+ * such. #132782. */
+static bool support_refit_blas()
+{
+  if (@available(macos 15.4, *)) {
+    return true;
+  }
+  if (@available(macos 15.2, *)) {
+    return false;
+  }
+  return true;
+}
+
 BVHMetal::BVHMetal(const BVHParams &params_,
                    const vector<Geometry *> &geometry_,
                    const vector<Object *> &objects_,
@@ -167,7 +183,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
         "Building mesh BLAS | %7d tris | %s", (int)mesh->num_triangles(), geom->name.c_str());
     /*------------------------------------------------*/
 
-    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC);
+    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     const array<float3> &verts = mesh->get_verts();
     const array<int> &tris = mesh->get_triangles();
@@ -388,7 +404,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
         "Building hair BLAS | %7d curves | %s", (int)hair->num_curves(), geom->name.c_str());
     /*------------------------------------------------*/
 
-    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC);
+    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     size_t num_motion_steps = 1;
     Attribute *motion_keys = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -732,7 +748,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     const float3 *points = pointcloud->get_points().data();
     const float *radius = pointcloud->get_radius().data();
 
-    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC);
+    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     size_t num_motion_steps = 1;
     Attribute *motion_keys = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -1045,7 +1061,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
     BVH_status("Building TLAS      | %7d instances", (int)num_instances);
     /*------------------------------------------------*/
 
-    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC);
+    const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     NSMutableArray *all_blas = [NSMutableArray array];
     unordered_map<const BVHMetal *, int> instance_mapping;
@@ -1322,6 +1338,10 @@ bool BVHMetal::build(Progress &progress,
     if (!refit) {
       set_accel_struct(nil);
     }
+  }
+
+  if (!support_refit_blas()) {
+    refit = false;
   }
 
   @autoreleasepool {

@@ -401,8 +401,8 @@ static void do_paint_brush_task(const Scene &scene,
   const float density = ss.cache->paint_brush.density;
   if (density < 1.0f) {
     for (const int i : verts.index_range()) {
-      const float hash_noise = float(
-          BLI_hash_int_01(ss.cache->paint_brush.density_seed * 1000 * verts[i]));
+      const float hash_noise = BLI_hash_int_01(ss.cache->paint_brush.density_seed * 1000 *
+                                               verts[i]);
       if (hash_noise > density) {
         const float noise = density * hash_noise;
         factors[i] *= noise;
@@ -543,8 +543,7 @@ void do_paint_brush(const Scene &scene,
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
-      ss.cache->paint_brush.density_seed = float(
-          BLI_hash_int_01(ss.cache->location_symm[0] * 1000));
+      ss.cache->paint_brush.density_seed = BLI_hash_int_01(ss.cache->location_symm[0] * 1000);
     }
     return;
   }

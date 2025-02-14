@@ -4,9 +4,9 @@
 
 #include <ostream>
 
-#include "BLI_hash.hh"
+#include "BKE_bake_data_block_id.hh"
 
-#include "BKE_bake_data_block_map.hh"
+#include "BLI_hash.hh"
 
 #include "DNA_ID.h"
 #include "DNA_modifier_types.h"

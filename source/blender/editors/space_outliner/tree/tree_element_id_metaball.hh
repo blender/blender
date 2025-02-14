@@ -20,7 +20,7 @@ class TreeElementIDMetaBall final : public TreeElementID {
  public:
   TreeElementIDMetaBall(TreeElement &legacy_te, MetaBall &metaball);
 
-  void expand(SpaceOutliner &) const override;
+  void expand(SpaceOutliner & /*soops*/) const override;
 
  private:
   void expand_materials() const;

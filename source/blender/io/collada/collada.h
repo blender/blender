@@ -8,13 +8,11 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "ExportSettings.h"
 #include "ImportSettings.h"
 
-#include "BLI_linklist.h"
-#include "BLI_path_utils.hh"
 #include "RNA_types.hh"
 
 #ifdef __cplusplus

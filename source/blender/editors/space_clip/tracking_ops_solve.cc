@@ -14,7 +14,6 @@
 #include "DNA_space_types.h"
 
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

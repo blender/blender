@@ -168,22 +168,6 @@ ccl_device_inline vfloat8 operator^(const vfloat8 a, const vfloat8 b)
 #endif
 }
 
-ccl_device_inline vfloat8 rcp(const vfloat8 a)
-{
-#ifdef __KERNEL_AVX__
-  return vfloat8(_mm256_rcp_ps(a.m256));
-#else
-  return make_vfloat8(1.0f / a.a,
-                      1.0f / a.b,
-                      1.0f / a.c,
-                      1.0f / a.d,
-                      1.0f / a.e,
-                      1.0f / a.f,
-                      1.0f / a.g,
-                      1.0f / a.h);
-#endif
-}
-
 ccl_device_inline vfloat8 sqrt(const vfloat8 a)
 {
 #ifdef __KERNEL_AVX__

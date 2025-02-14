@@ -18,7 +18,7 @@ from . import global_report
 from .colored_print import (print_message, use_message_colors)
 
 
-def blend_list(dirpath, device, blocklist):
+def blend_list(dirpath, blocklist):
     import re
 
     for root, dirs, files in os.walk(dirpath):
@@ -91,14 +91,17 @@ class Report:
         'passed_tests',
         'compare_tests',
         'compare_engine',
-        'device',
         'blocklist',
     )
 
-    def __init__(self, title, output_dir, oiiotool, device=None, blocklist=[]):
+    def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
         self.title = title
-        self.output_dir = output_dir
-        self.global_dir = os.path.dirname(output_dir)
+
+        # Normalize the path to avoid output_dir and global_dir being the same when a directory
+        # ends with a trailing slash.
+        self.output_dir = os.path.normpath(output_dir)
+        self.global_dir = os.path.dirname(self.output_dir)
+
         self.reference_dir = 'reference_renders'
         self.reference_override_dir = None
         self.oiiotool = oiiotool
@@ -106,12 +109,11 @@ class Report:
         self.fail_threshold = 0.016
         self.fail_percent = 1
         self.engine_name = self.title.lower().replace(" ", "_")
-        self.device = device
         self.blocklist = [] if os.getenv('BLENDER_TEST_IGNORE_BLOCKLIST') is not None else blocklist
 
-        if device:
-            self.title = self._engine_title(title, device)
-            self.output_dir = self._engine_path(self.output_dir, device.lower())
+        if variation:
+            self.title = self._engine_title(title, variation)
+            self.output_dir = self._engine_path(self.output_dir, variation.lower())
 
         self.pixelated = False
         self.verbose = os.environ.get("BLENDER_VERBOSE") is not None
@@ -141,8 +143,8 @@ class Report:
     def set_reference_override_dir(self, reference_override_dir):
         self.reference_override_dir = reference_override_dir
 
-    def set_compare_engine(self, other_engine, other_device=None):
-        self.compare_engine = (other_engine, other_device)
+    def set_compare_engine(self, other_engine, other_variation=None):
+        self.compare_engine = (other_engine, other_variation)
 
     def set_engine_name(self, engine_name):
         self.engine_name = engine_name
@@ -178,15 +180,16 @@ class Report:
         else:
             return """<li class="breadcrumb-item"><a href="%s">%s</a></li>""" % (href, title)
 
-    def _engine_title(self, engine, device):
-        if device:
-            return engine.title() + ' ' + device
+    def _engine_title(self, engine, variation):
+        if variation:
+            return engine.title() + ' ' + variation
         else:
             return engine.title()
 
-    def _engine_path(self, path, device):
-        if device:
-            return os.path.join(path, device.lower())
+    def _engine_path(self, path, variation):
+        if variation:
+            variation = variation.replace(' ', '_')
+            return os.path.join(path, variation.lower())
         else:
             return path
 
@@ -464,6 +467,14 @@ class Report:
         # Do not delete.
         return arguments_cb(filepath, base_output_filepath)
 
+    def _get_arguments_suffix(self):
+        # Get command line arguments that need to be provided after all file-specific ones.
+        # For example the Cycles render device argument needs to be added at the end of
+        # the argument list, otherwise tests can't be batched together.
+        #
+        # Each render test is supposed to override this method.
+        return []
+
     def _run_tests(self, filepaths, blender, arguments_cb, batch):
         # Run multiple tests in a single Blender process since startup can be
         # a significant factor. In case of crashes, re-run the remaining tests.
@@ -494,8 +505,7 @@ class Report:
                 if not batch:
                     break
 
-            if self.device:
-                command.extend(['--', '--cycles-device', self.device])
+            command.extend(self._get_arguments_suffix())
 
             # Run process
             crash = False
@@ -548,8 +558,12 @@ class Report:
         passed_tests = []
         failed_tests = []
         silently_failed_tests = []
-        all_files = list(blend_list(dirpath, self.device, self.blocklist))
+        all_files = list(blend_list(dirpath, self.blocklist))
         all_files.sort()
+        if not list(blend_list(dirpath, [])):
+            print_message("No .blend files found in '{}'!".format(dirpath), 'FAILURE', 'FAILED')
+            return False
+
         print_message("Running {} tests from 1 test case." .
                       format(len(all_files)),
                       'SUCCESS', "==========")

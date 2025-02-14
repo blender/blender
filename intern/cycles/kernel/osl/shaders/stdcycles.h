@@ -13,6 +13,11 @@
 // Constants
 #define FLT_MAX 3.402823466e+38  // max value
 
+/* Offset of coordinates for evaluating bump node. Unit in pixel.
+ * NOTE: keep the same as SVM. */
+#define BUMP_DX 0.1
+#define BUMP_DY BUMP_DX
+
 // Declaration of built-in functions and closures, stdosl.h does not make
 // these available so we have to redefine them.
 #define BUILTIN [[int builtin = 1]]

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "BLI_math_vector.hh"
 
 #include "DNA_mesh_types.h"
@@ -64,12 +66,8 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
 
       for (const int vert : corner_verts.slice(face)) {
         float dot = math::dot(reference_normal, positions[vert]);
-        if (dot > max) {
-          max = dot;
-        }
-        if (dot < min) {
-          min = dot;
-        }
+        max = std::max(dot, max);
+        min = std::min(dot, min);
       }
       return max - min < thresholds[i] / 2.0f;
     };

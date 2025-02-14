@@ -19,7 +19,6 @@ class USDMeshReader : public USDGeomReader {
  private:
   pxr::UsdGeomMesh mesh_prim_;
 
-  blender::Map<std::string, pxr::TfToken> uv_token_map_;
   blender::Map<const pxr::TfToken, bool> primvar_varying_map_;
 
   /* TODO(makowalski): Is it the best strategy to cache the
@@ -32,23 +31,19 @@ class USDMeshReader : public USDGeomReader {
 
   pxr::TfToken normal_interpolation_;
   pxr::TfToken orientation_;
-  bool is_left_handed_;
-  bool is_time_varying_;
+  bool is_left_handed_ = false;
+  bool is_time_varying_ = false;
 
   /* This is to ensure we load all data once, because we reuse the read_mesh function
    * in the mesh seq modifier, and in initial load. Ideally, a better fix would be
    * implemented.  Note this will break if faces or positions vary. */
-  bool is_initial_load_;
+  bool is_initial_load_ = false;
 
  public:
   USDMeshReader(const pxr::UsdPrim &prim,
                 const USDImportParams &import_params,
                 const ImportSettings &settings)
-      : USDGeomReader(prim, import_params, settings),
-        mesh_prim_(prim),
-        is_left_handed_(false),
-        is_time_varying_(false),
-        is_initial_load_(false)
+      : USDGeomReader(prim, import_params, settings), mesh_prim_(prim)
   {
   }
 
@@ -74,7 +69,7 @@ class USDMeshReader : public USDGeomReader {
    * The returned path is currently used to match armature modifiers with armature
    * objects during import.
    */
-  std::string get_skeleton_path() const;
+  pxr::SdfPath get_skeleton_path() const;
 
  private:
   void process_normals_vertex_varying(Mesh *mesh);

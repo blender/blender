@@ -6,8 +6,6 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_bounds.hh"
 #include "BLI_ghash.h"
 #include "BLI_heap_simple.h"
@@ -19,7 +17,6 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_ccg.hh"
 #include "BKE_paint_bvh.hh"
 
 #include "bmesh.hh"
@@ -658,7 +655,7 @@ static Array<BMLoop *> pbvh_bmesh_edge_loops(BMEdge *e)
 {
   /* Fast-path for most common case where an edge has 2 faces no need to iterate twice. */
   std::array<BMLoop *, 2> manifold_loops;
-  if (LIKELY(BM_edge_loop_pair(e, &manifold_loops[0], &manifold_loops[1]))) {
+  if (LIKELY(BM_edge_loop_pair(e, manifold_loops.data(), manifold_loops.data() + 1))) {
     return Array<BMLoop *>(Span(manifold_loops));
   }
   Array<BMLoop *> loops(BM_edge_face_count(e));
@@ -2265,7 +2262,7 @@ Tree Tree::from_bmesh(BMesh &bm)
       nodes, cd_vert_node_offset, cd_face_node_offset, nodeinfo, face_bounds, &rootnode, 0);
 
   pbvh.tag_positions_changed(nodes.index_range());
-  update_bounds_bmesh(bm, pbvh);
+  pbvh.update_bounds_bmesh(bm);
   store_bounds_orig(pbvh);
 
   threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {

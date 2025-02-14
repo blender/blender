@@ -519,8 +519,7 @@ void VKShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
 
 VKShader::~VKShader()
 {
-  VKDevice &device = VKBackend::get().device;
-  VKDiscardPool &discard_pool = device.discard_pool_for_current_thread();
+  VKDiscardPool &discard_pool = VKDiscardPool::discard_pool_get();
 
   if (vk_pipeline_layout != VK_NULL_HANDLE) {
     discard_pool.discard_pipeline_layout(vk_pipeline_layout);

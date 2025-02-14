@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 
@@ -215,9 +216,7 @@ static float color_balance_lgg(
   float x = (((in - 1.0f) * lift) + 1.0f) * gain;
 
   /* prevent NaN */
-  if (x < 0.0f) {
-    x = 0.0f;
-  }
+  x = std::max(x, 0.0f);
 
   x = powf(x, gamma) * mul;
   CLAMP(x, FLT_MIN, FLT_MAX);
@@ -231,9 +230,7 @@ static float color_balance_sop(
   float x = in * slope + offset;
 
   /* prevent NaN */
-  if (x < 0.0f) {
-    x = 0.0f;
-  }
+  x = std::max(x, 0.0f);
 
   x = powf(x, power);
   x *= mul;

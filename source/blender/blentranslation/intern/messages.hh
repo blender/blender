@@ -1,10 +1,11 @@
 /* SPDX-FileCopyrightText: 2025 Blender Authors
- * SPDX-License-Identifier: BSL-1.0
  *
- * Adapted from boost::locale */
+ * SPDX-License-Identifier: BSL-1.0 */
 
 /** \file
  * \ingroup blt
+ *
+ * Adapted from `boost::locale`.
  */
 
 #include <string>

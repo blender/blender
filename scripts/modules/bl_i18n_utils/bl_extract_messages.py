@@ -696,7 +696,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         for node in ast.walk(root_node):
             if type(node) == ast.Call:
                 # ~ print("found function at")
-                # ~ print("%s:%d" % (fp, node.lineno))
+                # ~ print("{:s}:{:d}".format(fp, node.lineno))
 
                 # We can't skip such situations! from blah import foo\nfoo("bar") would also be an ast.Name func!
                 if type(node.func) == ast.Name:

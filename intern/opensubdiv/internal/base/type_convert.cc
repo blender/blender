@@ -32,7 +32,7 @@ OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type)
 OpenSubdiv::Sdc::Options::FVarLinearInterpolation getFVarLinearInterpolationFromCAPI(
     OpenSubdiv_FVarLinearInterpolation linear_interpolation)
 {
-  typedef OpenSubdiv::Sdc::Options Options;
+  using Options = OpenSubdiv::Sdc::Options;
   switch (linear_interpolation) {
     case OSD_FVAR_LINEAR_INTERPOLATION_NONE:
       return Options::FVAR_LINEAR_NONE;
@@ -54,7 +54,7 @@ OpenSubdiv::Sdc::Options::FVarLinearInterpolation getFVarLinearInterpolationFrom
 OpenSubdiv_FVarLinearInterpolation getCAPIFVarLinearInterpolationFromOSD(
     OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation)
 {
-  typedef OpenSubdiv::Sdc::Options Options;
+  using Options = OpenSubdiv::Sdc::Options;
   switch (linear_interpolation) {
     case Options::FVAR_LINEAR_NONE:
       return OSD_FVAR_LINEAR_INTERPOLATION_NONE;

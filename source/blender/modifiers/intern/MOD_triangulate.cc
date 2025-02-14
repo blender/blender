@@ -8,8 +8,6 @@
 
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -94,14 +92,9 @@ static void init_data(ModifierData *md)
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
-  Mesh *result;
-  if (!(result = triangulate_mesh(
-            mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag)))
-  {
-    return mesh;
-  }
-
-  return result;
+  Mesh *result = triangulate_mesh(
+      mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag);
+  return (result) ? result : mesh;
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

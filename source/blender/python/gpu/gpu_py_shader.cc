@@ -13,7 +13,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_capabilities.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"

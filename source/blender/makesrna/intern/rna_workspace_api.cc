@@ -6,16 +6,12 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
-#include "BLI_utildefines.h"
-
 #include "RNA_define.hh"
 
-#include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
@@ -25,9 +21,15 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_string.h"
+
 #  include "BKE_paint.hh"
+#  include "BKE_report.hh"
 
 #  include "ED_screen.hh"
+
+#  include "WM_api.hh"
+#  include "WM_toolsystem.hh"
 
 static void rna_WorkSpaceTool_setup(ID *id,
                                     bToolRef *tref,
@@ -80,9 +82,8 @@ static PointerRNA rna_WorkSpaceTool_operator_properties(bToolRef *tref,
     WM_toolsystem_ref_properties_ensure_from_operator(tref, ot, &ptr);
     return ptr;
   }
-  else {
-    BKE_reportf(reports, RPT_ERROR, "Operator '%s' not found!", idname);
-  }
+
+  BKE_reportf(reports, RPT_ERROR, "Operator '%s' not found!", idname);
   return PointerRNA_NULL;
 }
 
@@ -96,9 +97,8 @@ static PointerRNA rna_WorkSpaceTool_gizmo_group_properties(bToolRef *tref,
     WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgt, &ptr);
     return ptr;
   }
-  else {
-    BKE_reportf(reports, RPT_ERROR, "Gizmo group '%s' not found!", idname);
-  }
+  BKE_reportf(reports, RPT_ERROR, "Gizmo group '%s' not found!", idname);
+
   return PointerRNA_NULL;
 }
 

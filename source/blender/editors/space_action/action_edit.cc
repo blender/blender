@@ -11,8 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_blenlib.h"
 #include "BLI_map.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -514,14 +514,10 @@ void ACTION_OT_view_frame(wmOperatorType *ot)
 
 /* NOTE: the backend code for this is shared with the graph editor */
 
-static short copy_action_keys(bAnimContext *ac)
+static bool copy_action_keys(bAnimContext *ac)
 {
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
-  short ok = 0;
-
-  /* clear buffer first */
-  ANIM_fcurves_copybuf_free();
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY |
@@ -529,7 +525,7 @@ static short copy_action_keys(bAnimContext *ac)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* copy keyframes */
-  ok = copy_animedit_keys(ac, &anim_data);
+  const bool ok = copy_animedit_keys(ac, &anim_data);
 
   /* clean up */
   ANIM_animdata_freelist(&anim_data);
@@ -542,27 +538,52 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
                                         const eKeyMergeMode merge_mode,
                                         bool flip)
 {
-  ListBase anim_data = {nullptr, nullptr};
-  eAnimFilter_Flags filter;
+  /* TODO: deduplicate this function and `paste_graph_keys()` in `graph_edit.cc`, */
 
-  /* filter data
+  /* Determine paste context. */
+  KeyframePasteContext paste_context{};
+  paste_context.offset_mode = offset_mode;
+  /* Value offset is always None because the user cannot see the effect of it. */
+  paste_context.value_offset_mode = KEYFRAME_PASTE_VALUE_OFFSET_NONE;
+  paste_context.merge_mode = merge_mode;
+  paste_context.flip = flip;
+
+  /* See how many slots are selected to paste into. This determines how slot matching is done:
+   * - Copied from one slot, paste into multiple: duplicate into each slot.
+   * - Otherwise: match slots by name. */
+  {
+    ListBase anim_data = {nullptr, nullptr};
+    const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                     ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS |
+                                     ANIMFILTER_SEL;
+    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+    LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
+      if (ale->datatype == ALE_ACTION_SLOT) {
+        paste_context.num_slots_selected++;
+      }
+    }
+    ANIM_animdata_freelist(&anim_data);
+  }
+
+  /* Find F-Curves to paste into, in two stages.
    * - First time we try to filter more strictly, allowing only selected channels
    *   to allow copying animation between channels
    * - Second time, we loosen things up if nothing was found the first time, allowing
    *   users to just paste keyframes back into the original curve again #31670.
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
-
-  if (ANIM_animdata_filter(
-          ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, eAnimCont_Types(ac->datatype)) == 0)
+  ListBase anim_data = {nullptr, nullptr};
   {
-    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
+    const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                     ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY |
+                                     ANIMFILTER_NODUPLIS;
+    paste_context.num_fcurves_selected = ANIM_animdata_filter(
+        ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype);
+    if (paste_context.num_fcurves_selected == 0) {
+      ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+    }
   }
 
-  /* Value offset is always None because the user cannot see the effect of it. */
-  const eKeyPasteError ok = paste_animedit_keys(
-      ac, &anim_data, offset_mode, KEYFRAME_PASTE_VALUE_OFFSET_NONE, merge_mode, flip);
+  const eKeyPasteError ok = paste_animedit_keys(ac, &anim_data, paste_context);
 
   /* clean up */
   ANIM_animdata_freelist(&anim_data);
@@ -605,12 +626,12 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
   }
   else {
     /* Both copy function needs to be evaluated to account for mixed selection */
-    const short kf_empty = copy_action_keys(&ac);
+    const bool kf_ok = copy_action_keys(&ac);
     const bool gpf_ok = ED_gpencil_anim_copybuf_copy(&ac) ||
                         blender::ed::greasepencil::grease_pencil_copy_keyframes(
                             &ac, get_grease_pencil_keyframe_clipboard());
 
-    if (kf_empty && !gpf_ok) {
+    if (!kf_ok && !gpf_ok) {
       BKE_report(op->reports, RPT_ERROR, "No keyframes copied to the internal clipboard");
       return OPERATOR_CANCELLED;
     }
@@ -1719,8 +1740,7 @@ static void setkeytype_action_keys(bAnimContext *ac, eBezTriple_KeyframeType mod
 
       case ANIMTYPE_GREASE_PENCIL_LAYER:
         blender::ed::greasepencil::set_selected_frames_type(
-            static_cast<GreasePencilLayer *>(ale->data)->wrap(),
-            static_cast<eBezTriple_KeyframeType>(mode));
+            static_cast<GreasePencilLayer *>(ale->data)->wrap(), mode);
         ale->update |= ANIM_UPDATE_DEPS;
         break;
 

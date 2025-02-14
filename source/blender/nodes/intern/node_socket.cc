@@ -13,8 +13,6 @@
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_euler.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -38,8 +36,6 @@
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
-#include "NOD_socket_declarations.hh"
-#include "NOD_socket_declarations_geometry.hh"
 
 using namespace blender;
 using blender::bke::SocketValueVariant;

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_modifier.hh"
+#include "DNA_modifier_types.h"
 
 struct ModifierData;
 

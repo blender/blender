@@ -8,7 +8,8 @@
  * Removes isolated geometry regions without creating holes in the mesh.
  */
 
-#include "BLI_math_base.h"
+#include "MEM_guardedalloc.h"
+
 #include "BLI_math_vector.h"
 #include "BLI_stack.h"
 #include "BLI_vector.hh"
@@ -272,12 +273,17 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
   }
 
   if (use_verts) {
-    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      BMO_vert_flag_set(bm, v, VERT_MARK, !BM_vert_is_edge_pair(v));
+
+    /* Mark all verts that are candidates to be dissolved. */
+    BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
+      BMO_vert_flag_enable(bm, e->v1, VERT_MARK);
+      BMO_vert_flag_enable(bm, e->v2, VERT_MARK);
     }
   }
 
   /* tag all verts/edges connected to faces */
+  /* Any element tagged with xxx_ISGC is an edge or vert of a face that borders an edge to be
+   * dissolved, and it could end up being cleaned up after a face merge has made it irrelevant. */
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
     BMFace *f_pair[2];
     if (BM_edge_face_pair(e, &f_pair[0], &f_pair[1])) {
@@ -293,6 +299,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     }
   }
 
+  /* Merge any face pairs that straddle a selected edge. */
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
     BMLoop *l_a, *l_b;
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
@@ -314,20 +321,23 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* Cleanup geometry (#BM_faces_join_pair, but it removes geometry we're looping on)
-   * so do this in a separate pass instead. */
+  /* Cleanup geometry. Remove any edges that are garbage collectible and that have became
+   * irrelevant (no loops) because of face merges. */
   BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
     if ((e->l == nullptr) && BMO_edge_flag_test(bm, e, EDGE_ISGC)) {
       BM_edge_kill(bm, e);
     }
   }
+
+  /* Cleanup geometry. Remove any verts that are garbage collectible and that that have became
+   * isolated verts (no edges) because of edge dissolves. */
   BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
     if ((v->e == nullptr) && BMO_vert_flag_test(bm, v, VERT_ISGC)) {
       BM_vert_kill(bm, v);
     }
   }
-  /* done with cleanup */
 
+  /* If dissolving verts, then evaluate each VERT_MARK vert. */
   if (use_verts) {
     BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
       if (BMO_vert_flag_test(bm, v, VERT_MARK)) {

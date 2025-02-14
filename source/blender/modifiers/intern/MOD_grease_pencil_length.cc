@@ -8,7 +8,6 @@
 
 #include "BLI_hash.h"
 #include "BLI_rand.h"
-#include "BLI_task.h"
 
 #include "BLT_translation.hh"
 
@@ -22,7 +21,6 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
 
 #include "UI_interface.hh"

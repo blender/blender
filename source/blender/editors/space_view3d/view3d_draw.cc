@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "BLI_listbase.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_half.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -23,6 +24,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_image.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
@@ -32,6 +34,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
+#include "BKE_viewer_path.hh"
 
 #include "BLF_api.hh"
 
@@ -187,7 +190,7 @@ static void view3d_main_region_setup_view(Depsgraph *depsgraph,
 
   ED_view3d_update_viewmat(depsgraph, scene, v3d, region, viewmat, winmat, rect, false);
 
-  /* set for opengl */
+  /* Set for GPU drawing. */
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
 }
@@ -202,7 +205,7 @@ static void view3d_main_region_setup_offscreen(Depsgraph *depsgraph,
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   ED_view3d_update_viewmat(depsgraph, scene, v3d, region, viewmat, winmat, nullptr, true);
 
-  /* set for opengl */
+  /* Set for GPU drawing. */
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
 }
@@ -1025,8 +1028,10 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 }
 
 #ifdef WITH_INPUT_NDOF
-/* draw center and axis of rotation for ongoing 3D mouse navigation */
-static void draw_rotation_guide(const RegionView3D *rv3d)
+/**
+ * Draw center and axis of rotation for ongoing 3D mouse navigation.
+ */
+static void draw_ndof_guide_orbit_axis(const RegionView3D *rv3d)
 {
   float o[3];   /* center of rotation */
   float end[3]; /* endpoints for drawing */
@@ -1044,11 +1049,11 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
 
   immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
-  if (rv3d->rot_angle != 0.0f) {
+  if (rv3d->ndof_rot_angle != 0.0f) {
     /* -- draw rotation axis -- */
     float scaled_axis[3];
     const float scale = rv3d->dist;
-    mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
+    mul_v3_v3fl(scaled_axis, rv3d->ndof_rot_axis, scale);
 
     immBegin(GPU_PRIM_LINE_STRIP, 3);
     color[3] = 0; /* more transparent toward the ends */
@@ -1079,13 +1084,13 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
       const float step = 2.0f * float(M_PI / ROT_AXIS_DETAIL);
 
       float q[4]; /* rotate ring so it's perpendicular to axis */
-      const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
+      const int upright = fabsf(rv3d->ndof_rot_axis[2]) >= 0.95f;
       if (!upright) {
         const float up[3] = {0.0f, 0.0f, 1.0f};
         float vis_angle, vis_axis[3];
 
-        cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
-        vis_angle = acosf(dot_v3v3(up, rv3d->rot_axis));
+        cross_v3_v3v3(vis_axis, up, rv3d->ndof_rot_axis);
+        vis_angle = acosf(dot_v3v3(up, rv3d->ndof_rot_axis));
         axis_angle_to_quat(q, vis_axis, vis_angle);
       }
 
@@ -1129,6 +1134,32 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   GPU_blend(GPU_BLEND_NONE);
   GPU_depth_mask(true);
 }
+
+static void draw_ndof_guide_orbit_center(const RegionView3D *rv3d)
+{
+  uchar color[4] = {0, 108, 255, 255}; /* bright blue so it matches device LEDs */
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_depth_mask(false); /* Don't overwrite the Z-buffer. */
+
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+  immUniform1f("size", 7.0f);
+  immUniform4fv("color", float4(color));
+  immBegin(GPU_PRIM_POINTS, 1);
+  immAttr4ubv(col, color);
+  float center[3];
+  negate_v3_v3(center, rv3d->ndof_ofs);
+  immVertex3fv(pos, center);
+  immEnd();
+  immUnbindProgram();
+
+  GPU_blend(GPU_BLEND_NONE);
+  GPU_depth_mask(true);
+}
+
 #endif /* WITH_INPUT_NDOF */
 
 /**
@@ -1292,6 +1323,22 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
   BLF_draw_default(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
 }
 
+static bool is_grease_pencil_with_layer_keyframe(const Object &ob)
+{
+  if (ob.type != OB_GREASE_PENCIL) {
+    return false;
+  }
+
+  using namespace blender::bke::greasepencil;
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob.data);
+  for (const Layer *layer : grease_pencil.layers()) {
+    if (!layer->frames().is_empty()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Draw info beside axes in top-left corner:
  * frame-number, collection, object name, bone name (if available), marker name (if available).
@@ -1300,7 +1347,7 @@ static void draw_selected_name(
     const View3D *v3d, Scene *scene, ViewLayer *view_layer, Object *ob, int xoffset, int *yoffset)
 {
   const int cfra = scene->r.cfra;
-  const char *msg_pin = " (Pinned)";
+  const char *msg_pin = " (Soloed)";
   const char *msg_sep = " : ";
   const char *msg_space = " ";
 
@@ -1394,6 +1441,10 @@ static void draw_selected_name(
     }
 
     /* color depends on whether there is a keyframe */
+    if (is_grease_pencil_with_layer_keyframe(*ob)) {
+      UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
+    }
+
     if (blender::animrig::id_frame_has_keyframe((ID *)ob,
                                                 /* BKE_scene_ctime_get(scene) */ float(cfra)))
     {
@@ -1453,11 +1504,29 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
 #ifdef WITH_INPUT_NDOF
-  if ((U.ndof_flag & NDOF_SHOW_GUIDE) && ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) &&
-      (rv3d->persp != RV3D_CAMOB))
-  {
-    /* TODO: draw something else (but not this) during fly mode */
-    draw_rotation_guide(rv3d);
+  if (U.ndof_flag & NDOF_SHOW_GUIDE_ORBIT_AXIS) {
+    if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
+      /* It only makes sense to show when orbiting. */
+      if (rv3d->ndof_rot_angle != 0.0f) {
+        /* TODO: draw something else (but not this) during fly mode. */
+        draw_ndof_guide_orbit_axis(rv3d);
+      }
+    }
+  }
+
+  if (U.ndof_flag & NDOF_SHOW_GUIDE_ORBIT_CENTER) {
+    /* Draw this only when orbiting and auto orbit-center is enabled */
+    if ((U.ndof_flag & NDOF_MODE_ORBIT) && (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO)) {
+      if (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID) {
+        /* When the center is locked, the auto-center is not used. */
+        if (!(v3d->ob_center_cursor || v3d->ob_center)) {
+          /* It only makes sense to show when orbiting. */
+          if (rv3d->ndof_rot_angle != 0.0f) {
+            draw_ndof_guide_orbit_center(rv3d);
+          }
+        }
+      }
+    }
   }
 #endif
 
@@ -1669,6 +1738,8 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 
     /* #View3D */
     eDrawType v3d_shading_type;
+    Object *v3d_camera;
+    float v3d_lens;
 
     /* #Region */
     int region_winx, region_winy;
@@ -1680,11 +1751,15 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
      * Without this the #wmPaintCursor can't use the pixel size & view matrices for drawing.
      */
     RV3DMatrixStore *rv3d_mats;
+    char rv3d_persp;
   } orig{};
   orig.v3d_shading_type = eDrawType(v3d->shading.type);
+  orig.v3d_camera = v3d->camera;
+  orig.v3d_lens = v3d->lens;
   orig.region_winx = region->winx;
   orig.region_winy = region->winy;
   orig.region_winrct = region->winrct;
+  orig.rv3d_persp = rv3d->persp;
   orig.rv3d_mats = ED_view3d_mats_rv3d_backup(static_cast<RegionView3D *>(region->regiondata));
 
   UI_Theme_Store(&orig.theme_state);
@@ -1709,6 +1784,16 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
     /* Free images which can have changed on frame-change.
      * WARNING(@ideasman42): can be slow so only free animated images. */
     BKE_image_free_anim_gputextures(G.main);
+  }
+
+  if (viewmat) {
+    /* WORKAROUND: Disable camera view to avoid EEVEE being confused and try to
+     * get the projection matrix from the camera.
+     * Set the `lens` parameter to 0 to make EEVEE prefer the `winmat` from the rv3d instead of
+     * trying to rederive it. Note that this produces incorrect result with over-scan. */
+    rv3d->persp = (winmat[3][3] == 0.0f) ? RV3D_PERSP : RV3D_ORTHO;
+    v3d->camera = nullptr;
+    v3d->lens = 0.0f;
   }
 
   GPU_matrix_push_projection();
@@ -1754,10 +1839,13 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
     ED_view3d_mats_rv3d_restore(static_cast<RegionView3D *>(region->regiondata), orig.rv3d_mats);
   }
   MEM_freeN(orig.rv3d_mats);
+  rv3d->persp = orig.rv3d_persp;
 
   UI_Theme_Restore(&orig.theme_state);
 
   v3d->shading.type = orig.v3d_shading_type;
+  v3d->camera = orig.v3d_camera;
+  v3d->lens = orig.v3d_lens;
 
   G.f &= ~G_FLAG_RENDER_VIEWPORT;
 }
@@ -2243,7 +2331,7 @@ static void validate_object_select_id(Depsgraph *depsgraph,
 
 /* Avoid calling this function multiple times in sequence to prevent frequent CPU-GPU
  * synchronization (which can be very slow). */
-static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void *data)
+static void view3d_gpu_read_Z_pixels(GPUViewport *viewport, rcti *rect, void *data)
 {
   GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
 
@@ -2317,7 +2405,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
 
   {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
-    view3d_opengl_read_Z_pixels(viewport, rect, r_d->depths);
+    view3d_gpu_read_Z_pixels(viewport, rect, r_d->depths);
     /* Range is assumed to be this as they are never changed. */
     r_d->depth_range[0] = 0.0;
     r_d->depth_range[1] = 1.0;
@@ -2627,6 +2715,8 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
 
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
+  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
+
   SceneFPS_State state;
   if (!ED_scene_fps_average_calc(scene, &state)) {
     return;
@@ -2653,8 +2743,6 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   else {
     SNPRINTF(printable, IFACE_("fps: %i"), int(state.fps_average + 0.5f));
   }
-
-  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
 
   BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
 }

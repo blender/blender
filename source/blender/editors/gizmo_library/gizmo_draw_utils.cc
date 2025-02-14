@@ -9,10 +9,6 @@
 #include "GPU_batch.hh"
 #include "GPU_immediate.hh"
 
-#include "MEM_guardedalloc.h"
-
-#include "WM_types.hh"
-
 /* only for separate init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
 
 /* own includes */

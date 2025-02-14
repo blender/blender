@@ -10,13 +10,10 @@
 
 #include "BLI_assert.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_volume_types.h"
 
 #include "BKE_volume.hh"
-
-#include <cstdio>
 
 namespace blender::deg {
 

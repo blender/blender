@@ -16,14 +16,11 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
-#include "BKE_lib_query.hh"
 #include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
 #include "BLO_read_write.hh"
-
-#include "GEO_realize_instances.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -600,21 +597,25 @@ static void create_envelope_strokes(const EnvelopeInfo &info,
             "radius",
             bke::AttrDomain::Point,
             bke::AttributeInitVArray(VArray<float>::ForSingle(0.01f, dst_point_num)));
-    bke::SpanAttributeWriter<float> opacity_writer =
-        dst_attributes.lookup_or_add_for_write_span<float>(
-            "opacity",
-            bke::AttrDomain::Point,
-            bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, dst_point_num)));
     const IndexRange all_new_points = keep_original ?
                                           IndexRange(src_curves.point_num,
                                                      dst_point_num - src_curves.point_num) :
                                           IndexRange(dst_point_num);
     for (const int point_i : all_new_points) {
       radius_writer.span[point_i] *= info.thickness;
-      opacity_writer.span[point_i] *= info.strength;
     }
     radius_writer.finish();
-    opacity_writer.finish();
+    if (bke::SpanAttributeWriter<float> opacity_writer =
+            dst_attributes.lookup_or_add_for_write_span<float>(
+                "opacity",
+                bke::AttrDomain::Point,
+                bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, dst_point_num))))
+    {
+      for (const int point_i : all_new_points) {
+        opacity_writer.span[point_i] *= info.strength;
+      }
+      opacity_writer.finish();
+    }
   }
 
   dst_cyclic.finish();

@@ -129,5 +129,9 @@ def __gather_scene(blender_scene, export_settings):
 
 def __gather_extras(blender_object, export_settings):
     if export_settings['gltf_extras']:
+        # If case of collection export, use custom properties of the collection instead of the scene
+        # So Collection custom properties are exported as glTF Scene extras
+        if export_settings['gltf_collection']:
+            return generate_extras(bpy.data.collections[export_settings['gltf_collection']])
         return generate_extras(blender_object)
     return None

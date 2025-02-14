@@ -4,8 +4,9 @@
 
 #include "node_geometry_util.hh"
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_lib_id.hh"
-#include "BKE_mesh.hh"
 
 #include "GEO_mesh_to_volume.hh"
 

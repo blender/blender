@@ -18,7 +18,6 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
@@ -216,7 +215,7 @@ void do_rotate_brush(const Depsgraph &depsgraph,
     }
   }
   pbvh.tag_positions_changed(node_mask);
-  bke::pbvh::flush_bounds_to_parents(pbvh);
+  pbvh.flush_bounds_to_parents();
 }
 
 }  // namespace blender::ed::sculpt_paint

@@ -49,7 +49,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
 
       /* Create custom data RNA pointer. */
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
-      *md_ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
+      *md_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
 
       UI_panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
     }
@@ -71,7 +71,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
       }
 
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
-      *md_ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
+      *md_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
       UI_panel_custom_data_set(panel, md_ptr);
 
       panel = panel->next;

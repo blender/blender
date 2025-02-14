@@ -690,10 +690,12 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
         const bke::greasepencil::Layer &layer_eval = *layers_eval[layer_index];
         if (const bke::greasepencil::Drawing *drawing_eval = grease_pencil_eval->get_drawing_at(
                 layer_eval, frame))
+        {
           if (drawing_eval->strokes().points_num() == drawing_orig->strokes().points_num()) {
             deformation.positions = drawing_eval->strokes().positions();
             has_deformed_positions = true;
           }
+        }
       }
     }
   }

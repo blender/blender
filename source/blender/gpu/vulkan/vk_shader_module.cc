@@ -16,8 +16,7 @@
 namespace blender::gpu {
 VKShaderModule::~VKShaderModule()
 {
-  VKDevice &device = VKBackend::get().device;
-  VKDiscardPool &discard_pool = device.discard_pool_for_current_thread();
+  VKDiscardPool &discard_pool = VKDiscardPool::discard_pool_get();
   if (vk_shader_module != VK_NULL_HANDLE) {
     discard_pool.discard_shader_module(vk_shader_module);
     vk_shader_module = VK_NULL_HANDLE;

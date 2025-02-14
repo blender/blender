@@ -9,7 +9,6 @@
 
 #include "BLI_array.hh"
 #include "BLI_map.hh"
-#include "BLI_math_vector_types.hh"
 
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
@@ -53,7 +52,6 @@ class SymmetricSeparableBlurWeights : public CachedResource {
  public:
   Result result;
 
- public:
   SymmetricSeparableBlurWeights(Context &context, int type, float radius);
 
   ~SymmetricSeparableBlurWeights();

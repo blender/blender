@@ -4,16 +4,14 @@
 
 #include "node_geometry_util.hh"
 
-#include "UI_resources.hh"
-
 #include "DNA_curves_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_volume_types.h"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.hh"
-#include "BKE_mesh.hh"
 
 namespace blender::nodes::node_geo_set_material_cc {
 

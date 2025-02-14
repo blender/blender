@@ -573,7 +573,7 @@ Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
   const float3 location = positions[original_vert];
-  for (char symm_it = 1; symm_it <= symm; symm_it++) {
+  for (int symm_it = 1; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
@@ -606,7 +606,7 @@ Vector<int> find_symm_verts_grids(const Object &object,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<float3> positions = subdiv_ccg.positions;
   const float3 location = positions[original_vert];
-  for (char symm_it = 1; symm_it <= symm; symm_it++) {
+  for (int symm_it = 1; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
@@ -638,7 +638,7 @@ Vector<int> find_symm_verts_bmesh(const Object &object,
   BMesh &bm = *ss.bm;
   const BMVert *original_bm_vert = BM_vert_at_index(&bm, original_vert);
   const float3 location = original_bm_vert->co;
-  for (char symm_it = 1; symm_it <= symm; symm_it++) {
+  for (int symm_it = 1; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
@@ -882,8 +882,8 @@ static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
       const float3 orig_normal = orig_vert->no;
       flood.add_initial(*ss.bm, find_symm_verts(depsgraph, ob, vert));
       flood.execute(ob, [&](BMVert *from_bm_vert, BMVert *to_bm_vert) {
-        const float3 &from_normal = from_bm_vert->no;
-        const float3 &to_normal = to_bm_vert->no;
+        const float3 from_normal = from_bm_vert->no;
+        const float3 to_normal = to_bm_vert->no;
         const int from_vert = BM_elem_index_get(from_bm_vert);
         const int to_vert = BM_elem_index_get(to_bm_vert);
         const float from_edge_factor = edge_factors[from_vert];
@@ -2161,7 +2161,7 @@ static void find_active_connected_components_from_vert(const Depsgraph &depsgrap
   const Vector<int> symm_verts = find_symm_verts(depsgraph, ob, initial_vertex);
 
   int valid_index = 0;
-  for (char symm_it = 0; symm_it <= symm; symm_it++) {
+  for (int symm_it = 0; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }

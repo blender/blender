@@ -6,6 +6,7 @@
  * \ingroup edscr
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -606,7 +607,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
     {
       SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
 
-      PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_Space, sl);
+      PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Space, sl);
 
       /* All properties for this space type. */
       wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
@@ -2600,7 +2601,9 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
   wmWindow *win = CTX_wm_window(C);
   SpaceType *st = BKE_spacetype_from_id(type);
 
-  if (area->spacetype != type) {
+  const bool change_spacetype = area->spacetype != type;
+
+  if (change_spacetype) {
     SpaceLink *slold = static_cast<SpaceLink *>(area->spacedata.first);
     /* store area->type->exit callback */
     void (*area_exit)(wmWindowManager *, ScrArea *) = area->type ? area->type->exit : nullptr;
@@ -2709,14 +2712,25 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
   }
 
   /* Set area space subtype if applicable. */
-  if (st->space_subtype_item_extend != nullptr) {
+  if (st && st->space_subtype_item_extend != nullptr) {
+    BLI_assert(st->space_subtype_prev_get != nullptr);
     st->space_subtype_set(area, area->butspacetype_subtype);
+    if (change_spacetype) {
+      st->space_subtype_set(area, st->space_subtype_prev_get(area));
+    }
   }
-  area->butspacetype_subtype = 0;
 
   if (BLI_listbase_is_single(&CTX_wm_screen(C)->areabase)) {
     /* If there is only one area update the window title. */
     WM_window_title(CTX_wm_manager(C), CTX_wm_window(C));
+  }
+
+  /* See #WM_capabilities_flag code-comments for details on the background check. */
+  if (!G.background) {
+    /* If window decoration styles are supported, send a notification to re-apply them. */
+    if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES) {
+      WM_event_add_notifier(C, NC_WINDOW, nullptr);
+    }
   }
 
   /* also redraw when re-used */
@@ -2775,7 +2789,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
   bScreen *screen = CTX_wm_screen(C);
   int xco = 0.4 * U.widget_unit;
 
-  PointerRNA areaptr = RNA_pointer_create(&(screen->id), &RNA_Area, area);
+  PointerRNA areaptr = RNA_pointer_create_discrete(&(screen->id), &RNA_Area, area);
 
   uiDefButR(block,
             UI_BTYPE_MENU,
@@ -3573,17 +3587,13 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
 
       /* for view2d */
       xco = uiLayoutGetWidth(layout);
-      if (xco > maxco) {
-        maxco = xco;
-      }
+      maxco = std::max(xco, maxco);
     }
 
     UI_block_layout_resolve(block, &xco, &yco);
 
     /* for view2d */
-    if (xco > maxco) {
-      maxco = xco;
-    }
+    maxco = std::max(xco, maxco);
 
     int new_sizex = (maxco + UI_HEADER_OFFSET) / UI_SCALE_FAC;
 

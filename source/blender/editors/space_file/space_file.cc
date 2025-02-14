@@ -6,12 +6,12 @@
  * \ingroup spfile
  */
 
-#include <cstdio>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
@@ -489,7 +489,7 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
   /* SpaceFile itself. */
   {
-    PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_SpaceFileBrowser, sfile);
+    PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceFileBrowser, sfile);
 
     /* All properties for this space type. */
     WM_msg_subscribe_rna(mbus, &ptr, nullptr, &msg_sub_value_area_tag_refresh, __func__);
@@ -497,7 +497,7 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
   /* FileSelectParams */
   {
-    PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_FileSelectParams, file_params);
+    PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_FileSelectParams, file_params);
 
     /* All properties for this space type. */
     WM_msg_subscribe_rna(mbus, &ptr, nullptr, &msg_sub_value_area_tag_refresh, __func__);
@@ -505,7 +505,8 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
   /* Experimental Asset Browser features option. */
   {
-    PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_PreferencesExperimental, &U.experimental);
+    PointerRNA ptr = RNA_pointer_create_discrete(
+        nullptr, &RNA_PreferencesExperimental, &U.experimental);
     PropertyRNA *prop = RNA_struct_find_property(&ptr, "use_extended_asset_browser");
 
     /* All properties for this space type. */
@@ -823,12 +824,19 @@ static void file_space_subtype_set(ScrArea *area, int value)
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     region->v2d.flag &= ~V2D_IS_INIT;
   }
+  sfile->browse_mode_prev = sfile->browse_mode;
   sfile->browse_mode = value;
 }
 
 static void file_space_subtype_item_extend(bContext * /*C*/, EnumPropertyItem **item, int *totitem)
 {
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
+}
+
+static int file_space_subtype_prev_get(ScrArea *area)
+{
+  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  return sfile->browse_mode_prev;
 }
 
 static blender::StringRefNull file_space_name_get(const ScrArea *area)
@@ -942,6 +950,7 @@ void ED_spacetype_file()
   st->space_subtype_item_extend = file_space_subtype_item_extend;
   st->space_subtype_get = file_space_subtype_get;
   st->space_subtype_set = file_space_subtype_set;
+  st->space_subtype_prev_get = file_space_subtype_prev_get;
   st->space_name_get = file_space_name_get;
   st->space_icon_get = file_space_icon_get;
   st->context = file_context;

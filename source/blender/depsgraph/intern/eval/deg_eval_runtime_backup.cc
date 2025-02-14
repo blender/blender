@@ -10,8 +10,6 @@
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
-#include "BLI_utildefines.h"
-
 #include "DRW_engine.hh"
 
 namespace blender::deg {

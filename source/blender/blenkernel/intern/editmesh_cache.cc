@@ -8,8 +8,6 @@
  * Manage edit mesh cache: #EditMeshData
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_bounds.hh"
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"

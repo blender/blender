@@ -216,7 +216,7 @@ class Prepass : Overlay {
       case OB_MESH:
         if (use_material_slot_selection_) {
           /* TODO(fclem): Improve the API. */
-          const int materials_len = DRW_cache_object_material_count_get(ob_ref.object);
+          const int materials_len = BKE_object_material_used_with_fallback_eval(*ob_ref.object);
           Array<GPUMaterial *> materials(materials_len, nullptr);
           geom_list = DRW_cache_mesh_surface_shaded_get(ob_ref.object, materials);
         }
@@ -256,7 +256,7 @@ class Prepass : Overlay {
         pass = curves_ps_;
         break;
       case OB_GREASE_PENCIL:
-        if (!res.is_selection()) {
+        if (!res.is_selection() && state.is_render_depth_available) {
           /* Disable during display, only enable for selection.
            * The grease pencil engine already renders it properly. */
           return;

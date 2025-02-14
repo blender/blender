@@ -231,4 +231,12 @@ _km_hierarchy = [
 
     # Grease Pencil Fill Tool
     ('Fill Tool Modal Map', 'EMPTY', 'WINDOW', []),
+
+    ('Generic Gizmo', 'EMPTY', 'WINDOW', [
+        ('Generic Gizmo Drag', 'EMPTY', 'WINDOW', []),
+        ('Generic Gizmo Click Drag', 'EMPTY', 'WINDOW', []),
+        ('Generic Gizmo Maybe Drag', 'EMPTY', 'WINDOW', []),
+        ('Generic Gizmo Select', 'EMPTY', 'WINDOW', []),
+        ('Generic Gizmo Tweak Modal Map', 'EMPTY', 'WINDOW', []),
+    ]),
 ]

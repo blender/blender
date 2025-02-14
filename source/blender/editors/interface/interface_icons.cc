@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "BLF_api.hh"
 
@@ -48,7 +49,7 @@
 
 #include "interface_intern.hh"
 
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 struct IconImage {
   int w;
@@ -1004,12 +1005,14 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
     }
   }
   else if (!prv_img->rect[size]) {
-    prv_img->w[size] = render_size;
-    prv_img->h[size] = render_size;
     prv_img->flag[size] |= PRV_CHANGED;
     prv_img->changed_timestamp[size] = 0;
-    prv_img->rect[size] = static_cast<uint *>(
-        MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect"));
+    if (!ED_preview_use_image_size(prv_img, size)) {
+      prv_img->w[size] = render_size;
+      prv_img->h[size] = render_size;
+      prv_img->rect[size] = static_cast<uint *>(
+          MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect"));
+    }
   }
 }
 
@@ -1130,6 +1133,32 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
       break;
     }
   }
+}
+
+bool ui_icon_is_preview_deferred_loading(const int icon_id, const bool big)
+{
+  const Icon *icon = BKE_icon_get(icon_id);
+  if (icon == nullptr) {
+    return false;
+  }
+
+  const DrawInfo *di = static_cast<DrawInfo *>(icon->drawinfo);
+  if (icon->drawinfo == nullptr) {
+    return false;
+  }
+
+  if (di->type == ICON_TYPE_PREVIEW) {
+    const ID *id = (icon->id_type != 0) ? static_cast<ID *>(icon->obj) : nullptr;
+    const PreviewImage *prv = id ? BKE_previewimg_id_get(id) :
+                                   static_cast<PreviewImage *>(icon->obj);
+
+    if (prv) {
+      const int size = big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON;
+      return (prv->flag[size] & PRV_RENDERING) != 0;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -1316,7 +1345,7 @@ static void svg_replace_color_attributes(std::string &svg,
   uchar tool_white[] = {255, 255, 255, 255};
   uchar tool_red[] = {214, 45, 48, 255};
 
-  struct ColorItem {
+  const struct ColorItem {
     const char *name;
     uchar *col = nullptr;
     int colorid = TH_UNDEFINED;
@@ -1546,7 +1575,7 @@ static void icon_draw_size(float x,
                                             0.0f;
     float color[4];
     if (mono_rgba) {
-      rgba_uchar_to_float(color, (const uchar *)mono_rgba);
+      rgba_uchar_to_float(color, mono_rgba);
     }
     else {
       UI_GetThemeColor4fv(TH_TEXT, color);
@@ -1654,7 +1683,7 @@ static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job)
 {
   /* changed only ever set by dynamic icons */
-  if ((pi->flag[size] & PRV_CHANGED) || !pi->rect[size]) {
+  if ((pi->flag[size] & PRV_CHANGED) || (!pi->rect[size] && !BKE_previewimg_is_invalid(pi))) {
     /* create the rect if necessary */
     icon_set_image(C, scene, id, pi, eIconSizes(size), use_job);
 

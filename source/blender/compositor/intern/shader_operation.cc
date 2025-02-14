@@ -9,7 +9,6 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_customdata_types.h"
 
@@ -22,7 +21,6 @@
 #include "gpu_shader_create_info.hh"
 
 #include "NOD_derived_node_tree.hh"
-#include "NOD_node_declaration.hh"
 
 #include "COM_context.hh"
 #include "COM_pixel_operation.hh"

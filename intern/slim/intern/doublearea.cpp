@@ -41,7 +41,7 @@ static inline void doublearea_sort3(const Eigen::PlainObjectBase<DerivedX> &X,
 {
   using namespace Eigen;
   using namespace std;
-  typedef typename Eigen::PlainObjectBase<DerivedY>::Scalar YScalar;
+  using YScalar = typename Eigen::PlainObjectBase<DerivedY>::Scalar;
   Y = X.template cast<YScalar>();
   /* Get number of columns (or rows). */
   int num_outer = (dim == 1 ? X.cols() : X.rows());
@@ -49,7 +49,7 @@ static inline void doublearea_sort3(const Eigen::PlainObjectBase<DerivedX> &X,
   int num_inner = (dim == 1 ? X.rows() : X.cols());
   assert(num_inner == 3);
   (void)num_inner;
-  typedef typename Eigen::PlainObjectBase<DerivedIX>::Scalar Index;
+  using Index = typename Eigen::PlainObjectBase<DerivedIX>::Scalar;
   IX.resize(X.rows(), X.cols());
   if (dim == 1) {
     IX.row(0).setConstant(0); /* = Eigen::PlainObjectBase<DerivedIX>::Zero(1,IX.cols());. */
@@ -165,7 +165,7 @@ inline void doublearea(const Eigen::PlainObjectBase<Derivedl> &ul,
 {
   using namespace Eigen;
   using namespace std;
-  typedef typename Derivedl::Index Index;
+  using Index = typename Derivedl::Index;
   /* Only support triangles. */
   assert(ul.cols() == 3);
   /* Number of triangles. */

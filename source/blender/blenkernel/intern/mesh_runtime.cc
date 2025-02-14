@@ -6,11 +6,8 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_array_utils.hh"
 #include "BLI_math_geom.h"
-#include "BLI_task.hh"
 
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_bvhutils.hh"
@@ -332,6 +329,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->corner_tris_cache.data.tag_dirty();
   mesh->runtime->corner_tri_faces_cache.tag_dirty();
   mesh->runtime->shrinkwrap_boundary_cache.tag_dirty();
+  mesh->runtime->max_material_index.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   mesh->flag &= ~ME_NO_OVERLAPPING_TOPOLOGY;
@@ -419,6 +417,11 @@ void Mesh::tag_visibility_changed()
   this->runtime->bvh_cache_corner_tris_no_hidden.tag_dirty();
   this->runtime->bvh_cache_loose_verts_no_hidden.tag_dirty();
   this->runtime->bvh_cache_loose_edges_no_hidden.tag_dirty();
+}
+
+void Mesh::tag_material_index_changed()
+{
+  this->runtime->max_material_index.tag_dirty();
 }
 
 /** \} */

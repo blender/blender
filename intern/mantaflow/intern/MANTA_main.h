@@ -26,23 +26,23 @@ struct MANTA {
   virtual ~MANTA();
 
   /* Mirroring Mantaflow structures for particle data (pVel also used for mesh vert vels). */
-  typedef struct PData {
+  struct pData {
     float pos[3];
     int flag;
-  } pData;
-  typedef struct PVel {
+  };
+  struct pVel {
     float pos[3];
-  } pVel;
+  };
 
   /* Mirroring Mantaflow structures for meshes. */
-  typedef struct Node {
+  struct Node {
     int flags;
     float pos[3], normal[3];
-  } Node;
-  typedef struct Triangle {
+  };
+  struct Triangle {
     int c[3];
     int flags;
-  } Triangle;
+  };
 
   /* Grid initialization functions. */
   bool initHeat(struct FluidModifierData *fmd = nullptr);
@@ -101,303 +101,303 @@ struct MANTA {
   bool hasParticles(FluidModifierData *fmd, int framenr);
   bool hasGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain);
 
-  inline size_t getTotalCells()
+  size_t getTotalCells()
   {
     return mTotalCells;
   }
-  inline size_t getTotalCellsHigh()
+  size_t getTotalCellsHigh()
   {
     return mTotalCellsHigh;
   }
-  inline bool usingNoise()
+  bool usingNoise()
   {
     return mUsingNoise;
   }
-  inline int getResX()
+  int getResX()
   {
     return mResX;
   }
-  inline int getResY()
+  int getResY()
   {
     return mResY;
   }
-  inline int getResZ()
+  int getResZ()
   {
     return mResZ;
   }
-  inline int getParticleResX()
+  int getParticleResX()
   {
     return mResXParticle;
   }
-  inline int getParticleResY()
+  int getParticleResY()
   {
     return mResYParticle;
   }
-  inline int getParticleResZ()
+  int getParticleResZ()
   {
     return mResZParticle;
   }
-  inline int getMeshResX()
+  int getMeshResX()
   {
     return mResXMesh;
   }
-  inline int getMeshResY()
+  int getMeshResY()
   {
     return mResYMesh;
   }
-  inline int getMeshResZ()
+  int getMeshResZ()
   {
     return mResZMesh;
   }
-  inline int getResXHigh()
+  int getResXHigh()
   {
     return mResXNoise;
   }
-  inline int getResYHigh()
+  int getResYHigh()
   {
     return mResYNoise;
   }
-  inline int getResZHigh()
+  int getResZHigh()
   {
     return mResZNoise;
   }
-  inline int getMeshUpres()
+  int getMeshUpres()
   {
     return mUpresMesh;
   }
-  inline int getParticleUpres()
+  int getParticleUpres()
   {
     return mUpresParticle;
   }
 
   /* Smoke getters. */
-  inline float *getDensity()
+  float *getDensity()
   {
     return mDensity;
   }
-  inline float *getHeat()
+  float *getHeat()
   {
     return mHeat;
   }
-  inline float *getVelocityX()
+  float *getVelocityX()
   {
     return mVelocityX;
   }
-  inline float *getVelocityY()
+  float *getVelocityY()
   {
     return mVelocityY;
   }
-  inline float *getVelocityZ()
+  float *getVelocityZ()
   {
     return mVelocityZ;
   }
-  inline float *getObVelocityX()
+  float *getObVelocityX()
   {
     return mObVelocityX;
   }
-  inline float *getObVelocityY()
+  float *getObVelocityY()
   {
     return mObVelocityY;
   }
-  inline float *getObVelocityZ()
+  float *getObVelocityZ()
   {
     return mObVelocityZ;
   }
-  inline float *getGuideVelocityX()
+  float *getGuideVelocityX()
   {
     return mGuideVelocityX;
   }
-  inline float *getGuideVelocityY()
+  float *getGuideVelocityY()
   {
     return mGuideVelocityY;
   }
-  inline float *getGuideVelocityZ()
+  float *getGuideVelocityZ()
   {
     return mGuideVelocityZ;
   }
-  inline float *getInVelocityX()
+  float *getInVelocityX()
   {
     return mInVelocityX;
   }
-  inline float *getInVelocityY()
+  float *getInVelocityY()
   {
     return mInVelocityY;
   }
-  inline float *getInVelocityZ()
+  float *getInVelocityZ()
   {
     return mInVelocityZ;
   }
-  inline float *getForceX()
+  float *getForceX()
   {
     return mForceX;
   }
-  inline float *getForceY()
+  float *getForceY()
   {
     return mForceY;
   }
-  inline float *getForceZ()
+  float *getForceZ()
   {
     return mForceZ;
   }
-  inline int *getFlags()
+  int *getFlags()
   {
     return mFlags;
   }
-  inline float *getNumObstacle()
+  float *getNumObstacle()
   {
     return mNumObstacle;
   }
-  inline float *getNumGuide()
+  float *getNumGuide()
   {
     return mNumGuide;
   }
-  inline float *getFlame()
+  float *getFlame()
   {
     return mFlame;
   }
-  inline float *getFuel()
+  float *getFuel()
   {
     return mFuel;
   }
-  inline float *getReact()
+  float *getReact()
   {
     return mReact;
   }
-  inline float *getColorR()
+  float *getColorR()
   {
     return mColorR;
   }
-  inline float *getColorG()
+  float *getColorG()
   {
     return mColorG;
   }
-  inline float *getColorB()
+  float *getColorB()
   {
     return mColorB;
   }
-  inline float *getShadow()
+  float *getShadow()
   {
     return mShadow;
   }
-  inline float *getDensityIn()
+  float *getDensityIn()
   {
     return mDensityIn;
   }
-  inline float *getHeatIn()
+  float *getHeatIn()
   {
     return mHeatIn;
   }
-  inline float *getColorRIn()
+  float *getColorRIn()
   {
     return mColorRIn;
   }
-  inline float *getColorGIn()
+  float *getColorGIn()
   {
     return mColorGIn;
   }
-  inline float *getColorBIn()
+  float *getColorBIn()
   {
     return mColorBIn;
   }
-  inline float *getFuelIn()
+  float *getFuelIn()
   {
     return mFuelIn;
   }
-  inline float *getReactIn()
+  float *getReactIn()
   {
     return mReactIn;
   }
-  inline float *getEmissionIn()
+  float *getEmissionIn()
   {
     return mEmissionIn;
   }
 
-  inline float *getDensityHigh()
+  float *getDensityHigh()
   {
     return mDensityHigh;
   }
-  inline float *getFlameHigh()
+  float *getFlameHigh()
   {
     return mFlameHigh;
   }
-  inline float *getFuelHigh()
+  float *getFuelHigh()
   {
     return mFuelHigh;
   }
-  inline float *getReactHigh()
+  float *getReactHigh()
   {
     return mReactHigh;
   }
-  inline float *getColorRHigh()
+  float *getColorRHigh()
   {
     return mColorRHigh;
   }
-  inline float *getColorGHigh()
+  float *getColorGHigh()
   {
     return mColorGHigh;
   }
-  inline float *getColorBHigh()
+  float *getColorBHigh()
   {
     return mColorBHigh;
   }
-  inline float *getTextureU()
+  float *getTextureU()
   {
     return mTextureU;
   }
-  inline float *getTextureV()
+  float *getTextureV()
   {
     return mTextureV;
   }
-  inline float *getTextureW()
+  float *getTextureW()
   {
     return mTextureW;
   }
-  inline float *getTextureU2()
+  float *getTextureU2()
   {
     return mTextureU2;
   }
-  inline float *getTextureV2()
+  float *getTextureV2()
   {
     return mTextureV2;
   }
-  inline float *getTextureW2()
+  float *getTextureW2()
   {
     return mTextureW2;
   }
 
-  inline float *getPhiIn()
+  float *getPhiIn()
   {
     return mPhiIn;
   }
-  inline float *getPhiStaticIn()
+  float *getPhiStaticIn()
   {
     return mPhiStaticIn;
   }
-  inline float *getPhiObsIn()
+  float *getPhiObsIn()
   {
     return mPhiObsIn;
   }
-  inline float *getPhiObsStaticIn()
+  float *getPhiObsStaticIn()
   {
     return mPhiObsStaticIn;
   }
-  inline float *getPhiGuideIn()
+  float *getPhiGuideIn()
   {
     return mPhiGuideIn;
   }
-  inline float *getPhiOutIn()
+  float *getPhiOutIn()
   {
     return mPhiOutIn;
   }
-  inline float *getPhiOutStaticIn()
+  float *getPhiOutStaticIn()
   {
     return mPhiOutStaticIn;
   }
-  inline float *getPhi()
+  float *getPhi()
   {
     return mPhi;
   }
-  inline float *getPressure()
+  float *getPressure()
   {
     return mPressure;
   }
@@ -406,20 +406,20 @@ struct MANTA {
   static int with_debug; /* On or off (1 or 0), also sets manta debug level. */
 
   /* Mesh getters. */
-  inline int getNumVertices()
+  int getNumVertices()
   {
     return (mMeshNodes && !mMeshNodes->empty()) ? mMeshNodes->size() : 0;
   }
-  inline int getNumNormals()
+  int getNumNormals()
   {
     return (mMeshNodes && !mMeshNodes->empty()) ? mMeshNodes->size() : 0;
   }
-  inline int getNumTriangles()
+  int getNumTriangles()
   {
     return (mMeshTriangles && !mMeshTriangles->empty()) ? mMeshTriangles->size() : 0;
   }
 
-  inline float getVertexXAt(int i)
+  float getVertexXAt(int i)
   {
     assert(i >= 0);
     if (mMeshNodes && !mMeshNodes->empty()) {
@@ -428,7 +428,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getVertexYAt(int i)
+  float getVertexYAt(int i)
   {
     assert(i >= 0);
     if (mMeshNodes && !mMeshNodes->empty()) {
@@ -437,7 +437,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getVertexZAt(int i)
+  float getVertexZAt(int i)
   {
     assert(i >= 0);
     if (mMeshNodes && !mMeshNodes->empty()) {
@@ -447,7 +447,7 @@ struct MANTA {
     return 0.0f;
   }
 
-  inline float getNormalXAt(int i)
+  float getNormalXAt(int i)
   {
     assert(i >= 0);
     if (mMeshNodes && !mMeshNodes->empty()) {
@@ -456,7 +456,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getNormalYAt(int i)
+  float getNormalYAt(int i)
   {
     assert(i >= 0);
     if (mMeshNodes && !mMeshNodes->empty()) {
@@ -465,7 +465,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getNormalZAt(int i)
+  float getNormalZAt(int i)
   {
     assert(i >= 0);
     if (mMeshNodes && !mMeshNodes->empty()) {
@@ -475,7 +475,7 @@ struct MANTA {
     return 0.0f;
   }
 
-  inline int getTriangleXAt(int i)
+  int getTriangleXAt(int i)
   {
     assert(i >= 0);
     if (mMeshTriangles && !mMeshTriangles->empty()) {
@@ -484,7 +484,7 @@ struct MANTA {
     }
     return 0;
   }
-  inline int getTriangleYAt(int i)
+  int getTriangleYAt(int i)
   {
     assert(i >= 0);
     if (mMeshTriangles && !mMeshTriangles->empty()) {
@@ -493,7 +493,7 @@ struct MANTA {
     }
     return 0;
   }
-  inline int getTriangleZAt(int i)
+  int getTriangleZAt(int i)
   {
     assert(i >= 0);
     if (mMeshTriangles && !mMeshTriangles->empty()) {
@@ -503,7 +503,7 @@ struct MANTA {
     return 0;
   }
 
-  inline float getVertVelXAt(int i)
+  float getVertVelXAt(int i)
   {
     assert(i >= 0);
     if (mMeshVelocities && !mMeshVelocities->empty()) {
@@ -512,7 +512,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getVertVelYAt(int i)
+  float getVertVelYAt(int i)
   {
     assert(i >= 0);
     if (mMeshVelocities && !mMeshVelocities->empty()) {
@@ -521,7 +521,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getVertVelZAt(int i)
+  float getVertVelZAt(int i)
   {
     assert(i >= 0);
     if (mMeshVelocities && !mMeshVelocities->empty()) {
@@ -532,7 +532,7 @@ struct MANTA {
   }
 
   // Particle getters
-  inline int getFlipParticleFlagAt(int i)
+  int getFlipParticleFlagAt(int i)
   {
     assert(i >= 0);
     if (mFlipParticleData && !mFlipParticleData->empty()) {
@@ -541,7 +541,7 @@ struct MANTA {
     }
     return 0;
   }
-  inline int getSndParticleFlagAt(int i)
+  int getSndParticleFlagAt(int i)
   {
     assert(i >= 0);
     if (mParticleData && !mParticleData->empty()) {
@@ -551,7 +551,7 @@ struct MANTA {
     return 0;
   }
 
-  inline float getFlipParticlePositionXAt(int i)
+  float getFlipParticlePositionXAt(int i)
   {
     assert(i >= 0);
     if (mFlipParticleData && !mFlipParticleData->empty()) {
@@ -560,7 +560,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getFlipParticlePositionYAt(int i)
+  float getFlipParticlePositionYAt(int i)
   {
     assert(i >= 0);
     if (mFlipParticleData && !mFlipParticleData->empty()) {
@@ -569,7 +569,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getFlipParticlePositionZAt(int i)
+  float getFlipParticlePositionZAt(int i)
   {
     assert(i >= 0);
     if (mFlipParticleData && !mFlipParticleData->empty()) {
@@ -579,7 +579,7 @@ struct MANTA {
     return 0.0f;
   }
 
-  inline float getSndParticlePositionXAt(int i)
+  float getSndParticlePositionXAt(int i)
   {
     assert(i >= 0);
     if (mParticleData && !mParticleData->empty()) {
@@ -588,7 +588,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getSndParticlePositionYAt(int i)
+  float getSndParticlePositionYAt(int i)
   {
     assert(i >= 0);
     if (mParticleData && !mParticleData->empty()) {
@@ -597,7 +597,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getSndParticlePositionZAt(int i)
+  float getSndParticlePositionZAt(int i)
   {
     assert(i >= 0);
     if (mParticleData && !mParticleData->empty()) {
@@ -607,7 +607,7 @@ struct MANTA {
     return 0.0f;
   }
 
-  inline float getFlipParticleVelocityXAt(int i)
+  float getFlipParticleVelocityXAt(int i)
   {
     assert(i >= 0);
     if (mFlipParticleVelocity && !mFlipParticleVelocity->empty()) {
@@ -616,7 +616,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getFlipParticleVelocityYAt(int i)
+  float getFlipParticleVelocityYAt(int i)
   {
     assert(i >= 0);
     if (mFlipParticleVelocity && !mFlipParticleVelocity->empty()) {
@@ -625,7 +625,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getFlipParticleVelocityZAt(int i)
+  float getFlipParticleVelocityZAt(int i)
   {
     assert(i >= 0);
     if (mFlipParticleVelocity && !mFlipParticleVelocity->empty()) {
@@ -635,7 +635,7 @@ struct MANTA {
     return 0.0f;
   }
 
-  inline float getSndParticleVelocityXAt(int i)
+  float getSndParticleVelocityXAt(int i)
   {
     assert(i >= 0);
     if (mParticleVelocity && !mParticleVelocity->empty()) {
@@ -644,7 +644,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getSndParticleVelocityYAt(int i)
+  float getSndParticleVelocityYAt(int i)
   {
     assert(i >= 0);
     if (mParticleVelocity && !mParticleVelocity->empty()) {
@@ -653,7 +653,7 @@ struct MANTA {
     }
     return 0.0f;
   }
-  inline float getSndParticleVelocityZAt(int i)
+  float getSndParticleVelocityZAt(int i)
   {
     assert(i >= 0);
     if (mParticleVelocity && !mParticleVelocity->empty()) {
@@ -663,52 +663,52 @@ struct MANTA {
     return 0.0f;
   }
 
-  inline float *getFlipParticleData()
+  float *getFlipParticleData()
   {
     return (mFlipParticleData && !mFlipParticleData->empty()) ?
                (float *)&mFlipParticleData->front() :
                nullptr;
   }
-  inline float *getSndParticleData()
+  float *getSndParticleData()
   {
     return (mParticleData && !mParticleData->empty()) ? (float *)&mParticleData->front() : nullptr;
   }
 
-  inline float *getFlipParticleVelocity()
+  float *getFlipParticleVelocity()
   {
     return (mFlipParticleVelocity && !mFlipParticleVelocity->empty()) ?
                (float *)&mFlipParticleVelocity->front() :
                nullptr;
   }
-  inline float *getSndParticleVelocity()
+  float *getSndParticleVelocity()
   {
     return (mParticleVelocity && !mParticleVelocity->empty()) ?
                (float *)&mParticleVelocity->front() :
                nullptr;
   }
-  inline float *getSndParticleLife()
+  float *getSndParticleLife()
   {
     return (mParticleLife && !mParticleLife->empty()) ? (float *)&mParticleLife->front() : nullptr;
   }
 
-  inline int getNumFlipParticles()
+  int getNumFlipParticles()
   {
     return (mFlipParticleData && !mFlipParticleData->empty()) ? mFlipParticleData->size() : 0;
   }
-  inline int getNumSndParticles()
+  int getNumSndParticles()
   {
     return (mParticleData && !mParticleData->empty()) ? mParticleData->size() : 0;
   }
 
-  inline bool usingFlipFromFile()
+  bool usingFlipFromFile()
   {
     return mFlipFromFile;
   }
-  inline bool usingMeshFromFile()
+  bool usingMeshFromFile()
   {
     return mMeshFromFile;
   }
-  inline bool usingParticleFromFile()
+  bool usingParticleFromFile()
   {
     return mParticlesFromFile;
   }
@@ -853,12 +853,12 @@ struct MANTA {
   vector<pVel> *mParticleVelocity;
   vector<float> *mParticleLife;
 
-  void initializeRNAMap(struct FluidModifierData *doRnaRefresh = nullptr);
-  bool initDomain(struct FluidModifierData *doRnaRefresh = nullptr);
-  bool initNoise(struct FluidModifierData *doRnaRefresh = nullptr);
-  bool initMesh(struct FluidModifierData *doRnaRefresh = nullptr);
-  bool initSmoke(struct FluidModifierData *doRnaRefresh = nullptr);
-  bool initSmokeNoise(struct FluidModifierData *doRnaRefresh = nullptr);
+  void initializeRNAMap(struct FluidModifierData *fmd = nullptr);
+  bool initDomain(struct FluidModifierData *fmd = nullptr);
+  bool initNoise(struct FluidModifierData *fmd = nullptr);
+  bool initMesh(struct FluidModifierData *fmd = nullptr);
+  bool initSmoke(struct FluidModifierData *fmd = nullptr);
+  bool initSmokeNoise(struct FluidModifierData *fmd = nullptr);
   void initializeMantaflow();
   void terminateMantaflow();
   bool runPythonString(vector<string> commands);

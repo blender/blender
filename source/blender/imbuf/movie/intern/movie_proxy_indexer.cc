@@ -34,10 +34,11 @@ extern "C" {
 #  include "ffmpeg_compat.h"
 #  include <libavutil/imgutils.h>
 }
+
+static const char temp_ext[] = "_part";
 #endif
 
 static const char binary_header_str[] = "BlenMIdx";
-static const char temp_ext[] = "_part";
 
 static const IMB_Proxy_Size proxy_sizes[] = {
     IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75, IMB_PROXY_100};
@@ -819,7 +820,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
     }
   }
 
-  return (MovieProxyBuilder *)context;
+  return context;
 }
 
 static void index_rebuild_ffmpeg_finish(MovieProxyBuilder *context, const bool stop)

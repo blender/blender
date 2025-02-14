@@ -12,10 +12,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_iterator.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "BLT_translation.hh"
@@ -31,7 +31,6 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
-#include "DNA_windowmanager_types.h"
 
 #ifdef WITH_AUDASPACE
 #  include "../../../intern/audaspace/intern/AUD_Set.h"
@@ -415,7 +414,8 @@ void BKE_sound_init(Main *bmain)
     specs.channels = AUD_CHANNELS_STEREO;
   }
 
-  if (!(sound_device = AUD_init(device_name, specs, buffersize, "Blender"))) {
+  sound_device = AUD_init(device_name, specs, buffersize, "Blender");
+  if (!sound_device) {
     sound_device = AUD_init("None", specs, buffersize, "Blender");
   }
 
@@ -896,7 +896,8 @@ static void sound_start_play_scene(Scene *scene)
 
   BKE_sound_reset_scene_specs(scene);
 
-  if ((scene->playback_handle = AUD_Device_play(sound_device, scene->sound_scene, 1))) {
+  scene->playback_handle = AUD_Device_play(sound_device, scene->sound_scene, 1);
+  if (scene->playback_handle) {
     AUD_Handle_setLoopCount(scene->playback_handle, -1);
   }
 }

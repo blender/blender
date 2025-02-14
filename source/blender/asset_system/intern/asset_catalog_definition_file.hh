@@ -39,7 +39,6 @@ class AssetCatalogDefinitionFile {
 
   const CatalogFilePath file_path;
 
- public:
   AssetCatalogDefinitionFile(const CatalogFilePath &file_path);
 
   /**

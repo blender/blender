@@ -21,6 +21,7 @@
 #include "RNA_access.hh"
 
 #include "WM_api.hh"
+#include "WM_keymap.hh"
 #include "WM_types.hh"
 
 /* Menu wrapper for #WM_keymap_add_item. */
@@ -78,8 +79,19 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
   eSpace_Type space_type = SPACE_EMPTY;
   eRegion_Type region_type = RGN_TYPE_WINDOW;
   SpaceLink *sl = CTX_wm_space_data(C);
+
+  /* Tool property tab is a special case where 3d tool properties are shown in the properties
+   * editor. This would allow assigning tool shortcut keys from properties editor. */
+  bool allow_properties_keymap = false;
+  if (sl->spacetype == SPACE_PROPERTIES) {
+    SpaceProperties *sp = reinterpret_cast<SpaceProperties *>(sl);
+    if (sp->mainb == BCONTEXT_TOOL) {
+      allow_properties_keymap = true;
+    }
+  }
+
   const char *km_id = nullptr;
-  if (sl->spacetype == SPACE_VIEW3D) {
+  if (sl->spacetype == SPACE_VIEW3D || allow_properties_keymap) {
     const enum eContextObjectMode mode = CTX_data_mode_enum(C);
     switch (mode) {
       case CTX_MODE_EDIT_MESH:
@@ -263,7 +275,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   }
   else if (STRPREFIX(opname, "OBJECT_OT")) {
     /* Exception, this needs to work outside object mode too. */
-    if (STRPREFIX(opname, "OBJECT_OT_mode_set")) {
+    if (STRPREFIX(opname, "OBJECT_OT_mode_set") || STRPREFIX(opname, "OBJECT_OT_transfer_mode")) {
       km = WM_keymap_find_all(wm, "Object Non-modal", SPACE_EMPTY, RGN_TYPE_WINDOW);
     }
     else {

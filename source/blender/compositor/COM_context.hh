@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
@@ -12,7 +14,6 @@
 #include "DNA_vec_types.h"
 
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
@@ -23,6 +24,16 @@
 #include "COM_texture_pool.hh"
 
 namespace blender::compositor {
+
+/* Enumerates the possible outputs that the compositor can compute. */
+enum class OutputTypes : uint8_t {
+  None = 0,
+  Composite = 1 << 0,
+  Viewer = 1 << 1,
+  FileOutput = 1 << 2,
+  Previews = 1 << 3,
+};
+ENUM_OPERATORS(OutputTypes, OutputTypes::Previews)
 
 /* ------------------------------------------------------------------------------------------------
  * Context
@@ -58,16 +69,8 @@ class Context {
    * denoising quality on a node. */
   virtual eCompositorDenoiseQaulity get_denoise_quality() const = 0;
 
-  /* True if the compositor should write file outputs, false otherwise. */
-  virtual bool use_file_output() const = 0;
-
-  /* True if the compositor should compute node previews, false otherwise. */
-  virtual bool should_compute_node_previews() const = 0;
-
-  /* True if the compositor should write the composite output, otherwise, the compositor is assumed
-   * to not support the composite output and just displays its viewer output. In that case, the
-   * composite output will be used as a fallback viewer if no other viewer exists */
-  virtual bool use_composite_output() const = 0;
+  /* Returns all output types that should be computed. */
+  virtual OutputTypes needed_outputs() const = 0;
 
   /* Get the render settings for compositing. */
   virtual const RenderData &get_render_data() const = 0;
@@ -116,6 +119,10 @@ class Context {
    * since the last time the flag was reset, hence why the method reset the flag after querying it,
    * that is, to ready it to track the next change. */
   virtual IDRecalcFlag query_id_recalc_flag(ID *id) const = 0;
+
+  /* True if the compositor should treat viewers as composite outputs because it has no concept of
+   * or support for viewers. */
+  virtual bool treat_viewer_as_composite_output() const;
 
   /* Populates the given meta data from the render stamp information of the given render pass. */
   virtual void populate_meta_data_for_pass(const Scene *scene,

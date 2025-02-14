@@ -60,6 +60,14 @@ void HierarchyContext::mark_as_not_instanced()
   original_export_path.clear();
 }
 
+bool HierarchyContext::is_prototype() const
+{
+  /* The context is for a prototype if it's for a duplisource or
+   * for a duplicated object that was designated to be a prototype
+   * because the original was not included in the export.*/
+  return is_duplisource || (duplicator != nullptr && !is_instance());
+}
+
 bool HierarchyContext::is_object_visible(const enum eEvaluationMode evaluation_mode) const
 {
   const bool is_dupli = duplicator != nullptr;
@@ -414,6 +422,7 @@ void AbstractHierarchyIterator::visit_object(Object *object,
   context->export_path = "";
   context->original_export_path = "";
   context->higher_up_export_path = "";
+  context->is_duplisource = false;
 
   copy_m4_m4(context->matrix_world, object->object_to_world().ptr());
 
@@ -453,6 +462,7 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   context->export_path = "";
   context->original_export_path = "";
   context->animation_check_include_parent = false;
+  context->is_duplisource = false;
 
   copy_m4_m4(context->matrix_world, dupli_object->mat);
 
@@ -466,6 +476,10 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   context_update_for_graph_index(context, graph_index);
 
   export_graph_[graph_index].insert(context);
+
+  if (dupli_object->ob) {
+    this->duplisources_.insert(&dupli_object->ob->id);
+  }
 }
 
 AbstractHierarchyIterator::ExportGraph::key_type AbstractHierarchyIterator::
@@ -529,10 +543,14 @@ void AbstractHierarchyIterator::determine_export_paths(const HierarchyContext *p
   }
 }
 
-void AbstractHierarchyIterator::determine_duplication_references(
+bool AbstractHierarchyIterator::determine_duplication_references(
     const HierarchyContext *parent_context, const std::string &indent)
 {
   ExportChildren children = graph_children(parent_context);
+
+  /* Will be set to true if any child contexts are instances that were designated
+   * as proxies for the original prototype.*/
+  bool contains_proxy_prototype = false;
 
   for (HierarchyContext *context : children) {
     if (context->duplicator != nullptr) {
@@ -543,6 +561,7 @@ void AbstractHierarchyIterator::determine_duplication_references(
         /* The original was not found, so mark this instance as "the original". */
         context->mark_as_not_instanced();
         duplisource_export_path_[source_id] = context->export_path;
+        contains_proxy_prototype = true;
       }
       else {
         context->mark_as_instance_of(it->second);
@@ -561,9 +580,26 @@ void AbstractHierarchyIterator::determine_duplication_references(
         }
       }
     }
+    else {
+      /* Determine is this context is for an instance prototype. */
+      ID *id = &context->object->id;
+      if (duplisources_.find(id) != duplisources_.end()) {
+        context->is_duplisource = true;
+      }
+    }
 
-    determine_duplication_references(context, indent + "  ");
+    if (determine_duplication_references(context, indent + "  ")) {
+      /* A descendant was designated a prototype proxy. If the current context
+       * is an instance, we must change it to a prototype proxy as well. */
+      if (context->is_instance()) {
+        context->mark_as_not_instanced();
+        ID *source_id = &context->object->id;
+        duplisource_export_path_[source_id] = context->export_path;
+      }
+      contains_proxy_prototype = true;
+    }
   }
+  return contains_proxy_prototype;
 }
 
 void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_context)
@@ -602,13 +638,15 @@ void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_cont
       transform_writer->write(*context);
     }
 
-    if (!context->weak_export) {
+    if (!context->weak_export && include_data_writers(context)) {
       make_writers_particle_systems(context);
       make_writer_object_data(context);
     }
 
-    /* Recurse into this object's children. */
-    make_writers(context);
+    if (include_child_writers(context)) {
+      /* Recurse into this object's children. */
+      make_writers(context);
+    }
   }
 
   /* TODO(Sybren): iterate over all unused writers and call unused_during_iteration() or something.

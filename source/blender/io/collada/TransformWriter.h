@@ -12,9 +12,7 @@
 
 #include "DNA_object_types.h"
 
-#include "collada.h"
-#include "collada_internal.h"
-#include "collada_utils.h"
+#include "ExportSettings.h"
 
 class TransformWriter {
  protected:

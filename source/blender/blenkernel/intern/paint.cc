@@ -16,7 +16,6 @@
 #include "DNA_asset_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -27,15 +26,12 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_hash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -59,12 +55,10 @@
 #include "BKE_main.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_scene.hh"
@@ -421,7 +415,7 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
     case PaintMode::WeightGPencil:
       return rna_enum_brush_gpencil_weight_types_items;
     case PaintMode::SculptCurves:
-      return rna_enum_brush_gpencil_sculpt_types_items;
+      return rna_enum_brush_curves_sculpt_brush_type_items;
     case PaintMode::Invalid:
       break;
   }
@@ -471,14 +465,14 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 {
   Scene *sce = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  SpaceImage *sima;
 
   if (sce && view_layer) {
     ToolSettings *ts = sce->toolsettings;
     BKE_view_layer_synced_ensure(sce, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
 
-    if ((sima = CTX_wm_space_image(C)) != nullptr) {
+    SpaceImage *sima = CTX_wm_space_image(C);
+    if (sima != nullptr) {
       if (obact && obact->mode == OB_MODE_EDIT) {
         if (sima->mode == SI_MODE_PAINT) {
           return &ts->imapaint.paint;
@@ -500,13 +494,13 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 {
   Scene *sce = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  SpaceImage *sima;
 
   if (sce && view_layer) {
     BKE_view_layer_synced_ensure(sce, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
 
-    if ((sima = CTX_wm_space_image(C)) != nullptr) {
+    SpaceImage *sima = CTX_wm_space_image(C);
+    if (sima != nullptr) {
       if (obact && obact->mode == OB_MODE_EDIT) {
         if (sima->mode == SI_MODE_PAINT) {
           return PaintMode::Texture2D;
@@ -1975,7 +1969,7 @@ static bool paint_rake_rotation_active(const MTex &mtex)
   return mtex.tex && mtex.brush_angle_mode & MTEX_ANGLE_RAKE;
 }
 
-static const bool paint_rake_rotation_active(const Brush &brush, PaintMode paint_mode)
+static bool paint_rake_rotation_active(const Brush &brush, PaintMode paint_mode)
 {
   return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex) ||
          BKE_brush_has_cube_tip(&brush, paint_mode);
@@ -2143,7 +2137,7 @@ void BKE_sculptsession_free(Object *ob)
   }
 }
 
-SculptSession::SculptSession() {}
+SculptSession::SculptSession() = default;
 
 SculptSession::~SculptSession()
 {

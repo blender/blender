@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -26,7 +27,8 @@
 #include "DNA_vfont_types.h"
 #include "DNA_volume_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
@@ -43,9 +45,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
-
-#include "MOD_nodes.hh"
 
 #include "BLO_read_write.hh"
 
@@ -447,9 +446,7 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
 
       for (int i = 0; i < pf->size; i += sizeof(buf)) {
         int len = pf->size - i;
-        if (len > sizeof(buf)) {
-          len = sizeof(buf);
-        }
+        len = std::min<unsigned long>(len, sizeof(buf));
 
         if (BLI_read(file, buf, len) != len) {
           /* read error ... */

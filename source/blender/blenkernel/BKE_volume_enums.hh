@@ -8,7 +8,7 @@
  * \ingroup bli
  */
 
-#include <stdint.h>
+#include <cstdint>
 
 enum VolumeGridType : int8_t {
   VOLUME_GRID_UNKNOWN = 0,

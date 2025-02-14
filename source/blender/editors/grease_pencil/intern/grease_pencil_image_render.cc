@@ -2,17 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_grease_pencil.hh"
 #include "BLI_color.hh"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_image.hh"
 #include "BKE_material.hh"
 
-#include "BLI_math_vector.hh"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -22,8 +23,6 @@
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_primitive.hh"
-#include "GPU_shader_builtin.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -31,9 +30,12 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
+#include "GPU_primitive.hh"
+#include "GPU_shader_builtin.hh"
 #include "GPU_shader_shared.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_vertex_format.hh"
 
 namespace blender::ed::greasepencil::image_render {

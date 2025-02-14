@@ -4,73 +4,29 @@
 
 #pragma once
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BCAnimationCurve.h"
 
 #include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_light_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
-
-#include "BIK_api.h"
-#include "BKE_action.hh" /* pose functions */
-#include "BKE_armature.hh"
-#include "BKE_constraint.h"
-#include "BKE_fcurve.hh"
-#include "BKE_object.hh"
-#include "BKE_scene.hh"
-#include "ED_object.hh"
-
-#include "MEM_guardedalloc.h"
-
-#include "RNA_access.hh"
-
-#include "COLLADASWBaseInputElement.h"
-#include "COLLADASWConstants.h"
 #include "COLLADASWInputList.h"
-#include "COLLADASWInstanceGeometry.h"
 #include "COLLADASWLibraryAnimations.h"
-#include "COLLADASWParamBase.h"
-#include "COLLADASWParamTemplate.h"
-#include "COLLADASWPrimitves.h"
-#include "COLLADASWSampler.h"
 #include "COLLADASWSource.h"
-#include "COLLADASWVertices.h"
 
 #include "BCAnimationSampler.h"
-#include "EffectExporter.h"
-#include "collada_internal.h"
 
-#include "IK_solver.h"
-
-#include <algorithm> /* std::find */
-#include <map>
 #include <vector>
 
-typedef enum BC_animation_source_type {
+enum BC_animation_source_type {
   BC_SOURCE_TYPE_VALUE,
   BC_SOURCE_TYPE_ANGLE,
   BC_SOURCE_TYPE_TIMEFRAME,
-} BC_animation_source_type;
+};
 
-typedef enum BC_global_rotation_type {
-  BC_NO_ROTATION,
-  BC_OBJECT_ROTATION,
-  BC_DATA_ROTATION
-} BC_global_rotation_type;
+enum BC_global_rotation_type { BC_NO_ROTATION, BC_OBJECT_ROTATION, BC_DATA_ROTATION };
 
 class AnimationExporter : COLLADASW::LibraryAnimations {
  private:

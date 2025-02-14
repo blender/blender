@@ -6,7 +6,7 @@
 
 #include "internal/evaluator/eval_output_gpu.h"
 
-OpenSubdiv_EvaluatorCacheImpl::OpenSubdiv_EvaluatorCacheImpl() {}
+OpenSubdiv_EvaluatorCacheImpl::OpenSubdiv_EvaluatorCacheImpl() = default;
 
 OpenSubdiv_EvaluatorCacheImpl::~OpenSubdiv_EvaluatorCacheImpl()
 {

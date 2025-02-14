@@ -5604,6 +5604,9 @@ def main(
 
     # Run early to prevent a `KeyboardInterrupt` exception.
     signal.signal(signal.SIGINT, signal_handler_sigint)
+    if sys.platform == "win32":
+        # WIN32 needs to check for break as sending SIGINT isn't supported from the caller, see #131947.
+        signal.signal(signal.SIGBREAK, signal_handler_sigint)
 
     # Needed on WIN32 which doesn't default to `utf-8`.
     for fh in (sys.stdout, sys.stderr):

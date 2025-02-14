@@ -48,8 +48,11 @@
 #  include "BKE_scene.hh"
 #  include "BKE_sound.h"
 
-#  include "GPU_capabilities.hh"
 #  include "GPU_context.hh"
+#  ifdef WITH_OPENGL_BACKEND
+#    include "GPU_capabilities.hh"
+#    include "GPU_compilation_subprocess.hh"
+#  endif
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.hh"
@@ -2007,7 +2010,7 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
                 "release.\n");
       }
       else {
-        scene->r.im_format.imtype = imtype_new;
+        BKE_image_format_set(&scene->r.im_format, &scene->id, imtype_new);
         DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
     }
@@ -2325,11 +2328,11 @@ static const char arg_handle_python_file_run_doc[] =
     "\tRun the given Python script file.";
 static int arg_handle_python_file_run(int argc, const char **argv, void *data)
 {
-#  ifdef WITH_PYTHON
   bContext *C = static_cast<bContext *>(data);
 
   /* Workaround for scripts not getting a `bpy.context.scene`, causes internal errors elsewhere. */
   if (argc > 1) {
+#  ifdef WITH_PYTHON
     /* Make the path absolute because its needed for relative linked blends to be found. */
     char filepath[FILE_MAX];
     STRNCPY(filepath, argv[1]);
@@ -2341,16 +2344,15 @@ static int arg_handle_python_file_run(int argc, const char **argv, void *data)
       fprintf(stderr, "\nError: script failed, file: '%s', exiting.\n", argv[1]);
       WM_exit(C, app_state.exit_code_on_error.python);
     }
+#  else
+    UNUSED_VARS(C);
+    fprintf(stderr, "This Blender was built without Python support\n");
+#  endif /* WITH_PYTHON */
+
     return 1;
   }
   fprintf(stderr, "\nError: you must specify a filepath after '%s'.\n", argv[0]);
   return 0;
-
-#  else
-  UNUSED_VARS(argc, argv, data);
-  fprintf(stderr, "This Blender was built without Python support\n");
-  return 0;
-#  endif /* WITH_PYTHON */
 }
 
 static const char arg_handle_python_text_run_doc[] =
@@ -2358,11 +2360,11 @@ static const char arg_handle_python_text_run_doc[] =
     "\tRun the given Python script text block.";
 static int arg_handle_python_text_run(int argc, const char **argv, void *data)
 {
-#  ifdef WITH_PYTHON
   bContext *C = static_cast<bContext *>(data);
 
   /* Workaround for scripts not getting a `bpy.context.scene`, causes internal errors elsewhere. */
   if (argc > 1) {
+#  ifdef WITH_PYTHON
     Main *bmain = CTX_data_main(C);
     /* Make the path absolute because its needed for relative linked blends to be found. */
     Text *text = (Text *)BKE_libblock_find_name(bmain, ID_TXT, argv[1]);
@@ -2380,17 +2382,16 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
       fprintf(stderr, "\nError: script failed, text: '%s', exiting.\n", argv[1]);
       WM_exit(C, app_state.exit_code_on_error.python);
     }
+#  else
+    UNUSED_VARS(C);
+    fprintf(stderr, "This Blender was built without Python support\n");
+#  endif /* WITH_PYTHON */
 
     return 1;
   }
+
   fprintf(stderr, "\nError: you must specify a text block after '%s'.\n", argv[0]);
   return 0;
-
-#  else
-  UNUSED_VARS(argc, argv, data);
-  fprintf(stderr, "This Blender was built without Python support\n");
-  return 0;
-#  endif /* WITH_PYTHON */
 }
 
 static const char arg_handle_python_expr_run_doc[] =
@@ -2398,27 +2399,26 @@ static const char arg_handle_python_expr_run_doc[] =
     "\tRun the given expression as a Python script.";
 static int arg_handle_python_expr_run(int argc, const char **argv, void *data)
 {
-#  ifdef WITH_PYTHON
   bContext *C = static_cast<bContext *>(data);
 
   /* Workaround for scripts not getting a `bpy.context.scene`, causes internal errors elsewhere. */
   if (argc > 1) {
+#  ifdef WITH_PYTHON
     bool ok;
     BPY_CTX_SETUP(ok = BPY_run_string_exec(C, nullptr, argv[1]));
     if (!ok && app_state.exit_code_on_error.python) {
       fprintf(stderr, "\nError: script failed, expr: '%s', exiting.\n", argv[1]);
       WM_exit(C, app_state.exit_code_on_error.python);
     }
+#  else
+    UNUSED_VARS(C);
+    fprintf(stderr, "This Blender was built without Python support\n");
+#  endif /* WITH_PYTHON */
+
     return 1;
   }
   fprintf(stderr, "\nError: you must specify a Python expression after '%s'.\n", argv[0]);
   return 0;
-
-#  else
-  UNUSED_VARS(argc, argv, data);
-  fprintf(stderr, "This Blender was built without Python support\n");
-  return 0;
-#  endif /* WITH_PYTHON */
 }
 
 static const char arg_handle_python_console_run_doc[] =
@@ -2426,18 +2426,16 @@ static const char arg_handle_python_console_run_doc[] =
     "Run Blender with an interactive console.";
 static int arg_handle_python_console_run(int /*argc*/, const char ** /*argv*/, void *data)
 {
-#  ifdef WITH_PYTHON
   bContext *C = static_cast<bContext *>(data);
-
+#  ifdef WITH_PYTHON
   const char *imports[] = {"code", nullptr};
   BPY_CTX_SETUP(BPY_run_string_eval(C, imports, "code.interact()"));
+#  else
+  UNUSED_VARS(C);
+  fprintf(stderr, "This Blender was built without python support\n");
+#  endif /* WITH_PYTHON */
 
   return 0;
-#  else
-  UNUSED_VARS(argv, data);
-  fprintf(stderr, "This Blender was built without python support\n");
-  return 0;
-#  endif /* WITH_PYTHON */
 }
 
 static const char arg_handle_python_exit_code_set_doc[] =

@@ -32,7 +32,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_kdopbvh.hh"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
@@ -42,6 +41,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
+#include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -2615,9 +2615,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
   }
 
   /* hard limit, workaround for it being ignored above */
-  if (sim->psys->totpart < totparent) {
-    totparent = sim->psys->totpart;
-  }
+  totparent = std::min(sim->psys->totpart, totparent);
 
   tree = BLI_kdtree_3d_new(totparent);
 
@@ -3998,10 +3996,10 @@ void object_remove_particle_system(Main *bmain,
   }
 
   ParticleSystemModifierData *psmd;
-  ModifierData *md;
+  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
 
   /* Clear particle system in fluid modifier. */
-  if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid))) {
+  if (md) {
     FluidModifierData *fmd = (FluidModifierData *)md;
 
     /* Clear particle system pointer in flow settings. */
@@ -4151,7 +4149,7 @@ static int get_particle_uv(Mesh *mesh,
                            ParticleData *pa,
                            int index,
                            const float fuv[4],
-                           char *name,
+                           const char *name,
                            float *texco,
                            bool from_vert)
 {

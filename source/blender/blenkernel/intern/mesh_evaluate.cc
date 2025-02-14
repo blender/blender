@@ -8,8 +8,6 @@
  * Functions to evaluate mesh data.
  */
 
-#include <climits>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"

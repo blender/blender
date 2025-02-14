@@ -8,6 +8,7 @@
  * 3D View checks and manipulation (no operators).
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
@@ -29,6 +30,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -216,19 +218,18 @@ bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
 /** \name View State/Context Utilities
  * \{ */
 
-void view3d_operator_needs_opengl(const bContext *C)
+void view3d_operator_needs_gpu(const bContext *C)
 {
-  wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
 
-  view3d_region_operator_needs_opengl(win, region);
+  view3d_region_operator_needs_gpu(region);
 }
 
-void view3d_region_operator_needs_opengl(wmWindow * /*win*/, ARegion *region)
+void view3d_region_operator_needs_gpu(ARegion *region)
 {
   /* for debugging purpose, context should always be OK */
   if ((region == nullptr) || (region->regiontype != RGN_TYPE_WINDOW)) {
-    printf("view3d_region_operator_needs_opengl error, wrong region\n");
+    printf("view3d_region_operator_needs_gpu error, wrong region\n");
   }
   else {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
@@ -514,6 +515,7 @@ void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph,
     rv3d->dist = ED_view3d_offset_distance(
         ob_camera_eval->object_to_world().ptr(), rv3d->ofs, VIEW3D_DIST_FALLBACK);
     ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, nullptr);
+    WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, v3d);
   }
 
   if (!ED_view3d_camera_lock_check(v3d, rv3d)) {
@@ -1749,9 +1751,7 @@ static bool depth_read_test_fn(const void *value, void *userdata)
 {
   ReadData *data = static_cast<ReadData *>(userdata);
   float depth = *(float *)value;
-  if (depth < data->r_depth) {
-    data->r_depth = depth;
-  }
+  data->r_depth = std::min(depth, data->r_depth);
 
   if ((++data->count) >= data->count_max) {
     /* Outside the margin. */

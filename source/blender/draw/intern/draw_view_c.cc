@@ -20,6 +20,7 @@
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_shader.hh"
+#include "GPU_state.hh"
 
 #include "UI_resources.hh"
 #include "UI_view2d.hh"

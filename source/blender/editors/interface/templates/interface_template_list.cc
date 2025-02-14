@@ -121,7 +121,7 @@ static void uilist_draw_item_default(uiList *ui_list,
 
 static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, uiLayout *layout)
 {
-  PointerRNA listptr = RNA_pointer_create(nullptr, &RNA_UIList, ui_list);
+  PointerRNA listptr = RNA_pointer_create_discrete(nullptr, &RNA_UIList, ui_list);
 
   uiLayout *row = uiLayoutRow(layout, false);
 
@@ -352,11 +352,11 @@ static void uilist_free_dyn_data(uiList *ui_list)
 
   if (dyn_data->custom_activate_opptr) {
     WM_operator_properties_free(dyn_data->custom_activate_opptr);
-    MEM_freeN(dyn_data->custom_activate_opptr);
+    MEM_delete(dyn_data->custom_activate_opptr);
   }
   if (dyn_data->custom_drag_opptr) {
     WM_operator_properties_free(dyn_data->custom_drag_opptr);
-    MEM_freeN(dyn_data->custom_drag_opptr);
+    MEM_delete(dyn_data->custom_drag_opptr);
   }
 
   MEM_SAFE_FREE(dyn_data->items_filter_flags);
@@ -370,7 +370,7 @@ static void uilist_free_dyn_data(uiList *ui_list)
  *
  * \return false if the input data isn't valid. Will also raise an RNA warning in that case.
  */
-static bool ui_template_list_data_retrieve(const char *listtype_name,
+static bool ui_template_list_data_retrieve(const StringRef listtype_name,
                                            const char *list_id,
                                            PointerRNA *dataptr,
                                            const StringRefNull propname,
@@ -383,7 +383,7 @@ static bool ui_template_list_data_retrieve(const char *listtype_name,
   *r_input_data = {};
 
   /* Forbid default UI_UL_DEFAULT_CLASS_NAME list class without a custom list_id! */
-  if (STREQ(UI_UL_DEFAULT_CLASS_NAME, listtype_name) && !(list_id && list_id[0])) {
+  if ((UI_UL_DEFAULT_CLASS_NAME == listtype_name) && !(list_id && list_id[0])) {
     RNA_warning("template_list using default '%s' UIList class must provide a custom list_id",
                 UI_UL_DEFAULT_CLASS_NAME);
     return false;
@@ -429,7 +429,7 @@ static bool ui_template_list_data_retrieve(const char *listtype_name,
 
   /* Find the uiList type. */
   if (!(*r_list_type = WM_uilisttype_find(listtype_name, false))) {
-    RNA_warning("List type %s not found", listtype_name);
+    RNA_warning("List type %s not found", std::string(listtype_name).c_str());
     return false;
   }
 

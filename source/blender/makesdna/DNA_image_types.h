@@ -293,3 +293,9 @@ enum {
   IMA_ALPHA_CHANNEL_PACKED = 2,
   IMA_ALPHA_IGNORE = 3,
 };
+
+/* Image gpu runtime defaults */
+#define IMAGE_GPU_FRAME_NONE INT_MAX
+#define IMAGE_GPU_PASS_NONE SHRT_MAX
+#define IMAGE_GPU_LAYER_NONE SHRT_MAX
+#define IMAGE_GPU_VIEW_NONE SHRT_MAX

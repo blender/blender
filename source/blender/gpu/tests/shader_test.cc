@@ -14,6 +14,7 @@
 #include "GPU_index_buffer.hh"
 #include "GPU_shader.hh"
 #include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
 #include "GPU_vertex_buffer.hh"
 #include "GPU_vertex_format.hh"
@@ -384,7 +385,7 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
     if (ELEM(test.status, TEST_STATUS_NONE, TEST_STATUS_PASSED)) {
       continue;
     }
-    else if (test.status == TEST_STATUS_FAILED) {
+    if (test.status == TEST_STATUS_FAILED) {
       ADD_FAILURE_AT(test_src_name, test.line)
           << "Value of: " << print_test_line(test_src, test.line) << "\n"
           << "  Actual: " << print_test_data(test.expect, TestType(test.type)) << "\n"

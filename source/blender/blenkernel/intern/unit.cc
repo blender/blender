@@ -2223,9 +2223,7 @@ static int unit_scale_str(char *str,
   int len_num = BLI_snprintf_rlen(
       str_tmp, TEMP_STR_SIZE, "*%.9g" SEP_STR, unit->scalar / scale_pref);
 
-  if (len_num > str_maxncpy) {
-    len_num = str_maxncpy;
-  }
+  len_num = std::min(len_num, str_maxncpy);
 
   if (found_ofs + len_num + len_move > str_maxncpy) {
     /* Can't move the whole string, move just as much as will fit. */

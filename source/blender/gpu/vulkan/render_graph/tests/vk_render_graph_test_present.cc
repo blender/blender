@@ -15,8 +15,15 @@ TEST_F(VKRenderGraphTestPresent, transfer_and_present)
   VkHandle<VkImage> back_buffer(1u);
 
   resources.add_image(back_buffer, 1);
+  {
+    render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
+    synchronization.vk_image = back_buffer;
+    synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    render_graph->add_node(synchronization);
+  }
 
-  render_graph->submit_for_present(back_buffer);
+  submit(render_graph, command_buffer);
 
   EXPECT_EQ(1, log.size());
   EXPECT_EQ(
@@ -43,7 +50,15 @@ TEST_F(VKRenderGraphTestPresent, clear_and_present)
   clear_color_image.vk_image = back_buffer;
   render_graph->add_node(clear_color_image);
 
-  render_graph->submit_for_present(back_buffer);
+  {
+    render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
+    synchronization.vk_image = back_buffer;
+    synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    render_graph->add_node(synchronization);
+  }
+
+  submit(render_graph, command_buffer);
 
   EXPECT_EQ(3, log.size());
 

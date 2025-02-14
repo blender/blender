@@ -8,8 +8,8 @@
 
 #include <cstdio>
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_vector_set.hh"
 
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
@@ -37,20 +37,29 @@
  * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.
  * \{ */
 
-static GHash *global_gizmotype_hash = nullptr;
+using blender::StringRef;
 
-const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet)
+static auto &get_gizmo_type_map()
 {
-  if (idname[0]) {
-    wmGizmoType *gzt;
+  struct IDNameGetter {
+    StringRef operator()(const wmGizmoType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
+  static blender::CustomIDVectorSet<wmGizmoType *, IDNameGetter> map;
+  return map;
+}
 
-    gzt = static_cast<wmGizmoType *>(BLI_ghash_lookup(global_gizmotype_hash, idname));
-    if (gzt) {
-      return gzt;
+const wmGizmoType *WM_gizmotype_find(const StringRef idname, bool quiet)
+{
+  if (!idname.is_empty()) {
+    if (wmGizmoType *const *gzt = get_gizmo_type_map().lookup_key_ptr_as(idname)) {
+      return *gzt;
     }
 
     if (!quiet) {
-      printf("search for unknown gizmo '%s'\n", idname);
+      printf("search for unknown gizmo '%s'\n", std::string(idname).c_str());
     }
   }
   else {
@@ -60,11 +69,6 @@ const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet)
   }
 
   return nullptr;
-}
-
-void WM_gizmotype_iter(GHashIterator *ghi)
-{
-  BLI_ghashIterator_init(ghi, global_gizmotype_hash);
 }
 
 static wmGizmoType *wm_gizmotype_append__begin()
@@ -84,7 +88,7 @@ static void wm_gizmotype_append__end(wmGizmoType *gzt)
 
   RNA_def_struct_identifier(&BLENDER_RNA, gzt->srna, gzt->idname);
 
-  BLI_ghash_insert(global_gizmotype_hash, (void *)gzt->idname, gzt);
+  get_gizmo_type_map().add(gzt);
 }
 
 void WM_gizmotype_append(void (*gtfunc)(wmGizmoType *))
@@ -150,39 +154,35 @@ void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *gzt)
 {
   BLI_assert(gzt == WM_gizmotype_find(gzt->idname, false));
 
-  BLI_ghash_remove(global_gizmotype_hash, gzt->idname, nullptr, nullptr);
+  get_gizmo_type_map().remove(gzt);
 
   gizmotype_unlink(C, bmain, gzt);
 }
 
-bool WM_gizmotype_remove(bContext *C, Main *bmain, const char *idname)
+bool WM_gizmotype_remove(bContext *C, Main *bmain, const StringRef idname)
 {
-  wmGizmoType *gzt = static_cast<wmGizmoType *>(BLI_ghash_lookup(global_gizmotype_hash, idname));
-
+  wmGizmoType *const *gzt = get_gizmo_type_map().lookup_key_ptr_as(idname);
   if (gzt == nullptr) {
     return false;
   }
 
-  WM_gizmotype_remove_ptr(C, bmain, gzt);
+  WM_gizmotype_remove_ptr(C, bmain, *gzt);
 
   return true;
 }
 
-static void wm_gizmotype_ghash_free_cb(wmGizmoType *gzt)
-{
-  WM_gizmotype_free_ptr(gzt);
-}
-
 void wm_gizmotype_free()
 {
-  BLI_ghash_free(global_gizmotype_hash, nullptr, (GHashValFreeFP)wm_gizmotype_ghash_free_cb);
-  global_gizmotype_hash = nullptr;
+  for (wmGizmoType *gzt : get_gizmo_type_map()) {
+    WM_gizmotype_free_ptr(gzt);
+  }
+  get_gizmo_type_map().clear();
 }
 
 void wm_gizmotype_init()
 {
   /* Reserve size is set based on blender default setup. */
-  global_gizmotype_hash = BLI_ghash_str_new_ex("wm_gizmotype_init gh", 128);
+  get_gizmo_type_map().reserve(128);
 }
 
 /** \} */

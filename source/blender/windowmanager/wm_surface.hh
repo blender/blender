@@ -26,7 +26,7 @@ struct wmSurface {
   void *customdata;
 
   void (*draw)(bContext *);
-  /* To evaluate the surface's depsgraph. Called as part of the main loop. */
+  /** To evaluate the surface's depsgraph. Called as part of the main loop. */
   void (*do_depsgraph)(bContext *C);
   /** Free customdata, not the surface itself (done by wm_surface API). */
   void (*free_data)(wmSurface *);

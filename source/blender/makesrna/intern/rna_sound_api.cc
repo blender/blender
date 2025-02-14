@@ -6,8 +6,6 @@
  * \ingroup RNA
  */
 
-#include "DNA_packedFile_types.h"
-
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 

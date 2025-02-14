@@ -6,7 +6,6 @@
  * \ingroup edsculpt
  */
 
-#include <cmath>
 #include <cstdlib>
 
 #include "BLI_bit_vector.hh"

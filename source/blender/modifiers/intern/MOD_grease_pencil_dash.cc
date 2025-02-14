@@ -276,7 +276,11 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
       dst_material.span[dst_curve_i] = material >= 0 ? material : src_material[src_curve];
       for (const int i : dst_point_range) {
         dst_radius.span[i] = src_radius[src_point_indices[i]] * radius;
-        dst_opacity.span[i] = src_opacity[src_point_indices[i]] * opacity;
+      }
+      if (dst_opacity) {
+        for (const int i : dst_point_range) {
+          dst_opacity.span[i] = src_opacity[src_point_indices[i]] * opacity;
+        }
       }
 
       ++dst_curve_i;
@@ -415,9 +419,9 @@ static void panel_draw(const bContext *C, Panel *panel)
                      "DOWN");
 
   if (dmd->segment_active_index >= 0 && dmd->segment_active_index < dmd->segments_num) {
-    PointerRNA ds_ptr = RNA_pointer_create(ptr->owner_id,
-                                           &RNA_GreasePencilDashModifierSegment,
-                                           &dmd->segments()[dmd->segment_active_index]);
+    PointerRNA ds_ptr = RNA_pointer_create_discrete(ptr->owner_id,
+                                                    &RNA_GreasePencilDashModifierSegment,
+                                                    &dmd->segments()[dmd->segment_active_index]);
 
     sub = uiLayoutColumn(layout, true);
     uiItemR(sub, &ds_ptr, "dash", UI_ITEM_NONE, std::nullopt, ICON_NONE);

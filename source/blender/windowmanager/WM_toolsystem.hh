@@ -34,7 +34,9 @@ struct wmWindow;
  */
 #define WM_TOOLSYSTEM_SPACE_MASK_MODE_FROM_SPACE ((1 << SPACE_IMAGE) | (1 << SPACE_SEQ))
 
-/* Values that define a category of active tool. */
+/**
+ * Values that define a category of active tool.
+ */
 struct bToolKey {
   int space_type;
   int mode;

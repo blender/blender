@@ -9,7 +9,7 @@
 #include "BLI_virtual_array.hh"
 #include "testing/testing.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 
@@ -59,6 +59,25 @@ TEST(virtual_array, Array)
     VArray<int> varray = VArray<int>::ForContainer(array); /* NOLINT: bugprone-use-after-move */
     EXPECT_TRUE(varray.is_empty());
   }
+}
+
+TEST(virtual_array, MutableArray)
+{
+  Array<int, 0> array = {1, 2, 3, 5, 8};
+  const Span<int> array_span = array;
+  VMutableArray<int> varray = VMutableArray<int>::ForContainer(std::move(array));
+  EXPECT_TRUE(varray.is_span());
+  EXPECT_EQ(varray.size(), 5);
+  EXPECT_EQ(varray[0], 1);
+  EXPECT_EQ(varray[2], 3);
+  EXPECT_EQ(varray[3], 5);
+  EXPECT_EQ(varray[4], 8);
+  varray.set(2, 100);
+  EXPECT_EQ(varray[2], 100);
+
+  const Span<int> varray_span = varray.get_internal_span();
+  EXPECT_EQ(array_span, varray_span);
+  EXPECT_EQ(array_span.data(), varray_span.data());
 }
 
 TEST(virtual_array, Vector)

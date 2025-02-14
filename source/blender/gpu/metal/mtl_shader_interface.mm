@@ -17,8 +17,8 @@
 #include "mtl_shader_interface.hh"
 #include "mtl_shader_interface_type.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 

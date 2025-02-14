@@ -209,8 +209,8 @@ IndexMask random_mask(const bke::CurvesGeometry &curves,
  * helpful utilities on top of that.
  * \{ */
 
-void fill_selection_false(GMutableSpan span);
-void fill_selection_true(GMutableSpan span);
+void fill_selection_false(GMutableSpan selection);
+void fill_selection_true(GMutableSpan selection);
 void fill_selection(GMutableSpan selection, bool value);
 void fill_selection_false(GMutableSpan selection, const IndexMask &mask);
 void fill_selection_true(GMutableSpan selection, const IndexMask &mask);

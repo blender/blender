@@ -7,12 +7,9 @@
 #include "BLI_string.h"
 
 #include "BKE_instances.hh"
-#include "BKE_mesh.hh"
 #include "BKE_report.hh"
 
 #include "IO_wavefront_obj.hh"
-
-#include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_import_obj {
 

@@ -12,24 +12,21 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
-
 #include "BLI_vector.hh"
-#include "DNA_sequence_types.h"
-#include "DNA_view2d_types.h"
-#include "GPU_primitive.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view2d_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -37,11 +34,14 @@
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
+#include "GPU_primitive.hh"
+#include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
 #include "ED_gpencil_legacy.hh"
@@ -86,12 +86,36 @@ Strip *ED_sequencer_special_preview_get()
   return special_seq_update;
 }
 
+/**
+ * Similar to `mouseover_strips_sorted_get`, but disregards padded strip handles. This allows for
+ * precision when previewing strips through a scrubbing operation.
+ */
+static Strip *mouseover_strip_get(const Scene *scene, const View2D *v2d, const int mval[2])
+{
+  float mouse_co[2];
+  UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
+
+  blender::Vector<Strip *> visible = sequencer_visible_strips_get(scene, v2d);
+  int mouse_channel = int(mouse_co[1]);
+  for (Strip *strip : visible) {
+    if (strip->machine != mouse_channel) {
+      continue;
+    }
+    rctf body;
+    strip_rectf(scene, strip, &body);
+    if (BLI_rctf_isect_pt_v(&body, mouse_co)) {
+      return strip;
+    }
+  }
+
+  return nullptr;
+}
+
 void ED_sequencer_special_preview_set(bContext *C, const int mval[2])
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  eSeqHandle hand_dummy;
-  Strip *strip = find_nearest_seq(scene, &region->v2d, mval, &hand_dummy);
+  Strip *strip = mouseover_strip_get(scene, &region->v2d, mval);
   if (strip != nullptr && strip->type != STRIP_TYPE_SOUND_RAM) {
     sequencer_special_update_set(strip);
   }
@@ -1062,8 +1086,8 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
   immUnbindProgram();
 
   /* Outline. */
-  float strip_image_quad[4][2];
-  SEQ_image_transform_final_quad_get(CTX_data_scene(C), strip, strip_image_quad);
+  const blender::Array<blender::float2> strip_image_quad = SEQ_image_transform_final_quad_get(
+      CTX_data_scene(C), strip);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1080,10 +1104,10 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
   immUniformColor3fv(col);
   immUniform1f("lineWidth", U.pixelsize);
   immBegin(GPU_PRIM_LINE_LOOP, 4);
-  immVertex2f(pos, strip_image_quad[0][0], strip_image_quad[0][1]);
-  immVertex2f(pos, strip_image_quad[1][0], strip_image_quad[1][1]);
-  immVertex2f(pos, strip_image_quad[2][0], strip_image_quad[2][1]);
-  immVertex2f(pos, strip_image_quad[3][0], strip_image_quad[3][1]);
+  immVertex2f(pos, strip_image_quad[0].x, strip_image_quad[0].y);
+  immVertex2f(pos, strip_image_quad[1].x, strip_image_quad[1].y);
+  immVertex2f(pos, strip_image_quad[2].x, strip_image_quad[2].y);
+  immVertex2f(pos, strip_image_quad[3].x, strip_image_quad[3].y);
   immEnd();
   immUnbindProgram();
   GPU_line_width(1);
@@ -1124,8 +1148,7 @@ static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
 
     const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
     const float view_aspect = scene->r.xasp / scene->r.yasp;
-    blender::float4x4 transform_mat;
-    SEQ_image_transform_matrix_get(scene, strip, transform_mat.ptr());
+    blender::float4x4 transform_mat = SEQ_image_transform_matrix_get(scene, strip);
     blender::float4x3 selection_quad{
         {character_start.position.x, line_y, 0.0f},
         {character_start.position.x, line_y + text->line_height, 0.0f},
@@ -1169,8 +1192,7 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
 
   const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
-  blender::float4x4 transform_mat;
-  SEQ_image_transform_matrix_get(scene, strip, transform_mat.ptr());
+  blender::float4x4 transform_mat = SEQ_image_transform_matrix_get(scene, strip);
   const blender::int2 cursor_position = strip_text_cursor_offset_to_position(text,
                                                                              data->cursor_offset);
   const float cursor_width = 10;
@@ -1217,8 +1239,7 @@ static void text_edit_draw_box(const bContext *C, const Strip *strip, uint pos)
 
   const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
-  blender::float4x4 transform_mat;
-  SEQ_image_transform_matrix_get(CTX_data_scene(C), strip, transform_mat.ptr());
+  blender::float4x4 transform_mat = SEQ_image_transform_matrix_get(CTX_data_scene(C), strip);
   blender::float4x3 box_quad{
       {float(text->text_boundbox.xmin), float(text->text_boundbox.ymin), 0.0f},
       {float(text->text_boundbox.xmin), float(text->text_boundbox.ymax), 0.0f},

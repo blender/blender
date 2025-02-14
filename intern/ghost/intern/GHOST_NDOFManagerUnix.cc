@@ -73,7 +73,19 @@ bool GHOST_NDOFManagerUnix::available()
 
 #ifdef USE_FINISH_GLITCH_WORKAROUND
 static bool motion_test_prev = false;
-#endif
+static uint64_t motion_test_prev_time = 0;
+/* NOTE(ideasman42): It's important not to generate zero-motion event immediately
+ * because the SPNAV API may not have had a chance to generate events since the last
+ * call to this function.
+ * In my tests values between 50-100ms work well, opt for the larger value
+ * to avoid false positives:
+ * - Releasing the device can cause subtle wobble generating start/finish events.
+ * - Subtle motion can *sometimes* cause start/finish events too.
+ *
+ * Furthermore, waiting a 10/th of a second for the "finish" event is fast enough
+ * that any motion occurring in a shorter time-span can be considered "continuous". */
+#  define MOTION_TEST_IDLE_MS 100
+#endif /* USE_FINISH_GLITCH_WORKAROUND */
 
 bool GHOST_NDOFManagerUnix::processEvents()
 {
@@ -98,6 +110,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
           updateRotation(r, now);
 #ifdef USE_FINISH_GLITCH_WORKAROUND
           motion_test = true;
+          motion_test_prev_time = now;
 #endif
           break;
         }
@@ -111,17 +124,26 @@ bool GHOST_NDOFManagerUnix::processEvents()
 
 #ifdef USE_FINISH_GLITCH_WORKAROUND
     if (motion_test_prev == true && motion_test == false) {
-      uint64_t now = system_.getMilliSeconds();
-      const int v[3] = {0, 0, 0};
+      const uint64_t now = system_.getMilliSeconds();
+      GHOST_ASSERT(motion_test_prev_time < now, "Invalid time offset");
+      if ((now - motion_test_prev_time) < MOTION_TEST_IDLE_MS) {
+        /* Re-run this check next time `processEvents` is called. */
+        motion_test = true;
+      }
+      else {
+        const int v[3] = {0, 0, 0};
 
-      updateTranslation(v, now);
-      updateRotation(v, now);
+        updateTranslation(v, now);
+        updateRotation(v, now);
 
-      anyProcessed = true;
+        anyProcessed = true;
+      }
     }
     motion_test_prev = motion_test;
-#endif
+#endif /* USE_FINISH_GLITCH_WORKAROUND */
   }
 
   return anyProcessed;
 }
+
+#undef USE_FINISH_GLITCH_WORKAROUND

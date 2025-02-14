@@ -10,29 +10,25 @@
 
 #include "intern/eval/deg_eval_flush.h"
 
-#include <cmath>
+#include <deque>
 
 #include "BLI_listbase.h"
-#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_global.hh"
 #include "BKE_key.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-
 #include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_debug.hh"
 
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
-#include "intern/depsgraph_type.hh"
 #include "intern/depsgraph_update.hh"
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"
@@ -67,7 +63,7 @@ enum {
   COMPONENT_STATE_DONE = 2,
 };
 
-using FlushQueue = deque<OperationNode *>;
+using FlushQueue = std::deque<OperationNode *>;
 
 namespace {
 

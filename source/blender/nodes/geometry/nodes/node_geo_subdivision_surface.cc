@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_task.hh"
-
 #include "DNA_modifier_types.h"
 
 #include "BKE_attribute.hh"
@@ -20,6 +18,8 @@
 #include "NOD_rna_define.hh"
 
 #include "GEO_randomize.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "node_geometry_util.hh"
 

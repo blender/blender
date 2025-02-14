@@ -6,8 +6,6 @@
 #include <memory>
 #include <string>
 
-#include "BLI_array.hh"
-#include "BLI_assert.h"
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
 #include "BLI_string_ref.hh"

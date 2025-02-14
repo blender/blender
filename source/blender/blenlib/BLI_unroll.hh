@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include <utility>
 
 namespace blender {
 

@@ -177,20 +177,22 @@ class VKCommandBuilder {
 
  public:
   /**
-   * Build the commands of the nodes provided by the `node_handles` parameter. The commands are
-   * recorded into the given `command_buffer`.
-   *
-   * Pre-condition:
-   * - `command_buffer` must not be in initial state according to
-   *   https://docs.vulkan.org/spec/latest/chapters/cmdbuffers.html#commandbuffers-lifecycle
-   *
-   * Post-condition:
-   * - `command_buffer` will be in executable state according to
-   *   https://docs.vulkan.org/spec/latest/chapters/cmdbuffers.html#commandbuffers-lifecycle
+   * Build execution groups and barriers.
+   * This method should be performed when the resources are locked.
    */
   void build_nodes(VKRenderGraph &render_graph,
                    VKCommandBufferInterface &command_buffer,
                    Span<NodeHandle> node_handles);
+
+  /**
+   * Record commands of the nodes provided by the `node_handles` parameter. The commands are
+   * recorded into the given `command_buffer`.
+   *
+   * `build_nodes` needs to be called before calling with exact the same parameters.
+   */
+  void record_commands(VKRenderGraph &render_graph,
+                       VKCommandBufferInterface &command_buffer,
+                       Span<NodeHandle> node_handles);
 
  private:
   /**

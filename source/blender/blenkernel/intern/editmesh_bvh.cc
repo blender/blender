@@ -19,16 +19,16 @@
 using blender::Span;
 
 struct BMBVHTree {
-  BVHTree *tree;
+  BVHTree *tree = nullptr;
 
-  Span<std::array<BMLoop *, 3>> looptris;
+  Span<std::array<BMLoop *, 3>> looptris = {};
 
-  BMesh *bm;
+  BMesh *bm = nullptr;
 
-  const blender::float3 *cos_cage;
-  bool cos_cage_free;
+  const blender::float3 *cos_cage = nullptr;
+  bool cos_cage_free = false;
 
-  int flag;
+  int flag = 0;
 };
 
 BMBVHTree *BKE_bmbvh_new_from_editmesh(BMEditMesh *em,
@@ -50,7 +50,7 @@ BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
   /* could become argument */
   const float epsilon = FLT_EPSILON * 2.0f;
 
-  BMBVHTree *bmtree = static_cast<BMBVHTree *>(MEM_callocN(sizeof(*bmtree), "BMBVHTree"));
+  BMBVHTree *bmtree = MEM_new<BMBVHTree>("BMBVHTree");
   float cos[3][3];
   int tottri;
 
@@ -174,7 +174,7 @@ void BKE_bmbvh_free(BMBVHTree *bmtree)
     MEM_freeN((void *)bmtree->cos_cage);
   }
 
-  MEM_freeN(bmtree);
+  MEM_delete(bmtree);
 }
 
 BVHTree *BKE_bmbvh_tree_get(BMBVHTree *bmtree)

@@ -8,7 +8,6 @@
 
 #include "BLI_math_color_blend.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
 #include "IMB_imbuf.hh"

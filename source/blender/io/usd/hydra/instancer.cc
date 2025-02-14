@@ -7,9 +7,10 @@
 #include <pxr/base/gf/vec2f.h>
 #include <pxr/imaging/hd/light.h>
 
+#include "BKE_duplilist.hh"
 #include "BKE_particle.h"
 
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -101,7 +102,7 @@ ObjectData *InstancerData::object_data(pxr::SdfPath const &id) const
 pxr::SdfPathVector InstancerData::prototypes() const
 {
   pxr::SdfPathVector paths;
-  for (auto &m_inst : mesh_instances_.values()) {
+  for (const auto &m_inst : mesh_instances_.values()) {
     for (auto &p : m_inst.data->submesh_paths()) {
       paths.push_back(p);
     }
@@ -111,10 +112,10 @@ pxr::SdfPathVector InstancerData::prototypes() const
 
 void InstancerData::available_materials(Set<pxr::SdfPath> &paths) const
 {
-  for (auto &m_inst : mesh_instances_.values()) {
+  for (const auto &m_inst : mesh_instances_.values()) {
     m_inst.data->available_materials(paths);
   }
-  for (auto &l_inst : nonmesh_instances_.values()) {
+  for (const auto &l_inst : nonmesh_instances_.values()) {
     l_inst.data->available_materials(paths);
   }
 }
@@ -299,8 +300,8 @@ void InstancerData::update_nonmesh_instance(NonmeshInstance &nm_inst)
 
 InstancerData::MeshInstance *InstancerData::mesh_instance(pxr::SdfPath const &id) const
 {
-  auto m_inst = mesh_instances_.lookup_ptr(id.GetPathElementCount() == 4 ? id.GetParentPath() :
-                                                                           id);
+  const auto *m_inst = mesh_instances_.lookup_ptr(
+      id.GetPathElementCount() == 4 ? id.GetParentPath() : id);
   if (!m_inst) {
     return nullptr;
   }
@@ -309,8 +310,8 @@ InstancerData::MeshInstance *InstancerData::mesh_instance(pxr::SdfPath const &id
 
 InstancerData::NonmeshInstance *InstancerData::nonmesh_instance(pxr::SdfPath const &id) const
 {
-  auto nm_inst = nonmesh_instances_.lookup_ptr(id.GetPathElementCount() == 4 ? id.GetParentPath() :
-                                                                               id);
+  const auto *nm_inst = nonmesh_instances_.lookup_ptr(
+      id.GetPathElementCount() == 4 ? id.GetParentPath() : id);
   if (!nm_inst) {
     return nullptr;
   }

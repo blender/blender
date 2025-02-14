@@ -6,6 +6,7 @@
  * \ingroup edsculpt
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -87,9 +88,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
                                                BKE_brush_unprojected_radius_get(scene, brush) :
                                                brush->unprojected_radius);
 
-      if (unprojected_radius < 0.001f) { /* XXX magic number */
-        unprojected_radius = 0.001f;
-      }
+      unprojected_radius = std::max(unprojected_radius, 0.001f);
 
       if (use_unified_size) {
         BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);

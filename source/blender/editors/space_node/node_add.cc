@@ -35,6 +35,8 @@
 #include "BKE_scene.hh"
 #include "BKE_texture.h"
 
+#include "IMB_colormanagement.hh"
+
 #include "DEG_depsgraph_build.hh"
 
 #include "ED_asset.hh"
@@ -1030,6 +1032,121 @@ void NODE_OT_add_material(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Color Operator
+ * \{ */
+
+static int node_add_color_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *ntree = snode->edittree;
+
+  float color[4];
+  RNA_float_get_array(op->ptr, "color", color);
+  const bool gamma = RNA_boolean_get(op->ptr, "gamma");
+  const bool has_alpha = RNA_boolean_get(op->ptr, "has_alpha");
+
+  if (!has_alpha) {
+    color[3] = 1.0f;
+  }
+
+  if (gamma) {
+    IMB_colormanagement_srgb_to_scene_linear_v3(color, color);
+  }
+
+  bNode *color_node;
+
+  switch (snode->nodetree->type) {
+    case NTREE_SHADER:
+      color_node = add_node(*C, "ShaderNodeRGB", snode->runtime->cursor);
+      break;
+    case NTREE_COMPOSIT:
+      color_node = add_node(*C, "CompositorNodeRGB", snode->runtime->cursor);
+      break;
+    case NTREE_GEOMETRY:
+      color_node = add_node(*C, "FunctionNodeInputColor", snode->runtime->cursor);
+      break;
+    default:
+      return OPERATOR_CANCELLED;
+  }
+
+  if (!color_node) {
+    BKE_report(op->reports, RPT_WARNING, "Could not add a color node");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* The Geometry Node color node stores the color value inside the node storage, while
+   * the Compositing and Shading color nodes store it in the output socket. */
+  if (snode->nodetree->type == NTREE_GEOMETRY) {
+    NodeInputColor *input_color_storage = static_cast<NodeInputColor *>(color_node->storage);
+    copy_v4_v4(input_color_storage->color, color);
+  }
+  else {
+    bNodeSocket *sock = static_cast<bNodeSocket *>(color_node->outputs.first);
+    if (!sock) {
+      BKE_report(op->reports, RPT_WARNING, "Could not find node color socket");
+      return OPERATOR_CANCELLED;
+    }
+
+    bNodeSocketValueRGBA *socket_data = static_cast<bNodeSocketValueRGBA *>(sock->default_value);
+    copy_v4_v4(socket_data->value, color);
+  }
+
+  bke::node_set_active(ntree, color_node);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
+
+  return OPERATOR_FINISHED;
+}
+
+static int node_add_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  /* Convert mouse coordinates to v2d space. */
+  UI_view2d_region_to_view(&region->v2d,
+                           event->mval[0],
+                           event->mval[1],
+                           &snode->runtime->cursor[0],
+                           &snode->runtime->cursor[1]);
+
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
+
+  return node_add_color_exec(C, op);
+}
+
+static bool node_add_color_poll(bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return ED_operator_node_editable(C) &&
+         ELEM(snode->nodetree->type, NTREE_SHADER, NTREE_COMPOSIT, NTREE_GEOMETRY);
+}
+
+void NODE_OT_add_color(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Color";
+  ot->description = "Add a color node to the current node editor";
+  ot->idname = "NODE_OT_add_color";
+
+  /* callbacks */
+  ot->exec = node_add_color_exec;
+  ot->invoke = node_add_color_invoke;
+  ot->poll = node_add_color_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_float_color(
+      ot->srna, "color", 4, nullptr, 0.0, FLT_MAX, "Color", "Source color", 0.0, 1.0);
+  RNA_def_boolean(
+      ot->srna, "gamma", false, "Gamma Corrected", "The source color is gamma corrected");
+  RNA_def_boolean(
+      ot->srna, "has_alpha", false, "Has Alpha", "The source color contains an Alpha component");
+}
 
 /* -------------------------------------------------------------------- */
 /** \name New Node Tree Operator

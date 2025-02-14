@@ -10,8 +10,6 @@
 
 #include <Python.h>
 
-#include <stdbool.h>
-
 /**
  * For faster execution we keep a special dictionary for py-drivers, with
  * the needed modules and aliases.

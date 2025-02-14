@@ -316,6 +316,7 @@ blender::bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry 
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
         bke::SpanAttributeWriter<T> dst_attribute =
             dst_attributes.lookup_or_add_for_write_only_span<T>(iter.name, bke::AttrDomain::Point);
+        BLI_assert(dst_attribute);
         VArraySpan<T> src = src_attribute.varray.typed<T>();
 
         threading::parallel_for(dst_curves.points_range(), 1024, [&](IndexRange range) {
@@ -958,7 +959,7 @@ static float get_intersection_distance_of_segments(const float2 &co_a,
   const float b2 = co_c[0] - co_d[0];
   const float c2 = a2 * co_c[0] + b2 * co_c[1];
 
-  const float det = float(a1 * b2 - a2 * b1);
+  const float det = (a1 * b2 - a2 * b1);
   if (det == 0.0f) {
     return 0.0f;
   }

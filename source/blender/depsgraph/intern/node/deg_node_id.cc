@@ -8,23 +8,19 @@
 
 #include "intern/node/deg_node_id.hh"
 
-#include <cstdio>
 #include <cstring> /* required for STREQ later on. */
 
+#include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
 
 #include "BKE_lib_id.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_factory.hh"
-#include "intern/node/deg_node_time.hh"
 
 namespace blender::deg {
 
@@ -133,12 +129,12 @@ void IDNode::destroy()
   id_orig = nullptr;
 }
 
-string IDNode::identifier() const
+std::string IDNode::identifier() const
 {
   char orig_ptr[24], cow_ptr[24];
   SNPRINTF(orig_ptr, "%p", id_orig);
   SNPRINTF(cow_ptr, "%p", id_cow);
-  return string(nodeTypeAsString(type)) + " : " + name + " (orig: " + orig_ptr +
+  return std::string(nodeTypeAsString(type)) + " : " + name + " (orig: " + orig_ptr +
          ", eval: " + cow_ptr + ", is_visible_on_build " +
          (is_visible_on_build ? "true" : "false") + ")";
 }

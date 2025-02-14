@@ -50,7 +50,6 @@ class MorphologicalDistanceFeatherWeights : public CachedResource {
   Result weights_result;
   Result falloffs_result;
 
- public:
   MorphologicalDistanceFeatherWeights(Context &context, int type, int radius);
 
   ~MorphologicalDistanceFeatherWeights();

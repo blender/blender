@@ -47,39 +47,19 @@ struct ReferenceLifetimesInfo;
 
 namespace blender::bke {
 
-struct NodeIDHash {
-  uint64_t operator()(const bNode *node) const
-  {
-    return node->identifier;
-  }
-  uint64_t operator()(const int32_t id) const
-  {
-    return id;
-  }
-};
-
-struct NodeIDEquality {
-  bool operator()(const bNode *a, const bNode *b) const
-  {
-    return a->identifier == b->identifier;
-  }
-  bool operator()(const bNode *a, const int32_t b) const
-  {
-    return a->identifier == b;
-  }
-  bool operator()(const int32_t a, const bNode *b) const
-  {
-    return this->operator()(b, a);
-  }
-};
-
 enum class FieldSocketState : int8_t {
   RequiresSingle,
   CanBeField,
   IsField,
 };
 
-using NodeIDVectorSet = VectorSet<bNode *, DefaultProbingStrategy, NodeIDHash, NodeIDEquality>;
+struct NodeIDGetter {
+  int32_t operator()(const bNode *value) const
+  {
+    return value->identifier;
+  }
+};
+using NodeIDVectorSet = CustomIDVectorSet<bNode *, NodeIDGetter>;
 
 struct NodeLinkError {
   std::string tooltip;
@@ -840,6 +820,11 @@ inline bool bNode::is_group_input() const
 inline bool bNode::is_group_output() const
 {
   return this->type_legacy == NODE_GROUP_OUTPUT;
+}
+
+inline bool bNode::is_undefined() const
+{
+  return this->typeinfo == &blender::bke::NodeTypeUndefined;
 }
 
 inline bool bNode::is_type(const blender::StringRef query_idname) const

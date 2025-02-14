@@ -20,7 +20,6 @@
 #include "BKE_colortools.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "GPU_material.hh"
 

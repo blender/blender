@@ -315,7 +315,7 @@ float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3])
 float ED_view3d_calc_depth_for_comparison(const RegionView3D *rv3d, const float co[3])
 {
   if (rv3d->is_persp) {
-    return ED_view3d_calc_zfac(rv3d, co);
+    return mul_project_m4_v3_zfac(rv3d->persmat, co);
   }
   return -dot_v3v3(rv3d->viewinv[2], co);
 }

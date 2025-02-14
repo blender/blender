@@ -25,6 +25,7 @@
 #include "BLI_span.hh"
 #include "BLI_virtual_array.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
@@ -648,7 +649,7 @@ void USDCurvesWriter::assign_materials(const HierarchyContext &context,
   }
 
   bool curve_material_bound = false;
-  for (short mat_num = 0; mat_num < context.object->totcol; mat_num++) {
+  for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
     Material *material = BKE_object_material_get(context.object, mat_num + 1);
     if (material == nullptr) {
       continue;

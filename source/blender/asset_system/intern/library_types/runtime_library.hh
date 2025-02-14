@@ -18,6 +18,8 @@ namespace blender::asset_system {
 class RuntimeAssetLibrary : public AssetLibrary {
  public:
   RuntimeAssetLibrary();
+
+  std::optional<AssetLibraryReference> library_reference() const override;
 };
 
 }  // namespace blender::asset_system

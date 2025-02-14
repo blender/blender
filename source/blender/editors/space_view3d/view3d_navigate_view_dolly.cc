@@ -234,9 +234,10 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* copied from viewzoom_invoke(), changes here may apply there */
 static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  /* Near duplicate logic in #viewzoom_invoke(), changes here may apply there too. */
+
   ViewOpsData *vod;
 
   if (viewdolly_offset_lock_check(C, op)) {
@@ -250,8 +251,25 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
-  /* needs to run before 'viewops_data_create' so the backup 'rv3d->ofs' is correct */
-  /* switch from camera view when: */
+  /* Rationale for enforcing a perspective projection:
+   *
+   * While translating the view center (the #RegionView3D::ofs) is possible,
+   * in most cases there is no user feedback that anything is changing,
+   * because only "panning" the view is shown in orthographic projections.
+   *
+   * From a user perspective it seems like a bug when interactive operators appear to do nothing,
+   * so force a perspective view.
+   *
+   * There are some exceptions where users would notice (mentioning for completeness),
+   * but they're obscure enough for the logic to stay as-is.
+   *
+   * - With a small far-clip plane "dolly" may move contents in/out of the visible clipping range.
+   * - With quad-view and "Sync Zoom/Pan" enabled, "dolly" will be visible other views.
+   *   We could even make an exception for this and allow dolly however even in this case
+   *   the user might as well pan the other views directly.
+   *
+   * NOTE: needs to run before #viewops_data_create so the backup `rv3d->ofs` is correct.
+   */
   if (vod->rv3d->persp != RV3D_PERSP) {
     if (vod->rv3d->persp == RV3D_CAMOB) {
       /* ignore rv3d->lpersp because dolly only makes sense in perspective mode */
@@ -316,7 +334,9 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
   ot->invoke = viewdolly_invoke;
   ot->exec = viewdolly_exec;
   ot->modal = viewdolly_modal;
-  ot->poll = view3d_rotation_poll;
+  /* Check rotation because this operator switches from orthographic to perspective view.
+   * See inline code-comments for details. */
+  ot->poll = view3d_zoom_or_dolly_or_rotation_poll;
   ot->cancel = view3d_navigate_cancel_fn;
 
   /* flags */

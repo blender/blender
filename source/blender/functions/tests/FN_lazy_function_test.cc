@@ -9,7 +9,6 @@
 #include "FN_lazy_function_graph_executor.hh"
 
 #include "BLI_task.h"
-#include "BLI_timeit.hh"
 
 namespace blender::fn::lazy_function::tests {
 

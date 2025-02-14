@@ -52,7 +52,7 @@ struct BLI_mempool;
  * 3: Unique ID in the #BMesh.
  * 4: some elements for internal record keeping.
  */
-typedef struct BMHeader {
+struct BMHeader {
   /** CustomData layers. */
   void *data;
 
@@ -79,7 +79,7 @@ typedef struct BMHeader {
    */
   char api_flag;
   // char _pad;
-} BMHeader;
+};
 
 BLI_STATIC_ASSERT((sizeof(BMHeader) <= 16), "BMHeader size has grown!");
 
@@ -87,7 +87,7 @@ BLI_STATIC_ASSERT((sizeof(BMHeader) <= 16), "BMHeader size has grown!");
  * make them point directly into structs.  and some way to make it only happen to the
  * active layer, and properly update when switching active layers. */
 
-typedef struct BMVert {
+struct BMVert {
   BMHeader head;
 
   float co[3]; /* vertex coordinates */
@@ -101,19 +101,19 @@ typedef struct BMVert {
    * (use with care!).
    */
   struct BMEdge *e;
-} BMVert;
+};
 
-typedef struct BMVert_OFlag {
+struct BMVert_OFlag {
   BMVert base;
   struct BMFlagLayer *oflags;
-} BMVert_OFlag;
+};
 
 /* disk link structure, only used by edges */
-typedef struct BMDiskLink {
+struct BMDiskLink {
   struct BMEdge *next, *prev;
-} BMDiskLink;
+};
 
-typedef struct BMEdge {
+struct BMEdge {
   BMHeader head;
 
   /**
@@ -140,14 +140,14 @@ typedef struct BMEdge {
    * edge around vertex v1 and d2 does the same for v2.
    */
   BMDiskLink v1_disk_link, v2_disk_link;
-} BMEdge;
+};
 
-typedef struct BMEdge_OFlag {
+struct BMEdge_OFlag {
   BMEdge base;
   struct BMFlagLayer *oflags;
-} BMEdge_OFlag;
+};
 
-typedef struct BMLoop {
+struct BMLoop {
   BMHeader head;
   /* notice no flags layer */
 
@@ -237,27 +237,27 @@ typedef struct BMLoop {
    * \endcode
    */
   struct BMLoop *next, *prev;
-} BMLoop;
+};
 
 /* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these don't have a flag layer */
-typedef struct BMElemF {
+struct BMElemF {
   BMHeader head;
-} BMElemF;
+};
 
 /* can cast anything to this, including BMLoop */
-typedef struct BMElem {
+struct BMElem {
   BMHeader head;
-} BMElem;
+};
 
 #ifdef USE_BMESH_HOLES
 /* eventually, this structure will be used for supporting holes in faces */
-typedef struct BMLoopList {
+struct BMLoopList {
   struct BMLoopList *next, *prev;
   struct BMLoop *first, *last;
-} BMLoopList;
+};
 #endif
 
-typedef struct BMFace {
+struct BMFace {
   BMHeader head;
 
 #ifdef USE_BMESH_HOLES
@@ -286,20 +286,20 @@ typedef struct BMFace {
    */
   short mat_nr;
   //  short _pad[3];
-} BMFace;
+};
 
-typedef struct BMFace_OFlag {
+struct BMFace_OFlag {
   BMFace base;
   struct BMFlagLayer *oflags;
-} BMFace_OFlag;
+};
 
-typedef struct BMFlagLayer {
+struct BMFlagLayer {
   short f; /* flags */
-} BMFlagLayer;
+};
 
 // #pragma GCC diagnostic ignored "-Wpadded"
 
-typedef struct BMesh {
+struct BMesh {
   int totvert, totedge, totloop, totface;
   int totvertsel, totedgesel, totfacesel;
 
@@ -384,7 +384,7 @@ typedef struct BMesh {
    * Doesn't hold a #PyObject reference, cleared when the last object is de-referenced.
    */
   void *py_handle;
-} BMesh;
+};
 
 /** #BMHeader.htype (char) */
 enum {
@@ -394,16 +394,16 @@ enum {
   BM_FACE = 8,
 };
 
-typedef struct BMLoopNorEditData {
+struct BMLoopNorEditData {
   int loop_index;
   BMLoop *loop;
   float niloc[3];
   float nloc[3];
   float *loc;
   short *clnors_data;
-} BMLoopNorEditData;
+};
 
-typedef struct BMLoopNorEditDataArray {
+struct BMLoopNorEditDataArray {
   BMLoopNorEditData *lnor_editdata;
   /**
    * This one has full amount of loops,
@@ -413,7 +413,7 @@ typedef struct BMLoopNorEditDataArray {
 
   int cd_custom_normal_offset;
   int totloop;
-} BMLoopNorEditDataArray;
+};
 
 #define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 #define BM_ALL_NOLOOP (BM_VERT | BM_EDGE | BM_FACE)
@@ -500,12 +500,12 @@ enum {
 struct BPy_BMGeneric;
 extern void bpy_bm_generic_invalidate(struct BPy_BMGeneric *self);
 
-typedef bool (*BMElemFilterFunc)(const BMElem *, void *user_data);
-typedef bool (*BMVertFilterFunc)(const BMVert *, void *user_data);
-typedef bool (*BMEdgeFilterFunc)(const BMEdge *, void *user_data);
-typedef bool (*BMFaceFilterFunc)(const BMFace *, void *user_data);
-typedef bool (*BMLoopFilterFunc)(const BMLoop *, void *user_data);
-typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_data);
+using BMElemFilterFunc = bool (*)(const BMElem *, void *user_data);
+using BMVertFilterFunc = bool (*)(const BMVert *, void *user_data);
+using BMEdgeFilterFunc = bool (*)(const BMEdge *, void *user_data);
+using BMFaceFilterFunc = bool (*)(const BMFace *, void *user_data);
+using BMLoopFilterFunc = bool (*)(const BMLoop *, void *user_data);
+using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user_data);
 
 /* defines */
 #define BM_ELEM_CD_SET_INT(ele, offset, f) \

@@ -122,7 +122,7 @@ static PyObject *pyop_poll(PyObject * /*self*/, PyObject *args)
   }
 
   /* main purpose of this function */
-  ret = WM_operator_poll_context((bContext *)C, ot, context) ? Py_True : Py_False;
+  ret = WM_operator_poll_context(C, ot, context) ? Py_True : Py_False;
 
   return Py_NewRef(ret);
 }
@@ -204,7 +204,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
     context = wmOperatorCallContext(context_int);
   }
 
-  if (WM_operator_poll_context((bContext *)C, ot, context) == false) {
+  if (WM_operator_poll_context(C, ot, context) == false) {
     bool msg_free = false;
     const char *msg = CTX_wm_operator_poll_msg_get(C, &msg_free);
     PyErr_Format(PyExc_RuntimeError,
@@ -363,7 +363,7 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
 
   // WM_operator_properties_create(&ptr, opname);
   /* Save another lookup */
-  PointerRNA ptr = RNA_pointer_create(nullptr, ot->srna, nullptr);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ot->srna, nullptr);
 
   if (kw && PyDict_Size(kw)) {
     error_val = pyrna_pydict_to_props(
@@ -393,11 +393,11 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
 
 static PyObject *pyop_dir(PyObject * /*self*/)
 {
-  const wmOperatorTypeMap &map = WM_operatortype_map();
-  PyObject *list = PyList_New(map.size());
+  const blender::Span<wmOperatorType *> types = WM_operatortypes_registered_get();
+  PyObject *list = PyList_New(types.size());
 
   int i = 0;
-  for (wmOperatorType *ot : map.values()) {
+  for (wmOperatorType *ot : types) {
     PyList_SET_ITEM(list, i, PyUnicode_FromString(ot->idname));
     i++;
   }
@@ -412,7 +412,7 @@ static PyObject *pyop_getrna_type(PyObject * /*self*/, PyObject *value)
     return nullptr;
   }
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_Struct, ot->srna);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, ot->srna);
   BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
   return (PyObject *)pyrna;
 }

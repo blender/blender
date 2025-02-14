@@ -601,6 +601,7 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
   curves.curve_types_for_write().fill(CURVE_TYPE_POLY);
   curves.update_curve_types();
 
+  /* Note: We can assume that the writers here will be valid since we created new curves. */
   bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
   bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(

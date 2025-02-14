@@ -666,7 +666,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 static bool rna_range_from_int_type(const char *dnatype, int r_range[2])
 {
   /* Type `char` is unsigned too. */
-  if (STREQ(dnatype, "char") || STREQ(dnatype, "uchar")) {
+  if (STR_ELEM(dnatype, "char", "uchar")) {
     r_range[0] = CHAR_MIN;
     r_range[1] = CHAR_MAX;
     return true;
@@ -1737,7 +1737,7 @@ void RNA_def_property_ui_range(
       fprop->softmin = float(min);
       fprop->softmax = float(max);
       fprop->step = float(step);
-      fprop->precision = int(precision);
+      fprop->precision = precision;
       break;
     }
     default:

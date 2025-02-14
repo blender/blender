@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
-#include "BLI_bit_vector.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
@@ -17,7 +16,6 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
-#include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
 
@@ -77,17 +75,17 @@ static void clamp(rcti &bounds, int2 resolution)
   BLI_rcti_isect(&bounds, &clamping_bounds, &bounds);
 }
 
-static const Vertex<CoordSpace::Tile> convert_coord_space(const Vertex<CoordSpace::UV> &uv_vertex,
-                                                          const image::ImageTileWrapper image_tile,
-                                                          const int2 tile_resolution)
+static Vertex<CoordSpace::Tile> convert_coord_space(const Vertex<CoordSpace::UV> &uv_vertex,
+                                                    const image::ImageTileWrapper image_tile,
+                                                    const int2 tile_resolution)
 {
   return Vertex<CoordSpace::Tile>{(uv_vertex.coordinate - float2(image_tile.get_tile_offset())) *
                                   float2(tile_resolution)};
 }
 
-static const Edge<CoordSpace::Tile> convert_coord_space(const Edge<CoordSpace::UV> &uv_edge,
-                                                        const image::ImageTileWrapper image_tile,
-                                                        const int2 tile_resolution)
+static Edge<CoordSpace::Tile> convert_coord_space(const Edge<CoordSpace::UV> &uv_edge,
+                                                  const image::ImageTileWrapper image_tile,
+                                                  const int2 tile_resolution)
 {
   return Edge<CoordSpace::Tile>{
       convert_coord_space(uv_edge.vertex_1, image_tile, tile_resolution),
@@ -336,7 +334,7 @@ struct Rows {
     /* Initialize to the first source, so when no other source could be found it will use the
      * first_source. */
     int2 found_source = first_source;
-    float found_distance = std::numeric_limits<float>().max();
+    float found_distance = std::numeric_limits<float>::max();
     for (int sy : IndexRange(search_bounds.ymin, BLI_rcti_size_y(&search_bounds) + 1)) {
       for (int sx : IndexRange(search_bounds.xmin, BLI_rcti_size_x(&search_bounds) + 1)) {
         int2 source(sx, sy);
@@ -394,7 +392,7 @@ struct Rows {
     add_margin(bounds, margin);
     clamp(bounds, resolution);
 
-    float found_distance = std::numeric_limits<float>().max();
+    float found_distance = std::numeric_limits<float>::max();
     int2 found_source(0);
 
     for (int sy : IndexRange(bounds.ymin, BLI_rcti_size_y(&bounds))) {
@@ -413,7 +411,7 @@ struct Rows {
       }
     }
 
-    if (found_distance == std::numeric_limits<float>().max()) {
+    if (found_distance == std::numeric_limits<float>::max()) {
       return;
     }
     pixel.type = PixelType::CopyFromClosestEdge;

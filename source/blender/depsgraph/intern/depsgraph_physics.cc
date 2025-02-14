@@ -10,9 +10,6 @@
 
 #include "intern/depsgraph_physics.hh"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_compiler_compat.h"
 #include "BLI_listbase.h"
 
 #include "BKE_collision.h"

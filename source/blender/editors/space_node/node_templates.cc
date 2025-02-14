@@ -682,7 +682,7 @@ void uiTemplateNodeLink(
   arg->sock = input;
   node_link_item_init(arg->item);
 
-  PointerRNA node_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
+  PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
   node_socket_color_get(*C, *ntree, node_ptr, *input, socket_col);
 
   UI_block_layout_set_current(block, layout);
@@ -798,7 +798,7 @@ static void ui_node_draw_recursive(uiLayout &layout,
       ui_node_draw_recursive(layout, C, ntree, node, *sub_panel_decl, depth + 1);
     }
     else if (const auto *layout_decl = dynamic_cast<const nodes::LayoutDeclaration *>(item_decl)) {
-      PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+      PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
       layout_decl->draw(&layout, &C, &nodeptr);
     }
   }
@@ -807,7 +807,7 @@ static void ui_node_draw_recursive(uiLayout &layout,
 static void ui_node_draw_node(
     uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, int depth)
 {
-  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
 
   if (node.declaration() && node.declaration()->use_custom_socket_order) {
     const nodes::NodeDeclaration &node_decl = *node.declaration();
@@ -864,8 +864,8 @@ static void ui_node_draw_input(uiLayout &layout,
   }
 
   /* socket RNA pointer */
-  PointerRNA inputptr = RNA_pointer_create(&ntree.id, &RNA_NodeSocket, &input);
-  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+  PointerRNA inputptr = RNA_pointer_create_discrete(&ntree.id, &RNA_NodeSocket, &input);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
 
   row = uiLayoutRow(&layout, true);
 

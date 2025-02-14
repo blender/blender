@@ -8,7 +8,6 @@
  * Main internationalization functions to set the locale and query available languages.
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>

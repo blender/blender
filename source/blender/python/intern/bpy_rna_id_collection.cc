@@ -35,8 +35,28 @@
 #include "../generic/python_compat.hh"
 
 #include "RNA_enum_types.hh"
+#include "RNA_prototypes.hh"
 
 #include "bpy_rna.hh"
+
+static Main *pyrna_bmain_FromPyObject(PyObject *obj)
+{
+  if (!BPy_StructRNA_Check(obj)) {
+    PyErr_Format(PyExc_TypeError,
+                 "Expected a StructRNA of type BlendData, not %.200s",
+                 Py_TYPE(obj)->tp_name);
+    return nullptr;
+  }
+  BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(obj);
+  PYRNA_STRUCT_CHECK_OBJ(pyrna);
+  if (!(pyrna->ptr && pyrna->ptr->type == &RNA_BlendData && pyrna->ptr->data)) {
+    PyErr_Format(PyExc_TypeError,
+                 "Expected a StructRNA of type BlendData, not %.200s",
+                 Py_TYPE(pyrna)->tp_name);
+    return nullptr;
+  }
+  return static_cast<Main *>(pyrna->ptr->data);
+}
 
 struct IDUserMapData {
   /** We loop over data-blocks that this ID points to (do build a reverse lookup table) */
@@ -133,14 +153,13 @@ PyDoc_STRVAR(
     "   :type value_types: set[str]\n"
     "   :return: dictionary that maps data-blocks ID's to their users.\n"
     "   :rtype: dict[:class:`bpy.types.ID`, set[:class:`bpy.types.ID`]]\n");
-static PyObject *bpy_user_map(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
 {
-#if 0 /* If someone knows how to get a proper 'self' in that case... */
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Main *bmain = pyrna->ptr.data;
-#else
-  Main *bmain = G_MAIN; /* XXX Ugly, but should work! */
-#endif
+  Main *bmain = pyrna_bmain_FromPyObject(self);
+  if (!bmain) {
+    return nullptr;
+  }
+
   ListBase *lb;
   ID *id;
 
@@ -355,14 +374,12 @@ PyDoc_STRVAR(
     "   :return: dictionary of :class:`bpy.types.ID` instances, with sets of file path "
     "strings as their values.\n"
     "   :rtype: dict\n");
-static PyObject *bpy_file_path_map(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwds)
 {
-#if 0 /* If someone knows how to get a proper 'self' in that case... */
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Main *bmain = pyrna->ptr.data;
-#else
-  Main *bmain = G_MAIN; /* XXX Ugly, but should work! */
-#endif
+  Main *bmain = pyrna_bmain_FromPyObject(self);
+  if (!bmain) {
+    return nullptr;
+  }
 
   PyObject *subset = nullptr;
 
@@ -492,8 +509,6 @@ PyDoc_STRVAR(
     "\n"
     "   Remove (delete) several IDs at once.\n"
     "\n"
-    "   WARNING: Considered experimental feature currently.\n"
-    "\n"
     "   Note that this function is quicker than individual calls to :func:`remove()` "
     "(from :class:`bpy.types.BlendData`\n"
     "   ID collections), but less safe/versatile (it can break Blender, e.g. by removing "
@@ -501,18 +516,14 @@ PyDoc_STRVAR(
     "\n"
     "   :arg ids: Sequence of IDs (types can be mixed).\n"
     "   :type ids: Sequence[:class:`bpy.types.ID`]\n");
-static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+static PyObject *bpy_batch_remove(PyObject *self, PyObject *args, PyObject *kwds)
 {
-#if 0 /* If someone knows how to get a proper 'self' in that case... */
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Main *bmain = pyrna->ptr.data;
-#else
-  Main *bmain = G_MAIN; /* XXX Ugly, but should work! */
-#endif
+  Main *bmain = pyrna_bmain_FromPyObject(self);
+  if (!bmain) {
+    return nullptr;
+  }
 
   PyObject *ids = nullptr;
-
-  PyObject *ret = nullptr;
 
   static const char *_keywords[] = {"ids", nullptr};
   static _PyArg_Parser _parser = {
@@ -523,46 +534,39 @@ static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject 
       nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &ids)) {
-    return ret;
+    return nullptr;
   }
 
-  if (ids) {
-    BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
+  if (!ids) {
+    return nullptr;
+  }
 
-    PyObject *ids_fast = PySequence_Fast(ids, "batch_remove");
-    if (ids_fast == nullptr) {
-      goto error;
+  PyObject *ids_fast = PySequence_Fast(ids, "batch_remove");
+  if (ids_fast == nullptr) {
+    return nullptr;
+  }
+
+  PyObject **ids_array = PySequence_Fast_ITEMS(ids_fast);
+  Py_ssize_t ids_len = PySequence_Fast_GET_SIZE(ids_fast);
+  blender::Set<ID *> ids_to_delete;
+  for (; ids_len; ids_array++, ids_len--) {
+    ID *id;
+    if (!pyrna_id_FromPyObject(*ids_array, &id)) {
+      PyErr_Format(
+          PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(*ids_array)->tp_name);
+      Py_DECREF(ids_fast);
+      return nullptr;
     }
 
-    PyObject **ids_array = PySequence_Fast_ITEMS(ids_fast);
-    Py_ssize_t ids_len = PySequence_Fast_GET_SIZE(ids_fast);
-
-    for (; ids_len; ids_array++, ids_len--) {
-      ID *id;
-      if (!pyrna_id_FromPyObject(*ids_array, &id)) {
-        PyErr_Format(
-            PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(*ids_array)->tp_name);
-        Py_DECREF(ids_fast);
-        goto error;
-      }
-
-      id->tag |= ID_TAG_DOIT;
-    }
-    Py_DECREF(ids_fast);
-
-    BKE_id_multi_tagged_delete(bmain);
-    /* Force full redraw, mandatory to avoid crashes when running this from UI... */
-    WM_main_add_notifier(NC_WINDOW, nullptr);
+    ids_to_delete.add(id);
   }
-  else {
-    goto error;
-  }
+  Py_DECREF(ids_fast);
 
-  Py_INCREF(Py_None);
-  ret = Py_None;
+  BKE_id_multi_delete(bmain, ids_to_delete);
+  /* Force full redraw, mandatory to avoid crashes when running this from UI... */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
-error:
-  return ret;
+  Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(
@@ -580,14 +584,12 @@ PyDoc_STRVAR(
     "remain after a single run of that function, defaults to False\n"
     "   :type do_recursive: bool, optional\n"
     "   :return: The number of deleted IDs.\n");
-static PyObject *bpy_orphans_purge(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+static PyObject *bpy_orphans_purge(PyObject *self, PyObject *args, PyObject *kwds)
 {
-#if 0 /* If someone knows how to get a proper 'self' in that case... */
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  Main *bmain = pyrna->ptr.data;
-#else
-  Main *bmain = G_MAIN; /* XXX Ugly, but should work! */
-#endif
+  Main *bmain = pyrna_bmain_FromPyObject(self);
+  if (!bmain) {
+    return nullptr;
+  }
 
   LibQueryUnusedIDsData unused_ids_data;
   unused_ids_data.do_local_ids = true;
@@ -640,25 +642,25 @@ static PyObject *bpy_orphans_purge(PyObject * /*self*/, PyObject *args, PyObject
 PyMethodDef BPY_rna_id_collection_user_map_method_def = {
     "user_map",
     (PyCFunction)bpy_user_map,
-    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    METH_VARARGS | METH_KEYWORDS,
     bpy_user_map_doc,
 };
 PyMethodDef BPY_rna_id_collection_file_path_map_method_def = {
     "file_path_map",
     (PyCFunction)bpy_file_path_map,
-    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    METH_VARARGS | METH_KEYWORDS,
     bpy_file_path_map_doc,
 };
 PyMethodDef BPY_rna_id_collection_batch_remove_method_def = {
     "batch_remove",
     (PyCFunction)bpy_batch_remove,
-    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    METH_VARARGS | METH_KEYWORDS,
     bpy_batch_remove_doc,
 };
 PyMethodDef BPY_rna_id_collection_orphans_purge_method_def = {
     "orphans_purge",
     (PyCFunction)bpy_orphans_purge,
-    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    METH_VARARGS | METH_KEYWORDS,
     bpy_orphans_purge_doc,
 };
 

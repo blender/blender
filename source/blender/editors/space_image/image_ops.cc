@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <string>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -19,8 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_fileops.h"
+#include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_time.h"
@@ -39,6 +40,7 @@
 #include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_image.hh"
+#include "BKE_image_format.hh"
 #include "BKE_image_save.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -1526,7 +1528,7 @@ static void image_open_draw(bContext * /*C*/, wmOperator *op)
                    false);
 
   /* image template */
-  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf);
+  PointerRNA imf_ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImageFormatSettings, imf);
 
   /* multiview template */
   if (RNA_boolean_get(op->ptr, "show_multiview")) {
@@ -1672,7 +1674,8 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 static bool image_file_browse_poll(bContext *C)
 {
-  return image_from_context(C) != nullptr;
+  Image *ima = image_from_context(C);
+  return (ima && ID_IS_EDITABLE(ima));
 }
 
 void IMAGE_OT_file_browse(wmOperatorType *ot)
@@ -2036,7 +2039,8 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
   uiItemS(layout);
 
   /* Image format settings. */
-  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, &isd->opts.im_format);
+  PointerRNA imf_ptr = RNA_pointer_create_discrete(
+      nullptr, &RNA_ImageFormatSettings, &isd->opts.im_format);
   uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
 
   if (!save_as_render) {
@@ -2538,7 +2542,7 @@ enum {
 };
 
 struct ImageNewData {
-  PropertyPointerRNA pprop;
+  PropertyPointerRNA pprop = {};
 };
 
 static ImageNewData *image_new_init(bContext *C, wmOperator *op)
@@ -2547,7 +2551,7 @@ static ImageNewData *image_new_init(bContext *C, wmOperator *op)
     return static_cast<ImageNewData *>(op->customdata);
   }
 
-  ImageNewData *data = static_cast<ImageNewData *>(MEM_callocN(sizeof(ImageNewData), __func__));
+  ImageNewData *data = MEM_new<ImageNewData>(__func__);
   UI_context_active_but_prop_get_templateID(C, &data->pprop.ptr, &data->pprop.prop);
   op->customdata = data;
   return data;
@@ -2555,7 +2559,9 @@ static ImageNewData *image_new_init(bContext *C, wmOperator *op)
 
 static void image_new_free(wmOperator *op)
 {
-  MEM_SAFE_FREE(op->customdata);
+  if (op->customdata) {
+    MEM_delete(static_cast<ImageNewData *>(op->customdata));
+  }
 }
 
 static int image_new_exec(bContext *C, wmOperator *op)
@@ -2651,7 +2657,7 @@ static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent * /*event
 {
   /* Get property in advance, it doesn't work after WM_operator_props_dialog_popup. */
   ImageNewData *data;
-  op->customdata = data = static_cast<ImageNewData *>(MEM_callocN(sizeof(ImageNewData), __func__));
+  op->customdata = data = MEM_new<ImageNewData>(__func__);
   UI_context_active_but_prop_get_templateID(C, &data->pprop.ptr, &data->pprop.prop);
 
   /* Better for user feedback. */
@@ -2962,6 +2968,7 @@ void IMAGE_OT_rotate_orthogonal(wmOperatorType *ot)
 
 static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
 {
+  Scene *scene = CTX_data_scene(C);
   Image *ima = image_from_context(C);
   if (ima == nullptr) {
     return false;
@@ -2978,9 +2985,25 @@ static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
   bool changed = false;
   if (ibuf) {
-    if (WM_clipboard_image_set(ibuf)) {
+    /* Clipboard uses byte buffer, so match saving an 8 bit PNG for color management. */
+    const bool save_as_render = ima->flag & IMA_VIEW_AS_RENDER;
+
+    ImageFormatData image_format;
+    BKE_image_format_init_for_write(&image_format, scene, nullptr);
+    BKE_image_format_set(&image_format, nullptr, R_IMF_IMTYPE_PNG);
+    image_format.depth = R_IMF_CHAN_DEPTH_8;
+
+    ImBuf *colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
+        ibuf, save_as_render, true, &image_format);
+
+    if (WM_clipboard_image_set_byte_buffer(colormanaged_ibuf)) {
       changed = true;
     }
+
+    if (colormanaged_ibuf != ibuf) {
+      IMB_freeImBuf(colormanaged_ibuf);
+    }
+    BKE_image_format_free(&image_format);
   }
   BKE_image_release_ibuf(ima, ibuf, lock);
   WM_cursor_wait(false);
@@ -3335,20 +3358,38 @@ void IMAGE_OT_resize(wmOperatorType *ot)
 /** \name Pack Operator
  * \{ */
 
-static bool image_pack_test(bContext *C, wmOperator *op)
+static bool image_pack_test(Image *ima, const char **r_error_message)
 {
-  Image *ima = image_from_context(C);
-
   if (!ima) {
     return false;
   }
 
+  if (!ID_IS_EDITABLE(&ima->id)) {
+    *r_error_message = "Image is not editable";
+    return false;
+  }
+
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-    BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported");
+    *r_error_message = "Movies or image sequences do not support packing";
     return false;
   }
 
   return true;
+}
+
+static bool image_pack_poll(bContext *C)
+{
+  Image *ima = image_from_context(C);
+  const char *error_message = nullptr;
+
+  if (image_pack_test(ima, &error_message)) {
+    return true;
+  }
+
+  if (error_message) {
+    CTX_wm_operator_poll_msg_set(C, error_message);
+  }
+  return false;
 }
 
 static int image_pack_exec(bContext *C, wmOperator *op)
@@ -3356,7 +3397,11 @@ static int image_pack_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Image *ima = image_from_context(C);
 
-  if (!image_pack_test(C, op)) {
+  const char *error_message = nullptr;
+  if (!image_pack_test(ima, &error_message)) {
+    if (error_message) {
+      BKE_report(op->reports, RPT_ERROR, error_message);
+    }
     return OPERATOR_CANCELLED;
   }
 
@@ -3381,6 +3426,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_pack_exec;
+  ot->poll = image_pack_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3488,6 +3534,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = image_unpack_exec;
   ot->invoke = image_unpack_invoke;
+  ot->poll = image_pack_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -21,7 +21,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_sort_utils.h"
 #include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_fcurve.hh"
 #include "BKE_movieclip.h"

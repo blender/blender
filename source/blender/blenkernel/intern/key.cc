@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -13,10 +14,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_endian_switch.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -25,17 +27,16 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "BKE_attribute.hh"
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_anim_data.hh"
+#include "BKE_attribute.hh"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
@@ -711,9 +712,7 @@ static void cp_key(const int start,
     return;
   }
 
-  if (end > tot) {
-    end = tot;
-  }
+  end = std::min(end, tot);
 
   if (tot != kb->totelem) {
     ktot = 0.0;
@@ -887,9 +886,7 @@ static void key_evaluate_relative(const int start,
     return;
   }
 
-  if (end > tot) {
-    end = tot;
-  }
+  end = std::min(end, tot);
 
   /* In case of Bezier-triple. */
   elemstr[0] = 1; /* Number of IPO-floats. */
@@ -1024,9 +1021,7 @@ static void do_key(const int start,
     return;
   }
 
-  if (end > tot) {
-    end = tot;
-  }
+  end = std::min(end, tot);
 
   k1 = key_block_get_data(key, actkb, k[0], &freek1);
   k2 = key_block_get_data(key, actkb, k[1], &freek2);
@@ -1267,7 +1262,7 @@ static void do_key(const int start,
   }
 }
 
-static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cache)
+static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCache *cache)
 {
   const MDeformVert *dvert = nullptr;
   BMEditMesh *em = nullptr;
@@ -1399,8 +1394,7 @@ static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
     WeightsArrayCache cache = {0, nullptr};
     float **per_keyblock_weights;
     per_keyblock_weights = keyblock_get_per_block_weights(ob, key, &cache);
-    key_evaluate_relative(
-        0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+    key_evaluate_relative(0, tot, tot, out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
     keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
   }
   else {
@@ -1409,10 +1403,10 @@ static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
     flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
     if (flag == 0) {
-      do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
+      do_key(0, tot, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
     }
     else {
-      cp_key(0, tot, tot, (char *)out, key, actkb, k[2], nullptr, KEY_MODE_DUMMY);
+      cp_key(0, tot, tot, out, key, actkb, k[2], nullptr, KEY_MODE_DUMMY);
     }
   }
 }
@@ -1492,8 +1486,7 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
   if (key->type == KEY_RELATIVE) {
     float **per_keyblock_weights;
     per_keyblock_weights = keyblock_get_per_block_weights(ob, key, nullptr);
-    key_evaluate_relative(
-        0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+    key_evaluate_relative(0, tot, tot, out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
     keyblock_free_per_block_weights(key, per_keyblock_weights, nullptr);
   }
   else {
@@ -1502,10 +1495,10 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
     flag = setkeys(ctime_scaled, &key->block, k, t, 0);
 
     if (flag == 0) {
-      do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
+      do_key(0, tot, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
     }
     else {
-      cp_key(0, tot, tot, (char *)out, key, actkb, k[2], nullptr, KEY_MODE_DUMMY);
+      cp_key(0, tot, tot, out, key, actkb, k[2], nullptr, KEY_MODE_DUMMY);
     }
   }
 
@@ -1960,7 +1953,7 @@ std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const
   if (ELEM(nullptr, key, kb)) {
     return std::nullopt;
   }
-  PointerRNA ptr = RNA_pointer_create((ID *)&key->id, &RNA_ShapeKey, (KeyBlock *)kb);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)&key->id, &RNA_ShapeKey, (KeyBlock *)kb);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "value");
   return RNA_path_from_ID_to_property(&ptr, prop);
 }
@@ -2228,7 +2221,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
   const bool loop_normals_needed = r_loop_normals != nullptr;
-  const bool vert_normals_needed = r_vert_normals != nullptr || loop_normals_needed;
+  const bool vert_normals_needed = r_vert_normals != nullptr;
   const bool face_normals_needed = r_face_normals != nullptr || vert_normals_needed ||
                                    loop_normals_needed;
 
@@ -2275,7 +2268,6 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         corner_verts,
         corner_edges,
         mesh->corner_to_face_map(),
-        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->verts_num},
         {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         sharp_edges,
         sharp_faces,

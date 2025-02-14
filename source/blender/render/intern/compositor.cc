@@ -24,8 +24,6 @@
 
 #include "IMB_imbuf.hh"
 
-#include "DEG_depsgraph_query.hh"
-
 #include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_evaluator.hh"
@@ -37,6 +35,7 @@
 #include "WM_api.hh"
 
 #include "GPU_context.hh"
+#include "GPU_state.hh"
 
 #include "render_types.h"
 
@@ -130,19 +129,22 @@ class ContextInputData {
   std::string view_name;
   compositor::RenderContext *render_context;
   compositor::Profiler *profiler;
+  compositor::OutputTypes needed_outputs;
 
   ContextInputData(const Scene &scene,
                    const RenderData &render_data,
                    const bNodeTree &node_tree,
                    const char *view_name,
                    compositor::RenderContext *render_context,
-                   compositor::Profiler *profiler)
+                   compositor::Profiler *profiler,
+                   compositor::OutputTypes needed_outputs)
       : scene(&scene),
         render_data(&render_data),
         node_tree(&node_tree),
         view_name(view_name),
         render_context(render_context),
-        profiler(profiler)
+        profiler(profiler),
+        needed_outputs(needed_outputs)
   {
   }
 };
@@ -218,19 +220,9 @@ class Context : public compositor::Context {
         this->get_render_data().compositor_denoise_preview_quality);
   }
 
-  bool use_file_output() const override
+  compositor::OutputTypes needed_outputs() const override
   {
-    return this->render_context() != nullptr;
-  }
-
-  bool should_compute_node_previews() const override
-  {
-    return this->render_context() == nullptr;
-  }
-
-  bool use_composite_output() const override
-  {
-    return true;
+    return input_data_.needed_outputs;
   }
 
   const RenderData &get_render_data() const override
@@ -261,12 +253,10 @@ class Context : public compositor::Context {
       if (render_size == output_result_.domain().size) {
         return output_result_;
       }
-      else {
-        /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
-         * the new render size below. */
-        output_result_.release();
-        output_result_.reset();
-      }
+      /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
+       * the new render size below. */
+      output_result_.release();
+      output_result_.reset();
     }
 
     output_result_.allocate_texture(render_size, false);
@@ -287,12 +277,10 @@ class Context : public compositor::Context {
       {
         return viewer_output_result_;
       }
-      else {
-        /* Otherwise, the size or precision changed, so release its data and reset it, then we
-         * reallocate it on the new domain below. */
-        viewer_output_result_.release();
-        viewer_output_result_.reset();
-      }
+      /* Otherwise, the size or precision changed, so release its data and reset it, then we
+       * reallocate it on the new domain below. */
+      viewer_output_result_.release();
+      viewer_output_result_.reset();
     }
 
     viewer_output_result_.set_precision(precision);
@@ -755,12 +743,13 @@ void Render::compositor_execute(const Scene &scene,
                                 const bNodeTree &node_tree,
                                 const char *view_name,
                                 blender::compositor::RenderContext *render_context,
-                                blender::compositor::Profiler *profiler)
+                                blender::compositor::Profiler *profiler,
+                                blender::compositor::OutputTypes needed_outputs)
 {
   std::unique_lock lock(this->compositor_mutex);
 
   blender::render::ContextInputData input_data(
-      scene, render_data, node_tree, view_name, render_context, profiler);
+      scene, render_data, node_tree, view_name, render_context, profiler, needed_outputs);
 
   if (this->compositor) {
     this->compositor->update_input_data(input_data);
@@ -795,9 +784,11 @@ void RE_compositor_execute(Render &render,
                            const bNodeTree &node_tree,
                            const char *view_name,
                            blender::compositor::RenderContext *render_context,
-                           blender::compositor::Profiler *profiler)
+                           blender::compositor::Profiler *profiler,
+                           blender::compositor::OutputTypes needed_outputs)
 {
-  render.compositor_execute(scene, render_data, node_tree, view_name, render_context, profiler);
+  render.compositor_execute(
+      scene, render_data, node_tree, view_name, render_context, profiler, needed_outputs);
 }
 
 void RE_compositor_free(Render &render)

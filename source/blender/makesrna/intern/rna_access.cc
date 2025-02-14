@@ -53,11 +53,12 @@
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
+#include "UI_resources.hh"
+
 #include "WM_api.hh"
 #include "WM_message.hh"
 
 /* flush updates */
-#include "DNA_object_types.h"
 #include "WM_types.hh"
 
 #ifdef WITH_PYTHON
@@ -167,7 +168,7 @@ PointerRNA RNA_id_pointer_create(ID *id)
   return ptr;
 }
 
-PointerRNA RNA_pointer_create(ID *id, StructRNA *type, void *data)
+PointerRNA RNA_pointer_create_discrete(ID *id, StructRNA *type, void *data)
 {
 #if 0 /* UNUSED */
   StructRNA *idtype = nullptr;
@@ -919,7 +920,7 @@ uint RNA_struct_count_properties(StructRNA *srna)
 {
   uint counter = 0;
 
-  PointerRNA struct_ptr = RNA_pointer_create(nullptr, srna, nullptr);
+  PointerRNA struct_ptr = RNA_pointer_create_discrete(nullptr, srna, nullptr);
 
   RNA_STRUCT_BEGIN (&struct_ptr, prop) {
     counter++;
@@ -970,7 +971,7 @@ FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
   PropertyRNA *iterprop;
   FunctionRNA *func;
 
-  PointerRNA tptr = RNA_pointer_create(nullptr, &RNA_Struct, srna);
+  PointerRNA tptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, srna);
   iterprop = RNA_struct_find_property(&tptr, "functions");
 
   func = nullptr;
@@ -3298,6 +3299,22 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
     rna_property_float_get_default_array_values(ptr, fprop, values);
   }
 }
+void RNA_property_float_get_array_at_most(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          float *values,
+                                          int values_num)
+{
+  BLI_assert(values_num >= 0);
+  const int array_num = RNA_property_array_length(ptr, prop);
+  if (values_num >= array_num) {
+    RNA_property_float_get_array(ptr, prop, values);
+    return;
+  }
+
+  blender::Array<float, RNA_STACK_ARRAY> value_buf(array_num);
+  RNA_property_float_get_array(ptr, prop, value_buf.data());
+  memcpy(values, value_buf.data(), sizeof(*values) * values_num);
+}
 
 void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, float values[2])
 {
@@ -3410,6 +3427,23 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
                          .release());
     }
   }
+}
+void RNA_property_float_set_array_at_most(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          const float *values,
+                                          int values_num)
+{
+  BLI_assert(values_num >= 0);
+  const int array_num = RNA_property_array_length(ptr, prop);
+  if (values_num >= array_num) {
+    RNA_property_float_set_array(ptr, prop, values);
+    return;
+  }
+
+  blender::Array<float, RNA_STACK_ARRAY> value_buf(array_num);
+  RNA_property_float_get_array(ptr, prop, value_buf.data());
+  memcpy(value_buf.data(), values, sizeof(*values) * values_num);
+  RNA_property_float_set_array(ptr, prop, value_buf.data());
 }
 
 void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, float value)
@@ -4813,7 +4847,7 @@ static int rna_raw_access(ReportList *reports,
   ptype = RNA_property_pointer_type(ptr, prop);
 
   /* try to get item property pointer */
-  PointerRNA itemptr_base = RNA_pointer_create(nullptr, ptype, nullptr);
+  PointerRNA itemptr_base = RNA_pointer_create_discrete(nullptr, ptype, nullptr);
   itemprop = RNA_struct_find_property(&itemptr_base, propname);
 
   if (itemprop) {
@@ -5941,7 +5975,7 @@ std::string RNA_function_as_string_keywords(bContext *C,
                                             const bool all_args,
                                             const int max_prop_length)
 {
-  PointerRNA funcptr = RNA_pointer_create(nullptr, &RNA_Function, func);
+  PointerRNA funcptr = RNA_pointer_create_discrete(nullptr, &RNA_Function, func);
 
   PropertyRNA *iterprop = RNA_struct_find_property(&funcptr, "parameters");
 
@@ -6412,7 +6446,7 @@ int RNA_parameter_list_ret_count(const ParameterList *parms)
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 {
   /* may be useful but unused now */
-  // RNA_pointer_create(nullptr, &RNA_Function, parms->func, &iter->funcptr); /* UNUSED */
+  // RNA_pointer_create_discrete(nullptr, &RNA_Function, parms->func, &iter->funcptr); /* UNUSED */
 
   iter->parms = parms;
   iter->parm = static_cast<PropertyRNA *>(parms->func->cont.properties.first);
@@ -6753,7 +6787,7 @@ bool RNA_property_assign_default(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 #ifdef WITH_PYTHON
-extern void PyC_LineSpit(void);
+extern void PyC_LineSpit();
 #endif
 
 void _RNA_warning(const char *format, ...)

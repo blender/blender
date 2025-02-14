@@ -5,7 +5,6 @@
 #include "BKE_node.hh"
 
 #include "NOD_geometry.hh"
-#include "NOD_node_declaration.hh"
 
 #include "NOD_common.hh"
 #include "node_common.h"

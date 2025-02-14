@@ -7,7 +7,6 @@
  */
 
 #include <algorithm>
-#include <cstdio>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"

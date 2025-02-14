@@ -7,7 +7,6 @@
  */
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -38,8 +37,6 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_vfont.hh"
-
-#include "BLI_sys_types.h" /* For #intptr_t support. */
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

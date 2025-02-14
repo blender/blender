@@ -48,11 +48,11 @@ if(WIN32)
     # the foldernames *HAVE* to match the ones inside pythons get_externals.cmd.
     # regardless of the version actually in there.
     PATCH_COMMAND mkdir ${PYTHON_EXTERNALS_FOLDER_DOS} &&
-      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.2.13 ${ZLIB_SOURCE_FOLDER_DOS} &&
-      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-3.0.11 ${SSL_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.3.1 ${ZLIB_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-3.0.15 ${SSL_SOURCE_FOLDER_DOS} &&
       ${CMAKE_COMMAND} -E copy
         ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h
-        ${PYTHON_EXTERNALS_FOLDER}/zlib-1.2.13/zconf.h &&
+        ${PYTHON_EXTERNALS_FOLDER}/zlib-1.3.1/zconf.h &&
       ${PATCH_CMD} --verbose -p1 -d
         ${BUILD_DIR}/python/src/external_python <
         ${PATCH_DIR}/${PYTHON_PATCH_FILE}

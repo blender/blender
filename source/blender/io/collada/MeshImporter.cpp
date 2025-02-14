@@ -6,21 +6,14 @@
  * \ingroup collada
  */
 
-#include <algorithm>
 #include <iostream>
-
-/* COLLADABU_ASSERT, may be able to remove later */
-#include "COLLADABUPlatform.h"
 
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWPolygons.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_displist.h"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
@@ -29,9 +22,6 @@
 #include "BKE_object.hh"
 
 #include "DNA_meshdata_types.h"
-
-#include "BLI_listbase.h"
-#include "BLI_string.h"
 
 #include "ArmatureImporter.h"
 #include "MeshImporter.h"

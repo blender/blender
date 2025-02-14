@@ -894,7 +894,7 @@ static float2 horizontal_alignment_offset_get(const TextVars *data,
   if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
     return {line_offset, 0.0f};
   }
-  else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
+  if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
     return {line_offset / 2.0f, 0.0f};
   }
 

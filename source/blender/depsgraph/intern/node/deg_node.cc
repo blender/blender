@@ -8,17 +8,12 @@
 
 #include "intern/node/deg_node.hh"
 
-#include <cstdio>
-
-#include "BLI_utildefines.h"
-
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_factory.hh"
 #include "intern/node/deg_node_id.hh"
-#include "intern/node/deg_node_operation.hh"
 #include "intern/node/deg_node_time.hh"
 
 namespace blender::deg {
@@ -301,9 +296,9 @@ Node::~Node()
   }
 }
 
-string Node::identifier() const
+std::string Node::identifier() const
 {
-  return string(nodeTypeAsString(type)) + " : " + name;
+  return std::string(nodeTypeAsString(type)) + " : " + name;
 }
 
 NodeClass Node::get_class() const

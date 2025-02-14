@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
@@ -660,7 +661,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
           }
         }
 
-        view3d_region_operator_needs_opengl(p->win, p->region);
+        view3d_region_operator_needs_gpu(p->region);
         ED_view3d_depth_override(p->depsgraph, p->region, v3d, nullptr, mode, false, nullptr);
       }
 
@@ -1220,7 +1221,7 @@ static void annotation_stroke_doeraser(tGPsdata *p)
   if (p->area->spacetype == SPACE_VIEW3D) {
     if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
       View3D *v3d = static_cast<View3D *>(p->area->spacedata.first);
-      view3d_region_operator_needs_opengl(p->win, p->region);
+      view3d_region_operator_needs_gpu(p->region);
       ED_view3d_depth_override(
           p->depsgraph, p->region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, false, &p->depths);
     }
@@ -1462,7 +1463,7 @@ static tGPsdata *annotation_session_initpaint(bContext *C)
   tGPsdata *p = nullptr;
 
   /* create new context data */
-  p = static_cast<tGPsdata *>(MEM_callocN(sizeof(tGPsdata), "Annotation Drawing Data"));
+  p = MEM_new<tGPsdata>("Annotation Drawing Data");
 
   /* Try to initialize context data
    * WARNING: This may not always succeed (e.g. using GP in an annotation-only context)
@@ -1472,7 +1473,7 @@ static tGPsdata *annotation_session_initpaint(bContext *C)
      * NOTE: It should be safe to just free the data, since failing context checks should
      * only happen when no data has been allocated.
      */
-    MEM_freeN(p);
+    MEM_delete(p);
     return nullptr;
   }
 
@@ -1517,7 +1518,7 @@ static void annotation_session_free(tGPsdata *p)
   if (p->depths) {
     ED_view3d_depths_free(p->depths);
   }
-  MEM_freeN(p);
+  MEM_delete(p);
 }
 
 /* init new stroke */
@@ -1690,7 +1691,7 @@ static void annotation_paint_strokeend(tGPsdata *p)
       }
     }
     /* need to restore the original projection settings before packing up */
-    view3d_region_operator_needs_opengl(p->win, p->region);
+    view3d_region_operator_needs_gpu(p->region);
     ED_view3d_depth_override(
         p->depsgraph, p->region, v3d, nullptr, mode, false, is_eraser ? nullptr : &p->depths);
   }

@@ -28,8 +28,10 @@
 
 #include "GHOST_C-api.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_math_vector.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
 
@@ -67,6 +69,7 @@
 #include "UI_view2d.hh"
 
 #include "WM_api.hh"
+#include "WM_keymap.hh"
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
@@ -1027,8 +1030,11 @@ void WM_reportf(eReportType type, const char *format, ...)
   va_list args;
 
   format = RPT_(format);
+
   va_start(args, format);
   char *str = BLI_vsprintfN(format, args);
+  va_end(args);
+
   WM_report(type, str);
   MEM_freeN(str);
 }
@@ -1453,7 +1459,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
   else {
     op->properties = blender::bke::idprop::create_group("wmOperatorProperties").release();
   }
-  *op->ptr = RNA_pointer_create(&wm->id, ot->srna, op->properties);
+  *op->ptr = RNA_pointer_create_discrete(&wm->id, ot->srna, op->properties);
 
   /* Initialize error reports. */
   if (reports) {
@@ -1897,7 +1903,7 @@ int WM_operator_name_call_with_properties(bContext *C,
                                           const wmEvent *event)
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
-  PointerRNA props_ptr = RNA_pointer_create(
+  PointerRNA props_ptr = RNA_pointer_create_discrete(
       &static_cast<wmWindowManager *>(G_MAIN->wm.first)->id, ot->srna, properties);
   return WM_operator_name_call_ptr(C, ot, context, &props_ptr, event);
 }
@@ -6579,9 +6585,21 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     }
     if (kmi) {
       wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
-      const std::string operator_name = WM_operatortype_name(ot, kmi->ptr);
-      const char *name = (ot) ? operator_name.c_str() : kmi->idname;
-      STRNCPY(cd->text[button_index][type_index], name);
+      std::string name;
+
+      if (kmi->type == RIGHTMOUSE && kmi->val == KM_PRESS &&
+          STR_ELEM(kmi->idname, "WM_OT_call_menu", "WM_OT_call_menu_pie", "WM_OT_call_panel"))
+      {
+        name = TIP_("Options");
+      }
+      else if (ot) {
+        name = WM_operatortype_name(ot, kmi->ptr);
+      }
+      else {
+        name = kmi->idname;
+      }
+
+      STRNCPY(cd->text[button_index][type_index], name.c_str());
     }
   }
 

@@ -11,7 +11,6 @@
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_texture_types.h"
 
 #include "BLI_math_rotation.h"
 
@@ -60,6 +59,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "MEM_guardedalloc.h"
 
 #  include "DNA_gpencil_legacy_types.h"
+#  include "DNA_meshdata_types.h"
 #  include "DNA_node_types.h"
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"

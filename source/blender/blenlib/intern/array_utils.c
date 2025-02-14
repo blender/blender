@@ -22,7 +22,7 @@
 
 #include "BLI_array_utils.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 void _bli_array_reverse(void *arr_v, uint arr_len, size_t arr_stride)
 {

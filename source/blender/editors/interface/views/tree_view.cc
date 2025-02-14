@@ -14,6 +14,7 @@
 #include "BLT_translation.hh"
 
 #include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "interface_intern.hh"
 
@@ -133,7 +134,7 @@ void AbstractTreeView::set_default_rows(int default_rows)
 
 std::optional<uiViewState> AbstractTreeView::persistent_state() const
 {
-  if (!custom_height_) {
+  if (!custom_height_ && !scroll_value_) {
     return {};
   }
 
@@ -141,6 +142,9 @@ std::optional<uiViewState> AbstractTreeView::persistent_state() const
 
   if (custom_height_) {
     state.custom_height = *custom_height_ * UI_INV_SCALE_FAC;
+  }
+  if (scroll_value_) {
+    state.scroll_offset = *scroll_value_;
   }
 
   return state;
@@ -150,6 +154,9 @@ void AbstractTreeView::persistent_state_apply(const uiViewState &state)
 {
   if (state.custom_height) {
     set_default_rows(round_fl_to_int(state.custom_height * UI_SCALE_FAC) / padded_item_height());
+  }
+  if (state.scroll_offset) {
+    scroll_value_ = std::make_shared<int>(state.scroll_offset);
   }
 }
 
@@ -297,7 +304,7 @@ void AbstractTreeView::update_children_from_old(const AbstractView &old_view)
 
   custom_height_ = old_tree_view.custom_height_;
   scroll_value_ = old_tree_view.scroll_value_;
-  this->update_children_from_old_recursive(*this, old_tree_view);
+  update_children_from_old_recursive(*this, old_tree_view);
 }
 
 void AbstractTreeView::update_children_from_old_recursive(const TreeViewOrItem &new_items,

@@ -14,6 +14,8 @@
 
 #include "BKE_curves.hh"
 
+#include "FN_multi_function_builder.hh"
+
 #include "GEO_randomize.hh"
 
 namespace blender::nodes::node_geo_interpolate_curves_cc {

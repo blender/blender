@@ -123,12 +123,6 @@ class OSLRenderServices : public OSL::RendererServices {
                      const TypeDesc type,
                      OSLUStringHash name,
                      void *val) override;
-  bool get_attribute(ShaderData *sd,
-                     bool derivatives,
-                     OSLUStringHash object_name,
-                     const TypeDesc type,
-                     OSLUStringHash name,
-                     void *val);
 
   bool get_userdata(bool derivatives,
                     OSLUStringHash name,
@@ -187,19 +181,12 @@ class OSLRenderServices : public OSL::RendererServices {
                   void *val,
                   bool derivatives) override;
 
-#if OSL_LIBRARY_VERSION_CODE >= 11304
   OSL::TextureSystem::TextureHandle *get_texture_handle(OSL::ustring filename,
                                                         OSL::ShadingContext *context,
                                                         const OSL::TextureOpt *options) override;
   OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
                                                         OSL::ShadingContext *context,
                                                         const OSL::TextureOpt *options) override;
-#elif OSL_LIBRARY_VERSION_CODE >= 11100
-  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
-                                                        OSL::ShadingContext *context) override;
-#else
-  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename) override;
-#endif
 
   bool good(OSL::TextureSystem::TextureHandle *texture_handle) override;
 
@@ -250,7 +237,6 @@ class OSLRenderServices : public OSL::RendererServices {
                    float *dresultdt,
                    OSLUStringHash *errormessage) override;
 
-#if OSL_LIBRARY_VERSION_CODE >= 11304
   bool get_texture_info(OSLUStringHash filename,
                         TextureHandle *texture_handle,
                         TexturePerthread *texture_thread_info,
@@ -260,34 +246,13 @@ class OSLRenderServices : public OSL::RendererServices {
                         const TypeDesc datatype,
                         void *data,
                         OSLUStringHash *errormessage) override;
-#elif OSL_LIBRARY_VERSION_CODE >= 11100
-  bool get_texture_info(OSLUStringHash filename,
-                        TextureHandle *texture_handle,
-                        TexturePerthread *texture_thread_info,
-                        OSL::ShadingContext *shading_context,
-                        const int subimage,
-                        OSLUStringHash dataname,
-                        const TypeDesc datatype,
-                        void *data,
-                        OSLUStringHash *errormessage) override;
-#else
-  bool get_texture_info(OSL::ShaderGlobals *sg,
-                        OSLUStringHash filename,
-                        TextureHandle *texture_handle,
-                        const int subimage,
-                        OSLUStringHash dataname,
-                        const TypeDesc datatype,
-                        void *data) override;
-#endif
 
-  static bool get_background_attribute(const ThreadKernelGlobalsCPU *kg,
-                                       ShaderData *sd,
+  static bool get_background_attribute(ShaderGlobals *globals,
                                        OSLUStringHash name,
                                        const TypeDesc type,
                                        bool derivatives,
                                        void *val);
-  static bool get_object_standard_attribute(const ThreadKernelGlobalsCPU *kg,
-                                            ShaderData *sd,
+  static bool get_object_standard_attribute(ShaderGlobals *globals,
                                             OSLUStringHash name,
                                             const TypeDesc type,
                                             bool derivatives,
@@ -305,10 +270,12 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_object_alpha;
   static ustring u_object_index;
   static ustring u_object_is_light;
+  static ustring u_bump_map_normal;
   static ustring u_geom_dupli_generated;
   static ustring u_geom_dupli_uv;
   static ustring u_material_index;
   static ustring u_object_random;
+  static ustring u_light_random;
   static ustring u_particle_index;
   static ustring u_particle_random;
   static ustring u_particle_age;

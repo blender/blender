@@ -29,7 +29,13 @@ OSL_CLOSURE_STRUCT_BEGIN(OrenNayarDiffuseBSDF, oren_nayar_diffuse_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(OrenNayarDiffuseBSDF, VECTOR, packed_float3, N, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(OrenNayarDiffuseBSDF, VECTOR, packed_float3, albedo, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(OrenNayarDiffuseBSDF, FLOAT, float, roughness, nullptr)
-OSL_CLOSURE_STRUCT_END(OrenNayarDiffuseBSDF, oren_nayar)
+OSL_CLOSURE_STRUCT_END(OrenNayarDiffuseBSDF, oren_nayar_diffuse_bsdf)
+
+OSL_CLOSURE_STRUCT_BEGIN(BurleyDiffuseBSDF, burley_diffuse_bsdf)
+  OSL_CLOSURE_STRUCT_MEMBER(BurleyDiffuseBSDF, VECTOR, packed_float3, N, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(BurleyDiffuseBSDF, VECTOR, packed_float3, albedo, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(BurleyDiffuseBSDF, FLOAT, float, roughness, NULL)
+OSL_CLOSURE_STRUCT_END(BurleyDiffuseBSDF, burley_diffuse_bsdf)
 
 OSL_CLOSURE_STRUCT_BEGIN(Translucent, translucent)
   OSL_CLOSURE_STRUCT_MEMBER(Translucent, VECTOR, packed_float3, N, nullptr)
@@ -138,6 +144,12 @@ OSL_CLOSURE_STRUCT_BEGIN(Sheen, sheen)
   OSL_CLOSURE_STRUCT_MEMBER(Sheen, FLOAT, float, roughness, nullptr)
 OSL_CLOSURE_STRUCT_END(Sheen, sheen)
 
+OSL_CLOSURE_STRUCT_BEGIN(SheenBSDF, sheen_bsdf)
+  OSL_CLOSURE_STRUCT_MEMBER(SheenBSDF, VECTOR, packed_float3, N, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(SheenBSDF, VECTOR, packed_float3, albedo, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(SheenBSDF, FLOAT, float, roughness, nullptr)
+OSL_CLOSURE_STRUCT_END(SheenBSDF, sheen_bsdf)
+
 OSL_CLOSURE_STRUCT_BEGIN(DiffuseToon, diffuse_toon)
   OSL_CLOSURE_STRUCT_MEMBER(DiffuseToon, VECTOR, packed_float3, N, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(DiffuseToon, FLOAT, float, size, nullptr)
@@ -155,6 +167,10 @@ OSL_CLOSURE_STRUCT_END(GenericEmissive, emission)
 
 OSL_CLOSURE_STRUCT_BEGIN(GenericBackground, background)
 OSL_CLOSURE_STRUCT_END(GenericBackground, background)
+
+OSL_CLOSURE_STRUCT_BEGIN(UniformEDF, uniform_edf)
+  OSL_CLOSURE_STRUCT_MEMBER(UniformEDF, COLOR, packed_float3, emittance, nullptr)
+OSL_CLOSURE_STRUCT_END(UniformEDF, uniform_edf)
 
 OSL_CLOSURE_STRUCT_BEGIN(Holdout, holdout)
 OSL_CLOSURE_STRUCT_END(Holdout, holdout)
@@ -179,6 +195,18 @@ OSL_CLOSURE_STRUCT_BEGIN(BSSRDF, bssrdf)
   OSL_CLOSURE_STRUCT_MEMBER(BSSRDF, FLOAT, float, ior, "ior")
   OSL_CLOSURE_STRUCT_MEMBER(BSSRDF, FLOAT, float, anisotropy, "anisotropy")
 OSL_CLOSURE_STRUCT_END(BSSRDF, bssrdf)
+
+OSL_CLOSURE_STRUCT_BEGIN(SubsurfaceBSSRDF, subsurface_bssrdf)
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, N, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, albedo, nullptr)
+#if OSL_LIBRARY_VERSION_CODE >= 11401
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, radius, nullptr)
+#else
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, FLOAT, float, transmission_depth, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, VECTOR, packed_float3, transmission_color, nullptr)
+#endif
+  OSL_CLOSURE_STRUCT_MEMBER(SubsurfaceBSSRDF, FLOAT, float, anisotropy, nullptr)
+OSL_CLOSURE_STRUCT_END(SubsurfaceBSSRDF, subsurface_bssrdf)
 
 OSL_CLOSURE_STRUCT_BEGIN(HairReflection, hair_reflection)
   OSL_CLOSURE_STRUCT_MEMBER(HairReflection, VECTOR, packed_float3, N, nullptr)

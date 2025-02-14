@@ -7,9 +7,7 @@
  * `.blend` file reading entry point.
  */
 
-#include <cmath>
 #include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 

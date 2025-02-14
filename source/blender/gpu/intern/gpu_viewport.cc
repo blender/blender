@@ -24,8 +24,8 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
+#include "GPU_state.hh"
 #include "GPU_texture.hh"
-#include "GPU_uniform_buffer.hh"
 #include "GPU_viewport.hh"
 
 #include "DRW_engine.hh"

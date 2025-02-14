@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <cmath>
@@ -425,12 +426,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   if (height < FLT_MIN) {
     height = 1;
   }
-  if (winx < 1) {
-    winx = 1;
-  }
-  if (winy < 1) {
-    winy = 1;
-  }
+  winx = std::max<float>(winx, 1);
+  winy = std::max<float>(winy, 1);
 
   /* V2D_LIMITZOOM indicates that zoom level should be preserved when the window size changes */
   if (resize && (v2d->keepzoom & V2D_KEEPZOOM)) {
@@ -642,12 +639,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
         !(v2d->keepzoom & (V2D_KEEPZOOM | V2D_LOCKZOOM_X | V2D_LIMITZOOM)))
     {
       /* if zoom doesn't have to be maintained, just clamp edges */
-      if (cur->xmin < tot->xmin) {
-        cur->xmin = tot->xmin;
-      }
-      if (cur->xmax > tot->xmax) {
-        cur->xmax = tot->xmax;
-      }
+      cur->xmin = std::max(cur->xmin, tot->xmin);
+      cur->xmax = std::min(cur->xmax, tot->xmax);
     }
     else if (v2d->keeptot == V2D_KEEPTOT_STRICT) {
       /* This is an exception for the outliner (and later channel-lists, headers)
@@ -732,12 +725,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
         !(v2d->keepzoom & (V2D_KEEPZOOM | V2D_LOCKZOOM_Y | V2D_LIMITZOOM)))
     {
       /* if zoom doesn't have to be maintained, just clamp edges */
-      if (cur->ymin < tot->ymin) {
-        cur->ymin = tot->ymin;
-      }
-      if (cur->ymax > tot->ymax) {
-        cur->ymax = tot->ymax;
-      }
+      cur->ymin = std::max(cur->ymin, tot->ymin);
+      cur->ymax = std::min(cur->ymax, tot->ymax);
     }
     else {
       /* This here occurs when:
@@ -1265,10 +1254,10 @@ static void grid_axis_start_and_count(
 {
   *r_start = min;
   if (*r_start < 0.0f) {
-    *r_start += -float(fmod(min, step));
+    *r_start += -fmod(min, step);
   }
   else {
-    *r_start += step - float(fabs(fmod(min, step)));
+    *r_start += step - fabs(fmod(min, step));
   }
 
   if (*r_start > max) {
@@ -1455,9 +1444,7 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
     }
 
     /* prevent inverted sliders */
-    if (r_scrollers->hor_min > r_scrollers->hor_max) {
-      r_scrollers->hor_min = r_scrollers->hor_max;
-    }
+    r_scrollers->hor_min = std::min(r_scrollers->hor_min, r_scrollers->hor_max);
     /* prevent sliders from being too small to grab */
     if ((r_scrollers->hor_max - r_scrollers->hor_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
       r_scrollers->hor_max = r_scrollers->hor_min + V2D_SCROLL_THUMB_SIZE_MIN;
@@ -1493,9 +1480,7 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
     }
 
     /* prevent inverted sliders */
-    if (r_scrollers->vert_min > r_scrollers->vert_max) {
-      r_scrollers->vert_min = r_scrollers->vert_max;
-    }
+    r_scrollers->vert_min = std::min(r_scrollers->vert_min, r_scrollers->vert_max);
     /* prevent sliders from being too small to grab */
     if ((r_scrollers->vert_max - r_scrollers->vert_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
       r_scrollers->vert_max = r_scrollers->vert_min + V2D_SCROLL_THUMB_SIZE_MIN;
@@ -2150,9 +2135,7 @@ void UI_view2d_text_cache_draw(ARegion *region)
     int xofs = 0, yofs;
 
     yofs = ceil(0.5f * (BLI_rcti_size_y(&v2s->rect) - default_height));
-    if (yofs < 1) {
-      yofs = 1;
-    }
+    yofs = std::max(yofs, 1);
 
     if (col_pack_prev != v2s->col.pack) {
       BLF_color4ubv(font_id, v2s->col.ub);

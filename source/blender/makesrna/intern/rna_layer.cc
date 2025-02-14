@@ -7,15 +7,9 @@
  */
 
 #include "DNA_layer_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-
-#include "BLT_translation.hh"
 
 #include "ED_object.hh"
 #include "ED_render.hh"
-
-#include "RE_engine.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -47,6 +41,8 @@
 
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_query.hh"
+
+#  include "RE_engine.h"
 
 /***********************************/
 
@@ -398,7 +394,7 @@ static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, Poi
   if (!child) {
     return false;
   }
-  *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child);
+  *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_LayerCollection, child);
   return true;
 }
 
@@ -413,7 +409,7 @@ static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
 
   LISTBASE_FOREACH (LayerCollection *, child, &lc->layer_collections) {
     if (STREQ(child->collection->id.name + 2, key)) {
-      *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child);
+      *r_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_LayerCollection, child);
       return true;
     }
   }

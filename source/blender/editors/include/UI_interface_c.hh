@@ -1973,13 +1973,15 @@ void UI_but_drag_attach_image(uiBut *but, const ImBuf *imb, float scale);
 /**
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
+ * \param icon: Small icon that will be drawn while dragging.
+ * \param preview_icon: Bigger preview size icon that will be drawn while dragging instead of \a
+ * icon.
  */
 void UI_but_drag_set_asset(uiBut *but,
                            const blender::asset_system::AssetRepresentation *asset,
                            int import_method, /* eAssetImportMethod */
                            int icon,
-                           const ImBuf *imb,
-                           float scale);
+                           int preview_icon);
 
 void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr);
 /**
@@ -2883,11 +2885,8 @@ void uiTemplateAssetView(uiLayout *layout,
 
 namespace blender::ui {
 
-void template_asset_shelf_popover(uiLayout &layout,
-                                  const bContext &C,
-                                  StringRefNull asset_shelf_id,
-                                  StringRefNull name,
-                                  int icon);
+void template_asset_shelf_popover(
+    uiLayout &layout, const bContext &C, StringRefNull asset_shelf_id, StringRef name, int icon);
 
 }
 
@@ -3150,18 +3149,15 @@ void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, blender::StringRef name, int
 /**
  * Menu.
  */
-void uiItemM_ptr(uiLayout *layout,
-                 MenuType *mt,
-                 std::optional<blender::StringRefNull> name,
-                 int icon);
+void uiItemM_ptr(uiLayout *layout, MenuType *mt, std::optional<blender::StringRef> name, int icon);
 void uiItemM(uiLayout *layout,
-             blender::StringRefNull menuname,
-             std::optional<blender::StringRefNull> name,
+             blender::StringRef menuname,
+             std::optional<blender::StringRef> name,
              int icon);
 /**
  * Menu contents.
  */
-void uiItemMContents(uiLayout *layout, blender::StringRefNull menuname);
+void uiItemMContents(uiLayout *layout, blender::StringRef menuname);
 
 /* Decorators. */
 
@@ -3196,12 +3192,12 @@ void uiItemProgressIndicator(uiLayout *layout,
 void uiItemPopoverPanel_ptr(uiLayout *layout,
                             const bContext *C,
                             PanelType *pt,
-                            std::optional<blender::StringRefNull> name_opt,
+                            std::optional<blender::StringRef> name_opt,
                             int icon);
 void uiItemPopoverPanel(uiLayout *layout,
                         const bContext *C,
-                        blender::StringRefNull panel_type,
-                        std::optional<blender::StringRefNull> name_opt,
+                        blender::StringRef panel_type,
+                        std::optional<blender::StringRef> name_opt,
                         int icon);
 void uiItemPopoverPanelFromGroup(uiLayout *layout,
                                  bContext *C,
@@ -3272,8 +3268,9 @@ uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
 
 /* UI Operators */
 struct uiDragColorHandle {
-  float color[3];
+  float color[4];
   bool gamma_corrected;
+  bool has_alpha;
 };
 
 void ED_operatortypes_ui();

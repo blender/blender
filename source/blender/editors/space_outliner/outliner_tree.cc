@@ -7,17 +7,17 @@
  */
 
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_layer.hh"
@@ -31,10 +31,8 @@
 #include "UI_interface.hh"
 
 #include "outliner_intern.hh"
-#include "tree/common.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
-#include "tree/tree_element_overrides.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */

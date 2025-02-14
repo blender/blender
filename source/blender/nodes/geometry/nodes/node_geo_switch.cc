@@ -13,6 +13,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "FN_multi_function_builder.hh"
+
 namespace blender::nodes::node_geo_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeSwitch)

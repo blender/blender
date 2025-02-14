@@ -206,7 +206,7 @@ bool BM_mesh_validate(BMesh *bm)
     face_map.add_or_modify(
         std::move(face_verts),
         [&](int *value) { *value = i; },
-        [&](int *value) { ERRMSG("face %d: duplicate of %d", i, *value); });
+        [&](const int *value) { ERRMSG("face %d: duplicate of %d", i, *value); });
 
     if (j != f->len) {
       ERRMSG("face %d: has length of %d but should be %d", i, f->len, j);

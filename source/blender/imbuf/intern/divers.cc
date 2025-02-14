@@ -9,12 +9,10 @@
 
 #include "BLI_rect.h"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
 
 #include "IMB_filter.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "imbuf.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_colormanagement_intern.hh"

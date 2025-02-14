@@ -6,8 +6,6 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 
@@ -16,8 +14,6 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
-#include "BKE_subsurf.hh"
-#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -101,8 +97,12 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
   modifier_ctx.object = object;
   modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
 
-  BKE_modifier_deform_verts(deform_md, &modifier_ctx, multires_mesh, deformed_verts);
+  const bool deform_success = BKE_modifier_deform_verts(
+      deform_md, &modifier_ctx, multires_mesh, deformed_verts);
   BKE_id_free(nullptr, multires_mesh);
+  if (!deform_success) {
+    return false;
+  }
 
   /* Reshaping */
   bool result = multiresModifier_reshapeFromVertcos(

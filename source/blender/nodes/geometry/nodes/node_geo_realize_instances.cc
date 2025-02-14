@@ -8,7 +8,7 @@
 
 #include "GEO_realize_instances.hh"
 
-#include "UI_resources.hh"
+#include "FN_multi_function_builder.hh"
 
 namespace blender::nodes::node_geo_realize_instances_cc {
 

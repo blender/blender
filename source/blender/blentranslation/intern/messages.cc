@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2009-2015 Artyom Beilis (Tonkikh)
  * SPDX-FileCopyrightText: 2021-2023 Alexander Grund
  * SPDX-FileCopyrightText: 2025 Blender Authors
+ *
  * SPDX-License-Identifier: BSL-1.0
  *
  * Adapted from boost::locale */
@@ -228,7 +229,7 @@ class Info {
     if (end >= input.size()) {
       return true;
     }
-    if (input[end] == '-' || input[end] == '_') {
+    if (ELEM(input[end], '-', '_')) {
       return parse_from_country(input.substr(end + 1));
     }
     if (input[end] == '.') {
@@ -250,14 +251,14 @@ class Info {
         return false;
       }
     }
-    if (tmp != "c" && tmp != "posix") { /* Keep default if C or POSIX. */
+    if (!ELEM(tmp, "c", "posix")) { /* Keep default if C or POSIX. */
       language = tmp;
     }
 
     if (end >= input.size()) {
       return true;
     }
-    if (input[end] == '-' || input[end] == '_') {
+    if (ELEM(input[end], '-', '_')) {
       return parse_from_script(input.substr(end + 1));
     }
     if (input[end] == '.') {
@@ -388,34 +389,34 @@ class MOFile {
 /* Message lookup key. */
 
 struct MessageKeyRef {
-  StringRef context_;
-  StringRef str_;
+  StringRef context;
+  StringRef str;
 
   uint64_t hash() const
   {
-    return get_default_hash(context_, str_);
+    return get_default_hash(this->context, this->str);
   }
 };
 
 struct MessageKey {
-  std::string context_;
-  std::string str_;
+  std::string context;
+  std::string str;
 
   MessageKey(const StringRef c)
   {
     const size_t pos = c.find(char(4));
     if (pos == StringRef::not_found) {
-      str_ = c;
+      this->str = c;
     }
     else {
-      context_ = c.substr(0, pos);
-      str_ = c.substr(pos + 1);
+      this->context = c.substr(0, pos);
+      this->str = c.substr(pos + 1);
     }
   }
 
   uint64_t hash() const
   {
-    return get_default_hash(context_, str_);
+    return get_default_hash(this->context, this->str);
   }
 
   static uint64_t hash_as(const MessageKeyRef &key)
@@ -426,12 +427,12 @@ struct MessageKey {
 
 inline bool operator==(const MessageKey &a, const MessageKey &b)
 {
-  return a.context_ == b.context_ && a.str_ == b.str_;
+  return a.context == b.context && a.str == b.str;
 }
 
 inline bool operator==(const MessageKeyRef &a, const MessageKey &b)
 {
-  return a.context_ == b.context_ && a.str_ == b.str_;
+  return a.context == b.context && a.str == b.str;
 }
 
 /* Messages translation based on .mo files. */
@@ -480,17 +481,35 @@ class MOMessages {
   {
     /* Find language folders. */
     Vector<std::string> lang_folders;
-    if (!info.language.empty()) {
+    if (info.language.empty()) {
+      return {};
+    }
+
+    /* Blender uses non-standard uppercase script zh_HANS instead of zh_Hans, try both. */
+    Vector<std::string> scripts = {info.script};
+    if (!info.script.empty()) {
+      std::string script_uppercase = info.script;
+      for (char &c : script_uppercase) {
+        make_upper_ascii(c);
+      }
+      scripts.append(script_uppercase);
+    }
+
+    for (const std::string &script : scripts) {
+      std::string language = info.language;
+      if (!script.empty()) {
+        language += "_" + script;
+      }
       if (!info.variant.empty() && !info.country.empty()) {
-        lang_folders.append(info.language + "_" + info.country + "@" + info.variant);
+        lang_folders.append(language + "_" + info.country + "@" + info.variant);
       }
       if (!info.variant.empty()) {
-        lang_folders.append(info.language + "@" + info.variant);
+        lang_folders.append(language + "@" + info.variant);
       }
       if (!info.country.empty()) {
-        lang_folders.append(info.language + "_" + info.country);
+        lang_folders.append(language + "_" + info.country);
       }
-      lang_folders.append(info.language);
+      lang_folders.append(language);
     }
 
     /* Find catalogs in language folders. */

@@ -4,10 +4,10 @@
 
 #include "usd_reader_material.hh"
 #include "usd_asset_utils.hh"
+#include "usd_hash_types.hh"
 #include "usd_reader_utils.hh"
 #include "usd_utils.hh"
 
-#include "BKE_appdir.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -22,7 +22,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
@@ -56,7 +55,6 @@ static const pxr::TfToken occlusion("occlusion", pxr::TfToken::Immortal);
 static const pxr::TfToken opacity("opacity", pxr::TfToken::Immortal);
 static const pxr::TfToken opacityThreshold("opacityThreshold", pxr::TfToken::Immortal);
 static const pxr::TfToken r("r", pxr::TfToken::Immortal);
-static const pxr::TfToken result("result", pxr::TfToken::Immortal);
 static const pxr::TfToken rgb("rgb", pxr::TfToken::Immortal);
 static const pxr::TfToken rgba("rgba", pxr::TfToken::Immortal);
 static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
@@ -688,62 +686,61 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
      * and attempt to convert the connected USD shader to a Blender node. */
     return follow_connection(usd_input, dest_node, dest_socket_name, ntree, column, r_ctx, extra);
   }
-  else {
-    /* Set the destination node socket value from the USD shader input value. */
 
-    bNodeSocket *sock = blender::bke::node_find_socket(dest_node, SOCK_IN, dest_socket_name);
-    if (!sock) {
-      CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name);
-      return false;
-    }
+  /* Set the destination node socket value from the USD shader input value. */
 
-    pxr::VtValue val;
-    if (!usd_input.Get(&val)) {
-      CLOG_ERROR(&LOG,
-                 "Couldn't get value for usd shader input %s",
-                 usd_input.GetPrim().GetPath().GetAsString().c_str());
-      return false;
-    }
+  bNodeSocket *sock = blender::bke::node_find_socket(dest_node, SOCK_IN, dest_socket_name);
+  if (!sock) {
+    CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name);
+    return false;
+  }
 
-    switch (sock->type) {
-      case SOCK_FLOAT:
-        if (val.IsHolding<float>()) {
-          ((bNodeSocketValueFloat *)sock->default_value)->value = val.UncheckedGet<float>();
-          return true;
-        }
-        else if (val.IsHolding<pxr::GfVec3f>()) {
-          pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-          float average = (v3f[0] + v3f[1] + v3f[2]) / 3.0f;
-          ((bNodeSocketValueFloat *)sock->default_value)->value = average;
-          return true;
-        }
-        break;
-      case SOCK_RGBA:
-        if (val.IsHolding<pxr::GfVec3f>()) {
-          pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-          copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, v3f.data());
-          return true;
-        }
-        break;
-      case SOCK_VECTOR:
-        if (val.IsHolding<pxr::GfVec3f>()) {
-          pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
-          copy_v3_v3(((bNodeSocketValueVector *)sock->default_value)->value, v3f.data());
-          return true;
-        }
-        else if (val.IsHolding<pxr::GfVec2f>()) {
-          pxr::GfVec2f v2f = val.UncheckedGet<pxr::GfVec2f>();
-          copy_v2_v2(((bNodeSocketValueVector *)sock->default_value)->value, v2f.data());
-          return true;
-        }
-        break;
-      default:
-        CLOG_WARN(&LOG,
-                  "Unexpected type %s for destination node socket %s",
-                  sock->idname,
-                  dest_socket_name);
-        break;
-    }
+  pxr::VtValue val;
+  if (!usd_input.Get(&val)) {
+    CLOG_ERROR(&LOG,
+               "Couldn't get value for usd shader input %s",
+               usd_input.GetPrim().GetPath().GetAsString().c_str());
+    return false;
+  }
+
+  switch (sock->type) {
+    case SOCK_FLOAT:
+      if (val.IsHolding<float>()) {
+        ((bNodeSocketValueFloat *)sock->default_value)->value = val.UncheckedGet<float>();
+        return true;
+      }
+      else if (val.IsHolding<pxr::GfVec3f>()) {
+        pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
+        float average = (v3f[0] + v3f[1] + v3f[2]) / 3.0f;
+        ((bNodeSocketValueFloat *)sock->default_value)->value = average;
+        return true;
+      }
+      break;
+    case SOCK_RGBA:
+      if (val.IsHolding<pxr::GfVec3f>()) {
+        pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
+        copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, v3f.data());
+        return true;
+      }
+      break;
+    case SOCK_VECTOR:
+      if (val.IsHolding<pxr::GfVec3f>()) {
+        pxr::GfVec3f v3f = val.UncheckedGet<pxr::GfVec3f>();
+        copy_v3_v3(((bNodeSocketValueVector *)sock->default_value)->value, v3f.data());
+        return true;
+      }
+      else if (val.IsHolding<pxr::GfVec2f>()) {
+        pxr::GfVec2f v2f = val.UncheckedGet<pxr::GfVec2f>();
+        copy_v2_v2(((bNodeSocketValueVector *)sock->default_value)->value, v2f.data());
+        return true;
+      }
+      break;
+    default:
+      CLOG_WARN(&LOG,
+                "Unexpected type %s for destination node socket %s",
+                sock->idname,
+                dest_socket_name);
+      break;
   }
 
   return false;
@@ -1486,24 +1483,24 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(const pxr::UsdShadeSha
   link_nodes(ntree, uv_map, "UV", dest_node, dest_socket_name);
 }
 
-void build_material_map(const Main *bmain, blender::Map<std::string, Material *> *r_mat_map)
+void build_material_map(const Main *bmain, blender::Map<std::string, Material *> &r_mat_map)
 {
-  BLI_assert_msg(r_mat_map, "...");
+  BLI_assert_msg(r_mat_map.is_empty(), "The incoming material map should be empty");
 
   LISTBASE_FOREACH (Material *, material, &bmain->materials) {
     std::string usd_name = make_safe_name(material->id.name + 2, true);
-    r_mat_map->lookup_or_add_default(usd_name) = material;
+    r_mat_map.add_new(usd_name, material);
   }
 }
 
 Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
                                  const USDImportParams &params,
                                  const blender::Map<std::string, Material *> &mat_map,
-                                 const blender::Map<std::string, Material *> &usd_path_to_mat)
+                                 const blender::Map<pxr::SdfPath, Material *> &usd_path_to_mat)
 {
   if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
     /* Check if we've already created the Blender material with a modified name. */
-    return usd_path_to_mat.lookup_default(usd_mat_path.GetAsString(), nullptr);
+    return usd_path_to_mat.lookup_default(usd_mat_path, nullptr);
   }
 
   return mat_map.lookup_default(usd_mat_path.GetName(), nullptr);

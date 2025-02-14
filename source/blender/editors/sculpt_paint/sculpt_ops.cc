@@ -1284,7 +1284,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
       uiItemR(layout, op->ptr, "use_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
-        PointerRNA sculpt_ptr = RNA_pointer_create(&scene->id, &RNA_Sculpt, sd);
+        PointerRNA sculpt_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Sculpt, sd);
         uiTemplateCurveMapping(
             layout, &sculpt_ptr, "automasking_cavity_curve_op", 'v', false, false, false, false);
       }

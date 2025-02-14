@@ -52,7 +52,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
 
   /* Check if any material with holdout flag enabled. */
   tgp_ob->do_mat_holdout = false;
-  const int tot_materials = BKE_object_material_count_eval(ob);
+  const int tot_materials = BKE_object_material_used_with_fallback_eval(*ob);
   for (int i = 0; i < tot_materials; i++) {
     MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, i + 1);
     if (((gp_style != nullptr) && (gp_style->flag & GP_MATERIAL_IS_STROKE_HOLDOUT)) ||

@@ -6,13 +6,11 @@
  * \ingroup spuserpref
  */
 
-#include <cstdio>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"

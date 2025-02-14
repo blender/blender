@@ -125,21 +125,21 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 /* GPU thread, block, grid size and index */
 
 #ifndef WITH_ONEAPI_SYCL_HOST_TASK
-#  define ccl_gpu_thread_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_id(0))
-#  define ccl_gpu_block_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_range(0))
-#  define ccl_gpu_block_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group(0))
-#  define ccl_gpu_grid_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group_range(0))
-#  define ccl_gpu_warp_size (sycl::ext::oneapi::experimental::this_sub_group().get_local_range()[0])
+#  define ccl_gpu_thread_idx_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_local_id(0))
+#  define ccl_gpu_block_dim_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_local_range(0))
+#  define ccl_gpu_block_idx_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_group(0))
+#  define ccl_gpu_grid_dim_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_group_range(0))
+#  define ccl_gpu_warp_size (sycl::ext::oneapi::this_work_item::get_sub_group().get_local_range()[0])
 #  define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
 
-#  define ccl_gpu_global_id_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_id(0))
-#  define ccl_gpu_global_size_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_range(0))
+#  define ccl_gpu_global_id_x() (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_global_id(0))
+#  define ccl_gpu_global_size_x() (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_global_range(0))
 
 /* GPU warp synchronization */
-#  define ccl_gpu_syncthreads() sycl::ext::oneapi::experimental::this_nd_item<1>().barrier()
-#  define ccl_gpu_local_syncthreads() sycl::ext::oneapi::experimental::this_nd_item<1>().barrier(sycl::access::fence_space::local_space)
+#  define ccl_gpu_syncthreads() sycl::ext::oneapi::this_work_item::get_nd_item<1>().barrier()
+#  define ccl_gpu_local_syncthreads() sycl::ext::oneapi::this_work_item::get_nd_item<1>().barrier(sycl::access::fence_space::local_space)
 #  ifdef __SYCL_DEVICE_ONLY__
-#    define ccl_gpu_ballot(predicate) (sycl::ext::oneapi::group_ballot(sycl::ext::oneapi::experimental::this_sub_group(), predicate).count())
+#    define ccl_gpu_ballot(predicate) (sycl::ext::oneapi::group_ballot(sycl::ext::oneapi::this_work_item::get_sub_group(), predicate).count())
 #  else
 #    define ccl_gpu_ballot(predicate) (predicate ? 1 : 0)
 #  endif
@@ -236,3 +236,78 @@ ccl_device_forceinline int __float_as_int(const float x)
 /* Types */
 #include "util/half.h"
 #include "util/types.h"
+
+static_assert(
+    sizeof(sycl::ext::oneapi::experimental::sampled_image_handle::raw_image_handle_type) ==
+    sizeof(uint64_t));
+typedef uint64_t ccl_gpu_tex_object_2D;
+typedef uint64_t ccl_gpu_tex_object_3D;
+
+template<typename T>
+ccl_device_forceinline T ccl_gpu_tex_object_read_2D(const ccl_gpu_tex_object_2D texobj,
+                                                    const float x,
+                                                    const float y)
+{
+  /* Generic implementation not possible due to limitation with SYCL bindless sampled images
+   * not being able to read in a format, which is different from the supported data type of
+   * the texture.
+   * But looks it looks like this is not a problem at the moment. */
+  static_assert(false);
+  return T();
+}
+
+template<>
+ccl_device_forceinline float ccl_gpu_tex_object_read_2D<float>(const ccl_gpu_tex_object_2D texobj,
+                                                               const float x,
+                                                               const float y)
+{
+  sycl::ext::oneapi::experimental::sampled_image_handle image(
+      (sycl::ext::oneapi::experimental::sampled_image_handle::raw_image_handle_type)texobj);
+  return sycl::ext::oneapi::experimental::sample_image<float>(image, sycl::float2{x, y});
+}
+
+template<>
+ccl_device_forceinline float4 ccl_gpu_tex_object_read_2D<float4>(
+    const ccl_gpu_tex_object_2D texobj, const float x, const float y)
+{
+  sycl::ext::oneapi::experimental::sampled_image_handle image(
+      (sycl::ext::oneapi::experimental::sampled_image_handle::raw_image_handle_type)texobj);
+  return sycl::ext::oneapi::experimental::sample_image<float4, sycl::vec<float, 4>>(
+      image, sycl::float2{x, y});
+}
+
+template<typename T>
+ccl_device_forceinline T ccl_gpu_tex_object_read_3D(const ccl_gpu_tex_object_3D texobj,
+                                                    const float x,
+                                                    const float y,
+                                                    const float z)
+{
+  /* A generic implementation is not possible due to limitations with SYCL bindless sampled images
+   * not being able to read in a format that is different from the supported data type of
+   * the texture.
+   * However, it looks like this is not a problem at the moment, but I am leaving a static
+   * assert in order to easily detect if it becomes a problem in the future. */
+  static_assert(false);
+  return T();
+}
+
+template<>
+ccl_device_forceinline float ccl_gpu_tex_object_read_3D<float>(const ccl_gpu_tex_object_3D texobj,
+                                                               const float x,
+                                                               const float y,
+                                                               const float z)
+{
+  sycl::ext::oneapi::experimental::sampled_image_handle image(
+      (sycl::ext::oneapi::experimental::sampled_image_handle::raw_image_handle_type)texobj);
+  return sycl::ext::oneapi::experimental::sample_image<float>(image, sycl::float3{x, y, z});
+}
+
+template<>
+ccl_device_forceinline float4 ccl_gpu_tex_object_read_3D<float4>(
+    const ccl_gpu_tex_object_3D texobj, const float x, const float y, const float z)
+{
+  sycl::ext::oneapi::experimental::sampled_image_handle image(
+      (sycl::ext::oneapi::experimental::sampled_image_handle::raw_image_handle_type)texobj);
+  return sycl::ext::oneapi::experimental::sample_image<float4, sycl::vec<float, 4>>(
+      image, sycl::float3{x, y, z});
+}

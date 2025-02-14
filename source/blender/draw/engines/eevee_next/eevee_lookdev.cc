@@ -41,7 +41,7 @@ LookdevWorld::LookdevWorld()
   rotate->custom1 = NODE_VECTOR_ROTATE_TYPE_AXIS_Z;
   bNodeSocket *rotate_vector_in = bke::node_find_socket(rotate, SOCK_IN, "Vector");
   angle_socket_ = static_cast<bNodeSocketValueFloat *>(
-      static_cast<void *>(bke::node_find_socket(rotate, SOCK_IN, "Angle")->default_value));
+      bke::node_find_socket(rotate, SOCK_IN, "Angle")->default_value);
   bNodeSocket *rotate_out = bke::node_find_socket(rotate, SOCK_OUT, "Vector");
 
   bNode *environment = bke::node_add_static_node(nullptr, ntree, SH_NODE_TEX_ENVIRONMENT);
@@ -54,7 +54,7 @@ LookdevWorld::LookdevWorld()
   bNodeSocket *background_out = bke::node_find_socket(background, SOCK_OUT, "Background");
   bNodeSocket *background_color_in = bke::node_find_socket(background, SOCK_IN, "Color");
   intensity_socket_ = static_cast<bNodeSocketValueFloat *>(
-      static_cast<void *>(bke::node_find_socket(background, SOCK_IN, "Strength")->default_value));
+      bke::node_find_socket(background, SOCK_IN, "Strength")->default_value);
 
   bNode *output = bke::node_add_static_node(nullptr, ntree, SH_NODE_OUTPUT_WORLD);
   bNodeSocket *output_in = bke::node_find_socket(output, SOCK_IN, "Surface");
@@ -130,7 +130,7 @@ bool LookdevWorld::sync(const LookdevParameters &new_parameters)
 
 LookdevModule::LookdevModule(Instance &inst) : inst_(inst) {}
 
-LookdevModule::~LookdevModule() {}
+LookdevModule::~LookdevModule() = default;
 
 void LookdevModule::init(const rcti *visible_rect)
 {
@@ -162,7 +162,7 @@ static eDRWLevelOfDetail calc_level_of_detail(const float viewport_scale)
   if (res_scale > 0.7f) {
     return DRW_LOD_HIGH;
   }
-  else if (res_scale > 0.25f) {
+  if (res_scale > 0.25f) {
     return DRW_LOD_MEDIUM;
   }
   return DRW_LOD_LOW;
@@ -199,7 +199,7 @@ void LookdevModule::sync()
   const Camera &cam = inst_.camera;
   float sphere_distance = cam.data_get().clip_near;
   int2 display_extent = inst_.film.display_extent_get();
-  float pixel_radius = inst_.shadows.screen_pixel_radius(
+  float pixel_radius = ShadowModule::screen_pixel_radius(
       cam.data_get().wininv, cam.is_perspective(), display_extent);
 
   if (cam.is_perspective()) {
@@ -303,7 +303,7 @@ void LookdevModule::display()
 /** \name Parameters
  * \{ */
 
-LookdevParameters::LookdevParameters() {}
+LookdevParameters::LookdevParameters() = default;
 
 LookdevParameters::LookdevParameters(const ::View3D *v3d)
 {

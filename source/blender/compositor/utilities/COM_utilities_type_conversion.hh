@@ -7,6 +7,8 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "IMB_colormanagement.hh"
+
 namespace blender::compositor {
 
 /* --------------------------------------------------------------------
@@ -67,12 +69,12 @@ inline float4 vector_to_color(const float4 &value)
 }
 
 /* --------------------------------------------------------------------
- * Vector to other.
+ * Color to other.
  */
 
 inline float color_to_float(const float4 &value)
 {
-  return math::reduce_add(value.xyz()) / 3.0f;
+  return IMB_colormanagement_get_luminance(value);
 }
 
 inline int color_to_int(const float4 &value)

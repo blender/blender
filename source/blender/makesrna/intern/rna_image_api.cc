@@ -6,16 +6,12 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <fcntl.h>
 
-#include "DNA_packedFile_types.h"
-
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -26,12 +22,16 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_math_base.h"
+#  include "BLI_string.h"
+
+#  include "BKE_context.hh"
 #  include "BKE_image.hh"
 #  include "BKE_image_format.hh"
 #  include "BKE_image_save.hh"
 #  include "BKE_main.hh"
+#  include "BKE_report.hh"
 #  include "BKE_scene.hh"
-#  include <errno.h>
 
 #  include "IMB_imbuf.hh"
 
@@ -39,6 +39,8 @@
 #  include "DNA_scene_types.h"
 
 #  include "MEM_guardedalloc.h"
+
+#  include "WM_api.hh"
 
 static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, ReportList *reports)
 {
@@ -90,7 +92,8 @@ static void rna_Image_save(Image *image,
                            bContext *C,
                            ReportList *reports,
                            const char *path,
-                           const int quality)
+                           const int quality,
+                           const bool save_copy)
 {
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
@@ -102,6 +105,7 @@ static void rna_Image_save(Image *image,
     if (quality != 0) {
       opts.im_format.quality = clamp_i(quality, 0, 100);
     }
+    opts.save_copy = save_copy;
     if (!BKE_image_save(reports, bmain, image, nullptr, &opts)) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -315,6 +319,11 @@ void RNA_api_image(StructRNA *srna)
               "not specified",
               0,
               100);
+  RNA_def_boolean(func,
+                  "save_copy",
+                  false,
+                  "Save Copy",
+                  "Save the image as a copy, without updating current image's filepath");
 
   func = RNA_def_function(srna, "pack", "rna_Image_pack");
   RNA_def_function_ui_description(func, "Pack an image as embedded data into the .blend file");

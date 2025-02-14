@@ -502,9 +502,12 @@ check_spelling_py: .FORCE
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(py)$$" \
+	    "$(BLENDER_DIR)/release" \
 	    "$(BLENDER_DIR)/scripts" \
 	    "$(BLENDER_DIR)/source" \
-	    "$(BLENDER_DIR)/tools"
+	    "$(BLENDER_DIR)/tools" \
+	    "$(BLENDER_DIR)/doc" \
+	    "$(BLENDER_DIR)/build_files"
 
 check_spelling_c: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \

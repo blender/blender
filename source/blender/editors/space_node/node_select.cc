@@ -26,6 +26,7 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_viewer_path.hh"
 #include "BKE_workspace.hh"
 
 #include "ED_node.hh" /* own include */
@@ -854,7 +855,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
   int x, y, radius;
   float2 offset;
 
-  float zoom = float(BLI_rcti_size_x(&region->winrct)) / float(BLI_rctf_size_x(&region->v2d.cur));
+  float zoom = float(BLI_rcti_size_x(&region->winrct)) / BLI_rctf_size_x(&region->v2d.cur);
 
   const eSelectOp sel_op = ED_select_op_modal(
       (eSelectOp)RNA_enum_get(op->ptr, "mode"),

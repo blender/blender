@@ -39,52 +39,52 @@ class GHOST_ContextWGL : public GHOST_Context {
   /**
    * Destructor.
    */
-  ~GHOST_ContextWGL();
+  ~GHOST_ContextWGL() override;
 
   /**
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess swapBuffers();
+  GHOST_TSuccess swapBuffers() override;
 
   /**
    * Activates the drawing context of this window.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess activateDrawingContext();
+  GHOST_TSuccess activateDrawingContext() override;
 
   /**
    * Release the drawing context of the calling thread.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess releaseDrawingContext();
+  GHOST_TSuccess releaseDrawingContext() override;
 
   /**
    * Call immediately after new to initialize.  If this fails then immediately delete the object.
    * \return Indication as to whether initialization has succeeded.
    */
-  GHOST_TSuccess initializeDrawingContext();
+  GHOST_TSuccess initializeDrawingContext() override;
 
   /**
    * Removes references to native handles from this context and then returns
    * \return GHOST_kSuccess if it is OK for the parent to release the handles and
    * GHOST_kFailure if releasing the handles will interfere with sharing
    */
-  GHOST_TSuccess releaseNativeHandles();
+  GHOST_TSuccess releaseNativeHandles() override;
 
   /**
    * Sets the swap interval for #swapBuffers.
    * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess setSwapInterval(int interval);
+  GHOST_TSuccess setSwapInterval(int interval) override;
 
   /**
    * Gets the current swap interval for #swapBuffers.
    * \param intervalOut: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut);
+  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
 
  private:
   int choose_pixel_format_arb(bool stereoVisual, bool needAlpha);

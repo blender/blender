@@ -113,16 +113,16 @@ ccl_device bool ray_disk_intersect(const float3 ray_P,
 }
 
 /* Custom rcp, cross and dot implementations that match Embree bit for bit. */
-ccl_device_forceinline float ray_triangle_rcp(const float x)
+ccl_device_forceinline float ray_triangle_reciprocal(const float x)
 {
 #ifdef __KERNEL_NEON__
   /* Move scalar to vector register and do rcp. */
   __m128 a = {0};
   a = vsetq_lane_f32(x, a, 0);
-  float32x4_t reciprocal = vrecpeq_f32(a);
-  reciprocal = vmulq_f32(vrecpsq_f32(a, reciprocal), reciprocal);
-  reciprocal = vmulq_f32(vrecpsq_f32(a, reciprocal), reciprocal);
-  return vgetq_lane_f32(reciprocal, 0);
+  float32x4_t rt_rcp = vrecpeq_f32(a);
+  rt_rcp = vmulq_f32(vrecpsq_f32(a, rt_rcp), rt_rcp);
+  rt_rcp = vmulq_f32(vrecpsq_f32(a, rt_rcp), rt_rcp);
+  return vgetq_lane_f32(rt_rcp, 0);
 #elif defined(__KERNEL_SSE__)
   const __m128 a = _mm_set_ss(x);
   const __m128 r = _mm_rcp_ss(a);
@@ -214,7 +214,7 @@ ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
     return false;
   }
 
-  const float rcp_uvw = (fabsf(UVW) < 1e-18f) ? 0.0f : ray_triangle_rcp(UVW);
+  const float rcp_uvw = (fabsf(UVW) < 1e-18f) ? 0.0f : ray_triangle_reciprocal(UVW);
   *isect_u = min(U * rcp_uvw, 1.0f);
   *isect_v = min(V * rcp_uvw, 1.0f);
   *isect_t = t;
@@ -339,7 +339,7 @@ ccl_device bool ray_aabb_intersect(const float3 bbox_min,
                                    const float3 ray_D,
                                    ccl_private Interval<float> *t_range)
 {
-  const float3 inv_ray_D = rcp(ray_D);
+  const float3 inv_ray_D = reciprocal(ray_D);
 
   /* Absolute distances to lower and upper box coordinates; */
   const float3 t_lower = (bbox_min - ray_P) * inv_ray_D;

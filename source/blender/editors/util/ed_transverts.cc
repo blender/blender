@@ -113,6 +113,9 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 
     /* Ensure all bone tails are correctly adjusted */
     LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
+      if (!EBONE_VISIBLE(arm, ebo)) {
+        continue;
+      }
       /* adjust tip if both ends selected */
       if ((ebo->flag & BONE_ROOTSEL) && (ebo->flag & BONE_TIPSEL)) {
         if (tv) {
@@ -133,7 +136,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
       if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
         /* If this bone has a parent tip that has been moved */
-        if (ebo->parent->flag & BONE_TIPSEL) {
+        if (EBONE_VISIBLE(arm, ebo->parent) && (ebo->parent->flag & BONE_TIPSEL)) {
           copy_v3_v3(ebo->head, ebo->parent->tail);
         }
         /* If this bone has a parent tip that has NOT been moved */
@@ -153,9 +156,15 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
       outside_lattice(lt->editlatt->latt);
     }
   }
+  else if (obedit->type == OB_CURVES) {
+    Curves *curves_id = static_cast<Curves *>(obedit->data);
+    blender::bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    curves.tag_positions_changed();
+    curves.calculate_bezier_auto_handles();
+  }
 }
 
-static void set_mapped_co(void *vuserdata, int index, const float co[3], const float[3] /*no*/)
+static void set_mapped_co(void *vuserdata, int index, const float co[3], const float /*no*/[3])
 {
   void **userdata = static_cast<void **>(vuserdata);
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata[0]);
@@ -324,11 +333,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
         MEM_callocN(totmalloc * sizeof(TransVert), __func__));
 
     LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
-      if (ANIM_bonecoll_is_visible_editbone(arm, ebo)) {
+      if (EBONE_VISIBLE(arm, ebo)) {
         const bool tipsel = (ebo->flag & BONE_TIPSEL) != 0;
         const bool rootsel = (ebo->flag & BONE_ROOTSEL) != 0;
-        const bool rootok = !(ebo->parent && (ebo->flag & BONE_CONNECTED) &&
-                              (ebo->parent->flag & BONE_TIPSEL));
+        const bool rootok = !(
+            ebo->parent && (ebo->flag & BONE_CONNECTED) &&
+            (EBONE_VISIBLE(arm, ebo->parent) && (ebo->parent->flag & BONE_TIPSEL)));
 
         if ((tipsel && rootsel) || (rootsel)) {
           /* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),

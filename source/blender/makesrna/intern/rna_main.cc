@@ -10,9 +10,7 @@
 #include <cstring>
 
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"

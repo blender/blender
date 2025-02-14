@@ -7,6 +7,7 @@
  */
 
 #include "BLI_bounds.hh"
+#include "BLI_rect.h"
 
 #include "DRW_render.hh"
 
@@ -91,7 +92,7 @@ void Camera::sync()
   int2 film_extent = inst_.film.film_extent_get();
   int2 film_offset = inst_.film.film_offset_get();
   /* Over-scan in film pixel. Not the same as `render_overscan_get`. */
-  int film_overscan = inst_.film.overscan_pixels_get(overscan_, film_extent);
+  int film_overscan = Film::overscan_pixels_get(overscan_, film_extent);
 
   rcti film_rect;
   BLI_rcti_init(&film_rect,
@@ -159,6 +160,12 @@ void Camera::sync()
       /* Can happen for the case of XR.
        * In this case the produced winmat is degenerate. So just revert to the input matrix. */
       data.winmat = inst_.drw_view->winmat();
+    }
+
+    if (isnan(data.winmat.w.x)) {
+      /* Can happen in weird corner case (see #134320).
+       * Simply fallback to something that we can render with. */
+      data.winmat = math::projection::orthographic(0.01f, 0.01f, 0.01f, 0.01f, -1000.0f, +1000.0f);
     }
   }
   else if (inst_.render) {

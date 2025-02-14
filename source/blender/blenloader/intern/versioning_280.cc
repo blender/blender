@@ -4729,9 +4729,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Fix anamorphic bokeh eevee rna limits. */
     LISTBASE_FOREACH (Camera *, ca, &bmain->cameras) {
-      if (ca->gpu_dof.ratio < 0.01f) {
-        ca->gpu_dof.ratio = 0.01f;
-      }
+      ca->gpu_dof.ratio = std::max(ca->gpu_dof.ratio, 0.01f);
     }
 
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {

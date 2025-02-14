@@ -724,6 +724,13 @@ static void tag_component_sharpness_changed(void *owner)
   }
 }
 
+static void tag_material_index_changed(void *owner)
+{
+  if (Mesh *mesh = static_cast<Mesh *>(owner)) {
+    mesh->tag_material_index_changed();
+  }
+}
+
 /**
  * This provider makes vertex groups available as float attributes.
  */
@@ -904,7 +911,7 @@ static GeometryAttributeProviders create_attribute_providers_for_mesh()
                                                        CD_PROP_INT32,
                                                        BuiltinAttributeProvider::Deletable,
                                                        face_access,
-                                                       nullptr,
+                                                       tag_material_index_changed,
                                                        AttributeValidator{&material_index_clamp});
 
   static const auto int2_index_clamp = mf::build::SI1_SO<int2, int2>(

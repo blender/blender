@@ -298,7 +298,7 @@ typedef struct Brush {
   char gpencil_weight_brush_type;
   /** Active curves sculpt brush type (#eBrushCurvesSculptType). */
   char curves_sculpt_brush_type;
-  char _pad1[6];
+  char _pad1[2];
 
   float autosmooth_factor;
 
@@ -315,6 +315,13 @@ typedef struct Brush {
   float plane_trim;
   /** Affectable height of brush (layer height for layer tool, i.e.). */
   float height;
+
+  /* Plane Brush */
+  float plane_height;
+  float plane_depth;
+  float stabilize_normal;
+  float stabilize_plane;
+  int plane_inversion_mode;
 
   float texture_sample_bias;
 

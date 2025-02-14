@@ -53,7 +53,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
   if (coba->tot == 1) {
     return GPU_link(mat, "set_rgba", GPU_uniform(&coba->data[0].r), &out[0].link);
   }
-  else if ((coba->tot == 2) && (coba->color_mode == COLBAND_BLEND_RGB)) {
+  if ((coba->tot == 2) && (coba->color_mode == COLBAND_BLEND_RGB)) {
     float mul_bias[2];
     switch (coba->ipotype) {
       case COLBAND_INTERP_LINEAR:

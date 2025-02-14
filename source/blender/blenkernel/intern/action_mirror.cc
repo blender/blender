@@ -17,9 +17,9 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -28,7 +28,6 @@
 #include "BKE_fcurve.hh"
 
 #include "ANIM_action_legacy.hh"
-#include "ANIM_pose.hh"
 
 #include "DEG_depsgraph.hh"
 

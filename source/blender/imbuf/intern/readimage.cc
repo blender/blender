@@ -16,7 +16,6 @@
 #include "BLI_mmap.h"
 #include "BLI_path_utils.hh" /* For assertions. */
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 #include <cstdlib>
 
 #include "IMB_allocimbuf.hh"

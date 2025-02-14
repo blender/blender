@@ -59,6 +59,7 @@
 
 #include "bmesh.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 
@@ -123,7 +124,7 @@ void zero_disabled_axis_components(const filter::Cache &filter_cache,
   }
 }
 
-Cache::~Cache() {}
+Cache::~Cache() = default;
 
 void cache_init(bContext *C,
                 Object &ob,
@@ -1985,9 +1986,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
 
   float max_factor = 0.0f;
   for (int i = 0; i < totvert; i++) {
-    if (sharpen_factors[i] > max_factor) {
-      max_factor = sharpen_factors[i];
-    }
+    max_factor = std::max(sharpen_factors[i], max_factor);
   }
 
   max_factor = 1.0f / max_factor;
@@ -2180,10 +2179,10 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op, bool is_replay
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   pbvh.tag_positions_changed(node_mask);
+  pbvh.update_bounds(depsgraph, ob);
 
   ss.filter_cache->iteration_count++;
 
-  bke::pbvh::update_bounds(depsgraph, ob, pbvh);
   flush_update_step(C, UpdateType::Position);
 }
 
@@ -2265,7 +2264,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
 
   undo::restore_position_from_undo_step(depsgraph, ob);
   bke::pbvh::update_normals(depsgraph, ob, *pbvh);
-  bke::pbvh::update_bounds(depsgraph, ob, *pbvh);
+  pbvh->update_bounds(depsgraph, ob);
 }
 
 static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)

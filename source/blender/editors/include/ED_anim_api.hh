@@ -53,6 +53,8 @@ struct uiBlock;
 struct PointerRNA;
 struct PropertyRNA;
 
+struct MPathTarget;
+
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
 /* `anim_filter.cc` */
@@ -656,6 +658,18 @@ struct bAnimChannelType {
    * - assume that setting has been checked to be valid for current context.
    */
   void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *r_type);
+
+  /**
+   * Called after a setting was changed via ANIM_channel_setting_set().
+   *
+   * \param ale is marked as 'const', as it could have been duplicated and taken out of context.
+   * This means that any hypothetical changes to `ale->update`, for example, will not be seen by
+   * any `ANIM_animdata_update()` call. So better to keep this `const` and avoid any manipulation.
+   * Also, because of the duplications, the ale's `prev` and `next` pointers will be dangling.
+   */
+  void (*setting_post_update)(Main &bmain,
+                              const bAnimListElem &ale,
+                              eAnimChannel_Settings setting);
 };
 
 /** \} */
@@ -681,7 +695,7 @@ float ANIM_UI_get_channel_button_width();
 /**
  * Get type info from given channel type.
  */
-const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
+const bAnimChannelType *ANIM_channel_get_typeinfo(const bAnimListElem *ale);
 
 /**
  * Print debug info string for the given channel.
@@ -1187,12 +1201,12 @@ enum eAnimvizCalcRange {
 Depsgraph *animviz_depsgraph_build(Main *bmain,
                                    Scene *scene,
                                    ViewLayer *view_layer,
-                                   ListBase *targets);
+                                   blender::Span<MPathTarget *> targets);
 
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
-                              ListBase *targets,
+                              blender::MutableSpan<MPathTarget *> targets,
                               eAnimvizCalcRange range,
                               bool restore);
 
@@ -1206,9 +1220,16 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 void animviz_motionpath_compute_range(Object *ob, Scene *scene);
 
 /**
- * Get list of motion paths to be baked for the given object.
- * - assumes the given list is ready to be used.
+ * Populate the given vector with MPathTarget elements for the given object.
+ * Will look for pose bones as well. `animviz_free_motionpath_targets` needs to be called
+ * to free the memory allocated in this function.
  */
-void animviz_get_object_motionpaths(Object *ob, ListBase *targets);
+void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *> &r_targets);
+
+/**
+ * Free the elements of the vector populated with `animviz_build_motionpath_targets`.
+ * After this function the Vector will have a length of 0.
+ */
+void animviz_free_motionpath_targets(blender::Vector<MPathTarget *> &targets);
 
 /** \} */

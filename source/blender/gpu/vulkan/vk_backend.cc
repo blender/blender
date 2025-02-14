@@ -456,7 +456,7 @@ void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_
   dispatch_info.dispatch_node.group_count_x = groups_x_len;
   dispatch_info.dispatch_node.group_count_y = groups_y_len;
   dispatch_info.dispatch_node.group_count_z = groups_z_len;
-  context.render_graph.add_node(dispatch_info);
+  context.render_graph().add_node(dispatch_info);
 }
 
 void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
@@ -469,7 +469,7 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
   dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();
   dispatch_indirect_info.dispatch_indirect_node.offset = 0;
-  context.render_graph.add_node(dispatch_indirect_info);
+  context.render_graph().add_node(dispatch_indirect_info);
 }
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
@@ -484,7 +484,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
   }
 
-  VKContext *context = new VKContext(ghost_window, ghost_context, device.resources);
+  VKContext *context = new VKContext(ghost_window, ghost_context);
   device.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
                                       VKContext::swap_buffers_pre_callback,
@@ -564,23 +564,9 @@ void VKBackend::render_end()
     if (thread_data.rendering_depth == 0) {
       VKContext *context = VKContext::get();
       if (context != nullptr) {
-        context->flush_render_graph();
+        context->flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
       }
-
-      thread_data.resource_pool_next();
-      VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      resource_pool.discard_pool.destroy_discarded_resources(device);
-      resource_pool.reset();
-    }
-  }
-
-  else if (!BLI_thread_is_main()) {
-    /* Foreground rendering using a worker/render thread. In this case we move the resources to the
-     * device discard list and it will be cleared by the main thread. */
-    if (thread_data.rendering_depth == 0) {
-      VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      device.orphaned_data.move_data(resource_pool.discard_pool);
-      resource_pool.reset();
+      device.orphaned_data.destroy_discarded_resources(device);
     }
   }
 }

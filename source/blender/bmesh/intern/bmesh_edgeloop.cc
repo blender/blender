@@ -604,7 +604,7 @@ void BM_edgeloop_calc_center(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
   } while (true);
 
   if (totw != 0.0f) {
-    mul_v3_fl(el_store->co, 1.0f / float(totw));
+    mul_v3_fl(el_store->co, 1.0f / totw);
   }
 }
 

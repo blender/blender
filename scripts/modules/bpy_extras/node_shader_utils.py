@@ -55,7 +55,7 @@ def node_input_value_get(node, input, default_value=None):
     return node.inputs[input].default_value
 
 
-class ShaderWrapper():
+class ShaderWrapper:
     """
     Base class with minimal common ground for all types of shader interfaces we may want/need to implement.
     """
@@ -575,7 +575,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     normalmap_texture = property(normalmap_texture_get)
 
 
-class ShaderImageTextureWrapper():
+class ShaderImageTextureWrapper:
     """
     Generic 'image texture'-like wrapper, handling image node, some mapping (texture coordinates transformations),
     and texture coordinates source.

@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+#include "NOD_inverse_eval_params.hh"
 #include "NOD_inverse_eval_path.hh"
 #include "NOD_inverse_eval_run.hh"
 #include "NOD_node_in_compute_context.hh"
@@ -12,7 +13,6 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
-#include "BKE_idprop.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -22,9 +22,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_euler.hh"
-#include "BLI_math_matrix.hh"
 #include "BLI_set.hh"
-#include "BLI_stack.hh"
 
 #include "DEG_depsgraph.hh"
 

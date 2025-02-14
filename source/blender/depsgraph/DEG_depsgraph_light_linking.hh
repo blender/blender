@@ -8,10 +8,6 @@
 
 #pragma once
 
-#include <cstdint>
-
-#include "BLI_span.hh"
-
 struct Object;
 struct Depsgraph;
 

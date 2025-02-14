@@ -114,10 +114,10 @@ class Value {
   eValueType type_;
 
  protected:
-  Value() = delete;
   explicit Value(eValueType type) : type_(type) {}
 
  public:
+  Value() = delete;
   virtual ~Value() = default;
   eValueType type() const
   {
@@ -182,7 +182,7 @@ class PrimitiveValue : public Value {
  public:
   explicit PrimitiveValue(const T value) : Value(V), inner_value_(value) {}
 
-  const T value() const
+  T value() const
   {
     return inner_value_;
   }
@@ -297,7 +297,6 @@ class JsonFormatter : public Formatter {
    */
   int8_t indentation_len = 0;
 
- public:
   void serialize(std::ostream &os, const Value &value) override;
   /**
    * \return The de-serialized value or null on failure to parse the JSON contents. Typically this

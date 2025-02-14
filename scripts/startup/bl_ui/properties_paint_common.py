@@ -799,17 +799,24 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-            row = layout.row(heading="Plane Trim")
-            row.prop(brush, "use_plane_trim", text="")
-            sub = row.row()
-            sub.active = brush.use_plane_trim
-            sub.prop(brush, "plane_trim", slider=True, text="")
+            if sculpt_tool != 'PLANE':
+                row = layout.row(heading="Plane Trim")
+                row.prop(brush, "use_plane_trim", text="")
+                sub = row.row()
+                sub.active = brush.use_plane_trim
+                sub.prop(brush, "plane_trim", slider=True, text="")
 
             layout.separator()
 
         # height
         if capabilities.has_height:
             layout.prop(brush, "height", slider=True, text="Height")
+
+        if capabilities.has_plane_height:
+            layout.prop(brush, "plane_height", slider=True, text="Height")
+
+        if capabilities.has_plane_depth:
+            layout.prop(brush, "plane_depth", slider=True, text="Depth")
 
         # use_persistent, set_persistent_base
         if capabilities.has_persistence:
@@ -900,6 +907,16 @@ def brush_settings(layout, context, brush, popover=False):
             row.prop(brush, "use_pressure_area_radius", text="")
             row = layout.row()
             row.prop(brush, "invert_to_scrape_fill", text="Invert to Scrape")
+
+        elif sculpt_tool == 'PLANE':
+            row = layout.row(align=True)
+            row.prop(brush, "area_radius_factor")
+            row.prop(brush, "use_pressure_area_radius", text="")
+            layout.separator()
+            layout.prop(brush, "plane_inversion_mode")
+            layout.separator()
+            layout.prop(brush, "stabilize_normal")
+            layout.prop(brush, "stabilize_plane")
 
         elif sculpt_tool == 'GRAB':
             layout.prop(brush, "use_grab_active_vertex")
@@ -1258,9 +1275,10 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         # sculpt plane settings
         if capabilities.has_sculpt_plane:
             layout.prop(brush, "sculpt_plane")
-            col = layout.column(heading="Original", align=True)
-            col.prop(brush, "use_original_normal", text="Normal")
-            col.prop(brush, "use_original_plane", text="Plane")
+            if brush.sculpt_tool != 'PLANE':
+                col = layout.column(heading="Original", align=True)
+                col.prop(brush, "use_original_normal", text="Normal")
+                col.prop(brush, "use_original_plane", text="Plane")
             layout.separator()
 
     elif mode == 'SCULPT_GREASE_PENCIL':

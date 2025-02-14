@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
@@ -38,6 +41,7 @@ struct wmOperatorType;
 struct wmTimer;
 struct wmWindow;
 struct wmWindowManager;
+struct ViewLayer;
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
@@ -201,6 +205,7 @@ struct ViewOpsData {
 bool view3d_location_poll(bContext *C);
 bool view3d_rotation_poll(bContext *C);
 bool view3d_zoom_or_dolly_poll(bContext *C);
+bool view3d_zoom_or_dolly_or_rotation_poll(bContext *C);
 
 int view3d_navigate_invoke_impl(bContext *C,
                                 wmOperator *op,
@@ -377,6 +382,37 @@ void ED_view3d_smooth_view_force_finish_no_camera_lock(const Depsgraph *depsgrap
 void VIEW3D_OT_smoothview(wmOperatorType *ot);
 
 /* view3d_navigate_view_all.cc */
+
+/**
+ * Return the bounds of visible contents of the 3D viewport.
+ *
+ * \param depsgraph: The evaluated depsgraph.
+ * \param clip_bounds: Clip the bounds by the viewport clipping.
+ */
+std::optional<blender::Bounds<blender::float3>> view3d_calc_minmax_visible(
+    Depsgraph *depsgraph, ScrArea *area, ARegion *region, bool use_all_regions, bool clip_bounds);
+/**
+ * Return the bounds of selected contents of the 3D viewport.
+ * \param depsgraph: The evaluated depsgraph.
+ * \param clip_bounds: Clip the bounds by the viewport clipping.
+ * \param r_do_zoom: When false, the bounds should be treated as a point
+ * (don't zoom to view the point).
+ */
+std::optional<blender::Bounds<blender::float3>> view3d_calc_minmax_selected(Depsgraph *depsgraph,
+                                                                            ScrArea *area,
+                                                                            ARegion *region,
+                                                                            bool use_all_regions,
+                                                                            bool clip_bounds,
+                                                                            bool *r_do_zoom);
+
+/**
+ * Iterate over objects and check if `point` might is inside any of them.
+ */
+bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
+                                          struct ViewLayer *view_layer_eval,
+                                          const View3D *v3d,
+                                          const blender::float3 &point,
+                                          const float scale_margin);
 
 void VIEW3D_OT_view_all(wmOperatorType *ot);
 void VIEW3D_OT_view_selected(wmOperatorType *ot);

@@ -2,9 +2,25 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_anim_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_light_types.h"
+#include "DNA_material_types.h"
+
+#include "BLI_string.h"
+
+#include "BKE_material.hh"
+
+#include "RNA_access.hh"
 #include "RNA_path.hh"
 
+#include "ANIM_fcurve.hh"
+
 #include "BCAnimationCurve.h"
+
+#include "collada_utils.h"
+
+#include <algorithm>
 
 BCAnimationCurve::BCAnimationCurve()
 {
@@ -351,12 +367,8 @@ float BCAnimationCurve::get_value(const float frame)
 
 void BCAnimationCurve::update_range(float val)
 {
-  if (val < min) {
-    min = val;
-  }
-  if (val > max) {
-    max = val;
-  }
+  min = std::min(val, min);
+  max = std::max(val, max);
 }
 
 void BCAnimationCurve::init_range(float val)

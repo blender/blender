@@ -8,6 +8,7 @@
 #pragma once
 
 #include "usd.hh"
+#include "usd_hash_types.hh"
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -28,6 +29,7 @@ struct ReportList;
 namespace blender::io::usd {
 
 struct ImportSettings {
+  bool blender_stage_version_prior_44 = false;
   bool do_convert_mat = false;
   float conversion_mat[4][4] = {};
 
@@ -44,18 +46,18 @@ struct ImportSettings {
 
   /* Map a USD material prim path to a Blender material.
    * This map is updated by readers during stage traversal. */
-  mutable blender::Map<std::string, Material *> usd_path_to_mat{};
+  mutable blender::Map<pxr::SdfPath, Material *> usd_path_to_mat{};
   /* Map a material name to Blender material.
    * This map is updated by readers during stage traversal. */
   mutable blender::Map<std::string, Material *> mat_name_to_mat{};
   /* Map a USD material prim path to a Blender material to be
    * converted by invoking the 'on_material_import' USD hook.
    * This map is updated by readers during stage traversal. */
-  mutable blender::Map<std::string, Material *> usd_path_to_mat_for_hook{};
+  mutable blender::Map<pxr::SdfPath, Material *> usd_path_to_mat_for_hook{};
   /* Set of paths to USD material primitives that can be converted by the
    * 'on_material_import' USD hook. For efficiency this set should
    * be populated prior to stage traversal. */
-  mutable blender::Set<std::string> mat_import_hook_sources{};
+  mutable blender::Set<pxr::SdfPath> mat_import_hook_sources{};
 
   /* We use the stage metersPerUnit to convert camera properties from USD scene units to the
    * correct millimeter scale that Blender uses for camera parameters. */
@@ -73,7 +75,7 @@ class USDPrimReader {
 
  protected:
   std::string name_;
-  std::string prim_path_;
+  pxr::SdfPath prim_path_;
   Object *object_;
   pxr::UsdPrim prim_;
   const USDImportParams &import_params_;
@@ -130,17 +132,17 @@ class USDPrimReader {
   {
     return name_;
   }
-  const std::string &prim_path() const
+  pxr::SdfPath prim_path() const
   {
     return prim_path_;
   }
 
-  virtual std::string object_prim_path() const
+  virtual pxr::SdfPath object_prim_path() const
   {
     return prim_path();
   }
 
-  virtual std::string data_prim_path() const
+  virtual pxr::SdfPath data_prim_path() const
   {
     return prim_path();
   }

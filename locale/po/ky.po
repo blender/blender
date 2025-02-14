@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'9439ff09e962')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 09:44+0000\n"
+"POT-Creation-Date: 2025-02-10 15:22+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -45,26 +45,6 @@ msgid "Select"
 msgstr "Тандоо"
 
 
-msgid "Influence"
-msgstr "Таасир"
-
-
-msgid "Replace"
-msgstr "Алмаштыруу"
-
-
-msgid "Add"
-msgstr "Кошуу"
-
-
-msgid "Subtract"
-msgstr "Алуу"
-
-
-msgid "Multiply"
-msgstr "Көбөйтүү"
-
-
 msgid "Module"
 msgstr "Модуль"
 
@@ -99,6 +79,22 @@ msgstr "Анимация маалыматтары"
 
 msgid "Action"
 msgstr "Аракет"
+
+
+msgid "Replace"
+msgstr "Алмаштыруу"
+
+
+msgid "Add"
+msgstr "Кошуу"
+
+
+msgid "Subtract"
+msgstr "Алуу"
+
+
+msgid "Multiply"
+msgstr "Көбөйтүү"
 
 
 msgid "Nothing"
@@ -486,6 +482,10 @@ msgstr "Кириш"
 
 msgid "Error"
 msgstr "Ката"
+
+
+msgid "Influence"
+msgstr "Таасир"
 
 
 msgid "Armature"
@@ -1303,16 +1303,16 @@ msgid "Mask"
 msgstr "Маска"
 
 
-msgid "Apply"
-msgstr "Колдонуу"
+msgid "Text"
+msgstr "Текст"
 
 
 msgid "Mirror"
 msgstr "Чагылтуу"
 
 
-msgid "Text"
-msgstr "Текст"
+msgid "Apply"
+msgstr "Колдонуу"
 
 
 msgctxt "MovieClip"
@@ -3391,13 +3391,13 @@ msgid "Untitled"
 msgstr "Аты жок"
 
 
+msgid "Cancel"
+msgstr "Жокко чыгаруу"
+
+
 msgctxt "Curve"
 msgid "Surface"
 msgstr "Бет"
-
-
-msgid "Cancel"
-msgstr "Жокко чыгаруу"
 
 
 msgid "%s: %s"
@@ -3633,14 +3633,6 @@ msgid "Stone"
 msgstr "Таш"
 
 
-msgid "ON"
-msgstr "өч."
-
-
-msgid "OFF"
-msgstr "күй."
-
-
 msgid "X:"
 msgstr "X:"
 
@@ -3776,6 +3768,14 @@ msgstr "W3"
 
 msgid "W4"
 msgstr "W4"
+
+
+msgid "ON"
+msgstr "өч."
+
+
+msgid "OFF"
+msgstr "күй."
 
 
 msgid "Import-Export"

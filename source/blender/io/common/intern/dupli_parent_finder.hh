@@ -20,11 +20,11 @@ class DupliParentFinder final {
   std::set<const Object *> dupli_set_;
 
   /* To find the DupliObject given its Persistent ID. */
-  typedef std::map<const PersistentID, const DupliObject *> PIDToDupliMap;
+  using PIDToDupliMap = std::map<const PersistentID, const DupliObject *>;
   PIDToDupliMap pid_to_dupli_;
 
   /* Mapping from instancer PID to duplis instanced by it. */
-  typedef std::map<const PersistentID, std::set<const DupliObject *>> InstancerPIDToDuplisMap;
+  using InstancerPIDToDuplisMap = std::map<const PersistentID, std::set<const DupliObject *>>;
   InstancerPIDToDuplisMap instancer_pid_to_duplis_;
 
  public:

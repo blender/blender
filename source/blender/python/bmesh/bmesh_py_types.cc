@@ -3711,7 +3711,7 @@ static PyObject *bpy_bmiter_next(BPy_BMIter *self)
     return nullptr;
   }
 
-  return (PyObject *)BPy_BMElem_CreatePyObject(self->bm, ele);
+  return BPy_BMElem_CreatePyObject(self->bm, ele);
 }
 
 /* Deallocate Functions

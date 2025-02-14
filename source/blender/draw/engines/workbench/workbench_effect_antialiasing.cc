@@ -5,6 +5,7 @@
 #include "workbench_private.hh"
 
 #include "BLI_jitter_2d.h"
+#include "BLI_math_geom.h"
 #include "BLI_smaa_textures.h"
 
 namespace blender::workbench {

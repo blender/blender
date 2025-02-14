@@ -6,12 +6,10 @@
  * \ingroup eevee
  */
 
-#include "BLI_vector.hh"
+#include <algorithm>
 
 #include "eevee_instance.hh"
 #include "eevee_subsurface.hh"
-
-#include <iostream>
 
 namespace blender::eevee {
 
@@ -167,9 +165,7 @@ float SubsurfaceModule::burley_sample(float d, float x_rand)
     }
 
     r = r - f / f_;
-    if (r < 0.0) {
-      r = 0.0;
-    }
+    r = std::max<double>(r, 0.0);
   }
 
   return r * d;

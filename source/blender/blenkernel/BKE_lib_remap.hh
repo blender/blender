@@ -282,7 +282,6 @@ class IDRemapper {
    */
   bool allow_idtype_mismatch = false;
 
- public:
   void clear()
   {
     mappings_.clear();
@@ -341,7 +340,7 @@ class IDRemapper {
   }
 
   /** Return a readable string for the given result. Can be used for debugging purposes. */
-  static const StringRefNull result_to_string(const IDRemapperApplyResult result);
+  static StringRefNull result_to_string(const IDRemapperApplyResult result);
 
   /** Print out the rules inside the given id_remapper. Can be used for debugging purposes. */
   void print() const;

@@ -247,6 +247,13 @@ class Device {
     return false;
   }
 
+  virtual bool is_shared(const void * /*shared_pointer*/,
+                         const device_ptr /*device_pointer*/,
+                         Device * /*sub_device*/)
+  {
+    return false;
+  }
+
   /* Graphics resources interoperability.
    *
    * The interoperability comes here by the meaning that the device is capable of computing result
@@ -313,8 +320,12 @@ class Device {
   friend class DeviceServer;
   friend class device_memory;
 
+  virtual void *host_alloc(const MemoryType type, const size_t size);
+  virtual void host_free(const MemoryType type, void *host_pointer, const size_t size);
+
   virtual void mem_alloc(device_memory &mem) = 0;
   virtual void mem_copy_to(device_memory &mem) = 0;
+  virtual void mem_move_to_host(device_memory &mem) = 0;
   virtual void mem_copy_from(
       device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) = 0;
   virtual void mem_zero(device_memory &mem) = 0;
@@ -337,12 +348,7 @@ class Device {
 class GPUDevice : public Device {
  protected:
   GPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_)
-      : Device(info_, stats_, profiler_, headless_),
-        texture_info(this, "texture_info", MEM_GLOBAL),
-
-        device_mem_map(),
-        device_mem_map_mutex()
-
+      : Device(info_, stats_, profiler_, headless_), texture_info(this, "texture_info", MEM_GLOBAL)
   {
   }
 
@@ -351,6 +357,7 @@ class GPUDevice : public Device {
 
   /* For GPUs that can use bindless textures in some way or another. */
   device_vector<TextureInfo> texture_info;
+  thread_mutex texture_info_mutex;
   bool need_texture_info = false;
   /* Returns true if the texture info was copied to the device (meaning, some more
    * re-initialization might be needed). */
@@ -372,20 +379,18 @@ class GPUDevice : public Device {
 
     texMemObject texobject = 0;
     arrayMemObject array = 0;
-
-    /* If true, a mapped host memory in shared_pointer is being used. */
-    bool use_mapped_host = false;
   };
   using MemMap = map<device_memory *, Mem>;
   MemMap device_mem_map;
   thread_mutex device_mem_map_mutex;
-  bool move_texture_to_host = false;
   /* Simple counter which will try to track amount of used device memory */
   size_t device_mem_in_use = 0;
 
   virtual void init_host_memory(const size_t preferred_texture_headroom = 0,
-                                size_t preferred_working_headroom = 0);
-  virtual void move_textures_to_host(const size_t size, bool for_texture);
+                                const size_t preferred_working_headroom = 0);
+  virtual void move_textures_to_host(const size_t size,
+                                     const size_t headroom,
+                                     const bool for_texture);
 
   /* Allocation, deallocation and copy functions, with corresponding
    * support of device/host allocations. */
@@ -396,19 +401,21 @@ class GPUDevice : public Device {
   /* total - amount of device memory, free - amount of available device memory */
   virtual void get_device_memory_info(size_t &total, size_t &free) = 0;
 
+  /* Device side memory. */
   virtual bool alloc_device(void *&device_pointer, const size_t size) = 0;
-
   virtual void free_device(void *device_pointer) = 0;
 
-  virtual bool alloc_host(void *&shared_pointer, const size_t size) = 0;
-
-  virtual void free_host(void *shared_pointer) = 0;
-
+  /* Shared memory. */
+  virtual bool shared_alloc(void *&shared_pointer, const size_t size) = 0;
+  virtual void shared_free(void *shared_pointer) = 0;
+  bool is_shared(const void *shared_pointer,
+                 const device_ptr device_pointer,
+                 Device *sub_device) override;
   /* This function should return device pointer corresponding to shared pointer, which
-   * is host buffer, allocated in `alloc_host`. The function should `true`, if such
-   * address transformation is possible and `false` otherwise. */
-  virtual void transform_host_pointer(void *&device_pointer, void *&shared_pointer) = 0;
+   * is host buffer, allocated in `shared_alloc`. */
+  virtual void *shared_to_device_pointer(const void *shared_pointer) = 0;
 
+  /* Memory copy. */
   virtual void copy_host_to_device(void *device_pointer,
                                    void *host_pointer,
                                    const size_t size) = 0;

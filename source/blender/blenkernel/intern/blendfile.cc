@@ -18,11 +18,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_fileops.h"
 #include "BLI_function_ref.hh"
@@ -1585,11 +1583,11 @@ bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *
 bool BKE_blendfile_userdef_write_all(ReportList *reports)
 {
   char filepath[FILE_MAX];
-  std::optional<std::string> cfgdir;
   bool ok = true;
   const bool use_template_userpref = BKE_appdir_app_template_has_userpref(U.app_template);
+  std::optional<std::string> cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr);
 
-  if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr))) {
+  if (cfgdir) {
     bool ok_write;
     BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
     if (!G.quiet) {
@@ -1621,7 +1619,8 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   }
 
   if (use_template_userpref) {
-    if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
+    cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template);
+    if (cfgdir) {
       /* Also save app-template preferences. */
       BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
 

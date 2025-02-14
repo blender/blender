@@ -24,9 +24,9 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd)
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     pass.shader_set(GPENCIL_shader_antialiasing(2));
-    pass.bind_texture("blendTex", inst->color_tx);
-    pass.bind_texture("colorTex", inst->color_tx);
-    pass.bind_texture("revealTex", inst->reveal_tx);
+    pass.bind_texture("blendTex", &inst->color_tx);
+    pass.bind_texture("colorTex", &inst->color_tx);
+    pass.bind_texture("revealTex", &inst->reveal_tx);
     pass.push_constant("doAntiAliasing", false);
     pass.push_constant("onlyAlpha", pd->draw_wireframe);
     pass.push_constant("viewportMetrics", metrics);

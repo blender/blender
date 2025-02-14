@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_euler.hh"
-#include "BLI_math_quaternion.hh"
 
 #include "NOD_socket_search_link.hh"
 

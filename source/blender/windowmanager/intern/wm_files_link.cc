@@ -11,7 +11,6 @@
 #include <cctype>
 #include <cerrno>
 #include <cfloat>
-#include <cstddef>
 #include <cstring>
 
 #include "CLG_log.h"
@@ -21,8 +20,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_map.hh"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 
 #include "BLO_readfile.hh"
 

@@ -22,7 +22,6 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
-#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"

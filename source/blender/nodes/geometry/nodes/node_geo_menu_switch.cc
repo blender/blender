@@ -167,7 +167,7 @@ class MenuSwitchFn : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const int value_inputs_start = 1;
     const int inputs_num = enum_def_.items_num;

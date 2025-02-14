@@ -8,9 +8,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -58,7 +58,7 @@
  * Types of transforms applied to the given item:
  * - these are the return flags for get_item_transform_flags()
  */
-typedef enum eAction_TransformFlags {
+enum eAction_TransformFlags {
   ACT_TRANS_LOC = (1 << 0),
   ACT_TRANS_ROT = (1 << 1),
   ACT_TRANS_SCALE = (1 << 2),
@@ -69,7 +69,7 @@ typedef enum eAction_TransformFlags {
 
   ACT_TRANS_ONLY = (ACT_TRANS_LOC | ACT_TRANS_ROT | ACT_TRANS_SCALE),
   ACT_TRANS_ALL = (ACT_TRANS_ONLY | ACT_TRANS_PROP),
-} eAction_TransformFlags;
+};
 
 static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
                                                                    bPoseChannel &pchan,
@@ -83,7 +83,7 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
   short flags = 0;
 
   /* Build PointerRNA from provided data to obtain the paths to use. */
-  PointerRNA ptr = RNA_pointer_create((ID *)&ob, &RNA_PoseBone, &pchan);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)&ob, &RNA_PoseBone, &pchan);
 
   /* Get the basic path to the properties of interest. */
   const std::optional<std::string> basePath = RNA_path_from_ID_to_struct(&ptr);
@@ -184,7 +184,7 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
   pfl->pchan = &pchan;
 
   /* Get the RNA path to this pchan - this needs to be freed! */
-  PointerRNA ptr = RNA_pointer_create((ID *)&ob, &RNA_PoseBone, &pchan);
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)&ob, &RNA_PoseBone, &pchan);
   pfl->pchan_path = BLI_strdup(RNA_path_from_ID_to_struct(&ptr).value_or("").c_str());
 
   BLI_addtail(&pfLinks, pfl);

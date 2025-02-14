@@ -8,6 +8,8 @@
  * Main functions for beveling a BMesh (used by the tool and modifier)
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curveprofile_types.h"
@@ -5153,9 +5155,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
          * This is used in interpolation along center-line in odd case.
          * To avoid too big a drop from bv, cap finalfrac a 0.8 arbitrarily */
         finalfrac = 0.5f / sinf(ang);
-        if (finalfrac > 0.8f) {
-          finalfrac = 0.8f;
-        }
+        finalfrac = std::min(finalfrac, 0.8f);
       }
       else {
         finalfrac = 0.8f;
@@ -7097,13 +7097,9 @@ static double find_superellipse_chord_endpoint(double x0, double dtarget, float 
 
   /* For gradient between -1 and 1, xnew can only be in [x0 + sqrt(2)/2*dtarget, x0 + dtarget]. */
   double xmin = x0 + M_SQRT2 / 2.0 * dtarget;
-  if (xmin > 1.0) {
-    xmin = 1.0;
-  }
+  xmin = std::min(xmin, 1.0);
   double xmax = x0 + dtarget;
-  if (xmax > 1.0) {
-    xmax = 1.0;
-  }
+  xmax = std::min(xmax, 1.0);
   double ymin = superellipse_co(xmin, r, rbig);
   double ymax = superellipse_co(xmax, r, rbig);
 
@@ -7194,12 +7190,8 @@ static void find_even_superellipse_chords_general(int seg, float r, double *xval
     for (int i = 0; i < imax; i++) {
       double d = sqrt(pow((xvals[i + 1] - xvals[i]), 2) + pow((yvals[i + 1] - yvals[i]), 2));
       sum += d;
-      if (d > dmax) {
-        dmax = d;
-      }
-      if (d < dmin) {
-        dmin = d;
-      }
+      dmax = std::max(d, dmax);
+      dmin = std::min(d, dmin);
     }
     /* For last distance, weight with 1/2 if seg_odd. */
     double davg;
@@ -7591,9 +7583,7 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
         }
         A_side_slide += BM_edge_calc_length(la->e) * sinf(exterior_angle);
       }
-      if (A_side_slide < limit) {
-        limit = A_side_slide;
-      }
+      limit = std::min(A_side_slide, limit);
     }
   }
 
@@ -7616,9 +7606,7 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
         }
         C_side_slide += BM_edge_calc_length(lc->e) * sinf(exterior_angle);
       }
-      if (C_side_slide < limit) {
-        limit = C_side_slide;
-      }
+      limit = std::min(C_side_slide, limit);
     }
   }
   return limit;
@@ -7668,15 +7656,11 @@ static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
       EdgeHalf *eh = &bv->edges[i];
       if (bp->affect_type == BEVEL_AFFECT_VERTICES) {
         float collision_offset = vertex_collide_offset(bp, eh);
-        if (collision_offset < limited_offset) {
-          limited_offset = collision_offset;
-        }
+        limited_offset = std::min(collision_offset, limited_offset);
       }
       else {
         float collision_offset = geometry_collide_offset(bp, eh);
-        if (collision_offset < limited_offset) {
-          limited_offset = collision_offset;
-        }
+        limited_offset = std::min(collision_offset, limited_offset);
       }
     }
   }

@@ -83,7 +83,7 @@ class GeometryComponent : public ImplicitSharingMixin {
 
  public:
   GeometryComponent(Type type);
-  virtual ~GeometryComponent() = default;
+  ~GeometryComponent() override = default;
   static GeometryComponentPtr create(Type component_type);
 
   int attribute_domain_size(AttrDomain domain) const;
@@ -482,7 +482,7 @@ class MeshComponent : public GeometryComponent {
  public:
   MeshComponent();
   MeshComponent(Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
-  ~MeshComponent();
+  ~MeshComponent() override;
   GeometryComponentPtr copy() const override;
 
   void clear() override;
@@ -515,7 +515,7 @@ class MeshComponent : public GeometryComponent {
 
   void count_memory(MemoryCounter &memory) const override;
 
-  static constexpr inline GeometryComponent::Type static_type = Type::Mesh;
+  static constexpr GeometryComponent::Type static_type = Type::Mesh;
 
   std::optional<AttributeAccessor> attributes() const final;
   std::optional<MutableAttributeAccessor> attributes_for_write() final;
@@ -540,7 +540,7 @@ class PointCloudComponent : public GeometryComponent {
   PointCloudComponent();
   PointCloudComponent(PointCloud *pointcloud,
                       GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
-  ~PointCloudComponent();
+  ~PointCloudComponent() override;
   GeometryComponentPtr copy() const override;
 
   void clear() override;
@@ -579,7 +579,7 @@ class PointCloudComponent : public GeometryComponent {
   std::optional<AttributeAccessor> attributes() const final;
   std::optional<MutableAttributeAccessor> attributes_for_write() final;
 
-  static constexpr inline GeometryComponent::Type static_type = Type::PointCloud;
+  static constexpr GeometryComponent::Type static_type = Type::PointCloud;
 };
 
 /**
@@ -603,7 +603,7 @@ class CurveComponent : public GeometryComponent {
  public:
   CurveComponent();
   CurveComponent(Curves *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
-  ~CurveComponent();
+  ~CurveComponent() override;
   GeometryComponentPtr copy() const override;
 
   void clear() override;
@@ -633,7 +633,7 @@ class CurveComponent : public GeometryComponent {
   std::optional<AttributeAccessor> attributes() const final;
   std::optional<MutableAttributeAccessor> attributes_for_write() final;
 
-  static constexpr inline GeometryComponent::Type static_type = Type::Curve;
+  static constexpr GeometryComponent::Type static_type = Type::Curve;
 };
 
 /**
@@ -648,7 +648,7 @@ class InstancesComponent : public GeometryComponent {
   InstancesComponent();
   InstancesComponent(Instances *instances,
                      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
-  ~InstancesComponent();
+  ~InstancesComponent() override;
   GeometryComponentPtr copy() const override;
 
   void clear() override;
@@ -671,7 +671,7 @@ class InstancesComponent : public GeometryComponent {
   std::optional<AttributeAccessor> attributes() const final;
   std::optional<MutableAttributeAccessor> attributes_for_write() final;
 
-  static constexpr inline GeometryComponent::Type static_type = Type::Instance;
+  static constexpr GeometryComponent::Type static_type = Type::Instance;
 };
 
 /**
@@ -686,7 +686,7 @@ class VolumeComponent : public GeometryComponent {
 
  public:
   VolumeComponent();
-  ~VolumeComponent();
+  ~VolumeComponent() override;
   GeometryComponentPtr copy() const override;
 
   void clear() override;
@@ -718,7 +718,7 @@ class VolumeComponent : public GeometryComponent {
 
   void count_memory(MemoryCounter &memory) const override;
 
-  static constexpr inline GeometryComponent::Type static_type = Type::Volume;
+  static constexpr GeometryComponent::Type static_type = Type::Volume;
 };
 
 /**
@@ -762,7 +762,7 @@ class GeometryComponentEditData final : public GeometryComponent {
    */
   static void remember_deformed_positions_if_necessary(GeometrySet &geometry);
 
-  static constexpr inline GeometryComponent::Type static_type = GeometryComponent::Type::Edit;
+  static constexpr GeometryComponent::Type static_type = GeometryComponent::Type::Edit;
 };
 
 /**
@@ -777,7 +777,7 @@ class GreasePencilComponent : public GeometryComponent {
 
  public:
   GreasePencilComponent();
-  ~GreasePencilComponent();
+  ~GreasePencilComponent() override;
   GeometryComponentPtr copy() const override;
 
   void clear() override;
@@ -801,7 +801,7 @@ class GreasePencilComponent : public GeometryComponent {
   bool owns_direct_data() const override;
   void ensure_owns_direct_data() override;
 
-  static constexpr inline GeometryComponent::Type static_type = Type::GreasePencil;
+  static constexpr GeometryComponent::Type static_type = Type::GreasePencil;
 
   std::optional<AttributeAccessor> attributes() const final;
   std::optional<MutableAttributeAccessor> attributes_for_write() final;

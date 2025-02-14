@@ -132,7 +132,7 @@ static void set_position_in_component(Curves &curves_id,
         });
         return changed;
       },
-      std::logical_or<bool>());
+      std::logical_or<>());
 
   selection.foreach_segment(GrainSize(2048), [&](const IndexMaskSegment segment) {
     for (const int i : segment) {
