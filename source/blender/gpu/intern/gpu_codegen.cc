@@ -796,7 +796,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   else {
     /* We still create a pass even if shader compilation
      * fails to avoid trying to compile again and again. */
-    pass = (GPUPass *)MEM_callocN(sizeof(GPUPass), "GPUPass");
+    pass = MEM_new<GPUPass>("GPUPass");
     pass->shader = nullptr;
     pass->refcount = 1;
     pass->create_info = codegen.create_info;
@@ -984,7 +984,7 @@ static void gpu_pass_free(GPUPass *pass)
     GPU_shader_free(pass->shader);
   }
   delete pass->create_info;
-  MEM_freeN(pass);
+  MEM_delete(pass);
 }
 
 void GPU_pass_acquire(GPUPass *pass)

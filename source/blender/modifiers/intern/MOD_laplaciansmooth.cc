@@ -69,7 +69,7 @@ static void delete_laplacian_system(LaplacianSystem *sys)
     EIG_linear_solver_delete(sys->context);
   }
   sys->vertexCos = nullptr;
-  MEM_freeN(sys);
+  MEM_delete(sys);
 }
 
 static void memset_laplacian_system(LaplacianSystem *sys, int val)
@@ -87,7 +87,7 @@ static void memset_laplacian_system(LaplacianSystem *sys, int val)
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, int a_numVerts)
 {
   LaplacianSystem *sys;
-  sys = static_cast<LaplacianSystem *>(MEM_callocN(sizeof(LaplacianSystem), __func__));
+  sys = MEM_new<LaplacianSystem>(__func__);
   sys->verts_num = a_numVerts;
 
   sys->eweights = MEM_cnew_array<float>(a_numEdges, __func__);
