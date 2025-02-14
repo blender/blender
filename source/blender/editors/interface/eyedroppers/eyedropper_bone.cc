@@ -48,18 +48,18 @@ enum class SampleResult {
 };
 
 struct BoneDropper {
-  PointerRNA ptr;
-  PropertyRNA *prop;
-  PointerRNA search_ptr;
-  PropertyRNA *search_prop;
+  PointerRNA ptr = {};
+  PropertyRNA *prop = nullptr;
+  PointerRNA search_ptr = {};
+  PropertyRNA *search_prop = nullptr;
 
-  bool is_undo;
+  bool is_undo = false;
 
-  ScrArea *cursor_area; /* Area under the cursor. */
-  ARegionType *area_region_type;
-  void *draw_handle_pixel;
-  int name_pos[2];
-  char name[64];
+  ScrArea *cursor_area = nullptr; /* Area under the cursor. */
+  ARegionType *area_region_type = nullptr;
+  void *draw_handle_pixel = nullptr;
+  int name_pos[2] = {};
+  char name[64] = {};
 };
 
 struct BoneSampleData {

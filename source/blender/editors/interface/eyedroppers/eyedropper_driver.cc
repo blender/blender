@@ -37,10 +37,10 @@
 
 struct DriverDropper {
   /* Destination property (i.e. where we'll add a driver) */
-  PointerRNA ptr;
-  PropertyRNA *prop;
-  int index;
-  bool is_undo;
+  PointerRNA ptr = {};
+  PropertyRNA *prop = nullptr;
+  int index = 0;
+  bool is_undo = false;
 
   /* TODO: new target? */
 };

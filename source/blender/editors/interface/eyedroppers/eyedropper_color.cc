@@ -60,28 +60,28 @@
 #include "eyedropper_intern.hh"
 
 struct Eyedropper {
-  ColorManagedDisplay *display;
+  ColorManagedDisplay *display = nullptr;
 
-  PointerRNA ptr;
-  PropertyRNA *prop;
-  int index;
-  bool is_undo;
+  PointerRNA ptr = {};
+  PropertyRNA *prop = nullptr;
+  int index = 0;
+  bool is_undo = false;
 
-  bool is_set;
-  float init_col[3]; /* for resetting on cancel */
+  bool is_set = false;
+  float init_col[3] = {}; /* for resetting on cancel */
 
-  bool accum_start; /* has mouse been pressed */
-  float accum_col[3];
-  int accum_tot;
+  bool accum_start = false; /* has mouse been pressed */
+  float accum_col[3] = {};
+  int accum_tot = 0;
 
-  wmWindow *cb_win;
-  int cb_win_event_xy[2];
-  void *draw_handle_sample_text;
-  char sample_text[MAX_NAME];
+  wmWindow *cb_win = nullptr;
+  int cb_win_event_xy[2] = {};
+  void *draw_handle_sample_text = nullptr;
+  char sample_text[MAX_NAME] = {};
 
-  bNode *crypto_node;
-  CryptomatteSession *cryptomatte_session;
-  ViewportColorSampleSession *viewport_session;
+  bNode *crypto_node = nullptr;
+  CryptomatteSession *cryptomatte_session = nullptr;
+  ViewportColorSampleSession *viewport_session = nullptr;
 };
 
 static void eyedropper_draw_cb(const wmWindow * /*window*/, void *arg)
