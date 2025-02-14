@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+set(OCIO_PATCH echo .)
+
 set(OPENCOLORIO_EXTRA_ARGS
   -DOCIO_BUILD_APPS=OFF
   -DOCIO_BUILD_PYTHON=ON
