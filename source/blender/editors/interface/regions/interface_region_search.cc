@@ -315,12 +315,12 @@ static ARegion *wm_searchbox_tooltip_init(
   *r_exit_on_event = true;
 
   LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
-    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+    for (const std::unique_ptr<uiBut> &but : block->buttons) {
       if (but->type != UI_BTYPE_SEARCH_MENU) {
         continue;
       }
 
-      uiButSearch *search_but = (uiButSearch *)but;
+      uiButSearch *search_but = (uiButSearch *)but.get();
       if (!search_but->item_tooltip_fn) {
         continue;
       }

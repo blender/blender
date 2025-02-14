@@ -1022,7 +1022,8 @@ std::optional<std::string> UI_key_event_operator_string(const bContext *C,
   short event_type = KM_NOTHING;
 
   uiBut *listbox = nullptr;
-  LISTBASE_FOREACH_BACKWARD (uiBut *, but_iter, &but->block->buttons) {
+  for (int i = but->block->buttons.size() - 1; i >= 0; i--) {
+    uiBut *but_iter = but->block->buttons[i].get();
     if ((but_iter->type == UI_BTYPE_LISTBOX) && ui_but_contains_rect(but_iter, &but->rect)) {
       listbox = but_iter;
       break;

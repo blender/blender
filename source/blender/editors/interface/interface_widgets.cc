@@ -2593,10 +2593,10 @@ static bool draw_emboss(const uiBut *but)
   if (but->drawflag & UI_BUT_ALIGN_DOWN) {
     return false;
   }
-
+  uiBut *but_next = but->block->next_but(but);
   if (but->type == UI_BTYPE_TAB &&
       (BLI_rctf_size_y(&but->block->rect) > BLI_rctf_size_x(&but->block->rect)) &&
-      !(but->next == nullptr || but->next->type == UI_BTYPE_SEPR))
+      !(but_next == nullptr || but_next->type == UI_BTYPE_SEPR))
   {
     /* Vertical tabs, emboss at end and before separators. */
     return false;

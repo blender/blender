@@ -127,7 +127,7 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
   }
 
   /* get */
-  LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &but_iter : block->buttons) {
     /* Prevent labels (typically headings), from being returned in the case the text
      * happens to matches one of the menu items.
      * Skip separators too as checking them is redundant. */
@@ -136,7 +136,7 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
     }
     if (mem[hash_mod] == ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR))
     {
-      return but_iter;
+      return but_iter.get();
     }
   }
 
@@ -318,16 +318,16 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
         /* position mouse at 0.8*width of the button and below the tile
          * on the first item */
         offset[0] = 0;
-        LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+        for (const std::unique_ptr<uiBut> &but_iter : block->buttons) {
           offset[0] = min_ii(offset[0],
                              -(but_iter->rect.xmin + 0.8f * BLI_rctf_size_x(&but_iter->rect)));
         }
 
         offset[1] = 2.1 * UI_UNIT_Y;
 
-        LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
-          if (ui_but_is_editable(but_iter)) {
-            but_activate = but_iter;
+        for (const std::unique_ptr<uiBut> &but_iter : block->buttons) {
+          if (ui_but_is_editable(but_iter.get())) {
+            but_activate = but_iter.get();
             break;
           }
         }
@@ -812,7 +812,7 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
       return nullptr;
     }
     uiBlock *block = uiLayoutGetBlock(row);
-    const uiBut *but_ref = (uiBut *)block->buttons.last;
+    const uiBut *but_ref = block->last_but();
     uiItemFullO_ptr(row,
                     ot,
                     confirm_text,
@@ -822,10 +822,10 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
                     UI_ITEM_NONE,
                     r_ptr);
 
-    if (but_ref == block->buttons.last) {
+    if (block->buttons.is_empty() || but_ref == block->buttons.last().get()) {
       return nullptr;
     }
-    return static_cast<uiBut *>(block->buttons.last);
+    return block->buttons.last().get();
   };
 
   auto cancel_fn = [&row, &cancel_text, &show_cancel]() -> uiBut * {

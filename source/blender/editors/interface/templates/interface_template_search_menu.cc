@@ -669,29 +669,30 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
       UI_block_end(C, block);
 
-      LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+      for (const int i : block->buttons.index_range()) {
+        const std::unique_ptr<uiBut> &but = block->buttons[i];
         MenuType *mt_from_but = nullptr;
         /* Support menu titles with dynamic from initial labels
          * (used by edit-mesh context menu). */
         if (but->type == UI_BTYPE_LABEL) {
 
           /* Check if the label is the title. */
-          uiBut *but_test = but->prev;
-          while (but_test && but_test->type == UI_BTYPE_SEPR) {
-            but_test = but_test->prev;
+          const std::unique_ptr<uiBut> *but_test = block->buttons.begin() + i - 1;
+          while (but_test >= block->buttons.begin() && (*but_test)->type == UI_BTYPE_SEPR) {
+            but_test--;
           }
 
-          if (but_test == nullptr) {
+          if (but_test < block->buttons.begin()) {
             menu_display_name_map.add(mt,
                                       scope.linear_allocator().copy_string(but->drawstr).c_str());
           }
         }
         else if (menu_items_from_ui_create_item_from_button(
-                     data, scope, mt, but, wm_context, current_menu.self_as_parent))
+                     data, scope, mt, but.get(), wm_context, current_menu.self_as_parent))
         {
           /* pass */
         }
-        else if ((mt_from_but = UI_but_menutype_get(but))) {
+        else if ((mt_from_but = UI_but_menutype_get(but.get()))) {
           const bool uses_context = but->context &&
                                     bool(mt_from_but->flag & MenuTypeFlag::ContextDependent);
           const bool tagged_first_time = menu_tagged.add(mt_from_but);
@@ -769,7 +770,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
            * could be used as a more general way to know if poll succeeded,
            * at this point it's not set - this could be further investigated. */
           bool poll_success = true;
-          if (PanelType *pt = UI_but_paneltype_get(but)) {
+          if (PanelType *pt = UI_but_paneltype_get(but.get())) {
             if (pt->poll && (pt->poll(C, pt) == false)) {
               poll_success = false;
             }
@@ -786,9 +787,9 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             menu_parent->drawstr = scope.linear_allocator().copy_string(but->drawstr);
             menu_parent->parent = current_menu.self_as_parent;
 
-            LISTBASE_FOREACH (uiBut *, sub_but, &sub_block->buttons) {
+            for (const std::unique_ptr<uiBut> &sub_but : sub_block->buttons) {
               menu_items_from_ui_create_item_from_button(
-                  data, scope, mt, sub_but, wm_context, menu_parent);
+                  data, scope, mt, sub_but.get(), wm_context, menu_parent);
             }
           }
 

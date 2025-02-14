@@ -93,10 +93,10 @@ static void ui_popup_block_position(wmWindow *window,
 
   /* Compute block size in window space, based on buttons contained in it. */
   if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
-    if (block->buttons.first) {
+    if (!block->buttons.is_empty()) {
       BLI_rctf_init_minmax(&block->rect);
 
-      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+      for (const std::unique_ptr<uiBut> &bt : block->buttons) {
         if (block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT) {
           bt->rect.xmax += UI_MENU_SUBMENU_PADDING;
         }
@@ -116,7 +116,7 @@ static void ui_popup_block_position(wmWindow *window,
   const float max_radius = (0.5f * U.widget_unit);
 
   if (delta >= 0 && delta < max_radius) {
-    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+    for (const std::unique_ptr<uiBut> &bt : block->buttons) {
       /* Only trim the right most buttons in multi-column popovers. */
       if (bt->rect.xmax == block->rect.xmax) {
         bt->rect.xmax -= delta;
@@ -311,13 +311,13 @@ static void ui_popup_block_position(wmWindow *window,
   }
 
   /* Apply offset, buttons in window coords. */
-  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &bt : block->buttons) {
     ui_block_to_window_rctf(butregion, but->block, &bt->rect, &bt->rect);
 
     BLI_rctf_translate(&bt->rect, offset_x, offset_y);
 
     /* ui_but_update recalculates drawstring size in pixels */
-    ui_but_update(bt);
+    ui_but_update(bt.get());
   }
 
   BLI_rctf_translate(&block->rect, offset_x, offset_y);
@@ -503,7 +503,7 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 
   /* ensure menu items draw inside left/right boundary */
   const float xofs = block->rect.xmin - xmin_orig;
-  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &bt : block->buttons) {
     bt->rect.xmin += xofs;
     bt->rect.xmax += xofs;
   }
@@ -513,16 +513,16 @@ void ui_popup_block_scrolltest(uiBlock *block)
 {
   block->flag &= ~(UI_BLOCK_CLIPBOTTOM | UI_BLOCK_CLIPTOP);
 
-  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &bt : block->buttons) {
     bt->flag &= ~UI_SCROLLED;
   }
 
-  if (block->buttons.first == block->buttons.last) {
+  if (block->buttons.size() < 2) {
     return;
   }
 
   /* mark buttons that are outside boundary */
-  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &bt : block->buttons) {
     if (bt->rect.ymin < block->rect.ymin) {
       bt->flag |= UI_SCROLLED;
       block->flag |= UI_BLOCK_CLIPBOTTOM;
@@ -534,7 +534,7 @@ void ui_popup_block_scrolltest(uiBlock *block)
   }
 
   /* mark buttons overlapping arrows, if we have them */
-  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &bt : block->buttons) {
     if (block->flag & UI_BLOCK_CLIPBOTTOM) {
       if (bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW) {
         bt->flag |= UI_SCROLLED;
@@ -776,7 +776,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
     /* lastly set the buttons at the center of the pie menu, ready for animation */
     if (U.pie_animation_timeout > 0) {
-      LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+      for (const std::unique_ptr<uiBut> &but_iter : block->buttons) {
         if (but_iter->pie_dir != UI_RADIAL_NONE) {
           BLI_rctf_recenter(&but_iter->rect, UNPACK2(block->pie_data.pie_center_spawned));
         }
@@ -820,7 +820,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     /* Popups can change size, fix scroll offset if a panel was closed. */
     float ymin = FLT_MAX;
     float ymax = -FLT_MAX;
-    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+    for (const std::unique_ptr<uiBut> &bt : block->buttons) {
       ymin = min_ff(ymin, bt->rect.ymin);
       ymax = max_ff(ymax, bt->rect.ymax);
     }
@@ -830,7 +830,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     handle->scrolloffset = std::clamp(handle->scrolloffset, scroll_min, scroll_max);
     /* apply scroll offset */
     if (handle->scrolloffset != 0.0f) {
-      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+      for (const std::unique_ptr<uiBut> &bt : block->buttons) {
         bt->rect.ymin += handle->scrolloffset;
         bt->rect.ymax += handle->scrolloffset;
       }

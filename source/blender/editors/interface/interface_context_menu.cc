@@ -1444,7 +1444,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
     /* evil, force shortcut flag */
     {
       uiBlock *block = uiLayoutGetBlock(layout);
-      uiBut *but = static_cast<uiBut *>(block->buttons.last);
+      uiBut *but = block->buttons.last().get();
       but->flag |= UI_BUT_HAS_SEP_CHAR;
     }
   }

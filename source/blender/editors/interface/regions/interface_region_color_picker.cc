@@ -195,16 +195,16 @@ static void ui_update_color_picker_buts_rgba(uiBut *from_but,
 {
   ui_color_picker_update_hsv(cpicker, from_but, rgba_scene_linear);
 
-  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &bt : block->buttons) {
     if (bt->custom_data != cpicker) {
       continue;
     }
 
     if (bt->rnaprop) {
-      ui_but_v4_set(bt, rgba_scene_linear);
+      ui_but_v4_set(bt.get(), rgba_scene_linear);
       /* original button that created the color picker already does undo
        * push, so disable it on RNA buttons in the color picker block */
-      UI_but_flag_disable(bt, UI_BUT_UNDO);
+      UI_but_flag_disable(bt.get(), UI_BUT_UNDO);
     }
     else if (bt->type == UI_BTYPE_TEXT) {
       /* Hex text input field. */
@@ -231,7 +231,7 @@ static void ui_update_color_picker_buts_rgba(uiBut *from_but,
       memcpy(bt->poin, col, col_len + 1); /* +1 offset for the # symbol. */
     }
 
-    ui_but_update(bt);
+    ui_but_update(bt.get());
   }
 }
 
@@ -339,7 +339,7 @@ static void ui_popup_close_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 static void ui_colorpicker_hide_reveal(uiBlock *block, ePickerType colormode)
 {
   /* tag buttons */
-  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+  for (const std::unique_ptr<uiBut> &bt : block->buttons) {
     if ((bt->func == ui_colorpicker_rgba_update_cb) && (bt->type == UI_BTYPE_NUM_SLIDER) &&
         (bt->rnaindex != 3))
     {
@@ -853,7 +853,7 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const
   }
 
   if (add != 0.0f) {
-    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+    for (const std::unique_ptr<uiBut> &but : block->buttons) {
       if (but->type == UI_BTYPE_HSVCUBE && but->active == nullptr) {
         uiPopupBlockHandle *popup = block->handle;
         ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
@@ -861,8 +861,8 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const
 
         /* Get the RGBA Color. */
         float rgba_perceptual[4];
-        ui_but_v4_get(but, rgba_perceptual);
-        ui_scene_linear_to_perceptual_space(but, rgba_perceptual);
+        ui_but_v4_get(but.get(), rgba_perceptual);
+        ui_scene_linear_to_perceptual_space(but.get(), rgba_perceptual);
 
         /* Convert it to HSV. */
         ui_color_picker_rgb_to_hsv_compat(rgba_perceptual, hsv_perceptual);
@@ -874,11 +874,11 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const
         float rgba_scene_linear[4];
         rgba_scene_linear[3] = rgba_perceptual[3]; /* Transfer Alpha component. */
         ui_color_picker_hsv_to_rgb(hsv_perceptual, rgba_scene_linear);
-        ui_perceptual_to_scene_linear_space(but, rgba_scene_linear);
-        ui_but_v4_set(but, rgba_scene_linear);
+        ui_perceptual_to_scene_linear_space(but.get(), rgba_scene_linear);
+        ui_but_v4_set(but.get(), rgba_scene_linear);
 
         /* Update all other Color Picker buttons to reflect the color change. */
-        ui_update_color_picker_buts_rgba(but, block, cpicker, rgba_scene_linear);
+        ui_update_color_picker_buts_rgba(but.get(), block, cpicker, rgba_scene_linear);
         if (popup) {
           popup->menuretval = UI_RETURN_UPDATE;
         }

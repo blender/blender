@@ -370,7 +370,8 @@ static void colorband_buttons_layout(uiLayout *layout,
     }
 
     /* Some special (rather awkward) treatment to update UI state on certain property changes. */
-    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
+    for (int i = block->buttons.size() - 1; i >= 0; i--) {
+      uiBut *but = block->buttons[i].get();
       if (but->rnapoin.data != ptr.data) {
         continue;
       }
