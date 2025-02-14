@@ -130,6 +130,7 @@ void Instance::begin_sync()
   resources.begin_sync();
 
   background.begin_sync(resources, state);
+  cursor.begin_sync(resources, state);
   image_prepass.begin_sync(resources, state);
   motion_paths.begin_sync(resources, state);
   origins.begin_sync(resources, state);
@@ -465,6 +466,8 @@ void Instance::draw_v2d(Manager &manager, View &view)
   background.draw_output(resources.overlay_output_color_only_fb, manager, view);
   grid.draw_color_only(resources.overlay_output_color_only_fb, manager, view);
   regular.mesh_uvs.draw(resources.overlay_output_fb, manager, view);
+
+  cursor.draw_output(resources.overlay_output_color_only_fb, manager, view);
 }
 
 void Instance::draw_v3d(Manager &manager, View &view)
@@ -609,6 +612,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
 
     background.draw_output(resources.overlay_output_color_only_fb, manager, view);
     anti_aliasing.draw_output(resources.overlay_output_color_only_fb, manager, view);
+    cursor.draw_output(resources.overlay_output_color_only_fb, manager, view);
   }
 }
 

@@ -18,6 +18,7 @@
 #include "overlay_next_background.hh"
 #include "overlay_next_bounds.hh"
 #include "overlay_next_camera.hh"
+#include "overlay_next_cursor.hh"
 #include "overlay_next_curve.hh"
 #include "overlay_next_edit_text.hh"
 #include "overlay_next_empty.hh"
@@ -74,6 +75,7 @@ class Instance {
   Origins origins = {selection_type_};
   Outline outline;
   MotionPath motion_paths;
+  Cursor cursor;
 
   struct OverlayLayer {
     const SelectionType selection_type_;

@@ -19,6 +19,11 @@ struct Vertex {
   int vclass;
 };
 
+struct VertexWithColor {
+  float3 pos;
+  float3 color;
+};
+
 struct VertShaded {
   float3 pos;
   int v_class;
@@ -74,6 +79,20 @@ static gpu::VertBuf *vbo_from_vector(Vector<VertexTriple> &vector)
   gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, vector.size());
   vbo->data<VertexTriple>().copy_from(vector);
+  return vbo;
+}
+
+static gpu::VertBuf *vbo_from_vector(Vector<VertexWithColor> &vector)
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  }
+
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*vbo, vector.size());
+  vbo->data<VertexWithColor>().copy_from(vector);
   return vbo;
 }
 
@@ -1411,6 +1430,46 @@ ShapeCache::ShapeCache()
     }
     grid = BatchPtr(
         GPU_batch_create_ex(GPU_PRIM_TRIS, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
+  /* cursor circle */
+  {
+    const int segments = 16;
+
+    const float red[3] = {1.0f, 0.0f, 0.0f};
+    const float white[3] = {1.0f, 1.0f, 1.0f};
+
+    Vector<VertexWithColor> verts;
+
+    for (int i = 0; i < segments + 1; i++) {
+      float angle = float(2 * M_PI) * (float(i) / float(segments));
+      verts.append({0.5f * float3(cosf(angle), sinf(angle), 0.0f), (i % 2 == 0) ? red : white});
+    }
+
+    cursor_circle = BatchPtr(GPU_batch_create_ex(
+        GPU_PRIM_LINE_STRIP, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
+  /* cursor lines */
+  {
+    const float f5 = 0.25f;
+    const float f20 = 1.0f;
+
+    float crosshair_color[3];
+    UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
+
+    Vector<VertexWithColor> verts;
+
+    for (int i = 0; i < 3; i++) {
+      float3 axis(0.0f);
+      axis[i] = 1.0f;
+      verts.append({f5 * axis, crosshair_color});
+      verts.append({f20 * axis, crosshair_color});
+      axis[i] = -1.0f;
+      verts.append({f5 * axis, crosshair_color});
+      verts.append({f20 * axis, crosshair_color});
+    }
+
+    cursor_lines = BatchPtr(
+        GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
   }
 }
 

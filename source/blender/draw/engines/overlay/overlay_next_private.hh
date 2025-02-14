@@ -303,6 +303,9 @@ class ShapeCache {
   BatchPtr grid;
   BatchPtr cube_solid;
 
+  BatchPtr cursor_circle;
+  BatchPtr cursor_lines;
+
   BatchPtr quad_wire;
   BatchPtr quad_solid;
   BatchPtr plain_axes;

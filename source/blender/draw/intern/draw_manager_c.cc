@@ -2111,7 +2111,6 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
     }
   }
 
-  DRW_draw_cursor_2d();
   ED_region_pixelspace(DST.draw_ctx.region);
 
   if (do_draw_gizmos) {

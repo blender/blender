@@ -41,11 +41,6 @@ void DRW_shape_cache_free();
 
 /* 3D cursor */
 blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines);
-
-/* Just a regular quad with 4 vertices. */
-blender::gpu::Batch *DRW_cache_quad_get();
-blender::gpu::Batch *DRW_cache_cube_get();
-
 /* Common Object */
 
 blender::gpu::Batch *DRW_cache_object_all_edges_get(Object *ob);
