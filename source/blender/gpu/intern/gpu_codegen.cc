@@ -82,7 +82,7 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
   /** Optional name buffer containing names referenced by StringRefNull. */
   NameBuffer name_buffer;
 
-  GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name) {};
+  GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name){};
   ~GPUCodegenCreateInfo()
   {
     delete interface_generated;
