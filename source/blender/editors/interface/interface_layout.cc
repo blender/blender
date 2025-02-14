@@ -3398,8 +3398,9 @@ void uiItemS_ex(uiLayout *layout, float factor, const LayoutSeparatorType type)
     return;
   }
 
-  int space = (is_menu) ? int(0.35f * UI_UNIT_X) : int(0.3f * UI_UNIT_X);
-  space *= factor;
+  /* Sizing of spaces should not depend on line width. */
+  const int space = (is_menu) ? int(7.0f * UI_SCALE_FAC * factor) :
+                                int(6.0f * UI_SCALE_FAC * factor);
 
   eButType but_type;
 

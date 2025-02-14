@@ -154,21 +154,26 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
 {
   if (az->type == AZONE_AREA) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
-    uiItemS_ex(layout, 0.7f);
+    uiItemS_ex(layout, 0.6f);
     uiItemL(layout, "", ICON_EVENT_SHIFT);
+    uiItemS_ex(layout, -0.4f);
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout, IFACE_("Duplicate into Window"), ICON_NONE);
-    uiItemS_ex(layout, 0.7f);
+    uiItemS_ex(layout, 0.6f);
     uiItemL(layout, "", ICON_EVENT_CTRL);
-    uiItemS_ex(layout, 1.5f);
+    uiItemS_ex(layout, 1.0f);
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout, IFACE_("Swap Areas"), ICON_NONE);
     return true;
   }
 
   if (az->type == AZONE_REGION) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout,
             (region->runtime->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
             ICON_NONE);
@@ -191,11 +196,12 @@ static bool uiTemplateInputStatusBorder(wmWindow *win, uiLayout *row)
     if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
       /* No resize at top and bottom. */
       uiItemL(row, nullptr, ICON_MOUSE_LMB_DRAG);
+      uiItemS_ex(row, -0.2f);
       uiItemL(row, IFACE_("Resize"), ICON_NONE);
-      uiItemS_ex(row, 0.7f);
+      uiItemS_ex(row, 0.6f);
     }
     uiItemL(row, nullptr, ICON_MOUSE_RMB);
-    uiItemS_ex(row, -0.5f);
+    uiItemS_ex(row, -0.9f);
     uiItemL(row, IFACE_("Options"), ICON_NONE);
     return true;
   }
@@ -209,10 +215,11 @@ static bool uiTemplateInputStatusHeader(ARegion *region, uiLayout *row)
   }
   /* Over a header region. */
   uiItemL(row, nullptr, ICON_MOUSE_MMB_DRAG);
+  uiItemS_ex(row, -0.2f);
   uiItemL(row, IFACE_("Pan"), ICON_NONE);
-  uiItemS_ex(row, 0.7f);
+  uiItemS_ex(row, 0.6f);
   uiItemL(row, nullptr, ICON_MOUSE_RMB);
-  uiItemS_ex(row, -0.5f);
+  uiItemS_ex(row, -0.9f);
   uiItemL(row, IFACE_("Options"), ICON_NONE);
   return true;
 }
@@ -230,7 +237,7 @@ static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
     uiItemS_ex(row, -0.2f);
     uiItemL(row, IFACE_("Active object has negative scale"), ICON_NONE);
     uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
-    uiItemS_ex(row, 0.8f);
+    uiItemS_ex(row, 0.5f);
     /* Return false to allow other items to be added after. */
     return false;
   }
@@ -242,7 +249,7 @@ static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
     uiItemS_ex(row, -0.2f);
     uiItemL(row, IFACE_("Active object has non-uniform scale"), ICON_NONE);
     uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
-    uiItemS_ex(row, 0.8f);
+    uiItemS_ex(row, 0.5f);
     /* Return false to allow other items to be added after. */
     return false;
   }
@@ -346,15 +353,16 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 
     if (msg) {
       uiItemL(row, "", (ICON_MOUSE_LMB + i));
-      uiItemS_ex(row, -0.5f);
+      uiItemS_ex(row, -0.9f);
       uiItemL(row, msg, ICON_NONE);
-      uiItemS_ex(row, 0.7f);
+      uiItemS_ex(row, 0.6f);
     }
 
     if (msg_drag) {
       uiItemL(row, "", (ICON_MOUSE_LMB_DRAG + i));
+      uiItemS_ex(row, -0.4f);
       uiItemL(row, msg_drag, ICON_NONE);
-      uiItemS_ex(row, 0.7f);
+      uiItemS_ex(row, 0.6f);
     }
   }
 }

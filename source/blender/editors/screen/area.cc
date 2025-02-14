@@ -880,12 +880,14 @@ WorkspaceStatus::WorkspaceStatus(bContext *C)
 /** \name Private helper functions to help ensure consistent spacing
  * \{ */
 
-static constexpr float STATUS_AFTER_TEXT = 0.7f;
-static constexpr float STATUS_MOUSE_ICON_PAD = -0.5f;
+static constexpr float STATUS_BEFORE_TEXT = 0.17f;
+static constexpr float STATUS_AFTER_TEXT = 0.90f;
+static constexpr float STATUS_MOUSE_ICON_PAD = -0.68f;
 
 static void ed_workspace_status_text_item(WorkSpace *workspace, std::string text)
 {
   if (!text.empty()) {
+    ed_workspace_status_space(workspace, STATUS_BEFORE_TEXT);
     ed_workspace_status_item(workspace, std::move(text), ICON_NONE);
     ed_workspace_status_space(workspace, STATUS_AFTER_TEXT);
   }
