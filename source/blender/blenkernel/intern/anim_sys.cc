@@ -3200,21 +3200,9 @@ static void animsys_evaluate_nla_domain(PointerRNA *ptr, NlaEvalData *channels, 
 
   /* NLA Data - Animation Data for Strips */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    /* solo and muting are mutually exclusive... */
-    if (adt->flag & ADT_NLA_SOLO_TRACK) {
-      /* skip if there is a solo track, but this isn't it */
-      if ((nlt->flag & NLATRACK_SOLO) == 0) {
-        continue;
-      }
-      /* else - mute doesn't matter */
+    if (!BKE_nlatrack_is_enabled(*adt, *nlt)) {
+      continue;
     }
-    else {
-      /* no solo tracks - skip track if muted */
-      if (nlt->flag & NLATRACK_MUTED) {
-        continue;
-      }
-    }
-
     nla_eval_domain_strips(ptr, channels, &nlt->strips, touched_actions);
   }
 
@@ -3325,21 +3313,7 @@ static bool is_nlatrack_evaluatable(const AnimData *adt, const NlaTrack *nlt)
     return false;
   }
 
-  /* Solo and muting are mutually exclusive. */
-  if (adt->flag & ADT_NLA_SOLO_TRACK) {
-    /* Skip if there is a solo track, but this isn't it. */
-    if ((nlt->flag & NLATRACK_SOLO) == 0) {
-      return false;
-    }
-  }
-  else {
-    /* Skip track if muted. */
-    if (nlt->flag & NLATRACK_MUTED) {
-      return false;
-    }
-  }
-
-  return true;
+  return BKE_nlatrack_is_enabled(*adt, *nlt);
 }
 
 /**
