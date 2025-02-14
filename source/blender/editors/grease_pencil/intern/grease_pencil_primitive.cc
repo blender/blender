@@ -528,42 +528,53 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
+  materials.span[target_curve_index] = ptd.material_index;
+
   bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
       "cyclic", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
-      "softness", bke::AttrDomain::Curve);
+  const bool is_cyclic = ELEM(ptd.type, PrimitiveType::Box, PrimitiveType::Circle);
+  cyclic.span[target_curve_index] = is_cyclic;
+
+  if (bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+          "softness", bke::AttrDomain::Curve))
+  {
+    softness.span[target_curve_index] = ptd.softness;
+    softness.finish();
+    curve_attributes_to_skip.add("softness");
+  }
 
   /* Only set the attribute if the type is not the default or if it already exists. */
   if (ptd.settings->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("start_cap")) {
-    bke::SpanAttributeWriter<int8_t> start_caps = attributes.lookup_or_add_for_write_span<int8_t>(
-        "start_cap", bke::AttrDomain::Curve);
-    start_caps.span[target_curve_index] = ptd.settings->caps_type;
-    start_caps.finish();
-    curve_attributes_to_skip.add("start_cap");
+    if (bke::SpanAttributeWriter<int8_t> start_caps =
+            attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve))
+    {
+      start_caps.span[target_curve_index] = ptd.settings->caps_type;
+      start_caps.finish();
+      curve_attributes_to_skip.add("start_cap");
+    }
   }
 
   if (ptd.settings->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("end_cap")) {
-    bke::SpanAttributeWriter<int8_t> end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
-        "end_cap", bke::AttrDomain::Curve);
-    end_caps.span[target_curve_index] = ptd.settings->caps_type;
-    end_caps.finish();
-    curve_attributes_to_skip.add("end_cap");
+    if (bke::SpanAttributeWriter<int8_t> end_caps =
+            attributes.lookup_or_add_for_write_span<int8_t>("end_cap", bke::AttrDomain::Curve))
+    {
+      end_caps.span[target_curve_index] = ptd.settings->caps_type;
+      end_caps.finish();
+      curve_attributes_to_skip.add("end_cap");
+    }
   }
 
-  const bool is_cyclic = ELEM(ptd.type, PrimitiveType::Box, PrimitiveType::Circle);
-  cyclic.span[target_curve_index] = is_cyclic;
-  materials.span[target_curve_index] = ptd.material_index;
-  softness.span[target_curve_index] = ptd.softness;
-
   if (ptd.use_fill && (ptd.fill_opacity < 1.0f || attributes.contains("fill_opacity"))) {
-    bke::SpanAttributeWriter<float> fill_opacities =
-        attributes.lookup_or_add_for_write_span<float>(
-            "fill_opacity",
-            bke::AttrDomain::Curve,
-            bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
-    fill_opacities.span[target_curve_index] = ptd.fill_opacity;
-    fill_opacities.finish();
-    curve_attributes_to_skip.add("fill_opacity");
+    if (bke::SpanAttributeWriter<float> fill_opacities =
+            attributes.lookup_or_add_for_write_span<float>(
+                "fill_opacity",
+                bke::AttrDomain::Curve,
+                bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num()))))
+    {
+      fill_opacities.span[target_curve_index] = ptd.fill_opacity;
+      fill_opacities.finish();
+      curve_attributes_to_skip.add("fill_opacity");
+    }
   }
 
   if (ptd.fill_color) {
@@ -573,8 +584,7 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
 
   cyclic.finish();
   materials.finish();
-  softness.finish();
-  curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness"});
+  curve_attributes_to_skip.add_multiple({"material_index", "cyclic"});
 
   curves.curve_types_for_write()[target_curve_index] = CURVE_TYPE_POLY;
   curves.update_curve_types();

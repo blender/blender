@@ -32,26 +32,26 @@
 #include "eigen_capi.h"
 
 struct LaplacianSystem {
-  float *eweights;      /* Length weights per Edge */
-  float (*fweights)[3]; /* Cotangent weights per face */
-  float *ring_areas;    /* Total area per ring. */
-  float *vlengths;      /* Total sum of lengths(edges) per vertex. */
-  float *vweights;      /* Total sum of weights per vertex. */
-  int verts_num;        /* Number of verts. */
-  short *ne_fa_num;     /* Number of neighbors faces around vertex. */
-  short *ne_ed_num;     /* Number of neighbors Edges around vertex. */
-  bool *zerola;         /* Is zero area or length. */
+  float *eweights = nullptr;      /* Length weights per Edge */
+  float (*fweights)[3] = nullptr; /* Cotangent weights per face */
+  float *ring_areas = nullptr;    /* Total area per ring. */
+  float *vlengths = nullptr;      /* Total sum of lengths(edges) per vertex. */
+  float *vweights = nullptr;      /* Total sum of weights per vertex. */
+  int verts_num = 0;              /* Number of verts. */
+  short *ne_fa_num = nullptr;     /* Number of neighbors faces around vertex. */
+  short *ne_ed_num = nullptr;     /* Number of neighbors Edges around vertex. */
+  bool *zerola = nullptr;         /* Is zero area or length. */
 
   /* Pointers to data. */
-  float (*vertexCos)[3];
-  blender::Span<blender::int2> edges;
-  blender::OffsetIndices<int> faces;
-  blender::Span<int> corner_verts;
-  LinearSolver *context;
+  float (*vertexCos)[3] = nullptr;
+  blender::Span<blender::int2> edges = {};
+  blender::OffsetIndices<int> faces = {};
+  blender::Span<int> corner_verts = {};
+  LinearSolver *context = nullptr;
 
   /* Data. */
-  float min_area;
-  float vert_centroid[3];
+  float min_area = 0.0f;
+  float vert_centroid[3] = {};
 };
 
 static void delete_laplacian_system(LaplacianSystem *sys)

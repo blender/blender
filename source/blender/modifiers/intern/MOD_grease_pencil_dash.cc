@@ -276,7 +276,11 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
       dst_material.span[dst_curve_i] = material >= 0 ? material : src_material[src_curve];
       for (const int i : dst_point_range) {
         dst_radius.span[i] = src_radius[src_point_indices[i]] * radius;
-        dst_opacity.span[i] = src_opacity[src_point_indices[i]] * opacity;
+      }
+      if (dst_opacity) {
+        for (const int i : dst_point_range) {
+          dst_opacity.span[i] = src_opacity[src_point_indices[i]] * opacity;
+        }
       }
 
       ++dst_curve_i;

@@ -335,12 +335,12 @@ void merge_layers(const GreasePencil &src_grease_pencil,
     if (iter.data_type == CD_PROP_STRING) {
       return;
     }
-    bke::GAttributeReader src_attribute = src_attributes.lookup(iter.name);
-    if (!src_attribute) {
-      return;
-    }
+    bke::GAttributeReader src_attribute = iter.get();
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, bke::AttrDomain::Layer, iter.data_type);
+    if (!dst_attribute) {
+      return;
+    }
 
     const CPPType &type = dst_attribute.span.type();
     bke::attribute_math::convert_to_static_type(type, [&](auto type) {
