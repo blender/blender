@@ -35,16 +35,16 @@ static CLG_LogRef LOG = {"io.alembic"};
 #include <memory>
 
 struct ExportJobData {
-  Main *bmain;
-  Depsgraph *depsgraph;
-  wmWindowManager *wm;
+  Main *bmain = nullptr;
+  Depsgraph *depsgraph = nullptr;
+  wmWindowManager *wm = nullptr;
 
-  char filepath[FILE_MAX];
-  AlembicExportParams params;
+  char filepath[FILE_MAX] = {};
+  AlembicExportParams params = {};
 
-  bool was_canceled;
-  bool export_ok;
-  blender::timeit::TimePoint start_time;
+  bool was_canceled = false;
+  bool export_ok = false;
+  blender::timeit::TimePoint start_time = {};
 };
 
 namespace blender::io::alembic {
@@ -209,8 +209,7 @@ bool ABC_export(Scene *scene,
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  ExportJobData *job = static_cast<ExportJobData *>(
-      MEM_mallocN(sizeof(ExportJobData), "ExportJobData"));
+  ExportJobData *job = MEM_new<ExportJobData>("ExportJobData");
 
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
@@ -238,7 +237,8 @@ bool ABC_export(Scene *scene,
                                 WM_JOB_TYPE_ALEMBIC_EXPORT);
 
     /* setup job */
-    WM_jobs_customdata_set(wm_job, job, MEM_freeN);
+    WM_jobs_customdata_set(
+        wm_job, job, [](void *j) { MEM_delete(static_cast<ExportJobData *>(j)); });
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
     WM_jobs_callbacks(wm_job,
                       blender::io::alembic::export_startjob,
@@ -254,7 +254,7 @@ bool ABC_export(Scene *scene,
     blender::io::alembic::export_endjob(job);
     export_ok = job->export_ok;
 
-    MEM_freeN(job);
+    MEM_delete(job);
   }
 
   return export_ok;

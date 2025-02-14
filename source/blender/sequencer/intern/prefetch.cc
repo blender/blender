@@ -48,36 +48,37 @@
 #include "render.hh"
 
 struct PrefetchJob {
-  PrefetchJob *next, *prev;
+  PrefetchJob *next = nullptr;
+  PrefetchJob *prev = nullptr;
 
-  Main *bmain;
-  Main *bmain_eval;
-  Scene *scene;
-  Scene *scene_eval;
-  Depsgraph *depsgraph;
+  Main *bmain = nullptr;
+  Main *bmain_eval = nullptr;
+  Scene *scene = nullptr;
+  Scene *scene_eval = nullptr;
+  Depsgraph *depsgraph = nullptr;
 
-  ThreadMutex prefetch_suspend_mutex;
-  ThreadCondition prefetch_suspend_cond;
+  ThreadMutex prefetch_suspend_mutex = {};
+  ThreadCondition prefetch_suspend_cond = {};
 
-  ListBase threads;
+  ListBase threads = {};
 
   /* context */
-  SeqRenderData context;
-  SeqRenderData context_cpy;
-  ListBase *seqbasep;
-  ListBase *seqbasep_cpy;
+  SeqRenderData context = {};
+  SeqRenderData context_cpy = {};
+  ListBase *seqbasep = nullptr;
+  ListBase *seqbasep_cpy = nullptr;
 
   /* prefetch area */
-  float cfra;
-  int num_frames_prefetched;
+  float cfra = 0.0f;
+  int num_frames_prefetched = 0;
 
   /* Control: */
   /* Set by prefetch. */
-  bool running;
-  bool waiting;
-  bool stop;
+  bool running = false;
+  bool waiting = false;
+  bool stop = false;
   /* Set from outside. */
-  bool is_scrubbing;
+  bool is_scrubbing = false;
 };
 
 static PrefetchJob *seq_prefetch_job_get(Scene *scene)
@@ -343,8 +344,8 @@ void seq_prefetch_free(Scene *scene)
   BLI_condition_end(&pfjob->prefetch_suspend_cond);
   seq_prefetch_free_depsgraph(pfjob);
   BKE_main_free(pfjob->bmain_eval);
-  MEM_freeN(pfjob);
   scene->ed->prefetch_job = nullptr;
+  MEM_delete(pfjob);
 }
 
 static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
@@ -522,18 +523,19 @@ static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cf
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
   if (!pfjob) {
-    if (context->scene->ed) {
-      pfjob = (PrefetchJob *)MEM_callocN(sizeof(PrefetchJob), "PrefetchJob");
-      context->scene->ed->prefetch_job = pfjob;
-
-      BLI_threadpool_init(&pfjob->threads, seq_prefetch_frames, 1);
-      BLI_mutex_init(&pfjob->prefetch_suspend_mutex);
-      BLI_condition_init(&pfjob->prefetch_suspend_cond);
-
-      pfjob->bmain_eval = BKE_main_new();
-      pfjob->scene = context->scene;
-      seq_prefetch_init_depsgraph(pfjob);
+    if (!context->scene->ed) {
+      return nullptr;
     }
+    pfjob = MEM_new<PrefetchJob>("PrefetchJob");
+    context->scene->ed->prefetch_job = pfjob;
+
+    BLI_threadpool_init(&pfjob->threads, seq_prefetch_frames, 1);
+    BLI_mutex_init(&pfjob->prefetch_suspend_mutex);
+    BLI_condition_init(&pfjob->prefetch_suspend_cond);
+
+    pfjob->bmain_eval = BKE_main_new();
+    pfjob->scene = context->scene;
+    seq_prefetch_init_depsgraph(pfjob);
   }
   pfjob->bmain = context->bmain;
 

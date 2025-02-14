@@ -62,18 +62,18 @@ static CLG_LogRef LOG = {"io.usd"};
 namespace blender::io::usd {
 
 struct ExportJobData {
-  Main *bmain;
-  Depsgraph *depsgraph;
-  wmWindowManager *wm;
-  Scene *scene;
+  Main *bmain = nullptr;
+  Depsgraph *depsgraph = nullptr;
+  wmWindowManager *wm = nullptr;
+  Scene *scene = nullptr;
 
   /** Unarchived_filepath is used for USDA/USDC/USD export. */
-  char unarchived_filepath[FILE_MAX];
-  char usdz_filepath[FILE_MAX];
-  USDExportParams params;
+  char unarchived_filepath[FILE_MAX] = {};
+  char usdz_filepath[FILE_MAX] = {};
+  USDExportParams params = {};
 
-  bool export_ok;
-  timeit::TimePoint start_time;
+  bool export_ok = false;
+  timeit::TimePoint start_time = {};
 
   bool targets_usdz() const
   {
@@ -668,8 +668,7 @@ bool USD_export(const bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
 
-  blender::io::usd::ExportJobData *job = static_cast<blender::io::usd::ExportJobData *>(
-      MEM_mallocN(sizeof(blender::io::usd::ExportJobData), "ExportJobData"));
+  blender::io::usd::ExportJobData *job = MEM_new<blender::io::usd::ExportJobData>("ExportJobData");
 
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
@@ -710,7 +709,9 @@ bool USD_export(const bContext *C,
         job->wm, CTX_wm_window(C), scene, "USD Export", WM_JOB_PROGRESS, WM_JOB_TYPE_USD_EXPORT);
 
     /* setup job */
-    WM_jobs_customdata_set(wm_job, job, MEM_freeN);
+    WM_jobs_customdata_set(wm_job, job, [](void *j) {
+      MEM_delete(static_cast<blender::io::usd::ExportJobData *>(j));
+    });
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
     WM_jobs_callbacks(wm_job,
                       blender::io::usd::export_startjob,
@@ -729,7 +730,7 @@ bool USD_export(const bContext *C,
     blender::io::usd::export_endjob(job);
     export_ok = job->export_ok;
 
-    MEM_freeN(job);
+    MEM_delete(job);
   }
 
   return export_ok;
