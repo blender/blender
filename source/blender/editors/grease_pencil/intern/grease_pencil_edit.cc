@@ -2592,7 +2592,8 @@ static int grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
     }
     else if (selection_domain == bke::AttrDomain::Point) {
       const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, memory);
-      copied_curves = curves_copy_point_selection(curves, selected_points, {});
+      copied_curves = remove_points_and_split(
+          curves, selected_points.complement(curves.points_range(), memory));
       num_elements_copied += copied_curves.points_num();
     }
 

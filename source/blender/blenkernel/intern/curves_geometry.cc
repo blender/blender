@@ -365,7 +365,7 @@ VArray<float> CurvesGeometry::radius() const
 }
 MutableSpan<float> CurvesGeometry::radius_for_write()
 {
-  return get_mutable_attribute<float>(*this, AttrDomain::Point, ATTR_RADIUS);
+  return get_mutable_attribute<float>(*this, AttrDomain::Point, ATTR_RADIUS, 0.01f);
 }
 
 Span<int> CurvesGeometry::offsets() const
