@@ -859,7 +859,6 @@ if(WITH_GPU_COMPOSITOR_TESTS)
           ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
           --testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
           --outdir "${TEST_OUT_DIR}/compositor_opengl"
-          --gpu
           --gpu-backend opengl
         )
       endforeach()
@@ -879,7 +878,6 @@ if(WITH_GPU_COMPOSITOR_TESTS)
           ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
           --testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
           --outdir "${TEST_OUT_DIR}/compositor_metal"
-          --gpu
           --gpu-backend metal
         )
       endforeach()
@@ -899,7 +897,6 @@ if(WITH_GPU_COMPOSITOR_TESTS)
           ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
           --testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
           --outdir "${TEST_OUT_DIR}/compositor_vulkan"
-          --gpu
           --gpu-backend vulkan
         )
       endforeach()
