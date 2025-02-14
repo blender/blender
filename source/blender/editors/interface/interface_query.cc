@@ -31,6 +31,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+using blender::StringRef;
+
 /* -------------------------------------------------------------------- */
 /** \name Button (#uiBut) State
  * \{ */
@@ -640,8 +642,11 @@ size_t ui_but_tip_len_only_first_line(const uiBut *but)
   if (but->tip == nullptr) {
     return 0;
   }
-  const char *str_sep = BLI_strchr_or_end(but->tip, '\n');
-  return (str_sep - but->tip);
+  const int64_t str_step = but->tip.find('\n');
+  if (str_step == StringRef::not_found) {
+    return but->tip.size();
+  }
+  return str_step;
 }
 
 /** \} */

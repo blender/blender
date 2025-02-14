@@ -70,7 +70,9 @@ struct ProgressTooltip_Store {
   void *owner;
 };
 
-static std::string progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
+static std::string progress_tooltip_func(bContext * /*C*/,
+                                         void *argN,
+                                         const blender::StringRef /*tip*/)
 {
   ProgressTooltip_Store *arg = static_cast<ProgressTooltip_Store *>(argN);
   wmWindowManager *wm = arg->wm;

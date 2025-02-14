@@ -772,7 +772,7 @@ static void ui_block_colorpicker(uiBlock *block,
            nullptr,
            0.0,
            0.0,
-           nullptr);
+           std::nullopt);
 
   bt = uiDefBut(block,
                 UI_BTYPE_TEXT,
@@ -785,7 +785,7 @@ static void ui_block_colorpicker(uiBlock *block,
                 hexcol,
                 0,
                 cpicker->has_alpha ? 10 : 8,
-                nullptr);
+                std::nullopt);
   const auto bt_tooltip_func = [](bContext & /*C*/, uiTooltipData &tip, void *has_alpha_ptr) {
     const bool *has_alpha = static_cast<bool *>(has_alpha_ptr);
     if (*has_alpha) {
@@ -823,7 +823,7 @@ static void ui_block_colorpicker(uiBlock *block,
                        yco,
                        UI_UNIT_X,
                        UI_UNIT_Y,
-                       nullptr);
+                       std::nullopt);
     UI_but_flag_disable(bt, UI_BUT_UNDO);
     UI_but_drawflag_disable(bt, UI_BUT_ICON_LEFT);
     UI_but_func_set(bt, ui_popup_close_cb, bt, nullptr);

@@ -1181,7 +1181,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            nullptr,
            0,
            0,
-           nullptr);
+           std::nullopt);
 
   /* Move it downwards, mouse over button. */
   UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, blender::int2{0, -UI_UNIT_Y});
@@ -2031,7 +2031,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
            nullptr,
            0,
            0,
-           nullptr);
+           std::nullopt);
 
   /* Move it downwards, mouse over button. */
   UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, blender::int2{0, -UI_UNIT_Y});

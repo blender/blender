@@ -1392,7 +1392,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
            nullptr,
            0,
            0,
-           nullptr);
+           std::nullopt);
 
   /* Move it downwards, mouse over button. */
   std::array<int, 2> bounds_offset = {0, -UI_UNIT_Y};

@@ -68,7 +68,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
                           0,
                           UI_UNIT_X,
                           UI_UNIT_Y,
-                          nullptr);
+                          std::nullopt);
       but->rnapoin = *ptr;
       but->rnaprop = prop;
       UI_block_emboss_set(block, UI_EMBOSS);

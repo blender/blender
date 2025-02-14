@@ -77,6 +77,8 @@
 #  include "wm_window.hh"
 #endif
 
+using blender::StringRef;
+
 /* -------------------------------------------------------------------- */
 /** \name Feature Defines
  *
@@ -955,17 +957,19 @@ static void ui_apply_but_undo(uiBut *but)
     return;
   }
 
-  const char *str = nullptr;
+  std::optional<StringRef> str;
   size_t str_len_clip = SIZE_MAX - 1;
   bool skip_undo = false;
 
   /* define which string to use for undo */
   if (but->type == UI_BTYPE_MENU) {
-    str = but->drawstr.empty() ? nullptr : but->drawstr.c_str();
+    if (!but->drawstr.empty()) {
+      str = but->drawstr;
+    }
     str_len_clip = ui_but_drawstr_len_without_sep_char(but);
   }
   else if (!but->drawstr.empty()) {
-    str = but->drawstr.c_str();
+    str = but->drawstr;
     str_len_clip = ui_but_drawstr_len_without_sep_char(but);
   }
   else {
@@ -974,9 +978,9 @@ static void ui_apply_but_undo(uiBut *but)
   }
 
   /* fallback, else we don't get an undo! */
-  if (str == nullptr || str[0] == '\0' || str_len_clip == 0) {
+  if (!str || str->is_empty() || str_len_clip == 0) {
     str = "Unknown Action";
-    str_len_clip = strlen(str);
+    str_len_clip = str->size();
   }
 
   /* Optionally override undo when undo system doesn't support storing properties. */
@@ -1014,7 +1018,7 @@ static void ui_apply_but_undo(uiBut *but)
 
   /* Delayed, after all other functions run, popups are closed, etc. */
   uiAfterFunc *after = ui_afterfunc_new();
-  BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
+  str->copy_utf8_truncated(after->undostr, min_zz(str_len_clip + 1, sizeof(after->undostr)));
 }
 
 static void ui_apply_but_autokey(bContext *C, uiBut *but)

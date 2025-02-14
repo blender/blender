@@ -687,7 +687,7 @@ static void ui_item_array(uiLayout *layout,
                    -1,
                    0,
                    0,
-                   nullptr);
+                   std::nullopt);
   }
   else {
     /* NOTE: this block of code is a bit arbitrary and has just been made
@@ -800,16 +800,16 @@ static void ui_item_enum_expand_elem_exec(uiLayout *layout,
   uiBut *but;
   if (icon && name[0] && !icon_only) {
     but = uiDefIconTextButR_prop(
-        block, but_type, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, nullptr);
+        block, but_type, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, std::nullopt);
   }
   else if (icon) {
     const int w = (is_first) ? itemw : ceilf(itemw - U.pixelsize);
     but = uiDefIconButR_prop(
-        block, but_type, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
+        block, but_type, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
   }
   else {
     but = uiDefButR_prop(
-        block, but_type, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, nullptr);
+        block, but_type, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, std::nullopt);
   }
 
   if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
@@ -1082,7 +1082,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                   y,
                   UI_UNIT_X,
                   h,
-                  nullptr);
+                  std::nullopt);
   }
   else if (flag & UI_ITEM_R_EVENT) {
     but = uiDefButR_prop(block,
@@ -1098,7 +1098,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          index,
                          0,
                          0,
-                         nullptr);
+                         std::nullopt);
   }
   else if ((flag & UI_ITEM_R_FULL_EVENT) && is_keymapitem_ptr) {
     std::string kmi_str =
@@ -1117,7 +1117,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          0,
                          0,
                          0,
-                         nullptr);
+                         std::nullopt);
     UI_but_func_set(but, ui_keymap_but_cb, but, nullptr);
   }
   else {
@@ -1264,14 +1264,15 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
   if (icon) {
     if (!name->is_empty()) {
       but = uiDefIconTextButO_ptr(
-          block, UI_BTYPE_BUT, ot, context, icon, *name, 0, 0, w, UI_UNIT_Y, nullptr);
+          block, UI_BTYPE_BUT, ot, context, icon, *name, 0, 0, w, UI_UNIT_Y, std::nullopt);
     }
     else {
-      but = uiDefIconButO_ptr(block, UI_BTYPE_BUT, ot, context, icon, 0, 0, w, UI_UNIT_Y, nullptr);
+      but = uiDefIconButO_ptr(
+          block, UI_BTYPE_BUT, ot, context, icon, 0, 0, w, UI_UNIT_Y, std::nullopt);
     }
   }
   else {
-    but = uiDefButO_ptr(block, UI_BTYPE_BUT, ot, context, *name, 0, 0, w, UI_UNIT_Y, nullptr);
+    but = uiDefButO_ptr(block, UI_BTYPE_BUT, ot, context, *name, 0, 0, w, UI_UNIT_Y, std::nullopt);
   }
 
   BLI_assert(but->optype != nullptr);
@@ -1519,7 +1520,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                  nullptr,
                  0,
                  0,
-                 nullptr);
+                 std::nullopt);
   }
   else {
     split = uiLayoutSplit(layout, 0.0f, false);
@@ -2381,14 +2382,15 @@ void uiItemFullR(uiLayout *layout,
   else if (type == PROP_ENUM && index == RNA_ENUM_VALUE) {
     if (icon && !name.is_empty() && !icon_only) {
       uiDefIconTextButR_prop(
-          block, UI_BTYPE_ROW, 0, icon, name, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
+          block, UI_BTYPE_ROW, 0, icon, name, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
     }
     else if (icon) {
       uiDefIconButR_prop(
-          block, UI_BTYPE_ROW, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
+          block, UI_BTYPE_ROW, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
     }
     else {
-      uiDefButR_prop(block, UI_BTYPE_ROW, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
+      uiDefButR_prop(
+          block, UI_BTYPE_ROW, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
     }
   }
   /* expanded enum */
@@ -2979,7 +2981,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
                            uiMenuCreateFunc func,
                            void *arg,
                            void *argN,
-                           const char *tip,
+                           const std::optional<StringRef> tip,
                            bool force_menu,
                            uiButArgNFree func_argN_free_fn = MEM_freeN,
                            uiButArgNCopy func_argN_copy_fn = MEM_dupallocN)
@@ -3286,14 +3288,15 @@ static uiBut *uiItemL_(uiLayout *layout, const StringRef name, int icon)
   uiBut *but;
   if (icon && !name.is_empty()) {
     but = uiDefIconTextBut(
-        block, UI_BTYPE_LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, nullptr);
+        block, UI_BTYPE_LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, std::nullopt);
   }
   else if (icon) {
     but = uiDefIconBut(
-        block, UI_BTYPE_LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, nullptr);
+        block, UI_BTYPE_LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, std::nullopt);
   }
   else {
-    but = uiDefBut(block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, nullptr);
+    but = uiDefBut(
+        block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, std::nullopt);
   }
 
   /* to compensate for string size padding in ui_text_icon_width,
@@ -3621,7 +3624,7 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
                             menu_item_enum_opname_menu,
                             nullptr,
                             lvl,
-                            nullptr,
+                            std::nullopt,
                             true,
                             but_func_argN_free<MenuItemLevel>,
                             but_func_argN_copy<MenuItemLevel>);
@@ -6349,7 +6352,7 @@ static void ui_layout_introspect_button(DynStr *ds, const uiButtonItem *bitem)
   BLI_dynstr_appendf(ds, "'type':%d, ", int(but->type));
   BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr.c_str());
   /* Not exactly needed, rna has this. */
-  BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");
+  BLI_dynstr_appendf(ds, "'tip':'''%s''', ", std::string(but->tip).c_str());
 
   if (but->optype) {
     std::string opstr = WM_operator_pystring_ex(static_cast<bContext *>(but->block->evil_C),

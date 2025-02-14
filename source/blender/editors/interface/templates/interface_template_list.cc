@@ -639,11 +639,11 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
   return nullptr;
 }
 
-static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
+static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const StringRef tip)
 {
   char *dyn_tooltip = static_cast<char *>(argN);
   std::string tooltip_string = dyn_tooltip;
-  if (tip && tip[0]) {
+  if (!tip.is_empty()) {
     tooltip_string += '\n';
     tooltip_string += tip;
   }
@@ -941,7 +941,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               nullptr);
+                               std::nullopt);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
           sub = uiLayoutRow(overlap, false);
@@ -1041,7 +1041,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               nullptr);
+                               std::nullopt);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
           col = uiLayoutColumn(overlap, false);

@@ -62,11 +62,23 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
                                    -1,
                                    0,
                                    value,
-                                   nullptr);
+                                   std::nullopt);
     }
     else {
-      but = uiDefIconButR_prop(
-          block, UI_BTYPE_ROW, 0, icon, x, y, w, h, &args.ptr, args.prop, -1, 0, value, nullptr);
+      but = uiDefIconButR_prop(block,
+                               UI_BTYPE_ROW,
+                               0,
+                               icon,
+                               x,
+                               y,
+                               w,
+                               h,
+                               &args.ptr,
+                               args.prop,
+                               -1,
+                               0,
+                               value,
+                               std::nullopt);
     }
     ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   }

@@ -400,7 +400,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
                          0,
                          0,
                          0,
-                         nullptr);
+                         std::nullopt);
       UI_block_emboss_set(block, UI_EMBOSS);
     }
 

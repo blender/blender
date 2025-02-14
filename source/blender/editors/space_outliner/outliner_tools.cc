@@ -878,7 +878,7 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
            nullptr,
            0,
            0,
-           nullptr);
+           std::nullopt);
 
   /* Center the menu on the cursor */
   const int offset[2] = {-(menu_width / 2), 0};

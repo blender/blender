@@ -336,7 +336,9 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, 
   }
 }
 
-static std::string file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
+static std::string file_draw_asset_tooltip_func(bContext * /*C*/,
+                                                void *argN,
+                                                const blender::StringRef /*tip*/)
 {
   const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
   return blender::ed::asset::asset_tooltip(*asset);
@@ -402,7 +404,7 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
 
   but = uiDefIconBut(
-      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, nullptr);
+      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
   UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
   if (file->asset) {
     UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
@@ -571,7 +573,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                         nullptr,
                         0.0,
                         0.0,
-                        nullptr);
+                        std::nullopt);
 
   const ImBuf *drag_image = preview_image ? preview_image :
                                             /* Larger directory or document icon. */
@@ -1341,7 +1343,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                      nullptr,
                                      0,
                                      0,
-                                     nullptr);
+                                     std::nullopt);
           UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
           UI_but_func_tooltip_custom_set(drag_but,
@@ -1522,7 +1524,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
                                        sy - line_height - UI_UNIT_Y * 1.2f,
                                        UI_UNIT_X * 8,
                                        UI_UNIT_Y,
-                                       nullptr);
+                                       std::nullopt);
     PointerRNA *but_opptr = UI_but_operator_ptr_ensure(but);
     RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
 

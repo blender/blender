@@ -359,7 +359,9 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
   }
 }
 
-static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, const char * /*tip*/)
+static std::string ui_template_status_tooltip(bContext *C,
+                                              void * /*argN*/,
+                                              const blender::StringRef /*tip*/)
 {
   Main *bmain = CTX_data_main(C);
   std::string tooltip_message;
@@ -570,7 +572,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                      nullptr,
                      0.0f,
                      0.0f,
-                     nullptr);
+                     std::nullopt);
   UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   UI_GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
@@ -588,7 +590,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                    nullptr,
                    0.0f,
                    0.0f,
-                   nullptr);
+                   std::nullopt);
     UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   }
 

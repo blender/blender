@@ -2030,7 +2030,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
                                  0,
                                  0.0f,
                                  0.0f,
-                                 socket.description);
+                                 StringRef(socket.description));
 
   const Object *object = ed::object::context_object(&ctx.C);
   BLI_assert(object != nullptr);
@@ -2293,7 +2293,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
       }
       uiLayoutSetTooltipFunc(
           panel_layout.header,
-          [](bContext * /*C*/, void *panel_arg, const char * /*tip*/) -> std::string {
+          [](bContext * /*C*/, void *panel_arg, const StringRef /*tip*/) -> std::string {
             const auto *panel = static_cast<bNodeTreeInterfacePanel *>(panel_arg);
             return StringRef(panel->description);
           },
