@@ -38,10 +38,18 @@ if(APPLE)
 endif()
 
 if(BLENDER_PLATFORM_ARM)
-  set(OPENCOLORIO_EXTRA_ARGS
-    ${OPENCOLORIO_EXTRA_ARGS}
-    -DOCIO_USE_SSE=OFF
-  )
+  if(WIN32)
+    set(OCIO_PATCH
+      ${PATCH_CMD} -p 1 -d
+        ${BUILD_DIR}/opencolorio/src/external_opencolorio <
+        ${PATCH_DIR}/ocio_2089.diff
+    )
+  else()
+    set(OPENCOLORIO_EXTRA_ARGS
+      ${OPENCOLORIO_EXTRA_ARGS}
+      -DOCIO_USE_SSE=OFF
+    )
+  endif()
 endif()
 
 if(WIN32)
@@ -68,6 +76,7 @@ ExternalProject_Add(external_opencolorio
   URL_HASH ${OPENCOLORIO_HASH_TYPE}=${OPENCOLORIO_HASH}
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/opencolorio
+  PATCH_COMMAND ${OCIO_PATCH}
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opencolorio
