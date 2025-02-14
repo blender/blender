@@ -66,7 +66,7 @@ void MOV_close(MovieReader *anim)
   MOV_close_proxies(anim);
   IMB_metadata_free(anim->metadata);
 
-  MEM_freeN(anim);
+  MEM_delete(anim);
 }
 
 void MOV_get_filename(const MovieReader *anim, char *filename, int filename_maxncpy)
@@ -106,7 +106,7 @@ MovieReader *MOV_open_file(const char *filepath,
 
   BLI_assert(!BLI_path_is_rel(filepath));
 
-  anim = (MovieReader *)MEM_callocN(sizeof(MovieReader), "anim struct");
+  anim = MEM_new<MovieReader>("anim struct");
   if (anim != nullptr) {
     if (colorspace) {
       colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
