@@ -242,6 +242,7 @@ TEST(grease_pencil_merge, merge_layer_attributes)
   SpanAttributeWriter<float> test_attribute =
       grease_pencil.attributes_for_write().lookup_or_add_for_write_only_span<float>(
           "test", AttrDomain::Layer);
+  EXPECT_TRUE(test_attribute);
   test_attribute.span.copy_from(test_float_values);
   test_attribute.finish();
 

@@ -1433,12 +1433,12 @@ Array<PointTransferData> compute_topology_change(
             dst_transfer_data[dst_curve_points.first()];
         const PointTransferData &end_point_transfer = dst_transfer_data[dst_curve_points.last()];
 
-        if (start_point_transfer.is_cut) {
+        if (dst_start_caps && start_point_transfer.is_cut) {
           dst_start_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
         }
         /* The is_cut flag does not work for end points, but any end point that isn't the source
          * point must also be a cut. */
-        if (!end_point_transfer.is_src_end_point()) {
+        if (dst_end_caps && !end_point_transfer.is_src_end_point()) {
           dst_end_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
         }
       }

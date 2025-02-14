@@ -115,13 +115,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   {
     /* Manually propagate "opacity" data, because it's not a layer attribute on grease pencil
      * yet. */
-    SpanAttributeWriter<float> opacity_attribute =
-        instances_attributes.lookup_or_add_for_write_only_span<float>("opacity",
-                                                                      AttrDomain::Instance);
-    layer_selection.foreach_index([&](const int layer_i, const int instance_i) {
-      opacity_attribute.span[instance_i] = grease_pencil->layer(layer_i).opacity;
-    });
-    opacity_attribute.finish();
+    if (SpanAttributeWriter<float> opacity_attribute =
+            instances_attributes.lookup_or_add_for_write_only_span<float>("opacity",
+                                                                          AttrDomain::Instance))
+    {
+      layer_selection.foreach_index([&](const int layer_i, const int instance_i) {
+        opacity_attribute.span[instance_i] = grease_pencil->layer(layer_i).opacity;
+      });
+      opacity_attribute.finish();
+    }
   }
 
   GeometrySet curves_geometry = GeometrySet::from_instances(instances);

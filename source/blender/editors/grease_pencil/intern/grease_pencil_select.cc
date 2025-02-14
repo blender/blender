@@ -266,14 +266,15 @@ bool selection_update(const ViewContext *vc,
 
         /* Modes that un-set all elements not in the mask. */
         if (ELEM(sel_op, SEL_OP_SET, SEL_OP_AND)) {
-          bke::SpanAttributeWriter<bool> selection =
-              curves.attributes_for_write().lookup_or_add_for_write_span<bool>(attribute_name,
-                                                                               selection_domain);
-          IndexMaskMemory memory;
-          const IndexMask not_in_mask = changed_element_mask.complement(
-              selection.span.index_range(), memory);
-          ed::curves::fill_selection_false(selection.span, not_in_mask);
-          selection.finish();
+          if (bke::SpanAttributeWriter<bool> selection =
+                  curves.attributes_for_write().lookup_or_add_for_write_span<bool>(
+                      attribute_name, selection_domain))
+          {
+            const IndexMask not_in_mask = changed_element_mask.complement(
+                selection.span.index_range(), memory);
+            ed::curves::fill_selection_false(selection.span, not_in_mask);
+            selection.finish();
+          }
         }
 
         if (use_segment_selection) {
@@ -623,7 +624,7 @@ template<typename T, typename DistanceFn>
 static void select_similar_by_value(Scene *scene,
                                     Object *object,
                                     GreasePencil &grease_pencil,
-                                    const bke::AttrDomain domain,
+                                    const bke::AttrDomain selection_domain,
                                     const StringRef attribute_id,
                                     float threshold,
                                     DistanceFn distance_fn)
@@ -638,32 +639,29 @@ static void select_similar_by_value(Scene *scene,
 
   blender::Set<T> selected_values;
   for (const MutableDrawingInfo &info : drawings) {
-    insert_selected_values(info.drawing.strokes(), domain, attribute_id, selected_values);
+    insert_selected_values(
+        info.drawing.strokes(), selection_domain, attribute_id, selected_values);
   }
 
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    bke::MutableAttributeAccessor attributes =
-        info.drawing.strokes_for_write().attributes_for_write();
-    const int domain_size = attributes.domain_size(domain);
-    bke::SpanAttributeWriter<bool> selection_writer =
-        attributes.lookup_or_add_for_write_span<bool>(
-            ".selection",
-            domain,
-            bke::AttributeInitVArray(VArray<bool>::ForSingle(true, domain_size)));
-    const VArraySpan<T> values = *attributes.lookup_or_default<T>(
-        attribute_id, domain, default_value);
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    bke::GSpanAttributeWriter selection_writer = ed::curves::ensure_selection_attribute(
+        curves, selection_domain, CD_PROP_BOOL);
+    MutableSpan<bool> selection = selection_writer.span.typed<bool>();
+    const VArraySpan<T> values = *curves.attributes().lookup_or_default<T>(
+        attribute_id, selection_domain, default_value);
 
     IndexMaskMemory memory;
     const IndexMask mask = ed::greasepencil::retrieve_editable_points(
         *object, info.drawing, info.layer_index, memory);
 
     mask.foreach_index(GrainSize(1024), [&](const int index) {
-      if (selection_writer.span[index]) {
+      if (selection[index]) {
         return;
       }
       for (const T &test_value : selected_values) {
         if (distance_fn(values[index], test_value) <= threshold) {
-          selection_writer.span[index] = true;
+          selection[index] = true;
         }
       }
     });
