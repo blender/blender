@@ -65,9 +65,8 @@ bool device_oneapi_init()
   else {
     setenv("ONEAPI_DEVICE_SELECTOR", "!opencl:*", false);
   }
-  /* SYSMAN is needed for free_memory queries. However, it leads to runtime driver issues on Linux
-   * when using it with JEMALLOC, so we set it to 0 by default until it's fixed. */
-  setenv("ZES_ENABLE_SYSMAN", "0", false);
+  /* SYSMAN is needed for free_memory queries. */
+  setenv("ZES_ENABLE_SYSMAN", "1", false);
   setenv("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE", "0", false);
 #  endif
 
