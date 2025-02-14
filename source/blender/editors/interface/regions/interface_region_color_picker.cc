@@ -246,7 +246,8 @@ static void ui_colorpicker_rgba_update_cb(bContext * /*C*/, void *bt1, void * /*
 
   if (prop) {
     zero_v4(rgba_scene_linear);
-    RNA_property_float_get_array(&ptr, prop, rgba_scene_linear);
+    RNA_property_float_get_array_at_most(
+        &ptr, prop, rgba_scene_linear, ARRAY_SIZE(rgba_scene_linear));
     ui_update_color_picker_buts_rgba(but, but->block, cpicker, rgba_scene_linear);
   }
 
@@ -272,7 +273,8 @@ static void ui_colorpicker_hsv_update_cb(bContext * /*C*/, void *bt1, void *bt2)
     zero_v4(rgba_scene_linear);
     /* Get the current RGBA color for its (optional) Alpha component,
      * then update RGB components from the current HSV values. */
-    RNA_property_float_get_array(&color_ptr, color_prop, rgba_scene_linear);
+    RNA_property_float_get_array_at_most(
+        &color_ptr, color_prop, rgba_scene_linear, ARRAY_SIZE(rgba_scene_linear));
     ui_color_picker_hsv_to_rgb(cpicker->hsv_scene_linear, rgba_scene_linear);
     ui_update_color_picker_buts_rgba(but, but->block, cpicker, rgba_scene_linear);
   }
@@ -301,7 +303,7 @@ static void ui_colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *bt2)
   float rgba[4];
   if (color_prop) {
     zero_v4(rgba);
-    RNA_property_float_get_array(&color_ptr, color_prop, rgba);
+    RNA_property_float_get_array_at_most(&color_ptr, color_prop, rgba, ARRAY_SIZE(rgba));
   }
   /* Override current color with parsed the Hex string to preserve the original Alpha if the
    * hex string doesn't contain it. */
@@ -500,7 +502,7 @@ static void ui_block_colorpicker(uiBlock *block,
 
   RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
   RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
-  RNA_property_float_get_array(ptr, prop, rgba_scene_linear);
+  RNA_property_float_get_array_at_most(ptr, prop, rgba_scene_linear, 4);
 
   ui_color_picker_update_hsv(cpicker, from_but, rgba_scene_linear);
   cpicker->has_alpha = ui_but_color_has_alpha(from_but);

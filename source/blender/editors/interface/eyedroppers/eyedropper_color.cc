@@ -132,7 +132,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
   op->customdata = eye;
 
   float col[4];
-  RNA_property_float_get_array(&eye->ptr, eye->prop, col);
+  RNA_property_float_get_array_at_most(&eye->ptr, eye->prop, col, ARRAY_SIZE(col));
   if (eye->ptr.type == &RNA_CompositorNodeCryptomatteV2) {
     eye->crypto_node = (bNode *)eye->ptr.data;
     eye->cryptomatte_session = ntreeCompositCryptomatteSession(eye->crypto_node);
@@ -516,7 +516,7 @@ static void eyedropper_color_set(bContext *C, Eyedropper *eye, const float col[3
   float col_conv[4];
 
   /* to maintain alpha */
-  RNA_property_float_get_array(&eye->ptr, eye->prop, col_conv);
+  RNA_property_float_get_array_at_most(&eye->ptr, eye->prop, col_conv, ARRAY_SIZE(col_conv));
 
   /* convert from linear rgb space to display space */
   if (eye->display) {
@@ -527,7 +527,7 @@ static void eyedropper_color_set(bContext *C, Eyedropper *eye, const float col[3
     copy_v3_v3(col_conv, col);
   }
 
-  RNA_property_float_set_array(&eye->ptr, eye->prop, col_conv);
+  RNA_property_float_set_array_at_most(&eye->ptr, eye->prop, col_conv, ARRAY_SIZE(col_conv));
   eye->is_set = true;
 
   RNA_property_update(C, &eye->ptr, eye->prop);
