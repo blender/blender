@@ -53,7 +53,7 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
       info = sd->ray_length;
       break;
     case NODE_LP_ray_depth: {
-      /* Read bounce from difference location depending if this is a shadow
+      /* Read bounce from different locations depending on if this is a shadow
        * path. It's a bit dubious to have integrate state details leak into
        * this function but hard to avoid currently. */
       IF_KERNEL_NODES_FEATURE(LIGHT_PATH)

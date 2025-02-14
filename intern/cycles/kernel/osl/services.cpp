@@ -1028,7 +1028,15 @@ bool OSLRenderServices::get_background_attribute(
 
   if (name == u_path_ray_depth) {
     /* Ray Depth */
-    const int f = READ_PATH_STATE(bounce);
+    int f = READ_PATH_STATE(bounce);
+
+    /* Read bounce from different locations depending on if this is a shadow path. For background,
+     * light emission and shadow evaluation from a surface or volume we are effectively one bounce
+     * further. */
+    if (globals->raytype & (PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+      f += 1;
+    }
+
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_diffuse_depth) {
