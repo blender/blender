@@ -94,7 +94,7 @@ class CombinedKeyingResult {
  * "Object Transforms" channel group name.
  */
 std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *animated_struct,
-                                                            const StringRef prop_rna_path);
+                                                            StringRef prop_rna_path);
 
 /* -------------------------------------------------------------------- */
 

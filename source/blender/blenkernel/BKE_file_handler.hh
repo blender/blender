@@ -46,7 +46,7 @@ struct FileHandlerType {
   /**
    * Generate a default file name for use with this file handler.
    */
-  std::string get_default_filename(const StringRefNull name);
+  std::string get_default_filename(StringRefNull name);
 };
 
 /**

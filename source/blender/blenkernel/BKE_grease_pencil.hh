@@ -585,14 +585,14 @@ class Layer : public ::GreasePencilLayer {
    * armature.
    */
   StringRefNull parent_bone_name() const;
-  void set_parent_bone_name(const StringRef new_name);
+  void set_parent_bone_name(StringRef new_name);
 
   /**
    * Returns the view layer name that this layer should be rendered in or an empty
    * `StringRefNull` if no such name is set.
    */
   StringRefNull view_layer_name() const;
-  void set_view_layer_name(const StringRef new_name);
+  void set_view_layer_name(StringRef new_name);
 
  private:
   /**

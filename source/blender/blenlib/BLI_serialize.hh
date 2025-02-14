@@ -253,12 +253,12 @@ class DictionaryValue : public Value {
    */
   Lookup create_lookup() const;
 
-  const std::shared_ptr<Value> *lookup(const StringRef key) const;
-  std::optional<StringRefNull> lookup_str(const StringRef key) const;
-  std::optional<int64_t> lookup_int(const StringRef key) const;
-  std::optional<double> lookup_double(const StringRef key) const;
-  const DictionaryValue *lookup_dict(const StringRef key) const;
-  const ArrayValue *lookup_array(const StringRef key) const;
+  const std::shared_ptr<Value> *lookup(StringRef key) const;
+  std::optional<StringRefNull> lookup_str(StringRef key) const;
+  std::optional<int64_t> lookup_int(StringRef key) const;
+  std::optional<double> lookup_double(StringRef key) const;
+  const DictionaryValue *lookup_dict(StringRef key) const;
+  const ArrayValue *lookup_array(StringRef key) const;
   Span<Item> elements() const
   {
     return values_;

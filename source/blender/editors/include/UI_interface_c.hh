@@ -1197,7 +1197,7 @@ uiBut *uiDefButR(uiBlock *block,
                  short width,
                  short height,
                  PointerRNA *ptr,
-                 const blender::StringRefNull propname,
+                 blender::StringRefNull propname,
                  int index,
                  float min,
                  float max,
@@ -2428,8 +2428,8 @@ uiLayout *uiLayoutPanelProp(const bContext *C,
 uiLayout *uiLayoutPanelPropWithBoolHeader(const bContext *C,
                                           uiLayout *layout,
                                           PointerRNA *open_prop_owner,
-                                          const blender::StringRefNull open_prop_name,
-                                          const blender::StringRefNull bool_prop_name,
+                                          blender::StringRefNull open_prop_name,
+                                          blender::StringRefNull bool_prop_name,
                                           const std::optional<blender::StringRefNull> label);
 
 /**
@@ -2726,7 +2726,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr);
 
 bool uiTemplateEventFromKeymapItem(uiLayout *layout,
-                                   const blender::StringRefNull text,
+                                   blender::StringRefNull text,
                                    const wmKeyMapItem *kmi,
                                    bool text_fallback);
 

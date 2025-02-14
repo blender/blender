@@ -73,7 +73,7 @@ class bUUID : public ::bUUID {
   bUUID(std::initializer_list<uint32_t> field_values);
 
   /** Initialize by parsing the string; undefined behavior when the string is invalid. */
-  explicit bUUID(const StringRefNull string_formatted_uuid);
+  explicit bUUID(StringRefNull string_formatted_uuid);
 
   /** Return the UUID as formatted ASCII string, see #BLI_uuid_format(). */
   std::string str() const;

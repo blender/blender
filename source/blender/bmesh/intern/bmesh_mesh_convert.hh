@@ -16,7 +16,7 @@
  * \return Whether attributes with the given name are stored in special flags or fields in BMesh
  * rather than in the regular custom data blocks.
  */
-bool BM_attribute_stored_in_bmesh_builtin(const blender::StringRef name);
+bool BM_attribute_stored_in_bmesh_builtin(blender::StringRef name);
 
 struct CustomData_MeshMasks;
 struct Main;

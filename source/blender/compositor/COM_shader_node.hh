@@ -51,10 +51,10 @@ class ShaderNode {
   void compile(GPUMaterial *material);
 
   /* Returns the GPU node stack of the input with the given identifier. */
-  GPUNodeStack &get_input(const StringRef identifier);
+  GPUNodeStack &get_input(StringRef identifier);
 
   /* Returns the GPU node stack of the output with the given identifier. */
-  GPUNodeStack &get_output(const StringRef identifier);
+  GPUNodeStack &get_output(StringRef identifier);
 
  private:
   /* Populate the inputs of the node. The input link is set to nullptr and is expected to be

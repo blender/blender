@@ -105,7 +105,7 @@ const Object *get_armature_modifier_obj(const Object &obj, const Depsgraph *deps
  *         bone name is found or if the object does not have an armature modifier
  */
 bool is_armature_modifier_bone_name(const Object &obj,
-                                    const StringRefNull name,
+                                    StringRefNull name,
                                     const Depsgraph *depsgraph);
 
 /**

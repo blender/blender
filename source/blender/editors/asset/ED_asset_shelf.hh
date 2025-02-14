@@ -83,7 +83,7 @@ void type_unregister(const AssetShelfType &shelf_type);
  * Permanent/non-popup asset shelf regions should use #type_poll_for_space_type() instead.
  */
 bool type_poll_for_popup(const bContext &C, const AssetShelfType *shelf_type);
-AssetShelfType *type_find_from_idname(const StringRef idname);
+AssetShelfType *type_find_from_idname(StringRef idname);
 
 /** \} */
 

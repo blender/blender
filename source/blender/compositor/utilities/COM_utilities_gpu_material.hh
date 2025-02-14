@@ -16,13 +16,13 @@ namespace blender::compositor {
  * given inputs stack array. See the ShaderNode class for more information. */
 GPUNodeStack &get_shader_node_input(const bNode &node,
                                     GPUNodeStack inputs[],
-                                    const StringRef identifier);
+                                    StringRef identifier);
 
 /* Returns the GPU node stack of the output with the given identifier in the given node within the
  * given output stack array. See the ShaderNode class for more information. */
 GPUNodeStack &get_shader_node_output(const bNode &node,
                                      GPUNodeStack outputs[],
-                                     const StringRef identifier);
+                                     StringRef identifier);
 
 /* Returns the GPU node link of the input with the given identifier in the given node within the
  * given inputs stack array, if the input is not linked, a uniform link carrying the value of the
@@ -31,6 +31,6 @@ GPUNodeStack &get_shader_node_output(const bNode &node,
  * information. */
 GPUNodeLink *get_shader_node_input_link(const bNode &node,
                                         GPUNodeStack inputs[],
-                                        const StringRef identifier);
+                                        StringRef identifier);
 
 }  // namespace blender::compositor

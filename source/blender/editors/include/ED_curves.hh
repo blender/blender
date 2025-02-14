@@ -81,7 +81,7 @@ void remove_selection_attributes(
 Span<float3> get_selection_attribute_positions(
     const bke::CurvesGeometry &curves,
     const bke::crazyspace::GeometryDeformation &deformation,
-    const StringRef attribute_name);
+    StringRef attribute_name);
 
 using SelectionRangeFn = FunctionRef<void(
     IndexRange range, Span<float3> positions, StringRef selection_attribute_name)>;
