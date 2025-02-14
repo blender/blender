@@ -219,8 +219,8 @@ intended for use by file-managers to extract PNG images from `.blend` files."
   )
 elseif(APPLE)
   option(WITH_BLENDER_THUMBNAILER "\
-Build \"blender-thumbnailer.appex\" extension for macOS Finder/ QuickLook to support viewing \
-thumbnails from `.blend` files."
+Build \"blender-thumbnailer.appex\" extension for Finder/ QuickLook thumbnail \
+support for blend files."
     ON
   )
 endif()
