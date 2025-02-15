@@ -5797,6 +5797,22 @@ def km_edit_curves(params):
     return keymap
 
 
+# Point cloud edit mode.
+def km_edit_point_cloud(params):
+    items = []
+    keymap = (
+        "Point Cloud",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        *_template_items_select_actions(params, "point_cloud.select_all"),
+    ])
+
+    return keymap
+
+
 # ------------------------------------------------------------------------------
 # Modal Maps and Gizmos
 
@@ -8352,6 +8368,7 @@ def generate_keymaps(params=None):
         km_edit_font(params),
         km_edit_curve_legacy(params),
         km_edit_curves(params),
+        km_edit_point_cloud(params),
 
         # Modal maps.
         km_eyedropper_modal_map(params),
