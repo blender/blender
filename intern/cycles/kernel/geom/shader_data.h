@@ -378,7 +378,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
   sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
   sd->object_flag = 0;
   sd->time = ray_time;
-  sd->ray_length = 0.0f;
+  sd->ray_length = FLT_MAX;
 
   sd->object = OBJECT_NONE;
   sd->lamp = LAMP_NONE;
