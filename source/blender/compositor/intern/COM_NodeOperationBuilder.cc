@@ -431,7 +431,15 @@ void NodeOperationBuilder::determine_canvases()
         const rcti &to_canvas = link.to()->get_operation().get_canvas();
 
         bool needs_conversion;
-        if (link.to()->get_resize_mode() == ResizeMode::Align) {
+        if (link.from()->get_operation().get_flags().is_constant_operation) {
+          /* COM_convert_canvas() below can introduce non-constant transform operations
+           * to the input. This breaks the blur node (see BlurBaseOperation::init_data()),
+           * where it is assumed that if the input operation is constant,
+           * then it will remain constant after computing cavases as well.
+           * So we avoid converting cavases explicitly for such cases. */
+          needs_conversion = false;
+        }
+        else if (link.to()->get_resize_mode() == ResizeMode::Align) {
           needs_conversion = from_canvas.xmin != to_canvas.xmin ||
                              from_canvas.ymin != to_canvas.ymin;
         }
