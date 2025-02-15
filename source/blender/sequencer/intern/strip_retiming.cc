@@ -186,9 +186,7 @@ static double strip_retiming_segment_length_get(const SeqRetimingKey *start_key)
   return end_key->strip_frame_index - start_key->strip_frame_index;
 }
 
-/* Segment step can be a very small number, which is multiplied later. Therefore double is used to
- * avoid loss of precision. */
-static double strip_retiming_segment_step_get(const SeqRetimingKey *start_key)
+static float strip_retiming_segment_step_get(const SeqRetimingKey *start_key)
 {
   const SeqRetimingKey *end_key = start_key + 1;
   const double segment_length = strip_retiming_segment_length_get(start_key);
@@ -296,12 +294,12 @@ float strip_retiming_evaluate(const Strip *strip, const float frame_index)
   const float segment_frame_index = frame_index - start_key->strip_frame_index;
 
   if (!SEQ_retiming_key_is_transition_start(start_key)) {
-    const double segment_step = strip_retiming_segment_step_get(start_key);
+    const float segment_step = strip_retiming_segment_step_get(start_key);
     return std::min(1.0f, start_key->retiming_factor + float(segment_step * segment_frame_index));
   }
 
   if (strip_retiming_transition_is_linear(strip, start_key)) {
-    const double segment_step = strip_retiming_segment_step_get(start_key - 1);
+    const float segment_step = strip_retiming_segment_step_get(start_key - 1);
     return std::min(1.0f, start_key->retiming_factor + float(segment_step * segment_frame_index));
   }
 
@@ -383,8 +381,8 @@ void SEQ_retiming_transition_key_frame_set(const Scene *scene,
   const float midpoint = key_start->original_strip_frame_index;
   const float new_frame_index = content_frame_index_get(scene, strip, timeline_frame);
   float new_midpoint_offset = new_frame_index - midpoint;
-  const double prev_segment_step = strip_retiming_segment_step_get(key_start - 1);
-  const double next_segment_step = strip_retiming_segment_step_get(key_end);
+  const float prev_segment_step = strip_retiming_segment_step_get(key_start - 1);
+  const float next_segment_step = strip_retiming_segment_step_get(key_end);
 
   /* Prevent keys crossing eachother. */
   SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
