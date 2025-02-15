@@ -5433,9 +5433,11 @@ void store_mesh_from_eval(const wmOperator &op,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const bool changed_topology = !topology_matches(mesh, *new_mesh);
   const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&object, rv3d);
+  bool entire_mesh_changed = false;
 
   if (changed_topology) {
     store_sculpt_entire_mesh(op, scene, object, new_mesh);
+    entire_mesh_changed = true;
   }
   else {
     /* Detect attributes present in the new mesh which no longer match the original. */
@@ -5522,10 +5524,11 @@ void store_mesh_from_eval(const wmOperator &op,
        * multiple attributes or attributes that don't have their own undo type are changed, we're
        * forced to fall back to the slower geometry undo type. */
       store_sculpt_entire_mesh(op, scene, object, new_mesh);
+      entire_mesh_changed = true;
     }
   }
   DEG_id_tag_update(&mesh.id, ID_RECALC_SHADING);
-  if (!use_pbvh_draw) {
+  if (!use_pbvh_draw || entire_mesh_changed) {
     DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
   }
 }
