@@ -9704,6 +9704,21 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
 static void bpy_class_free(void *pyob_ptr)
 {
+#ifdef WITH_PYTHON_MODULE
+  /* This can happen when Python has exited before all Blender's RNA types have been freed.
+   * In this Python memory management can't run. see: #125376.
+   *
+   * NOTE(@ideasman42): While I wasn't able to redo locally, it resolves the problem.
+   * Apparently this happens with AUDASPACE on macOS. Ideally this would be resolved
+   * by correcting the order classes are freed (before Python exits). */
+  if (!Py_IsInitialized()) {
+#  if !(defined(__APPLE__) || defined(_WIN32))
+    BLI_assert_msg(false, "This should never happen, please report a bug!");
+#  endif
+    return;
+  }
+#endif
+
   PyGILState_STATE gilstate = PyGILState_Ensure();
 
   PyObject *self = (PyObject *)pyob_ptr;
