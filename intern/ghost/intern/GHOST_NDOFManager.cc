@@ -510,13 +510,6 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
 {
   GHOST_NDOF_ButtonT button = static_cast<GHOST_NDOF_ButtonT>(button_number);
 
-  /* For bit-mask devices button mapping isn't unified, therefore check the button map. */
-  if (std::find(bitmask_devices_.begin(), bitmask_devices_.end(), device_type_) !=
-      bitmask_devices_.end())
-  {
-    button = hid_map_[button_number];
-  }
-
   if (button == GHOST_NDOF_BUTTON_INVALID) {
     CLOG_INFO(
         LOG, 2, "button=%d, press=%d (mapped to none, ignoring!)", button_number, int(press));
@@ -578,7 +571,11 @@ void GHOST_NDOFManager::updateButtonsBitmask(int button_bits, uint64_t time)
       else {
         button_depressed_ &= ~mask; /* Clear this button's bit. */
       }
-      updateButton(button_number, press, time);
+
+      /* Bitmask devices don't have unified keymaps, so button numbers needs to be looked up in the
+       * map. */
+      int button = hid_map_[button_number];
+      updateButton(button, press, time);
     }
   }
 }
