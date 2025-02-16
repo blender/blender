@@ -915,7 +915,7 @@ bool IDP_EqualsProperties_ex(const IDProperty *prop1,
     {
       float p1 = IDP_Float(prop1);
       float p2 = IDP_Float(prop2);
-      if ((p1 != p2) && ((fabsf(p1 - p2) / max_ff(p1, p2)) < 0.001f)) {
+      if ((p1 != p2) && ((fabsf(p1 - p2) / max_ff(fabsf(p1), fabsf(p2))) < 0.001f)) {
         printf(
             "WARNING: Comparing two float properties that have nearly the same value (%f vs. "
             "%f)\n",
