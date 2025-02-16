@@ -1185,9 +1185,12 @@ static gpu::IndexBuf *create_index_faces(const OffsetIndices<int> faces,
 static gpu::IndexBuf *create_index_bmesh(const Set<BMFace *, 0> &faces,
                                          const int visible_faces_num)
 {
-  GPUIndexBufBuilder elb_lines;
-  GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, visible_faces_num * 3, INT_MAX);
+  GPUIndexBufBuilder builder;
+  GPU_indexbuf_init(&builder, GPU_PRIM_LINES, visible_faces_num, INT_MAX);
 
+  MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+
+  int tri_index = 0;
   int v_index = 0;
 
   for (const BMFace *face : faces) {
@@ -1195,14 +1198,19 @@ static gpu::IndexBuf *create_index_bmesh(const Set<BMFace *, 0> &faces,
       continue;
     }
 
-    GPU_indexbuf_add_line_verts(&elb_lines, v_index, v_index + 1);
-    GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
-    GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index);
+    data[tri_index] = uint2(v_index, v_index + 1);
+    tri_index++;
+    data[tri_index] = uint2(v_index + 1, v_index + 2);
+    tri_index++;
+    data[tri_index] = uint2(v_index + 2, v_index);
+    tri_index++;
 
     v_index += 3;
   }
 
-  return GPU_indexbuf_build(&elb_lines);
+  gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
+  GPU_indexbuf_build_in_place_ex(&builder, 0, visible_faces_num * 3, false, ibo);
+  return ibo;
 }
 
 static void create_tri_index_grids(const Span<int> grid_indices,
@@ -1210,10 +1218,11 @@ static void create_tri_index_grids(const Span<int> grid_indices,
                                    const int gridsize,
                                    const int skip,
                                    const int totgrid,
-                                   GPUIndexBufBuilder &elb)
+                                   MutableSpan<uint3> data)
 {
-  uint offset = 0;
-  const uint grid_vert_len = gridsize * gridsize;
+  int tri_index = 0;
+  int offset = 0;
+  const int grid_vert_len = gridsize * gridsize;
   for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
     uint v0, v1, v2, v3;
 
@@ -1232,8 +1241,10 @@ static void create_tri_index_grids(const Span<int> grid_indices,
         v2 = offset + CCG_grid_xy_to_index(gridsize, x + skip, y + skip);
         v3 = offset + CCG_grid_xy_to_index(gridsize, x, y + skip);
 
-        GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
-        GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
+        data[tri_index] = uint3(v0, v2, v1);
+        tri_index++;
+        data[tri_index] = uint3(v0, v3, v2);
+        tri_index++;
       }
     }
   }
@@ -1244,11 +1255,11 @@ static void create_tri_index_grids_flat_layout(const Span<int> grid_indices,
                                                const int gridsize,
                                                const int skip,
                                                const int totgrid,
-                                               GPUIndexBufBuilder &elb)
+                                               MutableSpan<uint3> data)
 {
-  uint offset = 0;
-  const uint grid_vert_len = square_uint(gridsize - 1) * 4;
-
+  int tri_index = 0;
+  int offset = 0;
+  const int grid_vert_len = square_uint(gridsize - 1) * 4;
   for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
     const BoundedBitSpan gh = grid_hidden.is_empty() ? BoundedBitSpan() :
                                                        grid_hidden[grid_indices[i]];
@@ -1281,8 +1292,10 @@ static void create_tri_index_grids_flat_layout(const Span<int> grid_indices,
         v2 += offset + 2;
         v3 += offset + 3;
 
-        GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
-        GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
+        data[tri_index] = uint3(v0, v2, v1);
+        tri_index++;
+        data[tri_index] = uint3(v0, v3, v2);
+        tri_index++;
       }
     }
   }
@@ -1294,10 +1307,11 @@ static void create_lines_index_grids(const Span<int> grid_indices,
                                      const int gridsize,
                                      const int skip,
                                      const int totgrid,
-                                     GPUIndexBufBuilder &elb_lines)
+                                     MutableSpan<uint2> data)
 {
-  uint offset = 0;
-  const uint grid_vert_len = gridsize * gridsize;
+  int line_index = 0;
+  int offset = 0;
+  const int grid_vert_len = gridsize * gridsize;
   for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
     uint v0, v1, v2, v3;
     bool grid_visible = false;
@@ -1317,17 +1331,21 @@ static void create_lines_index_grids(const Span<int> grid_indices,
         v2 = offset + CCG_grid_xy_to_index(gridsize, x + skip, y + skip);
         v3 = offset + CCG_grid_xy_to_index(gridsize, x, y + skip);
 
-        GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
-        GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
+        data[line_index] = uint2(v0, v1);
+        line_index++;
+        data[line_index] = uint2(v0, v3);
+        line_index++;
 
         if (y / skip + 2 == display_gridsize) {
-          GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
+          data[line_index] = uint2(v2, v3);
+          line_index++;
         }
         grid_visible = true;
       }
 
       if (grid_visible) {
-        GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+        data[line_index] = uint2(v1, v2);
+        line_index++;
       }
     }
   }
@@ -1339,11 +1357,11 @@ static void create_lines_index_grids_flat_layout(const Span<int> grid_indices,
                                                  const int gridsize,
                                                  const int skip,
                                                  const int totgrid,
-                                                 GPUIndexBufBuilder &elb_lines)
+                                                 MutableSpan<uint2> data)
 {
-  uint offset = 0;
-  const uint grid_vert_len = square_uint(gridsize - 1) * 4;
-
+  int line_index = 0;
+  int offset = 0;
+  const int grid_vert_len = square_uint(gridsize - 1) * 4;
   for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
     bool grid_visible = false;
     const BoundedBitSpan gh = grid_hidden.is_empty() ? BoundedBitSpan() :
@@ -1377,17 +1395,21 @@ static void create_lines_index_grids_flat_layout(const Span<int> grid_indices,
         v2 += offset + 2;
         v3 += offset + 3;
 
-        GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
-        GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
+        data[line_index] = uint2(v0, v1);
+        line_index++;
+        data[line_index] = uint2(v0, v3);
+        line_index++;
 
         if (y / skip + 2 == display_gridsize) {
-          GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
+          data[line_index] = uint2(v2, v3);
+          line_index++;
         }
         grid_visible = true;
       }
 
       if (grid_visible) {
-        GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+        data[line_index] = uint2(v1, v2);
+        line_index++;
       }
     }
   }
@@ -1555,21 +1577,24 @@ static gpu::IndexBuf *create_tri_index_grids(const CCGKey &key,
     skip = 1 << (key.level - display_level - 1);
   }
 
-  GPUIndexBufBuilder elb;
-
   uint visible_quad_len = bke::pbvh::count_grid_quads(
       grid_hidden, grid_indices, key.grid_size, display_gridsize);
 
-  GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, 2 * visible_quad_len, INT_MAX);
+  GPUIndexBufBuilder builder;
+  GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, 2 * visible_quad_len, INT_MAX);
+
+  MutableSpan<uint3> data = GPU_indexbuf_get_data(&builder).cast<uint3>();
 
   if (use_flat_layout) {
-    create_tri_index_grids_flat_layout(grid_indices, grid_hidden, gridsize, skip, totgrid, elb);
+    create_tri_index_grids_flat_layout(grid_indices, grid_hidden, gridsize, skip, totgrid, data);
   }
   else {
-    create_tri_index_grids(grid_indices, grid_hidden, gridsize, skip, totgrid, elb);
+    create_tri_index_grids(grid_indices, grid_hidden, gridsize, skip, totgrid, data);
   }
 
-  return GPU_indexbuf_build(&elb);
+  gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
+  GPU_indexbuf_build_in_place_ex(&builder, 0, 6 * visible_quad_len, false, ibo);
+  return ibo;
 }
 
 static gpu::IndexBuf *create_lines_index_grids(const CCGKey &key,
@@ -1590,20 +1615,25 @@ static gpu::IndexBuf *create_lines_index_grids(const CCGKey &key,
     skip = 1 << (key.level - display_level - 1);
   }
 
-  GPUIndexBufBuilder elb;
+  GPUIndexBufBuilder builder;
   GPU_indexbuf_init(
-      &elb, GPU_PRIM_LINES, 2 * totgrid * display_gridsize * (display_gridsize - 1), INT_MAX);
+      &builder, GPU_PRIM_LINES, 2 * totgrid * display_gridsize * (display_gridsize - 1), INT_MAX);
+
+  MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
 
   if (use_flat_layout) {
     create_lines_index_grids_flat_layout(
-        grid_indices, display_gridsize, grid_hidden, gridsize, skip, totgrid, elb);
+        grid_indices, display_gridsize, grid_hidden, gridsize, skip, totgrid, data);
   }
   else {
     create_lines_index_grids(
-        grid_indices, display_gridsize, grid_hidden, gridsize, skip, totgrid, elb);
+        grid_indices, display_gridsize, grid_hidden, gridsize, skip, totgrid, data);
   }
 
-  return GPU_indexbuf_build(&elb);
+  gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
+  GPU_indexbuf_build_in_place_ex(
+      &builder, 0, 2 * totgrid * display_gridsize * (display_gridsize - 1), false, ibo);
+  return ibo;
 }
 
 Span<gpu::IndexBuf *> DrawCacheImpl::ensure_lines_indices(const Object &object,
