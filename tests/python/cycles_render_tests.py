@@ -80,10 +80,6 @@ BLOCKLIST_OPTIX_OSL = [
     'both_displacement.blend',
     'bump_with_displacement.blend',
     'ray_portal.blend',
-    # Volumetric textures using the Genereated textures coordinate are different in OptiX OSL. See 129279
-    'texture_coordinate_generated.blend',
-    'principled_absorption.blend',
-    'denoise_volume.blend',
     # The 3D texture doesn't have the right mappings
     'point_density_.*_object.blend',
     # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
