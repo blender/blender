@@ -1143,7 +1143,7 @@ static void store_vert_visibility_grids(const SubdivCCG &subdiv_ccg,
                                         const bke::pbvh::GridsNode &node,
                                         Node &unode)
 {
-  const BitGroupVector<> grid_hidden = subdiv_ccg.grid_hidden;
+  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
   if (grid_hidden.is_empty()) {
     return;
   }
