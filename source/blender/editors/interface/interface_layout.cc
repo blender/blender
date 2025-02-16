@@ -519,13 +519,12 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
   const int len = RNA_property_array_length(ptr, prop);
 
   if (!shift) {
-    RNA_property_boolean_set_index(ptr, prop, index, true);
+    BLI_assert(index < len);
+    blender::Array<bool, RNA_STACK_ARRAY> value_array(len);
+    value_array.fill(false);
+    value_array[index] = true;
 
-    for (int i = 0; i < len; i++) {
-      if (i != index) {
-        RNA_property_boolean_set_index(ptr, prop, i, false);
-      }
-    }
+    RNA_property_boolean_set_array(ptr, prop, value_array.data());
 
     RNA_property_update(C, ptr, prop);
 

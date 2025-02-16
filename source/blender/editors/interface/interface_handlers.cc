@@ -2525,9 +2525,7 @@ static void ui_but_set_float_array(
 {
   button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
-  for (int i = 0; i < values_len; i++) {
-    RNA_property_float_set_index(&but->rnapoin, but->rnaprop, i, values[i]);
-  }
+  RNA_property_float_set_array_at_most(&but->rnapoin, but->rnaprop, values, values_len);
   if (data) {
     if (but->type == UI_BTYPE_UNITVEC) {
       BLI_assert(values_len == 3);
