@@ -2724,11 +2724,7 @@ static void ui_but_copy_colorband(uiBut *but)
 
 static void ui_but_paste_colorband(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-  if (but_copypaste_coba.tot != 0) {
-    if (!but->poin) {
-      but->poin = reinterpret_cast<char *>(MEM_callocN<ColorBand>(__func__));
-    }
-
+  if (but_copypaste_coba.tot != 0 && but->poin != nullptr) {
     button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
     memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand));
     button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -2746,11 +2742,7 @@ static void ui_but_copy_curvemapping(uiBut *but)
 
 static void ui_but_paste_curvemapping(bContext *C, uiBut *but)
 {
-  if (but_copypaste_curve_alive) {
-    if (!but->poin) {
-      but->poin = reinterpret_cast<char *>(MEM_callocN<CurveMapping>(__func__));
-    }
-
+  if (but_copypaste_curve_alive && but->poin != nullptr) {
     button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
     BKE_curvemapping_free_data((CurveMapping *)but->poin);
     BKE_curvemapping_copy_data((CurveMapping *)but->poin, &but_copypaste_curve);
@@ -2769,11 +2761,7 @@ static void ui_but_copy_CurveProfile(uiBut *but)
 
 static void ui_but_paste_CurveProfile(bContext *C, uiBut *but)
 {
-  if (but_copypaste_profile_alive) {
-    if (!but->poin) {
-      but->poin = reinterpret_cast<char *>(MEM_callocN<CurveProfile>(__func__));
-    }
-
+  if (but_copypaste_profile_alive && but->poin != nullptr) {
     button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
     BKE_curveprofile_free_data((CurveProfile *)but->poin);
     BKE_curveprofile_copy_data((CurveProfile *)but->poin, &but_copypaste_profile);
