@@ -354,7 +354,13 @@ void paint_sample_color(
         int tri_index;
         float3 bary_coord;
         int faceindex;
-        if (imapaint_pick_face(&vc, mval, &tri_index, &faceindex, &bary_coord, *mesh_eval)) {
+        const VArray<bool> hide_poly = *mesh_eval->attributes().lookup_or_default<bool>(
+            ".hide_poly", bke::AttrDomain::Face, false);
+        const bool is_hit = imapaint_pick_face(
+                                &vc, mval, &tri_index, &faceindex, &bary_coord, *mesh_eval) &&
+                            hide_poly[faceindex];
+
+        if (is_hit) {
           Image *image = nullptr;
           int interp = SHD_INTERP_LINEAR;
 
