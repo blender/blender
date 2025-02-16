@@ -12,8 +12,8 @@ set(INC
   ../../modifiers
   ../../io/common
   ../../io/csv
-  ../../io/stl
   ../../io/ply
+  ../../io/stl
   ../../io/wavefront_obj
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
