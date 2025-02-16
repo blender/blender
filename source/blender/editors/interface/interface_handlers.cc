@@ -2647,7 +2647,7 @@ static void ui_but_copy_color(uiBut *but, char *output, int output_maxncpy)
 {
   float rgba[4];
 
-  if (but->rnaprop && get_but_property_array_length(but) == 4) {
+  if (but->rnaprop && get_but_property_array_length(but) >= 4) {
     rgba[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
   }
   else {
