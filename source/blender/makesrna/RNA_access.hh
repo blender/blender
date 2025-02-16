@@ -418,8 +418,16 @@ bool RNA_property_update_check(PropertyRNA *prop);
 bool RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value);
 void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *values);
+void RNA_property_boolean_get_array_at_most(PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            bool *values,
+                                            int values_num);
 bool RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bool *values);
+void RNA_property_boolean_set_array_at_most(PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            const bool *values,
+                                            int values_num);
 void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, bool value);
 bool RNA_property_boolean_get_default(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, bool *values);
@@ -428,10 +436,18 @@ bool RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, 
 int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
+void RNA_property_int_get_array_at_most(PointerRNA *ptr,
+                                        PropertyRNA *prop,
+                                        int *values,
+                                        int values_num);
 void RNA_property_int_get_array_range(PointerRNA *ptr, PropertyRNA *prop, int values[2]);
 int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values);
 void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
+void RNA_property_int_set_array_at_most(PointerRNA *ptr,
+                                        PropertyRNA *prop,
+                                        const int *values,
+                                        int values_num);
 int RNA_property_int_get_default(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_int_set_default(PropertyRNA *prop, int value);
 void RNA_property_int_get_default_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
