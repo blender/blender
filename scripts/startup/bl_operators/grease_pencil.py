@@ -28,8 +28,12 @@ class GREASE_PENCIL_OT_relative_layer_mask_add(Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        return obj is not None and obj.is_editable and obj.data.layers.active is not None
+        return (
+            (obj := context.active_object) is not None and
+            obj.is_editable and
+            obj.type == 'GREASEPENCIL' and
+            obj.data.layers.active is not None
+        )
 
     def execute(self, context):
         obj = context.active_object
