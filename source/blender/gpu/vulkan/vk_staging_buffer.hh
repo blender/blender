@@ -61,7 +61,7 @@ class VKStagingBuffer {
   /**
    * Get the reference to the host buffer to update/load the data.
    */
-  const VKBuffer &host_buffer_get() const
+  VKBuffer &host_buffer_get()
   {
     return host_buffer_;
   }
