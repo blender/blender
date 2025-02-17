@@ -13,8 +13,8 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
-
 #include "BLI_vector.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -143,8 +143,8 @@ static void points_build_sources_preview(const Scene *scene,
     }
 
     /* Add origins last */
-    float image_origin[2];
-    SEQ_image_transform_origin_offset_pixelspace_get(scene, strip, image_origin);
+    const blender::float2 image_origin = SEQ_image_transform_origin_offset_pixelspace_get(scene,
+                                                                                          strip);
     snap_data->source_snap_points.append(image_origin);
   }
 }
@@ -322,12 +322,12 @@ static void points_build_targets_preview(const Scene *scene,
       const Array<float2> strip_image_quad = SEQ_image_transform_final_quad_get(scene, strip);
 
       for (int j = 0; j < 4; j++) {
-        snap_data->target_snap_points.append(float2(strip_image_quad[j]));
+        snap_data->target_snap_points.append(strip_image_quad[j]);
       }
 
-      float image_origin[2];
-      SEQ_image_transform_origin_offset_pixelspace_get(scene, strip, image_origin);
-      snap_data->target_snap_points.append(float2(image_origin));
+      const blender::float2 image_origin = SEQ_image_transform_origin_offset_pixelspace_get(scene,
+                                                                                            strip);
+      snap_data->target_snap_points.append(image_origin);
     }
   }
 }

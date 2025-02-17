@@ -12,6 +12,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
@@ -47,7 +48,7 @@ struct TransformContext {
   /* Cropping region in source image pixel space. */
   rctf src_crop;
 
-  void init(const float4x4 &transform_matrix, const bool has_source_crop)
+  void init(const float3x3 &transform_matrix, const bool has_source_crop)
   {
     start_uv = transform_matrix.location().xy();
     add_x = transform_matrix.x_axis().xy();
@@ -56,7 +57,7 @@ struct TransformContext {
   }
 
  private:
-  void init_destination_region(const float4x4 &transform_matrix, const bool has_source_crop)
+  void init_destination_region(const float3x3 &transform_matrix, const bool has_source_crop)
   {
     if (!has_source_crop) {
       dst_region_x_range = IndexRange(dst->x);
@@ -68,14 +69,14 @@ struct TransformContext {
     const int2 margin(2);
     rcti rect;
     BLI_rcti_init_minmax(&rect);
-    float4x4 inverse = math::invert(transform_matrix);
+    float3x3 inverse = math::invert(transform_matrix);
     const int2 src_coords[4] = {int2(src_crop.xmin, src_crop.ymin),
                                 int2(src_crop.xmax, src_crop.ymin),
                                 int2(src_crop.xmax, src_crop.ymax),
                                 int2(src_crop.xmin, src_crop.ymax)};
     for (int i = 0; i < 4; i++) {
       int2 src_co = src_coords[i];
-      float3 dst_co = math::transform_point(inverse, float3(src_co.x, src_co.y, 0.0f));
+      float2 dst_co = math::transform_point(inverse, float2(src_co));
       src_corners[i] = float2(dst_co.x, dst_co.y);
 
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) + margin);
@@ -467,7 +468,7 @@ void IMB_transform(const ImBuf *src,
                    ImBuf *dst,
                    const eIMBTransformMode mode,
                    const eIMBInterpolationFilterMode filter,
-                   const float transform_matrix[4][4],
+                   const float3x3 &transform_matrix,
                    const rctf *src_crop)
 {
   BLI_assert_msg(mode != IMB_TRANSFORM_MODE_CROP_SRC || src_crop != nullptr,
@@ -483,7 +484,7 @@ void IMB_transform(const ImBuf *src,
   if (crop) {
     ctx.src_crop = *src_crop;
   }
-  ctx.init(blender::float4x4(transform_matrix), crop);
+  ctx.init(transform_matrix, crop);
 
   threading::parallel_for(ctx.dst_region_y_range, 8, [&](IndexRange y_range) {
     if (filter == IMB_FILTER_NEAREST) {

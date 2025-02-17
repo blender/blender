@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include "BLI_bounds_types.hh"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
@@ -294,13 +295,13 @@ static void seq_view_collection_rect_preview(Scene *scene,
                                              blender::Span<Strip *> strips,
                                              rctf *rect)
 {
-  float min[2], max[2];
-  SEQ_image_transform_bounding_box_from_collection(scene, strips, true, min, max);
+  const blender::Bounds<blender::float2> box = SEQ_image_transform_bounding_box_from_collection(
+      scene, strips, true);
 
-  rect->xmin = min[0];
-  rect->xmax = max[0];
-  rect->ymin = min[1];
-  rect->ymax = max[1];
+  rect->xmin = box.min[0];
+  rect->xmax = box.max[0];
+  rect->ymin = box.min[1];
+  rect->ymax = box.max[1];
 
   float minsize = min_ff(BLI_rctf_size_x(rect), BLI_rctf_size_y(rect));
 

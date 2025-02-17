@@ -41,8 +41,8 @@ static ImBuf *transform_2x_smaller(eIMBInterpolationFilterMode filter)
 {
   ImBuf *src = create_6x2_test_image();
   ImBuf *dst = IMB_allocImBuf(3, 1, 32, IB_rect);
-  float4x4 matrix = math::from_scale<float4x4>(float4(2.0f));
-  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix.ptr(), nullptr);
+  float3x3 matrix = math::from_scale<float3x3>(float3(2.0f));
+  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix, nullptr);
   IMB_freeImBuf(src);
   return dst;
 }
@@ -51,8 +51,8 @@ static ImBuf *transform_fractional_larger(eIMBInterpolationFilterMode filter)
 {
   ImBuf *src = create_6x2_test_image();
   ImBuf *dst = IMB_allocImBuf(9, 7, 32, IB_rect);
-  float4x4 matrix = math::from_scale<float4x4>(float4(6.0f / 9.0f, 2.0f / 7.0f, 1.0f, 1.0f));
-  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix.ptr(), nullptr);
+  float3x3 matrix = math::from_scale<float3x3>(float3(6.0f / 9.0f, 2.0f / 7.0f, 1.0f));
+  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix, nullptr);
   IMB_freeImBuf(src);
   return dst;
 }
@@ -137,9 +137,9 @@ TEST(imbuf_transform, nearest_very_large_scale)
   /* Create 3841x1 image, and scale the input image so that the three middle
    * pixels cover almost all of it, except the rightmost pixel. */
   ImBuf *res = IMB_allocImBuf(3841, 1, 32, IB_rect);
-  float4x4 matrix = math::from_loc_rot_scale<float4x4>(
-      float3(254, 0, 0), math::Quaternion::identity(), float3(3.0f / 3840.0f, 1, 1));
-  IMB_transform(src, res, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, matrix.ptr(), nullptr);
+  float3x3 matrix = math::from_loc_rot_scale<float3x3>(
+      float2(254, 0), 0.0f, float2(3.0f / 3840.0f, 1));
+  IMB_transform(src, res, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, matrix, nullptr);
 
   /* Check result: leftmost red, middle green, two rightmost pixels blue and black.
    * If the transform code internally does not have enough precision while stepping

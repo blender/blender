@@ -46,8 +46,7 @@ static TransData *SeqToTransData(const Scene *scene,
                                  int vert_index)
 {
   const StripTransform *transform = strip->data->transform;
-  float origin[2];
-  SEQ_image_transform_origin_offset_pixelspace_get(scene, strip, origin);
+  const blender::float2 origin = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
   float vertex[2] = {origin[0], origin[1]};
 
   /* Add control vertex, so rotation and scale can be calculated.
@@ -220,8 +219,7 @@ static void recalcData_sequencer_image(TransInfo *t)
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdseq->strip;
     StripTransform *transform = strip->data->transform;
-    float mirror[2];
-    SEQ_image_transform_mirror_factor_get(strip, mirror);
+    const blender::float2 mirror = SEQ_image_transform_mirror_factor_get(strip);
 
     /* Calculate translation. */
     float translation[2];

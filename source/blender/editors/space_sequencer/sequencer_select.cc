@@ -728,8 +728,7 @@ static Strip *strip_select_seq_from_preview(
     float center_dist_sq_test = 0.0f;
     if (center) {
       /* Detect overlapping center points (scaled by the zoom level). */
-      float co[2];
-      SEQ_image_transform_origin_offset_pixelspace_get(scene, strip, co);
+      blender::float2 co = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
       sub_v2_v2(co, mouseco_view);
       mul_v2_v2(co, center_scale_px);
       center_dist_sq_test = len_squared_v2(co);

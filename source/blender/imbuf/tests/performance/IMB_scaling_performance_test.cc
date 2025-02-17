@@ -53,9 +53,9 @@ static void imb_scale_via_transform(ImBuf *&src,
                                     eIMBInterpolationFilterMode filter)
 {
   ImBuf *dst = IMB_allocImBuf(width, height, src->planes, src->flags);
-  float4x4 matrix = math::from_scale<float4x4>(
-      float4(float(src->x) / dst->x, float(src->y) / dst->y, 1.0f, 1.0f));
-  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix.ptr(), nullptr);
+  float3x3 matrix = math::from_scale<float3x3>(
+      float3(float(src->x) / dst->x, float(src->y) / dst->y, 1.0f));
+  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix, nullptr);
   IMB_freeImBuf(src);
   src = dst;
 }

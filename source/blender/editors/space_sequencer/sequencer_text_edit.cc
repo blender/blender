@@ -668,13 +668,13 @@ static void cursor_set_by_mouse_position(const bContext *C, const wmEvent *event
 
   int2 mval_region;
   WM_event_drag_start_mval(event, CTX_wm_region(C), mval_region);
-  float3 mouse_loc;
+  float2 mouse_loc;
   UI_view2d_region_to_view(v2d, mval_region.x, mval_region.y, &mouse_loc.x, &mouse_loc.y);
 
   /* Convert cursor coordinates to domain of CharInfo::position. */
-  const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
+  const blender::float2 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
-  blender::float4x4 transform_mat = SEQ_image_transform_matrix_get(CTX_data_scene(C), strip);
+  blender::float3x3 transform_mat = SEQ_image_transform_matrix_get(CTX_data_scene(C), strip);
   transform_mat = blender::math::invert(transform_mat);
 
   mouse_loc.x /= view_aspect;

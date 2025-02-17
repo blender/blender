@@ -3418,7 +3418,8 @@ static int sequencer_set_2d_cursor_exec(bContext *C, wmOperator *op)
   float cursor_pixel[2];
   RNA_float_get_array(op->ptr, "location", cursor_pixel);
 
-  SEQ_image_preview_unit_from_px(scene, cursor_pixel, sseq->cursor);
+  blender::float2 cursor_region = SEQ_image_preview_unit_from_px(scene, cursor_pixel);
+  copy_v2_v2(sseq->cursor, cursor_region);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
