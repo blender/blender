@@ -933,7 +933,7 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = nullptr;
 
-  const bool had_layer = CustomData_free_layer_active(data, eCustomDataType(type), 0);
+  const bool had_layer = CustomData_free_layer_active(data, eCustomDataType(type));
   /* Assert because its expensive to realloc - better not do if layer isn't present. */
   BLI_assert(had_layer != false);
   UNUSED_VARS_NDEBUG(had_layer);
@@ -953,7 +953,7 @@ bool BM_data_layer_free_named(BMesh *bm, CustomData *data, StringRef name)
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = nullptr;
 
-  const bool had_layer = CustomData_free_layer_named(data, name, 0);
+  const bool had_layer = CustomData_free_layer_named(data, name);
 
   if (had_layer) {
     update_data_blocks(bm, &olddata, data);
@@ -980,10 +980,7 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
   data->pool = nullptr;
 
   const bool had_layer = CustomData_free_layer(
-      data,
-      eCustomDataType(type),
-      0,
-      CustomData_get_layer_index_n(data, eCustomDataType(type), n));
+      data, eCustomDataType(type), CustomData_get_layer_index_n(data, eCustomDataType(type), n));
   /* Assert because its expensive to realloc - better not do if layer isn't present. */
   BLI_assert(had_layer != false);
   UNUSED_VARS_NDEBUG(had_layer);

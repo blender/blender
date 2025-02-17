@@ -2555,10 +2555,7 @@ static void ensure_layer_data_is_mutable(CustomDataLayer &layer, const int totel
   if (layer.data == nullptr) {
     return;
   }
-  if (layer.sharing_info == nullptr) {
-    /* Can not be shared without implicit-sharing data. */
-    return;
-  }
+  BLI_assert(layer.sharing_info != nullptr);
   if (layer.sharing_info->is_mutable()) {
     layer.sharing_info->tag_ensured_mutable();
   }
@@ -2575,7 +2572,7 @@ static void ensure_layer_data_is_mutable(CustomDataLayer &layer, const int totel
 
 [[maybe_unused]] static bool layer_is_mutable(CustomDataLayer &layer)
 {
-  if (layer.sharing_info == nullptr) {
+  if (!layer.data) {
     return true;
   }
   return layer.sharing_info->is_mutable();
@@ -2615,9 +2612,7 @@ void CustomData_realloc(CustomData *data,
         BLI_assert(layer->data != nullptr);
         memcpy(new_layer_data, layer->data, std::min(old_size_in_bytes, new_size_in_bytes));
       }
-    }
-    /* Remove ownership of old array */
-    if (layer->sharing_info) {
+      BLI_assert(layer->sharing_info != nullptr);
       layer->sharing_info->remove_user_and_delete_if_last();
       layer->sharing_info = nullptr;
     }
@@ -2682,18 +2677,14 @@ void CustomData_init_layout_from(const CustomData *source,
   CustomData_merge_layout(source, dest, mask, alloctype, totelem);
 }
 
-static void customData_free_layer__internal(CustomDataLayer *layer, const int totelem)
+static void customData_free_layer__internal(CustomDataLayer *layer)
 {
-  const eCustomDataType type = eCustomDataType(layer->type);
-  if (layer->sharing_info == nullptr) {
-    if (layer->data) {
-      free_layer_data(type, layer->data, totelem);
-    }
+  if (!layer->sharing_info) {
+    BLI_assert(!layer->data);
+    return;
   }
-  else {
-    layer->sharing_info->remove_user_and_delete_if_last();
-    layer->sharing_info = nullptr;
-  }
+  layer->sharing_info->remove_user_and_delete_if_last();
+  layer->sharing_info = nullptr;
 }
 
 static void CustomData_external_free(CustomData *data)
@@ -2710,10 +2701,10 @@ void CustomData_reset(CustomData *data)
   copy_vn_i(data->typemap, CD_NUMTYPES, -1);
 }
 
-void CustomData_free(CustomData *data, const int totelem)
+void CustomData_free(CustomData *data)
 {
   for (int i = 0; i < data->totlayer; i++) {
-    customData_free_layer__internal(&data->layers[i], totelem);
+    customData_free_layer__internal(&data->layers[i]);
   }
 
   if (data->layers) {
@@ -3200,10 +3191,7 @@ const void *CustomData_add_layer_named_with_data(CustomData *data,
   return nullptr;
 }
 
-bool CustomData_free_layer(CustomData *data,
-                           const eCustomDataType type,
-                           const int totelem,
-                           const int index)
+bool CustomData_free_layer(CustomData *data, const eCustomDataType type, const int index)
 {
   const int index_first = CustomData_get_layer_index(data, type);
   const int n = index - index_first;
@@ -3214,7 +3202,7 @@ bool CustomData_free_layer(CustomData *data,
   }
   BLI_assert(data->layers[index].type == type);
 
-  customData_free_layer__internal(&data->layers[index], totelem);
+  customData_free_layer__internal(&data->layers[index]);
 
   for (int i = index + 1; i < data->totlayer; i++) {
     data->layers[i - 1] = data->layers[i];
@@ -3255,31 +3243,31 @@ bool CustomData_free_layer(CustomData *data,
   return true;
 }
 
-bool CustomData_free_layer_named(CustomData *data, const StringRef name, const int totelem)
+bool CustomData_free_layer_named(CustomData *data, const StringRef name)
 {
   for (const int i : IndexRange(data->totlayer)) {
     const CustomDataLayer &layer = data->layers[i];
     if (StringRef(layer.name) == name) {
-      CustomData_free_layer(data, eCustomDataType(layer.type), totelem, i);
+      CustomData_free_layer(data, eCustomDataType(layer.type), i);
       return true;
     }
   }
   return false;
 }
 
-bool CustomData_free_layer_active(CustomData *data, const eCustomDataType type, const int totelem)
+bool CustomData_free_layer_active(CustomData *data, const eCustomDataType type)
 {
   const int index = CustomData_get_active_layer_index(data, type);
   if (index == -1) {
     return false;
   }
-  return CustomData_free_layer(data, type, totelem, index);
+  return CustomData_free_layer(data, type, index);
 }
 
-void CustomData_free_layers(CustomData *data, const eCustomDataType type, const int totelem)
+void CustomData_free_layers(CustomData *data, const eCustomDataType type)
 {
   const int index = CustomData_get_layer_index(data, type);
-  while (CustomData_free_layer(data, type, totelem, index)) {
+  while (CustomData_free_layer(data, type, index)) {
     /* pass */
   }
 }

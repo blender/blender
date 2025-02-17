@@ -135,7 +135,7 @@ static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
   MEM_SAFE_FREE(ctx->accumulated_counters);
   MEM_SAFE_FREE(ctx->subdiv_corner_verts);
   MEM_SAFE_FREE(ctx->subdiv_corner_edges);
-  CustomData_free(&ctx->coarse_corner_data_interp, ctx->coarse_mesh->corners_num);
+  CustomData_free(&ctx->coarse_corner_data_interp);
 }
 
 /** \} */
@@ -307,7 +307,7 @@ static void vertex_interpolation_from_corner(const SubdivMeshContext *ctx,
 static void vertex_interpolation_end(VerticesForInterpolation *vertex_interpolation)
 {
   if (vertex_interpolation->vertex_data_storage_allocated) {
-    CustomData_free(&vertex_interpolation->vertex_data_storage, 4);
+    CustomData_free(&vertex_interpolation->vertex_data_storage);
   }
 }
 
@@ -431,7 +431,7 @@ static void loop_interpolation_from_corner(const SubdivMeshContext *ctx,
 static void loop_interpolation_end(LoopsForInterpolation *loop_interpolation)
 {
   if (loop_interpolation->corner_data_storage_allocated) {
-    CustomData_free(&loop_interpolation->corner_data_storage, 4);
+    CustomData_free(&loop_interpolation->corner_data_storage);
   }
 }
 
@@ -545,13 +545,13 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
   Mesh &subdiv_mesh = *subdiv_context->subdiv_mesh;
   BKE_mesh_copy_parameters_for_eval(subdiv_context->subdiv_mesh, &coarse_mesh);
 
-  CustomData_free(&subdiv_mesh.vert_data, 0);
+  CustomData_free(&subdiv_mesh.vert_data);
   CustomData_init_layout_from(
       &coarse_mesh.vert_data, &subdiv_mesh.vert_data, mask.vmask, CD_SET_DEFAULT, num_vertices);
-  CustomData_free(&subdiv_mesh.edge_data, 0);
+  CustomData_free(&subdiv_mesh.edge_data);
   CustomData_init_layout_from(
       &coarse_mesh.edge_data, &subdiv_mesh.edge_data, mask.emask, CD_SET_DEFAULT, num_edges);
-  CustomData_free(&subdiv_mesh.face_data, 0);
+  CustomData_free(&subdiv_mesh.face_data);
   CustomData_init_layout_from(
       &coarse_mesh.face_data, &subdiv_mesh.face_data, mask.pmask, CD_SET_DEFAULT, num_faces);
   if (num_faces != 0) {
@@ -563,11 +563,9 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
                        &subdiv_context->coarse_corner_data_interp,
                        mask.lmask,
                        coarse_mesh.corners_num);
-  CustomData_free_layer_named(
-      &subdiv_context->coarse_corner_data_interp, ".corner_vert", coarse_mesh.corners_num);
-  CustomData_free_layer_named(
-      &subdiv_context->coarse_corner_data_interp, ".corner_edge", coarse_mesh.corners_num);
-  CustomData_free(&subdiv_mesh.corner_data, 0);
+  CustomData_free_layer_named(&subdiv_context->coarse_corner_data_interp, ".corner_vert");
+  CustomData_free_layer_named(&subdiv_context->coarse_corner_data_interp, ".corner_edge");
+  CustomData_free(&subdiv_mesh.corner_data);
   CustomData_init_layout_from(&subdiv_context->coarse_corner_data_interp,
                               &subdiv_mesh.corner_data,
                               mask.lmask,

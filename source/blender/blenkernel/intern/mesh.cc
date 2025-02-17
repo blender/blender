@@ -580,11 +580,11 @@ void BKE_mesh_free_data_for_undo(Mesh *mesh)
  */
 static void mesh_clear_geometry(Mesh &mesh)
 {
-  CustomData_free(&mesh.vert_data, mesh.verts_num);
-  CustomData_free(&mesh.edge_data, mesh.edges_num);
-  CustomData_free(&mesh.fdata_legacy, mesh.totface_legacy);
-  CustomData_free(&mesh.corner_data, mesh.corners_num);
-  CustomData_free(&mesh.face_data, mesh.faces_num);
+  CustomData_free(&mesh.vert_data);
+  CustomData_free(&mesh.edge_data);
+  CustomData_free(&mesh.fdata_legacy);
+  CustomData_free(&mesh.corner_data);
+  CustomData_free(&mesh.face_data);
   if (mesh.face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh.face_offset_indices,
                                                 &mesh.runtime->face_offsets_sharing_info);
@@ -623,7 +623,7 @@ void BKE_mesh_clear_geometry_and_metadata(Mesh *mesh)
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 {
   if (free_customdata) {
-    CustomData_free(&mesh->fdata_legacy, mesh->totface_legacy);
+    CustomData_free(&mesh->fdata_legacy);
   }
   else {
     CustomData_reset(&mesh->fdata_legacy);
@@ -804,10 +804,10 @@ Mesh *mesh_new_no_attributes(const int verts_num,
   mesh->verts_num = verts_num;
   mesh->edges_num = edges_num;
   mesh->corners_num = corners_num;
-  CustomData_free_layer_named(&mesh->vert_data, "position", 0);
-  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert", 0);
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge", 0);
+  CustomData_free_layer_named(&mesh->vert_data, "position");
+  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts");
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert");
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge");
   return mesh;
 }
 

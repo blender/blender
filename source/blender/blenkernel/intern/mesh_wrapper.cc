@@ -349,7 +349,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
         {static_cast<float3 *>(CustomData_get_layer_for_write(
              &subdiv_mesh->corner_data, CD_NORMAL, subdiv_mesh->corners_num)),
          subdiv_mesh->corners_num});
-    CustomData_free_layers(&subdiv_mesh->corner_data, CD_NORMAL, mesh->corners_num);
+    CustomData_free_layers(&subdiv_mesh->corner_data, CD_NORMAL);
   }
 
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {

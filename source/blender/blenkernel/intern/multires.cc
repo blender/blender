@@ -81,9 +81,9 @@ void multires_customdata_delete(Mesh *mesh)
   }
   else {
     CustomData_external_remove(&mesh->corner_data, &mesh->id, CD_MDISPS, mesh->corners_num);
-    CustomData_free_layer_active(&mesh->corner_data, CD_MDISPS, mesh->corners_num);
+    CustomData_free_layer_active(&mesh->corner_data, CD_MDISPS);
 
-    CustomData_free_layer_active(&mesh->corner_data, CD_GRID_PAINT_MASK, mesh->corners_num);
+    CustomData_free_layer_active(&mesh->corner_data, CD_GRID_PAINT_MASK);
   }
 }
 

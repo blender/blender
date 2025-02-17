@@ -76,7 +76,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 
 static void rna_Mesh_free_tangents(Mesh *mesh)
 {
-  CustomData_free_layers(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num);
+  CustomData_free_layers(&mesh->corner_data, CD_MLOOPTANGENT);
 }
 
 static void rna_Mesh_calc_corner_tri(Mesh *mesh)

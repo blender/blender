@@ -2787,7 +2787,7 @@ static void modifier_skin_customdata_delete(Object *ob)
     BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
   }
   else {
-    CustomData_free_layer_active(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num);
+    CustomData_free_layer_active(&mesh->vert_data, CD_MVERT_SKIN);
   }
 }
 

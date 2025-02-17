@@ -3053,7 +3053,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             CustomData_has_layer(&me->corner_data, CD_PROP_FLOAT2))
         {
           CustomData_update_typemap(&me->face_data);
-          CustomData_free_layers(&me->face_data, CD_MTEXPOLY, me->faces_num);
+          CustomData_free_layers(&me->face_data, CD_MTEXPOLY);
         }
       }
     }

@@ -140,7 +140,7 @@ struct GreasePencilHelper : public ::GreasePencil {
 
   ~GreasePencilHelper()
   {
-    CustomData_free(&this->layers_data, this->layers().size());
+    CustomData_free(&this->layers_data);
     MEM_delete(&this->root_group());
     MEM_delete(this->runtime);
     this->runtime = nullptr;

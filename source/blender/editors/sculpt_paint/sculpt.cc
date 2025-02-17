@@ -5468,7 +5468,7 @@ void store_mesh_from_eval(const wmOperator &op,
       undo::push_begin(scene, object, &op);
       undo::push_nodes(depsgraph, object, leaf_nodes, undo::Type::Position);
       undo::push_end(object);
-      CustomData_free_layer_named(&mesh.vert_data, "position", mesh.verts_num);
+      CustomData_free_layer_named(&mesh.vert_data, "position");
       mesh.attributes_for_write().remove("position");
       const bke::AttributeReader position = new_mesh->attributes().lookup<float3>("position");
       if (position.sharing_info) {

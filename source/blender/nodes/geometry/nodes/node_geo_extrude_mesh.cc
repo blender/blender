@@ -106,28 +106,28 @@ static void remove_non_propagated_attributes(MutableAttributeAccessor attributes
 
 static void remove_unsupported_vert_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.vert_data, CD_ORCO, mesh.verts_num);
-  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.verts_num);
-  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.verts_num);
-  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.verts_num);
+  CustomData_free_layers(&mesh.vert_data, CD_ORCO);
+  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY);
+  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO);
+  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN);
 }
 
 static void remove_unsupported_edge_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.edges_num);
+  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE);
 }
 
 static void remove_unsupported_face_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.face_data, CD_FREESTYLE_FACE, mesh.faces_num);
+  CustomData_free_layers(&mesh.face_data, CD_FREESTYLE_FACE);
 }
 
 static void remove_unsupported_corner_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.corner_data, CD_MDISPS, mesh.corners_num);
-  CustomData_free_layers(&mesh.corner_data, CD_TANGENT, mesh.corners_num);
-  CustomData_free_layers(&mesh.corner_data, CD_MLOOPTANGENT, mesh.corners_num);
-  CustomData_free_layers(&mesh.corner_data, CD_GRID_PAINT_MASK, mesh.corners_num);
+  CustomData_free_layers(&mesh.corner_data, CD_MDISPS);
+  CustomData_free_layers(&mesh.corner_data, CD_TANGENT);
+  CustomData_free_layers(&mesh.corner_data, CD_MLOOPTANGENT);
+  CustomData_free_layers(&mesh.corner_data, CD_GRID_PAINT_MASK);
 }
 
 static void expand_mesh(Mesh &mesh,

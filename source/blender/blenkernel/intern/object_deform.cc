@@ -266,7 +266,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
   if (BLI_listbase_is_empty(defbase)) {
     if (ob->type == OB_MESH) {
       Mesh *mesh = static_cast<Mesh *>(ob->data);
-      CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT, mesh->verts_num);
+      CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT);
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
@@ -417,7 +417,7 @@ void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)
     /* Remove all deform-verts. */
     if (ob->type == OB_MESH) {
       Mesh *mesh = static_cast<Mesh *>(ob->data);
-      CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT, mesh->verts_num);
+      CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT);
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));

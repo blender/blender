@@ -275,7 +275,7 @@ static void store_result_geometry(const wmOperator &op,
       PointCloud *new_points =
           geometry.get_component_for_write<bke::PointCloudComponent>().release();
       if (!new_points) {
-        CustomData_free(&points.pdata, points.totpoint);
+        CustomData_free(&points.pdata);
         points.totpoint = 0;
         break;
       }

@@ -555,7 +555,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
     CustomData_add_layer_named(&edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
   }
 
-  CustomData_free(&mesh->edge_data, mesh->edges_num);
+  CustomData_free(&mesh->edge_data);
   mesh->edge_data = edge_data;
 
   BKE_mesh_runtime_clear_cache(mesh);

@@ -180,8 +180,8 @@ CurvesGeometry &CurvesGeometry::operator=(CurvesGeometry &&other)
 
 CurvesGeometry::~CurvesGeometry()
 {
-  CustomData_free(&this->point_data, this->point_num);
-  CustomData_free(&this->curve_data, this->curve_num);
+  CustomData_free(&this->point_data);
+  CustomData_free(&this->curve_data);
   BLI_freelistN(&this->vertex_group_names);
   if (this->runtime) {
     implicit_sharing::free_shared_data(&this->curve_offsets,
@@ -1459,7 +1459,7 @@ CurvesGeometry curves_new_no_attributes(int point_num, int curve_num)
 {
   CurvesGeometry curves(0, curve_num);
   curves.point_num = point_num;
-  CustomData_free_layer_named(&curves.point_data, "position", 0);
+  CustomData_free_layer_named(&curves.point_data, "position");
   return curves;
 }
 

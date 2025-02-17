@@ -21,9 +21,9 @@ namespace blender::geometry {
 static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_verts_map)
 {
   /* These types aren't supported for interpolation below. */
-  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.verts_num);
-  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.verts_num);
-  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.verts_num);
+  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY);
+  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO);
+  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN);
   CustomData_realloc(
       &mesh.vert_data, mesh.verts_num, mesh.verts_num + new_to_old_verts_map.size());
   mesh.verts_num += new_to_old_verts_map.size();
@@ -65,7 +65,7 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
 
 static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edge_map)
 {
-  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.edges_num);
+  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE);
   CustomData_realloc(&mesh.edge_data, mesh.edges_num, mesh.edges_num + new_to_old_edge_map.size());
   mesh.edges_num += new_to_old_edge_map.size();
 

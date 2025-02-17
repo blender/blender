@@ -1901,7 +1901,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
     {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         CustomData_update_typemap(&me->vert_data);
-        CustomData_free_layers(&me->vert_data, CD_MSTICKY, me->verts_num);
+        CustomData_free_layers(&me->vert_data, CD_MSTICKY);
       }
     }
   }

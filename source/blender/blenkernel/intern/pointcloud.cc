@@ -100,7 +100,7 @@ static void pointcloud_free_data(ID *id)
   PointCloud *pointcloud = (PointCloud *)id;
   BKE_animdata_free(&pointcloud->id, false);
   BKE_pointcloud_batch_cache_free(pointcloud);
-  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
+  CustomData_free(&pointcloud->pdata);
   MEM_SAFE_FREE(pointcloud->mat);
   delete pointcloud->runtime;
 }
@@ -306,7 +306,7 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
 {
   BLI_assert(pointcloud_src->id.tag & ID_TAG_NO_MAIN);
 
-  CustomData_free(&pointcloud_dst->pdata, pointcloud_dst->totpoint);
+  CustomData_free(&pointcloud_dst->pdata);
 
   const int totpoint = pointcloud_dst->totpoint = pointcloud_src->totpoint;
   CustomData_init_from(&pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, totpoint);
@@ -491,7 +491,7 @@ PointCloud *pointcloud_new_no_attributes(int totpoint)
 {
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(0);
   pointcloud->totpoint = totpoint;
-  CustomData_free_layer_named(&pointcloud->pdata, "position", 0);
+  CustomData_free_layer_named(&pointcloud->pdata, "position");
   return pointcloud;
 }
 

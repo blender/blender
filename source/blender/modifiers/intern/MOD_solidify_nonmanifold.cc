@@ -2036,7 +2036,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     }
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
-      CustomData_free_layer_named(&result->vert_data, "crease_vert", result->verts_num);
+      CustomData_free_layer_named(&result->vert_data, "crease_vert");
     }
   }
 

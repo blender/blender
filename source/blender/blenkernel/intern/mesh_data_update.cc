@@ -692,7 +692,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
 
   /* Remove temporary data layer only needed for modifier evaluation.
    * Save some memory, and ensure GPU subdivision does not need to deal with this. */
-  CustomData_free_layers(&mesh->vert_data, CD_CLOTH_ORCO, mesh->verts_num);
+  CustomData_free_layers(&mesh->vert_data, CD_CLOTH_ORCO);
 
   /* Compute normals. */
   if (is_own_mesh) {

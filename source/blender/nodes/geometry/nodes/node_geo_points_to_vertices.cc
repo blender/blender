@@ -52,7 +52,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   if (selection.size() == points->totpoint) {
     /* Create a mesh without positions so the attribute can be shared. */
     mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
-    CustomData_free_layer_named(&mesh->vert_data, "position", mesh->verts_num);
+    CustomData_free_layer_named(&mesh->vert_data, "position");
     mesh->verts_num = selection.size();
   }
   else {

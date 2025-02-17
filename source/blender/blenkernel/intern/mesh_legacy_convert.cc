@@ -470,8 +470,8 @@ static void convert_mfaces_to_mpolys(ID *id,
                                      CustomData *pdata,
                                      int totedge_i,
                                      int totface_i,
-                                     int totloop_i,
-                                     int faces_num_i,
+                                     int /*totloop_i*/,
+                                     int /*faces_num_i*/,
                                      blender::int2 *edges,
                                      MFace *mface,
                                      int *r_totloop,
@@ -484,8 +484,8 @@ static void convert_mfaces_to_mpolys(ID *id,
   int i, j, totloop, faces_num, *polyindex;
 
   /* just in case some of these layers are filled in (can happen with python created meshes) */
-  CustomData_free(ldata, totloop_i);
-  CustomData_free(pdata, faces_num_i);
+  CustomData_free(ldata);
+  CustomData_free(pdata);
 
   faces_num = totface_i;
   mpoly = (MPoly *)CustomData_add_layer(pdata, CD_MPOLY, CD_SET_DEFAULT, faces_num);
@@ -1190,7 +1190,7 @@ static int mesh_tessface_calc(Mesh &mesh,
     arena = nullptr;
   }
 
-  CustomData_free(fdata_legacy, totface);
+  CustomData_free(fdata_legacy);
   totface = mface_index;
 
   BLI_assert(totface <= corner_tris_num);
@@ -1321,7 +1321,7 @@ void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
       faceset_sharing_info = layer.sharing_info;
       layer.data = nullptr;
       layer.sharing_info = nullptr;
-      CustomData_free_layer(&mesh->face_data, CD_SCULPT_FACE_SETS, mesh->faces_num, i);
+      CustomData_free_layer(&mesh->face_data, CD_SCULPT_FACE_SETS, i);
       break;
     }
   }
@@ -1359,7 +1359,7 @@ static void move_face_map_data_to_attributes(Mesh *mesh)
       sharing_info = layer.sharing_info;
       layer.data = nullptr;
       layer.sharing_info = nullptr;
-      CustomData_free_layer(&mesh->face_data, CD_FACEMAP, mesh->faces_num, i);
+      CustomData_free_layer(&mesh->face_data, CD_FACEMAP, i);
       break;
     }
   }
@@ -1460,7 +1460,7 @@ static void replace_custom_data_layer_with_named(CustomData &custom_data,
       sharing_info = layer.sharing_info;
       layer.data = nullptr;
       layer.sharing_info = nullptr;
-      CustomData_free_layer(&custom_data, old_type, elems_num, i);
+      CustomData_free_layer(&custom_data, old_type, i);
       break;
     }
   }
@@ -1764,7 +1764,7 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
       }
     });
 
-    CustomData_free_layer_named(&mesh->corner_data, uv_names[i], mesh->corners_num);
+    CustomData_free_layer_named(&mesh->corner_data, uv_names[i]);
 
     AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
     const std::string new_name = BKE_attribute_calc_unique_name(owner, uv_names[i].c_str());
@@ -1907,7 +1907,7 @@ void BKE_mesh_legacy_convert_verts_to_positions(Mesh *mesh)
     }
   });
 
-  CustomData_free_layers(&mesh->vert_data, CD_MVERT, mesh->verts_num);
+  CustomData_free_layers(&mesh->vert_data, CD_MVERT);
   mesh->mvert = nullptr;
 }
 
@@ -1938,7 +1938,7 @@ void BKE_mesh_legacy_convert_edges_to_generic(Mesh *mesh)
     }
   });
 
-  CustomData_free_layers(&mesh->edge_data, CD_MEDGE, mesh->edges_num);
+  CustomData_free_layers(&mesh->edge_data, CD_MEDGE);
   mesh->medge = nullptr;
 }
 
@@ -2044,7 +2044,7 @@ void BKE_mesh_legacy_convert_loops_to_corners(Mesh *mesh)
     }
   });
 
-  CustomData_free_layers(&mesh->corner_data, CD_MLOOP, mesh->corners_num);
+  CustomData_free_layers(&mesh->corner_data, CD_MLOOP);
 }
 
 /** \} */
@@ -2105,10 +2105,10 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
       }
     });
 
-    CustomData_free(&old_poly_data, mesh->faces_num);
+    CustomData_free(&old_poly_data);
   }
 
-  CustomData_free_layers(&mesh->face_data, CD_MPOLY, mesh->faces_num);
+  CustomData_free_layers(&mesh->face_data, CD_MPOLY);
 }
 
 /** \} */
@@ -2496,7 +2496,7 @@ void mesh_sculpt_mask_to_generic(Mesh &mesh)
       sharing_info = layer.sharing_info;
       layer.data = nullptr;
       layer.sharing_info = nullptr;
-      CustomData_free_layer(&mesh.vert_data, CD_PAINT_MASK, mesh.verts_num, i);
+      CustomData_free_layer(&mesh.vert_data, CD_PAINT_MASK, i);
       break;
     }
   }
@@ -2544,7 +2544,7 @@ void mesh_custom_normals_to_generic(Mesh &mesh)
       sharing_info = layer.sharing_info;
       layer.data = nullptr;
       layer.sharing_info = nullptr;
-      CustomData_free_layer(&mesh.corner_data, CD_CUSTOMLOOPNORMAL, mesh.corners_num, i);
+      CustomData_free_layer(&mesh.corner_data, CD_CUSTOMLOOPNORMAL, i);
       break;
     }
   }
@@ -2604,7 +2604,7 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   MutableSpan(ege, numEdges).copy_from(eh.as_span().cast<blender::int2>());
 
   /* free old CustomData and assign new one */
-  CustomData_free(&mesh->edge_data, mesh->edges_num);
+  CustomData_free(&mesh->edge_data);
   mesh->edge_data = edgeData;
   mesh->edges_num = numEdges;
 }

@@ -394,8 +394,7 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
     return {};
   }
 
-  const int element_num = custom_data_access_.get_element_num(owner);
-  if (CustomData_free_layer_named(custom_data, name_, element_num)) {
+  if (CustomData_free_layer_named(custom_data, name_)) {
     if (update_on_change_ != nullptr) {
       update_on_change_(owner);
     }
@@ -499,11 +498,10 @@ bool CustomDataAttributeProvider::try_delete(void *owner, const StringRef attrib
   if (custom_data == nullptr) {
     return false;
   }
-  const int element_num = custom_data_access_.get_element_num(owner);
   for (const int i : IndexRange(custom_data->totlayer)) {
     const CustomDataLayer &layer = custom_data->layers[i];
     if (this->type_is_supported(eCustomDataType(layer.type)) && layer.name == attribute_id) {
-      CustomData_free_layer(custom_data, eCustomDataType(layer.type), element_num, i);
+      CustomData_free_layer(custom_data, eCustomDataType(layer.type), i);
       if (custom_data_access_.get_tag_modified_function != nullptr) {
         if (const std::function<void()> fn = custom_data_access_.get_tag_modified_function(
                 owner, attribute_id))

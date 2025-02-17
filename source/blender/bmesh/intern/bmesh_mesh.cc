@@ -203,10 +203,10 @@ void BM_mesh_data_free(BMesh *bm)
   }
 
   /* free custom data */
-  CustomData_free(&bm->vdata, 0);
-  CustomData_free(&bm->edata, 0);
-  CustomData_free(&bm->ldata, 0);
-  CustomData_free(&bm->pdata, 0);
+  CustomData_free(&bm->vdata);
+  CustomData_free(&bm->edata);
+  CustomData_free(&bm->ldata);
+  CustomData_free(&bm->pdata);
 
   /* destroy element pools */
   BLI_mempool_destroy(bm->vpool);

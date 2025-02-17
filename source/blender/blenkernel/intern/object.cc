@@ -1497,7 +1497,7 @@ static void copy_ccg_data(Mesh *mesh_destination,
     return;
   }
   const int layer_index = CustomData_get_layer_index(data_destination, layer_type);
-  CustomData_free_layer(data_destination, layer_type, num_elements, layer_index);
+  CustomData_free_layer(data_destination, layer_type, layer_index);
   BLI_assert(!CustomData_has_layer(data_destination, layer_type));
   CustomData_add_layer(
       data_destination, eCustomDataType(layer_type), CD_SET_DEFAULT, num_elements);

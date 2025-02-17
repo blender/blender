@@ -153,7 +153,7 @@ static void grease_pencil_free_data(ID *id)
 
   MEM_SAFE_FREE(grease_pencil->material_array);
 
-  CustomData_free(&grease_pencil->layers_data, grease_pencil->layers().size());
+  CustomData_free(&grease_pencil->layers_data);
 
   free_drawing_array(*grease_pencil);
   MEM_delete(&grease_pencil->root_group());
@@ -2021,7 +2021,7 @@ void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
   }
 
   /* Layers. */
-  CustomData_free(&grease_pencil_dst->layers_data, grease_pencil_src->layers().size());
+  CustomData_free(&grease_pencil_dst->layers_data);
   if (grease_pencil_dst->root_group_ptr) {
     MEM_delete(&grease_pencil_dst->root_group());
   }
@@ -3610,7 +3610,7 @@ static void reorder_customdata(CustomData &data, const Span<int> new_by_old_map)
     const int new_i = new_by_old_map[old_i];
     CustomData_copy_data(&data, &new_data, old_i, new_i, 1);
   }
-  CustomData_free(&data, new_by_old_map.size());
+  CustomData_free(&data);
   data = new_data;
 }
 
@@ -3946,7 +3946,7 @@ static void shrink_customdata(CustomData &data, const int index_to_remove, const
         &data, &new_data, range_after.start(), range_after.start() - 1, range_after.size());
   }
 
-  CustomData_free(&data, size);
+  CustomData_free(&data);
   data = new_data;
 }
 

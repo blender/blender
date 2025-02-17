@@ -124,7 +124,7 @@ static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
   }
 
   /* Move the curve point custom data to the pointcloud, to avoid any copying. */
-  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
+  CustomData_free(&pointcloud->pdata);
   pointcloud->pdata = curves.point_data;
   CustomData_reset(&curves.point_data);
 
