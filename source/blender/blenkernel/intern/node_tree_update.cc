@@ -591,6 +591,12 @@ class NodeTreeMainUpdater {
            * not have a declaration anymore. */
           delete node->runtime->declaration;
           node->runtime->declaration = nullptr;
+          LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+            socket->runtime->declaration = nullptr;
+          }
+          LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+            socket->runtime->declaration = nullptr;
+          }
         }
         if (ntype.updatefunc) {
           ntype.updatefunc(&ntree, node);

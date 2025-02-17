@@ -980,7 +980,7 @@ PyDoc_STRVAR(
     "   :arg exponent: The exponent for Minkowski distance metric.\n"
     "   :type exponent: float\n"
     "   :return: A list of distances to the four closest features and their locations.\n"
-    "   :rtype: list[list[float], list[:class:`mathutils.Vector`]]\n");
+    "   :rtype: list[list[float] | list[:class:`mathutils.Vector`]]\n");
 static PyObject *M_Noise_voronoi(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"", "distance_metric", "exponent", nullptr};

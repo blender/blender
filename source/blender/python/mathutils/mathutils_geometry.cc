@@ -1469,7 +1469,7 @@ PyDoc_STRVAR(
     "   :arg boxes: list of boxes, each box is a list where the first 4 items are "
     "[X, Y, width, height, ...] other items are ignored. "
     "The X & Y values in this list are modified to set the packed positions.\n"
-    "   :type boxes: list[list[float, float, float, float, ...]]\n"
+    "   :type boxes: list[list[float]]\n"
     "   :return: The width and height of the packed bounding box.\n"
     "   :rtype: tuple[float, float]\n");
 static PyObject *M_Geometry_box_pack_2d(PyObject * /*self*/, PyObject *boxlist)
