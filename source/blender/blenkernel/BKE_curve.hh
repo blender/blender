@@ -10,8 +10,11 @@
 
 #include <optional>
 
+#include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
 #include "DNA_listBase.h"
@@ -141,19 +144,21 @@ void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
 bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert);
 void BKE_curve_nurb_vert_active_validate(Curve *cu);
 
-float (*BKE_curve_nurbs_vert_coords_alloc(const ListBase *lb, int *r_vert_len))[3];
-void BKE_curve_nurbs_vert_coords_get(const ListBase *lb, float (*vert_coords)[3], int vert_len);
+blender::Array<blender::float3> BKE_curve_nurbs_vert_coords_alloc(const ListBase *lb);
+void BKE_curve_nurbs_vert_coords_get(const ListBase *lb,
+                                     blender::MutableSpan<blender::float3> vert_coords);
 
 void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
-                                                 const float (*vert_coords)[3],
-                                                 const float mat[4][4],
+                                                 const blender::Span<blender::float3>,
+                                                 const blender::float4x4 &transform,
                                                  bool constrain_2d);
 
 void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
-                                       const float (*vert_coords)[3],
+                                       const blender::Span<blender::float3> vert_coords,
                                        bool constrain_2d);
 
-float (*BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb, float *key, int *r_vert_len))[3];
+blender::Array<blender::float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb,
+                                                                      const float *key);
 void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key);
 
 void BKE_curve_editNurb_keyIndex_delCV(GHash *keyindex, const void *cv);

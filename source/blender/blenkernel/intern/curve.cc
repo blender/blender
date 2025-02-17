@@ -56,8 +56,12 @@
 
 #include "BLO_read_write.hh"
 
+using blender::Array;
 using blender::float3;
+using blender::float4x4;
 using blender::IndexRange;
+using blender::MutableSpan;
+using blender::Span;
 
 /* globals */
 
@@ -4519,69 +4523,63 @@ void BKE_nurb_direction_switch(Nurb *nu)
   }
 }
 
-void BKE_curve_nurbs_vert_coords_get(const ListBase *lb, float (*vert_coords)[3], int vert_len)
+void BKE_curve_nurbs_vert_coords_get(const ListBase *lb, MutableSpan<float3> vert_coords)
 {
-  float *co = vert_coords[0];
+  int index = 0;
   LISTBASE_FOREACH (const Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
       const BezTriple *bezt = nu->bezt;
       for (int i = 0; i < nu->pntsu; i++, bezt++) {
-        copy_v3_v3(co, bezt->vec[0]);
-        co += 3;
-        copy_v3_v3(co, bezt->vec[1]);
-        co += 3;
-        copy_v3_v3(co, bezt->vec[2]);
-        co += 3;
+        vert_coords[index] = bezt->vec[0];
+        index++;
+        vert_coords[index] = bezt->vec[1];
+        index++;
+        vert_coords[index] = bezt->vec[2];
+        index++;
       }
     }
     else {
       const BPoint *bp = nu->bp;
       for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
-        copy_v3_v3(co, bp->vec);
-        co += 3;
+        vert_coords[index] = bp->vec;
+        index++;
       }
     }
   }
-  BLI_assert(co == vert_coords[vert_len]);
-  UNUSED_VARS_NDEBUG(vert_len);
 }
 
-float (*BKE_curve_nurbs_vert_coords_alloc(const ListBase *lb, int *r_vert_len))[3]
+Array<float3> BKE_curve_nurbs_vert_coords_alloc(const ListBase *lb)
 {
-  const int vert_len = BKE_nurbList_verts_count(lb);
-  float(*vert_coords)[3] = (float(*)[3])MEM_malloc_arrayN(
-      vert_len, sizeof(*vert_coords), __func__);
-  BKE_curve_nurbs_vert_coords_get(lb, vert_coords, vert_len);
-  *r_vert_len = vert_len;
+  Array<float3> vert_coords(BKE_nurbList_verts_count(lb));
+  BKE_curve_nurbs_vert_coords_get(lb, vert_coords);
   return vert_coords;
 }
 
 void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
-                                                 const float (*vert_coords)[3],
-                                                 const float mat[4][4],
+                                                 const Span<float3> vert_coords,
+                                                 const float4x4 &transform,
                                                  const bool constrain_2d)
 {
-  const float *co = vert_coords[0];
-
+  int index = 0;
   LISTBASE_FOREACH (Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
       BezTriple *bezt = nu->bezt;
 
       for (int i = 0; i < nu->pntsu; i++, bezt++) {
-        mul_v3_m4v3(bezt->vec[0], mat, co);
-        co += 3;
-        mul_v3_m4v3(bezt->vec[1], mat, co);
-        co += 3;
-        mul_v3_m4v3(bezt->vec[2], mat, co);
-        co += 3;
+        mul_v3_m4v3(bezt->vec[0], transform.ptr(), vert_coords[index]);
+        index++;
+        mul_v3_m4v3(bezt->vec[1], transform.ptr(), vert_coords[index]);
+        index++;
+        mul_v3_m4v3(bezt->vec[2], transform.ptr(), vert_coords[index]);
+        index++;
       }
     }
     else {
       BPoint *bp = nu->bp;
 
       for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
-        mul_v3_m4v3(bp->vec, mat, co);
-        co += 3;
+        mul_v3_m4v3(bp->vec, transform.ptr(), vert_coords[index]);
+        index++;
       }
     }
 
@@ -4594,30 +4592,29 @@ void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
 }
 
 void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
-                                       const float (*vert_coords)[3],
+                                       const Span<float3> vert_coords,
                                        const bool constrain_2d)
 {
-  const float *co = vert_coords[0];
-
+  int index = 0;
   LISTBASE_FOREACH (Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
       BezTriple *bezt = nu->bezt;
 
       for (int i = 0; i < nu->pntsu; i++, bezt++) {
-        copy_v3_v3(bezt->vec[0], co);
-        co += 3;
-        copy_v3_v3(bezt->vec[1], co);
-        co += 3;
-        copy_v3_v3(bezt->vec[2], co);
-        co += 3;
+        copy_v3_v3(bezt->vec[0], vert_coords[index]);
+        index++;
+        copy_v3_v3(bezt->vec[1], vert_coords[index]);
+        index++;
+        copy_v3_v3(bezt->vec[2], vert_coords[index]);
+        index++;
       }
     }
     else {
       BPoint *bp = nu->bp;
 
       for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
-        copy_v3_v3(bp->vec, co);
-        co += 3;
+        copy_v3_v3(bp->vec, vert_coords[index]);
+        index++;
       }
     }
 
@@ -4629,23 +4626,22 @@ void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
   }
 }
 
-float (*BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb, float *key, int *r_vert_len))[3]
+Array<float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb, const float *key)
 {
-  int vert_len = BKE_nurbList_verts_count(lb);
-  float(*cos)[3] = (float(*)[3])MEM_malloc_arrayN(vert_len, sizeof(*cos), __func__);
+  Array<float3> vert_coords(BKE_nurbList_verts_count(lb));
 
-  float *co = cos[0];
+  int index = 0;
   LISTBASE_FOREACH (const Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
       const BezTriple *bezt = nu->bezt;
 
       for (int i = 0; i < nu->pntsu; i++, bezt++) {
-        copy_v3_v3(co, &key[0]);
-        co += 3;
-        copy_v3_v3(co, &key[3]);
-        co += 3;
-        copy_v3_v3(co, &key[6]);
-        co += 3;
+        vert_coords[index] = &key[0];
+        index++;
+        vert_coords[index] = &key[3];
+        index++;
+        vert_coords[index] = &key[6];
+        index++;
         key += KEYELEM_FLOAT_LEN_BEZTRIPLE;
       }
     }
@@ -4653,14 +4649,13 @@ float (*BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb, float *key, in
       const BPoint *bp = nu->bp;
 
       for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
-        copy_v3_v3(co, key);
-        co += 3;
+        vert_coords[index] = key;
+        index++;
         key += KEYELEM_FLOAT_LEN_BPOINT;
       }
     }
   }
-  *r_vert_len = vert_len;
-  return cos;
+  return vert_coords;
 }
 
 void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key)

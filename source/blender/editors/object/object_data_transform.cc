@@ -26,6 +26,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_task.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_curve.hh"
@@ -44,8 +45,6 @@
 #include "ED_curves.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
-
-#include "MEM_guardedalloc.h"
 
 namespace blender::ed::object {
 
@@ -100,13 +99,14 @@ static ElemData_Armature *armature_coords_and_quats_get_recurse(const ListBase *
   return elem;
 }
 
-static void armature_coords_and_quats_get(const bArmature *arm, ElemData_Armature *elem_array)
+static void armature_coords_and_quats_get(const bArmature *arm,
+                                          MutableSpan<ElemData_Armature> elem_array)
 {
-  armature_coords_and_quats_get_recurse(&arm->bonebase, elem_array);
+  armature_coords_and_quats_get_recurse(&arm->bonebase, elem_array.data());
 }
 
 static const ElemData_Armature *armature_coords_and_quats_apply_with_mat4_recurse(
-    ListBase *bone_base, const ElemData_Armature *elem_array, const float mat[4][4])
+    ListBase *bone_base, const ElemData_Armature *elem_array, const float4x4 &transform)
 {
   const ElemData_Armature *elem = elem_array;
   LISTBASE_FOREACH (Bone *, bone, bone_base) {
@@ -127,31 +127,32 @@ static const ElemData_Armature *armature_coords_and_quats_apply_with_mat4_recurs
 #undef COPY_PTR
 #undef COPY_VAL
 
-    elem = armature_coords_and_quats_apply_with_mat4_recurse(&bone->childbase, elem + 1, mat);
+    elem = armature_coords_and_quats_apply_with_mat4_recurse(
+        &bone->childbase, elem + 1, transform);
   }
   return elem;
 }
 
 static void armature_coords_and_quats_apply_with_mat4(bArmature *arm,
-                                                      const ElemData_Armature *elem_array,
-                                                      const float mat[4][4])
+                                                      const Span<ElemData_Armature> elem_array,
+                                                      const float4x4 &transform)
 {
-  armature_coords_and_quats_apply_with_mat4_recurse(&arm->bonebase, elem_array, mat);
-  BKE_armature_transform(arm, mat, true);
+  armature_coords_and_quats_apply_with_mat4_recurse(&arm->bonebase, elem_array.data(), transform);
+  BKE_armature_transform(arm, transform.ptr(), true);
 }
 
-static void armature_coords_and_quats_apply(bArmature *arm, const ElemData_Armature *elem_array)
+static void armature_coords_and_quats_apply(bArmature *arm,
+                                            const Span<ElemData_Armature> elem_array)
 {
   /* Avoid code duplication by using a unit matrix. */
-  float mat[4][4];
-  unit_m4(mat);
-  armature_coords_and_quats_apply_with_mat4(arm, elem_array, mat);
+  armature_coords_and_quats_apply_with_mat4(arm, elem_array, float4x4::identity());
 }
 
 /* Edit Armature */
-static void edit_armature_coords_and_quats_get(const bArmature *arm, ElemData_Armature *elem_array)
+static void edit_armature_coords_and_quats_get(const bArmature *arm,
+                                               MutableSpan<ElemData_Armature> elem_array)
 {
-  ElemData_Armature *elem = elem_array;
+  ElemData_Armature *elem = elem_array.data();
   for (EditBone *ebone = static_cast<EditBone *>(arm->edbo->first); ebone;
        ebone = ebone->next, elem++)
   {
@@ -172,11 +173,10 @@ static void edit_armature_coords_and_quats_get(const bArmature *arm, ElemData_Ar
   }
 }
 
-static void edit_armature_coords_and_quats_apply_with_mat4(bArmature *arm,
-                                                           const ElemData_Armature *elem_array,
-                                                           const float mat[4][4])
+static void edit_armature_coords_and_quats_apply_with_mat4(
+    bArmature *arm, const Span<ElemData_Armature> elem_array, const float4x4 &transform)
 {
-  const ElemData_Armature *elem = elem_array;
+  const ElemData_Armature *elem = elem_array.data();
   for (EditBone *ebone = static_cast<EditBone *>(arm->edbo->first); ebone;
        ebone = ebone->next, elem++)
   {
@@ -195,16 +195,14 @@ static void edit_armature_coords_and_quats_apply_with_mat4(bArmature *arm,
 #undef COPY_PTR
 #undef COPY_VAL
   }
-  ED_armature_edit_transform(arm, mat, true);
+  ED_armature_edit_transform(arm, transform.ptr(), true);
 }
 
 static void edit_armature_coords_and_quats_apply(bArmature *arm,
-                                                 const ElemData_Armature *elem_array)
+                                                 const Span<ElemData_Armature> elem_array)
 {
   /* Avoid code duplication by using a unit matrix. */
-  float mat[4][4];
-  unit_m4(mat);
-  edit_armature_coords_and_quats_apply_with_mat4(arm, elem_array, mat);
+  edit_armature_coords_and_quats_apply_with_mat4(arm, elem_array, float4x4::identity());
 }
 
 /* MetaBall */
@@ -216,9 +214,10 @@ struct ElemData_MetaBall {
   float rad;
 };
 
-static void metaball_coords_and_quats_get(const MetaBall *mb, ElemData_MetaBall *elem_array)
+static void metaball_coords_and_quats_get(const MetaBall *mb,
+                                          MutableSpan<ElemData_MetaBall> elem_array)
 {
-  ElemData_MetaBall *elem = elem_array;
+  ElemData_MetaBall *elem = elem_array.data();
   for (const MetaElem *ml = static_cast<const MetaElem *>(mb->elems.first); ml;
        ml = ml->next, elem++)
   {
@@ -230,25 +229,23 @@ static void metaball_coords_and_quats_get(const MetaBall *mb, ElemData_MetaBall 
 }
 
 static void metaball_coords_and_quats_apply_with_mat4(MetaBall *mb,
-                                                      const ElemData_MetaBall *elem_array,
-                                                      const float mat[4][4])
+                                                      const Span<ElemData_MetaBall> elem_array,
+                                                      const float4x4 &transform)
 {
-  const ElemData_MetaBall *elem = elem_array;
+  const ElemData_MetaBall *elem = elem_array.data();
   for (MetaElem *ml = static_cast<MetaElem *>(mb->elems.first); ml; ml = ml->next, elem++) {
     copy_v3_v3(&ml->x, elem->co);
     copy_qt_qt(ml->quat, elem->quat);
     copy_v3_v3(&ml->expx, elem->exp);
     ml->rad = elem->rad;
   }
-  BKE_mball_transform(mb, mat, true);
+  BKE_mball_transform(mb, transform.ptr(), true);
 }
 
-static void metaball_coords_and_quats_apply(MetaBall *mb, const ElemData_MetaBall *elem_array)
+static void metaball_coords_and_quats_apply(MetaBall *mb, const Span<ElemData_MetaBall> elem_array)
 {
   /* Avoid code duplication by using a unit matrix. */
-  float mat[4][4];
-  unit_m4(mat);
-  metaball_coords_and_quats_apply_with_mat4(mb, elem_array, mat);
+  metaball_coords_and_quats_apply_with_mat4(mb, elem_array, float4x4::identity());
 }
 
 /** \} */
@@ -261,63 +258,58 @@ static void metaball_coords_and_quats_apply(MetaBall *mb, const ElemData_MetaBal
  * Store object data transformation in an opaque struct.
  * \{ */
 
-struct XFormObjectData {
-  ID *id;
-  bool is_edit_mode;
-};
-
-struct XFormObjectData_Mesh {
-  XFormObjectData base;
+struct XFormObjectData_Mesh : public XFormObjectData {
   /* Optional data for shape keys. */
-  void *key_data;
-  float elem_array[0][3];
+  Array<float3> key_data;
+  Array<float3> positions;
+  bool is_edit_mode = false;
+  virtual ~XFormObjectData_Mesh() = default;
 };
 
-struct XFormObjectData_Lattice {
-  XFormObjectData base;
+struct XFormObjectData_Lattice : public XFormObjectData {
   /* Optional data for shape keys. */
-  void *key_data;
-  float elem_array[0][3];
+  Array<float3> key_data;
+  Array<float3> positions;
+  bool is_edit_mode = false;
+  virtual ~XFormObjectData_Lattice() = default;
 };
 
-struct XFormObjectData_Curve {
-  XFormObjectData base;
+struct XFormObjectData_Curve : public XFormObjectData {
   /* Optional data for shape keys. */
-  void *key_data;
-  float elem_array[0][3];
+  Array<float3> key_data;
+  Array<float3> positions;
+  bool is_edit_mode = false;
+  virtual ~XFormObjectData_Curve() = default;
 };
 
-struct XFormObjectData_Armature {
-  XFormObjectData base;
-  ElemData_Armature elem_array[0];
+struct XFormObjectData_Armature : public XFormObjectData {
+  Array<ElemData_Armature> elems;
+  bool is_edit_mode = false;
+  virtual ~XFormObjectData_Armature() = default;
 };
 
-struct XFormObjectData_MetaBall {
-  XFormObjectData base;
-  ElemData_MetaBall elem_array[0];
+struct XFormObjectData_MetaBall : public XFormObjectData {
+  Array<ElemData_MetaBall> elems;
+  bool is_edit_mode = false;
+  virtual ~XFormObjectData_MetaBall() = default;
 };
 
-struct XFormObjectData_GreasePencil {
-  XFormObjectData base;
-  GreasePencilPointCoordinates elem_array[0];
+struct XFormObjectData_GreasePencil : public XFormObjectData {
+  Array<float3> positions;
+  Array<float> radii;
+  virtual ~XFormObjectData_GreasePencil() = default;
 };
 
-struct CurvesPointCoordinates {
-  /* Radius is needs to be stored here as it is tied to object scale. */
-  float3 co;
-  float radius;
+struct XFormObjectData_Curves : public XFormObjectData {
+  Array<float3> positions;
+  Array<float> radii;
+  virtual ~XFormObjectData_Curves() = default;
 };
 
-struct XFormObjectData_Curves {
-  XFormObjectData base;
-  CurvesPointCoordinates elem_array[0];
-};
-
-XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
+static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edit_mode)
 {
-  XFormObjectData *xod_base = nullptr;
   if (id == nullptr) {
-    return xod_base;
+    return {};
   }
 
   switch (GS(id->name)) {
@@ -330,44 +322,36 @@ XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
         BMesh *bm = mesh->runtime->edit_mesh->bm;
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
-        const int elem_array_len = bm->totvert;
-        XFormObjectData_Mesh *xod = static_cast<XFormObjectData_Mesh *>(
-            MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-        memset(xod, 0x0, sizeof(*xod));
+        auto xod = std::make_unique<XFormObjectData_Mesh>();
+        xod->id = id;
+        xod->is_edit_mode = is_edit_mode;
+        xod->positions.reinitialize(bm->totvert);
 
-        BM_mesh_vert_coords_get(
-            bm, MutableSpan(reinterpret_cast<float3 *>(xod->elem_array), elem_array_len));
-        xod_base = &xod->base;
+        BM_mesh_vert_coords_get(bm, xod->positions.as_mutable_span());
 
         if (key != nullptr) {
           const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
           if (key_size) {
-            xod->key_data = MEM_mallocN(key_size, __func__);
-            BKE_keyblock_data_get_from_shape(
-                key, static_cast<float(*)[3]>(xod->key_data), key_index);
+            xod->key_data.reinitialize(key_size);
+            BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
           }
         }
+        return xod;
       }
-      else {
-        const int elem_array_len = mesh->verts_num;
-        XFormObjectData_Mesh *xod = static_cast<XFormObjectData_Mesh *>(
-            MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-        memset(xod, 0x0, sizeof(*xod));
-        MutableSpan(reinterpret_cast<float3 *>(xod->elem_array), mesh->verts_num)
-            .copy_from(mesh->vert_positions());
 
-        xod_base = &xod->base;
+      auto xod = std::make_unique<XFormObjectData_Mesh>();
+      xod->id = id;
+      xod->is_edit_mode = is_edit_mode;
+      xod->positions = mesh->vert_positions();
 
-        if (key != nullptr) {
-          const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
-          if (key_size) {
-            xod->key_data = MEM_mallocN(key_size, __func__);
-            BKE_keyblock_data_get_from_shape(
-                key, static_cast<float(*)[3]>(xod->key_data), key_index);
-          }
+      if (key != nullptr) {
+        const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
+        if (key_size) {
+          xod->key_data.reinitialize(key_size);
+          BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
         }
       }
-      break;
+      return xod;
     }
     case ID_LT: {
       Lattice *lt_orig = (Lattice *)id;
@@ -380,24 +364,20 @@ XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
         // key_index = lt_orig->editlatt->shapenr - 1;
       }
 
-      const int elem_array_len = lt->pntsu * lt->pntsv * lt->pntsw;
-      XFormObjectData_Lattice *xod = static_cast<XFormObjectData_Lattice *>(
-          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-      memset(xod, 0x0, sizeof(*xod));
-
-      BKE_lattice_vert_coords_get(lt, xod->elem_array);
-      xod_base = &xod->base;
+      auto xod = std::make_unique<XFormObjectData_Lattice>();
+      xod->id = id;
+      xod->is_edit_mode = is_edit_mode;
+      xod->positions = BKE_lattice_vert_coords_alloc(lt);
 
       if (key != nullptr) {
         const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
         if (key_size) {
-          xod->key_data = MEM_mallocN(key_size, __func__);
-          BKE_keyblock_data_get_from_shape(
-              key, static_cast<float(*)[3]>(xod->key_data), key_index);
+          xod->key_data.reinitialize(key_size);
+          BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
         }
       }
 
-      break;
+      return xod;
     }
     case ID_CU_LEGACY: {
       Curve *cu = (Curve *)id;
@@ -421,269 +401,217 @@ XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
         nurbs = &cu->nurb;
       }
 
-      const int elem_array_len = BKE_nurbList_verts_count(nurbs);
-      XFormObjectData_Curve *xod = static_cast<XFormObjectData_Curve *>(
-          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-      memset(xod, 0x0, sizeof(*xod));
-
-      BKE_curve_nurbs_vert_coords_get(nurbs, xod->elem_array, elem_array_len);
-      xod_base = &xod->base;
+      auto xod = std::make_unique<XFormObjectData_Curve>();
+      xod->id = id;
+      xod->is_edit_mode = is_edit_mode;
+      xod->positions = BKE_curve_nurbs_vert_coords_alloc(nurbs);
 
       if (key != nullptr) {
         const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
         if (key_size) {
-          xod->key_data = MEM_mallocN(key_size, __func__);
-          BKE_keyblock_data_get_from_shape(
-              key, static_cast<float(*)[3]>(xod->key_data), key_index);
+          xod->key_data.reinitialize(key_size);
+          BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
         }
       }
 
-      break;
+      return xod;
     }
     case ID_AR: {
       bArmature *arm = (bArmature *)id;
       if (is_edit_mode) {
-        const int elem_array_len = BLI_listbase_count(arm->edbo);
-        XFormObjectData_Armature *xod = static_cast<XFormObjectData_Armature *>(
-            MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-        memset(xod, 0x0, sizeof(*xod));
-
-        edit_armature_coords_and_quats_get(arm, xod->elem_array);
-        xod_base = &xod->base;
+        auto xod = std::make_unique<XFormObjectData_Armature>();
+        xod->id = id;
+        xod->is_edit_mode = is_edit_mode;
+        xod->elems.reinitialize(BLI_listbase_count(arm->edbo));
+        edit_armature_coords_and_quats_get(arm, xod->elems);
+        return xod;
       }
-      else {
-        const int elem_array_len = BKE_armature_bonelist_count(&arm->bonebase);
-        XFormObjectData_Armature *xod = static_cast<XFormObjectData_Armature *>(
-            MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-        memset(xod, 0x0, sizeof(*xod));
-
-        armature_coords_and_quats_get(arm, xod->elem_array);
-        xod_base = &xod->base;
-      }
-      break;
+      auto xod = std::make_unique<XFormObjectData_Armature>();
+      xod->id = id;
+      xod->is_edit_mode = is_edit_mode;
+      xod->elems.reinitialize(BKE_armature_bonelist_count(&arm->bonebase));
+      armature_coords_and_quats_get(arm, xod->elems);
+      return xod;
     }
     case ID_MB: {
       /* Edit mode and object mode are shared. */
       MetaBall *mb = (MetaBall *)id;
-      const int elem_array_len = BLI_listbase_count(&mb->elems);
-      XFormObjectData_MetaBall *xod = static_cast<XFormObjectData_MetaBall *>(
-          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-      memset(xod, 0x0, sizeof(*xod));
-
-      metaball_coords_and_quats_get(mb, xod->elem_array);
-      xod_base = &xod->base;
-      break;
+      auto xod = std::make_unique<XFormObjectData_MetaBall>();
+      xod->id = id;
+      xod->is_edit_mode = is_edit_mode;
+      xod->elems.reinitialize(BLI_listbase_count(&mb->elems));
+      metaball_coords_and_quats_get(mb, xod->elems);
+      return xod;
     }
     case ID_GP: {
       GreasePencil *grease_pencil = (GreasePencil *)id;
       const int elem_array_len = BKE_grease_pencil_stroke_point_count(*grease_pencil);
-      XFormObjectData_GreasePencil *xod = static_cast<XFormObjectData_GreasePencil *>(
-          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-      memset(xod, 0x0, sizeof(*xod));
-
-      BKE_grease_pencil_point_coords_get(*grease_pencil, xod->elem_array);
-      xod_base = &xod->base;
-      break;
+      auto xod = std::make_unique<XFormObjectData_GreasePencil>();
+      xod->id = id;
+      xod->positions.reinitialize(elem_array_len);
+      xod->radii.reinitialize(elem_array_len);
+      BKE_grease_pencil_point_coords_get(*grease_pencil, xod->positions, xod->radii);
+      return xod;
     }
     case ID_CV: {
       Curves *curves_id = reinterpret_cast<Curves *>(id);
       const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const int elem_array_len = curves.points_num();
-
-      XFormObjectData_Curves *xod = static_cast<XFormObjectData_Curves *>(
-          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-      memset(xod, 0x0, sizeof(*xod));
-
-      const Span<float3> positions = curves.positions();
-      const VArraySpan<float> radii = curves.radius();
-
-      CurvesPointCoordinates *cpc = xod->elem_array;
-      for (const int i : curves.points_range()) {
-        cpc->co = positions[i];
-        cpc->radius = radii[i];
-        cpc++;
-      }
-      xod_base = &xod->base;
-      break;
+      auto xod = std::make_unique<XFormObjectData_GreasePencil>();
+      xod->id = id;
+      xod->positions = curves.positions();
+      xod->radii.reinitialize(curves.points_num());
+      curves.radius().materialize(xod->radii);
+      return xod;
     }
     default: {
-      break;
+      return {};
     }
   }
-  if (xod_base) {
-    xod_base->id = id;
-    xod_base->is_edit_mode = is_edit_mode;
-  }
-  return xod_base;
+  return {};
 }
 
-XFormObjectData *data_xform_create(ID *id)
+std::unique_ptr<XFormObjectData> data_xform_create(ID *id)
 {
   return data_xform_create_ex(id, false);
 }
 
-XFormObjectData *data_xform_create_from_edit_mode(ID *id)
+std::unique_ptr<XFormObjectData> data_xform_create_from_edit_mode(ID *id)
 {
   return data_xform_create_ex(id, true);
 }
 
-void data_xform_destroy(XFormObjectData *xod_base)
+static void copy_transformed_positions(const Span<float3> src,
+                                       const float4x4 &transform,
+                                       MutableSpan<float3> dst)
 {
-  switch (GS(xod_base->id->name)) {
-    case ID_ME: {
-      XFormObjectData_Mesh *xod = (XFormObjectData_Mesh *)xod_base;
-      if (xod->key_data != nullptr) {
-        MEM_freeN(xod->key_data);
-      }
-      break;
+  threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      dst[i] = math::transform_point(transform, src[i]);
     }
-    case ID_LT: {
-      XFormObjectData_Lattice *xod = (XFormObjectData_Lattice *)xod_base;
-      if (xod->key_data != nullptr) {
-        MEM_freeN(xod->key_data);
-      }
-      break;
-    }
-    case ID_CU_LEGACY: {
-      XFormObjectData_Curve *xod = (XFormObjectData_Curve *)xod_base;
-      if (xod->key_data != nullptr) {
-        MEM_freeN(xod->key_data);
-      }
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-  MEM_freeN(xod_base);
+  });
 }
 
-void data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
+static void copy_transformed_radii(const Span<float> src,
+                                   const float4x4 &transform,
+                                   MutableSpan<float> dst)
 {
-  switch (GS(xod_base->id->name)) {
+  const float scale = mat4_to_scale(transform.ptr());
+  threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      dst[i] = src[i] * scale;
+    }
+  });
+}
+
+void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
+{
+  switch (GS(xod_base.id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)xod_base->id;
+      Mesh *mesh = (Mesh *)xod_base.id;
 
       Key *key = mesh->key;
       const int key_index = -1;
 
-      XFormObjectData_Mesh *xod = (XFormObjectData_Mesh *)xod_base;
-      if (xod_base->is_edit_mode) {
+      const auto &xod = reinterpret_cast<XFormObjectData_Mesh &>(xod_base);
+      if (xod.is_edit_mode) {
         BMesh *bm = mesh->runtime->edit_mesh->bm;
-        BM_mesh_vert_coords_apply_with_mat4(bm, xod->elem_array, mat);
+        BM_mesh_vert_coords_apply_with_mat4(bm, xod.positions, transform);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
       }
       else {
-        MutableSpan<float3> positions = mesh->vert_positions_for_write();
-#ifdef __GNUC__ /* Invalid `xod->elem_array` warning with GCC 13.2.1. */
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
-        for (const int i : positions.index_range()) {
-          mul_v3_m4v3(positions[i], mat, xod->elem_array[i]);
-        }
-#ifdef __GNUC__
-#  pragma GCC diagnostic pop
-#endif
+        copy_transformed_positions(xod.positions, transform, mesh->vert_positions_for_write());
         mesh->tag_positions_changed();
       }
 
       if (key != nullptr) {
-        BKE_keyblock_data_set_with_mat4(
-            key, key_index, static_cast<float(*)[3]>(xod->key_data), mat);
+        BKE_keyblock_data_set_with_mat4(key, key_index, xod.key_data, transform);
       }
 
       break;
     }
     case ID_LT: {
-      Lattice *lt_orig = (Lattice *)xod_base->id;
-      Lattice *lt = xod_base->is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
+      const auto &xod = reinterpret_cast<XFormObjectData_Lattice &>(xod_base);
+      Lattice *lt_orig = (Lattice *)xod_base.id;
+      Lattice *lt = xod.is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
 
       Key *key = lt->key;
       const int key_index = -1;
 
-      XFormObjectData_Lattice *xod = (XFormObjectData_Lattice *)xod_base;
-      BKE_lattice_vert_coords_apply_with_mat4(lt, xod->elem_array, mat);
-      if (xod_base->is_edit_mode) {
+      BKE_lattice_vert_coords_apply_with_mat4(lt, xod.positions, transform);
+      if (xod.is_edit_mode) {
         /* Always operate on all keys for the moment. */
         // key_index = lt_orig->editlatt->shapenr - 1;
       }
 
-      if ((key != nullptr) && (xod->key_data != nullptr)) {
-        BKE_keyblock_data_set_with_mat4(
-            key, key_index, static_cast<float(*)[3]>(xod->key_data), mat);
+      if ((key != nullptr) && !xod.key_data.is_empty()) {
+        BKE_keyblock_data_set_with_mat4(key, key_index, xod.key_data, transform);
       }
 
       break;
     }
     case ID_CU_LEGACY: {
-      BLI_assert(xod_base->is_edit_mode == false); /* Not used currently. */
-      Curve *cu = (Curve *)xod_base->id;
+      const auto &xod = reinterpret_cast<XFormObjectData_Curve &>(xod_base);
+      BLI_assert(xod.is_edit_mode == false); /* Not used currently. */
+      Curve *cu = (Curve *)xod_base.id;
 
       Key *key = cu->key;
       const int key_index = -1;
       ListBase *nurb = nullptr;
 
-      XFormObjectData_Curve *xod = (XFormObjectData_Curve *)xod_base;
-      if (xod_base->is_edit_mode) {
+      if (xod.is_edit_mode) {
         EditNurb *editnurb = cu->editnurb;
         nurb = &editnurb->nurbs;
         BKE_curve_nurbs_vert_coords_apply_with_mat4(
-            &editnurb->nurbs, xod->elem_array, mat, CU_IS_2D(cu));
+            &editnurb->nurbs, xod.positions, transform, CU_IS_2D(cu));
         /* Always operate on all keys for the moment. */
         // key_index = editnurb->shapenr - 1;
       }
       else {
         nurb = &cu->nurb;
-        BKE_curve_nurbs_vert_coords_apply_with_mat4(&cu->nurb, xod->elem_array, mat, CU_IS_2D(cu));
+        BKE_curve_nurbs_vert_coords_apply_with_mat4(
+            &cu->nurb, xod.positions, transform, CU_IS_2D(cu));
       }
 
-      if ((key != nullptr) && (xod->key_data != nullptr)) {
-        BKE_keyblock_curve_data_set_with_mat4(key, nurb, key_index, xod->key_data, mat);
+      if ((key != nullptr) && !xod.key_data.is_empty()) {
+        BKE_keyblock_curve_data_set_with_mat4(
+            key, nurb, key_index, xod.key_data.data(), transform);
       }
 
       break;
     }
     case ID_AR: {
-      BLI_assert(xod_base->is_edit_mode == false); /* Not used currently. */
-      bArmature *arm = (bArmature *)xod_base->id;
-      XFormObjectData_Armature *xod = (XFormObjectData_Armature *)xod_base;
-      if (xod_base->is_edit_mode) {
-        edit_armature_coords_and_quats_apply_with_mat4(arm, xod->elem_array, mat);
+      const auto &xod = reinterpret_cast<XFormObjectData_Armature &>(xod_base);
+      BLI_assert(xod.is_edit_mode == false); /* Not used currently. */
+      bArmature *arm = (bArmature *)xod_base.id;
+      if (xod.is_edit_mode) {
+        edit_armature_coords_and_quats_apply_with_mat4(arm, xod.elems, transform);
       }
       else {
-        armature_coords_and_quats_apply_with_mat4(arm, xod->elem_array, mat);
+        armature_coords_and_quats_apply_with_mat4(arm, xod.elems, transform);
       }
       break;
     }
     case ID_MB: {
       /* Meta-balls are a special case, edit-mode and object mode data is shared. */
-      MetaBall *mb = (MetaBall *)xod_base->id;
-      XFormObjectData_MetaBall *xod = (XFormObjectData_MetaBall *)xod_base;
-      metaball_coords_and_quats_apply_with_mat4(mb, xod->elem_array, mat);
+      MetaBall *mb = (MetaBall *)xod_base.id;
+      const auto &xod = reinterpret_cast<XFormObjectData_MetaBall &>(xod_base);
+      metaball_coords_and_quats_apply_with_mat4(mb, xod.elems, transform);
       break;
     }
     case ID_GP: {
-      GreasePencil *grease_pencil = (GreasePencil *)xod_base->id;
-      XFormObjectData_GreasePencil *xod = (XFormObjectData_GreasePencil *)xod_base;
+      GreasePencil *grease_pencil = (GreasePencil *)xod_base.id;
+      const auto &xod = reinterpret_cast<XFormObjectData_GreasePencil &>(xod_base);
       BKE_grease_pencil_point_coords_apply_with_mat4(
-          *grease_pencil, xod->elem_array, float4x4(mat));
+          *grease_pencil, xod.positions, xod.radii, transform);
       break;
     }
     case ID_CV: {
-      Curves *curves_id = reinterpret_cast<Curves *>(xod_base->id);
+      Curves *curves_id = reinterpret_cast<Curves *>(xod_base.id);
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      MutableSpan<float3> positions = curves.positions_for_write();
-      MutableSpan<float> radii = curves.radius_for_write();
-      XFormObjectData_Curves *xod = reinterpret_cast<XFormObjectData_Curves *>(xod_base);
-      CurvesPointCoordinates *cpc = xod->elem_array;
-      const float scalef = mat4_to_scale(mat);
-      for (const int i : curves.points_range()) {
-        positions[i] = math::transform_point(float4x4(mat), cpc->co);
-        radii[i] = cpc->radius * scalef;
-        cpc++;
-      }
+      const auto &xod = reinterpret_cast<const XFormObjectData_Curves &>(xod_base);
+      copy_transformed_positions(xod.positions, transform, curves.positions_for_write());
+      copy_transformed_radii(xod.radii, transform, curves.radius_for_write());
       break;
     }
     default: {
@@ -692,113 +620,106 @@ void data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
   }
 }
 
-void data_xform_restore(XFormObjectData *xod_base)
+void data_xform_restore(XFormObjectData &xod_base)
 {
-  switch (GS(xod_base->id->name)) {
+  switch (GS(xod_base.id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)xod_base->id;
+      Mesh *mesh = (Mesh *)xod_base.id;
 
       Key *key = mesh->key;
       const int key_index = -1;
 
-      XFormObjectData_Mesh *xod = (XFormObjectData_Mesh *)xod_base;
-      if (xod_base->is_edit_mode) {
+      const auto &xod = reinterpret_cast<XFormObjectData_Mesh &>(xod_base);
+      if (xod.is_edit_mode) {
         BMesh *bm = mesh->runtime->edit_mesh->bm;
-        BM_mesh_vert_coords_apply(bm, xod->elem_array);
+        BM_mesh_vert_coords_apply(bm, xod.positions);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
       }
       else {
-        mesh->vert_positions_for_write().copy_from(
-            {reinterpret_cast<const float3 *>(xod->elem_array), mesh->verts_num});
+        mesh->vert_positions_for_write().copy_from(xod.positions);
         mesh->tag_positions_changed();
       }
 
-      if ((key != nullptr) && (xod->key_data != nullptr)) {
-        BKE_keyblock_data_set(key, key_index, xod->key_data);
+      if ((key != nullptr) && !xod.key_data.is_empty()) {
+        BKE_keyblock_data_set(key, key_index, xod.key_data.data());
       }
 
       break;
     }
     case ID_LT: {
-      Lattice *lt_orig = (Lattice *)xod_base->id;
-      Lattice *lt = xod_base->is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
+      const auto &xod = reinterpret_cast<XFormObjectData_Lattice &>(xod_base);
+      Lattice *lt_orig = (Lattice *)xod_base.id;
+      Lattice *lt = xod.is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
 
       Key *key = lt->key;
       const int key_index = -1;
 
-      XFormObjectData_Lattice *xod = (XFormObjectData_Lattice *)xod_base;
-      BKE_lattice_vert_coords_apply(lt, xod->elem_array);
-      if (xod_base->is_edit_mode) {
+      BKE_lattice_vert_coords_apply(lt, xod.positions);
+      if (xod.is_edit_mode) {
         /* Always operate on all keys for the moment. */
         // key_index = lt_orig->editlatt->shapenr - 1;
       }
 
-      if ((key != nullptr) && (xod->key_data != nullptr)) {
-        BKE_keyblock_data_set(key, key_index, xod->key_data);
+      if ((key != nullptr) && !xod.key_data.is_empty()) {
+        BKE_keyblock_data_set(key, key_index, xod.key_data.data());
       }
 
       break;
     }
     case ID_CU_LEGACY: {
-      Curve *cu = (Curve *)xod_base->id;
+      Curve *cu = (Curve *)xod_base.id;
 
       Key *key = cu->key;
       const int key_index = -1;
 
-      XFormObjectData_Curve *xod = (XFormObjectData_Curve *)xod_base;
-      if (xod_base->is_edit_mode) {
+      const auto &xod = reinterpret_cast<XFormObjectData_Curve &>(xod_base);
+      if (xod.is_edit_mode) {
         EditNurb *editnurb = cu->editnurb;
-        BKE_curve_nurbs_vert_coords_apply(&editnurb->nurbs, xod->elem_array, CU_IS_2D(cu));
+        BKE_curve_nurbs_vert_coords_apply(&editnurb->nurbs, xod.positions, CU_IS_2D(cu));
         /* Always operate on all keys for the moment. */
         // key_index = editnurb->shapenr - 1;
       }
       else {
-        BKE_curve_nurbs_vert_coords_apply(&cu->nurb, xod->elem_array, CU_IS_2D(cu));
+        BKE_curve_nurbs_vert_coords_apply(&cu->nurb, xod.positions, CU_IS_2D(cu));
       }
 
-      if ((key != nullptr) && (xod->key_data != nullptr)) {
-        BKE_keyblock_data_set(key, key_index, xod->key_data);
+      if ((key != nullptr) && !xod.key_data.is_empty()) {
+        BKE_keyblock_data_set(key, key_index, xod.key_data.data());
       }
 
       break;
     }
     case ID_AR: {
-      bArmature *arm = (bArmature *)xod_base->id;
-      XFormObjectData_Armature *xod = (XFormObjectData_Armature *)xod_base;
-      if (xod_base->is_edit_mode) {
-        edit_armature_coords_and_quats_apply(arm, xod->elem_array);
+      bArmature *arm = (bArmature *)xod_base.id;
+      const auto &xod = reinterpret_cast<XFormObjectData_Armature &>(xod_base);
+      if (xod.is_edit_mode) {
+        edit_armature_coords_and_quats_apply(arm, xod.elems);
       }
       else {
-        armature_coords_and_quats_apply(arm, xod->elem_array);
+        armature_coords_and_quats_apply(arm, xod.elems);
       }
       break;
     }
     case ID_MB: {
       /* Meta-balls are a special case, edit-mode and object mode data is shared. */
-      MetaBall *mb = (MetaBall *)xod_base->id;
-      XFormObjectData_MetaBall *xod = (XFormObjectData_MetaBall *)xod_base;
-      metaball_coords_and_quats_apply(mb, xod->elem_array);
+      MetaBall *mb = (MetaBall *)xod_base.id;
+      const auto &xod = reinterpret_cast<XFormObjectData_MetaBall &>(xod_base);
+      metaball_coords_and_quats_apply(mb, xod.elems);
       break;
     }
     case ID_GP: {
-      GreasePencil *grease_pencil = (GreasePencil *)xod_base->id;
-      XFormObjectData_GreasePencil *xod = (XFormObjectData_GreasePencil *)xod_base;
-      BKE_grease_pencil_point_coords_apply(*grease_pencil, xod->elem_array);
+      GreasePencil *grease_pencil = (GreasePencil *)xod_base.id;
+      const auto &xod = reinterpret_cast<XFormObjectData_GreasePencil &>(xod_base);
+      BKE_grease_pencil_point_coords_apply(*grease_pencil, xod.positions, xod.radii);
       break;
     }
     case ID_CV: {
-      Curves *curves_id = reinterpret_cast<Curves *>(xod_base->id);
+      Curves *curves_id = reinterpret_cast<Curves *>(xod_base.id);
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      MutableSpan<float3> positions = curves.positions_for_write();
-      MutableSpan<float> radii = curves.radius_for_write();
-      XFormObjectData_Curves *xod = reinterpret_cast<XFormObjectData_Curves *>(xod_base);
-      CurvesPointCoordinates *cpc = xod->elem_array;
-      for (const int i : curves.points_range()) {
-        positions[i] = cpc->co;
-        radii[i] = cpc->radius;
-        cpc++;
-      }
+      const auto &xod = reinterpret_cast<const XFormObjectData_Curves &>(xod_base);
+      curves.positions_for_write().copy_from(xod.positions);
+      curves.radius_for_write().copy_from(xod.radii);
       break;
     }
     default: {
@@ -807,12 +728,13 @@ void data_xform_restore(XFormObjectData *xod_base)
   }
 }
 
-void data_xform_tag_update(XFormObjectData *xod_base)
+void data_xform_tag_update(XFormObjectData &xod_base)
 {
-  switch (GS(xod_base->id->name)) {
+  switch (GS(xod_base.id->name)) {
     case ID_ME: {
-      Mesh *mesh = (Mesh *)xod_base->id;
-      if (xod_base->is_edit_mode) {
+      Mesh *mesh = (Mesh *)xod_base.id;
+      const auto &xod = reinterpret_cast<XFormObjectData_Mesh &>(xod_base);
+      if (xod.is_edit_mode) {
         EDBMUpdate_Params params{};
         params.calc_looptris = true;
         params.calc_normals = true;
@@ -824,43 +746,43 @@ void data_xform_tag_update(XFormObjectData *xod_base)
     }
     case ID_LT: {
       /* Generic update. */
-      Lattice *lt = (Lattice *)xod_base->id;
+      Lattice *lt = (Lattice *)xod_base.id;
       DEG_id_tag_update(&lt->id, ID_RECALC_GEOMETRY);
       break;
     }
     case ID_CU_LEGACY: {
       /* Generic update. */
-      Curve *cu = (Curve *)xod_base->id;
+      Curve *cu = (Curve *)xod_base.id;
       DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
       break;
     }
     case ID_AR: {
       /* Generic update. */
-      bArmature *arm = (bArmature *)xod_base->id;
+      bArmature *arm = (bArmature *)xod_base.id;
       /* XXX, zero is needed, no other flags properly update this. */
       DEG_id_tag_update(&arm->id, 0);
       break;
     }
     case ID_MB: {
       /* Generic update. */
-      MetaBall *mb = (MetaBall *)xod_base->id;
+      MetaBall *mb = (MetaBall *)xod_base.id;
       DEG_id_tag_update(&mb->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
     case ID_GD_LEGACY: {
       /* Generic update. */
-      bGPdata *gpd = (bGPdata *)xod_base->id;
+      bGPdata *gpd = (bGPdata *)xod_base.id;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
     case ID_GP: {
       /* Generic update. */
-      GreasePencil *grease_pencil = (GreasePencil *)xod_base->id;
+      GreasePencil *grease_pencil = (GreasePencil *)xod_base.id;
       DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
     case ID_CV: {
-      Curves *curves_id = reinterpret_cast<Curves *>(xod_base->id);
+      Curves *curves_id = reinterpret_cast<Curves *>(xod_base.id);
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       curves.tag_positions_changed();
       DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);

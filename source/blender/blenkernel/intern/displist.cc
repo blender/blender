@@ -41,6 +41,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+using blender::Array;
+using blender::float3;
 using blender::IndexRange;
 
 static void displist_elem_free(DispList *dl)
@@ -573,8 +575,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
   }
 
   float *keyVerts = nullptr;
-  float(*deformedVerts)[3] = nullptr;
-  int numVerts = 0;
+  Array<float3> deformedVerts;
   if (!editmode) {
     int numElems = 0;
     keyVerts = BKE_key_evaluate_object(ob, &numElems);
@@ -586,7 +587,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
        * tilts, which is passed through in the modifier stack.
        * this is also the reason curves do not use a virtual
        * shape key modifier yet. */
-      deformedVerts = BKE_curve_nurbs_key_vert_coords_alloc(source_nurb, keyVerts, &numVerts);
+      deformedVerts = BKE_curve_nurbs_key_vert_coords_alloc(source_nurb, keyVerts);
     }
   }
 
@@ -609,12 +610,11 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
 
       blender::bke::ScopedModifierTimer modifier_timer{*md};
 
-      if (!deformedVerts) {
-        deformedVerts = BKE_curve_nurbs_vert_coords_alloc(source_nurb, &numVerts);
+      if (deformedVerts.is_empty()) {
+        deformedVerts = BKE_curve_nurbs_vert_coords_alloc(source_nurb);
       }
 
-      mti->deform_verts(
-          md, &mectx, nullptr, {reinterpret_cast<blender::float3 *>(deformedVerts), numVerts});
+      mti->deform_verts(md, &mectx, nullptr, deformedVerts);
 
       if (md == pretessellatePoint) {
         break;
@@ -622,9 +622,8 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
     }
   }
 
-  if (deformedVerts) {
+  if (!deformedVerts.is_empty()) {
     BKE_curve_nurbs_vert_coords_apply(target_nurb, deformedVerts, false);
-    MEM_freeN(deformedVerts);
   }
   if (keyVerts) { /* these are not passed through modifier stack */
     BKE_curve_nurbs_key_vert_tilts_apply(target_nurb, keyVerts);

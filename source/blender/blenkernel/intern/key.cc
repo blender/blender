@@ -57,6 +57,11 @@
 
 #include "BLO_read_write.hh"
 
+using blender::float3;
+using blender::float4x4;
+using blender::MutableSpan;
+using blender::Span;
+
 static void shapekey_copy_data(Main * /*bmain*/,
                                std::optional<Library *> /*owner_library*/,
                                ID *id_dst,
@@ -1677,9 +1682,11 @@ size_t BKE_keyblock_element_calc_size(const Key *key)
  * use #BKE_keyblock_element_calc_size to allocate the size of the data needed.
  * \{ */
 
-void BKE_keyblock_data_get_from_shape(const Key *key, float (*arr)[3], const int shape_index)
+void BKE_keyblock_data_get_from_shape(const Key *key,
+                                      MutableSpan<float3> arr,
+                                      const int shape_index)
 {
-  uint8_t *elements = (uint8_t *)arr;
+  uint8_t *elements = (uint8_t *)arr.data();
   int index = 0;
   for (const KeyBlock *kb = static_cast<const KeyBlock *>(key->block.first); kb;
        kb = kb->next, index++)
@@ -1692,22 +1699,22 @@ void BKE_keyblock_data_get_from_shape(const Key *key, float (*arr)[3], const int
   }
 }
 
-void BKE_keyblock_data_get(const Key *key, float (*arr)[3])
+void BKE_keyblock_data_get(const Key *key, MutableSpan<float3> arr)
 {
   BKE_keyblock_data_get_from_shape(key, arr, -1);
 }
 
 void BKE_keyblock_data_set_with_mat4(Key *key,
                                      const int shape_index,
-                                     const float (*coords)[3],
-                                     const float mat[4][4])
+                                     const Span<float3> coords,
+                                     const float4x4 &transform)
 {
   if (key->elemsize != sizeof(float[3])) {
     BLI_assert_msg(0, "Invalid elemsize");
     return;
   }
 
-  const float(*elements)[3] = coords;
+  const float3 *elements = coords.data();
 
   int index = 0;
   for (KeyBlock *kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next, index++) {
@@ -1717,15 +1724,18 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
       for (int data_offset = 0; data_offset < block_elem_len; ++data_offset) {
         const float *src_data = (const float *)(elements + data_offset);
         float *dst_data = (float *)(block_data + data_offset);
-        mul_v3_m4v3(dst_data, mat, src_data);
+        mul_v3_m4v3(dst_data, transform.ptr(), src_data);
       }
       elements += block_elem_len;
     }
   }
 }
 
-void BKE_keyblock_curve_data_set_with_mat4(
-    Key *key, const ListBase *nurb, const int shape_index, const void *data, const float mat[4][4])
+void BKE_keyblock_curve_data_set_with_mat4(Key *key,
+                                           const ListBase *nurb,
+                                           const int shape_index,
+                                           const void *data,
+                                           const float4x4 &transform)
 {
   const uint8_t *elements = static_cast<const uint8_t *>(data);
 
@@ -1733,7 +1743,7 @@ void BKE_keyblock_curve_data_set_with_mat4(
   for (KeyBlock *kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next, index++) {
     if (ELEM(shape_index, -1, index)) {
       const int block_elem_size = kb->totelem * key->elemsize;
-      BKE_keyblock_curve_data_transform(nurb, mat, elements, kb->data);
+      BKE_keyblock_curve_data_transform(nurb, transform.ptr(), elements, kb->data);
       elements += block_elem_size;
     }
   }
