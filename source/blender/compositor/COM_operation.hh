@@ -158,11 +158,6 @@ class Operation {
   /* Get a reference to the descriptor of the input identified by the given identified. */
   InputDescriptor &get_input_descriptor(StringRef identifier);
 
-  /* Release the results that are mapped to the inputs of the operation. This is called after the
-   * evaluation of the operation to declare that the results are no longer needed by this
-   * operation. */
-  virtual void release_inputs();
-
   /* Returns a reference to the compositor context. */
   Context &context() const;
 
@@ -174,6 +169,11 @@ class Operation {
   /* Resets the results of the operation. See the reset method in the Result class for more
    * information. */
   void reset_results();
+
+  /* Release the results that are mapped to the inputs of the operation. This is called after the
+   * evaluation of the operation to declare that the results are no longer needed by this
+   * operation. */
+  void release_inputs();
 
   /* Release the results that were allocated in the execute method but are not actually needed.
    * This can be the case if the execute method allocated a dummy texture for an unneeded result,

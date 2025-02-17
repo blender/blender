@@ -318,10 +318,13 @@ class Result {
    * result, the reference count of the master result is incremented instead. */
   void increment_reference_count(int count = 1);
 
-  /* Decrement the reference count of the result by the given count and free its data if it reaches
-   * zero. The given count should not be more than the current reference count. If this result have
-   * a master result, the master result is released instead. */
-  void release(const int count = 1);
+  /* Decrement the reference count of the result by the given count. If this result have a master
+   * result, the reference count of the master result is decremented instead. */
+  void decrement_reference_count(int count = 1);
+
+  /* Decrement the reference count of the result and free its data if it reaches zero. If this
+   * result have a master result, the master result is released instead. */
+  void release();
 
   /* Frees the result data. If the result is not allocated or wraps external data, then this does
    * nothing. If this result have a master result, the master result is freed instead. */

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-02-10 15:22+0000\n"
-"PO-Revision-Date: 2024-04-15 06:56+0000\n"
-"Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
+"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"PO-Revision-Date: 2025-02-14 05:56+0000\n"
+"Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.0.1\n"
+"X-Generator: Weblate 5.9.2\n"
 "X-Poedit-SourceCharset: utf-8"
 
 
@@ -60,12 +60,48 @@ msgid "Collection of AOVs"
 msgstr "Coleção de AOVs"
 
 
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Coleção de canais de animação, tipicamente associado a um Espaço de Ação"
+
+
 msgid "F-Curves"
 msgstr "Curvas-f"
 
 
+msgid "The individual F-Curves that animate the slot"
+msgstr "As Curvas-F individuais que animam a o Espaço de Ação"
+
+
+msgid "F-Curve Groups"
+msgstr "Grupos de Curvas-F"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "Agrupamento de Curvas-F para efeitos de exibição, por exemplo no Plano de Animação e no Editor de Gráficos"
+
+
 msgid "Slot"
 msgstr "Compartimentos"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "O Espaço para o qual os dados de animação da Bolsa do canal são"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "Coleção de Curvas-F para um espaço específico, numa faixa específica"
+
+
+msgid "Collection of f-curve groups"
+msgstr "Coleção de grupos de curvas-F"
+
+
+msgid "Animation Channels for Slots"
+msgstr "Canais de animação para espaços de ação"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "A lista de canais de animação para cada espaço de ação"
 
 
 msgid "Action F-Curves"
@@ -252,8 +288,24 @@ msgid "Collection of action groups"
 msgstr "Coleção de grupos de ação"
 
 
+msgid "Action Layer"
+msgstr "Camada de Ação"
+
+
 msgid "Strips"
 msgstr "Faixas"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "A lista de faixas que estão nesta camada de animação"
+
+
+msgid "Action Layers"
+msgstr "Camadas de Ação"
+
+
+msgid "Collection of animation layers"
+msgstr "Colecção de camadas de animação"
 
 
 msgid "Action Pose Markers"
@@ -280,8 +332,24 @@ msgid "Index of active pose marker"
 msgstr "Índice do marcador de pose ativo"
 
 
+msgid "Action slot"
+msgstr "Espaço de ação"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Identificador para um conjunto de canais nesta Ação, que podem ser usados por um bloco-de-dados para especificar pelo que será animado"
+
+
 msgid "Active"
 msgstr "Ativo(a)"
+
+
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Quer seja este o espaço ativo, pode ser definido ao atribuir a action.slots.active"
+
+
+msgid "Slot Handle"
+msgstr "Identificador do Espaço"
 
 
 msgid "Show Expanded"
@@ -473,8 +541,28 @@ msgid "World"
 msgstr "Ambiente"
 
 
+msgid "Action Strip"
+msgstr "Faixa de Ação"
+
+
 msgid "Keyframe"
 msgstr "Quadro-chave"
+
+
+msgid "Strip with a set of F-Curves for each action slot"
+msgstr "Faixa com um conjunto de Curvas-F para cada compartimento de ação"
+
+
+msgid "Keyframe Animation Strip"
+msgstr "Inserir Fotograma na Faixa de Animação"
+
+
+msgid "Action Strips"
+msgstr "Faixas de Acção"
+
+
+msgid "Collection of animation strips"
+msgstr "Coleção de faixas de animação"
 
 
 msgid "Add-on"
@@ -617,20 +705,84 @@ msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Exibe o nó de saída de material glTF no Editor de Sombreamento (menu Adicionar > Saída)"
 
 
+msgid "        Filter by Name"
+msgstr "        Filtrar por nome"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "Mostrar apenas atalhos de teclado que tenham este texto no nome"
+
+
+msgid "Hide Mix nodes"
+msgstr "Esconder os nós \"Misturar\""
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Durante a junção de nós com combinação de teclas Ctrl+Numpad0 (e similares) especificar se os nós devem ser colapsados ou expandidos mostrando todas as opções"
+
+
 msgid "Always"
 msgstr "Sempre"
+
+
+msgid "Always collapse the new merge nodes"
+msgstr "Sempre colapsar os novos nós mesclados"
+
+
+msgid "Non-Shader"
+msgstr "Não-Sombreador"
+
+
+msgid "Collapse in all cases except for shaders"
+msgstr "Colapsar em todos os casos, exceto sombreadores"
 
 
 msgid "Never"
 msgstr "Nunca"
 
 
+msgid "Never collapse the new merge nodes"
+msgstr "Nunca colapsar os novos nós fundidos"
+
+
+msgid "Mix Node Position"
+msgstr "Posição de Nó \"Misturar\""
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
+msgstr "Ao mesclar nós com a tecla de atalho Ctrl+Numpad0 (e similares), especifique a posição dos novos nós"
+
+
 msgid "Center"
 msgstr "Centralizar"
 
 
+msgid "Place the Mix node between the two nodes"
+msgstr "Coloque o nó de Mistura entre os dois nós"
+
+
 msgid "Bottom"
 msgstr "Base"
+
+
+msgid "Place the Mix node at the same height as the lowest node"
+msgstr "Coloque o nó de Mistura na mesma altura do nó mais baixo"
+
+
+msgid "Show Hotkey List"
+msgstr "Exibir lista de teclas de atalho"
+
+
+msgid "Expand this box into a list of all the hotkeys for functions in this addon"
+msgstr "Expanda essa caixa em uma lista de todas as teclas de atalho para funções neste addon"
+
+
+msgid "Show Principled naming tags"
+msgstr "Mostrar etiquetas de nomes Principled"
+
+
+msgid "Expand this box into a list of all naming tags for principled texture setup"
+msgstr "Expandir esta caixa numa lista de todas as etiquetas de nomes para configurações de texturas Principled"
 
 
 msgid "Fribidi Library"
@@ -799,6 +951,10 @@ msgstr "Influência de ação"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "O quanto a ação ativa contribui para o resultado da pilha de animação não linear"
+
+
+msgid "Action Slot"
+msgstr "Espaço de Ação"
 
 
 msgid "Slot to temporarily hold the main action while in tweak mode"
@@ -4228,6 +4384,10 @@ msgid "Bending Spring Damping"
 msgstr "Amortecimento de conformação das molas"
 
 
+msgid "Angular"
+msgstr "Angular"
+
+
 msgid "Linear"
 msgstr "Linear"
 
@@ -6790,6 +6950,10 @@ msgid "Target object for multi-target constraints"
 msgstr "Objeto alvo para restrições com múltiplos alvos."
 
 
+msgid "Blend Weight"
+msgstr "Influência dos pesos"
+
+
 msgid "Curve in a curve mapping"
 msgstr "Curva dentro de um mapeamento de curva."
 
@@ -7100,6 +7264,10 @@ msgstr "Identificador persistente"
 
 msgid "Persistent identifier for inter-frame matching of objects with motion blur"
 msgstr "Identificador persistente para combinação de inter-quadros para objetos com desfoque de movimento."
+
+
+msgid "Show Particles"
+msgstr "Mostrar partículas"
 
 
 msgid "UV Coordinates"
@@ -10237,6 +10405,10 @@ msgid "Randomness"
 msgstr "Aleatorização"
 
 
+msgid "Vector Display"
+msgstr "Mostrar Vetores"
+
+
 msgid "Adjust slice direction according to the view direction"
 msgstr "Ajusta a direção do fatiamento de "
 
@@ -10453,6 +10625,10 @@ msgid "Number of additional samples to take between frames to improve quality of
 msgstr "Número de amostras adicionais para obter entre os quadros para melhorar a qualidade de fluxos de movimento rápido."
 
 
+msgid "Surface Emission"
+msgstr "Emissão da Superfície"
+
+
 msgid "Temperature difference to ambient temperature"
 msgstr "Diferença de temperatura para a temperatura ambiente."
 
@@ -10519,6 +10695,10 @@ msgstr "Quantidade de velocidade aleatória."
 
 msgid "Socket Type"
 msgstr "Tipo de conexão"
+
+
+msgid "Menu"
+msgstr "Menu"
 
 
 msgid "Collection"
@@ -11536,6 +11716,10 @@ msgid "Brush data-block for storing brush settings for painting and sculpting"
 msgstr "Bloco de dados de pincel para armazenar as configurações de pincel para pintura e escultura."
 
 
+msgid "Area Radius"
+msgstr "Raio da Área"
+
+
 msgid "Amount of smoothing to automatically apply to each stroke"
 msgstr "Quantidade de suavização para aplicar automaticamente para cada traço."
 
@@ -11618,6 +11802,10 @@ msgstr "Imagem para clonar"
 
 msgid "Clone Offset"
 msgstr "Deslocamento para clone"
+
+
+msgid "Cloth Damping"
+msgstr "Amortecimento de Têxtil"
 
 
 msgid "Local"
@@ -13651,6 +13839,11 @@ msgid "Grease Pencil data-block"
 msgstr "Bloco de dados de lápis de cera."
 
 
+msgctxt "GPencil"
+msgid "Filter by Type"
+msgstr "Filtrar por Tipo"
+
+
 msgid "Selected"
 msgstr "Selecionados"
 
@@ -14235,6 +14428,10 @@ msgstr "Tipo de sonda de luz"
 
 msgid "Parallax Radius"
 msgstr "Raio de Paralaxe"
+
+
+msgid "Capture Emission"
+msgstr "Capturar Emissão"
 
 
 msgid "Clamp Direct"
@@ -21336,48 +21533,12 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "Snap"
 msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -21428,6 +21589,10 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
 msgid "Light"
 msgstr "Luz"
 
@@ -21460,6 +21625,14 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
@@ -21488,6 +21661,10 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -21510,6 +21687,26 @@ msgstr "Dados das faces"
 
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -25701,6 +25898,10 @@ msgid "Current frame number in movie or image sequence"
 msgstr "Número do quadro atual dentro do filme ou sequência de imagem."
 
 
+msgid "Proxy Render Size"
+msgstr "Tamanho da Renderização do Representante"
+
+
 msgid "Render Undistorted"
 msgstr "Renderizar sem distorções"
 
@@ -28578,6 +28779,10 @@ msgid "Object Info"
 msgstr "Informações de objetos"
 
 
+msgid "Repeat Output"
+msgstr "Repetir Resultado"
+
+
 msgid "Z Up"
 msgstr "Z Para cima"
 
@@ -28635,7 +28840,7 @@ msgstr "Conformante"
 
 
 msgid "Warning"
-msgstr "Alertas:"
+msgstr "Alerta"
 
 
 msgctxt "NodeTree"
@@ -28781,6 +28986,10 @@ msgstr "Inverte a direção de cálculo do mapa de relevos, simulando afundament
 
 msgid "Camera Data"
 msgstr "Dados da câmera"
+
+
+msgid "Min Max"
+msgstr "Min Max"
 
 
 msgid "Space of the input height"
@@ -29036,7 +29245,7 @@ msgstr "Bi-cúbica durante a ampliação, caso contrário, bilinear (somente OSL
 
 
 msgid "Projection"
-msgstr "Tipo de projeção:"
+msgstr "Projeção"
 
 
 msgid "Projection of the input image"
@@ -29053,6 +29262,11 @@ msgstr "Projeção a partir de uma foto ortográfica em forma de esfera espelhad
 
 msgid "Gradient Texture"
 msgstr "Textura tipo gradiente"
+
+
+msgctxt "Image"
+msgid "Projection"
+msgstr "Projeção"
 
 
 msgid "Method to project 2D image on object with a 3D texture vector"
@@ -29409,6 +29623,14 @@ msgstr "Parâmetros definindo a duração da imagem, seu deslocamento e configur
 
 msgid "Value to Normal"
 msgstr "Valor para as normais"
+
+
+msgid "Enum Item"
+msgstr "Item de menu"
+
+
+msgid "Input Items"
+msgstr "Itens de Entrada"
 
 
 msgid "Node Inputs"
@@ -36761,6 +36983,10 @@ msgid "Y Start"
 msgstr "Início de Y"
 
 
+msgid "New Object"
+msgstr "Novo Objeto"
+
+
 msgid "Adjust vertex color brightness/contrast"
 msgstr "Permite ajustar o brilho e contraste das cores dos vértices."
 
@@ -40453,6 +40679,10 @@ msgid "Current"
 msgstr "Atual"
 
 
+msgid "Sign Mode"
+msgstr "Modo Sinal"
+
+
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "Alternar visualização das opções dos nós"
@@ -40644,6 +40874,10 @@ msgid "Align to axis"
 msgstr "Alinhar para o eixo."
 
 
+msgid "Align Mode"
+msgstr "Modo de alinhamento"
+
+
 msgid "Side of object to use for alignment"
 msgstr "Lateral do objeto a ser usado para alinhamento."
 
@@ -40658,6 +40892,10 @@ msgstr "Centros"
 
 msgid "Positive Sides"
 msgstr "Lados positivos"
+
+
+msgid "Relative To"
+msgstr "Relativo a"
 
 
 msgid "Reference location to align to"
@@ -50443,6 +50681,10 @@ msgid "Border Collisions"
 msgstr "Margens de colisão"
 
 
+msgid "Softbody & Cloth"
+msgstr "Corpo maleável e tecido"
+
+
 msgid "Diffusion"
 msgstr "Difusão"
 
@@ -50455,8 +50697,16 @@ msgid "Paintmaps"
 msgstr "Mapas de pintura"
 
 
+msgid "Wetmaps"
+msgstr "Mapas de umidade"
+
+
 msgid "Force Fields"
 msgstr "Campos de força"
+
+
+msgid "Flow Source"
+msgstr "Fonte de fluxo"
 
 
 msgid "Sensitivity"
@@ -50535,13 +50785,29 @@ msgid "Note"
 msgstr "Nota"
 
 
+msgid "Keyframing Settings"
+msgstr "Configurações de quadros-chave"
+
+
 msgid "Cache Settings"
 msgstr "Configurações do Cache"
+
+
+msgid "Scene Strip Display"
+msgstr "Exibição de faixa de cena"
 
 
 msgctxt "Operator"
 msgid "Blade"
 msgstr "Lâminas"
+
+
+msgid "Feature Weights"
+msgstr "Pesos da funcionalidade"
+
+
+msgid "Auto Keyframing"
+msgstr "Inserção de chaves automática"
 
 
 msgid "Playback"
