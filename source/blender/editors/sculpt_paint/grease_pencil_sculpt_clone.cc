@@ -7,6 +7,8 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_paint.hh"
 
+#include "BLI_bounds.hh"
+
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
@@ -30,11 +32,6 @@ class CloneOperation : public GreasePencilStrokeOperationCommon {
   void on_stroke_done(const bContext & /*C*/) override {}
 };
 
-static float2 arithmetic_mean(Span<float2> values)
-{
-  return std::accumulate(values.begin(), values.end(), float2(0)) / values.size();
-}
-
 void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start_sample)
 {
   Main &bmain = *CTX_data_main(&C);
@@ -49,11 +46,8 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
    * - Continuous: Create multiple copies during the stroke (disabled)
    *
    * Here we only have the GPv2 behavior that actually works for now. */
-  this->foreach_editable_drawing_with_automask(
-      C,
-      [&](const GreasePencilStrokeParams &params,
-          const IndexMask & /*point_mask*/,
-          const DeltaProjectionFunc &projection_fn) {
+  this->foreach_editable_drawing(
+      C, [&](const GreasePencilStrokeParams &params, const DeltaProjectionFunc &projection_fn) {
         /* Only insert on the active layer. */
         if (&params.layer != grease_pencil.get_active_layer()) {
           return false;
@@ -68,7 +62,6 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
           return false;
         }
 
-        const bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         const OffsetIndices<int> pasted_points_by_curve = curves.points_by_curve().slice(
             pasted_curves);
@@ -78,15 +71,27 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
           return false;
         }
 
-        Array<float2> view_positions = calculate_view_positions(params, pasted_points);
-        const float2 center = arithmetic_mean(
-            view_positions.as_mutable_span().slice(pasted_points));
-        const float2 &mouse_delta = start_sample.mouse_position - center;
+        const Bounds<float3> bounds = *bounds::min_max(curves.positions().slice(pasted_points));
+        const float4x4 transform = params.layer.to_world_space(params.ob_eval);
+        /* FIXME: Projecting the center of the bounds to the view can sometimes fail. This might
+         * result in unexpected behavior on the user end. Figure out a way to not rely on view
+         * space here and compute the translation offset in layer space instead. */
+        float2 view_center(0.0f);
+        if (ED_view3d_project_float_global(&params.region,
+                                           math::transform_point(transform, bounds.center()),
+                                           view_center,
+                                           V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK)
+        {
+          return false;
+        }
+
+        const float2 &mouse_delta = start_sample.mouse_position - view_center;
+        const bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
 
         MutableSpan<float3> positions = curves.positions_for_write();
         threading::parallel_for(pasted_points, 4096, [&](const IndexRange range) {
           for (const int point_i : range) {
-            positions[point_i] = compute_orig_delta(
+            positions[point_i] += compute_orig_delta(
                 projection_fn, deformation, point_i, mouse_delta);
           }
         });
