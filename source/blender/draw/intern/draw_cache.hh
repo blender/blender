@@ -37,10 +37,6 @@ enum eDRWLevelOfDetail {
   DRW_LOD_MAX, /* Max number of level of detail */
 };
 
-void DRW_shape_cache_free();
-
-/* 3D cursor */
-blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines);
 /* Common Object */
 
 blender::gpu::Batch *DRW_cache_object_all_edges_get(Object *ob);

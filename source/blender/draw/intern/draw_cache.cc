@@ -64,28 +64,6 @@ using blender::Span;
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Internal Types
- * \{ */
-
-/* Batch's only (freed as an array). */
-static struct DRWShapeCache {
-  blender::gpu::Batch *drw_cursor;
-  blender::gpu::Batch *drw_cursor_only_circle;
-} SHC = {nullptr};
-
-void DRW_shape_cache_free()
-{
-  uint i = sizeof(SHC) / sizeof(blender::gpu::Batch *);
-  blender::gpu::Batch **batch = (blender::gpu::Batch **)&SHC;
-  while (i--) {
-    GPU_BATCH_DISCARD_SAFE(*batch);
-    batch++;
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Common
  * \{ */
 
@@ -518,101 +496,6 @@ blender::gpu::Batch *DRW_cache_particles_get_edit_tip_points(Object *object,
 {
   using namespace blender::draw;
   return DRW_particles_batch_cache_get_edit_tip_points(object, psys, edit);
-}
-
-blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines)
-{
-  blender::gpu::Batch **drw_cursor = crosshair_lines ? &SHC.drw_cursor :
-                                                       &SHC.drw_cursor_only_circle;
-
-  if (*drw_cursor == nullptr) {
-    const float f5 = 0.25f;
-    const float f10 = 0.5f;
-    const float f20 = 1.0f;
-
-    const int segments = 16;
-    const int vert_len = segments + 8;
-    const int index_len = vert_len + 5;
-
-    const float red[3] = {1.0f, 0.0f, 0.0f};
-    const float white[3] = {1.0f, 1.0f, 1.0f};
-
-    static GPUVertFormat format = {0};
-    static struct {
-      uint pos, color;
-    } attr_id;
-    if (format.attr_len == 0) {
-      attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      attr_id.color = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    }
-
-    GPUIndexBufBuilder elb;
-    GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
-
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-    GPU_vertbuf_data_alloc(*vbo, vert_len);
-
-    int v = 0;
-    for (int i = 0; i < segments; i++) {
-      float angle = float(2 * M_PI) * (float(i) / float(segments));
-      float x = f10 * cosf(angle);
-      float y = f10 * sinf(angle);
-
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, (i % 2 == 0) ? red : white);
-
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{x, y});
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-    }
-    GPU_indexbuf_add_generic_vert(&elb, 0);
-
-    if (crosshair_lines) {
-      float crosshair_color[3];
-      UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
-
-      /* TODO(fclem): Remove primitive restart. Incompatible with wide lines. */
-      GPU_indexbuf_add_primitive_restart(&elb);
-
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{-f20, 0});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{-f5, 0});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-
-      GPU_indexbuf_add_primitive_restart(&elb);
-
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{+f5, 0});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{+f20, 0});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-
-      GPU_indexbuf_add_primitive_restart(&elb);
-
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{0, -f20});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{0, -f5});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-
-      GPU_indexbuf_add_primitive_restart(&elb);
-
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{0, +f5});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{0, +f20});
-      GPU_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-      GPU_indexbuf_add_generic_vert(&elb, v++);
-    }
-
-    blender::gpu::IndexBuf *ibo = GPU_indexbuf_build(&elb);
-
-    *drw_cursor = GPU_batch_create_ex(
-        GPU_PRIM_LINE_STRIP, vbo, ibo, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
-  }
-  return *drw_cursor;
 }
 
 /** \} */

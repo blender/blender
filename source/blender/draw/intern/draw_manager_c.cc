@@ -2895,7 +2895,6 @@ void DRW_engines_free()
   DRW_pointcloud_free();
   DRW_curves_free();
   DRW_volume_free();
-  DRW_shape_cache_free();
   DRW_globals_free();
 
   drw_debug_module_free(DST.debug);
