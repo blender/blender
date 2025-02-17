@@ -8,11 +8,15 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_lasso_2d.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_rect.h"
 
 #include "BKE_attribute.hh"
 
 #include "ED_point_cloud.hh"
 #include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 #include "DNA_pointcloud_types.h"
 
@@ -89,11 +93,6 @@ bool has_anything_selected(const PointCloud &point_cloud)
   return !selection || contains(selection, selection.index_range(), true);
 }
 
-static void remove_selection_attributes(bke::MutableAttributeAccessor &attributes)
-{
-  attributes.remove(".selection");
-}
-
 bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &point_cloud,
                                                      eCustomDataType create_type)
 {
@@ -104,7 +103,7 @@ bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &point_cloud,
   if (attributes.contains(attribute_name)) {
     return attributes.lookup_for_write_span(attribute_name);
   }
-  const int domain_size = attributes.domain_size(bke::AttrDomain::Point);
+  const int domain_size = point_cloud.totpoint;
   switch (create_type) {
     case CD_PROP_BOOL:
       attributes.add(attribute_name,
@@ -164,12 +163,10 @@ static void select_all(PointCloud &point_cloud, const IndexMask &mask, int actio
 {
   if (action == SEL_SELECT) {
     std::optional<IndexRange> range = mask.to_range();
-    if (range.has_value() && (*range == IndexRange(point_cloud.attributes().domain_size(
-                                            blender::bke::AttrDomain::Point))))
-    {
+    if (range.has_value() && (*range == IndexRange(point_cloud.totpoint))) {
       bke::MutableAttributeAccessor attributes = point_cloud.attributes_for_write();
       /* As an optimization, just remove the selection attributes when everything is selected. */
-      remove_selection_attributes(attributes);
+      attributes.remove(".selection");
       return;
     }
   }
@@ -189,9 +186,106 @@ static void select_all(PointCloud &point_cloud, const IndexMask &mask, int actio
 
 void select_all(PointCloud &point_cloud, int action)
 {
-  const IndexRange selection(
-      point_cloud.attributes().domain_size(blender::bke::AttrDomain::Point));
-  select_all(point_cloud, selection, action);
+  select_all(point_cloud, IndexRange(point_cloud.totpoint), action);
+}
+
+static bool apply_selection_operation(PointCloud &point_cloud,
+                                      const IndexMask &mask,
+                                      eSelectOp sel_op)
+{
+  bool changed = false;
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(point_cloud, CD_PROP_BOOL);
+  if (sel_op == SEL_OP_SET) {
+    fill_selection_false(selection.span, IndexRange(selection.span.size()));
+    changed = true;
+  }
+  switch (sel_op) {
+    case SEL_OP_ADD:
+    case SEL_OP_SET:
+      fill_selection_true(selection.span, mask);
+      break;
+    case SEL_OP_SUB:
+      fill_selection_false(selection.span, mask);
+      break;
+    case SEL_OP_XOR:
+      invert_selection(selection.span, mask);
+      break;
+    default:
+      break;
+  }
+  changed |= !mask.is_empty();
+  selection.finish();
+  return changed;
+}
+
+bool select_box(PointCloud &point_cloud,
+                const ARegion &region,
+                const float4x4 &projection,
+                const rcti &rect,
+                const eSelectOp sel_op)
+{
+  const Span<float3> positions = point_cloud.positions();
+
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_predicate(
+      positions.index_range(), GrainSize(1024), memory, [&](const int point) {
+        const float2 pos_proj = ED_view3d_project_float_v2_m4(
+            &region, positions[point], projection);
+        return BLI_rcti_isect_pt_v(&rect, int2(pos_proj));
+      });
+
+  return apply_selection_operation(point_cloud, mask, sel_op);
+}
+
+bool select_lasso(PointCloud &point_cloud,
+                  const ARegion &region,
+                  const float4x4 &projection,
+                  const Span<int2> lasso_coords,
+                  const eSelectOp sel_op)
+{
+  rcti bbox;
+  BLI_lasso_boundbox(&bbox, lasso_coords);
+
+  const Span<float3> positions = point_cloud.positions();
+
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_predicate(
+      positions.index_range(), GrainSize(1024), memory, [&](const int point) {
+        const float2 pos_proj = ED_view3d_project_float_v2_m4(
+            &region, positions[point], projection);
+        if (!BLI_rcti_isect_pt_v(&bbox, int2(pos_proj))) {
+          return false;
+        }
+        if (!BLI_lasso_is_point_inside(lasso_coords, int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
+        {
+          return false;
+        }
+        return true;
+      });
+
+  return apply_selection_operation(point_cloud, mask, sel_op);
+}
+
+bool select_circle(PointCloud &point_cloud,
+                   const ARegion &region,
+                   const float4x4 &projection,
+                   const int2 coord,
+                   const float radius,
+                   const eSelectOp sel_op)
+{
+  const float radius_sq = radius * radius;
+
+  const Span<float3> positions = point_cloud.positions();
+
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_predicate(
+      positions.index_range(), GrainSize(1024), memory, [&](const int point) {
+        const float2 pos_proj = ED_view3d_project_float_v2_m4(
+            &region, positions[point], projection);
+        return math::distance_squared(pos_proj, float2(coord)) <= radius_sq;
+      });
+
+  return apply_selection_operation(point_cloud, mask, sel_op);
 }
 
 }  // namespace blender::ed::point_cloud

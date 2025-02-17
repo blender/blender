@@ -9,12 +9,16 @@
 #pragma once
 
 #include "BLI_index_mask_fwd.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_customdata_types.h"
 
+struct ARegion;
 struct bContext;
 struct PointCloud;
+struct rcti;
 struct wmKeyConfig;
 struct wmOperatorType;
 namespace blender::bke {
@@ -23,6 +27,7 @@ struct GSpanAttributeWriter;
 namespace blender {
 class GMutableSpan;
 }  // namespace blender
+enum eSelectOp : int8_t;
 
 namespace blender::ed::point_cloud {
 
@@ -65,6 +70,25 @@ void select_all(PointCloud &point_cloud, int action);
  */
 bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &point_cloud,
                                                      eCustomDataType create_type);
+
+bool select_box(PointCloud &point_cloud,
+                const ARegion &region,
+                const float4x4 &projection,
+                const rcti &rect,
+                const eSelectOp sel_op);
+
+bool select_lasso(PointCloud &point_cloud,
+                  const ARegion &region,
+                  const float4x4 &projection,
+                  const Span<int2> lasso_coords,
+                  const eSelectOp sel_op);
+
+bool select_circle(PointCloud &point_cloud,
+                   const ARegion &region,
+                   const float4x4 &projection,
+                   const int2 coord,
+                   const float radius,
+                   const eSelectOp sel_op);
 
 /** \} */
 
