@@ -288,6 +288,52 @@ bool select_circle(PointCloud &point_cloud,
   return apply_selection_operation(point_cloud, mask, sel_op);
 }
 
+static FindClosestData closer_elem(const FindClosestData &a, const FindClosestData &b)
+{
+  if (a.distance_sq < b.distance_sq) {
+    return a;
+  }
+  return b;
+}
+
+std::optional<FindClosestData> find_closest_point_to_screen_co(
+    const ARegion &region,
+    const Span<float3> positions,
+    const float4x4 &projection,
+    const IndexMask &points_mask,
+    const float2 mouse_pos,
+    const float radius,
+    const FindClosestData &initial_closest)
+{
+  const float radius_sq = radius * radius;
+  const FindClosestData new_closest_data = threading::parallel_reduce(
+      points_mask.index_range(),
+      1024,
+      initial_closest,
+      [&](const IndexRange range, const FindClosestData &init) {
+        FindClosestData best_match = init;
+        points_mask.slice(range).foreach_index([&](const int point) {
+          const float3 &pos = positions[point];
+          const float2 pos_proj = ED_view3d_project_float_v2_m4(&region, pos, projection);
+
+          const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
+          if (distance_proj_sq > radius_sq || distance_proj_sq > best_match.distance_sq) {
+            return;
+          }
+
+          best_match = {point, distance_proj_sq};
+        });
+        return best_match;
+      },
+      closer_elem);
+
+  if (new_closest_data.distance_sq < initial_closest.distance_sq) {
+    return new_closest_data;
+  }
+
+  return {};
+}
+
 IndexMask retrieve_selected_points(const PointCloud &pointcloud, IndexMaskMemory &memory)
 {
   const VArray selection = *pointcloud.attributes().lookup_or_default<bool>(
