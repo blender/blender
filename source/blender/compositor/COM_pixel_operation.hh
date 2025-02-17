@@ -78,10 +78,14 @@ class PixelOperation : public Operation {
    * the identifier of the input of the operation that was declared for it. */
   Map<DOutputSocket, std::string> outputs_to_declared_inputs_map_;
   /* A map that associates the identifier of each input of the operation with the number of node
-   * inputs that use it, that is, its reference count. This is needed to properly release inputs
-   * after evaluation, since the results that provide the inputs aren't aware that multiple of
-   * their outgoing links are now part of a single pixel operation, so we need to release the
-   * inputs with their internal reference count stored here. See PixelOperation::release_inputs. */
+   * inputs that use it, that is, its reference count. This is needed to correct the reference
+   * counts of results linked to the inputs of the operation, since the results that provide the
+   * inputs aren't aware that multiple of their outgoing links are now part of a single pixel
+   * operation. For instance, if an output is linked to both inputs of a Math node, its computed
+   * reference count would be 2, but the pixel operation of the Math node would only create a
+   * single shared input for it, so from the point of view of the evaluator, the reference count
+   * should actually be 1. So the result's reference count should be corrected by decrementing it
+   * by the internal reference count computed in this map minus 1. */
   Map<std::string, int> inputs_to_reference_counts_map_;
   /* A map that associates the output socket that provides the result of an output of the operation
    * with the identifier of that output. This is needed to help the compiler establish links
@@ -117,6 +121,10 @@ class PixelOperation : public Operation {
    * input mapping. See inputs_to_linked_outputs_map_ for more information. */
   Map<std::string, DOutputSocket> &get_inputs_to_linked_outputs_map();
 
+  /* Returns the internal reference count of the operation input with the given identifier. See the
+   * inputs_to_reference_counts_map_ member for more information. */
+  int get_internal_input_reference_count(const StringRef &identifier);
+
   /* Compute and set the initial reference counts of all the results of the operation. The
    * reference counts of the results are the number of operations that use those results, which is
    * computed as the number of inputs linked to the output corresponding to each of the results of
@@ -128,12 +136,6 @@ class PixelOperation : public Operation {
    *
    * The node execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
-
- protected:
-  /* Release the results that are mapped to the inputs of the operation, making sure to release the
-   * input with a count equivalent to its reference count stored in inputs_to_reference_counts_map_
-   * to avoid leaking the result. */
-  void release_inputs() override;
 };
 
 }  // namespace blender::compositor
