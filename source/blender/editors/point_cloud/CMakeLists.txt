@@ -18,6 +18,7 @@ set(SRC
   intern/duplicate.cc
   intern/point_cloud_ops.cc
   intern/point_cloud_selection.cc
+  intern/point_cloud_undo.cc
   )
 
 set(LIB
@@ -26,6 +27,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::functions
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )
