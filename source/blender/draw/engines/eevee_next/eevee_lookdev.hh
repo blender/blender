@@ -131,7 +131,7 @@ class LookdevModule {
     MAX, /* Max number of level of detail */
   };
 
-  std::array<gpu::Batch *, MAX> sphere_lod_;
+  std::array<gpu::Batch *, MAX> sphere_lod_ = {};
 
   /* Size and position of the look-dev spheres in world space. */
   float sphere_radius_;
