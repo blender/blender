@@ -990,13 +990,6 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
       this->ensure_texture_bindings(rec, shader_interface, pipeline_state_instance);
     }
 
-    /* Matrix Bindings. */
-    /* This is now called upon shader bind. We may need to re-evaluate this though,
-     * as was done here to ensure uniform changes between draws were tracked.
-     * NOTE(Metal): We may be able to remove this. */
-    GPU_matrix_bind(reinterpret_cast<struct GPUShader *>(
-        static_cast<Shader *>(this->pipeline_state.active_shader)));
-
     /* Bind buffers.
      * NOTE: `ensure_buffer_bindings` must be called after `ensure_texture_bindings` to allow
      * for binding of buffer-backed texture's data buffer and metadata. */
