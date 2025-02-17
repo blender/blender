@@ -84,14 +84,15 @@ struct GreasePencilStrokeVert {
   float uv_fill[2], u_stroke, opacity;
 };
 
-static GPUVertFormat *grease_pencil_stroke_format()
+static const GPUVertFormat *grease_pencil_stroke_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "ma", GPU_COMP_I32, 4, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "uv", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
   return &format;
 }
 
@@ -101,13 +102,14 @@ struct GreasePencilColorVert {
   float fcol[4]; /* Fill color */
 };
 
-static GPUVertFormat *grease_pencil_color_format()
+static const GPUVertFormat *grease_pencil_color_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "col", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "fcol", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
   return &format;
 }
 
@@ -265,15 +267,11 @@ static void grease_pencil_weight_batch_ensure(Object &object,
 
   const Span<const Layer *> layers = grease_pencil.layers();
 
-  static GPUVertFormat format_points_pos = {0};
-  if (format_points_pos.attr_len == 0) {
-    GPU_vertformat_attr_add(&format_points_pos, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format_points_pos = GPU_vertformat_from_attribute(
+      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  static GPUVertFormat format_points_weight = {0};
-  if (format_points_weight.attr_len == 0) {
-    GPU_vertformat_attr_add(&format_points_weight, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format_points_weight = GPU_vertformat_from_attribute(
+      "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
   GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
   cache->edit_points_pos = GPU_vertbuf_create_with_format_ex(format_points_pos, vbo_flag);
@@ -699,32 +697,20 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 
   const Span<const Layer *> layers = grease_pencil.layers();
 
-  static GPUVertFormat format_edit_points_pos = {0};
-  if (format_edit_points_pos.attr_len == 0) {
-    GPU_vertformat_attr_add(&format_edit_points_pos, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format_edit_points_pos = GPU_vertformat_from_attribute(
+      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  static GPUVertFormat format_edit_line_pos = {0};
-  if (format_edit_line_pos.attr_len == 0) {
-    GPU_vertformat_attr_add(&format_edit_line_pos, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format_edit_line_pos = GPU_vertformat_from_attribute(
+      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  static GPUVertFormat format_edit_points_selection = {0};
-  if (format_edit_points_selection.attr_len == 0) {
-    GPU_vertformat_attr_add(
-        &format_edit_points_selection, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format_edit_points_selection = GPU_vertformat_from_attribute(
+      "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-  static GPUVertFormat format_edit_points_vflag = {0};
-  if (format_edit_points_vflag.attr_len == 0) {
-    GPU_vertformat_attr_add(&format_edit_points_vflag, "vflag", GPU_COMP_U32, 1, GPU_FETCH_INT);
-  }
+  static const GPUVertFormat format_edit_points_vflag = GPU_vertformat_from_attribute(
+      "vflag", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
-  static GPUVertFormat format_edit_line_selection = {0};
-  if (format_edit_line_selection.attr_len == 0) {
-    GPU_vertformat_attr_add(
-        &format_edit_line_selection, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format_edit_line_selection = GPU_vertformat_from_attribute(
+      "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
   GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
   cache->edit_points_pos = GPU_vertbuf_create_with_format_ex(format_edit_points_pos, vbo_flag);
@@ -1138,8 +1124,8 @@ static void grease_pencil_geom_batch_ensure(Object &object,
 
   GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
   /* Create VBOs. */
-  GPUVertFormat *format = grease_pencil_stroke_format();
-  GPUVertFormat *format_col = grease_pencil_color_format();
+  const GPUVertFormat *format = grease_pencil_stroke_format();
+  const GPUVertFormat *format_col = grease_pencil_color_format();
   cache->vbo = GPU_vertbuf_create_with_format_ex(*format, vbo_flag);
   cache->vbo_col = GPU_vertbuf_create_with_format_ex(*format_col, vbo_flag);
   /* Add extra space at the end of the buffer because of quad load. */

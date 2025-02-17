@@ -174,6 +174,16 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
   attr->names[attr->name_len++] = copy_attr_name(format, alias);
 }
 
+GPUVertFormat GPU_vertformat_from_attribute(const char *name,
+                                            const GPUVertCompType comp_type,
+                                            const uint comp_len,
+                                            const GPUVertFetchMode fetch_mode)
+{
+  GPUVertFormat format{};
+  GPU_vertformat_attr_add(&format, name, comp_type, comp_len, fetch_mode);
+  return format;
+}
+
 void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count)
 {
   /* Sanity check. Maximum can be upgraded if needed. */

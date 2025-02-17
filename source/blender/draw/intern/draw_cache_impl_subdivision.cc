@@ -58,47 +58,51 @@ namespace blender::draw {
 
 static const GPUVertFormat &get_uvs_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
   return format;
 }
 
 /* Vertex format for `OpenSubdiv::Osd::PatchArray`. */
 static const GPUVertFormat &get_patch_array_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "regDesc", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "desc", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "numPatches", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "indexBase", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "stride", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "primitiveIdBase", GPU_COMP_I32, 1, GPU_FETCH_INT);
-  }
+    return format;
+  }();
   return format;
 }
 
 /* Vertex format used for the `PatchTable::PatchHandle`. */
 static const GPUVertFormat &get_patch_handle_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "vertex_index", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "array_index", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "patch_index", GPU_COMP_I32, 1, GPU_FETCH_INT);
-  }
+    return format;
+  }();
   return format;
 }
 
 /* Vertex format used for the quad-tree nodes of the PatchMap. */
 static const GPUVertFormat &get_quadtree_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "child", GPU_COMP_U32, 4, GPU_FETCH_INT);
-  }
+    return format;
+  }();
   return format;
 }
 
@@ -106,32 +110,35 @@ static const GPUVertFormat &get_quadtree_format()
  * that the #gpu::VertBuf used to wrap the OpenSubdiv patch param buffer is valid. */
 static const GPUVertFormat &get_patch_param_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "data", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
   return format;
 }
 
 /* Vertex format for the patches' vertices index buffer. */
 static const GPUVertFormat &get_patch_index_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "data", GPU_COMP_I32, 1, GPU_FETCH_INT);
-  }
+    return format;
+  }();
   return format;
 }
 
 /* Vertex format for the OpenSubdiv vertex buffer. */
 static const GPUVertFormat &get_subdiv_vertex_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     /* We use 4 components for the vectors to account for padding in the compute shaders, where
      * vec3 is promoted to vec4. */
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
   return format;
 }
 
@@ -153,12 +160,13 @@ MINLINE CompressedPatchCoord make_patch_coord(int ptex_face_index, float u, floa
 /* Vertex format used for the #CompressedPatchCoord. */
 static const GPUVertFormat &get_blender_patch_coords_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     /* WARNING! Adjust #CompressedPatchCoord accordingly. */
     GPU_vertformat_attr_add(&format, "ptex_face_index", GPU_COMP_U32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "uv", GPU_COMP_U32, 1, GPU_FETCH_INT);
-  }
+    return format;
+  }();
   return format;
 }
 
@@ -166,21 +174,23 @@ static const GPUVertFormat &get_blender_patch_coords_format()
 
 static const GPUVertFormat &get_origindex_format()
 {
-  static GPUVertFormat format;
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
-  }
+    return format;
+  }();
   return format;
 }
 
 const GPUVertFormat &draw_subdiv_get_pos_nor_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_alias_add(&format, "vnor");
-  }
+    return format;
+  }();
   return format;
 }
 
@@ -504,10 +514,11 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cach
 {
   if (cache.extra_coarse_face_data == nullptr) {
     cache.extra_coarse_face_data = GPU_vertbuf_calloc();
-    static GPUVertFormat format;
-    if (format.attr_len == 0) {
+    static const GPUVertFormat format = []() {
+      GPUVertFormat format{};
       GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
-    }
+      return format;
+    }();
     GPU_vertbuf_init_with_format_ex(*cache.extra_coarse_face_data, format, GPU_USAGE_DYNAMIC);
     GPU_vertbuf_data_alloc(*cache.extra_coarse_face_data,
                            mr.extract_type == MeshExtractType::BMesh ? cache.bm->totface :

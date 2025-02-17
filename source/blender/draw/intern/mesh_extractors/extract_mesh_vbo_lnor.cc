@@ -281,11 +281,12 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
 {
   const int size = mr.corners_num + mr.loose_indices_num;
   if (use_hq) {
-    static GPUVertFormat format = {0};
-    if (format.attr_len == 0) {
+    static const GPUVertFormat format = []() {
+      GPUVertFormat format{};
       GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
       GPU_vertformat_alias_add(&format, "lnor");
-    }
+      return format;
+    }();
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, size);
     MutableSpan vbo_data = vbo.data<short4>();
@@ -304,11 +305,12 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
     loose_data.fill(short4(0));
   }
   else {
-    static GPUVertFormat format = {0};
-    if (format.attr_len == 0) {
+    static const GPUVertFormat format = []() {
+      GPUVertFormat format{};
       GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
       GPU_vertformat_alias_add(&format, "lnor");
-    }
+      return format;
+    }();
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, size);
     MutableSpan vbo_data = vbo.data<GPUPackedNormal>();
@@ -330,12 +332,13 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
 
 static const GPUVertFormat &get_subdiv_lnor_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_alias_add(&format, "lnor");
     GPU_vertformat_alias_add(&format, "vnor");
-  }
+    return format;
+  }();
   return format;
 }
 

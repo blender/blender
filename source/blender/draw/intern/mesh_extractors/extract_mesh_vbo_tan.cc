@@ -238,10 +238,8 @@ void extract_tangents(const MeshRenderData &mr,
 
 static const GPUVertFormat &get_coarse_tan_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "tan", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  }
+  static GPUVertFormat format = GPU_vertformat_from_attribute(
+      "tan", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   return format;
 }
 

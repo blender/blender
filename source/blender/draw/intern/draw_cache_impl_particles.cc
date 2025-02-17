@@ -94,16 +94,15 @@ struct EditStrandData {
   float selection;
 };
 
-static GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_selection_id)
+static const GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_selection_id)
 {
-  static GPUVertFormat edit_point_format = {0};
   static uint pos_id, selection_id;
-  if (edit_point_format.attr_len == 0) {
-    /* Keep in sync with EditStrandData */
-    pos_id = GPU_vertformat_attr_add(&edit_point_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    selection_id = GPU_vertformat_attr_add(
-        &edit_point_format, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat edit_point_format = [&]() {
+    GPUVertFormat format{};
+    pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    selection_id = GPU_vertformat_attr_add(&format, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    return format;
+  }();
   *r_pos_id = pos_id;
   *r_selection_id = selection_id;
   return &edit_point_format;
@@ -821,8 +820,8 @@ static void particle_batch_cache_ensure_procedural_final_points(ParticleHairCach
                                                                 int subdiv)
 {
   /* Same format as proc_point_buf. */
-  GPUVertFormat format = {0};
-  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   /* Procedural Subdiv buffer only needs to be resident in device memory. */
   cache->final[subdiv].proc_buf = GPU_vertbuf_create_with_format_ex(
@@ -1088,12 +1087,8 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
   int element_count = (verts_per_hair + 1) * cache->strands_len;
   GPUPrimType prim_type = (thickness_res == 1) ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
 
-  static GPUVertFormat format = {0};
-  GPU_vertformat_clear(&format);
-
-  /* NOTE: initialize vertex format. Using GPU_COMP_U32 to satisfy Metal's 4-byte minimum
-   * stride requirement. */
-  GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
@@ -1188,7 +1183,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->pos);
   GPU_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
 
-  static GPUVertFormat format = {0};
+  GPUVertFormat format = {0};
   HairAttributeID attr_id;
   uint *uv_id = nullptr;
   uint *col_id = nullptr;
@@ -1217,9 +1212,6 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     }
   }
 
-  GPU_vertformat_clear(&format);
-
-  /* initialize vertex format */
   attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   attr_id.tan = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   attr_id.ind = GPU_vertformat_attr_add(&format, "ind", GPU_COMP_I32, 1, GPU_FETCH_INT);
@@ -1383,8 +1375,6 @@ static void particle_batch_cache_ensure_pos(Object *object,
     return;
   }
 
-  static GPUVertFormat format = {0};
-  static uint pos_id, rot_id, val_id;
   int i, curr_point;
   ParticleData *pa;
   ParticleKey state;
@@ -1400,12 +1390,14 @@ static void particle_batch_cache_ensure_pos(Object *object,
 
   GPU_VERTBUF_DISCARD_SAFE(point_cache->pos);
 
-  if (format.attr_len == 0) {
-    /* initialize vertex format */
+  static uint pos_id, rot_id, val_id;
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     pos_id = GPU_vertformat_attr_add(&format, "part_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     val_id = GPU_vertformat_attr_add(&format, "part_val", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     rot_id = GPU_vertformat_attr_add(&format, "part_rot", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
 
   point_cache->pos = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*point_cache->pos, psys->totpart);
@@ -1559,7 +1551,7 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(PTCacheEdit *edit,
   GPUVertBufRaw data_step;
   GPUIndexBufBuilder elb;
   uint pos_id, selection_id;
-  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
+  const GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
   hair_cache->pos = GPU_vertbuf_create_with_format(*edit_point_format);
   GPU_vertbuf_data_alloc(*hair_cache->pos, hair_cache->point_len);
@@ -1620,7 +1612,7 @@ static void particle_batch_cache_ensure_edit_inner_pos(PTCacheEdit *edit,
   }
 
   uint pos_id, selection_id;
-  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
+  const GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
   cache->edit_inner_pos = GPU_vertbuf_create_with_format(*edit_point_format);
   GPU_vertbuf_data_alloc(*cache->edit_inner_pos, cache->edit_inner_point_len);
@@ -1678,7 +1670,7 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
   }
 
   uint pos_id, selection_id;
-  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
+  const GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
   cache->edit_tip_pos = GPU_vertbuf_create_with_format(*edit_point_format);
   GPU_vertbuf_data_alloc(*cache->edit_tip_pos, cache->edit_tip_point_len);

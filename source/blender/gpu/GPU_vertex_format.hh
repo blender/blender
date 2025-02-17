@@ -97,6 +97,15 @@ uint GPU_vertformat_attr_add(
 void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
 
 /**
+ * Return a vertex format from a single attribute description.
+ * The attribute ID is ensured to be 0.
+ */
+GPUVertFormat GPU_vertformat_from_attribute(const char *name,
+                                            const GPUVertCompType comp_type,
+                                            const uint comp_len,
+                                            const GPUVertFetchMode fetch_mode);
+
+/**
  * Makes vertex attribute from the next vertices to be accessible in the vertex shader.
  * For an attribute named "attr" you can access the next nth vertex using "attr{number}".
  * Use this function after specifying all the attributes in the format.

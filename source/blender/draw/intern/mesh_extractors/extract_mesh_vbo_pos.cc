@@ -69,10 +69,8 @@ static void extract_positions_bm(const MeshRenderData &mr, MutableSpan<float3> v
 
 void extract_positions(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
 
@@ -87,21 +85,23 @@ void extract_positions(const MeshRenderData &mr, gpu::VertBuf &vbo)
 
 static const GPUVertFormat &get_normals_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_alias_add(&format, "lnor");
-  }
+    return format;
+  }();
   return format;
 }
 
 static const GPUVertFormat &get_custom_normals_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     GPU_vertformat_alias_add(&format, "lnor");
-  }
+    return format;
+  }();
   return format;
 }
 
@@ -192,12 +192,14 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
     return;
   }
 
+  static const GPUVertFormat flag_format = []() {
+    GPUVertFormat format{};
+    GPU_vertformat_attr_add(&format, "data", GPU_COMP_I32, 1, GPU_FETCH_INT);
+    GPU_vertformat_alias_add(&format, "flag");
+    return format;
+  }();
+
   gpu::VertBuf *flags_buffer = GPU_vertbuf_calloc();
-  static GPUVertFormat flag_format = {0};
-  if (flag_format.attr_len == 0) {
-    GPU_vertformat_attr_add(&flag_format, "data", GPU_COMP_I32, 1, GPU_FETCH_INT);
-    GPU_vertformat_alias_add(&flag_format, "flag");
-  }
   GPU_vertbuf_init_with_format(*flags_buffer, flag_format);
   GPU_vertbuf_data_alloc(*flags_buffer, divide_ceil_u(mr.verts_num, 4));
   char *flags = flags_buffer->data<char>().data();
@@ -205,14 +207,12 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
   GPU_vertbuf_tag_dirty(flags_buffer);
 
   if (orco_vbo) {
-    static GPUVertFormat format = {0};
-    if (format.attr_len == 0) {
-      /* FIXME(fclem): We use the last component as a way to differentiate from generic vertex
-       * attributes. This is a substantial waste of video-ram and should be done another way.
-       * Unfortunately, at the time of writing, I did not found any other "non disruptive"
-       * alternative. */
-      GPU_vertformat_attr_add(&format, "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    }
+    /* FIXME(fclem): We use the last component as a way to differentiate from generic vertex
+     * attributes. This is a substantial waste of video-ram and should be done another way.
+     * Unfortunately, at the time of writing, I did not found any other "non disruptive"
+     * alternative. */
+    static const GPUVertFormat format = GPU_vertformat_from_attribute(
+        "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertbuf_init_build_on_device(*orco_vbo, format, subdiv_cache.num_subdiv_loops);
   }
 

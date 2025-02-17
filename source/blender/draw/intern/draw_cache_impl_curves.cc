@@ -103,19 +103,6 @@ struct CurvesBatchCache {
   std::mutex render_mutex;
 };
 
-static uint DUMMY_ID;
-
-static GPUVertFormat single_attr_vbo_format(const char *name,
-                                            const GPUVertCompType comp_type,
-                                            const uint comp_len,
-                                            const GPUVertFetchMode fetch_mode,
-                                            uint &attr_id = DUMMY_ID)
-{
-  GPUVertFormat format{};
-  attr_id = GPU_vertformat_attr_add(&format, name, comp_type, comp_len, fetch_mode);
-  return format;
-}
-
 static bool batch_cache_is_dirty(const Curves &curves)
 {
   const CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves.batch_cache);
@@ -284,11 +271,11 @@ static void create_edit_points_position_and_data(
     const bke::crazyspace::GeometryDeformation deformation,
     CurvesBatchCache &cache)
 {
-  static GPUVertFormat format_pos = single_attr_vbo_format(
+  static const GPUVertFormat format_pos = GPU_vertformat_from_attribute(
       "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   /* GPU_COMP_U32 is used instead of GPU_COMP_U8 because depending on running hardware stride might
    * still be 4. Thus adding complexity to the code and still sparing no memory. */
-  static GPUVertFormat format_data = single_attr_vbo_format(
+  static const GPUVertFormat format_data = GPU_vertformat_from_attribute(
       "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   Span<float3> deformed_positions = deformation.positions;
@@ -380,7 +367,7 @@ static void create_edit_points_selection(const bke::CurvesGeometry &curves,
                                          const OffsetIndices<int> bezier_dst_offsets,
                                          CurvesBatchCache &cache)
 {
-  static GPUVertFormat format_data = single_attr_vbo_format(
+  static const GPUVertFormat format_data = GPU_vertformat_from_attribute(
       "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
   const int bezier_point_count = bezier_dst_offsets.total_size();
@@ -679,11 +666,8 @@ static void calc_final_indices(const bke::CurvesGeometry &curves,
     verts_per_curve = (cache.final.resolution - 1) * verts_per_segment;
   }
 
-  static GPUVertFormat format = {0};
-  GPU_vertformat_clear(&format);
-
-  /* initialize vertex format */
-  GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
@@ -1048,9 +1032,8 @@ static void create_edit_points_position_vbo(
     const bke::crazyspace::GeometryDeformation & /*deformation*/,
     CurvesBatchCache &cache)
 {
-  static uint attr_id;
-  static GPUVertFormat format = single_attr_vbo_format(
-      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT, attr_id);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   /* TODO: Deform curves using deformations. */
   const Span<float3> positions = curves.evaluated_positions();

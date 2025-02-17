@@ -194,12 +194,14 @@ static void extract_uv_stretch_angle_mesh(const MeshRenderData &mr,
 
 void extract_edituv_stretch_angle(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     /* Waning: adjust #UVStretchAngle struct accordingly. */
     GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_I16, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
     GPU_vertformat_attr_add(&format, "angle", GPU_COMP_I16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  }
+    return format;
+  }();
+
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
   MutableSpan vbo_data = vbo.data<UVStretchAngle>();
@@ -214,12 +216,13 @@ void extract_edituv_stretch_angle(const MeshRenderData &mr, gpu::VertBuf &vbo)
 
 static const GPUVertFormat &get_edituv_stretch_angle_format_subdiv()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     /* Waning: adjust #UVStretchAngle struct accordingly. */
     GPU_vertformat_attr_add(&format, "angle", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
   return format;
 }
 

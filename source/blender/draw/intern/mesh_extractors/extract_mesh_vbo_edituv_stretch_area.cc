@@ -100,10 +100,8 @@ void extract_edituv_stretch_area(const MeshRenderData &mr,
   tot_area = info.tot_area;
   tot_uv_area = info.tot_uv_area;
 
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
   MutableSpan<float> vbo_data = vbo.data<float>();
@@ -138,10 +136,8 @@ void extract_edituv_stretch_area_subdiv(const MeshRenderData &mr,
                                         float &tot_area,
                                         float &tot_uv_area)
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
 
   gpu::VertBuf *coarse_vbo = GPU_vertbuf_calloc();
