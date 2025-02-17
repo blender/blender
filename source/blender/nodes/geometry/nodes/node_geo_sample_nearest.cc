@@ -91,7 +91,7 @@ static void get_closest_pointcloud_points(const bke::BVHTreeFromPointCloud &tree
     nearest.index = -1;
     nearest.dist_sq = FLT_MAX;
     const float3 position = positions[i];
-    BLI_bvhtree_find_nearest(tree_data.tree.get(),
+    BLI_bvhtree_find_nearest(tree_data.tree,
                              position,
                              &nearest,
                              tree_data.nearest_callback,

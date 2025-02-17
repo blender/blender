@@ -85,6 +85,7 @@ static void pointcloud_copy_data(Main * /*bmain*/,
 
   pointcloud_dst->runtime = new blender::bke::PointCloudRuntime();
   pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
+  pointcloud_dst->runtime->bvh_cache = pointcloud_src->runtime->bvh_cache;
   if (pointcloud_src->runtime->bake_materials) {
     pointcloud_dst->runtime->bake_materials =
         std::make_unique<blender::bke::bake::BakeMaterialsList>(
@@ -457,6 +458,7 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
 void PointCloud::tag_positions_changed()
 {
   this->runtime->bounds_cache.tag_dirty();
+  this->runtime->bvh_cache.tag_dirty();
 }
 
 void PointCloud::tag_radii_changed()

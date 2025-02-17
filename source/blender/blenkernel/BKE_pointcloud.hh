@@ -10,6 +10,7 @@
  */
 
 #include "BLI_bounds_types.hh"
+#include "BLI_kdopbvh.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_string_ref.hh"
@@ -41,6 +42,8 @@ struct PointCloudRuntime {
 
   /** Stores weak references to material data blocks. */
   std::unique_ptr<bake::BakeMaterialsList> bake_materials;
+
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("PointCloudRuntime");
 };

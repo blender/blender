@@ -26,6 +26,7 @@ namespace blender {
 template<typename T> class Span;
 namespace bke {
 class AttributeAccessor;
+struct BVHTreeFromPointCloud;
 class MutableAttributeAccessor;
 struct PointCloudRuntime;
 }  // namespace bke
@@ -72,6 +73,8 @@ typedef struct PointCloud {
 
   /** Get the largest material index used by the point-cloud or `nullopt` if it is empty. */
   std::optional<int> material_index_max() const;
+
+  blender::bke::BVHTreeFromPointCloud bvh_tree() const;
 
   void count_memory(blender::MemoryCounter &memory) const;
 #endif

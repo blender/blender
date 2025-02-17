@@ -93,11 +93,13 @@ float bvhtree_sphereray_tri_intersection(const BVHTreeRay *ray,
                                          const float v2[3]);
 
 struct BVHTreeFromPointCloud {
-  std::unique_ptr<BVHTree, BVHTreeDeleter> tree;
+  const BVHTree *tree = nullptr;
 
   BVHTree_NearestPointCallback nearest_callback;
 
-  const float (*coords)[3];
+  Span<float3> positions;
+
+  std::unique_ptr<BVHTree, BVHTreeDeleter> owned_tree;
 };
 
 BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,

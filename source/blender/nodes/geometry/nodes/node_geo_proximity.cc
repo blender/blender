@@ -228,7 +228,7 @@ class ProximityFunction : public mf::MultiFunction {
                                  const_cast<bke::BVHTreeFromMesh *>(&trees.mesh_bvh));
       }
       if (trees.pointcloud_bvh.tree != nullptr) {
-        BLI_bvhtree_find_nearest(trees.pointcloud_bvh.tree.get(),
+        BLI_bvhtree_find_nearest(trees.pointcloud_bvh.tree,
                                  sample_position,
                                  &nearest,
                                  trees.pointcloud_bvh.nearest_callback,
