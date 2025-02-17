@@ -24,6 +24,7 @@ import string
 
 from typing import (
     Any,
+    NamedTuple,
 )
 from collections.abc import (
     Iterator,
@@ -406,25 +407,14 @@ def find_build_args_make(build_dir: str) -> ProcessedCommands | None:
 #
 # Although this seems like it's not a common use-case.
 
-from collections import namedtuple
-Edit = namedtuple(
-    "Edit", (
-        # Keep first, for sorting.
-        "span",
 
-        "content",
-        "content_fail",
+class Edit(NamedTuple):
+    span: tuple[int, int]
+    content: str
+    content_fail: str
 
-        # Optional.
-        "extra_build_args",
-    ),
-
-    defaults=(
-        # `extra_build_args`.
-        None,
-    )
-)
-del namedtuple
+    # Optional.
+    extra_build_args: tuple[str, ...] | None = None
 
 
 class EditGenerator:
