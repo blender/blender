@@ -260,7 +260,12 @@ void icon_draw_rect_input(const float x,
     icon_draw_icon(&rect, ICON_KEY_TAB, aspect, alpha, inverted);
   }
   else if (icon_id == ICON_EVENT_HOME) {
-    icon_draw_rect_input_text(&rect, IFACE_("Home"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
+    icon_draw_rect_input_text(&rect,
+                              CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, "Home"),
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY2);
   }
   else if (icon_id == ICON_EVENT_END) {
     icon_draw_rect_input_text(&rect, IFACE_("End"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
