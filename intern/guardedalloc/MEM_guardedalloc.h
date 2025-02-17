@@ -293,11 +293,15 @@ void MEM_use_guarded_allocator(void);
  * Allocate new memory for an object of type #T, and construct it.
  * #MEM_delete must be used to delete the object. Calling #MEM_freeN on it is illegal.
  *
- * Note that when no arguments are passed, C++ will do recursive member-wise value initialization.
- * That is because C++ differentiates between creating an object with `T` (default initialization)
- * and `T()` (value initialization), whereby this function does the latter. Value initialization
- * rules are complex, but for C-style structs, memory will be zero-initialized. So this doesn't
- * match a `malloc()`, but a `calloc()` call in this case. See https://stackoverflow.com/a/4982720.
+ * Do not assume that this ever zero-initializes memory (even when it does), explicitly initialize.
+ *
+ * Although calling this without arguments will cause zero-initialization for many types, simple
+ * changes to the type can break this. Basic explanation:
+ * With no arguments, this will initialize using `T()` (value initialization) not `T` (default
+ * initialization). Details are involved, but for "C-style" structs ("Plain old Data" structs or
+ * structs with a compiler generated constructor) memory will be zero-initialized. A change like
+ * simply adding a custom default constructor would change initialization behavior.
+ * See: https://stackoverflow.com/a/4982720, https://stackoverflow.com/a/620402
  */
 template<typename T, typename... Args>
 inline T *MEM_new(const char *allocation_name, Args &&...args)
