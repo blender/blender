@@ -236,6 +236,10 @@ extern TransConvertTypeInfo TransConvertType_Curve;
 
 extern TransConvertTypeInfo TransConvertType_Curves;
 
+/* `transform_convert_point_cloud.cc` */
+
+extern TransConvertTypeInfo TransConvertType_PointCloud;
+
 /* `transform_convert_graph.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Graph;

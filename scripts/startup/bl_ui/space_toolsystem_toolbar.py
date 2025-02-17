@@ -3482,6 +3482,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_select,
             _defs_view3d_generic.cursor,
             None,
+            *_tools_transform,
+            None,
             *_tools_annotate,
             _defs_view3d_generic.ruler,
         ],

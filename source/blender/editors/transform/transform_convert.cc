@@ -788,6 +788,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
             &TransConvertType_Curve,
             &TransConvertType_Curves,
             &TransConvertType_GreasePencil,
+            &TransConvertType_PointCloud,
             &TransConvertType_Lattice,
             &TransConvertType_MBall,
             &TransConvertType_Mesh,
@@ -972,6 +973,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     }
     if (t->obedit_type == OB_CURVES) {
       return &TransConvertType_Curves;
+    }
+    if (t->obedit_type == OB_POINTCLOUD) {
+      return &TransConvertType_PointCloud;
     }
     return nullptr;
   }

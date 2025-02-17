@@ -1303,7 +1303,7 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
         if context.mode == 'EDIT_MESH':
             layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
             layout.operator("transform.skin_resize")
-        elif context.mode in {'EDIT_CURVE', 'EDIT_GREASE_PENCIL', 'EDIT_CURVES'}:
+        elif context.mode in {'EDIT_CURVE', 'EDIT_GREASE_PENCIL', 'EDIT_CURVES', 'EDIT_POINT_CLOUD'}:
             layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
 
         if context.mode != 'EDIT_CURVES' and context.mode != 'EDIT_GREASE_PENCIL':
@@ -5899,6 +5899,8 @@ class VIEW3D_MT_edit_pointcloud(Menu):
 
     def draw(self, context):
         layout = self.layout
+        layout.menu("VIEW3D_MT_transform")
+        layout.separator()
         layout.operator("point_cloud.attribute_set")
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
