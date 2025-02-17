@@ -59,6 +59,13 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
 
 bool BKE_pointcloud_attribute_required(const PointCloud *pointcloud, blender::StringRef name);
 
+/**
+ * Copy data from #src to #dst, except the geometry and attributes. Typically used to
+ * copy high-level parameters when a geometry-altering operation creates a new point cloud
+ * data-block.
+ */
+void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst);
+
 /* Dependency Graph */
 
 PointCloud *BKE_pointcloud_copy_for_eval(const PointCloud *pointcloud_src);

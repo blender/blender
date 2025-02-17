@@ -586,6 +586,11 @@ IndexMask IndexMask::from_bools(const VArray<bool> &bools, IndexMaskMemory &memo
   return IndexMask::from_bools(bools.index_range(), bools, memory);
 }
 
+IndexMask IndexMask::from_bools_inverse(const VArray<bool> &bools, IndexMaskMemory &memory)
+{
+  return IndexMask::from_bools_inverse(bools.index_range(), bools, memory);
+}
+
 IndexMask IndexMask::from_bools(const IndexMask &universe,
                                 Span<bool> bools,
                                 IndexMaskMemory &memory)
@@ -638,6 +643,22 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
   }
   return IndexMask::from_predicate(
       universe, GrainSize(512), memory, [&](const int64_t index) { return bools[index]; });
+}
+
+IndexMask IndexMask::from_bools_inverse(const IndexMask &universe,
+                                        const VArray<bool> &bools,
+                                        IndexMaskMemory &memory)
+{
+  const CommonVArrayInfo info = bools.common_info();
+  if (info.type == CommonVArrayInfo::Type::Single) {
+    return *static_cast<const bool *>(info.data) ? IndexMask() : universe;
+  }
+  if (info.type == CommonVArrayInfo::Type::Span) {
+    const Span<bool> span(static_cast<const bool *>(info.data), bools.size());
+    return IndexMask::from_bools_inverse(universe, span, memory);
+  }
+  return IndexMask::from_predicate(
+      universe, GrainSize(512), memory, [&](const int64_t index) { return !bools[index]; });
 }
 
 template<typename T>

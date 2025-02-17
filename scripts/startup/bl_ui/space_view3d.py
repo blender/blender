@@ -5904,6 +5904,7 @@ class VIEW3D_MT_edit_pointcloud(Menu):
         layout.operator("point_cloud.duplicate_move")
         layout.separator()
         layout.operator("point_cloud.attribute_set")
+        layout.operator("point_cloud.delete")
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 

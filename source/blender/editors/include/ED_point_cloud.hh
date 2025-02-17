@@ -115,6 +115,18 @@ IndexMask retrieve_selected_points(const PointCloud &pointcloud, IndexMaskMemory
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Editing
+ * \{ */
+
+/**
+ * Remove selected points based on the ".selection" attribute.
+ * \returns true if any point was removed.
+ */
+bool remove_selection(PointCloud &point_cloud);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Poll Functions
  * \{ */
 

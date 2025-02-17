@@ -16,6 +16,7 @@ set(INC_SYS
 set(SRC
   intern/attribute_set.cc
   intern/duplicate.cc
+  intern/point_cloud_edit.cc
   intern/point_cloud_ops.cc
   intern/point_cloud_selection.cc
   intern/point_cloud_undo.cc

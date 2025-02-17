@@ -3434,6 +3434,8 @@ def km_point_cloud(params):
          "ctrl": True}, {"properties": [("action", 'DESELECT')]}),
         ("point_cloud.select_all", {"type": 'I', "value": 'PRESS',
          "ctrl": True}, {"properties": [("action", 'INVERT')]}),
+        # Delete
+        ("point_cloud.delete", {"type": 'DEL', "value": 'PRESS'}, None),
     ])
 
     return keymap
