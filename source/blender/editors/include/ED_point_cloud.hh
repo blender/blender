@@ -9,12 +9,14 @@
 #pragma once
 
 #include "BLI_index_mask_fwd.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_customdata_types.h"
 
 struct bContext;
 struct PointCloud;
 struct wmKeyConfig;
+struct wmOperatorType;
 namespace blender::bke {
 struct GSpanAttributeWriter;
 }  // namespace blender::bke
@@ -26,6 +28,8 @@ namespace blender::ed::point_cloud {
 
 void operatortypes_point_cloud();
 void keymap_point_cloud(wmKeyConfig *keyconf);
+
+VectorSet<PointCloud *> get_unique_editable_point_clouds(const bContext &C);
 
 /* -------------------------------------------------------------------- */
 /** \name Selection
@@ -69,6 +73,14 @@ bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &point_cloud,
  * \{ */
 
 bool editable_point_cloud_in_edit_mode_poll(bContext *C);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operators
+ * \{ */
+
+void POINT_CLOUD_OT_attribute_set(wmOperatorType *ot);
 
 /** \} */
 

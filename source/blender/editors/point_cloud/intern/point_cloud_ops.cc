@@ -74,7 +74,7 @@ bool editable_point_cloud_in_edit_mode_poll(bContext *C)
   return point_cloud_poll_impl(C, true, true);
 }
 
-static VectorSet<PointCloud *> get_unique_editable_point_clouds(const bContext &C)
+VectorSet<PointCloud *> get_unique_editable_point_clouds(const bContext &C)
 {
   VectorSet<PointCloud *> unique_points;
 
@@ -142,6 +142,7 @@ static void POINT_CLOUD_OT_select_all(wmOperatorType *ot)
 
 void operatortypes_point_cloud()
 {
+  WM_operatortype_append(POINT_CLOUD_OT_attribute_set);
   WM_operatortype_append(POINT_CLOUD_OT_select_all);
 }
 
