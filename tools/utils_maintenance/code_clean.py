@@ -982,9 +982,15 @@ class edit_generators:
                 span_skip.add(match.span(1))
 
             # Remove `struct`
-            for match in re.finditer(r"\b(struct)\s+[a-zA-Z0-9_]+", data):
+            for match in re.finditer(r"\b(struct)\s+([a-zA-Z0-9_]+)", data):
                 span = match.span(1)
                 if span in span_skip:
+                    continue
+
+                if match.group(2) in {
+                        # macOS requires a leading `struct` while Linux doesn't.
+                        "timezone",
+                }:
                     continue
 
                 edits.append(Edit(
