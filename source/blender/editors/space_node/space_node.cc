@@ -38,6 +38,8 @@
 #include "BKE_node_tree_zones.hh"
 #include "BKE_screen.hh"
 
+#include "BLT_translation.hh"
+
 #include "ED_image.hh"
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
@@ -1344,6 +1346,9 @@ static blender::StringRefNull node_space_name_get(const ScrArea *area)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
+  if (tree_type == nullptr) {
+    return IFACE_("Node Editor");
+  }
   return tree_type->ui_name;
 }
 
@@ -1351,6 +1356,9 @@ static int node_space_icon_get(const ScrArea *area)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
+  if (tree_type == nullptr) {
+    return ICON_NODETREE;
+  }
   return tree_type->ui_icon;
 }
 
