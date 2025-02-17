@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 15:22+0000\n"
+"POT-Creation-Date: 2025-02-17 14:06+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11185,32 +11185,12 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Metaball"
-msgstr "Metakula"
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Snap"
 msgstr "Przyciągnij"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
 
 
 msgid "Local View"
@@ -11231,6 +11211,10 @@ msgstr "Zaznacz powiązane"
 
 msgid "Assign Material"
 msgstr "Przypisanie materiału"
+
+
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Light"
@@ -11257,6 +11241,14 @@ msgid "Quick Effects"
 msgstr "Szybkie efekty"
 
 
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
+
+
 msgid "Asset"
 msgstr "Prefabrykat"
 
@@ -11275,6 +11267,14 @@ msgstr "Dane ściany"
 
 msgid "Merge"
 msgstr "Scal"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
 
 
 msgid "Catalog"
@@ -16598,10 +16598,6 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
-
-
 msgid "Shadow Settings"
 msgstr "Ustawienia cienia"
 
@@ -16632,6 +16628,10 @@ msgstr "Przyciąganie"
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
+
+
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
 
 
 msgid "Aperture"

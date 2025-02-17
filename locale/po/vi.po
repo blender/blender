@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 15:22+0000\n"
+"POT-Creation-Date: 2025-02-17 14:06+0000\n"
 "PO-Revision-Date: 2024-12-30 20:42+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -33553,68 +33553,12 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
-
-
-msgid "Special Characters"
-msgstr "Các Ký Tự Đặc Biệt"
-
-
-msgid "Kerning"
-msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
-
-
-msgid "Text"
-msgstr "Văn Bản"
-
-
-msgid "Metaball"
-msgstr "Siêu Cầu"
-
-
-msgid "Names"
-msgstr "Tên"
-
-
-msgid "Bone Roll"
-msgstr "Lăn Xương"
-
-
-msgid "Pivot Point"
-msgstr "Điểm Tựa"
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "Snap"
 msgstr "Bám Dính"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
-
-
-msgid "Mask Edit"
-msgstr "Biên Soạn Màn Chắn Lọc"
-
-
-msgid "Automasking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Face Sets Edit"
-msgstr "Biên Soạn các Mặt Ấn Định"
-
-
-msgid "Vertex Group Locks"
-msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "UV Mapping"
@@ -33669,6 +33613,10 @@ msgid "Assign Material"
 msgstr "Ấn Định Nguyên Vật Liệu"
 
 
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
 msgid "Light"
 msgstr "Nguồn/Ánh Sáng/Đèn"
 
@@ -33701,6 +33649,14 @@ msgid "Quick Effects"
 msgstr "Hiệu Ứng Nhanh"
 
 
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
 msgid "Asset"
 msgstr "Tài Sản"
 
@@ -33719,6 +33675,10 @@ msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
 
 msgid "Hooks"
 msgstr "Móc"
+
+
+msgid "Vertex Group Locks"
+msgstr "Khóa của Nhóm Điểm Đỉnh"
 
 
 msgid "Trim/Add"
@@ -33753,6 +33713,10 @@ msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
+msgid "Names"
+msgstr "Tên"
+
+
 msgid "Toggle Bone Options"
 msgstr "Bật/Tắt Tùy Chọn về Xương"
 
@@ -33783,6 +33747,42 @@ msgstr "Đặt Cường Độ Mặt"
 
 msgid "Merge"
 msgstr "Hợp Nhất"
+
+
+msgid "Special Characters"
+msgstr "Các Ký Tự Đặc Biệt"
+
+
+msgid "Kerning"
+msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgid "Bone Roll"
+msgstr "Lăn Xương"
+
+
+msgid "Pivot Point"
+msgstr "Điểm Tựa"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
+
+
+msgid "Mask Edit"
+msgstr "Biên Soạn Màn Chắn Lọc"
+
+
+msgid "Automasking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Face Sets Edit"
+msgstr "Biên Soạn các Mặt Ấn Định"
 
 
 msgid "Keyframe Insert Pie"
@@ -88881,10 +88881,6 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
-msgid "Active Tool"
-msgstr "Công Cụ đang Hoạt Động"
-
-
 msgid "View Lock"
 msgstr "Khóa Góc Nhìn"
 
@@ -88953,14 +88949,6 @@ msgid "Transform Orientations"
 msgstr "Các Định Hướng Biến Hóa"
 
 
-msgid "glTF Variants"
-msgstr "Biến Thể glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Biến Thể Nguyên Vật Liệu glTF"
-
-
 msgid "Stroke Placement"
 msgstr "Phương Pháp Đặt Nét Vẽ"
 
@@ -88989,8 +88977,12 @@ msgid "Multi Frame"
 msgstr "Đa Khung Hình"
 
 
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
+msgid "glTF Variants"
+msgstr "Biến Thể glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Biến Thể Nguyên Vật Liệu glTF"
 
 
 msgid "Auto-Masking"
@@ -89013,12 +89005,20 @@ msgid "Viewport Debug"
 msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
 
 
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
+
+
 msgid "VR"
 msgstr "Virtual Reality: Thực Tế Ảo"
 
 
 msgid "VR Info"
 msgstr "Thông Tin VR"
+
+
+msgid "Active Tool"
+msgstr "Công Cụ đang Hoạt Động"
 
 
 msgid "Chain Scaling"

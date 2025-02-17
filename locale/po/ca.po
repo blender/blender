@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 15:22+0000\n"
-"PO-Revision-Date: 2025-02-09 02:56+0000\n"
+"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"PO-Revision-Date: 2025-02-16 21:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -85,6 +85,10 @@ msgstr "Agrupaments de Corbes-F a efectes de visualització en p. ex. el guió t
 
 msgid "Slot"
 msgstr "Born"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "L'Epígraf a què estan destinades les dades d'animació de la Bossa de canals"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -4780,6 +4784,14 @@ msgid "Has Pinch Factor"
 msgstr "TÉ factor de pinçat"
 
 
+msgid "Has Plane Depth"
+msgstr "TÉ profunditat de pla"
+
+
+msgid "Has Plane Height"
+msgstr "TÉ alçada de pla"
+
+
 msgid "Has Plane Offset"
 msgstr "TÉ pla de separació"
 
@@ -6009,7 +6021,7 @@ msgstr "Fora d'eix"
 
 
 msgid "Off-axis frustums converging in a plane"
-msgstr "[Off-Axis]: Troncs fora d'eix que convergeixen en un pla"
+msgstr "[Off-Axis]: Camps de visió fora d'eix que convergeixen en un pla"
 
 
 msgid "Parallel"
@@ -19618,6 +19630,34 @@ msgid "Active paint curve"
 msgstr "[Paint Curve]: Corba de pintura activa"
 
 
+msgid "The maximum distance below the plane for affected vertices. Increasing the depth affects vertices farther below the plane."
+msgstr "La distància màxima per sota del pla per als vèrtexs afectats. L'augment de la profunditat afecta els vèrtexs que estan més dessota del pla."
+
+
+msgid "The maximum distance above the plane for affected vertices. Increasing the height affects vertices farther above the plane."
+msgstr "La distància màxima sobre el pla per als vèrtexs afectats. L'augment de l'alçada afecta els vèrtexs que estan més elevats per sobre del pla."
+
+
+msgid "Inversion Mode"
+msgstr "Mode inversió"
+
+
+msgid "Invert Displacement"
+msgstr "Invertir desplaçament"
+
+
+msgid "Displace the vertices away from the plane."
+msgstr "Allunya els vèrtexs del pla."
+
+
+msgid "Swap Height and Depth"
+msgstr "Intercanvia l'Alçada i la Profunditat"
+
+
+msgid "Swap the roles of Height and Depth."
+msgstr "Intercanvia els rols d'Alçada i Profunditat."
+
+
 msgid "Plane Offset"
 msgstr "Pla de separació"
 
@@ -19792,6 +19832,11 @@ msgstr "Raspar"
 
 
 msgctxt "Brush"
+msgid "Plane"
+msgstr "Pla"
+
+
+msgctxt "Brush"
 msgid "Multi-plane Scrape"
 msgstr "Raspat multiplà"
 
@@ -19936,6 +19981,22 @@ msgstr "Modifica tota la malla usant la deformació elàstica"
 
 msgid "Spacing between brush daubs as a percentage of brush diameter"
 msgstr "L'espaiat entre les enllefernades del pinzell com a percentatge del diàmetre del pinzell"
+
+
+msgid "Stabilize Normal"
+msgstr "Estabilitzar normal"
+
+
+msgid "Stabilize the orientation of the brush plane."
+msgstr "Estabilitza l'orientació del pla del pinzell."
+
+
+msgid "Stabilize Plane"
+msgstr "Estabilitzar pla"
+
+
+msgid "Stabilize the center of the brush plane."
+msgstr "Estabilitza el centre del pla del pinzell."
 
 
 msgid "Stencil Dimensions"
@@ -34281,68 +34342,12 @@ msgid "Editor menu containing buttons"
 msgstr "El menú d'edició que conté els botons"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar/amagar"
-
-
-msgid "Clean Up"
-msgstr "Netejar"
-
-
-msgid "Special Characters"
-msgstr "Caràcters especials"
-
-
-msgid "Kerning"
-msgstr "Interlletratge"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Noms"
-
-
-msgid "Bone Roll"
-msgstr "Girar os"
-
-
-msgid "Pivot Point"
-msgstr "Punt de pivot"
+msgid "Mirror"
+msgstr "Emmirallar"
 
 
 msgid "Snap"
 msgstr "Acoblament"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decaïment a l'edició proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edició de màscares"
-
-
-msgid "Automasking"
-msgstr "Automàscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edició de jocs de cares"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocatges de grup de vèrtexs"
-
-
-msgid "Mirror"
-msgstr "Emmirallar"
 
 
 msgid "UV Mapping"
@@ -34397,6 +34402,10 @@ msgid "Assign Material"
 msgstr "Assignar material"
 
 
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Light"
 msgstr "Llum"
 
@@ -34429,6 +34438,14 @@ msgid "Quick Effects"
 msgstr "Efectes ràpids"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar/amagar"
+
+
+msgid "Clean Up"
+msgstr "Netejar"
+
+
 msgid "Asset"
 msgstr "Recurs"
 
@@ -34447,6 +34464,10 @@ msgstr "Enllaçar/transferir dades"
 
 msgid "Hooks"
 msgstr "Ganxos"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocatges de grup de vèrtexs"
 
 
 msgid "Trim/Add"
@@ -34481,6 +34502,10 @@ msgid "Bone Collections"
 msgstr "Col·leccions d'ossos"
 
 
+msgid "Names"
+msgstr "Noms"
+
+
 msgid "Toggle Bone Options"
 msgstr "Permutar opcions d'os"
 
@@ -34511,6 +34536,42 @@ msgstr "Definir força de cara"
 
 msgid "Merge"
 msgstr "Fusionar"
+
+
+msgid "Special Characters"
+msgstr "Caràcters especials"
+
+
+msgid "Kerning"
+msgstr "Interlletratge"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Bone Roll"
+msgstr "Girar os"
+
+
+msgid "Pivot Point"
+msgstr "Punt de pivot"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaïment a l'edició proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edició de màscares"
+
+
+msgid "Automasking"
+msgstr "Automàscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edició de jocs de cares"
 
 
 msgid "Keyframe Insert Pie"
@@ -35135,6 +35196,10 @@ msgstr "Buit"
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Rastrejar"
+
+
+msgid "Modify Pose Asset"
+msgstr "Mdificar recurs de posa"
 
 
 msgid "Rigify"
@@ -46637,7 +46702,7 @@ msgstr "Un selector de color"
 
 
 msgid "RGB to BW"
-msgstr "RGB a BW"
+msgstr "RGB a BN"
 
 
 msgid "Convert RGB input into grayscale using luminance"
@@ -65126,6 +65191,15 @@ msgstr "Eliminar traços o punts seleccionats"
 
 
 msgctxt "Operator"
+msgid "Delete Breakdown Frames"
+msgstr "Eliminar fotogrames de partionament"
+
+
+msgid "Remove breakdown frames generated by interpolating between two Grease Pencil frames"
+msgstr "Elimina els fotogrames de partionament gent una interpolació entre dos fotogrames de Llapis de greix"
+
+
+msgctxt "Operator"
 msgid "Delete Frame"
 msgstr "Suprimir fotograma"
 
@@ -65316,7 +65390,7 @@ msgstr "[Exclude Breakdowns]: Exclou les fotofites de partionament existents com
 
 
 msgid "Flip Mode"
-msgstr "Mode inversió"
+msgstr "Mode capgirar"
 
 
 msgid "Invert destination stroke to match start and end with source stroke"
@@ -65869,6 +65943,14 @@ msgstr "Enganxar al darrere"
 
 msgid "Add pasted strokes behind all strokes"
 msgstr "[Paste on Back]: Afegir traços enganxats al darrere de tots els traços"
+
+
+msgid "Paste to Active"
+msgstr "Enganxar a actiu"
+
+
+msgid "Paste by Layer"
+msgstr "Enganxar per capa"
 
 
 msgctxt "Operator"
@@ -73391,6 +73473,10 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Corba des d'objectes malla o text"
 
 
+msgid "Mesh from Curve, Surface, Metaball, or Text objects"
+msgstr "Malla des d'objectes Corba, Superfície, Metabola o Text"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Corbes de dades de corbes avaluades"
 
@@ -78496,6 +78582,60 @@ msgstr "[Apply Flipped]: Quan s'activa, aplica la posa invertida sobre l'eix X"
 
 
 msgctxt "Operator"
+msgid "Delete Pose Asset"
+msgstr "Eliminar recurs de posa"
+
+
+msgid "Delete the selected Pose Asset"
+msgstr "Deliminar el Recurs de posa seleccionat"
+
+
+msgctxt "Operator"
+msgid "Modify Pose Asset"
+msgstr "Modificar recurs de posa"
+
+
+msgid "Update the selected pose asset in the asset library from the currently selected bones. The mode defines how the asset is updated"
+msgstr "Actualitza el recurs de posa seleccionat en la biblioteca de recursos des dels ossos presentment seleccionats. El mode defineix la manera d'actualitzar el recurs"
+
+
+msgid "Overwrite Mode"
+msgstr "Mode de sobreescriptura"
+
+
+msgid "Specify which parts of the pose asset are overwritten"
+msgstr "Especifica quines parts del recurs de posa se sobreescriuen"
+
+
+msgid "Update existing channels in the pose asset but don't remove or add any channels"
+msgstr "Actualitza els canals existents al recurs de posa però no elimina ni afegeix cap canal"
+
+
+msgid "Replace with Selection"
+msgstr "Substituir per selecció"
+
+
+msgid "Completely replace all channels in the pose asset with the current selection"
+msgstr "Substitueix completament tots els canals del recurs de amb els de la selecció present"
+
+
+msgid "Add Selected Bones"
+msgstr "Afegir ossos seleccionats"
+
+
+msgid "Add channels of the selection to the pose asset. Existing channels will be updated"
+msgstr "Afegeix canals de la selecció al recurs de posa. S'actualitzaran els canals ja existents"
+
+
+msgid "Remove Selected Bones"
+msgstr "Suprimir ossos seleccionats"
+
+
+msgid "Remove channels of the selection from the pose asset"
+msgstr "Suprimeix els canals de la selecció des del recurs de posa"
+
+
+msgctxt "Operator"
 msgid "Blend Pose Asset"
 msgstr "Fusionar recurs de posa"
 
@@ -78516,12 +78656,33 @@ msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Brow
 msgstr "[Copy Pose as Asset]: Crea un nou recurs de posa al porta-retalls, per enganxar-lo en el navegador de recursos"
 
 
+msgctxt "Operator"
+msgid "Create Pose Asset..."
+msgstr "Crear recurs de posa..."
+
+
+msgid "Create a new asset from the selected bones in the scene"
+msgstr "Crea un nou recurs a partir dels ossos seleccionats de l'escena"
+
+
 msgid "Activate New Action"
 msgstr "Activar nova acció"
 
 
+msgid "This property is deprecated and will be removed in the future"
+msgstr "Aquesta propietat és obsoleta i s'eliminarà en el futur"
+
+
+msgid "Asset library used to store the new pose"
+msgstr "la biblioteca de recursos emprada per emmagatzemar la nova posa"
+
+
 msgid "Pose Name"
 msgstr "Nom de posa"
+
+
+msgid "Name for the new pose asset"
+msgstr "Nom per al nou recurs posa"
 
 
 msgid "Paste the Asset that was previously copied using Copy As Asset"
@@ -90708,10 +90869,6 @@ msgid "Panel containing UI elements"
 msgstr "Plafó que conté elements de la IU"
 
 
-msgid "Active Tool"
-msgstr "Eina activa"
-
-
 msgid "View Lock"
 msgstr "Bloqueig de visionat"
 
@@ -90780,14 +90937,6 @@ msgid "Transform Orientations"
 msgstr "Orientacions de transformació"
 
 
-msgid "glTF Variants"
-msgstr "Variants glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variants de material gITF"
-
-
 msgid "Stroke Placement"
 msgstr "Emplaçament del traç"
 
@@ -90816,12 +90965,12 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "Variants glTF"
 
 
-msgid "glTF Animations"
-msgstr "Animacions glTF"
+msgid "glTF Material Variants"
+msgstr "Variants de material gITF"
 
 
 msgid "Auto-Masking"
@@ -90844,12 +90993,24 @@ msgid "Viewport Debug"
 msgstr "Depuració de mirador"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacions glTF"
+
+
 msgid "VR"
 msgstr "RV"
 
 
 msgid "VR Info"
 msgstr "Info RV"
+
+
+msgid "Active Tool"
+msgstr "Eina activa"
 
 
 msgid "Chain Scaling"
@@ -94857,6 +95018,18 @@ msgid "Keep horizon level while flying with 3D Mouse"
 msgstr "Manté el nivell de l'horitzó mentre es vola amb el ratolí 3D"
 
 
+msgid "Auto sets the orbit center dynamically. When the complete model is in view, the center of volume of the whole model is used as the rotation point. When you move closer, the orbit center will be set on an object close to your center of the view."
+msgstr "Auto determina el centre de l'òrbita dinàmicament. Quan el model complet està a la vista, el centre de volum de tot el model s'utilitza com a punt de rotació. Quan us hi acosteu, el centre de l'òrbita s'assignarà a un objecte proper al vostre centre de visió."
+
+
+msgid "Use Selected Items"
+msgstr "Usar elements seleccionats"
+
+
+msgid "Use selected item forces the orbit center to only take the currently selected objects into account."
+msgstr "L'ús de l'element seleccionat força el centre d'òrbita a tenir en compte només els objectes seleccionats actualment."
+
+
 msgid "Orbit Sensitivity"
 msgstr "Sensibilitat d'òrbita"
 
@@ -94901,8 +95074,20 @@ msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Sensibilitat general del ratolí 3D per a l'escombratge"
 
 
+msgid "Show Orbit Axis Guide"
+msgstr "Mostrar guia de l'eix de l'òrbita"
+
+
 msgid "Display the center and axis during rotation"
 msgstr "Mostra el centre i l'eix durant la rotació"
+
+
+msgid "Show Orbit Center Guide"
+msgstr "Mostrar guia del centre de l'òrbita"
+
+
+msgid "Display the orbit center during rotation"
+msgstr "Mostra el centre de l'òrbita durant la rotació"
 
 
 msgid "NDOF View Navigate"
@@ -97313,7 +97498,7 @@ msgstr "[Motion Steps]: Controla la precisió de la borra de moviment, més pass
 
 
 msgid "Shadow Terminator Geometry Offset"
-msgstr "Desviació anul·ladora d'ombres de geometria"
+msgstr "Desviació geomètrica de l'Anul·lador d'ombres"
 
 
 msgid "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affects triangles at grazing angles to light"
@@ -97457,7 +97642,7 @@ msgstr "[Bake Type]: Tipus de passada a precuinar"
 
 
 msgid "Filter Glossy"
-msgstr "Filtrar setinats"
+msgstr "Filtrar reflexos"
 
 
 msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
@@ -98197,7 +98382,7 @@ msgstr "Revela imatges d'alta resolució en les tessel·les per a reduir l'ús d
 
 
 msgid "Allow objects to be culled based on the camera frustum"
-msgstr "Permetre que s'esporguin objectes en base al tronc de la càmera"
+msgstr "Permetre que s'esporguin objectes en base al camp de visió de la càmera"
 
 
 msgid "Deterministic"
@@ -105858,7 +106043,7 @@ msgstr "Mostra el pla de convergència estèreo 3D"
 
 
 msgid "Show the stereo 3D frustum volume"
-msgstr "Mostrar el volum del tronc 3D estèreo"
+msgstr "Mostrar el volum del camp de visió 3D estèreo"
 
 
 msgid "Show Viewer"
@@ -105902,7 +106087,7 @@ msgstr "Alfa del volum"
 
 
 msgid "Opacity (alpha) of the cameras' frustum volume"
-msgstr "[Volume Alpha]: Opacitat (alfa) del volum del tronc de les càmeres"
+msgstr "[Volume Alpha]: Opacitat (alfa) del camp de visió de les càmeres"
 
 
 msgid "Tracks Size"
@@ -117065,7 +117250,7 @@ msgstr "No hi ha etiquetes visibles."
 
 msgctxt "Operator"
 msgid "Report a Bug"
-msgstr "Informar de pífia"
+msgstr "Informar d'incidència"
 
 
 msgid "Blender's extension repository must be enabled to install extensions!"
@@ -118161,6 +118346,16 @@ msgstr "Aplicar posa"
 msgctxt "Operator"
 msgid "Apply Pose Flipped"
 msgstr "Aplicar posa invertida"
+
+
+msgctxt "Operator"
+msgid "Adjust Pose Asset"
+msgstr "Ajustar recurs de posa"
+
+
+msgctxt "Operator"
+msgid "Add Selected Bones"
+msgstr "Afegir ossos seleccionats"
 
 
 msgctxt "Operator"
@@ -124958,6 +125153,18 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Invertir direcció del zoom de ròdol"
 
 
+msgid "Show Guides"
+msgstr "Mostrar guies"
+
+
+msgid "Orbit Axis"
+msgstr "Eix d'òrbita"
+
+
+msgid "Orbit Center"
+msgstr "Centre d'òrbita"
+
+
 msgid "Fly/Walk"
 msgstr "Volar/Caminar"
 
@@ -126771,6 +126978,11 @@ msgstr "Amagar capa activa"
 msgctxt "Operator"
 msgid "Hide Inactive Layers"
 msgstr "Amagar capes inactives"
+
+
+msgctxt "Operator"
+msgid "Paste by Layer"
+msgstr "Enganxar per capa"
 
 
 msgctxt "Operator"
@@ -129117,8 +129329,36 @@ msgid "Create"
 msgstr "Doblegar"
 
 
+msgid "Delete Pose Asset"
+msgstr "Eliminar recurs de posa"
+
+
+msgid "Permanently delete pose asset blend file? This cannot be undone."
+msgstr "¿Voleu eliminar permanentment el document blend amb el recurs de posa? L'acció no es pot desfer."
+
+
+msgid "The asset is local to the file. Deleting it will just clear the asset status."
+msgstr "El recurs és local respecte del document. Si s'elimina només se li retirarà l'estatus de recurs."
+
+
 msgid "Failed to load asset library"
 msgstr "No s'ha pogut carregar la biblioteca de recursos"
+
+
+msgid "No name set"
+msgstr "No té el nom posat"
+
+
+msgid "Unexpected library type. Failed to create pose asset"
+msgstr "Tipus de biblioteca inesperada. No s'ha pogut crear el recurs de posa"
+
+
+msgid "Pose assets can only be modified from Pose Mode"
+msgstr "Els recursos de posa només es poden modificar des del Mode posa"
+
+
+msgid "Action is not editable"
+msgstr "L'acció no és editable"
 
 
 msgid "Asset blend file is not editable"
@@ -130296,8 +130536,20 @@ msgid "The object has only one layer"
 msgstr "L'objecte té una sola capa"
 
 
+msgid "No active Grease Pencil layer to paste into"
+msgstr "No hi ha cap capa activa de Llapis de greix a on enganxar-ho"
+
+
+msgid "Active layer is not editable"
+msgstr "La capa activa no és editable"
+
+
 msgid "No Grease Pencil frame to draw on"
 msgstr "No hi ha quadre de Llapis de greix on treballar"
+
+
+msgid "Couldn't find matching layer, pasting into active layer"
+msgstr "No s'ha pogut trobar la capa coincident, s'enganxa a la capa activa"
 
 
 msgid "Active object is not a selected Grease Pencil"
@@ -131747,6 +131999,10 @@ msgstr "Semàfors de grups suavitzats"
 
 msgid "PBR Extensions"
 msgstr "Extensions PBR"
+
+
+msgid "File exported successfully"
+msgstr "Document exportat amb èxit"
 
 
 msgid "ASCII"
@@ -135601,6 +135857,10 @@ msgid "No packed file"
 msgstr "No hi ha cap document empaquetat"
 
 
+msgid "Data-block using this packed file is not editable"
+msgstr "El bloc de dades que fa servir aquest document empaquetat no és editable"
+
+
 msgid "Cannot set relative paths with an unsaved blend file"
 msgstr "No es poden consignar rutes relatives amb un document blend sense desar"
 
@@ -138921,6 +139181,10 @@ msgstr "Els noms dels epígrafs d'Acció no poden restar buits"
 
 msgid "Action slot identifiers should be at least three characters"
 msgstr "Els identificadors dels epígrafs han de tenir almenys tres caràcters"
+
+
+msgid "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the slot's 'target_id_type' \"%s\". Setting to \"%s\" instead."
+msgstr "S'ha intentat posar l'identificador d'epígraf a «%s», però el prefix de tipus no quadra amb el 'target_id_type' \"%s\". Es posa a a \"%s\" com a alternativa."
 
 
 msgid "Only armature objects are supported"
@@ -144264,6 +144528,14 @@ msgid "Blend between diffuse surface and subsurface scattering. Typically should
 msgstr "Fusió entre superfície difusiva i dispersió de subsuperfície. Típicanent hauria de ser zero o u (o bé difusiu del tot o de subsuperfície)"
 
 
+msgid "Scattering radius per color channel (RGB), multiplied with Scale"
+msgstr "Radi de dispersió per canal de color (RGB), multiplicat per l'Escala"
+
+
+msgid "Scale factor of the subsurface scattering radius"
+msgstr "Factor d'escalat del radi de dispersió de subsuperfície"
+
+
 msgid "Index of Refraction (IOR) used for rays that enter the subsurface component"
 msgstr "Índex de refracció (IDR) disponible per a raigs que entren el component de subsuperfície"
 
@@ -146375,6 +146647,10 @@ msgstr "Inspecció de l'escena d'RV"
 
 msgid "View the viewport with virtual reality glasses (head-mounted displays)"
 msgstr "Visualitza el mirador amb ulleres de realitat virtual (dispositius per al cap)"
+
+
+msgid "All Add-ons"
+msgstr "Tots el complements"
 
 
 msgid "All Add-ons Installed by User"
