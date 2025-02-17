@@ -21,6 +21,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
@@ -306,6 +307,12 @@ struct XFormObjectData_Curves : public XFormObjectData {
   virtual ~XFormObjectData_Curves() = default;
 };
 
+struct XFormObjectData_PointCloud : public XFormObjectData {
+  Array<float3> positions;
+  Array<float> radii;
+  virtual ~XFormObjectData_PointCloud() = default;
+};
+
 static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edit_mode)
 {
   if (id == nullptr) {
@@ -463,6 +470,15 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       curves.radius().materialize(xod->radii);
       return xod;
     }
+    case ID_PT: {
+      PointCloud *pointcloud = reinterpret_cast<PointCloud *>(id);
+      auto xod = std::make_unique<XFormObjectData_PointCloud>();
+      xod->id = id;
+      xod->positions = pointcloud->positions();
+      xod->radii.reinitialize(pointcloud->totpoint);
+      pointcloud->radius().materialize(xod->radii);
+      return xod;
+    }
     default: {
       return {};
     }
@@ -614,6 +630,13 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
       copy_transformed_radii(xod.radii, transform, curves.radius_for_write());
       break;
     }
+    case ID_PT: {
+      PointCloud *pointcloud = reinterpret_cast<PointCloud *>(xod_base.id);
+      const auto &xod = reinterpret_cast<const XFormObjectData_PointCloud &>(xod_base);
+      copy_transformed_positions(xod.positions, transform, pointcloud->positions_for_write());
+      copy_transformed_radii(xod.radii, transform, pointcloud->radius_for_write());
+      break;
+    }
     default: {
       break;
     }
@@ -722,6 +745,13 @@ void data_xform_restore(XFormObjectData &xod_base)
       curves.radius_for_write().copy_from(xod.radii);
       break;
     }
+    case ID_PT: {
+      PointCloud *pointcloud = reinterpret_cast<PointCloud *>(xod_base.id);
+      const auto &xod = reinterpret_cast<const XFormObjectData_PointCloud &>(xod_base);
+      pointcloud->positions_for_write().copy_from(xod.positions);
+      pointcloud->radius_for_write().copy_from(xod.radii);
+      break;
+    }
     default: {
       break;
     }
@@ -785,10 +815,17 @@ void data_xform_tag_update(XFormObjectData &xod_base)
       Curves *curves_id = reinterpret_cast<Curves *>(xod_base.id);
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       curves.tag_positions_changed();
+      curves.tag_radii_changed();
       DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
-
+    case ID_PT: {
+      PointCloud *pointcloud = reinterpret_cast<PointCloud *>(xod_base.id);
+      pointcloud->tag_positions_changed();
+      pointcloud->tag_radii_changed();
+      DEG_id_tag_update(&pointcloud->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+      break;
+    }
     default: {
       break;
     }
