@@ -109,9 +109,32 @@ void VKBuffer::clear(VKContext &context, uint32_t clear_value)
   context.render_graph().add_node(fill_buffer);
 }
 
-void VKBuffer::read(VKContext &context, void *data) const
+void VKBuffer::async_flush_to_host(VKContext &context)
+{
+  BLI_assert(async_timeline_ == 0);
+  context.rendering_end();
+  context.descriptor_set_get().upload_descriptor_sets();
+  async_timeline_ = context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
+                                               RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+}
+
+void VKBuffer::read_async(VKContext &context, void *data)
 {
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
+  if (async_timeline_ == 0) {
+    async_flush_to_host(context);
+  }
+  VKDevice &device = VKBackend::get().device;
+  device.wait_for_timeline(async_timeline_);
+  async_timeline_ = 0;
+  memcpy(data, mapped_memory_, size_in_bytes_);
+}
+
+void VKBuffer::read(VKContext &context, void *data) const
+{
+
+  BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
+  BLI_assert(async_timeline_ == 0);
   context.rendering_end();
   context.descriptor_set_get().upload_descriptor_sets();
   context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
