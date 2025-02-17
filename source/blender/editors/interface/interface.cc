@@ -3849,6 +3849,11 @@ uiBlock *UI_block_begin(const bContext *C,
     UI_block_region_set(block, region);
   }
 
+  /* Prevent reallocations on redraw, most of the time blocks layout will be the same. */
+  if (block->oldblock) {
+    block->buttons.reserve(block->oldblock->buttons.size());
+  }
+
   /* Set window matrix and aspect for region and OpenGL state. */
   ui_update_window_matrix(window, region, block);
 
