@@ -311,6 +311,8 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
   const int totpoint = pointcloud_dst->totpoint = pointcloud_src->totpoint;
   CustomData_init_from(&pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, totpoint);
 
+  pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
+  pointcloud_dst->runtime->bvh_cache = pointcloud_src->runtime->bvh_cache;
   BKE_id_free(nullptr, pointcloud_src);
 }
 
