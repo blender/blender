@@ -1789,7 +1789,6 @@ void operatormacros_curves()
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;
 
-  /* Duplicate + Move = Interactively place newly duplicated strokes */
   ot = WM_operatortype_append_macro("CURVES_OT_duplicate_move",
                                     "Duplicate",
                                     "Make copies of selected elements and move them",
@@ -1799,7 +1798,6 @@ void operatormacros_curves()
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 
-  /* Extrude + Move */
   ot = WM_operatortype_append_macro("CURVES_OT_extrude_move",
                                     "Extrude Curve and Move",
                                     "Extrude curve and move result",

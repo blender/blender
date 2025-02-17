@@ -288,4 +288,11 @@ bool select_circle(PointCloud &point_cloud,
   return apply_selection_operation(point_cloud, mask, sel_op);
 }
 
+IndexMask retrieve_selected_points(const PointCloud &pointcloud, IndexMaskMemory &memory)
+{
+  const VArray selection = *pointcloud.attributes().lookup_or_default<bool>(
+      ".selection", bke::AttrDomain::Point, true);
+  return IndexMask::from_bools(selection, memory);
+}
+
 }  // namespace blender::ed::point_cloud

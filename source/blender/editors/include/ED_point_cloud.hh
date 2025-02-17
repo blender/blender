@@ -32,6 +32,7 @@ enum eSelectOp : int8_t;
 namespace blender::ed::point_cloud {
 
 void operatortypes_point_cloud();
+void operatormacros_point_cloud();
 void keymap_point_cloud(wmKeyConfig *keyconf);
 
 VectorSet<PointCloud *> get_unique_editable_point_clouds(const bContext &C);
@@ -90,6 +91,8 @@ bool select_circle(PointCloud &point_cloud,
                    const float radius,
                    const eSelectOp sel_op);
 
+IndexMask retrieve_selected_points(const PointCloud &pointcloud, IndexMaskMemory &memory);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -105,6 +108,7 @@ bool editable_point_cloud_in_edit_mode_poll(bContext *C);
  * \{ */
 
 void POINT_CLOUD_OT_attribute_set(wmOperatorType *ot);
+void POINT_CLOUD_OT_duplicate(wmOperatorType *ot);
 
 /** \} */
 

@@ -54,13 +54,6 @@ static bool active_attribute_poll(bContext *C)
   return true;
 }
 
-static IndexMask retrieve_selected_points(const PointCloud &pointcloud, IndexMaskMemory &memory)
-{
-  const VArray selection = *pointcloud.attributes().lookup_or_default<bool>(
-      ".selection", bke::AttrDomain::Point, true);
-  return IndexMask::from_bools(selection, memory);
-}
-
 static void validate_value(const bke::AttributeAccessor attributes,
                            const StringRef name,
                            const CPPType &type,
