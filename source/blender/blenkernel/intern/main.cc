@@ -712,14 +712,10 @@ void BKE_main_library_weak_reference_add_item(
   BLI_assert(new_id->library_weak_reference == nullptr);
   BLI_assert(BKE_idtype_idcode_append_is_reusable(GS(new_id->name)));
 
-  new_id->library_weak_reference = static_cast<LibraryWeakReference *>(
-      MEM_mallocN(sizeof(*(new_id->library_weak_reference)), __func__));
-
   const LibWeakRefKey key{library_filepath, library_id_name};
   library_weak_reference_mapping->map.add_new(key, new_id);
 
-  STRNCPY(new_id->library_weak_reference->library_filepath, library_filepath);
-  STRNCPY(new_id->library_weak_reference->library_id_name, library_id_name);
+  BKE_main_library_weak_reference_add(new_id, library_filepath, library_id_name);
 }
 
 void BKE_main_library_weak_reference_update_item(
@@ -759,6 +755,35 @@ void BKE_main_library_weak_reference_remove_item(
   library_weak_reference_mapping->map.remove(key);
 
   MEM_SAFE_FREE(old_id->library_weak_reference);
+}
+
+ID *BKE_main_library_weak_reference_find(Main *bmain,
+                                         const char *library_filepath,
+                                         const char *library_id_name)
+{
+  ListBase *id_list = which_libbase(bmain, GS(library_id_name));
+  LISTBASE_FOREACH (ID *, existing_id, id_list) {
+    if (existing_id->library_weak_reference &&
+        STREQ(existing_id->library_weak_reference->library_id_name, library_id_name) &&
+        STREQ(existing_id->library_weak_reference->library_filepath, library_filepath))
+    {
+      return existing_id;
+    }
+  }
+
+  return nullptr;
+}
+
+void BKE_main_library_weak_reference_add(ID *local_id,
+                                         const char *library_filepath,
+                                         const char *library_id_name)
+{
+  if (local_id->library_weak_reference == nullptr) {
+    local_id->library_weak_reference = MEM_cnew<LibraryWeakReference>(__func__);
+  }
+
+  STRNCPY(local_id->library_weak_reference->library_filepath, library_filepath);
+  STRNCPY(local_id->library_weak_reference->library_id_name, library_id_name);
 }
 
 BlendThumbnail *BKE_main_thumbnail_from_buffer(Main *bmain, const uint8_t *rect, const int size[2])

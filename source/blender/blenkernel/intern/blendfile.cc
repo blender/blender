@@ -319,6 +319,12 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
                                 const bool reuse_existing)
 {
   id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+  /* Nothing to move for embedded ID. */
+  if (id->flag & ID_FLAG_EMBEDDED_DATA) {
+    remapper.add(id, id);
+    return true;
+  }
+
   Main *new_bmain = reuse_data->new_bmain;
   Main *old_bmain = reuse_data->old_bmain;
   ListBase *new_lb = which_libbase(new_bmain, GS(id->name));

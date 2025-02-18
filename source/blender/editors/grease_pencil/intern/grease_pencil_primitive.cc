@@ -735,7 +735,7 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
     BKE_curvemapping_init(ts->gp_sculpt.cur_primitive);
   }
 
-  Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
+  Material *material = BKE_grease_pencil_object_material_ensure_from_brush(
       CTX_data_main(C), vc.obact, ptd.brush);
   ptd.material_index = BKE_object_material_index_get(vc.obact, material);
   ptd.use_fill = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;

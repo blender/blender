@@ -478,6 +478,21 @@ void BKE_main_library_weak_reference_remove_item(
     const char *library_id_name,
     ID *old_id) ATTR_NONNULL();
 
+/**
+ * Find local ID with weak library reference matching library and ID name.
+ * For cases where creating a full MainLibraryWeakReferenceMap is unnecessary.
+ */
+ID *BKE_main_library_weak_reference_find(Main *bmain,
+                                         const char *library_filepath,
+                                         const char *library_id_name);
+
+/**
+ * Add library weak reference to ID, referencing the specified library and ID name.
+ * For cases where creating a full MainLibraryWeakReferenceMap is unnecessary.*/
+void BKE_main_library_weak_reference_add(ID *id,
+                                         const char *library_filepath,
+                                         const char *library_id_name);
+
 /* *** Generic utils to loop over whole Main database. *** */
 
 #define FOREACH_MAIN_LISTBASE_ID_BEGIN(_lb, _id) \

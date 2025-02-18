@@ -12,6 +12,7 @@
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
+#include "BKE_asset_edit.hh"
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
@@ -2440,11 +2441,10 @@ Material *BKE_grease_pencil_object_material_new(Main *bmain,
 
 Material *BKE_grease_pencil_object_material_from_brush_get(Object *ob, Brush *brush)
 {
-  if ((brush) && (brush->gpencil_settings) &&
+  if (brush && brush->gpencil_settings &&
       (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED))
   {
-    Material *ma = BKE_grease_pencil_brush_material_get(brush);
-    return ma;
+    return brush->gpencil_settings->material;
   }
 
   return BKE_object_material_get(ob, ob->actcol);
@@ -2463,73 +2463,70 @@ Material *BKE_grease_pencil_object_material_ensure_by_name(Main *bmain,
   return BKE_grease_pencil_object_material_new(bmain, ob, name, r_index);
 }
 
-Material *BKE_grease_pencil_brush_material_get(Brush *brush)
+static Material *grease_pencil_object_material_ensure_from_brush_pinned(Main *bmain,
+                                                                        Object *ob,
+                                                                        Brush *brush)
 {
-  if (brush == nullptr) {
-    return nullptr;
+  Material *ma = (brush->gpencil_settings) ? brush->gpencil_settings->material : nullptr;
+
+  if (ma) {
+    /* Ensure we assign a local datablock if this is an editable asset. */
+    ma = reinterpret_cast<Material *>(blender::bke::asset_edit_id_ensure_local(*bmain, ma->id));
   }
-  if (brush->gpencil_settings == nullptr) {
-    return nullptr;
+
+  /* check if the material is already on object material slots and add it if missing */
+  if (ma && BKE_object_material_index_get(ob, ma) < 0) {
+    /* The object's active material is what's used for the unpinned material. Do not touch it
+     * while using a pinned material. */
+    const bool change_active_material = false;
+
+    BKE_object_material_slot_add(bmain, ob, change_active_material);
+    BKE_object_material_assign(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
   }
-  return brush->gpencil_settings->material;
+
+  return ma;
 }
 
 Material *BKE_grease_pencil_object_material_ensure_from_brush(Main *bmain,
                                                               Object *ob,
                                                               Brush *brush)
 {
-  if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-    Material *ma = BKE_grease_pencil_brush_material_get(brush);
-
-    /* check if the material is already on object material slots and add it if missing */
-    if (ma && BKE_object_material_index_get(ob, ma) < 0) {
-      /* The object's active material is what's used for the unpinned material. Do not touch it
-       * while using a pinned material. */
-      const bool change_active_material = false;
-
-      BKE_object_material_slot_add(bmain, ob, change_active_material);
-      BKE_object_material_assign(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+  /* Use pinned material. */
+  if (brush && brush->gpencil_settings &&
+      (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED))
+  {
+    if (Material *ma = grease_pencil_object_material_ensure_from_brush_pinned(bmain, ob, brush)) {
+      return ma;
     }
 
-    return ma;
-  }
-
-  /* Use the active material instead. */
-  return BKE_object_material_get(ob, ob->actcol);
-}
-
-Material *BKE_grease_pencil_object_material_ensure_from_active_input_brush(Main *bmain,
-                                                                           Object *ob,
-                                                                           Brush *brush)
-{
-  if (brush == nullptr) {
-    return BKE_grease_pencil_object_material_ensure_from_active_input_material(ob);
-  }
-  if (Material *ma = BKE_grease_pencil_object_material_ensure_from_brush(bmain, ob, brush)) {
-    return ma;
-  }
-  if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
     /* It is easier to just unpin a null material, instead of setting a new one. */
     brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
   }
-  return BKE_grease_pencil_object_material_ensure_from_active_input_material(ob);
-}
 
-Material *BKE_grease_pencil_object_material_ensure_from_active_input_material(Object *ob)
-{
+  /* Use the active material. */
   if (Material *ma = BKE_object_material_get(ob, ob->actcol)) {
     return ma;
   }
+
+  /* Fall back to default material. */
   return BKE_material_default_gpencil();
 }
 
-Material *BKE_grease_pencil_object_material_ensure_active(Object *ob)
+Material *BKE_grease_pencil_object_material_alt_ensure_from_brush(Main *bmain,
+                                                                  Object *ob,
+                                                                  Brush *brush)
 {
-  Material *ma = BKE_grease_pencil_object_material_ensure_from_active_input_material(ob);
-  if (ma->gp_style == nullptr) {
-    BKE_gpencil_material_attr_init(ma);
+  Material *material_alt = (brush->gpencil_settings) ? brush->gpencil_settings->material_alt :
+                                                       nullptr;
+  if (material_alt) {
+    material_alt = reinterpret_cast<Material *>(
+        blender::bke::asset_edit_id_find_local(*bmain, material_alt->id));
+    if (material_alt && BKE_object_material_slot_find_index(ob, material_alt) != -1) {
+      return material_alt;
+    }
   }
-  return ma;
+
+  return BKE_grease_pencil_object_material_ensure_from_brush(bmain, ob, brush);
 }
 
 void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *remap, int totcol)
