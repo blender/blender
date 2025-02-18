@@ -401,6 +401,7 @@ if(WITH_BLENDER)
       greasepencil_layer_group
       grid
       grip
+      grip_v
       group
       group_bone
       group_uvs
