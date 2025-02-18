@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
 #include "DNA_object_enums.h"
 
 #include "GPU_material.hh"
@@ -105,8 +106,7 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat);
 
 /* Viewport. */
 
-const float *DRW_viewport_size_get();
-const float *DRW_viewport_invert_size_get();
+blender::float2 DRW_viewport_size_get();
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get();
 DefaultTextureList *DRW_viewport_texture_list_get();

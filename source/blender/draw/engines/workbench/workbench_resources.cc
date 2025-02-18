@@ -109,7 +109,7 @@ void SceneResources::init(const SceneState &scene_state)
   const View3DShading &shading = scene_state.shading;
 
   world_buf.viewport_size = DRW_viewport_size_get();
-  world_buf.viewport_size_inv = DRW_viewport_invert_size_get();
+  world_buf.viewport_size_inv = 1.0f / world_buf.viewport_size;
   world_buf.xray_alpha = shading.xray_alpha;
   world_buf.background_color = scene_state.background_color;
   world_buf.object_outline_color = float4(float3(shading.object_outline_color), 1.0f);

@@ -208,9 +208,7 @@ void DRW_globals_update()
 
   gb->pixel_fac = (ctx->rv3d) ? ctx->rv3d->pixsize : 1.0f;
 
-  copy_v2_v2(&gb->size_viewport[0], DRW_viewport_size_get());
-  copy_v2_v2(&gb->size_viewport[2], &gb->size_viewport[0]);
-  invert_v2(&gb->size_viewport[2]);
+  gb->size_viewport = float4(DRW_viewport_size_get(), 1.0f / DRW_viewport_size_get());
 
   /* Color management. */
   {

@@ -284,14 +284,9 @@ DupliObject *DRW_object_get_dupli(const Object * /*ob*/)
 /** \name Viewport (DRW_viewport)
  * \{ */
 
-const float *DRW_viewport_size_get()
+blender::float2 DRW_viewport_size_get()
 {
-  return DST.size;
-}
-
-const float *DRW_viewport_invert_size_get()
-{
-  return DST.inv_size;
+  return blender::float2(DST.size);
 }
 
 /* Not a viewport variable, we could split this out. */

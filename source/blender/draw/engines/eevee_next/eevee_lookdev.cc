@@ -333,13 +333,14 @@ void LookdevModule::sync_display()
 {
   PassSimple &pass = display_ps_;
 
+  const float2 viewport_size = DRW_viewport_size_get();
   const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
                          DRW_STATE_BLEND_ALPHA;
   pass.init();
   pass.state_set(state);
   pass.shader_set(inst_.shaders.static_shader_get(LOOKDEV_DISPLAY));
-  pass.push_constant("viewportSize", float2(DRW_viewport_size_get()));
-  pass.push_constant("invertedViewportSize", float2(DRW_viewport_invert_size_get()));
+  pass.push_constant("viewportSize", viewport_size);
+  pass.push_constant("invertedViewportSize", 1.0f / viewport_size);
   pass.push_constant("anchor", int2(visible_rect_.xmax, visible_rect_.ymin));
   pass.bind_texture("metallic_tx", &spheres_[0].color_tx_);
   pass.bind_texture("diffuse_tx", &spheres_[1].color_tx_);

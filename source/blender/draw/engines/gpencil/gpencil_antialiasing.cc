@@ -15,7 +15,7 @@
 
 void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
 {
-  const float *size_f = DRW_viewport_size_get();
+  const float2 size_f = DRW_viewport_size_get();
   const int2 size(size_f[0], size_f[1]);
   const float4 metrics = {1.0f / size[0], 1.0f / size[1], float(size[0]), float(size[1])};
 

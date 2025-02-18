@@ -110,7 +110,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
   else {
     /* Modify by distance to camera and object scale. */
     winmat = blender::draw::View::default_get().winmat();
-    const float *vp_size = DRW_viewport_size_get();
+    const float2 vp_size = DRW_viewport_size_get();
     float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
     float scale = mat4_to_scale(ob->object_to_world().ptr());
     float distance_factor = world_pixel_scale * scale * winmat[1][1] * vp_size[1] / w;
@@ -170,8 +170,8 @@ static void gpencil_vfx_rim(RimShaderFxData *fx, Object *ob, gpIterVfxData *iter
   float blur_size[2] = {float(fx->blur[0]), float(fx->blur[1])};
   winmat = blender::draw::View::default_get().winmat();
   persmat = blender::draw::View::default_get().persmat();
-  const float *vp_size = DRW_viewport_size_get();
-  const float *vp_size_inv = DRW_viewport_invert_size_get();
+  const float2 vp_size = DRW_viewport_size_get();
+  const float2 vp_size_inv = 1.0f / vp_size;
 
   const float w = fabsf(mul_project_m4_v3_zfac(persmat.ptr(), ob->object_to_world().location()));
 
@@ -242,8 +242,8 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
   float ob_center[3], pixsize_uniform[2];
   winmat = blender::draw::View::default_get().winmat();
   persmat = blender::draw::View::default_get().persmat();
-  const float *vp_size = DRW_viewport_size_get();
-  const float *vp_size_inv = DRW_viewport_invert_size_get();
+  const float2 vp_size = DRW_viewport_size_get();
+  const float2 vp_size_inv = 1.0f / vp_size;
   float pixel_size[2] = {float(fx->size[0]), float(fx->size[1])};
   mul_v2_v2(pixel_size, vp_size_inv);
 
@@ -310,8 +310,8 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
   float blur_size[2] = {float(fx->blur[0]), float(fx->blur[1])};
   winmat = blender::draw::View::default_get().winmat();
   persmat = blender::draw::View::default_get().persmat();
-  const float *vp_size = DRW_viewport_size_get();
-  const float *vp_size_inv = DRW_viewport_invert_size_get();
+  const float2 vp_size = DRW_viewport_size_get();
+  const float2 vp_size_inv = 1.0f / vp_size;
   const float ratio = vp_size_inv[1] / vp_size_inv[0];
 
   copy_v3_v3(rot_center,
@@ -492,8 +492,8 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
   float wave_ofs[3], wave_dir[3], wave_phase;
   winmat = blender::draw::View::default_get().winmat();
   persmat = blender::draw::View::default_get().persmat();
-  const float *vp_size = DRW_viewport_size_get();
-  const float *vp_size_inv = DRW_viewport_invert_size_get();
+  const float2 vp_size = DRW_viewport_size_get();
+  const float2 vp_size_inv = 1.0f / vp_size;
 
   const float w = fabsf(mul_project_m4_v3_zfac(persmat.ptr(), ob->object_to_world().location()));
   mul_v3_m4v3(wave_center, persmat.ptr(), ob->object_to_world().location());
@@ -549,7 +549,7 @@ static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxD
   float swirl_center[3];
   winmat = blender::draw::View::default_get().winmat();
   persmat = blender::draw::View::default_get().persmat();
-  const float *vp_size = DRW_viewport_size_get();
+  const float2 vp_size = DRW_viewport_size_get();
 
   copy_v3_v3(swirl_center, fx->object->object_to_world().location());
 

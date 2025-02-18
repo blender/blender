@@ -73,6 +73,7 @@ struct DRWData {
   /** Per draw-call curves object data. */
   blender::draw::CurvesUniformBufPool *curves_ubos;
   blender::draw::CurveRefinePass *curves_refine;
+  /** Default view that feeds every engine. */
   blender::draw::View *default_view;
 };
 

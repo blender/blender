@@ -82,7 +82,7 @@ static void eevee_engine_init(void *vedata)
     }
 
     if (DRW_state_is_viewport_image_render()) {
-      const float *vp_size = DRW_viewport_size_get();
+      const float2 vp_size = DRW_viewport_size_get();
       visible_rect.xmax = vp_size[0];
       visible_rect.ymax = vp_size[1];
       visible_rect.xmin = visible_rect.ymin = 0;
