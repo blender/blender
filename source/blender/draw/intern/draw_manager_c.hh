@@ -19,13 +19,11 @@
 #include "GPU_batch.hh"
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
-#include "GPU_shader.hh"
 #include "GPU_viewport.hh"
 
 #include "draw_instance_data.hh"
 
 struct DRWDebugModule;
-struct DRWTexturePool;
 struct DRWUniformChunk;
 struct DRWViewData;
 struct DRWTextStore;
@@ -70,11 +68,6 @@ struct DRWData {
   void *volume_grids_ubos; /* VolumeUniformBufPool */
   /** List of smoke textures to free after drawing. */
   ListBase smoke_textures;
-  /**
-   * Texture pool to reuse temp texture across engines.
-   * TODO(@fclem): The pool could be shared even between view-ports.
-   */
-  DRWTexturePool *texture_pool;
   /** Per stereo view data. Contains engine data and default frame-buffers. */
   DRWViewData *view_data[2];
   /** Per draw-call curves object data. */
@@ -142,8 +135,6 @@ struct DRWManager {
   /** True, when drawing is in progress, see #DRW_draw_in_progress. */
   bool in_progress;
 
-  uint primary_view_num;
-
   TaskGraph *task_graph;
   /* Contains list of objects that needs to be extracted from other objects. */
   GSet *delayed_extraction;
@@ -182,12 +173,6 @@ void drw_batch_cache_generate_requested(Object *ob);
  */
 void drw_batch_cache_generate_requested_delayed(Object *ob);
 void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob);
-
-/* Procedural Drawing */
-blender::gpu::Batch *drw_cache_procedural_points_get();
-blender::gpu::Batch *drw_cache_procedural_lines_get();
-blender::gpu::Batch *drw_cache_procedural_triangles_get();
-blender::gpu::Batch *drw_cache_procedural_triangle_strips_get();
 
 namespace blender::draw {
 
