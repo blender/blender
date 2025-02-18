@@ -3650,7 +3650,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
       ui_but_active_free(C, but);
     }
     else {
-      MEM_delete(but->active);
+      MEM_freeN(but->active);
     }
   }
 
