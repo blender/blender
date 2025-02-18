@@ -1023,12 +1023,12 @@ static void vgroup_grease_pencil_select_verts(const Scene &scene,
     const int def_nr = BKE_defgroup_name_index(&vertex_group_names, def_group->name);
     if (def_nr < 0) {
       /* No vertices assigned to the group in this drawing. */
-      return;
+      continue;
     }
 
     const Span<MDeformVert> dverts = curves.deform_verts();
     if (dverts.is_empty()) {
-      return;
+      continue;
     }
 
     GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
