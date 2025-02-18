@@ -2198,16 +2198,7 @@ Mesh *dynamicPaint_Modifier_do(
 /* Create a surface for uv image sequence format. */
 #define JITTER_SAMPLES \
   { \
-      0.0f, \
-      0.0f, \
-      -0.2f, \
-      -0.4f, \
-      0.2f, \
-      0.4f, \
-      0.4f, \
-      -0.2f, \
-      -0.4f, \
-      0.3f, \
+    0.0f, 0.0f, -0.2f, -0.4f, 0.2f, 0.4f, 0.4f, -0.2f, -0.4f, 0.3f, \
   }
 
 struct DynamicPaintCreateUVSurfaceData {
