@@ -17,6 +17,7 @@
 
 #include "GPU_debug.hh"
 #include "GPU_platform.hh"
+#include "gpu_profile_report.hh"
 
 #include "CLG_log.h"
 
@@ -25,8 +26,6 @@
 #include "gl_uniform_buffer.hh"
 
 #include "gl_debug.hh"
-
-#include <cstdio>
 
 static CLG_LogRef LOG = {"gpu.debug"};
 
@@ -398,6 +397,24 @@ void GLContext::debug_group_begin(const char *name, int index)
     index += 10;
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, index, -1, name);
   }
+
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  TimeQuery query = {};
+  query.name = name;
+  query.finished = false;
+
+  glGetInteger64v(GL_TIMESTAMP, &query.cpu_start);
+  /* Use GL_TIMESTAMP instead of GL_ELAPSED_TIME to support nested debug groups */
+  glGenQueries(2, query.handles);
+  glQueryCounter(query.handle_start, GL_TIMESTAMP);
+
+  if (frame_timings.is_empty()) {
+    frame_timings.append({});
+  }
+  frame_timings.last().queries.append(query);
 }
 
 void GLContext::debug_group_end()
@@ -407,6 +424,79 @@ void GLContext::debug_group_end()
   {
     glPopDebugGroup();
   }
+
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  Vector<TimeQuery> &queries = frame_timings.last().queries;
+  for (int i = queries.size() - 1; i >= 0; i--) {
+    TimeQuery &query = queries[i];
+    if (!query.finished) {
+      query.finished = true;
+      glQueryCounter(query.handle_end, GL_TIMESTAMP);
+      glGetInteger64v(GL_TIMESTAMP, &query.cpu_end);
+      break;
+    }
+    if (i == 0) {
+      std::cout << "Profile GPU error: Extra GPU_debug_group_end() call.\n";
+    }
+  }
+}
+
+void GLContext::process_frame_timings()
+{
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  for (int frame_i = 0; frame_i < frame_timings.size(); frame_i++) {
+    Vector<TimeQuery> &queries = frame_timings[frame_i].queries;
+
+    GLint frame_is_ready = 0;
+    bool frame_is_valid = !queries.is_empty();
+    int last_query = -1;
+
+    for (int i = queries.size() - 1; i >= 0; i--) {
+      if (!queries[i].finished) {
+        frame_is_valid = false;
+        std::cout << "Profile GPU error: Missing GPU_debug_group_end() call\n";
+      }
+      else {
+        last_query = i;
+        glGetQueryObjectiv(queries.last().handle_end, GL_QUERY_RESULT_AVAILABLE, &frame_is_ready);
+      }
+      break;
+    }
+
+    if (!frame_is_valid) {
+      /* Cleanup. */
+      for (TimeQuery &query : queries) {
+        glDeleteQueries(2, query.handles);
+      }
+      frame_timings.remove(frame_i--);
+      continue;
+    }
+
+    if (!frame_is_ready) {
+      break;
+    }
+
+    for (TimeQuery &query : queries) {
+      GLuint64 gpu_start = 0;
+      GLuint64 gpu_end = 0;
+      glGetQueryObjectui64v(query.handle_start, GL_QUERY_RESULT, &gpu_start);
+      glGetQueryObjectui64v(query.handle_end, GL_QUERY_RESULT, &gpu_end);
+      glDeleteQueries(2, query.handles);
+
+      ProfileReport::get().add_group(
+          query.name, gpu_start, gpu_end, query.cpu_start, query.cpu_end);
+    }
+
+    frame_timings.remove(frame_i--);
+  }
+
+  frame_timings.append({});
 }
 
 bool GLContext::debug_capture_begin(const char *title)

@@ -21,7 +21,7 @@ using namespace blender::gpu;
 
 void GPU_debug_group_begin(const char *name)
 {
-  if (!(G.debug & G_DEBUG_GPU)) {
+  if (!(G.debug & G_DEBUG_GPU) && !G.profile_gpu) {
     return;
   }
   Context *ctx = Context::get();
@@ -32,7 +32,7 @@ void GPU_debug_group_begin(const char *name)
 
 void GPU_debug_group_end()
 {
-  if (!(G.debug & G_DEBUG_GPU)) {
+  if (!(G.debug & G_DEBUG_GPU) && !G.profile_gpu) {
     return;
   }
   Context *ctx = Context::get();

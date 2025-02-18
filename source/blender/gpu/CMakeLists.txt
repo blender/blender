@@ -142,6 +142,7 @@ set(SRC
   intern/gpu_node_graph.hh
   intern/gpu_platform_private.hh
   intern/gpu_private.hh
+  intern/gpu_profile_report.hh
   intern/gpu_query.hh
   intern/gpu_select_private.hh
   intern/gpu_shader_create_info.hh

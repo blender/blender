@@ -90,6 +90,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
 
 GLContext::~GLContext()
 {
+  process_frame_timings();
   free_framebuffers();
   BLI_assert(orphaned_framebuffers_.is_empty());
   BLI_assert(orphaned_vertarrays_.is_empty());
@@ -161,7 +162,7 @@ void GLContext::begin_frame()
 
 void GLContext::end_frame()
 {
-  /* No-op. */
+  process_frame_timings();
 }
 
 /** \} */

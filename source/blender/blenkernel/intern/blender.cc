@@ -207,6 +207,8 @@ void BKE_blender_globals_init()
 #endif
 
   G.log.level = 1;
+
+  G.profile_gpu = false;
 }
 
 void BKE_blender_globals_clear()
