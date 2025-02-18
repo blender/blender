@@ -85,7 +85,6 @@
 #include "draw_manager_text.hh"
 #include "draw_shader.hh"
 #include "draw_subdivision.hh"
-#include "draw_texture_pool.hh"
 #include "draw_view_c.hh"
 
 /* only for callbacks */
@@ -334,8 +333,6 @@ DRWData *DRW_viewport_data_create()
 {
   DRWData *drw_data = static_cast<DRWData *>(MEM_callocN(sizeof(DRWData), "DRWData"));
 
-  drw_data->texture_pool = DRW_texture_pool_create();
-
   drw_data->idatalist = DRW_instance_data_list_create();
 
   drw_data->default_view = new blender::draw::View("DrawDefaultView");
@@ -351,14 +348,12 @@ static void drw_viewport_data_reset(DRWData *drw_data)
   DRW_instance_data_list_free_unused(drw_data->idatalist);
   DRW_instance_data_list_resize(drw_data->idatalist);
   DRW_instance_data_list_reset(drw_data->idatalist);
-  DRW_texture_pool_reset(drw_data->texture_pool);
   blender::gpu::TexturePool::get().reset();
 }
 
 void DRW_viewport_data_free(DRWData *drw_data)
 {
   DRW_instance_data_list_free(drw_data->idatalist);
-  DRW_texture_pool_free(drw_data->texture_pool);
   for (int i = 0; i < 2; i++) {
     DRW_view_data_free(drw_data->view_data[i]);
   }

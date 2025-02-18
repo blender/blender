@@ -84,7 +84,6 @@ set(SRC
   intern/draw_sculpt.cc
   intern/draw_select_buffer.cc
   intern/draw_shader.cc
-  intern/draw_texture_pool.cc
   intern/draw_view.cc
   intern/draw_view_c.cc
   intern/draw_view_data.cc
@@ -186,7 +185,6 @@ set(SRC
   intern/draw_shader_shared.hh
   intern/draw_state.hh
   intern/draw_subdivision.hh
-  intern/draw_texture_pool.hh
   intern/draw_view.hh
   intern/draw_view_c.hh
   intern/draw_view_data.hh
