@@ -2860,14 +2860,11 @@ void DRW_engines_free()
   DRW_shaders_free();
   DRW_pointcloud_free();
   DRW_volume_free();
-  DRW_globals_free();
 
   drw_debug_module_free(DST.debug);
   DST.debug = nullptr;
 
   GPU_UBO_FREE_SAFE(G_draw.block_ubo);
-  GPU_TEXTURE_FREE_SAFE(G_draw.ramp);
-  GPU_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
 
   DRW_gpu_context_disable();
 }

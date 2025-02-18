@@ -34,7 +34,6 @@ class CurvesModule;
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 
 void DRW_globals_update();
-void DRW_globals_free();
 
 /* draw_hair.cc */
 
@@ -99,8 +98,5 @@ struct DRW_Global {
   GlobalsUboStorage block;
   /** Define "globalsBlock" uniform for 'block'. */
   GPUUniformBuf *block_ubo;
-
-  GPUTexture *ramp;
-  GPUTexture *weight_ramp;
 };
 extern DRW_Global G_draw;

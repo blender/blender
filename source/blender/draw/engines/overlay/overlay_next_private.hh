@@ -665,7 +665,6 @@ struct Resources : public select::SelectMap {
   GlobalsUboStorage theme_settings;
   /* References, not owned. */
   GPUUniformBuf *globals_buf;
-  TextureRef weight_ramp_tx;
   /* Wrappers around #DefaultTextureList members. */
   TextureRef depth_in_front_tx;
   TextureRef color_overlay_tx;
@@ -685,6 +684,12 @@ struct Resources : public select::SelectMap {
    */
   TextureRef depth_target_tx;
   TextureRef depth_target_in_front_tx;
+
+  /** Copy of the settings the current texture was generated with. Used to detect updates. */
+  bool weight_ramp_custom = false;
+  ColorBand weight_ramp_copy = {};
+  /** Baked color ramp texture from theme and user settings. Maps weight [0..1] to color. */
+  Texture weight_ramp_tx = {"weight_ramp"};
 
   Vector<MovieClip *> bg_movie_clips;
 

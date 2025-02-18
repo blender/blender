@@ -158,6 +158,8 @@ class Instance {
   void draw_node(Manager &manager, View &view);
   void draw_v2d(Manager &manager, View &view);
   void draw_v3d(Manager &manager, View &view);
+
+  void ensure_weight_ramp_texture();
 };
 
 }  // namespace blender::draw::overlay

@@ -6,6 +6,7 @@
  * \ingroup overlay
  */
 
+#include "BKE_colorband.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "ED_view3d.hh"
@@ -109,7 +110,9 @@ void Instance::init()
   /* TODO(fclem): Remove DRW global usage. */
   resources.globals_buf = G_draw.block_ubo;
   resources.theme_settings = G_draw.block;
-  resources.weight_ramp_tx.wrap(G_draw.weight_ramp);
+
+  ensure_weight_ramp_texture();
+
   {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
     if (resources.dummy_depth_tx.ensure_2d(GPU_DEPTH_COMPONENT32F, int2(1, 1), usage)) {
@@ -117,6 +120,82 @@ void Instance::init()
       GPU_texture_update_sub(resources.dummy_depth_tx, GPU_DATA_FLOAT, &data, 0, 0, 0, 1, 1, 1);
     }
   }
+}
+
+void Instance::ensure_weight_ramp_texture()
+{
+  /* Weight Painting color ramp texture */
+  bool user_weight_ramp = (U.flag & USER_CUSTOM_RANGE) != 0;
+
+  auto is_equal = [](const ColorBand &a, const ColorBand &b) {
+    if (a.tot != b.tot || a.cur != b.cur || a.ipotype != b.ipotype ||
+        a.ipotype_hue != b.ipotype_hue || a.color_mode != b.color_mode)
+    {
+      return false;
+    }
+
+    auto is_equal_cbd = [](const CBData &a, const CBData &b) {
+      return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a && a.pos == b.pos &&
+             a.cur == b.cur;
+    };
+
+    for (int i = 0; i < ARRAY_SIZE(a.data); i++) {
+      if (!is_equal_cbd(a.data[i], b.data[i])) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  if (assign_if_different(resources.weight_ramp_custom, user_weight_ramp)) {
+    resources.weight_ramp_tx.free();
+  }
+
+  if (user_weight_ramp && !is_equal(resources.weight_ramp_copy, U.coba_weight)) {
+    resources.weight_ramp_copy = U.coba_weight;
+    resources.weight_ramp_tx.free();
+  }
+
+  if (resources.weight_ramp_tx.is_valid()) {
+    /* Only recreate on updates. */
+    return;
+  }
+
+  auto evaluate_weight_to_color = [&](const float weight, float result[4]) {
+    if (user_weight_ramp) {
+      BKE_colorband_evaluate(&U.coba_weight, weight, result);
+    }
+    else {
+      /* Use gamma correction to even out the color bands:
+       * increasing widens yellow/cyan vs red/green/blue.
+       * Gamma 1.0 produces the original 2.79 color ramp. */
+      const float gamma = 1.5f;
+      const float hsv[3] = {
+          (2.0f / 3.0f) * (1.0f - weight), 1.0f, pow(0.5f + 0.5f * weight, gamma)};
+
+      hsv_to_rgb_v(hsv, result);
+
+      for (int i = 0; i < 3; i++) {
+        result[i] = pow(result[i], 1.0f / gamma);
+      }
+    }
+  };
+
+  constexpr int res = 256;
+
+  float pixels[res][4];
+  for (int i = 0; i < res; i++) {
+    evaluate_weight_to_color(i / 255.0f, pixels[i]);
+    pixels[i][3] = 1.0f;
+  }
+
+  uchar4 pixels_ubyte[res];
+  for (int i = 0; i < res; i++) {
+    unit_float_to_uchar_clamp_v4(pixels_ubyte[i], pixels[i]);
+  }
+
+  resources.weight_ramp_tx.ensure_1d(GPU_SRGB8_A8, res, GPU_TEXTURE_USAGE_SHADER_READ);
+  GPU_texture_update(resources.weight_ramp_tx, GPU_DATA_UBYTE, pixels_ubyte);
 }
 
 void Instance::begin_sync()
