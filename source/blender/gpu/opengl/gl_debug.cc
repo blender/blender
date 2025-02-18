@@ -455,7 +455,6 @@ void GLContext::process_frame_timings()
 
     GLint frame_is_ready = 0;
     bool frame_is_valid = !queries.is_empty();
-    int last_query = -1;
 
     for (int i = queries.size() - 1; i >= 0; i--) {
       if (!queries[i].finished) {
@@ -463,7 +462,6 @@ void GLContext::process_frame_timings()
         std::cout << "Profile GPU error: Missing GPU_debug_group_end() call\n";
       }
       else {
-        last_query = i;
         glGetQueryObjectiv(queries.last().handle_end, GL_QUERY_RESULT_AVAILABLE, &frame_is_ready);
       }
       break;
