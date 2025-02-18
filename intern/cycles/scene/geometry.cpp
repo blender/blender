@@ -941,12 +941,28 @@ void GeometryManager::device_update(Device *device,
     });
     TaskPool pool;
 
+    /* Work around Embree/oneAPI bug #129596 with BVH updates. */
+    const bool use_multithreaded_build = first_bvh_build ||
+                                         !device->info.contains_device_type(DEVICE_ONEAPI);
+    first_bvh_build = false;
+
     size_t i = 0;
     foreach (Geometry *geom, scene->geometry) {
       if (geom->is_modified() || geom->need_update_bvh_for_offset) {
         need_update_scene_bvh = true;
-        pool.push(function_bind(
-            &Geometry::compute_bvh, geom, device, dscene, &scene->params, &progress, i, num_bvh));
+        if (use_multithreaded_build) {
+          pool.push(function_bind(&Geometry::compute_bvh,
+                                  geom,
+                                  device,
+                                  dscene,
+                                  &scene->params,
+                                  &progress,
+                                  i,
+                                  num_bvh));
+        }
+        else {
+          geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
+        }
         if (geom->need_build_bvh(bvh_layout)) {
           i++;
         }

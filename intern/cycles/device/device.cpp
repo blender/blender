@@ -806,4 +806,17 @@ void GPUDevice::generic_copy_to(device_memory &mem)
 
 /* DeviceInfo */
 
+bool DeviceInfo::contains_device_type(const DeviceType type) const
+{
+  if (this->type == type) {
+    return true;
+  }
+  for (const DeviceInfo &info : multi_devices) {
+    if (info.contains_device_type(type)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 CCL_NAMESPACE_END
