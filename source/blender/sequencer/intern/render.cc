@@ -1482,7 +1482,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
   is_frame_update = (orig_data.timeline_frame != scene->r.cfra) ||
                     (orig_data.subframe != scene->r.subframe);
 
-  if (sequencer_view3d_fn && is_preview && camera && BLI_thread_is_main()) {
+  if (sequencer_view3d_fn && is_preview && camera) {
     char err_out[256] = "unknown";
     int width, height;
     BKE_render_resolution(&scene->r, false, &width, &height);
