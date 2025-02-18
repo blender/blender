@@ -420,6 +420,9 @@ enum {
    * \note Can be checked without checking #BLF_MONOSPACED which can be assumed to be disabled.
    */
   BLF_RENDER_SUBPIXELAA = 1 << 18,
+
+  /* Do not look in other fonts when a glyph is not found in this font. */
+  BLF_NO_FALLBACK = 1 << 19,
 };
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024

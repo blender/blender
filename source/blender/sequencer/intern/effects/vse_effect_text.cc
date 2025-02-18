@@ -553,12 +553,21 @@ namespace blender::seq {
 
 static void text_draw(const TextVarsRuntime *runtime, float color[4])
 {
+  const bool use_fallback = (runtime->font <= 1);
+  if (!use_fallback) {
+    BLF_enable(runtime->font, BLF_NO_FALLBACK);
+  }
+
   for (const LineInfo &line : runtime->lines) {
     for (const CharInfo &character : line.characters) {
       BLF_position(runtime->font, character.position.x, character.position.y, 0.0f);
       BLF_buffer_col(runtime->font, color);
       BLF_draw_buffer(runtime->font, character.str_ptr, character.byte_length);
     }
+  }
+
+  if (!use_fallback) {
+    BLF_disable(runtime->font, BLF_NO_FALLBACK);
   }
 }
 
@@ -805,6 +814,12 @@ static blender::Vector<CharInfo> build_character_info(const TextVars *data, int 
   const size_t len_max = BLI_strnlen(data->text, sizeof(data->text));
   int byte_offset = 0;
   int char_index = 0;
+
+  const bool use_fallback = (font <= 1);
+  if (!use_fallback) {
+    BLF_enable(font, BLF_NO_FALLBACK);
+  }
+
   while (byte_offset <= len_max) {
     const char *str = data->text + byte_offset;
     const int char_length = BLI_str_utf8_size_safe(str);
@@ -819,6 +834,11 @@ static blender::Vector<CharInfo> build_character_info(const TextVars *data, int 
     byte_offset += char_length;
     char_index++;
   }
+
+  if (!use_fallback) {
+    BLF_disable(font, BLF_NO_FALLBACK);
+  }
+
   return characters;
 }
 
