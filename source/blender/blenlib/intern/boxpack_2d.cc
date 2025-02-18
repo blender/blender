@@ -20,10 +20,6 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wpadded"
-#endif
-
 /* de-duplicate as we pack */
 #define USE_MERGE
 /* use strip-free */
@@ -38,10 +34,13 @@ struct BoxVert {
   float x;
   float y;
 
-  int free : 8; /* vert status */
-  uint used : 1;
-  uint _pad : 23;
+  int free; /* vert status */
+  bool used;
   uint index;
+
+#ifdef USE_PACK_BIAS
+  float bias;
+#endif
 
   BoxPack *trb; /* top right box */
   BoxPack *blb; /* bottom left box */
@@ -51,16 +50,7 @@ struct BoxVert {
   /* Store last intersecting boxes here
    * speedup intersection testing */
   BoxPack *isect_cache[4];
-
-#ifdef USE_PACK_BIAS
-  float bias;
-  int _pad2;
-#endif
 };
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic ignored "-Wpadded"
-#endif
 
 /* free vert flags */
 #define EPSILON 0.0000001f
@@ -459,7 +449,7 @@ void BLI_box_pack_2d(
             tot_y = max_ff(box_ymax_get(box), tot_y);
 
             /* Place the box */
-            vert->free &= (signed char)~quad_flag(j);
+            vert->free &= ~quad_flag(j);
 
             switch (j) {
               case TR:
