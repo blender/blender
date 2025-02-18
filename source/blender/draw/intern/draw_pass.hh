@@ -46,7 +46,9 @@
 
 #include "BKE_image.hh"
 
+#include "GPU_batch.hh"
 #include "GPU_debug.hh"
+#include "GPU_index_buffer.hh"
 #include "GPU_material.hh"
 
 #include "DRW_gpu_wrapper.hh"
@@ -54,7 +56,6 @@
 #include "draw_command.hh"
 #include "draw_handle.hh"
 #include "draw_manager.hh"
-#include "draw_pass.hh"
 #include "draw_shader_shared.hh"
 #include "draw_state.hh"
 

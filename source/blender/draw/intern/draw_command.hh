@@ -18,6 +18,7 @@
 #include "BLI_math_base.h"
 #include "DRW_gpu_wrapper.hh"
 
+#include "GPU_index_buffer.hh"
 #include "draw_command_shared.hh"
 #include "draw_handle.hh"
 #include "draw_state.hh"

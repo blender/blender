@@ -5,6 +5,7 @@
 #include "testing/testing.h"
 
 #include "GPU_batch.hh"
+#include "GPU_context.hh"
 #include "draw_shader.hh"
 #include "draw_testing.hh"
 #include "engines/eevee_next/eevee_lut.hh"

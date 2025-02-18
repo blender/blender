@@ -17,6 +17,7 @@
  * setting `drw_view_id` accordingly.
  */
 
+#include "DNA_view3d_types.h"
 #include "DRW_gpu_wrapper.hh"
 #include "GPU_matrix.hh"
 

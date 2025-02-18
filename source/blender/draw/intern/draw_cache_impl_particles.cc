@@ -8,6 +8,7 @@
  * \brief Particle API for render engines
  */
 
+#include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
 #include "MEM_guardedalloc.h"

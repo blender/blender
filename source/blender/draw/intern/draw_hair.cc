@@ -8,6 +8,7 @@
  * \brief Contains procedural GPU hair drawing methods.
  */
 
+#include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
 #include "BLI_math_matrix.h"
@@ -30,6 +31,7 @@
 #include "draw_common_c.hh"
 #include "draw_hair_private.hh"
 #include "draw_manager.hh"
+#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_shader_shared.hh"
 

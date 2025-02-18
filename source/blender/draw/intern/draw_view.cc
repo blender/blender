@@ -10,9 +10,11 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 
+#include "DRW_render.hh"
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 
+#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_view.hh"
 

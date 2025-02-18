@@ -6,6 +6,7 @@
  * \ingroup draw
  */
 
+#include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
 #include "gpencil_engine.h"

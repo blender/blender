@@ -6,6 +6,7 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
+#include "GPU_context.hh"
 
 #include "draw_cache.hh"
 #include "draw_manager.hh"

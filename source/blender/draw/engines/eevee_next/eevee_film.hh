@@ -33,6 +33,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 
+#include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
 #include "eevee_shader_shared.hh"

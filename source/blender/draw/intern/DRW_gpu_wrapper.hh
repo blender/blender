@@ -59,7 +59,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_manager_c.hh"
 #include "BKE_global.hh"
 
 #include "BLI_math_vector_types.hh"

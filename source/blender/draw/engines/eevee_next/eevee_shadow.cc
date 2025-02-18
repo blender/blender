@@ -12,6 +12,7 @@
 #include "GPU_batch_utils.hh"
 #include "GPU_compute.hh"
 
+#include "GPU_context.hh"
 #include "eevee_instance.hh"
 
 #include "GPU_debug.hh"

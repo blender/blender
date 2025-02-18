@@ -22,6 +22,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
 
+#include "GPU_context.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "RE_pipeline.h"

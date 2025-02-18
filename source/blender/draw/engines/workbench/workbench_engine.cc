@@ -22,6 +22,7 @@
 
 #include "BLT_translation.hh"
 
+#include "GPU_context.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "RE_engine.h"
