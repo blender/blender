@@ -268,6 +268,16 @@ def main():
             [OperatorSpecEditMode("fill_grid", {"use_interp_simple": True}, "EDGE",
                                   {1, 2, 3, 4, 5, 7, 9, 10, 11, 12, 13, 15})],
         ),
+        SpecMeshTest(
+            "PlaneFillGridReplaceExistingTris", "testPlaneFillGridReplaceExisting",
+            "expectedPlaneFillGridReplaceExistingTris",
+            [OperatorSpecEditMode("fill_grid", {}, "EDGE", {44, 60, 45, 68, 43, 75, 76, 73, 74, 70, 33, 59, 35, 67})],
+        ),
+        SpecMeshTest(
+            "PlaneFillGridReplaceExistingQuads", "testPlaneFillGridReplaceExisting",
+            "expectedPlaneFillGridReplaceExistingQuads",
+            [OperatorSpecEditMode("fill_grid", {}, "FACE", {3, 4, 5, 9, 10, 11, 14, 15, 16})],
+        ),
 
         # fill holes
         SpecMeshTest(
