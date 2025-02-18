@@ -68,7 +68,6 @@ set(SRC
   intern/draw_cache_impl_volume.cc
   intern/draw_color_management.cc
   intern/draw_command.cc
-  intern/draw_common.cc
   intern/draw_curves.cc
   intern/draw_debug.cc
   intern/draw_fluid.cc

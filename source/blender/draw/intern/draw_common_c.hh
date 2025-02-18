@@ -27,13 +27,8 @@ struct Scene;
 struct DRWData;
 namespace blender::draw {
 class Manager;
-class CurvesModule;
+struct CurvesModule;
 }  // namespace blender::draw
-
-/* Keep in sync with globalsBlock in shaders */
-BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
-
-void DRW_globals_update();
 
 /* draw_hair.cc */
 
@@ -88,15 +83,3 @@ void DRW_smoke_free(FluidModifierData *fmd);
 
 void DRW_smoke_init(DRWData *drw_data);
 void DRW_smoke_exit(DRWData *drw_data);
-
-/* `draw_common.cc` */
-
-struct DRW_Global {
-  /** If needed, contains all global/Theme colors
-   * Add needed theme colors / values to DRW_globals_update() and update UBO
-   * Not needed for constant color. */
-  GlobalsUboStorage block;
-  /** Define "globalsBlock" uniform for 'block'. */
-  GPUUniformBuf *block_ubo;
-};
-extern DRW_Global G_draw;

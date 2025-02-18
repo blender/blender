@@ -431,8 +431,8 @@ class Cameras : Overlay {
     int track_index = 1;
 
     float4 bundle_color_custom;
-    float *bundle_color_solid = G_draw.block.color_bundle_solid;
-    float *bundle_color_unselected = G_draw.block.color_wire;
+    float *bundle_color_solid = res.theme_settings.color_bundle_solid;
+    float *bundle_color_unselected = res.theme_settings.color_wire;
     uchar4 text_color_selected, text_color_unselected;
     /* Color Management: Exception here as texts are drawn in sRGB space directly. */
     UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);

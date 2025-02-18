@@ -113,7 +113,7 @@ void SceneResources::init(const SceneState &scene_state)
   world_buf.xray_alpha = shading.xray_alpha;
   world_buf.background_color = scene_state.background_color;
   world_buf.object_outline_color = float4(float3(shading.object_outline_color), 1.0f);
-  world_buf.ui_scale = DRW_state_is_image_render() ? 1.0f : G_draw.block.size_pixel;
+  world_buf.ui_scale = DRW_state_is_image_render() ? 1.0f : U.pixelsize;
   world_buf.matcap_orientation = (shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
 
   StudioLight *studio_light = nullptr;
