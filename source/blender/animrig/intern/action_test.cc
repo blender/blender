@@ -1208,11 +1208,11 @@ TEST_F(ActionLayersTest, action_move_slot)
   PointerRNA cube_rna_pointer = RNA_id_pointer_create(&cube->id);
   PointerRNA suzanne_rna_pointer = RNA_id_pointer_create(&suzanne->id);
 
-  action_fcurve_ensure(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
-  action_fcurve_ensure(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
+  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
 
-  action_fcurve_ensure(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"location", 0});
-  action_fcurve_ensure(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"rotation_euler", 1});
+  action_fcurve_ensure_ex(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"rotation_euler", 1});
 
   ASSERT_EQ(action->layer_array_num, 1);
   ASSERT_EQ(action_2->layer_array_num, 1);

@@ -4691,12 +4691,12 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(const bAnimListElem *ale)
   /* init the typeinfo if not available yet... */
   ANIM_init_channel_typeinfo_data();
 
-  /* check if type is in bounds... */
-  if ((ale->type >= 0) && (ale->type < ANIMTYPE_NUM_TYPES)) {
-    return animchannelTypeInfo[ale->type];
+  BLI_assert(ale->type < ANIMTYPE_NUM_TYPES);
+  if (ale->type >= ANIMTYPE_NUM_TYPES) {
+    return nullptr;
   }
 
-  return nullptr;
+  return animchannelTypeInfo[ale->type];
 }
 
 /* --------------------------- */

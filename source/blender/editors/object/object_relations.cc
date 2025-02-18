@@ -546,7 +546,7 @@ bool parent_set(ReportList *reports,
         /* get or create F-Curve */
         bAction *act = animrig::id_action_ensure(bmain, &cu->id);
         PointerRNA id_ptr = RNA_id_pointer_create(&cu->id);
-        FCurve *fcu = animrig::action_fcurve_ensure(
+        FCurve *fcu = animrig::action_fcurve_ensure_ex(
             bmain, act, nullptr, &id_ptr, {"eval_time", 0});
 
         /* setup dummy 'generator' modifier here to get 1-1 correspondence still working */

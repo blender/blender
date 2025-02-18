@@ -2596,11 +2596,11 @@ Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
   return found;
 }
 
-FCurve *action_fcurve_ensure(Main *bmain,
-                             bAction *act,
-                             const char group[],
-                             PointerRNA *ptr,
-                             FCurveDescriptor fcurve_descriptor)
+FCurve *action_fcurve_ensure_ex(Main *bmain,
+                                bAction *act,
+                                const char group[],
+                                PointerRNA *ptr,
+                                FCurveDescriptor fcurve_descriptor)
 {
   if (act == nullptr) {
     return nullptr;
@@ -2626,13 +2626,21 @@ FCurve *action_fcurve_ensure(Main *bmain,
    * hold, or if this is even the best place to handle the layered action
    * cases at all, was leading to discussion of larger changes than made sense
    * to tackle at that point. */
-  Action &action = act->wrap();
-
   BLI_assert(ptr != nullptr);
   if (ptr == nullptr || ptr->owner_id == nullptr) {
     return nullptr;
   }
-  ID &animated_id = *ptr->owner_id;
+
+  return action_fcurve_ensure(bmain, *act, *ptr->owner_id, fcurve_descriptor);
+}
+
+FCurve *action_fcurve_ensure(Main *bmain,
+                             bAction &dna_action,
+                             ID &animated_id,
+                             FCurveDescriptor fcurve_descriptor)
+{
+  Action &action = dna_action.wrap();
+
   BLI_assert(get_action(animated_id) == &action);
   if (get_action(animated_id) != &action) {
     return nullptr;
@@ -2641,7 +2649,9 @@ FCurve *action_fcurve_ensure(Main *bmain,
   /* Ensure the id has an assigned slot. */
   Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
   if (!slot) {
-    /* This means the ID type is not animatable. */
+    /* This means the ID type is not animatable. How did an Action get assigned
+     * in the first place? */
+    BLI_assert_unreachable();
     return nullptr;
   }
 
