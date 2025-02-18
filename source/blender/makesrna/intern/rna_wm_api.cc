@@ -443,7 +443,7 @@ static void rna_KeyMap_item_remove(wmKeyMap *km, ReportList *reports, PointerRNA
   }
 
   WM_keymap_remove_item(km, kmi);
-  RNA_POINTER_INVALIDATE(kmi_ptr);
+  kmi_ptr->invalidate();
 }
 
 static PointerRNA rna_KeyMap_item_find_from_operator(ID *id,
@@ -538,7 +538,7 @@ static void rna_KeyMaps_remove(wmKeyConfig *keyconfig, ReportList *reports, Poin
   }
 
   WM_keymap_remove(keyconfig, keymap);
-  RNA_POINTER_INVALIDATE(keymap_ptr);
+  keymap_ptr->invalidate();
 }
 
 static void rna_KeyMaps_clear(wmKeyConfig *keyconfig)
@@ -559,7 +559,7 @@ static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, Point
     return;
   }
   WM_keyconfig_remove(wm, keyconf);
-  RNA_POINTER_INVALIDATE(keyconf_ptr);
+  keyconf_ptr->invalidate();
 }
 
 static PointerRNA rna_KeyConfig_find_item_from_operator(wmWindowManager *wm,

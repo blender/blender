@@ -405,7 +405,7 @@ static void rna_LineStyle_color_modifier_remove(FreestyleLineStyle *linestyle,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(modifier_ptr);
+  modifier_ptr->invalidate();
 
   DEG_id_tag_update(&linestyle->id, 0);
   WM_main_add_notifier(NC_LINESTYLE, linestyle);
@@ -440,7 +440,7 @@ static void rna_LineStyle_alpha_modifier_remove(FreestyleLineStyle *linestyle,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(modifier_ptr);
+  modifier_ptr->invalidate();
 
   DEG_id_tag_update(&linestyle->id, 0);
   WM_main_add_notifier(NC_LINESTYLE, linestyle);
@@ -476,7 +476,7 @@ static void rna_LineStyle_thickness_modifier_remove(FreestyleLineStyle *linestyl
     return;
   }
 
-  RNA_POINTER_INVALIDATE(modifier_ptr);
+  modifier_ptr->invalidate();
 
   DEG_id_tag_update(&linestyle->id, 0);
   WM_main_add_notifier(NC_LINESTYLE, linestyle);
@@ -511,7 +511,7 @@ static void rna_LineStyle_geometry_modifier_remove(FreestyleLineStyle *linestyle
     return;
   }
 
-  RNA_POINTER_INVALIDATE(modifier_ptr);
+  modifier_ptr->invalidate();
 
   DEG_id_tag_update(&linestyle->id, 0);
   WM_main_add_notifier(NC_LINESTYLE, linestyle);

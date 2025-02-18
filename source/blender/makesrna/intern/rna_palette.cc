@@ -48,7 +48,7 @@ static void rna_Palette_color_remove(Palette *palette, ReportList *reports, Poin
 
   BKE_palette_color_remove(palette, color);
 
-  RNA_POINTER_INVALIDATE(color_ptr);
+  color_ptr->invalidate();
 }
 
 static void rna_Palette_color_clear(Palette *palette)

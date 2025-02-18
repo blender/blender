@@ -1450,7 +1450,7 @@ static void rna_Strip_modifier_remove(Strip *strip,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(smd_ptr);
+  smd_ptr->invalidate();
   SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);

@@ -835,12 +835,6 @@ std::optional<blender::StringRefNull> RNA_translate_ui_text(
 short RNA_type_to_ID_code(const StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
-#define RNA_POINTER_INVALIDATE(ptr) \
-  { \
-    *(ptr) = PointerRNA_NULL; \
-  } \
-  (void)0
-
 /* macro which inserts the function name */
 #if defined __GNUC__
 #  define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)

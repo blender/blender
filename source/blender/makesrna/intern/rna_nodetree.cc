@@ -1281,7 +1281,7 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree,
 
   blender::bke::node_remove_node(bmain, ntree, node, true);
 
-  RNA_POINTER_INVALIDATE(node_ptr);
+  node_ptr->invalidate();
 
   BKE_main_ensure_invariants(*bmain, ntree->id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
@@ -1462,7 +1462,7 @@ static void rna_NodeTree_link_remove(bNodeTree *ntree,
   }
 
   blender::bke::node_remove_link(ntree, link);
-  RNA_POINTER_INVALIDATE(link_ptr);
+  link_ptr->invalidate();
 
   BKE_main_ensure_invariants(*bmain, ntree->id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);

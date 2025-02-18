@@ -525,7 +525,7 @@ static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA 
   AttributeOwner owner = AttributeOwner::from_id(id);
   const CustomDataLayer *layer = (const CustomDataLayer *)attribute_ptr->data;
   BKE_attribute_remove(owner, layer->name, reports);
-  RNA_POINTER_INVALIDATE(attribute_ptr);
+  attribute_ptr->invalidate();
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -917,7 +917,7 @@ static void rna_AttributeGroupGreasePencilDrawing_remove(ID *grease_pencil_id,
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
   const CustomDataLayer *layer = (const CustomDataLayer *)attribute_ptr->data;
   BKE_attribute_remove(owner, layer->name, reports);
-  RNA_POINTER_INVALIDATE(attribute_ptr);
+  attribute_ptr->invalidate();
 
   DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);

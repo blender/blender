@@ -407,7 +407,7 @@ static void rna_Mask_layers_remove(Mask *mask, ReportList *reports, PointerRNA *
   }
 
   BKE_mask_layer_remove(mask, masklay);
-  RNA_POINTER_INVALIDATE(masklay_ptr);
+  masklay_ptr->invalidate();
 
   WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
@@ -445,7 +445,7 @@ static void rna_MaskLayer_spline_remove(ID *id,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(spline_ptr);
+  spline_ptr->invalidate();
 
   DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
 }
@@ -590,7 +590,7 @@ static void rna_MaskSpline_point_remove(ID *id,
   WM_main_add_notifier(NC_MASK | ND_DATA, mask);
   DEG_id_tag_update(&mask->id, 0);
 
-  RNA_POINTER_INVALIDATE(point_ptr);
+  point_ptr->invalidate();
 }
 
 #else

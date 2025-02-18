@@ -415,7 +415,7 @@ static void rna_ColorRampElement_remove(ColorBand *coba,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(element_ptr);
+  element_ptr->invalidate();
 }
 
 static void rna_CurveMap_remove_point(CurveMap *cuma, ReportList *reports, PointerRNA *point_ptr)
@@ -426,7 +426,7 @@ static void rna_CurveMap_remove_point(CurveMap *cuma, ReportList *reports, Point
     return;
   }
 
-  RNA_POINTER_INVALIDATE(point_ptr);
+  point_ptr->invalidate();
 }
 
 static void rna_Scopes_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

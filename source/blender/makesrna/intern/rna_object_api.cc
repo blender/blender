@@ -494,7 +494,7 @@ static void rna_Object_shape_key_remove(Object *ob,
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 
-  RNA_POINTER_INVALIDATE(kb_ptr);
+  kb_ptr->invalidate();
 }
 
 static void rna_Object_shape_key_clear(Object *ob, Main *bmain)

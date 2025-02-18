@@ -68,7 +68,7 @@ static void rna_XrComponentPath_remove(XrActionMapBinding *amb, PointerRNA *comp
   if (idx != -1) {
     BLI_freelinkN(&amb->component_paths, component_path);
   }
-  RNA_POINTER_INVALIDATE(component_path_ptr);
+  component_path_ptr->invalidate();
 #  else
   UNUSED_VARS(amb, component_path_ptr);
 #  endif
@@ -122,7 +122,7 @@ static void rna_XrActionMapBinding_remove(XrActionMapItem *ami,
                 ami->name);
     return;
   }
-  RNA_POINTER_INVALIDATE(amb_ptr);
+  amb_ptr->invalidate();
 #  else
   UNUSED_VARS(ami, reports, amb_ptr);
 #  endif
@@ -257,7 +257,7 @@ static void rna_XrUserPath_remove(XrActionMapItem *ami, PointerRNA *user_path_pt
   if (idx != -1) {
     BLI_freelinkN(&ami->user_paths, user_path);
   }
-  RNA_POINTER_INVALIDATE(user_path_ptr);
+  user_path_ptr->invalidate();
 #  else
   UNUSED_VARS(ami, user_path_ptr);
 #  endif
@@ -306,7 +306,7 @@ static void rna_XrActionMapItem_remove(XrActionMap *am, ReportList *reports, Poi
         reports, RPT_ERROR, "ActionMapItem '%s' cannot be removed from '%s'", ami->name, am->name);
     return;
   }
-  RNA_POINTER_INVALIDATE(ami_ptr);
+  ami_ptr->invalidate();
 #  else
   UNUSED_VARS(am, reports, ami_ptr);
 #  endif
@@ -596,7 +596,7 @@ static void rna_XrActionMap_remove(ReportList *reports, PointerRNA *ptr, Pointer
     BKE_reportf(reports, RPT_ERROR, "ActionMap '%s' cannot be removed", actionmap->name);
     return;
   }
-  RNA_POINTER_INVALIDATE(actionmap_ptr);
+  actionmap_ptr->invalidate();
 #  else
   UNUSED_VARS(ptr, reports, actionmap_ptr);
 #  endif

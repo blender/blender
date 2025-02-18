@@ -124,7 +124,7 @@ static void rna_Main_ID_remove(Main *bmain,
   }
   if (do_unlink) {
     BKE_id_delete(bmain, id);
-    RNA_POINTER_INVALIDATE(id_ptr);
+    id_ptr->invalidate();
     /* Force full redraw, mandatory to avoid crashes when running this from UI... */
     WM_main_add_notifier(NC_WINDOW, nullptr);
   }
@@ -133,7 +133,7 @@ static void rna_Main_ID_remove(Main *bmain,
                      (do_ui_user ? 0 : LIB_ID_FREE_NO_UI_USER);
     /* Still using ID flags here, this is in-between commit anyway... */
     BKE_id_free_ex(bmain, id, flag, true);
-    RNA_POINTER_INVALIDATE(id_ptr);
+    id_ptr->invalidate();
   }
   else {
     BKE_reportf(

@@ -848,7 +848,7 @@ static void rna_KeyingSet_paths_remove(KeyingSet *keyingset,
 
   /* remove the active path from the KeyingSet */
   BKE_keyingset_free_path(keyingset, ksp);
-  RNA_POINTER_INVALIDATE(ksp_ptr);
+  ksp_ptr->invalidate();
 
   /* the active path number will most likely have changed */
   /* TODO: we should get more fancy and actually check if it was removed,
@@ -909,7 +909,7 @@ static void rna_NlaTrack_remove(
   }
 
   BKE_nlatrack_remove_and_free(&adt->nla_tracks, track, true);
-  RNA_POINTER_INVALIDATE(track_ptr);
+  track_ptr->invalidate();
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, nullptr);
 

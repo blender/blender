@@ -474,7 +474,7 @@ static void rna_Driver_remove_variable(ChannelDriver *driver,
   }
 
   driver_free_variable_ex(driver, dvar);
-  RNA_POINTER_INVALIDATE(dvar_ptr);
+  dvar_ptr->invalidate();
 }
 
 /* ****************************** */
@@ -766,7 +766,7 @@ static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, Pointe
 
   remove_fmodifier(&fcu->modifiers, fcm);
   DEG_id_tag_update(fcm_ptr->owner_id, ID_RECALC_ANIMATION);
-  RNA_POINTER_INVALIDATE(fcm_ptr);
+  fcm_ptr->invalidate();
 }
 
 static void rna_FModifier_active_set(PointerRNA *ptr, bool /*value*/)
@@ -1099,7 +1099,7 @@ static void rna_FKeyframe_points_remove(
   }
 
   BKE_fcurve_delete_key(fcu, index);
-  RNA_POINTER_INVALIDATE(bezt_ptr);
+  bezt_ptr->invalidate();
 
   if (!do_fast) {
     BKE_fcurve_handles_recalc(fcu);
@@ -1215,7 +1215,7 @@ static void rna_FModifierEnvelope_points_remove(
     }
     env->totvert = 0;
   }
-  RNA_POINTER_INVALIDATE(point);
+  point->invalidate();
 }
 
 static void rna_Keyframe_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)

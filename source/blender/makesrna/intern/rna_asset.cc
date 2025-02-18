@@ -165,7 +165,7 @@ static void rna_AssetMetaData_tag_remove(ID *id,
   }
 
   BKE_asset_metadata_tag_remove(asset_data, tag);
-  RNA_POINTER_INVALIDATE(tag_ptr);
+  tag_ptr->invalidate();
 }
 
 static IDProperty **rna_AssetMetaData_idprops(PointerRNA *ptr)

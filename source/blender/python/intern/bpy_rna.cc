@@ -176,7 +176,7 @@ int pyrna_prop_validity_check(const BPy_PropertyRNA *self)
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
-  RNA_POINTER_INVALIDATE(&self->ptr.value());
+  self->ptr->invalidate();
 }
 
 #ifdef USE_PYRNA_INVALIDATE_GC

@@ -94,6 +94,23 @@ struct PointerRNA {
       : owner_id(owner_id), type(type), data(data), ancestors(parents)
   {
   }
+
+  /** Reset the pointer to its initial empty state, such that it equals to PointerRNA_NULL. */
+  void reset()
+  {
+    *this = {};
+  }
+
+  /**
+   * Make the pointer invalid.
+   *
+   * This is espacially important for the Python API, as any access to an invalid PointerRNA should
+   * raise an exception in bpy code.
+   */
+  void invalidate()
+  {
+    this->reset();
+  }
 };
 
 extern const PointerRNA PointerRNA_NULL;

@@ -537,7 +537,7 @@ static void rna_Strips_remove(
 
   SEQ_edit_flag_for_removal(scene, seqbase, strip);
   SEQ_edit_remove_flagged_sequences(scene, seqbase);
-  RNA_POINTER_INVALIDATE(strip_ptr);
+  strip_ptr->invalidate();
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);

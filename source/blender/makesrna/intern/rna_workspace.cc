@@ -82,7 +82,7 @@ static void rna_WorkSpace_owner_ids_remove(WorkSpace *workspace,
   }
 
   MEM_freeN(owner_id);
-  RNA_POINTER_INVALIDATE(wstag_ptr);
+  wstag_ptr->invalidate();
 
   WM_main_add_notifier(NC_WINDOW, nullptr);
 }

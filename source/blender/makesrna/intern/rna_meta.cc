@@ -129,7 +129,7 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Poin
   }
 
   MEM_freeN(ml);
-  RNA_POINTER_INVALIDATE(ml_ptr);
+  ml_ptr->invalidate();
 
   /* cheating way for importers to avoid slow updates */
   if (mb->id.us > 0) {
