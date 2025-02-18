@@ -2198,7 +2198,16 @@ Mesh *dynamicPaint_Modifier_do(
 /* Create a surface for uv image sequence format. */
 #define JITTER_SAMPLES \
   { \
-    0.0f, 0.0f, -0.2f, -0.4f, 0.2f, 0.4f, 0.4f, -0.2f, -0.4f, 0.3f, \
+      0.0f, \
+      0.0f, \
+      -0.2f, \
+      -0.4f, \
+      0.2f, \
+      0.4f, \
+      0.4f, \
+      -0.2f, \
+      -0.4f, \
+      0.3f, \
   }
 
 struct DynamicPaintCreateUVSurfaceData {
@@ -4338,6 +4347,8 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
         add_v3_v3(avg_brushNor, nor);
       }
     }
+
+    mesh->tag_positions_changed();
 
     if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
       mul_v3_fl(avg_brushNor, 1.0f / float(numOfVerts));
