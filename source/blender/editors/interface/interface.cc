@@ -3639,7 +3639,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
       ui_but_semi_modal_state_free(C, but);
     }
     else {
-      MEM_freeN(but->semi_modal_state);
+      ui_but_handle_data_free(&but->semi_modal_state);
     }
   }
   if (but->active) {
@@ -3650,7 +3650,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
       ui_but_active_free(C, but);
     }
     else {
-      MEM_freeN(but->active);
+      ui_but_handle_data_free(&but->active);
     }
   }
 

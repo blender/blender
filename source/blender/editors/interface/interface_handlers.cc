@@ -564,6 +564,18 @@ static bool but_copypaste_profile_alive = false;
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Struct allocation & freeing
+ * \{ */
+
+void ui_but_handle_data_free(uiHandleButtonData **data)
+{
+  MEM_delete(*data);
+  *data = nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name UI Queries
  * \{ */
 
@@ -8954,7 +8966,7 @@ static void button_activate_exit(
   BLI_assert(!but->semi_modal_state || but->semi_modal_state == but->active);
   but->semi_modal_state = nullptr;
   /* clean up button */
-  MEM_SAFE_FREE(but->active);
+  ui_but_handle_data_free(&but->active);
 
   but->flag &= ~(UI_HOVER | UI_SELECT);
   but->flag |= UI_BUT_LAST_ACTIVE;
