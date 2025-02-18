@@ -4483,12 +4483,13 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   int rows = 0;
 
   const wmWindow *win = CTX_wm_window(C);
+
+  /* Calculate the maximum number of rows that can fit in half the height of this window. */
   const float row_height = float(UI_UNIT_Y) / but->block->aspect;
-  /* Calculate max_rows from how many rows can fit in this window. */
   const float vertical_space = (float(WM_window_native_pixel_y(win)) / 2.0f) - (UI_UNIT_Y * 3.0f);
   const int max_rows = int(vertical_space / row_height) - 1;
-  float text_width = 0.0f;
 
+  float text_width = 0.0f;
   BLF_size(BLF_default(), UI_style_get()->widget.points * UI_SCALE_FAC);
   int col_rows = 0;
   float col_width = 0.0f;
@@ -4518,12 +4519,16 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   text_width += col_width;
   text_width /= but->block->aspect;
 
-  /* Wrap long single-column lists. */
   if (categories == 0) {
+    /* Long lists without categories (section titles) can be wrapped
+     * to any nice combination of columns and rows. First use (long-
+     * standing) code that wraps most lists pleasantly. */
     columns = std::max((totitems + 20) / 20, 1);
     if (columns > 8) {
       columns = (totitems + 25) / 25;
     }
+    /* If above results in more rows than can fit in available vertical
+     * space, then break it into columns of rows of maximum length. */
     if ((totitems / columns) > max_rows) {
       columns = std::max((totitems + col_rows) / max_rows, 1);
     }
@@ -4533,7 +4538,8 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     }
   }
 
-  /* If the estimated width is greater than available size, collapse to one column. */
+  /* If the estimated width of the menu is wider than the width of
+   * this window, then we have to collapse it to a single column. */
   if (columns > 1 && text_width > WM_window_native_pixel_x(win)) {
     columns = 1;
     rows = totitems;
