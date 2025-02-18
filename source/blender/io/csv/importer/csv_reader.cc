@@ -39,8 +39,7 @@ static Vector<StringRef> parse_column_names(const StringRef line)
     delim_index = line.find_first_of(delim, delim_index + 1);
   }
 
-  /* Handle last cell, --end because the end in StringRef is one_after_ern */
-  columns.append_as(cell_start, --end);
+  columns.append_as(cell_start, end);
 
   return columns;
 }
@@ -87,8 +86,7 @@ static bool get_column_types(const StringRef line, Vector<eCustomDataType> &colu
     delim_index = line.find_first_of(delim, delim_index + 1);
   }
 
-  /* Handle last cell, --end because the end in StringRef is one_after_ern */
-  std::optional<eCustomDataType> column_type = get_column_type(cell_start, --end);
+  std::optional<eCustomDataType> column_type = get_column_type(cell_start, end);
   if (!column_type.has_value()) {
     return false;
   }
@@ -192,9 +190,7 @@ static void parse_csv_line(const Span<GMutableSpan> data,
     delim_index = line.find_first_of(delim, delim_index + 1);
   }
 
-  /* Handle last cell, --end because the end in StringRef is one_after_ern */
-  parse_csv_cell(
-      data, types, column_names, row_index, col_index, cell_start, --end, import_params);
+  parse_csv_cell(data, types, column_names, row_index, col_index, cell_start, end, import_params);
 }
 
 static void parse_csv_data(const Span<GMutableSpan> data,
