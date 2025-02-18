@@ -39,11 +39,6 @@ struct ViewportEngineData {
 
   /* we may want to put this elsewhere */
   DRWTextStore *text_draw_cache;
-
-  /* Profiling data */
-  double init_time;
-  double render_time;
-  double background_time;
 };
 
 struct ViewportEngineData_Info {

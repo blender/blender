@@ -854,13 +854,9 @@ void DRW_cache_free_old_batches(Main *bmain)
 static void drw_engines_init()
 {
   DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
-    PROFILE_START(stime);
-
     if (engine->engine_init) {
       engine->engine_init(data);
     }
-
-    PROFILE_END_UPDATE(data->init_time, stime);
   }
 }
 
@@ -944,7 +940,6 @@ static void drw_engines_cache_finish()
 static void drw_engines_draw_scene()
 {
   DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
-    PROFILE_START(stime);
     if (engine->draw_scene) {
       GPU_debug_group_begin(engine->idname);
       engine->draw_scene(data);
@@ -954,7 +949,6 @@ static void drw_engines_draw_scene()
       }
       GPU_debug_group_end();
     }
-    PROFILE_END_UPDATE(data->render_time, stime);
   }
   /* Reset state after drawing */
   blender::draw::command::StateSet::set();
@@ -963,13 +957,9 @@ static void drw_engines_draw_scene()
 static void drw_engines_draw_text()
 {
   DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
-    PROFILE_START(stime);
-
     if (data->text_draw_cache) {
       DRW_text_cache_draw(data->text_draw_cache, DST.draw_ctx.region, DST.draw_ctx.v3d);
     }
-
-    PROFILE_END_UPDATE(data->render_time, stime);
   }
 }
 
@@ -1521,7 +1511,6 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
 
   /* Cache filling */
   {
-    PROFILE_START(stime);
     drw_engines_cache_init();
     drw_engines_world_update(scene);
 
@@ -1554,11 +1543,6 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
-
-#ifdef USE_PROFILE
-    double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
-    PROFILE_END_UPDATE(*cache_time, stime);
-#endif
   }
 
   GPU_framebuffer_bind(DST.default_framebuffer);
@@ -2038,7 +2022,6 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
 
   /* Cache filling */
   {
-    PROFILE_START(stime);
     drw_engines_cache_init();
 
     /* Only iterate over objects when overlay uses object data. */
@@ -2053,11 +2036,6 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
     }
 
     drw_engines_cache_finish();
-
-#ifdef USE_PROFILE
-    double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
-    PROFILE_END_UPDATE(*cache_time, stime);
-#endif
   }
   drw_task_graph_deinit();
 
