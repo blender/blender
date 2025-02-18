@@ -2742,9 +2742,15 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   if (state.fps_average + 0.5f < state.fps_target) {
     /* Always show fractional when under performing. */
     show_fractional = true;
-    float alert_color[4];
-    UI_GetThemeColorBlend4f(TH_REDALERT, TH_TEXT_HI, 0.5f, alert_color);
-    BLF_color4fv(font_id, alert_color);
+    float alert_rgb[4];
+    float alert_hsv[4];
+    UI_GetThemeColor4fv(TH_REDALERT, alert_rgb);
+    /* Brighten since we favor dark shadows to increase contrast.
+     * This gives similar results to the old hardcoded 225, 36, 36. */
+    rgb_to_hsv_v(alert_rgb, alert_hsv);
+    alert_hsv[2] = 1.0;
+    hsv_to_rgb_v(alert_hsv, alert_rgb);
+    BLF_color4fv(font_id, alert_rgb);
   }
 
   if (show_fractional) {
