@@ -92,7 +92,7 @@ if(WIN32)
   list(APPEND DPCPP_EXTRA_ARGS
     -DPython3_FIND_REGISTRY=NEVER
     -Dzstd_LIBRARY=${LIBDIR}/zstd/lib/zstd_static.lib
-    )
+  )
 else()
   list(APPEND DPCPP_EXTRA_ARGS
     -Dzstd_LIBRARY=${LIBDIR}/zstd/lib/libzstd.a

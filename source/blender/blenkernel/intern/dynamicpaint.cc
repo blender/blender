@@ -4339,6 +4339,8 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
       }
     }
 
+    mesh->tag_positions_changed();
+
     if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
       mul_v3_fl(avg_brushNor, 1.0f / float(numOfVerts));
       /* instead of null vector use positive z */

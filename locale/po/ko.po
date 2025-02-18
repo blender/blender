@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 15:22+0000\n"
+"POT-Creation-Date: 2025-02-17 14:06+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23906,56 +23906,12 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
+msgid "Mirror"
+msgstr "미러"
 
 
 msgid "Snap"
 msgstr "스냅"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Mirror"
-msgstr "미러"
 
 
 msgid "UV Mapping"
@@ -24010,6 +23966,10 @@ msgid "Assign Material"
 msgstr "매테리얼을 할당"
 
 
+msgid "Metaball"
+msgstr "메타볼"
+
+
 msgid "Light"
 msgstr "라이트"
 
@@ -24042,6 +24002,14 @@ msgid "Quick Effects"
 msgstr "빠른 이펙트"
 
 
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
 msgid "Asset"
 msgstr "에셋"
 
@@ -24068,6 +24036,10 @@ msgstr "사이에서"
 
 msgid "Propagate"
 msgstr "전파"
+
+
+msgid "Names"
+msgstr "이름"
 
 
 msgid "Toggle Bone Options"
@@ -24100,6 +24072,34 @@ msgstr "페이스 강도를 설정"
 
 msgid "Merge"
 msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
 
 
 msgid "Basic"
@@ -55443,10 +55443,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
 msgid "View Lock"
 msgstr "뷰 잠금"
 
@@ -55521,6 +55517,10 @@ msgstr "입체 영상"
 
 msgid "Multi Frame"
 msgstr "다중 프레임"
+
+
+msgid "Active Tool"
+msgstr "활성 도구"
 
 
 msgid "Bone Constraints"

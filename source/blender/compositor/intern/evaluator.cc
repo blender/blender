@@ -237,6 +237,12 @@ void Evaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *oper
   for (const auto item : operation->get_inputs_to_linked_outputs_map().items()) {
     Result &result = compile_state.get_result_from_output_socket(item.value);
     operation->map_input_to_result(item.key, &result);
+
+    /* Correct the reference count of the result in case multiple of the result's outgoing links
+     * corresponds to a single input in the pixel operation. See the description of the member
+     * inputs_to_reference_counts_map_ variable for more information. */
+    const int internal_reference_count = operation->get_internal_input_reference_count(item.key);
+    result.decrement_reference_count(internal_reference_count - 1);
   }
 }
 

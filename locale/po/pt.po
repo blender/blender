@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-02-10 15:22+0000\n"
-"PO-Revision-Date: 2025-02-10 15:22+0000\n"
+"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"PO-Revision-Date: 2025-02-17 14:06+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -88,6 +88,10 @@ msgstr "Agrupamento de Curvas-F para efeitos de exibição, por exemplo no Plano
 
 msgid "Slot"
 msgstr "Compartimentos"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "O Compartimento para o qual o a animação do Saco do Canal é"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -4781,6 +4785,14 @@ msgstr "Há persistência"
 
 msgid "Has Pinch Factor"
 msgstr "Há fator para pinçar"
+
+
+msgid "Has Plane Depth"
+msgstr "Tem Profundidade de Plano"
+
+
+msgid "Has Plane Height"
+msgstr "Tem Altura de Plano"
 
 
 msgid "Has Plane Offset"
@@ -19621,6 +19633,34 @@ msgid "Active paint curve"
 msgstr "Curva de pintura activa"
 
 
+msgid "The maximum distance below the plane for affected vertices. Increasing the depth affects vertices farther below the plane."
+msgstr "A distância máxima abaixo do plano para vértices afectados. Aumentar a profundidade afecta vértices a maior distância abaixo do plano."
+
+
+msgid "The maximum distance above the plane for affected vertices. Increasing the height affects vertices farther above the plane."
+msgstr "A distância máxima acima do plano para vértices afectados. Aumentar a altura afecta vértices a maior distância acima do plano."
+
+
+msgid "Inversion Mode"
+msgstr "Modo de Inversão"
+
+
+msgid "Invert Displacement"
+msgstr "Inverter Deslocamento"
+
+
+msgid "Displace the vertices away from the plane."
+msgstr "Deslocar os vértices para longe do plano"
+
+
+msgid "Swap Height and Depth"
+msgstr "Trocar Altura e Profundidade"
+
+
+msgid "Swap the roles of Height and Depth."
+msgstr "Trocar o papel da Altura e Profundidadeq"
+
+
 msgid "Plane Offset"
 msgstr "Deslocamento de plano"
 
@@ -19795,6 +19835,11 @@ msgstr "Raspar"
 
 
 msgctxt "Brush"
+msgid "Plane"
+msgstr "Plano"
+
+
+msgctxt "Brush"
 msgid "Multi-plane Scrape"
 msgstr "Raspar Multi-Plano"
 
@@ -19939,6 +19984,22 @@ msgstr "Modifica a totalidade da malha usando deformação elástica"
 
 msgid "Spacing between brush daubs as a percentage of brush diameter"
 msgstr "Espaçamento entre rabiscos de pincel como uma porcentagem do diâmetro do pincel."
+
+
+msgid "Stabilize Normal"
+msgstr "Estabilizar Normal"
+
+
+msgid "Stabilize the orientation of the brush plane."
+msgstr "Estabilizar a orientação do plano do pincel."
+
+
+msgid "Stabilize Plane"
+msgstr "Estabilizar Plano"
+
+
+msgid "Stabilize the center of the brush plane."
+msgstr "Estabilizar o centro do plano do pincel."
 
 
 msgid "Stencil Dimensions"
@@ -34284,68 +34345,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "Snap"
 msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edição de Máscara"
-
-
-msgid "Automasking"
-msgstr "Auto Máscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edições de Conjuntos de Faces"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueios de Grupos de Vértices"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -34400,6 +34405,10 @@ msgid "Assign Material"
 msgstr "Aplicar Material"
 
 
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
 msgid "Light"
 msgstr "Leve"
 
@@ -34432,6 +34441,14 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Asset"
 msgstr "Recurso"
 
@@ -34450,6 +34467,10 @@ msgstr "Vincular/Transferir Dados"
 
 msgid "Hooks"
 msgstr "Ganchos"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueios de Grupos de Vértices"
 
 
 msgid "Trim/Add"
@@ -34484,6 +34505,10 @@ msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -34514,6 +34539,42 @@ msgstr "Definir Força das Faces"
 
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edição de Máscara"
+
+
+msgid "Automasking"
+msgstr "Auto Máscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edições de Conjuntos de Faces"
 
 
 msgid "Keyframe Insert Pie"
@@ -35138,6 +35199,10 @@ msgstr "Vazio"
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Faixa"
+
+
+msgid "Modify Pose Asset"
+msgstr "Modificar Recurso de Pose"
 
 
 msgid "Rigify"
@@ -62418,6 +62483,166 @@ msgstr "Não Fundir Animações"
 
 msgid "Export shape keys (morph targets)"
 msgstr "Exportar Formas Chave (alvos morph)"
+
+
+msgid "Shape Key Animations"
+msgstr "Animações de Formas Chave"
+
+
+msgid "Export shape keys animations (morph targets)"
+msgstr "Exportar animações de formas chave (alvos morph)"
+
+
+msgid "Shape Key Normals"
+msgstr "Normais das Formas Chave"
+
+
+msgid "Export vertex normals with shape keys (morph targets)"
+msgstr "Exportar normais de vértices com formas chave (alvos morph)"
+
+
+msgid "Reset Shape Keys Between Actions"
+msgstr "Repor Formas Chave entre Acções"
+
+
+msgid "Reset shape keys between each action exported. This is needed when some SK channels are not keyed on some animations"
+msgstr "Repor as formas chave entre cada acção exportada. Necessário quando alguns canais forma chave não têm fotogramas em algumas animações"
+
+
+msgid "Shape Key Tangents"
+msgstr "Tangentes das Formas Chave"
+
+
+msgid "Export vertex tangents with shape keys (morph targets)"
+msgstr "Exportar tangentes de vértices com formas chave (alvos morph)"
+
+
+msgid "Negative Frames"
+msgstr "Fotogramas Negativos"
+
+
+msgid "Negative Frames are slid or cropped"
+msgstr "Fotogramas negativos são ou cortados"
+
+
+msgid "Slide"
+msgstr "Deslizar"
+
+
+msgid "Slide animation to start at frame 0"
+msgstr "Deslizar animação para iniciar no fotograma 0"
+
+
+msgid "Keep only frames above frame 0"
+msgstr "Manter apenas fotogramas acima do fotograma 0"
+
+
+msgid "Group by NLA Track"
+msgstr "Agrupar por Faixa do Editor Não Linear"
+
+
+msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
+msgstr "Quando ligado, múltiplas acções tornam-se parte do mesma animação glTF se forem empurradas para dentro de Faixas do Editor Não Linear com o mesmo nome. Quando desligado, todas as acções actualmente atribuídas tornam-se uma animação glTF"
+
+
+msgid "Merged Animation Name"
+msgstr "Nome da Animação Fundida"
+
+
+msgid "Name of single glTF animation to be exported"
+msgstr "Nome da animação glTF única a ser exportada"
+
+
+msgid "Export vertex normals with meshes"
+msgstr "Exportar normais de vértices com malhas"
+
+
+msgid "Force Keeping Channels for Bones"
+msgstr "Forçar Manter Canais para Ossos"
+
+
+msgid "If all keyframes are identical in a rig, force keeping the minimal animation. When off, all possible channels for the bones will be exported, even if empty (minimal animation, 2 keyframes)"
+msgstr "Se todos os fotogramas chave para uma rig forem idênticos, forçar manter a animação mínima. Quando desligado, todos os canais possíveis para ossos serão exportados, mesmo se vazios (animação mínima, 2 fotogramas chave)"
+
+
+msgid "Force Keeping Channel for Objects"
+msgstr "Forçar Manter Canais para Objectos"
+
+
+msgid "If all keyframes are identical for object transformations, force keeping the minimal animation"
+msgstr "Se todos os fotogramas chave para transformações de objectos forem idênticos, forçar manter a animação mínima."
+
+
+msgid "Optimize Animation Size"
+msgstr "Optimizar Tamanho da Animação"
+
+
+msgid "Reduce exported file size by removing duplicate keyframes"
+msgstr "Reduzir tamanho de ficheiro exportado removendo fotogramas duplicados"
+
+
+msgid "Disable Viewport for Other Objects"
+msgstr "Desactivar Janela de Visualização para Outros Objectos"
+
+
+msgid "When exporting animations, disable viewport for other objects, for performance"
+msgstr "Ao exportar animações, desactivar janela de visualização para outros objectos, para efeitos de performance"
+
+
+msgid "Export Original PBR Specular"
+msgstr "Exportar Especular PBR Original"
+
+
+msgid "Export original glTF PBR Specular, instead of Blender Principled Shader Specular"
+msgstr "Exportar especular PBR original, em vez de especular do Sombreador Principled do Blender"
+
+
+msgid "Export Animation Pointer (Experimental)"
+msgstr "Exportar Apontador de Animação (Experimental)"
+
+
+msgid "Export material, Light & Camera animation as Animation Pointer. Available only for baked animation mode 'NLA Tracks' and 'Scene'"
+msgstr "Exportar animação de material, luz e câmara como Apontador de Animação. Disponível apenas para modo de animação pré-calculado 'Faixas Editor Não Linear' e 'Cena'"
+
+
+msgid "Reset Pose Bones Between Actions"
+msgstr "Repor Ossos de Pose Entre Acções"
+
+
+msgid "Reset pose bones between each action exported. This is needed when some bones are not keyed on some animations"
+msgstr "Repor ossos de pose entre casa acção exportada. Isto é necessário quando alguns ossos não têm fotogramas chave em algumas animações"
+
+
+msgid "Use Rest Position Armature"
+msgstr "Usar Armação em Pose de Descanso"
+
+
+msgid "Export armatures using rest position as joints' rest pose. When off, current frame pose is used as rest pose"
+msgstr "Exportar armações usando a pose de descanso como pose de descanso das articulações"
+
+
+msgid "Sampling Interpolation Fallback"
+msgstr "Reserva de Amostragem de Interpolação"
+
+
+msgid "Interpolation fallback for sampled animations, when the property is not keyed"
+msgstr "Reserva de interpolação para animações amostradas, quando a propriedade não tem fotogramas chave"
+
+
+msgid "Linear interpolation between keyframes"
+msgstr "Interpolação linear entre fotogramas chave"
+
+
+msgid "No interpolation between keyframes"
+msgstr "Sem interpolação entre fotogramas chave"
+
+
+msgid "Shared Accessors"
+msgstr "Acessores Partilhados"
+
+
+msgid "Export Primitives using shared accessors for attributes"
+msgstr "Exportar primitivas usando acessores partilhados para atributos"
 
 
 msgid "Identifier of caller (in case of add-on calling this exporter). Can be useful in case of Extension added by other add-ons"

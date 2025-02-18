@@ -300,7 +300,7 @@ inline constexpr bool is_span_convertible_pointer_v =
     (/* No casting is necessary when both types are the same. */
      std::is_same_v<From, To> ||
      /* Allow adding const to the underlying type. */
-     std::is_same_v<const std::remove_pointer_t<From>, std::remove_pointer_t<To>> ||
+     std::is_same_v<std::remove_pointer_t<From>, std::remove_const_t<std::remove_pointer_t<To>>> ||
      /* Allow casting non-const pointers to void pointers. */
      (!std::is_const_v<std::remove_pointer_t<From>> && std::is_same_v<To, void *>) ||
      /* Allow casting any pointer to const void pointers. */

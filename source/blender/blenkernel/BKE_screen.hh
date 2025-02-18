@@ -130,7 +130,6 @@ struct SpaceType {
   int (*space_subtype_get)(ScrArea *area);
   void (*space_subtype_set)(ScrArea *area, int value);
   void (*space_subtype_item_extend)(bContext *C, EnumPropertyItem **item, int *totitem);
-  int (*space_subtype_prev_get)(ScrArea *area);
 
   /* Return a custom name, based on subtype or other reason. */
   blender::StringRefNull (*space_name_get)(const ScrArea *area);

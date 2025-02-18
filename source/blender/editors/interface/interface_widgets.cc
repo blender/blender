@@ -3962,7 +3962,7 @@ static void widget_swatch(uiBut *but,
   if (but->rnaprop) {
     BLI_assert(but->rnaindex == -1);
 
-    if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4) {
+    if (RNA_property_array_length(&but->rnapoin, but->rnaprop) >= 4) {
       col[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
     }
   }

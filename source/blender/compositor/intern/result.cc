@@ -429,18 +429,27 @@ void Result::increment_reference_count(int count)
   reference_count_ += count;
 }
 
-void Result::release(const int count)
+void Result::decrement_reference_count(int count)
 {
-  BLI_assert(count > 0);
+  /* If there is a master result, decrement its reference count instead. */
+  if (master_) {
+    master_->decrement_reference_count(count);
+    return;
+  }
 
+  reference_count_ -= count;
+}
+
+void Result::release()
+{
   /* If there is a master result, release it instead. */
   if (master_) {
-    master_->release(count);
+    master_->release();
     return;
   }
 
   /* Decrement the reference count, and if it is not yet zero, return and do not free. */
-  reference_count_ -= count;
+  reference_count_--;
   BLI_assert(reference_count_ >= 0);
   if (reference_count_ != 0) {
     return;

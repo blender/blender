@@ -225,6 +225,7 @@ class GeometryManager {
 
   /* Update Flags */
   bool need_flags_update;
+  bool first_bvh_build = true;
 
   /* Constructor/Destructor */
   GeometryManager();

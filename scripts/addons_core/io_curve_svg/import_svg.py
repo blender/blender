@@ -180,9 +180,6 @@ def SVGGetMaterial(color, context):
     materials = context['materials']
     rgb_re = re.compile(r'^\s*rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,(\d+)\s*\)\s*$')
 
-    if color in materials:
-        return materials[color]
-
     diff = None
     if color.startswith('#'):
         color = color[1:]
@@ -205,6 +202,9 @@ def SVGGetMaterial(color, context):
         diffuse_color[0] = srgb_to_linearrgb(diffuse_color[0])
         diffuse_color[1] = srgb_to_linearrgb(diffuse_color[1])
         diffuse_color[2] = srgb_to_linearrgb(diffuse_color[2])
+
+    if color in materials:
+        return materials[color]
 
     mat = bpy.data.materials.new(name='SVGMat')
     mat.diffuse_color = (*diffuse_color, 1.0)

@@ -38,6 +38,8 @@
 #include "BKE_node_tree_zones.hh"
 #include "BKE_screen.hh"
 
+#include "BLT_translation.hh"
+
 #include "ED_image.hh"
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
@@ -976,6 +978,11 @@ static void node_region_listener(const wmRegionListenerParams *params)
           break;
       }
       break;
+    case NC_ANIMATION:
+      if (wmn->data == ND_NLA_ACTCHANGE) {
+        ED_region_tag_redraw(region);
+      }
+      break;
     case NC_SCREEN:
       if (wmn->data == ND_LAYOUTSET || wmn->action == NA_EDITED) {
         WM_gizmomap_tag_refresh(gzmap);
@@ -1325,17 +1332,6 @@ static int node_space_subtype_get(ScrArea *area)
 static void node_space_subtype_set(ScrArea *area, int value)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
-  int value_prev = node_space_subtype_get(area);
-
-  /* Save the subtype. */
-  blender::bke::bNodeTreeType *typeinfo = rna_node_tree_type_from_enum(value_prev);
-  if (typeinfo) {
-    STRNCPY(snode->tree_idname_prev, typeinfo->idname.c_str());
-  }
-  else {
-    snode->tree_idname_prev[0] = '\0';
-  }
-
   ED_node_set_tree_type(snode, rna_node_tree_type_from_enum(value));
 }
 
@@ -1349,16 +1345,13 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
-static int node_space_subtype_prev_get(ScrArea *area)
-{
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
-  return rna_node_tree_idname_to_enum(snode->tree_idname_prev);
-}
-
 static blender::StringRefNull node_space_name_get(const ScrArea *area)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
+  if (tree_type == nullptr) {
+    return IFACE_("Node Editor");
+  }
   return tree_type->ui_name;
 }
 
@@ -1366,6 +1359,9 @@ static int node_space_icon_get(const ScrArea *area)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
+  if (tree_type == nullptr) {
+    return ICON_NODETREE;
+  }
   return tree_type->ui_icon;
 }
 
@@ -1422,7 +1418,6 @@ void ED_spacetype_node()
   st->space_subtype_item_extend = node_space_subtype_item_extend;
   st->space_subtype_get = node_space_subtype_get;
   st->space_subtype_set = node_space_subtype_set;
-  st->space_subtype_prev_get = node_space_subtype_prev_get;
   st->space_name_get = node_space_name_get;
   st->space_icon_get = node_space_icon_get;
   st->blend_read_data = node_space_blend_read_data;

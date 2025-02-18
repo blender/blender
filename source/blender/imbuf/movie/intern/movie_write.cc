@@ -1397,7 +1397,7 @@ static void ffmpeg_movie_close(MovieWriter *context)
   }
   end_ffmpeg_impl(context, false);
   if (context->stamp_data) {
-    MEM_freeN(context->stamp_data);
+    BKE_stamp_data_free(context->stamp_data);
   }
   MEM_delete(context);
 }

@@ -111,6 +111,13 @@ ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
   svm_unpack_node_uchar3(node.z, &strength_offset, &smooth_offset, &out_offset);
 
   float strength = stack_load_float(stack, strength_offset);
+  if (sd->ray_length == FLT_MAX) {
+    /* Distant lights (which have a ray_length of FLT_MAX) overflow when using most outputs of
+     * the light falloff node. So just ignore the node in that case. */
+    stack_store_float(stack, out_offset, strength);
+    return;
+  }
+
   const uint type = node.y;
 
   switch ((NodeLightFalloff)type) {
@@ -128,10 +135,7 @@ ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
 
   if (smooth > 0.0f) {
     const float squared = sd->ray_length * sd->ray_length;
-    /* Distant lamps set the ray length to FLT_MAX, which causes squared to overflow. */
-    if (isfinite(squared)) {
-      strength *= squared / (smooth + squared);
-    }
+    strength *= squared / (smooth + squared);
   }
 
   stack_store_float(stack, out_offset, strength);

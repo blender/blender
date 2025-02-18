@@ -93,7 +93,7 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
           related_ids.append_non_duplicates(data);
         }
         LISTBASE_FOREACH (ParticleSystem *, particle_system, &ob->particlesystem) {
-          if (!particle_system) {
+          if (!particle_system->part) {
             continue;
           }
           if (ID_REAL_USERS(&particle_system->part->id) != 1) {
@@ -133,7 +133,7 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
           ob = (Object *)object_id;
           bool object_uses_particle_settings = false;
           LISTBASE_FOREACH (ParticleSystem *, particle_system, &ob->particlesystem) {
-            if (!particle_system) {
+            if (!particle_system->part) {
               continue;
             }
             if (&particle_system->part->id != related_id) {

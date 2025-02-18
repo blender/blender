@@ -63,6 +63,11 @@ Map<std::string, DOutputSocket> &PixelOperation::get_inputs_to_linked_outputs_ma
   return inputs_to_linked_outputs_map_;
 }
 
+int PixelOperation::get_internal_input_reference_count(const StringRef &identifier)
+{
+  return inputs_to_reference_counts_map_.lookup(identifier);
+}
+
 void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
 {
   for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
@@ -79,13 +84,6 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
     }
 
     get_result(item.value).set_initial_reference_count(reference_count);
-  }
-}
-
-void PixelOperation::release_inputs()
-{
-  for (const auto item : inputs_to_reference_counts_map_.items()) {
-    this->get_input(item.key).release(item.value);
   }
 }
 

@@ -516,7 +516,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       BLI_assert(object_orig_->type == OB_POINTCLOUD);
       const bke::AttributeAccessor attributes = *component_->attributes();
       const VArray<bool> selection = *attributes.lookup_or_default(
-          ".selection", bke::AttrDomain::Point, false);
+          ".selection", bke::AttrDomain::Point, true);
       return IndexMask::from_bools(selection, memory);
     }
     default:

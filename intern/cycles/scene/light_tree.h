@@ -157,6 +157,12 @@ struct LightTreeLightLink {
 
   void add(const LightTreeLightLink &other)
   {
+    /* other.set_membership is zero when expanding with an empty bucket: in this case there is no
+     * need to mark node as not shareable. */
+    if (other.set_membership == 0) {
+      return;
+    }
+
     if (set_membership == 0) {
       set_membership = other.set_membership;
       shareable = other.shareable;
@@ -418,7 +424,7 @@ class LightTree {
     return make_unique<LightTreeNode>(measure, bit_trial);
   }
 
-  size_t num_emitters()
+  size_t num_emitters() const
   {
     return emitters_.size();
   }

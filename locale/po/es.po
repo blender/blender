@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'aad0bd21487d')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 15:22+0000\n"
-"PO-Revision-Date: 2025-02-04 16:56+0000\n"
+"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"PO-Revision-Date: 2025-02-17 10:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -85,6 +85,10 @@ msgstr "Grupos de curvas-f para propósitos de visualización en, por ejemplo, l
 
 msgid "Slot"
 msgstr "Contenedor"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "El contenedor al cual está destinada la animación de la bolsa de canales"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -4778,6 +4782,14 @@ msgstr "Tiene persistencia"
 
 msgid "Has Pinch Factor"
 msgstr "Tiene factor de pellizcado"
+
+
+msgid "Has Plane Depth"
+msgstr "Tiene profundidad desde el plano"
+
+
+msgid "Has Plane Height"
+msgstr "Tiene altura desde el plano"
 
 
 msgid "Has Plane Offset"
@@ -19618,6 +19630,34 @@ msgid "Active paint curve"
 msgstr "Curva de pintura activa"
 
 
+msgid "The maximum distance below the plane for affected vertices. Increasing the depth affects vertices farther below the plane."
+msgstr "La distancia máxima para afectar vértices, por debajo del plano. Aumentar la profundidad permitirá afectar vértices que se encuentren a mayor profundidad con respecto al plano."
+
+
+msgid "The maximum distance above the plane for affected vertices. Increasing the height affects vertices farther above the plane."
+msgstr "La distancia máxima para afectar vértices, por encima del plano. Aumentar la altura permitirá afectar vértices que se encuentren a mayor altura con respecto al plano."
+
+
+msgid "Inversion Mode"
+msgstr "Modo de inversión"
+
+
+msgid "Invert Displacement"
+msgstr "Invertir desplazamiento"
+
+
+msgid "Displace the vertices away from the plane."
+msgstr "Desplazará los vértices que se encuentren alejados del plano."
+
+
+msgid "Swap Height and Depth"
+msgstr "Intercambiar altura y profundidad"
+
+
+msgid "Swap the roles of Height and Depth."
+msgstr "Intercambiar los roles de las opciones Altura y Profundidad."
+
+
 msgid "Plane Offset"
 msgstr "Desplazar plano"
 
@@ -19792,6 +19832,11 @@ msgstr "Raspar"
 
 
 msgctxt "Brush"
+msgid "Plane"
+msgstr "Plano"
+
+
+msgctxt "Brush"
 msgid "Multi-plane Scrape"
 msgstr "Raspar (multiplano)"
 
@@ -19936,6 +19981,22 @@ msgstr "Modifica la malla completa usando una deformación elástica"
 
 msgid "Spacing between brush daubs as a percentage of brush diameter"
 msgstr "Espaciado entre las marcas del pincel, como porcentaje de su diámetro"
+
+
+msgid "Stabilize Normal"
+msgstr "Estabilizar normal"
+
+
+msgid "Stabilize the orientation of the brush plane."
+msgstr "Estabiliza la orientación del plano del pincel."
+
+
+msgid "Stabilize Plane"
+msgstr "Estabilizar plano"
+
+
+msgid "Stabilize the center of the brush plane."
+msgstr "Estabiliza el centro del plano del pincel."
 
 
 msgid "Stencil Dimensions"
@@ -34281,68 +34342,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpiar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nombres"
-
-
-msgid "Bone Roll"
-msgstr "Giro de huesos"
-
-
-msgid "Pivot Point"
-msgstr "Punto de pivote"
+msgid "Mirror"
+msgstr "Simetrizar"
 
 
 msgid "Snap"
 msgstr "Adherir"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decaimiento de edición proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edición de máscara"
-
-
-msgid "Automasking"
-msgstr "Autoenmascarar"
-
-
-msgid "Face Sets Edit"
-msgstr "Edición de conjuntos de caras"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueos de grupo de vértices"
-
-
-msgid "Mirror"
-msgstr "Simetrizar"
 
 
 msgid "UV Mapping"
@@ -34397,6 +34402,10 @@ msgid "Assign Material"
 msgstr "Asignar material"
 
 
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Light"
 msgstr "Luz"
 
@@ -34429,6 +34438,14 @@ msgid "Quick Effects"
 msgstr "Efectos rápidos"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
+
+
 msgid "Asset"
 msgstr "Recurso"
 
@@ -34447,6 +34464,10 @@ msgstr "Vincular / Transferir datos"
 
 msgid "Hooks"
 msgstr "Asignar gancho"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueos de grupo de vértices"
 
 
 msgid "Trim/Add"
@@ -34481,6 +34502,10 @@ msgid "Bone Collections"
 msgstr "Colecciones de huesos"
 
 
+msgid "Names"
+msgstr "Nombres"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opciones de huesos"
 
@@ -34511,6 +34536,42 @@ msgstr "Definir intensidad de caras"
 
 msgid "Merge"
 msgstr "Fusionar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
+
+
+msgid "Pivot Point"
+msgstr "Punto de pivote"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaimiento de edición proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edición de máscara"
+
+
+msgid "Automasking"
+msgstr "Autoenmascarar"
+
+
+msgid "Face Sets Edit"
+msgstr "Edición de conjuntos de caras"
 
 
 msgid "Keyframe Insert Pie"
@@ -35135,6 +35196,10 @@ msgstr "Vacío"
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Rastreo"
+
+
+msgid "Modify Pose Asset"
+msgstr "Modificar recurso de pose"
 
 
 msgid "Rigify"
@@ -37546,7 +37611,7 @@ msgstr "'Ancho' de los rayos (especialmente útil al trazar rayos en búsqueda d
 
 
 msgid "Edge Data"
-msgstr "Bordes"
+msgstr "Datos de bordes"
 
 
 msgid "Enable edge data transfer"
@@ -37554,7 +37619,7 @@ msgstr "Habilita la transferencia de datos de bordes"
 
 
 msgid "Face Corner Data"
-msgstr "Esquinas de caras"
+msgstr "Datos de esquinas de caras"
 
 
 msgid "Enable face corner data transfer"
@@ -37582,7 +37647,7 @@ msgstr "Habilita la transferencia de datos de caras"
 
 
 msgid "Vertex Data"
-msgstr "Vértices"
+msgstr "Datos de vértices"
 
 
 msgid "Enable vertex data transfer"
@@ -45623,7 +45688,7 @@ msgstr "Sombra"
 
 
 msgid "Flip an image along a defined axis"
-msgstr "Permite invertir una imagen en un eje específico"
+msgstr "Permite voltear una imagen en un eje específico"
 
 
 msgid "Flip X"
@@ -58032,7 +58097,7 @@ msgstr "de +X a -X"
 
 
 msgid "Set this pose Action as active Action on the active Object"
-msgstr "Define a esta acción de pose como la activa para el objeto activo"
+msgstr "Establecer esta acción de la pose como la activa para el objeto activo"
 
 
 msgctxt "Operator"
@@ -65126,6 +65191,15 @@ msgstr "Borra los trazos o puntos seleccionados"
 
 
 msgctxt "Operator"
+msgid "Delete Breakdown Frames"
+msgstr "Borrar fotogramas intermedios"
+
+
+msgid "Remove breakdown frames generated by interpolating between two Grease Pencil frames"
+msgstr "Borra los fotogramas intermedios generados al interpolar entre dos fotogramas de Grease Pencil"
+
+
+msgctxt "Operator"
 msgid "Delete Frame"
 msgstr "Borrar fotograma"
 
@@ -65869,6 +65943,14 @@ msgstr "Pegar detrás"
 
 msgid "Add pasted strokes behind all strokes"
 msgstr "Coloca los trazos pegados detrás de los ya existentes"
+
+
+msgid "Paste to Active"
+msgstr "Pegar a activo"
+
+
+msgid "Paste by Layer"
+msgstr "Pegar por capa"
 
 
 msgctxt "Operator"
@@ -73391,6 +73473,10 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Curva a partir de mallas o textos"
 
 
+msgid "Mesh from Curve, Surface, Metaball, or Text objects"
+msgstr "Malla a partir de curvas, superficies, metabolas o textos"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Curvas a partir de datos evaluados de curva"
 
@@ -78496,6 +78582,60 @@ msgstr "Al estar activado, aplica la pose invertida en el eje X"
 
 
 msgctxt "Operator"
+msgid "Delete Pose Asset"
+msgstr "Borrar recurso de pose"
+
+
+msgid "Delete the selected Pose Asset"
+msgstr "Borra el recurso de pose seleccionado"
+
+
+msgctxt "Operator"
+msgid "Modify Pose Asset"
+msgstr "Modificar recurso de pose"
+
+
+msgid "Update the selected pose asset in the asset library from the currently selected bones. The mode defines how the asset is updated"
+msgstr "Actualizar el recurso de pose seleccionado en la biblioteca de poses a partir de los huesos actualmente seleccionados. El modo definirá la forma en que será actualizado el recurso"
+
+
+msgid "Overwrite Mode"
+msgstr "Modo de sobrescritura"
+
+
+msgid "Specify which parts of the pose asset are overwritten"
+msgstr "Especifica qué partes del recurso de pose serán sobrescritas"
+
+
+msgid "Update existing channels in the pose asset but don't remove or add any channels"
+msgstr "Actualiza los canales existentes del recurso de pose, pero no eliminará o agregará ningún canal"
+
+
+msgid "Replace with Selection"
+msgstr "Reemplazar con selección"
+
+
+msgid "Completely replace all channels in the pose asset with the current selection"
+msgstr "Reemplaza completamente todos los canales del recurso de pose con la selección actual"
+
+
+msgid "Add Selected Bones"
+msgstr "Agregar huesos seleccionados"
+
+
+msgid "Add channels of the selection to the pose asset. Existing channels will be updated"
+msgstr "Agrega los canales de la selección al recurso de pose. Los canales ya existentes serán actualizados"
+
+
+msgid "Remove Selected Bones"
+msgstr "Quitar huesos seleccionados"
+
+
+msgid "Remove channels of the selection from the pose asset"
+msgstr "Elimina los canales de la selección del recurso de pose"
+
+
+msgctxt "Operator"
 msgid "Blend Pose Asset"
 msgstr "Fundir recurso de pose"
 
@@ -78516,12 +78656,33 @@ msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Brow
 msgstr "Crea un nuevo recurso de pose en el portapapeles, para ser pegado en el Explorador de recursos"
 
 
+msgctxt "Operator"
+msgid "Create Pose Asset..."
+msgstr "Crear recurso de pose..."
+
+
+msgid "Create a new asset from the selected bones in the scene"
+msgstr "Crea un nuevo recurso a partir de los huesos seleccionados"
+
+
 msgid "Activate New Action"
 msgstr "Activar nueva acción"
 
 
+msgid "This property is deprecated and will be removed in the future"
+msgstr "Esta propiedad es obsoleta y será eliminada en el futuro"
+
+
+msgid "Asset library used to store the new pose"
+msgstr "Biblioteca de recursos usada para almacenar la nueva pose"
+
+
 msgid "Pose Name"
 msgstr "Nombre de pose"
+
+
+msgid "Name for the new pose asset"
+msgstr "Nombre del nuevo recurso de pose"
 
 
 msgid "Paste the Asset that was previously copied using Copy As Asset"
@@ -90708,10 +90869,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "Active Tool"
-msgstr "Herramienta activa"
-
-
 msgid "View Lock"
 msgstr "Fijar vista"
 
@@ -90780,14 +90937,6 @@ msgid "Transform Orientations"
 msgstr "Orientación de transformación"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
 msgid "Stroke Placement"
 msgstr "Ubicación del trazo"
 
@@ -90816,12 +90965,12 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "Variantes glTF"
 
 
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
 
 
 msgid "Auto-Masking"
@@ -90844,12 +90993,24 @@ msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
+
+
 msgid "VR"
 msgstr "RV"
 
 
 msgid "VR Info"
 msgstr "Info de RV"
+
+
+msgid "Active Tool"
+msgstr "Herramienta activa"
 
 
 msgid "Chain Scaling"
@@ -94857,6 +95018,18 @@ msgid "Keep horizon level while flying with 3D Mouse"
 msgstr "Mantiene el nivel del horizonte al volar con el ratón 3D"
 
 
+msgid "Auto sets the orbit center dynamically. When the complete model is in view, the center of volume of the whole model is used as the rotation point. When you move closer, the orbit center will be set on an object close to your center of the view."
+msgstr "Auto definirá el centro de órbita de manera dinámica. Cuando se encuentre el modelo completo visible en la vista, se usará el centro del volumen delimitador de todo el modelo como pivote de rotación. Al acercar la vista, el pivote se establecerá en algún objeto cercano al centro de la vista."
+
+
+msgid "Use Selected Items"
+msgstr "Usar elementos seleccionados"
+
+
+msgid "Use selected item forces the orbit center to only take the currently selected objects into account."
+msgstr "Forzará a que sólo se tomen en cuenta los elementos seleccionados al determinar el centro de órbita."
+
+
 msgid "Orbit Sensitivity"
 msgstr "Sensibilidad orbitar"
 
@@ -94901,8 +95074,20 @@ msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Sensibilidad global del ratón 3D para desplazamientos"
 
 
+msgid "Show Orbit Axis Guide"
+msgstr "Mostrar guía para eje de órbita"
+
+
 msgid "Display the center and axis during rotation"
 msgstr "Muestra centro y eje durante una rotación"
+
+
+msgid "Show Orbit Center Guide"
+msgstr "Mostrar guía para centro de órbita"
+
+
+msgid "Display the orbit center during rotation"
+msgstr "Muestra el centro de órbita durante una rotación"
 
 
 msgid "NDOF View Navigate"
@@ -106668,11 +106853,11 @@ msgstr "Eliminar campos de las películas en video"
 
 
 msgid "Flip on the X axis"
-msgstr "Invertir en el eje X"
+msgstr "Voltear en el eje X"
 
 
 msgid "Flip on the Y axis"
-msgstr "Invertir en el eje Y"
+msgstr "Voltear en el eje Y"
 
 
 msgid "Convert Float"
@@ -118164,6 +118349,16 @@ msgstr "Aplicar pose invertida"
 
 
 msgctxt "Operator"
+msgid "Adjust Pose Asset"
+msgstr "Actualizar recurso de pose"
+
+
+msgctxt "Operator"
+msgid "Add Selected Bones"
+msgstr "Agregar huesos seleccionados"
+
+
+msgctxt "Operator"
 msgid "Remove Selected Bones"
 msgstr "Eliminar huesos seleccionados"
 
@@ -124958,6 +125153,18 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Invertir dirección de ampliación con rueda del ratón"
 
 
+msgid "Show Guides"
+msgstr "Mostrar guías"
+
+
+msgid "Orbit Axis"
+msgstr "Eje de órbita"
+
+
+msgid "Orbit Center"
+msgstr "Centro de órbita"
+
+
 msgid "Fly/Walk"
 msgstr "Volar/Transitar"
 
@@ -126771,6 +126978,11 @@ msgstr "Ocultar capa activa"
 msgctxt "Operator"
 msgid "Hide Inactive Layers"
 msgstr "Ocultar capas inactivas"
+
+
+msgctxt "Operator"
+msgid "Paste by Layer"
+msgstr "Pegar por capa"
 
 
 msgctxt "Operator"
@@ -129117,8 +129329,36 @@ msgid "Create"
 msgstr "Crear"
 
 
+msgid "Delete Pose Asset"
+msgstr "Borrar recurso de pose"
+
+
+msgid "Permanently delete pose asset blend file? This cannot be undone."
+msgstr "¿Borrar permanentemente el archivo .blend del recurso de pose? Esto no podrá ser deshecho."
+
+
+msgid "The asset is local to the file. Deleting it will just clear the asset status."
+msgstr "Este es un recurso local del archivo. Borrarlo simplemente eliminará su categorización como un recurso."
+
+
 msgid "Failed to load asset library"
 msgstr "No fue posible cargar biblioteca de recursos"
+
+
+msgid "No name set"
+msgstr "No se estableció un nombre"
+
+
+msgid "Unexpected library type. Failed to create pose asset"
+msgstr "Tipo de biblioteca inesperado. Error al crear el recurso de pose"
+
+
+msgid "Pose assets can only be modified from Pose Mode"
+msgstr "Los recursos de pose sólo pueden ser modificados dentro del modo Pose"
+
+
+msgid "Action is not editable"
+msgstr "La acción no es editable"
 
 
 msgid "Asset blend file is not editable"
@@ -130296,8 +130536,20 @@ msgid "The object has only one layer"
 msgstr "El objeto contiene sólo una capa"
 
 
+msgid "No active Grease Pencil layer to paste into"
+msgstr "No hay ninguna capa de Grease Pencil activa en donde pegar"
+
+
+msgid "Active layer is not editable"
+msgstr "La capa activa no es editable"
+
+
 msgid "No Grease Pencil frame to draw on"
 msgstr "No hay ningún fotograma de Grease Pencil sobre el cual dibujar"
+
+
+msgid "Couldn't find matching layer, pasting into active layer"
+msgstr "No fue posible encontrar una capa coincidente, se pegará en la activa"
 
 
 msgid "Active object is not a selected Grease Pencil"
@@ -131747,6 +131999,10 @@ msgstr "Indicadores grupos suavizado"
 
 msgid "PBR Extensions"
 msgstr "Extensiones PBR"
+
+
+msgid "File exported successfully"
+msgstr "Archivo exportado exitosamente"
 
 
 msgid "ASCII"
@@ -134206,7 +134462,7 @@ msgstr "Borrará permanentemente el archivo .blend del recurso de pincel. Esto n
 
 
 msgid "Permanently delete brush. This cannot be undone."
-msgstr "Borrar permanentemente el pincel. Esto no podrá ser deshecho."
+msgstr "Borrará permanentemente el pincel. Esto no podrá ser deshecho."
 
 
 msgid "Unable to activate brush, wrong object mode"
@@ -135599,6 +135855,10 @@ msgstr "No hay archivos a desempacar"
 
 msgid "No packed file"
 msgstr "Ningún archivo empacado"
+
+
+msgid "Data-block using this packed file is not editable"
+msgstr "El bloque de datos que utiliza este archivo empacado no es editable"
 
 
 msgid "Cannot set relative paths with an unsaved blend file"
@@ -138921,6 +139181,10 @@ msgstr "Los nombres públicos de contenedores de acción no pueden estar vacíos
 
 msgid "Action slot identifiers should be at least three characters"
 msgstr "Los nombres públicos de contenedores de acción deben contener al menos tres caracteres"
+
+
+msgid "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the slot's 'target_id_type' \"%s\". Setting to \"%s\" instead."
+msgstr "Se intentó definir el identificador del contenedor como \"%s\", pero el prefijo que indicaba su tipo no coincidía con el 'tipo_id_objetivo' \"%s\" del contenedor. En su lugar, fue definido como \"%s\"."
 
 
 msgid "Only armature objects are supported"
@@ -144264,6 +144528,14 @@ msgid "Blend between diffuse surface and subsurface scattering. Typically should
 msgstr "Mezcla entre una superficie difusa o transluminiscente. Típicamente debería ser cero o uno (o completamente difusa o completamente transluminiscente)"
 
 
+msgid "Scattering radius per color channel (RGB), multiplied with Scale"
+msgstr "Radio de dispersión por canal de color (RVA), multiplicado por la Escala"
+
+
+msgid "Scale factor of the subsurface scattering radius"
+msgstr "Factor de escala del radio de dispersión subsuperficial"
+
+
 msgid "Index of Refraction (IOR) used for rays that enter the subsurface component"
 msgstr "Índice de refracción (IR) usado para los rayos que penetran al componente de transluminiscencia"
 
@@ -146375,6 +146647,10 @@ msgstr "Inspección de escena con RV"
 
 msgid "View the viewport with virtual reality glasses (head-mounted displays)"
 msgstr "Permite ver la vista usando un casco de realidad virtual"
+
+
+msgid "All Add-ons"
+msgstr "Todos los complementos"
 
 
 msgid "All Add-ons Installed by User"
