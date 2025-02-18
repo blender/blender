@@ -42,15 +42,17 @@ struct wmMsgTypeInfo {
   struct {
     unsigned int (*hash_fn)(const void *msg);
     bool (*cmp_fn)(const void *a, const void *b);
+
+    /* Creation, duplication and deletion callbacks. */
+    /* Not needed currently, key are always allocated by duplicating from stack data. */
+    /* void *(*key_alloc_fn)(); */
+    void *(*key_duplicate_fn)(const void *key);
     void (*key_free_fn)(void *key);
   } gset;
 
   void (*update_by_id)(wmMsgBus *mbus, ID *id_src, ID *id_dst);
   void (*remove_by_id)(wmMsgBus *mbus, const ID *id);
   void (*repr)(FILE *stream, const wmMsgSubscribeKey *msg_key);
-
-  /* `sizeof(wmMsgSubscribeKey_*)`. */
-  uint msg_key_size;
 };
 
 struct wmMsg {

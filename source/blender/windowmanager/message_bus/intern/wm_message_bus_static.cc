@@ -34,6 +34,12 @@ static bool wm_msg_static_gset_cmp(const void *key_a_p, const void *key_b_p)
   const wmMsgParams_Static *params_b = &((const wmMsgSubscribeKey_Static *)key_b_p)->msg.params;
   return !(params_a->event == params_b->event);
 }
+
+static void *wm_msg_static_gset_key_duplicate(const void *key_p)
+{
+  const wmMsgSubscribeKey *key_src = static_cast<const wmMsgSubscribeKey *>(key_p);
+  return MEM_cnew<wmMsgSubscribeKey>(__func__, *key_src);
+}
 static void wm_msg_static_gset_key_free(void *key_p)
 {
   wmMsgSubscribeKey *key = static_cast<wmMsgSubscribeKey *>(key_p);
@@ -66,10 +72,9 @@ void WM_msgtypeinfo_init_static(wmMsgTypeInfo *msgtype_info)
 {
   msgtype_info->gset.hash_fn = wm_msg_static_gset_hash;
   msgtype_info->gset.cmp_fn = wm_msg_static_gset_cmp;
+  msgtype_info->gset.key_duplicate_fn = wm_msg_static_gset_key_duplicate;
   msgtype_info->gset.key_free_fn = wm_msg_static_gset_key_free;
   msgtype_info->repr = wm_msg_static_repr;
-
-  msgtype_info->msg_key_size = sizeof(wmMsgSubscribeKey_Static);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -105,7 +110,7 @@ void WM_msg_subscribe_static_params(wmMsgBus *mbus,
                                     const wmMsgSubscribeValue *msg_val_params,
                                     const char *id_repr)
 {
-  wmMsgSubscribeKey_Static msg_key_test = {{nullptr}};
+  wmMsgSubscribeKey_Static msg_key_test{};
 
   /* Use when added. */
   msg_key_test.msg.head.id = id_repr;
