@@ -32,6 +32,8 @@ struct Object;
 struct Mesh;
 namespace blender::draw {
 struct CurvesModule;
+struct VolumeModule;
+struct PointCloudModule;
 struct DRW_Attributes;
 struct DRW_MeshCDMask;
 class CurveRefinePass;
@@ -64,14 +66,14 @@ typedef struct DRWRegisteredDrawEngine {
 struct DRWData {
   /** Instance data. */
   DRWInstanceDataList *idatalist;
-  /** Per draw-call volume object data. */
-  void *volume_grids_ubos; /* VolumeUniformBufPool */
   /** List of smoke textures to free after drawing. */
   ListBase smoke_textures;
   /** Per stereo view data. Contains engine data and default frame-buffers. */
   DRWViewData *view_data[2];
   /** Module storage. */
   blender::draw::CurvesModule *curves_module;
+  blender::draw::VolumeModule *volume_module;
+  blender::draw::PointCloudModule *point_cloud_module;
   /** Default view that feeds every engine. */
   blender::draw::View *default_view;
 };

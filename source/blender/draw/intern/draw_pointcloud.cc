@@ -26,27 +26,43 @@
 
 namespace blender::draw {
 
-static gpu::VertBuf *g_dummy_vbo = nullptr;
+struct PointCloudModule {
+  gpu::VertBuf *dummy_vbo = create_dummy_vbo();
 
-void DRW_pointcloud_init()
-{
-  if (g_dummy_vbo == nullptr) {
-    /* initialize vertex format */
+  ~PointCloudModule()
+  {
+    GPU_VERTBUF_DISCARD_SAFE(dummy_vbo);
+  }
+
+ private:
+  gpu::VertBuf *create_dummy_vbo()
+  {
     GPUVertFormat format = {0};
     uint dummy_id = GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-    g_dummy_vbo = GPU_vertbuf_create_with_format_ex(
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format_ex(
         format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
 
     const float vert[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    GPU_vertbuf_data_alloc(*g_dummy_vbo, 1);
-    GPU_vertbuf_attr_fill(g_dummy_vbo, dummy_id, vert);
+    GPU_vertbuf_data_alloc(*vbo, 1);
+    GPU_vertbuf_attr_fill(vbo, dummy_id, vert);
+    return vbo;
+  }
+};
+
+void DRW_point_cloud_init(DRWData *drw_data)
+{
+  if (drw_data == nullptr) {
+    drw_data = DST.vmempool;
+  }
+  if (drw_data->point_cloud_module == nullptr) {
+    drw_data->point_cloud_module = MEM_new<PointCloudModule>("PointCloudModule");
   }
 }
 
-void DRW_pointcloud_free()
+void DRW_point_cloud_module_free(PointCloudModule *point_cloud_module)
 {
-  GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
+  MEM_delete(point_cloud_module);
 }
 
 template<typename PassT>
@@ -57,12 +73,13 @@ gpu::Batch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
   BLI_assert(object->type == OB_POINTCLOUD);
   PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
 
+  PointCloudModule &module = *DST.vmempool->point_cloud_module;
   /* Fix issue with certain driver not drawing anything if there is no texture bound to
    * "ac", "au", "u" or "c". */
-  sub_ps.bind_texture("u", g_dummy_vbo);
-  sub_ps.bind_texture("au", g_dummy_vbo);
-  sub_ps.bind_texture("c", g_dummy_vbo);
-  sub_ps.bind_texture("ac", g_dummy_vbo);
+  sub_ps.bind_texture("u", module.dummy_vbo);
+  sub_ps.bind_texture("au", module.dummy_vbo);
+  sub_ps.bind_texture("c", module.dummy_vbo);
+  sub_ps.bind_texture("ac", module.dummy_vbo);
 
   gpu::VertBuf *pos_rad_buf = pointcloud_position_and_radius_get(&pointcloud);
   sub_ps.bind_texture("ptcloud_pos_rad_tx", pos_rad_buf);
@@ -76,7 +93,7 @@ gpu::Batch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
 
       gpu::VertBuf **attribute_buf = DRW_pointcloud_evaluated_attribute(&pointcloud,
                                                                         gpu_attr->name);
-      sub_ps.bind_texture(sampler_name, (attribute_buf) ? attribute_buf : &g_dummy_vbo);
+      sub_ps.bind_texture(sampler_name, (attribute_buf) ? attribute_buf : &module.dummy_vbo);
     }
   }
 
