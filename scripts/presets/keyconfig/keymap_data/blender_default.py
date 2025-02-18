@@ -5778,6 +5778,7 @@ def km_edit_curves(params):
          "shift": True}, {"properties": [("deselect", True)]}),
         ("curves.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("curves.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("curves.separate", {"type": 'P', "value": 'PRESS'}, None),
         ("curves.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("curves.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         *_template_items_proportional_editing(

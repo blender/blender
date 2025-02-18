@@ -1771,6 +1771,7 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_select_linked_pick);
   WM_operatortype_append(CURVES_OT_select_more);
   WM_operatortype_append(CURVES_OT_select_less);
+  WM_operatortype_append(CURVES_OT_separate);
   WM_operatortype_append(CURVES_OT_surface_set);
   WM_operatortype_append(CURVES_OT_delete);
   WM_operatortype_append(CURVES_OT_duplicate);
