@@ -135,6 +135,12 @@ class BoundBox {
   {
     BoundBox result = BoundBox::empty;
 
+    /* Avoid transforming empty bounding box since the code below performs per-corner transform
+     * which will convert non-valid bounds to valid. */
+    if (!valid()) {
+      return result;
+    }
+
     for (int i = 0; i < 8; i++) {
       float3 p;
 
