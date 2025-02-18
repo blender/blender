@@ -28,6 +28,8 @@
 
 #include "transform_mode.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Shrink-Fatten) Element
  * \{ */
@@ -204,3 +206,5 @@ TransModeInfo TransMode_shrinkfatten = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

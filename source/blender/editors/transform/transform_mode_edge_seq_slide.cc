@@ -33,6 +33,8 @@
 #include "transform_mode.hh"
 #include "transform_snap.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Sequencer Slide)
  * \{ */
@@ -160,6 +162,8 @@ TransModeInfo TransMode_seqslide = {
     /*transform_matrix_fn*/ nullptr,
     /*handle_event_fn*/ nullptr,
     /*snap_distance_fn*/ nullptr,
-    /*snap_apply_fn*/ blender::transform::snap_sequencer_apply_seqslide,
+    /*snap_apply_fn*/ snap_sequencer_apply_seqslide,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

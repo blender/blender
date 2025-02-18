@@ -37,7 +37,7 @@
 
 #include "transform_convert.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Container TransCustomData Creation
@@ -1330,7 +1330,7 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
   float(*quats)[4] = nullptr;
   const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
   if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, nullptr, true) != -1) {
-    blender::Array<blender::float3, 0> defcos;
+    Array<float3, 0> defcos;
     int totleft = -1;
     if (BKE_modifiers_is_correctable_deformed(t->scene, tc->obedit)) {
       BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
@@ -1355,8 +1355,8 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
     if (totleft > 0)
 #endif
     {
-      const blender::Array<blender::float3> mappedcos = BKE_crazyspace_get_mapped_editverts(
-          t->depsgraph, tc->obedit);
+      const Array<float3> mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph,
+                                                                          tc->obedit);
       quats = static_cast<float(*)[4]>(
           MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats"));
       BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
@@ -1497,9 +1497,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     TransMeshDataCrazySpace crazyspace_data = {};
 
     /* Avoid editing locked shapes. */
-    if (t->mode != TFM_DUMMY &&
-        blender::ed::object::shape_key_report_if_locked(tc->obedit, t->reports))
-    {
+    if (t->mode != TFM_DUMMY && object::shape_key_report_if_locked(tc->obedit, t->reports)) {
       continue;
     }
 
@@ -2645,3 +2643,5 @@ TransConvertTypeInfo TransConvertType_Mesh = {
     /*recalc_data*/ recalcData_mesh,
     /*special_aftertrans_update*/ special_aftertrans_update__mesh,
 };
+
+}  // namespace blender::ed::transform

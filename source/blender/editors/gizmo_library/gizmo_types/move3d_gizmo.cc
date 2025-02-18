@@ -77,7 +77,7 @@ struct MoveInteraction {
   } prev;
 
   /* We could have other snap contexts, for now only support 3D view. */
-  SnapObjectContext *snap_context_v3d;
+  blender::ed::transform::SnapObjectContext *snap_context_v3d;
 };
 
 /* -------------------------------------------------------------------- */
@@ -237,6 +237,7 @@ static int gizmo_move_modal(bContext *C,
                             const wmEvent *event,
                             eWM_GizmoFlagTweak tweak_flag)
 {
+  using namespace blender::ed;
   MoveInteraction *inter = static_cast<MoveInteraction *>(gz->interaction_data);
   if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
     return OPERATOR_RUNNING_MODAL;
@@ -275,11 +276,11 @@ static int gizmo_move_modal(bContext *C,
       float dist_px = MVAL_MAX_PX_DIST * U.pixelsize;
       const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
       float co[3];
-      SnapObjectParams params{};
+      transform::SnapObjectParams params{};
       params.snap_target_select = SCE_SNAP_TARGET_ALL;
-      params.edit_mode_type = SNAP_GEOM_EDIT;
-      params.occlusion_test = SNAP_OCCLUSION_AS_SEEM;
-      if (ED_transform_snap_object_project_view3d(
+      params.edit_mode_type = transform::SNAP_GEOM_EDIT;
+      params.occlusion_test = transform::SNAP_OCCLUSION_AS_SEEM;
+      if (transform::snap_object_project_view3d(
               inter->snap_context_v3d,
               CTX_data_ensure_evaluated_depsgraph(C),
               region,
@@ -338,7 +339,7 @@ static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
   }
 
   if (inter->snap_context_v3d) {
-    ED_transform_snap_object_context_destroy(inter->snap_context_v3d);
+    blender::ed::transform::snap_object_context_destroy(inter->snap_context_v3d);
     inter->snap_context_v3d = nullptr;
   }
 
@@ -375,7 +376,8 @@ static int gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
     if (area) {
       switch (area->spacetype) {
         case SPACE_VIEW3D: {
-          inter->snap_context_v3d = ED_transform_snap_object_context_create(CTX_data_scene(C), 0);
+          inter->snap_context_v3d = blender::ed::transform::snap_object_context_create(
+              CTX_data_scene(C), 0);
           break;
         }
         default:

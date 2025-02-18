@@ -40,14 +40,14 @@
 #include "transform_convert.hh"
 #include "transform_snap.hh"
 
+namespace blender::ed::transform {
+
 struct TransSeqSnapData {
-  blender::Vector<blender::float2> source_snap_points;
-  blender::Vector<blender::float2> target_snap_points;
+  Vector<float2> source_snap_points;
+  Vector<float2> target_snap_points;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("TransSeqSnapData")
 };
-
-namespace blender::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Snap sources
@@ -143,8 +143,7 @@ static void points_build_sources_preview(const Scene *scene,
     }
 
     /* Add origins last */
-    const blender::float2 image_origin = SEQ_image_transform_origin_offset_pixelspace_get(scene,
-                                                                                          strip);
+    const float2 image_origin = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
     snap_data->source_snap_points.append(image_origin);
   }
 }
@@ -325,8 +324,7 @@ static void points_build_targets_preview(const Scene *scene,
         snap_data->target_snap_points.append(strip_image_quad[j]);
       }
 
-      const blender::float2 image_origin = SEQ_image_transform_origin_offset_pixelspace_get(scene,
-                                                                                            strip);
+      const float2 image_origin = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
       snap_data->target_snap_points.append(image_origin);
     }
   }
@@ -532,7 +530,7 @@ static int snap_sequencer_to_closest_strip_ex(TransInfo *t, const int frame_1, c
   points_build_targets_timeline(scene, snap_mode, snap_data, snap_targets);
 
   t->tsnap.seq_context = snap_data;
-  bool snap_success = blender::transform::snap_sequencer_calc(t);
+  bool snap_success = snap_sequencer_calc(t);
   snap_sequencer_data_free(snap_data);
   t->tsnap.seq_context = nullptr;
 
@@ -548,14 +546,12 @@ static int snap_sequencer_to_closest_strip_ex(TransInfo *t, const int frame_1, c
   return snap_offset;
 }
 
-}  // namespace blender::transform
-
-bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
-                                                       ARegion *region,
-                                                       const int frame_1,
-                                                       const int frame_2,
-                                                       int *r_snap_distance,
-                                                       float *r_snap_frame)
+bool snap_sequencer_to_closest_strip_calc(Scene *scene,
+                                          ARegion *region,
+                                          const int frame_1,
+                                          const int frame_2,
+                                          int *r_snap_distance,
+                                          float *r_snap_frame)
 {
   TransInfo t = {nullptr};
   t.scene = scene;
@@ -564,12 +560,12 @@ bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
   t.data_type = &TransConvertType_Sequencer;
 
   t.tsnap.mode = eSnapMode(SEQ_tool_settings_snap_mode_get(scene));
-  *r_snap_distance = blender::transform::snap_sequencer_to_closest_strip_ex(&t, frame_1, frame_2);
+  *r_snap_distance = snap_sequencer_to_closest_strip_ex(&t, frame_1, frame_2);
   *r_snap_frame = t.tsnap.snap_target[0];
   return validSnap(&t);
 }
 
-void ED_draw_sequencer_snap_point(ARegion *region, const float snap_point)
+void sequencer_snap_point(ARegion *region, const float snap_point)
 {
   /* Reuse the snapping drawing code from the transform system. */
   TransInfo t = {nullptr};
@@ -583,3 +579,5 @@ void ED_draw_sequencer_snap_point(ARegion *region, const float snap_point)
 
   drawSnapping(&t);
 }
+
+}  // namespace blender::ed::transform

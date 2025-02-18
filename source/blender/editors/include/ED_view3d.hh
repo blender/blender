@@ -40,7 +40,6 @@ struct RegionView3D;
 struct RenderEngineType;
 struct Scene;
 struct ScrArea;
-struct SnapObjectContext;
 struct View3D;
 struct ViewContext;
 struct ViewLayer;
@@ -56,6 +55,9 @@ struct wmKeyMapItem;
 struct wmOperator;
 struct wmWindow;
 struct wmWindowManager;
+namespace blender::ed::transform {
+struct SnapObjectContext;
+}
 
 /** For mesh drawing callbacks, for viewport selection, etc. */
 struct ViewContext {
@@ -371,7 +373,7 @@ void ED_view3d_cursor_snap_state_prevpoint_set(V3DSnapCursorState *state,
 void ED_view3d_cursor_snap_data_update(
     V3DSnapCursorState *state, const bContext *C, const ARegion *region, int x, int y);
 V3DSnapCursorData *ED_view3d_cursor_snap_data_get();
-SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene);
+blender::ed::transform::SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene);
 void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const float source_loc[3],
                                      const float target_loc[3],

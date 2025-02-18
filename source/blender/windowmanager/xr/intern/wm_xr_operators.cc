@@ -739,25 +739,26 @@ static void wm_xr_raycast(Scene *scene,
                           float r_obmat[4][4])
 {
   /* Uses same raycast method as Scene.ray_cast(). */
-  SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, 0);
+  blender::ed::transform::SnapObjectContext *sctx =
+      blender::ed::transform::snap_object_context_create(scene, 0);
 
-  SnapObjectParams params{};
+  blender::ed::transform::SnapObjectParams params{};
   params.snap_target_select = (selectable_only ? SCE_SNAP_TARGET_ONLY_SELECTABLE :
                                                  SCE_SNAP_TARGET_ALL);
-  ED_transform_snap_object_project_ray_ex(sctx,
-                                          depsgraph,
-                                          nullptr,
-                                          &params,
-                                          origin,
-                                          direction,
-                                          ray_dist,
-                                          r_location,
-                                          r_normal,
-                                          r_index,
-                                          r_ob,
-                                          r_obmat);
+  blender::ed::transform::snap_object_project_ray_ex(sctx,
+                                                     depsgraph,
+                                                     nullptr,
+                                                     &params,
+                                                     origin,
+                                                     direction,
+                                                     ray_dist,
+                                                     r_location,
+                                                     r_normal,
+                                                     r_index,
+                                                     r_ob,
+                                                     r_obmat);
 
-  ED_transform_snap_object_context_destroy(sctx);
+  blender::ed::transform::snap_object_context_destroy(sctx);
 }
 
 /** \} */

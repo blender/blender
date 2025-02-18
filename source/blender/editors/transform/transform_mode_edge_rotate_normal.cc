@@ -25,6 +25,9 @@
 #include "transform_snap.hh"
 
 #include "transform_mode.hh"
+
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Normal Rotation)
  * \{ */
@@ -150,3 +153,5 @@ TransModeInfo TransMode_rotatenormal = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

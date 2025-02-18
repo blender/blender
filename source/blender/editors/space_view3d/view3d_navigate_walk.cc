@@ -328,7 +328,7 @@ struct WalkInfo {
   /** Nicer dynamics. */
   float zlock_momentum;
 
-  SnapObjectContext *snap_context;
+  blender::ed::transform::SnapObjectContext *snap_context;
 
   View3DCameraControl *v3d_camera_control;
 };
@@ -435,20 +435,20 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
   mul_v3_v3fl(dvec_tmp, dvec, walk->grid);
   add_v3_v3(ray_start, dvec_tmp);
 
-  SnapObjectParams snap_params = {};
+  blender::ed::transform::SnapObjectParams snap_params = {};
   snap_params.snap_target_select = SCE_SNAP_TARGET_ALL;
   /* Avoid having to convert the edit-mesh to a regular mesh. */
-  snap_params.edit_mode_type = SNAP_GEOM_EDIT;
+  snap_params.edit_mode_type = blender::ed::transform::SNAP_GEOM_EDIT;
 
-  const bool ret = ED_transform_snap_object_project_ray(walk->snap_context,
-                                                        walk->depsgraph,
-                                                        walk->v3d,
-                                                        &snap_params,
-                                                        ray_start,
-                                                        ray_normal,
-                                                        r_distance,
-                                                        location_dummy,
-                                                        normal_dummy);
+  const bool ret = blender::ed::transform::snap_object_project_ray(walk->snap_context,
+                                                                   walk->depsgraph,
+                                                                   walk->v3d,
+                                                                   &snap_params,
+                                                                   ray_start,
+                                                                   ray_normal,
+                                                                   r_distance,
+                                                                   location_dummy,
+                                                                   normal_dummy);
 
   /* Artificially scale the distance to the scene size. */
   *r_distance /= walk->grid;
@@ -477,18 +477,18 @@ static bool walk_ray_cast(RegionView3D *rv3d,
 
   normalize_v3(ray_normal);
 
-  SnapObjectParams snap_params = {};
+  blender::ed::transform::SnapObjectParams snap_params = {};
   snap_params.snap_target_select = SCE_SNAP_TARGET_ALL;
 
-  const bool ret = ED_transform_snap_object_project_ray(walk->snap_context,
-                                                        walk->depsgraph,
-                                                        walk->v3d,
-                                                        &snap_params,
-                                                        ray_start,
-                                                        ray_normal,
-                                                        nullptr,
-                                                        r_location,
-                                                        r_normal);
+  const bool ret = blender::ed::transform::snap_object_project_ray(walk->snap_context,
+                                                                   walk->depsgraph,
+                                                                   walk->v3d,
+                                                                   &snap_params,
+                                                                   ray_start,
+                                                                   ray_normal,
+                                                                   nullptr,
+                                                                   r_location,
+                                                                   r_normal);
 
   /* Dot is positive if both rays are facing the same direction. */
   if (dot_v3v3(ray_normal, r_normal) > 0) {
@@ -630,7 +630,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 
   walk->rv3d->rflag |= RV3D_NAVIGATING;
 
-  walk->snap_context = ED_transform_snap_object_context_create(walk->scene, 0);
+  walk->snap_context = blender::ed::transform::snap_object_context_create(walk->scene, 0);
 
   walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
       walk->depsgraph, walk->scene, walk->v3d, walk->rv3d);
@@ -677,7 +677,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
 
   ED_region_draw_cb_exit(walk->region->runtime->type, walk->draw_handle_pixel);
 
-  ED_transform_snap_object_context_destroy(walk->snap_context);
+  blender::ed::transform::snap_object_context_destroy(walk->snap_context);
 
   ED_view3d_cameracontrol_release(walk->v3d_camera_control, walk->state == WALK_CANCEL);
 

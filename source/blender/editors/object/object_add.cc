@@ -4434,8 +4434,12 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
                          "Duplicate object but not object data, linking to the original data");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_enum(
-      ot->srna, "mode", rna_enum_transform_mode_type_items, TFM_TRANSLATION, "Mode", "");
+  prop = RNA_def_enum(ot->srna,
+                      "mode",
+                      rna_enum_transform_mode_type_items,
+                      blender::ed::transform::TFM_TRANSLATION,
+                      "Mode",
+                      "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

@@ -22,6 +22,8 @@ struct bContext;
 struct wmOperator;
 struct wmEvent;
 
+namespace blender::ed::transform {
+
 struct TransModeInfo {
   int flags; /* #eTFlag. */
 
@@ -224,3 +226,5 @@ extern TransModeInfo TransMode_translate;
 
 extern TransModeInfo TransMode_vertslide;
 void transform_mode_vert_slide_reproject_input(TransInfo *t);
+
+}  // namespace blender::ed::transform

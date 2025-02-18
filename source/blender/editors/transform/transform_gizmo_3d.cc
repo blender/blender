@@ -64,7 +64,7 @@
 #include "transform_gizmo.hh"
 #include "transform_snap.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 static wmGizmoGroupType *g_GGT_xform_gizmo = nullptr;
 static wmGizmoGroupType *g_GGT_xform_gizmo_context = nullptr;
@@ -942,10 +942,10 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   return totsel;
 }
 
-int ED_transform_calc_gizmo_stats(const bContext *C,
-                                  const TransformCalcParams *params,
-                                  TransformBounds *tbounds,
-                                  RegionView3D *rv3d)
+int calc_gizmo_stats(const bContext *C,
+                     const TransformCalcParams *params,
+                     TransformBounds *tbounds,
+                     RegionView3D *rv3d)
 {
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
@@ -968,7 +968,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
    * if we could check 'totsel' now, this should be skipped with no selection. */
   if (ob) {
     float mat[3][3];
-    ED_transform_calc_orientation_from_type_ex(
+    calc_orientation_from_type_ex(
         scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
     copy_m3_m3(tbounds->axis, mat);
   }
@@ -1063,7 +1063,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
           copy_v3_v3(r_pivot_pos, ss->pivot_pos);
           return true;
         }
-        if (blender::ed::object::calc_active_center(ob, false, r_pivot_pos)) {
+        if (object::calc_active_center(ob, false, r_pivot_pos)) {
           return true;
         }
       }
@@ -1074,7 +1074,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
       if (tbounds == nullptr) {
         TransformCalcParams calc_params{};
         calc_params.use_only_center = true;
-        if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds_stack, nullptr)) {
+        if (calc_gizmo_stats(C, &calc_params, &tbounds_stack, nullptr)) {
           tbounds = &tbounds_stack;
         }
       }
@@ -1677,7 +1677,7 @@ static int gizmo_modal(bContext *C,
 
     TransformCalcParams calc_params{};
     calc_params.use_only_center = true;
-    if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
+    if (calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
       gizmo_prepare_mat(C, rv3d, &tbounds);
       LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
         WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
@@ -1953,7 +1953,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   TransformCalcParams calc_params{};
   calc_params.use_only_center = true;
   calc_params.orientation_index = orient_index + 1;
-  if ((ggd->all_hidden = (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0))) {
+  if ((ggd->all_hidden = (calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0))) {
     return;
   }
 
@@ -2462,8 +2462,10 @@ void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t)
   MAN_ITER_AXES_END;
 }
 
-bool ED_transform_calc_pivot_pos(const bContext *C, const short pivot_type, float r_pivot_pos[3])
+bool calc_pivot_pos(const bContext *C, const short pivot_type, float r_pivot_pos[3])
 {
   Scene *scene = CTX_data_scene(C);
   return gizmo_3d_calc_pos(C, scene, nullptr, pivot_type, r_pivot_pos);
 }
+
+}  // namespace blender::ed::transform

@@ -29,6 +29,8 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /** Used for sequencer transform. */
 struct TransDataSeq {
   Strip *strip;
@@ -46,7 +48,7 @@ static TransData *SeqToTransData(const Scene *scene,
                                  int vert_index)
 {
   const StripTransform *transform = strip->data->transform;
-  const blender::float2 origin = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
+  const float2 origin = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
   float vertex[2] = {origin[0], origin[1]};
 
   /* Add control vertex, so rotation and scale can be calculated.
@@ -118,8 +120,7 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
 
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  blender::VectorSet strips = SEQ_query_rendered_strips(
-      t->scene, channels, seqbase, t->scene->r.cfra, 0);
+  VectorSet strips = SEQ_query_rendered_strips(t->scene, channels, seqbase, t->scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   if (strips.is_empty()) {
@@ -160,29 +161,28 @@ static bool autokeyframe_sequencer_image(bContext *C,
   const bool do_loc = tmode == TFM_TRANSLATION || around_cursor;
   const bool do_rot = tmode == TFM_ROTATION;
   const bool do_scale = tmode == TFM_RESIZE;
-  const bool only_when_keyed = blender::animrig::is_keying_flag(scene,
-                                                                AUTOKEY_FLAG_INSERTAVAILABLE);
+  const bool only_when_keyed = animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE);
 
   bool changed = false;
   if (do_rot) {
     prop = RNA_struct_find_property(&ptr, "rotation");
-    changed |= blender::animrig::autokeyframe_property(
+    changed |= animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
   }
   if (do_loc) {
     prop = RNA_struct_find_property(&ptr, "offset_x");
-    changed |= blender::animrig::autokeyframe_property(
+    changed |= animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
     prop = RNA_struct_find_property(&ptr, "offset_y");
-    changed |= blender::animrig::autokeyframe_property(
+    changed |= animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
   }
   if (do_scale) {
     prop = RNA_struct_find_property(&ptr, "scale_x");
-    changed |= blender::animrig::autokeyframe_property(
+    changed |= animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
     prop = RNA_struct_find_property(&ptr, "scale_y");
-    changed |= blender::animrig::autokeyframe_property(
+    changed |= animrig::autokeyframe_property(
         C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
   }
 
@@ -219,7 +219,7 @@ static void recalcData_sequencer_image(TransInfo *t)
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdseq->strip;
     StripTransform *transform = strip->data->transform;
-    const blender::float2 mirror = SEQ_image_transform_mirror_factor_get(strip);
+    const float2 mirror = SEQ_image_transform_mirror_factor_get(strip);
 
     /* Calculate translation. */
     float translation[2];
@@ -245,7 +245,7 @@ static void recalcData_sequencer_image(TransInfo *t)
       transform->rotation = tdseq->orig_rotation - t->values_final[0];
     }
 
-    if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
+    if ((t->animtimer) && animrig::is_autokey_on(t->scene)) {
       animrecord_check_state(t, &t->scene->id);
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
@@ -273,7 +273,7 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
       continue;
     }
 
-    if (blender::animrig::is_autokey_on(t->scene)) {
+    if (animrig::is_autokey_on(t->scene)) {
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
   }
@@ -285,3 +285,5 @@ TransConvertTypeInfo TransConvertType_SequencerImage = {
     /*recalc_data*/ recalcData_sequencer_image,
     /*special_aftertrans_update*/ special_aftertrans_update__sequencer_image,
 };
+
+}  // namespace blender::ed::transform

@@ -26,6 +26,8 @@
 
 #include "transform_mode.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (EditBone Roll)
  * \{ */
@@ -101,3 +103,5 @@ TransModeInfo TransMode_boneroll = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

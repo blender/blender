@@ -22,6 +22,8 @@
 
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Edit Mesh #CD_MVERT_SKIN Transform Creation
  * \{ */
@@ -294,3 +296,5 @@ TransConvertTypeInfo TransConvertType_MeshSkin = {
     /*recalc_data*/ recalcData_mesh_skin,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

@@ -136,25 +136,26 @@ static void rna_Scene_ray_cast(Scene *scene,
 {
   float direction_unit[3];
   normalize_v3_v3(direction_unit, direction);
-  SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, 0);
+  blender::ed::transform::SnapObjectContext *sctx =
+      blender::ed::transform::snap_object_context_create(scene, 0);
 
-  SnapObjectParams snap_object_params{};
+  blender::ed::transform::SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;
 
-  bool ret = ED_transform_snap_object_project_ray_ex(sctx,
-                                                     depsgraph,
-                                                     nullptr,
-                                                     &snap_object_params,
-                                                     origin,
-                                                     direction_unit,
-                                                     &ray_dist,
-                                                     r_location,
-                                                     r_normal,
-                                                     r_index,
-                                                     (const Object **)(r_ob),
-                                                     (float(*)[4])r_obmat);
+  bool ret = blender::ed::transform::snap_object_project_ray_ex(sctx,
+                                                                depsgraph,
+                                                                nullptr,
+                                                                &snap_object_params,
+                                                                origin,
+                                                                direction_unit,
+                                                                &ray_dist,
+                                                                r_location,
+                                                                r_normal,
+                                                                r_index,
+                                                                (const Object **)(r_ob),
+                                                                (float(*)[4])r_obmat);
 
-  ED_transform_snap_object_context_destroy(sctx);
+  blender::ed::transform::snap_object_context_destroy(sctx);
 
   if (r_ob != nullptr && *r_ob != nullptr) {
     *r_ob = DEG_get_original_object(*r_ob);

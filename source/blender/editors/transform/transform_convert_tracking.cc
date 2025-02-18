@@ -26,6 +26,8 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 struct TransDataTracking {
   int mode;
   int flag;
@@ -627,3 +629,5 @@ TransConvertTypeInfo TransConvertType_Tracking = {
     /*recalc_data*/ recalcData_tracking,
     /*special_aftertrans_update*/ special_aftertrans_update__movieclip,
 };
+
+}  // namespace blender::ed::transform

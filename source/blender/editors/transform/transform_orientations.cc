@@ -51,6 +51,8 @@
 #include "transform.hh"
 #include "transform_orientations.hh"
 
+namespace blender::ed::transform {
+
 /* *********************** TransSpace ************************** */
 
 void BIF_clearTransformOrientation(bContext *C)
@@ -601,7 +603,7 @@ static int armature_bone_transflags_update_recursive(bArmature *arm,
   return total;
 }
 
-void ED_transform_calc_orientation_from_type(const bContext *C, float r_mat[3][3])
+void calc_orientation_from_type(const bContext *C, float r_mat[3][3])
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -614,7 +616,7 @@ void ED_transform_calc_orientation_from_type(const bContext *C, float r_mat[3][3
   const short orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
   const int pivot_point = scene->toolsettings->transform_pivot_point;
 
-  ED_transform_calc_orientation_from_type_ex(
+  calc_orientation_from_type_ex(
       scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, r_mat);
 }
 
@@ -649,15 +651,15 @@ static void handle_object_parent_orientation(Object *ob, float r_mat[3][3])
   }
 }
 
-short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
-                                                 ViewLayer *view_layer,
-                                                 const View3D *v3d,
-                                                 const RegionView3D *rv3d,
-                                                 Object *ob,
-                                                 Object *obedit,
-                                                 const short orientation_index,
-                                                 const int pivot_point,
-                                                 float r_mat[3][3])
+short calc_orientation_from_type_ex(const Scene *scene,
+                                    ViewLayer *view_layer,
+                                    const View3D *v3d,
+                                    const RegionView3D *rv3d,
+                                    Object *ob,
+                                    Object *obedit,
+                                    const short orientation_index,
+                                    const int pivot_point,
+                                    float r_mat[3][3])
 {
   switch (orientation_index) {
     case V3D_ORIENT_GIMBAL: {
@@ -730,7 +732,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
       break;
     }
     case V3D_ORIENT_CURSOR: {
-      copy_m3_m3(r_mat, scene->cursor.matrix<blender::float3x3>().ptr());
+      copy_m3_m3(r_mat, scene->cursor.matrix<float3x3>().ptr());
       break;
     }
     case V3D_ORIENT_CUSTOM_MATRIX: {
@@ -790,7 +792,7 @@ short transform_orientation_matrix_get(bContext *C,
     }
   }
 
-  short r_orient_index = ED_transform_calc_orientation_from_type_ex(
+  short r_orient_index = calc_orientation_from_type_ex(
       scene, t->view_layer, v3d, rv3d, ob, obedit, orient_index, t->around, r_spacemtx);
 
   if (rv3d && (t->options & CTX_PAINT_CURVE)) {
@@ -1552,3 +1554,5 @@ void ED_getTransformOrientationMatrix(const Scene *scene,
     unit_m3(r_orientation_mat);
   }
 }
+
+}  // namespace blender::ed::transform

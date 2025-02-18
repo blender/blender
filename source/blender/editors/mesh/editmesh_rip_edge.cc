@@ -231,5 +231,5 @@ void MESH_OT_rip_edge(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* to give to transform */
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }

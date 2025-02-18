@@ -35,10 +35,9 @@
 
 namespace blender::ed::transform::curves {
 
-static void create_aligned_handles_masks(
-    const bke::CurvesGeometry &curves,
-    const blender::Span<blender::IndexMask> points_to_transform_per_attr,
-    TransCustomData &custom_data)
+static void create_aligned_handles_masks(const bke::CurvesGeometry &curves,
+                                         const Span<IndexMask> points_to_transform_per_attr,
+                                         TransCustomData &custom_data)
 {
   if (points_to_transform_per_attr.size() == 1) {
     return;
@@ -117,7 +116,7 @@ static void calculate_curve_point_distances_for_proportional_editing(
 static IndexMask handles_by_type(const IndexMask handles,
                                  const HandleType type,
                                  Span<int8_t> types,
-                                 blender::IndexMaskMemory &memory)
+                                 IndexMaskMemory &memory)
 {
   return IndexMask::from_predicate(
       handles, GrainSize(4096), memory, [&](const int64_t i) { return types[i] == type; });
@@ -126,7 +125,7 @@ static IndexMask handles_by_type(const IndexMask handles,
 static void update_vector_handle_types(const IndexMask &selected_handles,
                                        MutableSpan<int8_t> handle_types)
 {
-  blender::IndexMaskMemory memory;
+  IndexMaskMemory memory;
   /* Selected BEZIER_HANDLE_VECTOR handles. */
   const IndexMask convert_to_free = handles_by_type(
       selected_handles, BEZIER_HANDLE_VECTOR, handle_types, memory);
@@ -138,7 +137,7 @@ static void update_auto_handle_types(const IndexMask &auto_handles,
                                      const IndexMask &selected_handles,
                                      const IndexMask &selected_handles_opposite,
                                      MutableSpan<int8_t> handle_types,
-                                     blender::IndexMaskMemory &memory)
+                                     IndexMaskMemory &memory)
 {
   index_mask::ExprBuilder builder;
   const IndexMask &convert_to_align = evaluate_expression(
@@ -159,7 +158,7 @@ static void update_auto_handle_types(const IndexMask &selected_handles_left,
                                      MutableSpan<int8_t> handle_types_left,
                                      MutableSpan<int8_t> handle_types_right)
 {
-  blender::IndexMaskMemory memory;
+  IndexMaskMemory memory;
   const IndexMask auto_left = handles_by_type(
       bezier_points, BEZIER_HANDLE_AUTO, handle_types_left, memory);
   const IndexMask auto_right = handles_by_type(
@@ -231,7 +230,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
 
     /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
     if (!bezier_points.is_empty()) {
-      blender::IndexMaskMemory memory;
+      IndexMaskMemory memory;
       /* Selected handles, but not the control point. */
       const IndexMask selected_left = IndexMask::from_difference(
           selection_per_attribute[1], selection_per_attribute[0], memory);
@@ -416,8 +415,6 @@ static void fill_map(const CurveType curve_type,
   }
 }
 
-}  // namespace blender::ed::transform::curves
-
 CurvesTransformData *create_curves_transform_custom_data(TransCustomData &custom_data)
 {
   CurvesTransformData *transform_data = MEM_new<CurvesTransformData>(__func__);
@@ -431,12 +428,10 @@ CurvesTransformData *create_curves_transform_custom_data(TransCustomData &custom
   return transform_data;
 }
 
-void copy_positions_from_curves_transform_custom_data(
-    const TransCustomData &custom_data,
-    const int layer,
-    blender::MutableSpan<blender::float3> positions_dst)
+void copy_positions_from_curves_transform_custom_data(const TransCustomData &custom_data,
+                                                      const int layer,
+                                                      MutableSpan<float3> positions_dst)
 {
-  using namespace blender;
   const CurvesTransformData &transform_data = *static_cast<CurvesTransformData *>(
       custom_data.data);
   const IndexMask &selection = transform_data.selection_by_layer[layer];
@@ -446,20 +441,18 @@ void copy_positions_from_curves_transform_custom_data(
   array_utils::scatter(positions, selection, positions_dst);
 }
 
-void curve_populate_trans_data_structs(
-    const TransInfo &t,
-    TransDataContainer &tc,
-    blender::bke::CurvesGeometry &curves,
-    const blender::float4x4 &transform,
-    const blender::bke::crazyspace::GeometryDeformation &deformation,
-    std::optional<blender::MutableSpan<float>> value_attribute,
-    const blender::Span<blender::IndexMask> points_to_transform_per_attr,
-    const blender::IndexMask &affected_curves,
-    bool use_connected_only,
-    const blender::IndexMask &bezier_curves,
-    void *extra)
+void curve_populate_trans_data_structs(const TransInfo &t,
+                                       TransDataContainer &tc,
+                                       bke::CurvesGeometry &curves,
+                                       const float4x4 &transform,
+                                       const bke::crazyspace::GeometryDeformation &deformation,
+                                       std::optional<MutableSpan<float>> value_attribute,
+                                       const Span<IndexMask> points_to_transform_per_attr,
+                                       const IndexMask &affected_curves,
+                                       bool use_connected_only,
+                                       const IndexMask &bezier_curves,
+                                       void *extra)
 {
-  using namespace blender;
   const std::array<Span<float3>, 3> src_positions_per_selection_attr = {
       curves.positions(), curves.handle_positions_left(), curves.handle_positions_right()};
   const View3D *v3d = static_cast<const View3D *>(t.view);
@@ -473,15 +466,14 @@ void curve_populate_trans_data_structs(
 
   std::array<MutableSpan<float3>, 3> positions_per_selection_attr;
   for (const int selection_i : points_to_transform_per_attr.index_range()) {
-    positions_per_selection_attr[selection_i] =
-        ed::transform::curves::append_positions_to_custom_data(
-            points_to_transform_per_attr[selection_i],
-            src_positions_per_selection_attr[selection_i],
-            tc.custom.type);
+    positions_per_selection_attr[selection_i] = append_positions_to_custom_data(
+        points_to_transform_per_attr[selection_i],
+        src_positions_per_selection_attr[selection_i],
+        tc.custom.type);
   }
 
   MutableSpan<TransData> all_tc_data = MutableSpan(tc.data, tc.data_len);
-  OffsetIndices<int> position_offsets_in_td = ed::transform::curves::recent_position_offsets(
+  OffsetIndices<int> position_offsets_in_td = recent_position_offsets(
       tc.custom.type, points_to_transform_per_attr.size());
 
   Vector<VArray<bool>> selection_attrs;
@@ -595,11 +587,11 @@ void curve_populate_trans_data_structs(
         closest_distances.fill(std::numeric_limits<float>::max());
         mapped_curve_positions.reinitialize(total_curve_points);
 
-        ed::transform::curves::fill_map(CurveType(curve_types[curve_i]),
-                                        curve_points,
-                                        position_offsets_in_td,
-                                        bezier_offsets_in_td[curve_i],
-                                        map);
+        fill_map(CurveType(curve_types[curve_i]),
+                 curve_points,
+                 position_offsets_in_td,
+                 bezier_offsets_in_td[curve_i],
+                 map);
 
         bool has_any_selected = false;
         for (const int selection_attr_i : IndexRange(selection_attrs_num)) {
@@ -622,7 +614,7 @@ void curve_populate_trans_data_structs(
             closest_distances[i] = 0.0f;
           }
         }
-        blender::ed::transform::curves::calculate_curve_point_distances_for_proportional_editing(
+        calculate_curve_point_distances_for_proportional_editing(
             mapped_curve_positions.as_span(), closest_distances.as_mutable_span());
         for (const int i : closest_distances.index_range()) {
           TransData &td = all_tc_data[map[i]];
@@ -637,7 +629,9 @@ void curve_populate_trans_data_structs(
 
 TransConvertTypeInfo TransConvertType_Curves = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*create_trans_data*/ blender::ed::transform::curves::createTransCurvesVerts,
-    /*recalc_data*/ blender::ed::transform::curves::recalcData_curves,
+    /*create_trans_data*/ createTransCurvesVerts,
+    /*recalc_data*/ recalcData_curves,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform::curves

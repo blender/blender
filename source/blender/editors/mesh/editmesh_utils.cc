@@ -1938,13 +1938,14 @@ bool BMBVH_EdgeVisible(const BMBVHTree *tree,
 void EDBM_project_snap_verts(
     bContext *C, Depsgraph *depsgraph, ARegion *region, Object *obedit, BMEditMesh *em)
 {
+  using namespace blender::ed;
   BMIter iter;
   BMVert *eve;
 
   ED_view3d_init_mats_rv3d(obedit, static_cast<RegionView3D *>(region->regiondata));
 
   Scene *scene = CTX_data_scene(C);
-  SnapObjectContext *snap_context = ED_transform_snap_object_context_create(scene, 0);
+  transform::SnapObjectContext *snap_context = transform::snap_object_context_create(scene, 0);
 
   eSnapTargetOP target_op = SCE_SNAP_TARGET_NOT_ACTIVE;
   const int snap_flag = scene->toolsettings->snap_flag;
@@ -1962,22 +1963,22 @@ void EDBM_project_snap_verts(
       if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK)
       {
-        SnapObjectParams params{};
+        transform::SnapObjectParams params{};
         params.snap_target_select = target_op;
-        params.edit_mode_type = SNAP_GEOM_FINAL;
-        params.occlusion_test = SNAP_OCCLUSION_AS_SEEM;
-        if (ED_transform_snap_object_project_view3d(snap_context,
-                                                    depsgraph,
-                                                    region,
-                                                    CTX_wm_view3d(C),
-                                                    SCE_SNAP_TO_FACE,
-                                                    &params,
-                                                    nullptr,
-                                                    mval,
-                                                    nullptr,
-                                                    nullptr,
-                                                    co_proj,
-                                                    nullptr))
+        params.edit_mode_type = transform ::SNAP_GEOM_FINAL;
+        params.occlusion_test = transform ::SNAP_OCCLUSION_AS_SEEM;
+        if (transform::snap_object_project_view3d(snap_context,
+                                                  depsgraph,
+                                                  region,
+                                                  CTX_wm_view3d(C),
+                                                  SCE_SNAP_TO_FACE,
+                                                  &params,
+                                                  nullptr,
+                                                  mval,
+                                                  nullptr,
+                                                  nullptr,
+                                                  co_proj,
+                                                  nullptr))
         {
           mul_v3_m4v3(eve->co, obedit->world_to_object().ptr(), co_proj);
         }
@@ -1985,7 +1986,7 @@ void EDBM_project_snap_verts(
     }
   }
 
-  ED_transform_snap_object_context_destroy(snap_context);
+  transform::snap_object_context_destroy(snap_context);
 }
 
 /** \} */

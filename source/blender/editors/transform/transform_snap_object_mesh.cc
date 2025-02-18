@@ -23,7 +23,7 @@
 #  endif
 #endif
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Snap Object Data
@@ -58,7 +58,7 @@ static void mesh_corner_tris_raycast_backface_culling_cb(void *userdata,
                                                          BVHTreeRayHit *hit)
 {
   const bke::BVHTreeFromMesh *data = (bke::BVHTreeFromMesh *)userdata;
-  const blender::Span<blender::float3> positions = data->vert_positions;
+  const Span<float3> positions = data->vert_positions;
   const int3 &tri = data->corner_tris[index];
   const float *vtri_co[3] = {
       positions[data->corner_verts[tri[0]]],
@@ -133,7 +133,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   bke::BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(mesh_eval, use_hide, &treedata);
 
-  const blender::Span<int> tri_faces = mesh_eval->corner_tri_faces();
+  const Span<int> tri_faces = mesh_eval->corner_tri_faces();
 
   if (treedata.tree == nullptr) {
     return retval;
@@ -247,7 +247,7 @@ class SnapData_Mesh : public SnapData {
 
   void get_edge_verts_index(const int index, int r_v_index[2]) override
   {
-    const blender::int2 &edge = this->edges[index];
+    const int2 &edge = this->edges[index];
     r_v_index[0] = edge[0];
     r_v_index[1] = edge[1];
   }
@@ -374,7 +374,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
   nearest.index = -1;
   nearest.dist_sq = sctx->ret.dist_px_sq;
 
-  const blender::IndexRange face = mesh_eval->faces()[face_index];
+  const IndexRange face = mesh_eval->faces()[face_index];
 
   if (snap_to_flag &
       (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR))
@@ -627,3 +627,5 @@ eSnapMode snap_object_mesh(SnapObjectContext *sctx,
 
   return SCE_SNAP_TO_NONE;
 }
+
+}  // namespace blender::ed::transform

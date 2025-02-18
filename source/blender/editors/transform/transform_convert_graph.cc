@@ -32,6 +32,8 @@
 #include "transform_convert.hh"
 #include "transform_snap.hh"
 
+namespace blender::ed::transform {
+
 struct TransDataGraph {
   float unit_scale;
   float offset;
@@ -288,8 +290,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
   /* Loop 1: count how many BezTriples (specifically their verts)
    * are selected (or should be edited). */
-  blender::Set<FCurve *> visited_fcurves;
-  blender::Vector<bAnimListElem *> unique_fcu_anim_list_elements;
+  Set<FCurve *> visited_fcurves;
+  Vector<bAnimListElem *> unique_fcu_anim_list_elements;
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
     /* If 2 or more objects share the same action, multiple bAnimListElem might reference the same
@@ -731,13 +733,13 @@ struct BeztMap {
 /**
  * Converts an FCurve's BezTriple array to a BeztMap vector.
  */
-static blender::Vector<BeztMap> bezt_to_beztmaps(BezTriple *bezts, const int totvert)
+static Vector<BeztMap> bezt_to_beztmaps(BezTriple *bezts, const int totvert)
 {
   if (totvert == 0 || bezts == nullptr) {
     return {};
   }
 
-  blender::Vector<BeztMap> bezms = blender::Vector<BeztMap>(totvert);
+  Vector<BeztMap> bezms = Vector<BeztMap>(totvert);
 
   for (const int i : bezms.index_range()) {
     BezTriple *bezt = &bezts[i];
@@ -751,7 +753,7 @@ static blender::Vector<BeztMap> bezt_to_beztmaps(BezTriple *bezts, const int tot
 }
 
 /* This function copies the code of sort_time_ipocurve, but acts on BeztMap structs instead. */
-static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
+static void sort_time_beztmaps(const MutableSpan<BeztMap> bezms)
 {
   /* Check if handles need to be swapped. */
   for (BeztMap &bezm : bezms) {
@@ -767,7 +769,7 @@ static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
     /* No sorting is needed with only 0 or 1 entries. */
     return;
   }
-  const blender::IndexRange bezm_range = bezms.index_range().drop_back(1);
+  const IndexRange bezm_range = bezms.index_range().drop_back(1);
 
   /* Keep repeating the process until nothing is out of place anymore. */
   while (ok) {
@@ -802,9 +804,9 @@ static inline void update_trans_data(TransData *td,
 
 /* Adjust the pointers that the transdata has to each BezTriple. */
 static void update_transdata_bezt_pointers(TransDataContainer *tc,
-                                           const blender::Map<float *, int> &trans_data_map,
+                                           const Map<float *, int> &trans_data_map,
                                            const FCurve *fcu,
-                                           const blender::Span<BeztMap> bezms)
+                                           const Span<BeztMap> bezms)
 {
   /* At this point, beztmaps are already sorted, so their current index is assumed to be what the
    * BezTriple index will be after sorting. */
@@ -862,7 +864,7 @@ static void update_transdata_bezt_pointers(TransDataContainer *tc,
  * the handles of curves and sort the keyframes so that the curves draw correctly.
  * The Span of FCurves should only contain those that need sorting.
  */
-static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> fcurves)
+static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
@@ -871,7 +873,7 @@ static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> f
 
   /* Build a map from the data that is being modified to its index. This is used to quickly update
    * the pointers to where the data ends up after sorting. */
-  blender::Map<float *, int> trans_data_map;
+  Map<float *, int> trans_data_map;
   for (int i = 0; i < tc->data_len; i++) {
     trans_data_map.add(tc->data_2d[i].loc2d, i);
   }
@@ -879,7 +881,7 @@ static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> f
   /* The grain size of 8 was chosen based on measured runtimes of this function. While 1 is the
    * fastest, larger grain sizes are generally preferred and the difference between 1 and 8 was
    * only minimal (~330ms to ~336ms). */
-  blender::threading::parallel_for(fcurves.index_range(), 8, [&](const blender::IndexRange range) {
+  threading::parallel_for(fcurves.index_range(), 8, [&](const IndexRange range) {
     for (const int i : range) {
       FCurve *fcu = fcurves[i];
 
@@ -889,7 +891,7 @@ static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> f
 
       /* Adjust transform-data pointers. */
       /* NOTE: none of these functions use 'use_handle', it could be removed. */
-      blender::Vector<BeztMap> bezms = bezt_to_beztmaps(fcu->bezt, fcu->totvert);
+      Vector<BeztMap> bezms = bezt_to_beztmaps(fcu->bezt, fcu->totvert);
       sort_time_beztmaps(bezms);
       update_transdata_bezt_pointers(tc, trans_data_map, fcu, bezms);
 
@@ -936,7 +938,7 @@ static void recalcData_graphedit(TransInfo *t)
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-  blender::Vector<FCurve *> unsorted_fcurves;
+  Vector<FCurve *> unsorted_fcurves;
   /* Now test if there is a need to re-sort. */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
@@ -1038,3 +1040,5 @@ TransConvertTypeInfo TransConvertType_Graph = {
     /*recalc_data*/ recalcData_graphedit,
     /*special_aftertrans_update*/ special_aftertrans_update__graph,
 };
+
+}  // namespace blender::ed::transform

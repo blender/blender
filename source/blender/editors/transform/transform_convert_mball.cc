@@ -22,6 +22,8 @@
 
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Meta Elements Transform Creation
  * \{ */
@@ -144,3 +146,5 @@ TransConvertTypeInfo TransConvertType_MBall = {
     /*recalc_data*/ recalcData_mball,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

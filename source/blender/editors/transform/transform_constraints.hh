@@ -15,6 +15,8 @@
 
 struct TransInfo;
 
+namespace blender::ed::transform {
+
 void constraintNumInput(TransInfo *t, float vec[3]);
 /**
  * Snap to the nearest point on the axis to the edge/line element.
@@ -29,9 +31,7 @@ void transform_constraint_snap_axis_to_face(const TransInfo *t,
                                             const float axis[3],
                                             float r_out[3]);
 
-void transform_constraint_get_nearest(const TransInfo *t,
-                                      const blender::float3 &vec,
-                                      float r_vec[3]);
+void transform_constraint_get_nearest(const TransInfo *t, const float3 &vec, float r_vec[3]);
 
 void setConstraint(TransInfo *t, int mode, const char text[]);
 /**
@@ -72,3 +72,5 @@ bool isLockConstraint(const TransInfo *t);
  * (Which could happen for weird constraints not yet designed. Along a path for example.)
  */
 int getConstraintSpaceDimension(const TransInfo *t);
+
+}  // namespace blender::ed::transform

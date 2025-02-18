@@ -23,6 +23,8 @@
 /* Own include. */
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Texture Space Transform Creation
  *
@@ -117,3 +119,5 @@ TransConvertTypeInfo TransConvertType_ObjectTexSpace = {
     /*recalc_data*/ recalcData_texspace,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

@@ -25,6 +25,8 @@
 
 #include "transform_mode.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Skin) Element
  * \{ */
@@ -176,3 +178,5 @@ TransModeInfo TransMode_skinresize = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

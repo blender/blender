@@ -27,6 +27,8 @@
 /* Own include. */
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Particle Edit Transform Creation
  * \{ */
@@ -256,3 +258,5 @@ TransConvertTypeInfo TransConvertType_Particle = {
     /*recalc_data*/ recalcData_particles,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

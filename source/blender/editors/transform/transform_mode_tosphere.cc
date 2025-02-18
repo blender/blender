@@ -29,6 +29,8 @@
 
 #include "transform_mode.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name To Sphere Utilities
  * \{ */
@@ -273,3 +275,5 @@ TransModeInfo TransMode_tosphere = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

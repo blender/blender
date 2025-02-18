@@ -349,7 +349,9 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   opdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   /* initialize mouse values */
-  if (!calculateTransformCenter(C, V3D_AROUND_CENTER_MEDIAN, center_3d, opdata->mcenter)) {
+  if (!blender::ed::transform::calculateTransformCenter(
+          C, V3D_AROUND_CENTER_MEDIAN, center_3d, opdata->mcenter))
+  {
     /* in this case the tool will likely do nothing,
      * ideally this will never happen and should be checked for above */
     opdata->mcenter[0] = opdata->mcenter[1] = 0;

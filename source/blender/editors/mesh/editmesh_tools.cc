@@ -2056,7 +2056,15 @@ void MESH_OT_duplicate(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh;
 
   /* to give to transform */
-  RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+  RNA_def_int(ot->srna,
+              "mode",
+              blender::ed::transform::TFM_TRANSLATION,
+              0,
+              INT_MAX,
+              "Mode",
+              "",
+              0,
+              INT_MAX);
 }
 
 static BMLoopNorEditDataArray *flip_custom_normals_init_data(BMesh *bm)

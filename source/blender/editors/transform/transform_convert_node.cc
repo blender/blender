@@ -307,11 +307,11 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
 /** \} */
 
-}  // namespace blender::ed::transform
-
 TransConvertTypeInfo TransConvertType_Node = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*create_trans_data*/ blender::ed::transform::createTransNodeData,
-    /*recalc_data*/ blender::ed::transform::flushTransNodes,
-    /*special_aftertrans_update*/ blender::ed::transform::special_aftertrans_update__node,
+    /*create_trans_data*/ createTransNodeData,
+    /*recalc_data*/ flushTransNodes,
+    /*special_aftertrans_update*/ special_aftertrans_update__node,
 };
+
+}  // namespace blender::ed::transform

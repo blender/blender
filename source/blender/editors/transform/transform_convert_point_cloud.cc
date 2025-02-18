@@ -134,13 +134,13 @@ static void recalcData_point_cloud(TransInfo *t)
   }
 }
 
-}  // namespace blender::ed::transform::point_cloud
-
 /** \} */
 
 TransConvertTypeInfo TransConvertType_PointCloud = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*create_trans_data*/ blender::ed::transform::point_cloud::createTransPointCloudVerts,
-    /*recalc_data*/ blender::ed::transform::point_cloud::recalcData_point_cloud,
+    /*create_trans_data*/ point_cloud::createTransPointCloudVerts,
+    /*recalc_data*/ point_cloud::recalcData_point_cloud,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform::point_cloud

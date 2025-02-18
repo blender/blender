@@ -45,6 +45,8 @@
 /* Own include. */
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 struct BoneInitData {
   EditBone *bone;
   float tail[3];
@@ -61,7 +63,7 @@ struct BoneInitData {
  * and we will insert a keyframe at the end of transform. */
 static bool motionpath_need_update_pose(Scene *scene, Object *ob)
 {
-  if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+  if (animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
     return (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
   }
 
@@ -1262,15 +1264,15 @@ static void restoreMirrorPoseBones(TransDataContainer *tc)
 
 /* Given the transform mode `tmode` return a Vector of RNA paths that were possibly modified during
  * that transformation. */
-static blender::Vector<RNAPath> get_affected_rna_paths_from_transform_mode(
+static Vector<RNAPath> get_affected_rna_paths_from_transform_mode(
     const eTfmMode tmode,
     ToolSettings *toolsettings,
-    const blender::StringRef rotation_path,
+    const StringRef rotation_path,
     const bool targetless_ik,
     const bool is_connected,
     const bool transforming_more_than_one_bone)
 {
-  blender::Vector<RNAPath> rna_paths;
+  Vector<RNAPath> rna_paths;
 
   /* Handle the cases where we always need to key location, regardless of
    * transform mode. */
@@ -1351,11 +1353,11 @@ static void autokeyframe_pose(bContext *C,
       continue;
     }
 
-    blender::Vector<RNAPath> rna_paths;
-    const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
+    Vector<RNAPath> rna_paths;
+    const StringRef rotation_path = animrig::get_rotation_mode_path(
         eRotationModes(pchan->rotmode));
 
-    if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+    if (animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       const bool is_connected = pchan->bone->parent != nullptr &&
                                 (pchan->bone->flag & BONE_CONNECTED);
       rna_paths = get_affected_rna_paths_from_transform_mode(tmode,
@@ -1369,8 +1371,7 @@ static void autokeyframe_pose(bContext *C,
       rna_paths = {{"location"}, {rotation_path}, {"scale"}};
     }
 
-    blender::animrig::autokeyframe_pose_channel(
-        C, scene, ob, pchan, rna_paths.as_span(), targetless_ik);
+    animrig::autokeyframe_pose_channel(C, scene, ob, pchan, rna_paths.as_span(), targetless_ik);
   }
 }
 
@@ -1428,7 +1429,7 @@ static void recalcData_pose(TransInfo *t)
 
       /* TODO: autokeyframe calls need some setting to specify to add samples
        * (FPoints) instead of keyframes? */
-      if ((t->animtimer) && (t->context) && blender::animrig::is_autokey_on(t->scene)) {
+      if ((t->animtimer) && (t->context) && animrig::is_autokey_on(t->scene)) {
 
         /* XXX: this currently doesn't work, since flags aren't set yet! */
         int targetless_ik = (t->flag & T_AUTOIK);
@@ -1656,7 +1657,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
   else {
     const bool canceled = (t->state == TRANS_CANCEL);
 
-    if (blender::animrig::is_autokey_on(t->scene) && !canceled) {
+    if (animrig::is_autokey_on(t->scene) && !canceled) {
       ANIM_deselect_keys_in_animation_editors(C);
     }
 
@@ -1741,3 +1742,5 @@ TransConvertTypeInfo TransConvertType_Pose = {
     /*recalc_data*/ recalcData_pose,
     /*special_aftertrans_update*/ special_aftertrans_update__pose,
 };
+
+}  // namespace blender::ed::transform

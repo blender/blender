@@ -34,6 +34,8 @@
 
 #include "transform_mode.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Bend) Custom Data
  * \{ */
@@ -382,3 +384,5 @@ TransModeInfo TransMode_bend = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

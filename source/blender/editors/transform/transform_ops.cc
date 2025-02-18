@@ -42,7 +42,7 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 struct TransformModeItem {
   const char *idname;
@@ -119,41 +119,61 @@ static TransformModeItem transform_modes[] = {
     {nullptr, 0},
 };
 
+}  // namespace blender::ed::transform
+
 const EnumPropertyItem rna_enum_transform_mode_type_items[] = {
-    {TFM_INIT, "INIT", 0, "Init", ""},
-    {TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
-    {TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
-    {TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
-    {TFM_RESIZE, "RESIZE", 0, "Resize", ""},
-    {TFM_SKIN_RESIZE, "SKIN_RESIZE", 0, "Skin Resize", ""},
-    {TFM_TOSPHERE, "TOSPHERE", 0, "To Sphere", ""},
-    {TFM_SHEAR, "SHEAR", 0, "Shear", ""},
-    {TFM_BEND, "BEND", 0, "Bend", ""},
-    {TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrink/Fatten", ""},
-    {TFM_TILT, "TILT", 0, "Tilt", ""},
-    {TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
-    {TFM_PUSHPULL, "PUSHPULL", 0, "Push/Pull", ""},
-    {TFM_EDGE_CREASE, "CREASE", 0, "Crease", ""},
-    {TFM_VERT_CREASE, "VERTEX_CREASE", 0, "Vertex Crease", ""},
-    {TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
-    {TFM_BONESIZE, "BONE_SIZE", 0, "Bone Size", ""},
-    {TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone Envelope", ""},
-    {TFM_BONE_ENVELOPE_DIST, "BONE_ENVELOPE_DIST", 0, "Bone Envelope Distance", ""},
-    {TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve Shrink/Fatten", ""},
-    {TFM_MASK_SHRINKFATTEN, "MASK_SHRINKFATTEN", 0, "Mask Shrink/Fatten", ""},
-    {TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone Roll", ""},
-    {TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time Translate", ""},
-    {TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time Slide", ""},
-    {TFM_TIME_SCALE, "TIME_SCALE", 0, "Time Scale", ""},
-    {TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time Extend", ""},
-    {TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake Time", ""},
-    {TFM_BWEIGHT, "BWEIGHT", 0, "Bevel Weight", ""},
-    {TFM_ALIGN, "ALIGN", 0, "Align", ""},
-    {TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
-    {TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
-    {TFM_GPENCIL_OPACITY, "GPENCIL_OPACITY", 0, "Grease Pencil Opacity", ""},
+    {blender::ed::transform::TFM_INIT, "INIT", 0, "Init", ""},
+    {blender::ed::transform::TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
+    {blender::ed::transform::TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+    {blender::ed::transform::TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {blender::ed::transform::TFM_RESIZE, "RESIZE", 0, "Resize", ""},
+    {blender::ed::transform::TFM_SKIN_RESIZE, "SKIN_RESIZE", 0, "Skin Resize", ""},
+    {blender::ed::transform::TFM_TOSPHERE, "TOSPHERE", 0, "To Sphere", ""},
+    {blender::ed::transform::TFM_SHEAR, "SHEAR", 0, "Shear", ""},
+    {blender::ed::transform::TFM_BEND, "BEND", 0, "Bend", ""},
+    {blender::ed::transform::TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrink/Fatten", ""},
+    {blender::ed::transform::TFM_TILT, "TILT", 0, "Tilt", ""},
+    {blender::ed::transform::TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
+    {blender::ed::transform::TFM_PUSHPULL, "PUSHPULL", 0, "Push/Pull", ""},
+    {blender::ed::transform::TFM_EDGE_CREASE, "CREASE", 0, "Crease", ""},
+    {blender::ed::transform::TFM_VERT_CREASE, "VERTEX_CREASE", 0, "Vertex Crease", ""},
+    {blender::ed::transform::TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
+    {blender::ed::transform::TFM_BONESIZE, "BONE_SIZE", 0, "Bone Size", ""},
+    {blender::ed::transform::TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone Envelope", ""},
+    {blender::ed::transform::TFM_BONE_ENVELOPE_DIST,
+     "BONE_ENVELOPE_DIST",
+     0,
+     "Bone Envelope Distance",
+     ""},
+    {blender::ed::transform::TFM_CURVE_SHRINKFATTEN,
+     "CURVE_SHRINKFATTEN",
+     0,
+     "Curve Shrink/Fatten",
+     ""},
+    {blender::ed::transform::TFM_MASK_SHRINKFATTEN,
+     "MASK_SHRINKFATTEN",
+     0,
+     "Mask Shrink/Fatten",
+     ""},
+    {blender::ed::transform::TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone Roll", ""},
+    {blender::ed::transform::TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time Translate", ""},
+    {blender::ed::transform::TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time Slide", ""},
+    {blender::ed::transform::TFM_TIME_SCALE, "TIME_SCALE", 0, "Time Scale", ""},
+    {blender::ed::transform::TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time Extend", ""},
+    {blender::ed::transform::TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake Time", ""},
+    {blender::ed::transform::TFM_BWEIGHT, "BWEIGHT", 0, "Bevel Weight", ""},
+    {blender::ed::transform::TFM_ALIGN, "ALIGN", 0, "Align", ""},
+    {blender::ed::transform::TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
+    {blender::ed::transform::TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
+    {blender::ed::transform::TFM_GPENCIL_OPACITY,
+     "GPENCIL_OPACITY",
+     0,
+     "Grease Pencil Opacity",
+     ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+namespace blender::ed::transform {
 
 static int select_orientation_exec(bContext *C, wmOperator *op)
 {
@@ -621,7 +641,7 @@ static bool transform_poll_property(const bContext *C, wmOperator *op, const Pro
   return true;
 }
 
-void Transform_Properties(wmOperatorType *ot, int flags)
+void properties_register(wmOperatorType *ot, int flags)
 {
   PropertyRNA *prop;
 
@@ -846,10 +866,10 @@ static void TRANSFORM_OT_translate(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot,
-                       P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP |
-                           P_OPTIONS | P_GPENCIL_EDIT | P_CURSOR_EDIT | P_VIEW2D_EDGE_PAN |
-                           P_POST_TRANSFORM);
+  properties_register(ot,
+                      P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP |
+                          P_OPTIONS | P_GPENCIL_EDIT | P_CURSOR_EDIT | P_VIEW2D_EDGE_PAN |
+                          P_POST_TRANSFORM);
 }
 
 static void TRANSFORM_OT_resize(wmOperatorType *ot)
@@ -886,9 +906,9 @@ static void TRANSFORM_OT_resize(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot,
-                       P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP |
-                           P_OPTIONS | P_GPENCIL_EDIT | P_CENTER);
+  properties_register(ot,
+                      P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP |
+                          P_OPTIONS | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_skin_resize(wmOperatorType *ot)
@@ -912,9 +932,9 @@ static void TRANSFORM_OT_skin_resize(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot,
-                       P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP |
-                           P_OPTIONS | P_NO_TEXSPACE);
+  properties_register(ot,
+                      P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP |
+                          P_OPTIONS | P_NO_TEXSPACE);
 }
 
 static void TRANSFORM_OT_trackball(wmOperatorType *ot)
@@ -939,7 +959,7 @@ static void TRANSFORM_OT_trackball(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
+  properties_register(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_rotate(wmOperatorType *ot)
@@ -963,9 +983,9 @@ static void TRANSFORM_OT_rotate(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot,
-                       P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
-                           P_GEO_SNAP | P_GPENCIL_EDIT | P_CENTER);
+  properties_register(ot,
+                      P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
+                          P_GEO_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static bool tilt_poll(bContext *C)
@@ -1008,7 +1028,7 @@ static void TRANSFORM_OT_tilt(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
+  properties_register(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
 
 static void TRANSFORM_OT_bend(wmOperatorType *ot)
@@ -1033,7 +1053,7 @@ static void TRANSFORM_OT_bend(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
+  properties_register(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static bool transform_shear_poll(bContext *C)
@@ -1066,9 +1086,9 @@ static void TRANSFORM_OT_shear(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot,
-                       P_ORIENT_AXIS | P_ORIENT_AXIS_ORTHO | P_ORIENT_MATRIX | P_PROPORTIONAL |
-                           P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
+  properties_register(ot,
+                      P_ORIENT_AXIS | P_ORIENT_AXIS_ORTHO | P_ORIENT_MATRIX | P_PROPORTIONAL |
+                          P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
 }
 
 static void TRANSFORM_OT_push_pull(wmOperatorType *ot)
@@ -1091,7 +1111,7 @@ static void TRANSFORM_OT_push_pull(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_CENTER);
+  properties_register(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_CENTER);
 }
 
 static void TRANSFORM_OT_shrink_fatten(wmOperatorType *ot)
@@ -1120,7 +1140,7 @@ static void TRANSFORM_OT_shrink_fatten(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
+  properties_register(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
 
 static void TRANSFORM_OT_tosphere(wmOperatorType *ot)
@@ -1143,7 +1163,7 @@ static void TRANSFORM_OT_tosphere(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
+  properties_register(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_mirror(wmOperatorType *ot)
@@ -1162,7 +1182,7 @@ static void TRANSFORM_OT_mirror(wmOperatorType *ot)
   ot->poll = ED_operator_screenactive;
   ot->poll_property = transform_poll_property;
 
-  Transform_Properties(ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_GPENCIL_EDIT | P_CENTER);
+  properties_register(ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_bbone_resize(wmOperatorType *ot)
@@ -1186,7 +1206,7 @@ static void TRANSFORM_OT_bbone_resize(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_MIRROR);
+  properties_register(ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_MIRROR);
 }
 
 static void TRANSFORM_OT_edge_slide(wmOperatorType *ot)
@@ -1226,7 +1246,7 @@ static void TRANSFORM_OT_edge_slide(wmOperatorType *ot)
                   "When Even mode is active, flips between the two adjacent edge loops");
   RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp", "Clamp within the edge extents");
 
-  Transform_Properties(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV);
+  properties_register(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV);
 }
 
 static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
@@ -1261,7 +1281,7 @@ static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
                   "When Even mode is active, flips between the two adjacent edge loops");
   RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp", "Clamp within the edge extents");
 
-  Transform_Properties(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV);
+  properties_register(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV);
 }
 
 static void TRANSFORM_OT_edge_crease(wmOperatorType *ot)
@@ -1284,7 +1304,7 @@ static void TRANSFORM_OT_edge_crease(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_SNAP);
+  properties_register(ot, P_SNAP);
 }
 
 static void TRANSFORM_OT_vert_crease(wmOperatorType *ot)
@@ -1307,7 +1327,7 @@ static void TRANSFORM_OT_vert_crease(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_SNAP);
+  properties_register(ot, P_SNAP);
 }
 
 static void TRANSFORM_OT_edge_bevelweight(wmOperatorType *ot)
@@ -1329,7 +1349,7 @@ static void TRANSFORM_OT_edge_bevelweight(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_SNAP);
+  properties_register(ot, P_SNAP);
 }
 
 static void TRANSFORM_OT_seq_slide(wmOperatorType *ot)
@@ -1363,7 +1383,7 @@ static void TRANSFORM_OT_seq_slide(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_SNAP | P_VIEW2D_EDGE_PAN);
+  properties_register(ot, P_SNAP | P_VIEW2D_EDGE_PAN);
 }
 
 static void TRANSFORM_OT_rotate_normal(wmOperatorType *ot)
@@ -1384,7 +1404,7 @@ static void TRANSFORM_OT_rotate_normal(wmOperatorType *ot)
   RNA_def_float_rotation(
       ot->srna, "value", 0, nullptr, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
-  Transform_Properties(ot, P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_MIRROR);
+  properties_register(ot, P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_MIRROR);
 }
 
 static void TRANSFORM_OT_transform(wmOperatorType *ot)
@@ -1414,10 +1434,9 @@ static void TRANSFORM_OT_transform(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot,
-                       P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
-                           P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER | P_POST_TRANSFORM |
-                           P_OPTIONS);
+  properties_register(ot,
+                      P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
+                          P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER | P_POST_TRANSFORM | P_OPTIONS);
 }
 
 static int transform_from_gizmo_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
@@ -1490,7 +1509,7 @@ void transform_operatortypes()
   WM_operatortype_append(TRANSFORM_OT_from_gizmo);
 }
 
-void ED_keymap_transform(wmKeyConfig *keyconf)
+void keymap_transform(wmKeyConfig *keyconf)
 {
   wmKeyMap *modalmap = transform_modal_keymap(keyconf);
 
@@ -1501,3 +1520,5 @@ void ED_keymap_transform(wmKeyConfig *keyconf)
   }
   WM_modalkeymap_assign(modalmap, "TRANSFORM_OT_transform");
 }
+
+}  // namespace blender::ed::transform

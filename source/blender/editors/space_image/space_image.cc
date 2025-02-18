@@ -461,7 +461,7 @@ static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
+  blender::ed::transform::ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
@@ -475,7 +475,7 @@ static void IMAGE_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(gzgt);
+  blender::ed::transform::ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
@@ -489,7 +489,7 @@ static void IMAGE_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  ED_widgetgroup_gizmo2d_resize_callbacks_set(gzgt);
+  blender::ed::transform::ED_widgetgroup_gizmo2d_resize_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
@@ -503,7 +503,7 @@ static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  ED_widgetgroup_gizmo2d_rotate_callbacks_set(gzgt);
+  blender::ed::transform::ED_widgetgroup_gizmo2d_rotate_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_navigate(wmGizmoGroupType *gzgt)

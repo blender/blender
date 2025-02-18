@@ -996,7 +996,8 @@ static void view3d_widgets()
   wmGizmoMapType_Params params{SPACE_VIEW3D, RGN_TYPE_WINDOW};
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&params);
 
-  WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_xform_gizmo_context);
+  WM_gizmogrouptype_append_and_link(gzmap_type,
+                                    blender::ed::transform::VIEW3D_GGT_xform_gizmo_context);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_spot);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_point);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_area);
@@ -1011,10 +1012,10 @@ static void view3d_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
 #endif
 
-  WM_gizmogrouptype_append(VIEW3D_GGT_xform_gizmo);
-  WM_gizmogrouptype_append(VIEW3D_GGT_xform_cage);
-  WM_gizmogrouptype_append(VIEW3D_GGT_xform_shear);
-  WM_gizmogrouptype_append(VIEW3D_GGT_xform_extrude);
+  WM_gizmogrouptype_append(blender::ed::transform::VIEW3D_GGT_xform_gizmo);
+  WM_gizmogrouptype_append(blender::ed::transform::VIEW3D_GGT_xform_cage);
+  WM_gizmogrouptype_append(blender::ed::transform::VIEW3D_GGT_xform_shear);
+  WM_gizmogrouptype_append(blender::ed::transform::VIEW3D_GGT_xform_extrude);
   WM_gizmogrouptype_append(VIEW3D_GGT_mesh_preselect_elem);
   WM_gizmogrouptype_append(VIEW3D_GGT_mesh_preselect_edgering);
   WM_gizmogrouptype_append(VIEW3D_GGT_tool_generic_handle_normal);

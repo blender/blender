@@ -26,6 +26,8 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /** Used for sequencer transform. */
 struct TransDataSeq {
   Strip *strip;
@@ -72,7 +74,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData * 
 
   /* Handle overlapping strips. */
 
-  blender::VectorSet<Strip *> transformed_strips;
+  VectorSet<Strip *> transformed_strips;
   for (int i = 0; i < tc->data_len; i++) {
     Strip *strip = ((TransDataSeq *)(td + i)->extra)->strip;
     transformed_strips.add(strip);
@@ -81,7 +83,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData * 
   ListBase *seqbasep = SEQ_active_seqbase_get(ed);
   SEQ_iterator_set_expand(scene, seqbasep, transformed_strips, SEQ_query_strip_effect_chain);
 
-  blender::VectorSet<Strip *> dependant;
+  VectorSet<Strip *> dependant;
   dependant.add_multiple(transformed_strips);
   dependant.remove_if(
       [&](Strip *strip) { return SEQ_transform_sequence_can_be_translated(strip); });
@@ -102,7 +104,7 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
     return;
   }
 
-  const blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(t->scene));
+  const Map selection = SEQ_retiming_selection_get(SEQ_editing_get(t->scene));
 
   if (selection.is_empty()) {
     return;
@@ -130,7 +132,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
   const TransData2D *td2d = nullptr;
   int i;
 
-  blender::VectorSet<Strip *> transformed_strips;
+  VectorSet<Strip *> transformed_strips;
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
     const TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
@@ -140,7 +142,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
 
     /* Calculate translation. */
 
-    const blender::MutableSpan keys = SEQ_retiming_keys_get(strip);
+    const MutableSpan keys = SEQ_retiming_keys_get(strip);
     SeqRetimingKey *key = &keys[tdseq->key_index];
 
     if (SEQ_retiming_key_is_transition_type(key) &&
@@ -172,3 +174,5 @@ TransConvertTypeInfo TransConvertType_SequencerRetiming = {
     /*create_trans_data*/ createTransSeqRetimingData,
     /*recalc_data*/ recalcData_sequencer_retiming,
 };
+
+}  // namespace blender::ed::transform

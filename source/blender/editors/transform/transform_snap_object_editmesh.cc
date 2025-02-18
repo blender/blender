@@ -18,7 +18,7 @@
 
 #include "transform_snap_object.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Snap Object Data
@@ -245,3 +245,5 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
   }
   return SCE_SNAP_TO_NONE;
 }
+
+}  // namespace blender::ed::transform

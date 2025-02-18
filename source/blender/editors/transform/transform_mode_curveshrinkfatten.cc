@@ -26,6 +26,8 @@
 
 #include "transform_mode.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Curve Shrink/Fatten)
  * \{ */
@@ -124,3 +126,5 @@ TransModeInfo TransMode_curveshrinkfatten = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

@@ -3196,9 +3196,9 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
   const float offset = RNA_float_get(op->ptr, "offset");
 
   /* Init snap context for geometry projection. */
-  SnapObjectContext *snap_context = nullptr;
+  transform::SnapObjectContext *snap_context = nullptr;
   if (mode == ReprojectMode::Surface) {
-    snap_context = ED_transform_snap_object_context_create(&scene, 0);
+    snap_context = transform::snap_object_context_create(&scene, 0);
   }
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
@@ -3278,17 +3278,17 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
           float3 hit_position(0.0f);
           float3 hit_normal(0.0f);
 
-          SnapObjectParams params{};
+          transform::SnapObjectParams params{};
           params.snap_target_select = SCE_SNAP_TARGET_ALL;
-          if (ED_transform_snap_object_project_ray(snap_context,
-                                                   depsgraph,
-                                                   v3d,
-                                                   &params,
-                                                   ray_start,
-                                                   ray_direction,
-                                                   &hit_depth,
-                                                   hit_position,
-                                                   hit_normal))
+          if (transform::snap_object_project_ray(snap_context,
+                                                 depsgraph,
+                                                 v3d,
+                                                 &params,
+                                                 ray_start,
+                                                 ray_direction,
+                                                 &hit_depth,
+                                                 hit_position,
+                                                 hit_normal))
           {
             /* Apply offset over surface. */
             position = math::transform_point(
@@ -3311,7 +3311,7 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
   }
 
   if (snap_context != nullptr) {
-    ED_transform_snap_object_context_destroy(snap_context);
+    transform::snap_object_context_destroy(snap_context);
   }
 
   if (mode == ReprojectMode::Surface) {

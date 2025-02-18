@@ -39,7 +39,7 @@
 /* Own include. */
 #include "transform_constraints.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 static void drawObjectConstraint(TransInfo *t);
 
@@ -1106,7 +1106,7 @@ static void setNearestAxis2d(TransInfo *t)
   t->con.mode &= ~(CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
 
   /* No correction needed... just use whichever one is lower. */
-  blender::float2 dvec = t->mval - t->mouse.imval;
+  float2 dvec = t->mval - t->mouse.imval;
   if (abs(dvec.x) < abs(dvec.y)) {
     t->con.mode |= CON_AXIS1;
     STRNCPY(t->con.text, IFACE_(" along Y axis"));
@@ -1287,3 +1287,5 @@ int getConstraintSpaceDimension(const TransInfo *t)
 }
 
 /** \} */
+
+}  // namespace blender::ed::transform

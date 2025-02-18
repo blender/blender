@@ -18,7 +18,7 @@
 #include "transform.hh"
 #include "transform_snap.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Snapping in Anim Editors
@@ -80,7 +80,7 @@ static void transform_snap_anim_flush_data_ex(
 
   AnimData *adt = nullptr;
   if (!ELEM(t->spacetype, SPACE_NLA, SPACE_SEQ) && !(td->flag & TD_GREASE_PENCIL_FRAME)) {
-    /* #TD_GREASE_PENCIL_FRAME stores #blender::bke::greasepencil::Layer* in
+    /* #TD_GREASE_PENCIL_FRAME stores #bke::greasepencil::Layer* in
      * `td->extra`, and not the #AnimData. */
     adt = static_cast<AnimData *>(td->extra);
   }
@@ -183,3 +183,5 @@ bool transform_snap_nla_calc(TransInfo *t, float *vec)
 }
 
 /** \} */
+
+}  // namespace blender::ed::transform

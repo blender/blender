@@ -19,7 +19,7 @@
 
 #include "transform_snap_object.hh"
 
-using blender::float4x4;
+namespace blender::ed::transform {
 
 eSnapMode snapArmature(SnapObjectContext *sctx,
                        const Object *ob_eval,
@@ -105,3 +105,5 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   }
   return retval;
 }
+
+}  // namespace blender::ed::transform

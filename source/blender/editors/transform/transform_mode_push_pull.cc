@@ -28,6 +28,8 @@
 
 #include "transform_mode.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Push/Pull) Element
  * \{ */
@@ -195,3 +197,5 @@ TransModeInfo TransMode_pushpull = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

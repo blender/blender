@@ -24,6 +24,8 @@
 /* Own include. */
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Curve/Surfaces Transform Creation
  * \{ */
@@ -42,9 +44,7 @@ static void createTransLatticeVerts(bContext * /*C*/, TransInfo *t)
     const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 
     /* Avoid editing locked shapes. */
-    if (t->mode != TFM_DUMMY &&
-        blender::ed::object::shape_key_report_if_locked(tc->obedit, t->reports))
-    {
+    if (t->mode != TFM_DUMMY && object::shape_key_report_if_locked(tc->obedit, t->reports)) {
       continue;
     }
 
@@ -133,3 +133,5 @@ TransConvertTypeInfo TransConvertType_Lattice = {
     /*recalc_data*/ recalcData_lattice,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

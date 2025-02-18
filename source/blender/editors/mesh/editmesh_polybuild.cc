@@ -174,7 +174,7 @@ void MESH_OT_polybuild_transform_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
@@ -261,7 +261,7 @@ void MESH_OT_polybuild_delete_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -436,7 +436,7 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
                   "Create Quads",
                   "Automatically split edges in triangles to maintain quad topology");
   /* to give to transform */
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -520,7 +520,7 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */

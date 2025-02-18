@@ -16,7 +16,9 @@
 
 struct bContext;
 struct wmGizmo;
+namespace blender::ed::transform {
 struct SnapObjectContext;
+}
 
 /* initialize gizmos */
 void ED_gizmotypes_arrow_3d();
@@ -236,7 +238,8 @@ enum {
 
 /* `snap3d_gizmo.cc` */
 
-SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene, wmGizmo *gz);
+blender::ed::transform::SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene,
+                                                                                wmGizmo *gz);
 
 void ED_gizmotypes_snap_3d_flag_set(wmGizmo *gz, int flag);
 

@@ -28,7 +28,7 @@
 #define RESET_TRANSFORMATION
 #define REMOVE_GIZMO
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Transform Element
@@ -221,7 +221,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   }
 
   if (t->data_type == &TransConvertType_Mesh) {
-    ED_transform_snap_object_context_set_editmesh_callbacks(
+    blender::ed::transform::snap_object_context_set_editmesh_callbacks(
         t->tsnap.object_context, nullptr, nullptr, nullptr, nullptr);
   }
 
@@ -272,3 +272,5 @@ TransModeInfo TransMode_snapsource = {
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

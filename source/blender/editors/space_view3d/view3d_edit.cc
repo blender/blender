@@ -904,7 +904,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
   }
   else if (orientation == V3D_CURSOR_ORIENT_XFORM) {
     float mat[3][3];
-    ED_transform_calc_orientation_from_type(C, mat);
+    blender::ed::transform::calc_orientation_from_type(C, mat);
     mat3_to_quat(r_cursor_quat, mat);
   }
   else if (orientation == V3D_CURSOR_ORIENT_GEOM) {
@@ -915,31 +915,33 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     float ray_no[3];
     float ray_co[3];
 
-    SnapObjectContext *snap_context = ED_transform_snap_object_context_create(scene, 0);
+    blender::ed::transform::SnapObjectContext *snap_context =
+        blender::ed::transform::snap_object_context_create(scene, 0);
 
     float obmat[4][4];
     const Object *ob_dummy = nullptr;
     float dist_px = 0;
-    SnapObjectParams params{};
+    blender::ed::transform::SnapObjectParams params{};
     params.snap_target_select = SCE_SNAP_TARGET_ALL;
-    params.edit_mode_type = SNAP_GEOM_FINAL;
-    params.occlusion_test = SNAP_OCCLUSION_AS_SEEM;
-    if (ED_transform_snap_object_project_view3d_ex(snap_context,
-                                                   CTX_data_ensure_evaluated_depsgraph(C),
-                                                   region,
-                                                   v3d,
-                                                   SCE_SNAP_TO_FACE,
-                                                   &params,
-                                                   nullptr,
-                                                   mval_fl,
-                                                   nullptr,
-                                                   &dist_px,
-                                                   ray_co,
-                                                   ray_no,
-                                                   nullptr,
-                                                   &ob_dummy,
-                                                   obmat,
-                                                   nullptr) != 0)
+    params.edit_mode_type = blender::ed::transform::SNAP_GEOM_FINAL;
+    params.occlusion_test = blender::ed::transform::SNAP_OCCLUSION_AS_SEEM;
+    if (blender::ed::transform::snap_object_project_view3d_ex(
+            snap_context,
+            CTX_data_ensure_evaluated_depsgraph(C),
+            region,
+            v3d,
+            SCE_SNAP_TO_FACE,
+            &params,
+            nullptr,
+            mval_fl,
+            nullptr,
+            &dist_px,
+            ray_co,
+            ray_no,
+            nullptr,
+            &ob_dummy,
+            obmat,
+            nullptr) != 0)
     {
       if (use_depth) {
         copy_v3_v3(r_cursor_co, ray_co);
@@ -992,7 +994,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
         mul_qt_qtqt(r_cursor_quat, tquat_best, r_cursor_quat);
       }
     }
-    ED_transform_snap_object_context_destroy(snap_context);
+    blender::ed::transform::snap_object_context_destroy(snap_context);
   }
 }
 
