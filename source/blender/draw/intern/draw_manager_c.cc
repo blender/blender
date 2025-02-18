@@ -353,8 +353,7 @@ void DRW_viewport_data_free(DRWData *drw_data)
     DRW_view_data_free(drw_data->view_data[i]);
   }
   DRW_volume_ubos_pool_free(drw_data->volume_grids_ubos);
-  DRW_curves_ubos_pool_free(drw_data->curves_ubos);
-  DRW_curves_refine_pass_free(drw_data->curves_refine);
+  DRW_curves_module_free(drw_data->curves_module);
   delete drw_data->default_view;
   MEM_freeN(drw_data);
 }
@@ -2860,7 +2859,6 @@ void DRW_engines_free()
 
   DRW_shaders_free();
   DRW_pointcloud_free();
-  DRW_curves_free();
   DRW_volume_free();
   DRW_globals_free();
 

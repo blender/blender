@@ -31,7 +31,7 @@ struct DupliObject;
 struct Object;
 struct Mesh;
 namespace blender::draw {
-struct CurvesUniformBufPool;
+struct CurvesModule;
 struct DRW_Attributes;
 struct DRW_MeshCDMask;
 class CurveRefinePass;
@@ -70,9 +70,8 @@ struct DRWData {
   ListBase smoke_textures;
   /** Per stereo view data. Contains engine data and default frame-buffers. */
   DRWViewData *view_data[2];
-  /** Per draw-call curves object data. */
-  blender::draw::CurvesUniformBufPool *curves_ubos;
-  blender::draw::CurveRefinePass *curves_refine;
+  /** Module storage. */
+  blender::draw::CurvesModule *curves_module;
   /** Default view that feeds every engine. */
   blender::draw::View *default_view;
 };
