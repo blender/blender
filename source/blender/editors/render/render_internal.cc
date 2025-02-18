@@ -71,11 +71,8 @@ static bool render_break(void *rjv);
 
 struct RenderJob : public RenderJobBase {
   Main *main;
+  ViewLayer *view_layer;
   ViewLayer *single_layer;
-  /* TODO(sergey): Should not be needed once engine will have its own
-   * depsgraph and copy-on-write will be implemented.
-   */
-  Depsgraph *depsgraph;
   Render *re;
   Object *camera_override;
   bool v3d_override;
@@ -778,11 +775,19 @@ static void render_endjob(void *rjv)
     BKE_main_free(rj->main);
   }
 
-  /* else the frame will not update for the original value */
+  /* Update depsgraph for returning to the original frame before animation render job. */
   if (rj->anim && !(rj->scene->r.scemode & R_NO_FRAME_UPDATE)) {
-    /* possible this fails of loading new file while rendering */
+    /* Possible this fails when loading new file while rendering. */
     if (G_MAIN->wm.first) {
-      ED_update_for_newframe(G_MAIN, rj->depsgraph);
+      /* Check view layer was not deleted during render. Technically another view layer
+       * may get allocated with the same pointer, but worst case it will cause an
+       * unnecessary update. */
+      if (BLI_findindex(&rj->scene->view_layers, rj->view_layer) != -1) {
+        Depsgraph *depsgraph = BKE_scene_get_depsgraph(rj->scene, rj->view_layer);
+        if (depsgraph) {
+          ED_update_for_newframe(G_MAIN, depsgraph);
+        }
+      }
     }
   }
 
@@ -1031,12 +1036,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   rj->main = bmain;
   rj->scene = scene;
   rj->current_scene = rj->scene;
+  rj->view_layer = CTX_data_view_layer(C);
   rj->single_layer = single_layer;
-  /* TODO(sergey): Render engine should be using its own depsgraph.
-   *
-   * NOTE: Currently is only used by ED_update_for_newframe() at the end of the render, so no
-   * need to ensure evaluation here. */
-  rj->depsgraph = CTX_data_depsgraph_pointer(C);
   rj->camera_override = camera_override;
   rj->anim = is_animation;
   rj->write_still = is_write_still && !is_animation;
