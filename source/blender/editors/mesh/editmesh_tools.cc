@@ -4958,7 +4958,10 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
         use_interp_simple);
 
     /* Check that the results match the return value. */
-    BLI_assert(changed == (totedge_orig != em->bm->totedge || totface_orig != em->bm->totface));
+    const bool has_geometry_changed = totedge_orig != em->bm->totedge ||
+                                      totface_orig != em->bm->totface;
+    BLI_assert(changed == has_geometry_changed);
+    UNUSED_VARS_NDEBUG(has_geometry_changed);
 
     /* If a split/join in progress, finish it. */
     if (split_join) {
