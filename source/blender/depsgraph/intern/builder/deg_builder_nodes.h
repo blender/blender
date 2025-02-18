@@ -287,14 +287,14 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
    * Allows to re-use certain values, to speed up following evaluation. */
   struct IDInfo {
     /* Copy-on-written pointer of the corresponding ID. */
-    ID *id_cow;
+    ID *id_cow = nullptr;
     /* Mask of visible components from previous state of the
      * dependency graph. */
-    IDComponentsMask previously_visible_components_mask;
+    IDComponentsMask previously_visible_components_mask = 0;
     /* Special evaluation flag mask from the previous depsgraph. */
-    uint32_t previous_eval_flags;
+    uint32_t previous_eval_flags = 0;
     /* Mesh CustomData mask from the previous depsgraph. */
-    DEGCustomDataMeshMasks previous_customdata_masks;
+    DEGCustomDataMeshMasks previous_customdata_masks = {};
   };
 
  protected:
@@ -338,7 +338,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   bool is_parent_collection_visible_;
 
   /* Indexed by original ID.session_uid, values are IDInfo. */
-  Map<uint, IDInfo *> id_info_hash_;
+  Map<uint, IDInfo> id_info_hash_;
 
   /* Set of IDs which were already build. Makes it easier to keep track of
    * what was already built and what was not. */
