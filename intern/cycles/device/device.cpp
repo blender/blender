@@ -816,4 +816,17 @@ bool GPUDevice::is_shared(const void *shared_pointer,
 
 /* DeviceInfo */
 
+bool DeviceInfo::contains_device_type(const DeviceType type) const
+{
+  if (this->type == type) {
+    return true;
+  }
+  for (const DeviceInfo &info : multi_devices) {
+    if (info.contains_device_type(type)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 CCL_NAMESPACE_END
