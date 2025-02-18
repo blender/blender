@@ -59,9 +59,10 @@ static int content_frame_index_get(const Scene *scene,
                                    const Strip *strip,
                                    const int timeline_frame)
 {
-  const int sound_offset = SEQ_time_get_rounded_sound_offset(scene, strip);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  const int sound_offset = SEQ_time_get_rounded_sound_offset(strip, scene_fps);
   return (timeline_frame - SEQ_time_start_frame_get(strip) - sound_offset) *
-         SEQ_time_media_playback_rate_factor_get(scene, strip);
+         SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
 }
 
 SeqRetimingKey *SEQ_retiming_key_get_by_timeline_frame(const Scene *scene,
@@ -551,8 +552,12 @@ SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
     return nullptr;
   }
 
-  int clamped_offset = strip_retiming_clamp_create_offset(
-      scene, strip, key, offset * SEQ_time_media_playback_rate_factor_get(scene, strip));
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  const int clamped_offset = strip_retiming_clamp_create_offset(
+      scene,
+      strip,
+      key,
+      offset * SEQ_time_media_playback_rate_factor_get(strip, scene_fps));
 
   const int orig_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, strip, key);
   const float orig_retiming_factor = key->retiming_factor;
@@ -623,7 +628,8 @@ static float strip_retiming_clamp_transition_offset(const Scene *scene,
   SeqRetimingKey *next_key = start_key + 2;
   const float prev_max_offset = prev_key->strip_frame_index - start_key->strip_frame_index;
   const float next_max_offset = next_key->strip_frame_index - end_key->strip_frame_index;
-  const float min_step = SEQ_time_media_playback_rate_factor_get(scene, strip);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  const float min_step = SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
 
   return std::clamp(offset, prev_max_offset + min_step, next_max_offset - min_step);
 }
@@ -634,8 +640,9 @@ static void strip_retiming_transition_offset(const Scene *scene,
                                              const float offset)
 {
   float clamped_offset = strip_retiming_clamp_transition_offset(scene, strip, key, offset);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float duration = (key->original_strip_frame_index - key->strip_frame_index) /
-                         SEQ_time_media_playback_rate_factor_get(scene, strip);
+                         SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
   const bool was_selected = SEQ_retiming_selection_contains(SEQ_editing_get(scene), key);
 
   SeqRetimingKey *original_key = strip_retiming_remove_transition(strip, key);
@@ -682,9 +689,10 @@ static int strip_retiming_clamp_timeline_frame(const Scene *scene,
 static void strip_retiming_fix_transition(const Scene *scene, Strip *strip, SeqRetimingKey *key)
 {
   const int keys_num = strip->retiming_keys_num;
-
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float transition_duration = (key->original_strip_frame_index - key->strip_frame_index) /
-                                    SEQ_time_media_playback_rate_factor_get(scene, strip);
+                                    SEQ_time_media_playback_rate_factor_get(strip,
+                                      scene_fps);
   SeqRetimingKey *orig_key = strip_retiming_remove_transition(strip, key);
   SEQ_retiming_add_transition(scene, strip, orig_key, transition_duration);
   BLI_assert(keys_num == strip->retiming_keys_num);
@@ -730,10 +738,11 @@ int SEQ_retiming_key_timeline_frame_get(const Scene *scene,
                                         const Strip *strip,
                                         const SeqRetimingKey *key)
 {
-  int sound_offset = SEQ_time_get_rounded_sound_offset(scene, strip);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  const int sound_offset = SEQ_time_get_rounded_sound_offset(strip, scene_fps);
   return round_fl_to_int(SEQ_time_start_frame_get(strip) + sound_offset +
                          key->strip_frame_index /
-                             SEQ_time_media_playback_rate_factor_get(scene, strip));
+                             SEQ_time_media_playback_rate_factor_get(strip, scene_fps));
 }
 
 void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
@@ -748,8 +757,9 @@ void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
   const int orig_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, strip, key);
   const int clamped_timeline_frame = strip_retiming_clamp_timeline_frame(
       scene, strip, key, timeline_frame);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float offset = (clamped_timeline_frame - orig_timeline_frame) *
-                       SEQ_time_media_playback_rate_factor_get(scene, strip);
+                       SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
 
   const int key_count = SEQ_retiming_keys_get(strip).size();
   const int key_index = SEQ_retiming_key_index_get(strip, key);
@@ -807,8 +817,10 @@ void SEQ_retiming_key_speed_set(
   const float frame_index_prev = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const float frame_index = round_fl_to_int(key->retiming_factor * frame_index_max);
 
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float segment_timeline_duration = (frame_index - frame_index_prev) /
-                                          SEQ_time_media_playback_rate_factor_get(scene, strip);
+                                          SEQ_time_media_playback_rate_factor_get(
+                                              strip, scene_fps);
   const float new_timeline_duration = segment_timeline_duration / speed;
 
   const float orig_timeline_frame = SEQ_retiming_key_timeline_frame_get(scene, strip, key);
@@ -1054,7 +1066,8 @@ void SEQ_retiming_sound_animation_data_set(const Scene *scene, const Strip *stri
         strip->scene_sound, strip_start - strip->anim_startofs, strip_start, 1.0f);
   }
 
-  int sound_offset = SEQ_time_get_rounded_sound_offset(scene, strip);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  const int sound_offset = SEQ_time_get_rounded_sound_offset(strip, scene_fps);
 
   RetimingRangeData retiming_data = strip_retiming_range_data_get(scene, strip);
   for (int i = 0; i < retiming_data.ranges.size(); i++) {

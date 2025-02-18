@@ -271,7 +271,8 @@ static void seq_split_set_right_hold_offset(Main *bmain,
   /* Adjust within range of strip contents. */
   else if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
     strip->endofs = 0;
-    float speed_factor = SEQ_time_media_playback_rate_factor_get(scene, strip);
+    const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+    const float speed_factor = SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
     strip->anim_endofs += round_fl_to_int((content_end - timeline_frame) * speed_factor);
   }
 
@@ -290,7 +291,8 @@ static void seq_split_set_left_hold_offset(Main *bmain,
 
   /* Adjust within range of strip contents. */
   if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
-    float speed_factor = SEQ_time_media_playback_rate_factor_get(scene, strip);
+    const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+    const float speed_factor = SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
     strip->anim_startofs += round_fl_to_int((timeline_frame - content_start) * speed_factor);
     strip->start = timeline_frame;
     strip->startofs = 0;

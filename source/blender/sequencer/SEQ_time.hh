@@ -127,10 +127,10 @@ void SEQ_time_slip_strip(const Scene *scene, Strip *strip, int delta, float subf
 /**
  * Get difference between scene and movie strip frame-rate.
  */
-float SEQ_time_media_playback_rate_factor_get(const Scene *scene, const Strip *strip);
+float SEQ_time_media_playback_rate_factor_get(const Strip *strip, float frames_per_second);
 /**
  * Get the sound offset (if any) and round it to the nearest integer.
  * This is mostly used in places where subframe data is not allowed (like re-timing key positions).
  * Returns zero if sequence is not a sound strip or if there is no offset.
  */
-int SEQ_time_get_rounded_sound_offset(const Scene *scene, const Strip *strip);
+int SEQ_time_get_rounded_sound_offset(const Strip *strip, float frames_per_second);
