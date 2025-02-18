@@ -957,6 +957,12 @@ static void ui_apply_but_undo(uiBut *but)
     return;
   }
 
+  /* Skip undo push for buttons in redo panel, see: #134505. */
+  const ARegion *region = CTX_wm_region(static_cast<bContext *>(but->block->evil_C));
+  if (region->regiontype == RGN_TYPE_HUD) {
+    return;
+  }
+
   std::optional<StringRef> str;
   size_t str_len_clip = SIZE_MAX - 1;
   bool skip_undo = false;
