@@ -257,6 +257,7 @@ def check_contents(filepath: str, text: str) -> None:
             return
         # Empty file already accounted for.
         print("Missing {:s}{:s}".format(license_id, filepath))
+        SPDX_IDENTIFIER_STATS[SPDX_IDENTIFIER_UNKNOWN] += 1
         return
 
     # Check copyright text, reading multiple (potentially multi-line indented) blocks.
@@ -382,7 +383,11 @@ def report_statistics() -> None:
     files_total = sum(SPDX_IDENTIFIER_STATS.values())
     files_unknown = SPDX_IDENTIFIER_STATS[SPDX_IDENTIFIER_UNKNOWN]
     files_percent = (1.0 - (files_unknown / files_total)) * 100.0
-    title = "License Statistics in {:,d} Files, {:.2f}% Complete".format(files_total, files_percent)
+    files_percent_str = "{:.2f}".format(files_percent)
+    # Never show 100.00% if it's not complete.
+    if files_percent_str == "100.00" and files_percent != 100.0:
+        files_percent_str = "{:.8f}".format(files_percent).rstrip("0")
+    title = "License Statistics in {:,d} Files, {:s}% Complete".format(files_total, files_percent_str)
     print("#" * len(title))
     print(title)
     print("#" * len(title))
