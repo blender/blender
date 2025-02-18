@@ -20,6 +20,7 @@ set(SRC
   intern/point_cloud_ops.cc
   intern/point_cloud_selection.cc
   intern/point_cloud_undo.cc
+  intern/separate.cc
   )
 
 set(LIB

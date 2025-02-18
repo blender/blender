@@ -67,8 +67,6 @@ void POINT_CLOUD_OT_duplicate(wmOperatorType *ot)
   ot->poll = editable_point_cloud_in_edit_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  WM_operator_properties_select_all(ot);
 }
 
 }  // namespace blender::ed::point_cloud

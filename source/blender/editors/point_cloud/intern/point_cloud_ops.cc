@@ -174,6 +174,7 @@ void operatortypes_point_cloud()
   WM_operatortype_append(POINT_CLOUD_OT_delete);
   WM_operatortype_append(POINT_CLOUD_OT_duplicate);
   WM_operatortype_append(POINT_CLOUD_OT_select_all);
+  WM_operatortype_append(POINT_CLOUD_OT_separate);
 }
 
 void operatormacros_point_cloud()
