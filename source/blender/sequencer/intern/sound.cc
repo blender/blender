@@ -146,7 +146,7 @@ void SEQ_sound_update(Scene *scene, bSound *sound)
 
 float SEQ_sound_pitch_get(const Scene *scene, const Strip *strip)
 {
-  const Strip *meta_parent = SEQ_lookup_meta_by_strip(scene, strip);
+  const Strip *meta_parent = SEQ_lookup_meta_by_strip(scene->ed, strip);
   if (meta_parent != nullptr) {
     return strip->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
   }

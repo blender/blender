@@ -118,27 +118,25 @@ void SEQ_eval_sequences(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase);
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
  * rebuilt.
  *
- * \param scene: scene that owns lookup hash
+ * \param ed: Editing that owns lookup hash
  * \param key: Strip name without SQ prefix (strip->name + 2)
  *
  * \return pointer to Strip
  */
-Strip *SEQ_lookup_strip_by_name(const Scene *scene, const char *key);
+Strip *SEQ_lookup_strip_by_name(Editing *ed, const char *key);
 
 /**
  * Find which meta strip the given timeline channel belongs to. Returns nullptr if it is a global
  * channel.
  */
-Strip *SEQ_lookup_strip_by_channel_owner(const Scene *scene, const SeqTimelineChannel *channel);
+Strip *SEQ_lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *channel);
 
 /**
  * Free lookup hash data.
- *
- * \param scene: scene that owns lookup hash
  */
-void SEQ_strip_lookup_free(const Scene *scene);
+void SEQ_strip_lookup_free(Editing *ed);
 
 /**
  * Mark strip lookup as invalid (i.e. will need rebuilding).
  */
-void SEQ_strip_lookup_invalidate(const Scene *scene);
+void SEQ_strip_lookup_invalidate(const Editing *ed);

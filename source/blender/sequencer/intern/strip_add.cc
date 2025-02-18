@@ -76,9 +76,9 @@ static void strip_add_generic_update(Scene *scene, Strip *strip)
 {
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, strip);
   SEQ_relations_invalidate_cache_composite(scene, strip);
-  SEQ_strip_lookup_invalidate(scene);
+  SEQ_strip_lookup_invalidate(scene->ed);
   strip_time_effect_range_set(scene, strip);
-  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
 }
 
 static void strip_add_set_name(Scene *scene, Strip *strip, SeqLoadData *load_data)
