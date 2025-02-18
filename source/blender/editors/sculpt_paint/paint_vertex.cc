@@ -1081,6 +1081,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }
@@ -1236,6 +1237,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }
@@ -1394,6 +1396,7 @@ static void do_vpaint_brush_smear(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }
@@ -1576,6 +1579,7 @@ static void calculate_average_color(VPaintData &vpd,
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(hide_vert, verts, factors);
+      filter_region_clip_factors(ss, vert_positions, verts, factors);
       if (!select_vert.is_empty()) {
         filter_factors_with_selection(select_vert, verts, factors);
       }
@@ -1705,6 +1709,7 @@ static void vpaint_do_draw(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }
