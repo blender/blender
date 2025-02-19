@@ -121,6 +121,7 @@
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_physics.hh"
+#include "ED_point_cloud.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -4714,7 +4715,14 @@ static bool object_join_poll(bContext *C)
     return false;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GREASE_PENCIL, OB_CURVES))
+  if (ELEM(ob->type,
+           OB_MESH,
+           OB_CURVES_LEGACY,
+           OB_SURF,
+           OB_ARMATURE,
+           OB_CURVES,
+           OB_GREASE_PENCIL,
+           OB_POINTCLOUD))
   {
     return true;
   }
@@ -4751,6 +4759,9 @@ static int object_join_exec(bContext *C, wmOperator *op)
   }
   else if (ob->type == OB_ARMATURE) {
     ret = ED_armature_join_objects_exec(C, op);
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    ret = point_cloud::join_objects(C, op);
   }
   else if (ob->type == OB_CURVES) {
     ret = curves::join_objects(C, op);
