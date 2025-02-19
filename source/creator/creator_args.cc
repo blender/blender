@@ -2510,6 +2510,7 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
   return 0;
 }
 
+#  ifdef WITH_OPENGL_BACKEND
 static const char arg_handle_profile_gpu_set_doc[] =
     "\n"
     "\tEnable CPU & GPU performance profiling for GPU debug groups\n"
@@ -2519,6 +2520,7 @@ static int arg_handle_profile_gpu_set(int /*argc*/, const char ** /*argv*/, void
   G.profile_gpu = true;
   return 0;
 }
+#  endif
 
 /**
  * Implementation for #arg_handle_load_last_file, also used by `--open-last`.
