@@ -4,6 +4,7 @@
 
 #include "BLI_any.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_linear_allocator.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -118,6 +119,15 @@ inline std::optional<Vector<ChunkT>> parse_csv_in_chunks(
   }
   return result_chunks;
 }
+
+/**
+ * Fields in a csv file may contain escaped quote caracters (e.g. "" or \"). This function replaces
+ * these with just the quote character. The returned string may be reference the input string if
+ * it's the same. Otherwise the returned string is allocated in the given allocator.
+ */
+StringRef unescape_field(const StringRef str,
+                         const CsvParseOptions &options,
+                         LinearAllocator<> &allocator);
 
 /* -------------------------------------------------------------------- */
 /** \name #CsvRecord inline functions.

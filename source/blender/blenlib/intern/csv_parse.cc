@@ -157,6 +157,34 @@ std::optional<Vector<Any<>>> parse_csv_in_chunks(
   return results;
 }
 
+StringRef unescape_field(const StringRef str,
+                         const CsvParseOptions &options,
+                         LinearAllocator<> &allocator)
+{
+  const StringRef escape_chars{options.quote_escape_chars};
+  if (str.find_first_of(escape_chars) == StringRef::not_found) {
+    return str;
+  }
+  /* The actual unescaped string may be shorter, but not longer. */
+  MutableSpan<char> unescaped_str = allocator.allocate_array<char>(str.size());
+  int64_t i = 0;
+  int64_t escaped_size = 0;
+  while (i < str.size()) {
+    const char c = str[i];
+    if (options.quote_escape_chars.contains(c)) {
+      if (i + 1 < str.size() && str[i + 1] == options.quote) {
+        /* Ignore the current escape character. */
+        unescaped_str[escaped_size++] = options.quote;
+        i += 2;
+        continue;
+      }
+    }
+    unescaped_str[escaped_size++] = c;
+    i++;
+  }
+  return StringRef(unescaped_str.take_front(escaped_size));
+}
+
 namespace detail {
 
 std::optional<int64_t> parse_record_fields(const Span<char> buffer,

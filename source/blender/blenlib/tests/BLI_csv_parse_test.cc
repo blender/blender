@@ -256,4 +256,18 @@ TEST(csv_parse, ParseCsvTrailingNewline)
   EXPECT_EQ(result.records[1][0], "2");
 }
 
+TEST(csv_parse, UnescapeField)
+{
+  LinearAllocator<> allocator;
+  CsvParseOptions options;
+  EXPECT_EQ(unescape_field("", options, allocator), "");
+  EXPECT_EQ(unescape_field("a", options, allocator), "a");
+  EXPECT_EQ(unescape_field("abcd", options, allocator), "abcd");
+  EXPECT_EQ(unescape_field("ab\\cd", options, allocator), "ab\\cd");
+  EXPECT_EQ(unescape_field("ab\\\"cd", options, allocator), "ab\"cd");
+  EXPECT_EQ(unescape_field("ab\"\"cd", options, allocator), "ab\"cd");
+  EXPECT_EQ(unescape_field("ab\"\"\"\"cd", options, allocator), "ab\"\"cd");
+  EXPECT_EQ(unescape_field("ab\"\"\\\"cd", options, allocator), "ab\"\"cd");
+}
+
 }  // namespace blender::csv_parse::tests

@@ -277,13 +277,16 @@ PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
     return nullptr;
   }
 
+  LinearAllocator<> allocator;
   Array<ColumnInfo> columns_info;
+  csv_parse::CsvParseOptions parse_options;
 
   const auto parse_header = [&](const csv_parse::CsvRecord &record) {
     columns_info.reinitialize(record.size());
     for (const int i : record.index_range()) {
       ColumnInfo &column_info = columns_info[i];
-      const StringRef name = record.field_str(i);
+      const StringRef name = csv_parse::unescape_field(
+          record.field_str(i), parse_options, allocator);
       column_info.name = name;
       if (!bke::allow_procedural_attribute_access(name) ||
           bke::attribute_name_is_anonymous(name) || name.is_empty())
@@ -298,7 +301,6 @@ PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
   };
 
   const Span<char> buffer_span{static_cast<char *>(buffer), int64_t(buffer_len)};
-  csv_parse::CsvParseOptions parse_options;
   std::optional<Vector<ChunkResult>> parsed_chunks = csv_parse::parse_csv_in_chunks<ChunkResult>(
       buffer_span, parse_options, parse_header, parse_data_chunk);
 
