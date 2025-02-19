@@ -26,7 +26,7 @@ void USDPointsWriter::do_write(HierarchyContext &context)
 
   const PointCloud *points = static_cast<const PointCloud *>(context.object->data);
   Span<pxr::GfVec3f> positions = points->positions().cast<pxr::GfVec3f>();
-  VArray<float> radii = *points->attributes().lookup<float>("radius", bke::AttrDomain::Point);
+  VArray<float> radii = points->radius();
 
   const pxr::UsdGeomPoints usd_points = pxr::UsdGeomPoints::Define(stage, usd_path);
 

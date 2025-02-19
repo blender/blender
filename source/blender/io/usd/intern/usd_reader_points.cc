@@ -79,21 +79,17 @@ void USDPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   points_prim_.GetWidthsAttr().Get(&usd_widths, params.motion_sample_time);
 
   if (!usd_widths.empty()) {
-    bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-    bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-        "radius", bke::AttrDomain::Point);
+    MutableSpan<float> radii = pointcloud->radius_for_write();
 
     const pxr::TfToken widths_interp = points_prim_.GetWidthsInterpolation();
     if (widths_interp == pxr::UsdGeomTokens->constant) {
-      radii.span.fill(usd_widths[0] / 2.0f);
+      radii.fill(usd_widths[0] / 2.0f);
     }
     else {
       for (int i_point = 0; i_point < usd_widths.size(); i_point++) {
-        radii.span[i_point] = usd_widths[i_point] / 2.0f;
+        radii[i_point] = usd_widths[i_point] / 2.0f;
       }
     }
-
-    radii.finish();
   }
 
   /* TODO: Read in ID and normal data.
