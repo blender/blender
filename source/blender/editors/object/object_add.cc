@@ -2802,17 +2802,21 @@ static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph,
 static bool object_convert_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  Base *base_act = CTX_data_active_base(C);
-  Object *obact = base_act ? base_act->object : nullptr;
-
-  if (obact == nullptr || obact->data == nullptr || !ID_IS_EDITABLE(obact) ||
-      ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data))
-  {
+  if (!ID_IS_EDITABLE(scene)) {
+    return false;
+  }
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  /* Don't use `active_object` in the context, it's important this value
+   * is from the view-layer as it's used to check if Blender is in edit-mode. */
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  if (obact && BKE_object_is_in_editmode(obact)) {
     return false;
   }
 
-  return (ID_IS_EDITABLE(scene) && (BKE_object_is_in_editmode(obact) == false) &&
-          (base_act->flag & BASE_SELECTED));
+  /* Note that `obact` may not be editable,
+   * only check the active object to ensure Blender is not in edit-mode. */
+  return true;
 }
 
 /* Helper for object_convert_exec */
@@ -2872,6 +2876,10 @@ struct ObjectConversionInfo {
   Depsgraph *depsgraph;
   Scene *scene;
   ViewLayer *view_layer;
+  /**
+   * Note that this is not used for conversion operation,
+   * only to ensure the active-object doesn't change from a user perspective.
+   */
   Object *obact;
   bool keep_original;
   bool do_merge_customdata;
@@ -3843,7 +3851,7 @@ static Object *convert_mball_to_mesh(Base &base,
     newob->data = mesh;
     newob->type = OB_MESH;
 
-    if (info.obact->type == OB_MBALL) {
+    if (info.obact && (info.obact->type == OB_MBALL)) {
       *r_act_base = *r_new_base;
     }
 
@@ -3906,10 +3914,19 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = CTX_data_active_object(C);
+
   const short target = RNA_enum_get(op->ptr, "target");
   bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
   const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
+
+  Vector<PointerRNA> selected_editable_bases;
+  CTX_data_selected_editable_bases(C, &selected_editable_bases);
+
+  /* Too expensive to detect on poll(). */
+  if (selected_editable_bases.is_empty()) {
+    BKE_report(op->reports, RPT_INFO, "No editable objects to convert");
+    return OPERATOR_CANCELLED;
+  }
 
   /* don't forget multiple users! */
 
@@ -3936,15 +3953,12 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     FOREACH_SCENE_OBJECT_END;
   }
 
-  Vector<PointerRNA> selected_editable_bases;
-  CTX_data_selected_editable_bases(C, &selected_editable_bases);
-
   ObjectConversionInfo info;
   info.bmain = bmain;
   info.depsgraph = depsgraph;
   info.scene = scene;
   info.view_layer = view_layer;
-  info.obact = obact;
+  info.obact = BKE_view_layer_active_object_get(view_layer);
   info.keep_original = keep_original;
   info.do_merge_customdata = do_merge_customdata;
   info.op_props = op->ptr;
@@ -4048,7 +4062,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
     /* If the original object is active then make this object active */
     if (new_base) {
-      if (ob == obact) {
+      if (info.obact && (info.obact == ob)) {
         /* Store new active base to update view layer. */
         act_base = new_base;
       }
@@ -4104,10 +4118,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   }
   else {
     BKE_view_layer_synced_ensure(scene, view_layer);
-    Object *object = BKE_view_layer_active_object_get(view_layer);
-    if (object->flag & OB_DONE) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
-      WM_event_add_notifier(C, NC_OBJECT | ND_DATA, object);
+    if (Object *object = BKE_view_layer_active_object_get(view_layer)) {
+      if (object->flag & OB_DONE) {
+        WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
+        WM_event_add_notifier(C, NC_OBJECT | ND_DATA, object);
+      }
     }
   }
 
