@@ -5865,6 +5865,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 29)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      ts->imapaint.clone_alpha = 0.5f;
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 2)) {
     version_sequencer_update_overdrop(bmain);
   }

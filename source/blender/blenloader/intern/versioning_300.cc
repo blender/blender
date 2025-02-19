@@ -1142,14 +1142,6 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
         imapaint->clone = nullptr;
       }
     }
-
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->clone.image != nullptr &&
-          ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))
-      {
-        brush->clone.image = nullptr;
-      }
-    }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 28)) {

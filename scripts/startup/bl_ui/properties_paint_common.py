@@ -1171,7 +1171,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
         layout.row().prop(brush, "direction", expand=True)
 
 
-def brush_settings_advanced(layout, context, brush, popover=False):
+def brush_settings_advanced(layout, context, settings, brush, popover=False):
     """Draw advanced brush settings for Sculpt, Texture/Vertex/Weight Paint modes."""
 
     mode = UnifiedPaintPanel.get_brush_mode(context)
@@ -1317,8 +1317,8 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         elif brush.image_tool == 'CLONE':
             if mode == 'PAINT_2D':
-                layout.prop(brush, "clone_image", text="Image")
-                layout.prop(brush, "clone_alpha", text="Alpha")
+                layout.prop(settings, "clone_image", text="Image")
+                layout.prop(settings, "clone_alpha", text="Alpha")
 
     # Vertex Paint #
     elif mode == 'PAINT_VERTEX':
