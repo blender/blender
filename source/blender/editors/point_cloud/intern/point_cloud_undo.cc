@@ -40,6 +40,8 @@ struct StepObject {
   UndoRefID_Object obedit_ref = {};
   CustomData custom_data = {};
   int totpoint = 0;
+  /* Store the bounds cache because it's small. */
+  SharedCache<Bounds<float3>> bounds_cache;
 };
 
 struct PointCloudUndoStep {
@@ -68,6 +70,7 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
       object.obedit_ref.ptr = ob;
       CustomData_init_from(
           &point_cloud.pdata, &object.custom_data, CD_MASK_ALL, point_cloud.totpoint);
+      object.bounds_cache = point_cloud.runtime->bounds_cache;
       object.totpoint = point_cloud.totpoint;
     }
   });
@@ -96,9 +99,17 @@ static void step_decode(
 
   for (const StepObject &object : us->objects) {
     PointCloud &point_cloud = *static_cast<PointCloud *>(object.obedit_ref.ptr->data);
+    const bool positions_changed =
+        CustomData_get_layer_named(&point_cloud.pdata, CD_PROP_FLOAT3, "position") !=
+        CustomData_get_layer_named(&object.custom_data, CD_PROP_FLOAT3, "position");
+
     CustomData_free(&point_cloud.pdata);
     CustomData_init_from(&object.custom_data, &point_cloud.pdata, CD_MASK_ALL, object.totpoint);
     point_cloud.totpoint = object.totpoint;
+    point_cloud.runtime->bounds_cache = object.bounds_cache;
+    if (positions_changed) {
+      point_cloud.runtime->bvh_cache.tag_dirty();
+    }
     DEG_id_tag_update(&point_cloud.id, ID_RECALC_GEOMETRY);
   }
 
