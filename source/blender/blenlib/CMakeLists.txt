@@ -58,6 +58,7 @@ set(SRC
   intern/convexhull_2d.cc
   intern/cpp_type.cc
   intern/cpp_types.cc
+  intern/csv_parse.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
   intern/easing.cc
@@ -215,6 +216,7 @@ set(SRC
   BLI_cpp_type_make.hh
   BLI_cpp_types.hh
   BLI_cpp_types_make.hh
+  BLI_csv_parse.hh
   BLI_delaunay_2d.hh
   BLI_devirtualize_parameters.hh
   BLI_dial_2d.h
@@ -527,6 +529,7 @@ if(WITH_GTESTS)
     tests/BLI_color_test.cc
     tests/BLI_convexhull_2d_test.cc
     tests/BLI_cpp_type_test.cc
+    tests/BLI_csv_parse_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
     tests/BLI_expr_pylike_eval_test.cc
