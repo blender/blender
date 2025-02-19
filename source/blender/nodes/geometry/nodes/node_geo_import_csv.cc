@@ -26,14 +26,15 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_IO_CSV
-  const std::string path = params.extract_input<std::string>("Path");
-  if (path.empty()) {
+  const std::optional<std::string> path = params.ensure_absolute_path(
+      params.extract_input<std::string>("Path"));
+  if (!path) {
     params.set_default_remaining_outputs();
     return;
   }
 
   blender::io::csv::CSVImportParams import_params{};
-  STRNCPY(import_params.filepath, path.c_str());
+  STRNCPY(import_params.filepath, path->c_str());
 
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
