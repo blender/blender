@@ -6596,6 +6596,10 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
         name = TIP_("Options");
       }
       else if (ot) {
+        /* Skip internal operators. */
+        if (ot->flag & OPTYPE_INTERNAL) {
+          continue;
+        }
         name = WM_operatortype_name(ot, kmi->ptr);
       }
       else {
