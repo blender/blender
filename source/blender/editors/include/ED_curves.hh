@@ -26,6 +26,7 @@ struct ViewContext;
 struct rcti;
 struct TransVertStore;
 struct wmKeyConfig;
+struct wmOperator;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 struct GSpanAttributeWriter;
@@ -460,6 +461,8 @@ void resize_curves(bke::CurvesGeometry &curves,
  * reorder curves.
  */
 void reorder_curves(bke::CurvesGeometry &curves, Span<int> old_by_new_indices_map);
+
+int join_objects(bContext *C, wmOperator *op);
 
 /** \} */
 
