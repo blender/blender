@@ -8,6 +8,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_bounds.hh"
 #include "BLI_listbase.h"
@@ -45,6 +46,7 @@
 #include "ED_grease_pencil.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
+#include "ED_point_cloud.hh"
 #include "ED_screen.hh"
 #include "ED_transverts.hh"
 
@@ -1042,6 +1044,23 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
     }
     return changed;
   }
+  if (obedit->type == OB_POINTCLOUD) {
+    const Object &ob_orig = *DEG_get_original_object(obedit);
+    const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob_orig.data);
+
+    IndexMaskMemory memory;
+    const IndexMask mask = point_cloud::retrieve_selected_points(pointcloud, memory);
+
+    const std::optional<Bounds<float3>> bounds = bounds_min_max_with_transform(
+        obedit->object_to_world(), pointcloud.positions(), mask);
+
+    if (bounds) {
+      minmax_v3v3_v3(r_min, r_max, bounds->min);
+      minmax_v3v3_v3(r_min, r_max, bounds->max);
+      return true;
+    }
+    return false;
+  }
   if (obedit->type == OB_CURVES) {
     const Object &ob_orig = *DEG_get_original_object(obedit);
     const Curves &curves_id = *static_cast<const Curves *>(ob_orig.data);
@@ -1053,12 +1072,12 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(obedit, ob_orig);
 
-    const std::optional<Bounds<float3>> curves_bounds = bounds_min_max_with_transform(
+    const std::optional<Bounds<float3>> bounds = bounds_min_max_with_transform(
         obedit->object_to_world(), deformation.positions, mask);
 
-    if (curves_bounds) {
-      minmax_v3v3_v3(r_min, r_max, curves_bounds->min);
-      minmax_v3v3_v3(r_min, r_max, curves_bounds->max);
+    if (bounds) {
+      minmax_v3v3_v3(r_min, r_max, bounds->min);
+      minmax_v3v3_v3(r_min, r_max, bounds->max);
       return true;
     }
     return false;
@@ -1067,7 +1086,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
     Object &ob_orig = *DEG_get_original_object(obedit);
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
 
-    std::optional<Bounds<float3>> grease_pencil_bounds = std::nullopt;
+    std::optional<Bounds<float3>> bounds = std::nullopt;
 
     const Vector<greasepencil::MutableDrawingInfo> drawings =
         greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
@@ -1091,14 +1110,13 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
       const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
       const float4x4 layer_to_world = layer.to_world_space(*obedit);
 
-      grease_pencil_bounds = bounds::merge(
-          grease_pencil_bounds,
-          bounds_min_max_with_transform(layer_to_world, deformation.positions, points));
+      bounds = bounds::merge(
+          bounds, bounds_min_max_with_transform(layer_to_world, deformation.positions, points));
     }
 
-    if (grease_pencil_bounds) {
-      minmax_v3v3_v3(r_min, r_max, grease_pencil_bounds->min);
-      minmax_v3v3_v3(r_min, r_max, grease_pencil_bounds->max);
+    if (bounds) {
+      minmax_v3v3_v3(r_min, r_max, bounds->min);
+      minmax_v3v3_v3(r_min, r_max, bounds->max);
       return true;
     }
     return false;
