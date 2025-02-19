@@ -2091,10 +2091,6 @@ void BKE_sculptsession_free_pbvh(Object &object)
   ss->fake_neighbors.fake_neighbor_index = {};
   ss->topology_island_cache.reset();
 
-  ss->sculpt_persistent_co = {};
-  ss->sculpt_persistent_no = {};
-  ss->sculpt_persistent_disp = {};
-
   ss->clear_active_vert(false);
 }
 
@@ -2226,6 +2222,24 @@ void SculptSession::clear_active_vert(bool persist_last_active)
 void SculptSession::set_active_vert(const ActiveVert vert)
 {
   active_vert_ = vert;
+}
+
+std::optional<PersistentMultiresData> SculptSession::persistent_multires_data()
+{
+  BLI_assert(subdiv_ccg);
+  if (persistent.grids_num == -1 || persistent.grid_size == -1) {
+    return std::nullopt;
+  }
+
+  if (this->subdiv_ccg->grids_num != persistent.grids_num ||
+      this->subdiv_ccg->grid_size != persistent.grid_size)
+  {
+    return std::nullopt;
+  }
+
+  return PersistentMultiresData{persistent.sculpt_persistent_co,
+                                persistent.sculpt_persistent_no,
+                                persistent.sculpt_persistent_disp};
 }
 
 static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,

@@ -5556,7 +5556,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
   }
 
   LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-    const bScreen *win_screen = WM_window_get_active_screen(window);
+    bScreen *win_screen = WM_window_get_active_screen(window);
 
     LISTBASE_FOREACH (ScrArea *, area, &win_screen->areabase) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
@@ -5575,6 +5575,9 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
         if (redraw) {
           screen_animation_region_tag_redraw(
               C, area, region, scene, eScreen_Redraws_Flag(sad->redraws));
+          /* Doesn't trigger a full redraw of the screeen but makes sure at least overlay drawing
+           * (#ARegionType.draw_overlay()) is triggered, which is how the playhead is drawn. */
+          win_screen->do_draw = true;
         }
       }
     }
