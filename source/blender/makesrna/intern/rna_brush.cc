@@ -802,12 +802,6 @@ static void rna_Brush_icon_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 }
 
-static bool rna_Brush_imagetype_poll(PointerRNA * /*ptr*/, PointerRNA value)
-{
-  Image *image = (Image *)value.owner_id;
-  return image->type != IMA_TYPE_R_RESULT && image->type != IMA_TYPE_COMPOSITE;
-}
-
 static void rna_TextureSlot_brush_angle_update(bContext *C, PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
@@ -3905,26 +3899,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "icon_filepath");
   RNA_def_property_ui_text(prop, "Brush Icon Filepath", "File path to brush icon");
   RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
-
-  /* clone brush */
-  prop = RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "clone.image");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Clone Image", "Image for clone brushes");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Brush_update");
-  RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, "rna_Brush_imagetype_poll");
-
-  prop = RNA_def_property(srna, "clone_alpha", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "clone.alpha");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Clone Alpha", "Opacity of clone image display");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_sdna(prop, nullptr, "clone.offset");
-  RNA_def_property_ui_text(prop, "Clone Offset", "");
-  RNA_def_property_ui_range(prop, -1.0f, 1.0f, 10.0f, 3);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "brush_capabilities", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

@@ -19,16 +19,6 @@ struct Image;
 struct MTex;
 struct Material;
 
-typedef struct BrushClone {
-  /** Image for clone tool. */
-  struct Image *image;
-  /** Offset of clone image from canvas. */
-  float offset[2];
-  /** Transparency for drawing of clone image. */
-  float alpha;
-  char _pad[4];
-} BrushClone;
-
 typedef struct BrushGpencilSettings {
   /** Amount of smoothing to apply to newly created strokes. */
   float draw_smoothfac;
@@ -175,7 +165,6 @@ typedef struct Brush {
 
   ID id;
 
-  struct BrushClone clone;
   /** Falloff curve. */
   struct CurveMapping *curve;
   struct MTex mtex;

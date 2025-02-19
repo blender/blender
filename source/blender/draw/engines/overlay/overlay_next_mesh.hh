@@ -615,10 +615,11 @@ class MeshUVs : Overlay {
     }
     {
       /* Brush Stencil Overlay. */
-      const Brush *brush = BKE_paint_brush_for_read(&tool_setting->imapaint.paint);
+      const ImagePaintSettings &image_paint_settings = tool_setting->imapaint;
+      const Brush *brush = BKE_paint_brush_for_read(&image_paint_settings.paint);
       show_stencil_ = space_mode_is_paint && brush &&
                       (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) &&
-                      brush->clone.image;
+                      image_paint_settings.clone;
     }
     {
       /* UDIM Overlay. */
@@ -860,8 +861,8 @@ class MeshUVs : Overlay {
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS |
                      DRW_STATE_BLEND_ALPHA_PREMUL);
 
-      const Brush *brush = BKE_paint_brush_for_read(&tool_setting->imapaint.paint);
-      ::Image *stencil_image = brush->clone.image;
+      const ImagePaintSettings &image_paint_settings = tool_setting->imapaint;
+      ::Image *stencil_image = image_paint_settings.clone;
       TextureRef stencil_texture;
       stencil_texture.wrap(BKE_image_get_gpu_texture(stencil_image, nullptr));
 
@@ -873,8 +874,8 @@ class MeshUVs : Overlay {
         pass.bind_texture("imgTexture", stencil_texture);
         pass.push_constant("imgPremultiplied", true);
         pass.push_constant("imgAlphaBlend", true);
-        pass.push_constant("ucolor", float4(1.0f, 1.0f, 1.0f, brush->clone.alpha));
-        pass.push_constant("brush_offset", float2(brush->clone.offset));
+        pass.push_constant("ucolor", float4(1.0f, 1.0f, 1.0f, image_paint_settings.clone_alpha));
+        pass.push_constant("brush_offset", float2(image_paint_settings.clone_offset));
         pass.push_constant("brush_scale", float2(stencil_texture.size().xy()) / size_image);
         pass.draw(res.shapes.quad_solid.get());
       }

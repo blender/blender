@@ -326,11 +326,14 @@ static bool image_paint_poll_ignore_tool(bContext *C)
 
 static bool image_paint_2d_clone_poll(bContext *C)
 {
+  const Scene *scene = CTX_data_scene(C);
+  const ToolSettings *settings = scene->toolsettings;
+  const ImagePaintSettings &image_paint_settings = settings->imapaint;
   Brush *brush = image_paint_brush(C);
 
   if (!CTX_wm_region_view3d(C) && ED_image_tools_paint_poll(C)) {
     if (brush && (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE)) {
-      if (brush->clone.image) {
+      if (image_paint_settings.clone) {
         return true;
       }
     }
@@ -514,12 +517,13 @@ struct GrabClone {
 
 static void grab_clone_apply(bContext *C, wmOperator *op)
 {
-  Brush *brush = image_paint_brush(C);
+  const Scene *scene = CTX_data_scene(C);
+  ToolSettings *settings = scene->toolsettings;
+  ImagePaintSettings &image_paint_settings = settings->imapaint;
   float delta[2];
 
   RNA_float_get_array(op->ptr, "delta", delta);
-  add_v2_v2(brush->clone.offset, delta);
-  BKE_brush_tag_unsaved_changes(brush);
+  add_v2_v2(image_paint_settings.clone_offset, delta);
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 
@@ -532,11 +536,13 @@ static int grab_clone_exec(bContext *C, wmOperator *op)
 
 static int grab_clone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Brush *brush = image_paint_brush(C);
+  const Scene *scene = CTX_data_scene(C);
+  const ToolSettings *settings = scene->toolsettings;
+  const ImagePaintSettings &image_paint_settings = settings->imapaint;
   GrabClone *cmv;
 
   cmv = MEM_cnew<GrabClone>("GrabClone");
-  copy_v2_v2(cmv->startoffset, brush->clone.offset);
+  copy_v2_v2(cmv->startoffset, image_paint_settings.clone_offset);
   cmv->startx = event->xy[0];
   cmv->starty = event->xy[1];
   op->customdata = cmv;
@@ -548,7 +554,9 @@ static int grab_clone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Brush *brush = image_paint_brush(C);
+  const Scene *scene = CTX_data_scene(C);
+  ToolSettings *settings = scene->toolsettings;
+  ImagePaintSettings &image_paint_settings = settings->imapaint;
   ARegion *region = CTX_wm_region(C);
   GrabClone *cmv = static_cast<GrabClone *>(op->customdata);
   float startfx, startfy, fx, fy, delta[2];
@@ -570,8 +578,7 @@ static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
       delta[1] = fy - startfy;
       RNA_float_set_array(op->ptr, "delta", delta);
 
-      copy_v2_v2(brush->clone.offset, cmv->startoffset);
-      BKE_brush_tag_unsaved_changes(brush);
+      copy_v2_v2(image_paint_settings.clone_offset, cmv->startoffset);
 
       grab_clone_apply(C, op);
       break;

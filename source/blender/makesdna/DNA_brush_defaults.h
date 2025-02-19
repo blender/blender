@@ -44,7 +44,6 @@
     /* How far above or below the plane that is found by averaging the faces. */ \
     .plane_offset = 0.0f, \
     .plane_trim = 0.5f, \
-    .clone.alpha = 0.5f, \
     .normal_weight = 0.0f, \
     .fill_threshold = 0.2f, \
  \
