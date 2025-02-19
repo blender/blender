@@ -124,6 +124,7 @@ class Cameras : Overlay {
         pass.state_set(draw_state, state.clipping_plane_count);
         pass.shader_set(res.shaders.image_plane_depth_bias.get());
         pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+        pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
         pass.push_constant("depth_bias_winmat", &depth_bias_winmat_);
         res.select_bind(pass);
       };
@@ -167,6 +168,7 @@ class Cameras : Overlay {
 
     ps_.init();
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     res.select_bind(ps_);
 
     {

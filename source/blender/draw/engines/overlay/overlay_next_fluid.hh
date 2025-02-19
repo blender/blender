@@ -237,6 +237,7 @@ class Fluids : Overlay {
   {
     fluid_ps_.shader_set(res.shaders.extra_shape.get());
     fluid_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    fluid_ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
 
     cube_buf_.end_sync(fluid_ps_, res.shapes.cube.get());
   }

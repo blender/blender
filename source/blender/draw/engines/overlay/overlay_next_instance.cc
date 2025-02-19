@@ -108,6 +108,7 @@ void Instance::init()
   }
 
   resources.update_theme_settings(state);
+  resources.update_clip_planes(state);
 
   ensure_weight_ramp_texture();
 
@@ -194,6 +195,26 @@ void Instance::ensure_weight_ramp_texture()
 
   resources.weight_ramp_tx.ensure_1d(GPU_SRGB8_A8, res, GPU_TEXTURE_USAGE_SHADER_READ);
   GPU_texture_update(resources.weight_ramp_tx, GPU_DATA_UBYTE, pixels_ubyte);
+}
+
+void Resources::update_clip_planes(const State &state)
+{
+  if (!state.is_space_v3d() || state.clipping_plane_count == 0) {
+    /* Unused, do not care about content but still fullfil the bindings. */
+    clip_planes_buf.push_update();
+    return;
+  }
+
+  for (int i : IndexRange(6)) {
+    clip_planes_buf[i] = float4(0);
+  }
+
+  int plane_len = (RV3D_LOCK_FLAGS(state.rv3d) & RV3D_BOXCLIP) ? 4 : 6;
+  for (int i : IndexRange(plane_len)) {
+    clip_planes_buf[i] = float4(state.rv3d->clip[i]);
+  }
+
+  clip_planes_buf.push_update();
 }
 
 void Resources::update_theme_settings(const State &state)

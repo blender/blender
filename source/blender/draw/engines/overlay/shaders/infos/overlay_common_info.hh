@@ -17,11 +17,6 @@ TYPEDEF_SOURCE("draw_common_shader_shared.hh")
 UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, GlobalsUboStorage, globalsBlock, PASS)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(overlay_clipped)
-DEFINE("OVERLAY_NEXT") /* Needed for view_clipping_lib. */
-DEFINE("USE_WORLD_CLIP_PLANES")
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(overlay_select)
 DEFINE("SELECT_ENABLE")
 ADDITIONAL_INFO(select_id_patch)
@@ -31,7 +26,7 @@ GPU_SHADER_CREATE_END()
   GPU_SHADER_CREATE_INFO(name##_clipped) \
   DO_STATIC_COMPILATION() \
   ADDITIONAL_INFO(name) \
-  ADDITIONAL_INFO(overlay_clipped) \
+  ADDITIONAL_INFO(drw_clipped) \
   GPU_SHADER_CREATE_END()
 
 #define OVERLAY_INFO_SELECT_VARIATION(name) \

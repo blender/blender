@@ -563,7 +563,6 @@ set(GLSL_SRC
   intern/shaders/subdiv_vbo_edituv_strech_area_comp.glsl
   intern/shaders/subdiv_vbo_lnor_comp.glsl
   intern/shaders/subdiv_vbo_sculpt_data_comp.glsl
-  intern/shaders/common_view_clipping_lib.glsl
   intern/shaders/draw_command_generate_comp.glsl
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl

@@ -163,6 +163,7 @@ class Armatures : Overlay {
 
     armature_ps_.init();
     armature_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    armature_ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     res.select_bind(armature_ps_);
 
     /* Envelope distances and degrees of freedom need to be drawn first as they use additive

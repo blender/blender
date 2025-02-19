@@ -662,6 +662,7 @@ struct Resources : public select::SelectMap {
 
   draw::UniformBuffer<GlobalsUboStorage> globals_buf;
   GlobalsUboStorage &theme_settings = globals_buf;
+  draw::UniformArrayBuffer<float4, 6> clip_planes_buf;
   /* Wrappers around #DefaultTextureList members. */
   TextureRef depth_in_front_tx;
   TextureRef color_overlay_tx;
@@ -703,6 +704,7 @@ struct Resources : public select::SelectMap {
   }
 
   void update_theme_settings(const State &state);
+  void update_clip_planes(const State &state);
 
   void begin_sync()
   {

@@ -55,6 +55,7 @@ class ModeTransfer : Overlay {
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders.uniform_color.get());
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
 
     any_animated_ = false;
   }

@@ -114,6 +114,7 @@ class GreasePencil : Overlay {
       auto &pass = edit_grease_pencil_ps_;
       pass.init();
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                          DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
@@ -155,6 +156,7 @@ class GreasePencil : Overlay {
                               state.overlay.gpencil_grid_opacity);
         pass.shader_set(res.shaders.grid_grease_pencil.get());
         pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+        pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
         pass.push_constant("color", col_grid);
       }
     }

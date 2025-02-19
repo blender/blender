@@ -6,7 +6,7 @@
  * Draw particles as shapes using primitive expansion.
  */
 
-#include "common_view_clipping_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "select_lib.glsl"
