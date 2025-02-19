@@ -193,9 +193,9 @@ void register_node_type_cmp_alphaover()
   ntype.draw_buttons = file_ns::node_composit_buts_alphaover;
   ntype.initfunc = file_ns::node_alphaover_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

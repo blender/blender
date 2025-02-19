@@ -68,7 +68,7 @@ void register_node_type_sh_tex_ies()
   ntype.draw_buttons = file_ns::node_shader_buts_ies;
   ntype.initfunc = file_ns::node_shader_init_tex_ies;
   blender::bke::node_type_storage(
-      &ntype, "NodeShaderTexIES", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeShaderTexIES", node_free_standard_storage, node_copy_standard_storage);
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

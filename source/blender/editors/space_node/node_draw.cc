@@ -445,14 +445,14 @@ const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_l
 {
   /* Get the short label if possible. This is used when grouping sockets under panels,
    * to avoid redundancy in the label. */
-  const std::optional<StringRefNull> socket_short_label = bke::nodeSocketShortLabel(socket);
+  const std::optional<StringRefNull> socket_short_label = bke::nodeSocketShortLabel(*socket);
   const char *socket_translation_context = node_socket_get_translation_context(*socket);
 
   if (socket_short_label.has_value()) {
     return CTX_IFACE_(socket_translation_context, socket_short_label->c_str());
   }
 
-  const StringRefNull socket_label = bke::nodeSocketLabel(socket);
+  const StringRefNull socket_label = bke::nodeSocketLabel(*socket);
   const char *translated_socket_label = CTX_IFACE_(socket_translation_context,
                                                    socket_label.c_str());
 
@@ -1393,7 +1393,7 @@ static void node_draw_mute_line(const bContext &C,
   GPU_blend(GPU_BLEND_ALPHA);
 
   for (const bNodeLink &link : node.internal_links()) {
-    if (!bke::node_link_is_hidden(&link)) {
+    if (!bke::node_link_is_hidden(link)) {
       node_draw_link_bezier(C, v2d, snode, link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, false);
     }
   }
@@ -2111,14 +2111,14 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
     const bNode &node = socket.owner_node();
     if (node.is_reroute()) {
       char reroute_name[MAX_NAME];
-      bke::nodeLabel(&ntree, &node, reroute_name, sizeof(reroute_name));
+      bke::nodeLabel(ntree, node, reroute_name, sizeof(reroute_name));
       output << reroute_name;
     }
     else if (is_extend) {
       output << TIP_("Connect a link to create a new socket");
     }
     else {
-      output << bke::nodeSocketLabel(&socket);
+      output << bke::nodeSocketLabel(socket);
     }
 
     if (ntree.type == NTREE_GEOMETRY && !is_extend) {
@@ -3549,7 +3549,7 @@ static void node_draw_basis(const bContext &C,
   }
 
   char showname[128];
-  bke::nodeLabel(&ntree, &node, showname, sizeof(showname));
+  bke::nodeLabel(ntree, node, showname, sizeof(showname));
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -3588,7 +3588,7 @@ static void node_draw_basis(const bContext &C,
   const float outline_width = U.pixelsize;
   {
     /* Use warning color to indicate undefined types. */
-    if (bke::node_type_is_undefined(&node)) {
+    if (bke::node_type_is_undefined(node)) {
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
     /* Muted nodes get a mix of the background with the node color. */
@@ -3666,7 +3666,7 @@ static void node_draw_basis(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (bke::node_type_is_undefined(&node)) {
+    else if (bke::node_type_is_undefined(node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else if (const bke::bNodeZoneType *zone_type = bke::zone_type_by_node_type(node.type_legacy)) {
@@ -3730,7 +3730,7 @@ static void node_draw_hidden(const bContext &C,
   /* Body. */
   float color[4];
   {
-    if (bke::node_type_is_undefined(&node)) {
+    if (bke::node_type_is_undefined(node)) {
       /* Use warning color to indicate undefined types. */
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
@@ -3801,7 +3801,7 @@ static void node_draw_hidden(const bContext &C,
   }
 
   char showname[128];
-  bke::nodeLabel(&ntree, &node, showname, sizeof(showname));
+  bke::nodeLabel(ntree, node, showname, sizeof(showname));
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -3832,7 +3832,7 @@ static void node_draw_hidden(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (bke::node_type_is_undefined(&node)) {
+    else if (bke::node_type_is_undefined(node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else {
@@ -4100,7 +4100,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const float font_size = data->label_size / aspect;
 
   char label[MAX_NAME];
-  bke::nodeLabel(&ntree, &node, label, sizeof(label));
+  bke::nodeLabel(ntree, node, label, sizeof(label));
 
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
@@ -4756,14 +4756,14 @@ static void node_draw_nodetree(const bContext &C,
   nodelink_batch_start(snode);
 
   for (const bNodeLink *link : ntree.all_links()) {
-    if (!bke::node_link_is_hidden(link) && !bke::node_link_is_selected(link)) {
+    if (!bke::node_link_is_hidden(*link) && !bke::node_link_is_selected(*link)) {
       node_draw_link(C, region.v2d, snode, *link, false);
     }
   }
 
   /* Draw selected node links after the unselected ones, so they are shown on top. */
   for (const bNodeLink *link : ntree.all_links()) {
-    if (!bke::node_link_is_hidden(link) && bke::node_link_is_selected(link)) {
+    if (!bke::node_link_is_hidden(*link) && bke::node_link_is_selected(*link)) {
       node_draw_link(C, region.v2d, snode, *link, true);
     }
   }

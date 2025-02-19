@@ -63,5 +63,5 @@ void register_node_type_cmp_scene_time()
   ntype.declare = blender::nodes::cmp_node_scene_time_declare;
   ntype.get_compositor_operation = blender::nodes::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

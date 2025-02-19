@@ -565,8 +565,8 @@ void register_node_type_cmp_dilateerode()
   ntype.declare = file_ns::cmp_node_dilate_declare;
   ntype.initfunc = file_ns::node_composit_init_dilateerode;
   blender::bke::node_type_storage(
-      &ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

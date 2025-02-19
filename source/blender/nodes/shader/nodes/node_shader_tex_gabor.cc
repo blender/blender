@@ -80,13 +80,13 @@ static void node_shader_update_tex_gabor(bNodeTree *ntree, bNode *node)
 {
   const NodeTexGabor &storage = node_storage(*node);
 
-  bNodeSocket *orientation_2d_socket = bke::node_find_socket(node, SOCK_IN, "Orientation 2D");
+  bNodeSocket *orientation_2d_socket = bke::node_find_socket(*node, SOCK_IN, "Orientation 2D");
   bke::node_set_socket_availability(
-      ntree, orientation_2d_socket, storage.type == SHD_GABOR_TYPE_2D);
+      *ntree, *orientation_2d_socket, storage.type == SHD_GABOR_TYPE_2D);
 
-  bNodeSocket *orientation_3d_socket = bke::node_find_socket(node, SOCK_IN, "Orientation 3D");
+  bNodeSocket *orientation_3d_socket = bke::node_find_socket(*node, SOCK_IN, "Orientation 3D");
   bke::node_set_socket_availability(
-      ntree, orientation_3d_socket, storage.type == SHD_GABOR_TYPE_3D);
+      *ntree, *orientation_3d_socket, storage.type == SHD_GABOR_TYPE_3D);
 }
 
 static int node_shader_gpu_tex_gabor(GPUMaterial *material,
@@ -215,11 +215,10 @@ void register_node_type_sh_tex_gabor()
   ntype.declare = file_ns::sh_node_tex_gabor_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_gabor;
   ntype.initfunc = file_ns::node_shader_init_tex_gabor;
-  node_type_storage(
-      &ntype, "NodeTexGabor", node_free_standard_storage, node_copy_standard_storage);
+  node_type_storage(ntype, "NodeTexGabor", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_gabor;
   ntype.updatefunc = file_ns::node_shader_update_tex_gabor;
   ntype.build_multi_function = file_ns::build_multi_function;
 
-  node_register_type(&ntype);
+  node_register_type(ntype);
 }

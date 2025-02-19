@@ -446,8 +446,8 @@ void register_node_type_cmp_planetrackdeform()
   ntype.draw_buttons = file_ns::node_composit_buts_planetrackdeform;
   ntype.initfunc_api = file_ns::init;
   blender::bke::node_type_storage(
-      &ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

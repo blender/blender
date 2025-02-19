@@ -46,7 +46,7 @@ void register_node_type_sh_sephsv()
   ntype.gpu_fn = file_ns::gpu_shader_sephsv;
   ntype.gather_link_search_ops = nullptr;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 namespace blender::nodes::node_shader_sepcomb_hsv_cc {
@@ -87,5 +87,5 @@ void register_node_type_sh_combhsv()
   ntype.gpu_fn = file_ns::gpu_shader_combhsv;
   ntype.gather_link_search_ops = nullptr;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

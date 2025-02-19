@@ -280,7 +280,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
     if (ntree) {
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
         if (node->flag & NODE_SELECT) {
-          bke::node_remove_node(bmain, ntree, node, true);
+          bke::node_remove_node(bmain, *ntree, *node, true);
         }
       }
       BKE_main_ensure_invariants(*bmain, ntree->id);

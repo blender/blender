@@ -206,15 +206,15 @@ static void sh_node_vector_rotate_build_multi_function(NodeMultiFunctionBuilder 
 
 static void node_shader_update_vector_rotate(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock_rotation = bke::node_find_socket(node, SOCK_IN, "Rotation");
+  bNodeSocket *sock_rotation = bke::node_find_socket(*node, SOCK_IN, "Rotation");
   bke::node_set_socket_availability(
-      ntree, sock_rotation, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
-  bNodeSocket *sock_axis = bke::node_find_socket(node, SOCK_IN, "Axis");
+      *ntree, *sock_rotation, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
+  bNodeSocket *sock_axis = bke::node_find_socket(*node, SOCK_IN, "Axis");
   bke::node_set_socket_availability(
-      ntree, sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
-  bNodeSocket *sock_angle = bke::node_find_socket(node, SOCK_IN, "Angle");
+      *ntree, *sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
+  bNodeSocket *sock_angle = bke::node_find_socket(*node, SOCK_IN, "Angle");
   bke::node_set_socket_availability(
-      ntree, sock_angle, !ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
+      *ntree, *sock_angle, !ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
 }
 
 NODE_SHADER_MATERIALX_BEGIN
@@ -280,5 +280,5 @@ void register_node_type_sh_vector_rotate()
   ntype.build_multi_function = file_ns::sh_node_vector_rotate_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -128,5 +128,5 @@ void register_node_type_cmp_math()
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.build_multi_function = blender::nodes::node_math_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -64,5 +64,5 @@ void register_node_type_sh_value()
   ntype.build_multi_function = file_ns::sh_node_value_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -69,7 +69,7 @@ static void draw_node_input(bContext *C,
 
   PointerRNA socket_ptr = RNA_pointer_create_discrete(
       node_ptr->owner_id, &RNA_NodeSocket, &socket);
-  const StringRefNull text(IFACE_(bke::nodeSocketLabel(&socket).c_str()));
+  const StringRefNull text(IFACE_(bke::nodeSocketLabel(socket).c_str()));
   uiLayout *row = uiLayoutRow(layout, true);
   socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
 }

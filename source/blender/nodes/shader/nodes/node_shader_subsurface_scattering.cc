@@ -71,10 +71,10 @@ static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *no
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STR_ELEM(sock->name, "IOR", "Anisotropy")) {
-      bke::node_set_socket_availability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
+      bke::node_set_socket_availability(*ntree, *sock, sss_method != SHD_SUBSURFACE_BURLEY);
     }
     if (STR_ELEM(sock->name, "Roughness")) {
-      bke::node_set_socket_availability(ntree, sock, sss_method == SHD_SUBSURFACE_RANDOM_WALK);
+      bke::node_set_socket_availability(*ntree, *sock, sss_method == SHD_SUBSURFACE_RANDOM_WALK);
     }
   }
 }
@@ -127,11 +127,11 @@ void register_node_type_sh_subsurface_scattering()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
+  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_subsurface_scattering;
   ntype.gpu_fn = file_ns::node_shader_gpu_subsurface_scattering;
   ntype.updatefunc = file_ns::node_shader_update_subsurface_scattering;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

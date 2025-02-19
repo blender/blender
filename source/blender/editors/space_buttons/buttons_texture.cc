@@ -435,9 +435,9 @@ static void template_texture_select(bContext *C, void *user_p, void * /*arg*/)
 
     /* Not totally sure if we should also change selection? */
     for (bNode *node : user->ntree->all_nodes()) {
-      blender::bke::node_set_selected(node, false);
+      blender::bke::node_set_selected(*node, false);
     }
-    blender::bke::node_set_selected(user->node, true);
+    blender::bke::node_set_selected(*user->node, true);
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   }
   if (user->ptr.data) {

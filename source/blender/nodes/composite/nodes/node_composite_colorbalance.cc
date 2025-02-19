@@ -388,12 +388,12 @@ void register_node_type_cmp_colorbalance()
   ntype.declare = file_ns::cmp_node_colorbalance_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_colorbalance;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorbalance_ex;
-  blender::bke::node_type_size(&ntype, 400, 200, 400);
+  blender::bke::node_type_size(ntype, 400, 200, 400);
   ntype.initfunc = file_ns::node_composit_init_colorbalance;
   blender::bke::node_type_storage(
-      &ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -120,10 +120,10 @@ void register_node_type_sh_tex_pointdensity()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_pointdensity;
   ntype.initfunc = file_ns::node_shader_init_tex_pointdensity;
-  blender::bke::node_type_storage(&ntype,
+  blender::bke::node_type_storage(ntype,
                                   "NodeShaderTexPointDensity",
                                   file_ns::node_shader_free_tex_pointdensity,
                                   file_ns::node_shader_copy_tex_pointdensity);
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

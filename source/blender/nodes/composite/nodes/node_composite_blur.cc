@@ -532,8 +532,8 @@ void register_node_type_cmp_blur()
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_blur;
   blender::bke::node_type_storage(
-      &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

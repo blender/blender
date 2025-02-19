@@ -279,7 +279,7 @@ void register_node_type_cmp_movieclip()
   ntype.initfunc_api = file_ns::init;
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_storage(
-      &ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

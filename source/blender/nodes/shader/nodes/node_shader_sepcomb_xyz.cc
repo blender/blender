@@ -150,7 +150,7 @@ void register_node_type_sh_sepxyz()
   ntype.eval_inverse_elem = file_ns::sh_node_sepxyz_eval_inverse_elem;
   ntype.eval_inverse = file_ns::sh_node_sepxyz_eval_inverse;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 namespace blender::nodes::node_shader_sepcomb_xyz_cc::comb {
@@ -242,5 +242,5 @@ void register_node_type_sh_combxyz()
   ntype.eval_inverse_elem = file_ns::sh_node_combxyz_eval_inverse_elem;
   ntype.eval_inverse = file_ns::sh_node_combxyz_eval_inverse;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -50,7 +50,7 @@ static std::optional<StringRef> try_get_supported_socket_type(const StringRef so
     return std::nullopt;
   }
   /* For builtin socket types only the base type is supported. */
-  if (node_is_static_socket_type(typeinfo)) {
+  if (node_is_static_socket_type(*typeinfo)) {
     if (const std::optional<StringRefNull> type_name = bke::node_static_socket_type(typeinfo->type,
                                                                                     PROP_NONE))
     {

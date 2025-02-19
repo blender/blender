@@ -340,5 +340,5 @@ void register_node_type_tex_math()
   ntype.exec_fn = exec;
   ntype.updatefunc = node_math_update;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

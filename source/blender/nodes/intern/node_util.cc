@@ -87,8 +87,8 @@ void node_math_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock1 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0));
   bNodeSocket *sock2 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
   bNodeSocket *sock3 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
-  blender::bke::node_set_socket_availability(ntree,
-                                             sock2,
+  blender::bke::node_set_socket_availability(*ntree,
+                                             *sock2,
                                              !ELEM(node->custom1,
                                                    NODE_MATH_SQRT,
                                                    NODE_MATH_SIGN,
@@ -112,8 +112,8 @@ void node_math_update(bNodeTree *ntree, bNode *node)
                                                        NODE_MATH_COSH,
                                                        NODE_MATH_SINH,
                                                        NODE_MATH_TANH));
-  blender::bke::node_set_socket_availability(ntree,
-                                             sock3,
+  blender::bke::node_set_socket_availability(*ntree,
+                                             *sock3,
                                              ELEM(node->custom1,
                                                   NODE_MATH_COMPARE,
                                                   NODE_MATH_MULTIPLY_ADD,

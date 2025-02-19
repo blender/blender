@@ -688,8 +688,8 @@ void register_node_type_cmp_keying()
   ntype.draw_buttons = file_ns::node_composit_buts_keying;
   ntype.initfunc = file_ns::node_composit_init_keying;
   blender::bke::node_type_storage(
-      &ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

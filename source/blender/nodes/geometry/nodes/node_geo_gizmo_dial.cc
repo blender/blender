@@ -58,11 +58,11 @@ static void node_register()
   ntype.enum_name_legacy = "GIZMO_DIAL";
   ntype.nclass = NODE_CLASS_INTERFACE;
   bke::node_type_storage(
-      &ntype, "NodeGeometryDialGizmo", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeGeometryDialGizmo", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  bke::node_register_type(&ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

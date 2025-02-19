@@ -180,9 +180,9 @@ static void node_register()
   ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
-  bke::node_type_size(&ntype, 170, 100, 700);
+  bke::node_type_size(ntype, 170, 100, 700);
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

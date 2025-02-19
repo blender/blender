@@ -139,8 +139,8 @@ void register_node_type_cmp_translate()
   ntype.draw_buttons = file_ns::node_composit_buts_translate;
   ntype.initfunc = file_ns::node_composit_init_translate;
   blender::bke::node_type_storage(
-      &ntype, "NodeTranslateData", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeTranslateData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

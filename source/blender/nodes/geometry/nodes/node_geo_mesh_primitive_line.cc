@@ -80,12 +80,12 @@ static void node_update(bNodeTree *ntree, bNode *node)
                   (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ? N_("End Location") :
                                                                  N_("Offset"));
 
-  bke::node_set_socket_availability(ntree,
-                                    resolution_socket,
+  bke::node_set_socket_availability(*ntree,
+                                    *resolution_socket,
                                     mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
                                         count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
-  bke::node_set_socket_availability(ntree,
-                                    count_socket,
+  bke::node_set_socket_availability(*ntree,
+                                    *count_socket,
                                     mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
                                         count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
@@ -232,12 +232,12 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.updatefunc = node_update;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

@@ -516,9 +516,9 @@ struct bNodeTreeType {
  * \{ */
 
 bNodeTreeType *node_tree_type_find(StringRef idname);
-void node_tree_type_add(bNodeTreeType *nt);
-void node_tree_type_free_link(const bNodeTreeType *nt);
-bool node_tree_is_registered(const bNodeTree *ntree);
+void node_tree_type_add(bNodeTreeType &nt);
+void node_tree_type_free_link(const bNodeTreeType &nt);
+bool node_tree_is_registered(const bNodeTree &ntree);
 
 Span<bNodeTreeType *> node_tree_types_get();
 
@@ -530,7 +530,7 @@ Span<bNodeTreeType *> node_tree_types_get();
  * In that case the update_typeinfo function will set type-info on registration
  * and do necessary updates.
  */
-void node_tree_set_type(const bContext *C, bNodeTree *ntree);
+void node_tree_set_type(const bContext *C, bNodeTree &ntree);
 
 bNodeTree *node_tree_add_tree(Main *bmain, StringRef name, StringRef idname);
 
@@ -566,8 +566,8 @@ void node_tree_free_local_tree(bNodeTree *ntree);
 /**
  * Check recursively if a node tree contains another.
  */
-bool node_tree_contains_tree(const bNodeTree *tree_to_search_in,
-                             const bNodeTree *tree_to_search_for);
+bool node_tree_contains_tree(const bNodeTree &tree_to_search_in,
+                             const bNodeTree &tree_to_search_for);
 
 void node_tree_update_all_users(Main *main, ID *id);
 
@@ -576,7 +576,7 @@ void node_tree_update_all_users(Main *main, ID *id);
  * node types and last active selection.
  * New tree types have a per-output socket flag to indicate the final output to use explicitly.
  */
-void node_tree_set_output(bNodeTree *ntree);
+void node_tree_set_output(bNodeTree &ntree);
 
 /**
  * Returns localized tree for execution in threads.
@@ -599,17 +599,17 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree);
 
 bNodeType *node_type_find(StringRef idname);
 StringRefNull node_type_find_alias(StringRefNull alias);
-void node_register_type(bNodeType *ntype);
-void node_unregister_type(bNodeType *ntype);
-void node_register_alias(bNodeType *nt, StringRef alias);
+void node_register_type(bNodeType &ntype);
+void node_unregister_type(bNodeType &ntype);
+void node_register_alias(bNodeType &nt, StringRef alias);
 
 Span<bNodeType *> node_types_get();
 
 bNodeSocketType *node_socket_type_find(StringRef idname);
-void node_register_socket_type(bNodeSocketType *stype);
-void node_unregister_socket_type(bNodeSocketType *stype);
-bool node_socket_is_registered(const bNodeSocket *sock);
-StringRefNull node_socket_type_label(const bNodeSocketType *stype);
+void node_register_socket_type(bNodeSocketType &stype);
+void node_unregister_socket_type(bNodeSocketType &stype);
+bool node_socket_is_registered(const bNodeSocket &sock);
+StringRefNull node_socket_type_label(const bNodeSocketType &stype);
 
 std::optional<StringRefNull> node_static_socket_type(int type, int subtype);
 std::optional<StringRefNull> node_static_socket_interface_type_new(int type, int subtype);
@@ -617,62 +617,62 @@ std::optional<StringRefNull> node_static_socket_label(int type, int subtype);
 
 Span<bNodeSocketType *> node_socket_types_get();
 
-bNodeSocket *node_find_socket(bNode *node, eNodeSocketInOut in_out, StringRef identifier);
-const bNodeSocket *node_find_socket(const bNode *node,
+bNodeSocket *node_find_socket(bNode &node, eNodeSocketInOut in_out, StringRef identifier);
+const bNodeSocket *node_find_socket(const bNode &node,
                                     eNodeSocketInOut in_out,
                                     StringRef identifier);
-bNodeSocket *node_add_socket(bNodeTree *ntree,
-                             bNode *node,
+bNodeSocket *node_add_socket(bNodeTree &ntree,
+                             bNode &node,
                              eNodeSocketInOut in_out,
                              StringRefNull idname,
                              StringRefNull identifier,
                              StringRefNull name);
-bNodeSocket *node_add_static_socket(bNodeTree *ntree,
-                                    bNode *node,
+bNodeSocket *node_add_static_socket(bNodeTree &ntree,
+                                    bNode &node,
                                     eNodeSocketInOut in_out,
                                     int type,
                                     int subtype,
                                     StringRefNull identifier,
                                     StringRefNull name);
-void node_remove_socket(bNodeTree *ntree, bNode *node, bNodeSocket *sock);
+void node_remove_socket(bNodeTree &ntree, bNode &node, bNodeSocket &sock);
 
 void node_modify_socket_type_static(
     bNodeTree *ntree, bNode *node, bNodeSocket *sock, int type, int subtype);
 
-bNode *node_add_node(const bContext *C, bNodeTree *ntree, StringRef idname);
-bNode *node_add_static_node(const bContext *C, bNodeTree *ntree, int type);
+bNode *node_add_node(const bContext *C, bNodeTree &ntree, StringRef idname);
+bNode *node_add_static_node(const bContext *C, bNodeTree &ntree, int type);
 
 /**
  * Find the first available, non-duplicate name for a given node.
  */
-void node_unique_name(bNodeTree *ntree, bNode *node);
+void node_unique_name(bNodeTree &ntree, bNode &node);
 /**
  * Create a new unique integer identifier for the node. Also set the node's
  * index in the tree, which is an eagerly maintained cache.
  */
-void node_unique_id(bNodeTree *ntree, bNode *node);
+void node_unique_id(bNodeTree &ntree, bNode &node);
 
 /**
  * Delete node, associated animation data and ID user count.
  */
-void node_remove_node(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user);
+void node_remove_node(Main *bmain, bNodeTree &ntree, bNode &node, bool do_id_user);
 
-void node_dimensions_get(const bNode *node, float *r_width, float *r_height);
-void node_tag_update_id(bNode *node);
-void node_internal_links(bNode *node, bNodeLink **r_links, int *r_len);
+float2 node_dimensions_get(const bNode &node);
+void node_tag_update_id(bNode &node);
+void node_internal_links(bNode &node, bNodeLink **r_links, int *r_len);
 
 /**
  * Also used via RNA API, so we check for proper input output direction.
  */
-bNodeLink *node_add_link(
-    bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock, bNode *tonode, bNodeSocket *tosock);
-void node_remove_link(bNodeTree *ntree, bNodeLink *link);
-void node_remove_socket_links(bNodeTree *ntree, bNodeSocket *sock);
+bNodeLink &node_add_link(
+    bNodeTree &ntree, bNode &fromnode, bNodeSocket &fromsock, bNode &tonode, bNodeSocket &tosock);
+void node_remove_link(bNodeTree *ntree, bNodeLink &link);
+void node_remove_socket_links(bNodeTree &ntree, bNodeSocket &sock);
 
-bool node_link_is_hidden(const bNodeLink *link);
+bool node_link_is_hidden(const bNodeLink &link);
 
-void node_attach_node(bNodeTree *ntree, bNode *node, bNode *parent);
-void node_detach_node(bNodeTree *ntree, bNode *node);
+void node_attach_node(bNodeTree &ntree, bNode &node, bNode &parent);
+void node_detach_node(bNodeTree &ntree, bNode &node);
 
 /**
  * Finds a node based on given socket, returning null in the case where the socket is not part of
@@ -691,33 +691,33 @@ const bNode &node_find_node(const bNodeTree &ntree, const bNodeSocket &socket);
 /**
  * Finds a node based on its name.
  */
-bNode *node_find_node_by_name(bNodeTree *ntree, StringRefNull name);
+bNode *node_find_node_by_name(bNodeTree &ntree, StringRefNull name);
 
 /** Try to find an input item with the given identifier in the entire node interface tree. */
 const bNodeTreeInterfaceSocket *node_find_interface_input_by_identifier(const bNodeTree &ntree,
                                                                         StringRef identifier);
 
-bool node_is_parent_and_child(const bNode *parent, const bNode *child);
+bool node_is_parent_and_child(const bNode &parent, const bNode &child);
 
-int node_count_socket_links(const bNodeTree *ntree, const bNodeSocket *sock);
+int node_count_socket_links(const bNodeTree &ntree, const bNodeSocket &sock);
 
 /**
  * Selects or deselects the node. If the node is deselected, all its sockets are deselected too.
  * \return True if any selection was changed.
  */
-bool node_set_selected(bNode *node, bool select);
+bool node_set_selected(bNode &node, bool select);
 /**
  * Two active flags, ID nodes have special flag for buttons display.
  */
-void node_set_active(bNodeTree *ntree, bNode *node);
-bNode *node_get_active(bNodeTree *ntree);
-void node_clear_active(bNodeTree *ntree);
+void node_set_active(bNodeTree &ntree, bNode &node);
+bNode *node_get_active(bNodeTree &ntree);
+void node_clear_active(bNodeTree &ntree);
 /**
  * Two active flags, ID nodes have special flag for buttons display.
  */
-bNode *node_get_active_texture(bNodeTree *ntree);
+bNode *node_get_active_texture(bNodeTree &ntree);
 
-int node_socket_link_limit(const bNodeSocket *sock);
+int node_socket_link_limit(const bNodeSocket &sock);
 
 /**
  * Node Instance Hash.
@@ -766,7 +766,7 @@ bool node_group_poll(const bNodeTree *nodetree,
                      const bNodeTree *grouptree,
                      const char **r_disabled_hint);
 
-void node_type_base_custom(bNodeType *ntype,
+void node_type_base_custom(bNodeType &ntype,
                            StringRefNull idname,
                            StringRefNull name,
                            StringRefNull enum_name,
@@ -777,7 +777,7 @@ void node_type_base_custom(bNodeType *ntype,
  * Otherwise nodes will reload as undefined (#46619).
  * #storagename is optional due to some compositor nodes use non-DNA storage type.
  */
-void node_type_storage(bNodeType *ntype,
+void node_type_storage(bNodeType &ntype,
                        std::optional<StringRefNull> storagename,
                        void (*freefunc)(bNode *node),
                        void (*copyfunc)(bNodeTree *dest_ntree,
@@ -893,19 +893,19 @@ bNodeTree *node_tree_add_tree_embedded(Main *bmain,
  * Free (or release) any data used by this node-tree.
  * Does not free the node-tree itself and does no ID user counting.
  */
-void node_tree_free_tree(bNodeTree *ntree);
+void node_tree_free_tree(bNodeTree &ntree);
 
-bNodeTree *node_tree_copy_tree_ex(const bNodeTree *ntree, Main *bmain, bool do_id_user);
-bNodeTree *node_tree_copy_tree(Main *bmain, const bNodeTree *ntree);
+bNodeTree *node_tree_copy_tree_ex(const bNodeTree &ntree, Main *bmain, bool do_id_user);
+bNodeTree *node_tree_copy_tree(Main *bmain, const bNodeTree &ntree);
 
-void node_tree_free_local_node(bNodeTree *ntree, bNode *node);
+void node_tree_free_local_node(bNodeTree &ntree, bNode &node);
 
-void node_tree_update_all_new(Main *main);
+void node_tree_update_all_new(Main &main);
 
 /** Update asset meta-data cache of data-block properties. */
 void node_update_asset_metadata(bNodeTree &node_tree);
 
-void node_tree_node_flag_set(const bNodeTree *ntree, int flag, bool enable);
+void node_tree_node_flag_set(const bNodeTree &ntree, int flag, bool enable);
 
 /**
  * Merge local tree results back, and free local tree.
@@ -919,30 +919,30 @@ void node_tree_local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
  */
 void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
 
-bool node_type_is_undefined(const bNode *node);
+bool node_type_is_undefined(const bNode &node);
 
-bool node_is_static_socket_type(const bNodeSocketType *stype);
+bool node_is_static_socket_type(const bNodeSocketType &stype);
 
 StringRefNull node_socket_sub_type_label(int subtype);
 
-void node_remove_socket_ex(bNodeTree *ntree, bNode *node, bNodeSocket *sock, bool do_id_user);
+void node_remove_socket_ex(bNodeTree &ntree, bNode &node, bNodeSocket &sock, bool do_id_user);
 
-void node_modify_socket_type(bNodeTree *ntree,
-                             bNode *node,
-                             bNodeSocket *sock,
+void node_modify_socket_type(bNodeTree &ntree,
+                             bNode &node,
+                             bNodeSocket &sock,
                              StringRefNull idname);
 
 /**
  * \note Goes over entire tree.
  */
-void node_unlink_node(bNodeTree *ntree, bNode *node);
+void node_unlink_node(bNodeTree &ntree, bNode &node);
 
 /**
  * Rebuild the `node_by_id` runtime vector set. Call after removing a node if not handled
  * separately. This is important instead of just using `nodes_by_id.remove()` since it maintains
  * the node order.
  */
-void node_rebuild_id_vector(bNodeTree *node_tree);
+void node_rebuild_id_vector(bNodeTree &node_tree);
 
 /**
  * \note keeps socket list order identical, for copying links.
@@ -975,7 +975,7 @@ void node_socket_move_default_value(Main &bmain,
  *
  * \note ID user reference-counting and changing the `nodes_by_id` vector are up to the caller.
  */
-void node_free_node(bNodeTree *tree, bNode *node);
+void node_free_node(bNodeTree *tree, bNode &node);
 
 /**
  * Iterate over all ID usages of the given node.
@@ -988,23 +988,23 @@ void node_node_foreach_id(bNode *node, LibraryForeachIDData *data);
 /**
  * Set the mute status of a single link.
  */
-void node_link_set_mute(bNodeTree *ntree, bNodeLink *link, const bool muted);
+void node_link_set_mute(bNodeTree &ntree, bNodeLink &link, const bool muted);
 
-bool node_link_is_selected(const bNodeLink *link);
+bool node_link_is_selected(const bNodeLink &link);
 
-void node_internal_relink(bNodeTree *ntree, bNode *node);
+void node_internal_relink(bNodeTree &ntree, bNode &node);
 
-void node_position_relative(bNode *from_node,
-                            const bNode *to_node,
-                            const bNodeSocket *from_sock,
-                            const bNodeSocket *to_sock);
+void node_position_relative(bNode &from_node,
+                            const bNode &to_node,
+                            const bNodeSocket &from_sock,
+                            const bNodeSocket &to_sock);
 
-void node_position_propagate(bNode *node);
+void node_position_propagate(bNode &node);
 
 /**
  * \note Recursive.
  */
-bNode *node_find_root_parent(bNode *node);
+bNode *node_find_root_parent(bNode &node);
 
 /**
  * Iterate over a chain of nodes, starting with \a node_start, executing
@@ -1051,30 +1051,30 @@ void node_parents_iterator(bNode *node, bool (*callback)(bNode *, void *), void 
  * A dangling reroute node is a reroute node that does *not* have a "data source", i.e. no
  * non-reroute node is connected to its input.
  */
-bool node_is_dangling_reroute(const bNodeTree *ntree, const bNode *node);
+bool node_is_dangling_reroute(const bNodeTree &ntree, const bNode &node);
 
-bNode *node_get_active_paint_canvas(bNodeTree *ntree);
+bNode *node_get_active_paint_canvas(bNodeTree &ntree);
 
 /**
  * \brief Does the given node supports the sub active flag.
  *
  * \param sub_active: The active flag to check. #NODE_ACTIVE_TEXTURE / #NODE_ACTIVE_PAINT_CANVAS.
  */
-bool node_supports_active_flag(const bNode *node, int sub_activity);
+bool node_supports_active_flag(const bNode &node, int sub_activity);
 
-void node_set_socket_availability(bNodeTree *ntree, bNodeSocket *sock, bool is_available);
+void node_set_socket_availability(bNodeTree &ntree, bNodeSocket &sock, bool is_available);
 
 /**
  * If the node implements a `declare` function, this function makes sure that `node->declaration`
  * is up to date. It is expected that the sockets of the node are up to date already.
  */
-bool node_declaration_ensure(bNodeTree *ntree, bNode *node);
+bool node_declaration_ensure(bNodeTree &ntree, bNode &node);
 
 /**
  * Just update `node->declaration` if necessary. This can also be called on nodes that may not be
  * up to date (e.g. because the need versioning or are dynamic).
  */
-bool node_declaration_ensure_on_outdated_node(bNodeTree *ntree, bNode *node);
+bool node_declaration_ensure_on_outdated_node(bNodeTree &ntree, bNode &node);
 
 /**
  * Update `socket->declaration` for all sockets in the node. This assumes that the node declaration
@@ -1126,7 +1126,7 @@ BLI_INLINE bool node_instance_hash_iterator_done(bNodeInstanceHashIterator *iter
        blender::bke::node_instance_hash_iterator_step(&iter_))
 
 /* Node Previews */
-bool node_preview_used(const bNode *node);
+bool node_preview_used(const bNode &node);
 
 bNodePreview *node_preview_verify(
     bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create);
@@ -1145,23 +1145,23 @@ void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool re
 /** \name Node Type Access
  * \{ */
 
-void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
+void nodeLabel(const bNodeTree &ntree, const bNode &node, char *label, int label_maxncpy);
 
 /**
  * Get node socket label if it is set.
  */
-StringRefNull nodeSocketLabel(const bNodeSocket *sock);
+StringRefNull nodeSocketLabel(const bNodeSocket &sock);
 
 /**
  * Get node socket short label if it is set.
  * It is used when grouping sockets under panels, to avoid redundancy in the label.
  */
-std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket *sock);
+std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket &sock);
 
 /**
  * Initialize a new node type struct with default values and callbacks.
  */
-void node_type_base(bNodeType *ntype,
+void node_type_base(bNodeType &ntype,
                     std::string idname,
                     std::optional<int16_t> legacy_type = std::nullopt);
 
@@ -1169,7 +1169,7 @@ void node_type_socket_templates(bNodeType *ntype,
                                 bNodeSocketTemplate *inputs,
                                 bNodeSocketTemplate *outputs);
 
-void node_type_size(bNodeType *ntype, int width, int minwidth, int maxwidth);
+void node_type_size(bNodeType &ntype, int width, int minwidth, int maxwidth);
 
 enum class eNodeSizePreset : int8_t {
   Default,
@@ -1178,13 +1178,13 @@ enum class eNodeSizePreset : int8_t {
   Large,
 };
 
-void node_type_size_preset(bNodeType *ntype, eNodeSizePreset size);
+void node_type_size_preset(bNodeType &ntype, eNodeSizePreset size);
 
 /* -------------------------------------------------------------------- */
 /** \name Node Generic Functions
  * \{ */
 
-bool node_is_connected_to_output(const bNodeTree *ntree, const bNode *node);
+bool node_is_connected_to_output(const bNodeTree &ntree, const bNode &node);
 
 bNodeSocket *node_find_enabled_socket(bNode &node, eNodeSocketInOut in_out, StringRef name);
 

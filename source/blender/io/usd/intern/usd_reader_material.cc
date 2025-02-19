@@ -134,7 +134,7 @@ static void cache_node(ShaderToNodeMap &node_cache,
 static bNode *add_node(
     const bContext *C, bNodeTree *ntree, const int type, const float locx, const float locy)
 {
-  bNode *new_node = blender::bke::node_add_static_node(C, ntree, type);
+  bNode *new_node = blender::bke::node_add_static_node(C, *ntree, type);
 
   if (new_node) {
     new_node->location[0] = locx;
@@ -148,21 +148,21 @@ static bNode *add_node(
 static void link_nodes(
     bNodeTree *ntree, bNode *source, const char *sock_out, bNode *dest, const char *sock_in)
 {
-  bNodeSocket *source_socket = blender::bke::node_find_socket(source, SOCK_OUT, sock_out);
+  bNodeSocket *source_socket = blender::bke::node_find_socket(*source, SOCK_OUT, sock_out);
   if (!source_socket) {
     CLOG_ERROR(&LOG, "Couldn't find output socket %s", sock_out);
     return;
   }
 
-  bNodeSocket *dest_socket = blender::bke::node_find_socket(dest, SOCK_IN, sock_in);
+  bNodeSocket *dest_socket = blender::bke::node_find_socket(*dest, SOCK_IN, sock_in);
   if (!dest_socket) {
     CLOG_ERROR(&LOG, "Couldn't find input socket %s", sock_in);
     return;
   }
 
   /* Only add the link if this is the first one to be connected. */
-  if (blender::bke::node_count_socket_links(ntree, dest_socket) == 0) {
-    blender::bke::node_add_link(ntree, source, source_socket, dest, dest_socket);
+  if (blender::bke::node_count_socket_links(*ntree, *dest_socket) == 0) {
+    blender::bke::node_add_link(*ntree, *source, *source_socket, *dest, *dest_socket);
   }
 }
 
@@ -410,7 +410,7 @@ static pxr::UsdShadeInput get_input(const pxr::UsdShadeShader &usd_shader,
 
 static bNodeSocket *get_input_socket(bNode *node, const char *identifier, ReportList *reports)
 {
-  bNodeSocket *sock = blender::bke::node_find_socket(node, SOCK_IN, identifier);
+  bNodeSocket *sock = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
   if (!sock) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -541,7 +541,7 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
     mtl->displacement_method = MA_DISPLACEMENT_BOTH;
   }
 
-  blender::bke::node_set_active(ntree, output);
+  blender::bke::node_set_active(*ntree, *output);
 
   BKE_ntree_update_after_single_tree_change(*bmain_, *ntree);
 
@@ -585,7 +585,7 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   }
 
   bNodeSocket *emission_strength_sock = blender::bke::node_find_socket(
-      principled, SOCK_IN, "Emission Strength");
+      *principled, SOCK_IN, "Emission Strength");
   ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value = emission_strength;
 
   if (pxr::UsdShadeInput specular_input = usd_shader.GetInput(usdtokens::specularColor)) {
@@ -657,7 +657,7 @@ bool USDMaterialReader::set_displacement_node_inputs(bNodeTree *ntree,
   /* If the displacement input is not connected, then this is "constant" displacement.
    * We need to adjust the Height input by our default Midlevel value of 0.5. */
   if (!displacement_input.HasConnectedSource()) {
-    bNodeSocket *sock = blender::bke::node_find_socket(displacement_node, SOCK_IN, sock_name);
+    bNodeSocket *sock = blender::bke::node_find_socket(*displacement_node, SOCK_IN, sock_name);
     if (!sock) {
       CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", sock_name);
       return false;
@@ -691,7 +691,7 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
 
   /* Set the destination node socket value from the USD shader input value. */
 
-  bNodeSocket *sock = blender::bke::node_find_socket(dest_node, SOCK_IN, dest_socket_name);
+  bNodeSocket *sock = blender::bke::node_find_socket(*dest_node, SOCK_IN, dest_socket_name);
   if (!sock) {
     CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name);
     return false;
@@ -825,8 +825,9 @@ static IntermediateNode add_scale_bias(const pxr::UsdShadeShader &usd_shader,
   scale_bias.sock_input_name = "Vector";
   scale_bias.sock_output_name = "Vector";
 
-  bNodeSocket *sock_scale = blender::bke::node_find_socket(scale_bias.node, SOCK_IN, "Vector_001");
-  bNodeSocket *sock_bias = blender::bke::node_find_socket(scale_bias.node, SOCK_IN, "Vector_002");
+  bNodeSocket *sock_scale = blender::bke::node_find_socket(
+      *scale_bias.node, SOCK_IN, "Vector_001");
+  bNodeSocket *sock_bias = blender::bke::node_find_socket(*scale_bias.node, SOCK_IN, "Vector_002");
   copy_v3_v3(((bNodeSocketValueVector *)sock_scale->default_value)->value, scale.data());
   copy_v3_v3(((bNodeSocketValueVector *)sock_bias->default_value)->value, bias.data());
 
@@ -847,8 +848,8 @@ static IntermediateNode add_scale_bias_adjust(bNodeTree *ntree,
   adjust.sock_input_name = "Vector";
   adjust.sock_output_name = "Vector";
 
-  bNodeSocket *sock_scale = blender::bke::node_find_socket(adjust.node, SOCK_IN, "Vector_001");
-  bNodeSocket *sock_bias = blender::bke::node_find_socket(adjust.node, SOCK_IN, "Vector_002");
+  bNodeSocket *sock_scale = blender::bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_001");
+  bNodeSocket *sock_bias = blender::bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_002");
   copy_v3_fl3(((bNodeSocketValueVector *)sock_scale->default_value)->value, 0.5f, 0.5f, 0.5f);
   copy_v3_fl3(((bNodeSocketValueVector *)sock_bias->default_value)->value, 0.5f, 0.5f, 0.5f);
 
@@ -910,7 +911,7 @@ static IntermediateNode add_lessthan(bNodeTree *ntree,
   lessthan.sock_input_name = "Value";
   lessthan.sock_output_name = "Value";
 
-  bNodeSocket *thresh_sock = blender::bke::node_find_socket(lessthan.node, SOCK_IN, "Value_001");
+  bNodeSocket *thresh_sock = blender::bke::node_find_socket(*lessthan.node, SOCK_IN, "Value_001");
   ((bNodeSocketValueFloat *)thresh_sock->default_value)->value = threshold;
 
   return lessthan;
@@ -929,7 +930,7 @@ static IntermediateNode add_oneminus(bNodeTree *ntree, int column, NodePlacement
   oneminus.sock_input_name = "Value_001";
   oneminus.sock_output_name = "Value";
 
-  bNodeSocket *val_sock = blender::bke::node_find_socket(oneminus.node, SOCK_IN, "Value");
+  bNodeSocket *val_sock = blender::bke::node_find_socket(*oneminus.node, SOCK_IN, "Value");
   ((bNodeSocketValueFloat *)val_sock->default_value)->value = 1.0f;
 
   return oneminus;
@@ -955,8 +956,8 @@ static void configure_displacement(const pxr::UsdShadeShader &usd_shader, bNode 
   const float scale_avg = (scale[0] + scale[1] + scale[2]) / 3.0f;
   const float bias_avg = (bias[0] + bias[1] + bias[2]) / 3.0f;
 
-  bNodeSocket *sock_mid = blender::bke::node_find_socket(displacement_node, SOCK_IN, "Midlevel");
-  bNodeSocket *sock_scale = blender::bke::node_find_socket(displacement_node, SOCK_IN, "Scale");
+  bNodeSocket *sock_mid = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Midlevel");
+  bNodeSocket *sock_scale = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
   ((bNodeSocketValueFloat *)sock_mid->default_value)->value = -1.0f * (bias_avg / scale_avg);
   ((bNodeSocketValueFloat *)sock_scale->default_value)->value = scale_avg;
 }

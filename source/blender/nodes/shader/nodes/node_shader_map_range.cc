@@ -97,10 +97,10 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
   }
 
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
-    bke::node_set_socket_availability(ntree, socket, new_input_availability[index]);
+    bke::node_set_socket_availability(*ntree, *socket, new_input_availability[index]);
   }
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
-    bke::node_set_socket_availability(ntree, socket, new_output_availability[index]);
+    bke::node_set_socket_availability(*ntree, *socket, new_output_availability[index]);
   }
 }
 
@@ -534,11 +534,11 @@ void register_node_type_sh_map_range()
   ntype.ui_class = file_ns::node_shader_map_range_ui_class;
   ntype.initfunc = file_ns::node_shader_init_map_range;
   blender::bke::node_type_storage(
-      &ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::node_shader_update_map_range;
   ntype.gpu_fn = file_ns::gpu_shader_map_range;
   ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
   ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

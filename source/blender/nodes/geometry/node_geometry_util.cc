@@ -142,7 +142,7 @@ void geo_node_type_base(blender::bke::bNodeType *ntype,
                         std::string idname,
                         const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(ntype, idname, legacy_type);
+  blender::bke::node_type_base(*ntype, idname, legacy_type);
   ntype->poll = geo_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;

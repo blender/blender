@@ -224,16 +224,14 @@ static void node_register()
   ntype.ui_description = "Generate a fog volume sphere around every point";
   ntype.enum_name_legacy = "POINTS_TO_VOLUME";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(&ntype,
-                                  "NodeGeometryPointsToVolume",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
-  bke::node_type_size(&ntype, 170, 120, 700);
+  blender::bke::node_type_storage(
+      ntype, "NodeGeometryPointsToVolume", node_free_standard_storage, node_copy_standard_storage);
+  bke::node_type_size(ntype, 170, 120, 700);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

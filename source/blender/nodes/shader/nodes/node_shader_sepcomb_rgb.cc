@@ -89,7 +89,7 @@ void register_node_type_sh_seprgb()
   ntype.build_multi_function = file_ns::sh_node_seprgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 namespace blender::nodes::node_shader_sepcomb_rgb_cc {
@@ -137,5 +137,5 @@ void register_node_type_sh_combrgb()
   ntype.build_multi_function = file_ns::sh_node_combrgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

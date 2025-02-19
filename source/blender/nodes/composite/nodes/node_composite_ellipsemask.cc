@@ -309,11 +309,11 @@ void register_node_type_cmp_ellipsemask()
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_ellipsemask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_ellipsemask;
-  blender::bke::node_type_size(&ntype, 260, 110, 320);
+  blender::bke::node_type_size(ntype, 260, 110, 320);
   ntype.initfunc = file_ns::node_composit_init_ellipsemask;
   blender::bke::node_type_storage(
-      &ntype, "NodeEllipseMask", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeEllipseMask", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

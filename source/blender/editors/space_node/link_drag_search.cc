@@ -70,18 +70,18 @@ static void add_reroute_node_fn(nodes::LinkSearchOpParams &params)
 {
   bNode &reroute = params.add_node("NodeReroute");
   if (params.socket.in_out == SOCK_IN) {
-    bke::node_add_link(&params.node_tree,
-                       &reroute,
-                       static_cast<bNodeSocket *>(reroute.outputs.first),
-                       &params.node,
-                       &params.socket);
+    bke::node_add_link(params.node_tree,
+                       reroute,
+                       *static_cast<bNodeSocket *>(reroute.outputs.first),
+                       params.node,
+                       params.socket);
   }
   else {
-    bke::node_add_link(&params.node_tree,
-                       &params.node,
-                       &params.socket,
-                       &reroute,
-                       static_cast<bNodeSocket *>(reroute.inputs.first));
+    bke::node_add_link(params.node_tree,
+                       params.node,
+                       params.socket,
+                       reroute,
+                       *static_cast<bNodeSocket *>(reroute.inputs.first));
   }
 }
 
@@ -106,7 +106,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   for (bNode *node : params.node_tree.all_nodes()) {
     if (node->is_group_input()) {
       bNodeSocket *new_group_input_socket = bke::node_find_socket(
-          node, SOCK_OUT, socket_iface->identifier);
+          *node, SOCK_OUT, socket_iface->identifier);
       if (new_group_input_socket) {
         new_group_input_socket->flag |= SOCK_HIDDEN;
       }
@@ -118,11 +118,11 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
     socket->flag |= SOCK_HIDDEN;
   }
 
-  bNodeSocket *socket = bke::node_find_socket(&group_input, SOCK_OUT, socket_iface->identifier);
+  bNodeSocket *socket = bke::node_find_socket(group_input, SOCK_OUT, socket_iface->identifier);
   if (socket) {
     /* Unhide the socket for the new input in the new node and make a connection to it. */
     socket->flag &= ~SOCK_HIDDEN;
-    bke::node_add_link(&params.node_tree, &group_input, socket, &params.node, &params.socket);
+    bke::node_add_link(params.node_tree, group_input, *socket, params.node, params.socket);
 
     bke::node_socket_move_default_value(
         *CTX_data_main(&params.C), params.node_tree, params.socket, *socket);
@@ -143,10 +143,10 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
     socket->flag |= SOCK_HIDDEN;
   }
 
-  bNodeSocket *socket = bke::node_find_socket(&group_input, SOCK_OUT, interface_socket.identifier);
+  bNodeSocket *socket = bke::node_find_socket(group_input, SOCK_OUT, interface_socket.identifier);
   if (socket != nullptr) {
     socket->flag &= ~SOCK_HIDDEN;
-    bke::node_add_link(&params.node_tree, &group_input, socket, &params.node, &params.socket);
+    bke::node_add_link(params.node_tree, group_input, *socket, params.node, params.socket);
   }
 }
 
@@ -224,7 +224,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
            if (new_node_socket != nullptr) {
              /* Rely on the way #node_add_link switches in/out if necessary. */
              bke::node_add_link(
-                 &params.node_tree, &params.node, &params.socket, &node, new_node_socket);
+                 params.node_tree, params.node, params.socket, node, *new_node_socket);
            }
          },
          weight});
@@ -380,8 +380,8 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
     new_node->location[0] -= new_node->width;
   }
 
-  bke::node_set_selected(new_node, true);
-  bke::node_set_active(&node_tree, new_node);
+  bke::node_set_selected(*new_node, true);
+  bke::node_set_active(node_tree, *new_node);
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */

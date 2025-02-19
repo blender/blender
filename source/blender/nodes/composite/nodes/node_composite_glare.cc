@@ -183,33 +183,33 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   const CMPNodeGlareType glare_type = static_cast<CMPNodeGlareType>(node_storage(*node).type);
 
-  bNodeSocket *size_input = bke::node_find_socket(node, SOCK_IN, "Size");
+  bNodeSocket *size_input = bke::node_find_socket(*node, SOCK_IN, "Size");
   blender::bke::node_set_socket_availability(
-      ntree, size_input, ELEM(glare_type, CMP_NODE_GLARE_FOG_GLOW, CMP_NODE_GLARE_BLOOM));
+      *ntree, *size_input, ELEM(glare_type, CMP_NODE_GLARE_FOG_GLOW, CMP_NODE_GLARE_BLOOM));
 
-  bNodeSocket *iterations_input = bke::node_find_socket(node, SOCK_IN, "Iterations");
+  bNodeSocket *iterations_input = bke::node_find_socket(*node, SOCK_IN, "Iterations");
   blender::bke::node_set_socket_availability(
-      ntree,
-      iterations_input,
+      *ntree,
+      *iterations_input,
       ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS));
 
-  bNodeSocket *fade_input = bke::node_find_socket(node, SOCK_IN, "Fade");
+  bNodeSocket *fade_input = bke::node_find_socket(*node, SOCK_IN, "Fade");
   blender::bke::node_set_socket_availability(
-      ntree, fade_input, ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_STREAKS));
+      *ntree, *fade_input, ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_STREAKS));
 
-  bNodeSocket *color_modulation_input = bke::node_find_socket(node, SOCK_IN, "Color Modulation");
+  bNodeSocket *color_modulation_input = bke::node_find_socket(*node, SOCK_IN, "Color Modulation");
   blender::bke::node_set_socket_availability(
-      ntree,
-      color_modulation_input,
+      *ntree,
+      *color_modulation_input,
       ELEM(glare_type, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS));
 
-  bNodeSocket *streaks_input = bke::node_find_socket(node, SOCK_IN, "Streaks");
+  bNodeSocket *streaks_input = bke::node_find_socket(*node, SOCK_IN, "Streaks");
   blender::bke::node_set_socket_availability(
-      ntree, streaks_input, glare_type == CMP_NODE_GLARE_STREAKS);
+      *ntree, *streaks_input, glare_type == CMP_NODE_GLARE_STREAKS);
 
-  bNodeSocket *streaks_angle_input = bke::node_find_socket(node, SOCK_IN, "Streaks Angle");
+  bNodeSocket *streaks_angle_input = bke::node_find_socket(*node, SOCK_IN, "Streaks Angle");
   blender::bke::node_set_socket_availability(
-      ntree, streaks_angle_input, glare_type == CMP_NODE_GLARE_STREAKS);
+      *ntree, *streaks_angle_input, glare_type == CMP_NODE_GLARE_STREAKS);
 }
 
 using namespace blender::compositor;
@@ -2381,8 +2381,8 @@ void register_node_type_cmp_glare()
   ntype.updatefunc = file_ns::node_update;
   ntype.initfunc = file_ns::node_composit_init_glare;
   blender::bke::node_type_storage(
-      &ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

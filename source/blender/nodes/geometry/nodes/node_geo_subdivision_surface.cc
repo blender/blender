@@ -241,12 +241,12 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
-  blender::bke::node_type_storage(&ntype,
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  blender::bke::node_type_storage(ntype,
                                   "NodeGeometrySubdivisionSurface",
                                   node_free_standard_storage,
                                   node_copy_standard_storage);
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

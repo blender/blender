@@ -134,9 +134,9 @@ static void node_register()
   ntype.enum_name_legacy = "EDGE_PATHS_TO_SELECTION";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
-  blender::bke::node_type_size(&ntype, 150, 100, 300);
+  blender::bke::node_type_size(ntype, 150, 100, 300);
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
