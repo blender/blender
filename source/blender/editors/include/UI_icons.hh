@@ -40,6 +40,11 @@
 /* ICON_NONE has to be the first item here because it is hard-coded in places as 0. */
 DEF_ICON(NONE)
 
+/* Keep these here, in this order. Their IDs should be static. */
+DEF_ICON(CHAR_NOTDEF)
+DEF_ICON(CHAR_REPLACEMENT)
+DEF_ICON(NOT_FOUND)
+
 /* Blank is no real icon, but used as placeholder or spacers,
  * it takes the space of an icon but is empty. */
 DEF_ICON(BLANK1)

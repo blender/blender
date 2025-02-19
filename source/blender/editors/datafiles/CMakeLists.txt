@@ -234,6 +234,8 @@ if(WITH_BLENDER)
       cancel
       cancel_large
       center_only
+      char_notdef
+      char_replacement
       checkbox_dehlt
       checkbox_hlt
       checkmark
@@ -640,6 +642,7 @@ if(WITH_BLENDER)
       normals_face
       normals_vertex
       normals_vertex_face
+      not_found
       object_data
       object_datamode
       object_hidden
