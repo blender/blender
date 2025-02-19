@@ -150,7 +150,7 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
 
       float radius = 0.1f;
       if (idx < usdWidths.size()) {
-        radius = usdWidths[idx];
+        radius = usdWidths[idx] / 2.0f;
       }
 
       bp->radius = radius;
