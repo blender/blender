@@ -914,8 +914,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
     const int domain_size = curves.attributes().domain_size(selection_domain);
 
     IndexMaskMemory memory;
-    const IndexMask inv_random_elements = random_mask(
-                                              curves, selection_domain, seed, probability, memory)
+    const IndexMask inv_random_elements = random_mask(domain_size, seed, probability, memory)
                                               .complement(IndexRange(domain_size), memory);
 
     const bool was_anything_selected = has_anything_selected(curves);

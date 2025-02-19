@@ -2325,6 +2325,10 @@ class VIEW3D_MT_select_edit_pointcloud(Menu):
         layout.operator("pointcloud.select_all", text="None").action = 'DESELECT'
         layout.operator("pointcloud.select_all", text="Invert").action = 'INVERT'
 
+        layout.separator()
+
+        layout.operator("pointcloud.select_random")
+
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 

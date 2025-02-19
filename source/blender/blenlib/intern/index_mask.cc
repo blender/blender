@@ -16,6 +16,7 @@
 #include "BLI_index_mask_expression.hh"
 #include "BLI_index_ranges_builder.hh"
 #include "BLI_math_base.hh"
+#include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
@@ -1226,5 +1227,30 @@ template IndexMask IndexMask::from_ranges(OffsetIndices<int32_t>,
 template IndexMask IndexMask::from_ranges(OffsetIndices<int64_t>,
                                           const IndexMask &,
                                           IndexMaskMemory &);
+
+IndexMask random_mask(const IndexMask &mask,
+                      const int64_t universe_size,
+                      const uint32_t random_seed,
+                      const float probability,
+                      IndexMaskMemory &memory)
+{
+  RandomNumberGenerator rng{random_seed};
+  const auto next_bool_random_value = [&]() { return rng.get_float() <= probability; };
+
+  Array<bool> random(universe_size, false);
+  mask.foreach_index_optimized<int64_t>(
+      [&](const int64_t i) { random[i] = next_bool_random_value(); });
+
+  return IndexMask::from_bools(IndexRange(universe_size), random, memory);
+}
+
+IndexMask random_mask(const int64_t universe_size,
+                      const uint32_t random_seed,
+                      const float probability,
+                      IndexMaskMemory &memory)
+{
+  const IndexRange selection(universe_size);
+  return random_mask(selection, universe_size, random_seed, probability, memory);
+}
 
 }  // namespace blender::index_mask

@@ -139,6 +139,74 @@ static void POINTCLOUD_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
+static int select_random_exec(bContext *C, wmOperator *op)
+{
+  const int seed = RNA_int_get(op->ptr, "seed");
+  const float probability = RNA_float_get(op->ptr, "probability");
+
+  for (PointCloud *pointcloud : get_unique_editable_pointclouds(*C)) {
+    IndexMaskMemory memory;
+    const IndexMask inv_random_elements = random_mask(
+                                              pointcloud->totpoint, seed, probability, memory)
+                                              .complement(IndexRange(pointcloud->totpoint),
+                                                          memory);
+    const bool was_anything_selected = has_anything_selected(*pointcloud);
+    bke::GSpanAttributeWriter selection = ensure_selection_attribute(*pointcloud, CD_PROP_BOOL);
+    if (!was_anything_selected) {
+      pointcloud::fill_selection_true(selection.span);
+    }
+
+    pointcloud::fill_selection_false(selection.span, inv_random_elements);
+    selection.finish();
+
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&pointcloud->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, pointcloud);
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void select_random_ui(bContext * /*C*/, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+
+  uiItemR(layout, op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, op->ptr, "probability", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+}
+
+static void POINTCLOUD_OT_select_random(wmOperatorType *ot)
+{
+  ot->name = "Select Random";
+  ot->idname = __func__;
+  ot->description = "Randomizes existing selection or create new random selection";
+
+  ot->exec = select_random_exec;
+  ot->poll = editable_pointcloud_poll;
+  ot->ui = select_random_ui;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_int(ot->srna,
+              "seed",
+              0,
+              INT32_MIN,
+              INT32_MAX,
+              "Seed",
+              "Source of randomness",
+              INT32_MIN,
+              INT32_MAX);
+  RNA_def_float(ot->srna,
+                "probability",
+                0.5f,
+                0.0f,
+                1.0f,
+                "Probability",
+                "Chance of every point being included in the selection",
+                0.0f,
+                1.0f);
+}
+
 namespace pointcloud_delete {
 
 static int delete_exec(bContext *C, wmOperator * /*op*/)
@@ -173,6 +241,7 @@ void operatortypes_pointcloud()
   WM_operatortype_append(POINTCLOUD_OT_delete);
   WM_operatortype_append(POINTCLOUD_OT_duplicate);
   WM_operatortype_append(POINTCLOUD_OT_select_all);
+  WM_operatortype_append(POINTCLOUD_OT_select_random);
   WM_operatortype_append(POINTCLOUD_OT_separate);
 }
 

@@ -1112,6 +1112,26 @@ inline void index_range_to_mask_segments(const IndexRange range,
   }
 }
 
+/**
+ * Return a mask of random points or curves.
+ *
+ * \param mask: (optional) The elements that should be used in the resulting mask.
+ * \param universe_size: The size of the mask.
+ * \param random_seed: The seed for the \a RandomNumberGenerator.
+ * \param probability: Determines how likely a point/curve will be chosen.
+ * If set to 0.0, nothing will be in the mask, if set to 1.0 everything will be in the mask.
+ */
+IndexMask random_mask(const IndexMask &mask,
+                      const int64_t universe_size,
+                      const uint32_t random_seed,
+                      const float probability,
+                      IndexMaskMemory &memory);
+
+IndexMask random_mask(const int64_t universe_size,
+                      const uint32_t random_seed,
+                      const float probability,
+                      IndexMaskMemory &memory);
+
 }  // namespace blender::index_mask
 
 namespace blender {
