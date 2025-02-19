@@ -79,7 +79,7 @@
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_particle.hh"
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
 #include "ED_select_utils.hh"
@@ -1439,10 +1439,10 @@ static bool view3d_lasso_select(bContext *C,
           break;
         }
         case OB_POINTCLOUD: {
-          PointCloud &point_cloud = *static_cast<PointCloud *>(vc->obedit->data);
+          PointCloud &pointcloud = *static_cast<PointCloud *>(vc->obedit->data);
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
-          changed = ed::point_cloud::select_lasso(
-              point_cloud, *vc->region, projection, mcoords, sel_op);
+          changed = ed::pointcloud::select_lasso(
+              pointcloud, *vc->region, projection, mcoords, sel_op);
           if (changed) {
             /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
              * generic attribute for now. */
@@ -3075,7 +3075,7 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 
 struct ClosestPointCloud {
   PointCloud *pointcloud = nullptr;
-  blender::ed::point_cloud::FindClosestData elem;
+  blender::ed::pointcloud::FindClosestData elem;
 };
 
 /**
@@ -3083,7 +3083,7 @@ struct ClosestPointCloud {
  *
  * \returns true if the selection changed.
  */
-static bool point_cloud_select_pick(bContext &C, const int2 mval, const SelectPick_Params &params)
+static bool pointcloud_select_pick(bContext &C, const int2 mval, const SelectPick_Params &params)
 {
   using namespace blender;
   using namespace blender::ed;
@@ -3105,14 +3105,14 @@ static bool point_cloud_select_pick(bContext &C, const int2 mval, const SelectPi
           PointCloud &pointcloud = *static_cast<PointCloud *>(object.data);
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, &object);
 
-          std::optional<point_cloud::FindClosestData> new_closest_elem =
-              point_cloud::find_closest_point_to_screen_co(*vc.region,
-                                                           pointcloud.positions(),
-                                                           projection,
-                                                           IndexMask(pointcloud.totpoint),
-                                                           float2(mval),
-                                                           ED_view3d_select_dist_px(),
-                                                           new_closest.elem);
+          std::optional<pointcloud::FindClosestData> new_closest_elem =
+              pointcloud::find_closest_point_to_screen_co(*vc.region,
+                                                          pointcloud.positions(),
+                                                          projection,
+                                                          IndexMask(pointcloud.totpoint),
+                                                          float2(mval),
+                                                          ED_view3d_select_dist_px(),
+                                                          new_closest.elem);
           if (new_closest_elem) {
             new_closest.elem = *new_closest_elem;
             new_closest.pointcloud = &pointcloud;
@@ -3129,13 +3129,13 @@ static bool point_cloud_select_pick(bContext &C, const int2 mval, const SelectPi
     threading::parallel_for(bases.index_range(), 1L, [&](const IndexRange range) {
       for (Base *base : bases.as_span().slice(range)) {
         PointCloud &pointcloud = *static_cast<PointCloud *>(base->object->data);
-        if (!point_cloud::has_anything_selected(pointcloud)) {
+        if (!pointcloud::has_anything_selected(pointcloud)) {
           continue;
         }
 
-        bke::GSpanAttributeWriter selection = point_cloud::ensure_selection_attribute(
-            pointcloud, CD_PROP_BOOL);
-        point_cloud::fill_selection_false(selection.span, IndexMask(pointcloud.totpoint));
+        bke::GSpanAttributeWriter selection = pointcloud::ensure_selection_attribute(pointcloud,
+                                                                                     CD_PROP_BOOL);
+        pointcloud::fill_selection_false(selection.span, IndexMask(pointcloud.totpoint));
         selection.finish();
 
         deselected = true;
@@ -3151,8 +3151,8 @@ static bool point_cloud_select_pick(bContext &C, const int2 mval, const SelectPi
     return deselected;
   }
 
-  bke::GSpanAttributeWriter selection = point_cloud::ensure_selection_attribute(
-      *closest.pointcloud, CD_PROP_BOOL);
+  bke::GSpanAttributeWriter selection = pointcloud::ensure_selection_attribute(*closest.pointcloud,
+                                                                               CD_PROP_BOOL);
   curves::apply_selection_operation_at_index(selection.span, closest.elem.index, params.sel_op);
   selection.finish();
 
@@ -3548,7 +3548,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
       changed = ED_curve_editfont_select_pick(C, mval, &params);
     }
     else if (obedit->type == OB_POINTCLOUD) {
-      changed = point_cloud_select_pick(*C, mval, params);
+      changed = pointcloud_select_pick(*C, mval, params);
     }
     else if (obedit->type == OB_CURVES) {
       changed = ed_curves_select_pick(*C, mval, params);
@@ -4510,9 +4510,9 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
           break;
         }
         case OB_POINTCLOUD: {
-          PointCloud &point_cloud = *static_cast<PointCloud *>(vc.obedit->data);
+          PointCloud &pointcloud = *static_cast<PointCloud *>(vc.obedit->data);
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, vc.obedit);
-          changed = ed::point_cloud::select_box(point_cloud, *vc.region, projection, rect, sel_op);
+          changed = ed::pointcloud::select_box(pointcloud, *vc.region, projection, rect, sel_op);
           if (changed) {
             /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
              * generic attribute for now. */
@@ -5359,10 +5359,10 @@ static bool obedit_circle_select(bContext *C,
       break;
     }
     case OB_POINTCLOUD: {
-      PointCloud &point_cloud = *static_cast<PointCloud *>(vc->obedit->data);
+      PointCloud &pointcloud = *static_cast<PointCloud *>(vc->obedit->data);
       const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
-      changed = ed::point_cloud::select_circle(
-          point_cloud, *vc->region, projection, mval, rad, sel_op);
+      changed = ed::pointcloud::select_circle(
+          pointcloud, *vc->region, projection, mval, rad, sel_op);
       if (changed) {
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */

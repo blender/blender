@@ -41,9 +41,9 @@ static bNode *add_input_named_attrib_node(bNodeTree *ntree, const char *name, in
 
 void USDPointInstancerReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
-  PointCloud *point_cloud = BKE_pointcloud_add(bmain, name_.c_str());
+  PointCloud *pointcloud = BKE_pointcloud_add(bmain, name_.c_str());
   this->object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());
-  this->object_->data = point_cloud;
+  this->object_->data = pointcloud;
 }
 
 void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
@@ -61,16 +61,16 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
   point_instancer_prim_.GetOrientationsAttr().Get(&orientations, params.motion_sample_time);
   point_instancer_prim_.GetProtoIndicesAttr().Get(&proto_indices, params.motion_sample_time);
 
-  PointCloud *point_cloud = geometry_set.get_pointcloud_for_write();
-  if (point_cloud->totpoint != positions.size()) {
+  PointCloud *pointcloud = geometry_set.get_pointcloud_for_write();
+  if (pointcloud->totpoint != positions.size()) {
     /* Size changed so we must reallocate. */
-    point_cloud = BKE_pointcloud_new_nomain(positions.size());
+    pointcloud = BKE_pointcloud_new_nomain(positions.size());
   }
 
-  MutableSpan<float3> point_positions = point_cloud->positions_for_write();
+  MutableSpan<float3> point_positions = pointcloud->positions_for_write();
   point_positions.copy_from(Span(positions.data(), positions.size()).cast<float3>());
 
-  bke::MutableAttributeAccessor attributes = point_cloud->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
 
   bke::SpanAttributeWriter<float3> scales_attribute =
       attributes.lookup_or_add_for_write_only_span<float3>("scale", bke::AttrDomain::Point);
@@ -130,26 +130,26 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
 
   mask_attribute.finish();
 
-  geometry_set.replace_pointcloud(point_cloud);
+  geometry_set.replace_pointcloud(pointcloud);
 }
 
 void USDPointInstancerReader::read_object_data(Main *bmain, const double motionSampleTime)
 {
-  PointCloud *point_cloud = static_cast<PointCloud *>(object_->data);
+  PointCloud *pointcloud = static_cast<PointCloud *>(object_->data);
 
   bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
-      point_cloud, bke::GeometryOwnershipType::Editable);
+      pointcloud, bke::GeometryOwnershipType::Editable);
 
   const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
                                                            import_params_.mesh_read_flag);
 
   read_geometry(geometry_set, params, nullptr);
 
-  PointCloud *read_point_cloud =
+  PointCloud *read_pointcloud =
       geometry_set.get_component_for_write<bke::PointCloudComponent>().release();
 
-  if (read_point_cloud != point_cloud) {
-    BKE_pointcloud_nomain_to_pointcloud(read_point_cloud, point_cloud);
+  if (read_pointcloud != pointcloud) {
+    BKE_pointcloud_nomain_to_pointcloud(read_pointcloud, pointcloud);
   }
 
   if (is_animated()) {

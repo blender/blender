@@ -822,8 +822,8 @@ static BVHTreeFromPointCloud create_points_tree_data(const BVHTree *tree,
   return data;
 }
 
-static BVHTreeFromPointCloud create_point_cloud_tree_data(const BVHTree *tree,
-                                                          const Span<float3> positions)
+static BVHTreeFromPointCloud create_pointcloud_tree_data(const BVHTree *tree,
+                                                         const Span<float3> positions)
 {
   BVHTreeFromPointCloud data{};
   data.tree = tree;
@@ -831,7 +831,7 @@ static BVHTreeFromPointCloud create_point_cloud_tree_data(const BVHTree *tree,
   return data;
 }
 
-static BVHTreeFromPointCloud create_point_cloud_tree_data(
+static BVHTreeFromPointCloud create_pointcloud_tree_data(
     std::unique_ptr<BVHTree, BVHTreeDeleter> tree, const Span<float3> positions)
 {
   BVHTreeFromPointCloud data = create_points_tree_data(tree.get(), positions);
@@ -846,7 +846,7 @@ BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
     return pointcloud.bvh_tree();
   }
   const Span<float3> positions = pointcloud.positions();
-  return create_point_cloud_tree_data(create_tree_from_verts(positions, points_mask), positions);
+  return create_pointcloud_tree_data(create_tree_from_verts(positions, points_mask), positions);
 }
 
 }  // namespace blender::bke
@@ -859,7 +859,7 @@ blender::bke::BVHTreeFromPointCloud PointCloud::bvh_tree() const
   this->runtime->bvh_cache.ensure([&](std::unique_ptr<BVHTree, BVHTreeDeleter> &data) {
     data = create_tree_from_verts(positions, positions.index_range());
   });
-  return create_point_cloud_tree_data(this->runtime->bvh_cache.data().get(), positions);
+  return create_pointcloud_tree_data(this->runtime->bvh_cache.data().get(), positions);
 }
 
 /** \} */

@@ -3418,7 +3418,7 @@ def km_sculpt_curves(params):
 
 
 # Point cloud edit mode.
-def km_point_cloud(params):
+def km_pointcloud(params):
     items = []
     keymap = (
         "Point Cloud",
@@ -3428,14 +3428,14 @@ def km_point_cloud(params):
 
     items.extend([
         # Selection Operators
-        ("point_cloud.select_all", {"type": 'A', "value": 'PRESS',
+        ("pointcloud.select_all", {"type": 'A', "value": 'PRESS',
          "ctrl": True}, {"properties": [("action", 'SELECT')]}),
-        ("point_cloud.select_all", {"type": 'A', "value": 'PRESS', "shift": True,
+        ("pointcloud.select_all", {"type": 'A', "value": 'PRESS', "shift": True,
          "ctrl": True}, {"properties": [("action", 'DESELECT')]}),
-        ("point_cloud.select_all", {"type": 'I', "value": 'PRESS',
+        ("pointcloud.select_all", {"type": 'I', "value": 'PRESS',
          "ctrl": True}, {"properties": [("action", 'INVERT')]}),
         # Delete
-        ("point_cloud.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("pointcloud.delete", {"type": 'DEL', "value": 'PRESS'}, None),
     ])
 
     return keymap
@@ -3794,7 +3794,7 @@ def generate_keymaps_impl(params=None):
         km_font(params),
         km_curves(params),
         km_sculpt_curves(params),
-        km_point_cloud(params),
+        km_pointcloud(params),
         km_object_non_modal(params),
 
         # Modal maps.

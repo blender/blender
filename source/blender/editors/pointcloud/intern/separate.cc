@@ -14,7 +14,7 @@
 
 #include "DEG_depsgraph_build.hh"
 #include "ED_object.hh"
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_pointcloud_types.h"
@@ -23,7 +23,7 @@
 
 #include "WM_api.hh"
 
-namespace blender::ed::point_cloud {
+namespace blender::ed::pointcloud {
 
 static int separate_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -97,16 +97,16 @@ static int separate_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-void POINT_CLOUD_OT_separate(wmOperatorType *ot)
+void POINTCLOUD_OT_separate(wmOperatorType *ot)
 {
   ot->name = "Separate";
-  ot->idname = "POINT_CLOUD_OT_separate";
+  ot->idname = "POINTCLOUD_OT_separate";
   ot->description = "Separate selected geometry into a new point cloud";
 
   ot->exec = separate_exec;
-  ot->poll = editable_point_cloud_in_edit_mode_poll;
+  ot->poll = editable_pointcloud_in_edit_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-}  // namespace blender::ed::point_cloud
+}  // namespace blender::ed::pointcloud

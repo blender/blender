@@ -176,7 +176,7 @@ class Instance {
         emitter_handle = handle;
       }
       else if (ob->type == OB_POINTCLOUD) {
-        this->point_cloud_sync(manager, ob_ref, object_state);
+        this->pointcloud_sync(manager, ob_ref, object_state);
       }
       else if (ob->type == OB_CURVES) {
         this->curves_sync(manager, ob_ref, object_state);
@@ -359,7 +359,7 @@ class Instance {
     }
   }
 
-  void point_cloud_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
+  void pointcloud_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
   {
     ResourceHandle handle = manager.resource_handle(ob_ref);
 
@@ -370,7 +370,7 @@ class Instance {
     this->draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass =
           mesh_pass.get_subpass(eGeometryType::POINTCLOUD).sub("Point Cloud SubPass");
-      gpu::Batch *batch = point_cloud_sub_pass_setup(pass, ob_ref.object);
+      gpu::Batch *batch = pointcloud_sub_pass_setup(pass, ob_ref.object);
       pass.draw(batch, handle, material_index);
     });
   }

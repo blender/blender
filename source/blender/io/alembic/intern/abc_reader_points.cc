@@ -58,21 +58,21 @@ bool AbcPointsReader::accepts_object_type(
 
 void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
-  PointCloud *point_cloud = BKE_pointcloud_add_default(bmain, m_data_name.c_str());
+  PointCloud *pointcloud = BKE_pointcloud_add_default(bmain, m_data_name.c_str());
 
   bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
-      point_cloud, bke::GeometryOwnershipType::Editable);
+      pointcloud, bke::GeometryOwnershipType::Editable);
   read_geometry(geometry_set, sample_sel, 0, "", 1.0f, nullptr);
 
-  PointCloud *read_point_cloud =
+  PointCloud *read_pointcloud =
       geometry_set.get_component_for_write<bke::PointCloudComponent>().release();
 
-  if (read_point_cloud != point_cloud) {
-    BKE_pointcloud_nomain_to_pointcloud(read_point_cloud, point_cloud);
+  if (read_pointcloud != pointcloud) {
+    BKE_pointcloud_nomain_to_pointcloud(read_pointcloud, pointcloud);
   }
 
   m_object = BKE_object_add_only_object(bmain, OB_POINTCLOUD, m_object_name.c_str());
-  m_object->data = point_cloud;
+  m_object->data = pointcloud;
 
   if (m_settings->always_add_cache_reader || has_animations(m_schema, m_settings)) {
     addCacheModifier();
@@ -134,8 +134,8 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
     return;
   }
 
-  PointCloud *existing_point_cloud = geometry_set.get_pointcloud_for_write();
-  PointCloud *point_cloud = existing_point_cloud;
+  PointCloud *existing_pointcloud = geometry_set.get_pointcloud_for_write();
+  PointCloud *pointcloud = existing_pointcloud;
 
   const P3fArraySamplePtr &positions = sample.getPositions();
 
@@ -147,11 +147,11 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
     radii = wsample.getVals();
   }
 
-  if (point_cloud->totpoint != positions->size()) {
-    point_cloud = BKE_pointcloud_new_nomain(positions->size());
+  if (pointcloud->totpoint != positions->size()) {
+    pointcloud = BKE_pointcloud_new_nomain(positions->size());
   }
 
-  bke::MutableAttributeAccessor attribute_accessor = point_cloud->attributes_for_write();
+  bke::MutableAttributeAccessor attribute_accessor = pointcloud->attributes_for_write();
 
   bke::SpanAttributeWriter<float3> positions_writer =
       attribute_accessor.lookup_or_add_for_write_span<float3>("position", bke::AttrDomain::Point);
@@ -186,7 +186,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
 
   if (velocity_name != nullptr && velocity_scale != 0.0f) {
     V3fArraySamplePtr velocities = get_velocity_prop(m_schema, sample_sel, velocity_name);
-    if (velocities && point_cloud->totpoint == int(velocities->size())) {
+    if (velocities && pointcloud->totpoint == int(velocities->size())) {
       bke::SpanAttributeWriter<float3> velocity_writer =
           attribute_accessor.lookup_or_add_for_write_span<float3>("velocity",
                                                                   bke::AttrDomain::Point);
@@ -200,7 +200,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
     }
   }
 
-  geometry_set.replace_pointcloud(point_cloud);
+  geometry_set.replace_pointcloud(pointcloud);
 }
 
 }  // namespace blender::io::alembic

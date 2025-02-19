@@ -73,7 +73,7 @@ struct DRWData {
   /** Module storage. */
   blender::draw::CurvesModule *curves_module;
   blender::draw::VolumeModule *volume_module;
-  blender::draw::PointCloudModule *point_cloud_module;
+  blender::draw::PointCloudModule *pointcloud_module;
   /** Default view that feeds every engine. */
   blender::draw::View *default_view;
 };

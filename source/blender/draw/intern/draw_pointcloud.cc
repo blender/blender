@@ -50,30 +50,30 @@ struct PointCloudModule {
   }
 };
 
-void DRW_point_cloud_init(DRWData *drw_data)
+void DRW_pointcloud_init(DRWData *drw_data)
 {
   if (drw_data == nullptr) {
     drw_data = DST.vmempool;
   }
-  if (drw_data->point_cloud_module == nullptr) {
-    drw_data->point_cloud_module = MEM_new<PointCloudModule>("PointCloudModule");
+  if (drw_data->pointcloud_module == nullptr) {
+    drw_data->pointcloud_module = MEM_new<PointCloudModule>("PointCloudModule");
   }
 }
 
-void DRW_point_cloud_module_free(PointCloudModule *point_cloud_module)
+void DRW_pointcloud_module_free(PointCloudModule *pointcloud_module)
 {
-  MEM_delete(point_cloud_module);
+  MEM_delete(pointcloud_module);
 }
 
 template<typename PassT>
-gpu::Batch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
-                                                      Object *object,
-                                                      GPUMaterial *gpu_material)
+gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
+                                                     Object *object,
+                                                     GPUMaterial *gpu_material)
 {
   BLI_assert(object->type == OB_POINTCLOUD);
   PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
 
-  PointCloudModule &module = *DST.vmempool->point_cloud_module;
+  PointCloudModule &module = *DST.vmempool->pointcloud_module;
   /* Fix issue with certain driver not drawing anything if there is no texture bound to
    * "ac", "au", "u" or "c". */
   sub_ps.bind_texture("u", module.dummy_vbo);
@@ -101,18 +101,18 @@ gpu::Batch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
   return geom;
 }
 
-gpu::Batch *point_cloud_sub_pass_setup(PassMain::Sub &sub_ps,
-                                       Object *object,
-                                       GPUMaterial *gpu_material)
+gpu::Batch *pointcloud_sub_pass_setup(PassMain::Sub &sub_ps,
+                                      Object *object,
+                                      GPUMaterial *gpu_material)
 {
-  return point_cloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
+  return pointcloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
 }
 
-gpu::Batch *point_cloud_sub_pass_setup(PassSimple::Sub &sub_ps,
-                                       Object *object,
-                                       GPUMaterial *gpu_material)
+gpu::Batch *pointcloud_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                      Object *object,
+                                      GPUMaterial *gpu_material)
 {
-  return point_cloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
+  return pointcloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
 }
 
 }  // namespace blender::draw

@@ -55,21 +55,21 @@ ADDITIONAL_INFO(draw_resource_id_varying)
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_point_cloud_iface, point_cloud_interp)
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_pointcloud_iface, pointcloud_interp)
 SMOOTH(FLOAT, radius)
 SMOOTH(VEC3, position)
-GPU_SHADER_NAMED_INTERFACE_END(point_cloud_interp)
-GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_point_cloud_flat_iface, point_cloud_interp_flat)
+GPU_SHADER_NAMED_INTERFACE_END(pointcloud_interp)
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_pointcloud_flat_iface, pointcloud_interp_flat)
 FLAT(INT, id)
-GPU_SHADER_NAMED_INTERFACE_END(point_cloud_interp_flat)
+GPU_SHADER_NAMED_INTERFACE_END(pointcloud_interp_flat)
 
-GPU_SHADER_CREATE_INFO(eevee_geom_point_cloud)
+GPU_SHADER_CREATE_INFO(eevee_geom_pointcloud)
 ADDITIONAL_INFO(eevee_shared)
-DEFINE("MAT_GEOM_POINT_CLOUD")
-VERTEX_SOURCE("eevee_geom_point_cloud_vert.glsl")
+DEFINE("MAT_GEOM_POINTCLOUD")
+VERTEX_SOURCE("eevee_geom_pointcloud_vert.glsl")
 VERTEX_OUT(eevee_surf_iface)
-VERTEX_OUT(eevee_surf_point_cloud_iface)
-VERTEX_OUT(eevee_surf_point_cloud_flat_iface)
+VERTEX_OUT(eevee_surf_pointcloud_iface)
+VERTEX_OUT(eevee_surf_pointcloud_flat_iface)
 ADDITIONAL_INFO(draw_pointcloud_new)
 ADDITIONAL_INFO(draw_modelmat_new)
 ADDITIONAL_INFO(draw_object_infos_new)
@@ -364,7 +364,7 @@ GPU_SHADER_CREATE_END()
     /* CREATE_INFO_VARIANT(prefix##_gpencil, eevee_geom_gpencil, __VA_ARGS__) */ \
     CREATE_INFO_VARIANT(prefix##_curves, eevee_geom_curves, __VA_ARGS__) \
     CREATE_INFO_VARIANT(prefix##_mesh, eevee_geom_mesh, __VA_ARGS__) \
-    CREATE_INFO_VARIANT(prefix##_point_cloud, eevee_geom_point_cloud, __VA_ARGS__) \
+    CREATE_INFO_VARIANT(prefix##_pointcloud, eevee_geom_pointcloud, __VA_ARGS__) \
     CREATE_INFO_VARIANT(prefix##_volume, eevee_geom_volume, __VA_ARGS__)
 
 #  define EEVEE_MAT_PIPE_VARIATIONS(name, ...) \

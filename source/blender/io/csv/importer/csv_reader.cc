@@ -259,7 +259,7 @@ static Array<std::optional<GArray<>>> flatten_valid_attribute_chunks(
   return flattened_attributes;
 }
 
-PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params)
+PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params)
 {
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(import_params.filepath, 0, &buffer_len);

@@ -5,11 +5,11 @@
 #include "infos/eevee_material_info.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
-VERTEX_SHADER_CREATE_INFO(eevee_geom_point_cloud)
+VERTEX_SHADER_CREATE_INFO(eevee_geom_pointcloud)
 
 #include "draw_model_lib.glsl"
 #include "draw_pointcloud_lib.glsl"
-#include "eevee_attributes_point_cloud_lib.glsl"
+#include "eevee_attributes_pointcloud_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "eevee_surf_lib.glsl"
 #include "eevee_velocity_lib.glsl"
@@ -24,21 +24,21 @@ void main()
 
   init_interface();
 
-  point_cloud_interp_flat.id = pointcloud_get_point_id();
-  pointcloud_get_pos_and_radius(point_cloud_interp.position, point_cloud_interp.radius);
+  pointcloud_interp_flat.id = pointcloud_get_point_id();
+  pointcloud_get_pos_and_radius(pointcloud_interp.position, pointcloud_interp.radius);
   pointcloud_get_pos_and_nor(interp.P, interp.N);
 #ifdef MAT_SHADOW
   /* Since point clouds always face the view, camera and shadow orientation don't match.
    * Apply a bias to avoid self-shadow issues. */
   /* TODO(fclem): remove multiplication here. Here only for keeping the size correct for now. */
-  float actual_radius = point_cloud_interp.radius * 0.01;
+  float actual_radius = pointcloud_interp.radius * 0.01;
   interp.P -= drw_world_incident_vector(interp.P) * actual_radius;
 #endif
 
 #ifdef MAT_VELOCITY
-  vec3 lP = drw_point_world_to_object(point_cloud_interp.position);
+  vec3 lP = drw_point_world_to_object(pointcloud_interp.position);
   vec3 prv, nxt;
-  velocity_local_pos_get(lP, point_cloud_interp_flat.id, prv, nxt);
+  velocity_local_pos_get(lP, pointcloud_interp_flat.id, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
    * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated at

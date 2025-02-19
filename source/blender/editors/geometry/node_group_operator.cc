@@ -1037,9 +1037,9 @@ static GeometryNodeAssetTraitFlag asset_flag_for_context(const ObjectType type,
     case OB_POINTCLOUD: {
       switch (mode) {
         case OB_MODE_OBJECT:
-          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_OBJECT | GEO_NODE_ASSET_POINT_CLOUD);
+          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_OBJECT | GEO_NODE_ASSET_POINTCLOUD);
         case OB_MODE_EDIT:
-          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_EDIT | GEO_NODE_ASSET_POINT_CLOUD);
+          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_EDIT | GEO_NODE_ASSET_POINTCLOUD);
         default:
           break;
       }

@@ -18,11 +18,11 @@
 #include "WM_types.hh"
 
 #include "ED_object.hh"
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 
 #include "GEO_realize_instances.hh"
 
-namespace blender::ed::point_cloud {
+namespace blender::ed::pointcloud {
 
 int join_objects(bContext *C, wmOperator *op)
 {
@@ -88,4 +88,4 @@ int join_objects(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-}  // namespace blender::ed::point_cloud
+}  // namespace blender::ed::pointcloud

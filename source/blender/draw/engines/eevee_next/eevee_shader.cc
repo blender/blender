@@ -417,7 +417,7 @@ class SamplerSlots {
                bool has_shader_to_rgba)
   {
     index_ = 0;
-    if (ELEM(geometry_type, MAT_GEOM_POINT_CLOUD, MAT_GEOM_CURVES)) {
+    if (ELEM(geometry_type, MAT_GEOM_POINTCLOUD, MAT_GEOM_CURVES)) {
       index_ = 1;
     }
     else if (geometry_type == MAT_GEOM_GPENCIL) {
@@ -645,7 +645,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         info.additional_info("draw_volume_infos");
       }
       break;
-    case MAT_GEOM_POINT_CLOUD:
+    case MAT_GEOM_POINTCLOUD:
     case MAT_GEOM_CURVES:
       /** Hair attributes come from sampler buffer. Transfer attributes to sampler. */
       for (auto &input : info.vertex_inputs_) {
@@ -815,8 +815,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     case MAT_GEOM_MESH:
       info.additional_info("eevee_geom_mesh");
       break;
-    case MAT_GEOM_POINT_CLOUD:
-      info.additional_info("eevee_geom_point_cloud");
+    case MAT_GEOM_POINTCLOUD:
+      info.additional_info("eevee_geom_pointcloud");
       break;
     case MAT_GEOM_VOLUME:
       info.additional_info("eevee_geom_volume");

@@ -291,7 +291,7 @@ void Instance::object_sync(ObjectRef &ob_ref)
         }
         break;
       case OB_POINTCLOUD:
-        sync.sync_point_cloud(ob, ob_handle, ob_ref);
+        sync.sync_pointcloud(ob, ob_handle, ob_ref);
         break;
       case OB_VOLUME:
         sync.sync_volume(ob, ob_handle, ob_ref);

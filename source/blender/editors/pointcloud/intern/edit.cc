@@ -9,9 +9,9 @@
 #include "BKE_attribute.hh"
 #include "BKE_pointcloud.hh"
 
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 
-namespace blender::ed::point_cloud {
+namespace blender::ed::pointcloud {
 
 PointCloud *copy_selection(const PointCloud &src, const IndexMask &mask)
 {
@@ -29,20 +29,20 @@ PointCloud *copy_selection(const PointCloud &src, const IndexMask &mask)
   return dst;
 }
 
-bool remove_selection(PointCloud &point_cloud)
+bool remove_selection(PointCloud &pointcloud)
 {
-  const bke::AttributeAccessor attributes = point_cloud.attributes();
+  const bke::AttributeAccessor attributes = pointcloud.attributes();
   const VArray<bool> selection = *attributes.lookup_or_default<bool>(
       ".selection", bke::AttrDomain::Point, true);
   IndexMaskMemory memory;
   const IndexMask mask = IndexMask::from_bools_inverse(selection, memory);
-  if (mask.size() == point_cloud.totpoint) {
+  if (mask.size() == pointcloud.totpoint) {
     return false;
   }
 
-  PointCloud *point_cloud_new = copy_selection(point_cloud, mask);
-  BKE_pointcloud_nomain_to_pointcloud(point_cloud_new, &point_cloud);
+  PointCloud *pointcloud_new = copy_selection(pointcloud, mask);
+  BKE_pointcloud_nomain_to_pointcloud(pointcloud_new, &pointcloud);
   return true;
 }
 
-}  // namespace blender::ed::point_cloud
+}  // namespace blender::ed::pointcloud

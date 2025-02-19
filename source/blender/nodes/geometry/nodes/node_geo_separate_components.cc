@@ -26,7 +26,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet meshes;
   GeometrySet curves;
   GeometrySet grease_pencil;
-  GeometrySet point_clouds;
+  GeometrySet pointclouds;
   GeometrySet volumes;
   GeometrySet instances;
 
@@ -34,7 +34,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   meshes.name = name;
   curves.name = name;
   grease_pencil.name = name;
-  point_clouds.name = name;
+  pointclouds.name = name;
   volumes.name = name;
   instances.name = name;
 
@@ -48,7 +48,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     grease_pencil.add(*geometry_set.get_component<GreasePencilComponent>());
   }
   if (geometry_set.has<PointCloudComponent>()) {
-    point_clouds.add(*geometry_set.get_component<PointCloudComponent>());
+    pointclouds.add(*geometry_set.get_component<PointCloudComponent>());
   }
   if (geometry_set.has<VolumeComponent>()) {
     volumes.add(*geometry_set.get_component<VolumeComponent>());
@@ -60,7 +60,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Mesh", meshes);
   params.set_output("Curve", curves);
   params.set_output("Grease Pencil", grease_pencil);
-  params.set_output("Point Cloud", point_clouds);
+  params.set_output("Point Cloud", pointclouds);
   params.set_output("Volume", volumes);
   params.set_output("Instances", instances);
 }

@@ -759,20 +759,20 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_POINTCLOUD) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        const PointCloud &point_cloud = *static_cast<const PointCloud *>(ob_iter->data);
+        const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob_iter->data);
 
         float4x4 mat_local;
         if (use_mat_local) {
           mat_local = obedit->world_to_object() * ob_iter->object_to_world();
         }
 
-        const bke::AttributeAccessor attributes = point_cloud.attributes();
+        const bke::AttributeAccessor attributes = pointcloud.attributes();
         const VArray selection = *attributes.lookup_or_default<bool>(
             ".selection", bke::AttrDomain::Point, true);
 
         IndexMaskMemory memory;
         const IndexMask mask = IndexMask::from_bools(selection, memory);
-        const Span<float3> positions = point_cloud.positions();
+        const Span<float3> positions = pointcloud.positions();
         totsel += mask.size();
         mask.foreach_index([&](const int point) {
           run_coord_with_matrix(positions[point], use_mat_local, mat_local.ptr());

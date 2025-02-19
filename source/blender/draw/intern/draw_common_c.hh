@@ -62,8 +62,8 @@ void DRW_curves_update(draw::Manager &manager);
 /* draw_pointcloud.cc */
 
 /* If drw_data is nullptr, DST global is accessed to get it. */
-void DRW_point_cloud_init(DRWData *drw_data = nullptr);
-void DRW_point_cloud_module_free(draw::PointCloudModule *module);
+void DRW_pointcloud_init(DRWData *drw_data = nullptr);
+void DRW_pointcloud_module_free(draw::PointCloudModule *module);
 
 /* draw_volume.cc */
 

@@ -14,13 +14,13 @@
 
 #include "BKE_attribute.hh"
 
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
 #include "DNA_pointcloud_types.h"
 
-namespace blender::ed::point_cloud {
+namespace blender::ed::pointcloud {
 
 static bool contains(const VArray<bool> &varray,
                      const IndexMask &indices_to_check,
@@ -87,23 +87,23 @@ static bool contains(const VArray<bool> &varray, const IndexRange range_to_check
   return contains(varray, IndexMask(range_to_check), value);
 }
 
-bool has_anything_selected(const PointCloud &point_cloud)
+bool has_anything_selected(const PointCloud &pointcloud)
 {
-  const VArray<bool> selection = *point_cloud.attributes().lookup<bool>(".selection");
+  const VArray<bool> selection = *pointcloud.attributes().lookup<bool>(".selection");
   return !selection || contains(selection, selection.index_range(), true);
 }
 
-bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &point_cloud,
+bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &pointcloud,
                                                      eCustomDataType create_type)
 {
   const bke::AttrDomain selection_domain = bke::AttrDomain::Point;
   const StringRef attribute_name = ".selection";
 
-  bke::MutableAttributeAccessor attributes = point_cloud.attributes_for_write();
+  bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   if (attributes.contains(attribute_name)) {
     return attributes.lookup_for_write_span(attribute_name);
   }
-  const int domain_size = point_cloud.totpoint;
+  const int domain_size = pointcloud.totpoint;
   switch (create_type) {
     case CD_PROP_BOOL:
       attributes.add(attribute_name,
@@ -159,19 +159,19 @@ static void invert_selection(GMutableSpan selection, const IndexMask &mask)
   }
 }
 
-static void select_all(PointCloud &point_cloud, const IndexMask &mask, int action)
+static void select_all(PointCloud &pointcloud, const IndexMask &mask, int action)
 {
   if (action == SEL_SELECT) {
     std::optional<IndexRange> range = mask.to_range();
-    if (range.has_value() && (*range == IndexRange(point_cloud.totpoint))) {
-      bke::MutableAttributeAccessor attributes = point_cloud.attributes_for_write();
+    if (range.has_value() && (*range == IndexRange(pointcloud.totpoint))) {
+      bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
       /* As an optimization, just remove the selection attributes when everything is selected. */
       attributes.remove(".selection");
       return;
     }
   }
 
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(point_cloud, CD_PROP_BOOL);
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(pointcloud, CD_PROP_BOOL);
   if (action == SEL_SELECT) {
     fill_selection_true(selection.span, mask);
   }
@@ -184,17 +184,17 @@ static void select_all(PointCloud &point_cloud, const IndexMask &mask, int actio
   selection.finish();
 }
 
-void select_all(PointCloud &point_cloud, int action)
+void select_all(PointCloud &pointcloud, int action)
 {
-  select_all(point_cloud, IndexRange(point_cloud.totpoint), action);
+  select_all(pointcloud, IndexRange(pointcloud.totpoint), action);
 }
 
-static bool apply_selection_operation(PointCloud &point_cloud,
+static bool apply_selection_operation(PointCloud &pointcloud,
                                       const IndexMask &mask,
                                       eSelectOp sel_op)
 {
   bool changed = false;
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(point_cloud, CD_PROP_BOOL);
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(pointcloud, CD_PROP_BOOL);
   if (sel_op == SEL_OP_SET) {
     fill_selection_false(selection.span, IndexRange(selection.span.size()));
     changed = true;
@@ -218,13 +218,13 @@ static bool apply_selection_operation(PointCloud &point_cloud,
   return changed;
 }
 
-bool select_box(PointCloud &point_cloud,
+bool select_box(PointCloud &pointcloud,
                 const ARegion &region,
                 const float4x4 &projection,
                 const rcti &rect,
                 const eSelectOp sel_op)
 {
-  const Span<float3> positions = point_cloud.positions();
+  const Span<float3> positions = pointcloud.positions();
 
   IndexMaskMemory memory;
   const IndexMask mask = IndexMask::from_predicate(
@@ -234,10 +234,10 @@ bool select_box(PointCloud &point_cloud,
         return BLI_rcti_isect_pt_v(&rect, int2(pos_proj));
       });
 
-  return apply_selection_operation(point_cloud, mask, sel_op);
+  return apply_selection_operation(pointcloud, mask, sel_op);
 }
 
-bool select_lasso(PointCloud &point_cloud,
+bool select_lasso(PointCloud &pointcloud,
                   const ARegion &region,
                   const float4x4 &projection,
                   const Span<int2> lasso_coords,
@@ -246,7 +246,7 @@ bool select_lasso(PointCloud &point_cloud,
   rcti bbox;
   BLI_lasso_boundbox(&bbox, lasso_coords);
 
-  const Span<float3> positions = point_cloud.positions();
+  const Span<float3> positions = pointcloud.positions();
 
   IndexMaskMemory memory;
   const IndexMask mask = IndexMask::from_predicate(
@@ -263,10 +263,10 @@ bool select_lasso(PointCloud &point_cloud,
         return true;
       });
 
-  return apply_selection_operation(point_cloud, mask, sel_op);
+  return apply_selection_operation(pointcloud, mask, sel_op);
 }
 
-bool select_circle(PointCloud &point_cloud,
+bool select_circle(PointCloud &pointcloud,
                    const ARegion &region,
                    const float4x4 &projection,
                    const int2 coord,
@@ -275,7 +275,7 @@ bool select_circle(PointCloud &point_cloud,
 {
   const float radius_sq = radius * radius;
 
-  const Span<float3> positions = point_cloud.positions();
+  const Span<float3> positions = pointcloud.positions();
 
   IndexMaskMemory memory;
   const IndexMask mask = IndexMask::from_predicate(
@@ -285,7 +285,7 @@ bool select_circle(PointCloud &point_cloud,
         return math::distance_squared(pos_proj, float2(coord)) <= radius_sq;
       });
 
-  return apply_selection_operation(point_cloud, mask, sel_op);
+  return apply_selection_operation(pointcloud, mask, sel_op);
 }
 
 static FindClosestData closer_elem(const FindClosestData &a, const FindClosestData &b)
@@ -341,4 +341,4 @@ IndexMask retrieve_selected_points(const PointCloud &pointcloud, IndexMaskMemory
   return IndexMask::from_bools(selection, memory);
 }
 
-}  // namespace blender::ed::point_cloud
+}  // namespace blender::ed::pointcloud

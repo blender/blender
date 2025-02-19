@@ -51,7 +51,7 @@ static std::optional<bke::CurvesGeometry> separate_curves_selection(
 }
 
 /** \return std::nullopt if the geometry should remain unchanged. */
-static std::optional<PointCloud *> separate_point_cloud_selection(
+static std::optional<PointCloud *> separate_pointcloud_selection(
     const PointCloud &src_pointcloud,
     const fn::Field<bool> &selection_field,
     const bke::AttributeFilter &attribute_filter)
@@ -182,7 +182,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
   bool some_valid_domain = false;
   if (const PointCloud *points = geometry_set.get_pointcloud()) {
     if (domain == AttrDomain::Point) {
-      std::optional<PointCloud *> dst_points = separate_point_cloud_selection(
+      std::optional<PointCloud *> dst_points = separate_pointcloud_selection(
           *points, selection, attribute_filter);
       if (dst_points) {
         geometry_set.replace_pointcloud(*dst_points);

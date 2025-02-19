@@ -940,7 +940,7 @@ bool Instance::object_is_edit_mode(const Object *object)
       case OB_CURVES:
         return state.ctx_mode == CTX_MODE_EDIT_CURVES;
       case OB_POINTCLOUD:
-        return state.ctx_mode == CTX_MODE_EDIT_POINT_CLOUD;
+        return state.ctx_mode == CTX_MODE_EDIT_POINTCLOUD;
       case OB_GREASE_PENCIL:
         return state.ctx_mode == CTX_MODE_EDIT_GREASE_PENCIL;
       case OB_VOLUME:

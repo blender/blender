@@ -897,7 +897,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
   }
   else if (ob->type == OB_POINTCLOUD) {
     ok = true;
-    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_POINT_CLOUD, scene);
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_POINTCLOUD, scene);
   }
 
   if (ok) {

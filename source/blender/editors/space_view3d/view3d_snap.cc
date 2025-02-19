@@ -46,7 +46,7 @@
 #include "ED_grease_pencil.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 #include "ED_screen.hh"
 #include "ED_transverts.hh"
 
@@ -1049,7 +1049,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
     const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob_orig.data);
 
     IndexMaskMemory memory;
-    const IndexMask mask = point_cloud::retrieve_selected_points(pointcloud, memory);
+    const IndexMask mask = pointcloud::retrieve_selected_points(pointcloud, memory);
 
     const std::optional<Bounds<float3>> bounds = bounds_min_max_with_transform(
         obedit->object_to_world(), pointcloud.positions(), mask);

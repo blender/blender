@@ -32,7 +32,7 @@ set(SRC_GLSL_VERT
   eevee_geom_curves_vert.glsl
   # eevee_geom_gpencil_vert.glsl # Not yet supported
   eevee_geom_mesh_vert.glsl
-  eevee_geom_point_cloud_vert.glsl
+  eevee_geom_pointcloud_vert.glsl
   eevee_geom_volume_vert.glsl
   eevee_geom_world_vert.glsl
   eevee_lookdev_display_vert.glsl
@@ -158,7 +158,7 @@ set(SRC_GLSL_LIB
   eevee_attributes_curves_lib.glsl
   eevee_attributes_gpencil_lib.glsl
   eevee_attributes_mesh_lib.glsl
-  eevee_attributes_point_cloud_lib.glsl
+  eevee_attributes_pointcloud_lib.glsl
   eevee_attributes_volume_lib.glsl
   eevee_attributes_world_lib.glsl
   eevee_bxdf_diffuse_lib.glsl

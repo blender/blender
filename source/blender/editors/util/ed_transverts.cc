@@ -32,7 +32,7 @@
 
 #include "ED_armature.hh"
 #include "ED_curves.hh"
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 
 #include "ANIM_bone_collections.hh"
 
@@ -520,8 +520,8 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     PointCloud *pointcloud = static_cast<PointCloud *>(obedit->data);
 
     IndexMaskMemory memory;
-    const IndexMask selection = blender::ed::point_cloud::retrieve_selected_points(*pointcloud,
-                                                                                   memory);
+    const IndexMask selection = blender::ed::pointcloud::retrieve_selected_points(*pointcloud,
+                                                                                  memory);
     MutableSpan<float3> positions = pointcloud->positions_for_write();
 
     tvs->transverts = static_cast<TransVert *>(

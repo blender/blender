@@ -353,7 +353,7 @@ void DRW_viewport_data_free(DRWData *drw_data)
     DRW_view_data_free(drw_data->view_data[i]);
   }
   DRW_volume_module_free(drw_data->volume_module);
-  DRW_point_cloud_module_free(drw_data->point_cloud_module);
+  DRW_pointcloud_module_free(drw_data->pointcloud_module);
   DRW_curves_module_free(drw_data->curves_module);
   delete drw_data->default_view;
   MEM_freeN(drw_data);
@@ -1489,7 +1489,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
   drw_engines_data_validate();
 
   drw_debug_init();
-  DRW_point_cloud_init(DST.vmempool);
+  DRW_pointcloud_init(DST.vmempool);
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -1850,7 +1850,7 @@ void DRW_render_object_iter(
 {
   using namespace blender::draw;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  DRW_point_cloud_init(DST.vmempool);
+  DRW_pointcloud_init(DST.vmempool);
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -1908,7 +1908,7 @@ void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, Depsgraph *deps
 
   drw_manager_init(&DST, nullptr, nullptr);
 
-  DRW_point_cloud_init(DST.vmempool);
+  DRW_pointcloud_init(DST.vmempool);
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -1957,7 +1957,7 @@ void DRW_cache_restart()
 
   drw_manager_init(&DST, DST.viewport, blender::int2{int(DST.size[0]), int(DST.size[1])});
 
-  DRW_point_cloud_init(DST.vmempool);
+  DRW_pointcloud_init(DST.vmempool);
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2236,7 +2236,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_point_cloud_init(DST.vmempool);
+  DRW_pointcloud_init(DST.vmempool);
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2407,7 +2407,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_point_cloud_init(DST.vmempool);
+  DRW_pointcloud_init(DST.vmempool);
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);

@@ -1670,7 +1670,7 @@ static void rna_def_attribute_group_mesh(BlenderRNA *brna)
                            "The name of the active color attribute for display and editing");
 }
 
-static void rna_def_attribute_group_point_cloud(BlenderRNA *brna)
+static void rna_def_attribute_group_pointcloud(BlenderRNA *brna)
 {
   StructRNA *srna;
 
@@ -1852,7 +1852,7 @@ void RNA_def_attribute(BlenderRNA *brna)
 {
   rna_def_attribute(brna);
   rna_def_attribute_group_mesh(brna);
-  rna_def_attribute_group_point_cloud(brna);
+  rna_def_attribute_group_pointcloud(brna);
   rna_def_attribute_group_curves(brna);
   rna_def_attribute_group_grease_pencil(brna);
   rna_def_attribute_group_grease_pencil_drawing(brna);

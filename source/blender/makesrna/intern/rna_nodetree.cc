@@ -2193,13 +2193,13 @@ static void rna_GeometryNodeTree_is_type_curve_set(PointerRNA *ptr, bool value)
   geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_CURVE, value);
 }
 
-static bool rna_GeometryNodeTree_is_type_point_cloud_get(PointerRNA *ptr)
+static bool rna_GeometryNodeTree_is_type_pointcloud_get(PointerRNA *ptr)
 {
-  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_POINT_CLOUD);
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_POINTCLOUD);
 }
-static void rna_GeometryNodeTree_is_type_point_cloud_set(PointerRNA *ptr, bool value)
+static void rna_GeometryNodeTree_is_type_pointcloud_set(PointerRNA *ptr, bool value)
 {
-  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_POINT_CLOUD, value);
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_POINTCLOUD, value);
 }
 
 static bool rna_GeometryNodeTree_use_wait_for_click_get(PointerRNA *ptr)
@@ -12036,17 +12036,17 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
       prop, "rna_GeometryNodeTree_is_type_curve_get", "rna_GeometryNodeTree_is_type_curve_set");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 
-  prop = RNA_def_property(srna, "is_type_point_cloud", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_POINT_CLOUD);
+  prop = RNA_def_property(srna, "is_type_pointcloud", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_POINTCLOUD);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Point Cloud", "The node group is used for point clouds");
   RNA_def_property_boolean_funcs(prop,
-                                 "rna_GeometryNodeTree_is_type_point_cloud_get",
-                                 "rna_GeometryNodeTree_is_type_point_cloud_set");
+                                 "rna_GeometryNodeTree_is_type_pointcloud_get",
+                                 "rna_GeometryNodeTree_is_type_pointcloud_set");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 
   prop = RNA_def_property(srna, "use_wait_for_click", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_POINT_CLOUD);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_POINTCLOUD);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop,
                            "Wait for Click",

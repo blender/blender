@@ -28,7 +28,7 @@
 /** \name Curve/Surfaces Transform Creation
  * \{ */
 
-namespace blender::ed::transform::point_cloud {
+namespace blender::ed::transform::pointcloud {
 
 struct PointCloudTransformData {
   IndexMaskMemory memory;
@@ -56,8 +56,8 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
 
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
-    PointCloud &point_cloud = *static_cast<PointCloud *>(tc.obedit->data);
-    bke::MutableAttributeAccessor attributes = point_cloud.attributes_for_write();
+    PointCloud &pointcloud = *static_cast<PointCloud *>(tc.obedit->data);
+    bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
     PointCloudTransformData &transform_data = *create_transform_custom_data(tc.custom.type);
     const VArray selection_attr = *attributes.lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
@@ -72,14 +72,14 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
     MutableSpan<TransData> tc_data = MutableSpan(tc.data, tc.data_len);
 
     transform_data.positions.reinitialize(tc.data_len);
-    array_utils::gather(point_cloud.positions(),
+    array_utils::gather(pointcloud.positions(),
                         transform_data.selection,
                         transform_data.positions.as_mutable_span());
 
     if (t->mode == TFM_CURVE_SHRINKFATTEN) {
       transform_data.radii.reinitialize(transform_data.selection.size());
       array_utils::gather(
-          point_cloud.radius(), transform_data.selection, transform_data.radii.as_mutable_span());
+          pointcloud.radius(), transform_data.selection, transform_data.radii.as_mutable_span());
     }
 
     const float4x4 &transform = tc.obedit->object_to_world();
@@ -111,26 +111,25 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
   }
 }
 
-static void recalcData_point_cloud(TransInfo *t)
+static void recalcData_pointcloud(TransInfo *t)
 {
   const Span<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   for (const TransDataContainer &tc : trans_data_contrainers) {
     const PointCloudTransformData &transform_data = *static_cast<PointCloudTransformData *>(
         tc.custom.type.data);
-    PointCloud &point_cloud = *static_cast<PointCloud *>(tc.obedit->data);
+    PointCloud &pointcloud = *static_cast<PointCloud *>(tc.obedit->data);
     if (t->mode == TFM_CURVE_SHRINKFATTEN) {
-      array_utils::scatter(transform_data.radii.as_span(),
-                           transform_data.selection,
-                           point_cloud.radius_for_write());
-      point_cloud.tag_radii_changed();
+      array_utils::scatter(
+          transform_data.radii.as_span(), transform_data.selection, pointcloud.radius_for_write());
+      pointcloud.tag_radii_changed();
     }
     else {
       array_utils::scatter(transform_data.positions.as_span(),
                            transform_data.selection,
-                           point_cloud.positions_for_write());
-      point_cloud.tag_positions_changed();
+                           pointcloud.positions_for_write());
+      pointcloud.tag_positions_changed();
     }
-    DEG_id_tag_update(&point_cloud.id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&pointcloud.id, ID_RECALC_GEOMETRY);
   }
 }
 
@@ -138,9 +137,9 @@ static void recalcData_point_cloud(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_PointCloud = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*create_trans_data*/ point_cloud::createTransPointCloudVerts,
-    /*recalc_data*/ point_cloud::recalcData_point_cloud,
+    /*create_trans_data*/ pointcloud::createTransPointCloudVerts,
+    /*recalc_data*/ pointcloud::recalcData_pointcloud,
     /*special_aftertrans_update*/ nullptr,
 };
 
-}  // namespace blender::ed::transform::point_cloud
+}  // namespace blender::ed::transform::pointcloud

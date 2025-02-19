@@ -554,7 +554,7 @@ class ShaderModule {
   ShaderPtr depth_grease_pencil = shader_selectable("overlay_depth_gpencil");
   ShaderPtr depth_mesh = shader_selectable("overlay_depth_mesh");
   ShaderPtr depth_mesh_conservative = shader_selectable("overlay_depth_mesh_conservative");
-  ShaderPtr depth_point_cloud = shader_selectable("overlay_depth_pointcloud");
+  ShaderPtr depth_pointcloud = shader_selectable("overlay_depth_pointcloud");
   ShaderPtr extra_shape = shader_selectable("overlay_extra");
   ShaderPtr extra_point = shader_selectable("overlay_extra_point");
   ShaderPtr extra_wire = shader_selectable("overlay_extra_wire");

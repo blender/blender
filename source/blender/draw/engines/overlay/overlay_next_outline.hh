@@ -169,7 +169,7 @@ class Outline : Overlay {
         /* Looks bad in wireframe mode. Could be relaxed if we draw a wireframe of some sort in
          * the future. */
         if (!state.is_wireframe_mode) {
-          geom = point_cloud_sub_pass_setup(*prepass_pointcloud_ps_, ob_ref.object);
+          geom = pointcloud_sub_pass_setup(*prepass_pointcloud_ps_, ob_ref.object);
           prepass_pointcloud_ps_->draw(geom, manager.unique_handle(ob_ref));
         }
         break;

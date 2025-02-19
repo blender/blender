@@ -64,7 +64,7 @@ class Prepass : Overlay {
   PassMain::Sub *mesh_flat_ps_ = nullptr;
   PassMain::Sub *hair_ps_ = nullptr;
   PassMain::Sub *curves_ps_ = nullptr;
-  PassMain::Sub *point_cloud_ps_ = nullptr;
+  PassMain::Sub *pointcloud_ps_ = nullptr;
   PassMain::Sub *grease_pencil_ps_ = nullptr;
 
   bool use_material_slot_selection_ = false;
@@ -79,7 +79,7 @@ class Prepass : Overlay {
       ps_.init();
       mesh_ps_ = nullptr;
       curves_ps_ = nullptr;
-      point_cloud_ps_ = nullptr;
+      pointcloud_ps_ = nullptr;
       return;
     }
 
@@ -117,8 +117,8 @@ class Prepass : Overlay {
     }
     {
       auto &sub = ps_.sub("PointCloud");
-      sub.shader_set(res.shaders.depth_point_cloud.get());
-      point_cloud_ps_ = &sub;
+      sub.shader_set(res.shaders.depth_pointcloud.get());
+      pointcloud_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("GreasePencil");
@@ -248,8 +248,8 @@ class Prepass : Overlay {
         }
         break;
       case OB_POINTCLOUD:
-        geom_single = point_cloud_sub_pass_setup(*point_cloud_ps_, ob_ref.object);
-        pass = point_cloud_ps_;
+        geom_single = pointcloud_sub_pass_setup(*pointcloud_ps_, ob_ref.object);
+        pass = pointcloud_ps_;
         break;
       case OB_CURVES:
         geom_single = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);

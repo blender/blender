@@ -164,7 +164,7 @@ class SyncModule {
 
   void sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);
   bool sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);
-  void sync_point_cloud(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);
+  void sync_pointcloud(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);
   void sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);
   void sync_curves(Object *ob,
                    ObjectHandle &ob_handle,

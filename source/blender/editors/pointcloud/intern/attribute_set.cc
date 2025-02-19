@@ -19,7 +19,7 @@
 
 #include "ED_geometry.hh"
 #include "ED_object.hh"
-#include "ED_point_cloud.hh"
+#include "ED_pointcloud.hh"
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
@@ -39,11 +39,11 @@
 /** \name Delete Operator
  * \{ */
 
-namespace blender::ed::point_cloud {
+namespace blender::ed::pointcloud {
 
 static bool active_attribute_poll(bContext *C)
 {
-  if (!editable_point_cloud_in_edit_mode_poll(C)) {
+  if (!editable_pointcloud_in_edit_mode_poll(C)) {
     return false;
   }
   const Object *object = CTX_data_active_object(C);
@@ -79,9 +79,9 @@ static void validate_value(const bke::AttributeAccessor attributes,
 static int set_attribute_exec(bContext *C, wmOperator *op)
 {
   Object *active_object = CTX_data_active_object(C);
-  PointCloud &active_point_cloud = *static_cast<PointCloud *>(active_object->data);
+  PointCloud &active_pointcloud = *static_cast<PointCloud *>(active_object->data);
 
-  AttributeOwner active_owner = AttributeOwner::from_id(&active_point_cloud.id);
+  AttributeOwner active_owner = AttributeOwner::from_id(&active_pointcloud.id);
   CustomDataLayer *active_attribute = BKE_attributes_active_get(active_owner);
   const StringRef name = active_attribute->name;
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
@@ -94,7 +94,7 @@ static int set_attribute_exec(bContext *C, wmOperator *op)
 
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
 
-  for (PointCloud *pointcloud : get_unique_editable_point_clouds(*C)) {
+  for (PointCloud *pointcloud : get_unique_editable_pointclouds(*C)) {
     bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
     if (!attribute) {
@@ -133,15 +133,15 @@ static int set_attribute_exec(bContext *C, wmOperator *op)
 static int set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *active_object = CTX_data_active_object(C);
-  PointCloud &active_point_cloud = *static_cast<PointCloud *>(active_object->data);
+  PointCloud &active_pointcloud = *static_cast<PointCloud *>(active_object->data);
 
-  AttributeOwner owner = AttributeOwner::from_id(&active_point_cloud.id);
+  AttributeOwner owner = AttributeOwner::from_id(&active_pointcloud.id);
   CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
-  const bke::AttributeAccessor attributes = active_point_cloud.attributes();
+  const bke::AttributeAccessor attributes = active_pointcloud.attributes();
   const bke::GAttributeReader attribute = attributes.lookup(active_attribute->name);
 
   IndexMaskMemory memory;
-  const IndexMask selection = retrieve_selected_points(active_point_cloud, memory);
+  const IndexMask selection = retrieve_selected_points(active_pointcloud, memory);
 
   const CPPType &type = attribute.varray.type();
 
@@ -184,11 +184,11 @@ static void set_attribute_ui(bContext *C, wmOperator *op)
   uiItemR(layout, op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
 
-void POINT_CLOUD_OT_attribute_set(wmOperatorType *ot)
+void POINTCLOUD_OT_attribute_set(wmOperatorType *ot)
 {
   ot->name = "Set Attribute";
   ot->description = "Set values of the active attribute for selected elements";
-  ot->idname = "POINT_CLOUD_OT_attribute_set";
+  ot->idname = "POINTCLOUD_OT_attribute_set";
 
   ot->exec = set_attribute_exec;
   ot->invoke = set_attribute_invoke;
@@ -200,6 +200,6 @@ void POINT_CLOUD_OT_attribute_set(wmOperatorType *ot)
   geometry::register_rna_properties_for_attribute_types(*ot->srna);
 }
 
-}  // namespace blender::ed::point_cloud
+}  // namespace blender::ed::pointcloud
 
 /** \} */

@@ -22,6 +22,6 @@ struct CSVImportParams {
   ReportList *reports = nullptr;
 };
 
-PointCloud *import_csv_as_point_cloud(const CSVImportParams &import_params);
+PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params);
 
 }  // namespace blender::io::csv

@@ -242,9 +242,9 @@ namespace curves {
 extern TransConvertTypeInfo TransConvertType_Curves;
 }
 
-/* `transform_convert_point_cloud.cc` */
+/* `transform_convert_pointcloud.cc` */
 
-namespace point_cloud {
+namespace pointcloud {
 extern TransConvertTypeInfo TransConvertType_PointCloud;
 }
 
