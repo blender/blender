@@ -129,9 +129,11 @@ static int set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
     }
     case bke::pbvh::Type::Grids: {
       const SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
-      ss->sculpt_persistent_co = subdiv_ccg.positions;
-      ss->sculpt_persistent_no = subdiv_ccg.normals;
-      ss->sculpt_persistent_disp = {};
+      ss->persistent.sculpt_persistent_co = subdiv_ccg.positions;
+      ss->persistent.sculpt_persistent_no = subdiv_ccg.normals;
+      ss->persistent.sculpt_persistent_disp = Array<float>(subdiv_ccg.positions.size(), 0.0f);
+      ss->persistent.grid_size = subdiv_ccg.grid_size;
+      ss->persistent.grids_num = subdiv_ccg.grids_num;
       break;
     }
     case bke::pbvh::Type::BMesh: {

@@ -451,18 +451,20 @@ void do_layer_brush(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
 
-      const Span<float3> persistent_position = ss.sculpt_persistent_co;
-      const Span<float3> persistent_normal = ss.sculpt_persistent_no;
+      const std::optional<PersistentMultiresData> persistent_multires_data =
+          ss.persistent_multires_data();
+
+      Span<float3> persistent_position;
+      Span<float3> persistent_normal;
 
       bool use_persistent_base = false;
       MutableSpan<float> displacement;
       if (brush.flag & BRUSH_PERSISTENT) {
-        if (!persistent_position.is_empty() && !persistent_normal.is_empty()) {
-          if (ss.sculpt_persistent_disp.is_empty()) {
-            ss.sculpt_persistent_disp = Array<float>(positions.size(), 0.0f);
-          }
+        if (persistent_multires_data) {
           use_persistent_base = true;
-          displacement = ss.sculpt_persistent_disp;
+          persistent_position = persistent_multires_data->positions;
+          persistent_normal = persistent_multires_data->normals;
+          displacement = persistent_multires_data->displacements;
         }
       }
 
