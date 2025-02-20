@@ -75,6 +75,7 @@ void Instance::init(const int2 &output_res,
 
   shaders_are_ready_ = shaders.is_ready(is_image_render());
   if (!shaders_are_ready_) {
+    skip_render_ = true;
     return;
   }
 
@@ -125,7 +126,8 @@ void Instance::init(const int2 &output_res,
   /* Pre-compile specialization constants in parallel (if supported). */
   shaders.precompile_specializations(
       render_buffers.data.shadow_id, shadows.get_data().ray_count, shadows.get_data().step_count);
-  shaders_are_ready_ = shaders.is_ready(is_image_render());
+  shaders_are_ready_ = shaders.is_ready(is_image_render()) || !film.is_valid_render_extent();
+  skip_render_ = !shaders_are_ready_ || !film.is_valid_render_extent();
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -200,7 +202,7 @@ void Instance::view_update()
 
 void Instance::begin_sync()
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     return;
   }
 
@@ -244,7 +246,7 @@ void Instance::begin_sync()
 
 void Instance::object_sync(ObjectRef &ob_ref)
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     return;
   }
 
@@ -320,7 +322,7 @@ void Instance::object_sync_render(void *instance_,
 
 void Instance::end_sync()
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     return;
   }
 
@@ -507,6 +509,13 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
 void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, const char *view_name)
 {
+  if (skip_render_) {
+    if (!info_.empty()) {
+      RE_engine_set_error_message(engine, info_.c_str());
+      info_ = "";
+    }
+    return;
+  }
   /* TODO: Break on RE_engine_test_break(engine) */
   while (!sampling.finished()) {
     this->render_sample();
@@ -558,11 +567,13 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
 
 void Instance::draw_viewport()
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
     GPU_framebuffer_clear_color_depth(dfbl->default_fb, float4(0.0f), 1.0f);
-    info_append_i18n("Compiling EEVEE engine shaders");
-    DRW_viewport_request_redraw();
+    if (!shaders_are_ready_) {
+      info_append_i18n("Compiling EEVEE engine shaders");
+      DRW_viewport_request_redraw();
+    }
     return;
   }
 
@@ -599,6 +610,9 @@ void Instance::draw_viewport()
 
 void Instance::draw_viewport_image_render()
 {
+  if (skip_render_) {
+    return;
+  }
   while (!sampling.finished_viewport()) {
     this->render_sample();
   }
@@ -611,6 +625,9 @@ void Instance::draw_viewport_image_render()
 
 void Instance::store_metadata(RenderResult *render_result)
 {
+  if (skip_render_) {
+    return;
+  }
   cryptomatte.store_metadata(render_result);
 }
 
