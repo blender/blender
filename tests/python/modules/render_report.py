@@ -42,8 +42,7 @@ def test_get_name(filepath):
     return os.path.splitext(filename)[0]
 
 
-def test_get_images(output_dir, filepath, reference_dir, reference_override_dir):
-    testname = test_get_name(filepath)
+def test_get_images(output_dir, filepath, testname, reference_dir, reference_override_dir):
     dirpath = os.path.dirname(filepath)
 
     old_dirpath = os.path.join(dirpath, reference_dir)
@@ -71,6 +70,17 @@ def test_get_images(output_dir, filepath, reference_dir, reference_override_dir)
     diff_alpha_img = os.path.join(diff_dirpath, testname + ".diff_alpha.png")
 
     return old_img, ref_img, new_img, diff_color_img, diff_alpha_img
+
+
+class TestResult:
+    def __init__(self, report, filepath, name):
+        self.filepath = filepath
+        self.name = name
+        self.error = None
+        self.tmp_out_img_base = os.path.join(report.output_dir, "tmp_" + name)
+        self.tmp_out_img = self.tmp_out_img_base + '0001.png'
+        self.old_img, self.ref_img, self.new_img, self.diff_color_img, self.diff_alpha_img = test_get_images(
+            report.output_dir, filepath, name, report.reference_dir, report.reference_override_dir)
 
 
 class Report:
@@ -329,31 +339,27 @@ class Report:
         relpath = os.path.relpath(filepath, self.output_dir)
         return pathlib.Path(relpath).as_posix()
 
-    def _write_test_html(self, testname, filepath, error):
-        name = test_get_name(filepath)
-        name = name.replace('_', ' ')
+    def _write_test_html(self, test_category, test_result):
+        name = test_result.name.replace('_', ' ')
 
-        old_img, ref_img, new_img, diff_color_img, diff_alpha_img = test_get_images(
-            self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
+        status = test_result.error if test_result.error else ""
+        tr_style = """ class="table-danger" """ if test_result.error else ""
 
-        status = error if error else ""
-        tr_style = """ class="table-danger" """ if error else ""
-
-        new_url = self._relative_url(new_img)
-        ref_url = self._relative_url(ref_img)
-        diff_color_url = self._relative_url(diff_color_img)
-        diff_alpha_url = self._relative_url(diff_alpha_img)
+        new_url = self._relative_url(test_result.new_img)
+        ref_url = self._relative_url(test_result.ref_img)
+        diff_color_url = self._relative_url(test_result.diff_color_img)
+        diff_alpha_url = self._relative_url(test_result.diff_alpha_img)
 
         test_html = f"""
             <tr{tr_style}>
-                <td><b>{name}</b><br/>{testname}<br/>{status}</td>
+                <td><b>{name}</b><br/>{test_category}<br/>{status}</td>
                 <td><img src="{new_url}" onmouseover="this.src='{ref_url}';" onmouseout="this.src='{new_url}';" class="render"></td>
                 <td><img src="{ref_url}" onmouseover="this.src='{new_url}';" onmouseout="this.src='{ref_url}';" class="render"></td>
                 <td><img src="{diff_color_url}"></td>
                 <td><img src="{diff_alpha_url}"></td>
             </tr>"""
 
-        if error:
+        if test_result.error:
             self.failed_tests += test_html
         else:
             self.passed_tests += test_html
@@ -369,33 +375,30 @@ class Report:
                     <td><img src="{ref_url}" onmouseover="this.src='{new_url}';" onmouseout="this.src='{ref_url}';" class="render"></td>
                 </tr>""" . format(tr_style=tr_style,
                                   name=name,
-                                  testname=testname,
+                                  testname=test_result.name,
                                   status=status,
                                   new_url=new_url,
                                   ref_url=ref_url)
 
             self.compare_tests += test_html
 
-    def _diff_output(self, filepath, tmp_filepath):
-        old_img, ref_img, new_img, diff_color_img, diff_alpha_img = test_get_images(
-            self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
-
+    def _diff_output(self, test):
         # Create reference render directory.
-        old_dirpath = os.path.dirname(old_img)
+        old_dirpath = os.path.dirname(test.old_img)
         os.makedirs(old_dirpath, exist_ok=True)
 
         # Copy temporary to new image.
-        if os.path.exists(new_img):
-            os.remove(new_img)
-        if os.path.exists(tmp_filepath):
-            shutil.copy(tmp_filepath, new_img)
+        if os.path.exists(test.new_img):
+            os.remove(test.new_img)
+        if os.path.exists(test.tmp_out_img):
+            shutil.copy(test.tmp_out_img, test.new_img)
 
-        if os.path.exists(ref_img):
+        if os.path.exists(test.ref_img):
             # Diff images test with threshold.
             command = (
                 self.oiiotool,
-                ref_img,
-                tmp_filepath,
+                test.ref_img,
+                test.tmp_out_img,
                 "--fail", str(self.fail_threshold),
                 "--failpercent", str(self.fail_percent),
                 "--diff",
@@ -415,21 +418,21 @@ class Report:
 
         if failed and self.update:
             # Update reference image if requested.
-            shutil.copy(new_img, ref_img)
-            shutil.copy(new_img, old_img)
+            shutil.copy(test.new_img, test.ref_img)
+            shutil.copy(test.new_img, test.old_img)
             failed = False
 
         # Generate color diff image.
         command = (
             self.oiiotool,
-            ref_img,
+            test.ref_img,
             "--ch", "R,G,B",
-            tmp_filepath,
+            test.tmp_out_img,
             "--ch", "R,G,B",
             "--sub",
             "--abs",
             "--mulc", "16",
-            "-o", diff_color_img,
+            "-o", test.diff_color_img,
         )
         try:
             subprocess.check_output(command, stderr=subprocess.STDOUT)
@@ -440,14 +443,14 @@ class Report:
         # Generate alpha diff image.
         command = (
             self.oiiotool,
-            ref_img,
+            test.ref_img,
             "--ch", "A",
-            tmp_filepath,
+            test.tmp_out_img,
             "--ch", "A",
             "--sub",
             "--abs",
             "--mulc", "16",
-            "-o", diff_alpha_img,
+            "-o", test.diff_alpha_img,
         )
         try:
             subprocess.check_output(command, stderr=subprocess.STDOUT)
@@ -475,27 +478,36 @@ class Report:
         # Each render test is supposed to override this method.
         return []
 
+    def _get_filepath_tests(self, filepath):
+        list_filepath = filepath.replace('.blend', '_permutations.txt')
+        if os.path.exists(list_filepath):
+            with open(list_filepath, 'r') as file:
+                return [TestResult(self, filepath, testname.rstrip('\n')) for testname in file]
+        else:
+            testname = test_get_name(filepath)
+            return [TestResult(self, filepath, testname)]
+
     def _run_tests(self, filepaths, blender, arguments_cb, batch):
         # Run multiple tests in a single Blender process since startup can be
         # a significant factor. In case of crashes, re-run the remaining tests.
         verbose = os.environ.get("BLENDER_VERBOSE") is not None
 
         remaining_filepaths = filepaths[:]
-        errors = []
+        test_results = []
 
         while len(remaining_filepaths) > 0:
             command = [blender]
-            output_filepaths = []
+            running_tests = []
 
             # Construct output filepaths and command to run
             for filepath in remaining_filepaths:
+                running_tests.append(filepath)
+
                 testname = test_get_name(filepath)
                 print_message(testname, 'SUCCESS', 'RUN')
 
                 base_output_filepath = os.path.join(self.output_dir, "tmp_" + testname)
                 output_filepath = base_output_filepath + '0001.png'
-                output_filepaths.append(output_filepath)
-
                 if os.path.exists(output_filepath):
                     os.remove(output_filepath)
 
@@ -524,35 +536,41 @@ class Report:
                 print(output.decode("utf-8", 'ignore'))
 
             # Detect missing filepaths and consider those errors
-            for filepath, output_filepath in zip(remaining_filepaths[:], output_filepaths):
+            for filepath in running_tests:
                 remaining_filepaths.pop(0)
+                file_crashed = False
 
-                if crash:
-                    # In case of crash, stop after missing files and re-render remaining
-                    if not os.path.exists(output_filepath):
-                        errors.append("CRASH")
-                        print_message("Crash running Blender")
-                        print_message(testname, 'FAILURE', 'FAILED')
-                        break
+                for test in self._get_filepath_tests(filepath):
+                    if crash:
+                        # In case of crash, stop after missing files and re-render remaining
+                        if not os.path.exists(test.tmp_out_img):
+                            test.error = "CRASH"
+                            print_message("Crash running Blender")
+                            print_message(test.name, 'FAILURE', 'FAILED')
+                            file_crashed = True
+                            break
 
-                testname = test_get_name(filepath)
+                    if not os.path.exists(test.tmp_out_img) or os.path.getsize(test.tmp_out_img) == 0:
+                        test.error = "NO OUTPUT"
+                        print_message("No render result file found")
+                        print_message(test.tmp_out_img, 'FAILURE', 'FAILED')
+                    elif not self._diff_output(test):
+                        test.error = "VERIFY"
+                        print_message("Render result is different from reference image")
+                        print_message(test.name, 'FAILURE', 'FAILED')
+                    else:
+                        test.error = None
+                        print_message(test.name, 'SUCCESS', 'OK')
 
-                if not os.path.exists(output_filepath) or os.path.getsize(output_filepath) == 0:
-                    errors.append("NO OUTPUT")
-                    print_message("No render result file found")
-                    print_message(testname, 'FAILURE', 'FAILED')
-                elif not self._diff_output(filepath, output_filepath):
-                    errors.append("VERIFY")
-                    print_message("Render result is different from reference image")
-                    print_message(testname, 'FAILURE', 'FAILED')
-                else:
-                    errors.append(None)
-                    print_message(testname, 'SUCCESS', 'OK')
+                    if os.path.exists(test.tmp_out_img):
+                        os.remove(test.tmp_out_img)
 
-                if os.path.exists(output_filepath):
-                    os.remove(output_filepath)
+                    test_results.append(test)
 
-        return errors
+                if file_crashed:
+                    break
+
+        return test_results
 
     def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch, fail_silently):
         passed_tests = []
@@ -568,22 +586,21 @@ class Report:
                       format(len(all_files)),
                       'SUCCESS', "==========")
         time_start = time.time()
-        errors = self._run_tests(all_files, blender, arguments_cb, batch)
-        for filepath, error in zip(all_files, errors):
-            testname = test_get_name(filepath)
-            if error:
-                if error == "NO_ENGINE":
+        test_results = self._run_tests(all_files, blender, arguments_cb, batch)
+        for test in test_results:
+            if test.error:
+                if test.error == "NO_ENGINE":
                     return False
-                elif error == "NO_START":
+                elif test.error == "NO_START":
                     return False
 
-                if fail_silently and error != 'CRASH':
-                    silently_failed_tests.append(testname)
+                if fail_silently and test.error != 'CRASH':
+                    silently_failed_tests.append(test.name)
                 else:
-                    failed_tests.append(testname)
+                    failed_tests.append(test.name)
             else:
-                passed_tests.append(testname)
-            self._write_test_html(dirname, filepath, error)
+                passed_tests.append(test.name)
+            self._write_test_html(dirname, test)
         time_end = time.time()
         elapsed_ms = int((time_end - time_start) * 1000)
         print_message("")
