@@ -121,6 +121,21 @@ GPUShader *DRW_shader_draw_command_generate_get()
 /** \name Subdivision
  * \{ */
 
+static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shader_type)
+{
+  switch (shader_type) {
+    case SubdivShaderType::BUFFER_NORMALS_FINALIZE:
+      return "subdiv_normals_finalize";
+
+    case SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE:
+      return "subdiv_custom_normals_finalize";
+
+    default:
+      break;
+  }
+  BLI_assert_unreachable();
+  return "";
+}
 static blender::StringRefNull get_subdiv_shader_name(SubdivShaderType shader_type)
 {
   switch (shader_type) {
@@ -309,7 +324,17 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
                    SubdivShaderType::COMP_CUSTOM_DATA_INTERP_3D,
                    SubdivShaderType::COMP_CUSTOM_DATA_INTERP_4D));
 
-  if (e_data.subdiv_sh[uint(shader_type)] == nullptr) {
+  if (e_data.subdiv_sh[uint(shader_type)] == nullptr &&
+      ELEM(shader_type,
+           SubdivShaderType::BUFFER_NORMALS_FINALIZE,
+           SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE))
+  {
+    blender::StringRefNull create_info_name = get_subdiv_shader_info_name(shader_type);
+    e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_from_info_name(
+        create_info_name.c_str());
+    BLI_assert(e_data.subdiv_sh[uint(shader_type)] != nullptr);
+  }
+  else if (e_data.subdiv_sh[uint(shader_type)] == nullptr) {
     const blender::StringRefNull compute_code = get_subdiv_shader_code(shader_type);
     std::optional<blender::StringRefNull> defines;
 

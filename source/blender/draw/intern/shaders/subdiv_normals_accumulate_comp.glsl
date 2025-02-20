@@ -67,7 +67,7 @@ void main()
     /* Compute the face normal using Newell's method. */
     vec3 verts[4];
     for (uint j = 0; j < 4; j++) {
-      verts[j] = get_vertex_pos(pos_nor[start_loop_index + j]);
+      verts[j] = subdiv_get_vertex_pos(pos_nor[start_loop_index + j]);
     }
 
     vec3 face_normal = vec3(0.0);

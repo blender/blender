@@ -30,6 +30,8 @@ set(SRC_GLSL_COMP
   # draw_resource_finalize_comp.glsl
   draw_view_finalize_comp.glsl
   draw_visibility_comp.glsl
+  
+  subdiv_normals_finalize_comp.glsl
 )
 
 # Compile shaders with shader code.

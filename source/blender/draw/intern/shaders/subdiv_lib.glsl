@@ -4,9 +4,16 @@
 
 #pragma once
 
+#include "subdiv_info.hh"
+
+#ifdef USE_GPU_SHADER_CREATE_INFO
+/* TODO: Do not use compute variables directly in a library. */
+COMPUTE_SHADER_CREATE_INFO(subdiv_base)
+#else
+
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
-/* Uniform block for #DRWSubivUboStorage. */
+/* Uniform block for #DRWSubdivUboStorage. */
 layout(std140) uniform shader_data
 {
   /* Offsets in the buffers data where the source and destination data start. */
@@ -43,6 +50,7 @@ layout(std140) uniform shader_data
 
   bool use_hide;
 };
+#endif
 
 uint get_global_invocation_index()
 {
@@ -103,6 +111,7 @@ uint get_index(uint i)
   return (i >> 2) & 0x3FFFFFFFu;
 }
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
 /* Duplicate of #PosNorLoop from the mesh extract CPU code.
  * We do not use a vec3 for the position as it will be padded to a vec4 which is incompatible with
  * the format. */
@@ -117,18 +126,39 @@ struct PosNorLoop {
 struct LoopNormal {
   float nx, ny, nz, flag;
 };
+#endif
 
-vec3 get_vertex_pos(PosNorLoop vertex_data)
+PosNorLoop subdiv_set_vertex_pos(PosNorLoop in_vertex_data, vec3 pos)
+{
+  in_vertex_data.x = pos.x;
+  in_vertex_data.y = pos.y;
+  in_vertex_data.z = pos.z;
+  return in_vertex_data;
+}
+
+/* Set the vertex normal but preserve the existing flag. This is for when we compute manually the
+ * vertex normals when we cannot use the limit surface, in which case the flag and the normal are
+ * set by two separate compute pass. */
+PosNorLoop subdiv_set_vertex_nor(PosNorLoop in_vertex_data, vec3 nor)
+{
+  in_vertex_data.nx = nor.x;
+  in_vertex_data.ny = nor.y;
+  in_vertex_data.nz = nor.z;
+  return in_vertex_data;
+}
+
+PosNorLoop subdiv_set_vertex_flag(PosNorLoop in_vertex_data, float flag)
+{
+  in_vertex_data.flag = flag;
+  return in_vertex_data;
+}
+
+vec3 subdiv_get_vertex_pos(PosNorLoop vertex_data)
 {
   return vec3(vertex_data.x, vertex_data.y, vertex_data.z);
 }
 
-vec3 get_vertex_nor(PosNorLoop vertex_data)
-{
-  return vec3(vertex_data.nx, vertex_data.ny, vertex_data.nz);
-}
-
-LoopNormal get_normal_and_flag(PosNorLoop vertex_data)
+LoopNormal subdiv_get_normal_and_flag(PosNorLoop vertex_data)
 {
   LoopNormal loop_nor;
   loop_nor.nx = vertex_data.nx;
@@ -136,29 +166,6 @@ LoopNormal get_normal_and_flag(PosNorLoop vertex_data)
   loop_nor.nz = vertex_data.nz;
   loop_nor.flag = vertex_data.flag;
   return loop_nor;
-}
-
-void set_vertex_pos(inout PosNorLoop vertex_data, vec3 pos)
-{
-  vertex_data.x = pos.x;
-  vertex_data.y = pos.y;
-  vertex_data.z = pos.z;
-}
-
-/* Set the vertex normal but preserve the existing flag. This is for when we compute manually the
- * vertex normals when we cannot use the limit surface, in which case the flag and the normal are
- * set by two separate compute pass. */
-void set_vertex_nor(inout PosNorLoop vertex_data, vec3 nor)
-{
-  vertex_data.nx = nor.x;
-  vertex_data.ny = nor.y;
-  vertex_data.nz = nor.z;
-}
-
-void set_vertex_nor(inout PosNorLoop vertex_data, vec3 nor, float flag)
-{
-  set_vertex_nor(vertex_data, nor);
-  vertex_data.flag = flag;
 }
 
 void add_newell_cross_v3_v3v3(inout vec3 n, vec3 v_prev, vec3 v_curr)
@@ -171,10 +178,12 @@ void add_newell_cross_v3_v3v3(inout vec3 n, vec3 v_prev, vec3 v_curr)
 #define ORIGINDEX_NONE -1
 
 #ifdef SUBDIV_POLYGON_OFFSET
+#  ifndef USE_GPU_SHADER_CREATE_INFO
 layout(std430, binding = 0) readonly buffer inputSubdivPolygonOffset
 {
   uint subdiv_face_offset[];
 };
+#  endif
 
 /* Given the index of the subdivision quad, return the index of the corresponding coarse polygon.
  * This uses subdiv_face_offset and since it is a growing list of offsets, we can use binary

@@ -45,7 +45,7 @@ struct DRWPatchMap {
   int min_patch_face;
   int max_patch_face;
   int max_depth;
-  int patches_are_triangular;
+  bool patches_are_triangular;
 };
 
 /** \} */

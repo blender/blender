@@ -44,6 +44,7 @@
 #include "draw_cache_impl.hh"
 #include "draw_cache_inline.hh"
 #include "draw_shader.hh"
+#include "draw_subdiv_shader_shared.hh"
 #include "mesh_extractors/extract_mesh.hh"
 
 namespace blender::draw {
@@ -1002,48 +1003,6 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
  * Common uniforms for the various shaders.
  * \{ */
 
-struct DRWSubdivUboStorage {
-  /* Offsets in the buffers data where the source and destination data start. */
-  int src_offset;
-  int dst_offset;
-
-  /* Parameters for the DRWPatchMap. */
-  int min_patch_face;
-  int max_patch_face;
-  int max_depth;
-  int patches_are_triangular;
-
-  /* Coarse topology information. */
-  int coarse_face_count;
-  uint edge_loose_offset;
-
-  /* Refined topology information. */
-  uint num_subdiv_loops;
-
-  /* The sculpt mask data layer may be null. */
-  int has_sculpt_mask;
-
-  /* Masks for the extra coarse face data. */
-  uint coarse_face_select_mask;
-  uint coarse_face_smooth_mask;
-  uint coarse_face_active_mask;
-  uint coarse_face_hidden_mask;
-  uint coarse_face_loopstart_mask;
-
-  /* Number of elements to process in the compute shader (can be the coarse quad count, or the
-   * final vertex count, depending on which compute pass we do). This is used to early out in case
-   * of out of bond accesses as compute dispatch are of fixed size. */
-  uint total_dispatch_size;
-
-  int is_edit_mode;
-  int use_hide;
-  int _pad3;
-  int _pad4;
-};
-
-static_assert((sizeof(DRWSubdivUboStorage) % 16) == 0,
-              "DRWSubdivUboStorage is not padded to a multiple of the size of vec4");
-
 static void draw_subdiv_init_ubo_storage(const DRWSubdivCache &cache,
                                          DRWSubdivUboStorage *ubo,
                                          const int src_offset,
@@ -1073,7 +1032,6 @@ static void draw_subdiv_init_ubo_storage(const DRWSubdivCache &cache,
 }
 
 static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache &cache,
-                                            GPUShader *shader,
                                             const int src_offset,
                                             const int dst_offset,
                                             const uint total_dispatch_size,
@@ -1095,9 +1053,7 @@ static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache &cache,
   }
 
   GPU_uniformbuf_update(cache.ubo, &storage);
-
-  const int binding = GPU_shader_get_ubo_binding(shader, "shader_data");
-  GPU_uniformbuf_bind(cache.ubo, binding);
+  GPU_uniformbuf_bind(cache.ubo, SHADER_DATA_BUF_SLOT);
 }
 
 /** \} */
@@ -1148,13 +1104,8 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache &cache,
    * we presume it all fits. */
   BLI_assert(dispatch_ry < uint(GPU_max_work_group_count(1)));
 
-  draw_subdiv_ubo_update_and_bind(cache,
-                                  shader,
-                                  src_offset,
-                                  dst_offset,
-                                  total_dispatch_size,
-                                  has_sculpt_mask,
-                                  edge_loose_offset);
+  draw_subdiv_ubo_update_and_bind(
+      cache, src_offset, dst_offset, total_dispatch_size, has_sculpt_mask, edge_loose_offset);
 
   GPU_compute_dispatch(shader, dispatch_rx, dispatch_ry, 1);
 }
@@ -1418,11 +1369,10 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache &cache,
   GPUShader *shader = DRW_shader_subdiv_get(SubdivShaderType::BUFFER_NORMALS_FINALIZE);
   GPU_shader_bind(shader);
 
-  int binding_point = 0;
-  GPU_vertbuf_bind_as_ssbo(vert_normals, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(subdiv_loop_subdiv_vert_index, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
+  GPU_vertbuf_bind_as_ssbo(vert_normals, NORMALS_FINALIZE_VERTEX_NORMALS_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(subdiv_loop_subdiv_vert_index,
+                           NORMALS_FINALIZE_VERTEX_LOOP_MAP_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(pos_nor, NORMALS_FINALIZE_POS_NOR_BUF_SLOT);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_quads);
 

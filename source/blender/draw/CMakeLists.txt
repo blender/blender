@@ -583,6 +583,8 @@ set(GLSL_SRC
   intern/draw_defines.hh
   intern/draw_pointcloud_private.hh
   intern/draw_shader_shared.hh
+  intern/draw_subdiv_defines.hh
+  intern/draw_subdiv_shader_shared.hh
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl

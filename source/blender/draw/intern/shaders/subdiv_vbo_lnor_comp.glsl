@@ -64,17 +64,17 @@ void main()
     for (int i = 0; i < 4; i++) {
       PosNorLoop pos_nor_loop = pos_nor[start_loop_index + i];
       int origindex = input_vert_origindex[start_loop_index + i];
-      LoopNormal loop_normal = get_normal_and_flag(pos_nor_loop);
+      LoopNormal loop_normal = subdiv_get_normal_and_flag(pos_nor_loop);
       loop_normal.flag = get_loop_flag(coarse_quad_index, origindex);
 
       output_lnor[start_loop_index + i] = loop_normal;
     }
   }
   else {
-    vec3 v0 = get_vertex_pos(pos_nor[start_loop_index + 0]);
-    vec3 v1 = get_vertex_pos(pos_nor[start_loop_index + 1]);
-    vec3 v2 = get_vertex_pos(pos_nor[start_loop_index + 2]);
-    vec3 v3 = get_vertex_pos(pos_nor[start_loop_index + 3]);
+    vec3 v0 = subdiv_get_vertex_pos(pos_nor[start_loop_index + 0]);
+    vec3 v1 = subdiv_get_vertex_pos(pos_nor[start_loop_index + 1]);
+    vec3 v2 = subdiv_get_vertex_pos(pos_nor[start_loop_index + 2]);
+    vec3 v3 = subdiv_get_vertex_pos(pos_nor[start_loop_index + 3]);
 
     vec3 face_normal = vec3(0.0);
     add_newell_cross_v3_v3v3(face_normal, v0, v1);
