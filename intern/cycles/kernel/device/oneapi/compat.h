@@ -46,6 +46,7 @@
 #define ccl_device_noinline ccl_device ccl_noinline
 #define ccl_device_noinline_cpu ccl_device
 #define ccl_device_inline_method ccl_device
+#define ccl_device_template_spec template<> ccl_device_inline
 #define ccl_restrict __restrict__
 #define ccl_optional_struct_init
 #define ccl_private

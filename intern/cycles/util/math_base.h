@@ -213,6 +213,13 @@ ccl_device_inline float max4(const float a, const float b, float c, const float 
   return max(max(a, b), max(c, d));
 }
 
+template<typename T> ccl_device_inline T make_zero();
+
+ccl_device_template_spec float make_zero()
+{
+  return 0.0f;
+}
+
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 /* Int/Float conversion */
 

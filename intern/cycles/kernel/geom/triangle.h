@@ -12,9 +12,8 @@
 
 #include "kernel/globals.h"
 
+#include "kernel/geom/attribute.h"
 #include "kernel/geom/object.h"
-
-#include "util/color.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -222,197 +221,38 @@ ccl_device_inline T triangle_attribute_dfdy(const ccl_private differential &du,
 
 /* Read attributes on various triangle elements, and compute the partial derivatives if requested.
  */
-ccl_device float triangle_attribute_float(KernelGlobals kg,
-                                          const ccl_private ShaderData *sd,
-                                          const AttributeDescriptor desc,
-                                          ccl_private float *dfdx,
-                                          ccl_private float *dfdy)
-{
-  if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
-    float f0;
-    float f1;
-    float f2;
-
-    if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
-      const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-
-      f0 = kernel_data_fetch(attributes_float, desc.offset + tri_vindex.x);
-      f1 = kernel_data_fetch(attributes_float, desc.offset + tri_vindex.y);
-      f2 = kernel_data_fetch(attributes_float, desc.offset + tri_vindex.z);
-    }
-    else {
-      const int tri = desc.offset + sd->prim * 3;
-      f0 = kernel_data_fetch(attributes_float, tri + 0);
-      f1 = kernel_data_fetch(attributes_float, tri + 1);
-      f2 = kernel_data_fetch(attributes_float, tri + 2);
-    }
-
-#ifdef __RAY_DIFFERENTIALS__
-    if (dfdx) {
-      *dfdx = triangle_attribute_dfdx(sd->du, sd->dv, f0, f1, f2);
-    }
-    if (dfdy) {
-      *dfdy = triangle_attribute_dfdy(sd->du, sd->dv, f0, f1, f2);
-    }
-#endif
-
-    return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
-  }
-#ifdef __RAY_DIFFERENTIALS__
-  if (dfdx) {
-    *dfdx = 0.0f;
-  }
-  if (dfdy) {
-    *dfdy = 0.0f;
-  }
-#endif
-
-  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
-    return kernel_data_fetch(attributes_float, offset);
-  }
-  return 0.0f;
-}
-
-ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
-                                            const ccl_private ShaderData *sd,
-                                            const AttributeDescriptor desc,
-                                            ccl_private float2 *dfdx,
-                                            ccl_private float2 *dfdy)
-{
-  if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
-    float2 f0;
-    float2 f1;
-    float2 f2;
-
-    if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
-      const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-
-      f0 = kernel_data_fetch(attributes_float2, desc.offset + tri_vindex.x);
-      f1 = kernel_data_fetch(attributes_float2, desc.offset + tri_vindex.y);
-      f2 = kernel_data_fetch(attributes_float2, desc.offset + tri_vindex.z);
-    }
-    else {
-      const int tri = desc.offset + sd->prim * 3;
-      f0 = kernel_data_fetch(attributes_float2, tri + 0);
-      f1 = kernel_data_fetch(attributes_float2, tri + 1);
-      f2 = kernel_data_fetch(attributes_float2, tri + 2);
-    }
-
-#ifdef __RAY_DIFFERENTIALS__
-    if (dfdx) {
-      *dfdx = triangle_attribute_dfdx(sd->du, sd->dv, f0, f1, f2);
-    }
-    if (dfdy) {
-      *dfdy = triangle_attribute_dfdy(sd->du, sd->dv, f0, f1, f2);
-    }
-#endif
-
-    return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
-  }
-#ifdef __RAY_DIFFERENTIALS__
-  if (dfdx) {
-    *dfdx = zero_float2();
-  }
-  if (dfdy) {
-    *dfdy = zero_float2();
-  }
-#endif
-
-  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
-    return kernel_data_fetch(attributes_float2, offset);
-  }
-  return zero_float2();
-}
-
-ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
-                                            const ccl_private ShaderData *sd,
-                                            const AttributeDescriptor desc,
-                                            ccl_private float3 *dfdx,
-                                            ccl_private float3 *dfdy)
-{
-  if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
-    float3 f0;
-    float3 f1;
-    float3 f2;
-
-    if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
-      const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-
-      f0 = kernel_data_fetch(attributes_float3, desc.offset + tri_vindex.x);
-      f1 = kernel_data_fetch(attributes_float3, desc.offset + tri_vindex.y);
-      f2 = kernel_data_fetch(attributes_float3, desc.offset + tri_vindex.z);
-    }
-    else {
-      const int tri = desc.offset + sd->prim * 3;
-      f0 = kernel_data_fetch(attributes_float3, tri + 0);
-      f1 = kernel_data_fetch(attributes_float3, tri + 1);
-      f2 = kernel_data_fetch(attributes_float3, tri + 2);
-    }
-
-#ifdef __RAY_DIFFERENTIALS__
-    if (dfdx) {
-      *dfdx = triangle_attribute_dfdx(sd->du, sd->dv, f0, f1, f2);
-    }
-    if (dfdy) {
-      *dfdy = triangle_attribute_dfdy(sd->du, sd->dv, f0, f1, f2);
-    }
-#endif
-
-    return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
-  }
-#ifdef __RAY_DIFFERENTIALS__
-  if (dfdx) {
-    *dfdx = zero_float3();
-  }
-  if (dfdy) {
-    *dfdy = zero_float3();
-  }
-#endif
-
-  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
-    return kernel_data_fetch(attributes_float3, offset);
-  }
-  return zero_float3();
-}
-
-ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
-                                            const ccl_private ShaderData *sd,
-                                            const AttributeDescriptor desc,
-                                            ccl_private float4 *dfdx,
-                                            ccl_private float4 *dfdy)
+template<typename T>
+ccl_device T triangle_attribute(KernelGlobals kg,
+                                const ccl_private ShaderData *sd,
+                                const AttributeDescriptor desc,
+                                ccl_private T *dfdx,
+                                ccl_private T *dfdy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER |
                       ATTR_ELEMENT_CORNER_BYTE))
   {
-    float4 f0;
-    float4 f1;
-    float4 f2;
+    T f0;
+    T f1;
+    T f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
       const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
 
-      f0 = kernel_data_fetch(attributes_float4, desc.offset + tri_vindex.x);
-      f1 = kernel_data_fetch(attributes_float4, desc.offset + tri_vindex.y);
-      f2 = kernel_data_fetch(attributes_float4, desc.offset + tri_vindex.z);
+      f0 = attribute_data_fetch<T>(kg, desc.offset + tri_vindex.x);
+      f1 = attribute_data_fetch<T>(kg, desc.offset + tri_vindex.y);
+      f2 = attribute_data_fetch<T>(kg, desc.offset + tri_vindex.z);
+    }
+    else if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
+      const int tri = desc.offset + sd->prim * 3;
+      f0 = attribute_data_fetch_bytecolor<T>(kg, tri + 0);
+      f1 = attribute_data_fetch_bytecolor<T>(kg, tri + 1);
+      f2 = attribute_data_fetch_bytecolor<T>(kg, tri + 2);
     }
     else {
       const int tri = desc.offset + sd->prim * 3;
-      if (desc.element == ATTR_ELEMENT_CORNER) {
-        f0 = kernel_data_fetch(attributes_float4, tri + 0);
-        f1 = kernel_data_fetch(attributes_float4, tri + 1);
-        f2 = kernel_data_fetch(attributes_float4, tri + 2);
-      }
-      else {
-        f0 = color_srgb_to_linear_v4(
-            color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, tri + 0)));
-        f1 = color_srgb_to_linear_v4(
-            color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, tri + 1)));
-        f2 = color_srgb_to_linear_v4(
-            color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, tri + 2)));
-      }
+      f0 = attribute_data_fetch<T>(kg, tri + 0);
+      f1 = attribute_data_fetch<T>(kg, tri + 1);
+      f2 = attribute_data_fetch<T>(kg, tri + 2);
     }
 
 #ifdef __RAY_DIFFERENTIALS__
@@ -428,18 +268,18 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
   }
 #ifdef __RAY_DIFFERENTIALS__
   if (dfdx) {
-    *dfdx = zero_float4();
+    *dfdx = make_zero<T>();
   }
   if (dfdy) {
-    *dfdy = zero_float4();
+    *dfdy = make_zero<T>();
   }
 #endif
 
   if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
     const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
-    return kernel_data_fetch(attributes_float4, offset);
+    return attribute_data_fetch<T>(kg, offset);
   }
-  return zero_float4();
+  return make_zero<T>();
 }
 
 CCL_NAMESPACE_END

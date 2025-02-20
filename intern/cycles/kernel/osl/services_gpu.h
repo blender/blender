@@ -822,114 +822,65 @@ ccl_device_extern float osl_determinant_fm(ccl_private const float *m)
 
 typedef long long TypeDesc;
 
-ccl_device_inline bool set_attribute_float(ccl_private float fval[3],
-                                           const TypeDesc type,
-                                           bool derivatives,
-                                           ccl_private void *val)
-{
-  const unsigned char type_basetype = type & 0xFF;
-  const unsigned char type_aggregate = (type >> 8) & 0xFF;
-  const int type_arraylen = type >> 32;
+template<typename T>
+ccl_device_inline bool set_attribute(const T v,
+                                     const T dx,
+                                     const T dy,
+                                     const TypeDesc type,
+                                     bool derivatives,
+                                     ccl_private void *val);
 
-  if (type_basetype == 11 /* TypeDesc::FLOAT */) {
-    if ((type_aggregate == 2 /* TypeDesc::VEC2 */) || (type_aggregate == 1 && type_arraylen == 2))
-    {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 2 + 0] = fval[i];
-        static_cast<ccl_private float *>(val)[i * 2 + 1] = fval[i];
-      }
-      return true;
-    }
-    if ((type_aggregate == 3 /* TypeDesc::VEC3 */) || (type_aggregate == 1 && type_arraylen == 3))
-    {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 3 + 0] = fval[i];
-        static_cast<ccl_private float *>(val)[i * 3 + 1] = fval[i];
-        static_cast<ccl_private float *>(val)[i * 3 + 2] = fval[i];
-      }
-      return true;
-    }
-    if ((type_aggregate == 4 /* TypeDesc::VEC4 */) || (type_aggregate == 1 && type_arraylen == 4))
-    {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 4 + 0] = fval[i];
-        static_cast<ccl_private float *>(val)[i * 4 + 1] = fval[i];
-        static_cast<ccl_private float *>(val)[i * 4 + 2] = fval[i];
-        static_cast<ccl_private float *>(val)[i * 4 + 3] = 1.0f;
-      }
-      return true;
-    }
-    if ((type_aggregate == 1 /* TypeDesc::SCALAR */)) {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i] = fval[i];
-      }
-      return true;
-    }
+ccl_device_inline void set_data_float(
+    const float v, const float dx, const float dy, bool derivatives, ccl_private void *val)
+{
+  ccl_private float *fval = static_cast<ccl_private float *>(val);
+  fval[0] = v;
+  if (derivatives) {
+    fval[1] = dx;
+    fval[2] = dy;
   }
-
-  return false;
 }
-ccl_device_inline bool set_attribute_float(const float f,
-                                           const TypeDesc type,
-                                           bool derivatives,
-                                           ccl_private void *val)
+
+ccl_device_inline void set_data_float3(
+    const float3 v, const float3 dx, const float3 dy, bool derivatives, ccl_private void *val)
 {
-  float fv[3];
-
-  fv[0] = f;
-  fv[1] = 0.0f;
-  fv[2] = 0.0f;
-
-  return set_attribute_float(fv, type, derivatives, val);
-}
-ccl_device_inline bool set_attribute_float2(ccl_private float2 fval[3],
-                                            const TypeDesc type,
-                                            bool derivatives,
-                                            ccl_private void *val)
-{
-  const unsigned char type_basetype = type & 0xFF;
-  const unsigned char type_aggregate = (type >> 8) & 0xFF;
-  const int type_arraylen = type >> 32;
-
-  if (type_basetype == 11 /* TypeDesc::FLOAT */) {
-    if ((type_aggregate == 2 /* TypeDesc::VEC2 */) || (type_aggregate == 1 && type_arraylen == 2))
-    {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 2 + 0] = fval[i].x;
-        static_cast<ccl_private float *>(val)[i * 2 + 1] = fval[i].y;
-      }
-      return true;
-    }
-    if ((type_aggregate == 3 /* TypeDesc::VEC3 */) || (type_aggregate == 1 && type_arraylen == 3))
-    {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 3 + 0] = fval[i].x;
-        static_cast<ccl_private float *>(val)[i * 3 + 1] = fval[i].y;
-        static_cast<ccl_private float *>(val)[i * 3 + 2] = 0.0f;
-      }
-      return true;
-    }
-    if ((type_aggregate == 4 /* TypeDesc::VEC4 */) || (type_aggregate == 1 && type_arraylen == 4))
-    {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 4 + 0] = fval[i].x;
-        static_cast<ccl_private float *>(val)[i * 4 + 1] = fval[i].y;
-        static_cast<ccl_private float *>(val)[i * 4 + 2] = 0.0f;
-        static_cast<ccl_private float *>(val)[i * 4 + 3] = 1.0f;
-      }
-      return true;
-    }
-    if ((type_aggregate == 1 /* TypeDesc::SCALAR */)) {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i] = fval[i].x;
-      }
-      return true;
-    }
+  ccl_private float *fval = static_cast<ccl_private float *>(val);
+  fval[0] = v.x;
+  fval[1] = v.y;
+  fval[2] = v.z;
+  if (derivatives) {
+    fval[3] = dx.x;
+    fval[4] = dx.y;
+    fval[5] = dx.z;
+    fval[6] = dy.x;
+    fval[7] = dy.y;
+    fval[8] = dy.z;
   }
-
-  return false;
 }
-ccl_device_inline bool set_attribute_float3(ccl_private float3 fval[3],
+
+ccl_device_inline void set_data_float4(
+    const float4 v, const float4 dx, const float4 dy, bool derivatives, ccl_private void *val)
+{
+  ccl_private float *fval = static_cast<ccl_private float *>(val);
+  fval[0] = v.x;
+  fval[1] = v.y;
+  fval[2] = v.z;
+  fval[3] = v.w;
+  if (derivatives) {
+    fval[4] = dx.x;
+    fval[5] = dx.y;
+    fval[6] = dx.z;
+    fval[7] = dx.w;
+    fval[8] = dy.x;
+    fval[9] = dy.y;
+    fval[10] = dy.z;
+    fval[11] = dy.w;
+  }
+}
+
+ccl_device_template_spec bool set_attribute(const float v,
+                                            const float dx,
+                                            const float dy,
                                             const TypeDesc type,
                                             bool derivatives,
                                             ccl_private void *val)
@@ -941,47 +892,29 @@ ccl_device_inline bool set_attribute_float3(ccl_private float3 fval[3],
   if (type_basetype == 11 /* TypeDesc::FLOAT */) {
     if ((type_aggregate == 3 /* TypeDesc::VEC3 */) || (type_aggregate == 1 && type_arraylen == 3))
     {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 3 + 0] = fval[i].x;
-        static_cast<ccl_private float *>(val)[i * 3 + 1] = fval[i].y;
-        static_cast<ccl_private float *>(val)[i * 3 + 2] = fval[i].z;
-      }
+      set_data_float3(make_float3(v), make_float3(dx), make_float3(dy), derivatives, val);
       return true;
     }
     if ((type_aggregate == 4 /* TypeDesc::VEC4 */) || (type_aggregate == 1 && type_arraylen == 4))
     {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 4 + 0] = fval[i].x;
-        static_cast<ccl_private float *>(val)[i * 4 + 1] = fval[i].y;
-        static_cast<ccl_private float *>(val)[i * 4 + 2] = fval[i].z;
-        static_cast<ccl_private float *>(val)[i * 4 + 3] = 1.0f;
-      }
+      set_data_float4(make_float4(v, v, v, 1.0f),
+                      make_float4(dx, dx, dx, 0.0f),
+                      make_float4(dy, dy, dy, 0.0f),
+                      derivatives,
+                      val);
       return true;
     }
     if ((type_aggregate == 1 /* TypeDesc::SCALAR */)) {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i] = average(fval[i]);
-      }
+      set_data_float(v, dx, dy, derivatives, val);
       return true;
     }
   }
 
   return false;
 }
-ccl_device_inline bool set_attribute_float3(const float3 f,
-                                            const TypeDesc type,
-                                            bool derivatives,
-                                            ccl_private void *val)
-{
-  float3 fv[3];
-
-  fv[0] = f;
-  fv[1] = make_float3(0.0f, 0.0f, 0.0f);
-  fv[2] = make_float3(0.0f, 0.0f, 0.0f);
-
-  return set_attribute_float3(fv, type, derivatives, val);
-}
-ccl_device_inline bool set_attribute_float4(ccl_private float4 fval[3],
+ccl_device_template_spec bool set_attribute(const float2 v,
+                                            const float2 dx,
+                                            const float2 dy,
                                             const TypeDesc type,
                                             bool derivatives,
                                             ccl_private void *val)
@@ -993,33 +926,100 @@ ccl_device_inline bool set_attribute_float4(ccl_private float4 fval[3],
   if (type_basetype == 11 /* TypeDesc::FLOAT */) {
     if ((type_aggregate == 3 /* TypeDesc::VEC3 */) || (type_aggregate == 1 && type_arraylen == 3))
     {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 3 + 0] = fval[i].x;
-        static_cast<ccl_private float *>(val)[i * 3 + 1] = fval[i].y;
-        static_cast<ccl_private float *>(val)[i * 3 + 2] = fval[i].z;
-      }
+      set_data_float3(make_float3(v), make_float3(dx), make_float3(dy), derivatives, val);
       return true;
     }
     if ((type_aggregate == 4 /* TypeDesc::VEC4 */) || (type_aggregate == 1 && type_arraylen == 4))
     {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i * 4 + 0] = fval[i].x;
-        static_cast<ccl_private float *>(val)[i * 4 + 1] = fval[i].y;
-        static_cast<ccl_private float *>(val)[i * 4 + 2] = fval[i].z;
-        static_cast<ccl_private float *>(val)[i * 4 + 3] = fval[i].w;
-      }
-      return true;
+      set_data_float4(make_float4(v.x, v.y, 0.0f, 1.0f),
+                      make_float4(dx.x, dx.y, 0.0f, 0.0f),
+                      make_float4(dy.x, dy.y, 0.0f, 0.0f),
+                      derivatives,
+                      val);
     }
     if ((type_aggregate == 1 /* TypeDesc::SCALAR */)) {
-      for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i] = average(make_float3(fval[i]));
-      }
+      set_data_float(average(v), average(dx), average(dy), derivatives, val);
       return true;
     }
   }
 
   return false;
 }
+ccl_device_template_spec bool set_attribute(const float3 v,
+                                            const float3 dx,
+                                            const float3 dy,
+                                            const TypeDesc type,
+                                            bool derivatives,
+                                            ccl_private void *val)
+{
+  const unsigned char type_basetype = type & 0xFF;
+  const unsigned char type_aggregate = (type >> 8) & 0xFF;
+  const int type_arraylen = type >> 32;
+
+  if (type_basetype == 11 /* TypeDesc::FLOAT */) {
+    if ((type_aggregate == 3 /* TypeDesc::VEC3 */) || (type_aggregate == 1 && type_arraylen == 3))
+    {
+      set_data_float3(v, dx, dy, derivatives, val);
+      return true;
+    }
+    if ((type_aggregate == 4 /* TypeDesc::VEC4 */) || (type_aggregate == 1 && type_arraylen == 4))
+    {
+      set_data_float4(
+          make_float4(v, 1.0f), make_float4(dx, 0.0f), make_float4(dy, 0.0f), derivatives, val);
+      return true;
+    }
+    if ((type_aggregate == 1 /* TypeDesc::SCALAR */)) {
+      set_data_float(average(v), average(dx), average(dy), derivatives, val);
+      return true;
+    }
+  }
+
+  return false;
+}
+ccl_device_template_spec bool set_attribute(const float4 v,
+                                            const float4 dx,
+                                            const float4 dy,
+                                            const TypeDesc type,
+                                            bool derivatives,
+                                            ccl_private void *val)
+{
+  const unsigned char type_basetype = type & 0xFF;
+  const unsigned char type_aggregate = (type >> 8) & 0xFF;
+  const int type_arraylen = type >> 32;
+
+  if (type_basetype == 11 /* TypeDesc::FLOAT */) {
+    if ((type_aggregate == 3 /* TypeDesc::VEC3 */) || (type_aggregate == 1 && type_arraylen == 3))
+    {
+      set_data_float3(make_float3(v), make_float3(dx), make_float3(dy), derivatives, val);
+      return true;
+    }
+    if ((type_aggregate == 4 /* TypeDesc::VEC4 */) || (type_aggregate == 1 && type_arraylen == 4))
+    {
+      set_data_float4(v, dx, dy, derivatives, val);
+      return true;
+    }
+    if ((type_aggregate == 1 /* TypeDesc::SCALAR */)) {
+      set_data_float(average(make_float3(v)),
+                     average(make_float3(dx)),
+                     average(make_float3(dy)),
+                     derivatives,
+                     val);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template<typename T>
+ccl_device_inline bool set_attribute(const T f,
+                                     const TypeDesc type,
+                                     bool derivatives,
+                                     ccl_private void *val)
+{
+  return set_attribute(f, make_zero<T>(), make_zero<T>(), type, derivatives, val);
+}
+
 ccl_device_inline bool set_attribute_matrix(const ccl_private Transform &tfm,
                                             const TypeDesc type,
                                             ccl_private void *val)
@@ -1034,11 +1034,14 @@ ccl_device_inline bool set_attribute_matrix(const ccl_private Transform &tfm,
 
   return false;
 }
-ccl_device_inline bool set_attribute_int(const int i,
-                                         const TypeDesc type,
-                                         bool derivatives,
-                                         void *val)
+
+ccl_device_template_spec bool set_attribute(const int i,
+                                            const TypeDesc type,
+                                            bool derivatives,
+                                            ccl_private void *val)
 {
+  ccl_private int *ival = static_cast<ccl_private int *>(val);
+
   const unsigned char type_basetype = type & 0xFF;
   const unsigned char type_aggregate = (type >> 8) & 0xFF;
   const int type_arraylen = type >> 32;
@@ -1046,11 +1049,11 @@ ccl_device_inline bool set_attribute_int(const int i,
   if ((type_basetype == 7 /* TypeDesc::INT */) && (type_aggregate == 1 /* TypeDesc::SCALAR */) &&
       type_arraylen == 0)
   {
-    static_cast<ccl_private int *>(val)[0] = i;
+    ival[0] = i;
 
     if (derivatives) {
-      static_cast<ccl_private int *>(val)[1] = 0;
-      static_cast<ccl_private int *>(val)[2] = 0;
+      ival[1] = 0;
+      ival[2] = 0;
     }
 
     return true;
@@ -1072,7 +1075,7 @@ ccl_device_inline bool get_background_attribute(KernelGlobals kg,
   if (name == DeviceStrings::u_path_ray_length) {
     /* Ray Length */
     float f = sd->ray_length;
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
 #define READ_PATH_STATE(elem) \
@@ -1091,27 +1094,27 @@ ccl_device_inline bool get_background_attribute(KernelGlobals kg,
       f += 1;
     }
 
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == DeviceStrings::u_path_diffuse_depth) {
     /* Diffuse Ray Depth */
     const int f = READ_PATH_STATE(diffuse_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == DeviceStrings::u_path_glossy_depth) {
     /* Glossy Ray Depth */
     const int f = READ_PATH_STATE(glossy_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == DeviceStrings::u_path_transmission_depth) {
     /* Transmission Ray Depth */
     const int f = READ_PATH_STATE(transmission_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == DeviceStrings::u_path_transparent_depth) {
     /* Transparent Ray Depth */
     const int f = READ_PATH_STATE(transparent_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #undef READ_PATH_STATE
 
@@ -1139,10 +1142,34 @@ ccl_device_inline bool get_background_attribute(KernelGlobals kg,
       }
     }
 
-    return set_attribute_float3(ndc, type, derivatives, val);
+    return set_attribute(ndc[0], ndc[1], ndc[2], type, derivatives, val);
   }
 
   return false;
+}
+
+template<typename T>
+ccl_device_inline bool get_object_attribute_impl(KernelGlobals kg,
+                                                 ccl_private ShaderData *sd,
+                                                 const AttributeDescriptor &desc,
+                                                 const TypeDesc type,
+                                                 bool derivatives,
+                                                 ccl_private void *val)
+{
+  T v;
+  T dx = make_zero<T>();
+  T dy = make_zero<T>();
+#ifdef __VOLUME__
+  if (primitive_is_volume_attribute(sd, desc)) {
+    v = primitive_volume_attribute<T>(kg, sd, desc);
+  }
+  else
+#endif
+  {
+    v = primitive_surface_attribute<T>(
+        kg, sd, desc, derivatives ? &dx : nullptr, derivatives ? &dy : nullptr);
+  }
+  return set_attribute(v, dx, dy, type, derivatives, val);
 }
 
 ccl_device_inline bool get_object_attribute(KernelGlobals kg,
@@ -1153,48 +1180,16 @@ ccl_device_inline bool get_object_attribute(KernelGlobals kg,
                                             ccl_private void *val)
 {
   if (desc.type == NODE_ATTR_FLOAT) {
-    float fval[3];
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc))
-      fval[0] = primitive_volume_attribute_float(kg, sd, desc);
-    else
-#endif
-      fval[0] = primitive_surface_attribute_float(
-          kg, sd, desc, derivatives ? &fval[1] : nullptr, derivatives ? &fval[2] : nullptr);
-    return set_attribute_float(fval, type, derivatives, val);
+    return get_object_attribute_impl<float>(kg, sd, desc, type, derivatives, val);
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
-    float2 fval[3];
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc))
-      return false;
-    else
-#endif
-      fval[0] = primitive_surface_attribute_float2(
-          kg, sd, desc, derivatives ? &fval[1] : nullptr, derivatives ? &fval[2] : nullptr);
-    return set_attribute_float2(fval, type, derivatives, val);
+    return get_object_attribute_impl<float2>(kg, sd, desc, type, derivatives, val);
   }
   else if (desc.type == NODE_ATTR_FLOAT3) {
-    float3 fval[3];
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc))
-      fval[0] = primitive_volume_attribute_float3(kg, sd, desc);
-    else
-#endif
-      fval[0] = primitive_surface_attribute_float3(
-          kg, sd, desc, derivatives ? &fval[1] : nullptr, derivatives ? &fval[2] : nullptr);
-    return set_attribute_float3(fval, type, derivatives, val);
+    return get_object_attribute_impl<float3>(kg, sd, desc, type, derivatives, val);
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
-    float4 fval[3];
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc))
-      fval[0] = primitive_volume_attribute_float4(kg, sd, desc);
-    else
-#endif
-      fval[0] = primitive_surface_attribute_float4(
-          kg, sd, desc, derivatives ? &fval[1] : nullptr, derivatives ? &fval[2] : nullptr);
-    return set_attribute_float4(fval, type, derivatives, val);
+    return get_object_attribute_impl<float4>(kg, sd, desc, type, derivatives, val);
   }
   else if (desc.type == NODE_ATTR_MATRIX) {
     Transform tfm = primitive_attribute_matrix(kg, desc);
@@ -1215,95 +1210,95 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
   /* Object attributes */
   if (name == DeviceStrings::u_object_location) {
     float3 f = object_location(kg, sd);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_object_color) {
     float3 f = object_color(kg, sd->object);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_object_alpha) {
     float f = object_alpha(kg, sd->object);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_object_index) {
     float f = object_pass_id(kg, sd->object);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_object_is_light) {
     float f = ((sd->type & PRIMITIVE_LAMP) != 0);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_geom_dupli_generated) {
     float3 f = object_dupli_generated(kg, sd->object);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_geom_dupli_uv) {
     float3 f = object_dupli_uv(kg, sd->object);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_material_index) {
     float f = shader_pass_id(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_object_random) {
     const float f = object_random_number(kg, sd->object);
 
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_light_random) {
     const float f = lamp_random_number(kg, sd->lamp);
 
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
   /* Particle attributes */
   else if (name == DeviceStrings::u_particle_index) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_index(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_particle_random) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = hash_uint2_to_float(particle_index(kg, particle_id), 0);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
   else if (name == DeviceStrings::u_particle_age) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_age(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_particle_lifetime) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_lifetime(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_particle_location) {
     int particle_id = object_particle_id(kg, sd->object);
     float3 f = particle_location(kg, particle_id);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #if 0 /* unsupported */
   else if (name == DeviceStrings::u_particle_rotation) {
     int particle_id = object_particle_id(kg, sd->object);
     float4 f = particle_rotation(kg, particle_id);
-    return set_attribute_float4(f, type, derivatives, val);
+    return set_attribute4(f, type, derivatives, val);
   }
 #endif
   else if (name == DeviceStrings::u_particle_size) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_size(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_particle_velocity) {
     int particle_id = object_particle_id(kg, sd->object);
     float3 f = particle_velocity(kg, particle_id);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_particle_angular_velocity) {
     int particle_id = object_particle_id(kg, sd->object);
     float3 f = particle_angular_velocity(kg, particle_id);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
   /* Geometry attributes */
@@ -1321,26 +1316,26 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
 #endif
   else if (name == DeviceStrings::u_is_smooth) {
     float f = ((sd->shader & SHADER_SMOOTH_NORMAL) != 0);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
 #ifdef __HAIR__
   /* Hair attributes */
   else if (name == DeviceStrings::u_is_curve) {
     float f = (sd->type & PRIMITIVE_CURVE) != 0;
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_curve_thickness) {
     float f = curve_thickness(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_curve_tangent_normal) {
     float3 f = curve_tangent_normal(kg, sd);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_curve_random) {
     float f = curve_random(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #endif
 
@@ -1348,26 +1343,26 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
   /* Point attributes */
   else if (name == DeviceStrings::u_is_point) {
     float f = (sd->type & PRIMITIVE_POINT) != 0;
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_point_radius) {
     float f = point_radius(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_point_position) {
     float3 f = point_position(kg, sd);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_point_random) {
     float f = point_random(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #endif
 
   else if (name == DeviceStrings::u_normal_map_normal) {
     if (sd->type & PRIMITIVE_TRIANGLE) {
       float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
-      return set_attribute_float3(f, type, derivatives, val);
+      return set_attribute(f, type, derivatives, val);
     }
     else {
       return false;
@@ -1378,7 +1373,7 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
     if (!attribute_bump_map_normal(kg, sd, f)) {
       return false;
     }
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f[0], f[1], f[2], type, derivatives, val);
   }
 
   return get_background_attribute(kg, sg, sd, name, type, derivatives, val);

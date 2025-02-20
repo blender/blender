@@ -408,14 +408,14 @@ ccl_device_inline void volume_shader_motion_blur(KernelGlobals kg,
    */
 
   /* Find velocity. */
-  float3 velocity = primitive_volume_attribute_float3(kg, sd, v_desc);
+  float3 velocity = primitive_volume_attribute<float3>(kg, sd, v_desc);
   object_dir_transform(kg, sd, &velocity);
 
   /* Find advected P. */
   sd->P = P - (time - time_offset) * velocity_scale * velocity;
 
   /* Find advected velocity. */
-  velocity = primitive_volume_attribute_float3(kg, sd, v_desc);
+  velocity = primitive_volume_attribute<float3>(kg, sd, v_desc);
   object_dir_transform(kg, sd, &velocity);
 
   /* Find advected P. */

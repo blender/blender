@@ -7,6 +7,8 @@
 #include "kernel/globals.h"
 #include "kernel/types.h"
 
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Attributes
@@ -98,17 +100,65 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
   return find_attribute(kg, sd->object, sd->prim, sd->type, id);
 }
 
+/* Templated functions to read from the attribute data */
+template<typename T> ccl_device_inline T attribute_data_fetch(KernelGlobals kg, int offset);
+
+ccl_device_template_spec float attribute_data_fetch(KernelGlobals kg, int offset)
+{
+  return kernel_data_fetch(attributes_float, offset);
+}
+
+ccl_device_template_spec float2 attribute_data_fetch(KernelGlobals kg, int offset)
+{
+  return kernel_data_fetch(attributes_float2, offset);
+}
+
+ccl_device_template_spec float3 attribute_data_fetch(KernelGlobals kg, int offset)
+{
+  return kernel_data_fetch(attributes_float3, offset);
+}
+
+ccl_device_template_spec float4 attribute_data_fetch(KernelGlobals kg, int offset)
+{
+  return kernel_data_fetch(attributes_float4, offset);
+}
+
+ccl_device_template_spec uchar4 attribute_data_fetch(KernelGlobals kg, int offset)
+{
+  return kernel_data_fetch(attributes_uchar4, offset);
+}
+
+/* ATTR_ELEMENT_CORNER_BYTE is stored as uchar4, but has to be converted to float4.
+ * We don't support it for float/float2/float3. */
+template<typename T>
+ccl_device_inline T attribute_data_fetch_bytecolor(KernelGlobals kg, int offset)
+{
+  kernel_assert(false);
+  return make_zero<T>();
+}
+
+ccl_device_template_spec float4 attribute_data_fetch_bytecolor(KernelGlobals kg, int offset)
+{
+  return color_srgb_to_linear_v4(
+      color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, offset)));
+}
+
+ccl_device_template_spec Transform attribute_data_fetch(KernelGlobals kg, int offset)
+{
+  Transform tfm;
+
+  tfm.x = kernel_data_fetch(attributes_float4, offset + 0);
+  tfm.y = kernel_data_fetch(attributes_float4, offset + 1);
+  tfm.z = kernel_data_fetch(attributes_float4, offset + 2);
+
+  return tfm;
+}
+
 /* Transform matrix attribute on meshes */
 
 ccl_device Transform primitive_attribute_matrix(KernelGlobals kg, const AttributeDescriptor desc)
 {
-  Transform tfm;
-
-  tfm.x = kernel_data_fetch(attributes_float4, desc.offset + 0);
-  tfm.y = kernel_data_fetch(attributes_float4, desc.offset + 1);
-  tfm.z = kernel_data_fetch(attributes_float4, desc.offset + 2);
-
-  return tfm;
+  return attribute_data_fetch<Transform>(kg, desc.offset);
 }
 
 CCL_NAMESPACE_END

@@ -424,127 +424,122 @@ bool OSLRenderServices::get_array_attribute(OSL::ShaderGlobals *sg,
   return false;
 }
 
-static bool set_attribute_float2(const float2 f[3], TypeDesc type, bool derivatives, void *val)
+template<typename T>
+inline bool set_attribute(
+    const T v, const T dx, const T dy, TypeDesc type, bool derivatives, void *val);
+
+inline void set_data_float(
+    const float v, const float dx, const float dy, bool derivatives, void *val)
+{
+  float *fval = static_cast<float *>(val);
+  fval[0] = v;
+  if (derivatives) {
+    fval[1] = dx;
+    fval[2] = dy;
+  }
+}
+
+inline void set_data_float3(
+    const float3 v, const float3 dx, const float3 dy, bool derivatives, void *val)
+{
+  float *fval = static_cast<float *>(val);
+  fval[0] = v.x;
+  fval[1] = v.y;
+  fval[2] = v.z;
+  if (derivatives) {
+    fval[3] = dx.x;
+    fval[4] = dx.y;
+    fval[5] = dx.z;
+    fval[6] = dy.x;
+    fval[7] = dy.y;
+    fval[8] = dy.z;
+  }
+}
+
+inline void set_data_float4(
+    const float4 v, const float4 dx, const float4 dy, bool derivatives, void *val)
+{
+  float *fval = static_cast<float *>(val);
+  fval[0] = v.x;
+  fval[1] = v.y;
+  fval[2] = v.z;
+  fval[3] = v.w;
+  if (derivatives) {
+    fval[4] = dx.x;
+    fval[5] = dx.y;
+    fval[6] = dx.z;
+    fval[7] = dx.w;
+    fval[8] = dy.x;
+    fval[9] = dy.y;
+    fval[10] = dy.z;
+    fval[11] = dy.w;
+  }
+}
+
+ccl_device_template_spec bool set_attribute(
+    const float v, const float dx, const float dy, TypeDesc type, bool derivatives, void *val)
 {
   if (type == TypeFloatArray4) {
-    float *fval = (float *)val;
-    fval[0] = f[0].x;
-    fval[1] = f[0].y;
-    fval[2] = 0.0f;
-    fval[3] = 1.0f;
-
-    if (derivatives) {
-      fval[4] = f[1].x;
-      fval[5] = f[1].y;
-      fval[6] = 0.0f;
-      fval[7] = 0.0f;
-
-      fval[8] = f[2].x;
-      fval[9] = f[2].y;
-      fval[10] = 0.0f;
-      fval[11] = 0.0f;
-    }
+    set_data_float4(make_float4(v, v, v, 1.0f),
+                    make_float4(dx, dx, dx, 0.0f),
+                    make_float4(dy, dy, dy, 0.0f),
+                    derivatives,
+                    val);
     return true;
   }
   if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
-    float *fval = (float *)val;
-
-    fval[0] = f[0].x;
-    fval[1] = f[0].y;
-    fval[2] = 0.0f;
-
-    if (derivatives) {
-      fval[3] = f[1].x;
-      fval[4] = f[1].y;
-      fval[5] = 0.0f;
-
-      fval[6] = f[2].x;
-      fval[7] = f[2].y;
-      fval[8] = 0.0f;
-    }
-
+    set_data_float3(make_float3(v), make_float3(dx), make_float3(dy), derivatives, val);
     return true;
   }
   if (type == TypeFloat) {
-    float *fval = (float *)val;
-    fval[0] = average(f[0]);
-
-    if (derivatives) {
-      fval[1] = average(f[1]);
-      fval[2] = average(f[2]);
-    }
-
+    set_data_float(v, dx, dy, derivatives, val);
     return true;
   }
 
   return false;
 }
 
-static bool set_attribute_float3(const float3 f[3], TypeDesc type, bool derivatives, void *val)
+ccl_device_template_spec bool set_attribute(
+    const float2 v, const float2 dx, const float2 dy, TypeDesc type, bool derivatives, void *val)
 {
   if (type == TypeFloatArray4) {
-    float *fval = (float *)val;
-    fval[0] = f[0].x;
-    fval[1] = f[0].y;
-    fval[2] = f[0].z;
-    fval[3] = 1.0f;
-
-    if (derivatives) {
-      fval[4] = f[1].x;
-      fval[5] = f[1].y;
-      fval[6] = f[1].z;
-      fval[7] = 0.0f;
-
-      fval[8] = f[2].x;
-      fval[9] = f[2].y;
-      fval[10] = f[2].z;
-      fval[11] = 0.0f;
-    }
+    set_data_float4(make_float4(v.x, v.y, 0.0f, 1.0f),
+                    make_float4(dx.x, dx.y, 0.0f, 0.0f),
+                    make_float4(dy.x, dy.y, 0.0f, 0.0f),
+                    derivatives,
+                    val);
     return true;
   }
   if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
-    float *fval = (float *)val;
-
-    fval[0] = f[0].x;
-    fval[1] = f[0].y;
-    fval[2] = f[0].z;
-
-    if (derivatives) {
-      fval[3] = f[1].x;
-      fval[4] = f[1].y;
-      fval[5] = f[1].z;
-
-      fval[6] = f[2].x;
-      fval[7] = f[2].y;
-      fval[8] = f[2].z;
-    }
-
+    set_data_float3(make_float3(v), make_float3(dx), make_float3(dy), derivatives, val);
     return true;
   }
   if (type == TypeFloat) {
-    float *fval = (float *)val;
-    fval[0] = average(f[0]);
-
-    if (derivatives) {
-      fval[1] = average(f[1]);
-      fval[2] = average(f[2]);
-    }
-
+    set_data_float(average(v), average(dx), average(dy), derivatives, val);
     return true;
   }
 
   return false;
 }
 
-static bool set_attribute_float3(const float3 f, const TypeDesc type, bool derivatives, void *val)
+ccl_device_template_spec bool set_attribute(
+    const float3 v, const float3 dx, const float3 dy, TypeDesc type, bool derivatives, void *val)
 {
-  float3 fv[3];
+  if (type == TypeFloatArray4) {
+    set_data_float4(
+        make_float4(v, 1.0f), make_float4(dx, 0.0f), make_float4(dy, 0.0f), derivatives, val);
+    return true;
+  }
+  if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
+    set_data_float3(v, dx, dy, derivatives, val);
+    return true;
+  }
+  if (type == TypeFloat) {
+    set_data_float(average(v), average(dx), average(dy), derivatives, val);
+    return true;
+  }
 
-  fv[0] = f;
-  fv[1] = make_float3(0.0f, 0.0f, 0.0f);
-  fv[2] = make_float3(0.0f, 0.0f, 0.0f);
-
-  return set_attribute_float3(fv, type, derivatives, val);
+  return false;
 }
 
 /* Attributes with the TypeRGBA type descriptor should be retrieved and stored
@@ -555,123 +550,38 @@ static bool set_attribute_float3(const float3 f, const TypeDesc type, bool deriv
  * this for the correct operation of the Attribute node.
  */
 
-static bool set_attribute_float4(const float4 f[3], TypeDesc type, bool derivatives, void *val)
+ccl_device_template_spec bool set_attribute(
+    const float4 v, const float4 dx, const float4 dy, TypeDesc type, bool derivatives, void *val)
 {
-  float *fval = (float *)val;
   if (type == TypeFloatArray4) {
-    fval[0] = f[0].x;
-    fval[1] = f[0].y;
-    fval[2] = f[0].z;
-    fval[3] = f[0].w;
-
-    if (derivatives) {
-      fval[4] = f[1].x;
-      fval[5] = f[1].y;
-      fval[6] = f[1].z;
-      fval[7] = f[1].w;
-
-      fval[8] = f[2].x;
-      fval[9] = f[2].y;
-      fval[10] = f[2].z;
-      fval[11] = f[2].w;
-    }
+    set_data_float4(v, dx, dy, derivatives, val);
     return true;
   }
   if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
-    fval[0] = f[0].x;
-    fval[1] = f[0].y;
-    fval[2] = f[0].z;
-
-    if (derivatives) {
-      fval[3] = f[1].x;
-      fval[4] = f[1].y;
-      fval[5] = f[1].z;
-
-      fval[6] = f[2].x;
-      fval[7] = f[2].y;
-      fval[8] = f[2].z;
-    }
+    set_data_float3(make_float3(v), make_float3(dx), make_float3(dy), derivatives, val);
     return true;
   }
   if (type == TypeFloat) {
-    fval[0] = average(make_float3(f[0]));
-
-    if (derivatives) {
-      fval[1] = average(make_float3(f[1]));
-      fval[2] = average(make_float3(f[2]));
-    }
+    set_data_float(average(make_float3(v)),
+                   average(make_float3(dx)),
+                   average(make_float3(dy)),
+                   derivatives,
+                   val);
     return true;
   }
   return false;
 }
 
-static bool set_attribute_float(const float f[3], TypeDesc type, bool derivatives, void *val)
+template<typename T>
+ccl_device_inline bool set_attribute(const T f, const TypeDesc type, bool derivatives, void *val)
 {
-  if (type == TypeFloatArray4) {
-    float *fval = (float *)val;
-    fval[0] = f[0];
-    fval[1] = f[0];
-    fval[2] = f[0];
-    fval[3] = 1.0f;
-
-    if (derivatives) {
-      fval[4] = f[1];
-      fval[5] = f[1];
-      fval[6] = f[1];
-      fval[7] = 0.0f;
-
-      fval[8] = f[2];
-      fval[9] = f[2];
-      fval[10] = f[2];
-      fval[11] = 0.0f;
-    }
-    return true;
-  }
-  if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
-    float *fval = (float *)val;
-    fval[0] = f[0];
-    fval[1] = f[0];
-    fval[2] = f[0];
-
-    if (derivatives) {
-      fval[3] = f[1];
-      fval[4] = f[1];
-      fval[5] = f[1];
-
-      fval[6] = f[2];
-      fval[7] = f[2];
-      fval[8] = f[2];
-    }
-
-    return true;
-  }
-  if (type == TypeFloat) {
-    float *fval = (float *)val;
-    fval[0] = f[0];
-
-    if (derivatives) {
-      fval[1] = f[1];
-      fval[2] = f[2];
-    }
-
-    return true;
-  }
-
-  return false;
+  return set_attribute(f, make_zero<T>(), make_zero<T>(), type, derivatives, val);
 }
 
-static bool set_attribute_float(const float f, const TypeDesc type, bool derivatives, void *val)
-{
-  float fv[3];
-
-  fv[0] = f;
-  fv[1] = 0.0f;
-  fv[2] = 0.0f;
-
-  return set_attribute_float(fv, type, derivatives, val);
-}
-
-static bool set_attribute_int(const int i, const TypeDesc type, bool derivatives, void *val)
+ccl_device_template_spec bool set_attribute(const int i,
+                                            const TypeDesc type,
+                                            bool derivatives,
+                                            void *val)
 {
   if (type.basetype == TypeDesc::INT && type.aggregate == TypeDesc::SCALAR && type.arraylen == 0) {
     int *ival = (int *)val;
@@ -688,7 +598,10 @@ static bool set_attribute_int(const int i, const TypeDesc type, bool derivatives
   return false;
 }
 
-static bool set_attribute_string(ustring str, const TypeDesc type, bool derivatives, void *val)
+ccl_device_template_spec bool set_attribute(ustring str,
+                                            const TypeDesc type,
+                                            bool derivatives,
+                                            void *val)
 {
   if (type.basetype == TypeDesc::STRING && type.aggregate == TypeDesc::SCALAR &&
       type.arraylen == 0)
@@ -747,6 +660,30 @@ static bool set_attribute_matrix(const Transform &tfm, const TypeDesc type, void
   return false;
 }
 
+template<typename T>
+inline bool get_object_attribute_impl(const ThreadKernelGlobalsCPU *kg,
+                                      ShaderData *sd,
+                                      const AttributeDescriptor &desc,
+                                      const TypeDesc &type,
+                                      bool derivatives,
+                                      void *val)
+{
+  T v;
+  T dx = make_zero<T>();
+  T dy = make_zero<T>();
+#ifdef __VOLUME__
+  if (primitive_is_volume_attribute(sd, desc)) {
+    v = primitive_volume_attribute<T>(kg, sd, desc);
+  }
+  else
+#endif
+  {
+    v = primitive_surface_attribute<T>(
+        kg, sd, desc, derivatives ? &dx : nullptr, derivatives ? &dy : nullptr);
+  }
+  return set_attribute(v, dx, dy, type, derivatives, val);
+}
+
 static bool get_object_attribute(const ThreadKernelGlobalsCPU *kg,
                                  ShaderData *sd,
                                  const AttributeDescriptor &desc,
@@ -754,69 +691,19 @@ static bool get_object_attribute(const ThreadKernelGlobalsCPU *kg,
                                  bool derivatives,
                                  void *val)
 {
-  if (desc.type == NODE_ATTR_FLOAT3) {
-    float3 fval[3];
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc)) {
-      fval[0] = primitive_volume_attribute_float3(kg, sd, desc);
-    }
-    else
-#endif
-    {
-      fval[0] = zero_float3();
-      fval[1] = zero_float3();
-      fval[2] = zero_float3();
-      fval[0] = primitive_surface_attribute_float3(
-          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
-    }
-    return set_attribute_float3(fval, type, derivatives, val);
-  }
-  if (desc.type == NODE_ATTR_FLOAT2) {
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc)) {
-      assert(!"Float2 attribute not support for volumes");
-      return false;
-    }
-
-#endif
-    float2 fval[3];
-    fval[0] = primitive_surface_attribute_float2(
-        kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
-    return set_attribute_float2(fval, type, derivatives, val);
-  }
   if (desc.type == NODE_ATTR_FLOAT) {
-    float fval[3];
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc)) {
-      memset(fval, 0, sizeof(fval));
-      fval[0] = primitive_volume_attribute_float(kg, sd, desc);
-    }
-    else
-#endif
-    {
-      fval[0] = primitive_surface_attribute_float(
-          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
-    }
-    return set_attribute_float(fval, type, derivatives, val);
+    return get_object_attribute_impl<float>(kg, sd, desc, type, derivatives, val);
   }
-  if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
-    float4 fval[3];
-#ifdef __VOLUME__
-    if (primitive_is_volume_attribute(sd, desc)) {
-      fval[0] = zero_float4();
-      fval[1] = zero_float4();
-      fval[2] = zero_float4();
-      fval[0] = primitive_volume_attribute_float4(kg, sd, desc);
-    }
-    else
-#endif
-    {
-      fval[0] = primitive_surface_attribute_float4(
-          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
-    }
-    return set_attribute_float4(fval, type, derivatives, val);
+  else if (desc.type == NODE_ATTR_FLOAT2) {
+    return get_object_attribute_impl<float2>(kg, sd, desc, type, derivatives, val);
   }
-  if (desc.type == NODE_ATTR_MATRIX) {
+  else if (desc.type == NODE_ATTR_FLOAT3) {
+    return get_object_attribute_impl<float3>(kg, sd, desc, type, derivatives, val);
+  }
+  else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
+    return get_object_attribute_impl<float4>(kg, sd, desc, type, derivatives, val);
+  }
+  else if (desc.type == NODE_ATTR_MATRIX) {
     const Transform tfm = primitive_attribute_matrix(kg, desc);
     return set_attribute_matrix(tfm, type, val);
   }
@@ -833,97 +720,97 @@ bool OSLRenderServices::get_object_standard_attribute(
   /* Object Attributes */
   if (name == u_object_location) {
     const float3 f = object_location(kg, sd);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_object_color) {
     const float3 f = object_color(kg, sd->object);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_object_alpha) {
     const float f = object_alpha(kg, sd->object);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_object_index) {
     const float f = object_pass_id(kg, sd->object);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_object_is_light) {
     const float f = (sd->type & PRIMITIVE_LAMP) != 0;
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_geom_dupli_generated) {
     const float3 f = object_dupli_generated(kg, sd->object);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_geom_dupli_uv) {
     const float3 f = object_dupli_uv(kg, sd->object);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_material_index) {
     const float f = shader_pass_id(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_object_random) {
     const float f = object_random_number(kg, sd->object);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_light_random) {
     const float f = lamp_random_number(kg, sd->lamp);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
   /* Particle Attributes */
   if (name == u_particle_index) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float f = particle_index(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_particle_random) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float f = hash_uint2_to_float(particle_index(kg, particle_id), 0);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_particle_age) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float f = particle_age(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_particle_lifetime) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float f = particle_lifetime(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_particle_location) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float3 f = particle_location(kg, particle_id);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #if 0 /* unsupported */
   if (name == u_particle_rotation) {
     int particle_id = object_particle_id(kg, sd->object);
     float4 f = particle_rotation(kg, particle_id);
-    return set_attribute_float4(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #endif
   if (name == u_particle_size) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float f = particle_size(kg, particle_id);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_particle_velocity) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float3 f = particle_velocity(kg, particle_id);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_particle_angular_velocity) {
     const int particle_id = object_particle_id(kg, sd->object);
     const float3 f = particle_angular_velocity(kg, particle_id);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
   /* Geometry Attributes */
   if (name == u_geom_numpolyvertices) {
-    return set_attribute_int(3, type, derivatives, val);
+    return set_attribute(3, type, derivatives, val);
   }
   if ((name == u_geom_trianglevertices || name == u_geom_polyvertices) &&
       sd->type & PRIMITIVE_TRIANGLE)
@@ -947,54 +834,54 @@ bool OSLRenderServices::get_object_standard_attribute(
   }
   if (name == u_geom_name) {
     const ustring object_name = kg->osl.globals->object_names[sd->object];
-    return set_attribute_string(object_name, type, derivatives, val);
+    return set_attribute(object_name, type, derivatives, val);
   }
   if (name == u_is_smooth) {
     const float f = ((sd->shader & SHADER_SMOOTH_NORMAL) != 0);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #ifdef __HAIR__
   /* Hair Attributes */
   if (name == u_is_curve) {
     const float f = (sd->type & PRIMITIVE_CURVE) != 0;
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_curve_thickness) {
     const float f = curve_thickness(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_curve_tangent_normal) {
     const float3 f = curve_tangent_normal(kg, sd);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_curve_random) {
     const float f = curve_random(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #endif
 #ifdef __POINTCLOUD__
   /* point attributes */
   if (name == u_is_point) {
     const float f = (sd->type & PRIMITIVE_POINT) != 0;
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_point_radius) {
     const float f = point_radius(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_point_position) {
     const float3 f = point_position(kg, sd);
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_point_random) {
     const float f = point_random(kg, sd);
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #endif
   if (name == u_normal_map_normal) {
     if (sd->type & PRIMITIVE_TRIANGLE) {
       const float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
-      return set_attribute_float3(f, type, derivatives, val);
+      return set_attribute(f, type, derivatives, val);
     }
     return false;
   }
@@ -1003,7 +890,7 @@ bool OSLRenderServices::get_object_standard_attribute(
     if (!attribute_bump_map_normal(kg, sd, f)) {
       return false;
     }
-    return set_attribute_float3(f, type, derivatives, val);
+    return set_attribute(f[0], f[1], f[2], type, derivatives, val);
   }
   return get_background_attribute(globals, name, type, derivatives, val);
 }
@@ -1018,7 +905,7 @@ bool OSLRenderServices::get_background_attribute(
   if (name == u_path_ray_length) {
     /* Ray Length */
     const float f = sd->ray_length;
-    return set_attribute_float(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 
 #define READ_PATH_STATE(elem) \
@@ -1037,27 +924,27 @@ bool OSLRenderServices::get_background_attribute(
       f += 1;
     }
 
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_path_diffuse_depth) {
     /* Diffuse Ray Depth */
     const int f = READ_PATH_STATE(diffuse_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_path_glossy_depth) {
     /* Glossy Ray Depth */
     const int f = READ_PATH_STATE(glossy_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_path_transmission_depth) {
     /* Transmission Ray Depth */
     const int f = READ_PATH_STATE(transmission_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
   if (name == u_path_transparent_depth) {
     /* Transparent Ray Depth */
     const int f = READ_PATH_STATE(transparent_bounce);
-    return set_attribute_int(f, type, derivatives, val);
+    return set_attribute(f, type, derivatives, val);
   }
 #undef READ_PATH_STATE
 
@@ -1085,7 +972,7 @@ bool OSLRenderServices::get_background_attribute(
       }
     }
 
-    return set_attribute_float3(ndc, type, derivatives, val);
+    return set_attribute(ndc[0], ndc[1], ndc[2], type, derivatives, val);
   }
 
   return false;
@@ -1739,12 +1626,11 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
 
   if (source == u_trace && tracedata->init) {
     if (name == u_hit) {
-      return set_attribute_int(tracedata->hit, type, derivatives, val);
+      return set_attribute<int>(tracedata->hit, type, derivatives, val);
     }
     if (tracedata->hit) {
       if (name == u_hitdist) {
-        float f[3] = {tracedata->isect.t, 0.0f, 0.0f};
-        return set_attribute_float(f, type, derivatives, val);
+        return set_attribute(tracedata->isect.t, type, derivatives, val);
       }
 
       ShaderData *sd = &tracedata->sd;
@@ -1756,28 +1642,24 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
       }
 
       if (name == u_N) {
-        return set_attribute_float3(sd->N, type, derivatives, val);
+        return set_attribute(sd->N, type, derivatives, val);
       }
       if (name == u_Ng) {
-        return set_attribute_float3(sd->Ng, type, derivatives, val);
+        return set_attribute(sd->Ng, type, derivatives, val);
       }
       if (name == u_P) {
         const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
-        float3 f[3] = {sd->P, dP.dx, dP.dy};
-        return set_attribute_float3(f, type, derivatives, val);
+        return set_attribute(sd->P, dP.dx, dP.dy, type, derivatives, val);
       }
       if (name == u_I) {
         const differential3 dI = differential_from_compact(sd->wi, sd->dI);
-        float3 f[3] = {sd->wi, dI.dx, dI.dy};
-        return set_attribute_float3(f, type, derivatives, val);
+        return set_attribute(sd->wi, dI.dx, dI.dy, type, derivatives, val);
       }
       if (name == u_u) {
-        float f[3] = {sd->u, sd->du.dx, sd->du.dy};
-        return set_attribute_float(f, type, derivatives, val);
+        return set_attribute(sd->u, sd->du.dx, sd->du.dy, type, derivatives, val);
       }
       if (name == u_v) {
-        float f[3] = {sd->v, sd->dv.dx, sd->dv.dy};
-        return set_attribute_float(f, type, derivatives, val);
+        return set_attribute(sd->v, sd->dv.dx, sd->dv.dy, type, derivatives, val);
       }
 
       return get_attribute(sg, derivatives, u_empty, type, name, val);

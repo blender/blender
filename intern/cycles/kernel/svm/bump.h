@@ -32,7 +32,7 @@ ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     differential3 dP;
-    float3 P = primitive_surface_attribute_float3(kg, sd, desc, &dP.dx, &dP.dy);
+    float3 P = primitive_surface_attribute<float3>(kg, sd, desc, &dP.dx, &dP.dy);
 
     object_position_transform(kg, sd, &P);
     object_dir_transform(kg, sd, &dP.dx);

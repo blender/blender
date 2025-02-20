@@ -67,15 +67,15 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
       const float4 value = volume_attribute_float4(kg, sd, desc);
 
       if (type == NODE_ATTR_OUTPUT_FLOAT) {
-        const float f = volume_attribute_value_to_float(value);
+        const float f = volume_attribute_value<float>(value);
         stack_store_float(stack, out_offset, f);
       }
       else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-        const float3 f = volume_attribute_value_to_float3(value);
+        const float3 f = volume_attribute_value<float3>(value);
         stack_store_float3(stack, out_offset, f);
       }
       else {
-        const float f = volume_attribute_value_to_alpha(value);
+        const float f = volume_attribute_alpha(value);
         stack_store_float(stack, out_offset, f);
       }
       return;
@@ -108,7 +108,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
 
   /* Surface. */
   if (desc.type == NODE_ATTR_FLOAT) {
-    const float f = primitive_surface_attribute_float(kg, sd, desc, nullptr, nullptr);
+    const float f = primitive_surface_attribute<float>(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f);
     }
@@ -120,7 +120,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
-    const float2 f = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
+    const float2 f = primitive_surface_attribute<float2>(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f.x);
     }
@@ -132,7 +132,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
-    const float4 f = primitive_surface_attribute_float4(kg, sd, desc, nullptr, nullptr);
+    const float4 f = primitive_surface_attribute<float4>(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(make_float3(f)));
     }
@@ -144,7 +144,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
     }
   }
   else {
-    const float3 f = primitive_surface_attribute_float3(kg, sd, desc, nullptr, nullptr);
+    const float3 f = primitive_surface_attribute<float3>(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(f));
     }
@@ -216,7 +216,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   /* Surface */
   if (desc.type == NODE_ATTR_FLOAT) {
     float dfdx;
-    const float f = primitive_surface_attribute_float(kg, sd, desc, &dfdx, nullptr);
+    const float f = primitive_surface_attribute<float>(kg, sd, desc, &dfdx, nullptr);
     const float f_x = f + dfdx * BUMP_DX;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f_x);
@@ -230,7 +230,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
     float2 dfdx;
-    const float2 f = primitive_surface_attribute_float2(kg, sd, desc, &dfdx, nullptr);
+    const float2 f = primitive_surface_attribute<float2>(kg, sd, desc, &dfdx, nullptr);
     const float2 f_x = f + dfdx * BUMP_DX;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f_x.x);
@@ -244,7 +244,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
     float4 dfdx;
-    const float4 f = primitive_surface_attribute_float4(kg, sd, desc, &dfdx, nullptr);
+    const float4 f = primitive_surface_attribute<float4>(kg, sd, desc, &dfdx, nullptr);
     const float4 f_x = f + dfdx * BUMP_DX;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(make_float3(f_x)));
@@ -258,7 +258,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   }
   else {
     float3 dfdx;
-    const float3 f = primitive_surface_attribute_float3(kg, sd, desc, &dfdx, nullptr);
+    const float3 f = primitive_surface_attribute<float3>(kg, sd, desc, &dfdx, nullptr);
     const float3 f_x = f + dfdx * BUMP_DX;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(f_x));
@@ -319,7 +319,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   /* Surface */
   if (desc.type == NODE_ATTR_FLOAT) {
     float dfdy;
-    const float f = primitive_surface_attribute_float(kg, sd, desc, nullptr, &dfdy);
+    const float f = primitive_surface_attribute<float>(kg, sd, desc, nullptr, &dfdy);
     const float f_y = f + dfdy * BUMP_DY;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f_y);
@@ -333,7 +333,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
     float2 dfdy;
-    const float2 f = primitive_surface_attribute_float2(kg, sd, desc, nullptr, &dfdy);
+    const float2 f = primitive_surface_attribute<float2>(kg, sd, desc, nullptr, &dfdy);
     const float2 f_y = f + dfdy * BUMP_DY;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f_y.x);
@@ -347,7 +347,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
     float4 dfdy;
-    const float4 f = primitive_surface_attribute_float4(kg, sd, desc, nullptr, &dfdy);
+    const float4 f = primitive_surface_attribute<float4>(kg, sd, desc, nullptr, &dfdy);
     const float4 f_y = f + dfdy * BUMP_DY;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(make_float3(f_y)));
@@ -361,7 +361,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   }
   else {
     float3 dfdy;
-    const float3 f = primitive_surface_attribute_float3(kg, sd, desc, nullptr, &dfdy);
+    const float3 f = primitive_surface_attribute<float3>(kg, sd, desc, nullptr, &dfdy);
     const float3 f_y = f + dfdy * BUMP_DY;
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(f_y));
