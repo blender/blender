@@ -360,7 +360,8 @@ class ColorPalettePanel(BrushPanel):
             return False
 
         settings = cls.paint_settings(context)
-        brush = settings.brush
+        if (brush := settings.brush) is None:
+            return False
 
         if context.space_data.type == 'IMAGE_EDITOR' or context.image_paint_object:
             capabilities = brush.image_paint_capabilities
