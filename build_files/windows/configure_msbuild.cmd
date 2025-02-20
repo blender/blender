@@ -8,7 +8,22 @@ if "%BUILD_WITH_SCCACHE%"=="1" (
 )
 
 if "%WITH_CLANG%"=="1" (
+	REM We want to use an external manifest with Clang
 	set CLANG_CMAKE_ARGS=-T"ClangCl" -DWITH_WINDOWS_EXTERNAL_MANIFEST=ON 
+
+	REM Create the build directory, so that we can create the Directory.build.props file
+	if NOT EXIST %BUILD_DIR%\nul (
+		mkdir %BUILD_DIR%
+	)
+
+	REM This is required as per https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170#custom_llvm_location
+	REM Which allows any copy of LLVM to be used, not just the one that ships with VS
+	echo ^<Project^> >> %BUILD_DIR%\Directory.build.props
+	echo   ^<PropertyGroup^> >> %BUILD_DIR%\Directory.build.props
+	echo     ^<LLVMInstallDir^>%LLVM_DIR%^</LLVMInstallDir^> >> %BUILD_DIR%\Directory.build.props
+	echo     ^<LLVMToolsVersion^>%CLANG_VERSION%^</LLVMToolsVersion^> >> %BUILD_DIR%\Directory.build.props
+	echo   ^</PropertyGroup^> >> %BUILD_DIR%\Directory.build.props
+	echo ^</Project^> >> %BUILD_DIR%\Directory.build.props
 )
 
 if "%WITH_ASAN%"=="1" (
