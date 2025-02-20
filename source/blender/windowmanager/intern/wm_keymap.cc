@@ -1841,9 +1841,9 @@ static bool wm_keymap_test_and_clear_update(wmKeyMap *km)
   return (update != 0);
 }
 
-static wmKeyMap *wm_keymap_preset(wmWindowManager *wm, wmKeyMap *km)
+static wmKeyMap *wm_keymap_preset(wmWindowManager *wm, wmKeyConfig *keyconf, wmKeyMap *km)
 {
-  wmKeyConfig *keyconf = WM_keyconfig_active(wm);
+  BLI_assert(keyconf == WM_keyconfig_active(wm));
   wmKeyMap *keymap = WM_keymap_list_find(&keyconf->keymaps, km->idname, km->spaceid, km->regionid);
   if (!keymap && wm->defaultconf) {
     keymap = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, km->spaceid, km->regionid);
@@ -1891,6 +1891,8 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
   }
 
   if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_RECONFIGURE) {
+    wmKeyConfig *kc_active = WM_keyconfig_active(wm);
+
     /* Update operator properties for non-modal user keymaps. */
     LISTBASE_FOREACH (wmKeyMap *, km, &U.user_keymaps) {
       if ((km->flag & KEYMAP_MODAL) == 0) {
@@ -1914,7 +1916,7 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
       /* Only diff if the user keymap was modified. */
       if (wm_keymap_test_and_clear_update(km)) {
         /* Find keymaps. */
-        wmKeyMap *defaultmap = wm_keymap_preset(wm, km);
+        wmKeyMap *defaultmap = wm_keymap_preset(wm, kc_active, km);
         wmKeyMap *addonmap = WM_keymap_list_find(
             &wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
 
@@ -1928,7 +1930,7 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
     /* Create user key configuration from preset + addon + user preferences. */
     LISTBASE_FOREACH (wmKeyMap *, km, &wm->defaultconf->keymaps) {
       /* Find keymaps. */
-      wmKeyMap *defaultmap = wm_keymap_preset(wm, km);
+      wmKeyMap *defaultmap = wm_keymap_preset(wm, kc_active, km);
       wmKeyMap *addonmap = WM_keymap_list_find(
           &wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
       wmKeyMap *usermap = WM_keymap_list_find(
@@ -2034,7 +2036,8 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
   }
 
   /* Construct default keymap from preset + addons. */
-  wmKeyMap *defaultmap = wm_keymap_preset(wm, keymap);
+  wmKeyConfig *kc_active = WM_keyconfig_active(wm);
+  wmKeyMap *defaultmap = wm_keymap_preset(wm, kc_active, keymap);
   wmKeyMap *addonmap = WM_keymap_list_find(
       &wm->addonconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 
