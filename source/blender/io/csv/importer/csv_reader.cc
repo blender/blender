@@ -355,6 +355,13 @@ PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params)
     data->remove_user_and_delete_if_last();
   }
 
+  /* Since all positions are set to zero, the bounding box can be updated eagerly to avoid
+   * computing it later. */
+  pointcloud->runtime->bounds_cache.ensure([](Bounds<float3> &r_bounds) {
+    r_bounds.min = float3(0);
+    r_bounds.max = float3(0);
+  });
+
   return pointcloud;
 }
 
