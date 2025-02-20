@@ -11,6 +11,7 @@
 #include <optional>
 #include <variant>
 
+#include "BLI_array_utils.hh"
 #include "fast_float.h"
 
 #include "BKE_anonymous_attribute_id.hh"
@@ -326,17 +327,21 @@ PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params)
 
   Array<std::optional<GArray<>>> flattened_attributes;
   threading::memory_bandwidth_bound_task(points_num * 16, [&]() {
-    threading::parallel_invoke([&]() { pointcloud->positions_for_write().fill(float3(0)); },
-                               [&]() {
-                                 flattened_attributes = flatten_valid_attribute_chunks(
-                                     columns_info, chunk_offsets, *parsed_chunks);
-                               });
+    threading::parallel_invoke(
+        [&]() {
+          array_utils::copy(VArray<float3>::ForSingle(float3(0), points_num),
+                            pointcloud->positions_for_write());
+        },
+        [&]() {
+          flattened_attributes = flatten_valid_attribute_chunks(
+              columns_info, chunk_offsets, *parsed_chunks);
+        });
   });
 
   /* Add all valid attributes to the pointcloud. */
   bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
   for (const int column_i : columns_info.index_range()) {
-    const std::optional<GArray<>> &attribute = flattened_attributes[column_i];
+    std::optional<GArray<>> &attribute = flattened_attributes[column_i];
     if (!attribute.has_value()) {
       continue;
     }
