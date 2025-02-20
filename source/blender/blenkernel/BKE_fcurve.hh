@@ -478,10 +478,15 @@ bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
 /**
  * Resize the FCurve 'bezt' array to fit the given length.
  *
+ * This potentially moves the entire array, and thus pointers from before this call should be
+ * considered invalid / dangling.
+ *
  * \param new_totvert: new number of elements in the FCurve's `bezt` array.
- * Constraint: `0 <= new_totvert <= fcu->totvert`
+ *
+ * \note When increasing the size of the array, newly added elements are not initialized. That is
+ * left to the caller.
  */
-void BKE_fcurve_bezt_shrink(FCurve *fcu, int new_totvert);
+void BKE_fcurve_bezt_resize(FCurve *fcu, int new_totvert);
 
 /**
  * Merge the two given BezTriple arrays `a` and `b` into a newly allocated BezTriple array of size
