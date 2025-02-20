@@ -71,6 +71,11 @@ int join_objects(bContext *C, wmOperator *op)
       bke::GeometrySet::from_instances(&instances, bke::GeometryOwnershipType::ReadOnly),
       geometry::RealizeInstancesOptions());
 
+  if (!realized_geometry.has_pointcloud()) {
+    BKE_report(op->reports, RPT_WARNING, "No point cloud data to join");
+    return OPERATOR_CANCELLED;
+  }
+
   PointCloud *realized_points =
       realized_geometry.get_component_for_write<bke::PointCloudComponent>().release();
   BKE_pointcloud_nomain_to_pointcloud(realized_points, &active_pointcloud);

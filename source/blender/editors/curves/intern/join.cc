@@ -68,6 +68,11 @@ int join_objects(bContext *C, wmOperator *op)
       bke::GeometrySet::from_instances(&instances, bke::GeometryOwnershipType::ReadOnly),
       geometry::RealizeInstancesOptions());
 
+  if (!realized_geometry.has_curves()) {
+    BKE_report(op->reports, RPT_WARNING, "No curves data to join");
+    return OPERATOR_CANCELLED;
+  }
+
   Curves *realized_curves = realized_geometry.get_curves_for_write();
   active_curves.geometry.wrap() = std::move(realized_curves->geometry.wrap());
 
