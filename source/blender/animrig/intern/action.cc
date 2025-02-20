@@ -2634,10 +2634,7 @@ FCurve *action_fcurve_ensure_ex(Main *bmain,
   return action_fcurve_ensure(bmain, *act, *ptr->owner_id, fcurve_descriptor);
 }
 
-FCurve *action_fcurve_ensure(Main *bmain,
-                             bAction &dna_action,
-                             ID &animated_id,
-                             FCurveDescriptor fcurve_descriptor)
+Channelbag *action_channelbag_ensure(bAction &dna_action, ID &animated_id)
 {
   Action &action = dna_action.wrap();
 
@@ -2660,7 +2657,21 @@ FCurve *action_fcurve_ensure(Main *bmain,
   assert_baklava_phase_1_invariants(action);
   StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
 
-  return &strip_data.channelbag_for_slot_ensure(*slot).fcurve_ensure(bmain, fcurve_descriptor);
+  return &strip_data.channelbag_for_slot_ensure(*slot);
+}
+
+FCurve *action_fcurve_ensure(Main *bmain,
+                             bAction &dna_action,
+                             ID &animated_id,
+                             FCurveDescriptor fcurve_descriptor)
+{
+  Channelbag *channelbag = action_channelbag_ensure(dna_action, animated_id);
+  BLI_assert(channelbag);
+  if (!channelbag) {
+    return nullptr;
+  }
+
+  return &channelbag->fcurve_ensure(bmain, fcurve_descriptor);
 }
 
 FCurve *action_fcurve_ensure_legacy(Main *bmain,

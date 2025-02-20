@@ -1608,10 +1608,9 @@ bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
   return true;
 }
 
-void BKE_fcurve_bezt_shrink(FCurve *fcu, const int new_totvert)
+void BKE_fcurve_bezt_resize(FCurve *fcu, const int new_totvert)
 {
   BLI_assert(new_totvert >= 0);
-  BLI_assert(new_totvert <= fcu->totvert);
 
   /* No early return when new_totvert == fcu->totvert. There is no way to know the intention of the
    * caller, nor the history of the FCurve so far, so `fcu->bezt` may actually have allocated space
@@ -1940,7 +1939,7 @@ void BKE_fcurve_deduplicate_keys(FCurve *fcu)
     }
   }
 
-  BKE_fcurve_bezt_shrink(fcu, prev_bezt_index + 1);
+  BKE_fcurve_bezt_resize(fcu, prev_bezt_index + 1);
 }
 
 /** \} */

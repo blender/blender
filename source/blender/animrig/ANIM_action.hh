@@ -1626,6 +1626,20 @@ Span<FCurve *> fcurves_for_action_slot(Action &action, slot_handle_t slot_handle
 Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t slot_handle);
 
 /**
+ * Find or create a Channelbag on the given action, for the given ID.
+ *
+ * This function also ensures that there is a layer and a keyframe strip for the
+ * channelbag to exist on.
+ *
+ * \param action: MUST already be assigned to the animated ID.
+ *
+ * \param animated_id: The ID that is animated by this Action. It is used to
+ * create and assign an appropriate slot if needed when creating the fcurve, and
+ * set the fcurve color properly
+ */
+Channelbag *action_channelbag_ensure(bAction &dna_action, ID &animated_id);
+
+/**
  * Find or create an F-Curve on the given action that matches the given fcurve
  * descriptor.
  *
