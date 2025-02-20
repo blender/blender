@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_manager_c.hh"
 #include "draw_subdivision.hh"
 
 #include "DNA_mesh_types.h"
@@ -43,6 +44,7 @@
 #include "draw_cache_extract.hh"
 #include "draw_cache_impl.hh"
 #include "draw_cache_inline.hh"
+#include "draw_common_c.hh"
 #include "draw_shader.hh"
 #include "draw_subdiv_shader_shared.hh"
 #include "mesh_extractors/extract_mesh.hh"
@@ -1926,7 +1928,18 @@ void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCach
   });
 }
 
-static OpenSubdiv_EvaluatorCache *g_evaluator_cache = nullptr;
+/**
+ * OpenSubdiv GPU evaluation module.
+ */
+struct SubdivModule {
+  OpenSubdiv_EvaluatorCache *evaluator_cache = openSubdiv_createEvaluatorCache(
+      OPENSUBDIV_EVALUATOR_GPU);
+
+  ~SubdivModule()
+  {
+    openSubdiv_deleteEvaluatorCache(evaluator_cache);
+  }
+};
 
 void DRW_create_subdivision(Object &ob,
                             Mesh &mesh,
@@ -1941,8 +1954,9 @@ void DRW_create_subdivision(Object &ob,
                             const ToolSettings *ts,
                             const bool use_hide)
 {
-  if (g_evaluator_cache == nullptr) {
-    g_evaluator_cache = openSubdiv_createEvaluatorCache(OPENSUBDIV_EVALUATOR_GPU);
+  DRWData &drw_data = *DST.vmempool;
+  if (drw_data.subdiv_module == nullptr) {
+    drw_data.subdiv_module = MEM_new<SubdivModule>("SubdivModule");
   }
 
 #undef TIME_SUBDIV
@@ -1963,7 +1977,7 @@ void DRW_create_subdivision(Object &ob,
                                             do_cage,
                                             ts,
                                             use_hide,
-                                            g_evaluator_cache))
+                                            drw_data.subdiv_module->evaluator_cache))
   {
     return;
   }
@@ -1975,16 +1989,18 @@ void DRW_create_subdivision(Object &ob,
 #endif
 }
 
-void DRW_subdiv_free()
+void DRW_subdiv_module_free(SubdivModule *subdiv_module)
 {
-  DRW_cache_free_old_subdiv();
-
-  if (g_evaluator_cache) {
-    openSubdiv_deleteEvaluatorCache(g_evaluator_cache);
-    g_evaluator_cache = nullptr;
-  }
+  MEM_delete(subdiv_module);
 }
 
+/**
+ * The `bke::subdiv::Subdiv` data is being owned the modifier.
+ * Since the modifier can be freed from any thread (e.g. from depsgraph multithreaded update)
+ * which may not have a valid GPUContext active, we move the data to discard to this free list
+ * until a codepath with a active GPUContext is hit.
+ * This is kindof garbage collection.
+ */
 static LinkNode *gpu_subdiv_free_queue = nullptr;
 static ThreadMutex gpu_subdiv_queue_mutex = BLI_MUTEX_INITIALIZER;
 
