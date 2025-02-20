@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -128,6 +129,29 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
   BLI_linklist_append(available_sockets, sock);
 }
 
+static eNodeSocketDatatype socket_type_from_pass(const RenderPass *pass)
+{
+  switch (pass->channels) {
+    case 1:
+      return SOCK_FLOAT;
+    case 2:
+    case 3:
+      return SOCK_VECTOR;
+    case 4:
+      if (blender::StringRef(pass->chan_id) == "XYZW") {
+        return SOCK_VECTOR;
+      }
+      else {
+        return SOCK_RGBA;
+      }
+    default:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return SOCK_FLOAT;
+}
+
 static void cmp_node_image_create_outputs(bNodeTree *ntree,
                                           bNode *node,
                                           LinkNodePair *available_sockets)
@@ -157,14 +181,7 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree,
 
       if (rl) {
         LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
-          eNodeSocketDatatype type;
-          if (rpass->channels == 1) {
-            type = SOCK_FLOAT;
-          }
-          else {
-            type = SOCK_RGBA;
-          }
-
+          const eNodeSocketDatatype type = socket_type_from_pass(rpass);
           cmp_node_image_add_pass_output(ntree,
                                          node,
                                          rpass->name,
