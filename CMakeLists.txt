@@ -830,6 +830,13 @@ Run GPU render tests silently (finished tests will pass). \
 Generated report will show failing tests"
   ON
 )
+option(WITH_GPU_RENDER_TESTS_HEADED "\
+Enable GPU render related unit testing that doesn't work in background mode. \
+These tests require an environment with a display server to run. \
+Requires WITH_GPU_RENDER_TESTS "
+  OFF
+)
+mark_as_advanced(WITH_GPU_RENDER_TESTS_HEADED)
 option(WITH_GPU_BACKEND_TESTS "\
 Enable GPU backend related unit testing"
   OFF
