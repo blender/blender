@@ -8,9 +8,9 @@
 # For anyone making their own library build, matching these exactly is not
 # needed but it can be a useful reference.
 
-set(RELEASE_GCC_VERSION 11.2.*)
-set(RELEASE_CUDA_VERSION 12.8.*)
-set(RELEASE_HIP_VERSION 5.7.*)
+set(RELEASE_GCC_VERSION 11.2)
+set(RELEASE_CUDA_VERSION 12.8)
+set(RELEASE_HIP_VERSION 6.3)
 
 # Libraries
 #
@@ -1371,10 +1371,10 @@ set(PYBIND11_HOMEPAGE https://github.com/pybind/pybind11)
 set(PYBIND11_LICENSE SPDX:BSD-2-Clause)
 set(PYBIND11_COPYRIGHT "Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.")
 
-set(HIPRT_VERSION 83e18cc9c3de8f2f9c48b663cf3189361e891054)
-set(HIPRT_LIBRARY_VERSION 02003)
+set(HIPRT_VERSION c4298933fe046e3f915977b5a69537a59aac8f47)
+set(HIPRT_LIBRARY_VERSION 02005)
 set(HIPRT_URI https://github.com/GPUOpen-LibrariesAndSDKs/HIPRT/archive/${HIPRT_VERSION}.tar.gz)
-set(HIPRT_HASH b5639fa06bea45eff98bea2929516f7c)
+set(HIPRT_HASH 65b8a975d23db04d908c758f3fb7bae3)
 set(HIPRT_HASH_TYPE MD5)
 set(HIPRT_FILE hiprt-${HIPRT_VERSION}.tar.gz)
 set(HIPRT_HOMEPAGE https://github.com/GPUOpen-LibrariesAndSDKs/HIPRT)

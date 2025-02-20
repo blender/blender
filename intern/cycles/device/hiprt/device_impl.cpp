@@ -145,7 +145,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   const std::string arch = hipDeviceArch(hipDevId);
 
   if (!use_adaptive_compilation()) {
-    const string fatbin = path_get(string_printf("lib/%s_rt_gfx.hipfb.zst", name));
+    const string fatbin = path_get(string_printf("lib/%s_rt_%s.hipfb.zst", name, arch.c_str()));
     VLOG(1) << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
       VLOG(1) << "Using precompiled kernel.";
@@ -160,16 +160,9 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
   const string include_path = source_path;
-  const string cycles_bc = string_printf(
-      "cycles_%s_%s_%s.bc", name, arch.c_str(), kernel_md5.c_str());
-  const string cycles_bitcode = path_cache_get(path_join("kernels", cycles_bc));
   const string fatbin_file = string_printf(
       "cycles_%s_%s_%s.hipfb", name, arch.c_str(), kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
-  const string hiprt_bc = string_printf(
-      "hiprt_%s_%s_%s.bc", name, arch.c_str(), kernel_md5.c_str());
-  const string hiprt_bitcode = path_cache_get(path_join("kernels", hiprt_bc));
-
   const string hiprt_include_path = path_join(source_path, "kernel/device/hiprt");
 
   VLOG(1) << "Testing for locally compiled kernel " << fatbin << ".";
@@ -219,89 +212,35 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
 
   path_create_directories(fatbin);
 
-  string rtc_options;
-  rtc_options.append(" --offload-arch=").append(arch);
-  rtc_options.append(" -D __HIPRT__");
-  rtc_options.append(" -ffast-math -O3 -std=c++17");
-  rtc_options.append(" -fgpu-rdc -c --gpu-bundle-output -c -emit-llvm");
-
   source_path = path_join(path_join(source_path, "kernel"),
                           path_join("device", path_join(base, string_printf("%s.cpp", name))));
+
+  const char *const kernel_ext = "genco";
+  string options;
+  options.append(
+      "-Wno-parentheses-equality -Wno-unused-value -ffast-math -O3 -std=c++17 -D __HIPRT__");
+  options.append(" --offload-arch=").append(arch.c_str());
+#  ifdef WITH_NANOVDB
+  options.append(" -D WITH_NANOVDB");
+#  endif
 
   printf("Compiling  %s and caching to %s", source_path.c_str(), fatbin.c_str());
 
   double starttime = time_dt();
 
-  if (!path_exists(cycles_bitcode)) {
-
-    string command = string_printf("%s %s -I %s  -I %s %s -o \"%s\"",
-                                   hipcc,
-                                   rtc_options.c_str(),
-                                   include_path.c_str(),
-                                   hiprt_include_path.c_str(),
-                                   source_path.c_str(),
-                                   cycles_bitcode.c_str());
-
-    printf("Compiling %sHIP kernel ...\n%s\n",
-           (use_adaptive_compilation()) ? "adaptive " : "",
-           command.c_str());
+  string compile_command = string_printf("%s %s -I %s -I %s --%s %s -o \"%s\"",
+                                         hipcc,
+                                         options.c_str(),
+                                         include_path.c_str(),
+                                         hiprt_include_path.c_str(),
+                                         kernel_ext,
+                                         source_path.c_str(),
+                                         fatbin.c_str());
 
 #  ifdef _WIN32
-    command = "call " + command;
+  compile_command = "call " + compile_command;
 #  endif
-    if (system(command.c_str()) != 0) {
-      set_error(
-          "Failed to execute compilation command, "
-          "see console for details.");
-      return string();
-    }
-  }
-
-  if (!path_exists(hiprt_bitcode)) {
-
-    rtc_options.append(" -x hip");
-    rtc_options.append(" -D HIPRT_BITCODE_LINKING ");
-
-    string source_path = path_join(hiprt_include_path, "/hiprt/impl/hiprt_kernels_bitcode.h");
-
-    string command = string_printf("%s %s -I %s %s -o \"%s\"",
-                                   hipcc,
-                                   rtc_options.c_str(),
-                                   hiprt_include_path.c_str(),
-                                   source_path.c_str(),
-                                   hiprt_bitcode.c_str());
-
-    printf("Compiling %sHIP kernel ...\n%s\n",
-           (use_adaptive_compilation()) ? "adaptive " : "",
-           command.c_str());
-
-#  ifdef _WIN32
-    command = "call " + command;
-#  endif
-    if (system(command.c_str()) != 0) {
-      set_error(
-          "Failed to execute compilation command, "
-          "see console for details.");
-      return string();
-    }
-  }
-
-  // After compilation, the bitcode produced is linked with HIP RT bitcode (containing
-  // implementations of HIP RT functions, e.g. traversal, to produce the final executable code
-  string linker_options;
-  linker_options.append(" --offload-arch=").append(arch);
-  linker_options.append(" -fgpu-rdc --hip-link --cuda-device-only ");
-
-  string linker_command = string_printf("clang++ %s \"%s\" \"%s\" -o \"%s\"",
-                                        linker_options.c_str(),
-                                        cycles_bitcode.c_str(),
-                                        hiprt_bitcode.c_str(),
-                                        fatbin.c_str());
-
-#  ifdef _WIN32
-  linker_command = "call " + linker_command;
-#  endif
-  if (system(linker_command.c_str()) != 0) {
+  if (system(compile_command.c_str()) != 0) {
     set_error(
         "Failed to execute linking command, "
         "see console for details.");
@@ -831,14 +770,19 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
   if (rt_err != hiprtSuccess) {
     set_error(string_printf("Failed to create BLAS!"));
   }
-  bvh->geom_input = geom_input;
   {
     thread_scoped_lock lock(hiprt_mutex);
     if (blas_scratch_buffer_size > scratch_buffer_size) {
       scratch_buffer.alloc(blas_scratch_buffer_size);
-      scratch_buffer_size = blas_scratch_buffer_size;
       scratch_buffer.zero_to_device();
+      if (!scratch_buffer.device_pointer) {
+        hiprtDestroyGeometry(hiprt_context, bvh->hiprt_geom);
+        bvh->hiprt_geom = nullptr;
+        return;
+      }
+      scratch_buffer_size = blas_scratch_buffer_size;
     }
+    bvh->geom_input = geom_input;
     rt_err = hiprtBuildGeometry(hiprt_context,
                                 hiprtBuildOperationBuild,
                                 bvh->geom_input,
@@ -1003,6 +947,28 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     blender_instance_id++;
   }
 
+  size_t table_ptr_size = 0;
+  hipDeviceptr_t table_device_ptr;
+
+  hip_assert(hipModuleGetGlobal(&table_device_ptr, &table_ptr_size, hipModule, "kernel_params"));
+
+  size_t kernel_param_offset[4];
+  int table_index = 0;
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_closest_intersect);
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_shadow_intersect);
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_local_intersect);
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_volume_intersect);
+
+  for (int index = 0; index < table_index; index++) {
+
+    hip_assert(hipMemcpyHtoD(table_device_ptr + kernel_param_offset[index],
+                             (void *)&functions_table,
+                             sizeof(device_ptr)));
+  }
+
+  if (num_instances == 0)
+    return nullptr;
+
   int frame_count = transform_matrix.size();
   hiprtSceneBuildInput scene_input_ptr = {nullptr};
   scene_input_ptr.instanceCount = num_instances;
@@ -1107,25 +1073,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     prims_time.host_pointer = nullptr;
 
     prim_time_offset.copy_to_device();
-  }
-
-  size_t table_ptr_size = 0;
-  hipDeviceptr_t table_device_ptr;
-
-  hip_assert(hipModuleGetGlobal(&table_device_ptr, &table_ptr_size, hipModule, "kernel_params"));
-
-  size_t kernel_param_offset[4];
-  int table_index = 0;
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_closest_intersect);
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_shadow_intersect);
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_local_intersect);
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_volume_intersect);
-
-  for (int index = 0; index < table_index; index++) {
-
-    hip_assert(hipMemcpyHtoD(table_device_ptr + kernel_param_offset[index],
-                             (void *)&functions_table,
-                             sizeof(device_ptr)));
   }
 
   return scene;

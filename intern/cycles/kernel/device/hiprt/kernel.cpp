@@ -7,7 +7,7 @@
 #  include "kernel/device/hip/compat.h"
 #  include "kernel/device/hip/config.h"
 
-#  include <hiprt/hiprt_device.h>
+#  include <hiprt/impl/hiprt_device_impl.h>
 
 #  include "kernel/device/hiprt/globals.h"
 

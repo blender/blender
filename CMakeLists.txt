@@ -715,7 +715,8 @@ if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64"))
   set(CYCLES_HIP_BINARIES_ARCH
     gfx1010 gfx1011 gfx1012
     gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1036
-    gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151
+    gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1152
+    gfx1200 gfx1201
     CACHE STRING "AMD HIP architectures to build binaries for"
   )
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
