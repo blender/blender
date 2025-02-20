@@ -12,6 +12,9 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
+
 #include "CLG_log.h"
 #include "testing/testing.h"
 
@@ -151,6 +154,37 @@ TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
   EXPECT_EQ(&other_action, action_and_slot->first)
       << "Expected Action " << other_action.id.name << " but found "
       << action_and_slot->first->id.name;
+  EXPECT_EQ(&another_slot, action_and_slot->second)
+      << "Expected Slot " << another_slot.identifier << " but found "
+      << action_and_slot->second->identifier;
+}
+
+TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_rna)
+{
+  /* Create a cube and assign the Action + a slot. */
+  Object *cube = static_cast<Object *>(BKE_id_new(bmain, ID_OB, "OBCube"));
+  Slot *slot_cube = assign_action_ensure_slot_for_keying(*action, cube->id);
+  ASSERT_NE(slot_cube, nullptr);
+  Slot &another_slot = action->slot_add();
+
+  const auto assign_other_slot = [&](ID & /* animated_id */,
+                                     bAction *action,
+                                     PointerRNA &action_slot_owner_ptr,
+                                     PropertyRNA &action_slot_prop,
+                                     char * /*last_slot_identifier*/) -> bool {
+    PointerRNA rna_slot = RNA_pointer_create_discrete(&action->id, &RNA_ActionSlot, &another_slot);
+    RNA_property_pointer_set(&action_slot_owner_ptr, &action_slot_prop, rna_slot, nullptr);
+    return true;
+  };
+
+  foreach_action_slot_use_with_rna(cube->id, assign_other_slot);
+
+  /* Check the result, the slot assignment should have been changed. */
+  std::optional<std::pair<Action *, Slot *>> action_and_slot = get_action_slot_pair(cube->id);
+
+  ASSERT_TRUE(action_and_slot.has_value());
+  EXPECT_EQ(action, action_and_slot->first)
+      << "Expected Action " << action->id.name << " but found " << action_and_slot->first->id.name;
   EXPECT_EQ(&another_slot, action_and_slot->second)
       << "Expected Slot " << another_slot.identifier << " but found "
       << action_and_slot->second->identifier;
