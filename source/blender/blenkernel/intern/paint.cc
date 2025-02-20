@@ -2246,9 +2246,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
                                                           Object *ob,
                                                           const bool auto_create_mdisps)
 {
-  Mesh *mesh = (Mesh *)ob->data;
-  ModifierData *md;
-  VirtualModifierData virtual_modifier_data;
+  Mesh &mesh = *static_cast<Mesh *>(ob->data);
 
   if (ob->sculpt && ob->sculpt->bm) {
     /* Can't combine multires and dynamic topology. */
@@ -2257,7 +2255,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
   bool need_mdisps = false;
 
-  if (!CustomData_get_layer(&mesh->corner_data, CD_MDISPS)) {
+  if (!CustomData_get_layer(&mesh.corner_data, CD_MDISPS)) {
     if (!auto_create_mdisps) {
       /* Multires can't work without displacement layer. */
       return nullptr;
@@ -2271,10 +2269,12 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
     return nullptr;
   }
 
-  for (md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md; md = md->next)
+  VirtualModifierData virtual_modifier_data;
+  for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
+       md = md->next)
   {
     if (md->type == eModifierType_Multires) {
-      MultiresModifierData *mmd = (MultiresModifierData *)md;
+      MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(md);
 
       if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
         continue;
@@ -2282,7 +2282,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
       if (mmd->sculptlvl > 0 && !(mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh)) {
         if (need_mdisps) {
-          CustomData_add_layer(&mesh->corner_data, CD_MDISPS, CD_SET_DEFAULT, mesh->corners_num);
+          CustomData_add_layer(&mesh.corner_data, CD_MDISPS, CD_SET_DEFAULT, mesh.corners_num);
         }
 
         return mmd;
@@ -2301,35 +2301,34 @@ MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
 }
 
 /* Checks if there are any supported deformation modifiers active */
-static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
+static bool sculpt_modifiers_active(const Scene *scene, const Sculpt *sd, Object *ob)
 {
-  ModifierData *md;
-  Mesh *mesh = (Mesh *)ob->data;
-  VirtualModifierData virtual_modifier_data;
+  const Mesh &mesh = *static_cast<Mesh *>(ob->data);
 
   if (ob->sculpt->bm || BKE_sculpt_multires_active(scene, ob)) {
     return false;
   }
 
   /* Non-locked shape keys could be handled in the same way as deformed mesh. */
-  if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && mesh->key && ob->shapenr) {
+  if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && mesh.key && ob->shapenr) {
     return true;
   }
 
-  md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
-
-  /* Exception for shape keys because we can edit those. */
-  for (; md; md = md->next) {
+  VirtualModifierData virtual_modifier_data;
+  for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
+       md = md->next)
+  {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
     if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
       continue;
     }
     if (md->type == eModifierType_Multires && (ob->mode & OB_MODE_SCULPT)) {
-      MultiresModifierData *mmd = (MultiresModifierData *)md;
+      MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(md);
       if (!(mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh)) {
         continue;
       }
     }
+    /* Exception for shape keys because we can edit those. */
     if (md->type == eModifierType_ShapeKey) {
       continue;
     }
