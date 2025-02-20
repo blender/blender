@@ -3441,7 +3441,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     wmWindowManager *wm = CTX_wm_manager(C);
     if (wm->op_undo_depth == 0) {
       ID *id = rc->ptr.owner_id;
-      if (ED_undo_is_legacy_compatible_for_property(C, id)) {
+      if (ED_undo_is_legacy_compatible_for_property(C, id, rc->ptr)) {
         ED_undo_push(C, op->type->name);
       }
     }
