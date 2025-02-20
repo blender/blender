@@ -855,8 +855,9 @@ wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths)
 
   for (const char *path : paths) {
     path_data->paths.append(path);
-    path_data->file_types_bit_flag |= ED_path_extension_type(path);
-    path_data->file_types.append(ED_path_extension_type(path));
+    const int type_flag = ED_path_extension_type(path);
+    path_data->file_types_bit_flag |= type_flag;
+    path_data->file_types.append(type_flag);
   }
 
   path_data->tooltip = path_data->paths[0];
