@@ -39,6 +39,7 @@
 
 #include "WM_api.hh"
 
+#include "ED_info.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
@@ -985,12 +986,7 @@ static bool view3d_localview_exit(const Depsgraph *depsgraph,
 
   MEM_freeN(v3d->localvd);
   v3d->localvd = nullptr;
-  /* Cannot use MEM_SAFE_FREE, as #SceneStats type is only forward-declared in `DNA_layer_types.h`
-   */
-  if (v3d->runtime.local_stats) {
-    MEM_freeN(static_cast<void *>(v3d->runtime.local_stats));
-    v3d->runtime.local_stats = nullptr;
-  }
+  ED_view3d_local_stats_free(v3d);
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_WINDOW) {

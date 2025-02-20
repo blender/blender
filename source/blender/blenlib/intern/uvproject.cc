@@ -173,6 +173,11 @@ ProjCameraInfo *BLI_uvproject_camera_info(const Object *ob,
   return nullptr;
 }
 
+void BLI_uvproject_camera_info_free(ProjCameraInfo *uci)
+{
+  MEM_freeN(uci);
+}
+
 void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])
 {
   float pv[3];

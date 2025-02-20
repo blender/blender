@@ -54,6 +54,8 @@
 #  include "BPY_extern.hh"
 #endif
 
+#include "WM_types.hh"
+
 using blender::Span;
 using blender::Vector;
 

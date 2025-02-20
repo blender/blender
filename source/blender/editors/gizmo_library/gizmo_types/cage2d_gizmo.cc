@@ -1290,9 +1290,8 @@ static void gizmo_cage2d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
   RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
 
-  /* Cannot use MEM_SAFE_FREE, as #Dial type is only forward-declared in `BLI_dial_2d.h` */
   if (data->dial) {
-    MEM_freeN(static_cast<void *>(data->dial));
+    BLI_dial_free(data->dial);
     data->dial = nullptr;
   }
 

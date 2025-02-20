@@ -1975,6 +1975,8 @@ void filelist_free(FileList *filelist)
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
 
   filelist->flags &= ~(FL_NEED_SORTING | FL_NEED_FILTERING);
+
+  MEM_freeN(filelist);
 }
 
 blender::asset_system::AssetLibrary *filelist_asset_library(FileList *filelist)
@@ -4196,7 +4198,6 @@ static void filelist_readjob_free(void *flrjv)
 
     filelist_freelib(flrj->tmp_filelist);
     filelist_free(flrj->tmp_filelist);
-    MEM_freeN(flrj->tmp_filelist);
   }
 
   BLI_mutex_end(&flrj->lock);

@@ -2715,6 +2715,11 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
   rv3d->pixsize = rv3dmat->pixsize;
 }
 
+void ED_view3D_mats_rv3d_free(RV3DMatrixStore *rv3d_mat)
+{
+  MEM_freeN(rv3d_mat);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

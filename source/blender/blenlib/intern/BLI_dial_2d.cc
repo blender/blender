@@ -44,6 +44,11 @@ Dial *BLI_dial_init(const float start_position[2], float threshold)
   return dial;
 }
 
+void BLI_dial_free(Dial *dial)
+{
+  MEM_freeN(dial);
+}
+
 float BLI_dial_angle(Dial *dial, const float current_position[2])
 {
   float current_direction[2];

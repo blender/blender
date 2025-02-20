@@ -3208,9 +3208,8 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   ScrArea *area = CTX_wm_area(C);
 
-  /* Cannot use MEM_SAFE_FREE, as #Dial type is only forward-declared in `BLI_dial_2d.h` */
   if (rc->dial) {
-    MEM_freeN(static_cast<void *>(rc->dial));
+    BLI_dial_free(rc->dial);
     rc->dial = nullptr;
   }
 
@@ -3405,9 +3404,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (event->val == KM_RELEASE) {
         rc->slow_mode = false;
         handled = true;
-        /* Cannot use MEM_SAFE_FREE, as #Dial type is only forward-declared in `BLI_dial_2d.h` */
         if (rc->dial) {
-          MEM_freeN(static_cast<void *>(rc->dial));
+          BLI_dial_free(rc->dial);
           rc->dial = nullptr;
         }
       }

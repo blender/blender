@@ -117,7 +117,6 @@ static void file_free(SpaceLink *sl)
     /* XXX would need to do thumbnails_stop here, but no context available */
     filelist_freelib(sfile->files);
     filelist_free(sfile->files);
-    MEM_freeN(static_cast<void *>(sfile->files));
     sfile->files = nullptr;
   }
 

@@ -8,6 +8,7 @@
 
 #include "DNA_curve_types.h"
 
+#include "BLI_dial_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
@@ -385,9 +386,8 @@ void ViewOpsData::end_navigation(bContext *C)
     WM_event_timer_remove(CTX_wm_manager(C), this->timer->win, this->timer);
   }
 
-  /* Cannot use MEM_SAFE_FREE, as #Dial type is only forward-declared in `BLI_dial_2d.h` */
   if (this->init.dial) {
-    MEM_freeN(static_cast<void *>(this->init.dial));
+    BLI_dial_free(this->init.dial);
     this->init.dial = nullptr;
   }
 

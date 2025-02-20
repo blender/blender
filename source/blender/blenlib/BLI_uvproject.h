@@ -45,4 +45,8 @@ void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float
 /**
  * So we can adjust scale with keeping the struct private.
  */
-void BLI_uvproject_camera_info_scale(struct ProjCameraInfo *uci, float scale_x, float scale_y);
+void BLI_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float scale_y);
+
+/*
+ * Free info. */
+void BLI_uvproject_camera_info_free(ProjCameraInfo *uci);
