@@ -300,35 +300,55 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
   ImageBuf orig_buf(ctx.mem_spec, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
   ImageBuf final_buf{};
 
-  /* Grayscale images need to be based on luminance weights rather than only
-   * using a single channel from the source. */
-  if (ctx.ibuf->channels > 1 && file_spec.nchannels == 1) {
-    float weights[4] = {};
 #if OIIO_VERSION_MAJOR >= 3
-    const size_t nchannels = orig_buf.nchannels();
+  const size_t original_channels_count = orig_buf.nchannels();
 #else
-    const int nchannels = orig_buf.nchannels();
+  const int original_channels_count = orig_buf.nchannels();
 #endif
+
+  if (original_channels_count > 1 && file_spec.nchannels == 1) {
+    /* Convert to gray-scale image by computing the luminance. Make sure the weight of alpha
+     * channel is zero since it should not contribute to the luminance. */
+    float weights[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     IMB_colormanagement_get_luminance_coefficients(weights);
-    ImageBufAlgo::channel_sum(final_buf, orig_buf, {weights, nchannels});
+    ImageBufAlgo::channel_sum(final_buf, orig_buf, {weights, original_channels_count});
+  }
+  else if (original_channels_count == 1 && file_spec.nchannels > 1) {
+    /* Broadcast the gray-scale channel to as many channels as needed, filling the alpha channel
+     * with ones if needed. 0 channel order mean we will be copying from the first channel, while
+     * -1 means we will be filling based on the corresponding value from the defined channel
+     * values. */
+    const int channel_order[] = {0, 0, 0, -1};
+    const float channel_values[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    const std::string channel_names[] = {"R", "G", "B", "A"};
+    ImageBufAlgo::channels(final_buf,
+                           orig_buf,
+                           file_spec.nchannels,
+                           cspan<int>(channel_order, file_spec.nchannels),
+                           cspan<float>(channel_values, file_spec.nchannels),
+                           cspan<std::string>(channel_names, file_spec.nchannels));
+  }
+  else if (original_channels_count != file_spec.nchannels) {
+    /* Either trim or fill new channels based on the needed channels count. */
+    int channel_order[4];
+    for (int i = 0; i < 4; i++) {
+      /* If a channel exists in the original buffer, we copy it, if not, we fill it by supplying
+       * -1, which is a special value that means filling based on the value in the defined channels
+       * values. So alpha is filled with 1, and other channels are filled with zero. */
+      const bool channel_exists = i + 1 <= original_channels_count;
+      channel_order[i] = channel_exists ? i : -1;
+    }
+    const float channel_values[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    const std::string channel_names[] = {"R", "G", "B", "A"};
+    ImageBufAlgo::channels(final_buf,
+                           orig_buf,
+                           file_spec.nchannels,
+                           cspan<int>(channel_order, file_spec.nchannels),
+                           cspan<float>(channel_values, file_spec.nchannels),
+                           cspan<std::string>(channel_names, file_spec.nchannels));
   }
   else {
-    /* If we are moving from an 1-channel format to n-channel we need to
-     * ensure the original data is copied into the higher channels. */
-    if (ctx.ibuf->channels == 1 && file_spec.nchannels > 1) {
-      final_buf = ImageBuf(file_spec, InitializePixels::No);
-      ImageBufAlgo::paste(final_buf, 0, 0, 0, 0, orig_buf);
-      ImageBufAlgo::paste(final_buf, 0, 0, 0, 1, orig_buf);
-      ImageBufAlgo::paste(final_buf, 0, 0, 0, 2, orig_buf);
-      if (file_spec.alpha_channel == 3) {
-        ROI alpha_roi = file_spec.roi();
-        alpha_roi.chbegin = file_spec.alpha_channel;
-        ImageBufAlgo::fill(final_buf, {0, 0, 0, 1.0f}, alpha_roi);
-      }
-    }
-    else {
-      final_buf = std::move(orig_buf);
-    }
+    final_buf = std::move(orig_buf);
   }
 
   bool write_ok = false;
