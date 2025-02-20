@@ -197,9 +197,13 @@ class Result {
   /* Returns the float type of the result given the channels count. */
   static ResultType float_type(const int channels_count);
 
+  /* Returns the CPP type corresponding to the given result type. */
+  static const CPPType &cpp_type(const ResultType type);
+
   /* Implicit conversion to the internal GPU texture. */
   operator GPUTexture *() const;
 
+  /* Returns the CPP type of the result. */
   const CPPType &get_cpp_type() const;
 
   /* Returns the appropriate texture format based on the result's type and precision. This is

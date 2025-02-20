@@ -221,14 +221,9 @@ ResultType Result::float_type(const int channels_count)
   return ResultType::Color;
 }
 
-Result::operator GPUTexture *() const
+const CPPType &Result::cpp_type(const ResultType type)
 {
-  return this->gpu_texture();
-}
-
-const CPPType &Result::get_cpp_type() const
-{
-  switch (this->type()) {
+  switch (type) {
     case ResultType::Float:
       return CPPType::get<float>();
     case ResultType::Int:
@@ -247,6 +242,16 @@ const CPPType &Result::get_cpp_type() const
 
   BLI_assert_unreachable();
   return CPPType::get<float>();
+}
+
+Result::operator GPUTexture *() const
+{
+  return this->gpu_texture();
+}
+
+const CPPType &Result::get_cpp_type() const
+{
+  return Result::cpp_type(this->type());
 }
 
 eGPUTextureFormat Result::get_gpu_texture_format() const

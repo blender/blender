@@ -52,29 +52,6 @@ MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(Context &contex
   procedure_executor_ = std::make_unique<mf::ProcedureExecutor>(procedure_);
 }
 
-static const CPPType &get_cpp_type(ResultType type)
-{
-  switch (type) {
-    case ResultType::Float:
-      return CPPType::get<float>();
-    case ResultType::Int:
-      return CPPType::get<int>();
-    case ResultType::Float3:
-      return CPPType::get<float3>();
-    case ResultType::Color:
-      return CPPType::get<float4>();
-    case ResultType::Float4:
-      return CPPType::get<float4>();
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
-  }
-
-  BLI_assert_unreachable();
-  return CPPType::get<float>();
-}
-
 /* Adds the single value input parameter of the given input to the given parameter_builder. */
 static void add_single_value_input_parameter(mf::ParamsBuilder &parameter_builder,
                                              const Result &input)
@@ -355,7 +332,7 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
   declare_input_descriptor(input_identifier, input_descriptor);
 
   mf::Variable &variable = procedure_builder_.add_input_parameter(
-      mf::DataType::ForSingle(get_cpp_type(input_descriptor.type)), input_identifier);
+      mf::DataType::ForSingle(Result::cpp_type(input_descriptor.type)), input_identifier);
   parameter_identifiers_.append(input_identifier);
 
   /* Map the output socket to the variable that was created for it. */
