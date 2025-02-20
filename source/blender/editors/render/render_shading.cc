@@ -1442,6 +1442,11 @@ static int lightprobe_cache_bake_invoke(bContext *C, wmOperator *op, const wmEve
 
   wmJob *wm_job = EEVEE_NEXT_lightbake_job_create(
       wm, win, bmain, view_layer, scene, probes, data->report, scene->r.cfra, 0);
+  if (wm_job == nullptr) {
+    MEM_delete(data);
+    BKE_report(op->reports, RPT_WARNING, "Can't bake light probe while rendering");
+    return OPERATOR_CANCELLED;
+  }
 
   WM_event_add_modal_handler(C, op);
 
