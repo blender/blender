@@ -2985,6 +2985,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   const int new_curves_num = dst_to_src_curves.size();
 
   bke::CurvesGeometry dst(new_points_num, new_curves_num);
+  BKE_defgroup_copy_list(&dst.vertex_group_names, &src.vertex_group_names);
 
   /* Setup curve offsets, based on the number of points in each curve. */
   MutableSpan<int> new_curve_offsets = dst.offsets_for_write();
