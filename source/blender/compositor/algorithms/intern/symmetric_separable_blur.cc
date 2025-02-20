@@ -74,11 +74,10 @@ static const char *get_blur_shader(const ResultType type)
   switch (type) {
     case ResultType::Float:
       return "compositor_symmetric_separable_blur_float";
-    case ResultType::Vector:
+    case ResultType::Float3:
     case ResultType::Color:
       return "compositor_symmetric_separable_blur_float4";
     case ResultType::Float2:
-    case ResultType::Float3:
     case ResultType::Float4:
     case ResultType::Int2:
     case ResultType::Int:
@@ -172,7 +171,6 @@ static Result horizontal_pass_cpu(Context &context,
         blur_pass<float, false>(input, weights, output);
       }
       break;
-    case ResultType::Vector:
     case ResultType::Color:
       if (extend_bounds) {
         blur_pass<float4, true>(input, weights, output);
@@ -271,7 +269,6 @@ static void vertical_pass_cpu(Context &context,
         blur_pass<float, false>(horizontal_pass_result, weights, output);
       }
       break;
-    case ResultType::Vector:
     case ResultType::Color:
       if (extend_bounds) {
         blur_pass<float4, true>(horizontal_pass_result, weights, output);

@@ -131,13 +131,12 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Float:
         return "compositor_realize_on_domain_bicubic_float";
       case ResultType::Color:
-      case ResultType::Vector:
+      case ResultType::Float3:
       case ResultType::Float4:
         return "compositor_realize_on_domain_bicubic_float4";
       case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
-      case ResultType::Float3:
         /* Realization does not support internal image types. */
         break;
     }
@@ -147,13 +146,12 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Float:
         return "compositor_realize_on_domain_float";
       case ResultType::Color:
-      case ResultType::Vector:
+      case ResultType::Float3:
       case ResultType::Float4:
         return "compositor_realize_on_domain_float4";
       case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
-      case ResultType::Float3:
         /* Realization does not support internal image types. */
         break;
     }

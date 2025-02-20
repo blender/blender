@@ -677,11 +677,15 @@ class FileOutputOperation : public NodeOperation {
           file_output.add_pass(pass_name, view_name, "RGBA", buffer);
         }
         break;
-      case ResultType::Vector:
-        file_output.add_pass(pass_name, view_name, "XYZ", float4_to_float3_image(size, buffer));
-        break;
       case ResultType::Float3:
-        file_output.add_pass(pass_name, view_name, "XYZ", buffer);
+        /* Float3 results might be stored in 4-component textures due to hardware limitations, so
+         * we need to convert the buffer to a 3-component buffer on the host. */
+        if (this->context().use_gpu() && GPU_texture_component_len(GPU_texture_format(result))) {
+          file_output.add_pass(pass_name, view_name, "XYZ", float4_to_float3_image(size, buffer));
+        }
+        else {
+          file_output.add_pass(pass_name, view_name, "XYZ", buffer);
+        }
         break;
       case ResultType::Float4:
         file_output.add_pass(pass_name, view_name, "XYZW", buffer);
@@ -689,8 +693,10 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Float:
         file_output.add_pass(pass_name, view_name, "V", buffer);
         break;
-      default:
-        /* Other types are internal and needn't be handled by operations. */
+      case ResultType::Float2:
+      case ResultType::Int2:
+      case ResultType::Int:
+        /* Not supported. */
         BLI_assert_unreachable();
         break;
     }
@@ -712,7 +718,6 @@ class FileOutputOperation : public NodeOperation {
             size, [&](const int2 texel) { buffer[int64_t(texel.y) * size.x + texel.x] = value; });
         return buffer;
       }
-      case ResultType::Vector:
       case ResultType::Color: {
         float *buffer = static_cast<float *>(MEM_malloc_arrayN(
             size_t(size.x) * size.y, sizeof(float[4]), "File Output Inflated Buffer."));
@@ -775,17 +780,23 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Float4:
         file_output.add_view(view_name, 4, buffer);
         break;
-      case ResultType::Vector:
-        file_output.add_view(view_name, 3, float4_to_float3_image(size, buffer));
-        break;
       case ResultType::Float3:
-        file_output.add_view(view_name, 3, buffer);
+        /* Float3 results might be stored in 4-component textures due to hardware limitations, so
+         * we need to convert the buffer to a 3-component buffer on the host. */
+        if (this->context().use_gpu() && GPU_texture_component_len(GPU_texture_format(result))) {
+          file_output.add_view(view_name, 3, float4_to_float3_image(size, buffer));
+        }
+        else {
+          file_output.add_view(view_name, 3, buffer);
+        }
         break;
       case ResultType::Float:
         file_output.add_view(view_name, 1, buffer);
         break;
-      default:
-        /* Other types are internal and needn't be handled by operations. */
+      case ResultType::Float2:
+      case ResultType::Int2:
+      case ResultType::Int:
+        /* Not supported. */
         BLI_assert_unreachable();
         break;
     }

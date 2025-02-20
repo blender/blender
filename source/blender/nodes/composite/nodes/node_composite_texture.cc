@@ -58,8 +58,8 @@ class TextureOperation : public NodeOperation {
         texture,
         true,
         domain.size,
-        get_input("Offset").get_single_value_default(float4(0.0f)).xyz(),
-        get_input("Scale").get_single_value_default(float4(1.0f)).xyz());
+        get_input("Offset").get_single_value_default(float3(0.0f)),
+        get_input("Scale").get_single_value_default(float3(1.0f)));
 
     Result &color_result = get_result("Color");
     if (color_result.should_compute()) {

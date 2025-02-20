@@ -1416,16 +1416,14 @@ static float3 get_luminance_coefficients(ResultType type)
       IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
       return luminance_coefficients;
     }
-    case ResultType::Vector:
-    case ResultType::Float4:
-      return float3(1.0f, 1.0f, 1.0f);
     case ResultType::Float:
       return float3(1.0f, 0.0f, 0.0f);
     case ResultType::Float2:
       return float3(1.0f, 1.0f, 0.0f);
     case ResultType::Float3:
-      /* GPU module does not support float3 outputs. */
-      break;
+      return float3(1.0f, 1.0f, 1.0f);
+    case ResultType::Float4:
+      return float3(1.0f, 1.0f, 1.0f);
     case ResultType::Int:
     case ResultType::Int2:
       /* SMAA does not support integer types. */
@@ -1588,7 +1586,6 @@ static const char *get_blend_shader_name(ResultType type)
 {
   switch (type) {
     case ResultType::Color:
-    case ResultType::Vector:
     case ResultType::Float4:
       return "compositor_smaa_neighborhood_blending_float4";
     case ResultType::Float2:
@@ -1596,8 +1593,7 @@ static const char *get_blend_shader_name(ResultType type)
     case ResultType::Float:
       return "compositor_smaa_neighborhood_blending_float";
     case ResultType::Float3:
-      /* GPU module does not support float3 outputs. */
-      break;
+      return "compositor_smaa_neighborhood_blending_float4";
     case ResultType::Int:
     case ResultType::Int2:
       /* SMAA does not support integer types. */
@@ -1666,20 +1662,17 @@ static void compute_single_value(Result &input, Result &output)
     case ResultType::Color:
       output.set_single_value(input.get_single_value<float4>());
       break;
-    case ResultType::Vector:
-      output.set_single_value(input.get_single_value<float4>());
-      break;
     case ResultType::Float4:
       output.set_single_value(input.get_single_value<float4>());
+      break;
+    case ResultType::Float3:
+      output.set_single_value(input.get_single_value<float3>());
       break;
     case ResultType::Float2:
       output.set_single_value(input.get_single_value<float2>());
       break;
     case ResultType::Float:
       output.set_single_value(input.get_single_value<float>());
-      break;
-    case ResultType::Float3:
-      output.set_single_value(input.get_single_value<float3>());
       break;
     case ResultType::Int:
       output.set_single_value(input.get_single_value<int>());

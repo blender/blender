@@ -68,11 +68,11 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   const float3 normalized_node_normal = get_vector_value(builder.node());
 
   builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::SI1_SO2<float4, float4, float>(
+    return mf::build::SI1_SO2<float3, float3, float>(
         "Normal And Dot",
-        [=](const float4 &normal, float4 &output_normal, float &dot) -> void {
-          output_normal = float4(normalized_node_normal, 0.0f);
-          dot = -math::dot(normal.xyz(), normalized_node_normal);
+        [=](const float3 &normal, float3 &output_normal, float &dot) -> void {
+          output_normal = normalized_node_normal;
+          dot = -math::dot(normal, normalized_node_normal);
         },
         mf::build::exec_presets::AllSpanOrSingle());
   });

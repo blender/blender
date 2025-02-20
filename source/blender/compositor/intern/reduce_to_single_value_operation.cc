@@ -47,7 +47,7 @@ void ReduceToSingleValueOperation::execute()
     case ResultType::Color:
       result.set_single_value(float4(static_cast<float *>(pixel)));
       break;
-    case ResultType::Vector:
+    case ResultType::Float3:
       result.set_single_value(float4(static_cast<float *>(pixel)));
       break;
     case ResultType::Float4:
@@ -60,7 +60,6 @@ void ReduceToSingleValueOperation::execute()
       result.set_single_value(*static_cast<int *>(pixel));
       break;
     case ResultType::Float2:
-    case ResultType::Float3:
     case ResultType::Int2:
       /* Those types are internal and needn't be handled by operations. */
       BLI_assert_unreachable();

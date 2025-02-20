@@ -195,10 +195,10 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   BKE_curvemapping_init(curve_mapping);
 
   builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::SI1_SO<float4, float4>(
+    return mf::build::SI1_SO<float3, float3>(
         "Vector Curves",
-        [=](const float4 &vector) -> float4 {
-          float4 output_vector = float4(0.0f);
+        [=](const float3 &vector) -> float3 {
+          float3 output_vector = float3(0.0f);
           BKE_curvemapping_evaluate3F(curve_mapping, output_vector, vector);
           return output_vector;
         },

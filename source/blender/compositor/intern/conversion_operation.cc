@@ -86,8 +86,8 @@ const char *ConversionOperation::get_conversion_shader_name()
       switch (this->get_result().type()) {
         case ResultType::Int:
           return "compositor_convert_float_to_int";
-        case ResultType::Vector:
-          return "compositor_convert_float_to_vector";
+        case ResultType::Float3:
+          return "compositor_convert_float_to_float3";
         case ResultType::Color:
           return "compositor_convert_float_to_color";
         case ResultType::Float4:
@@ -96,7 +96,6 @@ const char *ConversionOperation::get_conversion_shader_name()
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -106,8 +105,8 @@ const char *ConversionOperation::get_conversion_shader_name()
       switch (this->get_result().type()) {
         case ResultType::Float:
           return "compositor_convert_int_to_float";
-        case ResultType::Vector:
-          return "compositor_convert_int_to_vector";
+        case ResultType::Float3:
+          return "compositor_convert_int_to_float3";
         case ResultType::Color:
           return "compositor_convert_int_to_color";
         case ResultType::Float4:
@@ -116,27 +115,25 @@ const char *ConversionOperation::get_conversion_shader_name()
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
       break;
-    case ResultType::Vector:
+    case ResultType::Float3:
       switch (this->get_result().type()) {
         case ResultType::Float:
-          return "compositor_convert_vector_to_float";
+          return "compositor_convert_float3_to_float";
         case ResultType::Int:
-          return "compositor_convert_vector_to_int";
+          return "compositor_convert_float3_to_int";
         case ResultType::Color:
-          return "compositor_convert_vector_to_color";
+          return "compositor_convert_float3_to_color";
         case ResultType::Float4:
-          return "compositor_convert_vector_to_float4";
-        case ResultType::Vector:
+          return "compositor_convert_float3_to_float4";
+        case ResultType::Float3:
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -148,15 +145,14 @@ const char *ConversionOperation::get_conversion_shader_name()
           return "compositor_convert_color_to_float";
         case ResultType::Int:
           return "compositor_convert_color_to_int";
-        case ResultType::Vector:
-          return "compositor_convert_color_to_vector";
+        case ResultType::Float3:
+          return "compositor_convert_color_to_float3";
         case ResultType::Float4:
           return "compositor_convert_color_to_float4";
         case ResultType::Color:
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -168,22 +164,20 @@ const char *ConversionOperation::get_conversion_shader_name()
           return "compositor_convert_float4_to_float";
         case ResultType::Int:
           return "compositor_convert_float4_to_int";
-        case ResultType::Vector:
-          return "compositor_convert_float4_to_vector";
+        case ResultType::Float3:
+          return "compositor_convert_float4_to_float3";
         case ResultType::Color:
           return "compositor_convert_float4_to_color";
         case ResultType::Float4:
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
       break;
     case ResultType::Float2:
-    case ResultType::Float3:
     case ResultType::Int2:
       /* Types are not user facing, so we needn't implement them. */
       break;
@@ -201,8 +195,8 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
         case ResultType::Int:
           output.set_single_value(float_to_int(input.get_single_value<float>()));
           return;
-        case ResultType::Vector:
-          output.set_single_value(float_to_vector(input.get_single_value<float>()));
+        case ResultType::Float3:
+          output.set_single_value(float_to_float3(input.get_single_value<float>()));
           return;
         case ResultType::Color:
           output.set_single_value(float_to_color(input.get_single_value<float>()));
@@ -214,7 +208,6 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -225,8 +218,8 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
         case ResultType::Float:
           output.set_single_value(int_to_float(input.get_single_value<int>()));
           return;
-        case ResultType::Vector:
-          output.set_single_value(int_to_vector(input.get_single_value<int>()));
+        case ResultType::Float3:
+          output.set_single_value(int_to_float3(input.get_single_value<int>()));
           return;
         case ResultType::Color:
           output.set_single_value(int_to_color(input.get_single_value<int>()));
@@ -238,31 +231,29 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
       break;
-    case ResultType::Vector:
+    case ResultType::Float3:
       switch (this->get_result().type()) {
         case ResultType::Float:
-          output.set_single_value(vector_to_float(input.get_single_value<float4>()));
+          output.set_single_value(float3_to_float(input.get_single_value<float3>()));
           return;
         case ResultType::Int:
-          output.set_single_value(vector_to_int(input.get_single_value<float4>()));
+          output.set_single_value(float3_to_int(input.get_single_value<float3>()));
           return;
         case ResultType::Color:
-          output.set_single_value(vector_to_color(input.get_single_value<float4>()));
+          output.set_single_value(float3_to_color(input.get_single_value<float3>()));
           return;
         case ResultType::Float4:
-          output.set_single_value(vector_to_float4(input.get_single_value<float4>()));
+          output.set_single_value(float3_to_float4(input.get_single_value<float3>()));
           return;
-        case ResultType::Vector:
+        case ResultType::Float3:
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -276,8 +267,8 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
         case ResultType::Int:
           output.set_single_value(color_to_int(input.get_single_value<float4>()));
           return;
-        case ResultType::Vector:
-          output.set_single_value(color_to_vector(input.get_single_value<float4>()));
+        case ResultType::Float3:
+          output.set_single_value(color_to_float3(input.get_single_value<float4>()));
           return;
         case ResultType::Float4:
           output.set_single_value(color_to_float4(input.get_single_value<float4>()));
@@ -286,7 +277,6 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -300,8 +290,8 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
         case ResultType::Int:
           output.set_single_value(float4_to_int(input.get_single_value<float4>()));
           return;
-        case ResultType::Vector:
-          output.set_single_value(float4_to_vector(input.get_single_value<float4>()));
+        case ResultType::Float3:
+          output.set_single_value(float4_to_float3(input.get_single_value<float4>()));
           return;
         case ResultType::Color:
           output.set_single_value(float4_to_color(input.get_single_value<float4>()));
@@ -310,14 +300,12 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
       break;
     case ResultType::Float2:
-    case ResultType::Float3:
     case ResultType::Int2:
       /* Types are not user facing, so we needn't implement them. */
       break;
@@ -336,9 +324,9 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
             output.store_pixel(texel, float_to_int(input.load_pixel<float>(texel)));
           });
           return;
-        case ResultType::Vector:
+        case ResultType::Float3:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_vector(input.load_pixel<float>(texel)));
+            output.store_pixel(texel, float_to_float3(input.load_pixel<float>(texel)));
           });
           return;
         case ResultType::Color:
@@ -355,7 +343,6 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -368,9 +355,9 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
             output.store_pixel(texel, int_to_float(input.load_pixel<int>(texel)));
           });
           return;
-        case ResultType::Vector:
+        case ResultType::Float3:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_vector(input.load_pixel<int>(texel)));
+            output.store_pixel(texel, int_to_float3(input.load_pixel<int>(texel)));
           });
           return;
         case ResultType::Color:
@@ -387,39 +374,37 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
       break;
-    case ResultType::Vector:
+    case ResultType::Float3:
       switch (this->get_result().type()) {
         case ResultType::Float:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, vector_to_float(input.load_pixel<float4>(texel)));
+            output.store_pixel(texel, float3_to_float(input.load_pixel<float3>(texel)));
           });
           return;
         case ResultType::Int:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, vector_to_int(input.load_pixel<float4>(texel)));
+            output.store_pixel(texel, float3_to_int(input.load_pixel<float3>(texel)));
           });
           return;
         case ResultType::Color:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, vector_to_color(input.load_pixel<float4>(texel)));
+            output.store_pixel(texel, float3_to_color(input.load_pixel<float3>(texel)));
           });
           return;
         case ResultType::Float4:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, vector_to_float4(input.load_pixel<float4>(texel)));
+            output.store_pixel(texel, float3_to_float4(input.load_pixel<float3>(texel)));
           });
           return;
-        case ResultType::Vector:
+        case ResultType::Float3:
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -437,9 +422,9 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
             output.store_pixel(texel, color_to_int(input.load_pixel<float4>(texel)));
           });
           return;
-        case ResultType::Vector:
+        case ResultType::Float3:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_vector(input.load_pixel<float4>(texel)));
+            output.store_pixel(texel, color_to_float3(input.load_pixel<float4>(texel)));
           });
           return;
         case ResultType::Float4:
@@ -451,7 +436,6 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
@@ -469,9 +453,9 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
             output.store_pixel(texel, float4_to_int(input.load_pixel<float4>(texel)));
           });
           return;
-        case ResultType::Vector:
+        case ResultType::Float3:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_vector(input.load_pixel<float4>(texel)));
+            output.store_pixel(texel, float4_to_float3(input.load_pixel<float4>(texel)));
           });
           return;
         case ResultType::Color:
@@ -483,14 +467,12 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
           /* Same type, no conversion needed. */
           break;
         case ResultType::Float2:
-        case ResultType::Float3:
         case ResultType::Int2:
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
       break;
     case ResultType::Float2:
-    case ResultType::Float3:
     case ResultType::Int2:
       /* Types are not user facing, so we needn't implement them. */
       break;

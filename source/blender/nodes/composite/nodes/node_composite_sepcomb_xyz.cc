@@ -41,9 +41,9 @@ static int node_gpu_material(GPUMaterial *material,
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::SI1_SO3<float4, float, float, float>(
+  static auto function = mf::build::SI1_SO3<float3, float, float, float>(
       "Separate XYZ",
-      [](const float4 &vector, float &x, float &y, float &z) -> void {
+      [](const float3 &vector, float &x, float &y, float &z) -> void {
         x = vector.x;
         y = vector.y;
         z = vector.z;
@@ -97,9 +97,9 @@ static int node_gpu_material(GPUMaterial *material,
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::SI3_SO<float, float, float, float4>(
+  static auto function = mf::build::SI3_SO<float, float, float, float3>(
       "Combine XYZ",
-      [](const float x, const float y, const float z) -> float4 { return float4(x, y, z, 0.0f); },
+      [](const float x, const float y, const float z) -> float3 { return float3(x, y, z); },
       mf::build::exec_presets::Materialized());
   builder.set_matching_fn(function);
 }

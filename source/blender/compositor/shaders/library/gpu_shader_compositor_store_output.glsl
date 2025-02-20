@@ -24,16 +24,16 @@ void node_compositor_store_output_int(const float id, float value, out float out
   out_value = value;
 }
 
-void node_compositor_store_output_vector(const float id, vec3 vector, out vec3 out_vector)
+void node_compositor_store_output_float3(const float id, vec3 value, out vec3 out_value)
 {
-  store_vector(floatBitsToUint(id), vector);
-  out_vector = vector;
+  store_float3(floatBitsToUint(id), value);
+  out_value = value;
 }
 
-void node_compositor_store_output_color(const float id, vec4 color, out vec4 out_color)
+void node_compositor_store_output_color(const float id, vec4 value, out vec4 out_value)
 {
-  store_color(floatBitsToUint(id), color);
-  out_color = color;
+  store_color(floatBitsToUint(id), value);
+  out_value = value;
 }
 
 void node_compositor_store_output_float4(const float id, vec4 value, out vec4 out_value)

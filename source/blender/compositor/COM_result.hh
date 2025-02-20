@@ -36,15 +36,14 @@ enum class ResultType : uint8_t {
    * either represent the base type of the result's image or a single value result. */
   Float,
   Int,
-  Vector,
   Color,
+  Float3,
   Float4,
 
   /* The following types are for internal use only, not user facing, and can't be used as inputs
    * and outputs of operations. It follows that they needn't be handled in implicit operations like
    * type conversion, shader, or single value reduction operations. */
   Float2,
-  Float3,
   Int2,
 };
 
@@ -179,7 +178,10 @@ class Result {
    * within the given context. */
   Result(Context &context, eGPUTextureFormat format);
 
-  /* Returns the appropriate GPU texture format based on the given result type and precision. */
+  /* Returns the appropriate GPU texture format based on the given result type and precision. A
+   * special case is given to ResultType::Float3, because 3-component textures can't be used as
+   * write targets in shaders, so we need to allocate 4-component textures for them, and ignore the
+   * fourth channel during processing. */
   static eGPUTextureFormat gpu_texture_format(ResultType type, ResultPrecision precision);
 
   /* Returns the GPU texture format that corresponds to the give one, but whose precision is the
@@ -200,7 +202,11 @@ class Result {
 
   const CPPType &get_cpp_type() const;
 
-  /* Returns the appropriate texture format based on the result's type and precision. */
+  /* Returns the appropriate texture format based on the result's type and precision. This is
+   * identical to the gpu_texture_format static method. This will match the format of the allocated
+   * texture, with one exception. Results of type ResultType::Float3 that wrap external textures
+   * might hold a 3-component texture as opposed to a 4-component one, which would have been
+   * created by uploading data from CPU. */
   eGPUTextureFormat get_gpu_texture_format() const;
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
@@ -478,7 +484,6 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
       return 2;
     case ResultType::Float3:
       return 3;
-    case ResultType::Vector:
     case ResultType::Color:
     case ResultType::Float4:
       return 4;
@@ -541,7 +546,15 @@ template<typename T> BLI_INLINE_METHOD void Result::set_single_value(const T &va
           GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, &value);
         }
         else {
-          GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, value);
+          if constexpr (std::is_same_v<T, float3>) {
+            /* Float3 results are stored in 4-component textures due to hardware limitations. So
+             * pad the value with a zero before updating. */
+            const float4 vector_value = float4(value, 0.0f);
+            GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, vector_value);
+          }
+          else {
+            GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, value);
+          }
         }
       }
       break;

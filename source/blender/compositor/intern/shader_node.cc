@@ -81,7 +81,7 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
           stack.vec[0] = float(float_to_int(value));
           return;
         case SOCK_VECTOR:
-          copy_v4_v4(stack.vec, float_to_vector(value));
+          copy_v3_v3(stack.vec, float_to_float3(value));
           return;
         case SOCK_RGBA:
           copy_v4_v4(stack.vec, float_to_color(value));
@@ -102,7 +102,7 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
           stack.vec[0] = float(value);
           return;
         case SOCK_VECTOR:
-          copy_v4_v4(stack.vec, int_to_vector(value));
+          copy_v3_v3(stack.vec, int_to_float3(value));
           return;
         case SOCK_RGBA:
           copy_v4_v4(stack.vec, int_to_color(value));
@@ -113,21 +113,20 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
       break;
     }
     case SOCK_VECTOR: {
-      const float4 value = float4(
-          float3(socket->default_value_typed<bNodeSocketValueVector>()->value), 0.0f);
+      const float3 value = float3(socket->default_value_typed<bNodeSocketValueVector>()->value);
       switch (expected_type) {
         case SOCK_FLOAT:
-          stack.vec[0] = vector_to_float(value);
+          stack.vec[0] = float3_to_float(value);
           return;
         case SOCK_INT:
           /* GPUMaterial doesn't support int, so it is passed as a float. */
-          stack.vec[0] = float(vector_to_int(value));
+          stack.vec[0] = float(float3_to_int(value));
           return;
         case SOCK_VECTOR:
           copy_v3_v3(stack.vec, value);
           return;
         case SOCK_RGBA:
-          copy_v4_v4(stack.vec, vector_to_color(value));
+          copy_v4_v4(stack.vec, float3_to_color(value));
           return;
         default:
           break;
@@ -145,7 +144,7 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
           stack.vec[0] = float(color_to_int(value));
           return;
         case SOCK_VECTOR:
-          copy_v4_v4(stack.vec, color_to_vector(value));
+          copy_v3_v3(stack.vec, color_to_float3(value));
           return;
         case SOCK_RGBA:
           copy_v4_v4(stack.vec, value);

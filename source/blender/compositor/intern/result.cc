@@ -45,14 +45,15 @@ eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision pr
       switch (type) {
         case ResultType::Float:
           return GPU_R16F;
-        case ResultType::Vector:
         case ResultType::Color:
         case ResultType::Float4:
           return GPU_RGBA16F;
+        case ResultType::Float3:
+          /* RGB textures are not fully supported by hardware, so we store Float3 results in RGBA
+           * textures. */
+          return GPU_RGBA16F;
         case ResultType::Float2:
           return GPU_RG16F;
-        case ResultType::Float3:
-          return GPU_RGB16F;
         case ResultType::Int:
           return GPU_R16I;
         case ResultType::Int2:
@@ -63,14 +64,15 @@ eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision pr
       switch (type) {
         case ResultType::Float:
           return GPU_R32F;
-        case ResultType::Vector:
         case ResultType::Color:
         case ResultType::Float4:
           return GPU_RGBA32F;
+        case ResultType::Float3:
+          /* RGB textures are not fully supported by hardware, so we store Float3 results in RGBA
+           * textures. */
+          return GPU_RGBA32F;
         case ResultType::Float2:
           return GPU_RG32F;
-        case ResultType::Float3:
-          return GPU_RGB32F;
         case ResultType::Int:
           return GPU_R32I;
         case ResultType::Int2:
@@ -231,8 +233,6 @@ const CPPType &Result::get_cpp_type() const
       return CPPType::get<float>();
     case ResultType::Int:
       return CPPType::get<int>();
-    case ResultType::Vector:
-      return CPPType::get<float4>();
     case ResultType::Color:
       return CPPType::get<float4>();
     case ResultType::Float4:
@@ -282,9 +282,6 @@ void Result::allocate_single_value()
   switch (type_) {
     case ResultType::Float:
       this->set_single_value(0.0f);
-      break;
-    case ResultType::Vector:
-      this->set_single_value(float4(0.0f));
       break;
     case ResultType::Color:
       this->set_single_value(float4(0.0f));
@@ -380,9 +377,25 @@ void Result::steal_data(Result &source)
   source.reset();
 }
 
+/* Returns true if the given GPU texture is compatible with the type and precision of the given
+ * result. */
+static bool is_compatible_texture(const GPUTexture *texture, const Result &result)
+{
+  /* Float3 types are an except, see the documentation on the get_gpu_texture_format method for
+   * more information. */
+  if (result.type() == ResultType::Float3) {
+    if (GPU_texture_format(texture) == Result::gpu_texture_format(GPU_RGB32F, result.precision()))
+    {
+      return true;
+    }
+  }
+
+  return GPU_texture_format(texture) == result.get_gpu_texture_format();
+}
+
 void Result::wrap_external(GPUTexture *texture)
 {
-  BLI_assert(GPU_texture_format(texture) == this->get_gpu_texture_format());
+  BLI_assert(is_compatible_texture(texture, *this));
   BLI_assert(!this->is_allocated());
   BLI_assert(!master_);
 
@@ -591,18 +604,14 @@ void Result::allocate_data(int2 size, bool from_pool)
   if (context_->use_gpu()) {
     storage_type_ = ResultStorageType::GPU;
     is_from_pool_ = from_pool;
+
+    const eGPUTextureFormat format = this->get_gpu_texture_format();
+    const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
     if (from_pool) {
-      gpu_texture_ = gpu::TexturePool::get().acquire_texture(
-          size.x, size.y, this->get_gpu_texture_format(), GPU_TEXTURE_USAGE_GENERAL);
+      gpu_texture_ = gpu::TexturePool::get().acquire_texture(size.x, size.y, format, usage);
     }
     else {
-      gpu_texture_ = GPU_texture_create_2d(__func__,
-                                           size.x,
-                                           size.y,
-                                           1,
-                                           this->get_gpu_texture_format(),
-                                           GPU_TEXTURE_USAGE_GENERAL,
-                                           nullptr);
+      gpu_texture_ = GPU_texture_create_2d(__func__, size.x, size.y, 1, format, usage, nullptr);
     }
   }
   else {
