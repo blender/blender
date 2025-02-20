@@ -290,7 +290,7 @@ class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
   }
   ~UniformArrayBuffer()
   {
-    MEM_freeN(this->data_);
+    MEM_freeN(static_cast<void *>(this->data_));
   }
 };
 
@@ -337,7 +337,9 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   }
   ~StorageArrayBuffer()
   {
-    MEM_freeN(this->data_);
+    /* NOTE: T is not always trivial (e.g. can be #blender::eevee::VelocityIndex), so cannot use
+     * `MEM_freeN` directly on it, without casting it to `void *`. */
+    MEM_freeN(static_cast<void *>(this->data_));
   }
 
   /* Resize to \a new_size elements. */
@@ -348,7 +350,7 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
       /* Manual realloc since MEM_reallocN_aligned does not exists. */
       T *new_data_ = (T *)MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_);
       memcpy(new_data_, this->data_, min_uu(this->len_, new_size) * sizeof(T));
-      MEM_freeN(this->data_);
+      MEM_freeN(static_cast<void *>(this->data_));
       this->data_ = new_data_;
       GPU_storagebuf_free(this->ssbo_);
 

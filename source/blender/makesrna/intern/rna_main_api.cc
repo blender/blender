@@ -269,7 +269,8 @@ static void rna_Main_materials_gpencil_remove(Main * /*bmain*/, PointerRNA *id_p
   ID *id = static_cast<ID *>(id_ptr->data);
   Material *ma = (Material *)id;
   if (ma->gp_style) {
-    MEM_SAFE_FREE(ma->gp_style);
+    MEM_freeN(ma->gp_style);
+    ma->gp_style = nullptr;
   }
 }
 

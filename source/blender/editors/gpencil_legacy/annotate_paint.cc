@@ -1073,7 +1073,7 @@ static void annotation_free_stroke(bGPDframe *gpf, bGPDstroke *gps)
 
   if (gps->dvert) {
     BKE_gpencil_free_stroke_weights(gps);
-    MEM_freeN(gps->dvert);
+    MEM_freeN(static_cast<void *>(gps->dvert));
   }
 
   if (gps->triangles) {

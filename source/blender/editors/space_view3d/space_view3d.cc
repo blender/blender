@@ -277,7 +277,12 @@ static void view3d_free(SpaceLink *sl)
     MEM_freeN(vd->localvd);
   }
 
-  MEM_SAFE_FREE(vd->runtime.local_stats);
+  /* Cannot use MEM_SAFE_FREE, as #SceneStats type is only forward-declared in `DNA_layer_types.h`
+   */
+  if (vd->runtime.local_stats) {
+    MEM_freeN(static_cast<void *>(vd->runtime.local_stats));
+    vd->runtime.local_stats = nullptr;
+  }
 
   if (vd->runtime.properties_storage_free) {
     vd->runtime.properties_storage_free(vd->runtime.properties_storage);
@@ -299,7 +304,12 @@ static void view3d_exit(wmWindowManager * /*wm*/, ScrArea *area)
 {
   BLI_assert(area->spacetype == SPACE_VIEW3D);
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  MEM_SAFE_FREE(v3d->runtime.local_stats);
+  /* Cannot use MEM_SAFE_FREE, as #SceneStats type is only forward-declared in `DNA_layer_types.h`
+   */
+  if (v3d->runtime.local_stats) {
+    MEM_freeN(static_cast<void *>(v3d->runtime.local_stats));
+    v3d->runtime.local_stats = nullptr;
+  }
 }
 
 static SpaceLink *view3d_duplicate(SpaceLink *sl)
@@ -1048,7 +1058,7 @@ static void view3d_main_region_free(ARegion *region)
     }
 
     if (rv3d->sms) {
-      MEM_freeN(rv3d->sms);
+      MEM_freeN(static_cast<void *>(rv3d->sms));
     }
 
     MEM_freeN(rv3d);
@@ -2006,7 +2016,12 @@ static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 static void space_view3d_refresh(const bContext *C, ScrArea *area)
 {
   View3D *v3d = (View3D *)area->spacedata.first;
-  MEM_SAFE_FREE(v3d->runtime.local_stats);
+  /* Cannot use MEM_SAFE_FREE, as #SceneStats type is only forward-declared in `DNA_layer_types.h`
+   */
+  if (v3d->runtime.local_stats) {
+    MEM_freeN(static_cast<void *>(v3d->runtime.local_stats));
+    v3d->runtime.local_stats = nullptr;
+  }
 
   if (v3d->localvd && v3d->localvd->runtime.flag & V3D_RUNTIME_LOCAL_MAYBE_EMPTY) {
     ED_localview_exit_if_empty(CTX_data_ensure_evaluated_depsgraph(C),

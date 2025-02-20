@@ -57,7 +57,7 @@ class FileListWrapper {
   static void filelist_free_fn(FileList *list)
   {
     filelist_free(list);
-    MEM_freeN(list);
+    MEM_freeN(static_cast<void *>(list));
   }
 
   std::unique_ptr<FileList, decltype(&filelist_free_fn)> file_list_;

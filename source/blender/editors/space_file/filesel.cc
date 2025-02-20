@@ -1329,7 +1329,7 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
   if (sfile->files) {
     ED_fileselect_clear(wm, sfile);
     filelist_free(sfile->files);
-    MEM_freeN(sfile->files);
+    MEM_freeN(static_cast<void *>(sfile->files));
     sfile->files = nullptr;
   }
 }

@@ -266,7 +266,12 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
   BLI_freelistN(&view_layer->lightgroups);
   view_layer->active_lightgroup = nullptr;
 
-  MEM_SAFE_FREE(view_layer->stats);
+  /* Cannot use MEM_SAFE_FREE, as #SceneStats type is only forward-declared in `DNA_layer_types.h`
+   */
+  if (view_layer->stats) {
+    MEM_freeN(static_cast<void *>(view_layer->stats));
+    view_layer->stats = nullptr;
+  }
 
   BKE_freestyle_config_free(&view_layer->freestyle_config, do_id_user);
 

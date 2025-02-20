@@ -3507,7 +3507,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
           changed = true;
         }
 
-        MEM_freeN(uci);
+        MEM_freeN(static_cast<void *>(uci));
       }
     }
     else {

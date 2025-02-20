@@ -195,8 +195,7 @@ void BKE_main_namemap_destroy(UniqueName_Map **r_name_map)
   printf(
       "NameMap memory usage: sets %.1fKB, maps %.1fKB\n", size_sets / 1024.0, size_maps / 1024.0);
 #endif
-  MEM_delete<UniqueName_Map>(*r_name_map);
-  *r_name_map = nullptr;
+  MEM_SAFE_DELETE(*r_name_map);
 }
 
 void BKE_main_namemap_clear(Main *bmain)

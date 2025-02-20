@@ -385,7 +385,11 @@ void ViewOpsData::end_navigation(bContext *C)
     WM_event_timer_remove(CTX_wm_manager(C), this->timer->win, this->timer);
   }
 
-  MEM_SAFE_FREE(this->init.dial);
+  /* Cannot use MEM_SAFE_FREE, as #Dial type is only forward-declared in `BLI_dial_2d.h` */
+  if (this->init.dial) {
+    MEM_freeN(static_cast<void *>(this->init.dial));
+    this->init.dial = nullptr;
+  }
 
   /* Need to redraw because drawing code uses RV3D_NAVIGATING to draw
    * faster while navigation operator runs. */

@@ -68,7 +68,7 @@ struct TimeSourceNode;
 class DepsgraphNodeBuilder : public DepsgraphBuilder {
  public:
   DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache);
-  ~DepsgraphNodeBuilder() override;
+  ~DepsgraphNodeBuilder();
 
   /* For given original ID get ID which is created by copy-on-evaluation system. */
   ID *get_cow_id(const ID *id_orig) const;

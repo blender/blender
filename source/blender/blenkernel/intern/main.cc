@@ -170,7 +170,7 @@ void BKE_main_destroy(Main &bmain)
   BKE_main_clear(bmain);
 
   BLI_spin_end(reinterpret_cast<SpinLock *>(bmain.lock));
-  MEM_freeN(bmain.lock);
+  MEM_freeN(static_cast<void *>(bmain.lock));
   bmain.lock = nullptr;
 }
 
