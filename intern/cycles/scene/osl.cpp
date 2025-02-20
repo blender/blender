@@ -48,7 +48,7 @@ map<int, unique_ptr<OSL::ShadingSystem>> OSLShaderManager::ss_shared;
 int OSLShaderManager::ss_shared_users = 0;
 thread_mutex OSLShaderManager::ss_shared_mutex;
 
-int OSLCompiler::texture_shared_unique_id = 0;
+std::atomic<int> OSLCompiler::texture_shared_unique_id = 0;
 
 /* Shader Manager */
 
