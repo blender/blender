@@ -1136,9 +1136,9 @@ BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
   });
 }
 
-static gpu::IndexBuf *create_index_faces(const OffsetIndices<int> faces,
-                                         const Span<bool> hide_poly,
-                                         const Span<int> face_indices)
+static gpu::IndexBuf *create_lines_index_faces(const OffsetIndices<int> faces,
+                                               const Span<bool> hide_poly,
+                                               const Span<int> face_indices)
 {
   int corners_count = 0;
   for (const int face : face_indices) {
@@ -1174,30 +1174,30 @@ static gpu::IndexBuf *create_index_faces(const OffsetIndices<int> faces,
   return ibo;
 }
 
-static gpu::IndexBuf *create_index_bmesh(const Set<BMFace *, 0> &faces,
-                                         const int visible_faces_num)
+static gpu::IndexBuf *create_lines_index_bmesh(const Set<BMFace *, 0> &faces,
+                                               const int visible_faces_num)
 {
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_LINES, visible_faces_num * 3, INT_MAX);
 
   MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
 
-  int tri_index = 0;
-  int v_index = 0;
+  int line_index = 0;
+  int vert_index = 0;
 
   for (const BMFace *face : faces) {
     if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
       continue;
     }
 
-    data[tri_index] = uint2(v_index, v_index + 1);
-    tri_index++;
-    data[tri_index] = uint2(v_index + 1, v_index + 2);
-    tri_index++;
-    data[tri_index] = uint2(v_index + 2, v_index);
-    tri_index++;
+    data[line_index] = uint2(vert_index, vert_index + 1);
+    line_index++;
+    data[line_index] = uint2(vert_index + 1, vert_index + 2);
+    line_index++;
+    data[line_index] = uint2(vert_index + 2, vert_index);
+    line_index++;
 
-    v_index += 3;
+    vert_index += 3;
   }
 
   gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
@@ -1649,7 +1649,7 @@ Span<gpu::IndexBuf *> DrawCacheImpl::ensure_lines_indices(const Object &object,
       const bke::AttributeAccessor attributes = orig_mesh_data.attributes;
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
       nodes_to_calculate.foreach_index(GrainSize(1), [&](const int i) {
-        ibos[i] = create_index_faces(faces, hide_poly, nodes[i].faces());
+        ibos[i] = create_lines_index_faces(faces, hide_poly, nodes[i].faces());
       });
       break;
     }
@@ -1669,7 +1669,7 @@ Span<gpu::IndexBuf *> DrawCacheImpl::ensure_lines_indices(const Object &object,
         const Set<BMFace *, 0> &faces = BKE_pbvh_bmesh_node_faces(
             &const_cast<bke::pbvh::BMeshNode &>(nodes[i]));
         const int visible_faces_num = count_visible_tris_bmesh(faces);
-        ibos[i] = create_index_bmesh(faces, visible_faces_num);
+        ibos[i] = create_lines_index_bmesh(faces, visible_faces_num);
       });
       break;
     }
