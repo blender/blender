@@ -30,6 +30,9 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     return false;
   }
 
+  if (kernel_data.device_bvh == 0)
+    return false;
+
   hiprtRay ray_hip;
 
   SET_HIPRT_RAY(ray_hip, ray)
