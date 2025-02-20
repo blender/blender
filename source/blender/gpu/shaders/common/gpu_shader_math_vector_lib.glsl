@@ -16,9 +16,12 @@
 /**
  * Return true if all components is equal to zero.
  */
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wredundant-decls"
 bool is_zero(vec2 vec);
 bool is_zero(vec3 vec);
 bool is_zero(vec4 vec);
+#    pragma GCC diagnostic pop * /
 
 /**
  * Return true if any component is equal to zero.
