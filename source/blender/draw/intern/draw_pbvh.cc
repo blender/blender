@@ -1178,7 +1178,7 @@ static gpu::IndexBuf *create_index_bmesh(const Set<BMFace *, 0> &faces,
                                          const int visible_faces_num)
 {
   GPUIndexBufBuilder builder;
-  GPU_indexbuf_init(&builder, GPU_PRIM_LINES, visible_faces_num, INT_MAX);
+  GPU_indexbuf_init(&builder, GPU_PRIM_LINES, visible_faces_num * 3, INT_MAX);
 
   MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
 
