@@ -748,8 +748,10 @@ class FileOutputOperation : public NodeOperation {
         });
         return buffer;
       }
-      default:
-        /* Other types are internal and needn't be handled by operations. */
+      case ResultType::Int:
+      case ResultType::Int2:
+      case ResultType::Float2:
+        /* Not supported. */
         break;
     }
 
