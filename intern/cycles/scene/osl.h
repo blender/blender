@@ -5,6 +5,8 @@
 #ifndef __OSL_H__
 #define __OSL_H__
 
+#include <atomic>
+
 #include "util/array.h"
 #include "util/set.h"
 #include "util/string.h"
@@ -178,7 +180,7 @@ class OSLCompiler {
   ShaderType current_type;
   Shader *current_shader;
 
-  static int texture_shared_unique_id;
+  static std::atomic<int> texture_shared_unique_id;
 };
 
 CCL_NAMESPACE_END

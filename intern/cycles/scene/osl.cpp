@@ -45,7 +45,7 @@ int OSLShaderManager::ss_shared_users = 0;
 thread_mutex OSLShaderManager::ss_shared_mutex;
 thread_mutex OSLShaderManager::ss_mutex;
 
-int OSLCompiler::texture_shared_unique_id = 0;
+std::atomic<int> OSLCompiler::texture_shared_unique_id = 0;
 
 /* Shader Manager */
 
