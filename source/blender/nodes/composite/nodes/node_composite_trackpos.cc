@@ -171,9 +171,11 @@ class TrackPositionOperation : public NodeOperation {
     const float2 speed_toward_next = current_marker_position - next_marker_position;
 
     /* Encode both speeds in a 4D vector. Multiply by the size to get the speed in pixel space. */
-    const float4 speed = float4(speed_toward_previous, speed_toward_next) * float4(size, size);
+    const float4 speed = float4(speed_toward_previous * float2(size),
+                                speed_toward_next * float2(size));
 
     Result &result = get_result("Speed");
+    result.set_type(ResultType::Float4);
     result.allocate_single_value();
     result.set_single_value(speed);
   }
@@ -192,6 +194,7 @@ class TrackPositionOperation : public NodeOperation {
     }
     if (should_compute_output("Speed")) {
       Result &result = get_result("Speed");
+      result.set_type(ResultType::Float4);
       result.allocate_single_value();
       result.set_single_value(float4(0.0f));
     }

@@ -79,6 +79,7 @@ static const char *get_blur_shader(const ResultType type)
       return "compositor_symmetric_separable_blur_float4";
     case ResultType::Float2:
     case ResultType::Float3:
+    case ResultType::Float4:
     case ResultType::Int2:
     case ResultType::Int:
       /* Not supported. */
@@ -182,6 +183,7 @@ static Result horizontal_pass_cpu(Context &context,
       break;
     case ResultType::Float2:
     case ResultType::Float3:
+    case ResultType::Float4:
     case ResultType::Int2:
     case ResultType::Int:
       /* Not supported. */
@@ -280,6 +282,7 @@ static void vertical_pass_cpu(Context &context,
       break;
     case ResultType::Float2:
     case ResultType::Float3:
+    case ResultType::Float4:
     case ResultType::Int2:
     case ResultType::Int:
       /* Not supported. */

@@ -201,6 +201,54 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
   return linear_image_buffer;
 }
 
+/* Returns the appropriate result type for the given image buffer, which represents the pass in the
+ * given render result with the given image user. The type is determined based on the channels
+ * count of the buffer, except for when the channels count is 4, because it can either be a color
+ * or a float4 pass, which is determined by inspecting the channels IDs of the pass. */
+static ResultType get_result_type(const RenderResult *render_result,
+                                  const ImageUser &image_user,
+                                  const ImBuf *image_buffer)
+{
+  switch (image_buffer->channels) {
+    case 1:
+      return ResultType::Float;
+    case 2:
+      return ResultType::Float2;
+    case 3:
+      return ResultType::Float3;
+    case 4:
+      /* The 4 channel case is ambiguous, it can either be a color or a float4, so we need
+       * to investigate the pass channel IDs outside of the switch to identify its type. */
+      break;
+    default:
+      BLI_assert_unreachable();
+      return ResultType::Float;
+  }
+
+  if (!render_result) {
+    /* Not a multi-layer images, 4-channels are always color images. */
+    return ResultType::Color;
+  }
+
+  const RenderLayer *render_layer = get_render_layer(render_result, image_user);
+  if (!render_layer) {
+    /* Not a multi-layer images, 4-channels are always color images. */
+    return ResultType::Color;
+  }
+
+  const RenderPass *render_pass = get_render_pass(render_layer, image_user);
+  if (!render_pass) {
+    /* Not a multi-layer images, 4-channels are always color images. */
+    return ResultType::Color;
+  }
+
+  if (StringRef(render_pass->chan_id) == "XYZW") {
+    return ResultType::Float4;
+  }
+
+  return ResultType::Color;
+}
+
 CachedImage::CachedImage(Context &context,
                          Image *image,
                          ImageUser *image_user,
@@ -235,11 +283,7 @@ CachedImage::CachedImage(Context &context,
   const bool use_half_float = linear_image_buffer->flags & IB_halffloat;
   this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
 
-  /* At the user level, vector images are always treated as color, so there are only two possible
-   * options, float images and color images. 3-channel images should then be converted to 4-channel
-   * images below. */
-  const bool is_single_channel = linear_image_buffer->channels == 1;
-  this->result.set_type(is_single_channel ? ResultType::Float : ResultType::Color);
+  this->result.set_type(get_result_type(render_result, image_user_for_pass, linear_image_buffer));
 
   /* For GPU, we wrap the texture returned by IMB module and free it ourselves in destructor. For
    * CPU, we allocate the result and copy to it from the image buffer. */
@@ -250,8 +294,7 @@ CachedImage::CachedImage(Context &context,
   }
   else {
     const int2 size = int2(image_buffer->x, image_buffer->y);
-    const int channels_count = linear_image_buffer->channels;
-    Result buffer_result(context, Result::float_type(channels_count), ResultPrecision::Full);
+    Result buffer_result(context, this->result.type(), ResultPrecision::Full);
     buffer_result.wrap_external(linear_image_buffer->float_buffer.data, size);
     this->result.allocate_texture(size, false);
     parallel_for(size, [&](const int2 texel) {
@@ -320,10 +363,6 @@ void CachedImage::populate_meta_data(const RenderResult *render_result,
         }
       },
       false);
-
-  if (StringRef(render_pass->chan_id) == "XYZW") {
-    this->result.meta_data.is_4d_vector = true;
-  }
 }
 
 CachedImage::~CachedImage()

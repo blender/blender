@@ -59,6 +59,9 @@ ResultType get_node_socket_result_type(const bNodeSocket *socket)
     case SOCK_INT:
       return ResultType::Int;
     case SOCK_VECTOR:
+      /* Vector sockets can also be ResultType::Float4 or ResultType::Float2, but the
+       * developer is expected to define that manually since there is no way to distinguish them
+       * from the socket. */
       return ResultType::Vector;
     case SOCK_RGBA:
       return ResultType::Color;

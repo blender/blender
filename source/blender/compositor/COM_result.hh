@@ -33,14 +33,12 @@ class DerivedResources;
 /* Make sure to update the format related static methods in the Result class. */
 enum class ResultType : uint8_t {
   /* The following types are user facing and can be used as inputs and outputs of operations. They
-   * either represent the base type of the result's image or a single value result. The color type
-   * represents an RGBA color. And the vector type represents a generic 4-component vector, which
-   * can encode two 2D vectors, one 3D vector with the last component ignored, or other dimensional
-   * data. */
+   * either represent the base type of the result's image or a single value result. */
   Float,
   Int,
   Vector,
   Color,
+  Float4,
 
   /* The following types are for internal use only, not user facing, and can't be used as inputs
    * and outputs of operations. It follows that they needn't be handled in implicit operations like
@@ -482,6 +480,7 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
       return 3;
     case ResultType::Vector:
     case ResultType::Color:
+    case ResultType::Float4:
       return 4;
   }
   return 4;

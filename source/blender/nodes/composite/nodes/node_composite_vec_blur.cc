@@ -105,7 +105,7 @@ static float2 max_velocity_approximate(const float2 &a,
 static Result compute_max_tile_velocity_cpu(Context &context, const Result &velocity_image)
 {
   if (velocity_image.is_single_value()) {
-    Result output = context.create_result(ResultType::Vector);
+    Result output = context.create_result(ResultType::Float4);
     output.allocate_single_value();
     output.set_single_value(velocity_image.get_single_value<float4>());
     return output;
@@ -114,7 +114,7 @@ static Result compute_max_tile_velocity_cpu(Context &context, const Result &velo
   const int2 tile_size = int2(MOTION_BLUR_TILE_SIZE);
   const int2 velocity_size = velocity_image.domain().size;
   const int2 tiles_count = math::divide_ceil(velocity_size, tile_size);
-  Result output = context.create_result(ResultType::Vector);
+  Result output = context.create_result(ResultType::Float4);
   output.allocate_texture(Domain(tiles_count));
 
   parallel_for(tiles_count, [&](const int2 texel) {
@@ -197,14 +197,14 @@ static Result dilate_max_velocity_cpu(Context &context,
                                       const float shutter_speed)
 {
   if (max_tile_velocity.is_single_value()) {
-    Result output = context.create_result(ResultType::Vector);
+    Result output = context.create_result(ResultType::Float4);
     output.allocate_single_value();
     output.set_single_value(max_tile_velocity.get_single_value<float4>());
     return output;
   }
 
   const int2 size = max_tile_velocity.domain().size;
-  Result output = context.create_result(ResultType::Vector);
+  Result output = context.create_result(ResultType::Float4);
   output.allocate_texture(Domain(size));
 
   parallel_for(size, [&](const int2 texel) { output.store_pixel(texel, float4(0.0f)); });
@@ -213,13 +213,14 @@ static Result dilate_max_velocity_cpu(Context &context,
     for (const int64_t x : IndexRange(size.x)) {
       const int2 src_tile = int2(x, y);
 
-      float4 max_motion = float4(max_tile_velocity.load_pixel<float4>(src_tile)) *
-                          float4(float2(shutter_speed), float2(-shutter_speed));
+      const float4 max_motion = max_tile_velocity.load_pixel<float4>(src_tile);
+      const float2 max_previous_velocity = max_motion.xy() * shutter_speed;
+      const float2 max_next_velocity = max_motion.zw() * -shutter_speed;
 
       {
         /* Rectangular area (in tiles) where the motion vector spreads. */
-        MotionRect motion_rect = compute_motion_rect(src_tile, max_motion.xy(), size);
-        MotionLine motion_line = compute_motion_line(src_tile, max_motion.xy());
+        MotionRect motion_rect = compute_motion_rect(src_tile, max_previous_velocity, size);
+        MotionLine motion_line = compute_motion_line(src_tile, max_previous_velocity);
         /* Do a conservative rasterization of the line of the motion vector line. */
         for (int j = 0; j < motion_rect.extent.y; j++) {
           for (int i = 0; i < motion_rect.extent.x; i++) {
@@ -227,9 +228,9 @@ static Result dilate_max_velocity_cpu(Context &context,
             if (is_inside_motion_line(tile, motion_line)) {
               const float4 current_max_velocity = output.load_pixel<float4>(tile);
               const float2 new_max_previous_velocity = max_velocity_approximate(
-                  current_max_velocity.xy(), max_motion.xy(), tile, src_tile);
+                  current_max_velocity.xy(), max_previous_velocity, tile, src_tile);
               const float2 new_max_next_velocity = max_velocity_approximate(
-                  current_max_velocity.zw(), max_motion.zw(), tile, src_tile);
+                  current_max_velocity.zw(), max_next_velocity, tile, src_tile);
               output.store_pixel(tile, float4(new_max_previous_velocity, new_max_next_velocity));
             }
           }
@@ -238,8 +239,8 @@ static Result dilate_max_velocity_cpu(Context &context,
 
       {
         /* Rectangular area (in tiles) where the motion vector spreads. */
-        MotionRect motion_rect = compute_motion_rect(src_tile, max_motion.zw(), size);
-        MotionLine motion_line = compute_motion_line(src_tile, max_motion.zw());
+        MotionRect motion_rect = compute_motion_rect(src_tile, max_next_velocity, size);
+        MotionLine motion_line = compute_motion_line(src_tile, max_next_velocity);
         /* Do a conservative rasterization of the line of the motion vector line. */
         for (int j = 0; j < motion_rect.extent.y; j++) {
           for (int i = 0; i < motion_rect.extent.x; i++) {
@@ -247,9 +248,9 @@ static Result dilate_max_velocity_cpu(Context &context,
             if (is_inside_motion_line(tile, motion_line)) {
               const float4 current_max_velocity = output.load_pixel<float4>(tile);
               const float2 new_max_previous_velocity = max_velocity_approximate(
-                  current_max_velocity.xy(), max_motion.xy(), tile, src_tile);
+                  current_max_velocity.xy(), max_previous_velocity, tile, src_tile);
               const float2 new_max_next_velocity = max_velocity_approximate(
-                  current_max_velocity.zw(), max_motion.zw(), tile, src_tile);
+                  current_max_velocity.zw(), max_next_velocity, tile, src_tile);
               output.store_pixel(tile, float4(new_max_previous_velocity, new_max_next_velocity));
             }
           }
@@ -436,8 +437,9 @@ static void motion_blur_cpu(const Result &input_image,
 
         /* Data of the center pixel of the gather (target). */
         float center_depth = input_depth.load_pixel<float, true>(texel);
-        float4 center_motion = float4(input_velocity.load_pixel<float4, true>(texel)) *
-                               float4(float2(shutter_speed), float2(-shutter_speed));
+        float4 center_motion = input_velocity.load_pixel<float4, true>(texel);
+        float2 center_previous_motion = center_motion.xy() * shutter_speed;
+        float2 center_next_motion = center_motion.zw() * -shutter_speed;
         float4 center_color = input_image.load_pixel<float4>(texel);
 
         /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
@@ -460,7 +462,7 @@ static void motion_blur_cpu(const Result &input_image,
                     input_velocity,
                     size,
                     uv,
-                    center_motion.xy(),
+                    center_previous_motion,
                     center_depth,
                     max_motion.xy(),
                     rand,
@@ -474,7 +476,7 @@ static void motion_blur_cpu(const Result &input_image,
                     input_velocity,
                     size,
                     uv,
-                    center_motion.zw(),
+                    center_next_motion,
                     center_depth,
                     max_motion.zw(),
                     rand,
@@ -510,7 +512,10 @@ static void motion_blur_cpu(const Result &input_image,
 
 class VectorBlurOperation : public NodeOperation {
  public:
-  using NodeOperation::NodeOperation;
+  VectorBlurOperation(Context &context, DNode node) : NodeOperation(context, node)
+  {
+    this->get_input_descriptor("Speed").type = ResultType::Float4;
+  }
 
   void execute() override
   {
@@ -550,7 +555,7 @@ class VectorBlurOperation : public NodeOperation {
     Result &input = get_input("Speed");
     input.bind_as_texture(shader, "input_tx");
 
-    Result output = context().create_result(ResultType::Vector);
+    Result output = context().create_result(ResultType::Float4);
     const int2 tiles_count = math::divide_ceil(input.domain().size, int2(32));
     output.allocate_texture(Domain(tiles_count));
     output.bind_as_image(shader, "output_img");

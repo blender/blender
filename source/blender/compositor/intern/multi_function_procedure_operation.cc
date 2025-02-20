@@ -62,6 +62,8 @@ static const CPPType &get_cpp_type(ResultType type)
     case ResultType::Vector:
     case ResultType::Color:
       return CPPType::get<float4>();
+    case ResultType::Float4:
+      return CPPType::get<float4>();
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Int2:
@@ -91,6 +93,9 @@ static void add_single_value_input_parameter(mf::ParamsBuilder &parameter_builde
     case ResultType::Vector:
       parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
       return;
+    case ResultType::Float4:
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
+      return;
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Int2:
@@ -117,6 +122,9 @@ static void add_single_value_output_parameter(mf::ParamsBuilder &parameter_build
     case ResultType::Vector:
       parameter_builder.add_uninitialized_single_output(&output.get_single_value<float4>());
       return;
+    case ResultType::Float4:
+      parameter_builder.add_uninitialized_single_output(&output.get_single_value<float4>());
+      return;
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Int2:
@@ -141,6 +149,9 @@ static void upload_single_value_output_to_gpu(Result &output)
       output.set_single_value(output.get_single_value<float4>());
       return;
     case ResultType::Vector:
+      output.set_single_value(output.get_single_value<float4>());
+      return;
+    case ResultType::Float4:
       output.set_single_value(output.get_single_value<float4>());
       return;
     case ResultType::Float2:
@@ -378,6 +389,8 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
       "Float To Vector", float_to_vector, mf::build::exec_presets::AllSpanOrSingle());
   static auto float_to_color_function = mf::build::SI1_SO<float, float4>(
       "Float To Color", float_to_color, mf::build::exec_presets::AllSpanOrSingle());
+  static auto float_to_float4_function = mf::build::SI1_SO<float, float4>(
+      "Float To Float4", float_to_float4, mf::build::exec_presets::AllSpanOrSingle());
 
   static auto int_to_float_function = mf::build::SI1_SO<int, float>(
       "Int To Float", int_to_float, mf::build::exec_presets::AllSpanOrSingle());
@@ -385,6 +398,8 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
       "Int To Vector", int_to_vector, mf::build::exec_presets::AllSpanOrSingle());
   static auto int_to_color_function = mf::build::SI1_SO<int, float4>(
       "Int To Color", int_to_color, mf::build::exec_presets::AllSpanOrSingle());
+  static auto int_to_float4_function = mf::build::SI1_SO<int, float4>(
+      "Int To Float4", int_to_float4, mf::build::exec_presets::AllSpanOrSingle());
 
   static auto vector_to_float_function = mf::build::SI1_SO<float4, float>(
       "Vector To Float", vector_to_float, mf::build::exec_presets::AllSpanOrSingle());
@@ -392,6 +407,8 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
       "Vector To Int", vector_to_int, mf::build::exec_presets::AllSpanOrSingle());
   static auto vector_to_color_function = mf::build::SI1_SO<float4, float4>(
       "Vector To Color", vector_to_color, mf::build::exec_presets::AllSpanOrSingle());
+  static auto vector_to_float4_function = mf::build::SI1_SO<float4, float4>(
+      "Vector To Float4", vector_to_float4, mf::build::exec_presets::AllSpanOrSingle());
 
   static auto color_to_float_function = mf::build::SI1_SO<float4, float>(
       "Color To Float", color_to_float, mf::build::exec_presets::AllSpanOrSingle());
@@ -399,6 +416,17 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
       "Color To Int", color_to_int, mf::build::exec_presets::AllSpanOrSingle());
   static auto color_to_vector_function = mf::build::SI1_SO<float4, float4>(
       "Color To Vector", color_to_vector, mf::build::exec_presets::AllSpanOrSingle());
+  static auto color_to_float4_function = mf::build::SI1_SO<float4, float4>(
+      "Color To Float4", color_to_float4, mf::build::exec_presets::AllSpanOrSingle());
+
+  static auto float4_to_float_function = mf::build::SI1_SO<float4, float>(
+      "Float4 To Float", float4_to_float, mf::build::exec_presets::AllSpanOrSingle());
+  static auto float4_to_int_function = mf::build::SI1_SO<float4, int>(
+      "Float4 To Int", float4_to_int, mf::build::exec_presets::AllSpanOrSingle());
+  static auto float4_to_vector_function = mf::build::SI1_SO<float4, float4>(
+      "Float4 To Vector", float4_to_vector, mf::build::exec_presets::AllSpanOrSingle());
+  static auto float4_to_color_function = mf::build::SI1_SO<float4, float4>(
+      "Float4 To Color", float4_to_color, mf::build::exec_presets::AllSpanOrSingle());
 
   switch (variable_type) {
     case ResultType::Float:
@@ -409,6 +437,8 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
           return &float_to_vector_function;
         case ResultType::Color:
           return &float_to_color_function;
+        case ResultType::Float4:
+          return &float_to_float4_function;
         case ResultType::Float:
           /* Same type, no conversion needed. */
           return nullptr;
@@ -427,6 +457,8 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
           return &int_to_vector_function;
         case ResultType::Color:
           return &int_to_color_function;
+        case ResultType::Float4:
+          return &int_to_float4_function;
         case ResultType::Int:
           /* Same type, no conversion needed. */
           return nullptr;
@@ -445,6 +477,8 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
           return &vector_to_int_function;
         case ResultType::Color:
           return &vector_to_color_function;
+        case ResultType::Float4:
+          return &vector_to_float4_function;
         case ResultType::Vector:
           /* Same type, no conversion needed. */
           return nullptr;
@@ -463,7 +497,29 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
           return &color_to_int_function;
         case ResultType::Vector:
           return &color_to_vector_function;
+        case ResultType::Float4:
+          return &color_to_float4_function;
         case ResultType::Color:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+      break;
+    case ResultType::Float4:
+      switch (expected_type) {
+        case ResultType::Float:
+          return &float4_to_float_function;
+        case ResultType::Int:
+          return &float4_to_int_function;
+        case ResultType::Vector:
+          return &float4_to_vector_function;
+        case ResultType::Color:
+          return &float4_to_color_function;
+        case ResultType::Float4:
           /* Same type, no conversion needed. */
           return nullptr;
         case ResultType::Float2:

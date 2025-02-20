@@ -8,7 +8,7 @@
  * used to establish an output link that is then used to track the nodes that contribute to the
  * output of the compositor node tree.
  *
- * The store_[float|vector|color] functions are dynamically generated in
+ * The store_[type] functions are dynamically generated in
  * ShaderOperation::generate_code_for_outputs. */
 
 void node_compositor_store_output_float(const float id, float value, out float out_value)
@@ -34,4 +34,10 @@ void node_compositor_store_output_color(const float id, vec4 color, out vec4 out
 {
   store_color(floatBitsToUint(id), color);
   out_color = color;
+}
+
+void node_compositor_store_output_float4(const float id, vec4 value, out vec4 out_value)
+{
+  store_float4(floatBitsToUint(id), value);
+  out_value = value;
 }
