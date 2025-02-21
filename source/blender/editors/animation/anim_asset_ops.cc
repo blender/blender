@@ -530,7 +530,7 @@ static inline void replace_pose_key(Main &bmain,
                                     blender::animrig::StripKeyframeData &strip_data,
                                     const blender::animrig::Slot &slot,
                                     const float2 time_value,
-                                    const blender::animrig::FCurveDescriptor fcurve_descriptor)
+                                    const blender::animrig::FCurveDescriptor &fcurve_descriptor)
 {
   using namespace blender::animrig;
   Channelbag &channelbag = strip_data.channelbag_for_slot_ensure(slot);
