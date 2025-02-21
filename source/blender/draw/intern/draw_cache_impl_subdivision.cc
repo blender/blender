@@ -1343,14 +1343,12 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache &cache,
   GPUShader *shader = DRW_shader_subdiv_get(SubdivShaderType::BUFFER_NORMALS_ACCUMULATE);
   GPU_shader_bind(shader);
 
-  int binding_point = 0;
-
-  GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(face_adjacency_offsets, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(face_adjacency_lists, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(vertex_loop_map, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(vert_normals, binding_point++);
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
+  GPU_vertbuf_bind_as_ssbo(pos_nor, NORMALS_ACCUMULATE_POS_NOR_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(face_adjacency_offsets,
+                           NORMALS_ACCUMULATE_FACE_ADJACENCY_OFFSETS_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(face_adjacency_lists, NORMALS_ACCUMULATE_FACE_ADJACENCY_LISTS_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(vertex_loop_map, NORMALS_ACCUMULATE_VERTEX_LOOP_MAP_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(vert_normals, NORMALS_ACCUMULATE_NORMALS_BUF_SLOT);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_verts);
 

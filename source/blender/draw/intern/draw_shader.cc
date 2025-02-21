@@ -124,6 +124,9 @@ GPUShader *DRW_shader_draw_command_generate_get()
 static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shader_type)
 {
   switch (shader_type) {
+    case SubdivShaderType::BUFFER_NORMALS_ACCUMULATE:
+      return "subdiv_normals_accumulate";
+
     case SubdivShaderType::BUFFER_NORMALS_FINALIZE:
       return "subdiv_normals_finalize";
 
@@ -327,7 +330,8 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
   if (e_data.subdiv_sh[uint(shader_type)] == nullptr &&
       ELEM(shader_type,
            SubdivShaderType::BUFFER_NORMALS_FINALIZE,
-           SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE))
+           SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE,
+           SubdivShaderType::BUFFER_NORMALS_ACCUMULATE))
   {
     blender::StringRefNull create_info_name = get_subdiv_shader_info_name(shader_type);
     e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_from_info_name(
