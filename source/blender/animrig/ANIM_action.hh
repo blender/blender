@@ -1052,7 +1052,7 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
 
   SingleKeyingResult keyframe_insert(Main *bmain,
                                      const Slot &slot,
-                                     FCurveDescriptor fcurve_descriptor,
+                                     const FCurveDescriptor &fcurve_descriptor,
                                      float2 time_value,
                                      const KeyframeSettings &settings,
                                      eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS,
@@ -1087,8 +1087,8 @@ class Channelbag : public ::ActionChannelbag {
    *
    * If it cannot be found, `nullptr` is returned.
    */
-  const FCurve *fcurve_find(FCurveDescriptor fcurve_descriptor) const;
-  FCurve *fcurve_find(FCurveDescriptor fcurve_descriptor);
+  const FCurve *fcurve_find(const FCurveDescriptor &fcurve_descriptor) const;
+  FCurve *fcurve_find(const FCurveDescriptor &fcurve_descriptor);
 
   /**
    * Find an FCurve matching the fcurve descriptor, or create one if it doesn't
@@ -1100,7 +1100,7 @@ class Channelbag : public ::ActionChannelbag {
    * nullptr, in which case the tagging is skipped and is left as the
    * responsibility of the caller.
    */
-  FCurve &fcurve_ensure(Main *bmain, FCurveDescriptor fcurve_descriptor);
+  FCurve &fcurve_ensure(Main *bmain, const FCurveDescriptor &fcurve_descriptor);
 
   /**
    * Create an F-Curve, but only if it doesn't exist yet in this Channelbag.
@@ -1113,7 +1113,7 @@ class Channelbag : public ::ActionChannelbag {
    * nullptr, in which case the tagging is skipped and is left as the
    * responsibility of the caller.
    */
-  FCurve *fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_descriptor);
+  FCurve *fcurve_create_unique(Main *bmain, const FCurveDescriptor &fcurve_descriptor);
 
   /**
    * Append an F-Curve to this Channelbag.
@@ -1307,7 +1307,7 @@ class Channelbag : public ::ActionChannelbag {
    * nullptr, in which case the tagging is skipped and is left as the
    * responsibility of the caller.
    */
-  FCurve &fcurve_create(Main *bmain, FCurveDescriptor fcurve_descriptor);
+  FCurve &fcurve_create(Main *bmain, const FCurveDescriptor &fcurve_descriptor);
 
  private:
   /**
@@ -1660,7 +1660,7 @@ Channelbag *action_channelbag_ensure(bAction &dna_action, ID &animated_id);
 FCurve *action_fcurve_ensure(Main *bmain,
                              bAction &action,
                              ID &animated_id,
-                             FCurveDescriptor fcurve_descriptor);
+                             const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Find or create an F-Curve on the given action that matches the given fcurve
@@ -1691,7 +1691,7 @@ FCurve *action_fcurve_ensure_ex(Main *bmain,
                                 bAction *act,
                                 const char group[],
                                 PointerRNA *ptr,
-                                FCurveDescriptor fcurve_descriptor);
+                                const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Same as above, but creates a legacy Action.
@@ -1706,7 +1706,7 @@ FCurve *action_fcurve_ensure_legacy(Main *bmain,
                                     bAction *act,
                                     const char group[],
                                     PointerRNA *ptr,
-                                    FCurveDescriptor fcurve_descriptor);
+                                    const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Find the F-Curve in the given Action.
@@ -1716,7 +1716,7 @@ FCurve *action_fcurve_ensure_legacy(Main *bmain,
  *
  * \see #blender::animrig::fcurve_find_in_action_slot
  */
-FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor);
+FCurve *fcurve_find_in_action(bAction *act, const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Find the F-Curve in the given Action Slot.
@@ -1725,14 +1725,14 @@ FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor);
  */
 FCurve *fcurve_find_in_action_slot(bAction *act,
                                    slot_handle_t slot_handle,
-                                   FCurveDescriptor fcurve_descriptor);
+                                   const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Find the F-Curve in the Action Slot assigned to this ADT.
  *
  * \see #blender::animrig::fcurve_find_in_action
  */
-FCurve *fcurve_find_in_assigned_slot(AnimData &adt, FCurveDescriptor fcurve_descriptor);
+FCurve *fcurve_find_in_assigned_slot(AnimData &adt, const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Return whether `fcurve` targets the given collection path + data name.
