@@ -780,7 +780,7 @@ static void GREASE_PENCIL_OT_select_similar(wmOperatorType *ot)
 
   ot->invoke = WM_menu_invoke;
   ot->exec = select_similar_exec;
-  ot->poll = editable_grease_pencil_point_selection_poll;
+  ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
