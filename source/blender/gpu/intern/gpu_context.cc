@@ -194,10 +194,13 @@ GPUContext *GPU_context_create(void *ghost_window, void *ghost_context)
 void GPU_context_discard(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);
+  BLI_assert(active_ctx == ctx);
 
+  GPUBackend *backend = GPUBackend::get();
   /* Flush any remaining printf while making sure we are inside render boundaries. */
-  GPU_render_begin();
-  GPU_render_end();
+  backend->render_begin();
+  printf_end(ctx);
+  backend->render_end();
 
   delete ctx;
   active_ctx = nullptr;
