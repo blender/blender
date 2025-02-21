@@ -13,6 +13,7 @@ import pathlib
 import shutil
 import subprocess
 import time
+import multiprocessing
 
 from . import global_report
 from .colored_print import (print_message, use_message_colors)
@@ -81,6 +82,95 @@ class TestResult:
         self.tmp_out_img = self.tmp_out_img_base + '0001.png'
         self.old_img, self.ref_img, self.new_img, self.diff_color_img, self.diff_alpha_img = test_get_images(
             report.output_dir, filepath, name, report.reference_dir, report.reference_override_dir)
+
+
+def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
+    # Create reference render directory.
+    old_dirpath = os.path.dirname(test.old_img)
+    os.makedirs(old_dirpath, exist_ok=True)
+
+    # Copy temporary to new image.
+    if os.path.exists(test.new_img):
+        os.remove(test.new_img)
+    if os.path.exists(test.tmp_out_img):
+        shutil.copy(test.tmp_out_img, test.new_img)
+
+    if os.path.exists(test.ref_img):
+        # Diff images test with threshold.
+        command = (
+            oiiotool,
+            test.ref_img,
+            test.tmp_out_img,
+            "--fail", str(fail_threshold),
+            "--failpercent", str(fail_percent),
+            "--diff",
+        )
+        try:
+            subprocess.check_output(command)
+            failed = False
+        except subprocess.CalledProcessError as e:
+            if verbose:
+                print_message(e.output.decode("utf-8", 'ignore'))
+            failed = e.returncode != 0
+    else:
+        if not update:
+            test.error = "VERIFY"
+            return test
+
+        failed = True
+
+    if failed and update:
+        # Update reference image if requested.
+        shutil.copy(test.new_img, test.ref_img)
+        shutil.copy(test.new_img, test.old_img)
+        failed = False
+
+    # Generate color diff image.
+    command = (
+        oiiotool,
+        test.ref_img,
+        "--ch", "R,G,B",
+        test.tmp_out_img,
+        "--ch", "R,G,B",
+        "--sub",
+        "--abs",
+        "--mulc", "16",
+        "-o", test.diff_color_img,
+    )
+    try:
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        if verbose:
+            print_message(e.output.decode("utf-8", 'ignore'))
+
+    # Generate alpha diff image.
+    command = (
+        oiiotool,
+        test.ref_img,
+        "--ch", "A",
+        test.tmp_out_img,
+        "--ch", "A",
+        "--sub",
+        "--abs",
+        "--mulc", "16",
+        "-o", test.diff_alpha_img,
+    )
+    try:
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        if self.verbose:
+            msg = e.output.decode("utf-8", 'ignore')
+            for line in msg.splitlines():
+                # Ignore warnings for images without alpha channel.
+                if "--ch: Unknown channel name" not in line:
+                    print_message(line)
+
+    if failed:
+        test.error = "VERIFY"
+    else:
+        test.error = None
+
+    return test
 
 
 class Report:
@@ -382,88 +472,6 @@ class Report:
 
             self.compare_tests += test_html
 
-    def _diff_output(self, test):
-        # Create reference render directory.
-        old_dirpath = os.path.dirname(test.old_img)
-        os.makedirs(old_dirpath, exist_ok=True)
-
-        # Copy temporary to new image.
-        if os.path.exists(test.new_img):
-            os.remove(test.new_img)
-        if os.path.exists(test.tmp_out_img):
-            shutil.copy(test.tmp_out_img, test.new_img)
-
-        if os.path.exists(test.ref_img):
-            # Diff images test with threshold.
-            command = (
-                self.oiiotool,
-                test.ref_img,
-                test.tmp_out_img,
-                "--fail", str(self.fail_threshold),
-                "--failpercent", str(self.fail_percent),
-                "--diff",
-            )
-            try:
-                subprocess.check_output(command)
-                failed = False
-            except subprocess.CalledProcessError as e:
-                if self.verbose:
-                    print_message(e.output.decode("utf-8", 'ignore'))
-                failed = e.returncode != 0
-        else:
-            if not self.update:
-                return False
-
-            failed = True
-
-        if failed and self.update:
-            # Update reference image if requested.
-            shutil.copy(test.new_img, test.ref_img)
-            shutil.copy(test.new_img, test.old_img)
-            failed = False
-
-        # Generate color diff image.
-        command = (
-            self.oiiotool,
-            test.ref_img,
-            "--ch", "R,G,B",
-            test.tmp_out_img,
-            "--ch", "R,G,B",
-            "--sub",
-            "--abs",
-            "--mulc", "16",
-            "-o", test.diff_color_img,
-        )
-        try:
-            subprocess.check_output(command, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as e:
-            if self.verbose:
-                print_message(e.output.decode("utf-8", 'ignore'))
-
-        # Generate alpha diff image.
-        command = (
-            self.oiiotool,
-            test.ref_img,
-            "--ch", "A",
-            test.tmp_out_img,
-            "--ch", "A",
-            "--sub",
-            "--abs",
-            "--mulc", "16",
-            "-o", test.diff_alpha_img,
-        )
-        try:
-            subprocess.check_output(command, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as e:
-            if self.verbose:
-                msg = e.output.decode("utf-8", 'ignore')
-                for line in msg.splitlines():
-                    # Ignore warnings for images without alpha channel.
-                    if "--ch: Unknown channel name" not in line:
-                        print_message(line)
-
-        return not failed
-
     def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
         # Each render test can override this method to provide extra functionality.
         # See Cycles render tests for an example.
@@ -535,40 +543,49 @@ class Report:
             if (verbose or crash) and output:
                 print(output.decode("utf-8", 'ignore'))
 
+            tests_to_check = []
+
             # Detect missing filepaths and consider those errors
             for filepath in running_tests:
                 remaining_filepaths.pop(0)
                 file_crashed = False
-
                 for test in self._get_filepath_tests(filepath):
-                    if crash:
-                        # In case of crash, stop after missing files and re-render remaining
-                        if not os.path.exists(test.tmp_out_img):
+                    if not os.path.exists(test.tmp_out_img) or os.path.getsize(test.tmp_out_img) == 0:
+                        if crash:
+                            # In case of crash, stop after missing files and re-render remaining
                             test.error = "CRASH"
-                            print_message("Crash running Blender")
-                            print_message(test.name, 'FAILURE', 'FAILED')
+                            test_results.append(test)
                             file_crashed = True
                             break
-
-                    if not os.path.exists(test.tmp_out_img) or os.path.getsize(test.tmp_out_img) == 0:
-                        test.error = "NO OUTPUT"
-                        print_message("No render result file found")
-                        print_message(test.tmp_out_img, 'FAILURE', 'FAILED')
-                    elif not self._diff_output(test):
-                        test.error = "VERIFY"
-                        print_message("Render result is different from reference image")
-                        print_message(test.name, 'FAILURE', 'FAILED')
+                        else:
+                            test.error = "NO OUTPUT"
+                            test_results.append(test)
                     else:
-                        test.error = None
-                        print_message(test.name, 'SUCCESS', 'OK')
-
-                    if os.path.exists(test.tmp_out_img):
-                        os.remove(test.tmp_out_img)
-
-                    test_results.append(test)
-
+                        tests_to_check.append(test)
                 if file_crashed:
                     break
+
+            pool = multiprocessing.Pool(multiprocessing.cpu_count())
+            test_results.extend(pool.starmap(diff_output,
+                                             [(test, self.oiiotool, self.fail_threshold, self.fail_percent, self.verbose, self.update)
+                                              for test in tests_to_check]))
+            pool.close()
+
+        for test in test_results:
+            if test.error == "CRASH":
+                print_message("Crash running Blender")
+                print_message(test.name, 'FAILURE', 'FAILED')
+            elif test.error == "NO OUTPUT":
+                print_message("No render result file found")
+                print_message(test.tmp_out_img, 'FAILURE', 'FAILED')
+            elif test.error == "VERIFY":
+                print_message("Render result is different from reference image")
+                print_message(test.name, 'FAILURE', 'FAILED')
+            else:
+                print_message(test.name, 'SUCCESS', 'OK')
+
+            if os.path.exists(test.tmp_out_img):
+                os.remove(test.tmp_out_img)
 
         return test_results
 
