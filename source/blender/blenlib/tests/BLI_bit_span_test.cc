@@ -250,6 +250,109 @@ TEST(bit_span, ForEach1)
   EXPECT_EQ(indices_test.as_span(), Span({24, 33, 82}));
 }
 
+TEST(bit_span, ForEach1Cancel)
+{
+  BitVector<> vec(100, false);
+  vec[4].set();
+  vec[10].set();
+  vec[20].set();
+  {
+    Vector<int> indices;
+    foreach_1_index(vec, [&](const int i) {
+      indices.append(i);
+      return i < 5;
+    });
+    EXPECT_EQ(indices.as_span(), Span({4, 10}));
+  }
+  {
+    Vector<int> indices;
+    foreach_1_index(vec, [&](const int i) {
+      indices.append(i);
+      return i < 15;
+    });
+    EXPECT_EQ(indices.as_span(), Span({4, 10, 20}));
+  }
+  {
+    Vector<int> indices;
+    foreach_1_index(vec, [&](const int i) {
+      indices.append(i);
+      return false;
+    });
+    EXPECT_EQ(indices.as_span(), Span({4}));
+  }
+  {
+    Vector<int> indices;
+    foreach_1_index(vec, [&](const int i) {
+      indices.append(i);
+      return true;
+    });
+    EXPECT_EQ(indices.as_span(), Span({4, 10, 20}));
+  }
+}
+
+TEST(bit_span, FindFirst1Index)
+{
+  {
+    BitVector<> vec(0);
+    EXPECT_EQ(find_first_1_index(vec), std::nullopt);
+  }
+  {
+    BitVector<> vec(10'000, false);
+    EXPECT_EQ(find_first_1_index(vec), std::nullopt);
+  }
+  {
+    BitVector<> vec(10'000, true);
+    EXPECT_EQ(find_first_1_index(vec), 0);
+  }
+  {
+    BitVector<> vec(10, false);
+    vec[6].set();
+    EXPECT_EQ(find_first_1_index(vec), 6);
+  }
+  {
+    BitVector<> vec(10'000, false);
+    vec[2'500].set();
+    EXPECT_EQ(find_first_1_index(vec), 2'500);
+    EXPECT_EQ(find_first_1_index(BitSpan(vec).drop_front(100)), 2'400);
+  }
+  {
+    BitVector<> vec_a(10'000, false);
+    BitVector<> vec_b(10'000, false);
+    vec_a[2'000].set();
+    vec_a[2'400].set();
+    vec_a[2'500].set();
+    vec_b[2'000].set();
+    vec_b[2'400].set();
+    vec_b[2'600].set();
+    /* This finds the first index where the two vectors are different. */
+    EXPECT_EQ(find_first_1_index_expr(
+                  [](const BitInt a, const BitInt b) { return a ^ b; }, vec_a, vec_b),
+              2'500);
+  }
+}
+
+TEST(bit_span, FindFirst0Index)
+{
+  {
+    BitVector<> vec(0);
+    EXPECT_EQ(find_first_0_index(vec), std::nullopt);
+  }
+  {
+    BitVector<> vec(10'000, true);
+    EXPECT_EQ(find_first_0_index(vec), std::nullopt);
+  }
+  {
+    BitVector<> vec(10'000, false);
+    EXPECT_EQ(find_first_0_index(vec), 0);
+  }
+  {
+    BitVector<> vec(10'000, true);
+    vec[2'500].reset();
+    EXPECT_EQ(find_first_0_index(vec), 2'500);
+    EXPECT_EQ(find_first_0_index(BitSpan(vec).drop_front(100)), 2'400);
+  }
+}
+
 TEST(bit_span, or_bools_into_bits)
 {
   {
