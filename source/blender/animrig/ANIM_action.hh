@@ -1637,15 +1637,15 @@ Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t
  * create and assign an appropriate slot if needed when creating the fcurve, and
  * set the fcurve color properly
  */
-Channelbag *action_channelbag_ensure(bAction &dna_action, ID &animated_id);
+Channelbag &action_channelbag_ensure(bAction &dna_action, ID &animated_id);
 
 /**
  * Find or create an F-Curve on the given action that matches the given fcurve
  * descriptor.
  *
- * \note This function also ensures that dependency graph relationships are
- * rebuilt. This is necessary when adding a new F-Curve, as a
- * previously-unanimated depsgraph component may become animated now.
+ * \param bmain:  If not nullptr, this function also ensures that dependency
+ * graph relationships are rebuilt. This is necessary when adding a new F-Curve,
+ * as a previously-unanimated depsgraph component may become animated now.
  *
  * \param action: MUST already be assigned to the animated ID.
  *
@@ -1657,7 +1657,7 @@ Channelbag *action_channelbag_ensure(bAction &dna_action, ID &animated_id);
  * that this is *not* relative to `ptr` (e.g. if `ptr` is not an ID). It should
  * contain the exact data path of the fcurve to be looked up/created.
  */
-FCurve *action_fcurve_ensure(Main *bmain,
+FCurve &action_fcurve_ensure(Main *bmain,
                              bAction &action,
                              ID &animated_id,
                              const FCurveDescriptor &fcurve_descriptor);
