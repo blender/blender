@@ -319,8 +319,9 @@ TEST_F(UsdExportTest, usd_export_material)
 TEST(utilities, make_safe_name)
 {
   ASSERT_EQ(make_safe_name("", false), std::string("_"));
-  ASSERT_EQ(make_safe_name("1", false), std::string("_"));
-  ASSERT_EQ(make_safe_name("1Test", false), std::string("_Test"));
+  ASSERT_EQ(make_safe_name("|", false), std::string("_"));
+  ASSERT_EQ(make_safe_name("1", false), std::string("_1"));
+  ASSERT_EQ(make_safe_name("1Test", false), std::string("_1Test"));
 
   ASSERT_EQ(make_safe_name("Test", false), std::string("Test"));
   ASSERT_EQ(make_safe_name("Test|$bézier @ world", false), std::string("Test__b__zier___world"));
@@ -332,8 +333,9 @@ TEST(utilities, make_safe_name)
 
 #if PXR_VERSION >= 2403
   ASSERT_EQ(make_safe_name("", true), std::string("_"));
-  ASSERT_EQ(make_safe_name("1", true), std::string("_"));
-  ASSERT_EQ(make_safe_name("1Test", true), std::string("_Test"));
+  ASSERT_EQ(make_safe_name("|", true), std::string("_"));
+  ASSERT_EQ(make_safe_name("1", true), std::string("_1"));
+  ASSERT_EQ(make_safe_name("1Test", true), std::string("_1Test"));
 
   ASSERT_EQ(make_safe_name("Test", true), std::string("Test"));
   ASSERT_EQ(make_safe_name("Test|$bézier @ world", true), std::string("Test__bézier___world"));
