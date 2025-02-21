@@ -17,9 +17,11 @@
 #include "usd_reader_shape.hh"
 
 #include <pxr/usd/usdGeom/capsule.h>
+#include <pxr/usd/usdGeom/capsule_1.h>
 #include <pxr/usd/usdGeom/cone.h>
 #include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/cylinder.h>
+#include <pxr/usd/usdGeom/cylinder_1.h>
 #include <pxr/usd/usdGeom/plane.h>
 #include <pxr/usd/usdGeom/sphere.h>
 #include <pxr/usdImaging/usdImaging/capsuleAdapter.h>
@@ -89,13 +91,13 @@ bool USDShapeReader::read_mesh_values(double motionSampleTime,
                                       pxr::VtIntArray &face_indices,
                                       pxr::VtIntArray &face_counts) const
 {
-  if (prim_.IsA<pxr::UsdGeomCapsule>()) {
+  if (prim_.IsA<pxr::UsdGeomCapsule>() || prim_.IsA<pxr::UsdGeomCapsule_1>()) {
     read_values<pxr::UsdImagingCapsuleAdapter>(
         motionSampleTime, positions, face_indices, face_counts);
     return true;
   }
 
-  if (prim_.IsA<pxr::UsdGeomCylinder>()) {
+  if (prim_.IsA<pxr::UsdGeomCylinder>() || prim_.IsA<pxr::UsdGeomCylinder_1>()) {
     read_values<pxr::UsdImagingCylinderAdapter>(
         motionSampleTime, positions, face_indices, face_counts);
     return true;
@@ -284,11 +286,27 @@ bool USDShapeReader::is_time_varying()
             geom.GetRadiusAttr().ValueMightBeTimeVarying());
   }
 
+  if (prim_.IsA<pxr::UsdGeomCapsule_1>()) {
+    pxr::UsdGeomCapsule_1 geom(prim_);
+    return (geom.GetAxisAttr().ValueMightBeTimeVarying() ||
+            geom.GetHeightAttr().ValueMightBeTimeVarying() ||
+            geom.GetRadiusTopAttr().ValueMightBeTimeVarying() ||
+            geom.GetRadiusBottomAttr().ValueMightBeTimeVarying());
+  }
+
   if (prim_.IsA<pxr::UsdGeomCylinder>()) {
     pxr::UsdGeomCylinder geom(prim_);
     return (geom.GetAxisAttr().ValueMightBeTimeVarying() ||
             geom.GetHeightAttr().ValueMightBeTimeVarying() ||
             geom.GetRadiusAttr().ValueMightBeTimeVarying());
+  }
+
+  if (prim_.IsA<pxr::UsdGeomCylinder_1>()) {
+    pxr::UsdGeomCylinder_1 geom(prim_);
+    return (geom.GetAxisAttr().ValueMightBeTimeVarying() ||
+            geom.GetHeightAttr().ValueMightBeTimeVarying() ||
+            geom.GetRadiusTopAttr().ValueMightBeTimeVarying() ||
+            geom.GetRadiusBottomAttr().ValueMightBeTimeVarying());
   }
 
   if (prim_.IsA<pxr::UsdGeomCone>()) {
