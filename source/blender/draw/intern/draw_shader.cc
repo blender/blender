@@ -361,9 +361,6 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
         defines = "#define GPU_AMD_DRIVER_BYTE_BUG\n";
       }
     }
-    else if (shader_type == SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE) {
-      defines = "#define CUSTOM_NORMALS\n";
-    }
 
     e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_compute(
         compute_code, datatoc_subdiv_lib_glsl, defines, get_subdiv_shader_name(shader_type));

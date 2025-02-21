@@ -187,6 +187,8 @@ set(SRC
   intern/draw_view.hh
   intern/draw_view_c.hh
   intern/draw_view_data.hh
+  intern/draw_subdiv_defines.hh
+  intern/draw_subdiv_shader_shared.hh
   intern/mesh_extractors/extract_mesh.hh
   engines/compositor/compositor_engine.h
   engines/eevee_next/eevee_ambient_occlusion.hh

@@ -19,6 +19,12 @@ TYPEDEF_SOURCE("draw_subdiv_shader_shared.hh")
 UNIFORM_BUF(SHADER_DATA_BUF_SLOT, DRWSubdivUboStorage, shader_data)
 GPU_SHADER_CREATE_END()
 
+GPU_SHADER_CREATE_INFO(subdiv_polygon_offset_base)
+DEFINE("SUBDIV_POLYGON_OFFSET")
+STORAGE_BUF(SUBDIV_FACE_OFFSET_BUF_SLOT, READ, uint, subdiv_face_offset[])
+ADDITIONAL_INFO(subdiv_base)
+GPU_SHADER_CREATE_END()
+
 /* -------------------------------------------------------------------- */
 /** \name Normals Finalize
  * \{ */

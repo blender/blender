@@ -8,7 +8,11 @@
 
 #ifdef USE_GPU_SHADER_CREATE_INFO
 /* TODO: Do not use compute variables directly in a library. */
+#  ifdef SUBDIV_POLYGON_OFFSET
+COMPUTE_SHADER_CREATE_INFO(subdiv_polygon_offset_base)
+#  else
 COMPUTE_SHADER_CREATE_INFO(subdiv_base)
+#  endif
 #else
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
@@ -210,4 +214,6 @@ uint coarse_face_index_from_subdiv_quad_index(uint subdiv_quad_index, uint coars
 
   return first - 1;
 }
+#else
+uint coarse_face_index_from_subdiv_quad_index(uint subdiv_quad_index, uint coarse_face_count);
 #endif
