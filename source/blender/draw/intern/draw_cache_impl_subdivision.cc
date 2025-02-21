@@ -1426,20 +1426,15 @@ void draw_subdiv_build_tris_buffer(const DRWSubdivCache &cache,
                                                 SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS);
   GPU_shader_bind(shader);
 
-  int binding_point = 0;
-
   /* subdiv_face_offset is always at binding point 0 for each shader using it. */
-  GPU_vertbuf_bind_as_ssbo(cache.subdiv_face_offset_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data, binding_point++);
-
-  /* Outputs */
-  GPU_indexbuf_bind_as_ssbo(subdiv_tris, binding_point++);
-
+  GPU_vertbuf_bind_as_ssbo(cache.subdiv_face_offset_buffer, SUBDIV_FACE_OFFSET_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data, TRIS_EXTRA_COARSE_FACE_DATA_BUF_SLOT);
   if (!do_single_material) {
-    GPU_vertbuf_bind_as_ssbo(cache.face_mat_offset, binding_point++);
+    GPU_vertbuf_bind_as_ssbo(cache.face_mat_offset, TRIS_FACE_MAT_OFFSET);
   }
 
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
+  /* Outputs */
+  GPU_indexbuf_bind_as_ssbo(subdiv_tris, TRIS_OUTPUT_TRIS_BUF_SLOT);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_quads);
 

@@ -45,7 +45,7 @@ void emit_line(uint line_offset, uint quad_index, uint start_loop_index, uint co
 void main()
 {
   uint index = get_global_invocation_index();
-  if (index >= total_dispatch_size) {
+  if (index >= shader_data.total_dispatch_size) {
     return;
   }
 

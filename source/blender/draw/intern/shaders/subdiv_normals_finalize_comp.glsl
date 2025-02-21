@@ -20,7 +20,7 @@ void main()
 {
   /* We execute for each quad. */
   uint quad_index = get_global_invocation_index();
-  if (quad_index >= total_dispatch_size) {
+  if (quad_index >= shader_data.total_dispatch_size) {
     return;
   }
 

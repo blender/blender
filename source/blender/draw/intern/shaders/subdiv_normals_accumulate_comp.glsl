@@ -32,7 +32,7 @@ void find_prev_and_next_vertex_on_face(
 void main()
 {
   uint vertex_index = get_global_invocation_index();
-  if (vertex_index >= total_dispatch_size) {
+  if (vertex_index >= shader_data.total_dispatch_size) {
     return;
   }
 

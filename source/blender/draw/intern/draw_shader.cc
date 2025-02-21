@@ -124,6 +124,18 @@ GPUShader *DRW_shader_draw_command_generate_get()
 static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shader_type)
 {
   switch (shader_type) {
+    case SubdivShaderType::BUFFER_LINES:
+      return "subdiv_lines";
+
+    case SubdivShaderType::BUFFER_LINES_LOOSE:
+      return "subdiv_lines_loose";
+
+    case SubdivShaderType::BUFFER_TRIS:
+      return "subdiv_tris_single_material";
+
+    case SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS:
+      return "subdiv_tris_multiple_materials";
+
     case SubdivShaderType::BUFFER_NORMALS_ACCUMULATE:
       return "subdiv_normals_accumulate";
 
@@ -132,12 +144,6 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
 
     case SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE:
       return "subdiv_custom_normals_finalize";
-
-    case SubdivShaderType::BUFFER_LINES:
-      return "subdiv_lines";
-
-    case SubdivShaderType::BUFFER_LINES_LOOSE:
-      return "subdiv_lines_loose";
 
     default:
       break;
@@ -337,6 +343,8 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
       ELEM(shader_type,
            SubdivShaderType::BUFFER_LINES,
            SubdivShaderType::BUFFER_LINES_LOOSE,
+           SubdivShaderType::BUFFER_TRIS,
+           SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS,
            SubdivShaderType::BUFFER_NORMALS_ACCUMULATE,
            SubdivShaderType::BUFFER_NORMALS_FINALIZE,
            SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE))
@@ -350,17 +358,9 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
     const blender::StringRefNull compute_code = get_subdiv_shader_code(shader_type);
     std::optional<blender::StringRefNull> defines;
 
-    if (ELEM(shader_type,
-             SubdivShaderType::BUFFER_LNOR,
-             SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS,
-             SubdivShaderType::BUFFER_UV_STRETCH_AREA))
+    if (ELEM(shader_type, SubdivShaderType::BUFFER_LNOR, SubdivShaderType::BUFFER_UV_STRETCH_AREA))
     {
       defines = "#define SUBDIV_POLYGON_OFFSET\n";
-    }
-    else if (shader_type == SubdivShaderType::BUFFER_TRIS) {
-      defines =
-          "#define SUBDIV_POLYGON_OFFSET\n"
-          "#define SINGLE_MATERIAL\n";
     }
     else if (shader_type == SubdivShaderType::BUFFER_EDGE_FAC) {
       /* No separate shader for the AMD driver case as we assume that the GPU will not change

@@ -74,9 +74,3 @@ struct CustomNormal {
   float y;
   float z;
 };
-
-/* TODO: after migrating all shaders we should replace these defines with 'shader_data.define'.
- * Currently only added to support both legacy and shader create info. */
-#ifdef GPU_SHADER
-#  define total_dispatch_size shader_data.total_dispatch_size
-#endif

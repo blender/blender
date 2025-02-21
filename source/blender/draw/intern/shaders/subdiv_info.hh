@@ -26,6 +26,30 @@ ADDITIONAL_INFO(subdiv_base)
 GPU_SHADER_CREATE_END()
 
 /* -------------------------------------------------------------------- */
+/** \name Triangle indices
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(subdiv_tris_single_material)
+DO_STATIC_COMPILATION()
+DEFINE("SINGLE_MATERIAL")
+STORAGE_BUF(TRIS_EXTRA_COARSE_FACE_DATA_BUF_SLOT, READ, uint, extra_coarse_face_data[])
+STORAGE_BUF(TRIS_OUTPUT_TRIS_BUF_SLOT, WRITE, uint, output_tris[])
+COMPUTE_SOURCE("subdiv_ibo_tris_comp.glsl")
+ADDITIONAL_INFO(subdiv_polygon_offset_base)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_tris_multiple_materials)
+DO_STATIC_COMPILATION()
+STORAGE_BUF(TRIS_EXTRA_COARSE_FACE_DATA_BUF_SLOT, READ, uint, extra_coarse_face_data[])
+STORAGE_BUF(TRIS_OUTPUT_TRIS_BUF_SLOT, WRITE, uint, output_tris[])
+STORAGE_BUF(TRIS_FACE_MAT_OFFSET, READ, uint, face_mat_offset[])
+COMPUTE_SOURCE("subdiv_ibo_tris_comp.glsl")
+ADDITIONAL_INFO(subdiv_polygon_offset_base)
+GPU_SHADER_CREATE_END()
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Line indices
  * \{ */
 

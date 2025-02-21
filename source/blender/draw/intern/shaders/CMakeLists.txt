@@ -32,6 +32,7 @@ set(SRC_GLSL_COMP
   draw_visibility_comp.glsl
   
   subdiv_ibo_lines_comp.glsl
+  subdiv_ibo_tris_comp.glsl
   subdiv_normals_accumulate_comp.glsl
   subdiv_normals_finalize_comp.glsl
 )
