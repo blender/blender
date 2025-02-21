@@ -1449,11 +1449,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       }
     }
     else {
-      /* must nullify the reference to physics sim object, since it no-longer exist
-       * (and will need to be recalculated)
-       */
-      rbw->shared->physics_world = nullptr;
-
       /* link caches */
       BKE_ptcache_blend_read_data(reader, &rbw->shared->ptcaches, &rbw->shared->pointcache, false);
 
@@ -1462,6 +1457,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
         rbw->ltime = float(rbw->shared->pointcache->startframe);
       }
     }
+
+    BKE_rigidbody_world_init_runtime(rbw);
     rbw->objects = nullptr;
     rbw->numbodies = 0;
 
