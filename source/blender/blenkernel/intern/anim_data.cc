@@ -1318,7 +1318,7 @@ void BKE_animdata_main_cb(Main *bmain, const FunctionRef<void(ID *, AnimData *)>
     if (ntp->nodetree) { \
       AnimData *adt2 = BKE_animdata_from_id((ID *)ntp->nodetree); \
       if (adt2) { \
-        func(id, adt2); \
+        func((ID *)ntp->nodetree, adt2); \
       } \
     } \
     if (adt) { \
