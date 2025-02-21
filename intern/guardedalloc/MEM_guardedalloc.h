@@ -399,11 +399,14 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &ot
 
 template<typename T> inline void MEM_freeN(T *ptr)
 {
-#  ifndef _MSC_VER
+#  ifdef _MSC_VER
   /* MSVC seems to consider C-style types using the DNA_DEFINE_CXX_METHODS as non-trivial. GCC
    * and clang (both on linux, OSX and clang-cl on Windows on Arm) do not.
    *
    * So for now, disable the triviality check on MSVC. */
+  static_assert(std::is_trivially_destructible_v<T>,
+                "For non-trivial types, MEM_delete must be used.");
+#  else
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_delete must be used.");
 #  endif
   mem_guarded::internal::mem_freeN_ex(const_cast<void *>(static_cast<const void *>(ptr)),
