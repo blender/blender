@@ -26,6 +26,30 @@ ADDITIONAL_INFO(subdiv_base)
 GPU_SHADER_CREATE_END()
 
 /* -------------------------------------------------------------------- */
+/** \name Line indices
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(subdiv_lines)
+DO_STATIC_COMPILATION()
+STORAGE_BUF(LINES_INPUT_EDGE_DRAW_FLAG_BUF_SLOT, READ, int, input_edge_draw_flag[])
+STORAGE_BUF(LINES_EXTRA_COARSE_FACE_DATA_BUF_SLOT, READ, uint, extra_coarse_face_data[])
+STORAGE_BUF(LINES_OUTPUT_LINES_BUF_SLOT, WRITE, uint, output_lines[])
+COMPUTE_SOURCE("subdiv_ibo_lines_comp.glsl")
+ADDITIONAL_INFO(subdiv_polygon_offset_base)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_lines_loose)
+DO_STATIC_COMPILATION()
+DEFINE("LINES_LOOSE")
+STORAGE_BUF(LINES_OUTPUT_LINES_BUF_SLOT, WRITE, uint, output_lines[])
+STORAGE_BUF(LINES_LINES_LOOSE_FLAGS, READ, uint, lines_loose_flags[])
+COMPUTE_SOURCE("subdiv_ibo_lines_comp.glsl")
+ADDITIONAL_INFO(subdiv_base)
+GPU_SHADER_CREATE_END()
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Normals
  * \{ */
 

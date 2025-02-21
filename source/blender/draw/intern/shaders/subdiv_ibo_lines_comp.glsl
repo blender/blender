@@ -2,50 +2,33 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with subdiv_lib.glsl */
+/* Create index buffer for lines and loose lines. */
+
+#include "subdiv_lib.glsl"
 
 #ifndef LINES_LOOSE
-
-layout(std430, binding = 1) readonly buffer inputEdgeDrawFlag
-{
-  int input_edge_draw_flag[];
-};
-
-layout(std430, binding = 2) readonly restrict buffer extraCoarseFaceData
-{
-  uint extra_coarse_face_data[];
-};
-
-#endif
-
-layout(std430, binding = 3) writeonly buffer outputLinesIndices
-{
-  uint output_lines[];
-};
-
-#ifdef LINES_LOOSE
-
-layout(std430, binding = 4) readonly buffer LinesLooseFlags
-{
-  uint lines_loose_flags[];
-};
-
+COMPUTE_SHADER_CREATE_INFO(subdiv_lines)
+#else
+COMPUTE_SHADER_CREATE_INFO(subdiv_lines_loose)
 #endif
 
 #ifndef LINES_LOOSE
 
 bool is_face_hidden(uint coarse_quad_index)
 {
-  return (extra_coarse_face_data[coarse_quad_index] & coarse_face_hidden_mask) != 0;
+  return (extra_coarse_face_data[coarse_quad_index] & shader_data.coarse_face_hidden_mask) != 0;
 }
 
 void emit_line(uint line_offset, uint quad_index, uint start_loop_index, uint corner_index)
 {
   uint vertex_index = start_loop_index + corner_index;
 
-  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index, coarse_face_count);
+  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index,
+                                                                    shader_data.coarse_face_count);
 
-  if (use_hide && is_face_hidden(coarse_quad_index) || (input_edge_draw_flag[vertex_index] == 0)) {
+  if ((shader_data.use_hide && is_face_hidden(coarse_quad_index)) ||
+      (input_edge_draw_flag[vertex_index] == 0))
+  {
     output_lines[line_offset + 0] = 0xffffffff;
     output_lines[line_offset + 1] = 0xffffffff;
   }
@@ -68,8 +51,8 @@ void main()
 
 #ifdef LINES_LOOSE
   /* In the loose lines case, we execute for each line, with two vertices per line. */
-  uint line_offset = edge_loose_offset + index * 2;
-  uint loop_index = num_subdiv_loops + index * 2;
+  uint line_offset = shader_data.edge_loose_offset + index * 2;
+  uint loop_index = shader_data.num_subdiv_loops + index * 2;
 
   if (lines_loose_flags[index] != 0) {
     /* Line is hidden. */
