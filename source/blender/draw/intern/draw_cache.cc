@@ -245,7 +245,7 @@ blender::gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_edges(*ob, *static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_edges(*static_cast<Mesh *>(ob->data));
 }
 
 Span<blender::gpu::Batch *> DRW_cache_mesh_surface_shaded_get(

@@ -1219,10 +1219,9 @@ gpu::Batch *DRW_mesh_batch_cache_get_uv_edges(Object &object, Mesh &mesh)
   return DRW_batch_request(&cache.batch.wire_loops_uvs);
 }
 
-gpu::Batch *DRW_mesh_batch_cache_get_surface_edges(Object &object, Mesh &mesh)
+gpu::Batch *DRW_mesh_batch_cache_get_surface_edges(Mesh &mesh)
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
-  texpaint_request_active_uv(cache, object, mesh);
   mesh_batch_cache_add_request(cache, MBC_WIRE_LOOPS);
   return DRW_batch_request(&cache.batch.wire_loops);
 }
