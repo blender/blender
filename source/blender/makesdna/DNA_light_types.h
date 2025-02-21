@@ -34,11 +34,11 @@ typedef struct Light {
   short type, flag;
   int mode;
 
-  /* Color and energy. */
+  /* Color, temperature and energy. */
   float r, g, b;
+  float temperature;
   float energy;
   float exposure;
-  float _pad3;
 
   /* Point light. */
   float radius;
@@ -144,6 +144,7 @@ enum {
   /** Use absolute resolution clamping instead of relative. */
   LA_SHAD_RES_ABSOLUTE = 1 << 22,
   LA_SHADOW_JITTER = 1 << 23,
+  LA_USE_TEMPERATURE = 1 << 24,
 };
 
 /** #Light::falloff_type */

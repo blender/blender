@@ -14,9 +14,12 @@
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
+#include "RNA_types.hh"
 #include "rna_internal.hh"
 
 #include "DNA_light_types.h"
+
+#include "IMB_colormanagement.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -77,6 +80,18 @@ static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
   rna_Light_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
+static void rna_Light_temperature_color_get(PointerRNA *ptr, float *color)
+{
+  Light *la = (Light *)ptr->data;
+
+  float rgb[4];
+  IMB_colormanagement_blackbody_temperature_to_rgb(rgb, la->temperature);
+
+  color[0] = rgb[0];
+  color[1] = rgb[1];
+  color[2] = rgb[2];
+}
+
 #else
 
 /* NOTE(@dingto): Don't define icons here,
@@ -109,11 +124,32 @@ static void rna_def_light(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
   RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
+  prop = RNA_def_property(srna, "use_temperature", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "mode", LA_USE_TEMPERATURE);
+  RNA_def_property_ui_text(
+      prop, "Use Temperature", "Use blackbody temperature to define a natural light color");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
+  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_float_sdna(prop, nullptr, "r");
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_array_default(prop, default_color);
   RNA_def_property_ui_text(prop, "Color", "Light color");
+  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+
+  prop = RNA_def_property(srna, "temperature", PROP_FLOAT, PROP_TEMPERATURE);
+  RNA_def_property_float_sdna(prop, nullptr, "temperature");
+  RNA_def_property_range(prop, 800.0f, 20000.0f);
+  RNA_def_property_ui_range(prop, 800.0f, 20000.0f, 400.0f, 1);
+  RNA_def_property_ui_text(prop, "Temperature", "Light color temperature in Kelvin");
+  RNA_def_property_update(prop, 0, "rna_Light_update");
+
+  prop = RNA_def_property(srna, "temperature_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_Light_temperature_color_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Temperature Color", "Color from Temperature");
   RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
   prop = RNA_def_property(srna, "specular_factor", PROP_FLOAT, PROP_FACTOR);
@@ -211,7 +247,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
       /* Lights with a location have radiometric ppower in Watts,
        * which is sensitive to scene unit scale. */
       prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
-      RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
+      RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 3);
       RNA_def_property_ui_text(
           prop,
           "Power",
@@ -225,7 +261,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
       /* Lights with a location have radiometric power in Watts,
        * which is sensitive to scene unit scale. */
       prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
-      RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
+      RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 3);
       RNA_def_property_ui_text(prop,
                                "Power",
                                "Light energy emitted over the entire area of the light in all "

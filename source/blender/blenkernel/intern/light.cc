@@ -33,6 +33,8 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "IMB_colormanagement.hh"
+
 #include "BLO_read_write.hh"
 
 static void light_init_data(ID *id)
@@ -198,4 +200,22 @@ Light *BKE_light_add(Main *bmain, const char *name)
 void BKE_light_eval(Depsgraph *depsgraph, Light *la)
 {
   DEG_debug_print_eval(depsgraph, __func__, la->id.name, la);
+}
+
+float BKE_light_power(const Light &light)
+{
+  return light.energy * exp2f(light.exposure);
+}
+
+blender::float3 BKE_light_color(const Light &light)
+{
+  blender::float3 color(&light.r);
+
+  if (light.mode & LA_USE_TEMPERATURE) {
+    float temperature_color[4];
+    IMB_colormanagement_blackbody_temperature_to_rgb(temperature_color, light.temperature);
+    color *= blender::float3(temperature_color);
+  }
+
+  return color;
 }

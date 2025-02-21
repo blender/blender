@@ -10,11 +10,15 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_vector_types.hh"
 
 struct Depsgraph;
 struct Light;
 struct Main;
 
-struct Light *BKE_light_add(struct Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;
+Light *BKE_light_add(Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;
 
-void BKE_light_eval(struct Depsgraph *depsgraph, struct Light *la);
+void BKE_light_eval(Depsgraph *depsgraph, Light *la);
+
+float BKE_light_power(const Light &light);
+blender::float3 BKE_light_color(const Light &light);
