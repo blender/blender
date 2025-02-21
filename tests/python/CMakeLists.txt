@@ -1192,7 +1192,7 @@ endif()
 # ------------------------------------------------------------------------------
 # SCULPTING RENDER TESTS
 
-if(WITH_GPU_RENDER_TESTS)
+if(WITH_GPU_MESH_PAINT_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
     message(STATUS "Disabling sculpting render tests because OIIO oiiotool does not exist")
   else()

@@ -847,6 +847,7 @@ Enable GPU drawing related unit testing (draw manager)"
   OFF
 )
 option(WITH_GPU_COMPOSITOR_TESTS "Enable regression testing for GPU compositor" OFF)
+option(WITH_GPU_MESH_PAINT_TESTS "Enable visual render-based regression testing for mesh painting" OFF)
 if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_UI_TESTS "\
 Enable user-interface tests using a headless display server. \
