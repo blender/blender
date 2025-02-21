@@ -436,7 +436,7 @@ namespace blender::ed::sculpt_paint {
 /**
  * Triggers redraws, updates, and dependency graph tags as necessary after each brush calculation.
  */
-void flush_update_step(bContext *C, UpdateType update_type);
+void flush_update_step(const bContext *C, UpdateType update_type);
 /**
  * Triggers redraws, updates, and dependency graph tags as necessary when a brush stroke finishes.
  */

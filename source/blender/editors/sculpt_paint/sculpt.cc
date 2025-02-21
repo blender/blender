@@ -5217,29 +5217,25 @@ static void tag_mesh_positions_changed(Object &object, const bool use_pbvh_draw)
   }
 }
 
-void flush_update_step(bContext *C, UpdateType update_type)
+void flush_update_step(const bContext *C, const UpdateType update_type)
 {
-  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
-  ARegion &region = *CTX_wm_region(C);
-  MultiresModifierData *mmd = ss.multires.modifier;
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-
-  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&ob, rv3d);
 
   if (rv3d) {
     /* Mark for faster 3D viewport redraws. */
     rv3d->rflag |= RV3D_PAINTING;
   }
 
+  const SculptSession &ss = *ob.sculpt;
+  const MultiresModifierData *mmd = ss.multires.modifier;
   if (mmd != nullptr) {
+    Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
     multires_mark_as_modified(&depsgraph, &ob, MULTIRES_COORDS_MODIFIED);
   }
 
-  if ((update_type == UpdateType::Image) != 0) {
+  ARegion &region = *CTX_wm_region(C);
+  if (update_type == UpdateType::Image) {
     ED_region_tag_redraw(&region);
     if (update_type == UpdateType::Image) {
       /* Early exit when only need to update the images. We don't want to tag any geometry updates
@@ -5250,6 +5246,7 @@ void flush_update_step(bContext *C, UpdateType update_type)
 
   DEG_id_tag_update(&ob.id, ID_RECALC_SHADING);
 
+  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&ob, rv3d);
   /* Only current viewport matters, slower update for all viewports will
    * be done in sculpt_flush_update_done. */
   if (!use_pbvh_draw) {
@@ -5263,7 +5260,6 @@ void flush_update_step(bContext *C, UpdateType update_type)
      * only the part of the 3D viewport where changes happened. */
     rcti r;
 
-    RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && SCULPT_get_redraw_rect(region, *rv3d, ob, r)) {
       if (ss.cache) {
         ss.cache->current_r = r;
@@ -5281,6 +5277,7 @@ void flush_update_step(bContext *C, UpdateType update_type)
     }
   }
 
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   if (update_type == UpdateType::Position && !ss.shapekey_active) {
     if (pbvh.type() == bke::pbvh::Type::Mesh) {
       tag_mesh_positions_changed(ob, use_pbvh_draw);
@@ -5288,38 +5285,37 @@ void flush_update_step(bContext *C, UpdateType update_type)
   }
 }
 
-void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
+void flush_update_done(const bContext *C, Object &ob, const UpdateType update_type)
 {
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
-  wmWindowManager *wm = CTX_wm_manager(C);
-  RegionView3D *current_rv3d = CTX_wm_region_view3d(C);
-  SculptSession &ss = *ob.sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
 
   /* Always needed for linked duplicates. */
-  bool need_tag = (ID_REAL_USERS(&mesh->id) > 1);
+  bool need_tag = ID_REAL_USERS(&mesh.id) > 1;
 
+  RegionView3D *current_rv3d = CTX_wm_region_view3d(C);
   if (current_rv3d) {
     current_rv3d->rflag &= ~RV3D_PAINTING;
   }
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
-      if (sl->spacetype != SPACE_VIEW3D) {
+  const wmWindowManager &wm = *CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm.windows) {
+    const bScreen &screen = *WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen.areabase) {
+      const SpaceLink &sl = *static_cast<SpaceLink *>(area->spacedata.first);
+      if (sl.spacetype != SPACE_VIEW3D) {
         continue;
       }
 
-      /* Tag all 3D viewports for redraw now that we are done. Others
+      /* Tag all 3D viewports for redraw now that we are done. Other
        * viewports did not get a full redraw, and anti-aliasing for the
        * current viewport was deactivated. */
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (region->regiontype == RGN_TYPE_WINDOW) {
-          RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-          if (rv3d != current_rv3d) {
-            need_tag |= !BKE_sculptsession_use_pbvh_draw(&ob, rv3d);
+          const RegionView3D *other_rv3d = static_cast<RegionView3D *>(region->regiondata);
+          if (other_rv3d != current_rv3d) {
+            need_tag |= !BKE_sculptsession_use_pbvh_draw(&ob, other_rv3d);
           }
 
           ED_region_tag_redraw(region);
@@ -5328,9 +5324,9 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
     }
 
     if (update_type == UpdateType::Image) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
-        if (sl->spacetype != SPACE_IMAGE) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen.areabase) {
+        const SpaceLink &sl = *static_cast<SpaceLink *>(area->spacedata.first);
+        if (sl.spacetype != SPACE_IMAGE) {
           continue;
         }
         ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
@@ -5349,6 +5345,7 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
 
   if (update_type == UpdateType::Position) {
     if (pbvh.type() == bke::pbvh::Type::BMesh) {
+      SculptSession &ss = *ob.sculpt;
       BKE_pbvh_bmesh_after_stroke(*ss.bm, pbvh);
     }
   }
