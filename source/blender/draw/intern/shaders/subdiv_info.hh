@@ -26,6 +26,22 @@ ADDITIONAL_INFO(subdiv_base)
 GPU_SHADER_CREATE_END()
 
 /* -------------------------------------------------------------------- */
+/** \name Loop normals
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(subdiv_loop_normals)
+DO_STATIC_COMPILATION()
+STORAGE_BUF(LOOP_NORMALS_POS_NOR_BUF_SLOT, READ, PosNorLoop, pos_nor[])
+STORAGE_BUF(LOOP_NORMALS_EXTRA_COARSE_FACE_DATA_BUF_SLOT, READ, uint, extra_coarse_face_data[])
+STORAGE_BUF(LOOP_NORMALS_INPUT_VERT_ORIG_INDEX_BUF_SLOT, READ, int, input_vert_origindex[])
+STORAGE_BUF(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, WRITE, LoopNormal, output_lnor[])
+COMPUTE_SOURCE("subdiv_vbo_lnor_comp.glsl")
+ADDITIONAL_INFO(subdiv_polygon_offset_base)
+GPU_SHADER_CREATE_END()
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Triangle indices
  * \{ */
 

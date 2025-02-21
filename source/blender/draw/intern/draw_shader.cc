@@ -145,6 +145,9 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
     case SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE:
       return "subdiv_custom_normals_finalize";
 
+    case SubdivShaderType::BUFFER_LNOR:
+      return "subdiv_loop_normals";
+
     default:
       break;
   }
@@ -347,7 +350,8 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
            SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS,
            SubdivShaderType::BUFFER_NORMALS_ACCUMULATE,
            SubdivShaderType::BUFFER_NORMALS_FINALIZE,
-           SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE))
+           SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE,
+           SubdivShaderType::BUFFER_LNOR))
   {
     blender::StringRefNull create_info_name = get_subdiv_shader_info_name(shader_type);
     e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_from_info_name(
@@ -358,8 +362,7 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
     const blender::StringRefNull compute_code = get_subdiv_shader_code(shader_type);
     std::optional<blender::StringRefNull> defines;
 
-    if (ELEM(shader_type, SubdivShaderType::BUFFER_LNOR, SubdivShaderType::BUFFER_UV_STRETCH_AREA))
-    {
+    if (ELEM(shader_type, SubdivShaderType::BUFFER_UV_STRETCH_AREA)) {
       defines = "#define SUBDIV_POLYGON_OFFSET\n";
     }
     else if (shader_type == SubdivShaderType::BUFFER_EDGE_FAC) {
