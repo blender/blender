@@ -70,22 +70,6 @@ struct rbRigidBody;
 
 /* Freeing Methods --------------------- */
 
-struct RigidBodyWorld_Runtime {
-#ifdef WITH_BULLET
-  rbDynamicsWorld *physics_world = nullptr;
-#endif
-  std::mutex mutex;
-
-  ~RigidBodyWorld_Runtime()
-  {
-#ifdef WITH_BULLET
-    if (physics_world) {
-      RB_dworld_delete(physics_world);
-    }
-#endif
-  }
-};
-
 #ifdef WITH_BULLET
 static void rigidbody_update_ob_array(RigidBodyWorld *rbw);
 #else
@@ -95,8 +79,19 @@ static void RB_dworld_delete(void * /*world*/) {}
 static void RB_body_delete(void * /*body*/) {}
 static void RB_shape_delete(void * /*shape*/) {}
 static void RB_constraint_delete(void * /*con*/) {}
-
 #endif
+
+struct RigidBodyWorld_Runtime {
+  rbDynamicsWorld *physics_world = nullptr;
+  std::mutex mutex;
+
+  ~RigidBodyWorld_Runtime()
+  {
+    if (physics_world) {
+      RB_dworld_delete(physics_world);
+    }
+  }
+};
 
 void BKE_rigidbody_world_init_runtime(RigidBodyWorld *rbw)
 {
