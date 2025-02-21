@@ -21,8 +21,6 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_viewport.hh"
 
-#include "draw_instance_data.hh"
-
 struct DRWDebugModule;
 struct DRWUniformChunk;
 struct DRWViewData;
@@ -107,8 +105,6 @@ struct DRWManager {
   ID *dupli_origin_data;
   /** Hash-map: #DupliKey -> void pointer for each enabled engine. */
   GHash *dupli_ghash;
-  /** TODO(@fclem): try to remove usage of this. */
-  DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
   /* Dupli data for the current dupli for each enabled engine. */
   void **dupli_datas;
 

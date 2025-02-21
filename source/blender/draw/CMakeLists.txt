@@ -72,7 +72,6 @@ set(SRC
   intern/draw_debug.cc
   intern/draw_fluid.cc
   intern/draw_hair.cc
-  intern/draw_instance_data.cc
   intern/draw_manager.cc
   intern/draw_manager_c.cc
   intern/draw_manager_shader.cc
@@ -171,7 +170,6 @@ set(SRC
   intern/draw_debug_c.hh
   intern/draw_hair_private.hh
   intern/draw_handle.hh
-  intern/draw_instance_data.hh
   intern/draw_manager.hh
   intern/draw_manager_c.hh
   intern/draw_manager_testing.hh
