@@ -1400,17 +1400,11 @@ static FCurve *rna_Action_fcurve_ensure_for_datablock(bAction *_self,
     }
   }
 
-  FCurve *fcurve = blender::animrig::action_fcurve_ensure(
+  FCurve &fcurve = blender::animrig::action_fcurve_ensure(
       bmain, *_self, *datablock, {data_path, array_index});
 
-  if (!fcurve) {
-    /* This should never happen, given the precondition check above. */
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
-  return fcurve;
+  return &fcurve;
 }
 
 /**

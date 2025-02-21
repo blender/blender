@@ -2631,47 +2631,35 @@ FCurve *action_fcurve_ensure_ex(Main *bmain,
     return nullptr;
   }
 
-  return action_fcurve_ensure(bmain, *act, *ptr->owner_id, fcurve_descriptor);
+  return &action_fcurve_ensure(bmain, *act, *ptr->owner_id, fcurve_descriptor);
 }
 
-Channelbag *action_channelbag_ensure(bAction &dna_action, ID &animated_id)
+Channelbag &action_channelbag_ensure(bAction &dna_action, ID &animated_id)
 {
   Action &action = dna_action.wrap();
-
   BLI_assert(get_action(animated_id) == &action);
-  if (get_action(animated_id) != &action) {
-    return nullptr;
-  }
 
   /* Ensure the id has an assigned slot. */
   Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
-  if (!slot) {
-    /* This means the ID type is not animatable. How did an Action get assigned
-     * in the first place? */
-    BLI_assert_unreachable();
-    return nullptr;
-  }
+  /* A nullptr here means the ID type is not animatable. But since the Action is already assigned,
+   * it is certain that the ID is actually animatable. */
+  BLI_assert(slot);
 
   action.layer_keystrip_ensure();
 
   assert_baklava_phase_1_invariants(action);
   StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
 
-  return &strip_data.channelbag_for_slot_ensure(*slot);
+  return strip_data.channelbag_for_slot_ensure(*slot);
 }
 
-FCurve *action_fcurve_ensure(Main *bmain,
+FCurve &action_fcurve_ensure(Main *bmain,
                              bAction &dna_action,
                              ID &animated_id,
                              const FCurveDescriptor &fcurve_descriptor)
 {
-  Channelbag *channelbag = action_channelbag_ensure(dna_action, animated_id);
-  BLI_assert(channelbag);
-  if (!channelbag) {
-    return nullptr;
-  }
-
-  return &channelbag->fcurve_ensure(bmain, fcurve_descriptor);
+  Channelbag &channelbag = action_channelbag_ensure(dna_action, animated_id);
+  return channelbag.fcurve_ensure(bmain, fcurve_descriptor);
 }
 
 FCurve *action_fcurve_ensure_legacy(Main *bmain,
