@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 
 #include "BLI_array.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h" /* for bool and uint */
 
@@ -62,8 +63,10 @@ struct SELECTID_Context {
   short select_mode;
 
   /* To check for updates. */
-  float persmat[4][4];
-  bool is_dirty(RegionView3D *rv3d);
+  blender::float4x4 persmat;
+  uint64_t depsgraph_last_update = 0;
+
+  bool is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d);
 };
 
 /* `draw_select_buffer.cc` */

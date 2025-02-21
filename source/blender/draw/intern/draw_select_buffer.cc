@@ -10,6 +10,7 @@
 
 #include <cfloat>
 
+#include "BLI_math_matrix.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
@@ -37,24 +38,26 @@
 using blender::int2;
 using blender::Span;
 
-bool SELECTID_Context::is_dirty(RegionView3D *rv3d)
+bool SELECTID_Context::is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d)
 {
-  /* Check if the viewport has changed. */
-  float(*persmat)[4] = rv3d->persmat;
-  bool is_dirty = !compare_m4m4(this->persmat, persmat, FLT_EPSILON);
+  uint64_t last_update = this->depsgraph_last_update;
+  this->depsgraph_last_update = DEG_get_update_count(depsgraph);
 
-  if (!is_dirty) {
-    /* Check if any of the drawn objects have been transformed. */
-    for (Object *obj_eval : this->objects) {
-      DrawData *data = DRW_drawdata_get(&obj_eval->id, &draw_engine_select_type);
-      if (!data || (data->recalc & ID_RECALC_TRANSFORM)) {
-        is_dirty = true;
-        break;
-      }
+  /* Check if the viewport has changed.
+   * This can happen when triggering the selection operator *while* playing back animation and
+   * looking through an animated camera. */
+  if (!blender::math::is_equal(this->persmat, blender::float4x4(rv3d->persmat), FLT_EPSILON)) {
+    return true;
+  }
+  /* Check if any of the drawn objects have been transformed.
+   * This can happen when triggering the selection operator *while* playing back animation on an
+   * edited mesh. */
+  for (Object *obj_eval : this->objects) {
+    if (obj_eval->runtime->last_update_transform > last_update) {
+      return true;
     }
   }
-
-  return is_dirty;
+  return false;
 }
 
 /* -------------------------------------------------------------------- */
@@ -83,7 +86,7 @@ uint *DRW_select_buffer_read(
 
     DRW_gpu_context_enable();
 
-    if (select_ctx->is_dirty(rv3d)) {
+    if (select_ctx->is_dirty(depsgraph, rv3d)) {
       /* Update drawing. */
       DRW_draw_select_id(depsgraph, region, v3d);
     }
@@ -493,7 +496,7 @@ void DRW_select_buffer_context_create(Depsgraph *depsgraph,
   }
 
   select_ctx->select_mode = select_mode;
-  memset(select_ctx->persmat, 0, sizeof(select_ctx->persmat));
+  select_ctx->persmat = blender::float4x4::zero();
 }
 
 /** \} */
