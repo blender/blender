@@ -1181,9 +1181,6 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
       bke::pbvh::update_normals(depsgraph, object, *bke::object::pbvh_get(object));
       break;
   }
-  /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
-   * new entries might be inserted by #undo::push_node() into the #GHash
-   * used internally by #BM_log_original_vert_co() by a different thread. See #33787. */
 }
 
 }  // namespace undo
