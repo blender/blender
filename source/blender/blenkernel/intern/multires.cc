@@ -1234,7 +1234,6 @@ DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
     ccgdm->multires.local_mmd = 0;
     ccgdm->multires.lvl = lvl;
     ccgdm->multires.totlvl = mmd->totlvl;
-    ccgdm->multires.modified_flags = MultiresModifiedFlags(0);
   }
 
   const int numGrids = result->getNumGrids(result);
