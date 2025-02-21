@@ -95,7 +95,7 @@ void LightData::init()
   data_[pxr::HdLightTokens->exposure] = light->exposure;
   data_[pxr::HdLightTokens->diffuse] = light->diff_fac;
   data_[pxr::HdLightTokens->specular] = light->spec_fac;
-  data_[pxr::HdLightTokens->normalize] = true;
+  data_[pxr::HdLightTokens->normalize] = (light->mode & LA_UNNORMALIZED) == 0;
 
   prim_type_ = prim_type(light);
 

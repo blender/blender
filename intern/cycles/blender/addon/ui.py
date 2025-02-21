@@ -1559,6 +1559,7 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.prop(light, "energy")
         col.prop(light, "exposure")
+        col.prop(light, "normalize")
 
         layout.separator()
 

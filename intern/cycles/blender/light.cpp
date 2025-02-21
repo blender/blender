@@ -88,6 +88,9 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
                           exp2f(b_light.exposure());
   light->set_strength(strength);
 
+  /* normalize */
+  light->set_normalize(b_light.normalize());
+
   /* shadow */
   PointerRNA clight = RNA_pointer_get(&b_light.ptr, "cycles");
   light->set_cast_shadow(b_light.use_shadow());

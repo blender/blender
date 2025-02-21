@@ -43,8 +43,6 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
     return;
   }
 
-  float light_surface_area = 1.0f;
-
   if (prim_.IsA<pxr::UsdLuxDiskLight>()) {
     /* Disk area light. */
     blight->type = LA_AREA;
@@ -59,9 +57,6 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
       }
     }
-
-    const float radius = 0.5f * blight->area_size;
-    light_surface_area = radius * radius * M_PI;
   }
   else if (prim_.IsA<pxr::UsdLuxRectLight>()) {
     /* Rectangular area light. */
@@ -84,8 +79,6 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
       }
     }
-
-    light_surface_area = blight->area_size * blight->area_sizey;
   }
   else if (prim_.IsA<pxr::UsdLuxSphereLight>()) {
     /* Point and spot light. */
@@ -107,8 +100,6 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
       }
     }
-
-    light_surface_area = 4.0f * M_PI * blight->radius * blight->radius;
 
     pxr::UsdLuxShapingAPI shaping_api = pxr::UsdLuxShapingAPI(prim_);
     if (shaping_api && shaping_api.GetShapingConeAngleAttr().IsAuthored()) {
@@ -208,15 +199,14 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
     }
   }
 
-  /* Normalize: Blender lights are always normalized, so inverse correct for it
-   * TODO: take into account object transform, or natively support this as a
-   * setting on lights in Blender. */
-  bool normalize = false;
+  /* Normalize */
   if (pxr::UsdAttribute normalize_attr = light_api.GetNormalizeAttr()) {
-    normalize_attr.Get(&normalize, motionSampleTime);
-  }
-  if (!normalize) {
-    blight->energy *= light_surface_area;
+    bool normalize = false;
+    if (normalize_attr.Get(&normalize, motionSampleTime)) {
+      if (!normalize) {
+        blight->mode |= LA_UNNORMALIZED;
+      }
+    }
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);

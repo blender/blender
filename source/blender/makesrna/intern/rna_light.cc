@@ -25,7 +25,10 @@
 
 #  include "MEM_guardedalloc.h"
 
+#  include "BLI_math_matrix_types.hh"
+
 #  include "BKE_context.hh"
+#  include "BKE_light.h"
 #  include "BKE_main.hh"
 #  include "BKE_texture.h"
 
@@ -84,12 +87,23 @@ static void rna_Light_temperature_color_get(PointerRNA *ptr, float *color)
 {
   Light *la = (Light *)ptr->data;
 
-  float rgb[4];
-  IMB_colormanagement_blackbody_temperature_to_rgb(rgb, la->temperature);
+  if (la->mode & LA_USE_TEMPERATURE) {
+    float rgb[4];
+    IMB_colormanagement_blackbody_temperature_to_rgb(rgb, la->temperature);
 
-  color[0] = rgb[0];
-  color[1] = rgb[1];
-  color[2] = rgb[2];
+    color[0] = rgb[0];
+    color[1] = rgb[1];
+    color[2] = rgb[2];
+  }
+  else {
+    copy_v3_fl(color, 1.0f);
+  }
+}
+
+static float rna_Light_area(Light *light, const float matrix_world[16])
+{
+  blender::float4x4 mat(matrix_world);
+  return BKE_light_area(*light, mat);
 }
 
 #else
@@ -104,6 +118,19 @@ const EnumPropertyItem rna_enum_light_type_items[] = {
     {LA_AREA, "AREA", 0, "Area", "Directional area light source"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static void rna_def_light_api(StructRNA *srna)
+{
+  FunctionRNA *func = RNA_def_function(srna, "area", "rna_Light_area");
+  RNA_def_function_ui_description(func,
+                                  "Compute light area based on type and shape. The normalize "
+                                  "option divides light intensity by this area");
+  PropertyRNA *parm = RNA_def_property(func, "matrix_world", PROP_FLOAT, PROP_MATRIX);
+  RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
+  RNA_def_property_ui_text(parm, "", "Object to world space transformation matrix");
+  parm = RNA_def_property(func, "area", PROP_FLOAT, PROP_NONE);
+  RNA_def_function_return(func, parm);
+}
 
 static void rna_def_light(BlenderRNA *brna)
 {
@@ -209,6 +236,15 @@ static void rna_def_light(BlenderRNA *brna)
       "Scales the power of the light exponentially, multiplying the intensity by 2^exposure");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
+  prop = RNA_def_property(srna, "normalize", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "mode", LA_UNNORMALIZED);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop,
+                           "Normalize",
+                           "Normalize intensity by light area, for consistent total light "
+                           "output regardless of size and shape");
+  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+
   /* nodes */
   prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "nodetree");
@@ -225,6 +261,7 @@ static void rna_def_light(BlenderRNA *brna)
 
   /* common */
   rna_def_animdata_common(srna);
+  rna_def_light_api(srna);
 }
 
 static void rna_def_light_energy(StructRNA *srna, const short light_type)

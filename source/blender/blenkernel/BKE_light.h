@@ -10,6 +10,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
 struct Depsgraph;
@@ -22,3 +23,4 @@ void BKE_light_eval(Depsgraph *depsgraph, Light *la);
 
 float BKE_light_power(const Light &light);
 blender::float3 BKE_light_color(const Light &light);
+float BKE_light_area(const Light &light, const blender::float4x4 &object_to_world);

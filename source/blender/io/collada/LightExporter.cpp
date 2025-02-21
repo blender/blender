@@ -11,6 +11,7 @@
 #include "COLLADASWColor.h"
 #include "COLLADASWLight.h"
 
+#include "DNA_light_types.h"
 #include "LightExporter.h"
 #include "collada_internal.h"
 
@@ -48,7 +49,10 @@ void LightsExporter::operator()(Object *ob)
   Light *la = (Light *)ob->data;
   std::string la_id(get_light_id(ob));
   std::string la_name(id_name(la));
-  const blender::float3 color = BKE_light_power(*la) * BKE_light_color(*la);
+  blender::float3 color = BKE_light_power(*la) * BKE_light_color(*la);
+  if (la->mode & LA_UNNORMALIZED) {
+    color *= BKE_light_area(*la, ob->runtime->object_to_world);
+  }
   COLLADASW::Color col(color[0], color[1], color[2]);
 
   /* sun */

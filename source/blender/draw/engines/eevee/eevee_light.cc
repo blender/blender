@@ -15,6 +15,7 @@
 #include "eevee_light.hh"
 
 #include "DNA_defaults.h"
+#include "DNA_light_types.h"
 #include "DNA_sdna_type_ids.hh"
 
 #include "BKE_light.h"
@@ -69,6 +70,9 @@ void Light::sync(ShadowModule &shadows,
   }
 
   this->color = BKE_light_power(*la) * BKE_light_color(*la);
+  if (la->mode & LA_UNNORMALIZED) {
+    this->color *= BKE_light_area(*la, object_to_world);
+  }
 
   float3 scale;
   object_to_world.view<3, 3>() = normalize_and_get_size(object_to_world.view<3, 3>(), scale);

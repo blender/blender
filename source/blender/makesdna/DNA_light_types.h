@@ -145,6 +145,7 @@ enum {
   LA_SHAD_RES_ABSOLUTE = 1 << 22,
   LA_SHADOW_JITTER = 1 << 23,
   LA_USE_TEMPERATURE = 1 << 24,
+  LA_UNNORMALIZED = 1 << 25,
 };
 
 /** #Light::falloff_type */
