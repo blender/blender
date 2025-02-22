@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 5, 1),
+    "version": (4, 5, 2),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1210,12 +1210,16 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             else:
                 export_settings['gltf_merge_animation'] = self.export_merge_animation
 
+            if export_settings['gltf_animation_mode'] == "ACTIONS":
+                export_settings['gltf_export_anim_single_armature'] = self.export_anim_single_armature
+            else:
+                export_settings['gltf_export_anim_single_armature'] = False
+
             export_settings['gltf_nla_strips_merged_animation_name'] = self.export_nla_strips_merged_animation_name
             export_settings['gltf_optimize_animation'] = self.export_optimize_animation_size
             export_settings['gltf_optimize_animation_keep_armature'] = self.export_optimize_animation_keep_anim_armature
             export_settings['gltf_optimize_animation_keep_object'] = self.export_optimize_animation_keep_anim_object
             export_settings['gltf_optimize_disable_viewport'] = self.export_optimize_disable_viewport
-            export_settings['gltf_export_anim_single_armature'] = self.export_anim_single_armature
             export_settings['gltf_export_reset_pose_bones'] = self.export_reset_pose_bones
             export_settings['gltf_export_reset_sk_data'] = self.export_morph_reset_sk_data
             export_settings['gltf_bake_animation'] = self.export_bake_animation
@@ -1695,8 +1699,11 @@ def export_panel_animation_armature(layout, operator):
     if body:
         body.active = operator.export_animations
 
-        body.prop(operator, 'export_anim_single_armature')
-        body.prop(operator, 'export_reset_pose_bones')
+        row = body.row()
+        row.active = operator.export_animation_mode == "ACTIONS"
+        row.prop(operator, 'export_anim_single_armature')
+        row = body.row()
+        row.prop(operator, 'export_reset_pose_bones')
 
 
 def export_panel_animation_shapekeys(layout, operator):
