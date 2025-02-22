@@ -836,10 +836,6 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
-  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
-    return OPERATOR_CANCELLED;
-  }
-
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
@@ -847,6 +843,10 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+
+  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
+    return OPERATOR_CANCELLED;
+  }
 
   undo::push_begin(scene, ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
