@@ -806,20 +806,26 @@ static int grease_pencil_frame_duplicate_exec(bContext *C, wmOperator *op)
   const int current_frame = scene->r.cfra;
   bool changed = false;
 
+  auto insert_duplicate_frame = [&](Layer &layer, std::optional<int> active_frame_number) {
+    if (!active_frame_number.has_value()) {
+      return false;
+    }
+    return grease_pencil.insert_duplicate_frame(
+        layer, active_frame_number.value(), current_frame, false);
+  };
+
   if (only_active) {
     if (!grease_pencil.has_active_layer()) {
       return OPERATOR_CANCELLED;
     }
     Layer &active_layer = *grease_pencil.get_active_layer();
     const std::optional<int> active_frame_number = active_layer.start_frame_at(current_frame);
-    changed |= grease_pencil.insert_duplicate_frame(
-        active_layer, active_frame_number.value(), current_frame, false);
+    changed |= insert_duplicate_frame(active_layer, active_frame_number);
   }
   else {
     for (Layer *layer : grease_pencil.layers_for_write()) {
       const std::optional<int> active_frame_number = layer->start_frame_at(current_frame);
-      changed |= grease_pencil.insert_duplicate_frame(
-          *layer, active_frame_number.value(), current_frame, false);
+      changed |= insert_duplicate_frame(*layer, active_frame_number);
     }
   }
 
