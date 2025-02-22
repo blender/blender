@@ -613,6 +613,11 @@ class SCENE_OT_gltf2_action_filter_refresh(bpy.types.Operator):
         return True
 
     def execute(self, context):
+        # Remove no more existing actions
+        for idx, i in enumerate(bpy.data.scenes[0].gltf_action_filter):
+            if i.action is None:
+                bpy.data.scenes[0].gltf_action_filter.remove(idx)
+
         for action in bpy.data.actions:
             if id(action) in [id(i.action) for i in bpy.data.scenes[0].gltf_action_filter]:
                 continue
