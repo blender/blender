@@ -274,23 +274,6 @@ class GeometryManager {
   void device_update_displacement_images(Device *device, Scene *scene, Progress &progress);
 
   void device_update_volume_images(Device *device, Scene *scene, Progress &progress);
-
- private:
-  static void update_attribute_element_offset(Geometry *geom,
-                                              device_vector<float> &attr_float,
-                                              size_t &attr_float_offset,
-                                              device_vector<float2> &attr_float2,
-                                              size_t &attr_float2_offset,
-                                              device_vector<packed_float3> &attr_float3,
-                                              size_t &attr_float3_offset,
-                                              device_vector<float4> &attr_float4,
-                                              size_t &attr_float4_offset,
-                                              device_vector<uchar4> &attr_uchar4,
-                                              size_t &attr_uchar4_offset,
-                                              Attribute *mattr,
-                                              AttributePrimitive prim,
-                                              TypeDesc &type,
-                                              AttributeDescriptor &desc);
 };
 
 CCL_NAMESPACE_END
