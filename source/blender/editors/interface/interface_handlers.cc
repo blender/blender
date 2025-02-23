@@ -3124,7 +3124,7 @@ static bool ui_textedit_delete_selection(uiBut *but, uiTextEdit &text_edit)
   }
 
   if (but->ofs > but->selsta) {
-    /* Decrease the ofset by the amount of the selection that is hidden. Without
+    /* Decrease the offset by the amount of the selection that is hidden. Without
      * this adjustment, pasting text that doesn't fit in the text field would leave
      * the pasted text scrolled out of the view (to the left), see: #134491. */
     but->ofs -= (but->ofs - but->selsta);

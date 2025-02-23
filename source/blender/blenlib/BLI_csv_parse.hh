@@ -68,14 +68,14 @@ struct CsvParseOptions {
 };
 
 /**
- * Parses a .csv file. There are two important aspects to the way this interface is designed:
+ * Parses a `.csv` file. There are two important aspects to the way this interface is designed:
  * 1. It allows the file to be split into chunks that can be parsed in parallel.
  * 2. Splitting the file into individual records and fields is separated from parsing the actual
  *    content into e.g. floats. This simplifies the implementation of both parts because the
  *    logical parsing does not have to worry about e.g. the delimiter or quote characters. It also
  *    simplifies unit testing.
  *
- * \param buffer: The buffer containing the .csv file.
+ * \param buffer: The buffer containing the `.csv` file.
  * \param options: Options that control how the file is parsed.
  * \param process_header: A function that is called at most once and contains the fields of the
  *   first row/record.
@@ -83,10 +83,10 @@ struct CsvParseOptions {
  *   processes a chunk of parsed records. Typically this function parses raw byte fields into e.g.
  *   ints or floats. The result of the parsing process has to be returned. Note that under specific
  *   circumstances, this function may be called twice for the same records. That can happen when
- *   the .csv file contains multi-line fields which were split incorrectly at first.
+ *   the `.csv` file contains multi-line fields which were split incorrectly at first.
  * \return A vector containing the return values of the `process_records` function in the correct
- *   order. Nullopt is returned if the file was malformed, e.g. if it has a quoted field that is
- *   not closed.
+ *   order. #std::nullopt is returned if the file was malformed, e.g.
+ *   if it has a quoted field that is not closed.
  */
 std::optional<Vector<Any<>>> parse_csv_in_chunks(
     const Span<char> buffer,
@@ -121,9 +121,10 @@ inline std::optional<Vector<ChunkT>> parse_csv_in_chunks(
 }
 
 /**
- * Fields in a csv file may contain escaped quote caracters (e.g. "" or \"). This function replaces
- * these with just the quote character. The returned string may be reference the input string if
- * it's the same. Otherwise the returned string is allocated in the given allocator.
+ * Fields in a CSV file may contain escaped quote characters (e.g. "" or \").
+ * This function replaces these with just the quote character.
+ * The returned string may be reference the input string if it's the same.
+ * Otherwise the returned string is allocated in the given allocator.
  */
 StringRef unescape_field(const StringRef str,
                          const CsvParseOptions &options,
@@ -222,10 +223,11 @@ std::optional<int64_t> find_end_of_quoted_field(Span<char> buffer,
 
 /**
  * Finds all fields for the record starting at the given index. Typically, the record ends with a
- * newline, but quoted multiline records are supported as well.
+ * newline, but quoted multi-line records are supported as well.
  *
- * \return Index of the the start of the next record or the end of the buffer. Nullopt is returned
- *   if the buffer has a malformed record at the end, i.e. a quoted field that is not closed.
+ * \return Index of the the start of the next record or the end of the buffer. #std::nullopt is
+ * returned if the buffer has a malformed record at the end,
+ * i.e. a quoted field that is not closed.
  */
 std::optional<int64_t> parse_record_fields(const Span<char> buffer,
                                            const int64_t start,

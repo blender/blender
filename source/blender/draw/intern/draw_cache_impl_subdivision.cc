@@ -1985,8 +1985,8 @@ void DRW_subdiv_module_free(SubdivModule *subdiv_module)
  * The `bke::subdiv::Subdiv` data is being owned the modifier.
  * Since the modifier can be freed from any thread (e.g. from depsgraph multithreaded update)
  * which may not have a valid GPUContext active, we move the data to discard to this free list
- * until a codepath with a active GPUContext is hit.
- * This is kindof garbage collection.
+ * until a code-path with a active GPUContext is hit.
+ * This is kind of garbage collection.
  */
 static LinkNode *gpu_subdiv_free_queue = nullptr;
 static ThreadMutex gpu_subdiv_queue_mutex = BLI_MUTEX_INITIALIZER;

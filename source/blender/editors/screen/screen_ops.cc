@@ -5575,8 +5575,9 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
         if (redraw) {
           screen_animation_region_tag_redraw(
               C, area, region, scene, eScreen_Redraws_Flag(sad->redraws));
-          /* Doesn't trigger a full redraw of the screeen but makes sure at least overlay drawing
-           * (#ARegionType.draw_overlay()) is triggered, which is how the playhead is drawn. */
+          /* Doesn't trigger a full redraw of the screen but makes sure at least overlay drawing
+           * (#ARegionType.draw_overlay()) is triggered, which is how the current-frame is drawn.
+           */
           win_screen->do_draw = true;
         }
       }

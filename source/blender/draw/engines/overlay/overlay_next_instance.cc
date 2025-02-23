@@ -200,7 +200,7 @@ void Instance::ensure_weight_ramp_texture()
 void Resources::update_clip_planes(const State &state)
 {
   if (!state.is_space_v3d() || state.clipping_plane_count == 0) {
-    /* Unused, do not care about content but still fullfil the bindings. */
+    /* Unused, do not care about content but still fulfill the bindings. */
     clip_planes_buf.push_update();
     return;
   }

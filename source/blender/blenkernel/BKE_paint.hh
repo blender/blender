@@ -460,7 +460,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
     blender::Array<blender::float3> sculpt_persistent_no;
     blender::Array<float> sculpt_persistent_disp;
 
-    /* The stored state for the SubdivCCG at the time of attribute poulation, used to roughly
+    /* The stored state for the SubdivCCG at the time of attribute population, used to roughly
      * determine if the topology when accessed at a current point in time is equivalent to when
      * it was originally stored. */
     int grids_num = -1;
@@ -488,7 +488,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
       /* Keep track of how much each vertex has been painted (non-airbrush only). */
       float *alpha_weight;
 
-      /* Needed to continuously re-apply over the same weights (BRUSH_ACCUMULATE disabled).
+      /* Needed to continuously re-apply over the same weights (#BRUSH_ACCUMULATE disabled).
        * Lazy initialize as needed (flag is set to 1 to tag it as uninitialized). */
       blender::Array<MDeformVert> dvert_prev;
     } wpaint;

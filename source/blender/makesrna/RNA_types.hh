@@ -104,8 +104,8 @@ struct PointerRNA {
   /**
    * Make the pointer invalid.
    *
-   * This is espacially important for the Python API, as any access to an invalid PointerRNA should
-   * raise an exception in bpy code.
+   * This is especially important for the Python API, as any access to an invalid PointerRNA should
+   * raise an exception in `bpy` code.
    */
   void invalidate()
   {

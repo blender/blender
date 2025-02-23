@@ -63,7 +63,7 @@ static ParseFloatColumnResult parse_column_as_floats(const csv_parse::CsvRecords
     const Span<char> value_span = records.record(row_i).field(column_i);
     const char *value_begin = value_span.begin();
     const char *value_end = value_span.end();
-    /* Skip leading whitespace and plus sign. */
+    /* Skip leading white-space and plus sign. */
     while (value_begin < value_end && ELEM(*value_begin, ' ', '+')) {
       value_begin++;
     }
@@ -74,7 +74,7 @@ static ParseFloatColumnResult parse_column_as_floats(const csv_parse::CsvRecords
       return result;
     }
     if (res.ptr < value_end) {
-      /* Allow trailing whitespace in the value. */
+      /* Allow trailing white-space in the value. */
       while (res.ptr < value_end && res.ptr[0] == ' ') {
         res.ptr++;
       }
@@ -97,7 +97,7 @@ static ParseIntColumnResult parse_column_as_ints(const csv_parse::CsvRecords &re
     const Span<char> value_span = records.record(row_i).field(column_i);
     const char *value_begin = value_span.begin();
     const char *value_end = value_span.end();
-    /* Skip leading whitespace and plus sign. */
+    /* Skip leading white-space and plus sign. */
     while (value_begin < value_end && ELEM(*value_begin, ' ', '+')) {
       value_begin++;
     }
@@ -113,7 +113,7 @@ static ParseIntColumnResult parse_column_as_ints(const csv_parse::CsvRecords &re
         result.found_float = true;
         return result;
       }
-      /* Allow trailing whitespace in the value. */
+      /* Allow trailing white-space in the value. */
       while (res.ptr < value_end && res.ptr[0] == ' ') {
         res.ptr++;
       }

@@ -13,7 +13,7 @@
 
 #include <cstring>
 
-/* A few small defines. Keep'em local! */
+/* A few small defines. Keep them local! */
 #define SMALL_NUMBER 1.e-8f
 
 /********************************** Polygons *********************************/

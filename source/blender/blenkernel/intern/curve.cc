@@ -1611,7 +1611,7 @@ void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
                                 const uint resolu,
                                 const bool is_cyclic,
                                 const bool use_cyclic_duplicate_endpoint,
-                                /* array params */
+                                /* Array parameters. */
                                 const uint axis,
                                 const uint stride,
                                 float *r_points)
