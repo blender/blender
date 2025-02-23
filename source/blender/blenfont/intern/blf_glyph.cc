@@ -1351,6 +1351,11 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 
 GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode, uint8_t subpixel)
 {
+  if (charcode < 32) {
+    /* Do not render C0 controls (U+0000 - U+001F) characters. #134972 */
+    return nullptr;
+  }
+
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode, subpixel);
   if (g) {
     return g;
