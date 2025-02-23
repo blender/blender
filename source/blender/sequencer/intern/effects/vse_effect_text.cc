@@ -553,7 +553,7 @@ namespace blender::seq {
 
 static void text_draw(const TextVarsRuntime *runtime, float color[4])
 {
-  const bool use_fallback = (runtime->font <= 1);
+  const bool use_fallback = BLF_is_builtin(runtime->font);
   if (!use_fallback) {
     BLF_enable(runtime->font, BLF_NO_FALLBACK);
   }
@@ -815,7 +815,7 @@ static blender::Vector<CharInfo> build_character_info(const TextVars *data, int 
   int byte_offset = 0;
   int char_index = 0;
 
-  const bool use_fallback = (font <= 1);
+  const bool use_fallback = BLF_is_builtin(font);
   if (!use_fallback) {
     BLF_enable(font, BLF_NO_FALLBACK);
   }
