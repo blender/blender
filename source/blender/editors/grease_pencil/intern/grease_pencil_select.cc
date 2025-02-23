@@ -716,8 +716,6 @@ static int select_similar_exec(bContext *C, wmOperator *op)
   bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
                                                                            object);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
-
   switch (mode) {
     case SelectSimilarMode::LAYER:
       select_similar_by_layer(scene, object, grease_pencil, selection_domain);

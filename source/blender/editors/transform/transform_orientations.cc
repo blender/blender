@@ -978,6 +978,7 @@ int getTransformOrientation_ex(const Scene *scene,
 
           float normal[3] = {0.0f};
           float plane_pair[2][3] = {{0.0f}};
+          int face_count = 0;
 
           BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
             if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
@@ -986,13 +987,19 @@ int getTransformOrientation_ex(const Scene *scene,
               add_v3_v3(normal, efa->no);
               add_v3_v3(plane_pair[0], tangent_pair[0]);
               add_v3_v3(plane_pair[1], tangent_pair[1]);
+              face_count++;
             }
           }
 
           /* Pick the best plane (least likely to be co-linear),
            * since this can result in failure to construct a usable matrix, see: #96535. */
           int plane_index;
-          {
+          if (face_count == 1) {
+            /* Special case so a single face always matches
+             * the active-element orientation, see: #134948. */
+            plane_index = 0;
+          }
+          else {
             float normal_unit[3];
             float plane_unit_pair[2][3], plane_ortho_pair[2][3];
 
