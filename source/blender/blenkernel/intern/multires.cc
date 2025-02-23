@@ -1035,9 +1035,7 @@ void multires_modifier_update_mdisps(DerivedMesh *dm, Scene *scene)
   multires_set_tot_mdisps(mesh, mmd->totlvl);
   multiresModifier_ensure_external_read(mesh, mmd);
 
-  if (const MDisps *mdisps = static_cast<const MDisps *>(
-          CustomData_get_layer(&mesh->corner_data, CD_MDISPS)))
-  {
+  if (CustomData_has_layer(&mesh->corner_data, CD_MDISPS)) {
     const int lvl = ccgdm->multires.lvl;
     const int totlvl = ccgdm->multires.totlvl;
 
