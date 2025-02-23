@@ -514,6 +514,12 @@ static wmKeyMap *rna_KeyMaps_find(wmKeyConfig *keyconf,
   return WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
 }
 
+static wmKeyMap *rna_KeyMaps_find_match(wmKeyConfig *keyconf, wmKeyMap *km_match)
+{
+  return WM_keymap_list_find(
+      &keyconf->keymaps, km_match->idname, km_match->spaceid, km_match->regionid);
+}
+
 static wmKeyMap *rna_KeyMaps_find_modal(wmKeyConfig * /*keyconf*/, const char *idname)
 {
   wmOperatorType *ot = WM_operatortype_find(idname, false);
@@ -1395,6 +1401,12 @@ void RNA_api_keymaps(StructRNA *srna)
   RNA_def_enum(
       func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "find_match", "rna_KeyMaps_find_match");
+  parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "The key map for comparison");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "result", "KeyMap", "Key Map", "Corresponding key map");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "find_modal", "rna_KeyMaps_find_modal");
