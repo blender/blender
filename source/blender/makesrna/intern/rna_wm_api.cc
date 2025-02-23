@@ -447,11 +447,11 @@ static void rna_KeyMap_item_remove(wmKeyMap *km, ReportList *reports, PointerRNA
 }
 
 static PointerRNA rna_KeyMap_item_find_match(
-    ID *id, wmKeyMap *km_user, ReportList *reports, wmKeyMap *km_addon, wmKeyMapItem *kmi_addon)
+    ID *id, wmKeyMap *km_base, ReportList *reports, wmKeyMap *km_match, wmKeyMapItem *kmi_match)
 {
-  wmKeyMapItem *kmi_match = WM_keymap_item_find_match(km_user, km_addon, kmi_addon, reports);
-  if (kmi_match) {
-    return RNA_pointer_create_discrete(id, &RNA_KeyMapItem, kmi_match);
+  wmKeyMapItem *kmi_base = WM_keymap_item_find_match(km_base, km_match, kmi_match, reports);
+  if (kmi_base) {
+    return RNA_pointer_create_discrete(id, &RNA_KeyMapItem, kmi_base);
   }
   return PointerRNA_NULL;
 }
