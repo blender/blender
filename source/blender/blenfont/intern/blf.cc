@@ -336,6 +336,12 @@ void BLF_disable(int fontid, int option)
   }
 }
 
+bool BLF_is_builtin(int fontid)
+{
+  FontBLF *font = blf_get(fontid);
+  return font ? (font->flags & BLF_DEFAULT) : false;
+}
+
 void BLF_character_weight(int fontid, int weight)
 {
   FontBLF *font = blf_get(fontid);

@@ -319,6 +319,11 @@ void BLF_enable(int fontid, int option);
 void BLF_disable(int fontid, int option);
 
 /**
+ * Is this font part of the default fonts in the fallback stack?
+ */
+bool BLF_is_builtin(int fontid);
+
+/**
  * Note that shadow needs to be enabled with #BLF_enable.
  */
 void BLF_shadow(int fontid, FontShadowType type, const float rgba[4] = nullptr);
