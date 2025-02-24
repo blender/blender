@@ -497,6 +497,14 @@ void RNA_property_string_search(
     blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
+ * For filepath properties, get a glob pattern to filter possible files.
+ * For example: *.csv
+ */
+std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
+                                                           PointerRNA *ptr,
+                                                           PropertyRNA *prop);
+
+/**
  * \return the length without `\0` terminator.
  */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);

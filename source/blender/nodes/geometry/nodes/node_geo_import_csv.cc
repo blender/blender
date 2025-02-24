@@ -17,6 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::String>("Path")
       .subtype(PROP_FILEPATH)
+      .path_filter("*.csv")
       .hide_label()
       .description("Path to a CSV file");
 

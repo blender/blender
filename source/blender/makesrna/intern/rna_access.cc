@@ -3917,6 +3917,18 @@ void RNA_property_string_search(
   sprop->search(C, ptr, prop, edit_text, visit_fn);
 }
 
+std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
+                                                           PointerRNA *ptr,
+                                                           PropertyRNA *prop)
+{
+  BLI_assert(prop->type == PROP_STRING);
+  StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
+  if (!sprop->path_filter) {
+    return std::nullopt;
+  }
+  return sprop->path_filter(C, ptr, prop);
+}
+
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;

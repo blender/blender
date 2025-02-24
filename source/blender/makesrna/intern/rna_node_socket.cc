@@ -603,6 +603,20 @@ const EnumPropertyItem *RNA_node_socket_menu_itemf(bContext * /*C*/,
   return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
 }
 
+std::optional<std::string> rna_NodeSocketString_filepath_filter(const bContext * /*C*/,
+                                                                PointerRNA *ptr,
+                                                                PropertyRNA * /*prop*/)
+{
+  bNodeSocket *socket = static_cast<bNodeSocket *>(ptr->data);
+  BLI_assert(socket->type == SOCK_STRING);
+  if (const auto *decl = dynamic_cast<const blender::nodes::decl::String *>(
+          socket->runtime->declaration))
+  {
+    return decl->path_filter;
+  }
+  return std::nullopt;
+}
+
 #else
 
 static void rna_def_node_socket(BlenderRNA *brna)
@@ -1324,6 +1338,10 @@ static void rna_def_node_socket_string(BlenderRNA *brna,
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+
+  if (subtype == PROP_FILEPATH) {
+    RNA_def_property_string_filepath_filter_func(prop, "rna_NodeSocketString_filepath_filter");
+  }
 
   RNA_def_struct_sdna_from(srna, "bNodeSocket", nullptr);
 }

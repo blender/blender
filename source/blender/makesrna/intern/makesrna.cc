@@ -4504,7 +4504,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
       fprintf(f,
-              "\t%s, %s, %s, %s, %s, %s, %s, (eStringPropertySearchFlag)%d, %d, ",
+              "\t%s, %s, %s, %s, %s, %s, %s, (eStringPropertySearchFlag)%d, %s, %d, ",
               rna_function_string(sprop->get),
               rna_function_string(sprop->length),
               rna_function_string(sprop->set),
@@ -4513,6 +4513,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
               rna_function_string(sprop->set_ex),
               rna_function_string(sprop->search),
               int(sprop->search_flag),
+              rna_function_string(sprop->path_filter),
               sprop->maxlength);
       rna_print_c_string(f, sprop->defaultvalue);
       fprintf(f, "\n");

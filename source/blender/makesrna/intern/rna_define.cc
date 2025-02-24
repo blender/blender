@@ -3536,6 +3536,28 @@ void RNA_def_property_string_search_func(PropertyRNA *prop,
   }
 }
 
+void RNA_def_property_string_filepath_filter_func(PropertyRNA *prop, const char *filter)
+{
+  StructRNA *srna = DefRNA.laststruct;
+
+  if (!DefRNA.preprocess) {
+    CLOG_ERROR(&LOG, "only during preprocessing.");
+    return;
+  }
+
+  switch (prop->type) {
+    case PROP_STRING: {
+      StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
+      sprop->path_filter = (StringPropertyPathFilterFunc)filter;
+      break;
+    }
+    default:
+      CLOG_ERROR(&LOG, "\"%s.%s\", type is not string.", srna->identifier, prop->identifier);
+      DefRNA.error = true;
+      break;
+  }
+}
+
 void RNA_def_property_string_funcs_runtime(PropertyRNA *prop,
                                            StringPropertyGetFunc getfunc,
                                            StringPropertyLengthFunc lengthfunc,

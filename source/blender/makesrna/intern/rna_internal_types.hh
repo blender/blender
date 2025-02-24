@@ -492,6 +492,12 @@ struct StringPropertyRNA {
   StringPropertySearchFunc search;
   eStringPropertySearchFlag search_flag;
 
+  /**
+   * Used for strings which are #PROP_FILEPATH to have a default filter when opening a file
+   * browser.
+   */
+  StringPropertyPathFilterFunc path_filter;
+
   int maxlength; /* includes string terminator! */
 
   const char *defaultvalue;

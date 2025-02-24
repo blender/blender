@@ -34,6 +34,7 @@
 #include "ED_undo.hh"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
@@ -393,6 +394,9 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     const bool is_output_path = (RNA_property_flag(prop) & PROP_PATH_OUTPUT) != 0;
     RNA_property_boolean_set(op->ptr, prop_check_existing, is_output_path);
   }
+  if (std::optional<std::string> filter = RNA_property_string_path_filter(C, &ptr, prop)) {
+    RNA_string_set(op->ptr, "filter_glob", filter->c_str());
+  }
 
   WM_event_add_fileselect(C, op);
 
@@ -423,6 +427,11 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_string(ot->srna, "filter_glob", nullptr, 0, "Glob Filter", "Custom filter");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 void BUTTONS_OT_directory_browse(wmOperatorType *ot)

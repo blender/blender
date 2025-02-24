@@ -537,6 +537,13 @@ bNodeSocket &String::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
   return socket;
 }
 
+StringBuilder &StringBuilder::path_filter(std::optional<std::string> filter)
+{
+  BLI_assert(decl_->subtype == PROP_FILEPATH);
+  decl_->path_filter = std::move(filter);
+  return *this;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
