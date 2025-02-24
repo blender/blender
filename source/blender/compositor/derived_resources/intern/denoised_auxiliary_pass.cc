@@ -86,13 +86,13 @@ DenoisedAuxiliaryPass::DenoisedAuxiliaryPass(Context &context,
 
   const int width = pass.domain().size.x;
   const int height = pass.domain().size.y;
-  int pixel_stride = sizeof(float) * 4;
 
-  /* Float3 results might be stored in 4-component textures due to hardware limitations, so we need
-   * to use the pixel stride of the texture. */
-  if (context.use_gpu()) {
-    pixel_stride = sizeof(float) * GPU_texture_component_len(GPU_texture_format(pass));
-  }
+  /* Float3 results might be stored in 4-component textures due to hardware limitations, so we
+   * need to use the pixel stride of the texture. */
+  const int pixel_stride = sizeof(float) *
+                           (context.use_gpu() ?
+                                GPU_texture_component_len(GPU_texture_format(pass)) :
+                                pass.channels_count());
 
   oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
   device.commit();

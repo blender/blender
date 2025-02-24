@@ -213,11 +213,10 @@ class DenoiseOperation : public NodeOperation {
 
       /* Float3 results might be stored in 4-component textures due to hardware limitations, so we
        * need to use the pixel stride of the texture. */
-      int normal_pixel_stride = pixel_stride;
-      if (this->context().use_gpu()) {
-        normal_pixel_stride = sizeof(float) *
-                              GPU_texture_component_len(GPU_texture_format(input_normal));
-      }
+      int normal_pixel_stride = sizeof(float) *
+                                (this->context().use_gpu() ?
+                                     GPU_texture_component_len(GPU_texture_format(input_normal)) :
+                                     input_normal.channels_count());
 
       filter.setImage(
           "normal", normal, oidn::Format::Float3, width, height, 0, normal_pixel_stride);
