@@ -13,9 +13,11 @@
 CCL_NAMESPACE_BEGIN
 
 /* Transform vector to spot light's local coordinate system. */
-ccl_device float3 spot_light_to_local(const ccl_global KernelLight *klight, const float3 ray)
+ccl_device float3 spot_light_to_local(KernelGlobals kg,
+                                      const ccl_global KernelLight *klight,
+                                      const float3 ray)
 {
-  const Transform itfm = klight->itfm;
+  const Transform itfm = lamp_get_inverse_transform(kg, klight);
   float3 transformed_ray = safe_normalize(transform_direction(&itfm, ray));
   transformed_ray.z = -transformed_ray.z;
 
@@ -42,7 +44,8 @@ ccl_device void spot_light_uv(const float3 ray,
 }
 
 template<bool in_volume_segment>
-ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
+ccl_device_inline bool spot_light_sample(KernelGlobals kg,
+                                         const ccl_global KernelLight *klight,
                                          const float2 rand,
                                          const float3 P,
                                          const float3 N,
@@ -98,7 +101,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
     }
 
     /* Attenuation. */
-    const float3 local_ray = spot_light_to_local(klight, -ls->D);
+    const float3 local_ray = spot_light_to_local(kg, klight, -ls->D);
     if (d_sq > r_sq) {
       ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
     }
@@ -134,7 +137,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
     ls->Ng = -ls->D;
 
     /* Attenuation. */
-    const float3 local_ray = spot_light_to_local(klight, -ls->D);
+    const float3 local_ray = spot_light_to_local(kg, klight, -ls->D);
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
     if (!in_volume_segment && ls->eval_fac == 0.0f) {
       return false;
@@ -167,7 +170,8 @@ ccl_device_forceinline float spot_light_pdf(const ccl_global KernelSpotLight *sp
   return has_transmission ? M_1_2PI_F * 0.5f : pdf_cos_hemisphere(N, D);
 }
 
-ccl_device_forceinline void spot_light_mnee_sample_update(const ccl_global KernelLight *klight,
+ccl_device_forceinline void spot_light_mnee_sample_update(KernelGlobals kg,
+                                                          const ccl_global KernelLight *klight,
                                                           ccl_private LightSample *ls,
                                                           const float3 P,
                                                           const float3 N,
@@ -203,7 +207,7 @@ ccl_device_forceinline void spot_light_mnee_sample_update(const ccl_global Kerne
   }
 
   /* Attenuation. */
-  const float3 local_ray = spot_light_to_local(klight, -ls->D);
+  const float3 local_ray = spot_light_to_local(kg, klight, -ls->D);
   if (use_attenuation) {
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
@@ -224,7 +228,8 @@ ccl_device_inline bool spot_light_intersect(const ccl_global KernelLight *klight
   return point_light_intersect(klight, ray, t);
 }
 
-ccl_device_inline bool spot_light_sample_from_intersection(const ccl_global KernelLight *klight,
+ccl_device_inline bool spot_light_sample_from_intersection(KernelGlobals kg,
+                                                           const ccl_global KernelLight *klight,
                                                            const float3 ray_P,
                                                            const float3 ray_D,
                                                            const float3 N,
@@ -254,7 +259,7 @@ ccl_device_inline bool spot_light_sample_from_intersection(const ccl_global Kern
   }
 
   /* Attenuation. */
-  const float3 local_ray = spot_light_to_local(klight, -ray_D);
+  const float3 local_ray = spot_light_to_local(kg, klight, -ray_D);
   if (!klight->spot.is_sphere || d_sq > r_sq) {
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
@@ -269,13 +274,14 @@ ccl_device_inline bool spot_light_sample_from_intersection(const ccl_global Kern
 }
 
 /* Find the ray segment lit by the spot light. */
-ccl_device_inline bool spot_light_valid_ray_segment(const ccl_global KernelLight *klight,
+ccl_device_inline bool spot_light_valid_ray_segment(KernelGlobals kg,
+                                                    const ccl_global KernelLight *klight,
                                                     const float3 P,
                                                     const float3 D,
                                                     ccl_private Interval<float> *t_range)
 {
   /* Convert to local space of the spot light. */
-  const Transform itfm = klight->itfm;
+  const Transform itfm = lamp_get_inverse_transform(kg, klight);
   float3 local_P = P + klight->spot.dir * klight->spot.ray_segment_dp;
   local_P = transform_point(&itfm, local_P);
   const float3 local_D = transform_direction(&itfm, D);

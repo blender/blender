@@ -53,7 +53,6 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
       object_map(scene),
       procedural_map(scene),
       geometry_map(scene),
-      light_map(scene),
       particle_system_map(scene),
       world_map(nullptr),
       world_recalc(false),
@@ -206,11 +205,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
         else if (is_light) {
           if (b_update.is_updated_transform() || b_update.is_updated_shading()) {
             object_map.set_recalc(b_ob);
-            light_map.set_recalc(b_ob);
+            geometry_map.set_recalc(b_ob);
           }
 
           if (updated_geometry) {
-            light_map.set_recalc(b_ob);
+            geometry_map.set_recalc(b_ob);
           }
         }
       }

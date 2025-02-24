@@ -80,8 +80,6 @@ ccl_device_constant DeviceString u_geom_dupli_uv = 1294253317490155849ull;
 ccl_device_constant DeviceString u_material_index = 741770758159634623ull;
 /* "object:random" */
 ccl_device_constant DeviceString u_object_random = 15789063994977955884ull;
-/* "light:random" */
-ccl_device_constant DeviceString u_light_random = 1743557801140685447ull;
 /* "particle:index" */
 ccl_device_constant DeviceString u_particle_index = 9489711748229903784ull;
 /* "particle:random" */
@@ -628,11 +626,6 @@ ccl_device_extern bool osl_get_matrix(ccl_private ShaderGlobals *sg,
       copy_matrix(res, tfm);
       return true;
     }
-    else if (sd->type == PRIMITIVE_LAMP) {
-      const Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
-      copy_matrix(res, tfm);
-      return true;
-    }
   }
   else if (from == DeviceStrings::u_ndc) {
     copy_matrix(res, kernel_data.cam.ndctoworld);
@@ -669,11 +662,6 @@ ccl_device_extern bool osl_get_inverse_matrix(ccl_private ShaderGlobals *sg,
 
     if (object != OBJECT_NONE) {
       const Transform itfm = object_get_inverse_transform(kg, sd);
-      copy_matrix(res, itfm);
-      return true;
-    }
-    else if (sd->type == PRIMITIVE_LAMP) {
-      const Transform itfm = lamp_fetch_transform(kg, sd->lamp, true);
       copy_matrix(res, itfm);
       return true;
     }
@@ -1242,11 +1230,6 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
   }
   else if (name == DeviceStrings::u_object_random) {
     const float f = object_random_number(kg, sd->object);
-
-    return set_attribute(f, type, derivatives, val);
-  }
-  else if (name == DeviceStrings::u_light_random) {
-    const float f = lamp_random_number(kg, sd->lamp);
 
     return set_attribute(f, type, derivatives, val);
   }

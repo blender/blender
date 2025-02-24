@@ -189,7 +189,6 @@ ccl_device bool shadow_linking_intersect(KernelGlobals kg, IntegratorState state
   ray.self.object = INTEGRATOR_STATE(state, isect, object);
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
-  ray.self.light = LAMP_NONE;
 
   Intersection isect ccl_optional_struct_init;
   if (!shadow_linking_pick_light_intersection(kg, state, &ray, &isect)) {

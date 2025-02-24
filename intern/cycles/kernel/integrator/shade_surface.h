@@ -23,6 +23,7 @@
 #include "kernel/integrator/subsurface.h"
 #include "kernel/integrator/volume_stack.h"
 
+#include "kernel/types.h"
 #include "util/math_intersect.h"
 
 CCL_NAMESPACE_BEGIN
@@ -348,9 +349,9 @@ ccl_device
 #ifdef __MNEE__
   IF_KERNEL_FEATURE(MNEE)
   {
-    if (ls.lamp != LAMP_NONE) {
+    if (ls.type != LIGHT_TRIANGLE) {
       /* Is this a caustic light? */
-      const bool use_caustics = kernel_data_fetch(lights, ls.lamp).use_caustics;
+      const bool use_caustics = kernel_data_fetch(lights, ls.prim).use_caustics;
       if (use_caustics) {
         /* Are we on a caustic caster? */
         if (is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_CASTER)) {
@@ -647,7 +648,6 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   ray.self.prim = (skip_self) ? sd->prim : PRIM_NONE;
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
-  ray.self.light = LAMP_NONE;
   ray.dP = differential_zero_compact();
   ray.dD = differential_zero_compact();
 

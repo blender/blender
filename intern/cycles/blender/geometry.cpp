@@ -4,6 +4,7 @@
 
 #include "scene/curves.h"
 #include "scene/hair.h"
+#include "scene/light.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
 #include "scene/pointcloud.h"
@@ -18,6 +19,10 @@ CCL_NAMESPACE_BEGIN
 
 static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_particle_hair)
 {
+  if (b_ob_info.object_data.is_a(&RNA_Light)) {
+    return Geometry::LIGHT;
+  }
+
   if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
     return Geometry::HAIR;
   }
@@ -38,11 +43,16 @@ static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_parti
 
 array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
 {
+  array<Node *> used_shaders;
+
+  if (b_ob.type() == BL::Object::type_LIGHT) {
+    find_shader(b_ob.data(), used_shaders, scene->default_light);
+    return used_shaders;
+  }
+
   BL::Material material_override = view_layer.material_override;
   Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
                                                                       scene->default_surface;
-
-  array<Node *> used_shaders;
 
   for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
     if (material_override) {
@@ -95,7 +105,10 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   bool sync = true;
   if (geom == nullptr) {
     /* Add new geometry if it did not exist yet. */
-    if (geom_type == Geometry::HAIR) {
+    if (geom_type == Geometry::LIGHT) {
+      geom = scene->create_node<Light>();
+    }
+    else if (geom_type == Geometry::HAIR) {
       geom = scene->create_node<Hair>();
     }
     else if (geom_type == Geometry::VOLUME) {
@@ -115,6 +128,11 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   }
 
   if (!sync) {
+    /* Need to determine this every sync. */
+    if (geom->is_light() && static_cast<const Light *>(geom)->get_is_portal()) {
+      world_use_portal = true;
+    }
+
     /* If transform was applied to geometry, need full update. */
     if (object_updated && geom->transform_applied) {
       ;
@@ -156,7 +174,11 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
     progress.set_sync_status("Synchronizing object", b_ob_info.real_object.name());
 
-    if (geom_type == Geometry::HAIR) {
+    if (geom_type == Geometry::LIGHT) {
+      Light *light = static_cast<Light *>(geom);
+      sync_light(b_depsgraph, b_ob_info, light);
+    }
+    else if (geom_type == Geometry::HAIR) {
       Hair *hair = static_cast<Hair *>(geom);
       sync_hair(b_depsgraph, b_ob_info, hair);
     }
@@ -206,6 +228,11 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   /* Ensure we only motion sync geometry that also had geometry synced, to avoid
    * unnecessary work and to ensure that its attributes were clear. */
   if (geometry_synced.find(geom) == geometry_synced.end()) {
+    return;
+  }
+
+  /* Nothing to do for lights. */
+  if (geom->is_light()) {
     return;
   }
 

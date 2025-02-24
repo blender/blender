@@ -253,16 +253,6 @@ ccl_device_noinline T subd_triangle_attribute(KernelGlobals kg,
 
     return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
-  if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
-    if (dfdx) {
-      *dfdx = make_zero<T>();
-    }
-    if (dfdy) {
-      *dfdy = make_zero<T>();
-    }
-
-    return attribute_data_fetch<T>(kg, desc.offset);
-  }
 
   if (dfdx) {
     *dfdx = make_zero<T>();

@@ -75,8 +75,8 @@ static void recursive_print_node(FILE *file, const LightTreeNode &node)
   fprintf(file, "];\n");
 
   if (node.is_inner()) {
-    const LightTreeNode &left_node = *node.get_inner().children[LightTree::left].get();
-    const LightTreeNode &right_node = *node.get_inner().children[LightTree::right].get();
+    const LightTreeNode &left_node = *node.get_inner().children[LightTree::left];
+    const LightTreeNode &right_node = *node.get_inner().children[LightTree::right];
 
     recursive_print_node(file, left_node);
     recursive_print_node(file, right_node);
@@ -95,21 +95,17 @@ static void print_emitters(FILE *file, const Scene &scene, const LightTree &tree
     string label = string_printf("<f%d> emitter %s", field++, std::to_string(i).c_str());
 
     /* Emitter details (type, object or light name). */
+    const Object &object = *scene.objects[emitter.object_id];
     if (emitter.is_light()) {
-      const Light &lamp = *scene.lights[emitter.object_id];
       label += string_printf("|<f%d> light", field++);
-      label += string_printf("|<f%d> %s", field++, lamp.name.c_str());
     }
     else if (emitter.is_triangle()) {
-      const Object &object = *scene.objects[emitter.object_id];
       label += string_printf("|<f%d> triangle", field++);
-      label += string_printf("|<f%d> %s", field++, object.name.c_str());
     }
     else if (emitter.is_mesh()) {
-      const Object &object = *scene.objects[emitter.object_id];
       label += string_printf("|<f%d> mesh", field++);
-      label += string_printf("|<f%d> %s", field++, object.name.c_str());
     }
+    label += string_printf("|<f%d> %s", field++, object.name.c_str());
 
     /* Light linking. */
     if (emitter.light_set_membership == ~uint64_t(0)) {
@@ -176,8 +172,8 @@ static void recursive_print_node_relations(FILE *file,
     return;
   }
 
-  const LightTreeNode &left_node = *node.get_inner().children[LightTree::left].get();
-  const LightTreeNode &right_node = *node.get_inner().children[LightTree::right].get();
+  const LightTreeNode &left_node = *node.get_inner().children[LightTree::left];
+  const LightTreeNode &right_node = *node.get_inner().children[LightTree::right];
 
   const string left_node_id = get_node_id(left_node);
   const string right_node_id = get_node_id(right_node);

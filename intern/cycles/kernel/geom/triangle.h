@@ -275,9 +275,8 @@ ccl_device T triangle_attribute(KernelGlobals kg,
   }
 #endif
 
-  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
-    return attribute_data_fetch<T>(kg, offset);
+  if (desc.element == ATTR_ELEMENT_FACE) {
+    return attribute_data_fetch<T>(kg, desc.offset + sd->prim);
   }
   return make_zero<T>();
 }

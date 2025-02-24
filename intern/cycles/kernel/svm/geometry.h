@@ -141,12 +141,7 @@ ccl_device_noinline void svm_node_object_info(KernelGlobals kg,
       data = shader_pass_id(kg, sd);
       break;
     case NODE_INFO_OB_RANDOM: {
-      if (sd->lamp != LAMP_NONE) {
-        data = lamp_random_number(kg, sd->lamp);
-      }
-      else {
-        data = object_random_number(kg, sd->object);
-      }
+      data = object_random_number(kg, sd->object);
       break;
     }
     default:

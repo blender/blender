@@ -8,9 +8,7 @@
 
 #include "graph/node.h"
 
-/* included as Light::set_shader defined through NODE_SOCKET_API does not select
- * the right Node::set overload as it does not know that Shader is a Node */
-#include "scene/shader.h"
+#include "scene/geometry.h"
 
 #include "util/ies.h"
 #include "util/thread.h"
@@ -26,7 +24,7 @@ class Progress;
 class Scene;
 class Shader;
 
-class Light : public Node {
+class Light : public Geometry {
  public:
   NODE_DECLARE;
 
@@ -42,8 +40,6 @@ class Light : public Node {
   NODE_SOCKET_API(float, sizev)
   NODE_SOCKET_API(bool, ellipse)
   NODE_SOCKET_API(float, spread)
-
-  NODE_SOCKET_API(Transform, tfm)
 
   NODE_SOCKET_API(int, map_resolution)
   NODE_SOCKET_API(float, average_radiance)
@@ -66,13 +62,7 @@ class Light : public Node {
   NODE_SOCKET_API(bool, is_portal)
   NODE_SOCKET_API(bool, is_enabled)
 
-  NODE_SOCKET_API(Shader *, shader)
   NODE_SOCKET_API(int, max_bounces)
-  NODE_SOCKET_API(uint, random_id)
-
-  NODE_SOCKET_API(ustring, lightgroup)
-  NODE_SOCKET_API(uint64_t, light_set_membership);
-  NODE_SOCKET_API(uint64_t, shadow_set_membership);
 
   /* Normalize power by the surface area of the light. */
   NODE_SOCKET_API(bool, normalize)
@@ -82,15 +72,14 @@ class Light : public Node {
   /* Check whether the light has contribution the scene. */
   bool has_contribution(Scene *scene);
 
-  /* Check whether this light participates in light or shadow linking. */
-  bool has_light_linking() const;
-  bool has_shadow_linking() const;
+  /* Shader */
+  Shader *get_shader() const;
 
-  /* Convenience access to transform. */
-  float3 get_co() const;
-  float3 get_dir() const;
-  float3 get_axisu() const;
-  float3 get_axisv() const;
+  /* Geometry */
+  void compute_bounds() override;
+  void apply_transform(const Transform &tfm, const bool apply_to_motion) override;
+  void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
+  PrimitiveType primitive_type() const override;
 
   friend class LightManager;
   friend class LightTree;

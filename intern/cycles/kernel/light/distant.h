@@ -12,7 +12,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline void distant_light_uv(const ccl_global KernelLight *klight,
+ccl_device_inline void distant_light_uv(KernelGlobals kg,
+                                        const ccl_global KernelLight *klight,
                                         const float3 D,
                                         ccl_private float *u,
                                         ccl_private float *v)
@@ -24,7 +25,7 @@ ccl_device_inline void distant_light_uv(const ccl_global KernelLight *klight,
   const float fac = klight->distant.half_inv_sin_half_angle / len(D - klight->co);
 
   /* Get u axis and v axis. */
-  const Transform itfm = klight->itfm;
+  const Transform itfm = lamp_get_inverse_transform(kg, klight);
   const float u_ = dot(D, make_float3(itfm.x)) * fac;
   const float v_ = dot(D, make_float3(itfm.y)) * fac;
 
@@ -33,7 +34,8 @@ ccl_device_inline void distant_light_uv(const ccl_global KernelLight *klight,
   *v = -u_ - v_;
 }
 
-ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight,
+ccl_device_inline bool distant_light_sample(KernelGlobals kg,
+                                            const ccl_global KernelLight *klight,
                                             const float2 rand,
                                             ccl_private LightSample *ls)
 {
@@ -47,7 +49,7 @@ ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight
 
   ls->eval_fac = klight->distant.eval_fac;
 
-  distant_light_uv(klight, ls->D, &ls->u, &ls->v);
+  distant_light_uv(kg, klight, ls->D, &ls->u, &ls->v);
 
   return true;
 }
@@ -114,19 +116,18 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
 #ifndef __HIP__
   ls->shader = klight->shader_id;
 #endif
-  ls->object = PRIM_NONE;
-  ls->prim = PRIM_NONE;
-  ls->lamp = lamp;
+  ls->object = klight->object_id;
+  ls->prim = lamp;
   ls->t = FLT_MAX;
   ls->P = -ray_D;
   ls->Ng = -ray_D;
   ls->D = ray_D;
-  ls->group = lamp_lightgroup(kg, lamp);
+  ls->group = object_lightgroup(kg, ls->object);
 
   ls->pdf = klight->distant.pdf;
   ls->eval_fac = klight->distant.eval_fac;
 
-  distant_light_uv(klight, ray_D, &ls->u, &ls->v);
+  distant_light_uv(kg, klight, ray_D, &ls->u, &ls->v);
 
   return true;
 }

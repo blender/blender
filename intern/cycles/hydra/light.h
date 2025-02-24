@@ -29,6 +29,7 @@ class HdCyclesLight final : public PXR_NS::HdLight {
 
   void PopulateShaderGraph(PXR_NS::HdSceneDelegate *sceneDelegate);
 
+  CCL_NS::Object *_object = nullptr;
   CCL_NS::Light *_light = nullptr;
   PXR_NS::TfToken _lightType;
 };

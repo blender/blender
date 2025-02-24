@@ -84,7 +84,7 @@ static void shade_background_pixels(Device *device,
 
 NODE_DEFINE(Light)
 {
-  NodeType *type = NodeType::add("light", create);
+  NodeType *type = NodeType::add("light", create, NodeType::NONE, Geometry::get_node_base_type());
 
   static NodeEnum type_enum;
   type_enum.insert("point", LIGHT_POINT);
@@ -112,8 +112,6 @@ NODE_DEFINE(Light)
   SOCKET_FLOAT(spot_angle, "Spot Angle", M_PI_4_F);
   SOCKET_FLOAT(spot_smooth, "Spot Smooth", 0.0f);
 
-  SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
-
   SOCKET_BOOLEAN(cast_shadow, "Cast Shadow", true);
   SOCKET_BOOLEAN(use_mis, "Use Mis", false);
   SOCKET_BOOLEAN(use_camera, "Use Camera", true);
@@ -124,24 +122,17 @@ NODE_DEFINE(Light)
   SOCKET_BOOLEAN(use_caustics, "Shadow Caustics", false);
 
   SOCKET_INT(max_bounces, "Max Bounces", 1024);
-  SOCKET_UINT(random_id, "Random ID", 0);
 
   SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", true);
   SOCKET_BOOLEAN(is_portal, "Is Portal", false);
   SOCKET_BOOLEAN(is_enabled, "Is Enabled", true);
-
-  SOCKET_NODE(shader, "Shader", Shader::get_node_type());
-
-  SOCKET_STRING(lightgroup, "Light Group", ustring());
-  SOCKET_UINT64(light_set_membership, "Light Set Membership", LIGHT_LINK_MASK_ALL);
-  SOCKET_UINT64(shadow_set_membership, "Shadow Set Membership", LIGHT_LINK_MASK_ALL);
 
   SOCKET_BOOLEAN(normalize, "Normalize", true);
 
   return type;
 }
 
-Light::Light() : Node(get_node_type())
+Light::Light() : Geometry(get_node_type(), Geometry::LIGHT)
 {
   dereference_all_used_nodes();
 }
@@ -165,46 +156,33 @@ bool Light::has_contribution(Scene *scene)
     return true;
   }
 
-  const Shader *effective_shader = (shader) ? shader : scene->default_light;
+  const Shader *effective_shader = (get_shader()) ? get_shader() : scene->default_light;
   return !is_zero(effective_shader->emission_estimate);
 }
 
-bool Light::has_light_linking() const
+Shader *Light::get_shader() const
 {
-  if (get_light_set_membership() != LIGHT_LINK_MASK_ALL) {
-    return true;
-  }
-
-  return false;
+  return (used_shaders.empty()) ? nullptr : static_cast<Shader *>(used_shaders[0]);
 }
 
-bool Light::has_shadow_linking() const
+void Light::compute_bounds()
 {
-  if (get_shadow_set_membership() != LIGHT_LINK_MASK_ALL) {
-    return true;
-  }
-
-  return false;
+  /* To be implemented when this becomes actual geometry. */
 }
 
-float3 Light::get_co() const
+void Light::apply_transform(const Transform & /*tfm*/, const bool /*apply_to_motion*/)
 {
-  return transform_get_column(&tfm, 3);
+  /* To be implemented when this becomes actual geometry. */
 }
 
-float3 Light::get_dir() const
+void Light::get_uv_tiles(ustring /*map*/, unordered_set<int> & /*tiles*/)
 {
-  return -transform_get_column(&tfm, 2);
+  /* To be implemented when this becomes actual geometry. */
 }
 
-float3 Light::get_axisu() const
+PrimitiveType Light::primitive_type() const
 {
-  return transform_get_column(&tfm, 0);
-}
-
-float3 Light::get_axisv() const
-{
-  return transform_get_column(&tfm, 1);
+  return PRIMITIVE_LAMP;
 }
 
 /* Light Manager */
@@ -219,7 +197,12 @@ LightManager::LightManager()
 
 bool LightManager::has_background_light(Scene *scene)
 {
-  for (Light *light : scene->lights) {
+  for (Object *object : scene->objects) {
+    if (!object->get_geometry()->is_light()) {
+      continue;
+    }
+
+    Light *light = static_cast<Light *>(object->get_geometry());
     if (light->light_type == LIGHT_BACKGROUND && light->is_enabled) {
       return true;
     }
@@ -233,18 +216,31 @@ void LightManager::test_enabled_lights(Scene *scene)
    * needed for finer-tuning of settings (for example, check whether we've
    * got portals or not).
    */
+  vector<Light *> background_lights;
+  size_t num_lights = 0;
   bool has_portal = false;
-  bool has_background = false;
-  for (Light *light : scene->lights) {
+  for (Object *object : scene->objects) {
+    if (!object->get_geometry()->is_light()) {
+      continue;
+    }
+
+    Light *light = static_cast<Light *>(object->get_geometry());
     light->is_enabled = light->has_contribution(scene);
     has_portal |= light->is_portal;
-    has_background |= light->light_type == LIGHT_BACKGROUND;
+
+    if (light->light_type == LIGHT_BACKGROUND) {
+      background_lights.push_back(light);
+    }
+
+    num_lights++;
   }
+
+  VLOG_INFO << "Total " << num_lights << " lights.";
 
   bool background_enabled = false;
   int background_resolution = 0;
 
-  if (has_background) {
+  if (!background_lights.empty()) {
     /* Ignore background light if:
      * - If unsupported on a device
      * - If we don't need it (no HDRs etc.)
@@ -254,12 +250,10 @@ void LightManager::test_enabled_lights(Scene *scene)
     if (disable_mis) {
       VLOG_INFO << "Background MIS has been disabled.\n";
     }
-    for (Light *light : scene->lights) {
-      if (light->light_type == LIGHT_BACKGROUND) {
-        light->is_enabled = !disable_mis;
-        background_enabled = !disable_mis;
-        background_resolution = light->map_resolution;
-      }
+    for (Light *light : background_lights) {
+      light->is_enabled = !disable_mis;
+      background_enabled = !disable_mis;
+      background_resolution = light->map_resolution;
     }
   }
 
@@ -335,7 +329,6 @@ void LightManager::device_update_distribution(Device * /*unused*/,
 
   /* Triangles. */
   size_t offset = 0;
-  int j = 0;
 
   for (Object *object : scene->objects) {
     if (progress.get_cancel()) {
@@ -343,14 +336,12 @@ void LightManager::device_update_distribution(Device * /*unused*/,
     }
 
     if (!object->usable_as_light()) {
-      j++;
       continue;
     }
     /* Sum area. */
     Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
     const bool transform_applied = mesh->transform_applied;
     const Transform tfm = object->get_tfm();
-    const int object_id = j;
     int shader_flag = 0;
 
     if (!(object->get_visibility() & PATH_RAY_CAMERA)) {
@@ -382,8 +373,8 @@ void LightManager::device_update_distribution(Device * /*unused*/,
       if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
         distribution[offset].totarea = totarea;
         distribution[offset].prim = i + mesh->prim_offset;
-        distribution[offset].mesh_light.shader_flag = shader_flag;
-        distribution[offset].mesh_light.object_id = object_id;
+        distribution[offset].shader_flag = shader_flag;
+        distribution[offset].object_id = object->index;
         offset++;
 
         const Mesh::Triangle t = mesh->get_triangle(i);
@@ -403,8 +394,6 @@ void LightManager::device_update_distribution(Device * /*unused*/,
         totarea += triangle_area(p1, p2, p3);
       }
     }
-
-    j++;
   }
 
   const float trianglearea = totarea;
@@ -414,15 +403,20 @@ void LightManager::device_update_distribution(Device * /*unused*/,
 
   if (num_lights > 0) {
     const float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
-    for (Light *light : scene->lights) {
+    for (Object *object : scene->objects) {
+      if (!object->get_geometry()->is_light()) {
+        continue;
+      }
+
+      Light *light = static_cast<Light *>(object->get_geometry());
       if (!light->is_enabled) {
         continue;
       }
 
       distribution[offset].totarea = totarea;
       distribution[offset].prim = ~light_index;
-      distribution[offset].mesh_light.object_id = OBJECT_NONE;
-      distribution[offset].mesh_light.shader_flag = 0;
+      distribution[offset].object_id = object->index;
+      distribution[offset].shader_flag = 0;
       totarea += lightarea;
 
       light_index++;
@@ -433,8 +427,8 @@ void LightManager::device_update_distribution(Device * /*unused*/,
   /* normalize cumulative distribution functions */
   distribution[num_distribution].totarea = totarea;
   distribution[num_distribution].prim = 0;
-  distribution[num_distribution].mesh_light.object_id = OBJECT_NONE;
-  distribution[num_distribution].mesh_light.shader_flag = 0;
+  distribution[num_distribution].object_id = OBJECT_NONE;
+  distribution[num_distribution].shader_flag = 0;
 
   if (totarea > 0.0f) {
     for (size_t i = 0; i < num_distribution; i++) {
@@ -566,8 +560,8 @@ static void light_tree_leaf_emitters_copy_and_flatten(LightTreeFlatten &flatten,
       }
 
       kemitter.triangle.id = emitter.prim_id + mesh->prim_offset;
-      kemitter.mesh_light.shader_flag = shader_flag;
-      kemitter.mesh_light.object_id = emitter.object_id;
+      kemitter.shader_flag = shader_flag;
+      kemitter.object_id = emitter.object_id;
       kemitter.triangle.emission_sampling = shader->emission_sampling;
       flatten.triangle_array[emitter.prim_id + flatten.object_lookup_offset[emitter.object_id]] =
           emitter_index;
@@ -575,16 +569,16 @@ static void light_tree_leaf_emitters_copy_and_flatten(LightTreeFlatten &flatten,
     else if (emitter.is_light()) {
       /* Light object. */
       kemitter.light.id = emitter.light_id;
-      kemitter.mesh_light.shader_flag = 0;
-      kemitter.mesh_light.object_id = OBJECT_NONE;
+      kemitter.shader_flag = 0;
+      kemitter.object_id = emitter.object_id;
       flatten.light_array[~emitter.light_id] = emitter_index;
     }
     else {
       /* Mesh instance. */
       assert(emitter.is_mesh());
       kemitter.mesh.object_id = emitter.object_id;
-      kemitter.mesh_light.shader_flag = 0;
-      kemitter.mesh_light.object_id = OBJECT_NONE;
+      kemitter.shader_flag = 0;
+      kemitter.object_id = OBJECT_NONE;
       flatten.mesh_array[emitter.object_id] = emitter_index;
 
       /* Create instance node. One instance node will be the same as the
@@ -595,7 +589,8 @@ static void light_tree_leaf_emitters_copy_and_flatten(LightTreeFlatten &flatten,
       auto map_it = flatten.instances.find(reference_node);
       if (map_it == flatten.instances.end()) {
         if (instance_node != reference_node) {
-          /* Flatten the node with the subtree first so the subsequent instances know the index. */
+          /* Flatten the node with the subtree first so the subsequent instances know the index.
+           */
           std::swap(instance_node->type, reference_node->type);
           std::swap(instance_node->variant_type, reference_node->variant_type);
         }
@@ -727,8 +722,8 @@ static std::pair<int, LightTreeMeasure> light_tree_specialize_nodes_flatten(
 
     assert(first_emitter != -1);
 
-    /* Preserve the type of the node, so that the kernel can do proper decision when sampling node
-     * with multiple distant lights in it. */
+    /* Preserve the type of the node, so that the kernel can do proper decision when sampling
+     * node with multiple distant lights in it. */
     if (node->is_leaf()) {
       new_node.make_leaf(first_emitter, num_emitters);
     }
@@ -951,7 +946,12 @@ void LightManager::device_update_background(Device *device,
   bool background_mis = false;
 
   /* find background light */
-  for (Light *light : scene->lights) {
+  for (Object *object : scene->objects) {
+    if (!object->get_geometry()->is_light()) {
+      continue;
+    }
+
+    Light *light = static_cast<Light *>(object->get_geometry());
     if (light->light_type == LIGHT_BACKGROUND && light->is_enabled) {
       background_light = light;
       background_mis |= light->use_mis;
@@ -1125,7 +1125,12 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
   size_t num_distant_lights = 0;
   bool use_light_mis = false;
 
-  for (Light *light : scene->lights) {
+  for (Object *object : scene->objects) {
+    if (!object->get_geometry()->is_light()) {
+      continue;
+    }
+
+    Light *light = static_cast<Light *>(object->get_geometry());
     if (light->is_enabled) {
       num_lights++;
 
@@ -1165,14 +1170,24 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
   int light_index = 0;
   int portal_index = num_lights;
 
-  for (Light *light : scene->lights) {
+  for (Object *object : scene->objects) {
+    if (!object->get_geometry()->is_light()) {
+      continue;
+    }
+
+    Light *light = static_cast<Light *>(object->get_geometry());
+    const float3 axisu = transform_get_column(&object->get_tfm(), 0);
+    const float3 axisv = transform_get_column(&object->get_tfm(), 1);
+    const float3 dir = -transform_get_column(&object->get_tfm(), 2);
+    const float3 co = transform_get_column(&object->get_tfm(), 3);
+
     /* Consider moving portals update to their own function
      * keeping this one more manageable. */
     if (light->is_portal) {
       assert(light->light_type == LIGHT_AREA);
 
-      const float3 extentu = light->get_axisu() * (light->sizeu * light->size);
-      const float3 extentv = light->get_axisv() * (light->sizev * light->size);
+      const float3 extentu = axisu * (light->sizeu * light->size);
+      const float3 extentv = axisv * (light->sizev * light->size);
 
       float len_u;
       float len_v;
@@ -1188,17 +1203,14 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
         invarea = -invarea;
       }
 
-      const float3 dir = safe_normalize(light->get_dir());
-
-      klights[portal_index].co = light->get_co();
+      klights[portal_index].co = co;
       klights[portal_index].area.axis_u = axis_u;
       klights[portal_index].area.len_u = len_u;
       klights[portal_index].area.axis_v = axis_v;
       klights[portal_index].area.len_v = len_v;
       klights[portal_index].area.invarea = invarea;
-      klights[portal_index].area.dir = dir;
-      klights[portal_index].tfm = light->tfm;
-      klights[portal_index].itfm = transform_inverse(light->tfm);
+      klights[portal_index].area.dir = safe_normalize(dir);
+      klights[portal_index].object_id = object->index;
 
       portal_index++;
       continue;
@@ -1208,9 +1220,8 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
       continue;
     }
 
-    Shader *shader = (light->shader) ? light->shader : scene->default_light;
+    Shader *shader = (light->get_shader()) ? light->get_shader() : scene->default_light;
     int shader_id = scene->shader_manager->get_shader_id(shader);
-    const float random = (float)light->random_id * (1.0f / (float)0xFFFFFFFF);
 
     if (!light->cast_shadow) {
       shader_id &= ~SHADER_CAST_SHADOW;
@@ -1255,7 +1266,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
         shader_id |= SHADER_USE_MIS;
       }
 
-      klights[light_index].co = light->get_co();
+      klights[light_index].co = co;
       klights[light_index].spot.radius = radius;
       klights[light_index].spot.eval_fac = eval_fac;
       klights[light_index].spot.is_sphere = light->get_is_sphere() && radius != 0.0f;
@@ -1263,7 +1274,6 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     else if (light->light_type == LIGHT_DISTANT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
-      const float3 dir = safe_normalize(light->get_dir());
       const float angle = light->angle / 2.0f;
 
       if (light->use_mis && angle > 0.0f) {
@@ -1273,7 +1283,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
       const float one_minus_cosangle = 2.0f * sqr(sinf(0.5f * angle));
       const float pdf = (angle > 0.0f) ? (M_1_2PI_F / one_minus_cosangle) : 1.0f;
 
-      klights[light_index].co = dir;
+      klights[light_index].co = safe_normalize(dir);
       klights[light_index].distant.angle = angle;
       klights[light_index].distant.one_minus_cosangle = one_minus_cosangle;
       klights[light_index].distant.pdf = pdf;
@@ -1307,8 +1317,8 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     }
     else if (light->light_type == LIGHT_AREA) {
       const float light_size = light->size;
-      const float3 extentu = light->get_axisu() * (light->sizeu * light_size);
-      const float3 extentv = light->get_axisv() * (light->sizev * light_size);
+      const float3 extentu = axisu * (light->sizeu * light_size);
+      const float3 extentv = axisv * (light->sizev * light_size);
 
       float len_u;
       float len_v;
@@ -1336,19 +1346,17 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
                                               3.0f / powf(half_spread, 3.0f)) :
                                          FLT_MAX;
 
-      const float3 dir = safe_normalize(light->get_dir());
-
       if (light->use_mis && area != 0.0f && light->spread > 0.0f) {
         shader_id |= SHADER_USE_MIS;
       }
 
-      klights[light_index].co = light->get_co();
+      klights[light_index].co = co;
       klights[light_index].area.axis_u = axis_u;
       klights[light_index].area.len_u = len_u;
       klights[light_index].area.axis_v = axis_v;
       klights[light_index].area.len_v = len_v;
       klights[light_index].area.invarea = invarea;
-      klights[light_index].area.dir = dir;
+      klights[light_index].area.dir = safe_normalize(dir);
       klights[light_index].area.tan_half_spread = tan_half_spread;
       klights[light_index].area.normalize_spread = normalize_spread;
     }
@@ -1357,12 +1365,12 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
       const float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);
       const float tan_half_spot_angle = tanf(light->spot_angle * 0.5f);
 
-      const float len_w_sq = len_squared(light->get_dir());
-      const float len_u_sq = len_squared(light->get_axisu());
-      const float len_v_sq = len_squared(light->get_axisv());
+      const float len_w_sq = len_squared(dir);
+      const float len_u_sq = len_squared(axisu);
+      const float len_v_sq = len_squared(axisv);
       const float tan_sq = sqr(tan_half_spot_angle);
 
-      klights[light_index].spot.dir = safe_normalize(light->get_dir());
+      klights[light_index].spot.dir = safe_normalize(dir);
       klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
       klights[light_index].spot.half_cot_half_spot_angle = 0.5f / tan_half_spot_angle;
       klights[light_index].spot.spot_smooth = spot_smooth;
@@ -1375,30 +1383,10 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     }
 
     klights[light_index].shader_id = shader_id;
+    klights[light_index].object_id = object->index;
 
     klights[light_index].max_bounces = light->max_bounces;
-    klights[light_index].random = random;
     klights[light_index].use_caustics = light->use_caustics;
-
-    klights[light_index].tfm = light->tfm;
-    klights[light_index].itfm = transform_inverse(light->tfm);
-
-    /* Light group. */
-    if (light->light_type == LIGHT_BACKGROUND) {
-      klights[light_index].lightgroup = dscene->data.background.lightgroup;
-    }
-    else {
-      auto it = scene->lightgroups.find(light->lightgroup);
-      if (it != scene->lightgroups.end()) {
-        klights[light_index].lightgroup = it->second;
-      }
-      else {
-        klights[light_index].lightgroup = LIGHTGROUP_NONE;
-      }
-    }
-
-    klights[light_index].light_set_membership = light->light_set_membership;
-    klights[light_index].shadow_set_membership = light->shadow_set_membership;
 
     light_index++;
   }
@@ -1422,8 +1410,6 @@ void LightManager::device_update(Device *device,
       scene->update_stats->light.times.add_entry({"device_update", time});
     }
   });
-
-  VLOG_INFO << "Total " << scene->lights.size() << " lights.";
 
   /* Detect which lights are enabled, also determines if we need to update the background. */
   test_enabled_lights(scene);

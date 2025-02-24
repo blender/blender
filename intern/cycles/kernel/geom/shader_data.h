@@ -53,7 +53,6 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   sd->object = isect->object;
   sd->object_flag = kernel_data_fetch(object_flag, sd->object);
   sd->prim = isect->prim;
-  sd->lamp = LAMP_NONE;
   sd->flag = 0;
 
   /* Read matrices and time. */
@@ -139,8 +138,8 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
                                                 const float v,
                                                 const float t,
                                                 const float time,
-                                                bool object_space,
-                                                const int lamp)
+                                                const bool object_space,
+                                                const bool is_lamp)
 {
   /* vectors */
   sd->P = P;
@@ -148,7 +147,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
   sd->Ng = Ng;
   sd->wi = I;
   sd->shader = shader;
-  if (lamp != LAMP_NONE) {
+  if (is_lamp) {
     sd->type = PRIMITIVE_LAMP;
   }
   else if (prim != PRIM_NONE) {
@@ -160,7 +159,6 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
   /* primitive */
   sd->object = object;
-  sd->lamp = LAMP_NONE;
   /* Currently no access to bvh prim index for strand sd->prim. */
   sd->prim = prim;
   sd->u = u;
@@ -213,9 +211,6 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
     }
   }
   else {
-    if (lamp != LAMP_NONE) {
-      sd->lamp = lamp;
-    }
 #ifdef __DPDU__
     sd->dPdu = zero_float3();
     sd->dPdv = zero_float3();
@@ -278,7 +273,7 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
                            0.0f,
                            0.5f,
                            !(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED),
-                           LAMP_NONE);
+                           false);
 }
 
 /* ShaderData setup for point on curve. */
@@ -293,7 +288,6 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 {
   /* Primitive */
   sd->type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE_THICK, segment);
-  sd->lamp = LAMP_NONE;
   sd->prim = prim;
   sd->u = u;
   sd->v = 0.0f;
@@ -381,7 +375,6 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
   sd->ray_length = FLT_MAX;
 
   sd->object = OBJECT_NONE;
-  sd->lamp = LAMP_NONE;
   sd->prim = PRIM_NONE;
   sd->type = PRIMITIVE_NONE;
   sd->u = 0.0f;
@@ -424,7 +417,6 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
 
   /* TODO: fill relevant fields for texture coordinates. */
   sd->object = object;
-  sd->lamp = LAMP_NONE;
   sd->prim = PRIM_NONE;
   sd->type = PRIMITIVE_VOLUME;
 

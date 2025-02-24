@@ -75,7 +75,6 @@ ustring OSLRenderServices::u_geom_dupli_generated("geom:dupli_generated");
 ustring OSLRenderServices::u_geom_dupli_uv("geom:dupli_uv");
 ustring OSLRenderServices::u_material_index("material:index");
 ustring OSLRenderServices::u_object_random("object:random");
-ustring OSLRenderServices::u_light_random("light:random");
 ustring OSLRenderServices::u_particle_index("particle:index");
 ustring OSLRenderServices::u_particle_random("particle:random");
 ustring OSLRenderServices::u_particle_age("particle:age");
@@ -177,12 +176,6 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
 
     return true;
   }
-  if (sd->type == PRIMITIVE_LAMP) {
-    const Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
-    copy_matrix(result, tfm);
-
-    return true;
-  }
 
   return false;
 }
@@ -217,12 +210,6 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
 #else
     const Transform itfm = object_get_inverse_transform(kg, sd);
 #endif
-    copy_matrix(result, itfm);
-
-    return true;
-  }
-  if (sd->type == PRIMITIVE_LAMP) {
-    const Transform itfm = lamp_fetch_transform(kg, sd->lamp, true);
     copy_matrix(result, itfm);
 
     return true;
@@ -317,12 +304,6 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
 
     return true;
   }
-  if (sd->type == PRIMITIVE_LAMP) {
-    const Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
-    copy_matrix(result, tfm);
-
-    return true;
-  }
 
   return false;
 }
@@ -346,12 +327,6 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
   if (object != OBJECT_NONE) {
     const Transform tfm = object_get_inverse_transform(kg, sd);
     copy_matrix(result, tfm);
-
-    return true;
-  }
-  if (sd->type == PRIMITIVE_LAMP) {
-    const Transform itfm = lamp_fetch_transform(kg, sd->lamp, true);
-    copy_matrix(result, itfm);
 
     return true;
   }
@@ -752,10 +727,6 @@ bool OSLRenderServices::get_object_standard_attribute(
   }
   if (name == u_object_random) {
     const float f = object_random_number(kg, sd->object);
-    return set_attribute(f, type, derivatives, val);
-  }
-  if (name == u_light_random) {
-    const float f = lamp_random_number(kg, sd->lamp);
     return set_attribute(f, type, derivatives, val);
   }
 
@@ -1571,7 +1542,6 @@ bool OSLRenderServices::trace(TraceOpt &options,
   ray.self.prim = PRIM_NONE;
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
-  ray.self.light = LAMP_NONE;
 
   if (options.mindist == 0.0f) {
     /* avoid self-intersections */

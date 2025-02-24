@@ -36,6 +36,17 @@ ccl_device_forceinline T primitive_surface_attribute(KernelGlobals kg,
                                                      ccl_private T *dfdx,
                                                      ccl_private T *dfdy)
 {
+  if (desc.element & (ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+    if (dfdx) {
+      *dfdx = make_zero<T>();
+    }
+    if (dfdy) {
+      *dfdy = make_zero<T>();
+    }
+
+    return attribute_data_fetch<T>(kg, desc.offset);
+  }
+
   if (sd->type & PRIMITIVE_TRIANGLE) {
     if (subd_triangle_patch(kg, sd->prim) == ~0) {
       return triangle_attribute<T>(kg, sd, desc, dfdx, dfdy);

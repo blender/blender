@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "kernel/geom/object.h"
 #include "kernel/globals.h"
 
 #include "kernel/integrator/state.h"
@@ -57,14 +58,14 @@ ccl_device_inline int light_link_receiver_forward(KernelGlobals kg, IntegratorSt
 
 ccl_device_inline bool light_link_light_match(KernelGlobals kg,
                                               const int object_receiver,
-                                              const int light_emitter)
+                                              const int object_emitter)
 {
 #ifdef __LIGHT_LINKING__
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING)) {
     return true;
   }
 
-  const uint64_t set_membership = kernel_data_fetch(lights, light_emitter).light_set_membership;
+  const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
   const uint receiver_set = (object_receiver != OBJECT_NONE) ?
                                 kernel_data_fetch(objects, object_receiver).receiver_light_set :
                                 0;
@@ -122,12 +123,11 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   const LightType type = (LightType)klight->type;
   ls->type = type;
   ls->shader = klight->shader_id;
-  ls->object = PRIM_NONE;
-  ls->prim = PRIM_NONE;
-  ls->lamp = lamp;
+  ls->object = klight->object_id;
+  ls->prim = lamp;
   ls->u = rand.x;
   ls->v = rand.y;
-  ls->group = lamp_lightgroup(kg, lamp);
+  ls->group = object_lightgroup(kg, ls->object);
 
   if (in_volume_segment && (type == LIGHT_DISTANT || type == LIGHT_BACKGROUND)) {
     /* Distant lights in a volume get a dummy sample, position will not actually
@@ -143,7 +143,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   }
 
   if (type == LIGHT_DISTANT) {
-    if (!distant_light_sample(klight, rand, ls)) {
+    if (!distant_light_sample(kg, klight, rand, ls)) {
       return false;
     }
   }
@@ -158,12 +158,12 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->eval_fac = 1.0f;
   }
   else if (type == LIGHT_SPOT) {
-    if (!spot_light_sample<in_volume_segment>(klight, rand, P, N, shader_flags, ls)) {
+    if (!spot_light_sample<in_volume_segment>(kg, klight, rand, P, N, shader_flags, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample(klight, rand, P, N, shader_flags, ls)) {
+    if (!point_light_sample(kg, klight, rand, P, N, shader_flags, ls)) {
       return false;
     }
   }
@@ -196,14 +196,15 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   const float2 rand = make_float2(rand_light);
 
   int prim;
-  MeshLight mesh_light;
+  int shader_flag;
+  int object_id;
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     const ccl_global KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                            ls->emitter_id);
     prim = kemitter->light.id;
-    mesh_light.shader_flag = kemitter->mesh_light.shader_flag;
-    mesh_light.object_id = ls->object;
+    shader_flag = kemitter->shader_flag;
+    object_id = (prim >= 0) ? ls->object : kemitter->object_id;
   }
   else
 #endif
@@ -211,36 +212,31 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
     const ccl_global KernelLightDistribution *kdistribution = &kernel_data_fetch(
         light_distribution, ls->emitter_id);
     prim = kdistribution->prim;
-    mesh_light = kdistribution->mesh_light;
+    object_id = kdistribution->object_id;
+    shader_flag = 0;
+  }
+
+  if (!light_link_object_match(kg, object_receiver, object_id)) {
+    return false;
   }
 
   if (prim >= 0) {
     /* Mesh light. */
-    const int object = mesh_light.object_id;
-
-    if (!light_link_object_match(kg, object_receiver, object)) {
-      return false;
-    }
 
     /* Exclude synthetic meshes from shadow catcher pass. */
     if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
-        !(kernel_data_fetch(object_flag, object) & SD_OBJECT_SHADOW_CATCHER))
+        !(kernel_data_fetch(object_flag, object_id) & SD_OBJECT_SHADOW_CATCHER))
     {
       return false;
     }
 
-    const int shader_flag = mesh_light.shader_flag;
-    if (!triangle_light_sample<in_volume_segment>(kg, prim, object, rand, time, ls, P)) {
+    if (!triangle_light_sample<in_volume_segment>(kg, prim, object_id, rand, time, ls, P)) {
       return false;
     }
     ls->shader |= shader_flag;
   }
   else {
     const int light = ~prim;
-
-    if (!light_link_light_match(kg, object_receiver, light)) {
-      return false;
-    }
 
     if (UNLIKELY(light_select_reached_max_bounces(kg, light, bounce))) {
       return false;
@@ -278,6 +274,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
 
   for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
+    const int object = klight->object_id;
 
     if (path_flag & PATH_RAY_CAMERA) {
       if (klight->shader_id & SHADER_EXCLUDE_CAMERA) {
@@ -312,12 +309,12 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
     if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_LINKING) {
       if (is_main_path) {
         if (is_indirect_ray &&
-            kernel_data_fetch(lights, lamp).shadow_set_membership != LIGHT_LINK_MASK_ALL)
+            kernel_data_fetch(objects, object).shadow_set_membership != LIGHT_LINK_MASK_ALL)
         {
           continue;
         }
       }
-      else if (kernel_data_fetch(lights, lamp).shadow_set_membership == LIGHT_LINK_MASK_ALL) {
+      else if (kernel_data_fetch(objects, object).shadow_set_membership == LIGHT_LINK_MASK_ALL) {
         continue;
       }
     }
@@ -325,7 +322,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
 
 #ifdef __LIGHT_LINKING__
     /* Light linking. */
-    if (!light_link_light_match(kg, receiver_forward, lamp) && !(path_flag & PATH_RAY_CAMERA)) {
+    if (!light_link_light_match(kg, receiver_forward, object) && !(path_flag & PATH_RAY_CAMERA)) {
       continue;
     }
 #endif
@@ -363,7 +360,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
     }
 
     /* Avoid self-intersections. */
-    if (last_prim == lamp && last_object == OBJECT_NONE && last_type == PRIMITIVE_LAMP) {
+    if (last_prim == lamp && last_object == object && last_type == PRIMITIVE_LAMP) {
       continue;
     }
 
@@ -391,7 +388,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
     isect->v = v;
     isect->type = PRIMITIVE_LAMP;
     isect->prim = lamp;
-    isect->object = OBJECT_NONE;
+    isect->object = object;
   }
 
   return num_hits;
@@ -465,26 +462,24 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
                                                const uint32_t path_flag,
                                                ccl_private LightSample *ccl_restrict ls)
 {
-  const int lamp = isect->prim;
-  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, isect->prim);
   const LightType type = (LightType)klight->type;
   ls->type = type;
   ls->shader = klight->shader_id;
   ls->object = isect->object;
   ls->prim = isect->prim;
-  ls->lamp = lamp;
   ls->t = isect->t;
   ls->P = ray_P + ray_D * ls->t;
   ls->D = ray_D;
-  ls->group = lamp_lightgroup(kg, lamp);
+  ls->group = object_lightgroup(kg, ls->object);
 
   if (type == LIGHT_SPOT) {
-    if (!spot_light_sample_from_intersection(klight, ray_P, ray_D, N, path_flag, ls)) {
+    if (!spot_light_sample_from_intersection(kg, klight, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample_from_intersection(klight, ray_P, ray_D, N, path_flag, ls)) {
+    if (!point_light_sample_from_intersection(kg, klight, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }

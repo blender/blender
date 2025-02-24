@@ -32,7 +32,7 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
   const NodeVectorTransformConvertSpace to = (NodeVectorTransformConvertSpace)ito;
 
   Transform tfm;
-  const bool is_object = (sd->object != OBJECT_NONE) || (sd->type == PRIMITIVE_LAMP);
+  const bool is_object = (sd->object != OBJECT_NONE);
   const bool is_normal = (type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
   const bool is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
 

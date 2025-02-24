@@ -260,10 +260,6 @@ ccl_device_inline bool intersection_skip_self_local(const ccl_ray_data RaySelfPr
 ccl_device_inline uint64_t
 ray_get_shadow_set_membership(KernelGlobals kg, const ccl_ray_data RaySelfPrimitives &self)
 {
-  if (self.light != LAMP_NONE) {
-    return kernel_data_fetch(lights, self.light).shadow_set_membership;
-  }
-
   if (self.light_object != OBJECT_NONE) {
     return kernel_data_fetch(objects, self.light_object).shadow_set_membership;
   }

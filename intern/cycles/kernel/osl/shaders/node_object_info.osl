@@ -16,13 +16,5 @@ shader node_object_info(output point Location = point(0.0, 0.0, 0.0),
   getattribute("object:alpha", Alpha);
   getattribute("object:index", ObjectIndex);
   getattribute("material:index", MaterialIndex);
-
-  float is_light;
-  getattribute("object:is_light", is_light);
-  if (is_light) {
-    getattribute("light:random", Random);
-  }
-  else {
-    getattribute("object:random", Random);
-  }
+  getattribute("object:random", Random);
 }

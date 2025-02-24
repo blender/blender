@@ -73,12 +73,12 @@ ccl_device_inline bool is_light(const ccl_global KernelLightTreeEmitter *kemitte
 
 ccl_device_inline bool is_mesh(const ccl_global KernelLightTreeEmitter *kemitter)
 {
-  return !is_light(kemitter) && kemitter->mesh_light.object_id == OBJECT_NONE;
+  return !is_light(kemitter) && kemitter->object_id == OBJECT_NONE;
 }
 
 ccl_device_inline bool is_triangle(const ccl_global KernelLightTreeEmitter *kemitter)
 {
-  return !is_light(kemitter) && kemitter->mesh_light.object_id != OBJECT_NONE;
+  return !is_light(kemitter) && kemitter->object_id != OBJECT_NONE;
 }
 
 ccl_device_inline bool is_leaf(const ccl_global KernelLightTreeNode *knode)
@@ -274,7 +274,7 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
   }
   else {
     kernel_assert(is_triangle(kemitter));
-    const int object = kemitter->mesh_light.object_id;
+    const int object = kemitter->object_id;
     float3 vertices[3];
     triangle_vertices(kg, kemitter->triangle.id, vertices);
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;

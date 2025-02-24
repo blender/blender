@@ -138,15 +138,18 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       }
 #endif
 
+      const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
 #ifdef __LIGHT_LINKING__
-      if (!light_link_light_match(kg, light_link_receiver_forward(kg, state), lamp) &&
+      if (!light_link_light_match(kg, light_link_receiver_forward(kg, state), klight->object_id) &&
           !(path_flag & PATH_RAY_CAMERA))
       {
         continue;
       }
 #endif
 #ifdef __SHADOW_LINKING__
-      if (kernel_data_fetch(lights, lamp).shadow_set_membership != LIGHT_LINK_MASK_ALL) {
+      if (kernel_data_fetch(objects, klight->object_id).shadow_set_membership !=
+          LIGHT_LINK_MASK_ALL)
+      {
         continue;
       }
 #endif
@@ -155,7 +158,6 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       if (INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) {
         /* This path should have been resolved with mnee, it will
          * generate a firefly for small lights since it is improbable. */
-        const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
         if (klight->use_caustics) {
           continue;
         }

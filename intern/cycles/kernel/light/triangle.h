@@ -168,7 +168,6 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   ls->eval_fac = 1.0f;
   ls->object = object;
   ls->prim = prim;
-  ls->lamp = LAMP_NONE;
   ls->shader |= SHADER_USE_MIS;
   ls->type = LIGHT_TRIANGLE;
   ls->group = object_lightgroup(kg, object);

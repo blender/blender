@@ -6,11 +6,13 @@
 #include "hydra/light.h"
 #include "hydra/session.h"
 #include "scene/light.h"
+#include "scene/object.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
 #include "util/hash.h"
+#include "util/transform.h"
 
 #include <pxr/imaging/hd/sceneDelegate.h>
 #include <pxr/usd/sdf/assetPath.h>
@@ -64,7 +66,7 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
                               sceneDelegate->GetLightParamValue(id, HdTokens->transform)
                                   .Get<GfMatrix4d>());
 #endif
-    _light->set_tfm(tfm);
+    _object->set_tfm(tfm);
   }
 
   if (*dirtyBits & DirtyBits::DirtyParams) {
@@ -175,8 +177,8 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
     PopulateShaderGraph(sceneDelegate);
   }
   // Need to update shader graph when transform changes in case transform was baked into it
-  else if (_light->tfm_is_modified() && (_lightType == HdPrimTypeTokens->domeLight ||
-                                         _light->get_shader()->has_surface_spatial_varying))
+  else if (_object->tfm_is_modified() && (_lightType == HdPrimTypeTokens->domeLight ||
+                                          _light->get_shader()->has_surface_spatial_varying))
   {
     PopulateShaderGraph(sceneDelegate);
   }
@@ -266,7 +268,7 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
       }
 
       TextureCoordinateNode *coordNode = graph->create_node<TextureCoordinateNode>();
-      coordNode->set_ob_tfm(_light->get_tfm());
+      coordNode->set_ob_tfm(_object->get_tfm());
       coordNode->set_use_transform(true);
 
       IESLightNode *iesNode = graph->create_node<IESLightNode>();
@@ -287,7 +289,7 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
 
       ImageSlotTextureNode *textureNode = nullptr;
       if (_lightType == HdPrimTypeTokens->domeLight) {
-        Transform tfm = _light->get_tfm();
+        Transform tfm = _object->get_tfm();
         transform_set_column(&tfm, 3, zero_float3());  // Remove translation
 
         TextureCoordinateNode *coordNode = graph->create_node<TextureCoordinateNode>();
@@ -352,9 +354,11 @@ void HdCyclesLight::Finalize(HdRenderParam *renderParam)
 
   if (!keep_nodes) {
     lock.scene->delete_node(_light);
+    lock.scene->delete_node(_object);
   }
 
   _light = nullptr;
+  _object = nullptr;
 }
 
 void HdCyclesLight::Initialize(HdRenderParam *renderParam)
@@ -365,10 +369,14 @@ void HdCyclesLight::Initialize(HdRenderParam *renderParam)
 
   const SceneLock lock(renderParam);
 
+  _object = lock.scene->create_node<Object>();
+  _object->name = GetId().GetString();
+
   _light = lock.scene->create_node<Light>();
   _light->name = GetId().GetString();
+  _object->set_geometry(_light);
 
-  _light->set_random_id(hash_uint2(hash_string(_light->name.c_str()), 0));
+  _object->set_random_id(hash_uint2(hash_string(_light->name.c_str()), 0));
 
   if (_lightType == HdPrimTypeTokens->domeLight) {
     _light->set_light_type(LIGHT_BACKGROUND);
@@ -395,7 +403,9 @@ void HdCyclesLight::Initialize(HdRenderParam *renderParam)
   _light->set_use_camera(false);
 
   Shader *const shader = lock.scene->create_node<Shader>();
-  _light->set_shader(shader);
+  array<Node *> used_shaders;
+  used_shaders.push_back_slow(shader);
+  _light->set_used_shaders(used_shaders);
 
   // Create default shader graph
   PopulateShaderGraph(nullptr);

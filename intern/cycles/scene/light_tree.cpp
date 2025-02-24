@@ -88,9 +88,10 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
                                    bool need_transformation)
     : prim_id(prim_id), object_id(object_id)
 {
+  Object *object = scene->objects[object_id];
+
   if (is_triangle()) {
     float3 vertices[3];
-    Object *object = scene->objects[object_id];
     Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
     const Mesh::Triangle triangle = mesh->get_triangle(prim_id);
     Shader *shader = static_cast<Shader *>(mesh->get_used_shaders()[mesh->get_shader()[prim_id]]);
@@ -148,13 +149,13 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
   }
   else {
     assert(is_light());
-    Light *lamp = scene->lights[object_id];
+    Light *lamp = static_cast<Light *>(object->get_geometry());
     const LightType type = lamp->get_light_type();
     const float size = lamp->get_size();
     float3 strength = lamp->get_strength();
 
-    centroid = lamp->get_co();
-    measure.bcone.axis = safe_normalize(lamp->get_dir());
+    centroid = transform_get_column(&object->get_tfm(), 3);
+    measure.bcone.axis = -safe_normalize(transform_get_column(&object->get_tfm(), 2));
 
     if (type == LIGHT_AREA) {
       measure.bcone.theta_o = 0;
@@ -163,8 +164,10 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
       /* For an area light, sizeu and sizev determine the 2 dimensions of the area light,
        * while axisu and axisv determine the orientation of the 2 dimensions.
        * We want to add all 4 corners to our bounding box. */
-      const float3 half_extentu = 0.5f * lamp->get_sizeu() * lamp->get_axisu() * size;
-      const float3 half_extentv = 0.5f * lamp->get_sizev() * lamp->get_axisv() * size;
+      const float3 axisu = transform_get_column(&object->get_tfm(), 0);
+      const float3 axisv = transform_get_column(&object->get_tfm(), 1);
+      const float3 half_extentu = 0.5f * lamp->get_sizeu() * axisu * size;
+      const float3 half_extentv = 0.5f * lamp->get_sizev() * axisv * size;
       measure.bbox.grow(centroid + half_extentu + half_extentv);
       measure.bbox.grow(centroid + half_extentu - half_extentv);
       measure.bbox.grow(centroid - half_extentu + half_extentv);
@@ -188,9 +191,9 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
       measure.bcone.theta_o = 0;
 
       float theta_e = min(lamp->get_spot_angle() * 0.5f, M_PI_2_F);
-      const float len_u = len(lamp->get_axisu());
-      const float len_v = len(lamp->get_axisv());
-      const float len_w = len(lamp->get_dir());
+      const float len_u = len(transform_get_column(&object->get_tfm(), 0));
+      const float len_v = len(transform_get_column(&object->get_tfm(), 1));
+      const float len_w = len(transform_get_column(&object->get_tfm(), 2));
 
       /* As `theta_e` approaches `pi/2`, the behavior of `atan(tan(theta_e))` can become quite
        * unpredictable as `tan(x)` has an asymptote at `x = pi/2`. To avoid this, we skip the back
@@ -236,7 +239,7 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
      * light tree. */
     measure.energy = average(fabs(strength));
 
-    light_set_membership = lamp->get_light_set_membership();
+    light_set_membership = object->get_light_set_membership();
   }
 }
 
@@ -289,45 +292,42 @@ LightTree::LightTree(Scene *scene,
    * Therefore, we want to keep track of the light's index on the device.
    * However, we also need the light's index in the scene when we're constructing the tree. */
   int device_light_index = 0;
-  int scene_light_index = 0;
-  for (Light *light : scene->lights) {
-    if (light->is_enabled) {
-      if (light->light_type == LIGHT_BACKGROUND || light->light_type == LIGHT_DISTANT) {
-        distant_lights_.emplace_back(scene, ~device_light_index, scene_light_index);
-      }
-      else {
-        local_lights_.emplace_back(scene, ~device_light_index, scene_light_index);
-      }
-
-      device_light_index++;
-    }
-
-    scene_light_index++;
-  }
-
-  /* Similarly, we also want to keep track of the index of triangles of emissive objects. */
-  int object_id = 0;
   for (Object *object : scene->objects) {
     if (progress_.get_cancel()) {
       return;
     }
 
-    light_link_receiver_used |= (uint64_t(1) << object->get_receiver_light_set());
+    if (object->get_geometry()->is_light()) {
+      /* Regular lights. */
+      Light *light = static_cast<Light *>(object->get_geometry());
+      if (light->is_enabled) {
+        if (light->light_type == LIGHT_BACKGROUND || light->light_type == LIGHT_DISTANT) {
+          distant_lights_.emplace_back(scene, ~device_light_index, object->index);
+        }
+        else {
+          local_lights_.emplace_back(scene, ~device_light_index, object->index);
+        }
 
-    if (!object->usable_as_light()) {
-      object_id++;
-      continue;
+        device_light_index++;
+      }
     }
+    else {
+      /* Emissive triangles. */
+      light_link_receiver_used |= (uint64_t(1) << object->get_receiver_light_set());
 
-    mesh_lights_.emplace_back(object, object_id);
-    object_id++;
+      if (!object->usable_as_light()) {
+        continue;
+      }
 
-    /* Only count unique meshes. */
-    Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
-    auto map_it = offset_map_.find(mesh);
-    if (map_it == offset_map_.end()) {
-      offset_map_[mesh] = num_triangles;
-      num_triangles += mesh->num_triangles();
+      mesh_lights_.emplace_back(object, object->index);
+
+      /* Only count unique meshes. */
+      Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
+      auto map_it = offset_map_.find(mesh);
+      if (map_it == offset_map_.end()) {
+        offset_map_[mesh] = num_triangles;
+        num_triangles += mesh->num_triangles();
+      }
     }
   }
 }
