@@ -2,30 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with subdiv_lib.glsl */
-
-layout(std430, binding = 0) readonly buffer inputVerts
-{
-  PosNorLoop pos_nor[];
-};
-
-layout(std430, binding = 1) readonly buffer inputUVs
-{
-  vec2 uvs[];
-};
-
-/* Mirror of #UVStretchAngle in the C++ code, but using floats until proper data compression
- * is implemented for all subdivision data. */
-struct UVStretchAngle {
-  float angle;
-  float uv_angle0;
-  float uv_angle1;
-};
-
-layout(std430, binding = 2) writeonly buffer outputStretchAngles
-{
-  UVStretchAngle uv_stretches[];
-};
+#include "subdiv_lib.glsl"
 
 #define M_PI 3.1415926535897932
 #define M_1_PI 0.31830988618379067154
@@ -44,7 +21,7 @@ void main()
 {
   /* We execute for each quad. */
   uint quad_index = get_global_invocation_index();
-  if (quad_index >= total_dispatch_size) {
+  if (quad_index >= shader_data.total_dispatch_size) {
     return;
   }
 
@@ -56,17 +33,20 @@ void main()
     uint prev_loop_index = start_loop_index + (i + 3) % 4;
 
     /* Compute 2d edge vectors from UVs. */
-    vec2 cur_uv = uvs[src_offset + cur_loop_index];
-    vec2 next_uv = uvs[src_offset + next_loop_index];
-    vec2 prev_uv = uvs[src_offset + prev_loop_index];
+    vec2 cur_uv = uvs[shader_data.src_offset + cur_loop_index];
+    vec2 next_uv = uvs[shader_data.src_offset + next_loop_index];
+    vec2 prev_uv = uvs[shader_data.src_offset + prev_loop_index];
 
     vec2 norm_uv_edge0 = normalize(prev_uv - cur_uv);
     vec2 norm_uv_edge1 = normalize(cur_uv - next_uv);
 
     /* Compute 3d edge vectors from positions. */
-    vec3 cur_pos = subdiv_get_vertex_pos(pos_nor[cur_loop_index]);
-    vec3 next_pos = subdiv_get_vertex_pos(pos_nor[next_loop_index]);
-    vec3 prev_pos = subdiv_get_vertex_pos(pos_nor[prev_loop_index]);
+    PosNorLoop cur_pos_nor = pos_nor[cur_loop_index];
+    vec3 cur_pos = subdiv_get_vertex_pos(cur_pos_nor);
+    PosNorLoop next_pos_nor = pos_nor[next_loop_index];
+    vec3 next_pos = subdiv_get_vertex_pos(next_pos_nor);
+    PosNorLoop prev_pos_nor = pos_nor[prev_loop_index];
+    vec3 prev_pos = subdiv_get_vertex_pos(prev_pos_nor);
 
     vec3 norm_pos_edge0 = normalize(prev_pos - cur_pos);
     vec3 norm_pos_edge1 = normalize(cur_pos - next_pos);

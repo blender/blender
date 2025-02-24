@@ -69,6 +69,14 @@ struct PosNorLoop {
   float flag;
 };
 
+/* Mirror of #UVStretchAngle in the C++ code, but using floats until proper data compression
+ * is implemented for all subdivision data. */
+struct UVStretchAngle {
+  float angle;
+  float uv_angle0;
+  float uv_angle1;
+};
+
 struct LoopNormal {
   float nx, ny, nz;
   float flag;

@@ -145,6 +145,12 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
     case SubdivShaderType::BUFFER_SCULPT_DATA:
       return "subdiv_sculpt_data";
 
+    case SubdivShaderType::BUFFER_UV_STRETCH_ANGLE:
+      return "subdiv_edituv_stretch_angle";
+
+    case SubdivShaderType::BUFFER_UV_STRETCH_AREA:
+      return "subdiv_edituv_stretch_area";
+
     case SubdivShaderType::BUFFER_NORMALS_ACCUMULATE:
       return "subdiv_normals_accumulate";
 
@@ -359,6 +365,8 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
            SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS,
            SubdivShaderType::BUFFER_EDGE_FAC,
            SubdivShaderType::BUFFER_SCULPT_DATA,
+           SubdivShaderType::BUFFER_UV_STRETCH_ANGLE,
+           SubdivShaderType::BUFFER_UV_STRETCH_AREA,
            SubdivShaderType::BUFFER_NORMALS_ACCUMULATE,
            SubdivShaderType::BUFFER_NORMALS_FINALIZE,
            SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE,
@@ -371,14 +379,8 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
   }
   else if (e_data.subdiv_sh[uint(shader_type)] == nullptr) {
     const blender::StringRefNull compute_code = get_subdiv_shader_code(shader_type);
-    std::optional<blender::StringRefNull> defines;
-
-    if (ELEM(shader_type, SubdivShaderType::BUFFER_UV_STRETCH_AREA)) {
-      defines = "#define SUBDIV_POLYGON_OFFSET\n";
-    }
-
     e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_compute(
-        compute_code, datatoc_subdiv_lib_glsl, defines, get_subdiv_shader_name(shader_type));
+        compute_code, datatoc_subdiv_lib_glsl, std::nullopt, get_subdiv_shader_name(shader_type));
   }
   return e_data.subdiv_sh[uint(shader_type)];
 }

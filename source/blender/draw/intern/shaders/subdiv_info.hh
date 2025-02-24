@@ -132,6 +132,29 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UV Stretch overlays
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(subdiv_edituv_stretch_angle)
+DO_STATIC_COMPILATION()
+STORAGE_BUF(STRETCH_ANGLE_POS_NOR_BUF_SLOT, READ, PosNorLoop, pos_nor[])
+STORAGE_BUF(STRETCH_ANGLE_UVS_BUF_SLOT, READ, packed_float2, uvs[])
+STORAGE_BUF(STRETCH_ANGLE_UV_STRETCHES_BUF_SLOT, WRITE, UVStretchAngle, uv_stretches[])
+COMPUTE_SOURCE("subdiv_vbo_edituv_strech_angle_comp.glsl")
+ADDITIONAL_INFO(subdiv_base)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_edituv_stretch_area)
+DO_STATIC_COMPILATION()
+STORAGE_BUF(STRETCH_AREA_COARSE_STRETCH_AREA_BUF_SLOT, READ, float, coarse_stretch_area[])
+STORAGE_BUF(STRETCH_AREA_SUBDIV_STRETCH_AREA_BUF_SLOT, WRITE, float, subdiv_stretch_area[])
+COMPUTE_SOURCE("subdiv_vbo_edituv_strech_area_comp.glsl")
+ADDITIONAL_INFO(subdiv_polygon_offset_base)
+GPU_SHADER_CREATE_END()
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Normals
  * \{ */
 

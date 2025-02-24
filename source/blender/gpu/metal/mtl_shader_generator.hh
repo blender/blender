@@ -529,6 +529,7 @@ inline bool is_builtin_type(std::string type)
       {"uchar4", MTL_DATATYPE_UCHAR4},
       {"vec3_1010102_Unorm", MTL_DATATYPE_UINT1010102_NORM},
       {"vec3_1010102_Inorm", MTL_DATATYPE_INT1010102_NORM},
+      {"packed_float2", MTL_DATATYPE_PACKED_FLOAT2},
       {"packed_float3", MTL_DATATYPE_PACKED_FLOAT3},
   };
   return (glsl_builtin_types.find(type) != glsl_builtin_types.end());
