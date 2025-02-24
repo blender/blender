@@ -29,7 +29,6 @@ namespace blender::draw {
 class Manager;
 struct CurvesModule;
 struct PointCloudModule;
-struct SubdivModule;
 struct VolumeModule;
 }  // namespace blender::draw
 
@@ -71,10 +70,6 @@ void DRW_pointcloud_module_free(draw::PointCloudModule *module);
 /* If drw_data is nullptr, DST global is accessed to get it. */
 void DRW_volume_init(DRWData *drw_data = nullptr);
 void DRW_volume_module_free(draw::VolumeModule *module);
-
-/* draw_cache_impl_subdivision.cc */
-
-void DRW_subdiv_module_free(draw::SubdivModule *module);
 
 }  // namespace blender::draw
 

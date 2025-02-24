@@ -355,7 +355,6 @@ void DRW_viewport_data_free(DRWData *drw_data)
   DRW_volume_module_free(drw_data->volume_module);
   DRW_pointcloud_module_free(drw_data->pointcloud_module);
   DRW_curves_module_free(drw_data->curves_module);
-  DRW_subdiv_module_free(drw_data->subdiv_module);
   delete drw_data->default_view;
   MEM_freeN(drw_data);
 }

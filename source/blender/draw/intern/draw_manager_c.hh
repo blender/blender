@@ -32,7 +32,6 @@ struct Object;
 struct Mesh;
 namespace blender::draw {
 struct CurvesModule;
-struct SubdivModule;
 struct VolumeModule;
 struct PointCloudModule;
 struct DRW_Attributes;
@@ -73,7 +72,6 @@ struct DRWData {
   DRWViewData *view_data[2];
   /** Module storage. */
   blender::draw::CurvesModule *curves_module;
-  blender::draw::SubdivModule *subdiv_module;
   blender::draw::VolumeModule *volume_module;
   blender::draw::PointCloudModule *pointcloud_module;
   /** Default view that feeds every engine. */
