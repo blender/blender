@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2025-02-17 10:56+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"PO-Revision-Date: 2025-02-23 14:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -111,10 +111,6 @@ msgstr "For each 遍历动作槽，为该槽指定的动画通道列表"
 
 msgid "Action F-Curves"
 msgstr "动作函数曲线"
-
-
-msgid "Collection of action F-Curves"
-msgstr "动作函数曲线集合"
 
 
 msgid "Action Group"
@@ -9267,7 +9263,7 @@ msgstr "与目标的间距"
 
 
 msgid "Project Axis"
-msgstr "项目坐标"
+msgstr "投影轴"
 
 
 msgid "Axis constrain to"
@@ -9283,7 +9279,7 @@ msgstr "投射轴的坐标空间"
 
 
 msgid "Project Distance"
-msgstr "项目距离"
+msgstr "投影距离"
 
 
 msgid "Limit the distance used for projection (zero disables)"
@@ -11701,7 +11697,7 @@ msgstr "纹理"
 
 
 msgid "Is Active"
-msgstr "是激活"
+msgstr "激活的"
 
 
 msgid "Toggle whether surface is processed or ignored"
@@ -12775,7 +12771,7 @@ msgstr "在函数曲线修改器淡入/淡出时的影响值"
 
 
 msgid "Disabled"
-msgstr "已禁用"
+msgstr "禁用"
 
 
 msgid "F-Curve Modifier has invalid settings and will not be evaluated"
@@ -18113,10 +18109,6 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "该动作中所有函数曲线的组合帧范围"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "组成动作的各条函数曲线"
-
-
 msgid "The end frame of the manually set intended playback range"
 msgstr "手动设置的预期播放范围的结束帧"
 
@@ -18137,17 +18129,9 @@ msgid "Groups"
 msgstr "组"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "函数曲线的便捷群组"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "ID根类型"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "可供该动作使用的ID数据块类型 - 除非了解用途，否则请勿改动"
 
 
 msgid "Is Layered Action"
@@ -18160,10 +18144,6 @@ msgstr "返回此是否为分层动作。一个空的动作被视为 '分层' �
 
 msgid "Is Legacy Action"
 msgstr "是旧式动作"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action."
-msgstr "返回此是否为旧式动作。旧式动作没有层或槽。一个空的动作被视为 '旧式' 和 '分层' 动作。"
 
 
 msgid "Is Empty"
@@ -18822,26 +18802,6 @@ msgstr "相对于笔刷半径的边界原点偏移"
 
 msgid "Brush's capabilities"
 msgstr "笔刷的能力"
-
-
-msgid "Clone Alpha"
-msgstr "克隆 Alpha"
-
-
-msgid "Opacity of clone image display"
-msgstr "克隆图像的不透明度显示"
-
-
-msgid "Clone Image"
-msgstr "克隆图像"
-
-
-msgid "Image for clone brushes"
-msgstr "克隆画笔的图像"
-
-
-msgid "Clone Offset"
-msgstr "克隆位移"
 
 
 msgid "Soft Body Plasticity"
@@ -37657,7 +37617,7 @@ msgstr "启用顶点数据传递"
 
 
 msgid "Vertex Mapping"
-msgstr "点映射"
+msgstr "顶点映射"
 
 
 msgid "Method used to map source vertices to destination ones"
@@ -38835,7 +38795,7 @@ msgstr "阴影区域过滤"
 
 
 msgid "Select feature lines that comes from lit or shaded regions. Will not affect cast shadow and light contour since they are at the border."
-msgstr "选择来自照明或阴影区域的要素线。不会影响投射阴影和光线轮廓，因为它们位于边界。"
+msgstr "选择来自照明或阴影区域的特征线。不会影响投射阴影和光线轮廓，因为它们位于边界。"
 
 
 msgctxt "GPencil"
@@ -39993,7 +39953,7 @@ msgstr "绑定到修改器的顶点编号。对于贝塞尔曲线，控制点计
 
 
 msgid "Laplacian Deform Modifier"
-msgstr "拉普拉斯塑形修改器"
+msgstr "拉普拉斯形变修改器"
 
 
 msgid "Mesh deform modifier"
@@ -40569,7 +40529,7 @@ msgstr "显示节点组"
 
 
 msgid "Normal Edit Modifier"
-msgstr "法向编辑修改器"
+msgstr "法线编辑修改器"
 
 
 msgid "Modifier affecting/generating custom normals"
@@ -45738,7 +45698,7 @@ msgstr "条斑淡出系数. (已弃用: 使用淡化输入代替)"
 
 
 msgid "Glare Type"
-msgstr "耀光类型"
+msgstr "炫光类型"
 
 
 msgid "Bloom"
@@ -49255,6 +49215,14 @@ msgstr "重采样曲线"
 
 msgid "Generate a poly spline for each input spline"
 msgstr "为每个输入样条生成多段线样条"
+
+
+msgid "Keep Last Segment"
+msgstr "保留最后一段"
+
+
+msgid "Don't collapse a curves to single points if they are shorter than the given length. The collapsing behavior exists for compatibility reasons."
+msgstr "如果它们的长度短于给定长度，不要将曲线塌陷成单点。塌陷行为存在的原因是为了兼容性。"
 
 
 msgid "How to specify the amount of samples"
@@ -61936,7 +61904,7 @@ msgstr "过滤将被导出的动作"
 
 
 msgid "Export Active Vertex Color When No Material"
-msgstr "当无材质时导出活动的顶点色"
+msgstr "无材质时导出活动顶点色"
 
 
 msgid "When there is no material on object, export active vertex color"
@@ -62680,7 +62648,7 @@ msgstr "如果数据为空，省略稀疏访问器"
 
 
 msgid "Use Sparse Accessor if Better"
-msgstr "如果更好，请使用稀疏访问器"
+msgstr "如果更好，则使用稀疏访问器"
 
 
 msgid "Try using Sparse Accessor if it saves space"
@@ -90531,8 +90499,24 @@ msgid "Image used as canvas"
 msgstr "用作画布的图像"
 
 
+msgid "Clone Alpha"
+msgstr "克隆 Alpha"
+
+
+msgid "Opacity of clone image display"
+msgstr "克隆图像的不透明度显示"
+
+
+msgid "Clone Image"
+msgstr "克隆图像"
+
+
 msgid "Image used as clone source"
 msgstr "用作克隆源的图像"
+
+
+msgid "Clone Offset"
+msgstr "克隆位移"
 
 
 msgid "Dither"
@@ -90871,6 +90855,10 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
+msgid "Active Tool"
+msgstr "活动工具"
+
+
 msgid "View Lock"
 msgstr "视图锁定"
 
@@ -91009,10 +90997,6 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR 信息"
-
-
-msgid "Active Tool"
-msgstr "活动工具"
 
 
 msgid "Chain Scaling"
@@ -95309,7 +95293,7 @@ msgstr "每像素的旋转量，以控制视图转动的速度"
 
 
 msgid "Zoom Axis"
-msgstr "Z 坐标轴"
+msgstr "缩放轴"
 
 
 msgid "Axis of mouse movement to zoom in or out on"
@@ -102508,7 +102492,7 @@ msgstr "对图像的每一个像素点采样"
 
 
 msgid "Vectorscope Opacity"
-msgstr "矢量不透明度"
+msgstr "矢量图不透明度"
 
 
 msgid "Opacity of the points"
@@ -106331,7 +106315,7 @@ msgstr "显示应用修改器后的边"
 
 
 msgid "Pixel Coordinates"
-msgstr "像素坐标轴"
+msgstr "像素坐标"
 
 
 msgid "Display UV coordinates in pixels rather than from 0.0 to 1.0"
@@ -120860,7 +120844,7 @@ msgstr "距离参照"
 
 
 msgid "Angle Outer"
-msgstr "外侧角度"
+msgstr "角度 外侧"
 
 
 msgid "Detail"
@@ -127691,10 +127675,6 @@ msgid "\"%s\" is using Action \"%s\", which does not have a slot with identifier
 msgstr "\"%s\" 正在使用动作 \"%s\"，其未带有标识符 \"%s\" 或 \"%s\" 的槽。手动将正确的动作槽分配给 \"%s\"。"
 
 
-msgid "Legacy action \"%s\" is assigned to \"%s\", which does not match the action's id_root \"%s\". The action has been upgraded to a slotted action with slot \"%s\" with an id_type \"%s\", which has also been assigned to \"%s\" despite this type mismatch. This likely indicates something odd about the blend file."
-msgstr "旧式动作 \"%s\" 已经分配给 \"%s\"，其未匹配动作的 id_root \"%s\"。该动作已经被升级为槽 \"%s\" 的槽动作并分配 id_type \"%s\"，尽管存在类型不匹配也被分配给了 \"%s\"。这可能表明 blend 文件有些奇怪。"
-
-
 msgid "Named Layer node"
 msgstr "命名的层节点"
 
@@ -130643,7 +130623,7 @@ msgstr "活动顶点组已经锁定"
 
 
 msgid "Data-block renamed to '%s', try again to force renaming it to '%s'"
-msgstr "数据块重命名为 '%s', 再次尝试强制重命名为 '%s'"
+msgstr "数据块已重命名为 '%s', 再次尝试可强制重命名为 '%s'"
 
 
 msgid "Name in use. The other data-block was renamed to ‘%s’"
@@ -137193,6 +137173,26 @@ msgstr "没有关键帧或者片段选中"
 
 msgid "This strip type cannot be retimed"
 msgstr "此片段类型无法重定时"
+
+
+msgctxt "Operator"
+msgid "Select (Unconnected)"
+msgstr "选择 (未连接的)"
+
+
+msgctxt "Operator"
+msgid "Select (Linked Time)"
+msgstr "选择 (连接的时间)"
+
+
+msgctxt "Operator"
+msgid "Select (Linked Handle)"
+msgstr "选择 (连接的控制柄)"
+
+
+msgctxt "Operator"
+msgid "Select (Side of Frame)"
+msgstr "选择 (帧的一侧)"
 
 
 msgid "No active sequence!"
@@ -145725,6 +145725,10 @@ msgstr "无法覆写已使用的库 '%.240s'"
 
 msgid "Cannot save blend file, path \"%s\" is not writable"
 msgstr "无法保存blend文件，路径 \"%s\" 不可写入"
+
+
+msgid "Cannot save blend file, path \"%s\" is a directory"
+msgstr "无法保存blend文件，路径 \"%s\" 是一个目录"
 
 
 msgid "Can't read alternative start-up file: \"%s\""

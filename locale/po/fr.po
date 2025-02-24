@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
 "PO-Revision-Date: 2025-02-16 21:56+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -105,10 +105,6 @@ msgstr "Pour chaque emplacement d’action, une liste de canaux d’animation pr
 
 msgid "Action F-Curves"
 msgstr "F-courbes d’action"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Collection de F-courbes d’action"
 
 
 msgid "Action Group"
@@ -18107,10 +18103,6 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "L’intervalle de frames combiné de toutes les F-courbes dans l’action"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "Les F-courbes individuelles qui constituent l’action"
-
-
 msgid "The end frame of the manually set intended playback range"
 msgstr "La frame de fin de l’intervalle défini manuellement à lire"
 
@@ -18131,17 +18123,9 @@ msgid "Groups"
 msgstr "Groupes"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Regroupements commodes de F-courbes"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Type d’ID racine"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "Type de bloc ID sur lequel cette action peut être utilisée – NE PAS MODIFIER À MOINS DE SAVOIR CE QUE VOUS FAITES"
 
 
 msgid "Is Layered Action"
@@ -18154,10 +18138,6 @@ msgstr "Retourne s’il s’agit d’une action par calques. Une action vide est
 
 msgid "Is Legacy Action"
 msgstr "Est action héritée"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action."
-msgstr "Retourne s’il s’agit d’une action héritée. Les actions héritées n’ont pas de calques ni d’emplacements. Une action vide est considérée à la fois « héritée » et « par calques »."
 
 
 msgid "Is Empty"
@@ -18816,26 +18796,6 @@ msgstr "Décalage de l’origine de la bordure par rapport au rayon de la brosse
 
 msgid "Brush's capabilities"
 msgstr "Possibilités de la brosse"
-
-
-msgid "Clone Alpha"
-msgstr "Alpha du clonage"
-
-
-msgid "Opacity of clone image display"
-msgstr "Opacité de l’affichage de l’image à cloner"
-
-
-msgid "Clone Image"
-msgstr "Image à cloner"
-
-
-msgid "Image for clone brushes"
-msgstr "Image pour les brosses de clonage"
-
-
-msgid "Clone Offset"
-msgstr "Décalage du clonage"
 
 
 msgid "Soft Body Plasticity"
@@ -90527,8 +90487,24 @@ msgid "Image used as canvas"
 msgstr "Image utilisée comme canevas"
 
 
+msgid "Clone Alpha"
+msgstr "Alpha du clonage"
+
+
+msgid "Opacity of clone image display"
+msgstr "Opacité de l’affichage de l’image à cloner"
+
+
+msgid "Clone Image"
+msgstr "Image à cloner"
+
+
 msgid "Image used as clone source"
 msgstr "Image utilisée comme source de clonage"
+
+
+msgid "Clone Offset"
+msgstr "Décalage du clonage"
 
 
 msgid "Dither"
@@ -90867,6 +90843,10 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
+msgid "Active Tool"
+msgstr "Outil actif"
+
+
 msgid "View Lock"
 msgstr "Verrouillage de la vue"
 
@@ -91005,10 +90985,6 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "Infos VR"
-
-
-msgid "Active Tool"
-msgstr "Outil actif"
 
 
 msgid "Chain Scaling"
@@ -127653,10 +127629,6 @@ msgstr "Chemin dans l’ensemble de clés ignoré, car il n’a pas d’ID (KS 
 
 msgid "\"%s\" is using Action \"%s\", which does not have a slot with identifier \"%s\" or \"%s\". Manually assign the right action slot to \"%s\"."
 msgstr "« %s » utilise l’action « %s », qui n’a pas d’emplacement avec l’identifiant « %s » ou « %s ». Assigner manuellement le bon emplacement d’action à « %s »."
-
-
-msgid "Legacy action \"%s\" is assigned to \"%s\", which does not match the action's id_root \"%s\". The action has been upgraded to a slotted action with slot \"%s\" with an id_type \"%s\", which has also been assigned to \"%s\" despite this type mismatch. This likely indicates something odd about the blend file."
-msgstr "L’action héritée « %s » est assignée à « %s », qui ne correspond pas au id_root « %s » de l’action. L’action a été mise à niveau vers une action par emplacement, avec l’emplacement « %s » ayant un id_type « %s », également assigné à « %s » malgré l’incohérence du type. Ceci indique probablement qu’il y a un problème avec le fichier .blend."
 
 
 msgid "Named Layer node"

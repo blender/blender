@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2025-02-16 21:56+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"PO-Revision-Date: 2025-02-19 21:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -109,10 +109,6 @@ msgstr "Per cada epígraf d'acció, una llista de canals d'animació fets per a 
 
 msgid "Action F-Curves"
 msgstr "Corbes-F d'acció"
-
-
-msgid "Collection of action F-Curves"
-msgstr "[Action F-Curves]: Col·lecció de corbes-F d'acció"
 
 
 msgid "Action Group"
@@ -18111,10 +18107,6 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "[Curve Frame Range]: L'interval combinat de fotogrames de totes les corbes-F dins d'aquesta acció"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "[F-Curves]: Les corbes-F individuals que conformen l'acció"
-
-
 msgid "The end frame of the manually set intended playback range"
 msgstr "El fotograma final de l'interval de reproducció desitjat que ha estat especificat manualment"
 
@@ -18135,17 +18127,9 @@ msgid "Groups"
 msgstr "Grups"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Agrupaments pràcitcs de les corbes-F"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipus d'ID arrel"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "[ID Root Type]: Tipus de bloc d'IDs en base al qual es pot aplicar l'acció - NO HO CANVIÏS A MENYS QUE SÀPIGUES EL QUE ET FAS"
 
 
 msgid "Is Layered Action"
@@ -18158,10 +18142,6 @@ msgstr "Retorna si l'Acció és per capes. Una Acció buida es considera alhora 
 
 msgid "Is Legacy Action"
 msgstr "ÉS acció antiquada"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action."
-msgstr "Retorna si l'Acció és antiquada. Les Accions antiquades no tenen ni capes ni epígrafs. Una Acció buida es considera tant 'antiquada' com una Acció 'per capes'."
 
 
 msgid "Is Empty"
@@ -18820,26 +18800,6 @@ msgstr "[Boundary Origin Offset]: Desplaçament de l'origen del contorn en relac
 
 msgid "Brush's capabilities"
 msgstr "Capacitats del pinzell"
-
-
-msgid "Clone Alpha"
-msgstr "Alfa de clon"
-
-
-msgid "Opacity of clone image display"
-msgstr "[Clone Alpha]: Opacitat de la imatge clonada"
-
-
-msgid "Clone Image"
-msgstr "Imatge per clonar"
-
-
-msgid "Image for clone brushes"
-msgstr "Imatge per pinzells-clon"
-
-
-msgid "Clone Offset"
-msgstr "Desplaçament de clon"
 
 
 msgid "Soft Body Plasticity"
@@ -24537,7 +24497,7 @@ msgstr "Empra el mapejat d'ombra dels llums projectors d'ombra per refinar el gr
 
 
 msgid "Use Transparency Overlap"
-msgstr "Emprar solapament de transparències"
+msgstr "Emprar Superposició de transparències"
 
 
 msgid "Render multiple transparent layers (may introduce transparency sorting problems)"
@@ -49253,6 +49213,14 @@ msgstr "Remostrejar corba"
 
 msgid "Generate a poly spline for each input spline"
 msgstr "[Resample Curve]: Genera un poli-spline per a cada spline ingressada"
+
+
+msgid "Keep Last Segment"
+msgstr "Mantenir l'últim segment"
+
+
+msgid "Don't collapse a curves to single points if they are shorter than the given length. The collapsing behavior exists for compatibility reasons."
+msgstr "No concentreu les corbes a punts individuals si són més curtes que la llargada donada. El comportament de concentració existeix per raons de compatibilitat."
 
 
 msgid "How to specify the amount of samples"
@@ -90529,8 +90497,24 @@ msgid "Image used as canvas"
 msgstr "Imatge usada com a llenç"
 
 
+msgid "Clone Alpha"
+msgstr "Alfa de clon"
+
+
+msgid "Opacity of clone image display"
+msgstr "[Clone Alpha]: Opacitat de la imatge clonada"
+
+
+msgid "Clone Image"
+msgstr "Imatge per clonar"
+
+
 msgid "Image used as clone source"
 msgstr "Imatge usada com a font de clonació"
+
+
+msgid "Clone Offset"
+msgstr "Desplaçament de clon"
 
 
 msgid "Dither"
@@ -90869,6 +90853,10 @@ msgid "Panel containing UI elements"
 msgstr "Plafó que conté elements de la IU"
 
 
+msgid "Active Tool"
+msgstr "Eina activa"
+
+
 msgid "View Lock"
 msgstr "Bloqueig de visionat"
 
@@ -91007,10 +90995,6 @@ msgstr "RV"
 
 msgid "VR Info"
 msgstr "Info RV"
-
-
-msgid "Active Tool"
-msgstr "Eina activa"
 
 
 msgid "Chain Scaling"
@@ -121109,7 +121093,7 @@ msgstr "Mètode de desplaçament no compatible"
 
 
 msgid "Transparency Overlap"
-msgstr "Solapament de transparències"
+msgstr "Superposició de transparències"
 
 
 msgid "From Shadow"
@@ -127134,7 +127118,7 @@ msgstr "Destensar topologia"
 
 
 msgid "Relax Face Sets"
-msgstr "[Relax mesh]: Destensa els jocs de cares"
+msgstr "Destensar jocs de cares"
 
 
 msgid "Sharpen"
@@ -127687,10 +127671,6 @@ msgstr "Ometent el camí del joc de fitoatributs, ja que no té ID (KS = '%s', c
 
 msgid "\"%s\" is using Action \"%s\", which does not have a slot with identifier \"%s\" or \"%s\". Manually assign the right action slot to \"%s\"."
 msgstr "\"%s\" fas servir l'Acció \"%s\", que no té cap epígraf amb l'identificador \"%s\" o \"%s\". Assigneu manualment l'epígraf d'acció correcte a \"%s\"."
-
-
-msgid "Legacy action \"%s\" is assigned to \"%s\", which does not match the action's id_root \"%s\". The action has been upgraded to a slotted action with slot \"%s\" with an id_type \"%s\", which has also been assigned to \"%s\" despite this type mismatch. This likely indicates something odd about the blend file."
-msgstr "L'acció antiquada \"%s\" s'assigna a \"%s\", que no coincideix amb l'id_root \"%s\" de l'acció. L'acció s'ha actualitzat tot consignant-la a l'epígraf d'acció \"%s\" amb un id_type \"%s\", que també s'ha assignat a \"%s\" encara aquest tipus no encaixi. Això probablement indica que hi ha alguna cosa estranya en el document blend."
 
 
 msgid "Named Layer node"
@@ -137193,6 +137173,26 @@ msgid "This strip type cannot be retimed"
 msgstr "Aquest segment no es pot retemportizar"
 
 
+msgctxt "Operator"
+msgid "Select (Unconnected)"
+msgstr "Seleccionar (no connectats)"
+
+
+msgctxt "Operator"
+msgid "Select (Linked Time)"
+msgstr "Seleccionar (Temps vinculat)"
+
+
+msgctxt "Operator"
+msgid "Select (Linked Handle)"
+msgstr "Seleccionar (Nanses vinculades)"
+
+
+msgctxt "Operator"
+msgid "Select (Side of Frame)"
+msgstr "Seleccionar (vora del fotograma)"
+
+
 msgid "No active sequence!"
 msgstr "No hi ha cap seqüència activa!"
 
@@ -145723,6 +145723,10 @@ msgstr "No es pot sobreescriure la biblioteca utilitzada '%.240s'"
 
 msgid "Cannot save blend file, path \"%s\" is not writable"
 msgstr "No es pot desar el document blend, la ruta \"%s\" no és escrivible"
+
+
+msgid "Cannot save blend file, path \"%s\" is a directory"
+msgstr "No es pot desar el document blend, la ruta \"%s\" és un directori"
 
 
 msgid "Can't read alternative start-up file: \"%s\""

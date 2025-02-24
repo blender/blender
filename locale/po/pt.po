@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"PO-Revision-Date: 2025-02-21 22:18+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -112,10 +112,6 @@ msgstr "Para cada compartimento de acções, uma lista de canais de animação d
 
 msgid "Action F-Curves"
 msgstr "Curvas-F da Acção"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Colecção de Curvas-F de acções"
 
 
 msgid "Action Group"
@@ -1024,7 +1020,7 @@ msgstr "Manter adiante"
 
 
 msgid "Only hold last frame"
-msgstr "Mantém somente o último fotograma"
+msgstr "Mantém apenas o último fotograma"
 
 
 msgid "Action Influence"
@@ -1260,7 +1256,7 @@ msgstr "Todos os fotogramas chave de ação"
 
 
 msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
-msgstr "Para os caminhos de movimento dos ossos, pesquisa toda a acção presente nos fotogramas chave ao invés de pesquisar somente no grupo de nome correspondente (é mais lento)."
+msgstr "Para os caminhos de movimento dos ossos, pesquisa toda a acção presente nos fotogramas chave ao invés de pesquisar apenas no grupo de nome correspondente (é mais lento)."
 
 
 msgid "Highlight Keyframes"
@@ -6902,7 +6898,7 @@ msgstr "Espessura interna"
 
 
 msgid "Inner face thickness (only used by softbodies)"
-msgstr "Espessura da face interna (utilizada somente para corpo macio)."
+msgstr "Espessura da face interna (utilizada apenas para corpo macio)."
 
 
 msgid "Outer Thickness"
@@ -7639,7 +7635,7 @@ msgstr "A transformação do alvo é avaliadas relativas a um objecto/osso/grupo
 
 
 msgid "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"
-msgstr "As transformações do alvo somente são avaliadas no espaço de pose, as transformações do objecto de armação alvo são ignoradas."
+msgstr "As transformações do alvo apenas são avaliadas no espaço de pose, as transformações do objecto de armação alvo são ignoradas."
 
 
 msgid "The transformation of the target bone is evaluated relative to its rest pose local coordinate system, thus including the parent-induced transformation"
@@ -10847,7 +10843,7 @@ msgstr "Mostrar Apenas Erros"
 
 
 msgid "Only include F-Curves and drivers that are disabled or have errors"
-msgstr "Inclui somente as curvas-f e controladores que estão desativados ou possuem erros."
+msgstr "Inclui apenas as curvas-f e controladores que estão desativados ou possuem erros."
 
 
 msgid "Only Show Selected"
@@ -10855,7 +10851,7 @@ msgstr "Mostrar apenas Seleccionados"
 
 
 msgid "Only include channels relating to selected objects and data"
-msgstr "Inclui somente os canais que são relacionados aos dados e objectos seleccionados."
+msgstr "Inclui apenas os canais que são relacionados aos dados e objectos seleccionados."
 
 
 msgid "Only Show Slot of Active Object"
@@ -11293,7 +11289,7 @@ msgstr "Umidade da pintura"
 
 
 msgid "Paint wetness, visible in wetmap (some effects only affect wet paint)"
-msgstr "Umidade da pintura, visível dentro do mapa de umidade (alguns efeitos afetam somente a pintura úmida)."
+msgstr "Umidade da pintura, visível dentro do mapa de umidade (alguns efeitos afetam apenas a pintura úmida)."
 
 
 msgid "Particle Systems"
@@ -11377,7 +11373,7 @@ msgstr "Alfa absoluto"
 
 
 msgid "Only increase alpha value if paint alpha is higher than existing"
-msgstr "Aumenta o valor de alfa somente caso o valor da pintura de alfa seja maior que o existente."
+msgstr "Aumenta o valor de alfa apenas caso o valor da pintura de alfa seja maior que o existente."
 
 
 msgid "Negate Volume"
@@ -11409,7 +11405,7 @@ msgstr "O pincel é projetado para as lonas a partir da direcção definida dent
 
 
 msgid "Only Use Alpha"
-msgstr "Usar somente alfa"
+msgstr "Usar apenas alfa"
 
 
 msgid "Only read color ramp alpha"
@@ -12227,7 +12223,7 @@ msgstr "Controladores"
 
 
 msgid "Channel Driver (only set for Driver F-Curves)"
-msgstr "Controladores de canal (ajustados somente para controladores de curvas-f)"
+msgstr "Controladores de canal (ajustados apenas para controladores de curvas-f)"
 
 
 msgid "Extrapolation"
@@ -12885,7 +12881,7 @@ msgstr "Restringir intervalo de fotogramas"
 
 
 msgid "F-Curve Modifier is only applied for the specified frame range to help mask off effects in order to chain them"
-msgstr "O modificador de curvas-f é aplicado somente na faixa de fotogramas especificada para ajudar no encadeamento dos efeitos de maneira separada (procedural)."
+msgstr "O modificador de curvas-f é aplicado apenas na faixa de fotogramas especificada para ajudar no encadeamento dos efeitos de maneira separada (procedural)."
 
 
 msgid "Cycles F-Modifier"
@@ -13218,7 +13214,7 @@ msgstr "Usar fotograma final"
 
 
 msgid "Restrict modifier to only act before its 'end' frame"
-msgstr "Restringe o modificador para agir somente antes de seu fotograma \"Final\"."
+msgstr "Restringe o modificador para agir apenas antes de seu fotograma \"Final\"."
 
 
 msgid "Use Start Frame"
@@ -13226,7 +13222,7 @@ msgstr "Usar fotograma inicial"
 
 
 msgid "Restrict modifier to only act after its 'start' frame"
-msgstr "Restringe o modificador para agir somente após o seu fotograma \"Inicial\"."
+msgstr "Restringe o modificador para agir apenas após o seu fotograma \"Inicial\"."
 
 
 msgid "Envelope Control Point"
@@ -14186,7 +14182,7 @@ msgstr "Número dos níveis da árvore de diretórios a ser mostrados simultanea
 
 
 msgid "Only list current directory's content, with no recursion"
-msgstr "Lista somente o conteúdo do diretório actual, sem recursões."
+msgstr "Lista apenas o conteúdo do diretório actual, sem recursões."
 
 
 msgid "Blend File"
@@ -18114,10 +18110,6 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "O intervalo combinado de fotogramas de todas as curvas-f dentro desta acção"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "As curvas-f individuais que perfazem a ação."
-
-
 msgid "The end frame of the manually set intended playback range"
 msgstr "O fotograma final do intervalo de reprodução pretendido definido manualmente"
 
@@ -18138,17 +18130,9 @@ msgid "Groups"
 msgstr "Grupos"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Agrupamentos convenientes de curvas-f."
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipo de identificador raiz"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "Tipo de identificador de bloco em que a acção pode ser usada - NÃO ALTERE A MENOS QUE SAIBA O QUE ESTÁ FAZENDO."
 
 
 msgid "Is Layered Action"
@@ -18161,10 +18145,6 @@ msgstr "Informa se esta é uma acção com camadas. Uma acção vazia é conside
 
 msgid "Is Legacy Action"
 msgstr "É Acção de Legado"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action."
-msgstr "Informa se é uma Acção de legado. Acções de legado não têm camadas nem compartimentos. Uma Acção vazia é considerada tanto 'de legado' como Acção em camadas."
 
 
 msgid "Is Empty"
@@ -18823,26 +18803,6 @@ msgstr "Deslocar a origem da fronteira em relação ao raio do pincel"
 
 msgid "Brush's capabilities"
 msgstr "Capacidades do pincel."
-
-
-msgid "Clone Alpha"
-msgstr "Alfa para clone"
-
-
-msgid "Opacity of clone image display"
-msgstr "Opacidade na qual mostrar a imagem clone."
-
-
-msgid "Clone Image"
-msgstr "Imagem para clonar"
-
-
-msgid "Image for clone brushes"
-msgstr "Imagem para pincéis de clonagem"
-
-
-msgid "Clone Offset"
-msgstr "Deslocamento para clone"
 
 
 msgid "Soft Body Plasticity"
@@ -20731,7 +20691,7 @@ msgstr "Limite de utilização de memória em megabytes para o armazenamento pro
 
 
 msgid "Value by which to enlarge or shrink the object with respect to the world's origin (only applicable through a Transform Cache constraint)"
-msgstr "Valor pelo qual alargar ou encolher o objecto com relação a origem do ambiente. (Aplicável somente através de uma restrição de cache de transformações)."
+msgstr "Valor pelo qual alargar ou encolher o objecto com relação a origem do ambiente. (Aplicável apenas através de uma restrição de cache de transformações)."
 
 
 msgid "Up"
@@ -22690,7 +22650,7 @@ msgstr "Mesmo objecto"
 
 
 msgid "If true, only feature edges of the same object are joined"
-msgstr "Caso verdadeiro, somente haverá junção das arestas de funcionalidade do mesmo objecto."
+msgstr "Caso verdadeiro, apenas haverá junção das arestas de funcionalidade do mesmo objecto."
 
 
 msgid "Sorting"
@@ -29085,7 +29045,7 @@ msgstr "Colorização"
 
 
 msgid "Only calculate intensity"
-msgstr "Calcula somente a intensidade."
+msgstr "Calcula apenas a intensidade."
 
 
 msgid "Color cells by position"
@@ -32538,7 +32498,7 @@ msgstr "Inserção de fotogramas chave - Somente necessários"
 
 
 msgid "Only insert keyframes where they're needed in the relevant F-Curves"
-msgstr "Insere os fotogramas chave somente onde eles são necessários dentro das curvas-f relevantes."
+msgstr "Insere os fotogramas chave apenas onde eles são necessários dentro das curvas-f relevantes."
 
 
 msgid "Override Insert Keyframes Default- Only Needed"
@@ -32546,7 +32506,7 @@ msgstr "Sobrepor o padrão de inserção de fotogramas chave - Somente necessár
 
 
 msgid "Override default setting to only insert keyframes where they're needed in the relevant F-Curves"
-msgstr "Sobrepõe as definições padrão para inserção de fotogramas chave, e os insere somente onde estes são necessários nas curvas-f relevantes."
+msgstr "Sobrepõe as definições padrão para inserção de fotogramas chave, e os insere apenas onde estes são necessários nas curvas-f relevantes."
 
 
 msgid "Override Insert Keyframes Default - Visual"
@@ -36706,7 +36666,7 @@ msgstr "Chanfra a malha inteira através de um valor constante."
 
 
 msgid "Only bevel edges with sharp enough angles between faces"
-msgstr "Chanfra somente as arestas com ângulos suficientemente agudos entre as faces."
+msgstr "Chanfra apenas as arestas com ângulos suficientemente agudos entre as faces."
 
 
 msgid "Use bevel weights to determine how much bevel is applied in edge mode"
@@ -37442,7 +37402,7 @@ msgstr "Permite definir quais camadas serão transferidas, no caso de tipos de o
 
 
 msgid "Only transfer active data layer"
-msgstr "Transfere somente as camadas de dados ativas"
+msgstr "Transfere apenas as camadas de dados ativas"
 
 
 msgid "All Layers"
@@ -37718,7 +37678,7 @@ msgstr "Limite angular"
 
 
 msgid "Only dissolve angles below this (planar only)"
-msgstr "Dissolve somente os ângulos abaixo deste valor (somente no modo \"Aplainar\")."
+msgstr "Dissolve apenas os ângulos abaixo deste valor (somente no modo \"Aplainar\")."
 
 
 msgctxt "Mesh"
@@ -46045,7 +46005,7 @@ msgstr "Projetor"
 
 
 msgid "Enable/disable projector mode (the effect is applied in horizontal direction only)"
-msgstr "Ativa ou desactiva o modo de projetor (o efeito é aplicado somente na direcção horizontal)."
+msgstr "Ativa ou desactiva o modo de projetor (o efeito é aplicado apenas na direcção horizontal)."
 
 
 msgid "Compute average and standard deviation of pixel values"
@@ -49256,6 +49216,14 @@ msgstr "Redefinir Curva"
 
 msgid "Generate a poly spline for each input spline"
 msgstr "Gerar uma spline tipo polilinha para cada spline inserida"
+
+
+msgid "Keep Last Segment"
+msgstr "Manter Último Segmento"
+
+
+msgid "Don't collapse a curves to single points if they are shorter than the given length. The collapsing behavior exists for compatibility reasons."
+msgstr "Não colapsar as curvas em pontos únicos se forem mais curtas que o comprimento dado. O comportamento de colapsar existe por razões de compatibilidade."
 
 
 msgid "How to specify the amount of samples"
@@ -53555,7 +53523,7 @@ msgstr "Adicionar predefinição de tecido"
 
 
 msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
-msgstr "Avalia o espaço de nome até o topo usando a posição do cursor e fornecendo uma lista de opções funcionais, ou complementa o nome caso haja somente uma equivalência."
+msgstr "Avalia o espaço de nome até o topo usando a posição do cursor e fornecendo uma lista de opções funcionais, ou complementa o nome caso haja apenas uma equivalência."
 
 
 msgctxt "Operator"
@@ -56016,7 +55984,7 @@ msgstr "Invocar"
 
 
 msgid "True when invoked (even if only the execute callbacks available)"
-msgstr "Verdadeiro quando invocado (mesmo no caso de somente executar as chamadas de função disponíveis)."
+msgstr "Verdadeiro quando invocado (mesmo no caso de apenas executar as chamadas de função disponíveis)."
 
 
 msgid "True when run from the 'Adjust Last Operation' panel"
@@ -56095,7 +56063,7 @@ msgstr "Estender selecção"
 
 
 msgid "Toggle keyframe selection instead of leaving newly selected keyframes only"
-msgstr "Alterna a selecção de fotogramas chave ao invés de deixar somente os novos fotogramas chave seleccionados."
+msgstr "Alterna a selecção de fotogramas chave ao invés de deixar apenas os novos fotogramas chave seleccionados."
 
 
 msgid "Mouse X"
@@ -56866,7 +56834,7 @@ msgstr "Lidar com cliques de rato sobre canais de animação"
 
 
 msgid "Select Children Only"
-msgstr "Selecionar somente as crianças"
+msgstr "Selecionar apenas as crianças"
 
 
 msgid "Extend Range"
@@ -56887,7 +56855,7 @@ msgstr "Colapsar (fechar) todos os canais de animação expansíveis seleccionad
 
 
 msgid "Collapse all channels (not just selected ones)"
-msgstr "Recolhe todos os canais (não somente os seleccionados)."
+msgstr "Recolhe todos os canais (não apenas os seleccionados)."
 
 
 msgctxt "Operator"
@@ -57990,7 +57958,7 @@ msgstr "Somente nos activos"
 
 
 msgid "Only operate on the active bone"
-msgstr "Opera somente nos ossos activos."
+msgstr "Opera apenas nos ossos activos."
 
 
 msgid "Select those bones connected to the initial selection"
@@ -58931,7 +58899,7 @@ msgstr "Detectar automaticamente elementos e colocar os marcadores na faixa"
 
 
 msgid "Only features further than margin pixels from the image edges are considered"
-msgstr "São consideradas somente as funcionalidades que estão além das margens de pixeis nas arestas da imagem."
+msgstr "São consideradas apenas as funcionalidades que estão além das margens de pixeis nas arestas da imagem."
 
 
 msgid "Minimal distance accepted between two features"
@@ -61156,7 +61124,7 @@ msgstr "Extrudir ao Cursor ou Adicionar"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
-msgstr "Adiciona um novo ponto de controlo (conectado somente a alguma das terminações da curva seleccionada, caso existam)."
+msgstr "Adiciona um novo ponto de controlo (conectado apenas a alguma das terminações da curva seleccionada, caso existam)."
 
 
 msgid "Location to add new vertex at"
@@ -61382,11 +61350,11 @@ msgstr "Escalona as hierarquias de volume circundante por este valor"
 
 
 msgid "Root Translation Only"
-msgstr "Mover somente as raízes"
+msgstr "Mover apenas as raízes"
 
 
 msgid "Only write out translation channels for the root bone"
-msgstr "Escreve os canais de transformação de movimento somente para os ossos marcados como raiz."
+msgstr "Escreve os canais de transformação de movimento apenas para os ossos marcados como raiz."
 
 
 msgid "Rotation conversion"
@@ -61718,7 +61686,7 @@ msgstr "Somente as normais"
 
 
 msgid "Export only normals instead of writing edge or face smoothing data"
-msgstr "Exporta somente as normais ao invés de escrever os dados de suavização de arestas ou faces."
+msgstr "Exporta apenas as normais ao invés de escrever os dados de suavização de arestas ou faces."
 
 
 msgid "Write face smoothing"
@@ -62645,24 +62613,232 @@ msgid "Export Primitives using shared accessors for attributes"
 msgstr "Exportar primitivas usando acessores partilhados para atributos"
 
 
+msgid "Skinning"
+msgstr "Aplicação de Pele"
+
+
+msgid "Export skinning (armature) data"
+msgstr "Exportar dados de aplicação de pele (armação)"
+
+
+msgid "Tangents"
+msgstr "Tangentes"
+
+
+msgid "Export vertex tangents with meshes"
+msgstr "Exportar tangentes de vértices com malhas"
+
+
+msgid "Export UVs (texture coordinates) with meshes"
+msgstr "Exportar UVs (coordenadas de texturas) com as malhas"
+
+
+msgid "Folder to place texture files in. Relative to the .gltf file"
+msgstr "Pasta onde colocar texturas. Relativa ao ficheiro .gltf"
+
+
+msgid "Omitting Sparse Accessor if Data is Empty"
+msgstr "Omitindo Acessor Esparso se Dados Vazios"
+
+
+msgid "Omitting Sparse Accessor if data is empty"
+msgstr "Omitindo acessor Esparso se dados vazios"
+
+
+msgid "Use Sparse Accessor if Better"
+msgstr "Usar Acessor Esparso se Melhorar"
+
+
+msgid "Try using Sparse Accessor if it saves space"
+msgstr "Tentar usar acessor esparso se poupar espaço"
+
+
+msgid "Unused Images"
+msgstr "Imagens Não usadas"
+
+
+msgid "Export images not assigned to any material"
+msgstr "Exportar imagens não atribuídas a nenhum material"
+
+
+msgid "Prepare Unused Textures"
+msgstr "Preparar Texturas Não Usadas"
+
+
+msgid "Export image texture nodes not assigned to any material. This feature is not standard and needs an external extension to be included in the glTF file"
+msgstr "Exportar nós de textura de imagem não atribuídos a nenhum material. Esta funcionalidade é não standard e precisa de uma extensão para ser incluída no ficheiro gltf"
+
+
+msgid "Use Gltfpack"
+msgstr "Usar Gltfpack"
+
+
+msgid "Use gltfpack to simplify the mesh and/or compress its textures"
+msgstr "Usar Gltfpack para simplificar a malha e/ou comprimir texturas"
+
+
+msgid "Use Vertex Color"
+msgstr "Usar Cores de Vértices"
+
+
+msgid "How to export vertex color"
+msgstr "Como exportar cores de vértices"
+
+
+msgid "Export vertex color when used by material"
+msgstr "Exportar cores de vértices quando usadas por materiais"
+
+
+msgid "Export active vertex color"
+msgstr "Exportar cor de vértices activa"
+
+
+msgid "Do not export vertex color"
+msgstr "Não exportar cores de vértices"
+
+
+msgid "+Y Up"
+msgstr "+Y Para cima"
+
+
+msgid "Export using glTF convention, +Y up"
+msgstr "Exportar usando a convenção glTF, +Y para cima"
+
+
 msgid "Identifier of caller (in case of add-on calling this exporter). Can be useful in case of Extension added by other add-ons"
 msgstr "Identificador do invocador (no caso de uma adição chamar este exportador). Pode ser útil no caso de extensões adicionadas por outras adições"
 
 
+msgid "Export setting categories"
+msgstr "Exportar categorias de definições"
+
+
+msgid "General"
+msgstr "Geral"
+
+
+msgid "General settings"
+msgstr "Definições gerais"
+
+
+msgid "Mesh settings"
+msgstr "Definições de malha"
+
+
+msgid "Object settings"
+msgstr "Definições de objecto"
+
+
+msgid "Animation settings"
+msgstr "Definições de animação"
+
+
+msgid "Export objects in the active collection only"
+msgstr "Exportar apenas objectos na camada activa"
+
+
+msgid "Include Nested Collections"
+msgstr "Incluir Sub Colecções"
+
+
+msgid "Include active collection and nested collections"
+msgstr "Incluir colecção activa e suas sub colecções"
+
+
+msgid "Export active scene only"
+msgstr "Exportar apenas cena activa"
+
+
+msgid "Export loose edges as lines, using the material from the first material slot"
+msgstr "Exportar arestas soltas como linhas, usando o material do primeiro compartimento de materiais"
+
+
+msgid "Loose Points"
+msgstr "Pontos Soltos"
+
+
+msgid "Export loose points as glTF points, using the material from the first material slot"
+msgstr "Exportar pontos soltos  como pontos glTF, usando o material do primeiro compartimento de materiais"
+
+
+msgid "Renderable Objects"
+msgstr "Objectos Renderizáveis"
+
+
+msgid "Export renderable objects only"
+msgstr "Exporta apenas objectos renderizáveis"
+
+
 msgid "Export selected objects only"
-msgstr "Exporta somente os objectos seleccionados."
+msgstr "Exporta apenas os objectos seleccionados."
+
+
+msgid "Remember Export Settings"
+msgstr "Lembrar Definições de Exportação"
+
+
+msgid "Store glTF export settings in the Blender project"
+msgstr "Guardar definições de exportação glTF no ficheiro Blender"
+
+
+msgid "Do Legacy Replace"
+msgstr "Executar Substituição de Legado"
+
+
+msgid "Enable on Install"
+msgstr "Activar na Instalação"
+
+
+msgid "Enable after installing"
+msgstr "Activar antes da instalação"
+
+
+msgid "Package ID"
+msgstr "ID do Pacote"
+
+
+msgid "Repo Directory"
+msgstr "Pasta de Repositório"
+
+
+msgid "Repo Index"
+msgstr "Índice do Repositório"
 
 
 msgid "URL"
 msgstr "Localizador padrão de recursos - URL"
 
 
+msgid "Legacy Overwrite"
+msgstr "Sobrescritar de Legado"
+
+
 msgid "Remove existing add-ons with the same ID"
 msgstr "Remover adições existentes com o mesmo identificador"
 
 
+msgid "User Repository"
+msgstr "Repositório do Utilizador"
+
+
+msgid "The user repository to install extensions into"
+msgstr "O repositório do utilizador onde instalar extensões"
+
+
+msgid "Legacy Target Path"
+msgstr "Caminho Alvo de Legado"
+
+
 msgid "Path to install legacy add-on packages to"
 msgstr "Caminho no qual instalar pacotes de adições de legado"
+
+
+msgid "Only sync the active repository"
+msgstr "Sincronizar apenas o repositório activo"
+
+
+msgid "Enable or disable all tags"
+msgstr "Activar ou desactivar todas as etiquetas"
 
 
 msgid "Automatically pack all external files into the .blend file"
@@ -62792,7 +62968,7 @@ msgstr "Pesquisar tudo"
 
 
 msgid "Find all files in the search path (not just missing)"
-msgstr "Encontra todos os ficheiros dentro do caminho de pesquisa (não somente os que faltam)."
+msgstr "Encontra todos os ficheiros dentro do caminho de pesquisa (não apenas os que faltam)."
 
 
 msgctxt "Operator"
@@ -63376,7 +63552,7 @@ msgstr "Adiciona os modificadores-f copiados para as curvas-f seleccionadas."
 
 
 msgid "Only paste F-Modifiers on active F-Curve"
-msgstr "Cola modificadores-f somente para as curvas-f ativas."
+msgstr "Cola modificadores-f apenas para as curvas-f ativas."
 
 
 msgid "Replace existing F-Modifiers, instead of just appending to the end of the existing list"
@@ -63791,7 +63967,7 @@ msgstr "Usar deslocamento"
 
 
 msgid "Offset the entire stroke instead of selected points only"
-msgstr "Desloca o traço como um todo ao invés de deslocar somente os traços seleccionados."
+msgstr "Desloca o traço como um todo ao invés de deslocar apenas os traços seleccionados."
 
 
 msgctxt "Operator"
@@ -65310,16 +65486,16 @@ msgstr "Executar extrusão de região e mover"
 
 msgctxt "Operator"
 msgid "Extrude Only Edges"
-msgstr "Executar extrusão somente em arestas"
+msgstr "Executar extrusão apenas em arestas"
 
 
 msgid "Extrude individual edges only"
-msgstr "Executa uma extrusão somente em arestas individuais."
+msgstr "Executa uma extrusão apenas em arestas individuais."
 
 
 msgctxt "Operator"
 msgid "Extrude Only Edges and Move"
-msgstr "Executar extrusão somente em arestas e mover "
+msgstr "Executar extrusão apenas em arestas e mover"
 
 
 msgid "Extrude edges and move result"
@@ -65327,7 +65503,7 @@ msgstr "Executa uma extrusão nas arestas e permite mover o resultado ."
 
 
 msgid "Extrude Only Edges"
-msgstr "Executar uma extrusão somente em arestas"
+msgstr "Executar uma extrusão apenas em arestas"
 
 
 msgctxt "Operator"
@@ -65336,7 +65512,7 @@ msgstr "Executar extrusão em faces individuais"
 
 
 msgid "Extrude individual faces only"
-msgstr "Executa uma extrusão somente em faces individuais."
+msgstr "Executa uma extrusão apenas em faces individuais."
 
 
 msgctxt "Operator"
@@ -65380,7 +65556,7 @@ msgstr "Executa a extrusão dos vértices, arestas ou faces seleccionadas, repet
 
 msgctxt "Operator"
 msgid "Extrude Only Vertices and Move"
-msgstr "Executar extrusão somente nos vértices e mover"
+msgstr "Executar extrusão apenas nos vértices e mover"
 
 
 msgid "Extrude vertices and move result"
@@ -65388,16 +65564,16 @@ msgstr "Executa uma extrusão de vértices e permite mover o resultado."
 
 
 msgid "Extrude Only Vertices"
-msgstr "Executar extrusão somente em vértices"
+msgstr "Executar extrusão apenas em vértices"
 
 
 msgid "Extrude individual vertices only"
-msgstr "Executa uma extrusão somente em vértices individuais."
+msgstr "Executa uma extrusão apenas em vértices individuais."
 
 
 msgctxt "Operator"
 msgid "Extrude Only Vertices"
-msgstr "Executar extrusão somente em vértices"
+msgstr "Executar extrusão apenas em vértices"
 
 
 msgctxt "Operator"
@@ -65616,7 +65792,7 @@ msgstr "Usar os contornos e limites de outros objectos para projectar cortes de 
 
 
 msgid "Cut through all faces, not just visible ones"
-msgstr "Corta através de todas as faces, não somente através das visíveis."
+msgstr "Corta através de todas as faces, não apenas através das visíveis."
 
 
 msgctxt "Operator"
@@ -65662,7 +65838,7 @@ msgstr "Somente seleccionados"
 
 
 msgid "Only cut selected geometry"
-msgstr "Corta somente a geometria seleccionada."
+msgstr "Corta apenas a geometria seleccionada."
 
 
 msgid "Occlude Geometry"
@@ -65670,7 +65846,7 @@ msgstr "Oclusão de geometria"
 
 
 msgid "Only cut the front most geometry"
-msgstr "Corta somente a geometria mais frontal."
+msgstr "Corta apenas a geometria mais frontal."
 
 
 msgid "X-Ray"
@@ -66521,7 +66697,7 @@ msgstr "Ao longo das normais"
 
 
 msgid "Apply fractal displacement along normal only"
-msgstr "Aplica o deslocamento fractal somente ao longo das normais."
+msgstr "Aplica o deslocamento fractal apenas ao longo das normais."
 
 
 msgid "Quad Corner Type"
@@ -66738,7 +66914,7 @@ msgstr "Somente a faixa ativa"
 
 
 msgid "Only sync the active length for the active strip"
-msgstr "Sincroniza somente o comprimento activo para a faixa ativa."
+msgstr "Sincroniza apenas o comprimento activo para a faixa ativa."
 
 
 msgctxt "Operator"
@@ -66780,7 +66956,7 @@ msgstr "Limpar parentes"
 
 
 msgid "Bake animation onto the object then clear parents (objects only)"
-msgstr "Gera uma animação diretamente no objecto e então limpa seus parentes (limpa somente os objectos)."
+msgstr "Gera uma animação diretamente no objecto e então limpa seus parentes (limpa apenas os objectos)."
 
 
 msgid "End frame for baking"
@@ -66800,7 +66976,7 @@ msgstr "Sobrescrever a acção actual"
 
 
 msgid "Bake animation into current action, instead of creating a new one (useful for baking only part of bones in an armature)"
-msgstr "Gera e grava as animações na acção actual, ao invés de criar uma nova acção (útil para gerar e gravar somente uma parte dos ossos em uma armação)."
+msgstr "Gera e grava as animações na acção actual, ao invés de criar uma nova acção (útil para gerar e gravar apenas uma parte dos ossos em uma armação)."
 
 
 msgid "Visual Keying"
@@ -66885,7 +67061,7 @@ msgstr "Adiciona os modificadores-f copiados para as faixas de animação não l
 
 
 msgid "Only paste F-Modifiers on active strip"
-msgstr "Cola os modificadores-f somente na faixa ativa."
+msgstr "Cola os modificadores-f apenas na faixa ativa."
 
 
 msgctxt "Operator"
@@ -68933,15 +69109,15 @@ msgstr "Transfere a localização, rotação e escala das transformações."
 
 
 msgid "Transfer location transforms only"
-msgstr "Transfere somente a localização das transformações."
+msgstr "Transfere apenas a localização das transformações."
 
 
 msgid "Transfer rotation transforms only"
-msgstr "Transfere somente a rotação das transformações."
+msgstr "Transfere apenas a rotação das transformações."
 
 
 msgid "Transfer scale transforms only"
-msgstr "Transfere somente a escala das transformações."
+msgstr "Transfere apenas a escala das transformações."
 
 
 msgid "Reset Values"
@@ -69091,7 +69267,7 @@ msgstr "Espelhar o grupo de vértices"
 
 
 msgid "Mirror vertex group, flip weights and/or names, editing only selected vertices, flipping when both sides are selected otherwise copy from unselected"
-msgstr "Espelha os grupos de vértices, virando os pesos e / ou nomes, editando somente os vértices seleccionados, e virando-os quando ambos os lados estão seleccionados, e em caso contrário copiando a partir dos não seleccionados."
+msgstr "Espelha os grupos de vértices, virando os pesos e / ou nomes, editando apenas os vértices seleccionados, e virando-os quando ambos os lados estão seleccionados, e em caso contrário copiando a partir dos não seleccionados."
 
 
 msgid "All Groups"
@@ -70145,7 +70321,7 @@ msgstr "Apaga as chaves ou partículas seleccionadas."
 
 
 msgid "Delete a full particle or only keys"
-msgstr "Apaga um sistema de partículas completo ou somente as chaves."
+msgstr "Apaga um sistema de partículas completo ou apenas as chaves."
 
 
 msgctxt "Operator"
@@ -70599,7 +70775,7 @@ msgstr "Para o próximo fotograma chave"
 
 
 msgid "Propagate pose to first keyframe following the current frame only"
-msgstr "Propaga a pose somente para o primeiro fotograma chave seguinte ao fotograma actual."
+msgstr "Propaga a pose apenas para o primeiro fotograma chave seguinte ao fotograma actual."
 
 
 msgid "To Last Keyframe"
@@ -70607,7 +70783,7 @@ msgstr "Para o último fotograma chave"
 
 
 msgid "Propagate pose to the last keyframe only (i.e. making action cyclic)"
-msgstr "Propaga a pose somente para o último fotograma chave (por exemplo, tornando a acção cíclica)."
+msgstr "Propaga a pose apenas para o último fotograma chave (por exemplo, tornando a acção cíclica)."
 
 
 msgid "Before Frame"
@@ -70863,7 +71039,7 @@ msgstr "Camada de renderização"
 
 
 msgid "Single render layer to re-render (used only when animation is disabled)"
-msgstr "Camada de renderização única, para re-renderizar (usada somente quando a animação está desativada)."
+msgstr "Camada de renderização única, para re-renderizar (usada apenas quando a animação está desativada)."
 
 
 msgid "Scene to render, current scene if not specified"
@@ -71110,7 +71286,7 @@ msgstr "Uma superfície parecida com malha abrangendo (ex. como um envelope) tod
 
 
 msgid "Mesh consisting of triangles only, allowing for more detailed interactions than convex hulls"
-msgstr "Malha consistindo somente de triângulos, permitindo interações mais detalhadas do que cascos convexos."
+msgstr "Malha consistindo apenas de triângulos, permitindo interações mais detalhadas do que cascos convexos."
 
 
 msgctxt "Operator"
@@ -72291,7 +72467,7 @@ msgstr "Mesmos canais "
 
 
 msgid "Only consider strips on the same channel as the active one"
-msgstr "Considera somente as faixas que estão no mesmo canal que a faixa ativa."
+msgstr "Considera apenas as faixas que estão no mesmo canal que a faixa ativa."
 
 
 msgctxt "Operator"
@@ -73436,7 +73612,7 @@ msgstr "Manualmente criados posteriormente (Único)"
 
 
 msgid "Create driver for this property only and without assigning any targets yet"
-msgstr "Cria um controlador somente para esta propriedade específica e sem atribuição previamente definida de quaisquer alvos."
+msgstr "Cria um controlador apenas para esta propriedade específica e sem atribuição previamente definida de quaisquer alvos."
 
 
 msgctxt "Operator"
@@ -73675,7 +73851,7 @@ msgstr "Todas as UVs"
 
 
 msgid "Export all UVs in this mesh (not just visible ones)"
-msgstr "Exportar todas as UVs nesta malha (não somente as visíveis)."
+msgstr "Exportar todas as UVs nesta malha (não apenas as visíveis)."
 
 
 msgid "File format to export the UV layout to"
@@ -73887,7 +74063,7 @@ msgstr "Afixado"
 
 
 msgid "Border select pinned UVs only"
-msgstr "Seleciona por margens, somente as UVs afixadas."
+msgstr "Seleciona por margens, apenas as UVs afixadas."
 
 
 msgid "Select UV vertices using circle selection"
@@ -73946,7 +74122,7 @@ msgstr "Selecionar divididos"
 
 
 msgid "Select only entirely selected faces"
-msgstr "Seleciona somente as faces que foram inteiramente seleccionadas."
+msgstr "Seleciona apenas as faces que foram inteiramente seleccionadas."
 
 
 msgctxt "Operator"
@@ -74707,7 +74883,7 @@ msgstr "Somente os objectos seleccionados"
 
 
 msgid "Export only selected objects"
-msgstr "Exporta somente os objectos seleccionados."
+msgstr "Exporta apenas os objectos seleccionados."
 
 
 msgid "Shutter Close"
@@ -74826,7 +75002,7 @@ msgstr "Somente os mapas UV seleccionados"
 
 
 msgid "Export only the selected UV Map"
-msgstr "Exporta somente o mapa UV seleccionado."
+msgstr "Exporta apenas o mapa UV seleccionado."
 
 
 msgid "Only export deforming bones with armatures"
@@ -74890,7 +75066,7 @@ msgstr "Somente a selecção"
 
 
 msgid "Export only selected elements"
-msgstr "Exporta somente os elementos seleccionados."
+msgstr "Exporta apenas os elementos seleccionados."
 
 
 msgid "Sort by Object name"
@@ -75214,7 +75390,7 @@ msgstr "Actualizar previsões de blocos de dados"
 
 
 msgid "Ensure data-block previews are available and up-to-date (to be saved in .blend file, only for some types like materials, textures, etc.)"
-msgstr "Garante que as previsões de blocos de dados estejam disponíveis e actualizadas (para serem guardadas no ficheiro Blender, somente para alguns tipos como materiais, texturas, etc.)."
+msgstr "Garante que as previsões de blocos de dados estejam disponíveis e actualizadas (para serem guardadas no ficheiro Blender, apenas para alguns tipos como materiais, texturas, etc.)."
 
 
 msgid "Property Edit"
@@ -75732,8 +75908,24 @@ msgid "Image used as canvas"
 msgstr "A imagem usada como lona"
 
 
+msgid "Clone Alpha"
+msgstr "Alfa para clone"
+
+
+msgid "Opacity of clone image display"
+msgstr "Opacidade na qual mostrar a imagem clone."
+
+
+msgid "Clone Image"
+msgstr "Imagem para clonar"
+
+
 msgid "Image used as clone source"
 msgstr "Imagem usada como fonte de clonagem"
+
+
+msgid "Clone Offset"
+msgstr "Deslocamento para clone"
 
 
 msgid "Dither"
@@ -75981,11 +76173,11 @@ msgstr "Fonte e destinação para o operador de simetrização."
 
 
 msgid "Use Deform Only"
-msgstr "Usar somente deformação"
+msgstr "Usar apenas deformação"
 
 
 msgid "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)"
-msgstr "Usa somente modificadores de deformação (desativar temporariamente todos os modificadores construtivos exceto multirresolução)."
+msgstr "Usa apenas modificadores de deformação (desativar temporariamente todos os modificadores construtivos exceto multirresolução)."
 
 
 msgid "Properties of vertex and weight paint mode"
@@ -78666,7 +78858,7 @@ msgstr "SMPTE (compacto)"
 
 
 msgid "SMPTE timecode showing minutes, seconds, and frames only - hours are also shown if necessary, but not by default"
-msgstr "Código de Tempo SMTPE mostrando minutos, segundos e somente fotogramas - horas também são mostradas caso necessário, mas não por padrão."
+msgstr "Código de Tempo SMTPE mostrando minutos, segundos e apenas fotogramas - horas também são mostradas caso necessário, mas não por padrão."
 
 
 msgid "Only Seconds"
@@ -80794,7 +80986,7 @@ msgstr "Dividir impulso"
 
 
 msgid "Reduce extra velocity that can build up when objects collide (lowers simulation stability a little so use only when necessary)"
-msgstr "Reduz a velocidade extra que pode aumentar quando os objectos colidem (diminui a estabilidade da simulação um pouco, portanto, use somente quando necessário)."
+msgstr "Reduz a velocidade extra que pode aumentar quando os objectos colidem (diminui a estabilidade da simulação um pouco, portanto, use apenas quando necessário)."
 
 
 msgid "Settings for particle fluids physics"
@@ -82516,11 +82708,11 @@ msgstr "Mostra um retângulo de área de sobreposição."
 
 
 msgid "Show reference frame only"
-msgstr "Mostra somente o fotograma de referência."
+msgstr "Mostra apenas o fotograma de referência."
 
 
 msgid "Show current frame only"
-msgstr "Mostra somente o fotograma actual."
+msgstr "Mostra apenas o fotograma actual."
 
 
 msgid "No display"
@@ -82656,7 +82848,7 @@ msgstr "Linhas de topo visíveis."
 
 
 msgid "Search in all text data-blocks, instead of only the active one"
-msgstr "Pesquisa em todos os blocos de dados de texto, ao invés de somente no que está activo."
+msgstr "Pesquisa em todos os blocos de dados de texto, ao invés de apenas no que está activo."
 
 
 msgid "Find Wrap"
@@ -83296,7 +83488,7 @@ msgstr "Somente amplificar"
 
 
 msgid "Show the glow buffer only"
-msgstr "Mostra somente o contingenciamento de incandescência."
+msgstr "Mostra apenas o contingenciamento de incandescência."
 
 
 msgid "Sequence strip to perform multicam editing"
@@ -85396,7 +85588,7 @@ msgstr "Máscara de selecção"
 
 
 msgid "Only sculpt selected stroke points"
-msgstr "Esculpe somente os pontos dos traços seleccionados."
+msgstr "Esculpe apenas os pontos dos traços seleccionados."
 
 
 msgid "Auto Keying"
@@ -85408,7 +85600,7 @@ msgstr "Inserção automática de fotograma chave para o conjunto de inserção 
 
 
 msgid "Automatic keyframe insertion using active Keying Set only"
-msgstr "Inserção automática de fotograma chave usando somente o conjunto de inserção de chaves activo."
+msgstr "Inserção automática de fotograma chave usando apenas o conjunto de inserção de chaves activo."
 
 
 msgid "Automatically merge vertices moved to the same location"
@@ -85428,7 +85620,7 @@ msgstr "Edição proporcional no editor de ações."
 
 
 msgid "Proportional Editing using connected geometry only"
-msgstr "Edição proporcional usando somente a geometria conectada."
+msgstr "Edição proporcional usando apenas a geometria conectada."
 
 
 msgid "Proportional Editing Objects"
@@ -85660,7 +85852,7 @@ msgstr "Filtrar por nome"
 
 
 msgid "Only show items matching this name (use '*' as wildcard)"
-msgstr "Mostra somente itens que combinem com este nome (use \"*\" como caractere coringa)."
+msgstr "Mostra apenas itens que combinem com este nome (use \"*\" como caractere coringa)."
 
 
 msgid "Default Layout"
@@ -86052,7 +86244,7 @@ msgstr "Ajuste fino de alfa"
 
 
 msgid "Z, Index, normal, UV and vector passes are only affected by surfaces with alpha transparency equal to or higher than this threshold"
-msgstr "Z, índices, normais, UV e passos de vector somente são afetados pelas superfícies com transparência alfa igual ou mais alto do que este ajuste."
+msgstr "Z, índices, normais, UV e passos de vector apenas são afetados pelas superfícies com transparência alfa igual ou mais alto do que este ajuste."
 
 
 msgid "Cryptomatte Levels"
@@ -88365,11 +88557,11 @@ msgstr "Espaçamento mínimo da grelha"
 
 
 msgid "Only Insert Needed"
-msgstr "Inserir somente o necessário"
+msgstr "Inserir apenas o necessário"
 
 
 msgid "Only Insert Available"
-msgstr "Inserir somente nas curvas disponíveis"
+msgstr "Inserir apenas nas curvas disponíveis"
 
 
 msgid "XYZ to RGB"
@@ -89354,7 +89546,7 @@ msgstr "Camada de máscara"
 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
-msgstr "O espaço da tangente somente pode ser computado para triângulos ou quadriláteros, abortando."
+msgstr "O espaço da tangente apenas pode ser computado para triângulos ou quadriláteros, abortando."
 
 
 msgid "NlaTrack"
@@ -89871,7 +90063,7 @@ msgstr "Não é possível fazer pose para dados de biblioteca."
 
 
 msgid "Pose lib is only for armatures in pose mode"
-msgstr "Biblioteca de poses é somente para armações no modo de pose."
+msgstr "Biblioteca de poses é apenas para armações no modo de pose."
 
 
 msgid "No active Keying Set to use"
@@ -90835,7 +91027,7 @@ msgstr "Nenhum objeto de malha ativa."
 
 
 msgid "Baking of multires data only works with an active mesh object"
-msgstr "Geração e gravação dos dados de multirresolução somente funciona com um objeto de malha ativa."
+msgstr "Geração e gravação dos dados de multirresolução apenas funciona com um objeto de malha ativa."
 
 
 msgid "Multires data baking requires multi-resolution object"
@@ -92083,7 +92275,7 @@ msgstr "Apaga a variável do alvo."
 
 
 msgid "F-Curve only has F-Modifiers"
-msgstr "Curva-f somente possui modificadores-f"
+msgstr "Curva-f apenas possui modificadores-f"
 
 
 msgid "See Modifiers panel below"
@@ -92244,7 +92436,7 @@ msgstr "Formato de imagem não suportado."
 
 
 msgid "Can only save sequence on image sequences"
-msgstr "Pode somente guardar sequências em sequências de imagem."
+msgstr "Pode apenas guardar sequências em sequências de imagem."
 
 
 msgid "Cannot save multilayer sequences"
@@ -93052,7 +93244,7 @@ msgstr "Alt ou (C)ortar: %s"
 
 
 msgid "Create Orientation's 'use' parameter only valid in a 3DView context"
-msgstr "Cria um parâmetro de orientação para \"uso\" é válido somente dentro de um contexto da janela de visualização 3D."
+msgstr "Cria um parâmetro de orientação para \"uso\" é válido apenas dentro de um contexto da janela de visualização 3D."
 
 
 msgid "global"
@@ -93578,7 +93770,7 @@ msgstr "Restrição '%s' não encontrada dentro do osso de pose '%s'"
 
 
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
-msgstr "Um formato de colisão não convexo foi passado para a função, use somente formatos de colisão convexos."
+msgstr "Um formato de colisão não convexo foi passado para a função, use apenas formatos de colisão convexos."
 
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"

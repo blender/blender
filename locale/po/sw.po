@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -61,10 +61,6 @@ msgstr "Makusanyo wa AOV"
 
 msgid "Action F-Curves"
 msgstr "F-Curves vya vitendo"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Mkusanyiko wa F-Curves vya vitendo"
 
 
 msgid "Action Group"
@@ -15462,10 +15458,6 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "Msururu uliounganishwa wa fremu zote za F-Curves ndani ya kitendo hiki"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "F-Curves za kibinafsi zinazounda kitendo"
-
-
 msgid "The end frame of the manually set intended playback range"
 msgstr "Fremu ya mwisho ya safu ya uchezaji iliyokusudiwa iliyowekwa mwenyewe"
 
@@ -15486,17 +15478,9 @@ msgid "Groups"
 msgstr "Vikundi"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Vikundi vinavyofaa vya F-Curves"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Aina ya Mizizi ya ID"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "Aina ya kitambulisho ambacho kitendo kinaweza kutumika - USIBADILISHE ISIPOKUWA UNAJUA UNACHOFANYA"
 
 
 msgid "Layers"
@@ -15966,14 +15950,6 @@ msgstr "Kukabiliana na asili ya mpaka kuhusiana na radius ya brashi"
 
 msgid "Brush's capabilities"
 msgstr "Uwezo wa Brashi"
-
-
-msgid "Opacity of clone image display"
-msgstr "Opacity ya onyesho la picha ya clone"
-
-
-msgid "Clone Image"
-msgstr "Picha ya Clone"
 
 
 msgid "Soft Body Plasticity"
@@ -75496,6 +75472,14 @@ msgstr "Turubai"
 
 msgid "Image used as canvas"
 msgstr "Picha inayotumika kama turubai"
+
+
+msgid "Opacity of clone image display"
+msgstr "Opacity ya onyesho la picha ya clone"
+
+
+msgid "Clone Image"
+msgstr "Picha ya Clone"
 
 
 msgid "Image used as clone source"
