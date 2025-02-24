@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -8481,24 +8481,12 @@ msgid "A collection of F-Curves for animation"
 msgstr "ﻚﻳﺮﺤﺘﻠﻟ ﻞﻤﻌﻟﺍ ﺕﺎﻴﻨﺤﻨﻣ ﻦﻣ ﺔﻋﻮﻤﺠﻣ"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "ﺙﺪﺤﻟﺍ ﺊﺸﻨﻳ ﻱﺬﻟﺍ ﻱﺩﺮﻔﻟﺍ ﻞﻤﻌﻟﺍ ﻰﻨﺤﻨﻣ"
-
-
 msgid "Frame Range"
 msgstr "ﺭﺎﻄﻟﺍ ﻯﺪﻣ"
 
 
 msgid "Groups"
 msgstr "ﺕﺎﻋﻮﻤﺠﻣ"
-
-
-msgid "Convenient groupings of F-Curves"
-msgstr "ﺔﻴﻧﺎﻴﺒﻟﺍ ﺕﺎﻴﻨﺤﻨﻤﻠﻟ ﻢﺋﻼ﻿ﻣ ﻊﻤﺠﺗ"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "ﻞﻌﻔﺗ ﺎﻣ ﻑﺮﻌﺗ ﻻ﻿ ﺍﺫﺍ ﺎﻫﺮﻴﻐﺗ ﻻ﻿ - ﺙﺪﺤﻟﺍ ﺎﻬﻴﻠﻋ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻑﺮّﻌﻤﻟﺍ ﺔﻠﺘﻛ ﻉﻮﻧ"
 
 
 msgid "Layers"
@@ -8647,22 +8635,6 @@ msgstr "ﻲﺳﻭﺎﻏ"
 
 msgid "Brush's capabilities"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﺕﺍﺭﺪﻗ"
-
-
-msgid "Clone Alpha"
-msgstr "ﺎﻔﻟﻷ﻿ﺍ ﺦﺴﻧﺍ"
-
-
-msgid "Opacity of clone image display"
-msgstr "ﺓﺭﻮﺼﻟﺍ ﺦﺴﻧ ﺽﺮﻋ ﺔﻣﻮﺘﻋ"
-
-
-msgid "Clone Image"
-msgstr "ﺓﺭﻮﺼﻟﺍ ﺦﺴﻧﺍ"
-
-
-msgid "Clone Offset"
-msgstr "ﺦﺴﻨﻟﺍ ﺔﺣﺍﺯﺍ"
 
 
 msgid "Local"
@@ -28826,8 +28798,24 @@ msgid "Image Paint"
 msgstr "ﺓﺭﻮﺼﻟﺍ ﻢﺳﺭ"
 
 
+msgid "Clone Alpha"
+msgstr "ﺎﻔﻟﻷ﻿ﺍ ﺦﺴﻧﺍ"
+
+
+msgid "Opacity of clone image display"
+msgstr "ﺓﺭﻮﺼﻟﺍ ﺦﺴﻧ ﺽﺮﻋ ﺔﻣﻮﺘﻋ"
+
+
+msgid "Clone Image"
+msgstr "ﺓﺭﻮﺼﻟﺍ ﺦﺴﻧﺍ"
+
+
 msgid "Image used as clone source"
 msgstr "ﺦﺴﻧ ﺭﺪﺼﻤﻛ ﺓﺭﻮﺼﻟﺍ ﻡﺪﺨﺘﺴﺗ"
+
+
+msgid "Clone Offset"
+msgstr "ﺦﺴﻨﻟﺍ ﺔﺣﺍﺯﺍ"
 
 
 msgid "Dither"

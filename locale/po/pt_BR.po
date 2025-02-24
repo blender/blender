@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
 "PO-Revision-Date: 2025-02-14 05:56+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -106,10 +106,6 @@ msgstr "A lista de canais de animação para cada espaço de ação"
 
 msgid "Action F-Curves"
 msgstr "Curvas-f das ações"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Coleção de Curvas-F de ações"
 
 
 msgid "Action Group"
@@ -11583,10 +11579,6 @@ msgid "A collection of F-Curves for animation"
 msgstr "Uma coleção de curvas-f para animação."
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "As curvas-f individuais que perfazem a ação."
-
-
 msgid "Frame Range"
 msgstr "Faixa de quadros"
 
@@ -11595,17 +11587,9 @@ msgid "Groups"
 msgstr "Grupos"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Agrupamentos convenientes de curvas-f."
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipo de identificador raiz"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "Tipo de identificador de bloco em que a ação pode ser usada - NÃO ALTERE A MENOS QUE SAIBA O QUE ESTÁ FAZENDO."
 
 
 msgid "Layers"
@@ -11786,22 +11770,6 @@ msgstr "Cíclico(a)"
 
 msgid "Brush's capabilities"
 msgstr "Capacidades do pincel."
-
-
-msgid "Clone Alpha"
-msgstr "Alfa para clone"
-
-
-msgid "Opacity of clone image display"
-msgstr "Opacidade na qual mostrar a imagem clone."
-
-
-msgid "Clone Image"
-msgstr "Imagem para clonar"
-
-
-msgid "Clone Offset"
-msgstr "Deslocamento para clone"
 
 
 msgid "Cloth Damping"
@@ -50017,8 +49985,24 @@ msgid "Image used as canvas"
 msgstr "A imagem usada como lona"
 
 
+msgid "Clone Alpha"
+msgstr "Alfa para clone"
+
+
+msgid "Opacity of clone image display"
+msgstr "Opacidade na qual mostrar a imagem clone."
+
+
+msgid "Clone Image"
+msgstr "Imagem para clonar"
+
+
 msgid "Image used as clone source"
 msgstr "Imagem usada como fonte de clonagem"
+
+
+msgid "Clone Offset"
+msgstr "Deslocamento para clone"
 
 
 msgid "Dither"

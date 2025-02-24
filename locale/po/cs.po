@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -69,10 +69,6 @@ msgstr "Slot"
 
 msgid "Action F-Curves"
 msgstr "Akce F-křivek"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Kolekce akcí F-křivek"
 
 
 msgid "Action Group"
@@ -8005,10 +8001,6 @@ msgid "Groups"
 msgstr "Skupiny"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Skupiny F-křivek"
-
-
 msgid "Layers"
 msgstr "Vrstvy"
 
@@ -8135,18 +8127,6 @@ msgstr "Smyčka"
 
 msgid "Brush's capabilities"
 msgstr "Schopnosti štetce"
-
-
-msgid "Clone Alpha"
-msgstr "Barva a alfa"
-
-
-msgid "Clone Image"
-msgstr "Vyberte renderovanou vrstvu"
-
-
-msgid "Clone Offset"
-msgstr "Odsazení klonování"
 
 
 msgid "Soft Body Plasticity"
@@ -31118,6 +31098,18 @@ msgid "Canvas"
 msgstr "Plátno"
 
 
+msgid "Clone Alpha"
+msgstr "Barva a alfa"
+
+
+msgid "Clone Image"
+msgstr "Vyberte renderovanou vrstvu"
+
+
+msgid "Clone Offset"
+msgstr "Odsazení klonování"
+
+
 msgid "Invert the stencil layer"
 msgstr "Pouze render aktivní vrstvy"
 
@@ -31222,6 +31214,10 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
+
+
 msgid "View Lock"
 msgstr "Zámek zobrazení"
 
@@ -31272,10 +31268,6 @@ msgstr "Stereoskopie"
 
 msgid "Auto-Masking"
 msgstr "Auto-Maska"
-
-
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
 
 
 msgid "Chain Scaling"

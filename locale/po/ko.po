@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -69,10 +69,6 @@ msgstr "슬롯"
 
 msgid "Action F-Curves"
 msgstr "액션 F-커브"
-
-
-msgid "Collection of action F-Curves"
-msgstr "액션 F-커브의 컬렉션"
 
 
 msgid "Action Group"
@@ -12803,10 +12799,6 @@ msgid "A collection of F-Curves for animation"
 msgstr "에니메이션에 대한 F-커브의 컬렉션"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "액션을 구성하는 개별 F-커브"
-
-
 msgid "Frame Range"
 msgstr "프레임 범위"
 
@@ -12815,17 +12807,9 @@ msgid "Groups"
 msgstr "그룹"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "F-커브의 편의 그룹핑"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "ID 루트 유형"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "액션을 사용할 수있는 ID 블록의 유형 - 수행중인 액션을 알지 못하면 변경하지 마십시오"
 
 
 msgid "Layers"
@@ -13134,22 +13118,6 @@ msgstr "루프"
 
 msgid "Brush's capabilities"
 msgstr "브러시의 기능"
-
-
-msgid "Clone Alpha"
-msgstr "클론 알파"
-
-
-msgid "Opacity of clone image display"
-msgstr "클론 이미지 표시의 투명도"
-
-
-msgid "Clone Image"
-msgstr "클론 이미지"
-
-
-msgid "Clone Offset"
-msgstr "클론 오프셋"
 
 
 msgid "Local"
@@ -55135,8 +55103,24 @@ msgid "Image used as canvas"
 msgstr "캔버스로 사용된 이미지"
 
 
+msgid "Clone Alpha"
+msgstr "클론 알파"
+
+
+msgid "Opacity of clone image display"
+msgstr "클론 이미지 표시의 투명도"
+
+
+msgid "Clone Image"
+msgstr "클론 이미지"
+
+
 msgid "Image used as clone source"
 msgstr "클론 소스로 사용된 이미지"
+
+
+msgid "Clone Offset"
+msgstr "클론 오프셋"
 
 
 msgid "Dither"
@@ -55443,6 +55427,10 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
 msgid "View Lock"
 msgstr "뷰 잠금"
 
@@ -55517,10 +55505,6 @@ msgstr "입체 영상"
 
 msgid "Multi Frame"
 msgstr "다중 프레임"
-
-
-msgid "Active Tool"
-msgstr "활성 도구"
 
 
 msgid "Bone Constraints"

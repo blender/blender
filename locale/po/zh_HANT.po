@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-02-24 09:56+0000\n"
 "PO-Revision-Date: 2025-02-05 18:51+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -93,10 +93,6 @@ msgstr "各個動作槽用的動畫頻道列表"
 
 msgid "Action F-Curves"
 msgstr "動作 F 曲線"
-
-
-msgid "Collection of action F-Curves"
-msgstr "動作 F 曲線的集盒"
 
 
 msgid "Action Group"
@@ -13017,10 +13013,6 @@ msgid "A collection of F-Curves for animation"
 msgstr "動畫的 F 曲線集盒"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "構成動作的個別 F 曲線"
-
-
 msgid "Frame Range"
 msgstr "影格區間"
 
@@ -13029,17 +13021,9 @@ msgid "Groups"
 msgstr "群組"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "F 曲線方便群組處理"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "ID 根基類型"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "動作可使用的 ID 塊類型 -「不要更動，除非您知道您在做什麼」"
 
 
 msgid "Layers"
@@ -13294,22 +13278,6 @@ msgstr "迴圈"
 
 msgid "Brush's capabilities"
 msgstr "筆刷的能力"
-
-
-msgid "Clone Alpha"
-msgstr "拓製 Alpha"
-
-
-msgid "Opacity of clone image display"
-msgstr "拓製影像顯示的不透明度"
-
-
-msgid "Clone Image"
-msgstr "拓製影像"
-
-
-msgid "Clone Offset"
-msgstr "拓製偏移"
 
 
 msgid "Cloth Damping"
@@ -49878,8 +49846,24 @@ msgid "Image used as canvas"
 msgstr "作為畫布的影像"
 
 
+msgid "Clone Alpha"
+msgstr "拓製 Alpha"
+
+
+msgid "Opacity of clone image display"
+msgstr "拓製影像顯示的不透明度"
+
+
+msgid "Clone Image"
+msgstr "拓製影像"
+
+
 msgid "Image used as clone source"
 msgstr "作為拓製來源的影像"
+
+
+msgid "Clone Offset"
+msgstr "拓製偏移"
 
 
 msgid "Dither"
@@ -50074,6 +50058,10 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
 msgid "Wire Color"
 msgstr "線色"
 
@@ -50136,10 +50124,6 @@ msgstr "自動遮罩"
 
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
 
 
 msgid "Chain Scaling"
