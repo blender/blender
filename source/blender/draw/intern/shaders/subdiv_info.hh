@@ -117,6 +117,21 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Sculpt data
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(subdiv_sculpt_data)
+DO_STATIC_COMPILATION()
+STORAGE_BUF(SCULPT_DATA_SCULPT_MASK_BUF_SLOT, READ, float, sculpt_mask[])
+STORAGE_BUF(SCULPT_DATA_SCULPT_FACE_SET_COLOR_BUF_SLOT, READ, uint, sculpt_face_set_color[])
+STORAGE_BUF(SCULPT_DATA_SCULPT_DATA_BUF_SLOT, WRITE, SculptData, sculpt_data[])
+COMPUTE_SOURCE("subdiv_vbo_sculpt_data_comp.glsl")
+ADDITIONAL_INFO(subdiv_base)
+GPU_SHADER_CREATE_END()
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Normals
  * \{ */
 

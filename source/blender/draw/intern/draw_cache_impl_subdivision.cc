@@ -1316,13 +1316,10 @@ void draw_subdiv_build_sculpt_data_buffer(const DRWSubdivCache &cache,
 
   /* Mask VBO is always at binding point 0. */
   if (mask_vbo) {
-    GPU_vertbuf_bind_as_ssbo(mask_vbo, 0);
+    GPU_vertbuf_bind_as_ssbo(mask_vbo, SCULPT_DATA_SCULPT_MASK_BUF_SLOT);
   }
-
-  int binding_point = 1;
-  GPU_vertbuf_bind_as_ssbo(face_set_vbo, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(sculpt_data, binding_point++);
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
+  GPU_vertbuf_bind_as_ssbo(face_set_vbo, SCULPT_DATA_SCULPT_FACE_SET_COLOR_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(sculpt_data, SCULPT_DATA_SCULPT_DATA_BUF_SLOT);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_quads, mask_vbo != nullptr);
 

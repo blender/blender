@@ -55,6 +55,11 @@ struct DRWSubdivUboStorage {
 };
 BLI_STATIC_ASSERT_ALIGN(DRWSubdivUboStorage, 16)
 
+struct SculptData {
+  uint face_set_color;
+  float mask;
+};
+
 /* Duplicate of #PosNorLoop from the mesh extract CPU code.
  * We do not use a vec3 for the position as it will be padded to a vec4 which is incompatible with
  * the format. */

@@ -2,33 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with subdiv_lib.glsl */
+#include "subdiv_lib.glsl"
 
-struct SculptData {
-  uint face_set_color;
-  float mask;
-};
-
-layout(std430, binding = 0) readonly restrict buffer sculptMask
-{
-  float sculpt_mask[];
-};
-
-layout(std430, binding = 1) readonly restrict buffer faceSetColor
-{
-  uint face_set_color[];
-};
-
-layout(std430, binding = 2) writeonly restrict buffer sculptData
-{
-  SculptData sculpt_data[];
-};
+COMPUTE_SHADER_CREATE_INFO(subdiv_sculpt_data)
 
 void main()
 {
   /* We execute for each quad. */
   uint quad_index = get_global_invocation_index();
-  if (quad_index >= total_dispatch_size) {
+  if (quad_index >= shader_data.total_dispatch_size) {
     return;
   }
 
@@ -36,9 +18,9 @@ void main()
 
   for (uint loop_index = start_loop_index; loop_index < start_loop_index + 4; loop_index++) {
     SculptData data;
-    data.face_set_color = face_set_color[loop_index];
+    data.face_set_color = sculpt_face_set_color[loop_index];
 
-    if (has_sculpt_mask) {
+    if (shader_data.has_sculpt_mask) {
       data.mask = sculpt_mask[loop_index];
     }
     else {

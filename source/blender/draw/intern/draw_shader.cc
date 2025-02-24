@@ -142,6 +142,9 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
       }
       return "subdiv_edge_fac";
 
+    case SubdivShaderType::BUFFER_SCULPT_DATA:
+      return "subdiv_sculpt_data";
+
     case SubdivShaderType::BUFFER_NORMALS_ACCUMULATE:
       return "subdiv_normals_accumulate";
 
@@ -355,6 +358,7 @@ GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
            SubdivShaderType::BUFFER_TRIS,
            SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS,
            SubdivShaderType::BUFFER_EDGE_FAC,
+           SubdivShaderType::BUFFER_SCULPT_DATA,
            SubdivShaderType::BUFFER_NORMALS_ACCUMULATE,
            SubdivShaderType::BUFFER_NORMALS_FINALIZE,
            SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE,
