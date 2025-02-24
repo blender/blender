@@ -43,6 +43,7 @@
 #include "ED_armature.hh"
 #include "ED_object_vgroup.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
 
 #include <algorithm>
@@ -59,19 +60,6 @@ namespace {
 inline float max_mag_component(const pxr::GfVec3d &vec)
 {
   return pxr::GfMax(pxr::GfAbs(vec[0]), pxr::GfAbs(vec[1]), pxr::GfAbs(vec[2]));
-}
-
-/* Utility: create curve at the given array index. */
-FCurve *create_fcurve(const int array_index, const std::string &rna_path, const int totvert)
-{
-  FCurve *fcu = BKE_fcurve_create();
-  fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
-  fcu->rna_path = BLI_strdup(rna_path.c_str());
-  fcu->array_index = array_index;
-  fcu->bezt = MEM_cnew_array<BezTriple>(totvert, "beztriple");
-  fcu->totvert = totvert;
-
-  return fcu;
 }
 
 void resize_fcurve(FCurve *fcu, uint bezt_count)
@@ -93,17 +81,15 @@ void resize_fcurve(FCurve *fcu, uint bezt_count)
   fcu->totvert = bezt_count;
 }
 
-/* Utility: create curve at the given array index and
- * add it as a channel to a group. */
-FCurve *create_chan_fcurve(bAction *act,
-                           bActionGroup *grp,
-                           const int array_index,
-                           const std::string &rna_path,
-                           const int totvert)
+/* Utility: create curve at the given array index and add it as a channel to a group. */
+FCurve *create_fcurve(blender::animrig::Channelbag &channelbag,
+                      const blender::animrig::FCurveDescriptor &fcurve_descriptor,
+                      const int totvert)
 {
-  FCurve *fcu = create_fcurve(array_index, rna_path, totvert);
-  action_groups_add_channel(act, grp, fcu);
-  return fcu;
+  FCurve *fcurve = channelbag.fcurve_create_unique(nullptr, fcurve_descriptor);
+  BLI_assert_msg(fcurve, "The same F-Curve is being created twice, this is unexpected.");
+  BKE_fcurve_bezt_resize(fcurve, totvert);
+  return fcurve;
 }
 
 /* Utility: add curve sample. */
@@ -167,6 +153,9 @@ void import_skeleton_curves(Main *bmain,
   bAction *act = blender::animrig::id_action_ensure(bmain, &arm_obj->id);
   BKE_id_rename(*bmain, act->id, anim_query.GetPrim().GetName().GetText());
 
+  blender::animrig::Channelbag &channelbag = blender::animrig::action_channelbag_ensure(
+      *act, arm_obj->id);
+
   /* Create the curves. */
 
   /* Get the joint paths. */
@@ -191,26 +180,24 @@ void import_skeleton_curves(Main *bmain,
       continue;
     }
 
-    bActionGroup *grp = action_groups_add_new(act, name->c_str());
-
     /* Add translation curves. */
     std::string rna_path = "pose.bones[\"" + *name + "\"].location";
-    loc_curves.append(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
-    loc_curves.append(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
-    loc_curves.append(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
+    loc_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, *name}, num_samples));
+    loc_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, *name}, num_samples));
+    loc_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, *name}, num_samples));
 
     /* Add rotation curves. */
     rna_path = "pose.bones[\"" + *name + "\"].rotation_quaternion";
-    rot_curves.append(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
-    rot_curves.append(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
-    rot_curves.append(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
-    rot_curves.append(create_chan_fcurve(act, grp, 3, rna_path, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, *name}, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, *name}, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, *name}, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 3, {}, *name}, num_samples));
 
     /* Add scale curves. */
     rna_path = "pose.bones[\"" + *name + "\"].scale";
-    scale_curves.append(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
-    scale_curves.append(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
-    scale_curves.append(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
+    scale_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, *name}, num_samples));
+    scale_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, *name}, num_samples));
+    scale_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, *name}, num_samples));
   }
 
   /* Sanity checks: make sure we have a curve entry for each joint. */
@@ -648,6 +635,9 @@ void import_blendshapes(Main *bmain,
 
   /* Create the animation and curves. */
   bAction *act = blender::animrig::id_action_ensure(bmain, &key->id);
+  blender::animrig::Channelbag &channelbag = blender::animrig::action_channelbag_ensure(*act,
+                                                                                        key->id);
+
   blender::Vector<FCurve *> curves;
   curves.reserve(blendshapes.size());
 
@@ -661,9 +651,8 @@ void import_blendshapes(Main *bmain,
 
     /* Create the curve for this shape key. */
     std::string rna_path = "key_blocks[\"" + blendshape_name.GetString() + "\"].value";
-    FCurve *fcu = create_fcurve(0, rna_path, times.size());
+    FCurve *fcu = create_fcurve(channelbag, {rna_path, 0}, times.size());
     curves.append(fcu);
-    BLI_addtail(&act->curves, fcu);
   }
 
   /* Add the weight time samples to the curves. */

@@ -62,6 +62,7 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
     const int first_src_layer_i = src_layer_indices[0];
     const Layer &first_src_layer = src_grease_pencil.layer(first_src_layer_i);
     layer.set_name(first_src_layer.name());
+    layer.opacity = first_src_layer.opacity;
     Drawing *drawing = new_grease_pencil->get_eval_drawing(layer);
     BLI_assert(drawing != nullptr);
     curves_by_new_layer[new_layer_i] = &drawing->strokes_for_write();
