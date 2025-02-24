@@ -41,44 +41,6 @@ bool remove_selection(bke::CurvesGeometry &curves, const bke::AttrDomain selecti
   return attributes.domain_size(selection_domain) != domain_size_orig;
 }
 
-static void foreach_content_slice_by_offsets(
-    const IndexMask &mask,
-    const OffsetIndices<int> offset_indices,
-    FunctionRef<void(Span<IndexRange> selected_points, IndexRange slice_points, int slice)> fn)
-{
-  Vector<IndexRange> ranges;
-  Span<int> offset_data = offset_indices.data();
-
-  int slice = 0;
-
-  int range_first = mask.first();
-  int range_last = mask.first() - 1;
-
-  mask.foreach_index([&](const int64_t index) {
-    if (offset_data[slice + 1] <= index) {
-      if (range_last - range_first >= 0) {
-        ranges.append(IndexRange::from_begin_end_inclusive(range_first, range_last));
-        fn(ranges, offset_indices[slice], slice);
-        ranges.clear();
-      }
-      do {
-        ++slice;
-      } while (offset_data[slice + 1] <= index);
-      range_first = index;
-    }
-    else if (range_last + 1 != index) {
-      ranges.append(IndexRange::from_begin_end_inclusive(range_first, range_last));
-      range_first = index;
-    }
-    range_last = index;
-  });
-
-  if (range_last - range_first >= 0) {
-    ranges.append(IndexRange::from_begin_end_inclusive(range_first, range_last));
-    fn(ranges, offset_indices[slice], slice);
-  }
-}
-
 static void curve_offsets_from_selection(const Span<IndexRange> selected_points,
                                          const IndexRange points,
                                          const int curve,
@@ -131,10 +93,10 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
   dst_cyclic.reserve(curves.curves_num());
 
   /* Add the duplicated curves and points. */
-  foreach_content_slice_by_offsets(
+  bke::curves::foreach_selected_point_ranges_per_curve(
       mask,
       points_by_curve,
-      [&](Span<IndexRange> ranges_to_duplicate, IndexRange points, int curve) {
+      [&](const int curve, const IndexRange points, Span<IndexRange> ranges_to_duplicate) {
         curve_offsets_from_selection(ranges_to_duplicate,
                                      points,
                                      curve,
@@ -267,6 +229,189 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
     selection.span.take_back(mask.size()).fill(true);
     selection.finish();
   }
+}
+
+static void invert_ranges(const IndexRange universe,
+                          const Span<IndexRange> ranges,
+                          Array<IndexRange> &inverted)
+{
+  const bool contains_first = ranges.first().first() == universe.first();
+  const bool contains_last = ranges.last().last() == universe.last();
+  inverted.reinitialize(ranges.size() - 1 + !contains_first + !contains_last);
+
+  int64_t start = contains_first ? ranges.first().one_after_last() : universe.first();
+  int i = 0;
+  for (const IndexRange range : ranges.drop_front(contains_first)) {
+    inverted[i++] = IndexRange::from_begin_end(start, range.first());
+    start = range.one_after_last();
+  }
+  if (!contains_last) {
+    inverted.last() = IndexRange::from_begin_end(start, universe.one_after_last());
+  }
+}
+
+static IndexRange extend_range(const IndexRange range, const IndexRange universe)
+{
+  return IndexRange::from_begin_end_inclusive(math::max(range.start() - 1, universe.start()),
+                                              math::min(range.one_after_last(), universe.last()));
+}
+
+/**
+ * Extends each range by one point at both ends of it. Merges adjacent ranges if intersections
+ * occur.
+ */
+static void extend_range_by_1_within_bounds(const IndexRange universe,
+                                            const bool cyclic,
+                                            const Span<IndexRange> ranges,
+                                            Vector<IndexRange> &extended_ranges)
+{
+  extended_ranges.clear();
+  if (ranges.is_empty()) {
+    return;
+  }
+
+  const bool first_match = ranges.first().first() == universe.first();
+  const bool last_match = ranges.last().last() == universe.last();
+  const bool add_first = cyclic && last_match && !first_match;
+  const bool add_last = cyclic && first_match && !last_match;
+
+  IndexRange current = add_first ? IndexRange::from_single(universe.first()) :
+                                   extend_range(ranges.first(), universe);
+  for (const IndexRange range : ranges.drop_front(!add_first)) {
+    const IndexRange extended = extend_range(range, universe);
+    if (extended.first() <= current.last()) {
+      current = IndexRange::from_begin_end_inclusive(current.start(), extended.last());
+    }
+    else {
+      extended_ranges.append(current);
+      current = extended;
+    }
+  }
+  extended_ranges.append(current);
+  if (add_last) {
+    extended_ranges.append(IndexRange::from_single(universe.last()));
+  }
+}
+
+static void copy_data_to_geometry(const bke::CurvesGeometry &src_curves,
+                                  const Span<int> dst_to_src_curve,
+                                  const Span<int> offsets,
+                                  const Span<bool> cyclic,
+                                  const Span<IndexRange> src_ranges,
+                                  const OffsetIndices<int> dst_offsets,
+                                  bke::CurvesGeometry &dst_curves)
+{
+  dst_curves.resize(offsets.last(), dst_to_src_curve.size());
+
+  array_utils::copy(offsets, dst_curves.offsets_for_write());
+  dst_curves.cyclic_for_write().copy_from(cyclic);
+
+  const bke::AttributeAccessor src_attributes = src_curves.attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
+
+  bke::gather_attributes(src_attributes,
+                         bke::AttrDomain::Curve,
+                         bke::AttrDomain::Curve,
+                         bke::attribute_filter_from_skip_ref({"cyclic"}),
+                         dst_to_src_curve,
+                         dst_attributes);
+
+  for (auto &attribute : bke::retrieve_attributes_for_transfer(
+           src_attributes,
+           dst_attributes,
+           ATTR_DOMAIN_MASK_POINT,
+           bke::attribute_filter_from_skip_ref(
+               ed::curves::get_curves_selection_attribute_names(src_curves))))
+  {
+    bke::attribute_math::gather_ranges_to_groups(
+        src_ranges, dst_offsets, attribute.src, attribute.dst.span);
+    attribute.dst.finish();
+  };
+
+  dst_curves.update_curve_types();
+  dst_curves.tag_topology_changed();
+}
+
+bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
+                                 const IndexMask &points_to_split)
+{
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
+
+  Vector<int> curve_map;
+  Vector<int> new_offsets({0});
+
+  Vector<IndexRange> src_ranges;
+  Vector<int> dst_offsets({0});
+  Vector<bool> new_cyclic;
+
+  Vector<IndexRange> deselect;
+
+  Array<IndexRange> unselected_curve_points;
+  Vector<IndexRange> curve_points_to_preserve;
+
+  bke::curves::foreach_selected_point_ranges_per_curve(
+      points_to_split,
+      points_by_curve,
+      [&](const int curve, const IndexRange points, const Span<IndexRange> selected_curve_points) {
+        const int points_start = new_offsets.last();
+        curve_offsets_from_selection(selected_curve_points,
+                                     points,
+                                     curve,
+                                     cyclic[curve],
+                                     new_offsets,
+                                     new_cyclic,
+                                     src_ranges,
+                                     dst_offsets,
+                                     curve_map);
+        const int split_points_num = new_offsets.last() - points_start;
+        /* Invert ranges to get non selected points. */
+        invert_ranges(points, selected_curve_points, unselected_curve_points);
+        /* Extended every range to left and right by one point. Any resulting intersection is
+         * merged. */
+        extend_range_by_1_within_bounds(
+            points, cyclic[curve], unselected_curve_points, curve_points_to_preserve);
+        const int size_before = curve_map.size();
+        curve_offsets_from_selection(curve_points_to_preserve,
+                                     points,
+                                     curve,
+                                     cyclic[curve] &&
+                                         (split_points_num <= curve_points_to_preserve.size()),
+                                     new_offsets,
+                                     new_cyclic,
+                                     src_ranges,
+                                     dst_offsets,
+                                     curve_map);
+        deselect.append(IndexRange::from_begin_end(size_before, curve_map.size()));
+      },
+      [&](const IndexRange curves, const IndexRange points) {
+        deselect.append(IndexRange::from_begin_size(curve_map.size(), curves.size()));
+        src_ranges.append(points);
+        dst_offsets.append(dst_offsets.last() + points.size());
+        int last_offset = new_offsets.last();
+        for (const int curve : curves) {
+          last_offset += points_by_curve[curve].size();
+          new_offsets.append(last_offset);
+          curve_map.append(curve);
+          new_cyclic.append(cyclic[curve]);
+        }
+      });
+
+  bke::CurvesGeometry new_curves;
+  copy_data_to_geometry(
+      curves, curve_map, new_offsets, new_cyclic, src_ranges, dst_offsets.as_span(), new_curves);
+
+  OffsetIndices<int> new_points_by_curve = new_curves.points_by_curve();
+  foreach_selection_attribute_writer(
+      new_curves, bke::AttrDomain::Point, [&](bke::GSpanAttributeWriter &selection) {
+        for (const IndexRange curves : deselect) {
+          for (const int curve : curves) {
+            fill_selection_false(selection.span.slice(new_points_by_curve[curve]));
+          }
+        }
+      });
+
+  return new_curves;
 }
 
 void add_curves(bke::CurvesGeometry &curves, const Span<int> new_sizes)

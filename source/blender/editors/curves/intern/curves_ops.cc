@@ -1137,6 +1137,43 @@ static void CURVES_OT_select_less(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+namespace split {
+
+static int split_exec(bContext *C, wmOperator * /*op*/)
+{
+  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
+  for (Curves *curves_id : unique_curves) {
+    CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask points_to_split = retrieve_all_selected_points(curves, memory);
+    if (points_to_split.is_empty()) {
+      continue;
+    }
+    curves = split_points(curves, points_to_split);
+
+    curves.calculate_bezier_auto_handles();
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace split
+
+static void CURVES_OT_split(wmOperatorType *ot)
+{
+  ot->name = "Split";
+  ot->idname = __func__;
+  ot->description = "Split selected points";
+
+  ot->exec = split::split_exec;
+  ot->poll = editable_curves_point_domain_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 namespace surface_set {
 
 static bool surface_set_poll(bContext *C)
@@ -1771,6 +1808,7 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_select_more);
   WM_operatortype_append(CURVES_OT_select_less);
   WM_operatortype_append(CURVES_OT_separate);
+  WM_operatortype_append(CURVES_OT_split);
   WM_operatortype_append(CURVES_OT_surface_set);
   WM_operatortype_append(CURVES_OT_delete);
   WM_operatortype_append(CURVES_OT_duplicate);

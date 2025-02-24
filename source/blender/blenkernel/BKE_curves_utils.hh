@@ -507,6 +507,36 @@ void foreach_curve_by_type(const VArray<int8_t> &types,
                            FunctionRef<void(IndexMask)> poly_fn,
                            FunctionRef<void(IndexMask)> bezier_fn,
                            FunctionRef<void(IndexMask)> nurbs_fn);
+
+using SelectedCallback = FunctionRef<void(
+    int curve_i, IndexRange curve_points, Span<IndexRange> selected_point_ranges)>;
+using UnselectedCallback = FunctionRef<void(IndexRange curves, IndexRange unselected_points)>;
+
+/**
+ * Calls callback function for each curve having selected points.
+ *
+ * \param mask: selected points.
+ * \param points_by_curve: The offsets of every curve into arrays on the points domain.
+ * \param selected_fn: callback function called for each curve with at least one point selected.
+ */
+void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
+                                             const OffsetIndices<int> points_by_curve,
+                                             SelectedCallback selected_fn);
+
+/**
+ * Calls callback function for each curve having selected points.
+ * Calls second callback for groups of curves with no points selected.
+ *
+ * \param mask: selected points.
+ * \param points_by_curve: The offsets of every curve into arrays on the points domain.
+ * \param selected_fn: callback function called for each curve with at least one point selected.
+ * \param unselected_fn: callback function called for groups of curves with no selected points.
+ */
+void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
+                                             const OffsetIndices<int> points_by_curve,
+                                             SelectedCallback selected_fn,
+                                             UnselectedCallback unselected_fn);
+
 namespace bezier {
 
 /**

@@ -231,6 +231,12 @@ IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
 IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory);
 
 /**
+ * Find points that are selected (a selection factor greater than zero) or have
+ * any of their Bezier handle selected.
+ */
+IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
+
+/**
  * If the selection_id attribute doesn't exist, create it with the requested type (bool or float).
  */
 bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves,
@@ -418,6 +424,9 @@ bool remove_selection(bke::CurvesGeometry &curves, bke::AttrDomain selection_dom
 
 void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask);
 void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask);
+
+bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
+                                 const IndexMask &points_to_split);
 
 /**
  * Adds new curves to \a curves.

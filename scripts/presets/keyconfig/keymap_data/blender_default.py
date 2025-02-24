@@ -5781,6 +5781,7 @@ def km_edit_curves(params):
         ("curves.separate", {"type": 'P', "value": 'PRESS'}, None),
         ("curves.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("curves.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("curves.split", {"type": 'Y', "value": 'PRESS'}, None),
         *_template_items_proportional_editing(
             params, connected=True, toggle_data_path="tool_settings.use_proportional_edit"),
         ("curves.tilt_clear", {"type": 'T', "value": 'PRESS', "alt": True}, None),

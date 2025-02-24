@@ -83,6 +83,81 @@ void foreach_curve_by_type(const VArray<int8_t> &types,
   call_if_not_empty(CURVE_TYPE_NURBS, nurbs_fn);
 }
 
+static void if_has_data_call_callback(const Span<int> offset_data,
+                                      const int begin,
+                                      const int end,
+                                      UnselectedCallback callback)
+{
+  if (begin < end) {
+    const IndexRange curves = IndexRange::from_begin_end(begin, end);
+    const IndexRange points = IndexRange::from_begin_end(offset_data[begin], offset_data[end]);
+    callback(curves, points);
+  }
+};
+
+template<typename Fn>
+static void foreach_selected_point_ranges_per_curve_(const IndexMask &mask,
+                                                     const OffsetIndices<int> points_by_curve,
+                                                     SelectedCallback selected_fn,
+                                                     Fn unselected_fn)
+{
+  Vector<IndexRange> ranges;
+  Span<int> offset_data = points_by_curve.data();
+
+  int curve_i = mask.is_empty() ? -1 : 0;
+
+  int range_first = mask.is_empty() ? 0 : mask.first();
+  int range_last = range_first - 1;
+
+  mask.foreach_index([&](const int64_t index) {
+    if (offset_data[curve_i + 1] <= index) {
+      int first_unselected_curve = curve_i;
+      if (range_last >= range_first) {
+        ranges.append(IndexRange::from_begin_end_inclusive(range_first, range_last));
+        selected_fn(curve_i, points_by_curve[curve_i], ranges);
+        ranges.clear();
+        first_unselected_curve++;
+      }
+      do {
+        ++curve_i;
+      } while (offset_data[curve_i + 1] <= index);
+      if constexpr (std::is_invocable_r_v<void, Fn, IndexRange, IndexRange>) {
+        if_has_data_call_callback(offset_data, first_unselected_curve, curve_i, unselected_fn);
+      }
+      range_first = index;
+    }
+    else if (range_last + 1 != index) {
+      ranges.append(IndexRange::from_begin_end_inclusive(range_first, range_last));
+      range_first = index;
+    }
+    range_last = index;
+  });
+
+  if (range_last - range_first >= 0) {
+    ranges.append(IndexRange::from_begin_end_inclusive(range_first, range_last));
+    selected_fn(curve_i, points_by_curve[curve_i], ranges);
+  }
+  if constexpr (std::is_invocable_r_v<void, Fn, IndexRange, IndexRange>) {
+    if_has_data_call_callback(offset_data, curve_i + 1, points_by_curve.size(), unselected_fn);
+  }
+}
+
+void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
+                                             const OffsetIndices<int> offset_indices,
+                                             SelectedCallback selected_fn)
+{
+  foreach_selected_point_ranges_per_curve_<void()>(mask, offset_indices, selected_fn, nullptr);
+}
+
+void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
+                                             const OffsetIndices<int> offset_indices,
+                                             SelectedCallback selected_fn,
+                                             UnselectedCallback unselected_fn)
+{
+  foreach_selected_point_ranges_per_curve_<UnselectedCallback>(
+      mask, offset_indices, selected_fn, unselected_fn);
+}
+
 namespace bezier {
 
 Array<float3> retrieve_all_positions(const bke::CurvesGeometry &curves,
