@@ -1123,11 +1123,14 @@ static void GREASE_PENCIL_OT_set_uniform_thickness(wmOperatorType *ot)
 
 static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::bke;
+
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const float opacity = RNA_float_get(op->ptr, "opacity");
+  const float opacity_stroke = RNA_float_get(op->ptr, "opacity_stroke");
+  const float opacity_fill = RNA_float_get(op->ptr, "opacity_fill");
 
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
@@ -1138,11 +1141,21 @@ static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
     if (strokes.is_empty()) {
       return;
     }
-    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-
+    CurvesGeometry &curves = info.drawing.strokes_for_write();
+    MutableAttributeAccessor attributes = curves.attributes_for_write();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
     MutableSpan<float> opacities = info.drawing.opacities_for_write();
-    bke::curves::fill_points<float>(points_by_curve, strokes, opacity, opacities);
+    bke::curves::fill_points<float>(points_by_curve, strokes, opacity_stroke, opacities);
+
+    if (SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
+            "fill_opacity", AttrDomain::Curve))
+    {
+      strokes.foreach_index(GrainSize(2048), [&](const int64_t curve) {
+        fill_opacities.span[curve] = opacity_fill;
+      });
+    }
+
     changed = true;
   });
 
@@ -1165,7 +1178,10 @@ static void GREASE_PENCIL_OT_set_uniform_opacity(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ot->prop = RNA_def_float(ot->srna, "opacity", 1.0f, 0.0f, 1.0f, "Opacity", "", 0.0f, 1.0f);
+  /* Differentiate default opacities for stroke & fills so shapes with same stroke+fill colors will
+   * be more readable. */
+  RNA_def_float(ot->srna, "opacity_stroke", 1.0f, 0.0f, 1.0f, "Stroke Opacity", "", 0.0f, 1.0f);
+  RNA_def_float(ot->srna, "opacity_fill", 0.5f, 0.0f, 1.0f, "Fill Opacity", "", 0.0f, 1.0f);
 }
 
 /** \} */
