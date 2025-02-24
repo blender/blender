@@ -42,20 +42,82 @@ class FileOutputTest(unittest.TestCase):
         if not os.path.exists(comp_outdir):
             os.mkdir(comp_outdir)
 
+    def compare_images(self, ref_img_path, out_img_path, verbose=True):
+        """
+        Compare content and metadata of two images.
+        """
+        ref_img = oiio.ImageBuf(ref_img_path)
+        out_img = oiio.ImageBuf(out_img_path)
+        img_name = os.path.basename(ref_img_path)
+
+        ok = True
+        # Compare image content
+        comp = oiio.ImageBufAlgo.compare(ref_img, out_img, self.fail_threshold, 0)
+        if comp.nfail != 0:
+            if verbose:
+                print_message("Image content mismatch for '{:s}'".format(img_name),
+                              'FAILURE', 'FAILED')
+            ok = False
+
+        # Compare Metadata
+        metadata_ignore = set(("Time", "File", "Date", "RenderTime"))
+
+        ref_meta = ref_img.spec().extra_attribs
+        out_meta = out_img.spec().extra_attribs
+
+        for attrib in ref_meta:
+            if attrib.name in metadata_ignore:
+                continue
+            if attrib.name not in out_meta:
+                if verbose:
+                    print_message(
+                        "Image metadata mismatch: metadata '{:s}' does not exist in output image '{:s}'".format(
+                            attrib.name, img_name), 'FAILURE', 'FAILED')
+                ok = False
+                continue
+            if attrib.value != out_meta[attrib.name]:
+                if verbose:
+                    print_message(
+                        "Image metadata mismatch for metadata '{:s}' in image '{:s}'".format(attrib.name, img_name),
+                        'FAILURE',
+                        'FAILED')
+                ok = False
+
+        return ok
+
     def update_tests(self, testdir, outdir):
         """
-        Update tests by copying all output images to the test directory.
+        Update tests by copying changed output images to the test directory.
         """
         print_message("Updating test {:s}...".format(os.path.basename(outdir)), 'SUCCESS', 'RUN')
-        # Ensure the updated testdir contains images only (no OS specific files such as .desktop).
-        if os.path.exists(testdir):
-            rmtree(testdir)
-        os.mkdir(testdir)
-        for filename in os.listdir(outdir):
-            copyfile(os.path.join(outdir, filename),
-                     os.path.join(testdir, filename))
+        # The directory usually does not exist when a new test case (i.e. new blend file) is added,
+        # So add the new reference test directory and copy all files from the output folder.
+        if not os.path.exists(testdir):
+            os.mkdir(testdir)
+            for filename in os.listdir(outdir):
+                copyfile(os.path.join(outdir, filename),
+                         os.path.join(testdir, filename))
+            return
 
-    def compare(self, curr_testdir, curr_outdir):
+        for filename in os.listdir(outdir):
+            ref_img = os.path.join(testdir, filename)
+            out_img = os.path.join(outdir, filename)
+            if filename not in os.listdir(testdir):
+                # A newly created image is found in the output directory,
+                # so copy it to the reference test directory.
+                copyfile(out_img, ref_img)
+            else:
+                if not self.compare_images(ref_img, out_img, verbose=False):
+                    # An image in the output directory is found to be modified,
+                    # so update the reference image by overwriting it with the output image.
+                    copyfile(out_img, ref_img)
+
+        # Delete reference images that have no corresponding output image.
+        for filename in os.listdir(testdir):
+            if filename not in os.listdir(outdir):
+                pathlib.Path.unlink(os.path.join(testdir, filename))
+
+    def compare_dirs(self, curr_testdir, curr_outdir):
         """
         Compare all images in both directories. Missing or too many output images will cause the test to fail.
         """
@@ -88,37 +150,8 @@ class FileOutputTest(unittest.TestCase):
                 ok = False
                 continue
 
-            ref_img = oiio.ImageBuf(os.path.join(curr_testdir, img))
-            out_img = oiio.ImageBuf(os.path.join(curr_outdir, img))
-
-            # Compare image content
-            comp = oiio.ImageBufAlgo.compare(ref_img, out_img, self.fail_threshold, 0)
-            if comp.nfail != 0:
-                print_message("Image content mismatch for '{:s}'".format(img),
-                              'FAILURE', 'FAILED')
+            if not self.compare_images(os.path.join(curr_testdir, img), os.path.join(curr_outdir, img), verbose=True):
                 ok = False
-
-            # Compare Metadata
-            metadata_ignore = ("Time", "File", "Date", "RenderTime")
-
-            ref_meta = ref_img.spec().extra_attribs
-            out_meta = out_img.spec().extra_attribs
-
-            for attrib in ref_meta:
-                if attrib.name in metadata_ignore:
-                    continue
-                if attrib.name not in out_meta:
-                    print_message(
-                        "Image metadata mismatch: metadata '{:s}' does not exist in output image '{:s}'".format(
-                            attrib.name, img), 'FAILURE', 'FAILED')
-                    ok = False
-                    continue
-                if attrib.value != out_meta[attrib.name]:
-                    print_message(
-                        "Image metadata mismatch for metadata '{:s}' in image '{:s}'".format(attrib.name, img),
-                        'FAILURE',
-                        'FAILED')
-                    ok = False
 
         if not ok and self.update:
             self.update_tests(curr_testdir, curr_outdir)
@@ -158,7 +191,7 @@ class FileOutputTest(unittest.TestCase):
             print_message("Running test {:s}... ".format(os.path.basename(curr_out_dir)), 'SUCCESS', 'RUN')
             self.run_test_script(blendfile, curr_out_dir)
 
-            if not self.compare(curr_test_dir, curr_out_dir):
+            if not self.compare_dirs(curr_test_dir, curr_out_dir):
                 ok = False
 
         self.assertTrue(ok)
