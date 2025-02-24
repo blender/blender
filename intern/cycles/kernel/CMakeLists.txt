@@ -942,8 +942,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -fsycl
     -fsycl-unnamed-lambda
     -fdelayed-template-parsing
-    -mllvm -inlinedefault-threshold=250
-    -mllvm -inlinehint-threshold=350
     -fsycl-device-code-split=per_kernel
     -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
     --offload-compress
