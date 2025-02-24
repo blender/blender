@@ -3063,7 +3063,8 @@ class VIEW3D_MT_object_context_menu(Menu):
                 if selected_objects_len > 1:
                     layout.operator("object.join")
 
-            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD', 'META', 'FONT'}:
+            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD',
+                            'META', 'FONT', 'GREASEPENCIL'}:
                 layout.operator_menu_enum("object.convert", "target")
 
             if (obj.type in {'MESH',
