@@ -73,7 +73,10 @@ static std::optional<CsvRecords> parse_records(const Span<char> buffer,
     if (!next_record_start.has_value()) {
       return std::nullopt;
     }
-    r_data_offsets.append(r_data_fields.size());
+    /* Ignore empty lines. While those are not great practice, they can occur in practice. */
+    if (r_data_fields.size() > r_data_offsets.last()) {
+      r_data_offsets.append(r_data_fields.size());
+    }
     start = *next_record_start;
   }
   return CsvRecords(OffsetIndices<int64_t>(r_data_offsets), r_data_fields);
