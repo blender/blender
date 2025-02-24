@@ -10,6 +10,7 @@
 
 #include "GPU_vertex_format.hh"
 #include "BLI_assert.h"
+#include "BLI_math_base.h"
 #include "GPU_capabilities.hh"
 
 #include "gpu_shader_create_info.hh"

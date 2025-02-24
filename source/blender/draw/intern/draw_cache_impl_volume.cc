@@ -25,6 +25,7 @@
 #include "BKE_volume_grid_fwd.hh"
 #include "BKE_volume_render.hh"
 
+#include "GPU_attribute_convert.hh"
 #include "GPU_batch.hh"
 #include "GPU_capabilities.hh"
 #include "GPU_texture.hh"
@@ -169,9 +170,6 @@ static void drw_volume_wireframe_cb(
     return format;
   }();
 
-  static float normal[3] = {1.0f, 0.0f, 0.0f};
-  GPUNormal packed_normal;
-  GPU_normal_convert_v3(&packed_normal, normal, do_hq_normals);
   uint pos_id = do_hq_normals ? attr_id.pos_hq_id : attr_id.pos_id;
   uint nor_id = do_hq_normals ? attr_id.nor_hq_id : attr_id.nor_id;
 
@@ -179,7 +177,15 @@ static void drw_volume_wireframe_cb(
                                                                                      format);
   GPU_vertbuf_data_alloc(*cache->face_wire.pos_nor_in_order, totvert);
   GPU_vertbuf_attr_fill(cache->face_wire.pos_nor_in_order, pos_id, verts);
-  GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
+  const float3 normal(1.0f, 0.0f, 0.0f);
+  if (do_hq_normals) {
+    const gpu::PackedNormal packed_normal = gpu::convert_normal<gpu::PackedNormal>(normal);
+    GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
+  }
+  else {
+    const short4 packed_normal = gpu::convert_normal<short4>(normal);
+    GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
+  }
 
   /* Create wiredata. */
   gpu::VertBuf *vbo_wiredata = GPU_vertbuf_calloc();

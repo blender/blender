@@ -14,6 +14,7 @@
 
 #include "BLI_link_utils.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "DRW_render.hh"
 

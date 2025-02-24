@@ -18,6 +18,7 @@
 
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_userdef_types.h"

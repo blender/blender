@@ -12,6 +12,7 @@
 #include "DRW_render.hh"
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_modifier_types.h"

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <atomic>
+#include <cmath>
 #include <mutex>
 
 #include "DNA_vec_types.h"

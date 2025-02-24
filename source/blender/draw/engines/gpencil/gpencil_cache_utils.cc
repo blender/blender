@@ -23,6 +23,7 @@
 #include "BLI_link_utils.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memblock.h"
 

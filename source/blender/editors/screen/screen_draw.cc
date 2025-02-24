@@ -20,6 +20,7 @@
 #include "BLF_api.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "BLT_translation.hh"

@@ -13,6 +13,7 @@
 
 #include "BLF_api.hh"
 
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "DNA_collection_types.h"

@@ -15,6 +15,7 @@
 #include "BKE_material.hh"
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_memblock.h"
 
 #include "GPU_uniform_buffer.hh"

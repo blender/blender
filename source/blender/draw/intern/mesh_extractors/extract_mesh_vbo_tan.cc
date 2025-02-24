@@ -8,6 +8,8 @@
 
 #include "BLI_string.h"
 
+#include "GPU_attribute_convert.hh"
+
 #include "BKE_editmesh_tangent.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_tangent.hh"
@@ -86,12 +88,12 @@ static void extract_tan_init_common(const MeshRenderData &mr,
         const BMVert *eve = BM_vert_at_index(bm, v);
         /* Exceptional case where #bm_vert_co_get can be avoided, as we want the original coords.
          * not the distorted ones. */
-        copy_v3_v3(orco_allocated[v], eve->co);
+        orco_allocated[v] = eve->co;
       }
     }
     else {
       for (int v = 0; v < mr.verts_num; v++) {
-        copy_v3_v3(orco_allocated[v], mr.vert_positions[v]);
+        orco_allocated[v] = mr.vert_positions[v];
       }
     }
     /* TODO: This is not thread-safe. Draw extraction should not modify the mesh. */
@@ -195,7 +197,7 @@ void extract_tangents(const MeshRenderData &mr,
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
           &corner_data, CD_TANGENT, name);
       for (int corner = 0; corner < mr.corners_num; corner++) {
-        normal_float_to_short_v3(*tan_data, layer_data[corner]);
+        *tan_data = gpu::convert_normal<short4>(layer_data[corner]);
         (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
         tan_data++;
       }
@@ -204,20 +206,20 @@ void extract_tangents(const MeshRenderData &mr,
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
           &corner_data, CD_TANGENT, 0);
       for (int corner = 0; corner < mr.corners_num; corner++) {
-        normal_float_to_short_v3(*tan_data, layer_data[corner]);
+        *tan_data = gpu::convert_normal<short4>(layer_data[corner]);
         (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
         tan_data++;
       }
     }
   }
   else {
-    GPUPackedNormal *tan_data = vbo.data<GPUPackedNormal>().data();
+    gpu::PackedNormal *tan_data = vbo.data<gpu::PackedNormal>().data();
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
           &corner_data, CD_TANGENT, name);
       for (int corner = 0; corner < mr.corners_num; corner++) {
-        *tan_data = GPU_normal_convert_i10_v3(layer_data[corner]);
+        *tan_data = gpu::convert_normal<gpu::PackedNormal>(layer_data[corner]);
         tan_data->w = (layer_data[corner][3] > 0.0f) ? 1 : -2;
         tan_data++;
       }
@@ -226,7 +228,7 @@ void extract_tangents(const MeshRenderData &mr,
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
           &corner_data, CD_TANGENT, 0);
       for (int corner = 0; corner < mr.corners_num; corner++) {
-        *tan_data = GPU_normal_convert_i10_v3(layer_data[corner]);
+        *tan_data = gpu::convert_normal<gpu::PackedNormal>(layer_data[corner]);
         tan_data->w = (layer_data[corner][3] > 0.0f) ? 1 : -2;
         tan_data++;
       }
@@ -283,7 +285,7 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
     const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
         &corner_data, CD_TANGENT, name);
     for (int corner = 0; corner < mr.corners_num; corner++) {
-      copy_v3_v3(*tan_data, layer_data[corner]);
+      *tan_data = layer_data[corner];
       (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? 1.0f : -1.0f;
       tan_data++;
     }
@@ -299,7 +301,7 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
     const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
         &corner_data, CD_TANGENT, 0);
     for (int corner = 0; corner < mr.corners_num; corner++) {
-      copy_v3_v3(*tan_data, layer_data[corner]);
+      *tan_data = layer_data[corner];
       (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? 1.0f : -1.0f;
       tan_data++;
     }

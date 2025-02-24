@@ -13,6 +13,8 @@
  * Currently only plane primitive supported without its own handling, use with operator only.
  */
 
+#include "BLI_math_vector.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_screen_types.h"

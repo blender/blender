@@ -95,8 +95,10 @@ set(SRC
   intern/gpu_uniform_buffer.cc
   intern/gpu_vertex_buffer.cc
   intern/gpu_vertex_format.cc
+  intern/gpu_vertex_format_normals.cc
   intern/gpu_viewport.cc
 
+  GPU_attribute_convert.hh
   GPU_batch.hh
   GPU_batch_presets.hh
   GPU_batch_utils.hh
