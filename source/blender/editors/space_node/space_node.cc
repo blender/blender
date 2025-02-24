@@ -60,6 +60,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "io_utils.hh"
+
 #include "node_intern.hh" /* own include */
 
 using blender::float2;
@@ -857,6 +859,25 @@ static bool node_color_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*ev
   return (drag->type == WM_DRAG_COLOR) && !UI_but_active_drop_color(C);
 }
 
+static bool node_import_file_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  if (!U.experimental.use_new_file_import_nodes) {
+    return false;
+  }
+  if (drag->type != WM_DRAG_PATH) {
+    return false;
+  }
+  const blender::Span<std::string> paths = WM_drag_get_paths(drag);
+  for (const StringRef path : paths) {
+    if (path.endswith(".csv") || path.endswith(".obj") || path.endswith(".ply") ||
+        path.endswith(".stl"))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void node_group_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
@@ -881,6 +902,11 @@ static void node_id_im_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     RNA_struct_property_unset(drop->ptr, "filepath");
     return;
   }
+}
+
+static void node_import_file_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+{
+  io::paths_to_operator_properties(drop->ptr, WM_drag_get_paths(drag));
 }
 
 /* this region dropbox definition */
@@ -926,6 +952,12 @@ static void node_dropboxes()
                  nullptr);
   WM_dropbox_add(
       lb, "NODE_OT_add_color", node_color_drop_poll, UI_drop_color_copy, nullptr, nullptr);
+  WM_dropbox_add(lb,
+                 "NODE_OT_add_import_node",
+                 node_import_file_drop_poll,
+                 node_import_file_drop_copy,
+                 nullptr,
+                 nullptr);
 }
 
 /* ************* end drop *********** */

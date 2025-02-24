@@ -111,4 +111,22 @@ Vector<std::string> paths_from_operator_properties(PointerRNA *ptr)
   }
   return paths;
 }
+
+void paths_to_operator_properties(PointerRNA *ptr, const Span<std::string> paths)
+{
+  char dir[FILE_MAX];
+  BLI_path_split_dir_part(paths[0].c_str(), dir, sizeof(dir));
+  RNA_string_set(ptr, "directory", dir);
+
+  RNA_collection_clear(ptr, "files");
+  for (const auto &path : paths) {
+    char file[FILE_MAX];
+    BLI_path_split_file_part(path.c_str(), file, sizeof(file));
+
+    PointerRNA itemptr{};
+    RNA_collection_add(ptr, "files", &itemptr);
+    RNA_string_set(&itemptr, "name", file);
+  }
+}
+
 }  // namespace blender::ed::io
