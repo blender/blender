@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_extra_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_extra_spot_cone)
+
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "overlay_common_lib.glsl"
@@ -73,9 +77,9 @@ void main()
   if ((vclass & VCLASS_LIGHT_AREA_SHAPE) != 0) {
     /* HACK: use alpha color for spots to pass the area_size. */
     if (inst_color_data < 0.0) {
-      lamp_area_size.xy = vec2(-inst_color_data);
+      lamp_area_size = vec2(-inst_color_data);
     }
-    vpos.xy *= lamp_area_size.xy;
+    vpos.xy *= lamp_area_size;
   }
   else if ((vclass & VCLASS_LIGHT_SPOT_SHAPE) != 0) {
     lamp_spot_sine = sqrt(1.0 - lamp_spot_cosine * lamp_spot_cosine);
@@ -225,7 +229,7 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Convert to screen position [0..sizeVp]. */
-  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
 
 #if defined(SELECT_ENABLE)
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the

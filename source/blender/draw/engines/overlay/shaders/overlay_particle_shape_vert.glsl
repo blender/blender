@@ -6,6 +6,10 @@
  * Draw particles as shapes using primitive expansion.
  */
 
+#include "infos/overlay_extra_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_particle_shape)
+
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
@@ -87,7 +91,7 @@ void main()
     world_pos += rotate(shape_pos, part.rotation);
   }
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
 
   view_clipping_distances(world_pos);
 }

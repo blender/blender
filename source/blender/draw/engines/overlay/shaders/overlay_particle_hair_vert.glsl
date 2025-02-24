@@ -6,6 +6,10 @@
  * Draw particles as shapes using primitive expansion.
  */
 
+#include "infos/overlay_extra_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_particle_hair)
+
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -88,7 +92,7 @@ void main()
 
   gl_Position = drw_point_world_to_homogenous(ws_P);
 
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
 
   vec3 rim_col, wire_col;
   if (colorType == V3D_SHADING_OBJECT_COLOR || colorType == V3D_SHADING_RANDOM_COLOR) {

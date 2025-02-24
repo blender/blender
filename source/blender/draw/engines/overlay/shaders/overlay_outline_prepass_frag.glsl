@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_outline_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_outline_prepass)
+
 void main()
 {
   out_object_id = interp.ob_id;

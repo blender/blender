@@ -552,7 +552,7 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
     attr_id.nor = GPU_vertformat_attr_add(
         &format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     attr_id.tan = GPU_vertformat_attr_add(
-        &format, "tan", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "tangent", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     return format;
   }();
 
@@ -563,7 +563,7 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
     attr_id.nor_hq = GPU_vertformat_attr_add(
         &format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     attr_id.tan_hq = GPU_vertformat_attr_add(
-        &format, "tan", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "tangent", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     return format;
   }();
 

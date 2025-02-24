@@ -58,19 +58,6 @@ DEFINE("USE_WORLD_CLIP_PLANES")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
-/* Used to patch overlay shaders. */
-GPU_SHADER_CREATE_INFO(select_id_patch)
-TYPEDEF_SOURCE("select_shader_shared.hh")
-VERTEX_OUT(select_id_iface)
-/* Need to make sure the depth & stencil comparison runs before the fragment shader. */
-EARLY_FRAGMENT_TEST(true)
-UNIFORM_BUF(SELECT_DATA, SelectInfoData, select_info_buf)
-/* Select IDs for instanced draw-calls not using #PassMain. */
-STORAGE_BUF(SELECT_ID_IN, READ, int, in_select_buf[])
-/* Stores the result of the whole selection drawing. Content depends on selection mode. */
-STORAGE_BUF(SELECT_ID_OUT, READ_WRITE, uint, out_select_buf[])
-GPU_SHADER_CREATE_END()
-
 /** \} */
 
 GPU_SHADER_CREATE_INFO(select_debug_fullscreen)

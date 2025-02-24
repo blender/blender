@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_grid_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_grid_next)
+
 /**
  * Infinite grid:
  * Draw anti-aliased grid and axes of different sizes with smooth blending between Level of

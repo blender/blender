@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_viewer_attribute_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_viewer_attribute_mesh)
+
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"

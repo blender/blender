@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_armature_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_armature_shape_wire)
+
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
@@ -137,7 +141,7 @@ void geometry_main(VertOut geom_in[2],
     half_size += 0.5;
   }
 
-  vec2 line = (screen_space_pos[0] - screen_space_pos[1]) * sizeViewport.xy;
+  vec2 line = (screen_space_pos[0] - screen_space_pos[1]) * sizeViewport;
   vec2 line_norm = normalize(vec2(line[1], -line[0]));
   vec2 edge_ofs = (half_size * line_norm) * sizeViewportInv;
 

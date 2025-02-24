@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_edit_mode_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_edit_uv_verts)
+
 void main()
 {
   float dist = length(gl_PointCoord - vec2(0.5));

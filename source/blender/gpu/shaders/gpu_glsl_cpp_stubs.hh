@@ -712,10 +712,10 @@ template<typename T, int D> VecBase<bool, D> lessThanEqual(VecOp<T, D>, VecOp<T,
 template<typename T, int D> VecBase<bool, D> greaterThanEqual(VecOp<T, D>, VecOp<T, D>) RET;
 template<typename T, int D> VecBase<bool, D> equal(VecOp<T, D>, VecOp<T, D>) RET;
 template<typename T, int D> VecBase<bool, D> notEqual(VecOp<T, D>, VecOp<T, D>) RET;
-template<int D> bool any(VecBase<bool, D>) RET;
-template<int D> bool all(VecBase<bool, D>) RET;
+template<int D> bool any(VecOp<bool, D>) RET;
+template<int D> bool all(VecOp<bool, D>) RET;
 /* `not` is a C++ keyword that aliases the `!` operator. Simply overload it. */
-template<int D> VecBase<bool, D> operator!(VecBase<bool, D>) RET;
+template<int D> VecBase<bool, D> operator!(VecOp<bool, D>) RET;
 
 template<int D> VecBase<int, D> bitCount(VecOp<int, D>) RET;
 template<int D> VecBase<int, D> bitCount(VecOp<uint, D>) RET;
@@ -833,6 +833,7 @@ double step(double, double) RET;
 template<int D> VecBase<double, D> step(VecOp<double, D>, VecOp<double, D>) RET;
 template<int D> VecBase<double, D> step(double, VecOp<double, D>) RET;
 double smoothstep(double, double, double) RET;
+template<int D> VecBase<double, D> smoothstep(double, double, VecOp<double, D>) RET;
 
 template<typename T> T degrees(T) RET;
 template<typename T> T radians(T) RET;

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_antialiasing_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_xray_fade)
+
 void main()
 {
   /* TODO(fclem): Cleanup naming. Here the xray depth mean the scene depth (from workbench) and

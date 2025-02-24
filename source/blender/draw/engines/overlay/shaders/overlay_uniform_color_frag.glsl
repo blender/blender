@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_paint_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_paint_face)
+
 void main()
 {
   fragColor = ucolor;

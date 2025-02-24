@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_wireframe_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_wireframe)
+
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -123,15 +127,6 @@ void main()
 
   gl_Position = drw_point_world_to_homogenous(wpos);
 
-#ifndef CUSTOM_DEPTH_BIAS_CONST
-/* TODO(fclem): Cleanup after overlay next. */
-#  ifndef CUSTOM_DEPTH_BIAS
-  const bool use_custom_depth_bias = false;
-#  else
-  const bool use_custom_depth_bias = true;
-#  endif
-#endif
-
 #if !defined(POINTS) && !defined(CURVES)
   if (!use_custom_depth_bias) {
     float facing_ratio = clamp(1.0 - facing * facing, 0.0, 1.0);
@@ -167,7 +162,7 @@ void main()
 
 #else
   /* Convert to screen position [0..sizeVp]. */
-  edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
   edgePos = edgeStart;
 
 #  if !defined(SELECT_ENABLE)

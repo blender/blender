@@ -2,8 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_pointcloud_lib.glsl"
+#include "infos/overlay_outline_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud)
+
 #include "draw_model_lib.glsl"
+#include "draw_pointcloud_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"

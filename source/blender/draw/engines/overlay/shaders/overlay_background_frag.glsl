@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_background_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_background)
+
 #include "gpu_shader_math_base_lib.glsl"
 
 /* 4x4 bayer matrix prepared for 8bit UNORM precision error. */

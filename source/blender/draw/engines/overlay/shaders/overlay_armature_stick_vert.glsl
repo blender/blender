@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_armature_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_armature_stick)
+
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -11,7 +15,7 @@
 /* project to screen space */
 vec2 proj(vec4 hs_P)
 {
-  return (0.5 * (hs_P.xy / hs_P.w) + 0.5) * sizeViewport.xy;
+  return (0.5 * (hs_P.xy / hs_P.w) + 0.5) * sizeViewport;
 }
 
 void main()

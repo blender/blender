@@ -2,6 +2,25 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_common_shader_shared.hh"
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+
+#  include "gpu_index_load_info.hh"
+
+#  include "overlay_shader_shared.h"
+
+#  define HAIR_SHADER
+#  define DRW_HAIR_INFO
+
+#  define POINTCLOUD_SHADER
+#  define DRW_POINTCLOUD_INFO
+#endif
+
 #include "overlay_common_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_flat_color_iface)
@@ -134,7 +153,6 @@ DEFINE("FACEDOT")
 VERTEX_IN(0, VEC3, pos)
 VERTEX_IN(1, UVEC4, data)
 VERTEX_IN(2, VEC4, norAndFlag)
-DEFINE_VALUE("vnor", "norAndFlag.xyz")
 VERTEX_SOURCE("overlay_edit_mesh_facedot_vert.glsl")
 VERTEX_OUT(overlay_edit_flat_color_iface)
 FRAGMENT_SOURCE("overlay_point_varying_color_frag.glsl")
@@ -445,7 +463,6 @@ VERTEX_OUT(overlay_edit_nopersp_color_iface)
 FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_edit_uv_stretching_vert.glsl")
 FRAGMENT_SOURCE("overlay_varying_color.glsl")
-PUSH_CONSTANT(FLOAT, totalAreaRatio)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
@@ -525,7 +542,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire)
 DO_STATIC_COMPILATION()
 VERTEX_IN(0, VEC3, pos)
 VERTEX_IN(1, VEC3, nor)
-VERTEX_IN(2, VEC3, tan)
+VERTEX_IN(2, VEC3, tangent)
 VERTEX_IN(3, FLOAT, rad)
 PUSH_CONSTANT(FLOAT, normalSize)
 VERTEX_OUT(overlay_edit_flat_color_iface)
@@ -545,7 +562,7 @@ DO_STATIC_COMPILATION()
 STORAGE_BUF_FREQ(0, READ, float, pos[], GEOMETRY)
 STORAGE_BUF_FREQ(1, READ, float, rad[], GEOMETRY)
 STORAGE_BUF_FREQ(2, READ, uint, nor[], GEOMETRY)
-STORAGE_BUF_FREQ(3, READ, uint, tan[], GEOMETRY)
+STORAGE_BUF_FREQ(3, READ, uint, tangent[], GEOMETRY)
 PUSH_CONSTANT(IVEC2, gpu_attr_0)
 PUSH_CONSTANT(IVEC2, gpu_attr_1)
 PUSH_CONSTANT(IVEC2, gpu_attr_2)
@@ -554,7 +571,7 @@ PUSH_CONSTANT(FLOAT, normalSize)
 PUSH_CONSTANT(BOOL, use_hq_normals)
 VERTEX_OUT(overlay_edit_flat_color_iface)
 FRAGMENT_OUT(0, VEC4, fragColor)
-VERTEX_SOURCE("overlay_edit_curve_wire_next_vert.glsl")
+VERTEX_SOURCE("overlay_edit_curve_normals_vert.glsl")
 FRAGMENT_SOURCE("overlay_varying_color.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat_new)
@@ -710,32 +727,6 @@ ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_CLIP_VARIATION(overlay_edit_particle_point)
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Edit GPencil
- * \{ */
-
-GPU_SHADER_CREATE_INFO(overlay_edit_gpencil)
-TYPEDEF_SOURCE("overlay_shader_shared.h")
-VERTEX_IN(0, VEC3, pos)
-VERTEX_IN(1, INT, ma)
-VERTEX_IN(2, UINT, vflag)
-VERTEX_IN(3, FLOAT, weight)
-PUSH_CONSTANT(FLOAT, normalSize)
-PUSH_CONSTANT(BOOL, doMultiframe)
-PUSH_CONSTANT(BOOL, doStrokeEndpoints)
-PUSH_CONSTANT(BOOL, hideSelect)
-PUSH_CONSTANT(BOOL, doWeightColor)
-PUSH_CONSTANT(FLOAT, gpEditOpacity)
-PUSH_CONSTANT(VEC4, gpEditColor)
-SAMPLER(0, FLOAT_1D, weightTex)
-FRAGMENT_OUT(0, VEC4, fragColor)
-VERTEX_SOURCE("overlay_edit_gpencil_vert.glsl")
-ADDITIONAL_INFO(draw_mesh)
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
 
 /** \} */
 
