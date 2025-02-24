@@ -768,7 +768,8 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
                                               to_sample_factors,
                                               dst_curve_mask,
                                               mix_factor,
-                                              dst_curves);
+                                              dst_curves,
+                                              memory);
   }
 
   return dst_curves;
