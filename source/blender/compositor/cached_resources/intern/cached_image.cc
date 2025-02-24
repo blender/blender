@@ -8,6 +8,7 @@
 
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
 #include "RE_pipeline.h"
@@ -203,50 +204,52 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
 
 /* Returns the appropriate result type for the given image buffer, which represents the pass in the
  * given render result with the given image user. The type is determined based on the channels
- * count of the buffer, except for when the channels count is 4, because it can either be a color
- * or a float4 pass, which is determined by inspecting the channels IDs of the pass. */
+ * count of the buffer for simple images, while channel IDs are also considered for multi-layer
+ * images since 3-channel passes can be RGB without alpha and 4-channel passes can be XYZW 4D
+ * vectors. */
 static ResultType get_result_type(const RenderResult *render_result,
                                   const ImageUser &image_user,
                                   const ImBuf *image_buffer)
 {
-  switch (image_buffer->channels) {
+  if (!render_result) {
+    return Result::float_type(image_buffer->channels);
+  }
+
+  const RenderLayer *render_layer = get_render_layer(render_result, image_user);
+  if (!render_layer) {
+    return Result::float_type(image_buffer->channels);
+  }
+
+  const RenderPass *render_pass = get_render_pass(render_layer, image_user);
+  if (!render_pass) {
+    return Result::float_type(image_buffer->channels);
+  }
+
+  switch (render_pass->channels) {
     case 1:
       return ResultType::Float;
     case 2:
       return ResultType::Float2;
     case 3:
-      return ResultType::Float3;
+      if (STR_ELEM(render_pass->chan_id, "RGB", "rgb")) {
+        return ResultType::Color;
+      }
+      else {
+        return ResultType::Float3;
+      }
     case 4:
-      /* The 4 channel case is ambiguous, it can either be a color or a float4, so we need
-       * to investigate the pass channel IDs outside of the switch to identify its type. */
-      break;
+      if (STR_ELEM(render_pass->chan_id, "RGBA", "rgba")) {
+        return ResultType::Color;
+      }
+      else {
+        return ResultType::Float4;
+      }
     default:
-      BLI_assert_unreachable();
-      return ResultType::Float;
+      break;
   }
 
-  if (!render_result) {
-    /* Not a multi-layer images, 4-channels are always color images. */
-    return ResultType::Color;
-  }
-
-  const RenderLayer *render_layer = get_render_layer(render_result, image_user);
-  if (!render_layer) {
-    /* Not a multi-layer images, 4-channels are always color images. */
-    return ResultType::Color;
-  }
-
-  const RenderPass *render_pass = get_render_pass(render_layer, image_user);
-  if (!render_pass) {
-    /* Not a multi-layer images, 4-channels are always color images. */
-    return ResultType::Color;
-  }
-
-  if (StringRef(render_pass->chan_id) == "XYZW") {
-    return ResultType::Float4;
-  }
-
-  return ResultType::Color;
+  BLI_assert_unreachable();
+  return ResultType::Float;
 }
 
 CachedImage::CachedImage(Context &context,
@@ -294,7 +297,8 @@ CachedImage::CachedImage(Context &context,
   }
   else {
     const int2 size = int2(image_buffer->x, image_buffer->y);
-    Result buffer_result(context, this->result.type(), ResultPrecision::Full);
+    Result buffer_result(
+        context, Result::float_type(image_buffer->channels), ResultPrecision::Full);
     buffer_result.wrap_external(linear_image_buffer->float_buffer.data, size);
     this->result.allocate_texture(size, false);
     parallel_for(size, [&](const int2 texel) {

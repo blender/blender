@@ -136,13 +136,18 @@ static eNodeSocketDatatype socket_type_from_pass(const RenderPass *pass)
       return SOCK_FLOAT;
     case 2:
     case 3:
-      return SOCK_VECTOR;
-    case 4:
-      if (blender::StringRef(pass->chan_id) == "XYZW") {
-        return SOCK_VECTOR;
+      if (STR_ELEM(pass->chan_id, "RGB", "rgb")) {
+        return SOCK_RGBA;
       }
       else {
+        return SOCK_VECTOR;
+      }
+    case 4:
+      if (STR_ELEM(pass->chan_id, "RGBA", "rgba")) {
         return SOCK_RGBA;
+      }
+      else {
+        return SOCK_VECTOR;
       }
     default:
       break;
