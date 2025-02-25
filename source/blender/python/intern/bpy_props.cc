@@ -4275,8 +4275,10 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
     bpy_prop_assign_flag_override(prop, override_enum.value);
   }
 
-  /* Set the flag for generated documentation. */
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  if (RNA_struct_is_a(ptype, &RNA_PropertyGroup)) {
+    /* Set the flag for generated documentation. */
+    RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  }
 
   if (RNA_struct_idprops_contains_datablock(ptype)) {
     if (RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
@@ -4415,10 +4417,9 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
     bpy_prop_assign_flag_override(prop, override_enum.value);
   }
 
-  if (RNA_struct_is_a(ptype, &RNA_PropertyGroup)) {
-    /* Set the flag for generated documentation. */
-    RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  }
+  /* Set the flag for generated documentation. */
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+
   if (RNA_struct_idprops_contains_datablock(ptype)) {
     if (RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
       RNA_def_struct_flag(srna, STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES);
