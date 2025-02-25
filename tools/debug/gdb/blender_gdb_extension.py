@@ -27,6 +27,7 @@ __all__ = (
 )
 
 import gdb
+import gdb.printing
 from contextlib import contextmanager
 from gdb.FrameDecorator import FrameDecorator
 
