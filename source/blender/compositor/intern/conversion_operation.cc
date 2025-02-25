@@ -216,16 +216,16 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
     case ResultType::Int:
       switch (this->get_result().type()) {
         case ResultType::Float:
-          output.set_single_value(int_to_float(input.get_single_value<int>()));
+          output.set_single_value(int_to_float(input.get_single_value<int32_t>()));
           return;
         case ResultType::Float3:
-          output.set_single_value(int_to_float3(input.get_single_value<int>()));
+          output.set_single_value(int_to_float3(input.get_single_value<int32_t>()));
           return;
         case ResultType::Color:
-          output.set_single_value(int_to_color(input.get_single_value<int>()));
+          output.set_single_value(int_to_color(input.get_single_value<int32_t>()));
           return;
         case ResultType::Float4:
-          output.set_single_value(int_to_float4(input.get_single_value<int>()));
+          output.set_single_value(int_to_float4(input.get_single_value<int32_t>()));
           return;
         case ResultType::Int:
           /* Same type, no conversion needed. */
@@ -352,22 +352,22 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
       switch (this->get_result().type()) {
         case ResultType::Float:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float(input.load_pixel<int>(texel)));
+            output.store_pixel(texel, int_to_float(input.load_pixel<int32_t>(texel)));
           });
           return;
         case ResultType::Float3:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float3(input.load_pixel<int>(texel)));
+            output.store_pixel(texel, int_to_float3(input.load_pixel<int32_t>(texel)));
           });
           return;
         case ResultType::Color:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_color(input.load_pixel<int>(texel)));
+            output.store_pixel(texel, int_to_color(input.load_pixel<int32_t>(texel)));
           });
           return;
         case ResultType::Float4:
           parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float4(input.load_pixel<int>(texel)));
+            output.store_pixel(texel, int_to_float4(input.load_pixel<int32_t>(texel)));
           });
           return;
         case ResultType::Int:

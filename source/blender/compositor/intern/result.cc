@@ -227,7 +227,7 @@ const CPPType &Result::cpp_type(const ResultType type)
     case ResultType::Float:
       return CPPType::get<float>();
     case ResultType::Int:
-      return CPPType::get<int>();
+      return CPPType::get<int32_t>();
     case ResultType::Color:
       return CPPType::get<float4>();
     case ResultType::Float4:

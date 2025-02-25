@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -141,7 +142,7 @@ class Result {
    * which will be identical to that stored in the data_ member. The active variant member depends
    * on the type of the result. This member is uninitialized and should not be used if the result
    * is not a single value. */
-  std::variant<float, float2, float3, float4, int, int2> single_value_ = 0.0f;
+  std::variant<float, float2, float3, float4, int32_t, int2> single_value_ = 0.0f;
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */
   Domain domain_ = Domain::identity();
@@ -537,7 +538,7 @@ template<typename T> BLI_INLINE_METHOD void Result::set_single_value(const T &va
 
   switch (storage_type_) {
     case ResultStorageType::GPU:
-      if constexpr (is_same_any_v<T, int, int2>) {
+      if constexpr (is_same_any_v<T, int32_t, int2>) {
         if constexpr (std::is_scalar_v<T>) {
           GPU_texture_update(this->gpu_texture(), GPU_DATA_INT, &value);
         }

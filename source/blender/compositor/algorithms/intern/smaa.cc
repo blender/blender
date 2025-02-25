@@ -1675,7 +1675,7 @@ static void compute_single_value(Result &input, Result &output)
       output.set_single_value(input.get_single_value<float>());
       break;
     case ResultType::Int:
-      output.set_single_value(input.get_single_value<int>());
+      output.set_single_value(input.get_single_value<int32_t>());
       break;
     case ResultType::Int2:
       output.set_single_value(input.get_single_value<int2>());

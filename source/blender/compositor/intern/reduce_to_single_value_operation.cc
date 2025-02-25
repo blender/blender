@@ -57,7 +57,7 @@ void ReduceToSingleValueOperation::execute()
       result.set_single_value(*static_cast<float *>(pixel));
       break;
     case ResultType::Int:
-      result.set_single_value(*static_cast<int *>(pixel));
+      result.set_single_value(*static_cast<int32_t *>(pixel));
       break;
     case ResultType::Float2:
     case ResultType::Int2:

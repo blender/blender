@@ -64,7 +64,7 @@ static void add_single_value_input_parameter(mf::ParamsBuilder &parameter_builde
       parameter_builder.add_readonly_single_input_value(input.get_single_value<float>());
       return;
     case ResultType::Int:
-      parameter_builder.add_readonly_single_input_value(input.get_single_value<int>());
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<int32_t>());
       return;
     case ResultType::Color:
       parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
@@ -92,7 +92,7 @@ static void add_single_value_output_parameter(mf::ParamsBuilder &parameter_build
       parameter_builder.add_uninitialized_single_output(&output.get_single_value<float>());
       return;
     case ResultType::Int:
-      parameter_builder.add_uninitialized_single_output(&output.get_single_value<int>());
+      parameter_builder.add_uninitialized_single_output(&output.get_single_value<int32_t>());
       return;
     case ResultType::Color:
       parameter_builder.add_uninitialized_single_output(&output.get_single_value<float4>());
@@ -120,7 +120,7 @@ static void upload_single_value_output_to_gpu(Result &output)
       output.set_single_value(output.get_single_value<float>());
       return;
     case ResultType::Int:
-      output.set_single_value(output.get_single_value<int>());
+      output.set_single_value(output.get_single_value<int32_t>());
       return;
     case ResultType::Color:
       output.set_single_value(output.get_single_value<float4>());
@@ -299,7 +299,7 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(DInpu
     }
     case SOCK_INT: {
       const int value = input->default_value_typed<bNodeSocketValueInt>()->value;
-      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int>>(value);
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int32_t>>(value);
       break;
     }
     case SOCK_VECTOR: {
