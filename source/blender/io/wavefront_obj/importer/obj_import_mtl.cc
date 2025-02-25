@@ -302,13 +302,26 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
     mat->b = base_color.z;
   }
 
-  float3 emission_color = mtl_mat.emission_color;
-  if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
-    set_property_of_socket(SOCK_RGBA, "Emission Color", {emission_color, 3}, bsdf);
-  }
   if (mtl_mat.tex_map_of_type(MTLTexMapType::Emission).is_valid()) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf);
   }
+
+  float3 emission_color = mtl_mat.emission_color;
+  if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
+    float emission_strength = fmax(emission_color.x, fmax(emission_color.y, emission_color.z));
+    if (emission_strength > 1.0f) {
+      /* For colors brighter than 1.0, change color to be in 0..1 range, and set emission
+       * strength accordingly. */
+      set_property_of_socket(
+          SOCK_RGBA, "Emission Color", {emission_color / emission_strength, 3}, bsdf);
+      set_property_of_socket(SOCK_FLOAT, "Emission Strength", {emission_strength}, bsdf);
+    }
+    else {
+      set_property_of_socket(SOCK_RGBA, "Emission Color", {emission_color, 3}, bsdf);
+      set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf);
+    }
+  }
+
   set_property_of_socket(SOCK_FLOAT, "Specular IOR Level", {specular}, bsdf);
   set_property_of_socket(SOCK_FLOAT, "Roughness", {roughness}, bsdf);
   mat->roughness = roughness;
