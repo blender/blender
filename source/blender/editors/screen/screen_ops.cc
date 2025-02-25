@@ -1084,7 +1084,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
   event.customdata_free = true;
   op->customdata = nullptr;
 
-  wm_event_add(win, &event);
+  WM_event_add(win, &event);
 }
 
 static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)

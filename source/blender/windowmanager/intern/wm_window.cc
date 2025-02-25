@@ -1568,7 +1568,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       copy_v2_v2_int(event.prev_xy, event.xy);
       event.flag = eWM_EventFlag(0);
 
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
 
       break;
     }
@@ -1730,7 +1730,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       wm->winactive = win;
       win->active = 1;
 
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
 
       /* Make blender drop event with custom data pointing to wm drags. */
       event.type = EVT_DROP;
@@ -1739,7 +1739,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       event.customdata = &wm->drags;
       event.customdata_free = true;
 
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
 
       // printf("Drop detected\n");
 
@@ -1878,7 +1878,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
       event.flag = eWM_EventFlag(0);
       event.custom = EVT_DATA_TIMER;
       event.customdata = wt;
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
 
       has_event = true;
     }

@@ -6709,7 +6709,7 @@ void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
   event.customdata = but;
   event.customdata_free = false;
 
-  wm_event_add(win, &event);
+  WM_event_add(win, &event);
 }
 
 void UI_but_func_hold_set(uiBut *but, uiButHandleHoldFunc func, void *argN)

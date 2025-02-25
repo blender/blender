@@ -177,7 +177,7 @@ static bool screen_temp_region_exists(const ARegion *region)
 /** \name Event Management
  * \{ */
 
-wmEvent *wm_event_add_ex(wmWindow *win,
+wmEvent *WM_event_add_ex(wmWindow *win,
                          const wmEvent *event_to_add,
                          const wmEvent *event_to_add_after)
 {
@@ -196,9 +196,9 @@ wmEvent *wm_event_add_ex(wmWindow *win,
   return event;
 }
 
-wmEvent *wm_event_add(wmWindow *win, const wmEvent *event_to_add)
+wmEvent *WM_event_add(wmWindow *win, const wmEvent *event_to_add)
 {
-  return wm_event_add_ex(win, event_to_add, nullptr);
+  return WM_event_add_ex(win, event_to_add, nullptr);
 }
 
 wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
@@ -207,7 +207,7 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
     BLI_assert_unreachable();
     return nullptr;
   }
-  wmEvent *event = wm_event_add(win, event_to_add);
+  wmEvent *event = WM_event_add(win, event_to_add);
 
   /* Logic for setting previous value is documented on the #wmEvent struct,
    * see #wm_event_add_ghostevent for the implementation of logic this follows. */
@@ -4288,7 +4288,7 @@ void wm_event_do_handlers(bContext *C)
       tevent.prev_xy[0] = tevent.xy[0];
       tevent.prev_xy[1] = tevent.xy[1];
       tevent.flag = (eWM_EventFlag)0;
-      wm_event_add(win, &tevent);
+      WM_event_add(win, &tevent);
       win->addmousemove = 0;
     }
 
@@ -4320,7 +4320,7 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, const int ev
     event.flag = (eWM_EventFlag)0;
     event.customdata = ophandle; /* Only as void pointer type check. */
 
-    wm_event_add(win, &event);
+    WM_event_add(win, &event);
   }
 }
 
@@ -5585,7 +5585,7 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
     event_last->flag = (eWM_EventFlag)0;
   }
 
-  wmEvent *event_new = wm_event_add(win, event);
+  wmEvent *event_new = WM_event_add(win, event);
   if (event_last == nullptr) {
     event_last = win->eventstate;
   }
@@ -5618,7 +5618,7 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
   tevent.val = KM_NOTHING;
   copy_v2_v2_int(tevent.prev_xy, tevent.xy);
 
-  wmEvent *event_new = wm_event_add(win, &tevent);
+  wmEvent *event_new = WM_event_add(win, &tevent);
   BLI_remlink(&win->event_queue, event_new);
   BLI_addhead(&win->event_queue, event_new);
 
@@ -5639,7 +5639,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
   }
 
   /* Set prev_xy, the delta is computed from this in operators. */
-  wmEvent *event_new = wm_event_add(win, event);
+  wmEvent *event_new = WM_event_add(win, event);
   event_new->prev_xy[0] = event_new->xy[0] - deltax;
   event_new->prev_xy[1] = event_new->xy[1] - deltay;
 
@@ -5964,10 +5964,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
         event_other.val = event.val;
         event_other.tablet = event.tablet;
 
-        wm_event_add(win_other, &event_other);
+        WM_event_add(win_other, &event_other);
       }
       else {
-        wm_event_add(win, &event);
+        WM_event_add(win, &event);
       }
 
       break;
@@ -6132,7 +6132,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       }
 
       if (!wm_event_is_ignorable_key_press(win, event)) {
-        wm_event_add(win, &event);
+        WM_event_add(win, &event);
       }
 
       break;
@@ -6162,7 +6162,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
        * instead of generating multiple events. */
       event.val = KM_PRESS;
       for (int i = 0; i < click_step; i++) {
-        wm_event_add(win, &event);
+        WM_event_add(win, &event);
       }
 
       break;
@@ -6173,7 +6173,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       event.type = NDOF_MOTION;
       event.val = KM_NOTHING;
       attach_ndof_data(&event, static_cast<const GHOST_TEventNDOFMotionData *>(customdata));
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
 
       CLOG_INFO(WM_LOG_HANDLERS, 1, "sending NDOF_MOTION, prev = %d %d", event.xy[0], event.xy[1]);
       break;
@@ -6204,7 +6204,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
                                           event_state_prev_press_time_ms_p,
                                           (GHOST_TEventType)type);
 
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
 
       break;
     }
@@ -6216,7 +6216,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
 
     case GHOST_kEventWindowDeactivate: {
       event.type = WINDEACTIVATE;
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
 
       break;
     }
@@ -6228,20 +6228,20 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       BLI_assert(win->ime_data != nullptr);
       win->ime_data_is_composing = true;
       event.type = WM_IME_COMPOSITE_START;
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
       break;
     }
     case GHOST_kEventImeComposition: {
       event.val = KM_PRESS;
       event.type = WM_IME_COMPOSITE_EVENT;
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
       break;
     }
     case GHOST_kEventImeCompositionEnd: {
       event.val = KM_PRESS;
       win->ime_data_is_composing = false;
       event.type = WM_IME_COMPOSITE_END;
-      wm_event_add(win, &event);
+      WM_event_add(win, &event);
       break;
     }
 #endif /* WITH_INPUT_IME */
@@ -6265,7 +6265,7 @@ void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val)
   event.customdata = actiondata;
   event.customdata_free = true;
 
-  wm_event_add(win, &event);
+  WM_event_add(win, &event);
 }
 #endif /* WITH_XR_OPENXR */
 
