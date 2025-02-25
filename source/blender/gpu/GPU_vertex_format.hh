@@ -12,6 +12,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
 struct GPUShader;
@@ -92,14 +93,14 @@ void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat &src);
 void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader);
 
 uint GPU_vertformat_attr_add(
-    GPUVertFormat *, const char *name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
-void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
+    GPUVertFormat *, blender::StringRef name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
+void GPU_vertformat_alias_add(GPUVertFormat *, blender::StringRef alias);
 
 /**
  * Return a vertex format from a single attribute description.
  * The attribute ID is ensured to be 0.
  */
-GPUVertFormat GPU_vertformat_from_attribute(const char *name,
+GPUVertFormat GPU_vertformat_from_attribute(blender::StringRef name,
                                             const GPUVertCompType comp_type,
                                             const uint comp_len,
                                             const GPUVertFetchMode fetch_mode);
@@ -133,7 +134,7 @@ void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count);
  */
 void GPU_vertformat_deinterleave(GPUVertFormat *format);
 
-int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
+int GPU_vertformat_attr_id_get(const GPUVertFormat *, blender::StringRef name);
 
 BLI_INLINE const char *GPU_vertformat_attr_name_get(const GPUVertFormat *format,
                                                     const GPUVertAttr *attr,
@@ -152,4 +153,4 @@ void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr, const char *new
  * \warning Always add a prefix to the result of this function as
  * the generated string can start with a number and not be a valid attribute name.
  */
-void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uint max_len);
+void GPU_vertformat_safe_attr_name(blender::StringRef attr_name, char *r_safe_name, uint max_len);
