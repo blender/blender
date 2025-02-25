@@ -186,14 +186,17 @@ UniqueName_Map *BKE_main_namemap_create()
 void BKE_main_namemap_destroy(UniqueName_Map **r_name_map)
 {
 #ifdef DEBUG_PRINT_MEMORY_USAGE
-  int64_t size_sets = 0;
-  int64_t size_maps = 0;
-  for (const UniqueName_TypeMap &type_map : (*r_name_map)->type_maps) {
-    size_sets += type_map.full_names.size_in_bytes();
-    size_maps += type_map.base_name_to_num_suffix.size_in_bytes();
+  if (*r_name_map) {
+    int64_t size_sets = 0;
+    int64_t size_maps = 0;
+    for (const UniqueName_TypeMap &type_map : (*r_name_map)->type_maps) {
+      size_sets += type_map.full_names.size_in_bytes();
+      size_maps += type_map.base_name_to_num_suffix.size_in_bytes();
+    }
+    printf("NameMap memory usage: sets %.1fKB, maps %.1fKB\n",
+           size_sets / 1024.0,
+           size_maps / 1024.0);
   }
-  printf(
-      "NameMap memory usage: sets %.1fKB, maps %.1fKB\n", size_sets / 1024.0, size_maps / 1024.0);
 #endif
   MEM_SAFE_DELETE(*r_name_map);
 }
