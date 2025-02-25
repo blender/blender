@@ -22,9 +22,6 @@ BLOCKLIST_ALL = [
     "visibility_particles.blend",
     # Temporarily blocked for 4.4 lib upgrade, due to PNG alpha minor difference.
     "image_log_osl.blend",
-    # Temporarily blocked for investigation
-    "light_path_glossy_depth.blend",
-    "light_path_is_glossy_ray.blend",
 ]
 
 # Blocklist that disables OSL specific tests for configurations that do not support OSL backend.

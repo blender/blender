@@ -213,7 +213,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
         light_distribution, ls->emitter_id);
     prim = kdistribution->prim;
     object_id = kdistribution->object_id;
-    shader_flag = 0;
+    shader_flag = kdistribution->shader_flag;
   }
 
   if (!light_link_object_match(kg, object_receiver, object_id)) {

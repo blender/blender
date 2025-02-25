@@ -5,6 +5,7 @@
 
 #include "hydra/light.h"
 #include "hydra/session.h"
+#include "kernel/types.h"
 #include "scene/light.h"
 #include "scene/object.h"
 #include "scene/scene.h"
@@ -102,7 +103,12 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
 
     value = sceneDelegate->GetLightParamValue(id, _tokens->visibleInPrimaryRay);
     if (!value.IsEmpty()) {
-      _light->set_use_camera(value.Get<bool>());
+      if (value.Get<bool>()) {
+        _object->set_visibility(_object->get_visibility() | PATH_RAY_CAMERA);
+      }
+      else {
+        _object->set_visibility(_object->get_visibility() & ~PATH_RAY_CAMERA);
+      }
     }
 
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->shadowEnable);
@@ -400,7 +406,7 @@ void HdCyclesLight::Initialize(HdRenderParam *renderParam)
   }
 
   _light->set_use_mis(true);
-  _light->set_use_camera(false);
+  _object->set_visibility(PATH_RAY_ALL_VISIBILITY & ~PATH_RAY_CAMERA);
 
   Shader *const shader = lock.scene->create_node<Shader>();
   array<Node *> used_shaders;
