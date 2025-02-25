@@ -69,7 +69,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_smoke)
 ADDITIONAL_INFO(workbench_volume_smoke_common)
-ADDITIONAL_INFO(draw_modelmat_new)
+ADDITIONAL_INFO(draw_modelmat)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_object)

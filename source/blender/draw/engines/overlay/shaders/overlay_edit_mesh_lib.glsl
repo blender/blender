@@ -7,7 +7,7 @@
 #include "infos/overlay_edit_mode_info.hh"
 
 SHADER_LIBRARY_CREATE_INFO(overlay_edit_mesh_common)
-SHADER_LIBRARY_CREATE_INFO(draw_modelmat_new)
+SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"

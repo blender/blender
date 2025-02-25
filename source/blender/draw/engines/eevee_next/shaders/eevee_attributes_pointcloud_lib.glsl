@@ -11,7 +11,7 @@
 #  define DRW_POINTCLOUD_INFO
 #endif
 
-SHADER_LIBRARY_CREATE_INFO(draw_modelmat_new)
+SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 SHADER_LIBRARY_CREATE_INFO(draw_resource_handle_new)
 SHADER_LIBRARY_CREATE_INFO(draw_pointcloud)
 

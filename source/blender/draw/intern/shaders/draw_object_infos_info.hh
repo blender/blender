@@ -69,8 +69,7 @@ GPU_SHADER_CREATE_END()
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_mesh)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_id)
+ADDITIONAL_INFO(draw_modelmat)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_hair)
@@ -95,7 +94,7 @@ DEFINE("DRW_POINTCLOUD_INFO")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_volume)
-ADDITIONAL_INFO(draw_modelmat_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_resource_handle_new)
 GPU_SHADER_CREATE_END()
 

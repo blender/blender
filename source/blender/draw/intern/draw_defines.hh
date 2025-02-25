@@ -15,7 +15,6 @@
 #define DRW_VIEW_UBO_SLOT 11
 #define DRW_VIEW_CULLING_UBO_SLOT 10
 #define DRW_OBJ_DATA_INFO_UBO_SLOT 9
-#define DRW_OBJ_MAT_UBO_SLOT 8
 #define DRW_LAYER_ATTR_UBO_SLOT 7
 /* Slots 0-6 are reserved for engine use. */
 /* TODO(fclem): Legacy. To be removed once we remove the old DRW. */

@@ -7,7 +7,6 @@
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
 
-/* NOTE: To be used with UNIFORM_RESOURCE_ID and INSTANCED_ATTR as define. */
 #ifdef POINTCLOUD_SHADER
 #  define COMMON_POINTCLOUD_LIB
 

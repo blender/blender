@@ -66,13 +66,13 @@ GPU_SHADER_CREATE_END()
   GPU_SHADER_CREATE_INFO(name) \
   DO_STATIC_COMPILATION() \
   ADDITIONAL_INFO(base_info) \
-  ADDITIONAL_INFO(draw_modelmat_new) \
+  ADDITIONAL_INFO(draw_modelmat) \
   GPU_SHADER_CREATE_END() \
 \
   GPU_SHADER_CREATE_INFO(name##_selectable) \
   DO_STATIC_COMPILATION() \
   ADDITIONAL_INFO(base_info) \
-  ADDITIONAL_INFO(draw_modelmat_new_with_custom_id) \
+  ADDITIONAL_INFO(draw_modelmat_with_custom_id) \
   ADDITIONAL_INFO(overlay_select) \
   GPU_SHADER_CREATE_END() \
 \

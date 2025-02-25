@@ -13,10 +13,8 @@
 #  include "draw_shader_shared.hh"
 
 /* Define stub defines for C++ test compilation. */
-#  define DYNAMIC_RESOURCE_ID
 #  define DRAW_VIEW_CREATE_INFO
 #  define DRW_VIEW_CULLING_INFO
-#  define DRW_LEGACY_MODEL_MATRIX
 #  define USE_WORLD_CLIP_PLANES
 
 #  define drw_ModelMatrix drw_matrix_buf[resource_id].model
@@ -32,11 +30,24 @@
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
-/** \name Draw Resource ID
- * New implementation using gl_BaseInstance and storage buffers.
+/** \name Resource ID
+ * This is used to fetch per object data in drw_matrices and other object indexed buffers.
  * \{ */
 
-GPU_SHADER_CREATE_INFO(draw_resource_id_new)
+/**
+ * Used if the resource index needs to be passed to the fragment shader.
+ * IMPORTANT: Vertex shader need to write `drw_ResourceID_iface.resource_index` in main().
+ */
+GPU_SHADER_NAMED_INTERFACE_INFO(draw_resource_id_iface, drw_ResourceID_iface)
+FLAT(INT, resource_index)
+GPU_SHADER_NAMED_INTERFACE_END(drw_ResourceID_iface)
+
+GPU_SHADER_CREATE_INFO(draw_resource_id_varying)
+VERTEX_OUT(draw_resource_id_iface)
+GEOMETRY_OUT(draw_resource_id_iface)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(draw_resource_id)
 DEFINE("UNIFORM_RESOURCE_ID_NEW")
 /* TODO (Miguel Pozo): This is an int for compatibility.
  * It should become uint once the "Next" ports are complete. */
@@ -44,7 +55,7 @@ STORAGE_BUF(DRW_RESOURCE_ID_SLOT, READ, int, resource_id_buf[])
 DEFINE_VALUE("drw_ResourceID", "resource_id_buf[gpu_BaseInstance + gl_InstanceID]")
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id_new)
+GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id)
 DEFINE("UNIFORM_RESOURCE_ID_NEW")
 DEFINE("WITH_CUSTOM_IDS")
 STORAGE_BUF(DRW_RESOURCE_ID_SLOT, READ, int2, resource_id_buf[])
@@ -79,68 +90,22 @@ GPU_SHADER_CREATE_END()
 /** \name Draw Object Resources
  * \{ */
 
-GPU_SHADER_CREATE_INFO(draw_modelmat_new_common)
+GPU_SHADER_CREATE_INFO(draw_modelmat_common)
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 STORAGE_BUF(DRW_OBJ_MAT_SLOT, READ, ObjectMatrices, drw_matrix_buf[])
 DEFINE("DRAW_MODELMAT_CREATE_INFO")
-DEFINE_VALUE("drw_ModelMatrixInverse", "drw_matrix_buf[resource_id].model_inverse")
-DEFINE_VALUE("drw_ModelMatrix", "drw_matrix_buf[resource_id].model")
-/* TODO For compatibility with old shaders. To be removed. */
-DEFINE_VALUE("ModelMatrixInverse", "drw_ModelMatrixInverse")
-DEFINE_VALUE("ModelMatrix", "drw_ModelMatrix")
+DEFINE_VALUE("ModelMatrixInverse", "drw_matrix_buf[resource_id].model_inverse")
+DEFINE_VALUE("ModelMatrix", "drw_matrix_buf[resource_id].model")
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_modelmat_new_common)
-ADDITIONAL_INFO(draw_resource_id_new)
+GPU_SHADER_CREATE_INFO(draw_modelmat)
+ADDITIONAL_INFO(draw_modelmat_common)
+ADDITIONAL_INFO(draw_resource_id)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(draw_modelmat_new_with_custom_id)
-ADDITIONAL_INFO(draw_modelmat_new_common)
-ADDITIONAL_INFO(draw_resource_with_custom_id_new)
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Resource ID
- *
- * This is used to fetch per object data in drw_matrices and other object indexed
- * buffers. There is multiple possibilities depending on how we are drawing the object.
- *
- * \{ */
-
-/* Standard way. Use gpu_InstanceIndex to index the object data. */
-GPU_SHADER_CREATE_INFO(draw_resource_id)
-DEFINE("DYNAMIC_RESOURCE_ID")
-GPU_SHADER_CREATE_END()
-
-/**
- * Used if the resource index needs to be passed to the fragment shader.
- * IMPORTANT: Vertex and Geometry shaders need to use PASS_RESOURCE_ID in main().
- */
-GPU_SHADER_NAMED_INTERFACE_INFO(draw_resource_id_iface, drw_ResourceID_iface)
-FLAT(INT, resource_index)
-GPU_SHADER_NAMED_INTERFACE_END(drw_ResourceID_iface)
-
-GPU_SHADER_CREATE_INFO(draw_resource_id_varying)
-VERTEX_OUT(draw_resource_id_iface)
-GEOMETRY_OUT(draw_resource_id_iface)
-GPU_SHADER_CREATE_END() /* Used if needed. */
-
-/* Variation used when drawing multiple instances for one object. */
-GPU_SHADER_CREATE_INFO(draw_resource_id_uniform)
-DEFINE("UNIFORM_RESOURCE_ID")
-PUSH_CONSTANT(INT, drw_ResourceID)
-GPU_SHADER_CREATE_END()
-
-/**
- * Declare a resource handle that identify a unique object.
- * Requires draw_resource_id[_uniform].
- */
-GPU_SHADER_CREATE_INFO(draw_resource_handle)
-DEFINE_VALUE("resource_handle", "(drw_resourceChunk * DRW_RESOURCE_CHUNK_LEN + resource_id)")
-PUSH_CONSTANT(INT, drw_resourceChunk)
+GPU_SHADER_CREATE_INFO(draw_modelmat_with_custom_id)
+ADDITIONAL_INFO(draw_modelmat_common)
+ADDITIONAL_INFO(draw_resource_with_custom_id)
 GPU_SHADER_CREATE_END()
 
 /** \} */
@@ -162,30 +127,6 @@ DEFINE("DRW_VIEW_CULLING_INFO")
 DEFINE_VALUE("drw_view_culling", "drw_view_culling_[drw_view_id]")
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(draw_modelmat)
-UNIFORM_BUF_FREQ(DRW_OBJ_MAT_UBO_SLOT, ObjectMatrices, drw_matrices[DRW_RESOURCE_CHUNK_LEN], BATCH)
-DEFINE_VALUE("ModelMatrix", "(drw_matrices[resource_id].model)")
-DEFINE_VALUE("ModelMatrixInverse", "(drw_matrices[resource_id].model_inverse)")
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-#ifndef GPU_SHADER /* Conflicts with define for C++ shader test. */
-
-GPU_SHADER_CREATE_INFO(draw_modelmat_legacy)
-DEFINE("DRW_LEGACY_MODEL_MATRIX")
-PUSH_CONSTANT(MAT4, ModelMatrix)
-PUSH_CONSTANT(MAT4, ModelMatrixInverse)
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(draw_modelmat_instanced_attr)
-PUSH_CONSTANT(MAT4, ModelMatrix)
-PUSH_CONSTANT(MAT4, ModelMatrixInverse)
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-#endif
 
 /** \} */
 
@@ -262,7 +203,7 @@ GPU_SHADER_CREATE_END()
 
 /* Stub needs to be after all definitions to avoid conflict with legacy definitions. */
 #ifdef GPU_SHADER
-/* Make it work for both draw_resource_id_new and draw_resource_with_custom_id_new. */
+/* Make it work for both draw_resource_id and draw_resource_with_custom_id. */
 #  define drw_ResourceID vec2(resource_id_buf[gpu_BaseInstance + gl_InstanceID]).x
 #  define drw_CustomID drw_ResourceID
 #  define resource_handle drw_ResourceID

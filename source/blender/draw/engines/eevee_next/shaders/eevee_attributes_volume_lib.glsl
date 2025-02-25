@@ -7,7 +7,7 @@
 #include "draw_object_infos_info.hh"
 
 #ifdef GPU_LIBRARY_SHADER
-SHADER_LIBRARY_CREATE_INFO(draw_modelmat_new)
+SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 #endif
 
 #include "draw_model_lib.glsl"

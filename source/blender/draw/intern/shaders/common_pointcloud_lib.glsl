@@ -4,9 +4,9 @@
 
 #pragma once
 
-/* NOTE: To be used with UNIFORM_RESOURCE_ID and INSTANCED_ATTR as define. */
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
+
 #ifdef POINTCLOUD_SHADER
 #  define COMMON_POINTCLOUD_LIB
 
