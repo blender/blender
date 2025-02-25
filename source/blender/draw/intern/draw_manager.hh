@@ -84,11 +84,6 @@ class Manager {
    * This is because attribute list is arbitrary.
    */
   ObjectAttributeBuf attributes_buf;
-  /**
-   * TODO(@fclem): Remove once we get rid of old EEVEE code-base.
-   * Only here to satisfy bindings.
-   */
-  ObjectAttributeLegacyBuf attributes_buf_legacy;
 
   /**
    * Table of all View Layer attributes required by shaders, used to populate the buffer below.

@@ -121,7 +121,6 @@ void Manager::end_sync()
   infos_buf.current().push_update();
   attributes_buf.push_update();
   layer_attributes_buf.push_update();
-  attributes_buf_legacy.push_update();
 
   /* Useful for debugging the following resource finalize. But will trigger the drawing of the GPU
    * debug draw/print buffers for every frame. Not nice for performance. */
@@ -161,9 +160,6 @@ void Manager::resource_bind()
   GPU_storagebuf_bind(infos_buf.current(), DRW_OBJ_INFOS_SLOT);
   GPU_storagebuf_bind(attributes_buf, DRW_OBJ_ATTR_SLOT);
   GPU_uniformbuf_bind(layer_attributes_buf, DRW_LAYER_ATTR_UBO_SLOT);
-  /* 2 is the hardcoded location of the uniform attr UBO. */
-  /* TODO(@fclem): Remove this workaround. */
-  GPU_uniformbuf_bind(attributes_buf_legacy, 2);
 }
 
 uint64_t Manager::fingerprint_get()
