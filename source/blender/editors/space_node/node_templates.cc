@@ -819,7 +819,7 @@ static void ui_node_draw_node(
       {
         if (socket_decl->in_out == SOCK_IN) {
           ui_node_draw_input(
-              layout, C, ntree, node, node.socket_by_decl(*socket_decl), depth, nullptr);
+              layout, C, ntree, node, node.socket_by_decl(*socket_decl), depth + 1, nullptr);
         }
       }
     }
