@@ -3907,10 +3907,10 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
   /* Change negative zero to regular zero, without altering anything else. */
   value += +0.0f;
 
-  if (value == double(FLT_MAX)) {
+  if (value >= double(UI_FLOAT_VALUE_DISPLAY_MAX)) {
     but->drawstr = but->str + "inf";
   }
-  else if (value == double(-FLT_MAX)) {
+  else if (value <= double(UI_FLOAT_VALUE_DISPLAY_MIN)) {
     but->drawstr = but->str + "-inf";
   }
   else if (subtype == PROP_PERCENTAGE) {
