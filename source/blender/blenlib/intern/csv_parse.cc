@@ -6,6 +6,8 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_task.hh"
 
+#include <atomic>
+
 namespace blender::csv_parse {
 
 /**
