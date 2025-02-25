@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include <climits>
+
 #include "BLI_string.h"
 
 #include "GPU_attribute_convert.hh"
