@@ -91,7 +91,7 @@ uint *DRW_select_buffer_read(
       DRW_draw_select_id(depsgraph, region, v3d);
     }
 
-    if (select_ctx->index_drawn_len > 1) {
+    if (select_ctx->max_index_drawn_len > 1) {
       BLI_assert(region->winx == GPU_texture_width(DRW_engine_select_texture_get()) &&
                  region->winy == GPU_texture_height(DRW_engine_select_texture_get()));
 
@@ -153,8 +153,8 @@ uint *DRW_select_buffer_bitmap_from_rect(
     return nullptr;
   }
 
-  BLI_assert(select_ctx->index_drawn_len > 0);
-  const uint bitmap_len = select_ctx->index_drawn_len - 1;
+  BLI_assert(select_ctx->max_index_drawn_len > 0);
+  const uint bitmap_len = select_ctx->max_index_drawn_len - 1;
 
   BLI_bitmap *bitmap_buf = BLI_BITMAP_NEW(bitmap_len, __func__);
   const uint *buf_iter = buf;
@@ -195,8 +195,8 @@ uint *DRW_select_buffer_bitmap_from_circle(Depsgraph *depsgraph,
     return nullptr;
   }
 
-  BLI_assert(select_ctx->index_drawn_len > 0);
-  const uint bitmap_len = select_ctx->index_drawn_len - 1;
+  BLI_assert(select_ctx->max_index_drawn_len > 0);
+  const uint bitmap_len = select_ctx->max_index_drawn_len - 1;
 
   BLI_bitmap *bitmap_buf = BLI_BITMAP_NEW(bitmap_len, __func__);
   const uint *buf_iter = buf;
@@ -270,8 +270,8 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
                                 drw_select_mask_px_cb,
                                 &poly_mask_data);
 
-  BLI_assert(select_ctx->index_drawn_len > 0);
-  const uint bitmap_len = select_ctx->index_drawn_len - 1;
+  BLI_assert(select_ctx->max_index_drawn_len > 0);
+  const uint bitmap_len = select_ctx->max_index_drawn_len - 1;
 
   BLI_bitmap *bitmap_buf = BLI_BITMAP_NEW(bitmap_len, __func__);
   const uint *buf_iter = buf;
@@ -398,51 +398,38 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
  * \{ */
 
 bool DRW_select_buffer_elem_get(const uint sel_id,
-                                uint *r_elem,
-                                uint *r_base_index,
-                                char *r_elem_type)
+                                uint &r_elem,
+                                uint &r_base_index,
+                                char &r_elem_type)
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
-  char elem_type = 0;
-  uint elem_id = 0;
-  uint base_index = 0;
-
-  for (; base_index < select_ctx->objects.size(); base_index++) {
-    ObjectOffsets *base_ofs = &select_ctx->index_offsets[base_index];
-
-    if (base_ofs->face > sel_id) {
-      elem_id = sel_id - base_ofs->face_start;
-      elem_type = SCE_SELECT_FACE;
-      break;
+  for (const auto &item : select_ctx->elem_ranges.items()) {
+    const ElemIndexRanges &ranges = item.value;
+    Object *ob = item.key;
+    if (!ranges.total.contains(sel_id)) {
+      continue;
     }
-    if (base_ofs->edge > sel_id) {
-      elem_id = sel_id - base_ofs->edge_start;
-      elem_type = SCE_SELECT_EDGE;
-      break;
+    if (ranges.face.contains(sel_id)) {
+      r_elem = sel_id - ranges.face.start();
+      r_elem_type = SCE_SELECT_FACE;
+      r_base_index = select_ctx->objects.first_index_of(ob);
+      return true;
     }
-    if (base_ofs->vert > sel_id) {
-      elem_id = sel_id - base_ofs->vert_start;
-      elem_type = SCE_SELECT_VERTEX;
-      break;
+    if (ranges.edge.contains(sel_id)) {
+      r_elem = sel_id - ranges.edge.start();
+      r_elem_type = SCE_SELECT_EDGE;
+      r_base_index = select_ctx->objects.first_index_of(ob);
+      return true;
+    }
+    if (ranges.vert.contains(sel_id)) {
+      r_elem = sel_id - ranges.vert.start();
+      r_elem_type = SCE_SELECT_VERTEX;
+      r_base_index = select_ctx->objects.first_index_of(ob);
+      return true;
     }
   }
-
-  if (base_index == select_ctx->objects.size()) {
-    return false;
-  }
-
-  *r_elem = elem_id;
-
-  if (r_base_index) {
-    *r_base_index = base_index;
-  }
-
-  if (r_elem_type) {
-    *r_elem_type = elem_type;
-  }
-
-  return true;
+  return false;
 }
 
 uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
@@ -453,23 +440,17 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
 
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, object);
 
-  SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
-      &ob_eval->id, &draw_engine_select_type);
-
-  if (!sel_data) {
-    return 0;
-  }
-
-  ObjectOffsets *base_ofs = &select_ctx->index_offsets[sel_data->drawn_index];
+  const ElemIndexRanges base_ofs = select_ctx->elem_ranges.lookup_default(ob_eval,
+                                                                          ElemIndexRanges{});
 
   if (elem_type == SCE_SELECT_VERTEX) {
-    return base_ofs->vert_start;
+    return base_ofs.vert.start();
   }
   if (elem_type == SCE_SELECT_EDGE) {
-    return base_ofs->edge_start;
+    return base_ofs.edge.start();
   }
   if (elem_type == SCE_SELECT_FACE) {
-    return base_ofs->face_start;
+    return base_ofs.face.start();
   }
   BLI_assert(0);
   return 0;
@@ -488,7 +469,6 @@ void DRW_select_buffer_context_create(Depsgraph *depsgraph,
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
   select_ctx->objects.reinitialize(bases.size());
-  select_ctx->index_offsets.reinitialize(bases.size());
 
   for (const int i : bases.index_range()) {
     Object *obj = bases[i]->object;

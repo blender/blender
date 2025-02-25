@@ -249,14 +249,14 @@ void EDBM_select_mirrored(BMEditMesh *em,
 
 static BMElem *edbm_select_id_bm_elem_get(const Span<Base *> bases,
                                           const uint sel_id,
-                                          uint *r_base_index)
+                                          uint &r_base_index)
 {
   uint elem_id;
   char elem_type = 0;
-  bool success = DRW_select_buffer_elem_get(sel_id, &elem_id, r_base_index, &elem_type);
+  bool success = DRW_select_buffer_elem_get(sel_id, elem_id, r_base_index, elem_type);
 
   if (success) {
-    Object *obedit = bases[*r_base_index]->object;
+    Object *obedit = bases[r_base_index]->object;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     switch (elem_type) {
@@ -364,7 +364,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
 
       if (index) {
-        eve = (BMVert *)edbm_select_id_bm_elem_get(bases, index, &base_index);
+        eve = (BMVert *)edbm_select_id_bm_elem_get(bases, index, base_index);
       }
       else {
         eve = nullptr;
@@ -594,7 +594,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
 
       if (index) {
-        eed = (BMEdge *)edbm_select_id_bm_elem_get(bases, index, &base_index);
+        eed = (BMEdge *)edbm_select_id_bm_elem_get(bases, index, base_index);
       }
       else {
         eed = nullptr;
@@ -818,7 +818,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
       }
 
       if (index) {
-        efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, &base_index);
+        efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, base_index);
       }
       else {
         efa = nullptr;

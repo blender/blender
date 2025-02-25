@@ -8,10 +8,13 @@
  * Engine for drawing a selection map where the pixels indicate the selection indices.
  */
 
+#include "BKE_editmesh.hh"
+#include "BKE_mesh_types.hh"
 #include "BLI_math_matrix.h"
 
 #include "BLT_translation.hh"
 
+#include "DEG_depsgraph_query.hh"
 #include "ED_view3d.hh"
 
 #include "RE_engine.h"
@@ -113,6 +116,31 @@ static void select_engine_init(void *vedata)
   }
 }
 
+static short select_id_get_object_select_mode(Scene *scene, Object *ob)
+{
+  short r_select_mode = 0;
+  if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+    /* In order to sample flat colors for vertex weights / texture-paint / vertex-paint
+     * we need to be in SCE_SELECT_FACE mode so select_cache_init() correctly sets up
+     * a shgroup with select_id_flat.
+     * Note this is not working correctly for vertex-paint (yet), but has been discussed
+     * in #66645 and there is a solution by @mano-wii in P1032.
+     * So OB_MODE_VERTEX_PAINT is already included here [required for P1032 I guess]. */
+    Mesh *me_orig = static_cast<Mesh *>(DEG_get_original_object(ob)->data);
+    if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
+      r_select_mode = SCE_SELECT_VERTEX;
+    }
+    else {
+      r_select_mode = SCE_SELECT_FACE;
+    }
+  }
+  else {
+    r_select_mode = scene->toolsettings->selectmode;
+  }
+
+  return r_select_mode;
+}
+
 static void select_cache_init(void *vedata)
 {
   SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;
@@ -199,22 +227,170 @@ static void select_cache_init(void *vedata)
     }
   }
 
-  /* Create selection data. */
-  for (uint sel_id : e_data.context.objects.index_range()) {
-    Object *obj_eval = e_data.context.objects[sel_id];
-    DrawData *data = DRW_drawdata_ensure(
-        &obj_eval->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), nullptr, nullptr);
-    SELECTID_ObjectData *sel_data = reinterpret_cast<SELECTID_ObjectData *>(data);
-    sel_data->drawn_index = sel_id;
-    sel_data->in_pass = false;
-    sel_data->is_drawn = false;
-  }
+  e_data.context.elem_ranges.clear();
 
   e_data.context.persmat = float4x4(draw_ctx->rv3d->persmat);
-  e_data.context.index_drawn_len = 1;
+  e_data.context.max_index_drawn_len = 1;
   select_engine_framebuffer_setup();
   GPU_framebuffer_bind(e_data.framebuffer_select_id);
   GPU_framebuffer_clear_color_depth(e_data.framebuffer_select_id, blender::float4{0.0f}, 1.0f);
+}
+
+static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, eDrawType dt)
+{
+  if (select_mode & SCE_SELECT_FACE) {
+    if ((dt < OB_SOLID) || XRAY_FLAG_ENABLED(v3d)) {
+      return true;
+    }
+    if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) {
+      return true;
+    }
+  }
+  return false;
+}
+
+namespace blender {
+
+/* Return a new range if size `n` after `total_range` and grow `total_range` by the same amount. */
+static IndexRange alloc_range(IndexRange &total_range, uint size)
+{
+  const IndexRange indices = total_range.after(size);
+  total_range = IndexRange::from_begin_size(total_range.start(), total_range.size() + size);
+  return indices;
+}
+
+}  // namespace blender
+
+static ElemIndexRanges select_id_edit_mesh_sync(SELECTID_Instance &inst,
+                                                Object *ob,
+                                                ResourceHandle res_handle,
+                                                short select_mode,
+                                                bool draw_facedot,
+                                                const uint initial_index)
+{
+  using namespace blender::draw;
+  using namespace blender;
+  Mesh &mesh = *static_cast<Mesh *>(ob->data);
+  BMEditMesh *em = mesh.runtime->edit_mesh.get();
+
+  ElemIndexRanges ranges{};
+  ranges.total = IndexRange::from_begin_size(initial_index, 0);
+
+  BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  if (select_mode & SCE_SELECT_FACE) {
+    ranges.face = alloc_range(ranges.total, em->bm->totface);
+
+    gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
+    PassSimple::Sub *face_sub = inst.select_face_flat;
+    face_sub->push_constant("offset", int(ranges.face.start()));
+    face_sub->draw(geom_faces, res_handle);
+
+    if (draw_facedot) {
+      gpu::Batch *geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(mesh);
+      face_sub->draw(geom_facedots, res_handle);
+    }
+  }
+  else {
+    if (ob->dt >= OB_SOLID) {
+#ifdef USE_CAGE_OCCLUSION
+      gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
+#else
+      gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(mesh);
+#endif
+      inst.select_face_uniform->draw(geom_faces, res_handle);
+    }
+  }
+
+  /* Unlike faces, only draw edges if edge select mode. */
+  if (select_mode & SCE_SELECT_EDGE) {
+    ranges.edge = alloc_range(ranges.total, em->bm->totedge);
+
+    gpu::Batch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(mesh);
+    inst.select_edge->push_constant("offset", int(ranges.edge.start()));
+    inst.select_edge->draw(geom_edges, res_handle);
+  }
+
+  /* Unlike faces, only verts if vert select mode. */
+  if (select_mode & SCE_SELECT_VERTEX) {
+    ranges.vert = alloc_range(ranges.total, em->bm->totvert);
+
+    gpu::Batch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(mesh);
+    inst.select_vert->push_constant("offset", int(ranges.vert.start()));
+    inst.select_vert->draw(geom_verts, res_handle);
+  }
+  return ranges;
+}
+
+static ElemIndexRanges select_id_mesh_sync(SELECTID_Instance &inst,
+                                           Object *ob,
+                                           ResourceHandle res_handle,
+                                           short select_mode,
+                                           const uint initial_index)
+{
+  using namespace blender::draw;
+  using namespace blender;
+  Mesh &mesh = *static_cast<Mesh *>(ob->data);
+
+  ElemIndexRanges ranges{};
+  ranges.total = IndexRange::from_begin_size(initial_index, 0);
+
+  gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
+  if (select_mode & SCE_SELECT_FACE) {
+    ranges.face = alloc_range(ranges.total, mesh.faces_num);
+
+    inst.select_face_flat->push_constant("offset", int(ranges.face.start()));
+    inst.select_face_flat->draw(geom_faces, res_handle);
+  }
+  else {
+    /* Only draw faces to mask out verts, we don't want their selection ID's. */
+    inst.select_face_uniform->draw(geom_faces, res_handle);
+  }
+
+  if (select_mode & SCE_SELECT_EDGE) {
+    ranges.edge = alloc_range(ranges.total, mesh.edges_num);
+
+    gpu::Batch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(mesh);
+    inst.select_edge->push_constant("offset", int(ranges.edge.start()));
+    inst.select_edge->draw(geom_edges, res_handle);
+  }
+
+  if (select_mode & SCE_SELECT_VERTEX) {
+    ranges.vert = alloc_range(ranges.total, mesh.verts_num);
+
+    gpu::Batch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(mesh);
+    inst.select_vert->push_constant("offset", int(ranges.vert.start()));
+    inst.select_vert->draw(geom_verts, res_handle);
+  }
+
+  return ranges;
+}
+
+static ElemIndexRanges select_id_object_sync(SELECTID_Instance &inst,
+                                             View3D *v3d,
+                                             Object *ob,
+                                             ResourceHandle res_handle,
+                                             short select_mode,
+                                             uint index_start)
+{
+  BLI_assert_msg(index_start > 0, "Index 0 is reserved for no selection");
+
+  switch (ob->type) {
+    case OB_MESH: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+      if (mesh.runtime->edit_mesh) {
+        bool draw_facedot = check_ob_drawface_dot(select_mode, v3d, eDrawType(ob->dt));
+        return select_id_edit_mesh_sync(
+            inst, ob, res_handle, select_mode, draw_facedot, index_start);
+      }
+      return select_id_mesh_sync(inst, ob, res_handle, select_mode, index_start);
+    }
+    case OB_CURVES_LEGACY:
+    case OB_SURF:
+      break;
+  }
+  BLI_assert_unreachable();
+  return ElemIndexRanges{};
 }
 
 static void select_cache_populate(void *vedata, Object *ob)
@@ -222,44 +398,29 @@ static void select_cache_populate(void *vedata, Object *ob)
   Manager &manager = *DRW_manager_get();
   ObjectRef ob_ref = DRW_object_ref_get(ob);
   SelectEngineData &e_data = get_engine_data();
+  SELECTID_Context &sel_ctx = e_data.context;
   SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;
-  SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
-      &ob->id, &draw_engine_select_type);
+  const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  if (!sel_data || sel_data->is_drawn) {
-    if (sel_data) {
-      /* Remove data, object is not in array. */
-      DrawDataList *drawdata = DRW_drawdatalist_from_id(&ob->id);
-      BLI_freelinkN((ListBase *)drawdata, sel_data);
-    }
+  if (!sel_ctx.objects.contains(ob) && ob->dt >= OB_SOLID) {
+    /* This object is not selectable. It is here to participate in occlusion.
+     * This is the case in retopology mode. */
+    blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
+        *static_cast<Mesh *>(ob->data));
 
-    /* This object is not in the array. It is here to participate in the depth buffer. */
-    if (ob->dt >= OB_SOLID) {
-      blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
-          *static_cast<Mesh *>(ob->data));
-
-      inst.depth_occlude->draw(geom_faces, manager.resource_handle(ob_ref));
-    }
+    inst.depth_occlude->draw(geom_faces, manager.resource_handle(ob_ref));
+    return;
   }
-  else if (!sel_data->in_pass) {
+
+  /* Only sync selectable object once.
+   * This can happen in retopology mode where there is two sync loop. */
+  sel_ctx.elem_ranges.lookup_or_add_cb(ob, [&]() {
     ResourceHandle res_handle = manager.resource_handle(ob_ref);
-    const DRWContextState *draw_ctx = DRW_context_state_get();
-    ObjectOffsets *ob_offsets = &e_data.context.index_offsets[sel_data->drawn_index];
-    uint offset = e_data.context.index_drawn_len;
-    select_id_draw_object(inst,
-                          draw_ctx->v3d,
-                          ob,
-                          res_handle,
-                          e_data.context.select_mode,
-                          offset,
-                          &ob_offsets->vert,
-                          &ob_offsets->edge,
-                          &ob_offsets->face);
-
-    ob_offsets->offset = offset;
-    sel_data->in_pass = true;
-    e_data.context.index_drawn_len = ob_offsets->vert;
-  }
+    ElemIndexRanges elem_ranges = select_id_object_sync(
+        inst, draw_ctx->v3d, ob, res_handle, sel_ctx.select_mode, sel_ctx.max_index_drawn_len);
+    sel_ctx.max_index_drawn_len = elem_ranges.total.one_after_last();
+    return elem_ranges;
+  });
 }
 
 static void select_draw_scene(void *vedata)
@@ -296,14 +457,6 @@ static void select_draw_scene(void *vedata)
 
   if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
     manager.submit(inst.select_id_vert_ps, inst.view_verts);
-  }
-
-  /* Mark objects from the array to later identify which ones are not in the array. */
-  for (Object *obj_eval : e_data.context.objects) {
-    DrawData *data = DRW_drawdata_ensure(
-        &obj_eval->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), nullptr, nullptr);
-    SELECTID_ObjectData *sel_data = reinterpret_cast<SELECTID_ObjectData *>(data);
-    sel_data->is_drawn = true;
   }
 }
 

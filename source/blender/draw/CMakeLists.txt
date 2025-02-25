@@ -142,7 +142,6 @@ set(SRC
   engines/gpencil/gpencil_render.cc
   engines/gpencil/gpencil_shader_c.cc
   engines/gpencil/gpencil_shader_fx.cc
-  engines/select/select_draw_utils.cc
   engines/select/select_engine.cc
   engines/select/select_instance.cc
   engines/overlay/overlay_armature.cc

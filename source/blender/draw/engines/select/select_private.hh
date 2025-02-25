@@ -15,6 +15,7 @@
 #include "draw_view_data.hh"
 
 #include "DRW_render.hh"
+#include "DRW_select_buffer.hh"
 
 using namespace blender::draw;
 
@@ -56,16 +57,3 @@ struct SELECTID_Shaders {
   GPUShader *select_id_flat;
   GPUShader *select_id_uniform;
 };
-
-/* `select_draw_utils.cc` */
-
-short select_id_get_object_select_mode(Scene *scene, Object *ob);
-void select_id_draw_object(SELECTID_Instance &inst,
-                           View3D *v3d,
-                           Object *ob,
-                           ResourceHandle res_handle,
-                           short select_mode,
-                           uint initial_offset,
-                           uint *r_vert_offset,
-                           uint *r_edge_offset,
-                           uint *r_face_offset);

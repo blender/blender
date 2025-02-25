@@ -2477,7 +2477,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
   if (!viewport) {
     /* Selection engine requires a viewport.
      * TODO(@germano): This should be done internally in the engine. */
-    sel_ctx->index_drawn_len = 1;
+    sel_ctx->max_index_drawn_len = 1;
     return;
   }
 
