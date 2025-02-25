@@ -425,6 +425,7 @@ void Instance::begin_sync()
     layer.names.begin_sync(resources, state);
     layer.paints.begin_sync(resources, state);
     layer.particles.begin_sync(resources, state);
+    layer.pointclouds.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync(resources, state);
     layer.speakers.begin_sync(resources, state);
@@ -515,6 +516,9 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         break;
       case OB_MBALL:
         layer.metaballs.edit_object_sync(manager, ob_ref, resources, state);
+        break;
+      case OB_POINTCLOUD:
+        layer.pointclouds.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_FONT:
         layer.edit_text.edit_object_sync(manager, ob_ref, resources, state);
@@ -673,6 +677,7 @@ void Instance::draw(Manager &manager)
       layer.lattices.pre_draw(manager, view);
       layer.light_probes.pre_draw(manager, view);
       layer.particles.pre_draw(manager, view);
+      layer.pointclouds.pre_draw(manager, view);
       layer.prepass.pre_draw(manager, view);
       layer.wireframe.pre_draw(manager, view);
     };
@@ -760,6 +765,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
     layer.speakers.draw_line(framebuffer, manager, view);
     layer.lattices.draw_line(framebuffer, manager, view);
     layer.metaballs.draw_line(framebuffer, manager, view);
+    layer.pointclouds.draw_line(framebuffer, manager, view);
     layer.relations.draw_line(framebuffer, manager, view);
     layer.fluids.draw_line(framebuffer, manager, view);
     layer.particles.draw_line(framebuffer, manager, view);

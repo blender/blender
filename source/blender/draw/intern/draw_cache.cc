@@ -433,6 +433,15 @@ blender::gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 /** \name PointCloud
  * \{ */
 
+blender::gpu::Batch *DRW_cache_pointcloud_vert_overlay_get(Object *ob)
+{
+  using namespace blender::draw;
+  BLI_assert(ob->type == OB_POINTCLOUD);
+
+  PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
+  return DRW_pointcloud_batch_cache_get_edit_dots(pointcloud);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

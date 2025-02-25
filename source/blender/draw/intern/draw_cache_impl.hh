@@ -155,6 +155,7 @@ gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob);
 
 gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name);
 blender::gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob);
+blender::gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(PointCloud *pointcloud);
 
 void DRW_pointcloud_batch_cache_create_requested(Object *ob);
 

@@ -40,6 +40,7 @@
 #include "overlay_next_outline.hh"
 #include "overlay_next_paint.hh"
 #include "overlay_next_particle.hh"
+#include "overlay_next_pointcloud.hh"
 #include "overlay_next_prepass.hh"
 #include "overlay_next_relation.hh"
 #include "overlay_next_sculpt.hh"
@@ -103,6 +104,7 @@ class Instance {
     Names names;
     Paints paints;
     Particles particles;
+    PointClouds pointclouds;
     Prepass prepass;
     Relations relations = {selection_type_};
     Sculpts sculpts;

@@ -102,6 +102,10 @@ blender::gpu::Batch *DRW_cache_lattice_verts_get(Object *ob);
 blender::gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight);
 blender::gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob);
 
+/* Point Cloud */
+
+blender::gpu::Batch *DRW_cache_pointcloud_vert_overlay_get(Object *ob);
+
 /* Particles */
 
 blender::gpu::Batch *DRW_cache_particles_get_hair(Object *object,
