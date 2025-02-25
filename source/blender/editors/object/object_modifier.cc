@@ -1012,7 +1012,13 @@ static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
     Map<const LayerGroup *, TreeNode *> last_node_by_group;
     /* Set of orig layers that require the drawing on `eval_frame` to be cleared. These are layers
      * that existed in original geometry but were removed during the modifier evaluation. */
-    Set<Layer *> orig_layers_to_clear(orig_grease_pencil.layers_for_write());
+    Set<Layer *> orig_layers_to_clear;
+    for (Layer *layer : orig_grease_pencil.layers_for_write()) {
+      /* Only allow clearing a layer if it is visible. */
+      if (layer->is_visible()) {
+        orig_layers_to_clear.add(layer);
+      }
+    }
     for (const TreeNode *node_eval : merged_layers_grease_pencil.nodes()) {
       /* Check if the original geometry has a layer with the same name. */
       TreeNode *node_orig = orig_grease_pencil.find_node_by_name(node_eval->name());
