@@ -14,8 +14,7 @@ void main()
 {
   finalColor = colorVertexSelect;
 
-  /* The radius is pre-multiplied. */
-  float radius = pos_rad.w * 0.01;
+  float radius = pos_rad.w;
   vec3 world_pos = drw_point_object_to_world(pos_rad.xyz);
   vec3 V = drw_world_incident_vector(world_pos);
 

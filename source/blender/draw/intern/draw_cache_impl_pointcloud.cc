@@ -283,8 +283,7 @@ static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
         vbo_data[i].x = positions[i].x;
         vbo_data[i].y = positions[i].y;
         vbo_data[i].z = positions[i].z;
-        /* TODO(fclem): remove multiplication. Here only for keeping the size correct for now. */
-        vbo_data[i].w = radii_span[i] * 100.0f;
+        vbo_data[i].w = radii_span[i];
       }
     });
   }
@@ -294,7 +293,7 @@ static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
         vbo_data[i].x = positions[i].x;
         vbo_data[i].y = positions[i].y;
         vbo_data[i].z = positions[i].z;
-        vbo_data[i].w = 1.0f;
+        vbo_data[i].w = 0.01f;
       }
     });
   }
