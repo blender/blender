@@ -192,7 +192,7 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
       return MAT_GEOM_CURVES;
     case OB_VOLUME:
       return MAT_GEOM_VOLUME;
-    case OB_GPENCIL_LEGACY:
+    case OB_GREASE_PENCIL:
       return MAT_GEOM_GPENCIL;
     case OB_POINTCLOUD:
       return MAT_GEOM_POINTCLOUD;

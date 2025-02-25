@@ -297,39 +297,6 @@ void gpencil_point_to_xy(
   }
 }
 
-void ED_gpencil_drawing_reference_get(const Scene *scene,
-                                      const Object *ob,
-                                      char align_flag,
-                                      float r_vec[3])
-{
-  const float *fp = scene->cursor.location;
-
-  /* if using a gpencil object at cursor mode, can use the location of the object */
-  if (align_flag & GP_PROJECT_VIEWSPACE) {
-    if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
-      /* fallback (no strokes) - use cursor or object location */
-      if (align_flag & GP_PROJECT_CURSOR) {
-        /* use 3D-cursor */
-        copy_v3_v3(r_vec, fp);
-      }
-      else {
-        /* use object location */
-        copy_v3_v3(r_vec, ob->object_to_world().location());
-        /* Apply layer offset. */
-        bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-        bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
-        if (gpl != nullptr) {
-          add_v3_v3(r_vec, gpl->layer_mat[3]);
-        }
-      }
-    }
-  }
-  else {
-    /* use 3D-cursor */
-    copy_v3_v3(r_vec, fp);
-  }
-}
-
 /**
  * Helper to convert 2d to 3d for simple drawing buffer.
  */

@@ -579,7 +579,7 @@ static void get_stats_string(char *info,
     *ofs += BLI_snprintf_rlen(
         info + *ofs, len - *ofs, IFACE_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
   }
-  else if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
+  else if ((ob) && (ob->type == OB_GREASE_PENCIL)) {
     *ofs += BLI_snprintf_rlen(info + *ofs,
                               len - *ofs,
 

@@ -339,10 +339,6 @@ Material ***BKE_object_material_array_p(Object *ob)
     MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->mat);
   }
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-    return &(gpd->mat);
-  }
   if (ob->type == OB_CURVES) {
     Curves *curves = static_cast<Curves *>(ob->data);
     return &(curves->mat);
@@ -375,10 +371,6 @@ short *BKE_object_material_len_p(Object *ob)
   if (ob->type == OB_MBALL) {
     MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->totcol);
-  }
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-    return &(gpd->totcol);
   }
   if (ob->type == OB_CURVES) {
     Curves *curves = static_cast<Curves *>(ob->data);

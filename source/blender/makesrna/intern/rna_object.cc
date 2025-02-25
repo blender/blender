@@ -234,8 +234,7 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
-    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
-    {OB_GREASE_PENCIL, "GREASEPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil v3", ""},
+    {OB_GREASE_PENCIL, "GREASEPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
     RNA_ENUM_ITEM_SEPR,
     {OB_ARMATURE, "ARMATURE", ICON_OUTLINER_OB_ARMATURE, "Armature", ""},
     {OB_LATTICE, "LATTICE", ICON_OUTLINER_OB_LATTICE, "Lattice", ""},
@@ -293,6 +292,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
 #  include "DNA_gpencil_legacy_types.h"
+#  include "DNA_grease_pencil_types.h"
 #  include "DNA_key_types.h"
 #  include "DNA_lattice_types.h"
 #  include "DNA_material_types.h"
@@ -373,21 +373,12 @@ static void rna_Object_duplicator_visibility_flag_update(Main * /*bmain*/,
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-static void rna_MaterialIndex_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+static void rna_grease_pencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  if (ob && ob->type == OB_GPENCIL_LEGACY) {
-    /* Notifying material property in top-bar. */
-    WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
-  }
-}
-
-static void rna_GPencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
-{
-  Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  if (ob && ob->type == OB_GPENCIL_LEGACY) {
-    bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  if (ob && ob->type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
   }
 }
@@ -619,19 +610,6 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
     default:
       return &RNA_ID;
   }
-}
-
-static bool rna_Object_data_poll(PointerRNA *ptr, const PointerRNA value)
-{
-  Object *ob = static_cast<Object *>(ptr->data);
-
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    /* GP Object - Don't allow using "Annotation" GP datablocks here */
-    bGPdata *gpd = static_cast<bGPdata *>(value.data);
-    return (gpd->flag & GP_DATA_ANNOTATIONS) == 0;
-  }
-
-  return true;
 }
 
 static void rna_Object_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -1143,11 +1121,6 @@ static void rna_Object_active_material_set(PointerRNA *ptr,
   BLI_assert(BKE_id_is_in_global_main(static_cast<ID *>(value.data)));
   BKE_object_material_assign(
       G_MAIN, ob, static_cast<Material *>(value.data), ob->actcol, BKE_MAT_ASSIGN_EXISTING);
-
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    /* Notifying material property in top-bar. */
-    WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
-  }
 }
 
 static int rna_Object_active_material_editable(const PointerRNA *ptr, const char ** /*r_info*/)
@@ -1384,7 +1357,7 @@ static bool rna_MaterialSlot_material_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   Material *ma = static_cast<Material *>(value.data);
 
-  if (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
+  if (ELEM(ob->type, OB_GREASE_PENCIL)) {
     /* GP Materials only */
     return (ma->gp_style != nullptr);
   }
@@ -2082,11 +2055,6 @@ bool rna_Camera_object_poll(PointerRNA * /*ptr*/, PointerRNA value)
 bool rna_Light_object_poll(PointerRNA * /*ptr*/, PointerRNA value)
 {
   return (reinterpret_cast<Object *>(value.owner_id))->type == OB_LAMP;
-}
-
-bool rna_GPencil_object_poll(PointerRNA * /*ptr*/, PointerRNA value)
-{
-  return (reinterpret_cast<Object *>(value.owner_id))->type == OB_GPENCIL_LEGACY;
 }
 
 bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
@@ -2922,11 +2890,8 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
-  RNA_def_property_pointer_funcs(prop,
-                                 "rna_Object_data_get",
-                                 "rna_Object_data_set",
-                                 "rna_Object_data_typef",
-                                 "rna_Object_data_poll");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_Object_data_get", "rna_Object_data_set", "rna_Object_data_typef", nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Data", "Object data");
   RNA_def_property_update(prop, 0, "rna_Object_data_update");
@@ -3059,7 +3024,7 @@ static void rna_def_object(BlenderRNA *brna)
                              "rna_Object_active_material_index_set",
                              "rna_Object_active_material_index_range");
   RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot");
-  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, "rna_MaterialIndex_update");
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
 
   /* transform */
   prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
@@ -3541,7 +3506,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "dtx", OB_USE_GPENCIL_LIGHTS);
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Use Lights", "Lights affect Grease Pencil object");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_GPencil_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_grease_pencil_update");
 
   prop = RNA_def_property(srna, "show_transparent", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dtx", OB_DRAWTRANSP);
@@ -3552,7 +3517,7 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_in_front", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dtx", OB_DRAW_IN_FRONT);
   RNA_def_property_ui_text(prop, "In Front", "Make the object display in front of others");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_GPencil_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_grease_pencil_update");
 
   /* pose */
   prop = RNA_def_property(srna, "pose", PROP_POINTER, PROP_NONE);
