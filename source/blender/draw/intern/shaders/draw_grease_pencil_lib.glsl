@@ -6,7 +6,7 @@
 
 #include "draw_object_infos_info.hh"
 
-SHADER_LIBRARY_CREATE_INFO(draw_gpencil_new)
+SHADER_LIBRARY_CREATE_INFO(draw_gpencil)
 
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"

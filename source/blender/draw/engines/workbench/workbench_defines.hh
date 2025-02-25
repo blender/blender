@@ -7,7 +7,7 @@
 /* Resources bind slots. */
 
 /* Textures. */
-/* Slot 0 is reserved by draw_hair_new. */
+/* Slot 0 is reserved by draw_hair. */
 #define WB_MATCAP_SLOT 1
 #define WB_TEXTURE_SLOT 2
 #define WB_TILE_ARRAY_SLOT 3

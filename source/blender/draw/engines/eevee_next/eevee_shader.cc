@@ -469,7 +469,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
 
   /* WORKAROUND: Add new ob attr buffer. */
   if (GPU_material_uniform_attributes(gpumat) != nullptr) {
-    info.additional_info("draw_object_attribute_new");
+    info.additional_info("draw_object_attributes");
 
     /* Search and remove the old object attribute UBO which would creating bind point collision. */
     for (auto &resource_info : info.batch_resources_) {
@@ -772,8 +772,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         frag_gen << "return 0.0;\n";
       }
       else {
-        if (info.additional_infos_.first_index_of_try("draw_object_infos_new") == -1) {
-          info.additional_info("draw_object_infos_new");
+        if (info.additional_infos_.first_index_of_try("draw_object_infos") == -1) {
+          info.additional_info("draw_object_infos");
         }
         /* TODO(fclem): Should use `to_scale` but the gpu_shader_math_matrix_lib.glsl isn't
          * included everywhere yet. */

@@ -43,7 +43,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(workbench_volume)
 SAMPLER(6, UINT_2D, stencil_tx)
 ADDITIONAL_INFO(workbench_volume_common)
-ADDITIONAL_INFO(draw_object_infos_new)
+ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 /** \} */
@@ -74,7 +74,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_object)
 ADDITIONAL_INFO(workbench_volume_object_common)
-ADDITIONAL_INFO(draw_volume_new)
+ADDITIONAL_INFO(draw_volume)
 GPU_SHADER_CREATE_END()
 
 /** \} */

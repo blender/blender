@@ -51,14 +51,14 @@ PUSH_CONSTANT(INT, emitter_object_id)
 VERTEX_SOURCE("workbench_prepass_hair_vert.glsl")
 ADDITIONAL_INFO(draw_modelmat_new_with_custom_id)
 ADDITIONAL_INFO(draw_resource_handle_new)
-ADDITIONAL_INFO(draw_hair_new)
+ADDITIONAL_INFO(draw_hair)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_pointcloud)
 VERTEX_SOURCE("workbench_prepass_pointcloud_vert.glsl")
 ADDITIONAL_INFO(draw_modelmat_new_with_custom_id)
 ADDITIONAL_INFO(draw_resource_handle_new)
-ADDITIONAL_INFO(draw_pointcloud_new)
+ADDITIONAL_INFO(draw_pointcloud)
 GPU_SHADER_CREATE_END()
 
 /** \} */

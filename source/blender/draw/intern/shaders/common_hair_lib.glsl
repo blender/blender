@@ -80,7 +80,7 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
 float hair_get_local_time()
 {
 #  ifdef GPU_VERTEX_SHADER
-  VERTEX_SHADER_CREATE_INFO(draw_hair_new)
+  VERTEX_SHADER_CREATE_INFO(draw_hair)
   return float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
 #  elif defined(GPU_COMPUTE_SHADER)
   COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
@@ -93,7 +93,7 @@ float hair_get_local_time()
 int hair_get_id()
 {
 #  ifdef GPU_VERTEX_SHADER
-  VERTEX_SHADER_CREATE_INFO(draw_hair_new)
+  VERTEX_SHADER_CREATE_INFO(draw_hair)
   return gl_VertexID / hairStrandsRes;
 #  elif defined(GPU_COMPUTE_SHADER)
   COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
@@ -151,7 +151,7 @@ void hair_get_interp_attrs(
  */
 
 #  if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
-VERTEX_SHADER_CREATE_INFO(draw_hair_new)
+VERTEX_SHADER_CREATE_INFO(draw_hair)
 
 int hair_get_strand_id()
 {

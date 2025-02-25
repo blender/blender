@@ -315,7 +315,7 @@ PUSH_CONSTANT(INT, visibility_word_per_draw)
 COMPUTE_SOURCE("eevee_shadow_visibility_comp.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_view_culling)
-ADDITIONAL_INFO(draw_object_infos_new)
+ADDITIONAL_INFO(draw_object_infos)
 GPU_SHADER_CREATE_END()
 
 /** \} */

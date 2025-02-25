@@ -33,7 +33,7 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat_new)
 ADDITIONAL_INFO(draw_resource_handle_new)
 ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(draw_hair_new)
+ADDITIONAL_INFO(draw_hair)
 GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_CLIP_VARIATION(overlay_sculpt_curves_selection)
