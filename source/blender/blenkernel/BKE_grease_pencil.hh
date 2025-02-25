@@ -424,6 +424,10 @@ class LayerRuntime {
   /* Runtime data used for frame transformations. */
   LayerTransformData trans_data_;
 
+  /* Whether this layer's visibility is animated (via the ".hide" RNA property). This is only set
+   * when creating a copy of of the owning GreasePencil ID for the depsgraph evaluation. */
+  bool is_visisbility_animated_;
+
  public:
   /* Reset all runtime data. */
   void clear();
