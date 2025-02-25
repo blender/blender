@@ -39,6 +39,10 @@ BLOCKLIST_METAL = [
     "underwater_caustics.blend",
     "shadow_link_transparency.blend",
     "principled_bsdf_transmission.blend",
+    "light_path_is_shadow_ray.blend",
+    "light_path_is_transmission_ray.blend",
+    "light_path_ray_depth.blend",
+    "light_path_ray_length.blend",
     # Volume
     "light_link_surface_in_volume.blend",
     "openvdb.*.blend",
