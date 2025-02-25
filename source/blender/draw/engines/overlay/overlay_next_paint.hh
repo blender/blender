@@ -35,12 +35,17 @@ class Paints : Overlay {
   PassSimple::Sub *paint_region_vert_ps_ = nullptr;
 
   PassSimple weight_ps_ = {"weight_ps_"};
+  /* Used when there's not a valid pre-pass (depth <=). */
+  PassSimple::Sub *weight_opaque_ps_ = nullptr;
+  /* Used when there's a valid pre-pass (depth ==). */
+  PassSimple::Sub *weight_masked_transparency_ps_ = nullptr;
   /* Black and white mask overlayed on top of mesh to preview painting influence. */
   PassSimple paint_mask_ps_ = {"paint_mask_ps_"};
 
   bool show_weight_ = false;
   bool show_wires_ = false;
   bool show_paint_mask_ = false;
+  bool masked_transparency_support_ = false;
 
  public:
   void begin_sync(Resources &res, const State &state) final
@@ -95,30 +100,35 @@ class Paints : Overlay {
       /* Support masked transparency in Workbench.
        * EEVEE can't be supported since depth won't match. */
       const eDrawType shading_type = eDrawType(state.v3d->shading.type);
-      const bool masked_transparency_support = ((shading_type == OB_SOLID) ||
-                                                (shading_type >= OB_SOLID &&
-                                                 BKE_scene_uses_blender_workbench(state.scene))) &&
-                                               !state.xray_enabled;
+      masked_transparency_support_ = ((shading_type == OB_SOLID) ||
+                                      (shading_type >= OB_SOLID &&
+                                       BKE_scene_uses_blender_workbench(state.scene))) &&
+                                     !state.xray_enabled;
       const bool shadeless = shading_type == OB_WIRE;
       const bool draw_contours = state.overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS;
 
       auto &pass = weight_ps_;
-      pass.state_set(DRW_STATE_WRITE_COLOR |
-                         (masked_transparency_support ?
-                              (DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA) :
-                              (DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH)),
-                     state.clipping_plane_count);
-      pass.shader_set(shadeless ? res.shaders.paint_weight.get() :
-                                  res.shaders.paint_weight_fake_shading.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.bind_texture("colorramp", &res.weight_ramp_tx);
-      pass.push_constant("drawContours", draw_contours);
-      pass.push_constant("opacity", state.overlay.weight_paint_mode_opacity);
-      if (!shadeless) {
-        /* Arbitrary light to give a hint of the geometry behind the weights. */
-        pass.push_constant("light_dir", math::normalize(float3(0.0f, 0.5f, 0.86602f)));
-      }
+      auto weight_subpass = [&](const char *name, DRWState drw_state) {
+        auto &sub = pass.sub(name);
+        sub.state_set(drw_state, state.clipping_plane_count);
+        sub.shader_set(shadeless ? res.shaders.paint_weight.get() :
+                                   res.shaders.paint_weight_fake_shading.get());
+        sub.bind_texture("colorramp", &res.weight_ramp_tx);
+        sub.push_constant("drawContours", draw_contours);
+        sub.push_constant("opacity", state.overlay.weight_paint_mode_opacity);
+        if (!shadeless) {
+          /* Arbitrary light to give a hint of the geometry behind the weights. */
+          sub.push_constant("light_dir", math::normalize(float3(0.0f, 0.5f, 0.86602f)));
+        }
+        return &sub;
+      };
+      weight_opaque_ps_ = weight_subpass(
+          "Opaque", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH);
+      weight_masked_transparency_ps_ = weight_subpass(
+          "Masked Transparency",
+          DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA);
     }
 
     if (state.ctx_mode == CTX_MODE_PAINT_TEXTURE) {
@@ -187,7 +197,12 @@ class Paints : Overlay {
     switch (state.ctx_mode) {
       case CTX_MODE_PAINT_WEIGHT: {
         gpu::Batch *geom = DRW_cache_mesh_surface_weights_get(ob_ref.object);
-        weight_ps_.draw(geom, manager.unique_handle(ob_ref));
+        if (masked_transparency_support_ && ob_ref.object->dt >= OB_SOLID) {
+          weight_masked_transparency_ps_->draw(geom, manager.unique_handle(ob_ref));
+        }
+        else {
+          weight_opaque_ps_->draw(geom, manager.unique_handle(ob_ref));
+        }
         break;
       }
       case CTX_MODE_PAINT_VERTEX: {
