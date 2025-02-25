@@ -741,9 +741,6 @@ void WM_global_report(eReportType type, const char *message);
  */
 void WM_global_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
 
-wmEvent *WM_event_add_ex(wmWindow *win,
-                         const wmEvent *event_to_add,
-                         const wmEvent *event_to_add_after) ATTR_NONNULL(1, 2);
 wmEvent *WM_event_add(wmWindow *win, const wmEvent *event_to_add) ATTR_NONNULL(1, 2);
 
 void wm_event_init_from_window(wmWindow *win, wmEvent *event);

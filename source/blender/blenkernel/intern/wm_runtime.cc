@@ -29,4 +29,10 @@ WindowManagerRuntime::~WindowManagerRuntime()
   }
 }
 
+WindowRuntime::~WindowRuntime()
+{
+  /** The event_queue should be freed when the window is freed. */
+  BLI_assert(BLI_listbase_is_empty(&this->event_queue));
+}
+
 }  // namespace blender::bke

@@ -291,6 +291,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   BKE_workspace_instance_hook_free(G_MAIN, win->workspace_hook);
   MEM_freeN(win->stereo3d_format);
 
+  MEM_delete(win->runtime);
   MEM_freeN(win);
 }
 
@@ -317,6 +318,7 @@ wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent
   win->parent = (!dialog && parent && parent->parent) ? parent->parent : parent;
   win->stereo3d_format = MEM_callocN<Stereo3dFormat>("Stereo 3D Format (window)");
   win->workspace_hook = BKE_workspace_instance_hook_create(bmain, win->winid);
+  win->runtime = MEM_new<blender::bke::WindowRuntime>(__func__);
 
   return win;
 }
@@ -2383,7 +2385,7 @@ void WM_event_timer_remove(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *tim
   }
   /* There might be events in queue with this timer as customdata. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmEvent *, event, &win->event_queue) {
+    LISTBASE_FOREACH (wmEvent *, event, &win->runtime->event_queue) {
       if (event->customdata == timer) {
         event->customdata = nullptr;
         event->type = EVENT_NONE; /* Timer users customdata, don't want `nullptr == nullptr`. */

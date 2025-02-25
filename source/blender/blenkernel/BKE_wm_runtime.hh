@@ -37,4 +37,12 @@ struct WindowManagerRuntime {
   ~WindowManagerRuntime();
 };
 
+struct WindowRuntime {
+  /** All events #wmEvent (ghost level events were handled). */
+  ListBase event_queue = {nullptr, nullptr};
+
+  WindowRuntime() = default;
+  ~WindowRuntime();
+};
+
 }  // namespace blender::bke

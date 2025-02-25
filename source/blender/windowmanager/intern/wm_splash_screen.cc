@@ -248,7 +248,7 @@ static void wm_block_splash_close_on_fileselect(bContext *C, void *arg1, void * 
 
   /* Check for the event as this will run before the new window/area has been created. */
   bool has_fileselect = false;
-  LISTBASE_FOREACH (const wmEvent *, event, &win->event_queue) {
+  LISTBASE_FOREACH (const wmEvent *, event, &win->runtime->event_queue) {
     if (event->type == EVT_FILESELECT) {
       has_fileselect = true;
       break;

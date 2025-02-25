@@ -177,28 +177,19 @@ static bool screen_temp_region_exists(const ARegion *region)
 /** \name Event Management
  * \{ */
 
-wmEvent *WM_event_add_ex(wmWindow *win,
-                         const wmEvent *event_to_add,
-                         const wmEvent *event_to_add_after)
+static wmEvent *wm_event_add_intern(wmWindow *win, const wmEvent *event_to_add)
 {
   wmEvent *event = MEM_callocN<wmEvent>(__func__);
 
   *event = *event_to_add;
 
-  if (event_to_add_after == nullptr) {
-    BLI_addtail(&win->event_queue, event);
-  }
-  else {
-    /* NOTE: strictly speaking this breaks const-correctness,
-     * however we're only changing 'next' member. */
-    BLI_insertlinkafter(&win->event_queue, (void *)event_to_add_after, event);
-  }
+  BLI_addtail(&win->runtime->event_queue, event);
   return event;
 }
 
 wmEvent *WM_event_add(wmWindow *win, const wmEvent *event_to_add)
 {
-  return WM_event_add_ex(win, event_to_add, nullptr);
+  return wm_event_add_intern(win, event_to_add);
 }
 
 wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
@@ -305,7 +296,7 @@ static void wm_event_free_last_handled(wmWindow *win, wmEvent *event)
 
 static void wm_event_free_last(wmWindow *win)
 {
-  wmEvent *event = static_cast<wmEvent *>(BLI_poptail(&win->event_queue));
+  wmEvent *event = static_cast<wmEvent *>(BLI_poptail(&win->runtime->event_queue));
   if (event != nullptr) {
     wm_event_free(event);
   }
@@ -313,7 +304,7 @@ static void wm_event_free_last(wmWindow *win)
 
 void wm_event_free_all(wmWindow *win)
 {
-  while (wmEvent *event = static_cast<wmEvent *>(BLI_pophead(&win->event_queue))) {
+  while (wmEvent *event = static_cast<wmEvent *>(BLI_pophead(&win->runtime->event_queue))) {
     wm_event_free(event);
   }
 }
@@ -3909,7 +3900,7 @@ static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
 {
   LISTBASE_FOREACH (wmWindowManager *, wm, &G_MAIN->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      if (BLI_remlink_safe(&win->event_queue, event)) {
+      if (BLI_remlink_safe(&win->runtime->event_queue, event)) {
         wm_event_free(event);
         return;
       }
@@ -4067,7 +4058,7 @@ void wm_event_do_handlers(bContext *C)
     }
 
     wmEvent *event;
-    while ((event = static_cast<wmEvent *>(win->event_queue.first))) {
+    while ((event = static_cast<wmEvent *>(win->runtime->event_queue.first))) {
       eHandlerActionFlag action = WM_HANDLER_CONTINUE;
 
       /* Force handling drag if a key is pressed even if the drag threshold has not been met.
@@ -4119,7 +4110,7 @@ void wm_event_do_handlers(bContext *C)
         if (!ISMOUSE_MOTION(event->type)) {
           CLOG_INFO(WM_LOG_HANDLERS, 1, "event filtered due to pie button pressed");
         }
-        BLI_remlink(&win->event_queue, event);
+        BLI_remlink(&win->runtime->event_queue, event);
         wm_event_free_last_handled(win, event);
         continue;
       }
@@ -4129,7 +4120,7 @@ void wm_event_do_handlers(bContext *C)
 #ifdef WITH_XR_OPENXR
       if (event->type == EVT_XR_ACTION) {
         wm_event_handle_xrevent(C, wm, win, event);
-        BLI_remlink(&win->event_queue, event);
+        BLI_remlink(&win->runtime->event_queue, event);
         wm_event_free_last_handled(win, event);
         /* Skip mouse event handling below, which is unnecessary for XR events. */
         continue;
@@ -4275,7 +4266,7 @@ void wm_event_do_handlers(bContext *C)
       copy_v2_v2_int(win->eventstate->prev_xy, event->xy);
 
       /* Un-link and free here, Blender-quit then frees all. */
-      BLI_remlink(&win->event_queue, event);
+      BLI_remlink(&win->runtime->event_queue, event);
       wm_event_free_last_handled(win, event);
     }
 
@@ -4288,7 +4279,7 @@ void wm_event_do_handlers(bContext *C)
       tevent.prev_xy[0] = tevent.xy[0];
       tevent.prev_xy[1] = tevent.xy[1];
       tevent.flag = (eWM_EventFlag)0;
-      WM_event_add(win, &tevent);
+      wm_event_add_intern(win, &tevent);
       win->addmousemove = 0;
     }
 
@@ -5575,7 +5566,7 @@ static void wm_event_prev_click_set(uint64_t event_time_ms,
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 {
-  wmEvent *event_last = static_cast<wmEvent *>(win->event_queue.last);
+  wmEvent *event_last = static_cast<wmEvent *>(win->runtime->event_queue.last);
 
   /* Some painting operators want accurate mouse events, they can
    * handle in between mouse move moves, others can happily ignore
@@ -5585,7 +5576,7 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
     event_last->flag = (eWM_EventFlag)0;
   }
 
-  wmEvent *event_new = WM_event_add(win, event);
+  wmEvent *event_new = wm_event_add_intern(win, event);
   if (event_last == nullptr) {
     event_last = win->eventstate;
   }
@@ -5618,9 +5609,9 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
   tevent.val = KM_NOTHING;
   copy_v2_v2_int(tevent.prev_xy, tevent.xy);
 
-  wmEvent *event_new = WM_event_add(win, &tevent);
-  BLI_remlink(&win->event_queue, event_new);
-  BLI_addhead(&win->event_queue, event_new);
+  wmEvent *event_new = wm_event_add_intern(win, &tevent);
+  BLI_remlink(&win->runtime->event_queue, event_new);
+  BLI_addhead(&win->runtime->event_queue, event_new);
 
   copy_v2_v2_int(event_new->prev_xy, event_last->xy);
   return event_new;
@@ -5630,7 +5621,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 {
   /* Ignore in between trackpad events for performance, we only need high accuracy
    * for painting with mouse moves, for navigation using the accumulated value is ok. */
-  const wmEvent *event_last = static_cast<wmEvent *>(win->event_queue.last);
+  const wmEvent *event_last = static_cast<wmEvent *>(win->runtime->event_queue.last);
   if (event_last && event_last->type == event->type) {
     deltax += event_last->xy[0] - event_last->prev_xy[0];
     deltay += event_last->xy[1] - event_last->prev_xy[1];
@@ -5639,7 +5630,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
   }
 
   /* Set prev_xy, the delta is computed from this in operators. */
-  wmEvent *event_new = WM_event_add(win, event);
+  wmEvent *event_new = wm_event_add_intern(win, event);
   event_new->prev_xy[0] = event_new->xy[0] - deltax;
   event_new->prev_xy[1] = event_new->xy[1] - deltay;
 
@@ -5735,7 +5726,7 @@ static bool wm_event_is_same_key_press(const wmEvent &event_a, const wmEvent &ev
  */
 static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &event)
 {
-  if (BLI_listbase_is_empty(&win->event_queue)) {
+  if (BLI_listbase_is_empty(&win->runtime->event_queue)) {
     /* If the queue is empty never ignore the event.
      * Empty queue at this point means that the events are handled fast enough, and there is no
      * reason to ignore anything. */
@@ -5752,7 +5743,7 @@ static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &
     return false;
   }
 
-  const wmEvent &last_event = *static_cast<const wmEvent *>(win->event_queue.last);
+  const wmEvent &last_event = *static_cast<const wmEvent *>(win->runtime->event_queue.last);
 
   return wm_event_is_same_key_press(last_event, event);
 }
@@ -5964,10 +5955,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
         event_other.val = event.val;
         event_other.tablet = event.tablet;
 
-        WM_event_add(win_other, &event_other);
+        wm_event_add_intern(win_other, &event_other);
       }
       else {
-        WM_event_add(win, &event);
+        wm_event_add_intern(win, &event);
       }
 
       break;
@@ -6132,7 +6123,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       }
 
       if (!wm_event_is_ignorable_key_press(win, event)) {
-        WM_event_add(win, &event);
+        wm_event_add_intern(win, &event);
       }
 
       break;
@@ -6162,7 +6153,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
        * instead of generating multiple events. */
       event.val = KM_PRESS;
       for (int i = 0; i < click_step; i++) {
-        WM_event_add(win, &event);
+        wm_event_add_intern(win, &event);
       }
 
       break;
@@ -6173,7 +6164,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       event.type = NDOF_MOTION;
       event.val = KM_NOTHING;
       attach_ndof_data(&event, static_cast<const GHOST_TEventNDOFMotionData *>(customdata));
-      WM_event_add(win, &event);
+      wm_event_add_intern(win, &event);
 
       CLOG_INFO(WM_LOG_HANDLERS, 1, "sending NDOF_MOTION, prev = %d %d", event.xy[0], event.xy[1]);
       break;
@@ -6204,7 +6195,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
                                           event_state_prev_press_time_ms_p,
                                           (GHOST_TEventType)type);
 
-      WM_event_add(win, &event);
+      wm_event_add_intern(win, &event);
 
       break;
     }
@@ -6216,7 +6207,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
 
     case GHOST_kEventWindowDeactivate: {
       event.type = WINDEACTIVATE;
-      WM_event_add(win, &event);
+      wm_event_add_intern(win, &event);
 
       break;
     }
@@ -6228,20 +6219,20 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       BLI_assert(win->ime_data != nullptr);
       win->ime_data_is_composing = true;
       event.type = WM_IME_COMPOSITE_START;
-      WM_event_add(win, &event);
+      wm_event_add_intern(win, &event);
       break;
     }
     case GHOST_kEventImeComposition: {
       event.val = KM_PRESS;
       event.type = WM_IME_COMPOSITE_EVENT;
-      WM_event_add(win, &event);
+      wm_event_add_intern(win, &event);
       break;
     }
     case GHOST_kEventImeCompositionEnd: {
       event.val = KM_PRESS;
       win->ime_data_is_composing = false;
       event.type = WM_IME_COMPOSITE_END;
-      WM_event_add(win, &event);
+      wm_event_add_intern(win, &event);
       break;
     }
 #endif /* WITH_INPUT_IME */

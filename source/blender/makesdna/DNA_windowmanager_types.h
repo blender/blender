@@ -25,10 +25,13 @@ using std_mutex_type = std::mutex;
 #ifdef __cplusplus
 namespace blender::bke {
 struct WindowManagerRuntime;
-}
+struct WindowRuntime;
+}  // namespace blender::bke
 using WindowManagerRuntimeHandle = blender::bke::WindowManagerRuntime;
+using WindowRuntimeHandle = blender::bke::WindowRuntime;
 #else   // __cplusplus
 typedef struct WindowManagerRuntimeHandle WindowManagerRuntimeHandle;
+typedef struct WindowRuntimeHandle WindowRuntimeHandle;
 #endif  // __cplusplus
 
 /* Defined here: */
@@ -379,8 +382,6 @@ typedef struct wmWindow {
   char ime_data_is_composing;
   char _pad1[7];
 
-  /** All events #wmEvent (ghost level events were handled). */
-  ListBase event_queue;
   /** Window+screen handlers, handled last. */
   ListBase handlers;
   /** Priority handlers, handled first. */
@@ -404,6 +405,8 @@ typedef struct wmWindow {
    */
   uint64_t eventstate_prev_press_time_ms;
 
+  void *_pad2;
+  WindowRuntimeHandle *runtime;
 } wmWindow;
 
 #ifdef ime_data
