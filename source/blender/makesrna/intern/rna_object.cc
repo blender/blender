@@ -1605,7 +1605,7 @@ static void rna_Object_constraints_remove(Object *object,
     return;
   }
 
-  BKE_constraint_remove(&object->constraints, con);
+  BKE_constraint_remove_ex(&object->constraints, object, con);
   con_ptr->invalidate();
 
   blender::ed::object::constraint_update(bmain, object);

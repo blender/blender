@@ -1199,7 +1199,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
                CONSTRAINT_TYPE_LOCKTRACK,
                CONSTRAINT_TYPE_DAMPTRACK))
       {
-        BKE_constraint_remove(&ob->constraints, con);
+        BKE_constraint_remove_ex(&ob->constraints, ob, con);
       }
     }
 
