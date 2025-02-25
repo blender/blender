@@ -43,7 +43,7 @@ void main()
    * strand, not its cylinder. Otherwise we would add the rotation velocity. */
   int vert_idx = hair_get_base_id();
   vec3 prv, nxt;
-  vec3 pos = texelFetch(hairPointBuffer, vert_idx).point_position;
+  vec3 pos = hair_get_point(vert_idx).position;
   velocity_local_pos_get(pos, vert_idx, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
