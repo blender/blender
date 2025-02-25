@@ -847,7 +847,7 @@ ccl_device_forceinline void integrator_shade_surface(KernelGlobals kg,
 {
   const int continue_path_label = integrate_surface<node_feature_mask>(kg, state, render_buffer);
   if (continue_path_label == LABEL_NONE) {
-    integrator_path_terminate(state, current_kernel);
+    integrator_path_terminate(kg, state, render_buffer, current_kernel);
     return;
   }
 

@@ -125,6 +125,9 @@ class PathTraceWork {
   virtual int adaptive_sampling_converge_filter_count_active(const float threshold,
                                                              bool reset) = 0;
 
+  /* Denoise Volume Scattering Probability Guiding buffers. */
+  virtual void denoise_volume_guiding_buffers() = 0;
+
   /* Run cryptomatte pass post-processing kernels. */
   virtual void cryptomatte_postproces() = 0;
 

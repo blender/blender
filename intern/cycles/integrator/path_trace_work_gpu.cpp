@@ -1176,6 +1176,29 @@ void PathTraceWorkGPU::cryptomatte_postproces()
   queue_->enqueue(DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS, work_size, args);
 }
 
+void PathTraceWorkGPU::denoise_volume_guiding_buffers()
+{
+  const DeviceKernelArguments args(&buffers_->buffer.device_pointer,
+                                   &effective_buffer_params_.full_x,
+                                   &effective_buffer_params_.full_y,
+                                   &effective_buffer_params_.width,
+                                   &effective_buffer_params_.height,
+                                   &effective_buffer_params_.offset,
+                                   &effective_buffer_params_.stride);
+
+  {
+    const int work_size = effective_buffer_params_.width * effective_buffer_params_.height;
+    DCHECK_GT(work_size, 0);
+    queue_->enqueue(DEVICE_KERNEL_VOLUME_GUIDING_FILTER_X, work_size, args);
+  }
+
+  {
+    const int work_size = effective_buffer_params_.width;
+    DCHECK_GT(work_size, 0);
+    queue_->enqueue(DEVICE_KERNEL_VOLUME_GUIDING_FILTER_Y, work_size, args);
+  }
+}
+
 bool PathTraceWorkGPU::copy_render_buffers_from_device()
 {
   /* May not exist if cancelled before rendering started. */

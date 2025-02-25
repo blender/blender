@@ -54,28 +54,38 @@ class CPUKernels {
                                  const int offset,
                                  int stride)>;
 
-  using AdaptiveSamplingFilterXFunction =
-      CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
-                                 ccl_global float *render_buffer,
-                                 const int y,
-                                 const int start_x,
-                                 const int width,
-                                 const int offset,
-                                 int stride)>;
+  using FilterXFunction = CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
+                                                     ccl_global float *render_buffer,
+                                                     const int y,
+                                                     const int start_x,
+                                                     const int width,
+                                                     const int offset,
+                                                     int stride)>;
 
-  using AdaptiveSamplingFilterYFunction =
-      CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
-                                 ccl_global float *render_buffer,
-                                 const int x,
-                                 const int start_y,
-                                 const int height,
-                                 const int offset,
-                                 int stride)>;
+  using FilterYFunction = CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
+                                                     ccl_global float *render_buffer,
+                                                     const int x,
+                                                     const int start_y,
+                                                     const int height,
+                                                     const int offset,
+                                                     int stride)>;
 
   AdaptiveSamplingConvergenceCheckFunction adaptive_sampling_convergence_check;
 
-  AdaptiveSamplingFilterXFunction adaptive_sampling_filter_x;
-  AdaptiveSamplingFilterYFunction adaptive_sampling_filter_y;
+  FilterXFunction adaptive_sampling_filter_x;
+  FilterYFunction adaptive_sampling_filter_y;
+
+  /* Volume Scattering Probability Guiding. */
+  CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
+                             ccl_global float *render_buffer,
+                             const int y,
+                             const int center_x,
+                             const int min_x,
+                             const int max_x,
+                             const int offset,
+                             int stride)>
+      volume_guiding_filter_x;
+  FilterYFunction volume_guiding_filter_y;
 
   /* Cryptomatte. */
 
@@ -104,6 +114,7 @@ class CPUKernels {
 
   KERNEL_FILM_CONVERT_FUNCTION(depth)
   KERNEL_FILM_CONVERT_FUNCTION(mist)
+  KERNEL_FILM_CONVERT_FUNCTION(volume_majorant)
   KERNEL_FILM_CONVERT_FUNCTION(sample_count)
   KERNEL_FILM_CONVERT_FUNCTION(float)
 

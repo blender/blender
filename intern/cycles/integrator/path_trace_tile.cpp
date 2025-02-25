@@ -42,7 +42,8 @@ bool PathTraceTile::get_pass_pixels(const string_view pass_name,
     return false;
   }
 
-  const bool has_denoised_result = path_trace_.has_denoised_result();
+  const bool has_denoised_result = path_trace_.has_denoised_result() ||
+                                   is_volume_guiding_pass(pass->type);
   if (pass->mode == PassMode::DENOISED && !has_denoised_result) {
     pass = buffer_params.find_pass(pass->type);
     if (pass == nullptr) {

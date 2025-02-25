@@ -245,6 +245,12 @@ enum_view3d_shading_render_pass = (
     ('SAMPLE_COUNT', "Sample Count", "Per-pixel number of samples"),
 )
 
+enum_view3d_debug_render_pass = (
+    ('VOLUME_SCATTER', "Volume Scatter", "Show the contribution of scattered ray in volume"),
+    ('VOLUME_TRANSMIT', "Volume Transmit", "Show the contribution of transmitted ray in volume"),
+    ('VOLUME_MAJORANT', "Volume Majorant", "Show the majorant transmittance of the volume")
+)
+
 enum_guiding_distribution = (
     ('PARALLAX_AWARE_VMM', "Parallax-Aware VMM", "Use Parallax-aware von Mises-Fisher models as directional distribution", 0),
     ('DIRECTIONAL_QUAD_TREE', "Directional Quad Tree", "Use Directional Quad Trees as directional distribution", 1),
@@ -1485,6 +1491,24 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=False,
         update=update_render_passes,
     )
+    use_pass_volume_scatter: BoolProperty(
+        name="Volume Scatter",
+        description="Contribution of paths that scattered in the volume at the primary ray",
+        default=False,
+        update=update_render_passes,
+    )
+    use_pass_volume_transmit: BoolProperty(
+        name="Volume Transmit",
+        description="Contribution of paths that transmitted through the volume at the primary ray",
+        default=False,
+        update=update_render_passes,
+    )
+    use_pass_volume_majorant: BoolProperty(
+        name="Volume Majorant",
+        description="Majorant transmittance of the volume",
+        default=False,
+        update=update_render_passes,
+    )
 
     use_pass_shadow_catcher: BoolProperty(
         name="Shadow Catcher",
@@ -1909,10 +1933,14 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 class CyclesView3DShadingSettings(bpy.types.PropertyGroup):
     __slots__ = ()
 
+    prefs = bpy.context.preferences
+    use_debug = prefs.experimental.use_cycles_debug and prefs.view.show_developer_ui
+
     render_pass: EnumProperty(
         name="Render Pass",
         description="Render pass to show in the 3D Viewport",
-        items=enum_view3d_shading_render_pass,
+        items=enum_view3d_shading_render_pass +
+        enum_view3d_debug_render_pass if use_debug else enum_view3d_shading_render_pass,
         default='COMBINED',
     )
     show_active_pixels: BoolProperty(

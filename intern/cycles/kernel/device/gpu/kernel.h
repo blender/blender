@@ -42,6 +42,7 @@
 #include "kernel/bake/bake.h"
 
 #include "kernel/film/adaptive_sampling.h"
+#include "kernel/film/volume_guiding_denoise.h"
 
 #ifdef __KERNEL_METAL__
 #  include "kernel/device/metal/context_end.h"
@@ -885,6 +886,7 @@ ccl_device_inline void kernel_gpu_film_convert_half_write(ccl_global uchar4 *rgb
 /* 1 channel inputs */
 KERNEL_FILM_CONVERT_VARIANT(depth, 1)
 KERNEL_FILM_CONVERT_VARIANT(mist, 1)
+KERNEL_FILM_CONVERT_VARIANT(volume_majorant, 1)
 KERNEL_FILM_CONVERT_VARIANT(sample_count, 1)
 KERNEL_FILM_CONVERT_VARIANT(float, 1)
 
@@ -1196,6 +1198,50 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const int lane_id = ccl_gpu_thread_idx_x % ccl_gpu_warp_size;
   if (lane_id == 0) {
     atomic_fetch_and_add_uint32(num_possible_splits, popcount(can_split_mask));
+  }
+}
+ccl_gpu_kernel_postfix
+
+/* --------------------------------------------------------------------
+ * Volume Scattering Probability Guiding.
+ */
+
+ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
+    ccl_gpu_kernel_signature(volume_guiding_filter_x,
+                             ccl_global float *render_buffer,
+                             const int sx,
+                             const int sy,
+                             const int sw,
+                             const int sh,
+                             const int offset,
+                             const int stride)
+{
+  const int work_index = ccl_gpu_global_id_x();
+  const int y = work_index / sw;
+  const int x = work_index % sw;
+
+  if (y < sh) {
+    ccl_gpu_kernel_call(volume_guiding_filter_x(
+        nullptr, render_buffer, sy + y, sx + x, sx, sx + sw, offset, stride));
+  }
+}
+ccl_gpu_kernel_postfix
+
+ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
+    ccl_gpu_kernel_signature(volume_guiding_filter_y,
+                             ccl_global float *render_buffer,
+                             const int sx,
+                             const int sy,
+                             const int sw,
+                             const int sh,
+                             const int offset,
+                             const int stride)
+{
+  const int x = ccl_gpu_global_id_x();
+
+  if (x < sw) {
+    ccl_gpu_kernel_call(
+        volume_guiding_filter_y(nullptr, render_buffer, sx + x, sy, sy + sh, offset, stride));
   }
 }
 ccl_gpu_kernel_postfix

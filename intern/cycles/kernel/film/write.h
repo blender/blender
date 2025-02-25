@@ -39,6 +39,18 @@ ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer_shadow(
   return render_buffer + render_buffer_offset;
 }
 
+ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer(
+    KernelGlobals kg,
+    const int x,
+    const int y,
+    const int offset,
+    const int stride,
+    ccl_global float *ccl_restrict render_buffer)
+{
+  const int render_pixel_index = offset + x + y * stride;
+  return render_buffer + (uint64_t)render_pixel_index * kernel_data.film.pass_stride;
+}
+
 /* Accumulate in passes. */
 
 ccl_device_inline void film_write_pass_float(ccl_global float *ccl_restrict buffer,
@@ -120,7 +132,7 @@ ccl_device_inline float kernel_read_pass_float(const ccl_global float *ccl_restr
   return *buffer;
 }
 
-ccl_device_inline float3 kernel_read_pass_float3(ccl_global float *ccl_restrict buffer)
+ccl_device_inline float3 kernel_read_pass_float3(const ccl_global float *ccl_restrict buffer)
 {
   return make_float3(buffer[0], buffer[1], buffer[2]);
 }

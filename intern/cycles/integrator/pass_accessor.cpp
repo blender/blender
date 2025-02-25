@@ -4,6 +4,7 @@
 
 #include "integrator/pass_accessor.h"
 
+#include "kernel/types.h"
 #include "session/buffers.h"
 
 #include "util/log.h"
@@ -139,6 +140,9 @@ bool PassAccessor::get_render_tile_pixels(const RenderBuffers *render_buffers,
     }
     else if (type == PASS_MIST) {
       get_pass_mist(render_buffers, buffer_params, destination);
+    }
+    else if (type == PASS_VOLUME_MAJORANT) {
+      get_pass_volume_majorant(render_buffers, buffer_params, destination);
     }
     else if (type == PASS_SAMPLE_COUNT) {
       get_pass_sample_count(render_buffers, buffer_params, destination);

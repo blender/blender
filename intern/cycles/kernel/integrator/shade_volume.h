@@ -458,16 +458,10 @@ ccl_device_inline bool volume_octree_advance(KernelGlobals kg,
                                              const IntegratorGenericState state,
                                              const ccl_private RNGState *rng_state,
                                              const uint32_t path_flag,
-                                             ccl_private OctreeTracing &octree,
-                                             const int step)
+                                             ccl_private OctreeTracing &octree)
 {
   if (octree.t.max >= ray->tmax) {
     /* Reached the last segment. */
-    return false;
-  }
-
-  if (step >= VOLUME_MAX_STEPS) {
-    /* Exceeds maximal steps. */
     return false;
   }
 
@@ -530,7 +524,7 @@ ccl_device_inline bool volume_octree_advance_shadow(KernelGlobals kg,
   const float tmin = octree.t.min;
 
   while (octree.t.is_empty() || sigma.range() * octree.t.length() < 1.0f) {
-    if (!volume_octree_advance<true>(kg, ray, sd, state, rng_state, path_flag, octree, 0)) {
+    if (!volume_octree_advance<true>(kg, ray, sd, state, rng_state, path_flag, octree)) {
       return !octree.t.is_empty();
     }
 
@@ -766,24 +760,37 @@ ccl_device_inline bool volume_valid_direct_ray_segment(KernelGlobals kg,
 /* Volume Integration */
 
 struct VolumeIntegrateState {
-  /* Random numbers for scattering. */
+  /* Random number. */
   float rscatter;
-  float rchannel;
 
-  /* Multiple importance sampling. */
+  /* Method used for sampling direct scatter position. */
   VolumeSampleMethod direct_sample_method;
-  bool use_mis;
   /* Probability of sampling the scatter position using null scattering. */
   float distance_pdf;
   /* Probability of sampling the scatter position using equiangular sampling. */
   float equiangular_pdf;
+  /* Majorant density at the equiangular scatter position. Used to compute the pdf. */
+  float sigma_max;
 
   /* Ratio tracking estimator of the volume transmittance, with MIS applied. */
   float transmittance;
+  /* Current shading position. */
+  float t;
+  /* Majorant optical depth until now. */
+  float optical_depth;
   /* Steps taken while tracking. Should not exceed `VOLUME_MAX_STEPS`. */
-  int step;
+  uint16_t step;
+  /* Multiple importance sampling. */
+  bool use_mis;
 
-  bool stop;
+  /* Volume scattering probability guiding. */
+  bool vspg;
+  /* The guided probability that the ray is scattered in the volume. `P_vol` in the paper. */
+  float scatter_prob;
+  /* Minimal scale of majorant for achieving the desired scatter probability. */
+  float majorant_scale;
+  /* Scale to apply after direct throughput due to Russian Roulette. */
+  float direct_rr_scale;
 
   /* Extra fields for path guiding and denoising. */
   Spectrum emission;
@@ -792,14 +799,432 @@ struct VolumeIntegrateState {
 #  endif
 };
 
-ccl_device bool volume_integrate_should_stop(const ccl_private VolumeIntegrateResult &result,
-                                             const ccl_private VolumeIntegrateState &vstate)
+/* Accumulate transmittance for equiangular distance sampling without MIS. Using telescoping to
+ * reduce noise. */
+ccl_device_inline void volume_equiangular_transmittance(
+    KernelGlobals kg,
+    const IntegratorState state,
+    const ccl_private Ray *ccl_restrict ray,
+    const ccl_private Extrema<float> &sigma,
+    const ccl_private Interval<float> &interval,
+    ccl_private ShaderData *ccl_restrict sd,
+    const ccl_private RNGState *rng_state,
+    const ccl_private VolumeIntegrateState &ccl_restrict vstate,
+    ccl_private VolumeIntegrateResult &ccl_restrict result)
 {
-  if (result.indirect_scatter && result.direct_scatter) {
+  if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR || vstate.use_mis ||
+      result.direct_scatter)
+  {
+    return;
+  }
+
+  Interval<float> t;
+  if (interval.contains(result.direct_t)) {
+    /* Compute transmittance until the direct scatter position. */
+    t = {interval.min, result.direct_t};
+    result.direct_scatter = true;
+  }
+  else {
+    /* Compute transmittance of the whole segment. */
+    t = interval;
+  }
+
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+  result.direct_throughput *= volume_transmittance<false>(
+      kg, state, ray, sd, sigma.range(), t, rng_state, path_flag);
+}
+
+/* Sample the next candidate indirect scatter position following exponential distribution,
+ * and compute the direct throughput for equiangular sampling if using MIS.
+ * Returns true if should continue advancing. */
+ccl_device_inline bool volume_indirect_scatter_advance(const ccl_private OctreeTracing &octree,
+                                                       const bool equiangular,
+                                                       ccl_private float &residual_optical_depth,
+                                                       ccl_private VolumeIntegrateState &vstate,
+                                                       ccl_private VolumeIntegrateResult &result)
+{
+  const float sigma_max = octree.sigma.max * vstate.majorant_scale;
+  residual_optical_depth = (octree.t.max - vstate.t) * sigma_max;
+  if (sigma_max == 0.0f) {
     return true;
   }
 
-  return vstate.stop;
+  vstate.t += sample_exponential_distribution(vstate.rscatter, 1.0f / sigma_max);
+
+  const bool segment_has_equiangular = equiangular && octree.t.contains(result.direct_t);
+  if (segment_has_equiangular && vstate.t > result.direct_t && !result.direct_scatter) {
+    /* Stepped beyond the equiangular scatter position, compute direct throughput. */
+    result.direct_scatter = true;
+    result.direct_throughput = result.indirect_throughput * vstate.transmittance *
+                               vstate.direct_rr_scale;
+    vstate.distance_pdf = vstate.transmittance * sigma_max;
+    vstate.sigma_max = sigma_max;
+  }
+
+  /* Sampled a position outside the current voxel. */
+  return vstate.t > octree.t.max;
+}
+
+/* Adavance to the next candidate indirect scatter position, and compute the direct throughput. */
+ccl_device_inline bool volume_integrate_advance(KernelGlobals kg,
+                                                const ccl_private Ray *ccl_restrict ray,
+                                                ccl_private ShaderData *ccl_restrict sd,
+                                                const IntegratorState state,
+                                                ccl_private RNGState *rng_state,
+                                                const uint32_t path_flag,
+                                                ccl_private OctreeTracing &octree,
+                                                ccl_private VolumeIntegrateState &vstate,
+                                                ccl_private VolumeIntegrateResult &result)
+{
+  if (vstate.step++ > VOLUME_MAX_STEPS) {
+    /* Exceeds maximal steps. */
+    return false;
+  }
+
+  float residual_optical_depth;
+  vstate.rscatter = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SCATTER_DISTANCE);
+  const bool equiangular = (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) &&
+                           vstate.use_mis;
+
+  while (
+      volume_indirect_scatter_advance(octree, equiangular, residual_optical_depth, vstate, result))
+  {
+    /* Advance to the next voxel if the sampled distance is beyond the current voxel. */
+    if (!volume_octree_advance<false>(kg, ray, sd, state, rng_state, path_flag, octree)) {
+      return false;
+    }
+
+    vstate.optical_depth += octree.sigma.max * octree.t.length();
+    vstate.t = octree.t.min;
+    volume_equiangular_transmittance(
+        kg, state, ray, octree.sigma, octree.t, sd, rng_state, vstate, result);
+
+    /* Scale the random number by the residual depth for reusing. */
+    vstate.rscatter = saturatef(1.0f - (1.0f - vstate.rscatter) * expf(residual_optical_depth));
+  }
+
+  /* Advance random number offset. */
+  rng_state->rng_offset += PRNG_BOUNCE_NUM;
+
+  return true;
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Volume Scattering Probability Guiding
+ *
+ * Following https://kehanxuuu.github.io/vspg-website/ by Kehan Xu et. al.
+ *
+ * Instead of stopping at the first real scatter event, we step through the entire ray to gather
+ * candidate scatter positions, and guide the probability of scattering inside a volume or
+ * transmitting through the volume by the contribution of both types of events.
+ *
+ * We only guide primary rays, secondary rays could be supported in the OpenPGL in the future.
+ * \{ */
+
+/* Candidate scatter position for VSPG. */
+struct VolumeSampleCandidate {
+  PackedSpectrum emission;
+  float t;
+  PackedSpectrum throughput;
+  float distance_pdf;
+#  ifdef __DENOISING_FEATURES__
+  PackedSpectrum albedo;
+#  endif
+  /* Remember the random number so that we sample the sample point for stochastic evaluation. */
+  uint lcg_state;
+};
+
+/* Sample reservoir for VSPG. */
+struct VolumeSampleReservoir {
+  float total_weight = 0.0f;
+  float rand;
+  VolumeSampleCandidate candidate;
+
+  ccl_device_inline_method VolumeSampleReservoir(const float rand_) : rand(rand_) {}
+
+  /* Stream the candidate samples through the reservoir. */
+  ccl_device_inline_method void add_sample(const float weight,
+                                           const VolumeSampleCandidate new_candidate)
+  {
+    if (!(weight > 0.0f)) {
+      return;
+    }
+
+    total_weight += weight;
+    const float thresh = weight / total_weight;
+
+    if ((rand <= thresh) || (total_weight == weight)) {
+      /* Explicitly select the first candidate in case of numerical issues. */
+      candidate = new_candidate;
+      rand /= thresh;
+    }
+    else {
+      rand = (rand - thresh) / (1.0f - thresh);
+    }
+
+    /* Ensure the `rand` is always within 0..1 range, which could be violated above when
+     * `-ffast-math` is used. */
+    rand = saturatef(rand);
+  }
+
+  ccl_device_inline_method bool is_empty() const
+  {
+    return total_weight == 0.0f;
+  }
+};
+
+/* Estimate volume majorant optical depth `\sum\sigma_{max}t` along the ray, by accumulating the
+ * result from previous samples in a render buffer. */
+ccl_device_inline float volume_majorant_optical_depth(KernelGlobals kg,
+                                                      const ccl_global float *buffer)
+{
+  kernel_assert(kernel_data.film.pass_volume_majorant != PASS_UNUSED);
+  kernel_assert(kernel_data.film.pass_volume_majorant_sample_count != PASS_UNUSED);
+
+  const ccl_global float *accumulated_optical_depth = buffer +
+                                                      kernel_data.film.pass_volume_majorant;
+  const ccl_global float *count = buffer + kernel_data.film.pass_volume_majorant_sample_count;
+
+  /* Assume `FLT_MAX` when we have no information of the optical depth. */
+  return (*count == 0.0f) ? FLT_MAX : *accumulated_optical_depth / *count;
+}
+
+/* Compute guided volume scatter probability and the majorant scale needed for achieving the
+ * scatter probability, for heterogeneous volume. */
+ccl_device_inline void volume_scatter_probability_get(KernelGlobals kg,
+                                                      const IntegratorState state,
+                                                      ccl_global float *ccl_restrict render_buffer,
+                                                      ccl_private VolumeIntegrateState &vstate)
+{
+  /* Only guide primary rays. */
+  vstate.vspg = (INTEGRATOR_STATE(state, path, bounce) == 0);
+
+  if (!vstate.vspg) {
+    vstate.scatter_prob = 1.0f;
+    vstate.majorant_scale = 1.0f;
+    return;
+  }
+
+  const ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
+
+  kernel_assert(kernel_data.film.pass_volume_scatter_denoised != PASS_UNUSED);
+  kernel_assert(kernel_data.film.pass_volume_transmit_denoised != PASS_UNUSED);
+
+  /* Contribution based criterion, see Eq. (15). */
+  const float L_scattered = reduce_add(
+      kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_scatter_denoised));
+  const float L_transmitted = reduce_add(
+      kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_transmit_denoised));
+  const float L_volume = L_transmitted + L_scattered;
+
+  /* Compute guided scattering probability. */
+  if (L_volume == 0.0f) {
+    /* Equal probability if no information gathered yet. */
+    vstate.scatter_prob = 0.5f;
+  }
+  else {
+    /* Exponential distribution has non-zero probability beyond the boundary, so the scatter
+     * probability can never reach 1. Clamp to avoid scaling the majorant to infinity. */
+    vstate.scatter_prob = fminf(L_scattered / L_volume, 0.9999f);
+  }
+
+  const float optical_depth = volume_majorant_optical_depth(kg, buffer);
+
+  /* There is a non-zero probability of sampling no scatter events in the volume segment. In order
+   * to reach the desired scattering probability, we might need to upscale the majorant and/or the
+   * guiding scattering probability. See Eq (25,26). */
+  vstate.majorant_scale = (optical_depth == 0.0f) ?
+                              1.0f :
+                              -fast_logf(1.0f - vstate.scatter_prob) / optical_depth;
+  if (vstate.majorant_scale < 1.0f) {
+    vstate.majorant_scale = 1.0f;
+    vstate.scatter_prob = safe_divide(vstate.scatter_prob, 1.0f - fast_expf(-optical_depth));
+  }
+  else {
+    vstate.scatter_prob = 1.0f;
+  }
+}
+
+/* Final guiding decision on sampling scatter or transmit event. */
+ccl_device_inline void volume_distance_sampling_finalize(
+    KernelGlobals kg,
+    const IntegratorState state,
+    const ccl_private Ray *ccl_restrict ray,
+    ccl_private ShaderData *ccl_restrict sd,
+    ccl_private VolumeIntegrateState &ccl_restrict vstate,
+    ccl_private VolumeIntegrateResult &ccl_restrict result,
+    ccl_private VolumeSampleReservoir &reservoir)
+{
+  if (reservoir.is_empty()) {
+    return;
+  }
+
+  const bool sample_distance = !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE) &&
+                               (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE);
+
+  if (!vstate.vspg) {
+    result.indirect_throughput = reservoir.candidate.throughput;
+    vstate.emission = reservoir.candidate.emission;
+#  ifdef __DENOISING_FEATURES__
+    vstate.albedo = reservoir.candidate.albedo;
+#  endif
+    result.indirect_t = reservoir.candidate.t;
+
+    if (sample_distance) {
+      /* If using distance sampling for direct light, just copy parameters of indirect light
+       * since we scatter at the same point. */
+      result.direct_scatter = true;
+      result.direct_t = result.indirect_t;
+      result.direct_throughput = result.indirect_throughput;
+      if (vstate.use_mis) {
+        vstate.distance_pdf = reservoir.candidate.distance_pdf;
+      }
+    }
+    return;
+  }
+
+  const uint lcg_state = reservoir.candidate.lcg_state;
+
+  if (sample_distance) {
+    /* Always sample direct scatter, regardless of indirect scatter guiding decision. */
+    result.direct_throughput = reservoir.candidate.throughput * reservoir.total_weight;
+    vstate.distance_pdf = reservoir.candidate.distance_pdf;
+  }
+
+  /* We only guide scatter decisions, no need to apply on emission and albedo. */
+  vstate.emission = mix(vstate.emission, reservoir.candidate.emission, reservoir.total_weight);
+#  ifdef __DENOISING_FEATURES__
+  vstate.albedo = mix(vstate.albedo, reservoir.candidate.albedo, reservoir.total_weight);
+#  endif
+
+  const float unguided_scatter_prob = reservoir.total_weight;
+  float guided_scatter_prob;
+  if (is_zero(result.indirect_throughput)) {
+    /* Always sample scatter event if the contribution of transmitted event is zero. */
+    guided_scatter_prob = 1.0f;
+  }
+  else {
+    /* Defensive resampling. */
+    const float alpha = 0.75f;
+    reservoir.total_weight = mix(reservoir.total_weight, vstate.scatter_prob, alpha);
+    guided_scatter_prob = reservoir.total_weight;
+
+    /* Add transmitted candidate. */
+    reservoir.add_sample(
+        1.0f - guided_scatter_prob,
+#  ifdef __DENOISING_FEATURES__
+        {vstate.emission, reservoir.candidate.t, result.indirect_throughput, 0.0f, vstate.albedo}
+#  else
+        {vstate.emission, reservoir.candidate.t, result.indirect_throughput, 0.0f}
+#  endif
+    );
+  }
+
+  const bool scatter = (reservoir.candidate.distance_pdf > 0.0f);
+  const float scale = scatter ? unguided_scatter_prob / guided_scatter_prob :
+                                (1.0f - unguided_scatter_prob) / (1.0f - guided_scatter_prob);
+  result.indirect_throughput = reservoir.candidate.throughput * scale;
+
+  if (!scatter && !sample_distance) {
+    /* No scatter event sampled. */
+    return;
+  }
+
+  /* Recover the volume coefficients at the scatter position. */
+  sd->P = ray->P + ray->D * reservoir.candidate.t;
+  sd->lcg_state = lcg_state;
+  VolumeShaderCoefficients coeff ccl_optional_struct_init;
+  if (!volume_shader_sample(kg, state, sd, &coeff)) {
+    kernel_assert(false);
+    return;
+  }
+
+  kernel_assert(sd->flag & SD_SCATTER);
+  if (sample_distance) {
+    /* Direct scatter. */
+    result.direct_scatter = true;
+    result.direct_t = reservoir.candidate.t;
+    volume_shader_copy_phases(&result.direct_phases, sd);
+  }
+
+  if (scatter) {
+    /* Indirect scatter. */
+    result.indirect_scatter = true;
+    result.indirect_t = reservoir.candidate.t;
+    volume_shader_copy_phases(&result.indirect_phases, sd);
+  }
+}
+
+/** \} */
+
+ccl_device bool volume_integrate_should_stop(const ccl_private VolumeIntegrateResult &result)
+{
+  if (is_zero(result.indirect_throughput) && is_zero(result.direct_throughput)) {
+    /* Stopped during Russian Roulette. */
+    return true;
+  }
+
+  /* If we have scattering data for both direct and indirect, we're done. */
+  return (result.direct_scatter && result.indirect_scatter);
+}
+
+/* Perform Russian Roulette termination to avoid drawing too many samples for indirect scatter, but
+ * only if both direct and indirect scatter positions are available, or if no scattering is needed.
+ */
+ccl_device_inline bool volume_russian_roulette_termination(
+    const IntegratorState state,
+    ccl_private VolumeSampleReservoir &reservoir,
+    ccl_private VolumeIntegrateResult &ccl_restrict result,
+    ccl_private VolumeIntegrateState &ccl_restrict vstate)
+{
+  if (result.direct_scatter && result.indirect_scatter) {
+    return true;
+  }
+
+  const float thresh = reduce_max(fabs(result.indirect_throughput));
+  if (thresh > 0.05f) {
+    /* Only stop if contribution is low enough. */
+    return false;
+  }
+
+  /* Whether equiangular estimator of the direct throughput depends on the indirect throughput. */
+  const bool equiangular = (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) &&
+                           vstate.use_mis && !result.direct_scatter;
+  /* Whether both indirect and direct scatter are possible. */
+  const bool has_scatter_samples = !reservoir.is_empty() && !equiangular;
+  /* The path is to be terminated, no scatter position is needed along the ray. */
+  const bool absorption_only = INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE;
+
+  /* Randomly stop indirect scatter. */
+  if (absorption_only || has_scatter_samples) {
+    if (reservoir.rand > thresh) {
+      result.indirect_throughput = zero_spectrum();
+      if (equiangular || (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE)) {
+        /* Direct throughput depends on the indirect throughput, set to 0 for early termination. */
+        result.direct_throughput = zero_spectrum();
+      }
+      return true;
+    }
+
+    reservoir.rand = saturatef(reservoir.rand / thresh);
+    result.indirect_throughput /= thresh;
+  }
+
+  /* Randomly stop direct scatter. */
+  if (equiangular) {
+    if (reservoir.rand > thresh) {
+      result.direct_scatter = true;
+      result.direct_throughput = zero_spectrum();
+      reservoir.rand = (reservoir.rand - thresh) / (1.0f - thresh);
+    }
+    else {
+      reservoir.rand /= thresh;
+      vstate.direct_rr_scale /= thresh;
+    }
+    reservoir.rand = saturatef(reservoir.rand);
+  }
+
+  return false;
 }
 
 /* -------------------------------------------------------------------- */
@@ -854,8 +1279,65 @@ ccl_device_inline float volume_scatter_probability(
   return dot(coeff.sigma_s / sigma_c, channel_pdf);
 }
 
+/* Decide between real and null scatter events at the current position. */
+ccl_device_inline void volume_sample_indirect_scatter(
+    const float sigma_max,
+    const float prob_s,
+    const Spectrum sigma_s,
+    ccl_private ShaderData *ccl_restrict sd,
+    ccl_private VolumeIntegrateState &ccl_restrict vstate,
+    ccl_private VolumeIntegrateResult &ccl_restrict result,
+    const uint lcg_state,
+    ccl_private VolumeSampleReservoir &reservoir)
+{
+  const float weight = vstate.transmittance * prob_s;
+  const Spectrum throughput = result.indirect_throughput * sigma_s / (prob_s * sigma_max);
+
+  if (vstate.vspg) {
+    /* If we guide the scatter probability, simply put the candidate in the reservoir. */
+    reservoir.add_sample(
+#  ifdef __DENOISING_FEATURES__
+        weight,
+        {vstate.emission, vstate.t, throughput, weight * sigma_max, vstate.albedo, lcg_state}
+#  else
+        weight, {vstate.emission, vstate.t, throughput, weight * sigma_max, lcg_state}
+#  endif
+    );
+  }
+  else if (!result.indirect_scatter) {
+    /* If no guiding and indirect scatter position has not been found, decide between real and null
+     * scatter events. */
+    if (reservoir.rand <= prob_s) {
+      /* Rescale random number for reusing. */
+      reservoir.rand /= prob_s;
+
+      /* Sampled scatter event. */
+      result.indirect_scatter = true;
+      volume_shader_copy_phases(&result.indirect_phases, sd);
+      reservoir.add_sample(
+#  ifdef __DENOISING_FEATURES__
+          weight,
+          {vstate.emission, vstate.t, throughput, weight * sigma_max, vstate.albedo, lcg_state}
+#  else
+          weight, {vstate.emission, vstate.t, throughput, weight * sigma_max, lcg_state}
+#  endif
+      );
+
+      if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
+        result.direct_scatter = true;
+        volume_shader_copy_phases(&result.direct_phases, sd);
+      }
+    }
+    else {
+      /* Rescale random number for reusing. */
+      reservoir.rand = (reservoir.rand - prob_s) / (1.0f - prob_s);
+    }
+    reservoir.rand = saturatef(reservoir.rand);
+  }
+}
+
 /**
- * Sample indirect scatter position along the ray based on weighted delta tracking, from
+ * Integrate volume based on weighted delta tracking, from
  * [Spectral and Decomposition Tracking for Rendering Heterogeneous Volumes]
  * (https://disneyanimation.com/publications/spectral-and-decomposition-tracking-for-rendering-heterogeneous-volumes)
  * by Peter Kutz et. al.
@@ -869,200 +1351,100 @@ ccl_device_inline float volume_scatter_probability(
  * - If ξ < sigma_s / (sigma_s + |sigma_n|), we sample scatter event and evaluate L_s.
  * - Otherwise, no real collision happens and we continue the recursive process.
  * The emission L_e is evaluated at each step.
- *
- * \param sigma_max: majorant volume density inside the current octree node
- * \param interval: interval of t along the ray.
  */
-ccl_device void volume_sample_indirect_scatter(
-    KernelGlobals kg,
-    const IntegratorState state,
-    const ccl_private Ray *ccl_restrict ray,
-    ccl_private ShaderData *ccl_restrict sd,
-    const float sigma_max,
-    const Interval<float> interval,
-    ccl_private RNGState *rng_state,
-    ccl_private VolumeIntegrateState &ccl_restrict vstate,
-    ccl_private VolumeIntegrateResult &ccl_restrict result)
-{
-  if (result.indirect_scatter) {
-    /* Already sampled indirect scatter position. */
-    return;
-  }
-
-  /* Initialization. */
-  float t = interval.min;
-  const float inv_maj = (sigma_max == 0.0f) ? FLT_MAX : 1.0f / sigma_max;
-  const bool segment_has_equiangular = vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR &&
-                                       interval.contains(result.direct_t) && vstate.use_mis;
-  bool direct_scatter = false;
-  while (vstate.step++ < VOLUME_MAX_STEPS) {
-    if (reduce_max(fabs(result.indirect_throughput)) < VOLUME_THROUGHPUT_EPSILON) {
-      /* TODO(weizhen): terminate using Russian Roulette. */
-      /* TODO(weizhen): deal with negative transmittance. */
-      /* TODO(weizhen): should we stop if direct_scatter not yet found? */
-      vstate.stop = true;
-      result.indirect_throughput = zero_spectrum();
-      return;
-    }
-
-    /* Generate the next distance using random walk. */
-    const float rand = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SCATTER_DISTANCE);
-    t += sample_exponential_distribution(rand, inv_maj);
-
-    /* Advance random number offset. */
-    rng_state->rng_offset += PRNG_BOUNCE_NUM;
-
-    if (segment_has_equiangular && t > result.direct_t && !direct_scatter) {
-      /* Stepped beyond the equiangular scatter position, compute direct throughput. */
-      direct_scatter = true;
-      result.direct_throughput = result.indirect_throughput * vstate.transmittance;
-      vstate.distance_pdf = vstate.transmittance * sigma_max;
-    }
-
-    if (t > interval.max) {
-      break;
-    }
-
-    sd->P = ray->P + ray->D * t;
-    VolumeShaderCoefficients coeff ccl_optional_struct_init;
-    if (!volume_shader_sample(kg, state, sd, &coeff)) {
-      continue;
-    }
-
-    /* Emission. */
-    if (sd->flag & SD_EMISSION) {
-      /* Emission = inv_sigma * (L_e + sigma_n * (inv_sigma * (L_e + sigma_n * ···))). */
-      const Spectrum emission = inv_maj * coeff.emission;
-      vstate.emission += result.indirect_throughput * emission;
-      guiding_record_volume_emission(kg, state, emission);
-    }
-
-    /* Null scattering coefficients. */
-    const Spectrum sigma_n = volume_null_event_coefficients(kg, coeff, sigma_max);
-
-    if (reduce_add(coeff.sigma_s) == 0.0f) {
-      /* Absorption only. Deterministically choose null scattering and estimate the transmittance
-       * of the current ray segment. */
-      result.indirect_throughput *= sigma_n * inv_maj;
-      continue;
-    }
-
-#  ifdef __DENOISING_FEATURES__
-    if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_DENOISING_FEATURES) {
-      /* Albedo = inv_sigma * (sigma_s + sigma_n * (inv_sigma * (sigma_s + sigma_n * ···))). */
-      vstate.albedo += result.indirect_throughput * coeff.sigma_s * inv_maj;
-    }
-#  endif
-
-    const float prob_s = volume_scatter_probability(coeff, sigma_n, result.indirect_throughput);
-    if (vstate.rchannel < prob_s) {
-      /* Sampled scatter event. */
-      result.indirect_throughput *= coeff.sigma_s * inv_maj / prob_s;
-      result.indirect_t = t;
-      result.indirect_scatter = true;
-      volume_shader_copy_phases(&result.indirect_phases, sd);
-
-      if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
-        /* If using distance sampling for direct light, just copy parameters of indirect light
-         * since we scatter at the same point. */
-        result.direct_scatter = true;
-        result.direct_t = result.indirect_t;
-        result.direct_throughput = result.indirect_throughput;
-        volume_shader_copy_phases(&result.direct_phases, sd);
-        if (vstate.use_mis) {
-          vstate.distance_pdf = vstate.transmittance * prob_s * sigma_max;
-        }
-      }
-      return;
-    }
-
-    /* Null scattering. Accumulate weight and continue. */
-    const float prob_n = 1.0f - prob_s;
-    result.indirect_throughput *= sigma_n * inv_maj / prob_n;
-
-    if (vstate.use_mis) {
-      vstate.transmittance *= prob_n;
-    }
-
-    /* Rescale random number for reusing. */
-    vstate.rchannel = (vstate.rchannel - prob_s) / prob_n;
-  }
-
-  /* No scatter event sampled in the interval. */
-}
-
-/* Throughput and pdf for equiangular sampling.
- * If MIS is used with transmittance-based distance sampling, we compute the direct throughput from
- * the indirect throughput in the function above. Otherwise, we use telescoping for higher quality.
- */
-ccl_device_inline void volume_equiangular_direct_scatter(
-    KernelGlobals kg,
-    const IntegratorState state,
-    const ccl_private Ray *ccl_restrict ray,
-    const ccl_private Extrema<float> &sigma,
-    const ccl_private Interval<float> &t,
-    ccl_private ShaderData *ccl_restrict sd,
-    ccl_private RNGState *rng_state,
-    ccl_private VolumeIntegrateState &vstate,
-    ccl_private VolumeIntegrateResult &ccl_restrict result)
-{
-  if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
-    return;
-  }
-
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-
-  if (t.contains(result.direct_t)) {
-    /* Equiangular scatter position is inside the current segment. */
-    sd->P = ray->P + ray->D * result.direct_t;
-    VolumeShaderCoefficients coeff ccl_optional_struct_init;
-    if (volume_shader_sample(kg, state, sd, &coeff) && (sd->flag & SD_SCATTER)) {
-      volume_shader_copy_phases(&result.direct_phases, sd);
-      result.direct_scatter = true;
-
-      if (vstate.use_mis) {
-        /* Compute distance pdf for multiple importance sampling. */
-        const Spectrum sigma_n = volume_null_event_coefficients(kg, coeff, sigma.max);
-
-        vstate.distance_pdf *= volume_scatter_probability(
-            coeff, sigma_n, result.direct_throughput);
-      }
-      else {
-        /* Compute transmittance until the direct scatter position. */
-        const Interval<float> t_ = {t.min, result.direct_t};
-        result.direct_throughput *= volume_transmittance<false>(
-            kg, state, ray, sd, sigma.range(), t_, rng_state, path_flag);
-      }
-
-      result.direct_throughput *= coeff.sigma_s / vstate.equiangular_pdf;
-    }
-  }
-  else if (result.direct_t > t.max && !vstate.use_mis) {
-    /* Accumulate transmittance. */
-    result.direct_throughput *= volume_transmittance<false>(
-        kg, state, ray, sd, sigma.range(), t, rng_state, path_flag);
-  }
-}
-
-/* Find direct and indirect scatter positions inside the current active octree leaf node. */
 ccl_device void volume_integrate_step_scattering(
     KernelGlobals kg,
     const IntegratorState state,
     const ccl_private Ray *ccl_restrict ray,
-    const ccl_private Extrema<float> &sigma,
-    const ccl_private Interval<float> &interval,
+    const float sigma_max,
     ccl_private ShaderData *ccl_restrict sd,
-    ccl_private RNGState *rng_state,
     ccl_private VolumeIntegrateState &ccl_restrict vstate,
+    ccl_private VolumeIntegrateResult &ccl_restrict result,
+    ccl_private VolumeSampleReservoir &reservoir)
+{
+  if (volume_russian_roulette_termination(state, reservoir, result, vstate)) {
+    return;
+  }
+
+  sd->P = ray->P + ray->D * vstate.t;
+  VolumeShaderCoefficients coeff ccl_optional_struct_init;
+  const uint lcg_state = sd->lcg_state;
+  if (!volume_shader_sample(kg, state, sd, &coeff)) {
+    return;
+  }
+
+  kernel_assert(sigma_max != 0.0f);
+  const float inv_maj = 1.0f / sigma_max;
+
+  /* Emission. */
+  if (sd->flag & SD_EMISSION) {
+    /* Emission = inv_sigma * (L_e + sigma_n * (inv_sigma * (L_e + sigma_n * ···))). */
+    const Spectrum emission = inv_maj * coeff.emission;
+    vstate.emission += result.indirect_throughput * emission;
+    if (!result.indirect_scatter) {
+      /* Record emission until scatter position. */
+      guiding_record_volume_emission(kg, state, emission);
+    }
+  }
+
+  /* Null scattering coefficients. */
+  const Spectrum sigma_n = volume_null_event_coefficients(kg, coeff, sigma_max);
+
+  if (reduce_add(coeff.sigma_s) == 0.0f) {
+    /* Absorption only. Deterministically choose null scattering and estimate the transmittance
+     * of the current ray segment. */
+    result.indirect_throughput *= sigma_n * inv_maj;
+    return;
+  }
+
+#  ifdef __DENOISING_FEATURES__
+  if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_DENOISING_FEATURES) {
+    /* Albedo = inv_sigma * (sigma_s + sigma_n * (inv_sigma * (sigma_s + sigma_n * ···))). */
+    vstate.albedo += result.indirect_throughput * coeff.sigma_s * inv_maj;
+  }
+#  endif
+
+  /* Indirect scatter. */
+  const float prob_s = volume_scatter_probability(coeff, sigma_n, result.indirect_throughput);
+  volume_sample_indirect_scatter(
+      sigma_max, prob_s, coeff.sigma_s, sd, vstate, result, lcg_state, reservoir);
+
+  /* Null scattering. Accumulate weight and continue. */
+  const float prob_n = 1.0f - prob_s;
+  result.indirect_throughput *= safe_divide(sigma_n * inv_maj, prob_n);
+  vstate.transmittance *= prob_n;
+}
+
+/* Evaluate coefficients at the equiangular scatter position, and update the direct throughput. */
+ccl_device_inline void volume_equiangular_direct_scatter(
+    KernelGlobals kg,
+    const IntegratorState state,
+    const ccl_private Ray *ccl_restrict ray,
+    ccl_private ShaderData *ccl_restrict sd,
+    ccl_private VolumeIntegrateState &vstate,
     ccl_private VolumeIntegrateResult &ccl_restrict result)
 {
-  /* Distance sampling for indirect and optional direct lighting. */
-  volume_sample_indirect_scatter(
-      kg, state, ray, sd, sigma.max, interval, rng_state, vstate, result);
+  if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR || !result.direct_scatter) {
+    return;
+  }
 
-  /* Equiangular sampling for direct lighting. */
-  volume_equiangular_direct_scatter(
-      kg, state, ray, sigma, interval, sd, rng_state, vstate, result);
+  sd->P = ray->P + ray->D * result.direct_t;
+  VolumeShaderCoefficients coeff ccl_optional_struct_init;
+  if (volume_shader_sample(kg, state, sd, &coeff) && (sd->flag & SD_SCATTER)) {
+    volume_shader_copy_phases(&result.direct_phases, sd);
+
+    if (vstate.use_mis) {
+      /* Compute distance pdf for multiple importance sampling. */
+      const Spectrum sigma_n = volume_null_event_coefficients(kg, coeff, vstate.sigma_max);
+      vstate.distance_pdf *= volume_scatter_probability(coeff, sigma_n, result.direct_throughput);
+    }
+
+    result.direct_throughput *= coeff.sigma_s / vstate.equiangular_pdf;
+  }
+  else {
+    /* Scattering coefficient is zero at the sampled position. */
+    result.direct_scatter = false;
+  }
 }
 
 /* Multiple Importance Sampling between equiangular sampling and distance sampling.
@@ -1103,7 +1485,7 @@ ccl_device_inline void volume_direct_scatter_mis(
     const ccl_private EquiangularCoefficients &equiangular_coeffs,
     ccl_private VolumeIntegrateResult &ccl_restrict result)
 {
-  if (!vstate.use_mis || vstate.direct_sample_method == VOLUME_SAMPLE_NONE) {
+  if (!vstate.use_mis || !result.direct_scatter) {
     return;
   }
 
@@ -1120,23 +1502,28 @@ ccl_device_inline void volume_direct_scatter_mis(
   result.direct_throughput *= 2.0f * mis_weight;
 }
 
+/** \} */
+
 ccl_device_inline void volume_integrate_state_init(KernelGlobals kg,
+                                                   const IntegratorState state,
                                                    const VolumeSampleMethod direct_sample_method,
+                                                   ccl_global float *ccl_restrict render_buffer,
+                                                   const ccl_private OctreeTracing &octree,
                                                    const ccl_private RNGState *rng_state,
                                                    ccl_private VolumeIntegrateState &vstate)
 {
   vstate.rscatter = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SCATTER_DISTANCE);
-  vstate.rchannel = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_COLOR_CHANNEL);
 
   /* Multiple importance sampling: pick between equiangular and distance sampling strategy. */
   vstate.direct_sample_method = direct_sample_method;
   vstate.use_mis = (direct_sample_method == VOLUME_SAMPLE_MIS);
   if (vstate.use_mis) {
     if (vstate.rscatter < 0.5f) {
-      vstate.rscatter *= 2.0f;
       vstate.direct_sample_method = VOLUME_SAMPLE_DISTANCE;
+      vstate.rscatter *= 2.0f;
     }
     else {
+      /* Rescale for equiangular distance sampling. */
       vstate.rscatter = (vstate.rscatter - 0.5f) * 2.0f;
       vstate.direct_sample_method = VOLUME_SAMPLE_EQUIANGULAR;
     }
@@ -1146,8 +1533,10 @@ ccl_device_inline void volume_integrate_state_init(KernelGlobals kg,
   vstate.equiangular_pdf = 0.0f;
   vstate.transmittance = 1.0f;
   vstate.step = 0;
-  vstate.stop = false;
-
+  vstate.t = octree.t.min;
+  vstate.optical_depth = octree.sigma.max * octree.t.length();
+  volume_scatter_probability_get(kg, state, render_buffer, vstate);
+  vstate.direct_rr_scale = 1.0f;
   vstate.emission = zero_spectrum();
 #  ifdef __DENOISING_FEATURES__
   vstate.albedo = zero_spectrum();
@@ -1162,8 +1551,7 @@ ccl_device_inline void volume_integrate_result_init(
     ccl_private VolumeIntegrateResult &result)
 {
   const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-  result.direct_throughput = (vstate.use_mis ||
-                              (vstate.direct_sample_method == VOLUME_SAMPLE_NONE)) ?
+  result.direct_throughput = (vstate.direct_sample_method == VOLUME_SAMPLE_NONE) ?
                                  zero_spectrum() :
                                  throughput;
   result.indirect_throughput = throughput;
@@ -1263,36 +1651,46 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INTEGRATE);
 
-  EquiangularCoefficients equiangular_coeffs = {zero_float3(), {ray->tmin, ray->tmax}};
-  const VolumeSampleMethod direct_sample_method = volume_direct_sample_method(
-      kg, state, ray, sd, rng_state, &equiangular_coeffs, ls);
-
-  VolumeIntegrateState vstate ccl_optional_struct_init;
-  volume_integrate_state_init(kg, direct_sample_method, rng_state, vstate);
-
-  /* Initialize volume integration result. */
-  volume_integrate_result_init(state, ray, vstate, equiangular_coeffs, result);
-
   OctreeTracing octree(ray->tmin);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   if (!volume_octree_setup<false>(kg, ray, sd, state, rng_state, path_flag, octree)) {
     return;
   }
 
+  EquiangularCoefficients equiangular_coeffs = {zero_float3(), {ray->tmin, ray->tmax}};
+  const VolumeSampleMethod direct_sample_method = volume_direct_sample_method(
+      kg, state, ray, sd, rng_state, &equiangular_coeffs, ls);
+
+  /* Initialize reservoir for sampling scatter position. */
+  VolumeSampleReservoir reservoir = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_RESERVOIR);
+
+  /* Initialize volume integration state. */
+  VolumeIntegrateState vstate ccl_optional_struct_init;
+  volume_integrate_state_init(
+      kg, state, direct_sample_method, render_buffer, octree, rng_state, vstate);
+
+  /* Initialize volume integration result. */
+  volume_integrate_result_init(state, ray, vstate, equiangular_coeffs, result);
+
   /* Scramble for stepping through volume. */
   path_state_rng_scramble(rng_state, 0xe35fad82);
 
-  do {
-    volume_integrate_step_scattering(
-        kg, state, ray, octree.sigma, octree.t, sd, rng_state, vstate, result);
+  volume_equiangular_transmittance(
+      kg, state, ray, octree.sigma, octree.t, sd, rng_state, vstate, result);
 
-    if (volume_integrate_should_stop(result, vstate)) {
+  while (
+      volume_integrate_advance(kg, ray, sd, state, rng_state, path_flag, octree, vstate, result))
+  {
+    const float sigma_max = octree.sigma.max * vstate.majorant_scale;
+    volume_integrate_step_scattering(kg, state, ray, sigma_max, sd, vstate, result, reservoir);
+
+    if (volume_integrate_should_stop(result)) {
       break;
     }
+  }
 
-  } while (
-      volume_octree_advance<false>(kg, ray, sd, state, rng_state, path_flag, octree, vstate.step));
-
+  volume_distance_sampling_finalize(kg, state, ray, sd, vstate, result, reservoir);
+  volume_equiangular_direct_scatter(kg, state, ray, sd, vstate, result);
   volume_direct_scatter_mis(ray, vstate, equiangular_coeffs, result);
 
   /* Write accumulated emission. */
@@ -1310,6 +1708,10 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
         kg, state, vstate.albedo, result.indirect_scatter, render_buffer);
   }
 #  endif /* __DENOISING_FEATURES__ */
+
+  if (INTEGRATOR_STATE(state, path, bounce) == 0) {
+    INTEGRATOR_STATE_WRITE(state, path, optical_depth) += vstate.optical_depth;
+  }
 }
 
 /* Path tracing: sample point on light and evaluate light shader, then
@@ -1415,6 +1817,11 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = pass_glossy_weight;
+  }
+
+  if (bounce == 0) {
+    shadow_flag |= PATH_RAY_VOLUME_SCATTER;
+    shadow_flag &= ~PATH_RAY_VOLUME_PRIMARY_TRANSMIT;
   }
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
@@ -1752,10 +2159,15 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
     volume_stack_clean(kg, state);
   }
 
+  /* Assign flag to transmitted volume rays for scattering probability guiding. */
+  if (INTEGRATOR_STATE(state, path, bounce) == 0) {
+    INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_VOLUME_PRIMARY_TRANSMIT;
+  }
+
   const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
   if (event == VOLUME_PATH_MISSED) {
     /* End path. */
-    integrator_path_terminate(state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+    integrator_path_terminate(kg, state, render_buffer, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
     return;
   }
 

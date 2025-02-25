@@ -236,7 +236,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel(
       integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
     }
     else {
-      integrator_path_terminate(state, current_kernel);
+      integrator_path_terminate(kg, state, render_buffer, current_kernel);
     }
     return;
   }
@@ -276,14 +276,14 @@ ccl_device_forceinline void integrator_intersect_next_kernel(
 #endif
       }
       else {
-        integrator_path_terminate(state, current_kernel);
+        integrator_path_terminate(kg, state, render_buffer, current_kernel);
       }
     }
   }
   else {
     /* Nothing hit, continue with background kernel. */
     if (integrator_intersect_skip_lights(kg, state)) {
-      integrator_path_terminate(state, current_kernel);
+      integrator_path_terminate(kg, state, render_buffer, current_kernel);
     }
     else {
       integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
@@ -338,7 +338,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel_after_volume(
   }
   /* Nothing hit, continue with background kernel. */
   if (integrator_intersect_skip_lights(kg, state)) {
-    integrator_path_terminate(state, current_kernel);
+    integrator_path_terminate(kg, state, render_buffer, current_kernel);
   }
   else {
     integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);

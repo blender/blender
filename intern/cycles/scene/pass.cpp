@@ -64,6 +64,8 @@ const NodeEnum *Pass::get_type_enum()
     pass_type_enum.insert("volume", PASS_VOLUME);
     pass_type_enum.insert("volume_direct", PASS_VOLUME_DIRECT);
     pass_type_enum.insert("volume_indirect", PASS_VOLUME_INDIRECT);
+    pass_type_enum.insert("volume_scatter", PASS_VOLUME_SCATTER);
+    pass_type_enum.insert("volume_transmit", PASS_VOLUME_TRANSMIT);
 
     /* Data passes. */
     pass_type_enum.insert("depth", PASS_DEPTH);
@@ -88,6 +90,8 @@ const NodeEnum *Pass::get_type_enum()
     pass_type_enum.insert("denoising_albedo", PASS_DENOISING_ALBEDO);
     pass_type_enum.insert("denoising_depth", PASS_DENOISING_DEPTH);
     pass_type_enum.insert("denoising_previous", PASS_DENOISING_PREVIOUS);
+    pass_type_enum.insert("volume_majorant", PASS_VOLUME_MAJORANT);
+    pass_type_enum.insert("volume_majorant_sample_count", PASS_VOLUME_MAJORANT_SAMPLE_COUNT);
 
     pass_type_enum.insert("shadow_catcher", PASS_SHADOW_CATCHER);
     pass_type_enum.insert("shadow_catcher_sample_count", PASS_SHADOW_CATCHER_SAMPLE_COUNT);
@@ -274,6 +278,25 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo, const bo
       pass_info.num_components = 3;
       pass_info.use_exposure = true;
       break;
+    case PASS_VOLUME_SCATTER:
+    case PASS_VOLUME_TRANSMIT:
+      /* TODO(weizhen): Gaussian filter only needs 1 component, but we can have negative pixel
+       * values in some channels, preventing us from simply add them together; besides, using RGB
+       * channels is better for visualization. We can optimize the memory by using RGBE format. */
+      pass_info.num_components = 3;
+      pass_info.use_exposure = true;
+      pass_info.use_filter = false;
+      pass_info.support_denoise = true;
+      break;
+    case PASS_VOLUME_MAJORANT:
+      pass_info.num_components = 1;
+      pass_info.use_filter = false;
+      pass_info.divide_type = PASS_VOLUME_MAJORANT_SAMPLE_COUNT;
+      break;
+    case PASS_VOLUME_MAJORANT_SAMPLE_COUNT:
+      pass_info.num_components = 1;
+      pass_info.use_filter = false;
+      break;
 
     case PASS_CRYPTOMATTE:
       pass_info.num_components = 4;
@@ -436,6 +459,11 @@ std::ostream &operator<<(std::ostream &os, const Pass &pass)
   os << ", is_written: " << string_from_bool(pass.is_written());
 
   return os;
+}
+
+bool is_volume_guiding_pass(const PassType pass_type)
+{
+  return (pass_type == PASS_VOLUME_SCATTER) || (pass_type == PASS_VOLUME_TRANSMIT);
 }
 
 CCL_NAMESPACE_END

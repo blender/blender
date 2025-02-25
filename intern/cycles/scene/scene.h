@@ -201,6 +201,9 @@ class Scene : public NodeOwner {
 
   bool has_shadow_catcher();
   void tag_shadow_catcher_modified();
+  bool has_volume();
+  bool has_volume_modified() const;
+  void tag_has_volume_modified();
 
   /* This function is used to create a node of a specified type instead of
    * calling 'new', and sets the scene as the owner of the node.
@@ -245,6 +248,7 @@ class Scene : public NodeOwner {
 
   bool has_shadow_catcher_ = false;
   bool shadow_catcher_modified_ = true;
+  bool has_volume_modified_ = true;
 
   /* Maximum number of closure during session lifetime. */
   int max_closure_global;

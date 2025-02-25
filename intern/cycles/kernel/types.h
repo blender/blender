@@ -291,7 +291,7 @@ enum PathTraceDimension {
 
   /* Volume */
   PRNG_VOLUME_PHASE = 3,
-  PRNG_VOLUME_COLOR_CHANNEL = 4,
+  PRNG_VOLUME_RESERVOIR = 4,
   PRNG_VOLUME_SCATTER_DISTANCE = 5,
   PRNG_VOLUME_EXPANSION_ORDER = 6,
   PRNG_VOLUME_SHADE_OFFSET = 7,
@@ -437,6 +437,13 @@ enum PathRayFlag : uint32_t {
 
   /* Path is evaluating background for an approximate shadow catcher with non-transparent film. */
   PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 31U),
+
+  /* TODO(weizhen): should add another flag to record only the primary scatter, but then we need to
+     change the flag to 64 bits or split path_flags in two. Right now we also write volume scatter
+     if the primary hit is surface, but that seems fine. */
+  /* Volume scattering probability guiding. This flag is added to path where the primary ray passed
+     through the volume without scattering. */
+  PATH_RAY_VOLUME_PRIMARY_TRANSMIT = (1U << 23U),
 };
 
 // 8bit enum, just in case we need to move more variables in it
@@ -505,6 +512,8 @@ enum PassType {
   PASS_VOLUME,
   PASS_VOLUME_DIRECT,
   PASS_VOLUME_INDIRECT,
+  PASS_VOLUME_SCATTER,
+  PASS_VOLUME_TRANSMIT,
   PASS_CATEGORY_LIGHT_END = 31,
 
   /* Data passes */
@@ -554,6 +563,10 @@ enum PassType {
   PASS_GUIDING_PROBABILITY,
   /* The avg. roughness at the first bounce. */
   PASS_GUIDING_AVG_ROUGHNESS,
+  /* The majorant optical depth along the ray, for volume scattering probability guiding.
+   * When reading this pass, it is converted to majorant transmittance */
+  PASS_VOLUME_MAJORANT,
+  PASS_VOLUME_MAJORANT_SAMPLE_COUNT,
   PASS_CATEGORY_DATA_END = 63,
 
   PASS_BAKE_PRIMITIVE,
@@ -1868,6 +1881,7 @@ enum DeviceKernel : int {
 
   DECLARE_FILM_CONVERT_KERNEL(DEPTH),
   DECLARE_FILM_CONVERT_KERNEL(MIST),
+  DECLARE_FILM_CONVERT_KERNEL(VOLUME_MAJORANT),
   DECLARE_FILM_CONVERT_KERNEL(SAMPLE_COUNT),
   DECLARE_FILM_CONVERT_KERNEL(FLOAT),
   DECLARE_FILM_CONVERT_KERNEL(LIGHT_PATH),
@@ -1889,6 +1903,9 @@ enum DeviceKernel : int {
   DEVICE_KERNEL_FILTER_GUIDING_SET_FAKE_ALBEDO,
   DEVICE_KERNEL_FILTER_COLOR_PREPROCESS,
   DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS,
+
+  DEVICE_KERNEL_VOLUME_GUIDING_FILTER_X,
+  DEVICE_KERNEL_VOLUME_GUIDING_FILTER_Y,
 
   DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS,
 

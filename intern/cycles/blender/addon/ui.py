@@ -1054,6 +1054,13 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         col.prop(cycles_view_layer, "use_pass_volume_direct", text="Direct")
         col.prop(cycles_view_layer, "use_pass_volume_indirect", text="Indirect")
 
+        prefs = context.preferences
+        use_debug = prefs.experimental.use_cycles_debug and prefs.view.show_developer_ui
+        if use_debug:
+            col.prop(cycles_view_layer, "use_pass_volume_scatter", text="Scatter")
+            col.prop(cycles_view_layer, "use_pass_volume_transmit", text="Transmit")
+            col.prop(cycles_view_layer, "use_pass_volume_majorant", text="Majorant")
+
         col = layout.column(heading="Other", align=True)
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")

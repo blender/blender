@@ -95,4 +95,6 @@ class Pass : public Node {
 
 std::ostream &operator<<(std::ostream &os, const Pass &pass);
 
+bool is_volume_guiding_pass(const PassType pass_type);
+
 CCL_NAMESPACE_END

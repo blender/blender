@@ -7,6 +7,8 @@
 #include "kernel/globals.h"
 #include "kernel/types.h"
 
+#include "kernel/film/write.h"
+
 #include "kernel/integrator/state.h"
 
 #ifdef __KERNEL_GPU__
@@ -46,6 +48,24 @@ ccl_device_forceinline bool integrator_shadow_path_is_terminated(ConstIntegrator
   return INTEGRATOR_STATE(state, shadow_path, queued_kernel) == 0;
 }
 
+ccl_device_inline void write_optical_depth(KernelGlobals kg,
+                                           IntegratorState state,
+                                           ccl_global float *ccl_restrict render_buffer)
+{
+  if (!render_buffer) {
+    return;
+  }
+
+  if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_VOLUME_PRIMARY_TRANSMIT) {
+    kernel_assert(kernel_data.film.pass_volume_majorant != PASS_UNUSED);
+
+    const float optical_depth = INTEGRATOR_STATE(state, path, optical_depth);
+    ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
+    film_write_pass_float(buffer + kernel_data.film.pass_volume_majorant, optical_depth);
+    film_write_pass_float(buffer + kernel_data.film.pass_volume_majorant_sample_count, 1.0f);
+  }
+}
+
 #ifdef __KERNEL_GPU__
 
 ccl_device_forceinline void integrator_path_init(IntegratorState state,
@@ -65,9 +85,13 @@ ccl_device_forceinline void integrator_path_next(IntegratorState state,
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
 }
 
-ccl_device_forceinline void integrator_path_terminate(IntegratorState state,
+ccl_device_forceinline void integrator_path_terminate(KernelGlobals kg,
+                                                      IntegratorState state,
+                                                      ccl_global float *ccl_restrict render_buffer,
                                                       const DeviceKernel current_kernel)
 {
+  write_optical_depth(kg, state, render_buffer);
+
   atomic_fetch_and_sub_uint32(&kernel_integrator_state.queue_counter->num_queued[current_kernel],
                               1);
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
@@ -176,9 +200,13 @@ ccl_device_forceinline void integrator_path_next(IntegratorState state,
   (void)current_kernel;
 }
 
-ccl_device_forceinline void integrator_path_terminate(IntegratorState state,
+ccl_device_forceinline void integrator_path_terminate(KernelGlobals kg,
+                                                      IntegratorState state,
+                                                      ccl_global float *ccl_restrict render_buffer,
                                                       const DeviceKernel current_kernel)
 {
+  write_optical_depth(kg, state, render_buffer);
+
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
   (void)current_kernel;
 }

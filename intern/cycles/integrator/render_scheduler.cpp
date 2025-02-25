@@ -55,7 +55,12 @@ bool RenderScheduler::is_denoiser_gpu_used() const
 
 void RenderScheduler::set_limit_samples_per_update(const int limit_samples)
 {
-  limit_samples_per_update_ = limit_samples;
+  if (limit_samples_per_update_) {
+    limit_samples_per_update_ = min(limit_samples_per_update_, limit_samples);
+  }
+  else {
+    limit_samples_per_update_ = limit_samples;
+  }
 }
 
 void RenderScheduler::set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling)
@@ -169,6 +174,7 @@ void RenderScheduler::reset(const BufferParams &buffer_params)
   adaptive_filter_time_.reset();
   display_update_time_.reset();
   rebalance_time_.reset();
+  volume_guiding_denoise_time_.reset();
 }
 
 void RenderScheduler::reset_for_next_tile()
@@ -545,6 +551,23 @@ void RenderScheduler::report_denoise_time(const RenderWork &render_work, const d
   denoise_time_.add_average(final_time_approx);
 
   LOG_WORK << "Average denoising time: " << denoise_time_.get_average() << " seconds.";
+}
+
+void RenderScheduler::report_volume_guiding_denoise_time(const RenderWork &render_work,
+                                                         const double time)
+{
+  volume_guiding_denoise_time_.add_wall(time);
+
+  const double final_time_approx = approximate_final_time(render_work, time);
+
+  if (work_report_reset_average(render_work)) {
+    volume_guiding_denoise_time_.reset_average();
+  }
+
+  volume_guiding_denoise_time_.add_average(final_time_approx, render_work.path_trace.num_samples);
+
+  LOG_WORK << "Average volume guiding denoising time: "
+           << volume_guiding_denoise_time_.get_average() << " seconds.";
 }
 
 void RenderScheduler::report_display_update_time(const RenderWork &render_work, const double time)
@@ -961,6 +984,20 @@ float RenderScheduler::work_adaptive_threshold() const
   }
 
   return max(state_.adaptive_sampling_threshold, adaptive_sampling_.threshold);
+}
+
+bool RenderScheduler::volume_guiding_need_denoise() const
+{
+  if (!is_power_of_two(get_num_rendered_samples())) {
+    return false;
+  }
+
+  if (done()) {
+    /* No need to denoise after the last sample. */
+    return false;
+  }
+
+  return true;
 }
 
 bool RenderScheduler::work_need_denoise(bool &delayed, bool &ready_to_display)

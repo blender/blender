@@ -789,6 +789,22 @@ void Scene::tag_shadow_catcher_modified()
   shadow_catcher_modified_ = true;
 }
 
+bool Scene::has_volume()
+{
+  has_volume_modified_ = false;
+  return dscene.data.integrator.use_volumes;
+}
+
+bool Scene::has_volume_modified() const
+{
+  return has_volume_modified_;
+}
+
+void Scene::tag_has_volume_modified()
+{
+  has_volume_modified_ = true;
+}
+
 template<> Light *Scene::create_node<Light>()
 {
   unique_ptr<Light> node = make_unique<Light>();

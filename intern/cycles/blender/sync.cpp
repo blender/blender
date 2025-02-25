@@ -686,6 +686,9 @@ static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode
   MAP_PASS("GlossInd", PASS_GLOSSY_INDIRECT, false);
   MAP_PASS("TransInd", PASS_TRANSMISSION_INDIRECT, false);
   MAP_PASS("VolumeInd", PASS_VOLUME_INDIRECT, false);
+  MAP_PASS("Volume Scatter", PASS_VOLUME_SCATTER, false);
+  MAP_PASS("Volume Transmit", PASS_VOLUME_TRANSMIT, false);
+  MAP_PASS("Volume Majorant", PASS_VOLUME_MAJORANT, false);
 
   MAP_PASS("DiffCol", PASS_DIFFUSE_COLOR, false);
   MAP_PASS("GlossCol", PASS_GLOSSY_COLOR, false);

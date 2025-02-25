@@ -50,6 +50,7 @@ KERNEL_INTEGRATOR_SHADE_FUNCTION(megakernel);
 KERNEL_FILM_CONVERT_FUNCTION(depth)
 KERNEL_FILM_CONVERT_FUNCTION(mist)
 KERNEL_FILM_CONVERT_FUNCTION(sample_count)
+KERNEL_FILM_CONVERT_FUNCTION(volume_majorant)
 KERNEL_FILM_CONVERT_FUNCTION(float)
 
 KERNEL_FILM_CONVERT_FUNCTION(light_path)
@@ -122,5 +123,25 @@ void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const ThreadKernelGlo
 void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const ThreadKernelGlobalsCPU *kg,
                                                         ccl_global float *render_buffer,
                                                         int pixel_index);
+
+/* --------------------------------------------------------------------
+ * Volume Scattering Probability Guiding.
+ */
+
+void KERNEL_FUNCTION_FULL_NAME(volume_guiding_filter_x)(const ThreadKernelGlobalsCPU *kg,
+                                                        ccl_global float *render_buffer,
+                                                        const int y,
+                                                        const int center_x,
+                                                        const int min_x,
+                                                        const int max_x,
+                                                        const int offset,
+                                                        int stride);
+void KERNEL_FUNCTION_FULL_NAME(volume_guiding_filter_y)(const ThreadKernelGlobalsCPU *kg,
+                                                        ccl_global float *render_buffer,
+                                                        const int x,
+                                                        const int center_y,
+                                                        const int height,
+                                                        const int offset,
+                                                        int stride);
 
 #undef KERNEL_ARCH

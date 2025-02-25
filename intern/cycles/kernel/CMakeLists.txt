@@ -283,6 +283,7 @@ set(SRC_KERNEL_FILM_HEADERS
   film/aov_passes.h
   film/data_passes.h
   film/denoising_passes.h
+  film/volume_guiding_denoise.h
   film/cryptomatte_passes.h
   film/light_passes.h
   film/read.h
