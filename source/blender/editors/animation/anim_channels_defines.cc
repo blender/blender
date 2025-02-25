@@ -4057,7 +4057,7 @@ static bAnimChannelType ACF_GPLGROUP = {
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ greasepencil::layer_group_color,
-    /*get_channel_color*/ nullptr,
+    /*get_channel_color*/ greasepencil::layer_channel_color,
     /*draw_backdrop*/ acf_group_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
     /*get_offset*/ greasepencil::layer_offset,
