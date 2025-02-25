@@ -187,6 +187,25 @@ void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
  */
 bool BKE_animdata_fix_paths_remove(struct ID *id, const char *prefix);
 
+/**
+ * Remove drivers that have an RNA path starting with `prefix`.
+ *
+ * \return true if any driver was removed.
+ */
+bool BKE_animdata_driver_path_remove(struct ID *id, const char *prefix);
+
+/**
+ * Remove all drivers from the given struct.
+ *
+ * \param type needs to be a struct owned by the given ID.
+ * \param data the actual struct data, needs to be the data for the StructRNA.
+ *
+ * \return true if any driver was removed.
+ */
+bool BKE_animdata_drivers_remove_for_rna_struct(struct ID &owner_id,
+                                                struct StructRNA &type,
+                                                void *data);
+
 /* -------------------------------------- */
 
 typedef struct AnimationBasePathChange {

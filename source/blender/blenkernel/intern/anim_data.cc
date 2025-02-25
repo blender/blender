@@ -1216,6 +1216,29 @@ bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
   return any_removed;
 }
 
+bool BKE_animdata_driver_path_remove(ID *id, const char *prefix)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (!adt) {
+    return false;
+  }
+
+  const bool any_removed = fcurves_path_remove_from_listbase(prefix, &adt->drivers);
+  return any_removed;
+}
+
+bool BKE_animdata_drivers_remove_for_rna_struct(ID &owner_id, StructRNA &type, void *data)
+{
+  PointerRNA constraint_ptr = RNA_pointer_create_discrete(&owner_id, &type, data);
+  const std::optional<std::string> base_path = RNA_path_from_ID_to_struct(&constraint_ptr);
+  if (!base_path.has_value()) {
+    /* The data should exist, so the path should always resolve. */
+    BLI_assert_unreachable();
+  }
+
+  return BKE_animdata_driver_path_remove(&owner_id, base_path.value().c_str());
+}
+
 /* Apply Op to All FCurves in Database --------------------------- */
 
 /* Helper for adt_apply_all_fcurves_cb() - Apply wrapped operator to list of F-Curves */

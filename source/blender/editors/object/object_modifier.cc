@@ -384,6 +384,8 @@ static bool object_modifier_remove(
     ob->mode &= ~OB_MODE_PARTICLE_EDIT;
   }
 
+  BKE_animdata_drivers_remove_for_rna_struct(ob->id, RNA_Modifier, md);
+
   BKE_modifier_remove_from_list(ob, md);
   BKE_modifier_free(md);
   BKE_object_free_derived_caches(ob);
