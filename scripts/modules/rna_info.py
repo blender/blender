@@ -395,6 +395,8 @@ class InfoPropertyRNA:
         type_str = ""
         if self.fixed_type is None:
             type_str += self.type
+            if self.type == "string" and self.subtype == "BYTE_STRING":
+                type_str = "byte string"
             if self.array_length:
                 if self.array_dimensions[1] != 0:
                     dimension_str = " of {:s} items".format(
