@@ -155,6 +155,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     else if (b_id.is_a(&RNA_Light)) {
       const BL::Light b_light(b_id);
       shader_map.set_recalc(b_light);
+      geometry_map.set_recalc(b_light);
     }
     /* Object */
     else if (b_id.is_a(&RNA_Object)) {
