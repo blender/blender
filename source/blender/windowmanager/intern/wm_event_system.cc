@@ -353,17 +353,12 @@ static bool note_cmp_for_queue_fn(const void *a, const void *b)
            (note_a->reference == note_b->reference));
 }
 
-void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
+static void wm_event_add_notifier_intern(wmWindowManager *wm,
+                                         const wmWindow *win,
+                                         uint type,
+                                         void *reference)
 {
-  if (wm == nullptr) {
-    /* There may be some cases where e.g. `G_MAIN` is not actually the real current main, but some
-     * other temporary one (e.g. during liboverride processing over linked data), leading to null
-     * window manager.
-     *
-     * This is fairly bad and weak, but unfortunately RNA does not have any way to operate over
-     * another main than G_MAIN currently. */
-    return;
-  }
+  BLI_assert(wm != nullptr);
 
   wmNotifier note_test = {nullptr};
 
@@ -377,19 +372,33 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
 
   BLI_assert(!wm_notifier_is_clear(&note_test));
 
-  if (wm->notifier_queue_set == nullptr) {
-    wm->notifier_queue_set = BLI_gset_new_ex(
+  if (wm->runtime->notifier_queue_set == nullptr) {
+    wm->runtime->notifier_queue_set = BLI_gset_new_ex(
         note_hash_for_queue_fn, note_cmp_for_queue_fn, __func__, 1024);
   }
 
   void **note_p;
-  if (BLI_gset_ensure_p_ex(wm->notifier_queue_set, &note_test, &note_p)) {
+  if (BLI_gset_ensure_p_ex(wm->runtime->notifier_queue_set, &note_test, &note_p)) {
     return;
   }
   wmNotifier *note = MEM_callocN<wmNotifier>(__func__);
   *note = note_test;
   *note_p = note;
-  BLI_addtail(&wm->notifier_queue, note);
+  BLI_addtail(&wm->runtime->notifier_queue, note);
+}
+
+void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
+{
+  if (wm == nullptr) {
+    /* There may be some cases where e.g. `G_MAIN` is not actually the real current main, but some
+     * other temporary one (e.g. during liboverride processing over linked data), leading to null
+     * window manager.
+     *
+     * This is fairly bad and weak, but unfortunately RNA does not have any way to operate over
+     * another main than G_MAIN currently. */
+    return;
+  }
+  wm_event_add_notifier_intern(wm, win, type, reference);
 }
 
 void WM_event_add_notifier(const bContext *C, uint type, void *reference)
@@ -413,23 +422,23 @@ void WM_main_remove_notifier_reference(const void *reference)
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   if (wm) {
-    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->notifier_queue) {
+    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->runtime->notifier_queue) {
       if (note->reference == reference) {
-        const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
+        const bool removed = BLI_gset_remove(wm->runtime->notifier_queue_set, note, nullptr);
         BLI_assert(removed);
         UNUSED_VARS_NDEBUG(removed);
 
         /* Remove unless this is being iterated over by the caller.
-         * This is done to prevent `wm->notifier_queue` accumulating notifiers
+         * This is done to prevent `wm->runtime->notifier_queue` accumulating notifiers
          * that aren't handled which can happen when notifiers are added from Python scripts.
          * see #129323. */
-        if (wm->notifier_current == note) {
+        if (wm->runtime->notifier_current == note) {
           /* Don't remove because this causes problems for #wm_event_do_notifiers
            * which may be looping on the data (deleting screens). */
           wm_notifier_clear(note);
         }
         else {
-          BLI_remlink(&wm->notifier_queue, note);
+          BLI_remlink(&wm->runtime->notifier_queue, note);
           MEM_freeN(note);
         }
       }
@@ -589,9 +598,10 @@ void wm_event_do_notifiers(bContext *C)
 
     CTX_wm_window_set(C, win);
 
-    BLI_assert(wm->notifier_current == nullptr);
-    for (const wmNotifier *note = static_cast<const wmNotifier *>(wm->notifier_queue.first),
-                          *note_next = nullptr;
+    BLI_assert(wm->runtime->notifier_current == nullptr);
+    for (const wmNotifier *
+             note = static_cast<const wmNotifier *>(wm->runtime->notifier_queue.first),
+            *note_next = nullptr;
          note;
          note = note_next)
     {
@@ -601,7 +611,7 @@ void wm_event_do_notifiers(bContext *C)
         continue;
       }
 
-      wm->notifier_current = note;
+      wm->runtime->notifier_current = note;
 
       if (note->category == NC_WM) {
         if (ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
@@ -673,11 +683,11 @@ void wm_event_do_notifiers(bContext *C)
         clear_info_stats = true;
       }
 
-      wm->notifier_current = nullptr;
+      wm->runtime->notifier_current = nullptr;
 
       note_next = note->next;
       if (wm_notifier_is_clear(note)) {
-        BLI_remlink(&wm->notifier_queue, (void *)note);
+        BLI_remlink(&wm->runtime->notifier_queue, (void *)note);
         MEM_freeN((void *)note);
       }
     }
@@ -686,7 +696,7 @@ void wm_event_do_notifiers(bContext *C)
       /* Only do once since adding notifiers is slow when there are many. */
       ViewLayer *view_layer = CTX_data_view_layer(C);
       ED_info_stats_clear(wm, view_layer);
-      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
+      wm_event_add_notifier_intern(wm, CTX_wm_window(C), NC_SPACE | ND_SPACE_INFO, nullptr);
     }
 
     if (do_anim) {
@@ -702,19 +712,20 @@ void wm_event_do_notifiers(bContext *C)
     }
   }
 
-  BLI_assert(wm->notifier_current == nullptr);
+  BLI_assert(wm->runtime->notifier_current == nullptr);
 
   /* The notifiers are sent without context, to keep it clean. */
-  while (
-      const wmNotifier *note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue)))
+  while (const wmNotifier *note = static_cast<const wmNotifier *>(
+             BLI_pophead(&wm->runtime->notifier_queue)))
   {
     if (wm_notifier_is_clear(note)) {
       MEM_freeN((void *)note);
       continue;
     }
-    /* NOTE: no need to set `wm->notifier_current` since it's been removed from the queue. */
+    /* NOTE: no need to set `wm->runtime->notifier_current` since it's been removed from the queue.
+     */
 
-    const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
+    const bool removed = BLI_gset_remove(wm->runtime->notifier_queue_set, note, nullptr);
     BLI_assert(removed);
     UNUSED_VARS_NDEBUG(removed);
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {

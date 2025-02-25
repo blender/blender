@@ -24,7 +24,7 @@ using std_mutex_type = std::mutex;
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 namespace blender::bke {
-class WindowManagerRuntime;
+struct WindowManagerRuntime;
 }
 using WindowManagerRuntimeHandle = blender::bke::WindowManagerRuntime;
 #else   // __cplusplus
@@ -170,22 +170,6 @@ typedef struct wmWindowManager {
 
   /** Operator registry. */
   ListBase operators;
-
-  /**
-   * Refresh/redraw #wmNotifier structs.
-   * \note Once in the queue, notifiers should be considered read-only.
-   * With the exception of clearing notifiers for data which has been removed,
-   * see: #NOTE_CATEGORY_TAG_CLEARED.
-   */
-  ListBase notifier_queue;
-  /**
-   * For duplicate detection.
-   * \note keep in sync with `notifier_queue` adding/removing elements must also update this set.
-   */
-  struct GSet *notifier_queue_set;
-
-  /** The current notifier in the `notifier_queue` being handled (clear instead of freeing). */
-  const struct wmNotifier *notifier_current;
 
   /** Available/pending extensions updates. */
   int extensions_updates;
