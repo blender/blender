@@ -199,15 +199,11 @@ static void simple_helper(void *__restrict userdata,
 {
   const DeformUserData *curr_deform_data = static_cast<const DeformUserData *>(userdata);
   float weight = BKE_defvert_array_find_weight_safe(
-      curr_deform_data->dvert, iter, curr_deform_data->vgroup);
+      curr_deform_data->dvert, iter, curr_deform_data->vgroup, curr_deform_data->invert_vgroup);
   const uint *axis_map = axis_map_table[(curr_deform_data->mode != MOD_SIMPLEDEFORM_MODE_BEND) ?
                                             curr_deform_data->deform_axis :
                                             2];
   const float base_limit[2] = {0.0f, 0.0f};
-
-  if (curr_deform_data->invert_vgroup) {
-    weight = 1.0f - weight;
-  }
 
   if (weight != 0.0f) {
     float co[3], dcut[3] = {0.0f, 0.0f, 0.0f};
