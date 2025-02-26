@@ -147,6 +147,14 @@ vec3 safe_rcp(vec3 a);
 vec4 safe_rcp(vec4 a);
 
 /**
+ * A version of pow that returns a fallback value if the computation is undefined. From the spec:
+ * The result is undefined if x < 0 or if x = 0 and y is less than or equal 0.
+ */
+vec2 fallback_pow(vec2 a, float b, vec2 fallback);
+vec3 fallback_pow(vec3 a, float b, vec3 fallback);
+vec4 fallback_pow(vec4 a, float b, vec4 fallback);
+
+/**
  * Per component linear interpolation.
  */
 vec2 interpolate(vec2 a, vec2 b, float t);
@@ -578,6 +586,24 @@ vec3 safe_rcp(vec3 a)
 vec4 safe_rcp(vec4 a)
 {
   return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0)));
+}
+
+vec2 fallback_pow(vec2 a, float b, vec2 fallback)
+{
+  return vec2(fallback_pow(a.x, b, fallback.x), fallback_pow(a.y, b, fallback.y));
+}
+vec3 fallback_pow(vec3 a, float b, vec3 fallback)
+{
+  return vec3(fallback_pow(a.x, b, fallback.x),
+              fallback_pow(a.y, b, fallback.y),
+              fallback_pow(a.z, b, fallback.z));
+}
+vec4 fallback_pow(vec4 a, float b, vec4 fallback)
+{
+  return vec4(fallback_pow(a.x, b, fallback.x),
+              fallback_pow(a.y, b, fallback.y),
+              fallback_pow(a.z, b, fallback.z),
+              fallback_pow(a.w, b, fallback.w));
 }
 
 vec2 interpolate(vec2 a, vec2 b, float t)

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_common_color_utils.glsl"
-#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
 
 /* Algorithm from the book Video Demystified. Chapter 7. Chroma Keying. */
 void node_composite_chroma_matte(vec4 color,
@@ -25,7 +25,7 @@ void node_composite_chroma_matte(vec4 color,
 
   /* Rotate the color onto the space of the key such that x axis of the color space passes through
    * the key color. */
-  color_cc = vector_to_rotation_matrix(key_cc * vec2(1.0, -1.0)) * color_cc;
+  color_cc = from_direction(key_cc * vec2(1.0, -1.0)) * color_cc;
 
   /* Compute foreground key. If positive, the value is in the [0, 1] range. */
   float foreground_key = color_cc.x - (abs(color_cc.y) / acceptance);

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 void node_composite_difference_matte(
     vec4 color, vec4 key, float tolerance, float falloff, out vec4 result, out float matte)

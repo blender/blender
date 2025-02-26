@@ -214,6 +214,19 @@ float cos_from_sin(float s)
   return safe_sqrt(1.0 - square(s));
 }
 
+/**
+ * A version of pow that returns a fallback value if the computation is undefined. From the spec:
+ * The result is undefined if x < 0 or if x = 0 and y is less than or equal 0.
+ */
+float fallback_pow(float x, float y, float fallback)
+{
+  if (x < 0.0 || (x == 0.0 && y <= 0.0)) {
+    return fallback;
+  }
+
+  return pow(x, y);
+}
+
 /** \} */
 
 #endif /* GPU_SHADER_MATH_BASE_LIB_GLSL */
