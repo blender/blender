@@ -239,12 +239,18 @@ static const EnumPropertyItem prop_simplify_modes[] = {
 
 static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
                                 const int step,
+                                const IndexMask &stroke_selection,
                                 IndexMaskMemory &memory)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
-  return IndexMask::from_predicate(
-      curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
+
+  const IndexMask selected_points = IndexMask::from_ranges(
+      points_by_curve, stroke_selection, memory);
+
+  /* Find points to keep among selected points. */
+  const IndexMask selected_to_keep = IndexMask::from_predicate(
+      selected_points, GrainSize(2048), memory, [&](const int64_t i) {
         const int curve_i = point_to_curve_map[i];
         const IndexRange points = points_by_curve[curve_i];
         if (points.size() <= 2) {
@@ -253,6 +259,10 @@ static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
         const int local_i = i - points.start();
         return (local_i % int(math::pow(2.0f, float(step))) == 0) || points.last() == i;
       });
+
+  /* All the points that are not selected are also kept. */
+  return IndexMask::from_union(
+      {selected_to_keep, selected_points.complement(curves.points_range(), memory)}, memory);
 }
 
 static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
@@ -281,7 +291,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
     switch (mode) {
       case SimplifyMode::FIXED: {
         const int steps = RNA_int_get(op->ptr, "steps");
-        const IndexMask points_to_keep = simplify_fixed(curves, steps, memory);
+        const IndexMask points_to_keep = simplify_fixed(curves, steps, strokes, memory);
         if (points_to_keep.is_empty()) {
           info.drawing.strokes_for_write() = {};
           break;
@@ -322,8 +332,9 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
         const OffsetIndices<int> points_by_curve = curves.points_by_curve();
         const Array<int> point_to_curve_map = curves.point_to_curve_map();
         const float merge_distance = RNA_float_get(op->ptr, "distance");
-        const IndexMask points = IndexMask::from_predicate(
-            curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
+        const IndexMask selected_points = IndexMask::from_ranges(points_by_curve, strokes, memory);
+        const IndexMask filtered_points = IndexMask::from_predicate(
+            selected_points, GrainSize(2048), memory, [&](const int64_t i) {
               const int curve_i = point_to_curve_map[i];
               const IndexRange points = points_by_curve[curve_i];
               if (points.drop_front(1).drop_back(1).contains(i)) {
@@ -332,7 +343,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
               return false;
             });
         info.drawing.strokes_for_write() = ed::greasepencil::curves_merge_by_distance(
-            curves, merge_distance, points, {});
+            curves, merge_distance, filtered_points, {});
         info.drawing.tag_topology_changed();
         changed = true;
         break;
