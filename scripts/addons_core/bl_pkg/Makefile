@@ -5,6 +5,47 @@
 # note: this isn't needed for building,
 # its just for some convenience targets.
 
+define HELP_TEXT
+Checkers:
+
+- check_mypy, watch_check_mypy
+  Runs the mypy checker, optionally watching files & re-running.
+
+- check_ruff, watch_check_ruff
+  Runs the ruff checker, optionally watching files & re-running.
+
+- check_pylint, watch_check_pylint
+  Runs the pylint checker, optionally watching files & re-running.
+
+- check_flake8, watch_check_flake8
+
+
+Tests:
+
+- test, watch_test
+  Runs all tests listed below.
+
+- test_cli
+  Test the command line program, "blender_ext.py" Blender is not used.
+
+- test_blender
+  Test blender (currenlty only some limited tests).
+
+- test_cli_blender
+  Runs tests that access & manipulate extensions via the command line.
+
+
+Environment Variables:
+
+- BLENDER_BIN
+  The command used to run Blender, defaults to "blender"
+
+- PYTHON_BIN
+  The command used to run PYthon, defaults to "python3"
+
+endef
+# HELP_TEXT (end)
+
 # Needed for when tests are run from another directory: `make -C ./scripts/addons_core`
 BASE_DIR := ${CURDIR}
 
@@ -31,6 +72,14 @@ EXTRA_WATCH_FILES=Makefile
 # For tests that launch Blender directly.
 BLENDER_BIN?=$(shell which blender)
 PYTHON_BIN?=$(shell which python3)
+
+
+# -----------------------------------------------------------------------------
+# Help for build targets
+
+export HELP_TEXT
+help: FORCE
+	@echo "$$HELP_TEXT"
 
 
 # -----------------------------------------------------------------------------
