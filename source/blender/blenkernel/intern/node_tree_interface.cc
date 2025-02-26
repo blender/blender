@@ -1376,6 +1376,14 @@ bool bNodeTreeInterface::move_item_to_parent(bNodeTreeInterfaceItem &item,
   if (new_parent == nullptr) {
     new_parent = &this->root_panel;
   }
+
+  if (item.item_type == NODE_INTERFACE_PANEL) {
+    bNodeTreeInterfacePanel &src_item = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
+    if (src_item.contains_recursive(new_parent->item)) {
+      return false;
+    }
+  }
+
   bNodeTreeInterfacePanel *parent = this->find_item_parent(item, true);
   if (parent == nullptr) {
     return false;
