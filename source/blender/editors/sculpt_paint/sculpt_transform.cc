@@ -576,6 +576,16 @@ void update_modal_transform(bContext *C, Object &ob)
   flush_update_step(C, UpdateType::Position);
 }
 
+void cancel_modal_transform(bContext *C, Object &ob)
+{
+  /* Cancelling "Elastic" transforms (due to its TransformDisplacementMode::Incremental nature),
+   * requires restoring positions from undo. For "All Vertices" there is no benefit in using the
+   * transform system to update to original positions either. */
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
+  undo::restore_position_from_undo_step(*depsgraph, ob);
+}
+
 void end_transform(bContext *C, Object &ob)
 {
   SculptSession &ss = *ob.sculpt;

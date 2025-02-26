@@ -110,7 +110,13 @@ static void recalcData_sculpt(TransInfo *t)
 {
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
   Object *ob = BKE_view_layer_active_object_get(t->view_layer);
-  sculpt_paint::update_modal_transform(t->context, *ob);
+
+  if (t->state == TRANS_CANCEL) {
+    sculpt_paint::cancel_modal_transform(t->context, *ob);
+  }
+  else {
+    sculpt_paint::update_modal_transform(t->context, *ob);
+  }
 }
 
 static void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
