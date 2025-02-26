@@ -25,8 +25,21 @@ def gather_gltf2(export_settings):
     animations = []  # unfortunately animations in gltf2 are just as 'root' as scenes.
     active_scene = None
     store_user_scene = bpy.context.scene
-    scenes_to_export = bpy.data.scenes if export_settings['gltf_active_scene'] is False else [
+    if export_settings['gltf_collection'] is None and export_settings['gltf_active_scene'] is False:
+        # If no collection export and no active scene export, we need to export all scenes
+        scenes_to_export = bpy.data.scenes
+    elif export_settings['gltf_collection'] is None and export_settings['gltf_active_scene'] is True:
+        # If no collection export and active scene export, we need to export only the active scene
+        scenes_to_export = [
         scene for scene in bpy.data.scenes if scene.name == store_user_scene.name]
+    elif export_settings['gltf_collection'] is not None:
+        # If collection export, we need to export only the collection, so keeping only the active scene
+        scenes_to_export = [
+        scene for scene in bpy.data.scenes if scene.name == store_user_scene.name]
+    else:
+        # This should never happen
+        raise Exception("Unknown export settings")
+
     for blender_scene in scenes_to_export:
         scenes.append(__gather_scene(blender_scene, export_settings))
         if export_settings['gltf_animations']:
@@ -46,7 +59,7 @@ def __gather_scene(blender_scene, export_settings):
     scene = gltf2_io.Scene(
         extensions=None,
         extras=__gather_extras(blender_scene, export_settings),
-        name=blender_scene.name,
+        name=__gather_name(blender_scene, export_settings),
         nodes=[]
     )
 
@@ -135,3 +148,8 @@ def __gather_extras(blender_object, export_settings):
             return generate_extras(bpy.data.collections[export_settings['gltf_collection']])
         return generate_extras(blender_object)
     return None
+
+def __gather_name(blender_scene, export_settings):
+    if export_settings['gltf_collection']:
+        return export_settings['gltf_collection']
+    return blender_scene.name
