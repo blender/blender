@@ -70,6 +70,11 @@ vec3 as_vec3(EulerXYZ eul)
   return vec3(eul.x, eul.y, eul.z);
 }
 
+EulerXYZ as_EulerXYZ(vec3 eul)
+{
+  return EulerXYZ(eul.x, eul.y, eul.z);
+}
+
 EulerXYZ EulerXYZ_identity()
 {
   return EulerXYZ(0, 0, 0);

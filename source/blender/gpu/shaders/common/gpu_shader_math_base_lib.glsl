@@ -118,6 +118,19 @@ float safe_mod(float a, float b)
 }
 
 /**
+ * A version of mod that behaves similar to C++ std::modf, and is safe such that it returns 0 when
+ * b is also 0.
+ */
+float compatible_mod(float a, float b)
+{
+  if (b != 0.0) {
+    int N = int(a / b);
+    return a - N * b;
+  }
+  return 0.0;
+}
+
+/**
  * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
  * In other words, it is equivalent to `divide_ceil(a, b) * b`.
  * It is undefined if \a a is negative or \b b is not strictly positive.
@@ -225,6 +238,42 @@ float fallback_pow(float x, float y, float fallback)
   }
 
   return pow(x, y);
+}
+
+/**
+ * A version of pow that behaves similar to C++ std::pow.
+ */
+float compatible_pow(float x, float y)
+{
+  if (y == 0.0) { /* x^0 -> 1, including 0^0 */
+    return 1.0;
+  }
+
+  /* GLSL pow doesn't accept negative x. */
+  if (x < 0.0) {
+    if (mod(-y, 2.0) == 0.0) {
+      return pow(-x, y);
+    }
+    else {
+      return -pow(-x, y);
+    }
+  }
+  else if (x == 0.0) {
+    return 0.0;
+  }
+
+  return pow(x, y);
+}
+
+/**
+ * Wrap the given value a to fall within the range [b, c].
+ */
+float wrap(float a, float b, float c)
+{
+  float range = b - c;
+  /* Avoid discrepancy on some hardware due to floating point accuracy and fast math. */
+  float s = (a != b) ? floor((a - c) / range) : 1.0;
+  return (range != 0.0) ? a - range * s : c;
 }
 
 /** \} */

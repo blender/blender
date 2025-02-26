@@ -50,6 +50,24 @@ vec3 safe_mod(vec3 a, float b);
 vec4 safe_mod(vec4 a, float b);
 
 /**
+ * A version of mod that behaves similar to C++ std::modf, and is safe such that it returns 0 when
+ * b is also 0.
+ */
+vec2 compatible_mod(vec2 a, vec2 b);
+vec3 compatible_mod(vec3 a, vec3 b);
+vec4 compatible_mod(vec4 a, vec4 b);
+vec2 compatible_mod(vec2 a, float b);
+vec3 compatible_mod(vec3 a, float b);
+vec4 compatible_mod(vec4 a, float b);
+
+/**
+ * Wrap the given value a to fall within the range [b, c].
+ */
+vec2 wrap(vec2 a, vec2 b, vec2 c);
+vec3 wrap(vec3 a, vec3 b, vec3 c);
+vec4 wrap(vec4 a, vec4 b, vec4 c);
+
+/**
  * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
  * In other words, it is equivalent to `divide_ceil(a, b) * b`.
  * It is undefined if \a a is negative or \b b is not strictly positive.
@@ -331,6 +349,51 @@ vec3 safe_mod(vec3 a, float b)
 vec4 safe_mod(vec4 a, float b)
 {
   return (b != 0.0) ? mod(a, vec4(b)) : vec4(0);
+}
+
+vec2 compatible_mod(vec2 a, float b)
+{
+  return vec2(compatible_mod(a.x, b), compatible_mod(a.y, b));
+}
+vec3 compatible_mod(vec3 a, float b)
+{
+  return vec3(compatible_mod(a.x, b), compatible_mod(a.y, b), compatible_mod(a.z, b));
+}
+vec4 compatible_mod(vec4 a, float b)
+{
+  return vec4(compatible_mod(a.x, b),
+              compatible_mod(a.y, b),
+              compatible_mod(a.z, b),
+              compatible_mod(a.w, b));
+}
+
+vec2 compatible_mod(vec2 a, vec2 b)
+{
+  return vec2(compatible_mod(a.x, b.x), compatible_mod(a.y, b.y));
+}
+vec3 compatible_mod(vec3 a, vec3 b)
+{
+  return vec3(compatible_mod(a.x, b.x), compatible_mod(a.y, b.y), compatible_mod(a.z, b.z));
+}
+vec4 compatible_mod(vec4 a, vec4 b)
+{
+  return vec4(compatible_mod(a.x, b.x),
+              compatible_mod(a.y, b.y),
+              compatible_mod(a.z, b.z),
+              compatible_mod(a.w, b.w));
+}
+
+vec2 wrap(vec2 a, vec2 b, vec2 c)
+{
+  return vec2(wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y));
+}
+vec3 wrap(vec3 a, vec3 b, vec3 c)
+{
+  return vec3(wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y), wrap(a.z, b.z, c.z));
+}
+vec4 wrap(vec4 a, vec4 b, vec4 c)
+{
+  return vec4(wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y), wrap(a.z, b.z, c.z), wrap(a.w, b.w, c.w));
 }
 
 ivec2 ceil_to_multiple(ivec2 a, ivec2 b)

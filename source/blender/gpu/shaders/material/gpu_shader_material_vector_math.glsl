@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 vec3 vector_math_safe_normalize(vec3 a)
 {
@@ -103,7 +103,7 @@ void vector_math_ceil(vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, o
 void vector_math_modulo(
     vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, out float outValue)
 {
-  outVector = compatible_fmod(a, b);
+  outVector = compatible_mod(a, b);
 }
 
 void vector_math_wrap(vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, out float outValue)
