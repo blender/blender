@@ -2806,9 +2806,6 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         from .bl_extension_utils import pkg_is_legacy_addon
 
         if not pkg_is_legacy_addon(filepath):
-            self._drop_variables = True
-            self._legacy_drop = None
-
             from .bl_extension_utils import pkg_manifest_dict_from_archive_or_error
 
             repos_valid = self._repos_valid_for_install(context)
@@ -2829,6 +2826,8 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                 del repo
 
             self._drop_variables = pkg_id, pkg_type
+            self._legacy_drop = None
+
             del result, pkg_id, pkg_type
         else:
             self._drop_variables = None
