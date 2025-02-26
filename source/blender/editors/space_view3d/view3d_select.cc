@@ -36,6 +36,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #ifdef __BIG_ENDIAN__
 #  include "BLI_endian_switch.h"
 #endif
@@ -1643,6 +1645,17 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
+static std::string object_select_menu_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "deselect")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Deselect Object");
+  }
+  if (RNA_boolean_get(ptr, "toggle")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Toggle Object Selection");
+  }
+  return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select Object");
+}
+
 void VIEW3D_OT_select_menu(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1655,6 +1668,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_select_menu_exec;
+  ot->get_name = object_select_menu_get_name;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
