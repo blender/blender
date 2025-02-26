@@ -944,39 +944,6 @@ static bool modifier_apply_shape(Main *bmain,
   return true;
 }
 
-static bool meta_data_matches(const std::optional<bke::AttributeMetaData> meta_data,
-                              const AttrDomainMask domains,
-                              const eCustomDataMask types)
-{
-  if (!meta_data) {
-    return false;
-  }
-  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & domains)) {
-    return false;
-  }
-  if (!(CD_TYPE_AS_MASK(meta_data->data_type) & types)) {
-    return false;
-  }
-  return true;
-}
-
-static void remove_invalid_attribute_strings(Mesh &mesh)
-{
-  bke::AttributeAccessor attributes = mesh.attributes();
-  if (!meta_data_matches(attributes.lookup_meta_data(mesh.active_color_attribute),
-                         ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL))
-  {
-    MEM_SAFE_FREE(mesh.active_color_attribute);
-  }
-  if (!meta_data_matches(attributes.lookup_meta_data(mesh.default_color_attribute),
-                         ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL))
-  {
-    MEM_SAFE_FREE(mesh.default_color_attribute);
-  }
-}
-
 static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
                                           const int eval_frame,
                                           const IndexMask &orig_layers,
@@ -1383,7 +1350,7 @@ static bool modifier_apply_obdata(ReportList *reports,
       mesh->attributes_for_write().remove_anonymous();
 
       /* Remove strings referring to attributes if they no longer exist. */
-      remove_invalid_attribute_strings(*mesh);
+      bke::mesh_remove_invalid_attribute_strings(*mesh);
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(mesh);

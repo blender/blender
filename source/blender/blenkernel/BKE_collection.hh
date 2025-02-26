@@ -422,7 +422,7 @@ GSet *BKE_scene_objects_as_gset(Scene *scene, GSet *objects_gset);
     bool is_scene_collection = (_scene) != NULL; \
 \
     if (_scene) { \
-      _instance_next = _scene->master_collection; \
+      _instance_next = (_scene)->master_collection; \
     } \
     else { \
       _instance_next = static_cast<Collection *>((_bmain)->collections.first); \

@@ -43,6 +43,7 @@ set(SRC
   object_transform.cc
   object_utils.cc
   object_vgroup.cc
+  object_visual_geometry_to_objects.cc
   object_volume.cc
   object_warp.cc
 

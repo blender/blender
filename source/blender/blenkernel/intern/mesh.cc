@@ -559,6 +559,39 @@ void mesh_ensure_required_data_layers(Mesh &mesh)
   attributes.add(".corner_edge", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
 }
 
+static bool meta_data_matches(const std::optional<bke::AttributeMetaData> meta_data,
+                              const AttrDomainMask domains,
+                              const eCustomDataMask types)
+{
+  if (!meta_data) {
+    return false;
+  }
+  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & domains)) {
+    return false;
+  }
+  if (!(CD_TYPE_AS_MASK(meta_data->data_type) & types)) {
+    return false;
+  }
+  return true;
+}
+
+void mesh_remove_invalid_attribute_strings(Mesh &mesh)
+{
+  bke::AttributeAccessor attributes = mesh.attributes();
+  if (!meta_data_matches(attributes.lookup_meta_data(mesh.active_color_attribute),
+                         ATTR_DOMAIN_MASK_COLOR,
+                         CD_MASK_COLOR_ALL))
+  {
+    MEM_SAFE_FREE(mesh.active_color_attribute);
+  }
+  if (!meta_data_matches(attributes.lookup_meta_data(mesh.default_color_attribute),
+                         ATTR_DOMAIN_MASK_COLOR,
+                         CD_MASK_COLOR_ALL))
+  {
+    MEM_SAFE_FREE(mesh.default_color_attribute);
+  }
+}
+
 }  // namespace blender::bke
 
 void BKE_mesh_free_data_for_undo(Mesh *mesh)

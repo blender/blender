@@ -741,10 +741,15 @@ static const ID *get_evaluated_object_data_with_materials(const Object *ob)
 
 Material *BKE_object_material_get_eval(Object *ob, short act)
 {
-  BLI_assert(DEG_is_evaluated_object(ob));
-
   const ID *data = get_evaluated_object_data_with_materials(ob);
-  const int slots_num = BKE_object_material_count_eval(ob);
+  return const_cast<Material *>(BKE_object_material_get_eval(*ob, *data, act));
+}
+
+const Material *BKE_object_material_get_eval(const Object &ob, const ID &data, const short act)
+{
+  BLI_assert(DEG_is_evaluated_object(&ob));
+
+  const int slots_num = BKE_object_material_count_eval(ob, data);
 
   if (slots_num == 0) {
     return nullptr;
@@ -752,13 +757,13 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
 
   /* Clamp to number of slots if index is out of range, same convention as used for rendering. */
   const int slot_index = clamp_i(act - 1, 0, slots_num - 1);
-  const int tot_slots_object = ob->totcol;
+  const int tot_slots_object = ob.totcol;
 
   /* Check if slot is overwritten by object. */
   if (slot_index < tot_slots_object) {
-    if (ob->matbits) {
-      if (ob->matbits[slot_index]) {
-        Material *material = ob->mat[slot_index];
+    if (ob.matbits) {
+      if (ob.matbits[slot_index]) {
+        Material *material = ob.mat[slot_index];
         if (material != nullptr) {
           return material;
         }
@@ -767,12 +772,12 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
   }
 
   /* Otherwise use data from object-data. */
-  const short *data_slots_num_ptr = BKE_id_material_len_p(const_cast<ID *>(data));
+  const short *data_slots_num_ptr = BKE_id_material_len_p(const_cast<ID *>(&data));
   if (!data_slots_num_ptr) {
     return nullptr;
   }
   const int data_slots_num = *data_slots_num_ptr;
-  Material **data_materials = *BKE_id_material_array_p(const_cast<ID *>(data));
+  Material **data_materials = *BKE_id_material_array_p(const_cast<ID *>(&data));
   if (slot_index < data_slots_num) {
     Material *material = data_materials[slot_index];
     return material;
@@ -790,6 +795,17 @@ int BKE_object_material_count_eval(const Object *ob)
   const ID *id = get_evaluated_object_data_with_materials(const_cast<Object *>(ob));
   const short *len_p = BKE_id_material_len_p(const_cast<ID *>(id));
   return std::max(ob->totcol, len_p ? *len_p : 0);
+}
+
+int BKE_object_material_count_eval(const Object &ob, const ID &data)
+{
+  BLI_assert(DEG_is_evaluated_object(&ob));
+  if (ob.type == OB_EMPTY) {
+    return 0;
+  }
+  BLI_assert(ob.data != nullptr);
+  const short *len_p = BKE_id_material_len_p(const_cast<ID *>(&data));
+  return std::max(ob.totcol, len_p ? *len_p : 0);
 }
 
 std::optional<int> BKE_id_material_index_max_eval(const ID &id)
@@ -815,6 +831,14 @@ std::optional<int> BKE_id_material_index_max_eval(const ID &id)
       return 0;
     default:
       break;
+  }
+  return 0;
+}
+
+int BKE_id_material_used_eval(const ID &id)
+{
+  if (std::optional<int> max_index = BKE_id_material_index_max_eval(id)) {
+    return *max_index + 1;
   }
   return 0;
 }

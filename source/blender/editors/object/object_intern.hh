@@ -371,4 +371,7 @@ void collection_exporter_register();
 Vector<PointerRNA> modifier_get_edit_objects(const bContext &C, const wmOperator &op);
 void modifier_register_use_selected_objects_prop(wmOperatorType *ot);
 
+/* object_visual_geometry_to_objects.cc */
+void OBJECT_OT_visual_geometry_to_objects(wmOperatorType *ot);
+
 }  // namespace blender::ed::object
