@@ -22,7 +22,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_deform.hh"
 #include "BKE_fcurve.hh"
@@ -37,7 +36,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 #include "BLI_vector.hh"
 
 #include "ED_armature.hh"
@@ -69,16 +67,7 @@ void resize_fcurve(FCurve *fcu, uint bezt_count)
     return;
   }
 
-  BezTriple *new_bezt = nullptr;
-  if (bezt_count > 0) {
-    const size_t new_size = sizeof(BezTriple) * bezt_count;
-    new_bezt = MEM_cnew_array<BezTriple>(bezt_count, "beztriple");
-    memcpy(new_bezt, fcu->bezt, new_size);
-  }
-
-  MEM_freeN(fcu->bezt);
-  fcu->bezt = new_bezt;
-  fcu->totvert = bezt_count;
+  BKE_fcurve_bezt_resize(fcu, bezt_count);
 }
 
 /* Utility: create curve at the given array index and add it as a channel to a group. */
