@@ -1525,7 +1525,15 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
     state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? UI_SCROLL_PRESSED : 0;
 
-    wcol.inner[3] *= alpha_fac;
+    /* In the case that scrollbar track is invisible, range from 0 ->`final_alpha` instead to
+     * avoid errors with users trying to click into the underlying view. */
+    if (wcol.inner[3] == 0) {
+      const float final_alpha = 0.25f;
+      wcol.inner[3] = final_alpha * v2d->alpha_hor;
+    }
+    else {
+      wcol.inner[3] *= alpha_fac;
+    }
     wcol.item[3] *= alpha_fac;
     wcol.outline[3] = 0;
     btheme->tui.widget_emboss[3] = 0; /* will be reset later */
@@ -1561,7 +1569,15 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
     state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
 
-    wcol.inner[3] *= alpha_fac;
+    /* In the case that scrollbar track is invisible, range from 0 ->`final_alpha` instead to
+     * avoid errors with users trying to click into the underlying view. */
+    if (wcol.inner[3] == 0) {
+      const float final_alpha = 0.25f;
+      wcol.inner[3] = final_alpha * v2d->alpha_vert;
+    }
+    else {
+      wcol.inner[3] *= alpha_fac;
+    }
     wcol.item[3] *= alpha_fac;
     wcol.outline[3] = 0;
     btheme->tui.widget_emboss[3] = 0; /* will be reset later */
