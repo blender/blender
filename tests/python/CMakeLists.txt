@@ -1190,7 +1190,14 @@ else()
 endif()
 
 # ------------------------------------------------------------------------------
-# SCULPTING RENDER TESTS
+# SCULPTING TESTS
+
+add_blender_test(
+  bl_sculpt_operators
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sculpt.py
+  --
+  --testdir "${TEST_SRC_DIR}/sculpting"
+)
 
 if(WITH_GPU_MESH_PAINT_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
