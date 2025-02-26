@@ -19,9 +19,7 @@ PY_FILES_MYPY=$(filter-out \
 	./bl_extension_ui.py \
 	./bl_extension_utils.py \
 	./extensions_map_from_legacy_addons.py \
-	./wheel_manager.py \
 	./example_extension/__init__.py \
-	./example_extension/foo.py \
 	,$(PY_FILES))
 
 PY_FILES_MYPY_STANDALONE= \
@@ -37,9 +35,6 @@ PYTHON_BIN?=$(shell which python3)
 
 # -----------------------------------------------------------------------------
 # Checking Utilities
-
-pep8: FORCE
-	@flake8 $(PY_FILES) --ignore=E501,E302,E123,E126,E128,E129,E124,E122,W504
 
 # `--no-namespace-packages` is needed otherwise `./cli/blender_ext.py` loads in parent modules
 # (the Blender add-on which imports `bpy`).
