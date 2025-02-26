@@ -15,6 +15,11 @@ body {
 	--color-api-name: #e87d0d;
 }
 
+/* Increase the width of "On this page" region. */
+.main > .toc-drawer {
+	width: auto;
+}
+
 h1,
 h2,
 h3 {
