@@ -1267,8 +1267,7 @@ static void region_azones_scrollbars_init(ScrArea *area, ARegion *region)
   if (v2d->scroll & V2D_SCROLL_VERTICAL) {
     region_azone_scrollbar_init(area, region, AZ_SCROLL_VERT);
   }
-  if (v2d->scroll & V2D_SCROLL_HORIZONTAL)
-  {
+  if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
     region_azone_scrollbar_init(area, region, AZ_SCROLL_HOR);
   }
 }
