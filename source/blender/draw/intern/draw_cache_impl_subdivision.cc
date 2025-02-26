@@ -1997,10 +1997,6 @@ void DRW_subdiv_cache_free(bke::subdiv::Subdiv *subdiv)
 
 void DRW_cache_free_old_subdiv()
 {
-  if (gpu_subdiv_free_queue == nullptr) {
-    return;
-  }
-
   BLI_mutex_lock(&gpu_subdiv_queue_mutex);
 
   while (gpu_subdiv_free_queue != nullptr) {
