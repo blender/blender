@@ -5453,9 +5453,9 @@ def argparse_create_dummy_repo(subparsers: "argparse._SubParsersAction[argparse.
         ),
     )
 
+
 # -----------------------------------------------------------------------------
 # Dummy Output
-
 
 def argparse_create_dummy_progress(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     subparse = subparsers.add_parser(
@@ -5505,6 +5505,9 @@ def argparse_create_dummy_progress(subparsers: "argparse._SubParsersAction[argpa
         ),
     )
 
+
+# -----------------------------------------------------------------------------
+# Top Level Argument Parser
 
 def argparse_create(
         args_internal: bool = True,

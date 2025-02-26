@@ -21,8 +21,6 @@ __all__ = (
 
     "pkg_make_obsolete_for_testing",
 
-    "dummy_progress",
-
     # Public Stand-Alone Utilities.
     "pkg_theme_file_list",
     "pkg_manifest_params_compatible_or_error",
@@ -703,26 +701,6 @@ def pkg_uninstall(
         "--local-dir", directory,
         "--user-dir", user_directory,
         "--temp-prefix-and-suffix", "/".join(PKG_TEMP_PREFIX_AND_SUFFIX),
-    ], use_idle=use_idle, python_args=python_args)
-    yield [COMPLETE_ITEM]
-
-
-# -----------------------------------------------------------------------------
-# Public Demo Actions
-#
-
-def dummy_progress(
-        *,
-        use_idle: bool,
-        python_args: Sequence[str],
-) -> Generator[InfoItemSeq, bool, None]:
-    """
-    Implementation:
-    ``bpy.ops.extensions.dummy_progress()``.
-    """
-    yield from command_output_from_json_0([
-        "dummy-progress",
-        "--time-duration=1.0",
     ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 

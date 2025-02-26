@@ -1539,30 +1539,6 @@ class _ExtCmdMixIn:
         del self._runtime_handle
 
 
-class EXTENSIONS_OT_dummy_progress(Operator, _ExtCmdMixIn):
-    bl_idname = "extensions.dummy_progress"
-    bl_label = "Ext Demo"
-    __slots__ = _ExtCmdMixIn.cls_slots
-
-    def exec_command_iter(self, is_modal):
-        from . import bl_extension_utils
-
-        return bl_extension_utils.CommandBatch(
-            title="Dummy Progress",
-            batch=[
-                partial(
-                    bl_extension_utils.dummy_progress,
-                    use_idle=is_modal,
-                    python_args=bpy.app.python_args,
-                ),
-            ],
-            batch_job_limit=1,
-        )
-
-    def exec_command_finish(self, canceled):
-        _preferences_ui_redraw()
-
-
 class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
     bl_idname = "extensions.repo_sync"
     bl_label = "Ext Repo Sync"
@@ -4026,22 +4002,6 @@ class EXTENSIONS_OT_userpref_allow_online_popup(Operator):
             col.label(text=line, translate=False)
 
 
-class EXTENSIONS_OT_package_enable_not_installed(Operator):
-    """Turn on this extension"""
-    bl_idname = "extensions.package_enable_not_installed"
-    bl_label = "Enable Extension"
-
-    @classmethod
-    def poll(cls, _context):
-        cls.poll_message_set("Extension needs to be installed before it can be enabled")
-        return False
-
-    def execute(self, _context):
-        # This operator only exists to be able to show disabled check-boxes for extensions
-        # while giving users a reasonable explanation on why is that.
-        return {'CANCELLED'}
-
-
 # -----------------------------------------------------------------------------
 # Register
 #
@@ -4085,12 +4045,6 @@ classes = (
     EXTENSIONS_OT_userpref_show_online,
     EXTENSIONS_OT_userpref_allow_online,
     EXTENSIONS_OT_userpref_allow_online_popup,
-
-    # Dummy, just shows a message.
-    EXTENSIONS_OT_package_enable_not_installed,
-
-    # Dummy commands (for testing).
-    EXTENSIONS_OT_dummy_progress,
 )
 
 
