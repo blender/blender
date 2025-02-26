@@ -5130,18 +5130,22 @@ def unregister():
             *,
             time_duration: float,
             time_delay: float,
+            steps_limit: int,
     ) -> bool:
         import time
         request_exit = False
         time_start = time.time() if (time_duration > 0.0) else 0.0
         size_beg = 0
-        size_end = 100
+        size_end = steps_limit
         while time_duration == 0.0 or (time.time() - time_start < time_duration):
             request_exit |= msglog.progress("Demo", size_beg, size_end, 'BYTE')
             if request_exit:
                 break
             size_beg += 1
             if size_beg > size_end:
+                # Limit by the number of steps.
+                if time_duration == 0.0:
+                    break
                 size_beg = 0
             time.sleep(time_delay)
         if request_exit:
@@ -5457,7 +5461,7 @@ def argparse_create_dummy_progress(subparsers: "argparse._SubParsersAction[argpa
     subparse = subparsers.add_parser(
         "dummy-progress",
         help="Dummy progress output.",
-        description="Demo output.",
+        description="Demo output, included for testing.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
@@ -5480,6 +5484,16 @@ def argparse_create_dummy_progress(subparsers: "argparse._SubParsersAction[argpa
         default=0.05,
     )
 
+    subparse.add_argument(
+        "--steps-limit",
+        dest="steps_limit",
+        type=int,
+        help=(
+            "The number of steps to report"
+        ),
+        default=100,
+    )
+
     generic_arg_output_type(subparse)
 
     subparse.set_defaults(
@@ -5487,6 +5501,7 @@ def argparse_create_dummy_progress(subparsers: "argparse._SubParsersAction[argpa
             msglog_from_args(args),
             time_duration=args.time_duration,
             time_delay=args.time_delay,
+            steps_limit=max(1, args.steps_limit),
         ),
     )
 
