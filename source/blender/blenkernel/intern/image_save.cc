@@ -695,7 +695,7 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
 
   const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(
       COLOR_ROLE_SCENE_LINEAR);
-  IMB_colormanagement_transform(
+  IMB_colormanagement_transform_float(
       output_rect, width, height, channels, from_colorspace, to_colorspace, false);
 
   return output_rect;

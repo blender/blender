@@ -76,8 +76,6 @@ static void imb_handle_alpha(ImBuf *ibuf,
     }
   }
 
-  /* OCIO_TODO: in some cases it's faster to do threaded conversion,
-   *            but how to distinguish such cases */
   colormanage_imbuf_make_linear(ibuf, effective_colorspace);
 }
 

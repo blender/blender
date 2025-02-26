@@ -172,7 +172,7 @@ static void do_glow_effect_byte(Strip *strip,
   Array<float4> outbuf(x * y);
 
   using namespace blender;
-  IMB_colormanagement_transform_from_byte_threaded(*inbuf.data(), rect1, x, y, 4, "sRGB", "sRGB");
+  IMB_colormanagement_transform_byte_to_float(*inbuf.data(), rect1, x, y, 4, "sRGB", "sRGB");
 
   blur_isolate_highlights(
       inbuf.data(), outbuf.data(), x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);

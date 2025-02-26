@@ -716,7 +716,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 
   /* first make float buffer in byte space */
   const bool predivide = IMB_alpha_affects_rgb(ibuf);
-  IMB_colormanagement_transform(
+  IMB_colormanagement_transform_float(
       buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, predivide);
 
   /* convert from float's premul alpha to byte's straight alpha */

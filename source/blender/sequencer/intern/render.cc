@@ -123,36 +123,17 @@ void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_flo
     if (!make_float && STREQ(from_colorspace, to_colorspace)) {
       return;
     }
-    if (false) {
-      /* The idea here is to provide as fast playback as possible and
-       * enforcing float buffer here (a) uses more cache memory (b) might
-       * make some other effects slower to apply.
-       *
-       * However, this might also have negative effect by adding weird
-       * artifacts which will then not happen in final render.
-       */
-      IMB_colormanagement_transform_byte_threaded(ibuf->byte_buffer.data,
-                                                  ibuf->x,
-                                                  ibuf->y,
-                                                  ibuf->channels,
-                                                  from_colorspace,
-                                                  to_colorspace);
-    }
-    else {
-      /* We perform conversion to a float buffer so we don't worry about
-       * precision loss.
-       */
-      imb_addrectfloatImBuf(ibuf, 4, false);
-      IMB_colormanagement_transform_from_byte_threaded(ibuf->float_buffer.data,
-                                                       ibuf->byte_buffer.data,
-                                                       ibuf->x,
-                                                       ibuf->y,
-                                                       ibuf->channels,
-                                                       from_colorspace,
-                                                       to_colorspace);
-      /* We don't need byte buffer anymore. */
-      imb_freerectImBuf(ibuf);
-    }
+
+    imb_addrectfloatImBuf(ibuf, 4, false);
+    IMB_colormanagement_transform_byte_to_float(ibuf->float_buffer.data,
+                                                ibuf->byte_buffer.data,
+                                                ibuf->x,
+                                                ibuf->y,
+                                                ibuf->channels,
+                                                from_colorspace,
+                                                to_colorspace);
+    /* We don't need byte buffer anymore. */
+    imb_freerectImBuf(ibuf);
   }
   else {
     const char *from_colorspace = IMB_colormanagement_get_float_colorspace(ibuf);
@@ -166,13 +147,13 @@ void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_flo
     if (ibuf->byte_buffer.data != nullptr) {
       imb_freerectImBuf(ibuf);
     }
-    IMB_colormanagement_transform_threaded(ibuf->float_buffer.data,
-                                           ibuf->x,
-                                           ibuf->y,
-                                           ibuf->channels,
-                                           from_colorspace,
-                                           to_colorspace,
-                                           true);
+    IMB_colormanagement_transform_float(ibuf->float_buffer.data,
+                                        ibuf->x,
+                                        ibuf->y,
+                                        ibuf->channels,
+                                        from_colorspace,
+                                        to_colorspace,
+                                        true);
   }
   seq_imbuf_assign_spaces(scene, ibuf);
 }
@@ -188,13 +169,13 @@ void SEQ_render_imbuf_from_sequencer_space(const Scene *scene, ImBuf *ibuf)
   }
 
   if (to_colorspace && to_colorspace[0] != '\0') {
-    IMB_colormanagement_transform_threaded(ibuf->float_buffer.data,
-                                           ibuf->x,
-                                           ibuf->y,
-                                           ibuf->channels,
-                                           from_colorspace,
-                                           to_colorspace,
-                                           true);
+    IMB_colormanagement_transform_float(ibuf->float_buffer.data,
+                                        ibuf->x,
+                                        ibuf->y,
+                                        ibuf->channels,
+                                        from_colorspace,
+                                        to_colorspace,
+                                        true);
     IMB_colormanagement_assign_float_colorspace(ibuf, to_colorspace);
   }
 }

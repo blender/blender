@@ -728,13 +728,13 @@ RenderResult *render_result_new_from_exr(
       rpass->recty = recty;
 
       if (RE_RenderPassIsColor(rpass)) {
-        IMB_colormanagement_transform(rpass->ibuf->float_buffer.data,
-                                      rpass->rectx,
-                                      rpass->recty,
-                                      rpass->channels,
-                                      colorspace,
-                                      to_colorspace,
-                                      predivide);
+        IMB_colormanagement_transform_float(rpass->ibuf->float_buffer.data,
+                                            rpass->rectx,
+                                            rpass->recty,
+                                            rpass->channels,
+                                            colorspace,
+                                            to_colorspace,
+                                            predivide);
       }
       else {
         IMB_colormanagement_assign_float_colorspace(rpass->ibuf, data_colorspace);
