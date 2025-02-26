@@ -175,7 +175,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     coat_r2 = coat_r2 * coat_r2;
 
     closure color CoatBSDF = dielectric_bsdf(
-        CoatNormal, vector(0.0), color(1.0), color(0.0), coat_r2, coat_r2, coat_ior, "ggx");
+        CoatNormal, vector(0.0), color(1.0), color(0.0), coat_r2, coat_r2, coat_ior, "multi_ggx");
     BSDF = layer(coat_weight * CoatBSDF, BSDF);
   }
 
