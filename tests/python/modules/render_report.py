@@ -547,6 +547,7 @@ class Report:
                             test.error = "CRASH"
                             print_message("Crash running Blender")
                             print_message(test.name, 'FAILURE', 'FAILED')
+                            test_results.append(test)
                             file_crashed = True
                             break
 
