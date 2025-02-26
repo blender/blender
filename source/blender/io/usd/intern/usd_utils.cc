@@ -9,13 +9,11 @@
 #include "BLI_string_utf8.h"
 
 #include <pxr/base/tf/stringUtils.h>
-#if PXR_VERSION >= 2403
-#  include <pxr/base/tf/unicodeUtils.h>
-#endif
+#include <pxr/base/tf/unicodeUtils.h>
 
 namespace blender::io::usd {
 
-std::string make_safe_name(const StringRef name, [[maybe_unused]] bool allow_unicode)
+std::string make_safe_name(const StringRef name, bool allow_unicode)
 {
   if (name.is_empty()) {
     return "_";
@@ -35,7 +33,6 @@ std::string make_safe_name(const StringRef name, [[maybe_unused]] bool allow_uni
     first = false;
   }
 
-#if PXR_VERSION >= 2403
   if (!allow_unicode) {
     buf.take_back(name.size()).copy_from(name);
     offset += name.size();
@@ -57,11 +54,6 @@ std::string make_safe_name(const StringRef name, [[maybe_unused]] bool allow_uni
   }
 
   return {buf.data(), offset};
-#else
-  buf.take_back(name.size()).copy_from(name);
-  offset += name.size();
-  return pxr::TfMakeValidIdentifier({buf.data(), offset});
-#endif
 }
 
 }  // namespace blender::io::usd
