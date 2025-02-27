@@ -149,24 +149,20 @@ enum {
   VERT_INDEX_IGNORE = 1,
 };
 
-// #define USE_WALKER  /* gives uneven results, disable for now */
-
 /* - BMVert.flag & BM_ELEM_TAG:  shows we touched this vert
  * - BMVert.index == -1:         shows we will remove this vert
  */
 
 void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool tag_only)
 {
-#ifdef USE_WALKER
-#  define ELE_VERT_TAG 1
-#else
+  /* NOTE: while #BMWalker seems like a logical choice, it results in uneven geometry. */
+
   BMVert **vert_seek_a = static_cast<BMVert **>(
       MEM_mallocN(sizeof(BMVert *) * bm->totvert, __func__));
   BMVert **vert_seek_b = static_cast<BMVert **>(
       MEM_mallocN(sizeof(BMVert *) * bm->totvert, __func__));
   uint vert_seek_a_tot = 0;
   uint vert_seek_b_tot = 0;
-#endif
 
   BMIter iter;
 
@@ -190,9 +186,6 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(v, BM_ELEM_TAG) && bm_vert_dissolve_fan_test(v)) {
-#ifdef USE_WALKER
-        BMO_vert_flag_enable(bm, v, ELE_VERT_TAG);
-#endif
         BM_elem_index_set(v, VERT_INDEX_INIT); /* set_dirty! */
       }
       else {
@@ -203,20 +196,13 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 
     /* main loop, keep tagging until we can't tag any more islands */
     while (true) {
-#ifdef USE_WALKER
-      BMWalker walker;
-#else
       uint depth = 1;
       uint i;
-#endif
       BMVert *v_first = nullptr;
 
       /* we could avoid iterating from the start each time */
       BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
         if (v->e && (BM_elem_index_get(v) == VERT_INDEX_INIT)) {
-#ifdef USE_WALKER
-          if (BMO_vert_flag_test(bm, v, ELE_VERT_TAG))
-#endif
           {
             /* Check again in case the topology changed. */
             if (bm_vert_dissolve_fan_test(v)) {
@@ -229,35 +215,6 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
       if (v_first == nullptr) {
         break;
       }
-
-#ifdef USE_WALKER
-      /* Walk over selected elements starting at active */
-      BMW_init(
-          &walker,
-          bm,
-          BMW_CONNECTED_VERTEX,
-          ELE_VERT_TAG,
-          BMW_MASK_NOP,
-          BMW_MASK_NOP,
-          BMW_FLAG_NOP, /* don't use #BMW_FLAG_TEST_HIDDEN here since we want to deselect all. */
-          BMW_NIL_LAY);
-
-      BLI_assert(walker.order == BMW_BREADTH_FIRST);
-      for (v = BMW_begin(&walker, v_first); v != nullptr; v = BMW_step(&walker)) {
-        /* Deselect elements that aren't at "nth" depth from active */
-        if (BM_elem_index_get(v) == VERT_INDEX_INIT) {
-          if ((offset + BMW_current_depth(&walker)) % nth) {
-            /* tag for removal */
-            BM_elem_index_set(v, VERT_INDEX_DO_COLLAPSE); /* set_dirty! */
-          }
-          else {
-            /* works better to allow these verts to be checked again */
-            // BM_elem_index_set(v, VERT_INDEX_IGNORE);  /* set_dirty! */
-          }
-        }
-      }
-      BMW_end(&walker);
-#else
 
       BM_elem_index_set(v_first,
                         ((offset + depth) % nth) ? VERT_INDEX_IGNORE :
@@ -306,7 +263,6 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 
         depth++;
       }
-#endif /* USE_WALKER */
     }
 
     /* now we tagged all verts -1 for removal, lets loop over and rebuild faces */
@@ -326,10 +282,8 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 
   bm->elem_index_dirty |= BM_VERT;
 
-#ifndef USE_WALKER
   MEM_freeN(vert_seek_a);
   MEM_freeN(vert_seek_b);
-#endif
 }
 
 void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations)
