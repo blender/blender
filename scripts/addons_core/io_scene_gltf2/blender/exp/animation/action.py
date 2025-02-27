@@ -846,7 +846,7 @@ def __get_blender_actions(obj_uuid: str,
             and blender_object.data.shape_keys is not None \
             and blender_object.data.shape_keys.animation_data is not None:
 
-        if blender_object.data.shape_keys.animation_data.action is not None:
+        if blender_object.data.shape_keys.animation_data.action is not None and blender_object.data.shape_keys.animation_data.action_slot is not None:
 
             # Check the action is not in list of actions to ignore
             if hasattr(bpy.data.scenes[0], "gltf_action_filter") and id(blender_object.data.shape_keys.animation_data.action) in [
