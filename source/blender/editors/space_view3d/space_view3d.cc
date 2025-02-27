@@ -1362,6 +1362,12 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           ED_region_tag_redraw(region);
           break;
       }
+      switch (wmn->action) {
+        case NA_EDITED:
+          WM_gizmomap_tag_refresh(gzmap);
+          ED_region_tag_redraw(region);
+          break;
+      }
 
       break;
     case NC_GPENCIL:

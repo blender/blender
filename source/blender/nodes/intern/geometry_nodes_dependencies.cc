@@ -52,7 +52,7 @@ void GeometryNodesEvalDependencies::merge(const GeometryNodesEvalDependencies &o
     this->add_generic_id(id);
   }
   for (const auto &&item : other.objects_info.items()) {
-    ID *id = this->ids.lookup(item.key);
+    ID *id = other.ids.lookup(item.key);
     BLI_assert(GS(id->name) == ID_OB);
     this->add_object(reinterpret_cast<Object *>(id), item.value);
   }
