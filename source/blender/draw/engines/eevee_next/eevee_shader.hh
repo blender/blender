@@ -24,6 +24,8 @@
 
 namespace blender::eevee {
 
+using StaticShader = gpu::StaticShader;
+
 /* Keep alphabetical order and clean prefix. */
 enum eShaderType {
   AMBIENT_OCCLUSION_PASS = 0,
@@ -166,12 +168,16 @@ enum eShaderType {
  */
 class ShaderModule {
  private:
-  std::array<GPUShader *, MAX_SHADER_TYPE> shaders_;
+  std::array<StaticShader, MAX_SHADER_TYPE> shaders_;
   BatchHandle compilation_handle_ = 0;
   SpecializationBatchHandle specialization_handle_ = 0;
 
-  /** Shared shader module across all engine instances. */
-  static ShaderModule *g_shader_module;
+  static gpu::StaticShaderCache<ShaderModule> &get_static_cache()
+  {
+    /** Shared shader module across all engine instances. */
+    static gpu::StaticShaderCache<ShaderModule> static_cache;
+    return static_cache;
+  }
 
  public:
   ShaderModule();

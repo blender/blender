@@ -974,6 +974,8 @@ ShaderCompilerGeneric::~ShaderCompilerGeneric()
 
 BatchHandle ShaderCompilerGeneric::batch_compile(Span<const shader::ShaderCreateInfo *> &infos)
 {
+  std::lock_guard lock(mutex_);
+
   BatchHandle handle = next_batch_handle++;
   batches.add(handle, {{}, infos, true});
   Batch &batch = batches.lookup(handle);
@@ -986,12 +988,16 @@ BatchHandle ShaderCompilerGeneric::batch_compile(Span<const shader::ShaderCreate
 
 bool ShaderCompilerGeneric::batch_is_ready(BatchHandle handle)
 {
+  std::lock_guard lock(mutex_);
+
   bool is_ready = batches.lookup(handle).is_ready;
   return is_ready;
 }
 
 Vector<Shader *> ShaderCompilerGeneric::batch_finalize(BatchHandle &handle)
 {
+  std::lock_guard lock(mutex_);
+
   Vector<Shader *> shaders = batches.pop(handle).shaders;
   handle = 0;
   return shaders;

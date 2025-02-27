@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <optional>
 
 #include "BLI_span.hh"
@@ -410,3 +411,125 @@ int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
       shader = nullptr; \
     } \
   } while (0)
+
+#include "BLI_utility_mixins.hh"
+#include <atomic>
+#include <mutex>
+
+namespace blender::gpu {
+
+/* GPUShader wrapper that makes compilation threadsafe.
+ * The compilation is deferred until the first get() call.
+ * Concurrently using the shader from multiple threads is still unsafe. */
+class StaticShader : NonCopyable {
+ private:
+  std::string info_name_;
+  std::atomic<GPUShader *> shader_ = nullptr;
+  /* TODO: Failed compilation detection should be supported by the GPUShader API. */
+  std::atomic_bool failed_ = false;
+  std::mutex mutex_;
+
+  void move(StaticShader &&other)
+  {
+    std::scoped_lock lock1(mutex_);
+    std::scoped_lock lock2(other.mutex_);
+    BLI_assert(shader_ == nullptr && info_name_.empty());
+    std::swap(info_name_, other.info_name_);
+    /* No std::swap support for atomics. */
+    shader_.exchange(other.shader_.exchange(shader_));
+    failed_.exchange(other.failed_.exchange(failed_));
+  }
+
+ public:
+  StaticShader(std::string info_name) : info_name_(info_name) {}
+
+  StaticShader() = default;
+  StaticShader(StaticShader &&other)
+  {
+    move(std::move(other));
+  }
+  StaticShader &operator=(StaticShader &&other)
+  {
+    move(std::move(other));
+    return *this;
+  };
+
+  ~StaticShader()
+  {
+    GPU_SHADER_FREE_SAFE(shader_);
+  }
+
+  GPUShader *get()
+  {
+    if (shader_ || failed_) {
+      return shader_;
+    }
+
+    std::scoped_lock lock(mutex_);
+
+    if (!shader_ && !failed_) {
+      BLI_assert(!info_name_.empty());
+      shader_ = GPU_shader_create_from_info_name(info_name_.c_str());
+      failed_ = shader_ != nullptr;
+    }
+
+    return shader_;
+  }
+
+  /* For batch compiled shaders. */
+  /* TODO: Find a better way to handle this. */
+  void set(GPUShader *shader)
+  {
+    std::scoped_lock lock(mutex_);
+    BLI_assert(shader_ == nullptr);
+    shader_ = shader;
+  }
+};
+
+/* Thread-safe container for StaticShader cache classes.
+ * The class instance creation is deferred until the first get() call. */
+template<typename T> class StaticShaderCache {
+  std::atomic<T *> cache_ = nullptr;
+  std::mutex mutex_;
+
+ public:
+  ~StaticShaderCache()
+  {
+    BLI_assert(cache_ == nullptr);
+  }
+
+  template<typename... Args> T &get(Args &&...constructor_args)
+  {
+    if (cache_) {
+      return *cache_;
+    }
+
+    std::lock_guard lock(mutex_);
+
+    if (cache_ == nullptr) {
+      cache_ = new T(std::forward<Args>(constructor_args)...);
+    }
+    return *cache_;
+  }
+
+  void release()
+  {
+    if (!cache_) {
+      return;
+    }
+
+    std::lock_guard lock(mutex_);
+
+    if (cache_) {
+      delete cache_;
+      cache_ = nullptr;
+    }
+  }
+
+  std::lock_guard<std::mutex> lock_guard()
+  {
+    return std::lock_guard(mutex_);
+  }
+};
+
+}  // namespace blender::gpu
