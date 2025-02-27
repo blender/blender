@@ -267,8 +267,8 @@ else()
   unset(CMAKE_C_COMPILER_LAUNCHER)
   unset(CMAKE_CXX_COMPILER_LAUNCHER)
   if(MSVC_ASAN)
-    set(SYMBOL_FORMAT /Z7)
-    set(SYMBOL_FORMAT_RELEASE /Z7)
+    set(SYMBOL_FORMAT /Zi)
+    set(SYMBOL_FORMAT_RELEASE /Zi)
   else()
     set(SYMBOL_FORMAT /ZI)
     set(SYMBOL_FORMAT_RELEASE /Zi)
@@ -298,7 +298,12 @@ endif()
 
 string(APPEND PLATFORM_LINKFLAGS " /SUBSYSTEM:CONSOLE /STACK:2097152")
 set(PLATFORM_LINKFLAGS_RELEASE "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib")
-string(APPEND PLATFORM_LINKFLAGS_DEBUG "/debug:fastlink /IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmtd.lib")
+
+if(NOT WITH_COMPILER_ASAN)
+  # Asan is incompatible with fastlink, it will appear to work, but will not resolve symbols which makes it somewhat useless
+  string(APPEND PLATFORM_LINKFLAGS_DEBUG "/debug:fastlink ")
+endif()
+string(APPEND PLATFORM_LINKFLAGS_DEBUG " /IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmtd.lib")
 
 # Ignore meaningless for us linker warnings.
 string(APPEND PLATFORM_LINKFLAGS " /ignore:4049 /ignore:4217 /ignore:4221")
