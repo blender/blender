@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_assert.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_ref.hh"
 
@@ -56,7 +55,8 @@ static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)
     case SOCK_RGBA:
       return GPU_VEC4;
     default:
-      BLI_assert_unreachable();
+      /* The GPU material compiler will skip unsupported sockets if GPU_NONE is provided. So this
+       * is an appropriate and a valid type for unsupported sockets. */
       return GPU_NONE;
   }
 }
@@ -155,10 +155,11 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
       break;
     }
     default:
+      /* Unsupported sockets are skipped by GPU material compiler and we needn't initialize their
+       * value. This is flagged by using the GPU_NONE type, see gpu_type_from_socket_type function
+       * for more information. */
       break;
   }
-
-  BLI_assert_unreachable();
 }
 
 static void populate_gpu_node_stack(DSocket socket, GPUNodeStack &stack)
