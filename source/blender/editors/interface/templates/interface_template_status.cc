@@ -164,7 +164,7 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
     uiItemL(layout, IFACE_("Duplicate into Window"), ICON_NONE);
     uiItemS_ex(layout, 0.6f);
     uiItemL(layout, "", ICON_EVENT_CTRL);
-    uiItemS_ex(layout, 1.0f);
+    uiItemS_ex(layout, ui_event_icon_offset(ICON_EVENT_CTRL));
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
     uiItemS_ex(layout, -0.2f);
     uiItemL(layout, IFACE_("Swap Areas"), ICON_NONE);
