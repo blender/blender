@@ -4,6 +4,8 @@
 
 #include "subdiv_lib.glsl"
 
+COMPUTE_SHADER_CREATE_INFO(subdiv_edituv_stretch_angle)
+
 #define M_PI 3.1415926535897932
 #define M_1_PI 0.31830988618379067154
 
