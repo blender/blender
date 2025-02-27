@@ -199,6 +199,13 @@ class AbstractViewItem {
   /** Cache filtered state here to avoid having to re-query. */
   bool is_filtered_visible_ = true;
 
+  /**
+   * Typically, only items with children can be collapsed. However, in some cases it's important
+   * to draw collapsible items differently from non-collapsible ones, even if they don't have
+   * children currently.
+   */
+  bool is_always_collapsible_ = false;
+
  public:
   virtual ~AbstractViewItem() = default;
 

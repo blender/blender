@@ -185,6 +185,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
       NodePanelViewItem &self = static_cast<NodePanelViewItem &>(new_active);
       interface.active_item_set(&self.panel_.item);
     });
+    is_always_collapsible_ = true;
   }
 
   void build_row(uiLayout &row) override

@@ -200,6 +200,10 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
     if (!item->is_collapsible() || item->is_collapsed()) {
       continue;
     }
+    if (item->children_.is_empty()) {
+      BLI_assert(item->is_always_collapsible_);
+      continue;
+    }
 
     /* Draw a hierarchy line for the descendants of this item. */
 
@@ -704,6 +708,9 @@ bool AbstractTreeViewItem::is_collapsible() const
 {
   BLI_assert_msg(get_tree_view().is_reconstructed(),
                  "State can't be queried until reconstruction is completed");
+  if (is_always_collapsible_) {
+    return true;
+  }
   if (children_.is_empty()) {
     return false;
   }
