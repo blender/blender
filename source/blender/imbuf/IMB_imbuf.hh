@@ -391,7 +391,8 @@ void IMB_buffer_byte_from_float(unsigned char *rect_to,
                                 int width,
                                 int height,
                                 int stride_to,
-                                int stride_from);
+                                int stride_from,
+                                int start_y = 0);
 /**
  * Float to byte pixels, output 4-channel RGBA.
  */

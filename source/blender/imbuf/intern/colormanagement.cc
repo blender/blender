@@ -1739,7 +1739,8 @@ static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
                                  width,
                                  height,
                                  width,
-                                 width);
+                                 width,
+                                 handle->start_line);
     }
   }
 
@@ -1811,7 +1812,8 @@ static void do_display_buffer_apply_thread(void *handle_v)
                                width,
                                height,
                                width,
-                               width);
+                               width,
+                               handle->start_line);
   }
 
   if (display_buffer) {
@@ -3719,7 +3721,8 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
                                width,
                                height,
                                display_stride,
-                               width);
+                               width,
+                               ymin);
 
     MEM_freeN(display_buffer_float);
   }

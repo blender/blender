@@ -5064,8 +5064,8 @@ static void do_projectpaint_draw(ProjPaintState *ps,
                                  const float texrgb[3],
                                  float mask,
                                  float dither,
-                                 float u,
-                                 float v)
+                                 int u,
+                                 int v)
 {
   float rgb[3];
   uchar rgba_ub[4];

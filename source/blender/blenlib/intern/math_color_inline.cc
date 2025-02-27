@@ -233,25 +233,30 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
   return 0;
 }
 
-MINLINE float dither_random_value(float s, float t)
+/* 2D hash (iqint3) recommended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
+ * https://jcgt.org/published/0009/03/02/ */
+MINLINE float hash_iqint3_f(const uint32_t x, const uint32_t y)
 {
-  /* Using a triangle distribution which gives a more final uniform noise.
-   * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
+  const uint32_t qx = 1103515245u * ((x >> 1u) ^ (y));
+  const uint32_t qy = 1103515245u * ((y >> 1u) ^ (x));
+  const uint32_t n = 1103515245u * ((qx) ^ (qy >> 3u));
+  return float(n) * (1.0f / float(0xffffffffu));
+}
 
-  /* Uniform noise in [0..1[ range, using common GLSL hash function.
-   * https://stackoverflow.com/questions/12964279/whats-the-origin-of-this-glsl-rand-one-liner. */
-  float hash0 = sinf(s * 12.9898f + t * 78.233f) * 43758.5453f;
-  float hash1 = sinf(s * 19.9898f + t * 119.233f) * 43798.5453f;
-  hash0 -= floorf(hash0);
-  hash1 -= floorf(hash1);
-  /* Convert uniform distribution into triangle-shaped distribution. */
-  return hash0 + hash1 - 0.5f;
+MINLINE float dither_random_value(int x, int y)
+{
+  float v = hash_iqint3_f(x, y);
+  /* Convert uniform distribution into triangle-shaped distribution. Based on
+   * "remap_pdf_tri_unity" from https://www.shadertoy.com/view/WldSRf */
+  v = v * 2.0f - 1.0f;
+  v = signf(v) * (1.0f - sqrtf(1.0f - fabsf(v)));
+  return v;
 }
 
 MINLINE void float_to_byte_dither_v3(
-    unsigned char b[3], const float f[3], float dither, float s, float t)
+    unsigned char b[3], const float f[3], float dither, int x, int y)
 {
-  float dither_value = dither_random_value(s, t) * 0.0033f * dither;
+  float dither_value = dither_random_value(x, y) * 0.0033f * dither;
 
   b[0] = unit_float_to_uchar_clamp(dither_value + f[0]);
   b[1] = unit_float_to_uchar_clamp(dither_value + f[1]);
