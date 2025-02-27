@@ -80,6 +80,39 @@ class MaskByColorTest(unittest.TestCase):
                                 f"Vertex {i} should not be masked ({color_data[i]}) -> {mask_data[i]}")
 
 
+class MaskFromCavityTest(unittest.TestCase):
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "plane_with_valley.blend"), load_ui=False)
+        bpy.ops.ed.undo_push()
+
+    def test_operator_masks_low_vertices(self):
+        ret_val = bpy.ops.sculpt.mask_from_cavity()
+
+        self.assertEqual({'FINISHED'}, ret_val)
+
+        mesh = bpy.context.object.data
+        position_attr = mesh.attributes['position']
+        mask_attr = mesh.attributes['.sculpt_mask']
+
+        num_vertices = mesh.attributes.domain_size('POINT')
+
+        position_data = np.zeros((num_vertices, 3), dtype=np.float32)
+        position_attr.data.foreach_get('vector', np.ravel(position_data))
+
+        mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', mask_data)
+
+        for i in range(num_vertices):
+            if position_data[i][2] < 0.0:
+                self.assertEqual(
+                    mask_data[i],
+                    1.0,
+                    f"Vertex {i} should be fully masked ({position_data[i]}) -> {mask_data[i]}")
+            else:
+                self.assertNotEqual(mask_data[i], 1.0,
+                                    f"Vertex {i} should not be fully masked ({position_data[i]}) -> {mask_data[i]}")
+
+
 def main():
     global args
     import argparse
