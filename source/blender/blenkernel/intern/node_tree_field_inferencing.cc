@@ -269,7 +269,7 @@ static OutputFieldDependency find_group_output_dependencies(
 }
 
 /** Result of syncing two field states. */
-enum class eFieldStateSyncResult : char {
+enum class FieldStateSyncResult : int8_t {
   /* Nothing changed. */
   NONE = 0,
   /* State A has been modified. */
@@ -277,24 +277,24 @@ enum class eFieldStateSyncResult : char {
   /* State B has been modified. */
   CHANGED_B = (1 << 1),
 };
-ENUM_OPERATORS(eFieldStateSyncResult, eFieldStateSyncResult::CHANGED_B)
+ENUM_OPERATORS(FieldStateSyncResult, FieldStateSyncResult::CHANGED_B)
 
 /**
  * Compare both field states and select the most compatible.
  * Afterwards both field states will be the same.
- * \return eFieldStateSyncResult flags indicating which field states have changed.
+ * \return FieldStateSyncResult flags indicating which field states have changed.
  */
-static eFieldStateSyncResult sync_field_states(SocketFieldState &a, SocketFieldState &b)
+static FieldStateSyncResult sync_field_states(SocketFieldState &a, SocketFieldState &b)
 {
   const bool requires_single = a.requires_single || b.requires_single;
   const bool is_single = a.is_single && b.is_single;
 
-  eFieldStateSyncResult res = eFieldStateSyncResult::NONE;
+  FieldStateSyncResult res = FieldStateSyncResult::NONE;
   if (a.requires_single != requires_single || a.is_single != is_single) {
-    res |= eFieldStateSyncResult::CHANGED_A;
+    res |= FieldStateSyncResult::CHANGED_A;
   }
   if (b.requires_single != requires_single || b.is_single != is_single) {
-    res |= eFieldStateSyncResult::CHANGED_B;
+    res |= FieldStateSyncResult::CHANGED_B;
   }
 
   a.requires_single = requires_single;
@@ -308,14 +308,14 @@ static eFieldStateSyncResult sync_field_states(SocketFieldState &a, SocketFieldS
 /**
  * Compare field states of simulation nodes sockets and select the most compatible.
  * Afterwards all field states will be the same.
- * \return eFieldStateSyncResult flags indicating which field states have changed.
+ * \return FieldStateSyncResult flags indicating which field states have changed.
  */
-static eFieldStateSyncResult simulation_nodes_field_state_sync(
+static FieldStateSyncResult simulation_nodes_field_state_sync(
     const bNode &input_node,
     const bNode &output_node,
     const MutableSpan<SocketFieldState> field_state_by_socket_id)
 {
-  eFieldStateSyncResult res = eFieldStateSyncResult::NONE;
+  FieldStateSyncResult res = FieldStateSyncResult::NONE;
   for (const int i : output_node.output_sockets().index_range()) {
     /* First input node output is Delta Time which does not appear in the output node outputs. */
     const bNodeSocket &input_socket = input_node.output_socket(i + 1);
@@ -327,12 +327,12 @@ static eFieldStateSyncResult simulation_nodes_field_state_sync(
   return res;
 }
 
-static eFieldStateSyncResult repeat_field_state_sync(
+static FieldStateSyncResult repeat_field_state_sync(
     const bNode &input_node,
     const bNode &output_node,
     const MutableSpan<SocketFieldState> field_state_by_socket_id)
 {
-  eFieldStateSyncResult res = eFieldStateSyncResult::NONE;
+  FieldStateSyncResult res = FieldStateSyncResult::NONE;
   const NodeGeometryRepeatOutput &storage = *static_cast<const NodeGeometryRepeatOutput *>(
       output_node.storage);
   for (const int i : IndexRange(storage.items_num)) {
@@ -360,9 +360,9 @@ static bool propagate_special_data_requirements(
       const NodeGeometrySimulationInput &data = *static_cast<const NodeGeometrySimulationInput *>(
           node.storage);
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
-        const eFieldStateSyncResult sync_result = simulation_nodes_field_state_sync(
+        const FieldStateSyncResult sync_result = simulation_nodes_field_state_sync(
             node, *output_node, field_state_by_socket_id);
-        if (bool(sync_result & eFieldStateSyncResult::CHANGED_B)) {
+        if (bool(sync_result & FieldStateSyncResult::CHANGED_B)) {
           need_update = true;
         }
       }
@@ -373,9 +373,9 @@ static bool propagate_special_data_requirements(
         const NodeGeometrySimulationInput &data =
             *static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
         if (node.identifier == data.output_node_id) {
-          const eFieldStateSyncResult sync_result = simulation_nodes_field_state_sync(
+          const FieldStateSyncResult sync_result = simulation_nodes_field_state_sync(
               *input_node, node, field_state_by_socket_id);
-          if (bool(sync_result & eFieldStateSyncResult::CHANGED_A)) {
+          if (bool(sync_result & FieldStateSyncResult::CHANGED_A)) {
             need_update = true;
           }
         }
@@ -386,9 +386,9 @@ static bool propagate_special_data_requirements(
       const NodeGeometryRepeatInput &data = *static_cast<const NodeGeometryRepeatInput *>(
           node.storage);
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
-        const eFieldStateSyncResult sync_result = repeat_field_state_sync(
+        const FieldStateSyncResult sync_result = repeat_field_state_sync(
             node, *output_node, field_state_by_socket_id);
-        if (bool(sync_result & eFieldStateSyncResult::CHANGED_B)) {
+        if (bool(sync_result & FieldStateSyncResult::CHANGED_B)) {
           need_update = true;
         }
       }
@@ -399,9 +399,9 @@ static bool propagate_special_data_requirements(
         const NodeGeometryRepeatInput &data = *static_cast<const NodeGeometryRepeatInput *>(
             input_node->storage);
         if (node.identifier == data.output_node_id) {
-          const eFieldStateSyncResult sync_result = repeat_field_state_sync(
+          const FieldStateSyncResult sync_result = repeat_field_state_sync(
               *input_node, node, field_state_by_socket_id);
-          if (bool(sync_result & eFieldStateSyncResult::CHANGED_A)) {
+          if (bool(sync_result & FieldStateSyncResult::CHANGED_A)) {
             need_update = true;
           }
         }
