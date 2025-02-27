@@ -81,6 +81,7 @@ struct DrawEngineType {
 };
 
 /* Shaders */
+/** IMPORTANT: Modify the currently bound context. */
 void DRW_shader_init();
 void DRW_shader_exit();
 

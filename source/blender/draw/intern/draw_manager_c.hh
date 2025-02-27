@@ -139,14 +139,6 @@ struct DRWManager {
 
   /* ---------- Nothing after this point is cleared after use ----------- */
 
-  /* system_gpu_context serves as the offset for clearing only
-   * the top portion of the struct so DO NOT MOVE IT! */
-  /** Unique ghost context used by the draw manager. */
-  void *system_gpu_context;
-  GPUContext *blender_gpu_context;
-  /** Mutex to lock the drw manager and avoid concurrent context usage. */
-  TicketMutex *system_gpu_context_mutex;
-
   DRWDebugModule *debug;
 };
 
