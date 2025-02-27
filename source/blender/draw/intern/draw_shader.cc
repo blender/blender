@@ -17,18 +17,6 @@
 #include "DRW_render.hh"
 
 extern "C" char datatoc_common_hair_lib_glsl[];
-extern "C" char datatoc_subdiv_custom_data_interp_comp_glsl[];
-extern "C" char datatoc_subdiv_ibo_lines_comp_glsl[];
-extern "C" char datatoc_subdiv_ibo_tris_comp_glsl[];
-extern "C" char datatoc_subdiv_lib_glsl[];
-extern "C" char datatoc_subdiv_normals_accumulate_comp_glsl[];
-extern "C" char datatoc_subdiv_normals_finalize_comp_glsl[];
-extern "C" char datatoc_subdiv_patch_evaluation_comp_glsl[];
-extern "C" char datatoc_subdiv_vbo_edge_fac_comp_glsl[];
-extern "C" char datatoc_subdiv_vbo_lnor_comp_glsl[];
-extern "C" char datatoc_subdiv_vbo_sculpt_data_comp_glsl[];
-extern "C" char datatoc_subdiv_vbo_edituv_strech_angle_comp_glsl[];
-extern "C" char datatoc_subdiv_vbo_edituv_strech_area_comp_glsl[];
 
 #define SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS 4
 static struct {
@@ -145,6 +133,21 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
     case SubdivShaderType::BUFFER_SCULPT_DATA:
       return "subdiv_sculpt_data";
 
+    case SubdivShaderType::PATCH_EVALUATION:
+      return "subdiv_patch_evaluation_verts";
+
+    case SubdivShaderType::PATCH_EVALUATION_FVAR:
+      return "subdiv_patch_evaluation_fvar";
+
+    case SubdivShaderType::PATCH_EVALUATION_FACE_DOTS:
+      return "subdiv_patch_evaluation_fdots";
+
+    case SubdivShaderType::PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS:
+      return "subdiv_patch_evaluation_fdots_normals";
+
+    case SubdivShaderType::PATCH_EVALUATION_ORCO:
+      return "subdiv_patch_evaluation_verts_orcos";
+
     case SubdivShaderType::BUFFER_UV_STRETCH_ANGLE:
       return "subdiv_edituv_stretch_angle";
 
@@ -165,208 +168,23 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
 
     case SubdivShaderType::COMP_CUSTOM_DATA_INTERP:
       break;
+
     default:
       break;
   }
   BLI_assert_unreachable();
   return "";
 }
-static blender::StringRefNull get_subdiv_shader_name(SubdivShaderType shader_type)
-{
-  switch (shader_type) {
-    case SubdivShaderType::BUFFER_LINES: {
-      return "subdiv lines build";
-    }
-    case SubdivShaderType::BUFFER_LINES_LOOSE: {
-      return "subdiv lines loose build";
-    }
-    case SubdivShaderType::BUFFER_LNOR: {
-      return "subdiv lnor build";
-    }
-    case SubdivShaderType::BUFFER_EDGE_FAC: {
-      return "subdiv edge fac build";
-    }
-    case SubdivShaderType::BUFFER_TRIS:
-    case SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS: {
-      return "subdiv tris";
-    }
-    case SubdivShaderType::BUFFER_NORMALS_ACCUMULATE: {
-      return "subdiv normals accumulate";
-    }
-    case SubdivShaderType::BUFFER_NORMALS_FINALIZE: {
-      return "subdiv normals finalize";
-    }
-    case SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE: {
-      return "subdiv custom normals finalize";
-    }
-    case SubdivShaderType::PATCH_EVALUATION: {
-      return "subdiv patch evaluation";
-    }
-    case SubdivShaderType::PATCH_EVALUATION_FVAR: {
-      return "subdiv patch evaluation face-varying";
-    }
-    case SubdivShaderType::PATCH_EVALUATION_FACE_DOTS: {
-      return "subdiv patch evaluation face dots";
-    }
-    case SubdivShaderType::PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS: {
-      return "subdiv patch evaluation face dots with normals";
-    }
-    case SubdivShaderType::PATCH_EVALUATION_ORCO: {
-      return "subdiv patch evaluation orco";
-    }
-    case SubdivShaderType::COMP_CUSTOM_DATA_INTERP: {
-      return "subdiv custom data interp";
-    }
-    case SubdivShaderType::BUFFER_SCULPT_DATA: {
-      return "subdiv sculpt data";
-    }
-    case SubdivShaderType::BUFFER_UV_STRETCH_ANGLE: {
-      return "subdiv uv stretch angle";
-    }
-    case SubdivShaderType::BUFFER_UV_STRETCH_AREA: {
-      return "subdiv uv stretch area";
-    }
-  }
-  BLI_assert_unreachable();
-  return "";
-}
-static blender::StringRefNull get_subdiv_shader_code(SubdivShaderType shader_type)
-{
-  switch (shader_type) {
-    case SubdivShaderType::BUFFER_LINES:
-    case SubdivShaderType::BUFFER_LINES_LOOSE: {
-      return datatoc_subdiv_ibo_lines_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_EDGE_FAC: {
-      return datatoc_subdiv_vbo_edge_fac_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_LNOR: {
-      return datatoc_subdiv_vbo_lnor_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_TRIS:
-    case SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS: {
-      return datatoc_subdiv_ibo_tris_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_NORMALS_ACCUMULATE: {
-      return datatoc_subdiv_normals_accumulate_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_NORMALS_FINALIZE:
-    case SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE: {
-      return datatoc_subdiv_normals_finalize_comp_glsl;
-    }
-    case SubdivShaderType::PATCH_EVALUATION:
-    case SubdivShaderType::PATCH_EVALUATION_FVAR:
-    case SubdivShaderType::PATCH_EVALUATION_FACE_DOTS:
-    case SubdivShaderType::PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS:
-    case SubdivShaderType::PATCH_EVALUATION_ORCO: {
-      return datatoc_subdiv_patch_evaluation_comp_glsl;
-    }
-    case SubdivShaderType::COMP_CUSTOM_DATA_INTERP: {
-      return datatoc_subdiv_custom_data_interp_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_SCULPT_DATA: {
-      return datatoc_subdiv_vbo_sculpt_data_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_UV_STRETCH_ANGLE: {
-      return datatoc_subdiv_vbo_edituv_strech_angle_comp_glsl;
-    }
-    case SubdivShaderType::BUFFER_UV_STRETCH_AREA: {
-      return datatoc_subdiv_vbo_edituv_strech_area_comp_glsl;
-    }
-  }
-  BLI_assert_unreachable();
-  return "";
-}
-
-static GPUShader *draw_shader_subdiv_patch_evaluation_get(SubdivShaderType shader_type)
-{
-  if (e_data.subdiv_sh[uint(shader_type)] == nullptr) {
-    const blender::StringRefNull compute_code = get_subdiv_shader_code(shader_type);
-
-    std::optional<blender::StringRefNull> defines;
-    if (shader_type == SubdivShaderType::PATCH_EVALUATION) {
-      defines =
-          "#define OSD_PATCH_BASIS_GLSL\n"
-          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n";
-    }
-    else if (shader_type == SubdivShaderType::PATCH_EVALUATION_FVAR) {
-      defines =
-          "#define OSD_PATCH_BASIS_GLSL\n"
-          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
-          "#define FVAR_EVALUATION\n";
-    }
-    else if (shader_type == SubdivShaderType::PATCH_EVALUATION_FACE_DOTS) {
-      defines =
-          "#define OSD_PATCH_BASIS_GLSL\n"
-          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
-          "#define FDOTS_EVALUATION\n";
-    }
-    else if (shader_type == SubdivShaderType::PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS) {
-      defines =
-          "#define OSD_PATCH_BASIS_GLSL\n"
-          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
-          "#define FDOTS_EVALUATION\n"
-          "#define FDOTS_NORMALS\n";
-    }
-    else if (shader_type == SubdivShaderType::PATCH_EVALUATION_ORCO) {
-      defines =
-          "#define OSD_PATCH_BASIS_GLSL\n"
-          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
-          "#define ORCO_EVALUATION\n";
-    }
-    else {
-      BLI_assert_unreachable();
-    }
-
-    /* Merge OpenSubdiv library code with our own library code. */
-    const blender::StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
-    const blender::StringRefNull subdiv_lib_code = datatoc_subdiv_lib_glsl;
-    std::string library_code = patch_basis_source + subdiv_lib_code;
-    e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_compute(
-        compute_code, library_code, defines, get_subdiv_shader_name(shader_type));
-  }
-
-  return e_data.subdiv_sh[uint(shader_type)];
-}
 
 GPUShader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
 {
-  if (ELEM(shader_type,
-           SubdivShaderType::PATCH_EVALUATION,
-           SubdivShaderType::PATCH_EVALUATION_FVAR,
-           SubdivShaderType::PATCH_EVALUATION_FACE_DOTS,
-           SubdivShaderType::PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS,
-           SubdivShaderType::PATCH_EVALUATION_ORCO))
-  {
-    return draw_shader_subdiv_patch_evaluation_get(shader_type);
-  }
-
   BLI_assert(!ELEM(shader_type, SubdivShaderType::COMP_CUSTOM_DATA_INTERP));
 
-  if (e_data.subdiv_sh[uint(shader_type)] == nullptr &&
-      ELEM(shader_type,
-           SubdivShaderType::BUFFER_LINES,
-           SubdivShaderType::BUFFER_LINES_LOOSE,
-           SubdivShaderType::BUFFER_TRIS,
-           SubdivShaderType::BUFFER_TRIS_MULTIPLE_MATERIALS,
-           SubdivShaderType::BUFFER_EDGE_FAC,
-           SubdivShaderType::BUFFER_SCULPT_DATA,
-           SubdivShaderType::BUFFER_UV_STRETCH_ANGLE,
-           SubdivShaderType::BUFFER_UV_STRETCH_AREA,
-           SubdivShaderType::BUFFER_NORMALS_ACCUMULATE,
-           SubdivShaderType::BUFFER_NORMALS_FINALIZE,
-           SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE,
-           SubdivShaderType::BUFFER_LNOR))
-  {
+  if (e_data.subdiv_sh[uint(shader_type)] == nullptr) {
     blender::StringRefNull create_info_name = get_subdiv_shader_info_name(shader_type);
     e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_from_info_name(
         create_info_name.c_str());
     BLI_assert(e_data.subdiv_sh[uint(shader_type)] != nullptr);
-  }
-  else if (e_data.subdiv_sh[uint(shader_type)] == nullptr) {
-    const blender::StringRefNull compute_code = get_subdiv_shader_code(shader_type);
-    e_data.subdiv_sh[uint(shader_type)] = GPU_shader_create_compute(
-        compute_code, datatoc_subdiv_lib_glsl, std::nullopt, get_subdiv_shader_name(shader_type));
   }
   return e_data.subdiv_sh[uint(shader_type)];
 }
