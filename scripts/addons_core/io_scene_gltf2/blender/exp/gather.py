@@ -25,14 +25,14 @@ def gather_gltf2(export_settings):
     animations = []  # unfortunately animations in gltf2 are just as 'root' as scenes.
     active_scene = None
     store_user_scene = bpy.context.scene
-    if export_settings['gltf_collection'] is None and export_settings['gltf_active_scene'] is False:
+    if export_settings['gltf_collection'] == "" and export_settings['gltf_active_scene'] is False:
         # If no collection export and no active scene export, we need to export all scenes
         scenes_to_export = bpy.data.scenes
-    elif export_settings['gltf_collection'] is None and export_settings['gltf_active_scene'] is True:
+    elif export_settings['gltf_collection'] == "" and export_settings['gltf_active_scene'] is True:
         # If no collection export and active scene export, we need to export only the active scene
         scenes_to_export = [
         scene for scene in bpy.data.scenes if scene.name == store_user_scene.name]
-    elif export_settings['gltf_collection'] is not None:
+    elif export_settings['gltf_collection'] != "":
         # If collection export, we need to export only the collection, so keeping only the active scene
         scenes_to_export = [
         scene for scene in bpy.data.scenes if scene.name == store_user_scene.name]
