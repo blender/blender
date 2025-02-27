@@ -61,6 +61,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     wildcard_suffix = StringRef(pattern).substr(wildcard_index + 1);
   }
 
+  std::mutex attribute_log_mutex;
   Set<std::string> removed_attributes;
   Set<std::string> failed_attributes;
 
@@ -111,9 +112,11 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         if (component.attributes_for_write()->remove(attribute_name)) {
+          std::lock_guard lock{attribute_log_mutex};
           removed_attributes.add(attribute_name);
         }
         else {
+          std::lock_guard lock{attribute_log_mutex};
           failed_attributes.add(attribute_name);
         }
       }
