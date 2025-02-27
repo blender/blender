@@ -272,8 +272,8 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
     flipped: BoolProperty(name="Flipped", default=False)  # type: ignore
 
     def use_pose(self, context: Context, pose_asset: Action) -> Set[str]:
-        arm_object: Object = context.object
-        pose_usage.select_bones(arm_object, pose_asset, select=self.select, flipped=self.flipped)
+        for object in context.selected_objects:
+            pose_usage.select_bones(object, pose_asset, select=self.select, flipped=self.flipped)
         if self.select:
             msg = tip_("Selected bones from %s") % pose_asset.name
         else:
