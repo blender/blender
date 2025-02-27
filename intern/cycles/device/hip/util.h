@@ -47,7 +47,9 @@ class HIPContextScope {
 const char *hipewErrorString(hipError_t result);
 const char *hipewCompilerPath();
 int hipewCompilerVersion();
-#  endif /* WITH_HIP_DYNLOAD */
+#  endif /* !WITH_HIP_DYNLOAD */
+
+bool hipSupportsDriver();
 
 static std::string hipDeviceArch(const int hipDevId)
 {

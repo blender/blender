@@ -1769,13 +1769,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'HIP':
                 import sys
                 if sys.platform[:3] == "win":
-                    driver_version = "21.Q4"
+                    adrenalin_driver_version = "24.6.1"
+                    pro_driver_version = "24.Q2"
                     col.label(
                         text=rpt_("Requires AMD GPU with RDNA architecture"),
                         icon='BLANK1',
                         translate=False)
-                    col.label(text=rpt_("and AMD Radeon Pro %s driver or newer") % driver_version,
-                              icon='BLANK1', translate=False)
+                    col.label(text=rpt_("and AMD Adrenalin driver %s or newer") %
+                              adrenalin_driver_version, icon='BLANK1', translate=False)
+                    col.label(text=rpt_("or AMD Radeon Pro %s driver or newer") %
+                              pro_driver_version, icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
                     driver_version = "23.40"
                     col.label(
