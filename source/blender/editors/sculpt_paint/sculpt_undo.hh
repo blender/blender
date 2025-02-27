@@ -12,7 +12,6 @@
 
 #include "BLI_index_mask_fwd.hh"
 
-struct BMLogEntry;
 struct Depsgraph;
 struct Mesh;
 struct Object;
@@ -77,7 +76,7 @@ void push_end(Object &ob);
 void push_end_ex(Object &ob, bool use_nested_undo);
 
 void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh);
-BMLogEntry *get_bmesh_log_entry();
+bool has_bmesh_log_entry();
 
 void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object);
 }  // namespace blender::ed::sculpt_paint::undo

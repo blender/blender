@@ -1109,7 +1109,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
     }
     case bke::pbvh::Type::BMesh: {
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      if (!undo::get_bmesh_log_entry()) {
+      if (!undo::has_bmesh_log_entry()) {
         return;
       }
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -1627,7 +1627,7 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
 
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    use_original = undo::get_bmesh_log_entry() != nullptr;
+    use_original = undo::has_bmesh_log_entry();
   }
 
   /* When the mesh is edited we can't rely on original coords

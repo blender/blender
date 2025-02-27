@@ -767,7 +767,7 @@ void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh)
   restore_geometry_data(&step_data.bmesh.geometry_enter, &mesh);
 }
 
-BMLogEntry *get_bmesh_log_entry()
+bool has_bmesh_log_entry()
 {
   return get_step_data()->bmesh.bm_entry;
 }
