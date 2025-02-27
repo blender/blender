@@ -78,7 +78,7 @@ struct ReferenceSetInfo {
     BLI_assert(ELEM(type, ReferenceSetType::LocalReferenceSet));
   }
 
-  friend std::ostream &operator<<(std::ostream &stream, const ReferenceSetInfo &source);
+  friend std::ostream &operator<<(std::ostream &stream, const ReferenceSetInfo &info);
 };
 
 struct ReferenceLifetimesInfo {

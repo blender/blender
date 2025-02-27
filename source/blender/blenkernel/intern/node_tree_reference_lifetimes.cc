@@ -823,7 +823,7 @@ static std::unique_ptr<ReferenceLifetimesInfo> make_reference_lifetimes_info(con
   /* Make sure that all required data is also potentially available. */
   required_data_by_socket.all_bits() &= potential_data_by_socket.all_bits();
 
-/* Only useful when debugging th reference lifetimes analysis. */
+/* Only useful when debugging the reference lifetimes analysis. */
 #if 0
   std::cout << "\n\n"
             << node_tree_to_dot(tree,
