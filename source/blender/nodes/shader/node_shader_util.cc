@@ -38,9 +38,9 @@ bool sh_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
   return true;
 }
 
-static bool sh_fn_poll_default(const blender::bke::bNodeType * /*ntype*/,
-                               const bNodeTree *ntree,
-                               const char **r_disabled_hint)
+static bool common_poll_default(const blender::bke::bNodeType * /*ntype*/,
+                                const bNodeTree *ntree,
+                                const char **r_disabled_hint)
 {
   if (!STR_ELEM(ntree->idname, "ShaderNodeTree", "GeometryNodeTree")) {
     *r_disabled_hint = RPT_("Not a shader or geometry node tree");
@@ -60,12 +60,12 @@ void sh_node_type_base(blender::bke::bNodeType *ntype,
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }
 
-void sh_fn_node_type_base(blender::bke::bNodeType *ntype,
-                          std::string idname,
-                          const std::optional<int16_t> legacy_type)
+void common_node_type_base(blender::bke::bNodeType *ntype,
+                           std::string idname,
+                           const std::optional<int16_t> legacy_type)
 {
   sh_node_type_base(ntype, idname, legacy_type);
-  ntype->poll = sh_fn_poll_default;
+  ntype->poll = common_poll_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }
 

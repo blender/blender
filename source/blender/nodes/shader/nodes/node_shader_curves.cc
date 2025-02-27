@@ -132,7 +132,7 @@ void register_node_type_sh_curve_vec()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeVectorCurve", SH_NODE_CURVE_VEC);
+  common_node_type_base(&ntype, "ShaderNodeVectorCurve", SH_NODE_CURVE_VEC);
   ntype.ui_name = "Vector Curves";
   ntype.ui_description = "Map input vector components with curves";
   ntype.enum_name_legacy = "CURVE_VEC";
@@ -296,7 +296,7 @@ void register_node_type_sh_curve_rgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeRGBCurve", SH_NODE_CURVE_RGB);
+  common_node_type_base(&ntype, "ShaderNodeRGBCurve", SH_NODE_CURVE_RGB);
   ntype.ui_name = "RGB Curves";
   ntype.ui_description = "Apply color corrections for each color channel";
   ntype.enum_name_legacy = "CURVE_RGB";
@@ -428,7 +428,7 @@ void register_node_type_sh_curve_float()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeFloatCurve", SH_NODE_CURVE_FLOAT);
+  common_node_type_base(&ntype, "ShaderNodeFloatCurve", SH_NODE_CURVE_FLOAT);
   ntype.ui_name = "Float Curve";
   ntype.ui_description = "Map an input float to a curve and outputs a float value";
   ntype.enum_name_legacy = "CURVE_FLOAT";

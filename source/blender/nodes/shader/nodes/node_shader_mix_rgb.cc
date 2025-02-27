@@ -158,7 +158,7 @@ void register_node_type_sh_mix_rgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeMixRGB", SH_NODE_MIX_RGB_LEGACY);
+  common_node_type_base(&ntype, "ShaderNodeMixRGB", SH_NODE_MIX_RGB_LEGACY);
   ntype.ui_name = "Mix (Legacy)";
   ntype.ui_description = "Mix two input colors";
   ntype.enum_name_legacy = "MIX_RGB";

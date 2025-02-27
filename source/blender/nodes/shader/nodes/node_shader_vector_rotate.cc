@@ -268,7 +268,7 @@ void register_node_type_sh_vector_rotate()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeVectorRotate", SH_NODE_VECTOR_ROTATE);
+  common_node_type_base(&ntype, "ShaderNodeVectorRotate", SH_NODE_VECTOR_ROTATE);
   ntype.ui_name = "Vector Rotate";
   ntype.ui_description = "Rotate a vector around a pivot point (center)";
   ntype.enum_name_legacy = "VECTOR_ROTATE";

@@ -260,7 +260,7 @@ void register_node_type_sh_tex_white_noise()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeTexWhiteNoise", SH_NODE_TEX_WHITE_NOISE);
+  common_node_type_base(&ntype, "ShaderNodeTexWhiteNoise", SH_NODE_TEX_WHITE_NOISE);
   ntype.ui_name = "White Noise Texture";
   ntype.ui_description = "Return a random value or color based on an input seed";
   ntype.enum_name_legacy = "TEX_WHITE_NOISE";

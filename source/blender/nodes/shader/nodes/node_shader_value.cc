@@ -54,7 +54,7 @@ void register_node_type_sh_value()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeValue", SH_NODE_VALUE);
+  common_node_type_base(&ntype, "ShaderNodeValue", SH_NODE_VALUE);
   ntype.ui_name = "Value";
   ntype.ui_description = "Input numerical values to other nodes in the tree";
   ntype.enum_name_legacy = "VALUE";

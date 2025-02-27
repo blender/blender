@@ -139,7 +139,7 @@ void register_node_type_sh_tex_checker()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeTexChecker", SH_NODE_TEX_CHECKER);
+  common_node_type_base(&ntype, "ShaderNodeTexChecker", SH_NODE_TEX_CHECKER);
   ntype.ui_name = "Checker Texture";
   ntype.ui_description = "Generate a checkerboard texture";
   ntype.enum_name_legacy = "TEX_CHECKER";
