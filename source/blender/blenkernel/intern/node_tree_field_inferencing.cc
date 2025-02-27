@@ -106,10 +106,10 @@ static const FieldInferencingInterface &get_dummy_field_inferencing_interface(co
                                                                               ResourceScope &scope)
 {
   auto &inferencing_interface = scope.construct<FieldInferencingInterface>();
-  inferencing_interface.inputs.append_n_times(InputSocketFieldType::None,
-                                              node.input_sockets().size());
-  inferencing_interface.outputs.append_n_times(OutputFieldDependency::ForDataSource(),
-                                               node.output_sockets().size());
+  inferencing_interface.inputs = Array<InputSocketFieldType>(node.input_sockets().size(),
+                                                             InputSocketFieldType::None);
+  inferencing_interface.outputs = Array<OutputFieldDependency>(
+      node.output_sockets().size(), OutputFieldDependency::ForDataSource());
   return inferencing_interface;
 }
 
@@ -140,13 +140,18 @@ static const FieldInferencingInterface &get_node_field_inferencing_interface(con
   }
 
   auto &inferencing_interface = scope.construct<FieldInferencingInterface>();
-  for (const bNodeSocket *input_socket : node.input_sockets()) {
-    inferencing_interface.inputs.append(get_interface_input_field_type(node, *input_socket));
+
+  const Span<const bNodeSocket *> input_sockets = node.input_sockets();
+  inferencing_interface.inputs.reinitialize(input_sockets.size());
+  for (const int i : input_sockets.index_range()) {
+    inferencing_interface.inputs[i] = get_interface_input_field_type(node, *input_sockets[i]);
   }
 
-  for (const bNodeSocket *output_socket : node.output_sockets()) {
-    inferencing_interface.outputs.append(
-        get_interface_output_field_dependency(node, *output_socket));
+  const Span<const bNodeSocket *> output_sockets = node.output_sockets();
+  inferencing_interface.outputs.reinitialize(output_sockets.size());
+  for (const int i : output_sockets.index_range()) {
+    inferencing_interface.outputs[i] = get_interface_output_field_dependency(node,
+                                                                             *output_sockets[i]);
   }
   return inferencing_interface;
 }
@@ -716,10 +721,10 @@ bool update_field_inferencing(const bNodeTree &tree)
   /* Create new inferencing interface for this node group. */
   std::unique_ptr<FieldInferencingInterface> new_inferencing_interface =
       std::make_unique<FieldInferencingInterface>();
-  new_inferencing_interface->inputs.resize(tree.interface_inputs().size(),
-                                           InputSocketFieldType::IsSupported);
-  new_inferencing_interface->outputs.resize(tree.interface_outputs().size(),
-                                            OutputFieldDependency::ForDataSource());
+  new_inferencing_interface->inputs = Array<InputSocketFieldType>(
+      tree.interface_inputs().size(), InputSocketFieldType::IsSupported);
+  new_inferencing_interface->outputs = Array<OutputFieldDependency>(
+      tree.interface_outputs().size(), OutputFieldDependency::ForDataSource());
 
   /* Keep track of the state of all sockets. The index into this array is #SocketRef::id(). */
   Array<SocketFieldState> field_state_by_socket_id(tree.all_sockets().size());

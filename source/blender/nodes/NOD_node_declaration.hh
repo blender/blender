@@ -8,6 +8,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "BLI_array.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -80,8 +81,8 @@ class OutputFieldDependency {
  * Information about how a node interacts with fields.
  */
 struct FieldInferencingInterface {
-  Vector<InputSocketFieldType> inputs;
-  Vector<OutputFieldDependency> outputs;
+  Array<InputSocketFieldType> inputs;
+  Array<OutputFieldDependency> outputs;
 
   BLI_STRUCT_EQUALITY_OPERATORS_2(FieldInferencingInterface, inputs, outputs)
 };
