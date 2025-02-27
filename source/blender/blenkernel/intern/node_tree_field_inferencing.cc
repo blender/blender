@@ -333,8 +333,7 @@ static FieldStateSyncResult repeat_field_state_sync(
     const MutableSpan<SocketFieldState> field_state_by_socket_id)
 {
   FieldStateSyncResult res = FieldStateSyncResult::NONE;
-  const NodeGeometryRepeatOutput &storage = *static_cast<const NodeGeometryRepeatOutput *>(
-      output_node.storage);
+  const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(output_node.storage);
   for (const int i : IndexRange(storage.items_num)) {
     const bNodeSocket &input_socket = input_node.output_socket(i + 1);
     const bNodeSocket &output_socket = output_node.output_socket(i);
@@ -357,8 +356,7 @@ static bool propagate_special_data_requirements(
   /* Sync field state between zone nodes and schedule another pass if necessary. */
   switch (node.type_legacy) {
     case GEO_NODE_SIMULATION_INPUT: {
-      const NodeGeometrySimulationInput &data = *static_cast<const NodeGeometrySimulationInput *>(
-          node.storage);
+      const auto &data = *static_cast<const NodeGeometrySimulationInput *>(node.storage);
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
         const FieldStateSyncResult sync_result = simulation_nodes_field_state_sync(
             node, *output_node, field_state_by_socket_id);
@@ -370,8 +368,7 @@ static bool propagate_special_data_requirements(
     }
     case GEO_NODE_SIMULATION_OUTPUT: {
       for (const bNode *input_node : tree.nodes_by_type("GeometryNodeSimulationInput")) {
-        const NodeGeometrySimulationInput &data =
-            *static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
+        const auto &data = *static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
         if (node.identifier == data.output_node_id) {
           const FieldStateSyncResult sync_result = simulation_nodes_field_state_sync(
               *input_node, node, field_state_by_socket_id);
@@ -383,8 +380,7 @@ static bool propagate_special_data_requirements(
       break;
     }
     case GEO_NODE_REPEAT_INPUT: {
-      const NodeGeometryRepeatInput &data = *static_cast<const NodeGeometryRepeatInput *>(
-          node.storage);
+      const auto &data = *static_cast<const NodeGeometryRepeatInput *>(node.storage);
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
         const FieldStateSyncResult sync_result = repeat_field_state_sync(
             node, *output_node, field_state_by_socket_id);
@@ -396,8 +392,7 @@ static bool propagate_special_data_requirements(
     }
     case GEO_NODE_REPEAT_OUTPUT: {
       for (const bNode *input_node : tree.nodes_by_type("GeometryNodeRepeatInput")) {
-        const NodeGeometryRepeatInput &data = *static_cast<const NodeGeometryRepeatInput *>(
-            input_node->storage);
+        const auto &data = *static_cast<const NodeGeometryRepeatInput *>(input_node->storage);
         if (node.identifier == data.output_node_id) {
           const FieldStateSyncResult sync_result = repeat_field_state_sync(
               *input_node, node, field_state_by_socket_id);
