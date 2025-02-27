@@ -87,3 +87,9 @@ struct CustomNormal {
   float y;
   float z;
 };
+
+/* Structure for #CompressedPatchCoord. */
+struct BlenderPatchCoord {
+  int patch_index;
+  uint encoded_uv;
+};

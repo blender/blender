@@ -117,6 +117,38 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Custom data
+ * \{ */
+
+#define SUBDIV_CUSTOM_DATA_VARIANT(suffix, gpu_comp_type, data_type, dimension) \
+  GPU_SHADER_CREATE_INFO(subdiv_custom_data_interp_##suffix) \
+  DO_STATIC_COMPILATION() \
+  DEFINE(gpu_comp_type) \
+  DEFINE(dimension) \
+  COMPUTE_SOURCE("subdiv_custom_data_interp_comp.glsl") \
+  STORAGE_BUF(CUSTOM_DATA_FACE_PTEX_OFFSET_BUF_SLOT, READ, uint, face_ptex_offset[]) \
+  STORAGE_BUF(CUSTOM_DATA_PATCH_COORDS_BUF_SLOT, READ, BlenderPatchCoord, patch_coords[]) \
+  STORAGE_BUF(CUSTOM_DATA_EXTRA_COARSE_FACE_DATA_BUF_SLOT, READ, uint, extra_coarse_face_data[]) \
+  STORAGE_BUF(CUSTOM_DATA_SOURCE_DATA_BUF_SLOT, READ, data_type, src_data[]) \
+  STORAGE_BUF(CUSTOM_DATA_DESTINATION_DATA_BUF_SLOT, WRITE, data_type, dst_data[]) \
+  ADDITIONAL_INFO(subdiv_polygon_offset_base) \
+  GPU_SHADER_CREATE_END()
+
+SUBDIV_CUSTOM_DATA_VARIANT(4d_u16, "GPU_COMP_U16", uint, "DIMENSIONS_4")
+SUBDIV_CUSTOM_DATA_VARIANT(1d_i32, "GPU_COMP_I32", int, "DIMENSIONS_1")
+SUBDIV_CUSTOM_DATA_VARIANT(2d_i32, "GPU_COMP_I32", int, "DIMENSIONS_2")
+SUBDIV_CUSTOM_DATA_VARIANT(3d_i32, "GPU_COMP_I32", int, "DIMENSIONS_3")
+SUBDIV_CUSTOM_DATA_VARIANT(4d_i32, "GPU_COMP_I32", int, "DIMENSIONS_4")
+SUBDIV_CUSTOM_DATA_VARIANT(1d_f32, "GPU_COMP_F32", float, "DIMENSIONS_1")
+SUBDIV_CUSTOM_DATA_VARIANT(2d_f32, "GPU_COMP_F32", float, "DIMENSIONS_2")
+SUBDIV_CUSTOM_DATA_VARIANT(3d_f32, "GPU_COMP_F32", float, "DIMENSIONS_3")
+SUBDIV_CUSTOM_DATA_VARIANT(4d_f32, "GPU_COMP_F32", float, "DIMENSIONS_4")
+
+#undef SUBDIV_CUSTOM_DATA_VARIANT
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Sculpt data
  * \{ */
 

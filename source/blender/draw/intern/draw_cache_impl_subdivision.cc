@@ -1286,15 +1286,14 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache &cache,
   GPUShader *shader = DRW_shader_subdiv_custom_data_get(comp_type, dimensions);
   GPU_shader_bind(shader);
 
-  int binding_point = 0;
   /* subdiv_face_offset is always at binding point 0 for each shader using it. */
-  GPU_vertbuf_bind_as_ssbo(cache.subdiv_face_offset_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(&src_data, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.face_ptex_offset_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.corner_patch_coords, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(&dst_data, binding_point++);
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
+  GPU_vertbuf_bind_as_ssbo(cache.subdiv_face_offset_buffer, SUBDIV_FACE_OFFSET_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(&src_data, CUSTOM_DATA_SOURCE_DATA_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.face_ptex_offset_buffer, CUSTOM_DATA_FACE_PTEX_OFFSET_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.corner_patch_coords, CUSTOM_DATA_PATCH_COORDS_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data,
+                           CUSTOM_DATA_EXTRA_COARSE_FACE_DATA_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(&dst_data, CUSTOM_DATA_DESTINATION_DATA_BUF_SLOT);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, dst_offset, cache.num_subdiv_quads);
 
