@@ -270,7 +270,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
         col, ptr, "bone_from", &warp_obj_data_ptr, "bones", std::nullopt, ICON_BONE_DATA);
   }
 
-  uiItemR(col, ptr, "object_to", UI_ITEM_NONE, IFACE_("To"), ICON_NONE);
+  uiItemR(
+      col, ptr, "object_to", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_MODIFIER, "To"), ICON_NONE);
   warp_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA warp_obj_data_ptr = RNA_pointer_get(&warp_obj_ptr, "data");
