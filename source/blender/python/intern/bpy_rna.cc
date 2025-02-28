@@ -1850,13 +1850,27 @@ static int pyrna_py_to_prop(
          * forward back to pyrna_pydict_to_props */
         if (PyDict_Check(value)) {
           const StructRNA *base_type = RNA_struct_base_child_of(ptr_type, nullptr);
-          if (base_type == &RNA_OperatorProperties) {
+          if (ELEM(base_type, &RNA_OperatorProperties, &RNA_GizmoProperties)) {
             PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
-            return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
-          }
-          if (base_type == &RNA_GizmoProperties) {
-            PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
-            return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
+            if (opptr.type) {
+              return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
+            }
+            /* Converting a dictionary to properties is not supported
+             * for function arguments, this would be nice to support but is complicated
+             * because the operator type needs to be read from another function argument
+             * and allocated data needs to be freed. See #135245. */
+
+            /* This is only expected to happen for RNA functions. */
+            BLI_assert(ptr->type == &RNA_Function);
+            if (ptr->type != &RNA_Function) {
+              PyErr_Format(PyExc_TypeError,
+                           "%.200s %.200s.%.200s internal error coercing a dict for %.200s type",
+                           error_prefix,
+                           RNA_struct_identifier(ptr->type),
+                           RNA_property_identifier(prop),
+                           RNA_struct_identifier(ptr_type));
+              return -1;
+            }
           }
         }
 
