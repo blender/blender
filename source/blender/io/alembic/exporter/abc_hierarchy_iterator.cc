@@ -49,7 +49,7 @@ void ABCHierarchyIterator::update_bounding_box_recursive(Imath::Box3d &bounds,
                                                          const HierarchyContext *context)
 {
   if (context != nullptr) {
-    AbstractHierarchyWriter *abstract_writer = writers_[context->export_path];
+    AbstractHierarchyWriter *abstract_writer = writers_.lookup(context->export_path);
     ABCAbstractWriter *abc_writer = static_cast<ABCAbstractWriter *>(abstract_writer);
 
     if (abc_writer != nullptr) {
@@ -57,7 +57,12 @@ void ABCHierarchyIterator::update_bounding_box_recursive(Imath::Box3d &bounds,
     }
   }
 
-  for (HierarchyContext *child_context : graph_children(context)) {
+  ExportChildren *children = graph_children(context);
+  if (!children) {
+    return;
+  }
+
+  for (HierarchyContext *child_context : *children) {
     update_bounding_box_recursive(bounds, child_context);
   }
 }
@@ -86,8 +91,8 @@ std::string ABCHierarchyIterator::make_valid_name(const std::string &name) const
   return abc_name;
 }
 
-AbstractHierarchyIterator::ExportGraph::key_type ABCHierarchyIterator::
-    determine_graph_index_object(const HierarchyContext *context)
+ObjectIdentifier ABCHierarchyIterator::determine_graph_index_object(
+    const HierarchyContext *context)
 {
   if (params_.flatten_hierarchy) {
     return ObjectIdentifier::for_graph_root();
@@ -96,7 +101,7 @@ AbstractHierarchyIterator::ExportGraph::key_type ABCHierarchyIterator::
   return AbstractHierarchyIterator::determine_graph_index_object(context);
 }
 
-AbstractHierarchyIterator::ExportGraph::key_type ABCHierarchyIterator::determine_graph_index_dupli(
+ObjectIdentifier ABCHierarchyIterator::determine_graph_index_dupli(
     const HierarchyContext *context,
     const DupliObject *dupli_object,
     const DupliParentFinder &dupli_parent_finder)

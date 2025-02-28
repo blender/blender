@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "IO_abstract_hierarchy_iterator.h"
 
+#include "BLI_assert.h"
+
 #include "BKE_duplilist.hh"
 
 namespace blender::io {
@@ -12,6 +14,11 @@ ObjectIdentifier::ObjectIdentifier(Object *object,
                                    const PersistentID &persistent_id)
     : object(object), duplicated_by(duplicated_by), persistent_id(persistent_id)
 {
+  /* Class invariants:
+   *   If duplicated_by is null, persistent_id must be default.
+   *   If duplicated_by is not null, persistent_id must not be default. */
+  BLI_assert(duplicated_by == nullptr ? persistent_id == PersistentID() :
+                                        !(persistent_id == PersistentID()));
 }
 
 ObjectIdentifier ObjectIdentifier::for_real_object(Object *object)
@@ -46,25 +53,6 @@ bool ObjectIdentifier::is_root() const
   return object == nullptr;
 }
 
-bool operator<(const ObjectIdentifier &obj_ident_a, const ObjectIdentifier &obj_ident_b)
-{
-  if (obj_ident_a.object != obj_ident_b.object) {
-    return obj_ident_a.object < obj_ident_b.object;
-  }
-
-  if (obj_ident_a.duplicated_by != obj_ident_b.duplicated_by) {
-    return obj_ident_a.duplicated_by < obj_ident_b.duplicated_by;
-  }
-
-  if (obj_ident_a.duplicated_by == nullptr) {
-    /* Both are real objects, no need to check the persistent ID. */
-    return false;
-  }
-
-  /* Same object, both are duplicated, use the persistent IDs to determine order. */
-  return obj_ident_a.persistent_id < obj_ident_b.persistent_id;
-}
-
 bool operator==(const ObjectIdentifier &obj_ident_a, const ObjectIdentifier &obj_ident_b)
 {
   if (obj_ident_a.object != obj_ident_b.object) {
@@ -73,6 +61,8 @@ bool operator==(const ObjectIdentifier &obj_ident_a, const ObjectIdentifier &obj
   if (obj_ident_a.duplicated_by != obj_ident_b.duplicated_by) {
     return false;
   }
+
+  /* Return early if we know the expensive persistent_id check won't be necessary. */
   if (obj_ident_a.duplicated_by == nullptr) {
     return true;
   }

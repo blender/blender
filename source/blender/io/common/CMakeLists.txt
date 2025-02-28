@@ -49,7 +49,6 @@ target_link_libraries(bf_io_common INTERFACE)
 if(WITH_GTESTS)
   set(TEST_SRC
     intern/abstract_hierarchy_iterator_test.cc
-    intern/hierarchy_context_order_test.cc
     intern/object_identifier_test.cc
     intern/string_utils_tests.cc
   )

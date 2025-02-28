@@ -67,18 +67,14 @@ TEST_F(ObjectIdentifierOrderTest, graph_root)
   ObjectIdentifier id_root_1 = ObjectIdentifier::for_graph_root();
   ObjectIdentifier id_root_2 = ObjectIdentifier::for_graph_root();
   EXPECT_TRUE(id_root_1 == id_root_2);
-  EXPECT_FALSE(id_root_1 < id_root_2);
-  EXPECT_FALSE(id_root_2 < id_root_1);
+  EXPECT_TRUE(id_root_1.hash() == id_root_2.hash());
 
   ObjectIdentifier id_a = ObjectIdentifier::for_real_object(fake_pointer(1));
   EXPECT_FALSE(id_root_1 == id_a);
-  EXPECT_TRUE(id_root_1 < id_a);
-  EXPECT_FALSE(id_a < id_root_1);
 
   ObjectIdentifier id_accidental_root = ObjectIdentifier::for_real_object(nullptr);
   EXPECT_TRUE(id_root_1 == id_accidental_root);
-  EXPECT_FALSE(id_root_1 < id_accidental_root);
-  EXPECT_FALSE(id_accidental_root < id_root_1);
+  EXPECT_TRUE(id_root_1.hash() == id_accidental_root.hash());
 }
 
 TEST_F(ObjectIdentifierOrderTest, real_objects)
@@ -86,7 +82,10 @@ TEST_F(ObjectIdentifierOrderTest, real_objects)
   ObjectIdentifier id_a = ObjectIdentifier::for_real_object(fake_pointer(1));
   ObjectIdentifier id_b = ObjectIdentifier::for_real_object(fake_pointer(2));
   EXPECT_FALSE(id_a == id_b);
-  EXPECT_TRUE(id_a < id_b);
+
+  ObjectIdentifier id_c = ObjectIdentifier::for_real_object(fake_pointer(1));
+  EXPECT_TRUE(id_a == id_c);
+  EXPECT_TRUE(id_a.hash() == id_c.hash());
 }
 
 TEST_F(ObjectIdentifierOrderTest, duplicated_objects)
@@ -94,19 +93,17 @@ TEST_F(ObjectIdentifierOrderTest, duplicated_objects)
   ObjectIdentifier id_real_a = ObjectIdentifier::for_real_object(fake_pointer(1));
   TestObjectIdentifier id_dupli_a(fake_pointer(1), fake_pointer(2), TestPersistentID(0));
   TestObjectIdentifier id_dupli_b(fake_pointer(1), fake_pointer(3), TestPersistentID(0));
+  TestObjectIdentifier id_same_dupli_a(fake_pointer(1), fake_pointer(2), TestPersistentID(0));
   TestObjectIdentifier id_different_dupli_b(fake_pointer(1), fake_pointer(3), TestPersistentID(1));
 
   EXPECT_FALSE(id_real_a == id_dupli_a);
   EXPECT_FALSE(id_dupli_a == id_dupli_b);
-  EXPECT_TRUE(id_real_a < id_dupli_a);
-  EXPECT_TRUE(id_real_a < id_dupli_b);
-  EXPECT_TRUE(id_dupli_a < id_dupli_b);
-  EXPECT_TRUE(id_dupli_a < id_different_dupli_b);
 
   EXPECT_FALSE(id_dupli_b == id_different_dupli_b);
   EXPECT_FALSE(id_dupli_a == id_different_dupli_b);
-  EXPECT_TRUE(id_dupli_b < id_different_dupli_b);
-  EXPECT_FALSE(id_different_dupli_b < id_dupli_b);
+
+  EXPECT_TRUE(id_dupli_a == id_same_dupli_a);
+  EXPECT_TRUE(id_dupli_a.hash() == id_same_dupli_a.hash());
 }
 
 TEST_F(ObjectIdentifierOrderTest, behavior_as_map_keys)
@@ -119,19 +116,19 @@ TEST_F(ObjectIdentifierOrderTest, behavior_as_map_keys)
   AbstractHierarchyIterator::ExportGraph graph;
 
   /* This inserts the keys with default values. */
-  graph[id_root];
-  graph[id_real_a];
-  graph[id_dupli_a];
-  graph[id_dupli_b];
-  graph[id_another_root];
+  graph.add_new(id_root, {});
+  graph.add_new(id_real_a, {});
+  graph.add_new(id_dupli_a, {});
+  graph.add_new(id_dupli_b, {});
+  graph.add(id_another_root, {});
 
   EXPECT_EQ(4, graph.size());
 
-  graph.erase(id_another_root);
+  graph.remove_contained(id_another_root);
   EXPECT_EQ(3, graph.size());
 
   TestObjectIdentifier id_another_dupli_b(fake_pointer(1), fake_pointer(3), TestPersistentID(0));
-  graph.erase(id_another_dupli_b);
+  graph.remove_contained(id_another_dupli_b);
   EXPECT_EQ(2, graph.size());
 }
 
@@ -145,11 +142,11 @@ TEST_F(ObjectIdentifierOrderTest, map_copy_and_update)
   AbstractHierarchyIterator::ExportGraph graph;
 
   /* This inserts the keys with default values. */
-  graph[id_root];
-  graph[id_real_a];
-  graph[id_dupli_a];
-  graph[id_dupli_b];
-  graph[id_dupli_c];
+  graph.add_new(id_root, {});
+  graph.add_new(id_real_a, {});
+  graph.add_new(id_dupli_a, {});
+  graph.add_new(id_dupli_b, {});
+  graph.add_new(id_dupli_c, {});
   EXPECT_EQ(5, graph.size());
 
   AbstractHierarchyIterator::ExportGraph graph_copy = graph;
@@ -161,11 +158,11 @@ TEST_F(ObjectIdentifierOrderTest, map_copy_and_update)
   ctx1.object = fake_pointer(1);
   ctx2.object = fake_pointer(2);
 
-  graph_copy[id_root].insert(&ctx1);
-  EXPECT_EQ(0, graph[id_root].size());
+  graph_copy.lookup(id_root).add_new(&ctx1);
+  EXPECT_EQ(0, graph.lookup(id_root).size());
 
   /* Deleting a key in the copy should not update the original. */
-  graph_copy.erase(id_dupli_c);
+  graph_copy.remove_contained(id_dupli_c);
   EXPECT_EQ(4, graph_copy.size());
   EXPECT_EQ(5, graph.size());
 }
@@ -188,12 +185,11 @@ TEST_F(PersistentIDTest, instancer_id)
 
   PersistentID expect_instancer_id = TestPersistentID(327);
   EXPECT_EQ(expect_instancer_id, child_id.instancer_pid());
+  EXPECT_EQ(expect_instancer_id.hash(), child_id.instancer_pid().hash());
 
   PersistentID empty_id;
   EXPECT_EQ(empty_id, child_id.instancer_pid().instancer_pid());
-
-  EXPECT_LT(child_id, expect_instancer_id);
-  EXPECT_LT(expect_instancer_id, empty_id);
+  EXPECT_EQ(empty_id.hash(), child_id.instancer_pid().instancer_pid().hash());
 }
 
 TEST_F(PersistentIDTest, as_object_name_suffix)
