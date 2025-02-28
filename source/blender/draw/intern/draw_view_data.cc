@@ -251,28 +251,28 @@ ViewportEngineData *DRW_view_data_enabled_engine_iter_step(DRWEngineIterator *it
 
 draw::Manager *DRW_manager_get()
 {
-  BLI_assert(DST.view_data_active->manager);
-  return DST.view_data_active->manager;
+  BLI_assert(drw_get().view_data_active->manager);
+  return drw_get().view_data_active->manager;
 }
 
 draw::ObjectRef DRW_object_ref_get(Object *object)
 {
-  BLI_assert(DST.view_data_active->manager);
-  return {object, DST.dupli_source, DST.dupli_parent, draw::ResourceHandle(0)};
+  BLI_assert(drw_get().view_data_active->manager);
+  return {object, drw_get().dupli_source, drw_get().dupli_parent, draw::ResourceHandle(0)};
 }
 
 void DRW_manager_begin_sync()
 {
-  if (DST.view_data_active->manager == nullptr) {
+  if (drw_get().view_data_active->manager == nullptr) {
     return;
   }
-  DST.view_data_active->manager->begin_sync();
+  drw_get().view_data_active->manager->begin_sync();
 }
 
 void DRW_manager_end_sync()
 {
-  if (DST.view_data_active->manager == nullptr) {
+  if (drw_get().view_data_active->manager == nullptr) {
     return;
   }
-  DST.view_data_active->manager->end_sync();
+  drw_get().view_data_active->manager->end_sync();
 }

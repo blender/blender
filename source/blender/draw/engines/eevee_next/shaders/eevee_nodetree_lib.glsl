@@ -736,7 +736,7 @@ float texture_lod_bias_get()
 /* -------------------------------------------------------------------- */
 /** \name Volume Attribute post
  *
- * TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
+ * TODO(@fclem): These implementation details should concern the DRWContext and not be a fix on
  * the engine side. But as of now, the engines are responsible for loading the attributes.
  *
  * \{ */
@@ -776,7 +776,7 @@ vec4 attr_load_color_post(vec4 attr)
 /* -------------------------------------------------------------------- */
 /** \name Uniform Attributes
  *
- * TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
+ * TODO(@fclem): These implementation details should concern the DRWContext and not be a fix on
  * the engine side. But as of now, the engines are responsible for loading the attributes.
  *
  * \{ */

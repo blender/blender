@@ -283,7 +283,7 @@ void DebugDraw::display_to_view()
 
 blender::draw::DebugDraw *DRW_debug_get()
 {
-  return reinterpret_cast<blender::draw::DebugDraw *>(DST.debug);
+  return reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug);
 }
 
 /** \} */
@@ -295,11 +295,11 @@ blender::draw::DebugDraw *DRW_debug_get()
 void drw_debug_draw()
 {
 #ifdef WITH_DRAW_DEBUG
-  if (DST.debug == nullptr) {
+  if (drw_get().debug == nullptr) {
     return;
   }
-  /* TODO(@fclem): Convenience for now. Will have to move to #DRWManager. */
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->display_to_view();
+  /* TODO(@fclem): Convenience for now. Will have to move to #DRWContext. */
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->display_to_view();
 #endif
 }
 
@@ -310,11 +310,11 @@ void drw_debug_init()
   /* Module should not be used in release builds. */
   /* TODO(@fclem): Hide the functions declarations without using `ifdefs` everywhere. */
 #ifdef WITH_DRAW_DEBUG
-  /* TODO(@fclem): Convenience for now. Will have to move to #DRWManager. */
-  if (DST.debug == nullptr) {
-    DST.debug = reinterpret_cast<DRWDebugModule *>(new blender::draw::DebugDraw());
+  /* TODO(@fclem): Convenience for now. Will have to move to #DRWContext. */
+  if (drw_get().debug == nullptr) {
+    drw_get().debug = reinterpret_cast<DRWDebugModule *>(new blender::draw::DebugDraw());
   }
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->init();
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->init();
 #endif
 }
 
@@ -327,7 +327,7 @@ void drw_debug_module_free(DRWDebugModule *module)
 
 GPUStorageBuf *drw_debug_gpu_draw_buf_get()
 {
-  return reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->gpu_draw_buf_get();
+  return reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->gpu_draw_buf_get();
 }
 
 /** \} */
@@ -338,13 +338,13 @@ GPUStorageBuf *drw_debug_gpu_draw_buf_get()
 
 void DRW_debug_modelmat_reset()
 {
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->modelmat_reset();
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->modelmat_reset();
 }
 
 void DRW_debug_modelmat(const float modelmat[4][4])
 {
 #ifdef WITH_DRAW_DEBUG
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->modelmat_set(modelmat);
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->modelmat_set(modelmat);
 #else
   UNUSED_VARS(modelmat);
 #endif
@@ -352,18 +352,18 @@ void DRW_debug_modelmat(const float modelmat[4][4])
 
 void DRW_debug_line_v3v3(const float v1[3], const float v2[3], const float color[4])
 {
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_line(v1, v2, color);
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->draw_line(v1, v2, color);
 }
 
 void DRW_debug_polygon_v3(const float (*v)[3], int vert_len, const float color[4])
 {
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_polygon(
-      blender::Span<float3>((float3 *)v, vert_len), color);
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)
+      ->draw_polygon(blender::Span<float3>((float3 *)v, vert_len), color);
 }
 
 void DRW_debug_m4(const float m[4][4])
 {
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_matrix(float4x4(m));
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->draw_matrix(float4x4(m));
 }
 
 void DRW_debug_m4_as_bbox(const float m[4][4], bool invert, const float color[4])
@@ -372,13 +372,13 @@ void DRW_debug_m4_as_bbox(const float m[4][4], bool invert, const float color[4]
   if (invert) {
     m4 = blender::math::invert(m4);
   }
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_matrix_as_bbox(m4, color);
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->draw_matrix_as_bbox(m4, color);
 }
 
 void DRW_debug_bbox(const BoundBox *bbox, const float color[4])
 {
 #ifdef WITH_DRAW_DEBUG
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_bbox(*bbox, color);
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->draw_bbox(*bbox, color);
 #else
   UNUSED_VARS(bbox, color);
 #endif
@@ -386,7 +386,8 @@ void DRW_debug_bbox(const BoundBox *bbox, const float color[4])
 
 void DRW_debug_sphere(const float center[3], float radius, const float color[4])
 {
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_sphere(center, radius, color);
+  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)
+      ->draw_sphere(center, radius, color);
 }
 
 /** \} */

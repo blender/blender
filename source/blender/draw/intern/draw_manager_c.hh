@@ -87,32 +87,34 @@ struct DupliKey {
   ID *ob_data;
 };
 
-struct DRWManager {
+struct DRWContext {
   /* TODO: clean up this struct a bit. */
   /* Cache generation */
-  /* TODO(@fclem): Rename to data. */
-  DRWData *vmempool;
+  DRWData *data = nullptr;
   /** Active view data structure for one of the 2 stereo view. */
-  DRWViewData *view_data_active;
+  DRWViewData *view_data_active = nullptr;
 
   /** Dupli object that corresponds to the current object. */
-  DupliObject *dupli_source;
+  DupliObject *dupli_source = nullptr;
   /** Object that created the dupli-list the current object is part of. */
-  Object *dupli_parent;
+  Object *dupli_parent = nullptr;
   /** Object referenced by the current dupli object. */
-  Object *dupli_origin;
+  Object *dupli_origin = nullptr;
   /** Object-data referenced by the current dupli object. */
-  ID *dupli_origin_data;
+  ID *dupli_origin_data = nullptr;
   /** Hash-map: #DupliKey -> void pointer for each enabled engine. */
-  GHash *dupli_ghash;
+  GHash *dupli_ghash = nullptr;
   /* Dupli data for the current dupli for each enabled engine. */
-  void **dupli_datas;
+  void **dupli_datas = nullptr;
 
-  /* Per viewport */
-  GPUViewport *viewport;
-  GPUFrameBuffer *default_framebuffer;
-  float size[2];
-  float inv_size[2];
+  /* Optional associated viewport. Can be nullptr. */
+  GPUViewport *viewport = nullptr;
+  /* Size of the viewport or the final render frame. */
+  blender::float2 size = {0, 0};
+  blender::float2 inv_size = {0, 0};
+
+  /* Returns the viewport's default framebuffer. */
+  GPUFrameBuffer *default_framebuffer();
 
   struct {
     uint is_select : 1;
@@ -125,30 +127,34 @@ struct DRWManager {
   } options;
 
   /* Current rendering context */
-  DRWContextState draw_ctx;
+  DRWContextState draw_ctx = {};
 
   /* Convenience pointer to text_store owned by the viewport */
-  DRWTextStore **text_store_p;
+  DRWTextStore **text_store_p = nullptr;
 
   /** True, when drawing is in progress, see #DRW_draw_in_progress. */
-  bool in_progress;
+  bool in_progress = false;
 
-  TaskGraph *task_graph;
+  TaskGraph *task_graph = nullptr;
   /* Contains list of objects that needs to be extracted from other objects. */
-  GSet *delayed_extraction;
+  GSet *delayed_extraction = nullptr;
 
-  /* ---------- Nothing after this point is cleared after use ----------- */
+  DRWDebugModule *debug = nullptr;
 
-  DRWDebugModule *debug;
+  /* Reset all members before drawing in order to avoid undefined state. */
+  void prepare_clean_for_draw();
+  /* Poison all members to detect missing `prepare_clean_for_draw()`. */
+  void state_ensure_not_reused();
 };
-
-extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded rendering. */
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Functions
  * \{ */
+
+/* Get thread local draw context. */
+DRWContext &drw_get();
 
 void drw_debug_draw();
 void drw_debug_init();

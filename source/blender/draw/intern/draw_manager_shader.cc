@@ -339,7 +339,7 @@ GPUMaterial *DRW_shader_from_world(World *wo,
                                    GPUCodegenCallbackFn callback,
                                    void *thunk)
 {
-  Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
+  Scene *scene = (Scene *)DEG_get_original_id(&drw_get().draw_ctx.scene->id);
   GPUMaterial *mat = GPU_material_from_nodetree(scene,
                                                 nullptr,
                                                 ntree,
@@ -372,7 +372,7 @@ GPUMaterial *DRW_shader_from_material(Material *ma,
                                       void *thunk,
                                       GPUMaterialPassReplacementCallbackFn pass_replacement_cb)
 {
-  Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
+  Scene *scene = (Scene *)DEG_get_original_id(&drw_get().draw_ctx.scene->id);
   GPUMaterial *mat = GPU_material_from_nodetree(scene,
                                                 ma,
                                                 ntree,

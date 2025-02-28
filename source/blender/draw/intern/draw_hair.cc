@@ -45,7 +45,7 @@ static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, con
     GPUShader *shader = DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM);
 
     /* TODO(fclem): Remove Global access. */
-    PassSimple &pass = DST.vmempool->curves_module->refine;
+    PassSimple &pass = drw_get().data->curves_module->refine;
     pass.shader_set(shader);
     pass.bind_texture("hairPointBuffer", cache->proc_point_buf);
     pass.bind_texture("hairStrandBuffer", cache->proc_strand_buf);
@@ -147,7 +147,7 @@ static ParticleHairCache *hair_particle_cache_get(Object *object,
     return cache;
   }
 
-  CurvesModule &module = *DST.vmempool->curves_module;
+  CurvesModule &module = *drw_get().data->curves_module;
 
   const int strands_len = cache->strands_len;
   const int final_points_len = cache->final[subdiv].strands_res * strands_len;
@@ -218,7 +218,7 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
   }
 
   /* TODO(fclem): Remove Global access. */
-  CurvesModule &module = *DST.vmempool->curves_module;
+  CurvesModule &module = *drw_get().data->curves_module;
 
   /* Fix issue with certain driver not drawing anything if there is nothing bound to
    * "ac", "au", "u" or "c". */

@@ -74,7 +74,7 @@ void Manager::begin_sync()
   attribute_len_ = 0;
   /* TODO(fclem): Resize buffers if too big, but with an hysteresis threshold. */
 
-  object_active = DST.draw_ctx.obact;
+  object_active = drw_get().draw_ctx.obact;
 
   /* Init the 0 resource. */
   resource_handle(float4x4::identity());
@@ -98,7 +98,7 @@ void Manager::sync_layer_attributes()
 
   for (uint32_t id : id_list) {
     if (layer_attributes_buf[count].sync(
-            DST.draw_ctx.scene, DST.draw_ctx.view_layer, layer_attributes.lookup(id)))
+            drw_get().draw_ctx.scene, drw_get().draw_ctx.view_layer, layer_attributes.lookup(id)))
     {
       /* Check if the buffer is full. */
       if (++count == size) {
@@ -143,7 +143,7 @@ void Manager::end_sync()
 void Manager::debug_bind()
 {
 #ifdef WITH_DRAW_DEBUG
-  if (DST.debug == nullptr) {
+  if (drw_get().debug == nullptr) {
     return;
   }
   GPU_storagebuf_bind(drw_debug_gpu_draw_buf_get(), DRW_DEBUG_DRAW_SLOT);
@@ -180,8 +180,9 @@ ResourceHandleRange Manager::resource_handle_for_sculpt(const ObjectRef &ref)
 
 void Manager::compute_visibility(View &view)
 {
-  bool freeze_culling = (USER_EXPERIMENTAL_TEST(&U, use_viewport_debug) && DST.draw_ctx.v3d &&
-                         (DST.draw_ctx.v3d->debug_flag & V3D_DEBUG_FREEZE_CULLING) != 0);
+  bool freeze_culling = (USER_EXPERIMENTAL_TEST(&U, use_viewport_debug) &&
+                         drw_get().draw_ctx.v3d &&
+                         (drw_get().draw_ctx.v3d->debug_flag & V3D_DEBUG_FREEZE_CULLING) != 0);
 
   BLI_assert_msg(view.manager_fingerprint_ != this->fingerprint_get(),
                  "Resources did not changed, no need to update");

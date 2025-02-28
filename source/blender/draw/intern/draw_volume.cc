@@ -92,7 +92,7 @@ struct VolumeModule {
 void DRW_volume_init(DRWData *drw_data)
 {
   if (drw_data == nullptr) {
-    drw_data = DST.vmempool;
+    drw_data = drw_get().data;
   }
   if (drw_data->volume_module == nullptr) {
     drw_data->volume_module = MEM_new<VolumeModule>("VolumeModule");
@@ -111,7 +111,7 @@ void DRW_volume_module_free(draw::VolumeModule *module)
 template<typename PassType>
 PassType *volume_world_grids_init(PassType &ps, ListBaseWrapper<GPUMaterialAttribute> &attrs)
 {
-  VolumeModule &module = *DST.vmempool->volume_module;
+  VolumeModule &module = *drw_get().data->volume_module;
 
   PassType *sub = &ps.sub("World Volume");
   for (const GPUMaterialAttribute *attr : attrs) {
@@ -134,7 +134,7 @@ PassType *volume_object_grids_init(PassType &ps,
     return nullptr;
   }
 
-  VolumeModule &module = *DST.vmempool->volume_module;
+  VolumeModule &module = *drw_get().data->volume_module;
   VolumeInfosBuf &volume_infos = *module.ubo_pool.alloc();
 
   volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world().ptr());
@@ -178,7 +178,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
                                       Object *ob,
                                       ListBaseWrapper<GPUMaterialAttribute> &attrs)
 {
-  VolumeModule &module = *DST.vmempool->volume_module;
+  VolumeModule &module = *drw_get().data->volume_module;
   VolumeInfosBuf &volume_infos = *module.ubo_pool.alloc();
 
   ModifierData *md = nullptr;

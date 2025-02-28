@@ -71,7 +71,7 @@ gpu::VertBuf *CurvesModule::drw_curves_ensure_dummy_vbo()
 void DRW_curves_init(DRWData *drw_data)
 {
   if (drw_data == nullptr) {
-    drw_data = DST.vmempool;
+    drw_data = drw_get().data;
   }
   if (drw_data->curves_module == nullptr) {
     drw_data->curves_module = MEM_new<CurvesModule>("CurvesModule");
@@ -94,7 +94,7 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
   GPUShader *shader = DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM);
 
   /* TODO(fclem): Remove Global access. */
-  PassSimple &pass = DST.vmempool->curves_module->refine;
+  PassSimple &pass = drw_get().data->curves_module->refine;
   pass.shader_set(shader);
   pass.bind_texture("hairPointBuffer", input_buf);
   pass.bind_texture("hairStrandBuffer", cache->proc_strand_buf);
@@ -186,7 +186,7 @@ static int attribute_index_in_material(GPUMaterial *gpu_material, const char *na
 void DRW_curves_update(draw::Manager &manager)
 {
   /* TODO(fclem): Remove Global access. */
-  PassSimple &pass = DST.vmempool->curves_module->refine;
+  PassSimple &pass = drw_get().data->curves_module->refine;
 
   /* NOTE: This also update legacy hairs too as they populate the same pass. */
   manager.submit(pass);
@@ -211,7 +211,7 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
   const int curves_num = cache->curves_num;
   const int final_points_len = cache->final.resolution * curves_num;
 
-  CurvesModule &module = *DST.vmempool->curves_module;
+  CurvesModule &module = *drw_get().data->curves_module;
 
   auto cache_update = [&](gpu::VertBuf *output_buf, gpu::VertBuf *input_buf) {
     PassSimple::Sub &ob_ps = module.refine.sub("Object Pass");
@@ -269,7 +269,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
 {
   /** NOTE: This still relies on the old DRW_curves implementation. */
 
-  CurvesModule &module = *DST.vmempool->curves_module;
+  CurvesModule &module = *drw_get().data->curves_module;
   CurvesInfosBuf &curves_infos = module.ubo_pool.alloc();
   BLI_assert(ob->type == OB_CURVES);
   Curves &curves_id = *static_cast<Curves *>(ob->data);
