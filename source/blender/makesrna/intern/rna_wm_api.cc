@@ -880,7 +880,9 @@ void RNA_api_wm(StructRNA *srna)
       func,
       "Opens a file selector with an operator. "
       "The string properties 'filepath', 'filename', 'directory' and a 'files' "
-      "collection are assigned when present in the operator.");
+      "collection are assigned when present in the operator. "
+      "If 'filter_glob' property is present in the operator and it's not empty, "
+      "it will be used as a file filter (example value: '*.zip;*.py;*.exe').");
   rna_generic_op_invoke(func, 0);
 
   func = RNA_def_function(srna, "modal_handler_add", "rna_event_modal_handler_add");
