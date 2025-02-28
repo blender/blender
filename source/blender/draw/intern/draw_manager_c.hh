@@ -98,14 +98,6 @@ struct DRWContext {
   DupliObject *dupli_source = nullptr;
   /** Object that created the dupli-list the current object is part of. */
   Object *dupli_parent = nullptr;
-  /** Object referenced by the current dupli object. */
-  Object *dupli_origin = nullptr;
-  /** Object-data referenced by the current dupli object. */
-  ID *dupli_origin_data = nullptr;
-  /** Hash-map: #DupliKey -> void pointer for each enabled engine. */
-  GHash *dupli_ghash = nullptr;
-  /* Dupli data for the current dupli for each enabled engine. */
-  void **dupli_datas = nullptr;
 
   /* Optional associated viewport. Can be nullptr. */
   GPUViewport *viewport = nullptr;
@@ -139,6 +131,7 @@ struct DRWContext {
   /* Contains list of objects that needs to be extracted from other objects. */
   GSet *delayed_extraction = nullptr;
 
+  /* Contains debug drawcall infos. Persistent across usage. */
   DRWDebugModule *debug = nullptr;
 
   /* Reset all members before drawing in order to avoid undefined state. */
