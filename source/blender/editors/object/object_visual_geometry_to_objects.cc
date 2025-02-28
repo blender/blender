@@ -444,40 +444,46 @@ static int visual_geometry_to_objects_exec(bContext *C, wmOperator * /*op*/)
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer &active_view_layer = *CTX_data_view_layer(C);
 
-  Object *src_ob_orig = CTX_data_active_object(C);
-  Object *src_ob_eval = DEG_get_evaluated_object(&depsgraph, src_ob_orig);
-  if (!src_ob_eval) {
-    return OPERATOR_CANCELLED;
+  Vector<Object *> selected_objects_orig;
+  CTX_DATA_BEGIN (C, Object *, src_ob_orig, selected_objects) {
+    selected_objects_orig.append(src_ob_orig);
   }
+  CTX_DATA_END;
+
   /* Create all required objects and collections and add them to bmain. However, so far nothing is
    * linked to the scene or view layer. That happens below. */
   GeometryToObjectsBuilder op(bmain);
-  bke::GeometrySet geometry_eval = bke::object_get_evaluated_geometry_set(*src_ob_eval);
-  const ComponentObjects new_component_objects = op.get_objects_for_geometry(*src_ob_eval,
-                                                                             geometry_eval);
-  const Vector<Object *> top_level_objects = new_component_objects.all_objects();
-  const Span<Collection *> new_instance_collections = op.new_instance_collections();
+  Vector<Object *> all_new_top_level_objects;
+  for (Object *src_ob_orig : selected_objects_orig) {
+    Object *src_ob_eval = DEG_get_evaluated_object(&depsgraph, src_ob_orig);
+    bke::GeometrySet geometry_eval = bke::object_get_evaluated_geometry_set(*src_ob_eval);
+    const ComponentObjects new_component_objects = op.get_objects_for_geometry(*src_ob_eval,
+                                                                               geometry_eval);
+    const Vector<Object *> top_level_objects = new_component_objects.all_objects();
+    all_new_top_level_objects.extend(top_level_objects);
+    /* Find the collections that the active object is in, because we want to add the new objects
+     * in the same place. */
+    const Vector<Collection *> collections_to_add_to = find_collections_containing_object(
+        bmain, &scene, *src_ob_orig);
 
-  /* Find the collections that the active object is in, because we want to add the new objects
-   * in the same place. */
-  const Vector<Collection *> collections_to_add_to = find_collections_containing_object(
-      bmain, &scene, *src_ob_orig);
+    float4x4 src_ob_local_transform;
+    BKE_object_to_mat4(src_ob_eval, src_ob_local_transform.ptr());
 
-  float4x4 src_ob_local_transform;
-  BKE_object_to_mat4(src_ob_eval, src_ob_local_transform.ptr());
-
-  for (Object *object : top_level_objects) {
-    /* Link the new objects into some collections. */
-    for (Collection *collection_to_add_to : collections_to_add_to) {
-      BKE_collection_object_add(&bmain, collection_to_add_to, object);
+    for (Object *object : top_level_objects) {
+      /* Link the new objects into some collections. */
+      for (Collection *collection_to_add_to : collections_to_add_to) {
+        BKE_collection_object_add(&bmain, collection_to_add_to, object);
+      }
+      /* Transform and parent the objects so that they align with the source object. */
+      float4x4 old_transform;
+      BKE_object_to_mat4(object, old_transform.ptr());
+      set_local_object_transform(*object, src_ob_local_transform * old_transform);
+      object->parent = src_ob_orig->parent;
+      copy_m4_m4(object->parentinv, src_ob_orig->parentinv);
     }
-    /* Transform and parent the objects so that they align with the source object. */
-    float4x4 old_transform;
-    BKE_object_to_mat4(object, old_transform.ptr());
-    set_local_object_transform(*object, src_ob_local_transform * old_transform);
-    object->parent = src_ob_orig->parent;
-    copy_m4_m4(object->parentinv, src_ob_orig->parentinv);
   }
+
+  const Span<Collection *> new_instance_collections = op.new_instance_collections();
   for (Collection *new_collection : new_instance_collections) {
     /* Add the new collections to the scene collection. This makes them more visible to the user,
      * compared to having collection instances which use collections that are not in the scene. */
@@ -489,13 +495,13 @@ static int visual_geometry_to_objects_exec(bContext *C, wmOperator * /*op*/)
   /* Deselect everything so that we can select the new objects. */
   BKE_view_layer_base_deselect_all(&scene, &active_view_layer);
   /* Select the new objects. */
-  for (Object *object : top_level_objects) {
+  for (Object *object : all_new_top_level_objects) {
     Base *base = BKE_view_layer_base_find(&active_view_layer, object);
     base->flag |= BASE_SELECTED;
   }
   /* Make one of the new objects active. */
-  if (!top_level_objects.is_empty()) {
-    Base *first_base = BKE_view_layer_base_find(&active_view_layer, top_level_objects[0]);
+  if (!all_new_top_level_objects.is_empty()) {
+    Base *first_base = BKE_view_layer_base_find(&active_view_layer, all_new_top_level_objects[0]);
     BKE_view_layer_base_select_and_set_active(&active_view_layer, first_base);
     base_active_refresh(&bmain, &scene, &active_view_layer);
   }
