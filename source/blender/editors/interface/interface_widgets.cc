@@ -1566,6 +1566,9 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
         /* -1 to remove trailing '\0'! */
         final_lpart_len = size_t(l_end + sep_len + r_len - 1);
 
+/* Seems like this was only needed because of an error in #BLF_width_to_rstrlen(), not because of
+ * integer imprecision. See PR #135239. */
+#if 0
         while (BLF_width(fstyle->uifont_id, str, max_len) > okwidth) {
           /* This will happen because a lot of string width processing is done in integer pixels,
            * which can introduce a rather high error in the end (about 2 pixels or so).
@@ -1575,6 +1578,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
           char *c = str + l_end + sep_len;
           memmove(c, c + 1, r_len);
         }
+#endif
       }
     }
 
