@@ -233,7 +233,7 @@ ccl_device_inline void shadow_ray_setup(const ccl_private ShaderData *ccl_restri
     else {
       /* other lights, avoid self-intersection */
       ray->D = ls->P - P;
-      ray->D = normalize_len(ray->D, &ray->tmax);
+      ray->D = safe_normalize_len(ray->D, &ray->tmax);
     }
   }
   else {

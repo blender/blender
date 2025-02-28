@@ -312,11 +312,11 @@ void Camera::update(Scene *scene)
 
   if (camera_type == CAMERA_PERSPECTIVE) {
     float3 v = transform_perspective(&full_rastertocamera,
-                                     make_float3(full_width, full_height, 1.0f));
+                                     make_float3(full_width, full_height, 0.0f));
     frustum_right_normal = normalize(make_float3(v.z, 0.0f, -v.x));
     frustum_top_normal = normalize(make_float3(0.0f, v.z, -v.y));
 
-    v = transform_perspective(&full_rastertocamera, make_float3(0.0f, 0.0f, 1.0f));
+    v = transform_perspective(&full_rastertocamera, make_float3(0.0f, 0.0f, 0.0f));
     frustum_left_normal = normalize(make_float3(-v.z, 0.0f, v.x));
     frustum_bottom_normal = normalize(make_float3(0.0f, -v.z, v.y));
   }

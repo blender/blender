@@ -67,7 +67,7 @@ ccl_device_inline float area_light_rect_sample(const float3 P,
      * the extra +pi that would remain in the expression for au can be removed by flipping the sign
      * of cos(au) and sin(au), which also cancels if we flip the sign of b1 in the fu term. */
     const float au = rand.x * S + g2 + g3;
-    const float fu = (cosf(au) * b0 + b1) / sinf(au);
+    const float fu = safe_divide(cosf(au) * b0 + b1, sinf(au));
     float cu = copysignf(1.0f / sqrtf(fu * fu + b0sq), fu);
     cu = clamp(cu, -1.0f, 1.0f);
     /* Compute xu. */
@@ -96,7 +96,7 @@ ccl_device_inline float area_light_rect_sample(const float3 P,
      * needed for the case where the light is viewed from grazing angles, see e.g. #98930.
      */
     const float t = len(dir);
-    return -t * t * t / (z0 * len_u * len_v);
+    return safe_divide(-t * t * t, (z0 * len_u * len_v));
   }
   return 1.0f / S;
 }
@@ -306,7 +306,7 @@ ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
 
   if (sample_coord) {
     *light_P = light_P_new;
-    ls->D = normalize_len(*light_P - ray_P, &ls->t);
+    ls->D = safe_normalize_len(*light_P - ray_P, &ls->t);
   }
 
   /* Convert radiant flux to radiance. */
@@ -384,7 +384,7 @@ ccl_device_forceinline void area_light_mnee_sample_update(const ccl_global Kerne
     area_light_eval<false>(klight, P, &ls->P, ls, zero_float2(), true);
   }
   else {
-    ls->D = normalize_len(ls->P - P, &ls->t);
+    ls->D = safe_normalize_len(ls->P - P, &ls->t);
     area_light_eval<false>(klight, P, &ls->P, ls, zero_float2(), false);
     /* Convert pdf to be in area measure. */
     ls->pdf /= light_pdf_area_to_solid_angle(ls->Ng, -ls->D, ls->t);

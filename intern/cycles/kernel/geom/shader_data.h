@@ -274,6 +274,9 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
                            0.5f,
                            !(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED),
                            false);
+
+  /* Assign some incoming direction to avoid division by zero. */
+  sd->wi = sd->N;
 }
 
 /* ShaderData setup for point on curve. */
@@ -321,7 +324,7 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
   P_curve[3] = kernel_data_fetch(curve_keys, kb);
 
   /* Interpolate position and tangent. */
-  sd->P = make_float3(catmull_rom_basis_derivative(P_curve, sd->u));
+  sd->P = make_float3(catmull_rom_basis_eval(P_curve, sd->u));
 #  ifdef __DPDU__
   sd->dPdu = make_float3(catmull_rom_basis_derivative(P_curve, sd->u));
 #  endif
@@ -334,12 +337,12 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 #  endif
   }
 
-  /* No view direction, normals or bitangent. */
-  sd->wi = zero_float3();
-  sd->N = zero_float3();
-  sd->Ng = zero_float3();
+  /* Pick arbitrary view direction, normals and bitangent to avoid NaNs elsewhere. */
+  sd->wi = normalize(cross(make_float3(0, 1, 0), sd->dPdu));
+  sd->N = sd->wi;
+  sd->Ng = sd->wi;
 #  ifdef __DPDU__
-  sd->dPdv = zero_float3();
+  sd->dPdv = cross(sd->dPdu, sd->Ng);
 #  endif
 
   /* No ray differentials currently. */
