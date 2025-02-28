@@ -493,7 +493,7 @@ void Scene::update_kernel_features()
         kernel_features |= KERNEL_FEATURE_OBJECT_MOTION;
       }
     }
-    if (object->get_is_shadow_catcher()) {
+    if (object->get_is_shadow_catcher() && !geom->is_light()) {
       kernel_features |= KERNEL_FEATURE_SHADOW_CATCHER;
     }
     if (geom->is_mesh()) {
@@ -711,7 +711,10 @@ bool Scene::has_shadow_catcher()
   if (shadow_catcher_modified_) {
     has_shadow_catcher_ = false;
     for (Object *object : objects) {
-      if (object->get_is_shadow_catcher()) {
+      /* Shadow catcher flags on lights only controls effect on other objects, it's
+       * not catching shadows itself. This is on by default, so ignore to avoid
+       * performance impact when there is no actual shadow catcher. */
+      if (object->get_is_shadow_catcher() && !object->get_geometry()->is_light()) {
         has_shadow_catcher_ = true;
         break;
       }
