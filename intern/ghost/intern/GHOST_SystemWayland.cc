@@ -8648,7 +8648,48 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitma
 
   cursor->visible = true;
   cursor->is_custom = true;
-  cursor->custom_scale = 1; /* TODO: support Hi-DPI custom cursors. */
+
+  /* Calculate the cursor size to use based on the theme setting. */
+  {
+
+    /* WARNING: Weak logic, if we can't use vector cursors - ideally the custom cursor
+     * function would receive multiple sizes which WAYLAND could then switch between
+     * as it does with themes. The following logic is fairly weak but works perfectly
+     * when all outputs have the same scale.
+     *
+     * There is nothing preventing multiple sized cursors from being passed in,
+     * it's just a matter of refactoring and adding support to WAYLAND. */
+
+    /* Get the lowest scale so in the case of mixed-scale-outputs,
+     * the cursor will be too big on some of the outputs instead of too small.
+     *
+     * Note that getting the min/max scale for all outputs be made into an function
+     * however it's bad practice because it means the cursor size will be wrong
+     * when there are multiple outputs with different scale.
+     * So this is not something to encouraged. */
+    int output_scale = -1;
+    for (const GWL_Output *output : display_->outputs) {
+      output_scale = (output_scale == -1) ? output->scale : std::min(output_scale, output->scale);
+    }
+    if (output_scale == -1) {
+      output_scale = 1;
+    }
+
+    const int custom_size = std::max(sizex, sizey);
+    const int target_size = seat->cursor.theme_size * output_scale;
+
+    cursor->custom_scale = std::max(1, (output_scale * custom_size) / target_size);
+    /* It would make more sense to adjust the buffer size instead of the scale.
+     * In practice with custom cursors of 16x16, 24x24 & 32x32 its only likely to cause
+     * problems with odd-scaling (HI-DPI scale of 300% or 500% for e.g.).
+     * In these cases the custom cursor will be a little too large. */
+    while ((cursor->custom_scale > 1) &&
+           !((sizex % cursor->custom_scale) == 0 && (sizey % cursor->custom_scale) == 0))
+    {
+      cursor->custom_scale -= 1;
+    }
+  }
+
   cursor->wl.buffer = buffer;
   cursor->wl.image.width = uint32_t(sizex);
   cursor->wl.image.height = uint32_t(sizey);

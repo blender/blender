@@ -129,10 +129,26 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
   }
 }
 
+static CursorSize window_size_calc()
+{
+  /* Use `U.dpi` without the `U.ui_scale` because the UI scale does not impact the
+   * windowing-systems cursor size (only the size which is used for drawing the UI).
+   * The DPI however is used for scaling defined by the windowing-system.
+   * Ideally this would also be able to check the cursor size via GHOST. */
+  const int dpi_system = int(U.dpi / U.ui_scale);
+
+  if (dpi_system <= 72) {
+    return CURSOR_SIZE_16;
+  }
+  if (dpi_system <= int(72 * 1.2)) {
+    return CURSOR_SIZE_24;
+  }
+  return CURSOR_SIZE_32;
+}
+
 static void window_set_custom_cursor(wmWindow *win, BCursor *cursor)
 {
-  /* TODO: set sizes based on the environment. */
-  const int size = CURSOR_SIZE_16;
+  const CursorSize size = window_size_calc();
 
   GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
                              (uint8_t *)cursor->bitmap[size],
