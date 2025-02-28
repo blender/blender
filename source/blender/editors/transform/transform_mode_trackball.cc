@@ -193,7 +193,14 @@ static void initTrackball(TransInfo *t, wmOperator * /*op*/)
 {
   t->mode = TFM_TRACKBALL;
 
-  initMouseInputMode(t, &t->mouse, INPUT_TRACKBALL);
+  if (transform_mode_affect_only_locations(t)) {
+    WorkspaceStatus status(t->context);
+    status.item(TIP_("Transform is set to only affect location"), ICON_ERROR);
+    initMouseInputMode(t, &t->mouse, INPUT_ERROR);
+  }
+  else {
+    initMouseInputMode(t, &t->mouse, INPUT_TRACKBALL);
+  }
 
   t->idx_max = 1;
   t->num.idx_max = 1;

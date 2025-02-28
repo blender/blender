@@ -430,6 +430,10 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       mi->apply = nullptr;
       t->helpline = HLP_ERROR;
       break;
+    case INPUT_ERROR_DASH:
+      mi->apply = nullptr;
+      t->helpline = HLP_ERROR_DASH;
+      break;
     case INPUT_NONE:
     default:
       mi->apply = nullptr;
@@ -472,6 +476,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       }
       break;
     case HLP_ERROR:
+    case HLP_ERROR_DASH:
       t->flag |= T_MODAL_CURSOR_SET;
       WM_cursor_modal_set(win, WM_CURSOR_STOP);
       break;

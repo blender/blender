@@ -260,6 +260,7 @@ enum eTHelpline {
   HLP_CARROW = 5,
   HLP_TRACKBALL = 6,
   HLP_ERROR = 7,
+  HLP_ERROR_DASH = 8,
 };
 
 enum eTOType {
@@ -962,6 +963,7 @@ enum MouseInputMode {
   INPUT_CUSTOM_RATIO,
   INPUT_CUSTOM_RATIO_FLIP,
   INPUT_ERROR,
+  INPUT_ERROR_DASH,
 };
 
 void initMouseInput(

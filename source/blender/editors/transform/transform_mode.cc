@@ -81,6 +81,13 @@ bool transform_mode_is_changeable(const int mode)
               TFM_NORMAL_ROTATION);
 }
 
+bool transform_mode_affect_only_locations(const TransInfo *t)
+{
+  return (t->flag & T_V3D_ALIGN) && (t->options & CTX_OBJECT) &&
+         (t->settings->transform_pivot_point != V3D_AROUND_CURSOR) && t->context &&
+         (CTX_DATA_COUNT(t->context, selected_editable_objects) == 1);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Transform Locks
  * \{ */
