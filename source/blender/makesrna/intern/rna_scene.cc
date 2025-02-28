@@ -1258,7 +1258,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
     case ID_NT: {
       bNodeTree *ntree = (bNodeTree *)id;
 
-      for (const bNode *node : ntree->all_nodes()) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
           if (match(&((NodeImageMultiFile *)node->storage)->format)) {
             char node_name_esc[sizeof(node->name) * 2];
