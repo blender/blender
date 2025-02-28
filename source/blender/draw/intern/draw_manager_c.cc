@@ -1482,39 +1482,16 @@ DRWTextStore *DRW_text_cache_ensure()
 /** \name Main Draw Loops (DRW_draw)
  * \{ */
 
-void DRW_draw_view(const bContext *C)
-{
-  View3D *v3d = CTX_wm_view3d(C);
-  if (v3d) {
-    Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-    ARegion *region = CTX_wm_region(C);
-    Scene *scene = DEG_get_evaluated_scene(depsgraph);
-    RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-    GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
-
-    /* Reset before using it. */
-    DST.prepare_clean_for_draw();
-    drw_get().options.draw_text = ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 &&
-                                   (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0);
-    drw_get().options.draw_background = (scene->r.alphamode == R_ADDSKY) ||
-                                        (v3d->shading.type != OB_RENDER);
-    DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, viewport, C);
-  }
-  else {
-    Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-    ARegion *region = CTX_wm_region(C);
-    GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
-    DST.prepare_clean_for_draw();
-    DRW_draw_render_loop_2d_ex(depsgraph, region, viewport, C);
-  }
-}
-
-void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
-                             RenderEngineType *engine_type,
-                             ARegion *region,
-                             View3D *v3d,
-                             GPUViewport *viewport,
-                             const bContext *evil_C)
+/**
+ * Used for both regular and off-screen drawing.
+ * The global `DRWContext` needs to be set before calling this function.
+ */
+static void DRW_draw_render_loop_3d(Depsgraph *depsgraph,
+                                    RenderEngineType *engine_type,
+                                    ARegion *region,
+                                    View3D *v3d,
+                                    GPUViewport *viewport,
+                                    const bContext *evil_C)
 {
   using namespace blender::draw;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -1635,20 +1612,6 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
   drw_manager_exit(&DST);
 }
 
-void DRW_draw_render_loop(Depsgraph *depsgraph,
-                          ARegion *region,
-                          View3D *v3d,
-                          GPUViewport *viewport)
-{
-  /* Reset before using it. */
-  DST.prepare_clean_for_draw();
-
-  Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-
-  DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, viewport, nullptr);
-}
-
 void DRW_draw_render_loop_offscreen(Depsgraph *depsgraph,
                                     RenderEngineType *engine_type,
                                     ARegion *region,
@@ -1679,7 +1642,7 @@ void DRW_draw_render_loop_offscreen(Depsgraph *depsgraph,
   DST.prepare_clean_for_draw();
   drw_get().options.is_image_render = is_image_render;
   drw_get().options.draw_background = draw_background;
-  DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, render_viewport, nullptr);
+  DRW_draw_render_loop_3d(depsgraph, engine_type, region, v3d, render_viewport, nullptr);
 
   if (draw_background) {
     /* HACK(@fclem): In this case we need to make sure the final alpha is 1.
@@ -2017,10 +1980,10 @@ void DRW_cache_restart()
   drw_get().data->modules_init();
 }
 
-void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
-                                ARegion *region,
-                                GPUViewport *viewport,
-                                const bContext *evil_C)
+static void DRW_draw_render_loop_2d(Depsgraph *depsgraph,
+                                    ARegion *region,
+                                    GPUViewport *viewport,
+                                    const bContext *evil_C)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
@@ -2151,6 +2114,33 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
   drw_engines_disable();
 
   drw_manager_exit(&DST);
+}
+
+void DRW_draw_view(const bContext *C)
+{
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
+  ARegion *region = CTX_wm_region(C);
+  GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
+
+  View3D *v3d = CTX_wm_view3d(C);
+
+  if (v3d) {
+    Scene *scene = DEG_get_evaluated_scene(depsgraph);
+    RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
+
+    /* Reset before using it. */
+    DST.prepare_clean_for_draw();
+    drw_get().options.draw_text = ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 &&
+                                   (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0);
+    drw_get().options.draw_background = (scene->r.alphamode == R_ADDSKY) ||
+                                        (v3d->shading.type != OB_RENDER);
+
+    DRW_draw_render_loop_3d(depsgraph, engine_type, region, v3d, viewport, C);
+  }
+  else {
+    DST.prepare_clean_for_draw();
+    DRW_draw_render_loop_2d(depsgraph, region, viewport, C);
+  }
 }
 
 static struct DRWSelectBuffer {
