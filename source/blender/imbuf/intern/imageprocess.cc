@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -143,45 +144,44 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3])
 {
-  size_t a = size_t(x) * y;
-  float *fp = rect_float;
-
-  while (a--) {
-    const float mul = 1.0f - fp[3];
-    madd_v3_v3fl(fp, backcol, mul);
-    fp[3] = 1.0f;
-
-    fp += 4;
-  }
+  using namespace blender;
+  threading::parallel_for(IndexRange(int64_t(x) * y), 32 * 1024, [&](const IndexRange i_range) {
+    float *pix = rect_float + i_range.first() * 4;
+    for ([[maybe_unused]] const int i : i_range) {
+      const float mul = 1.0f - pix[3];
+      madd_v3_v3fl(pix, backcol, mul);
+      pix[3] = 1.0f;
+      pix += 4;
+    }
+  });
 }
 
 void IMB_alpha_under_color_byte(uchar *rect, int x, int y, const float backcol[3])
 {
-  size_t a = size_t(x) * y;
-  uchar *cp = rect;
+  using namespace blender;
+  threading::parallel_for(IndexRange(int64_t(x) * y), 32 * 1024, [&](const IndexRange i_range) {
+    uchar *pix = rect + i_range.first() * 4;
+    for ([[maybe_unused]] const int i : i_range) {
+      if (pix[3] == 255) {
+        /* pass */
+      }
+      else if (pix[3] == 0) {
+        pix[0] = backcol[0] * 255;
+        pix[1] = backcol[1] * 255;
+        pix[2] = backcol[2] * 255;
+      }
+      else {
+        float alpha = pix[3] / 255.0;
+        float mul = 1.0f - alpha;
 
-  while (a--) {
-    if (cp[3] == 255) {
-      /* pass */
+        pix[0] = (pix[0] * alpha) + mul * backcol[0];
+        pix[1] = (pix[1] * alpha) + mul * backcol[1];
+        pix[2] = (pix[2] * alpha) + mul * backcol[2];
+      }
+      pix[3] = 255;
+      pix += 4;
     }
-    else if (cp[3] == 0) {
-      cp[0] = backcol[0] * 255;
-      cp[1] = backcol[1] * 255;
-      cp[2] = backcol[2] * 255;
-    }
-    else {
-      float alpha = cp[3] / 255.0;
-      float mul = 1.0f - alpha;
-
-      cp[0] = (cp[0] * alpha) + mul * backcol[0];
-      cp[1] = (cp[1] * alpha) + mul * backcol[1];
-      cp[2] = (cp[2] * alpha) + mul * backcol[2];
-    }
-
-    cp[3] = 255;
-
-    cp += 4;
-  }
+  });
 }
 
 /** \} */
