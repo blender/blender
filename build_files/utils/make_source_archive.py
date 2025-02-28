@@ -51,13 +51,20 @@ def main() -> None:
         description="Create a tarball of the Blender sources, optionally including sources of dependencies.",
         epilog="This script is intended to be run by `make source_archive_complete`.",
     )
-    cli_parser.add_argument(
+    group = cli_parser.add_mutually_exclusive_group()
+    group.add_argument(
         "-p",
         "--include-packages",
         type=Path,
         default=None,
         metavar="PACKAGE_PATH",
         help="Include all source files from the given package directory as well.",
+    )
+    group.add_argument(
+        "-t",
+        "--package-test-data",
+        action='store_true',
+        help="Package all test data into its own archive",
     )
 
     cli_args = cli_parser.parse_args()
@@ -79,7 +86,12 @@ def main() -> None:
     manifest = manifest_path(tarball)
     packages_dir = packages_path(curdir, cli_args)
 
-    create_manifest(version, manifest, blender_srcdir, packages_dir)
+    if cli_args.package_test_data:
+        print("Creating an archive of all test data.")
+        create_manifest(version, manifest, blender_srcdir / "tests/data", packages_dir)
+    else:
+        create_manifest(version, manifest, blender_srcdir, packages_dir)
+
     create_tarball(version, tarball, manifest, blender_srcdir, packages_dir)
     create_checksum_file(tarball)
     cleanup(manifest)
@@ -90,6 +102,8 @@ def tarball_path(output_dir: Path, version: make_utils.BlenderVersion, cli_args:
     extra = ""
     if cli_args.include_packages:
         extra = "-with-libraries"
+    elif cli_args.package_test_data:
+        extra = "-test-data"
 
     return output_dir / f"blender{extra}-{version}.tar.xz"
 
