@@ -28,15 +28,20 @@ from typing import (
 # NOTE: while the Python part of this script is portable,
 # it relies on external commands typically found on GNU/Linux.
 # Support for other platforms could be added by moving GNU `tar` & `md5sum` use to Python.
+# This also relies on having a Unix shell (sh) to run some git commands.
 
-SKIP_NAMES = {
+SKIP_NAMES = (
     ".gitignore",
     ".gitmodules",
     ".gitattributes",
     ".git-blame-ignore-revs",
     ".arcconfig",
     ".svn",
-}
+)
+
+SKIP_FOLDERS = (
+    "release/datafiles/assets/working",
+)
 
 
 def main() -> None:
@@ -62,6 +67,10 @@ def main() -> None:
     curdir = blender_srcdir.parent
     os.chdir(curdir)
     blender_srcdir = blender_srcdir.relative_to(curdir)
+
+    # Update our SKIP_FOLDERS blacklist with the source directory name
+    global SKIP_FOLDERS
+    SKIP_FOLDERS = tuple([f"{blender_srcdir}/{entry}" for entry in SKIP_FOLDERS])
 
     print(f"Output dir: {curdir}")
 
@@ -125,7 +134,6 @@ def create_manifest(
     print(f'Building manifest of files:  "{outpath}"...', end="", flush=True)
     with outpath.open("w", encoding="utf-8") as outfile:
         main_files_to_manifest(blender_srcdir, outfile)
-        assets_to_manifest(blender_srcdir, outfile)
 
         if packages_dir:
             packages_to_manifest(outfile, packages_dir)
@@ -134,20 +142,9 @@ def create_manifest(
 
 def main_files_to_manifest(blender_srcdir: Path, outfile: TextIO) -> None:
     assert not blender_srcdir.is_absolute()
-    for path in git_ls_files(blender_srcdir):
-        print(path, file=outfile)
-
-
-def assets_to_manifest(blender_srcdir: Path, outfile: TextIO) -> None:
-    assert not blender_srcdir.is_absolute()
-
-    assets_dir = blender_srcdir / "release" / "datafiles" / "assets"
-    for path in assets_dir.glob("*"):
-        if path.name == "working":
-            continue
-        if path.name in SKIP_NAMES:
-            continue
-        print(path, file=outfile)
+    for git_repo in git_gather_all_folders_to_package(blender_srcdir):
+        for path in git_ls_files(git_repo):
+            print(path, file=outfile)
 
 
 def packages_to_manifest(outfile: TextIO, packages_dir: Path) -> None:
@@ -227,28 +224,57 @@ def cleanup(manifest: Path) -> None:
 # Low-level commands
 
 
+def git_gather_all_folders_to_package(directory: Path = Path(".")) -> Iterable[Path]:
+    """Generator, yields lines which represents each directory to gather git files from.
+
+    Each directory represents either the top level git repository or a submodule.
+    All submodules that have the 'update = none' setting will be excluded from this list.
+
+    The directory path given to this function will be included in the yielded paths
+    """
+
+    # For each submodule (recurse into submodules within submodules if they exist)
+    git_main_command = "submodule --quiet foreach --recursive"
+    # Return the path to the submodule and what the value is of their "update" setting
+    # If the "update" setting doesn't exist, only the path to the submodule is returned
+    git_command_args = "'echo $displaypath $(git config --file \"$toplevel/.gitmodules\" --get submodule.$name.update)'"
+
+    # Yield the root directory as this is our top level git repo
+    yield directory
+
+    for line in git_command(f"-C '{directory}' {git_main_command} {git_command_args}"):
+        # Check if we shouldn't include the directory on this line
+        split_line = line.rsplit(maxsplit=1)
+        if len(split_line) > 1 and split_line[-1] == "none":
+            continue
+        path = directory / split_line[0]
+        yield path
+
+
 def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
     """Generator, yields lines of output from 'git ls-files'.
 
     Only lines that are actually files (so no directories, sockets, etc.) are
     returned, and never one from SKIP_NAMES.
     """
-    for line in git_command("-C", str(directory), "ls-files"):
+    for line in git_command(f"-C '{directory}' ls-files"):
         path = directory / line
         if not path.is_file() or path.name in SKIP_NAMES:
+            continue
+        if path.as_posix().startswith(SKIP_FOLDERS):
             continue
         yield path
 
 
-def git_command(*cli_args: Union[bytes, str, Path]) -> Iterable[str]:
+def git_command(cli_args: str) -> Iterable[str]:
     """Generator, yields lines of output from a Git command."""
-    command = ("git", *cli_args)
+    command = "git " + cli_args
 
     # import shlex
     # print(">", " ".join(shlex.quote(arg) for arg in command))
 
     git = subprocess.run(
-        command, stdout=subprocess.PIPE, check=True, text=True, timeout=30
+        command, stdout=subprocess.PIPE, shell=True, check=True, text=True, timeout=30
     )
     for line in git.stdout.split("\n"):
         if line:
