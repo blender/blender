@@ -10,13 +10,8 @@ import unittest
 def process_rna_struct(self, struct, rna_path):
     # These paths are currently known failures of `path_from_id`.
     KNOWN_FAILURES = {
-        "view_settings",
-        "display_settings",
-        "colorspace_settings",
         "render.views[\"left\"]",
         "render.views[\"right\"]",
-        "display_settings",
-        "colorspace_settings",
         "uv_layers[\"UVMap\"]",
         "uv_layers[\"UVMap\"]",
     }

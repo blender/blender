@@ -1238,41 +1238,38 @@ static std::optional<std::string> rna_BakeSettings_path(const PointerRNA * /*ptr
   return "render.bake";
 }
 
-static std::optional<std::string> rna_ImageFormatSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ImageFormatSettings_path(
+    const PointerRNA *ptr, blender::FunctionRef<bool(ImageFormatData *)> match)
 {
-  ImageFormatData *imf = (ImageFormatData *)ptr->data;
   ID *id = ptr->owner_id;
 
   switch (GS(id->name)) {
     case ID_SCE: {
       Scene *scene = (Scene *)id;
 
-      if (&scene->r.im_format == imf) {
+      if (match(&scene->r.im_format)) {
         return "render.image_settings";
       }
-      else if (&scene->r.bake.im_format == imf) {
+      else if (match(&scene->r.bake.im_format)) {
         return "render.bake.image_settings";
       }
-      return "..";
+      return std::nullopt;
     }
     case ID_NT: {
       bNodeTree *ntree = (bNodeTree *)id;
-      bNode *node;
 
-      for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+      for (const bNode *node : ntree->all_nodes()) {
         if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
-          if (&((NodeImageMultiFile *)node->storage)->format == imf) {
+          if (match(&((NodeImageMultiFile *)node->storage)->format)) {
             char node_name_esc[sizeof(node->name) * 2];
             BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
             return fmt::format("nodes[\"{}\"].format", node_name_esc);
           }
           else {
-            bNodeSocket *sock;
-
-            for (sock = static_cast<bNodeSocket *>(node->inputs.first); sock; sock = sock->next) {
+            LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
               NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(
-                  sock->storage);
-              if (&sockdata->format == imf) {
+                  socket->storage);
+              if (match(&sockdata->format)) {
                 char node_name_esc[sizeof(node->name) * 2];
                 BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
 
@@ -1286,11 +1283,50 @@ static std::optional<std::string> rna_ImageFormatSettings_path(const PointerRNA 
           }
         }
       }
-      return "..";
+      return std::nullopt;
     }
     default:
-      return "..";
+      return std::nullopt;
   }
+}
+
+static std::optional<std::string> rna_ImageFormatSettings_path(const PointerRNA *ptr)
+{
+  ImageFormatData *data = static_cast<ImageFormatData *>(ptr->data);
+  return rna_ImageFormatSettings_path(ptr, [&](ImageFormatData *imf) { return imf == data; });
+}
+
+std::optional<std::string> rna_ColorManagedDisplaySettings_path(const PointerRNA *ptr)
+{
+  ColorManagedDisplaySettings *data = static_cast<ColorManagedDisplaySettings *>(ptr->data);
+  std::optional<std::string> path = rna_ImageFormatSettings_path(
+      ptr, [&](ImageFormatData *imf) { return &imf->display_settings == data; });
+  if (path) {
+    return *path + ".display_settings";
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> rna_ColorManagedViewSettings_path(const PointerRNA *ptr)
+{
+  ColorManagedViewSettings *data = static_cast<ColorManagedViewSettings *>(ptr->data);
+  std::optional<std::string> path = rna_ImageFormatSettings_path(
+      ptr, [&](ImageFormatData *imf) { return &imf->view_settings == data; });
+  if (path) {
+    return *path + ".view_settings";
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> rna_ColorManagedInputColorspaceSettings_path(const PointerRNA *ptr)
+{
+  ColorManagedColorspaceSettings *data = static_cast<ColorManagedColorspaceSettings *>(ptr->data);
+  std::optional<std::string> path = rna_ImageFormatSettings_path(
+      ptr, [&](ImageFormatData *imf) { return &imf->linear_colorspace_settings == data; });
+  if (path) {
+    return *path + ".linear_colorspace_settings";
+  }
+  return std::nullopt;
 }
 
 static int rna_RenderSettings_threads_get(PointerRNA *ptr)
