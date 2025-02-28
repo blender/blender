@@ -94,6 +94,9 @@ size_t BLI_string_replace_range(
  */
 size_t BLI_string_split_name_number(const char *name, char delim, char *r_name_left, int *r_number)
     ATTR_NONNULL(1, 3, 4);
+blender::StringRef BLI_string_split_name_number(const blender::StringRef name_full,
+                                                char delim,
+                                                int &r_number);
 bool BLI_string_is_decimal(const char *string) ATTR_NONNULL(1);
 
 /**

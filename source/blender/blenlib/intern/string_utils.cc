@@ -12,6 +12,8 @@
 
 #include <array>
 
+#include <stdexcept>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
@@ -162,37 +164,44 @@ size_t BLI_string_replace_range(
 
 /** \} */
 
+blender::StringRef BLI_string_split_name_number(const blender::StringRef name_full,
+                                                const char delim,
+                                                int &r_number)
+{
+  const int64_t delim_index = name_full.rfind(delim);
+  r_number = 0;
+  if (delim_index == blender::StringRef::not_found) {
+    return name_full;
+  }
+
+  blender::StringRef name_base = name_full.substr(0, delim_index);
+
+  if (delim_index < name_full.size() - 1) {
+    const blender::StringRef num_str = name_full.substr(delim_index + 1);
+    if (!std::all_of(num_str.begin(), num_str.end(), ::isdigit)) {
+      return name_full;
+    }
+    /* Converting numerical suffix to an int, can overflow for large numbers. */
+    try {
+      r_number = std::stoi(num_str);
+      return name_base;
+    }
+    catch (std::out_of_range const & /*ex*/) {
+      r_number = 0;
+    }
+  }
+
+  return name_full;
+}
+
 size_t BLI_string_split_name_number(const char *name,
                                     const char delim,
                                     char *r_name_left,
                                     int *r_number)
 {
-  const size_t name_len = strlen(name);
-
-  *r_number = 0;
-  memcpy(r_name_left, name, (name_len + 1) * sizeof(char));
-
-  /* name doesn't end with a delimiter "foo." */
-  if ((name_len > 1 && name[name_len - 1] == delim) == 0) {
-    size_t a = name_len;
-    while (a--) {
-      if (name[a] == delim) {
-        r_name_left[a] = '\0'; /* truncate left part here */
-        *r_number = int(atol(name + a + 1));
-        /* casting down to an int, can overflow for large numbers */
-        if (*r_number < 0) {
-          *r_number = 0;
-        }
-        return a;
-      }
-      if (isdigit(name[a]) == 0) {
-        /* non-numeric suffix - give up */
-        break;
-      }
-    }
-  }
-
-  return name_len;
+  const std::string name_base = BLI_string_split_name_number(name, delim, *r_number);
+  BLI_strncpy(r_name_left, name_base.c_str(), name_base.size() + 1);
+  return name_base.size();
 }
 
 bool BLI_string_is_decimal(const char *string)
