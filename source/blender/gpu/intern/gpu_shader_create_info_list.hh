@@ -118,7 +118,9 @@
 #include "draw_hair_refine_info.hh"
 #include "draw_object_infos_info.hh"
 #include "draw_view_info.hh"
-#include "subdiv_info.hh"
+#ifdef WITH_OPENSUBDIV
+#  include "subdiv_info.hh"
+#endif
 
 /* EEVEE engine. */
 #include "eevee_ambient_occlusion_info.hh"
