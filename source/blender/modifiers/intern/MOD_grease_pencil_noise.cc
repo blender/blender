@@ -292,8 +292,10 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "noise_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (uiLayout *random_layout = uiLayoutPanelPropWithBoolHeader(
-          C, layout, ptr, "open_random_panel", "use_random", IFACE_("Random")))
+  if (uiLayout *random_layout =
+          uiLayoutPanelPropWithBoolHeader(
+              C, layout, ptr, "open_random_panel", ptr, "use_random", IFACE_("Random"))
+              .body)
   {
     uiLayout *random_col = uiLayoutColumn(random_layout, false);
     uiLayoutSetActive(random_col, RNA_boolean_get(ptr, "use_random"));

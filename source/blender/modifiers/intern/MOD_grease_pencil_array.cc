@@ -290,8 +290,10 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                       layout,
                                                       ptr,
                                                       "open_relative_offset_panel",
+                                                      ptr,
                                                       "use_relative_offset",
-                                                      IFACE_("Relative Offset")))
+                                                      IFACE_("Relative Offset"))
+                          .body)
   {
     uiLayout *col = uiLayoutColumn(sub, false);
     uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_relative_offset"));
@@ -302,8 +304,10 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                       layout,
                                                       ptr,
                                                       "open_constant_offset_panel",
+                                                      ptr,
                                                       "use_constant_offset",
-                                                      IFACE_("Constant Offset")))
+                                                      IFACE_("Constant Offset"))
+                          .body)
   {
     uiLayout *col = uiLayoutColumn(sub, false);
     uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_constant_offset"));
@@ -314,8 +318,10 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                       layout,
                                                       ptr,
                                                       "open_object_offset_panel",
+                                                      ptr,
                                                       "use_object_offset",
-                                                      IFACE_("Object Offset")))
+                                                      IFACE_("Object Offset"))
+                          .body)
   {
     uiLayout *col = uiLayoutColumn(sub, false);
     uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_object_offset"));

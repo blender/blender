@@ -252,8 +252,10 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "offset", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  if (uiLayout *fade_panel = uiLayoutPanelPropWithBoolHeader(
-          C, layout, ptr, "open_fading_panel", "use_fade", IFACE_("Fade")))
+  if (uiLayout *fade_panel =
+          uiLayoutPanelPropWithBoolHeader(
+              C, layout, ptr, "open_fading_panel", ptr, "use_fade", IFACE_("Fade"))
+              .body)
   {
     uiLayout *sub = uiLayoutColumn(fade_panel, false);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_fade"));
