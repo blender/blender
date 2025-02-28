@@ -576,14 +576,6 @@ void imb_freerectImbuf_all(ImBuf *ibuf);
 void IMB_free_gpu_textures(ImBuf *ibuf);
 
 /**
- * Threaded processors.
- */
-using ScanlineThreadFunc = void (*)(void *custom_data, int scanline);
-void IMB_processor_apply_threaded_scanlines(int total_scanlines,
-                                            ScanlineThreadFunc do_thread,
-                                            void *custom_data);
-
-/**
  * \brief Transform modes to use for IMB_transform function.
  *
  * These are not flags as the combination of cropping and repeat can lead to different expectation.

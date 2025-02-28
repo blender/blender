@@ -7,14 +7,9 @@
  * \ingroup imbuf
  */
 
-#include <cstdlib>
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_task.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.hh"
 
-#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -52,38 +47,6 @@ void IMB_convert_rgba_to_abgr(ImBuf *ibuf)
     }
   }
 }
-
-/* -------------------------------------------------------------------- */
-/** \name Threaded Image Processing
- * \{ */
-
-struct ScanlineGlobalData {
-  void *custom_data;
-  ScanlineThreadFunc do_thread;
-};
-
-static void processor_apply_parallel(void *__restrict userdata,
-                                     const int scanline,
-                                     const TaskParallelTLS *__restrict /*tls*/)
-{
-  ScanlineGlobalData *data = static_cast<ScanlineGlobalData *>(userdata);
-  data->do_thread(data->custom_data, scanline);
-}
-
-void IMB_processor_apply_threaded_scanlines(int total_scanlines,
-                                            ScanlineThreadFunc do_thread,
-                                            void *custom_data)
-{
-  TaskParallelSettings settings;
-  ScanlineGlobalData data = {};
-  data.do_thread = do_thread;
-  data.custom_data = custom_data;
-
-  BLI_parallel_range_settings_defaults(&settings);
-  BLI_task_parallel_range(0, total_scanlines, &data, processor_apply_parallel, &settings);
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Alpha-under

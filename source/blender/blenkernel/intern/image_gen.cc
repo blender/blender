@@ -13,6 +13,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
+#include "BLI_task.hh"
 
 #include "BKE_image.hh"
 
@@ -21,67 +22,32 @@
 
 #include "BLF_api.hh"
 
-struct FillColorThreadData {
-  uchar *rect;
-  float *rect_float;
-  int width;
-  float color[4];
-};
-
-static void image_buf_fill_color_slice(
-    uchar *rect, float *rect_float, int width, int height, const float color[4])
-{
-  int x, y;
-
-  /* blank image */
-  if (rect_float) {
-    for (y = 0; y < height; y++) {
-      for (x = 0; x < width; x++) {
-        copy_v4_v4(rect_float, color);
-        rect_float += 4;
-      }
-    }
-  }
-
-  if (rect) {
-    uchar ccol[4];
-    rgba_float_to_uchar(ccol, color);
-    for (y = 0; y < height; y++) {
-      for (x = 0; x < width; x++) {
-        rect[0] = ccol[0];
-        rect[1] = ccol[1];
-        rect[2] = ccol[2];
-        rect[3] = ccol[3];
-        rect += 4;
-      }
-    }
-  }
-}
-
-static void image_buf_fill_color_thread_do(void *data_v, int scanline)
-{
-  FillColorThreadData *data = (FillColorThreadData *)data_v;
-  const int num_scanlines = 1;
-  size_t offset = size_t(scanline) * data->width * 4;
-  uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
-  float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
-  image_buf_fill_color_slice(rect, rect_float, data->width, num_scanlines, data->color);
-}
-
 void BKE_image_buf_fill_color(
-    uchar *rect, float *rect_float, int width, int height, const float color[4])
+    uchar *rect_byte, float *rect_float, int width, int height, const float color[4])
 {
-  if (size_t(width) * height < 64 * 64) {
-    image_buf_fill_color_slice(rect, rect_float, width, height, color);
-  }
-  else {
-    FillColorThreadData data;
-    data.rect = rect;
-    data.rect_float = rect_float;
-    data.width = width;
-    copy_v4_v4(data.color, color);
-    IMB_processor_apply_threaded_scanlines(height, image_buf_fill_color_thread_do, &data);
-  }
+  using namespace blender;
+  threading::parallel_for(
+      IndexRange(int64_t(width) * height), 64 * 1024, [&](const IndexRange i_range) {
+        if (rect_float != nullptr) {
+          float *dst = rect_float + i_range.first() * 4;
+          for ([[maybe_unused]] const int64_t i : i_range) {
+            copy_v4_v4(dst, color);
+            dst += 4;
+          }
+        }
+        if (rect_byte != nullptr) {
+          uchar ccol[4];
+          rgba_float_to_uchar(ccol, color);
+          uchar *dst = rect_byte + i_range.first() * 4;
+          for ([[maybe_unused]] const int64_t i : i_range) {
+            dst[0] = ccol[0];
+            dst[1] = ccol[1];
+            dst[2] = ccol[2];
+            dst[3] = ccol[3];
+            dst += 4;
+          }
+        }
+      });
 }
 
 static void image_buf_fill_checker_slice(
@@ -181,34 +147,15 @@ static void image_buf_fill_checker_slice(
   }
 }
 
-struct FillCheckerThreadData {
-  uchar *rect;
-  float *rect_float;
-  int width;
-};
-
-static void image_buf_fill_checker_thread_do(void *data_v, int scanline)
-{
-  FillCheckerThreadData *data = (FillCheckerThreadData *)data_v;
-  size_t offset = size_t(scanline) * data->width * 4;
-  const int num_scanlines = 1;
-  uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
-  float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
-  image_buf_fill_checker_slice(rect, rect_float, data->width, num_scanlines, scanline);
-}
-
 void BKE_image_buf_fill_checker(uchar *rect, float *rect_float, int width, int height)
 {
-  if (size_t(width) * height < 64 * 64) {
-    image_buf_fill_checker_slice(rect, rect_float, width, height, 0);
-  }
-  else {
-    FillCheckerThreadData data;
-    data.rect = rect;
-    data.rect_float = rect_float;
-    data.width = width;
-    IMB_processor_apply_threaded_scanlines(height, image_buf_fill_checker_thread_do, &data);
-  }
+  using namespace blender;
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    int64_t offset = y_range.first() * width * 4;
+    uchar *dst_byte = (rect != nullptr) ? (rect + offset) : nullptr;
+    float *dst_float = (rect_float != nullptr) ? (rect_float + offset) : nullptr;
+    image_buf_fill_checker_slice(dst_byte, dst_float, width, y_range.size(), y_range.first());
+  });
 }
 
 /* Utility functions for BKE_image_buf_fill_checker_color */
@@ -425,36 +372,16 @@ static void checker_board_color_prepare_slice(
   checker_board_grid_fill(rect, rect_float, width, height, 1.0f / 4.0f, offset);
 }
 
-struct FillCheckerColorThreadData {
-  uchar *rect;
-  float *rect_float;
-  int width, height;
-};
-
-static void checker_board_color_prepare_thread_do(void *data_v, int scanline)
-{
-  FillCheckerColorThreadData *data = (FillCheckerColorThreadData *)data_v;
-  const int num_scanlines = 1;
-  size_t offset = size_t(data->width) * scanline * 4;
-  uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
-  float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
-  checker_board_color_prepare_slice(
-      rect, rect_float, data->width, num_scanlines, scanline, data->height);
-}
-
 void BKE_image_buf_fill_checker_color(uchar *rect, float *rect_float, int width, int height)
 {
-  if (size_t(width) * height < 64 * 64) {
-    checker_board_color_prepare_slice(rect, rect_float, width, height, 0, height);
-  }
-  else {
-    FillCheckerColorThreadData data;
-    data.rect = rect;
-    data.rect_float = rect_float;
-    data.width = width;
-    data.height = height;
-    IMB_processor_apply_threaded_scanlines(height, checker_board_color_prepare_thread_do, &data);
-  }
+  using namespace blender;
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    int64_t offset = y_range.first() * width * 4;
+    uchar *dst_byte = (rect != nullptr) ? (rect + offset) : nullptr;
+    float *dst_float = (rect_float != nullptr) ? (rect_float + offset) : nullptr;
+    checker_board_color_prepare_slice(
+        dst_byte, dst_float, width, y_range.size(), y_range.first(), height);
+  });
 
   checker_board_text(rect, rect_float, width, height, 128, 2);
 

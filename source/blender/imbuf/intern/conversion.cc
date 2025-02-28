@@ -448,36 +448,6 @@ void IMB_buffer_float_from_float(float *rect_to,
   }
 }
 
-struct FloatToFloatThreadData {
-  float *rect_to;
-  const float *rect_from;
-  int channels_from;
-  int profile_to;
-  int profile_from;
-  bool predivide;
-  int width;
-  int stride_to;
-  int stride_from;
-};
-
-static void imb_buffer_float_from_float_thread_do(void *data_v, int scanline)
-{
-  const int num_scanlines = 1;
-  FloatToFloatThreadData *data = (FloatToFloatThreadData *)data_v;
-  size_t offset_from = size_t(scanline) * data->stride_from * data->channels_from;
-  size_t offset_to = size_t(scanline) * data->stride_to * 4;
-  IMB_buffer_float_from_float(data->rect_to + offset_to,
-                              data->rect_from + offset_from,
-                              data->channels_from,
-                              data->profile_to,
-                              data->profile_from,
-                              data->predivide,
-                              data->width,
-                              num_scanlines,
-                              data->stride_to,
-                              data->stride_from);
-}
-
 void IMB_buffer_float_from_float_threaded(float *rect_to,
                                           const float *rect_from,
                                           int channels_from,
@@ -489,31 +459,21 @@ void IMB_buffer_float_from_float_threaded(float *rect_to,
                                           int stride_to,
                                           int stride_from)
 {
-  if (size_t(width) * height < 64 * 64) {
-    IMB_buffer_float_from_float(rect_to,
-                                rect_from,
+  using namespace blender;
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    int64_t offset_from = y_range.first() * stride_from * channels_from;
+    int64_t offset_to = y_range.first() * stride_to * 4;
+    IMB_buffer_float_from_float(rect_to + offset_to,
+                                rect_from + offset_from,
                                 channels_from,
                                 profile_to,
                                 profile_from,
                                 predivide,
                                 width,
-                                height,
+                                y_range.size(),
                                 stride_to,
                                 stride_from);
-  }
-  else {
-    FloatToFloatThreadData data;
-    data.rect_to = rect_to;
-    data.rect_from = rect_from;
-    data.channels_from = channels_from;
-    data.profile_to = profile_to;
-    data.profile_from = profile_from;
-    data.predivide = predivide;
-    data.width = width;
-    data.stride_to = stride_to;
-    data.stride_from = stride_from;
-    IMB_processor_apply_threaded_scanlines(height, imb_buffer_float_from_float_thread_do, &data);
-  }
+  });
 }
 
 void IMB_buffer_float_from_float_mask(float *rect_to,
