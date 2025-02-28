@@ -422,7 +422,7 @@ void dome_light_to_world_material(const USDImportParams &params,
    * and move them out of the way. */
 
   /* Look for the output and background shader nodes, which we will reuse. */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type_legacy == SH_NODE_OUTPUT_WORLD) {
       output = node;
     }

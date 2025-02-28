@@ -43,6 +43,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 
@@ -1297,7 +1298,7 @@ bNode *bc_get_master_shader(Material *ma)
 {
   bNodeTree *nodetree = ma->nodetree;
   if (nodetree) {
-    LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
+    for (bNode *node : nodetree->all_nodes()) {
       if (node->typeinfo->type_legacy == SH_NODE_BSDF_PRINCIPLED) {
         return node;
       }

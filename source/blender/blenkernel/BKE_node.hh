@@ -905,7 +905,7 @@ void node_tree_update_all_new(Main &main);
 /** Update asset meta-data cache of data-block properties. */
 void node_update_asset_metadata(bNodeTree &node_tree);
 
-void node_tree_node_flag_set(const bNodeTree &ntree, int flag, bool enable);
+void node_tree_node_flag_set(bNodeTree &ntree, int flag, bool enable);
 
 /**
  * Merge local tree results back, and free local tree.

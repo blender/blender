@@ -2517,7 +2517,7 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac,
 
   items += animdata_filter_ds_nodetree_group(ac, anim_data, owner_id, ntree, filter_mode);
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->is_group()) {
       if (node->id) {
         if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) && (node->flag & NODE_SELECT) == 0) {

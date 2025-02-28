@@ -3747,9 +3747,9 @@ bNodeTree *node_tree_from_id(ID *id)
   return (nodetree != nullptr) ? *nodetree : nullptr;
 }
 
-void node_tree_node_flag_set(const bNodeTree &ntree, const int flag, const bool enable)
+void node_tree_node_flag_set(bNodeTree &ntree, const int flag, const bool enable)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (enable) {
       node->flag |= flag;
     }
@@ -4223,7 +4223,7 @@ void node_tree_update_all_new(Main &main)
    * Replacement has to happen after after-liblink-versioning, since some node types still get
    * replaced in those late versioning steps. */
   FOREACH_NODETREE_BEGIN (&main, ntree, owner_id) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    for (bNode *node : ntree->all_nodes()) {
       node_replace_undefined_types(node);
     }
   }

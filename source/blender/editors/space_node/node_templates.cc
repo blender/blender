@@ -137,14 +137,14 @@ static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
   }
 
   /* tag linked nodes to be removed */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     node->flag &= ~NODE_TEST;
   }
 
   node_tag_recursive(rem_node);
 
   /* clear tags on nodes that are still used by other nodes */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (!(node->flag & NODE_TEST)) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         if (sock->link && sock->link->fromnode != rem_node) {
@@ -968,7 +968,7 @@ void uiTemplateNodeView(
   ntree->ensure_topology_cache();
 
   /* clear for cycle check */
-  LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
+  for (bNode *tnode : ntree->all_nodes()) {
     tnode->flag &= ~NODE_TEST;
   }
 

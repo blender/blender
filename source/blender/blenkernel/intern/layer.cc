@@ -32,6 +32,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 
 #include "DNA_ID.h"
@@ -576,7 +577,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   if (scene->nodetree) {
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
-    LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
+    for (bNode *node : scene->nodetree->all_nodes()) {
       if (node->type_legacy == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
           STRNCPY(node->name, view_layer->name);

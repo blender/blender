@@ -466,8 +466,8 @@ static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  blender::Vector<bNode *> nodes_to_ungroup;
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  Vector<bNode *> nodes_to_ungroup;
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & NODE_SELECT) {
       if (node->idname == node_idname) {
         if (node->id != nullptr) {

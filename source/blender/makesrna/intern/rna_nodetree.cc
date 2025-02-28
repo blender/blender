@@ -611,6 +611,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "BKE_image.hh"
 #  include "BKE_main_invariants.hh"
 #  include "BKE_node_legacy_types.hh"
+#  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_update.hh"
 #  include "BKE_report.hh"
 #  include "BKE_scene.hh"
@@ -1328,7 +1329,7 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->type_legacy != CMP_NODE_OUTPUT_FILE) {
       /* If this node becomes the active output, the others of the same type can't be the active
        * output anymore. */
-      LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+      for (bNode *other_node : ntree->all_nodes()) {
         if (other_node->type_legacy == node->type_legacy) {
           other_node->flag &= ~NODE_DO_OUTPUT;
         }
@@ -4371,7 +4372,7 @@ static void rna_ShaderNode_is_active_output_set(PointerRNA *ptr, bool value)
   if (value) {
     /* If this node becomes the active output, the others of the same type can't be the active
      * output anymore. */
-    LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+    for (bNode *other_node : ntree->all_nodes()) {
       if (other_node->type_legacy == node->type_legacy) {
         other_node->flag &= ~NODE_DO_OUTPUT;
       }
@@ -4389,7 +4390,7 @@ static void rna_GroupOutput_is_active_output_set(PointerRNA *ptr, bool value)
   bNode *node = static_cast<bNode *>(ptr->data);
   if (value) {
     /* Make sure that no other group output is active at the same time. */
-    LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+    for (bNode *other_node : ntree->all_nodes()) {
       if (other_node->is_group_output()) {
         other_node->flag &= ~NODE_DO_OUTPUT;
       }
