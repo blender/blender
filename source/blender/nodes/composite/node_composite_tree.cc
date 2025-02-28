@@ -141,6 +141,12 @@ static bool composite_node_tree_socket_type_valid(blender::bke::bNodeTreeType * 
          ELEM(socket_type->type, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_RGBA);
 }
 
+static bool composite_validate_link(eNodeSocketDatatype /*from*/, eNodeSocketDatatype /*to*/)
+{
+  /* All supported types can be implicitly converted to other types. */
+  return true;
+}
+
 blender::bke::bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp()
@@ -161,6 +167,7 @@ void register_node_tree_type_cmp()
   tt->update = update;
   tt->get_from_context = composite_get_from_context;
   tt->node_add_init = composite_node_add_init;
+  tt->validate_link = composite_validate_link;
   tt->valid_socket_type = composite_node_tree_socket_type_valid;
 
   tt->rna_ext.srna = &RNA_CompositorNodeTree;
