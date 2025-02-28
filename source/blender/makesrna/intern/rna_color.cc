@@ -493,11 +493,6 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
   }
 }
 
-static std::optional<std::string> rna_ColorManagedDisplaySettings_path(const PointerRNA * /*ptr*/)
-{
-  return "display_settings";
-}
-
 static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
 {
   ColorManagedViewSettings *view = (ColorManagedViewSettings *)ptr->data;
@@ -585,11 +580,6 @@ static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, bool va
   else {
     view_settings->flag &= ~COLORMANAGE_VIEW_USE_CURVES;
   }
-}
-
-static std::optional<std::string> rna_ColorManagedViewSettings_path(const PointerRNA * /*ptr*/)
-{
-  return "view_settings";
 }
 
 static void rna_ColorManagedViewSettings_whitepoint_get(PointerRNA *ptr, float value[3])
@@ -742,12 +732,6 @@ static std::optional<std::string> rna_ColorManagedSequencerColorspaceSettings_pa
     const PointerRNA * /*ptr*/)
 {
   return "sequencer_colorspace_settings";
-}
-
-static std::optional<std::string> rna_ColorManagedInputColorspaceSettings_path(
-    const PointerRNA * /*ptr*/)
-{
-  return "colorspace_settings";
 }
 
 static void rna_ColorManagement_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
