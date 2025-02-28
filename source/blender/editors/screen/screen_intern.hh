@@ -92,8 +92,13 @@ void region_toggle_hidden(bContext *C, ARegion *region, bool do_fade);
  * \param sa2: Target area that will be replaced.
  */
 void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2, eScreenDir dir);
-void screen_draw_dock_preview(
-    ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float factor, int x, int y);
+void screen_draw_dock_preview(const wmWindow *win,
+                              ScrArea *source,
+                              ScrArea *target,
+                              AreaDockTarget dock_target,
+                              float factor,
+                              int x,
+                              int y);
 void screen_draw_split_preview(ScrArea *area, eScreenAxis dir_axis, float factor);
 
 void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis);

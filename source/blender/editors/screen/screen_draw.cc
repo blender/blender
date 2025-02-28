@@ -309,7 +309,8 @@ void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis)
       &rect, inner, nullptr, 1.0f, outline, 2.0f * U.pixelsize, 2.5f * U.pixelsize);
 }
 
-static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const std::string &hint)
+static void screen_draw_area_drag_tip(
+    const wmWindow *win, int x, int y, const ScrArea *source, const std::string &hint)
 {
   const char *area_name = IFACE_(ED_area_name(source).c_str());
   const uiFontStyle *fstyle = UI_FSTYLE_TOOLTIP;
@@ -334,8 +335,9 @@ static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const
   const float height = margin + lheight + line_gap + lheight + margin;
 
   /* Position of this hint relative to the mouse position. */
-  const int left = x + int(5.0f * UI_SCALE_FAC);
-  const int top = y - int(7.0f * UI_SCALE_FAC);
+  const int left = std::min(x + int(5.0f * UI_SCALE_FAC),
+                            WM_window_native_pixel_x(win) - int(width));
+  const int top = std::max(y - int(7.0f * UI_SCALE_FAC), int(height));
 
   rctf rect;
   rect.xmin = left;
@@ -448,7 +450,7 @@ void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2,
   UI_draw_roundbox_4fv_ex(&combined, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
 
   screen_draw_area_drag_tip(
-      win->eventstate->xy[0], win->eventstate->xy[1], sa1, IFACE_("Join Areas"));
+      win, win->eventstate->xy[0], win->eventstate->xy[1], sa1, IFACE_("Join Areas"));
 }
 
 static void rounded_corners(rctf rect, float color[4], int corners)
@@ -518,8 +520,13 @@ static void rounded_corners(rctf rect, float color[4], int corners)
   immUnbindProgram();
 }
 
-void screen_draw_dock_preview(
-    ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float factor, int x, int y)
+void screen_draw_dock_preview(const wmWindow *win,
+                              ScrArea *source,
+                              ScrArea *target,
+                              AreaDockTarget dock_target,
+                              float factor,
+                              int x,
+                              int y)
 {
   if (dock_target == AreaDockTarget::None) {
     return;
@@ -585,7 +592,8 @@ void screen_draw_dock_preview(
     UI_draw_roundbox_4fv(&dest, true, 0.0f, border);
   }
 
-  screen_draw_area_drag_tip(x,
+  screen_draw_area_drag_tip(win,
+                            x,
                             y,
                             source,
                             dock_target == AreaDockTarget::Center ? IFACE_("Replace this area") :
