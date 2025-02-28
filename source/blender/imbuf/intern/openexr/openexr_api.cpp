@@ -391,11 +391,11 @@ static int openexr_jpg_like_quality_to_dwa_quality(int q)
 {
   q = blender::math::clamp(q, 0, 100);
 
-  /* Map "visually lossless" JPG quality of 97 to default DWA level of 45,
+  /* Map default JPG quality of 90 to default DWA level of 45,
    * "lossless" JPG quality of 100 to DWA level of 0, and everything else
    * linearly based on those. */
   constexpr int x0 = 100, y0 = 0;
-  constexpr int x1 = 97, y1 = 45;
+  constexpr int x1 = 90, y1 = 45;
   q = y0 + (q - x0) * (y1 - y0) / (x1 - x0);
   return q;
 }
