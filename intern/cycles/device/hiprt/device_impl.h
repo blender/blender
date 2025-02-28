@@ -74,6 +74,10 @@ class HIPRTDevice : public HIPDevice {
   size_t scratch_buffer_size;
   device_vector<char> scratch_buffer;
 
+  /* Is this scene using motion blur? Note there might exist motion data even if
+   * motion blur is disabled, for render passes. */
+  bool use_motion_blur = false;
+
   /* The following vectors are to transfer scene information available on the host to the GPU
    * visibility, instance_transform_matrix, transform_headers, and hiprt_blas_ptr are passed to
    * hiprt to build bvh the rest are directly used in traversal functions/intersection kernels and

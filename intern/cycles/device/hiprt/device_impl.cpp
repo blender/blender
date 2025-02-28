@@ -269,6 +269,12 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
     return false;
   }
 
+  /* Keep track of whether motion blur is enabled, so to enable/disable motion in BVH builds
+   * This is necessary since objects may be reported to have motion if the Vector pass is
+   * active, but may still need to be rendered without motion blur if that isn't active as well.
+   */
+  use_motion_blur |= kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
+
   /* get kernel */
   const char *kernel_name = "kernel";
   string fatbin = compile_kernel(kernel_features, kernel_name);
@@ -357,7 +363,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
   hiprtGeometryBuildInput geom_input;
   geom_input.geomType = Triangle;
 
-  if (mesh->has_motion_blur()) {
+  if (use_motion_blur && mesh->has_motion_blur()) {
 
     const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     const float3 *vert_steps = attr_mP->data_float3();
@@ -480,8 +486,11 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   const size_t num_segments = hair->num_segments();
   const Attribute *curve_attr_mP = nullptr;
 
-  if (curve_attr_mP == nullptr || bvh->params.num_motion_curve_steps == 0) {
+  if (use_motion_blur && hair->has_motion_blur()) {
+    curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  }
 
+  if (curve_attr_mP == nullptr || bvh->params.num_motion_curve_steps == 0) {
     bvh->custom_prim_info.resize(num_segments);
     bvh->custom_primitive_bound.alloc(num_segments);
   }
@@ -490,7 +499,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
     bvh->custom_prim_info.resize(num_boxes);
     bvh->prims_time.resize(num_boxes);
     bvh->custom_primitive_bound.alloc(num_boxes);
-    curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
   int num_bounds = 0;
@@ -589,8 +597,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
               bvh->custom_prim_info[num_bounds].x = j;
               bvh->custom_prim_info[num_bounds].y = packed_type;  // k
               bvh->custom_primitive_bound[num_bounds] = bounds;
-              bvh->prims_time[num_bounds].x = curr_time;
-              bvh->prims_time[num_bounds].y = prev_time;
+              bvh->prims_time[num_bounds].x = prev_time;
+              bvh->prims_time[num_bounds].y = curr_time;
               num_bounds++;
             }
             prev_bounds = curr_bounds;
@@ -617,7 +625,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   hiprtGeometryBuildInput geom_input;
 
   const Attribute *point_attr_mP = nullptr;
-  if (pointcloud->has_motion_blur()) {
+  if (use_motion_blur && pointcloud->has_motion_blur()) {
     point_attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
@@ -911,7 +919,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
       hiprtTransformHeader current_header = {0};
       current_header.frameCount = 1;
       current_header.frameIndex = transform_matrix.size();
-      if (ob->get_motion().size()) {
+      if (use_motion_blur && ob->get_motion().size()) {
         int motion_size = ob->get_motion().size();
         assert(motion_size != 1);
 
