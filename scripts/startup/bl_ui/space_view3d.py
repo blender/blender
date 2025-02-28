@@ -1464,9 +1464,9 @@ class VIEW3D_MT_view(Menu):
         layout.separator()
 
         if context.mode in {'PAINT_TEXTURE', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'SCULPT'}:
-            layout.operator("view3d.view_selected", text="Frame Last Stroke").use_all_regions = False
+            layout.operator("view3d.view_selected", text="Frame Last Stroke")
         else:
-            layout.operator("view3d.view_selected", text="Frame Selected").use_all_regions = False
+            layout.operator("view3d.view_selected", text="Frame Selected")
         if view.region_quadviews:
             layout.operator("view3d.view_selected", text="Frame Selected (Quad View)").use_all_regions = True
 
