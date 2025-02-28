@@ -3934,7 +3934,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
         has_config = manta_read_config(fds->fluid, fmd, data_frame);
       }
 
-      if (with_smoke) {
+      if (with_smoke || with_liquid) {
         /* Read config and realloc fluid object if needed. */
         if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
           BKE_fluid_reallocate_fluid(fds, fds->res, 1);
