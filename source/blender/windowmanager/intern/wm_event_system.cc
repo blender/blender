@@ -2920,12 +2920,14 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
         }
 
         /* XXX check this carefully, `CTX_wm_manager(C) == wm` is a bit hackish. */
-        if (CTX_wm_manager(C) == wm && wm->op_undo_depth == 0) {
-          if (handler->op->type->flag & OPTYPE_UNDO) {
-            ED_undo_push_op(C, handler->op);
-          }
-          else if (handler->op->type->flag & OPTYPE_UNDO_GROUPED) {
-            ED_undo_grouped_push_op(C, handler->op);
+        if (retval & OPERATOR_FINISHED) {
+          if (CTX_wm_manager(C) == wm && wm->op_undo_depth == 0) {
+            if (handler->op->type->flag & OPTYPE_UNDO) {
+              ED_undo_push_op(C, handler->op);
+            }
+            else if (handler->op->type->flag & OPTYPE_UNDO_GROUPED) {
+              ED_undo_grouped_push_op(C, handler->op);
+            }
           }
         }
 
