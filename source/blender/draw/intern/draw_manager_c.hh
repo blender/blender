@@ -94,11 +94,6 @@ struct DRWContext {
   /** Active view data structure for one of the 2 stereo view. */
   DRWViewData *view_data_active = nullptr;
 
-  /** Dupli object that corresponds to the current object. */
-  DupliObject *dupli_source = nullptr;
-  /** Object that created the dupli-list the current object is part of. */
-  Object *dupli_parent = nullptr;
-
   /* Optional associated viewport. Can be nullptr. */
   GPUViewport *viewport = nullptr;
   /* Size of the viewport or the final render frame. */

@@ -25,14 +25,14 @@ gpu::VertBuf *hair_pos_buffer_get(Scene *scene,
 
 gpu::Batch *hair_sub_pass_setup(PassMain::Sub &sub_ps,
                                 const Scene *scene,
-                                Object *object,
+                                const ObjectRef &ob_ref,
                                 ParticleSystem *psys,
                                 ModifierData *md,
                                 GPUMaterial *gpu_material = nullptr);
 
 gpu::Batch *hair_sub_pass_setup(PassSimple::Sub &sub_ps,
                                 const Scene *scene,
-                                Object *object,
+                                const ObjectRef &ob_ref,
                                 ParticleSystem *psys,
                                 ModifierData *md,
                                 GPUMaterial *gpu_material = nullptr);

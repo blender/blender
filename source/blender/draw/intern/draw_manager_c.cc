@@ -309,16 +309,6 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object, const Pa
   return true;
 }
 
-Object *DRW_object_get_dupli_parent(const Object * /*ob*/)
-{
-  return drw_get().dupli_parent;
-}
-
-DupliObject *DRW_object_get_dupli(const Object * /*ob*/)
-{
-  return drw_get().dupli_source;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1929,8 +1919,6 @@ void DRW_render_object_iter(void *vedata,
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
       blender::draw::ObjectRef ob_ref(data_, ob);
-      drw_get().dupli_parent = data_.dupli_parent;
-      drw_get().dupli_source = data_.dupli_object_current;
       dupli_handler.try_add(ob_ref);
 
       if (ob_ref.is_dupli() == false) {
@@ -2363,8 +2351,6 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
             }
           }
 
-          drw_get().dupli_parent = data_.dupli_parent;
-          drw_get().dupli_source = data_.dupli_object_current;
           blender::draw::ObjectRef ob_ref(data_, ob);
           dupli_handler.try_add(ob_ref);
           drw_engines_cache_populate(ob_ref);
@@ -2502,8 +2488,6 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
       if (use_only_selected && !(ob->base_flag & BASE_SELECTED)) {
         continue;
       }
-      drw_get().dupli_parent = data_.dupli_parent;
-      drw_get().dupli_source = data_.dupli_object_current;
       blender::draw::ObjectRef ob_ref(data_, ob);
       dupli_handler.try_add(ob_ref);
       drw_engines_cache_populate(ob_ref);

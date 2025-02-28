@@ -30,6 +30,7 @@ class Manager;
 struct CurvesModule;
 struct PointCloudModule;
 struct VolumeModule;
+struct ObjectRef;
 }  // namespace blender::draw
 
 /* draw_hair.cc */
@@ -40,7 +41,7 @@ struct VolumeModule;
 blender::gpu::VertBuf *DRW_hair_pos_buffer_get(Object *object,
                                                ParticleSystem *psys,
                                                ModifierData *md);
-void DRW_hair_duplimat_get(Object *object,
+void DRW_hair_duplimat_get(const blender::draw::ObjectRef &ob_ref,
                            ParticleSystem *psys,
                            ModifierData *md,
                            float (*dupli_mat)[4]);
