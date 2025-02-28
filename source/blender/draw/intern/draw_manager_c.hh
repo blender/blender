@@ -74,6 +74,11 @@ struct DRWData {
   blender::draw::PointCloudModule *pointcloud_module;
   /** Default view that feeds every engine. */
   blender::draw::View *default_view;
+
+  /* Ensure modules are created. */
+  void modules_init();
+  /* Callbacks after one draw to clear transient data. */
+  void modules_exit();
 };
 
 /** \} */
@@ -81,11 +86,6 @@ struct DRWData {
 /* -------------------------------------------------------------------- */
 /** \name Draw Manager
  * \{ */
-
-struct DupliKey {
-  Object *ob;
-  ID *ob_data;
-};
 
 struct DRWContext {
   /* TODO: clean up this struct a bit. */

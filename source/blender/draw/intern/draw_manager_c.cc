@@ -367,6 +367,20 @@ DRWData *DRW_viewport_data_create()
   return drw_data;
 }
 
+void DRWData::modules_init()
+{
+  using namespace blender::draw;
+  DRW_pointcloud_init(this);
+  DRW_curves_init(this);
+  DRW_volume_init(this);
+  DRW_smoke_init(this);
+}
+
+void DRWData::modules_exit()
+{
+  DRW_smoke_exit(this);
+}
+
 static void drw_viewport_data_reset(DRWData * /*drw_data*/)
 {
   blender::gpu::TexturePool::get().reset();
@@ -1541,10 +1555,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
   drw_engines_data_validate();
 
   drw_debug_init();
-  DRW_pointcloud_init(drw_get().data);
-  DRW_curves_init(drw_get().data);
-  DRW_volume_init(drw_get().data);
-  DRW_smoke_init(drw_get().data);
+  drw_get().data->modules_init();
 
   /* No frame-buffer allowed before drawing. */
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
@@ -1605,7 +1616,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
     GPU_flush();
   }
 
-  DRW_smoke_exit(drw_get().data);
+  drw_get().data->modules_exit();
 
   DRW_draw_callbacks_post_scene();
 
@@ -1878,7 +1889,7 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
 
   GPU_framebuffer_restore();
 
-  DRW_smoke_exit(drw_get().data);
+  drw_get().data->modules_exit();
 
   blender::gpu::TexturePool::get().reset(true);
 
@@ -1902,10 +1913,7 @@ void DRW_render_object_iter(void *vedata,
 {
   using namespace blender::draw;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  DRW_pointcloud_init(drw_get().data);
-  DRW_curves_init(drw_get().data);
-  DRW_volume_init(drw_get().data);
-  DRW_smoke_init(drw_get().data);
+  drw_get().data->modules_init();
 
   DupliCacheManager dupli_handler;
 
@@ -1959,17 +1967,14 @@ void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, Depsgraph *deps
 
   drw_manager_init(&DST, nullptr, nullptr);
 
-  DRW_pointcloud_init(drw_get().data);
-  DRW_curves_init(drw_get().data);
-  DRW_volume_init(drw_get().data);
-  DRW_smoke_init(drw_get().data);
+  drw_get().data->modules_init();
 
   DRW_view_data_engine_data_get_ensure(drw_get().view_data_active, draw_engine_type);
 }
 
 void DRW_custom_pipeline_end()
 {
-  DRW_smoke_exit(drw_get().data);
+  drw_get().data->modules_exit();
 
   GPU_framebuffer_restore();
 
@@ -2004,15 +2009,12 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 void DRW_cache_restart()
 {
   using namespace blender::draw;
-  DRW_smoke_exit(drw_get().data);
+  drw_get().data->modules_exit();
 
   drw_manager_init(
       &DST, drw_get().viewport, blender::int2{int(drw_get().size[0]), int(drw_get().size[1])});
 
-  DRW_pointcloud_init(drw_get().data);
-  DRW_curves_init(drw_get().data);
-  DRW_volume_init(drw_get().data);
-  DRW_smoke_init(drw_get().data);
+  drw_get().data->modules_init();
 }
 
 void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
@@ -2291,10 +2293,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_pointcloud_init(drw_get().data);
-  DRW_curves_init(drw_get().data);
-  DRW_volume_init(drw_get().data);
-  DRW_smoke_init(drw_get().data);
+  drw_get().data->modules_init();
 
   {
     drw_engines_cache_init();
@@ -2393,7 +2392,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
     }
   }
 
-  DRW_smoke_exit(drw_get().data);
+  drw_get().data->modules_exit();
 
   /* WORKAROUND: Do not leave ownership to the viewport list. */
   DRW_viewport_texture_list_get()->depth = nullptr;
@@ -2461,10 +2460,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_pointcloud_init(drw_get().data);
-  DRW_curves_init(drw_get().data);
-  DRW_volume_init(drw_get().data);
-  DRW_smoke_init(drw_get().data);
+  drw_get().data->modules_init();
 
   {
     DupliCacheManager dupli_handler;
@@ -2507,7 +2503,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
 
   drw_engines_draw_scene();
 
-  DRW_smoke_exit(drw_get().data);
+  drw_get().data->modules_exit();
 
   blender::draw::command::StateSet::set();
 
