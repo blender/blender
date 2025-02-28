@@ -353,7 +353,7 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
 
   /* Move from one list to another, and ensure name is valid. */
   BLI_remlink_safe(old_lb, id);
-  BKE_main_namemap_remove_name(old_bmain, id, id->name + 2);
+  BKE_main_namemap_remove_id(*old_bmain, *id);
 
   id->lib = lib;
   BLI_addtail(new_lb, id);
@@ -570,8 +570,8 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
 
   /* TODO: Could add per-IDType control over name-maps clearing, if this becomes a performances
    * concern. */
-  BKE_main_namemap_clear(old_bmain);
-  BKE_main_namemap_clear(new_bmain);
+  BKE_main_namemap_clear(*old_bmain);
+  BKE_main_namemap_clear(*new_bmain);
 
   /* Original 'new' IDs have been moved into the old listbase and will be discarded (deleted).
    * Original 'old' IDs have been moved into the new listbase and are being reused (kept).
@@ -940,7 +940,7 @@ static void setup_app_data(bContext *C,
     clean_paths(bfd->main);
   }
 
-  BLI_assert(BKE_main_namemap_validate(bfd->main));
+  BLI_assert(BKE_main_namemap_validate(*bfd->main));
 
   /* Temporary data to handle swapping around IDs between old and new mains,
    * and accumulate the required remapping accordingly. */
@@ -1047,7 +1047,7 @@ static void setup_app_data(bContext *C,
     }
   }
 
-  BLI_assert(BKE_main_namemap_validate(bfd->main));
+  BLI_assert(BKE_main_namemap_validate(*bfd->main));
 
   /* Apply remapping of ID pointers caused by re-using part of the data from the 'old' main into
    * the new one. */
@@ -1086,7 +1086,7 @@ static void setup_app_data(bContext *C,
     wm_data_consistency_ensure(CTX_wm_manager(C), curscene, cur_view_layer);
   }
 
-  BLI_assert(BKE_main_namemap_validate(bfd->main));
+  BLI_assert(BKE_main_namemap_validate(*bfd->main));
 
   if (mode != LOAD_UI) {
     if (win) {
@@ -1113,7 +1113,7 @@ static void setup_app_data(bContext *C,
   }
   CTX_data_scene_set(C, curscene);
 
-  BLI_assert(BKE_main_namemap_validate(bfd->main));
+  BLI_assert(BKE_main_namemap_validate(*bfd->main));
 
   /* This frees the `old_bmain`. */
   BKE_blender_globals_main_replace(bfd->main);
@@ -1121,7 +1121,7 @@ static void setup_app_data(bContext *C,
   bfd->main = nullptr;
   CTX_data_main_set(C, bmain);
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+  BLI_assert(BKE_main_namemap_validate(*bmain));
 
   /* These context data should remain valid if old UI is being re-used. */
   if (mode == LOAD_UI) {
@@ -1208,7 +1208,7 @@ static void setup_app_data(bContext *C,
    * and safer to fully redo reference-counting. This is a relatively cheap process anyway. */
   BKE_main_id_refcount_recompute(bmain, false);
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+  BLI_assert(BKE_main_namemap_validate(*bmain));
 
   if (mode != LOAD_UNDO && liboverride::is_auto_resync_enabled()) {
     reports->duration.lib_overrides_resync = BLI_time_now_seconds();

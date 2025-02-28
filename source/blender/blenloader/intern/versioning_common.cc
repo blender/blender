@@ -664,7 +664,7 @@ void do_versions_after_setup(Main *new_bmain,
     BKE_lib_override_library_main_proxy_convert(new_bmain, reports);
     /* Currently liboverride code can generate invalid namemap. This is a known issue, requires
      * #107847 to be properly fixed. */
-    BKE_main_namemap_validate_and_fix(new_bmain);
+    BKE_main_namemap_validate_and_fix(*new_bmain);
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 302, 3)) {

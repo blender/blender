@@ -288,8 +288,9 @@ static ID *lib_override_library_create_from(Main *bmain,
    * While in normal cases this would not be an issue, when files start to get heavily broken and
    * not sound, such conflicts can become a source of problems. */
   if (!STREQ(local_id->name + 2, reference_id->name + 2)) {
+    BKE_main_namemap_remove_id(*bmain, *local_id);
     BLI_strncpy(local_id->name + 2, reference_id->name + 2, MAX_ID_NAME - 2);
-    BKE_main_namemap_get_name(bmain, local_id, local_id->name + 2, true);
+    BKE_main_global_namemap_get_unique_name(*bmain, *local_id, local_id->name + 2);
     id_sort_by_name(which_libbase(bmain, GS(local_id->name)), local_id, nullptr);
   }
 
@@ -3784,7 +3785,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
 
   lib_override_cleanup_after_resync(bmain);
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+  BLI_assert(BKE_main_namemap_validate(*bmain));
 }
 
 void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
@@ -5055,7 +5056,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   }
 
   /* Remove the pair (idname, lib) of this temp id from the name map. */
-  BKE_main_namemap_remove_name(bmain, tmp_id, tmp_id->name + 2);
+  BKE_main_namemap_remove_id(*bmain, *tmp_id);
 
   tmp_id->lib = local->lib;
 
@@ -5071,7 +5072,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   Key *tmp_key = BKE_key_from_id(tmp_id);
   if (local_key != nullptr && tmp_key != nullptr) {
     tmp_key->id.flag |= (local_key->id.flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE);
-    BKE_main_namemap_remove_name(bmain, &tmp_key->id, tmp_key->id.name + 2);
+    BKE_main_namemap_remove_id(*bmain, tmp_key->id);
     tmp_key->id.lib = local_key->id.lib;
     STRNCPY(tmp_key->id.name, local_key->id.name);
   }
@@ -5151,7 +5152,7 @@ void BKE_lib_override_library_main_update(Main *bmain)
    * since those always use G_MAIN when they need access to a Main database. */
   Main *orig_gmain = BKE_blender_globals_main_swap(bmain);
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+  BLI_assert(BKE_main_namemap_validate(*bmain));
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->override_library != nullptr) {
@@ -5160,7 +5161,7 @@ void BKE_lib_override_library_main_update(Main *bmain)
   }
   FOREACH_MAIN_ID_END;
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+  BLI_assert(BKE_main_namemap_validate(*bmain));
 
   Main *tmp_gmain = BKE_blender_globals_main_swap(orig_gmain);
   BLI_assert(tmp_gmain == bmain);

@@ -4022,7 +4022,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    BKE_main_namemap_validate_and_fix(bmain);
+    BKE_main_namemap_validate_and_fix(*bmain);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 304, 1)) {

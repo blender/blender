@@ -157,12 +157,8 @@ void BKE_main_clear(Main &bmain)
   }
 
   /* NOTE: `name_map` in libraries are freed together with the library IDs above. */
-  if (bmain.name_map) {
-    BKE_main_namemap_destroy(&bmain.name_map);
-  }
-  if (bmain.name_map_global) {
-    BKE_main_namemap_destroy(&bmain.name_map_global);
-  }
+  BKE_main_namemap_destroy(&bmain.name_map);
+  BKE_main_namemap_destroy(&bmain.name_map_global);
 }
 
 void BKE_main_destroy(Main &bmain)
@@ -448,9 +444,9 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 
   /* Remapping above may have made some IDs local. So namemap needs to be cleared, and moved IDs
    * need to be re-sorted. */
-  BKE_main_namemap_clear(bmain_dst);
+  BKE_main_namemap_clear(*bmain_dst);
 
-  BLI_assert(BKE_main_namemap_validate(bmain_dst));
+  BLI_assert(BKE_main_namemap_validate(*bmain_dst));
 
   BKE_main_free(bmain_src);
   *r_bmain_src = nullptr;

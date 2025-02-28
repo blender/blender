@@ -168,7 +168,7 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
     ListBase *lb = which_libbase(bmain, type);
     BLI_remlink(lb, id);
     if ((flag & LIB_ID_FREE_NO_NAMEMAP_REMOVE) == 0) {
-      BKE_main_namemap_remove_name(bmain, id, id->name + 2);
+      BKE_main_namemap_remove_id(*bmain, *id);
     }
   }
 
@@ -293,7 +293,7 @@ static size_t id_delete(Main *bmain,
             (ID_IS_LINKED(id_iter) && ids_to_delete.contains(&id_iter->lib->id)))
         {
           BLI_remlink(lb, id_iter);
-          BKE_main_namemap_remove_name(bmain, id_iter, id_iter->name + 2);
+          BKE_main_namemap_remove_id(*bmain, *id_iter);
           ids_to_delete.add(id_iter);
           id_remapper.add(id_iter, nullptr);
           /* Do not tag as no_main now, we want to unlink it first (lower-level ID management
@@ -306,7 +306,7 @@ static size_t id_delete(Main *bmain,
           Key *shape_key = BKE_key_from_id(id_iter);
           if (shape_key && !ids_to_delete.contains(&shape_key->id)) {
             BLI_remlink(&bmain->shapekeys, &shape_key->id);
-            BKE_main_namemap_remove_name(bmain, &shape_key->id, shape_key->id.name + 2);
+            BKE_main_namemap_remove_id(*bmain, shape_key->id);
             ids_to_delete.add(&shape_key->id);
             id_remapper.add(&shape_key->id, nullptr);
           }

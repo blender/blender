@@ -363,7 +363,7 @@ void blo_join_main(ListBase *mainlist)
   }
 
   /* Will no longer be valid after joining. */
-  BKE_main_namemap_clear(mainl);
+  BKE_main_namemap_clear(*mainl);
 
   while ((tojoin = mainl->next)) {
     BLI_assert(((tojoin->curlib->runtime->tag & LIBRARY_IS_ASSET_EDIT_FILE) != 0) ==
@@ -413,7 +413,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
   }
 
   /* Will no longer be valid after splitting. */
-  BKE_main_namemap_clear(main);
+  BKE_main_namemap_clear(*main);
 
   /* (Library.temp_index -> Main), lookup table */
   const uint lib_main_array_len = BLI_listbase_count(&main->libraries);
@@ -3442,7 +3442,7 @@ static void after_liblink_merged_bmain_process(Main *bmain, BlendFileReadReport 
   /* We only expect a merged Main here, not a split one. */
   BLI_assert((bmain->prev == nullptr) && (bmain->next == nullptr));
 
-  if (!BKE_main_namemap_validate_and_fix(bmain)) {
+  if (!BKE_main_namemap_validate_and_fix(*bmain)) {
     BKE_report(
         reports ? reports->reports : nullptr,
         RPT_ERROR,

@@ -1678,7 +1678,7 @@ void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
     }
   }
 
-  BKE_main_namemap_clear(bmain);
+  BKE_main_namemap_clear(*bmain);
 }
 
 /** \} */

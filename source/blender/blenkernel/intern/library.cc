@@ -44,9 +44,7 @@ using namespace blender::bke::library;
 
 static void library_runtime_reset(Library *lib)
 {
-  if (lib->runtime->name_map) {
-    BKE_main_namemap_destroy(&lib->runtime->name_map);
-  }
+  BKE_main_namemap_destroy(&lib->runtime->name_map);
 }
 
 static void library_init_data(ID *id)
