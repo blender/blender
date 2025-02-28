@@ -23,6 +23,8 @@
 
 #include "GPU_matrix.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "RE_engine.h"
 
 namespace blender::render::hydra {
@@ -44,20 +46,19 @@ ViewSettings::ViewSettings(bContext *context)
   View3D *view3d = CTX_wm_view3d(context);
   RegionView3D *region_data = static_cast<RegionView3D *>(CTX_wm_region_data(context));
   ARegion *region = CTX_wm_region(context);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(context);
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
 
   screen_width = region->winx;
   screen_height = region->winy;
-
-  Scene *scene = CTX_data_scene(context);
 
   /* Getting render border. */
   int x1 = 0, y1 = 0;
   int x2 = screen_width, y2 = screen_height;
 
   if (region_data->persp == RV3D_CAMOB) {
-    if (scene->r.mode & R_BORDER) {
-      Object *camera_obj = scene->camera;
-
+    Object *camera_obj = scene->camera;
+    if ((scene->r.mode & R_BORDER) && camera_obj && camera_obj->type == OB_CAMERA) {
       float camera_points[4][3];
       BKE_camera_view_frame(scene, static_cast<Camera *>(camera_obj->data), camera_points);
 
@@ -113,7 +114,7 @@ ViewSettings::ViewSettings(bContext *context)
 
   border = pxr::GfVec4i(x1, y1, x2, y2);
 
-  camera = gf_camera(CTX_data_ensure_evaluated_depsgraph(context),
+  camera = gf_camera(depsgraph,
                      view3d,
                      region,
                      pxr::GfVec4f(float(border[0]) / screen_width,
