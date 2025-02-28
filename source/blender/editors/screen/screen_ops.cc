@@ -3627,7 +3627,7 @@ static void area_join_draw_cb(const wmWindow *win, void *userdata)
   }
 }
 
-static void area_join_dock_cb(const wmWindow * /*win*/, void *userdata)
+static void area_join_dock_cb(const wmWindow *win, void *userdata)
 {
   const wmOperator *op = static_cast<wmOperator *>(userdata);
   sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
@@ -3635,7 +3635,7 @@ static void area_join_dock_cb(const wmWindow * /*win*/, void *userdata)
     return;
   }
   screen_draw_dock_preview(
-      jd->sa1, jd->sa2, jd->dock_target, jd->factor, jd->current_x, jd->current_y);
+      win, jd->sa1, jd->sa2, jd->dock_target, jd->factor, jd->current_x, jd->current_y);
 }
 
 static void area_join_dock_cb_window(sAreaJoinData *jd, wmOperator *op)
