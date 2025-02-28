@@ -276,17 +276,15 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
       /* Protection against Python scripts not setting proper size limit. */
-      char *tmp = RNA_property_string_get_alloc(
-          op->ptr, prop, params->filter_glob, sizeof(params->filter_glob), nullptr);
-      if (tmp != params->filter_glob) {
-        STRNCPY(params->filter_glob, tmp);
-        MEM_freeN(tmp);
-
-        /* Fix stupid things that truncating might have generated,
-         * like last group being a 'match everything' wildcard-only one... */
-        BLI_path_extension_glob_validate(params->filter_glob);
+      char *glob = RNA_property_string_get_alloc(op->ptr, prop, nullptr, 0, nullptr);
+      BLI_SCOPED_DEFER([&]() { MEM_freeN(glob); });
+      STRNCPY(params->filter_glob, glob);
+      /* Fix stupid things that truncating might have generated,
+       * like last group being a 'match everything' wildcard-only one... */
+      BLI_path_extension_glob_validate(params->filter_glob);
+      if (glob[0] != '\0') {
+        params->filter |= (FILE_TYPE_OPERATOR | FILE_TYPE_FOLDER);
       }
-      params->filter |= (FILE_TYPE_OPERATOR | FILE_TYPE_FOLDER);
     }
     else {
       params->filter_glob[0] = '\0';
