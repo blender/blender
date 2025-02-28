@@ -31,7 +31,7 @@ namespace blender::eevee {
 
 ObjectHandle &SyncModule::sync_object(const ObjectRef &ob_ref)
 {
-  ObjectKey key(ob_ref.object);
+  ObjectKey key(ob_ref);
 
   ObjectHandle &handle = ob_handles.lookup_or_add_cb(key, [&]() {
     ObjectHandle new_handle;

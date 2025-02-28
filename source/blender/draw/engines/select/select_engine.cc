@@ -393,10 +393,10 @@ static ElemIndexRanges select_id_object_sync(SELECTID_Instance &inst,
   return ElemIndexRanges{};
 }
 
-static void select_cache_populate(void *vedata, Object *ob)
+static void select_cache_populate(void *vedata, blender::draw::ObjectRef &ob_ref)
 {
   Manager &manager = *DRW_manager_get();
-  ObjectRef ob_ref = DRW_object_ref_get(ob);
+  Object *ob = ob_ref.object;
   SelectEngineData &e_data = get_engine_data();
   SELECTID_Context &sel_ctx = e_data.context;
   SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;

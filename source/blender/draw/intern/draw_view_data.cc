@@ -255,12 +255,6 @@ draw::Manager *DRW_manager_get()
   return drw_get().view_data_active->manager;
 }
 
-draw::ObjectRef DRW_object_ref_get(Object *object)
-{
-  BLI_assert(drw_get().view_data_active->manager);
-  return {object, drw_get().dupli_source, drw_get().dupli_parent, draw::ResourceHandle(0)};
-}
-
 void DRW_manager_begin_sync()
 {
   if (drw_get().view_data_active->manager == nullptr) {

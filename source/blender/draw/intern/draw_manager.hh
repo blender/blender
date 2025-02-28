@@ -459,4 +459,3 @@ inline void Manager::register_layer_attributes(GPUMaterial *material)
 /* TODO(@fclem): This is for testing. The manager should be passed to the engine through the
  * callbacks. */
 blender::draw::Manager *DRW_manager_get();
-blender::draw::ObjectRef DRW_object_ref_get(Object *object);

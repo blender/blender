@@ -311,13 +311,12 @@ void Instance::object_sync(ObjectRef &ob_ref)
 }
 
 void Instance::object_sync_render(void *instance_,
-                                  Object *ob,
+                                  ObjectRef &ob_ref,
                                   RenderEngine *engine,
                                   Depsgraph *depsgraph)
 {
   UNUSED_VARS(engine, depsgraph);
   Instance &inst = *reinterpret_cast<Instance *>(instance_);
-  ObjectRef ob_ref = DRW_object_ref_get(ob);
   inst.object_sync(ob_ref);
 }
 

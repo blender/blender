@@ -552,17 +552,11 @@ static void workbench_cache_init(void *vedata)
   reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->begin_sync();
 }
 
-static void workbench_cache_populate(void *vedata, Object *object)
+static void workbench_cache_populate(void *vedata, blender::draw::ObjectRef &ob_ref)
 {
   draw::Manager *manager = DRW_manager_get();
 
-  draw::ObjectRef ref;
-  ref.object = object;
-  ref.dupli_object = DRW_object_get_dupli(object);
-  ref.dupli_parent = DRW_object_get_dupli_parent(object);
-  ref.handle = draw::ResourceHandle(0);
-
-  reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->object_sync(*manager, ref);
+  reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->object_sync(*manager, ob_ref);
 }
 
 static void workbench_cache_finish(void *vedata)
@@ -599,11 +593,6 @@ static void workbench_view_update(void *vedata)
   if (ved->instance) {
     ved->instance->reset_taa_sample();
   }
-}
-
-static void workbench_id_update(void *vedata, ID *id)
-{
-  UNUSED_VARS(vedata, id);
 }
 
 /* RENDER */
@@ -760,10 +749,12 @@ static void workbench_render_to_image(void *vedata,
   manager.begin_sync();
 
   workbench_cache_init(vedata);
-  auto workbench_render_cache =
-      [](void *vedata, Object *ob, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
-        workbench_cache_populate(vedata, ob);
-      };
+  auto workbench_render_cache = [](void *vedata,
+                                   blender::draw::ObjectRef &ob_ref,
+                                   RenderEngine * /*engine*/,
+                                   Depsgraph * /*depsgraph*/) {
+    workbench_cache_populate(vedata, ob_ref);
+  };
   DRW_render_object_iter(vedata, engine, depsgraph, workbench_render_cache);
   workbench_cache_finish(vedata);
 
@@ -805,7 +796,7 @@ DrawEngineType draw_engine_workbench = {
     /*cache_finish*/ &workbench_cache_finish,
     /*draw_scene*/ &workbench_draw_scene,
     /*view_update*/ &workbench_view_update,
-    /*id_update*/ &workbench_id_update,
+    /*id_update*/ nullptr,
     /*render_to_image*/ &workbench_render_to_image,
     /*store_metadata*/ nullptr,
 };

@@ -142,15 +142,17 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
 
 /* render all objects and select only grease pencil */
 static void GPENCIL_render_cache(void *vedata,
-                                 Object *ob,
+                                 blender::draw::ObjectRef &ob_ref,
                                  RenderEngine * /*engine*/,
                                  Depsgraph * /*depsgraph*/)
 {
-  if (ob && ELEM(ob->type, OB_GREASE_PENCIL, OB_LAMP)) {
-    if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
-      GPENCIL_cache_populate(vedata, ob);
-    }
+  if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
+    return;
   }
+  if (!DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF) {
+    return;
+  }
+  GPENCIL_cache_populate(vedata, ob_ref);
 }
 
 static void GPENCIL_render_result_z(RenderLayer *rl,

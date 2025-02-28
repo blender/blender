@@ -393,7 +393,7 @@ void GPENCIL_antialiasing_draw(struct GPENCIL_Data *vedata);
 /* main functions */
 void GPENCIL_engine_init(void *vedata);
 void GPENCIL_cache_init(void *vedata);
-void GPENCIL_cache_populate(void *vedata, struct Object *ob);
+void GPENCIL_cache_populate(void *vedata, blender::draw::ObjectRef &ob_ref);
 void GPENCIL_cache_finish(void *vedata);
 void GPENCIL_draw_scene(void *vedata);
 

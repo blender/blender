@@ -115,9 +115,8 @@ static void eevee_cache_init(void *vedata)
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->begin_sync();
 }
 
-static void eevee_cache_populate(void *vedata, Object *object)
+static void eevee_cache_populate(void *vedata, draw::ObjectRef &ob_ref)
 {
-  draw::ObjectRef ob_ref = DRW_object_ref_get(object);
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->object_sync(ob_ref);
 }
 

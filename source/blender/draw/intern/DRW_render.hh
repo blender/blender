@@ -43,6 +43,7 @@ struct ViewLayer;
 struct World;
 namespace blender::draw {
 class TextureFromPool;
+class ObjectRef;
 }  // namespace blender::draw
 
 typedef struct DRWPass DRWPass;
@@ -65,12 +66,13 @@ struct DrawEngineType {
   void (*instance_free)(void *instance_data);
 
   void (*cache_init)(void *vedata);
-  void (*cache_populate)(void *vedata, Object *ob);
+  void (*cache_populate)(void *vedata, blender::draw::ObjectRef &ob_ref);
   void (*cache_finish)(void *vedata);
 
   void (*draw_scene)(void *vedata);
 
   void (*view_update)(void *vedata);
+  /* TODO(fclem): Remove. */
   void (*id_update)(void *vedata, ID *id);
 
   void (*render_to_image)(void *vedata,
@@ -118,11 +120,13 @@ blender::draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_n
 void DRW_viewport_request_redraw();
 
 void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph);
-void DRW_render_object_iter(
-    void *vedata,
-    RenderEngine *engine,
-    Depsgraph *depsgraph,
-    void (*callback)(void *vedata, Object *ob, RenderEngine *engine, Depsgraph *depsgraph));
+void DRW_render_object_iter(void *vedata,
+                            RenderEngine *engine,
+                            Depsgraph *depsgraph,
+                            void (*callback)(void *vedata,
+                                             blender::draw::ObjectRef &ob_ref,
+                                             RenderEngine *engine,
+                                             Depsgraph *depsgraph));
 
 /**
  * \warning Changing frame might free the #ViewLayerEngineData.

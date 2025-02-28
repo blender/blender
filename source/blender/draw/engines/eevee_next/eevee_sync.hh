@@ -70,6 +70,8 @@ class ObjectKey {
     }
   }
 
+  ObjectKey(const ObjectRef &ob_ref, int sub_key = 0) : ObjectKey(ob_ref.object, sub_key) {}
+
   uint64_t hash() const
   {
     return hash_value_;

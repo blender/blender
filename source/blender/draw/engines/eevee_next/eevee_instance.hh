@@ -363,7 +363,7 @@ class Instance {
  private:
   /** Wrapper to use with #DRW_render_object_iter. */
   static void object_sync_render(void *instance_,
-                                 Object *ob,
+                                 ObjectRef &ob_ref,
                                  RenderEngine *engine,
                                  Depsgraph *depsgraph);
   /**

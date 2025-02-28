@@ -60,11 +60,13 @@ void VelocityModule::init()
 
 /* Similar to Instance::object_sync, but only syncs velocity. */
 static void step_object_sync_render(void *instance,
-                                    Object *ob,
+                                    ObjectRef &ob_ref,
                                     RenderEngine * /*engine*/,
                                     Depsgraph * /*depsgraph*/)
 {
   Instance &inst = *reinterpret_cast<Instance *>(instance);
+
+  Object *ob = ob_ref.object;
 
   const bool is_velocity_type = ELEM(ob->type, OB_CURVES, OB_MESH, OB_POINTCLOUD);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
@@ -79,7 +81,6 @@ static void step_object_sync_render(void *instance,
 
   /* NOTE: Dummy resource handle since this won't be used for drawing. */
   ResourceHandle resource_handle(0);
-  ObjectRef ob_ref = DRW_object_ref_get(ob);
   ObjectHandle &ob_handle = inst.sync.sync_object(ob_ref);
 
   if (partsys_is_visible) {
@@ -89,7 +90,7 @@ static void step_object_sync_render(void *instance,
       inst.velocity.step_object_sync(
           hair_handle.object_key, ob_ref, hair_handle.recalc, resource_handle, &md, &particle_sys);
     };
-    foreach_hair_particle_handle(ob, ob_handle, sync_hair);
+    foreach_hair_particle_handle(ob_ref.object, ob_handle, sync_hair);
   };
 
   if (object_is_visible) {
