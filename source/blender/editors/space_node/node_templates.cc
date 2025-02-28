@@ -726,49 +726,6 @@ static void ui_node_draw_input(uiLayout &layout,
                                int depth,
                                const char *panel_label);
 
-static void node_panel_toggle_button_cb(bContext *C, void *panel_state_argv, void *ntree_argv)
-{
-  Main *bmain = CTX_data_main(C);
-  bNodePanelState *panel_state = static_cast<bNodePanelState *>(panel_state_argv);
-  bNodeTree *ntree = static_cast<bNodeTree *>(ntree_argv);
-
-  panel_state->flag ^= NODE_PANEL_COLLAPSED;
-
-  BKE_main_ensure_invariants(*bmain, ntree->id);
-
-  /* Make sure panel state updates from the Properties Editor, too. */
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
-}
-
-static void ui_node_draw_panel(uiLayout &layout,
-                               bNodeTree &ntree,
-                               const nodes::PanelDeclaration &panel_decl,
-                               bNodePanelState &panel_state)
-{
-  uiLayout *row = uiLayoutRow(&layout, true);
-  uiLayoutSetPropDecorate(row, false);
-
-  /* Panel header with collapse icon */
-  uiBlock *block = uiLayoutGetBlock(row);
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
-  uiBut *but = uiDefIconTextBut(block,
-                                UI_BTYPE_BUT_TOGGLE,
-                                0,
-                                panel_state.is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
-                                IFACE_(panel_decl.name),
-                                0,
-                                0,
-                                UI_UNIT_X * 4,
-                                UI_UNIT_Y,
-                                nullptr,
-                                0.0,
-                                0.0,
-                                "");
-  UI_but_drawflag_enable(but, UI_BUT_TEXT_LEFT | UI_BUT_NO_TOOLTIP);
-  UI_but_func_set(but, node_panel_toggle_button_cb, &panel_state, &ntree);
-  UI_block_emboss_set(block, UI_EMBOSS);
-}
-
 static void ui_node_draw_recursive(uiLayout &layout,
                                    bContext &C,
                                    bNodeTree &ntree,
@@ -776,15 +733,35 @@ static void ui_node_draw_recursive(uiLayout &layout,
                                    const nodes::PanelDeclaration &panel_decl,
                                    const int depth)
 {
-  bNodePanelState &panel_state = node.panel_states_array[panel_decl.index];
-  ui_node_draw_panel(layout, ntree, panel_decl, panel_state);
-  if (panel_state.is_collapsed()) {
+  const nodes::SocketDeclaration *panel_toggle_decl = panel_decl.panel_input_decl();
+  PanelLayout panel_layout = uiLayoutPanel(
+      &C, &layout, panel_decl.name.c_str(), panel_decl.default_collapsed);
+  if (panel_toggle_decl) {
+    uiLayoutSetPropSep(panel_layout.header, false);
+    uiLayoutSetPropDecorate(panel_layout.header, false);
+    PointerRNA toggle_ptr = RNA_pointer_create_discrete(
+        &ntree.id, &RNA_NodeSocket, &node.socket_by_decl(*panel_toggle_decl));
+    uiItemR(panel_layout.header,
+            &toggle_ptr,
+            "default_value",
+            UI_ITEM_NONE,
+            panel_decl.name,
+            ICON_NONE);
+  }
+  else {
+    uiItemL(panel_layout.header, panel_decl.name, ICON_NONE);
+  }
+
+  if (!panel_layout.body) {
     return;
   }
   for (const nodes::ItemDeclaration *item_decl : panel_decl.items) {
+    if (item_decl == panel_toggle_decl) {
+      continue;
+    }
     if (const auto *socket_decl = dynamic_cast<const nodes::SocketDeclaration *>(item_decl)) {
       if (socket_decl->in_out == SOCK_IN) {
-        ui_node_draw_input(layout,
+        ui_node_draw_input(*panel_layout.body,
                            C,
                            ntree,
                            node,
@@ -795,11 +772,11 @@ static void ui_node_draw_recursive(uiLayout &layout,
     }
     else if (const auto *sub_panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl))
     {
-      ui_node_draw_recursive(layout, C, ntree, node, *sub_panel_decl, depth + 1);
+      ui_node_draw_recursive(*panel_layout.body, C, ntree, node, *sub_panel_decl, depth + 1);
     }
     else if (const auto *layout_decl = dynamic_cast<const nodes::LayoutDeclaration *>(item_decl)) {
       PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
-      layout_decl->draw(&layout, &C, &nodeptr);
+      layout_decl->draw(panel_layout.body, &C, &nodeptr);
     }
   }
 }
