@@ -692,8 +692,6 @@ void OneapiDevice::tex_alloc(device_texture &mem)
 {
   assert(device_queue_);
 
-  size_t size = mem.memory_size();
-
   sycl::addressing_mode address_mode = sycl::addressing_mode::none;
   switch (mem.info.extension) {
     case EXTENSION_REPEAT:
@@ -722,103 +720,75 @@ void OneapiDevice::tex_alloc(device_texture &mem)
   }
 
   /* Image Texture Storage */
-  sycl::image_channel_type channel_type;
+  sycl::ext::oneapi::experimental::image_descriptor desc;
 
   switch (mem.data_type) {
     case TYPE_UCHAR:
-      channel_type = sycl::image_channel_type::unorm_int8;
+      desc.channel_type = sycl::image_channel_type::unorm_int8;
       break;
     case TYPE_UINT16:
-      channel_type = sycl::image_channel_type::unorm_int16;
+      desc.channel_type = sycl::image_channel_type::unorm_int16;
       break;
     case TYPE_FLOAT:
-      channel_type = sycl::image_channel_type::fp32;
+      desc.channel_type = sycl::image_channel_type::fp32;
       break;
     case TYPE_HALF:
-      channel_type = sycl::image_channel_type::fp16;
+      desc.channel_type = sycl::image_channel_type::fp16;
       break;
     default:
       assert(0);
       return;
   }
+  desc.width = mem.data_width;
+  desc.height = mem.data_height;
+  desc.depth = mem.data_depth == 1 ? 0 : mem.data_depth;
+  desc.num_channels = mem.data_elements;
+  /* Right now we are not using mipmaps or interop textures, so we
+   * need only standard textures. */
+  desc.type = sycl::ext::oneapi::experimental::image_type::standard;
+  desc.num_levels = 1;
 
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
 
   try {
-    Mem *cmem = nullptr;
-    sycl::ext::oneapi::experimental::image_mem_handle memHandle{0};
-    sycl::ext::oneapi::experimental::image_descriptor desc{};
-
-    if (mem.data_height > 0) {
-      /* 2D/3D texture -- Tile optimized */
-      size_t depth = mem.data_depth == 1 ? 0 : mem.data_depth;
-      desc = sycl::ext::oneapi::experimental::image_descriptor(
-          {mem.data_width, mem.data_height, depth}, mem.data_elements, channel_type);
-
-      VLOG_WORK << "Array 2D/3D allocate: " << mem.name << ", "
-                << string_human_readable_number(mem.memory_size()) << " bytes. ("
-                << string_human_readable_size(mem.memory_size()) << ")";
-
-      sycl::ext::oneapi::experimental::image_mem_handle memHandle =
-          sycl::ext::oneapi::experimental::alloc_image_mem(desc, *queue);
-
-      /* Copy data from host to the texture properly based on the texture description */
-      queue->ext_oneapi_copy(mem.host_pointer, memHandle, desc);
-
-      mem.device_pointer = (device_ptr)memHandle.raw_handle;
-      mem.device_size = size;
-      stats.mem_alloc(size);
-
-      thread_scoped_lock lock(device_mem_map_mutex);
-      cmem = &device_mem_map[&mem];
-      cmem->texobject = 0;
-      cmem->array = (arrayMemObject)(memHandle.raw_handle);
-    }
-    else {
-      /* 1D texture -- Linear memory */
-      desc = sycl::ext::oneapi::experimental::image_descriptor(
-          {mem.data_width}, mem.data_elements, channel_type);
-      cmem = generic_alloc(mem);
-      if (!cmem) {
-        return;
-      }
-
-      queue->memcpy((void *)mem.device_pointer, mem.host_pointer, size);
-    }
-
-    queue->wait_and_throw();
-
     /* Set Mapping and tag that we need to (re-)upload to device */
     TextureInfo tex_info = mem.info;
 
     sycl::ext::oneapi::experimental::bindless_image_sampler samp(
-        address_mode, sycl::coordinate_normalization_mode::normalized, filter_mode);
+      address_mode, sycl::coordinate_normalization_mode::normalized, filter_mode);
+
+    sycl::ext::oneapi::experimental::image_mem_handle imgMem = sycl::ext::oneapi::experimental::alloc_image_mem(desc, *queue);
+
+    sycl::ext::oneapi::experimental::sampled_image_handle imgHandle = sycl::ext::oneapi::experimental::create_image(imgMem, samp, desc, *queue);
+
+    /* Copy data from host to the texture properly based on the texture description */
+    queue->ext_oneapi_copy(mem.host_pointer, imgMem, desc);
+    queue->wait_and_throw();
+
+    /* Even if there is some overhead for texture allocation - runtime can't report such
+     * information, so assumption here is that there is not overhead and device allocation size is
+     * identical to the texture size, which is identical to host allocation size. */
+    stats.mem_alloc(mem.memory_size());
+
+    /* We need to set something as value of the device_pointer, overwise Cycles will
+     * think that the allocation have failed and won't call tex_free later. */
+    mem.device_pointer = (ccl::device_ptr)(1);
+    mem.device_size = mem.memory_size();
 
     if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
         mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
         mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
         mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
     {
-      sycl::ext::oneapi::experimental::sampled_image_handle imgHandle;
-
-      if (memHandle.raw_handle) {
-        /* Create 2D/3D texture handle */
-        imgHandle = sycl::ext::oneapi::experimental::create_image(memHandle, samp, desc, *queue);
-      }
-      else {
-        /* Create 1D texture */
-        imgHandle = sycl::ext::oneapi::experimental::create_image(
-            (void *)mem.device_pointer, 0, samp, desc, *queue);
-      }
-
       thread_scoped_lock lock(device_mem_map_mutex);
-      cmem = &device_mem_map[&mem];
+      Mem *cmem = &device_mem_map[&mem];
+      cmem->array = (arrayMemObject)(imgMem.raw_handle);
       cmem->texobject = (texMemObject)(imgHandle.raw_handle);
 
       tex_info.data = (uint64_t)cmem->texobject;
     }
     else {
-      tex_info.data = (uint64_t)mem.device_pointer;
+      assert(false);
     }
 
     {
@@ -890,27 +860,24 @@ void OneapiDevice::tex_free(device_texture &mem)
 
     if (cmem.array) {
       /* Free texture memory. */
-      sycl::ext::oneapi::experimental::image_mem_handle imgHandle{
-          (sycl::ext::oneapi::experimental::image_mem_handle::raw_handle_type)cmem.array};
+      sycl::ext::oneapi::experimental::image_mem_handle imgMem{(sycl::ext::oneapi::experimental::image_mem_handle::raw_handle_type)cmem.array};
+
+      stats.mem_free(mem.memory_size());
 
       try {
-        /* We have allocated only standard textures, so we also deallocate only them. */
-        sycl::ext::oneapi::experimental::free_image_mem(
-            imgHandle, sycl::ext::oneapi::experimental::image_type::standard, *queue);
+        /* We have allocated only standard textures, so we also dellocate only them. */
+        sycl::ext::oneapi::experimental::free_image_mem(imgMem, sycl::ext::oneapi::experimental::image_type::standard, *queue);
       }
       catch (sycl::exception const &e) {
         set_error("oneAPI texture deallocation error: got runtime exception \"" +
                   string(e.what()) + "\"");
       }
 
-      stats.mem_free(mem.memory_size());
-      mem.device_pointer = 0;
-      mem.device_size = 0;
       device_mem_map.erase(device_mem_map.find(&mem));
     }
     else {
       lock.unlock();
-      generic_free(mem);
+      assert(false);
     }
   }
 }
