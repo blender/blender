@@ -468,6 +468,7 @@ static bool snap_selected_to_location(bContext *C,
     KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     Main *bmain = CTX_data_main(C);
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
     /* Reset flags. */
     for (Object *ob = static_cast<Object *>(bmain->objects.first); ob;
@@ -497,13 +498,11 @@ static bool snap_selected_to_location(bContext *C,
     object::XFormObjectData_Container *xds = nullptr;
 
     if (use_transform_skip_children) {
-      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xcs = object::xform_skip_child_container_create();
       object::xform_skip_child_container_item_ensure_from_array(
           xcs, scene, view_layer, objects.data(), objects.size());
     }
     if (use_transform_data_origin) {
-      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xds = object::data_xform_container_create();
 
       /* Initialize the transform data in a separate loop because the depsgraph
