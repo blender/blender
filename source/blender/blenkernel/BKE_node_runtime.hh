@@ -264,6 +264,8 @@ class bNodePanelRuntime : NonCopyable, NonMovable {
    * #bNode::runtime::draw_bounds). */
   std::optional<float> header_center_y;
   std::optional<bNodePanelExtent> content_extent;
+  /** Optional socket that is part of the panel header. */
+  bNodeSocket *input_socket = nullptr;
 };
 
 /**

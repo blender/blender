@@ -5008,6 +5008,23 @@ PanelLayout uiLayoutPanelProp(const bContext *C,
   return panel_layout;
 }
 
+PanelLayout uiLayoutPanelPropWithBoolHeader(const bContext *C,
+                                            uiLayout *layout,
+                                            PointerRNA *open_prop_owner,
+                                            const StringRefNull open_prop_name,
+                                            PointerRNA *bool_prop_owner,
+                                            const StringRefNull bool_prop_name,
+                                            const std::optional<StringRefNull> label)
+{
+  PanelLayout panel = uiLayoutPanelProp(C, layout, open_prop_owner, open_prop_name.c_str());
+
+  uiLayout *panel_header = panel.header;
+  panel_header->flag &= ~(UI_ITEM_PROP_SEP | UI_ITEM_PROP_DECORATE | UI_ITEM_INSIDE_PROP_SEP);
+  uiItemR(panel_header, bool_prop_owner, bool_prop_name, UI_ITEM_NONE, label, ICON_NONE);
+
+  return panel;
+}
+
 uiLayout *uiLayoutPanelProp(const bContext *C,
                             uiLayout *layout,
                             PointerRNA *open_prop_owner,

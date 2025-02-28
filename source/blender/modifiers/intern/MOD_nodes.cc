@@ -2275,9 +2275,11 @@ static bool interface_panel_affects_output(DrawGroupInputsContext &ctx,
 
 static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
                                          uiLayout *layout,
-                                         const bNodeTreeInterfacePanel &interface_panel)
+                                         const bNodeTreeInterfacePanel &interface_panel,
+                                         const bool skip_first = false)
 {
-  for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
+  for (const bNodeTreeInterfaceItem *item : interface_panel.items().drop_front(skip_first ? 1 : 0))
+  {
     if (item->item_type == NODE_INTERFACE_PANEL) {
       const auto &sub_interface_panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
       if (!interface_panel_has_socket(sub_interface_panel)) {
@@ -2286,8 +2288,39 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
       NodesModifierPanel *panel = find_panel_by_id(ctx.nmd, sub_interface_panel.identifier);
       PointerRNA panel_ptr = RNA_pointer_create_discrete(
           ctx.md_ptr->owner_id, &RNA_NodesModifierPanel, panel);
-      PanelLayout panel_layout = uiLayoutPanelProp(&ctx.C, layout, &panel_ptr, "is_open");
-      uiItemL(panel_layout.header, IFACE_(sub_interface_panel.name), ICON_NONE);
+      PanelLayout panel_layout;
+      bool skip_first = false;
+      /* Check if the panel should have a toggle in the header. */
+      const bNodeTreeInterfaceSocket *toggle_socket = sub_interface_panel.header_toggle_socket();
+      if (toggle_socket && !(toggle_socket->flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
+        const StringRefNull identifier = toggle_socket->identifier;
+        IDProperty *property = IDP_GetPropertyFromGroup(ctx.nmd.settings.properties, identifier);
+        /* IDProperties can be removed with python, so there could be a situation where
+         * there isn't a property for a socket or it doesn't have the correct type. */
+        if (property == nullptr ||
+            !nodes::id_property_type_matches_socket(*toggle_socket, *property))
+        {
+          continue;
+        }
+        char socket_id_esc[MAX_NAME * 2];
+        BLI_str_escape(socket_id_esc, identifier.c_str(), sizeof(socket_id_esc));
+
+        char rna_path[sizeof(socket_id_esc) + 4];
+        SNPRINTF(rna_path, "[\"%s\"]", socket_id_esc);
+
+        panel_layout = uiLayoutPanelPropWithBoolHeader(&ctx.C,
+                                                       layout,
+                                                       &panel_ptr,
+                                                       "is_open",
+                                                       ctx.md_ptr,
+                                                       rna_path,
+                                                       IFACE_(sub_interface_panel.name));
+        skip_first = true;
+      }
+      else {
+        panel_layout = uiLayoutPanelProp(&ctx.C, layout, &panel_ptr, "is_open");
+        uiItemL(panel_layout.header, IFACE_(sub_interface_panel.name), ICON_NONE);
+      }
       if (!interface_panel_affects_output(ctx, sub_interface_panel)) {
         uiLayoutSetActive(panel_layout.header, false);
       }
@@ -2301,7 +2334,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
           nullptr,
           nullptr);
       if (panel_layout.body) {
-        draw_interface_panel_content(ctx, panel_layout.body, sub_interface_panel);
+        draw_interface_panel_content(ctx, panel_layout.body, sub_interface_panel, skip_first);
       }
     }
     else {

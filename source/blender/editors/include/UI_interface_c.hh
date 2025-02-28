@@ -2409,6 +2409,13 @@ PanelLayout uiLayoutPanelProp(const bContext *C,
                               uiLayout *layout,
                               PointerRNA *open_prop_owner,
                               const char *open_prop_name);
+PanelLayout uiLayoutPanelPropWithBoolHeader(const bContext *C,
+                                            uiLayout *layout,
+                                            PointerRNA *open_prop_owner,
+                                            const blender::StringRefNull open_prop_name,
+                                            PointerRNA *bool_prop_owner,
+                                            const blender::StringRefNull bool_prop_name,
+                                            const std::optional<blender::StringRefNull> label);
 
 /**
  * Variant of #uiLayoutPanelProp that automatically creates the header row with the

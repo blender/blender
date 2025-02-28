@@ -372,6 +372,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
   decl->description(io_socket.description ? io_socket.description : "");
   decl->hide_value(io_socket.flag & NODE_INTERFACE_SOCKET_HIDE_VALUE);
   decl->compact(io_socket.flag & NODE_INTERFACE_SOCKET_COMPACT);
+  decl->panel_toggle(io_socket.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE);
   return *decl;
 }
 
