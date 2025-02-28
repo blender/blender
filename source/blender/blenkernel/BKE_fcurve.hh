@@ -289,7 +289,6 @@ FCurve *id_data_find_fcurve(
  * Find an F-Curve from its rna path and index.
  *
  * The search order is as follows. The first match will be returned:
- *   - Animation
  *   - Action
  *   - Drivers
  *
