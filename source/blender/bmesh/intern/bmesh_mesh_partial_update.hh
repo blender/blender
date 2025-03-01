@@ -46,22 +46,22 @@ struct BMPartialUpdate {
  * All Tagged & Connected, see: #BM_mesh_partial_create_from_verts
  * Operate on everything that's tagged as well as connected geometry.
  */
-BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
-                                                   const BMPartialUpdate_Params *params,
-                                                   blender::BitSpan verts_mask,
-                                                   int verts_mask_count)
-    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts(
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
+    blender::BitSpan verts_mask,
+    int verts_mask_count);
 
 /**
  * All Connected, operate on all faces that have both tagged and un-tagged vertices.
  *
  * Reduces computations when transforming isolated regions.
  */
-BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
-    BMesh *bm,
-    const BMPartialUpdate_Params *params,
+[[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
     blender::BitSpan verts_mask,
-    int verts_mask_count) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+    int verts_mask_count);
 
 /**
  * All Connected, operate on all faces that have vertices in the same group.
@@ -82,8 +82,10 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
  * - -1: Don't use grouping logic (include any face that contains a vertex with this group).
  * \param verts_group_count: The number of non-zero values in `verts_groups`.
  */
-BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
-    BMesh *bm, const BMPartialUpdate_Params *params, const int *verts_group, int verts_group_count)
-    ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
+    blender::Span<int> verts_group,
+    int verts_group_count);
 
 void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo) ATTR_NONNULL(1);

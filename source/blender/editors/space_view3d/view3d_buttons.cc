@@ -151,7 +151,7 @@ static void *editmesh_partial_update_begin_fn(bContext * /*C*/,
   update_params.do_tessellate = true;
   update_params.do_normals = true;
   BMPartialUpdate *bmpinfo = BM_mesh_partial_create_from_verts_group_single(
-      em->bm, &update_params, verts_mask, verts_mask_count);
+      *em->bm, update_params, verts_mask, verts_mask_count);
 
   return bmpinfo;
 }
