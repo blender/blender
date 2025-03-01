@@ -222,9 +222,12 @@ float BM_log_original_mask(BMLog *log, BMVert *v);
 /** Get the logged data of a vertex (avoid multiple lookups). */
 void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const float **r_no);
 
+#ifndef NDEBUG
 /** For internal use only (unit testing). */
 BMLogEntry *BM_log_current_entry(BMLog *log);
 /** For internal use only (unit testing) */
 struct RangeTreeUInt *BM_log_unused_ids(BMLog *log);
 
+void BM_log_print(const BMLog *log, const char *description);
 void BM_log_print_entry(BMesh *bm, BMLogEntry *entry);
+#endif
