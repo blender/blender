@@ -14,7 +14,6 @@ struct DRWInstanceDataList;
 struct Depsgraph;
 struct DrawDataList;
 struct DrawEngineType;
-struct GHash;
 struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUVertFormat;

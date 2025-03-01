@@ -190,7 +190,7 @@ void WM_gizmotype_append_ptr(void (*gtfunc)(wmGizmoType *, void *), void *userda
 bool WM_gizmotype_remove(bContext *C, Main *bmain, blender::StringRef idname);
 void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *gzt);
 /**
- * Free but don't remove from #GHash.
+ * Free but don't remove from the global list.
  */
 void WM_gizmotype_free_ptr(wmGizmoType *gzt);
 
