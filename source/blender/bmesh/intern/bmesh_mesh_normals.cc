@@ -21,6 +21,7 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -33,6 +34,7 @@
 
 using blender::Array;
 using blender::float3;
+using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -269,47 +271,32 @@ void BM_mesh_normals_update(BMesh *bm)
 /** \name Update Vertex & Face Normals (Partial Updates)
  * \{ */
 
-static void bm_partial_faces_parallel_range_calc_normals_cb(
-    void *userdata, const int iter, const TaskParallelTLS *__restrict /*tls*/)
-{
-  BMFace *f = ((BMFace **)userdata)[iter];
-  BM_face_calc_normal(f, f->no);
-}
-
-static void bm_partial_verts_parallel_range_calc_normal_cb(
-    void *userdata, const int iter, const TaskParallelTLS *__restrict /*tls*/)
-{
-  BMVert *v = ((BMVert **)userdata)[iter];
-  bm_vert_calc_normals_impl(v);
-}
-
 void BM_mesh_normals_update_with_partial_ex(BMesh * /*bm*/,
                                             const BMPartialUpdate *bmpinfo,
                                             const BMeshNormalsUpdate_Params *params)
 {
+  using namespace blender;
   BLI_assert(bmpinfo->params.do_normals);
   /* While harmless, exit early if there is nothing to do. */
-  if (UNLIKELY((bmpinfo->verts_len == 0) && (bmpinfo->faces_len == 0))) {
+  if (UNLIKELY(bmpinfo->verts.is_empty() && bmpinfo->faces.is_empty())) {
     return;
   }
 
-  BMVert **verts = bmpinfo->verts;
-  BMFace **faces = bmpinfo->faces;
-  const int verts_len = bmpinfo->verts_len;
-  const int faces_len = bmpinfo->faces_len;
-
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-
-  /* Faces. */
   if (params->face_normals) {
-    BLI_task_parallel_range(
-        0, faces_len, faces, bm_partial_faces_parallel_range_calc_normals_cb, &settings);
+    threading::parallel_for(bmpinfo->faces.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        BMFace *f = bmpinfo->faces[i];
+        BM_face_calc_normal(f, f->no);
+      }
+    });
   }
 
-  /* Verts. */
-  BLI_task_parallel_range(
-      0, verts_len, verts, bm_partial_verts_parallel_range_calc_normal_cb, &settings);
+  threading::parallel_for(bmpinfo->verts.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      BMVert *v = bmpinfo->verts[i];
+      bm_vert_calc_normals_impl(v);
+    }
+  });
 }
 
 void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpinfo)

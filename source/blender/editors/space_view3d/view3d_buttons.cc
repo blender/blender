@@ -23,7 +23,7 @@
 #include "BLT_translation.hh"
 
 #include "BLI_array_utils.h"
-#include "BLI_bitmap.h"
+#include "BLI_bit_vector.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -138,12 +138,12 @@ static void *editmesh_partial_update_begin_fn(bContext * /*C*/,
   BMVert *eve;
   int i;
 
-  BLI_bitmap *verts_mask = BLI_BITMAP_NEW(em->bm->totvert, __func__);
+  blender::BitVector<> verts_mask(em->bm->totvert);
   BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
     if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
       continue;
     }
-    BLI_BITMAP_ENABLE(verts_mask, i);
+    verts_mask[i].set();
     verts_mask_count += 1;
   }
 
@@ -152,8 +152,6 @@ static void *editmesh_partial_update_begin_fn(bContext * /*C*/,
   update_params.do_normals = true;
   BMPartialUpdate *bmpinfo = BM_mesh_partial_create_from_verts_group_single(
       em->bm, &update_params, verts_mask, verts_mask_count);
-
-  MEM_freeN(verts_mask);
 
   return bmpinfo;
 }

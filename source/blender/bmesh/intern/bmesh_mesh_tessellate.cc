@@ -278,7 +278,7 @@ void BM_mesh_calc_tessellation(BMesh *bm, MutableSpan<std::array<BMLoop *, 3>> l
  * \{ */
 
 struct PartialTessellationUserData {
-  BMFace **faces;
+  BMFace *const *faces;
   MutableSpan<std::array<BMLoop *, 3>> looptris;
 };
 
@@ -326,8 +326,8 @@ static void bm_mesh_calc_tessellation_with_partial__multi_threaded(
     const BMPartialUpdate *bmpinfo,
     const BMeshCalcTessellation_Params *params)
 {
-  const int faces_len = bmpinfo->faces_len;
-  BMFace **faces = bmpinfo->faces;
+  const int faces_len = bmpinfo->faces.size();
+  BMFace *const *faces = bmpinfo->faces.data();
 
   PartialTessellationUserData data{};
   data.faces = faces;
@@ -355,8 +355,8 @@ static void bm_mesh_calc_tessellation_with_partial__single_threaded(
     const BMPartialUpdate *bmpinfo,
     const BMeshCalcTessellation_Params *params)
 {
-  const int faces_len = bmpinfo->faces_len;
-  BMFace **faces = bmpinfo->faces;
+  const int faces_len = bmpinfo->faces.size();
+  BMFace *const *faces = bmpinfo->faces.data();
 
   MemArena *pf_arena = nullptr;
 
@@ -389,13 +389,13 @@ void BM_mesh_calc_tessellation_with_partial_ex(BMesh *bm,
 {
   BLI_assert(bmpinfo->params.do_tessellate);
   /* While harmless, exit early if there is nothing to do (avoids ensuring the index). */
-  if (UNLIKELY(bmpinfo->faces_len == 0)) {
+  if (UNLIKELY(bmpinfo->faces.is_empty())) {
     return;
   }
 
   BM_mesh_elem_index_ensure(bm, BM_LOOP | BM_FACE);
 
-  if (bmpinfo->faces_len < BM_FACE_TESSELLATE_THREADED_LIMIT) {
+  if (bmpinfo->faces.size() < BM_FACE_TESSELLATE_THREADED_LIMIT) {
     bm_mesh_calc_tessellation_with_partial__single_threaded(looptris, bmpinfo, params);
   }
   else {

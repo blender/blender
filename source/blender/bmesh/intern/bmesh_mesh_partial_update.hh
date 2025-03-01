@@ -8,7 +8,9 @@
  * \ingroup bmesh
  */
 
+#include "BLI_bit_span.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_vector.hh"
 
 #include "bmesh_class.hh"
 
@@ -33,13 +35,11 @@ struct BMPartialUpdate_Params {
  *   setting them to dirty values between updates will slow down normal recalculation.
  */
 struct BMPartialUpdate {
-  BMVert **verts;
-  BMFace **faces;
-  int verts_len, verts_len_alloc;
-  int faces_len, faces_len_alloc;
+  blender::Vector<BMVert *> verts;
+  blender::Vector<BMFace *> faces;
 
   /** Store the parameters used in creation so invalid use can be asserted. */
-  BMPartialUpdate_Params params;
+  BMPartialUpdate_Params params = {};
 };
 
 /**
@@ -48,9 +48,9 @@ struct BMPartialUpdate {
  */
 BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
                                                    const BMPartialUpdate_Params *params,
-                                                   const unsigned int *verts_mask,
+                                                   blender::BitSpan verts_mask,
                                                    int verts_mask_count)
-    ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * All Connected, operate on all faces that have both tagged and un-tagged vertices.
@@ -60,8 +60,8 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
 BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
     BMesh *bm,
     const BMPartialUpdate_Params *params,
-    const unsigned int *verts_mask,
-    int verts_mask_count) ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+    blender::BitSpan verts_mask,
+    int verts_mask_count) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * All Connected, operate on all faces that have vertices in the same group.
