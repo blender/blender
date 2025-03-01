@@ -184,6 +184,9 @@ class MeshState {
     }
     mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
       const bke::GAttributeReader attribute = iter.get();
+      if (attribute.varray.size() == 0) {
+        return;
+      }
       this->freeze_shared_state(*attribute.sharing_info);
     });
   }
