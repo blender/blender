@@ -2602,9 +2602,6 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
   wmWindow *win = CTX_wm_window(C);
   SpaceType *st = BKE_spacetype_from_id(type);
 
-  /* Are we reusing a space already stored in this area? */
-  bool is_restored_space = false;
-
   if (area->spacetype != type) {
     SpaceLink *slold = static_cast<SpaceLink *>(area->spacedata.first);
     /* store area->type->exit callback */
@@ -2668,7 +2665,6 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
 
     if (sl) {
       /* swap regions */
-      is_restored_space = true;
       slold->regionbase = area->regionbase;
       area->regionbase = sl->regionbase;
       BLI_listbase_clear(&sl->regionbase);
@@ -2714,9 +2710,17 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
     ED_area_tag_refresh(area);
   }
 
-  /* Set area space subtype if applicable and newly created. */
-  if (!is_restored_space && st && st->space_subtype_item_extend != nullptr) {
+  /* Set area space subtype if applicable. */
+  if (st && st->space_subtype_item_extend != nullptr) {
+    if (area->butspacetype_subtype == -1) {
+      /* Indication (probably from space_type_set_or_cycle) to ignore the
+       * area's current subtype and use last-used, as saved in the space. */
+      area->butspacetype_subtype = st->space_subtype_get(area);
+    }
     st->space_subtype_set(area, area->butspacetype_subtype);
+  }
+  else {
+    area->butspacetype_subtype = 0;
   }
 
   if (BLI_listbase_is_single(&CTX_wm_screen(C)->areabase)) {
