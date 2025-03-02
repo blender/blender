@@ -15,7 +15,7 @@ void DupliParentFinder::insert(const DupliObject *dupli_ob)
   dupli_set_.add(dupli_ob->ob);
 
   PersistentID dupli_pid(dupli_ob);
-  pid_to_dupli_.add_new(dupli_pid, dupli_ob);
+  pid_to_dupli_.add(dupli_pid, dupli_ob);
   instancer_pid_to_duplis_.lookup_or_add(dupli_pid.instancer_pid(), {}).add(dupli_ob);
 }
 
