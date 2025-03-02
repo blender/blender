@@ -253,7 +253,7 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
 
   GPU_matrix_push();
 
-  const int scale = int(U.pixelsize);
+  const int scale = std::max(1, round_fl_to_int(UI_SCALE_FAC));
 
   unit_m4(gl_matrix);
 

@@ -72,10 +72,6 @@
 
 using blender::Vector;
 
-/* Pixel distance from 0% to 100%. */
-#define SLIDE_PIXEL_DISTANCE (300 * U.pixelsize)
-#define OVERSHOOT_RANGE_DELTA 0.2f
-
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */
 
