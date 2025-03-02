@@ -496,7 +496,9 @@ def gather_action_animations(obj_uuid: int,
             if on_type == "OBJECT":  # Not for shapekeys!
                 if blender_object.animation_data.action is None \
                         or (blender_object.animation_data.action.name != blender_action.name) \
+                        or (blender_object.animation_data.action_slot is None) \
                         or (blender_object.animation_data.action_slot.handle != slot.slot.handle):
+
                     if blender_object.animation_data.is_property_readonly('action'):
                         blender_object.animation_data.use_tweak_mode = False
                     try:
