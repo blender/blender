@@ -43,7 +43,7 @@ struct ViewLayer;
 struct World;
 namespace blender::draw {
 class TextureFromPool;
-class ObjectRef;
+struct ObjectRef;
 }  // namespace blender::draw
 
 typedef struct DRWPass DRWPass;
