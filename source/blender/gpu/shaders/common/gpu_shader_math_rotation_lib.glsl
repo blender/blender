@@ -19,20 +19,14 @@ struct Angle {
   /* Angle in radian. */
   float angle;
 
-#  ifdef __cplusplus
-  Angle() = default;
-  Angle(float angle_) : angle(angle_){};
-#  endif
+  METAL_CONSTRUCTOR_1(Angle, float, angle)
 };
 
 struct AxisAngle {
   vec3 axis;
   float angle;
 
-#  ifdef __cplusplus
-  AxisAngle() = default;
-  AxisAngle(vec3 axis_, float angle_) : axis(axis_), angle(angle_){};
-#  endif
+  METAL_CONSTRUCTOR_2(AxisAngle, vec3, axis, float, angle)
 };
 
 AxisAngle AxisAngle_identity()
@@ -42,10 +36,7 @@ AxisAngle AxisAngle_identity()
 
 struct Quaternion {
   float x, y, z, w;
-#  ifdef __cplusplus
-  Quaternion() = default;
-  Quaternion(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_){};
-#  endif
+  METAL_CONSTRUCTOR_4(Quaternion, float, x, float, y, float, z, float, w)
 };
 
 vec4 as_vec4(Quaternion quat)
@@ -60,10 +51,7 @@ Quaternion Quaternion_identity()
 
 struct EulerXYZ {
   float x, y, z;
-#  ifdef __cplusplus
-  EulerXYZ() = default;
-  EulerXYZ(float x_, float y_, float z_) : x(x_), y(y_), z(z_){};
-#  endif
+  METAL_CONSTRUCTOR_3(EulerXYZ, float, x, float, y, float, z)
 };
 
 vec3 as_vec3(EulerXYZ eul)
