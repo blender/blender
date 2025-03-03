@@ -240,8 +240,6 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
     return ntree->runtime->execdata;
   }
 
-  context.previews = ntree->previews;
-
   exec = ntreeTexBeginExecTree_internal(&context, ntree, blender::bke::NODE_INSTANCE_KEY_BASE);
 
   /* XXX this should not be necessary, but is still used for compositor/shading/texture nodes,

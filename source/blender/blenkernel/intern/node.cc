@@ -188,20 +188,10 @@ static void ntree_copy_data(Main * /*bmain*/,
 
   ntree_dst->tree_interface.copy_data(ntree_src->tree_interface, flag);
   /* copy preview hash */
-  if (ntree_src->previews && (flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-    bNodeInstanceHashIterator iter;
-
-    ntree_dst->previews = node_instance_hash_new("node previews");
-
-    NODE_INSTANCE_HASH_ITER (iter, ntree_src->previews) {
-      bNodeInstanceKey key = node_instance_hash_iterator_get_key(&iter);
-      bNodePreview *preview = static_cast<bNodePreview *>(
-          node_instance_hash_iterator_get_value(&iter));
-      node_instance_hash_insert(ntree_dst->previews, key, node_preview_copy(preview));
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    for (const auto &item : ntree_src->runtime->previews.items()) {
+      dst_runtime.previews.add_new(item.key, item.value);
     }
-  }
-  else {
-    ntree_dst->previews = nullptr;
   }
 
   if (ntree_src->runtime->field_inferencing_interface) {
@@ -274,11 +264,6 @@ static void ntree_free_data(ID *id)
   }
 
   ntree->tree_interface.free_data();
-
-  /* free preview hash */
-  if (ntree->previews) {
-    node_instance_hash_free(ntree->previews, (bNodeInstanceValueFP)node_preview_free);
-  }
 
   if (ntree->id.tag & ID_TAG_LOCALIZED) {
     BKE_libblock_free_data(&ntree->id, true);
@@ -399,12 +384,6 @@ static void node_foreach_cache(ID *id,
   bNodeTree *nodetree = reinterpret_cast<bNodeTree *>(id);
   IDCacheKey key = {0};
   key.id_session_uid = id->session_uid;
-  key.identifier = offsetof(bNodeTree, previews);
-
-  /* TODO: see also `direct_link_nodetree()` in `readfile.cc`. */
-#if 0
-  function_callback(id, &key, static_cast<void **>(&nodetree->previews), 0, user_data);
-#endif
 
   if (nodetree->type == NTREE_COMPOSIT) {
     for (bNode *node : nodetree->all_nodes()) {
@@ -1265,9 +1244,6 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
   BLO_read_struct(reader, GeometryNodeAssetTraits, &ntree->geometry_node_asset_traits);
   BLO_read_struct_array(
       reader, bNestedNodeRef, ntree->nested_node_refs_num, &ntree->nested_node_refs);
-
-  /* TODO: should be dealt by new generic cache handling of IDs... */
-  ntree->previews = nullptr;
 
   BLO_read_struct(reader, PreviewImage, &ntree->preview);
   BKE_previewimg_blend_read(reader, ntree->preview);
@@ -3289,22 +3265,22 @@ bool node_preview_used(const bNode &node)
   return (node.typeinfo->flag & NODE_PREVIEW) != 0;
 }
 
-bNodePreview *node_preview_verify(bNodeInstanceHash *previews,
+bNodePreview *node_preview_verify(Map<bNodeInstanceKey, bNodePreview> &previews,
                                   bNodeInstanceKey key,
                                   const int xsize,
                                   const int ysize,
                                   const bool create)
 {
-  bNodePreview *preview = static_cast<bNodePreview *>(node_instance_hash_lookup(previews, key));
+  bNodePreview *preview = create ? &previews.lookup_or_add_cb(key,
+                                                              [&]() {
+                                                                bNodePreview preview;
+                                                                preview.ibuf = IMB_allocImBuf(
+                                                                    xsize, ysize, 32, IB_rect);
+                                                                return preview;
+                                                              }) :
+                                   previews.lookup_ptr(key);
   if (!preview) {
-    if (create) {
-      preview = MEM_cnew<bNodePreview>("node preview");
-      preview->ibuf = IMB_allocImBuf(xsize, ysize, 32, IB_rect);
-      node_instance_hash_insert(previews, key, preview);
-    }
-    else {
-      return nullptr;
-    }
+    return nullptr;
   }
 
   /* node previews can get added with variable size this way */
@@ -3323,22 +3299,25 @@ bNodePreview *node_preview_verify(bNodeInstanceHash *previews,
   return preview;
 }
 
-bNodePreview *node_preview_copy(bNodePreview *preview)
+bNodePreview::bNodePreview(const bNodePreview &other)
 {
-  bNodePreview *new_preview = static_cast<bNodePreview *>(MEM_dupallocN(preview));
-  new_preview->ibuf = IMB_dupImBuf(preview->ibuf);
-  return new_preview;
+  this->ibuf = IMB_dupImBuf(other.ibuf);
 }
 
-void node_preview_free(bNodePreview *preview)
+bNodePreview::bNodePreview(bNodePreview &&other)
 {
-  if (preview->ibuf) {
-    IMB_freeImBuf(preview->ibuf);
+  this->ibuf = other.ibuf;
+  other.ibuf = nullptr;
+}
+
+bNodePreview::~bNodePreview()
+{
+  if (this->ibuf) {
+    IMB_freeImBuf(this->ibuf);
   }
-  MEM_freeN(preview);
 }
 
-static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
+static void node_preview_init_tree_recursive(Map<bNodeInstanceKey, bNodePreview> &previews,
                                              bNodeTree *ntree,
                                              bNodeInstanceKey parent_key,
                                              const int xsize,
@@ -3360,84 +3339,51 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
 
 void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize)
 {
-  if (!ntree) {
-    return;
-  }
-
-  if (!ntree->previews) {
-    ntree->previews = node_instance_hash_new("node previews");
-  }
-
-  node_preview_init_tree_recursive(ntree->previews, ntree, NODE_INSTANCE_KEY_BASE, xsize, ysize);
+  node_preview_init_tree_recursive(
+      ntree->runtime->previews, ntree, NODE_INSTANCE_KEY_BASE, xsize, ysize);
 }
 
-static void node_preview_tag_used_recursive(bNodeInstanceHash *previews,
-                                            bNodeTree *ntree,
-                                            bNodeInstanceKey parent_key)
+static void collect_used_previews(Map<bNodeInstanceKey, bNodePreview> &previews,
+                                  bNodeTree *ntree,
+                                  bNodeInstanceKey parent_key,
+                                  Set<bNodeInstanceKey> &used)
 {
   for (bNode *node : ntree->all_nodes()) {
     bNodeInstanceKey key = node_instance_key(parent_key, ntree, node);
 
     if (node_preview_used(*node)) {
-      node_instance_hash_tag_key(previews, key);
+      used.add(key);
     }
 
-    bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
-    if (node->is_group() && group != nullptr) {
-      node_preview_tag_used_recursive(previews, group, key);
+    if (node->is_group()) {
+      if (bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id)) {
+        collect_used_previews(previews, group, key, used);
+      }
     }
   }
 }
 
 void node_preview_remove_unused(bNodeTree *ntree)
 {
-  if (!ntree || !ntree->previews) {
-    return;
-  }
-
-  /* use the instance hash functions for tagging and removing unused previews */
-  node_instance_hash_clear_tags(ntree->previews);
-  node_preview_tag_used_recursive(ntree->previews, ntree, NODE_INSTANCE_KEY_BASE);
-
-  node_instance_hash_remove_untagged(ntree->previews,
-                                     reinterpret_cast<bNodeInstanceValueFP>(node_preview_free));
+  Set<bNodeInstanceKey> used_previews;
+  collect_used_previews(ntree->runtime->previews, ntree, NODE_INSTANCE_KEY_BASE, used_previews);
+  ntree->runtime->previews.remove_if([&](const MapItem<bNodeInstanceKey, bNodePreview> &item) {
+    return !used_previews.contains(item.key);
+  });
 }
 
 void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool remove_old)
 {
-  if (remove_old || !to_ntree->previews) {
-    /* free old previews */
-    if (to_ntree->previews) {
-      node_instance_hash_free(to_ntree->previews,
-                              reinterpret_cast<bNodeInstanceValueFP>(node_preview_free));
-    }
-
-    /* transfer previews */
-    to_ntree->previews = from_ntree->previews;
-    from_ntree->previews = nullptr;
-
-    /* clean up, in case any to_ntree nodes have been removed */
+  if (remove_old || to_ntree->runtime->previews.is_empty()) {
+    to_ntree->runtime->previews.clear();
+    to_ntree->runtime->previews = std::move(from_ntree->runtime->previews);
     node_preview_remove_unused(to_ntree);
   }
   else {
-    if (from_ntree->previews) {
-      bNodeInstanceHashIterator iter;
-      NODE_INSTANCE_HASH_ITER (iter, from_ntree->previews) {
-        bNodeInstanceKey key = node_instance_hash_iterator_get_key(&iter);
-        bNodePreview *preview = static_cast<bNodePreview *>(
-            node_instance_hash_iterator_get_value(&iter));
-
-        /* replace existing previews */
-        node_instance_hash_remove(
-            to_ntree->previews, key, reinterpret_cast<bNodeInstanceValueFP>(node_preview_free));
-        node_instance_hash_insert(to_ntree->previews, key, preview);
-      }
-
-      /* NOTE: null free function here,
-       * because pointers have already been moved over to to_ntree->previews! */
-      node_instance_hash_free(from_ntree->previews, nullptr);
-      from_ntree->previews = nullptr;
+    for (const auto &item : from_ntree->runtime->previews.items()) {
+      to_ntree->runtime->previews.add(item.key, std::move(item.value));
     }
+    from_ntree->runtime->previews.clear();
   }
 }
 
@@ -4051,131 +3997,6 @@ bNodeInstanceKey node_instance_key(bNodeInstanceKey parent_key,
   }
 
   return key;
-}
-
-static uint node_instance_hash_key(const void *key)
-{
-  return static_cast<const bNodeInstanceKey *>(key)->value;
-}
-
-static bool node_instance_hash_key_cmp(const void *a, const void *b)
-{
-  uint value_a = static_cast<const bNodeInstanceKey *>(a)->value;
-  uint value_b = static_cast<const bNodeInstanceKey *>(b)->value;
-
-  return (value_a != value_b);
-}
-
-bNodeInstanceHash *node_instance_hash_new(const StringRefNull info)
-{
-  bNodeInstanceHash *hash = static_cast<bNodeInstanceHash *>(
-      MEM_mallocN(sizeof(bNodeInstanceHash), info.c_str()));
-  hash->ghash = BLI_ghash_new(
-      node_instance_hash_key, node_instance_hash_key_cmp, "node instance hash ghash");
-  return hash;
-}
-
-void node_instance_hash_free(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp)
-{
-  BLI_ghash_free(hash->ghash, nullptr, reinterpret_cast<GHashValFreeFP>(valfreefp));
-  MEM_freeN(hash);
-}
-
-void node_instance_hash_insert(bNodeInstanceHash *hash, bNodeInstanceKey key, void *value)
-{
-  bNodeInstanceHashEntry *entry = static_cast<bNodeInstanceHashEntry *>(value);
-  entry->key = key;
-  entry->tag = 0;
-  BLI_ghash_insert(hash->ghash, &entry->key, value);
-}
-
-void *node_instance_hash_lookup(bNodeInstanceHash *hash, bNodeInstanceKey key)
-{
-  return BLI_ghash_lookup(hash->ghash, &key);
-}
-
-int node_instance_hash_remove(bNodeInstanceHash *hash,
-                              bNodeInstanceKey key,
-                              bNodeInstanceValueFP valfreefp)
-{
-  return BLI_ghash_remove(hash->ghash, &key, nullptr, reinterpret_cast<GHashValFreeFP>(valfreefp));
-}
-
-void node_instance_hash_clear(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp)
-{
-  BLI_ghash_clear(hash->ghash, nullptr, reinterpret_cast<GHashValFreeFP>(valfreefp));
-}
-
-void *node_instance_hash_pop(bNodeInstanceHash *hash, bNodeInstanceKey key)
-{
-  return BLI_ghash_popkey(hash->ghash, &key, nullptr);
-}
-
-int node_instance_hash_haskey(bNodeInstanceHash *hash, bNodeInstanceKey key)
-{
-  return BLI_ghash_haskey(hash->ghash, &key);
-}
-
-int node_instance_hash_size(bNodeInstanceHash *hash)
-{
-  return BLI_ghash_len(hash->ghash);
-}
-
-void node_instance_hash_clear_tags(bNodeInstanceHash *hash)
-{
-  bNodeInstanceHashIterator iter;
-
-  NODE_INSTANCE_HASH_ITER (iter, hash) {
-    bNodeInstanceHashEntry *value = static_cast<bNodeInstanceHashEntry *>(
-        node_instance_hash_iterator_get_value(&iter));
-
-    value->tag = 0;
-  }
-}
-
-void node_instance_hash_tag(bNodeInstanceHash * /*hash*/, void *value)
-{
-  bNodeInstanceHashEntry *entry = static_cast<bNodeInstanceHashEntry *>(value);
-  entry->tag = 1;
-}
-
-bool node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey key)
-{
-  bNodeInstanceHashEntry *entry = static_cast<bNodeInstanceHashEntry *>(
-      node_instance_hash_lookup(hash, key));
-
-  if (entry) {
-    entry->tag = 1;
-    return true;
-  }
-
-  return false;
-}
-
-void node_instance_hash_remove_untagged(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp)
-{
-  /* NOTE: Hash must not be mutated during iterating!
-   * Store tagged entries in a separate list and remove items afterward.
-   */
-  bNodeInstanceKey *untagged = static_cast<bNodeInstanceKey *>(
-      MEM_mallocN(sizeof(bNodeInstanceKey) * node_instance_hash_size(hash),
-                  "temporary node instance key list"));
-  bNodeInstanceHashIterator iter;
-  int num_untagged = 0;
-  NODE_INSTANCE_HASH_ITER (iter, hash) {
-    bNodeInstanceHashEntry *value = static_cast<bNodeInstanceHashEntry *>(
-        node_instance_hash_iterator_get_value(&iter));
-
-    if (!value->tag) {
-      untagged[num_untagged++] = node_instance_hash_iterator_get_key(&iter);
-    }
-  }
-
-  for (int i = 0; i < num_untagged; i++) {
-    node_instance_hash_remove(hash, untagged[i], valfreefp);
-  }
-
-  MEM_freeN(untagged);
 }
 
 /* Build a set of built-in node types to check for known types. */

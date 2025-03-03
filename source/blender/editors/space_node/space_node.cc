@@ -1100,8 +1100,10 @@ static int /*eContextResult*/ node_context(const bContext *C,
   }
   if (CTX_data_equals(member, "node_previews")) {
     if (snode->nodetree) {
-      CTX_data_pointer_set(
-          result, &snode->nodetree->id, &RNA_NodeInstanceHash, snode->nodetree->previews);
+      CTX_data_pointer_set(result,
+                           &snode->nodetree->id,
+                           &RNA_NodeInstanceHash,
+                           &snode->nodetree->runtime->previews);
     }
 
     CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);

@@ -11,7 +11,6 @@
 #include <optional>
 
 #include "BLI_compiler_compat.h"
-#include "BLI_ghash.h"
 #include "BLI_span.hh"
 
 #include "BKE_volume_enums.hh"
@@ -720,16 +719,6 @@ bNode *node_get_active_texture(bNodeTree &ntree);
 int node_socket_link_limit(const bNodeSocket &sock);
 
 /**
- * Node Instance Hash.
- */
-struct bNodeInstanceHash {
-  /** XXX should be made a direct member, #GHash allocation needs to support it */
-  GHash *ghash;
-};
-
-using bNodeInstanceValueFP = void (*)(void *value);
-
-/**
  * Magic number for initial hash key.
  */
 extern const bNodeInstanceKey NODE_INSTANCE_KEY_BASE;
@@ -738,23 +727,6 @@ extern const bNodeInstanceKey NODE_INSTANCE_KEY_NONE;
 bNodeInstanceKey node_instance_key(bNodeInstanceKey parent_key,
                                    const bNodeTree *ntree,
                                    const bNode *node);
-
-bNodeInstanceHash *node_instance_hash_new(StringRefNull info);
-void node_instance_hash_free(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
-void node_instance_hash_insert(bNodeInstanceHash *hash, bNodeInstanceKey key, void *value);
-void *node_instance_hash_lookup(bNodeInstanceHash *hash, bNodeInstanceKey key);
-int node_instance_hash_remove(bNodeInstanceHash *hash,
-                              bNodeInstanceKey key,
-                              bNodeInstanceValueFP valfreefp);
-void node_instance_hash_clear(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
-void *node_instance_hash_pop(bNodeInstanceHash *hash, bNodeInstanceKey key);
-int node_instance_hash_haskey(bNodeInstanceHash *hash, bNodeInstanceKey key);
-int node_instance_hash_size(bNodeInstanceHash *hash);
-
-void node_instance_hash_clear_tags(bNodeInstanceHash *hash);
-void node_instance_hash_tag(bNodeInstanceHash *hash, void *value);
-bool node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey key);
-void node_instance_hash_remove_untagged(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
 
 /** \} */
 
@@ -1082,58 +1054,23 @@ bool node_declaration_ensure_on_outdated_node(bNodeTree &ntree, bNode &node);
  */
 void node_socket_declarations_update(bNode *node);
 
-using bNodeInstanceHashIterator = GHashIterator;
-
-BLI_INLINE bNodeInstanceHashIterator *node_instance_hash_iterator_new(bNodeInstanceHash *hash)
-{
-  return BLI_ghashIterator_new(hash->ghash);
-}
-
-BLI_INLINE void node_instance_hash_iterator_init(bNodeInstanceHashIterator *iter,
-                                                 bNodeInstanceHash *hash)
-{
-  BLI_ghashIterator_init(iter, hash->ghash);
-}
-
-BLI_INLINE void node_instance_hash_iterator_free(bNodeInstanceHashIterator *iter)
-{
-  BLI_ghashIterator_free(iter);
-}
-
-BLI_INLINE bNodeInstanceKey node_instance_hash_iterator_get_key(bNodeInstanceHashIterator *iter)
-{
-  return *(bNodeInstanceKey *)BLI_ghashIterator_getKey(iter);
-}
-
-BLI_INLINE void *node_instance_hash_iterator_get_value(bNodeInstanceHashIterator *iter)
-{
-  return BLI_ghashIterator_getValue(iter);
-}
-
-BLI_INLINE void node_instance_hash_iterator_step(bNodeInstanceHashIterator *iter)
-{
-  BLI_ghashIterator_step(iter);
-}
-
-BLI_INLINE bool node_instance_hash_iterator_done(bNodeInstanceHashIterator *iter)
-{
-  return BLI_ghashIterator_done(iter);
-}
-
-#define NODE_INSTANCE_HASH_ITER(iter_, hash_) \
-  for (blender::bke::node_instance_hash_iterator_init(&iter_, hash_); \
-       blender::bke::node_instance_hash_iterator_done(&iter_) == false; \
-       blender::bke::node_instance_hash_iterator_step(&iter_))
-
 /* Node Previews */
 bool node_preview_used(const bNode &node);
 
-bNodePreview *node_preview_verify(
-    bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create);
+struct bNodePreview {
+  ImBuf *ibuf = nullptr;
 
-bNodePreview *node_preview_copy(bNodePreview *preview);
+  bNodePreview() = default;
+  bNodePreview(const bNodePreview &other);
+  bNodePreview(bNodePreview &&other);
+  ~bNodePreview();
+};
 
-void node_preview_free(bNodePreview *preview);
+bNodePreview *node_preview_verify(Map<bNodeInstanceKey, bNodePreview> &previews,
+                                  bNodeInstanceKey key,
+                                  int xsize,
+                                  int ysize,
+                                  bool create);
 
 void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize);
 

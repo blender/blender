@@ -3391,8 +3391,9 @@ static void node_draw_basis(const bContext &C,
     bool drawn_with_previews = false;
 
     if (show_preview) {
-      bke::bNodeInstanceHash *previews_compo = static_cast<bke::bNodeInstanceHash *>(
-          CTX_data_pointer_get(&C, "node_previews").data);
+      Map<bNodeInstanceKey, bke::bNodePreview> *previews_compo =
+          static_cast<Map<bNodeInstanceKey, bke::bNodePreview> *>(
+              CTX_data_pointer_get(&C, "node_previews").data);
       NestedTreePreviews *previews_shader = tree_draw_ctx.nested_group_infos;
 
       if (previews_shader) {
@@ -3402,9 +3403,7 @@ static void node_draw_basis(const bContext &C,
         drawn_with_previews = true;
       }
       else if (previews_compo) {
-        bNodePreview *preview_compositor = static_cast<bNodePreview *>(
-            bke::node_instance_hash_lookup(previews_compo, key));
-        if (preview_compositor) {
+        if (bke::bNodePreview *preview_compositor = previews_compo->lookup_ptr(key)) {
           node_draw_extra_info_panel(
               C, tree_draw_ctx, snode, node, preview_compositor->ibuf, block);
           drawn_with_previews = true;

@@ -39,7 +39,6 @@ class bNodeSocketRuntime;
 namespace blender::bke {
 class bNodeTreeZones;
 class bNodeTreeZone;
-struct bNodeInstanceHash;
 struct bNodeTreeType;
 struct bNodeType;
 struct bNodeSocketType;
@@ -51,7 +50,6 @@ using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
 using bNodeRuntimeHandle = blender::bke::bNodeRuntime;
 using bNodeSocketRuntimeHandle = blender::bke::bNodeSocketRuntime;
 using RuntimeNodeEnumItemsHandle = blender::bke::RuntimeNodeEnumItems;
-using NodeInstanceHashHandle = blender::bke::bNodeInstanceHash;
 using bNodeTreeTypeHandle = blender::bke::bNodeTreeType;
 using bNodeTypeHandle = blender::bke::bNodeType;
 using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
@@ -78,7 +76,6 @@ struct PreviewImage;
 struct Tex;
 struct bGPdata;
 struct bNodeLink;
-struct bNodePreview;
 struct bNode;
 struct NodeEnumDefinition;
 
@@ -646,15 +643,6 @@ typedef struct bNodeInstanceHashEntry {
   short tag;
 } bNodeInstanceHashEntry;
 
-#
-#
-typedef struct bNodePreview {
-  /** Must be first. */
-  bNodeInstanceHashEntry hash_entry;
-
-  struct ImBuf *ibuf;
-} bNodePreview;
-
 typedef struct bNodeLink {
   struct bNodeLink *next, *prev;
 
@@ -783,11 +771,6 @@ typedef struct bNodeTree {
 
   bNodeTreeInterface tree_interface;
 
-  /**
-   * Node preview hash table.
-   * Only available in base node trees (e.g. scene->node_tree).
-   */
-  NodeInstanceHashHandle *previews;
   /**
    * Defines the node tree instance to use for the "active" context,
    * in case multiple different editors are used and make context ambiguous.
