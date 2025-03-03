@@ -321,13 +321,13 @@ static void grease_pencil_weight_batch_ensure(Object &object,
 
     drawing_start_offset += curves.points_num();
 
+    const int drawing_visible_points_num = offset_indices::sum_group_sizes(points_by_curve,
+                                                                           visible_strokes);
+
     /* Add one id for the restart after every curve. */
     total_line_ids_num += visible_strokes.size();
-    Array<int> size_per_editable_stroke(visible_strokes.size());
-    offset_indices::gather_group_sizes(points_by_curve, visible_strokes, size_per_editable_stroke);
     /* Add one id for every non-cyclic segment. */
-    total_line_ids_num += std::accumulate(
-        size_per_editable_stroke.begin(), size_per_editable_stroke.end(), 0);
+    total_line_ids_num += drawing_visible_points_num;
     /* Add one id for the last segment of every cyclic curve. */
     total_line_ids_num += array_utils::count_booleans(curves.cyclic(), visible_strokes);
 
@@ -336,10 +336,7 @@ static void grease_pencil_weight_batch_ensure(Object &object,
       continue;
     }
 
-    visible_strokes.foreach_index([&](const int curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
-      visible_points_num += points.size();
-    });
+    visible_points_num += drawing_visible_points_num;
   }
 
   GPUIndexBufBuilder elb;
@@ -849,12 +846,9 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 
     /* Add one id for the restart after every curve. */
     total_line_ids_num += visible_strokes_for_lines.size();
-    Array<int> size_per_editable_stroke(visible_strokes_for_lines.size());
-    offset_indices::gather_group_sizes(
-        points_by_curve_eval, visible_strokes_for_lines, size_per_editable_stroke);
     /* Add one id for every non-cyclic segment. */
-    total_line_ids_num += std::accumulate(
-        size_per_editable_stroke.begin(), size_per_editable_stroke.end(), 0);
+    total_line_ids_num += offset_indices::sum_group_sizes(points_by_curve_eval,
+                                                          visible_strokes_for_lines);
     /* Add one id for the last segment of every cyclic curve. */
     total_line_ids_num += array_utils::count_booleans(curves.cyclic(), visible_strokes_for_lines);
 
@@ -868,13 +862,9 @@ static void grease_pencil_edit_batch_ensure(Object &object,
         ed::greasepencil::retrieve_editable_and_selected_strokes(
             object, info.drawing, info.layer_index, memory);
 
-    Array<int> size_per_selected_editable_stroke(selected_editable_strokes.size());
-    offset_indices::gather_group_sizes(
-        points_by_curve, selected_editable_strokes, size_per_selected_editable_stroke);
-
     /* Add one id for every point in a selected curve. */
-    visible_points_num += std::accumulate(
-        size_per_selected_editable_stroke.begin(), size_per_selected_editable_stroke.end(), 0);
+    visible_points_num += offset_indices::sum_group_sizes(points_by_curve,
+                                                          selected_editable_strokes);
 
     const VArray<float> selected_point = *curves.attributes().lookup_or_default<float>(
         ".selection", bke::AttrDomain::Point, true);
