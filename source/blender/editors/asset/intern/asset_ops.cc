@@ -24,6 +24,7 @@
 #include "ED_screen.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.hh"
+#include "ED_util.hh"
 
 #include "BLT_translation.hh"
 
@@ -37,35 +38,6 @@
 
 namespace blender::ed::asset {
 /* -------------------------------------------------------------------- */
-
-static Vector<PointerRNA> get_single_id_vec_from_context(const bContext *C)
-{
-  Vector<PointerRNA> ids;
-  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
-  if (idptr.data) {
-    ids.append(idptr);
-  }
-  return ids;
-}
-
-/**
- * Return the IDs to operate on as PointerRNA vector. Prioritizes multiple selected ones
- * ("selected_ids" context member) over a single active one ("id" context member), since usually
- * batch operations are more useful.
- */
-static Vector<PointerRNA> asset_operation_get_ids_from_context(const bContext *C)
-{
-  Vector<PointerRNA> ids;
-
-  /* "selected_ids" context member. */
-  CTX_data_selected_ids(C, &ids);
-  if (!ids.is_empty()) {
-    return ids;
-  }
-
-  /* "id" context member. */
-  return get_single_id_vec_from_context(C);
-}
 
 /**
  * Information about what's contained in a #Vector<PointerRNA>, returned by
@@ -219,10 +191,10 @@ static void ASSET_OT_mark(wmOperatorType *ot)
   ot->idname = "ASSET_OT_mark";
 
   ot->exec = [](bContext *C, wmOperator *op) -> int {
-    return asset_mark_exec(C, op, asset_operation_get_ids_from_context(C));
+    return asset_mark_exec(C, op, ED_operator_get_ids_from_context_as_vec(C));
   };
   ot->poll = [](bContext *C) -> bool {
-    return asset_mark_poll(C, asset_operation_get_ids_from_context(C));
+    return asset_mark_poll(C, ED_operator_get_ids_from_context_as_vec(C));
   };
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -240,10 +212,10 @@ static void ASSET_OT_mark_single(wmOperatorType *ot)
   ot->idname = "ASSET_OT_mark_single";
 
   ot->exec = [](bContext *C, wmOperator *op) -> int {
-    return asset_mark_exec(C, op, get_single_id_vec_from_context(C));
+    return asset_mark_exec(C, op, ED_operator_single_id_from_context_as_vec(C));
   };
   ot->poll = [](bContext *C) -> bool {
-    return asset_mark_poll(C, get_single_id_vec_from_context(C));
+    return asset_mark_poll(C, ED_operator_single_id_from_context_as_vec(C));
   };
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -385,10 +357,10 @@ static void ASSET_OT_clear(wmOperatorType *ot)
   ot->idname = "ASSET_OT_clear";
 
   ot->exec = [](bContext *C, wmOperator *op) -> int {
-    return asset_clear_exec(C, op, asset_operation_get_ids_from_context(C));
+    return asset_clear_exec(C, op, ED_operator_get_ids_from_context_as_vec(C));
   };
   ot->poll = [](bContext *C) -> bool {
-    return asset_clear_poll(C, asset_operation_get_ids_from_context(C));
+    return asset_clear_poll(C, ED_operator_get_ids_from_context_as_vec(C));
   };
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -409,10 +381,10 @@ static void ASSET_OT_clear_single(wmOperatorType *ot)
   ot->idname = "ASSET_OT_clear_single";
 
   ot->exec = [](bContext *C, wmOperator *op) -> int {
-    return asset_clear_exec(C, op, get_single_id_vec_from_context(C));
+    return asset_clear_exec(C, op, ED_operator_single_id_from_context_as_vec(C));
   };
   ot->poll = [](bContext *C) -> bool {
-    return asset_clear_poll(C, get_single_id_vec_from_context(C));
+    return asset_clear_poll(C, ED_operator_single_id_from_context_as_vec(C));
   };
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
