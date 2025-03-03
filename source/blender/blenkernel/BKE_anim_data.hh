@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "BLI_function_ref.hh"
+#include "BLI_string_ref.hh"
 
 struct AnimData;
 struct BlendDataReader;
@@ -94,6 +95,8 @@ void BKE_animdata_free(ID *id, bool do_id_user);
 
 /**
  * Return true if the ID-block has non-empty AnimData.
+ *
+ * \see blender::bke::animdata::prop_is_animated().
  */
 bool BKE_animdata_id_is_animated(const ID *id);
 
@@ -204,5 +207,17 @@ namespace blender::bke::animdata {
  * \see #blender::animrig::internal::rebuild_slot_user_cache()
  */
 void action_slots_user_cache_invalidate(Main &bmain);
+
+/**
+ * Return whether there is any animation on the given property.
+ *
+ * This covers animation by direct Action assignment, the NLA, and drivers.
+ *
+ * \note This performs a full scan of all Actions (direct assignment and each
+ * NLA Action strip), as well as all drivers.
+ *
+ * \param adt can be nullptr, in which case the function will return false.
+ */
+bool prop_is_animated(const AnimData *adt, StringRefNull rna_path, int array_index);
 
 }  // namespace blender::bke::animdata
