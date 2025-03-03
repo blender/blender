@@ -542,8 +542,7 @@ namespace bezier {
 /**
  * Return a flat array of all the bezier positions including the left and right handles.
  * The layout is
- * `[handle_position_left#0, position#0, handle_position_right#0, handle_position_left#1,
- *   position#1, handle_position_right#1, ...]`
+ * `[handle_left#0, position#0, handle_right#0, handle_left#1, position#1, handle_right#1, ...]`
  */
 Array<float3> retrieve_all_positions(const bke::CurvesGeometry &curves,
                                      const IndexMask &curves_selection);
