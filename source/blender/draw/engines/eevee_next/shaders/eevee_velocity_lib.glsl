@@ -30,8 +30,8 @@ vec4 velocity_unpack(vec4 data)
  */
 vec4 velocity_surface(vec3 P_prv, vec3 P, vec3 P_nxt)
 {
-  /* NOTE: We use CameraData matrices instead of drw_view.persmat to avoid adding the TAA jitter to
-   * the velocity. */
+  /* NOTE: We use CameraData matrices instead of drw_view().persmat to avoid adding the TAA jitter
+   * to the velocity. */
   vec2 prev_uv = project_point(camera_prev.persmat, P_prv).xy;
   vec2 curr_uv = project_point(camera_curr.persmat, P).xy;
   vec2 next_uv = project_point(camera_next.persmat, P_nxt).xy;
@@ -59,8 +59,8 @@ vec4 velocity_surface(vec3 P_prv, vec3 P, vec3 P_nxt)
 vec4 velocity_background(vec3 vV)
 {
   vec3 V = transform_direction(camera_curr.viewinv, vV);
-  /* NOTE: We use CameraData matrices instead of drw_view.winmat to avoid adding the TAA jitter to
-   * the velocity. */
+  /* NOTE: We use CameraData matrices instead of drw_view().winmat to avoid adding the TAA jitter
+   * to the velocity. */
   vec2 prev_uv = project_point(camera_prev.winmat, transform_direction(camera_prev.viewmat, V)).xy;
   vec2 curr_uv = project_point(camera_curr.winmat, transform_direction(camera_curr.viewmat, V)).xy;
   vec2 next_uv = project_point(camera_next.winmat, transform_direction(camera_next.viewmat, V)).xy;

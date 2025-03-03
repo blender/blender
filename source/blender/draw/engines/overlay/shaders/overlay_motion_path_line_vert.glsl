@@ -107,7 +107,7 @@ void geometry_main(VertOut geom_in[2],
 
   vec2 edge_dir = orthogonal(normalize(ss_P1 - ss_P0 + 1e-8)) * sizeViewportInv;
 
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
   float line_size = float(lineThickness) * sizePixel;
 
   GeomOut geom_out;

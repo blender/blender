@@ -43,7 +43,7 @@ void main()
   sp = bone_mat * sp.xzy + data_buf[gl_InstanceID].head_sphere.xyz;
   nor = bone_mat * nor.xzy;
 
-  normalView = to_float3x3(drw_view.viewmat) * nor;
+  normalView = to_float3x3(drw_view().viewmat) * nor;
 
   finalStateColor = data_buf[gl_InstanceID].state_color.xyz;
   finalBoneColor = data_buf[gl_InstanceID].state_color.xyz;
@@ -51,5 +51,5 @@ void main()
   view_clipping_distances(sp);
 
   vec4 pos_4d = vec4(sp, 1.0);
-  gl_Position = drw_view.winmat * (drw_view.viewmat * pos_4d);
+  gl_Position = drw_view().winmat * (drw_view().viewmat * pos_4d);
 }

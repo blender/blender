@@ -126,7 +126,7 @@ void main()
 
   if ((gl_VertexID & 1) == 0) {
     if (isConstantScreenSizeNormals) {
-      bool is_persp = (drw_view.winmat[3][3] == 0.0);
+      bool is_persp = (drw_view().winmat[3][3] == 0.0);
       if (is_persp) {
         float dist_fac = length(drw_view_position() - world_pos);
         float cos_fac = dot(drw_view_forward(), drw_world_incident_vector(world_pos));

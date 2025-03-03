@@ -38,7 +38,7 @@ void main()
 #endif
   vec3 screen_pos = (right * circle_P.x + up * circle_P.z) * circle_size;
   vec4 pos_4d = drw_modelmat() * vec4(lP + screen_pos, 1.0);
-  gl_Position = drw_view.winmat * (drw_view.viewmat * pos_4d);
+  gl_Position = drw_view().winmat * (drw_view().viewmat * pos_4d);
 
   view_clipping_distances(pos_4d.xyz);
 }

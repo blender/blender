@@ -137,6 +137,11 @@ IsectFrustum isect_frustum_setup(Frustum shape)
 #ifdef DRW_VIEW_CULLING_INFO
 SHADER_LIBRARY_CREATE_INFO(draw_view_culling)
 
+ViewCullingData drw_view_culling()
+{
+  return drw_view_culling_buf[drw_view_id];
+}
+
 bool intersect_view(Pyramid pyramid)
 {
   bool intersects = true;
@@ -145,7 +150,7 @@ bool intersect_view(Pyramid pyramid)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 5; ++v) {
-      float test = dot(drw_view_culling.frustum_planes.planes[p], vec4(pyramid.corners[v], 1.0));
+      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(pyramid.corners[v], 1.0));
       if (test > 0.0) {
         is_any_vertex_on_positive_side = true;
         break;
@@ -168,7 +173,7 @@ bool intersect_view(Pyramid pyramid)
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
       float test = dot(i_pyramid.planes[p],
-                       vec4(drw_view_culling.frustum_corners.corners[v].xyz, 1.0));
+                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0));
       if (test > 0.0) {
         is_any_vertex_on_positive_side = true;
         break;
@@ -191,7 +196,7 @@ bool intersect_view(Box box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(drw_view_culling.frustum_planes.planes[p], vec4(box.corners[v], 1.0));
+      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(box.corners[v], 1.0));
       if (test > 0.0) {
         is_any_vertex_on_positive_side = true;
         break;
@@ -214,7 +219,7 @@ bool intersect_view(Box box)
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
       float test = dot(i_box.planes[p],
-                       vec4(drw_view_culling.frustum_corners.corners[v].xyz, 1.0));
+                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0));
       if (test > 0.0) {
         is_any_vertex_on_positive_side = true;
         break;
@@ -238,7 +243,7 @@ bool intersect_view(IsectBox i_box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(drw_view_culling.frustum_planes.planes[p], vec4(i_box.corners[v], 1.0));
+      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(i_box.corners[v], 1.0));
       if (test > 0.0) {
         is_any_vertex_on_positive_side = true;
         break;
@@ -259,7 +264,7 @@ bool intersect_view(IsectBox i_box)
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
       float test = dot(i_box.planes[p],
-                       vec4(drw_view_culling.frustum_corners.corners[v].xyz, 1.0));
+                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0));
       if (test > 0.0) {
         is_any_vertex_on_positive_side = true;
         break;
@@ -280,7 +285,8 @@ bool intersect_view(Sphere sphere)
   bool intersects = true;
 
   for (int p = 0; p < 6 && intersects; ++p) {
-    float dist_to_plane = dot(drw_view_culling.frustum_planes.planes[p], vec4(sphere.center, 1.0));
+    float dist_to_plane = dot(drw_view_culling().frustum_planes.planes[p],
+                              vec4(sphere.center, 1.0));
     if (dist_to_plane < -sphere.radius) {
       intersects = false;
     }

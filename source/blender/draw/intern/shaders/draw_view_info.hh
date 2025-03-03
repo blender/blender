@@ -17,8 +17,6 @@
 #  define DRW_VIEW_CULLING_INFO
 #  define USE_WORLD_CLIP_PLANES
 
-#  define drw_view drw_view_[drw_view_id]
-#  define drw_view_culling drw_view_culling_[drw_view_id]
 #  define DRW_VIEW_LEN DRW_VIEW_MAX
 #  define gpThicknessIsScreenSpace (gpThicknessWorldScale < 0.0)
 #endif
@@ -95,16 +93,14 @@ GPU_SHADER_CREATE_END()
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_view)
-UNIFORM_BUF_FREQ(DRW_VIEW_UBO_SLOT, ViewMatrices, drw_view_[DRW_VIEW_LEN], PASS)
+UNIFORM_BUF_FREQ(DRW_VIEW_UBO_SLOT, ViewMatrices, drw_view_buf[DRW_VIEW_LEN], PASS)
 DEFINE("DRAW_VIEW_CREATE_INFO")
-DEFINE_VALUE("drw_view", "drw_view_[drw_view_id]")
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_view_culling)
-UNIFORM_BUF(DRW_VIEW_CULLING_UBO_SLOT, ViewCullingData, drw_view_culling_[DRW_VIEW_LEN])
+UNIFORM_BUF(DRW_VIEW_CULLING_UBO_SLOT, ViewCullingData, drw_view_culling_buf[DRW_VIEW_LEN])
 DEFINE("DRW_VIEW_CULLING_INFO")
-DEFINE_VALUE("drw_view_culling", "drw_view_culling_[drw_view_id]")
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 GPU_SHADER_CREATE_END()
 

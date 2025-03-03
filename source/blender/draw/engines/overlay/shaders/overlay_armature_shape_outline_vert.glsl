@@ -91,7 +91,7 @@ void geometry_main(VertOut geom_in[4],
                    uint out_primitive_id,
                    uint out_invocation_id)
 {
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
 
   vec3 view_vec = (is_persp) ? normalize(geom_in[1].vs_P) : vec3(0.0, 0.0, -1.0);
   vec3 v10 = geom_in[0].vs_P - geom_in[1].vs_P;

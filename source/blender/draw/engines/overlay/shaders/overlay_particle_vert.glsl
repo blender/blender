@@ -22,7 +22,7 @@ void main()
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
   /* World sized points. */
-  gl_PointSize = sizePixel * draw_size * drw_view.winmat[1][1] * globalsBlock.size_viewport.y /
+  gl_PointSize = sizePixel * draw_size * drw_view().winmat[1][1] * globalsBlock.size_viewport.y /
                  gl_Position.w;
 
   /* Coloring */

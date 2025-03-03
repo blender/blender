@@ -24,10 +24,10 @@ void main()
   mat4 inst_obmat = data_buf[gl_InstanceID];
   mat4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
 
-  mat4 model_view_matrix = drw_view.viewmat * model_mat;
+  mat4 model_view_matrix = drw_view().viewmat * model_mat;
   mat4 sphereMatrix = inverse(model_view_matrix);
 
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
 
   /* This is the local space camera ray (not normalize).
    * In perspective mode it's also the view-space position
@@ -69,8 +69,8 @@ void main()
   vec3 cam_pos0 = x_axis * pos.x + y_axis * pos.y + z_axis * z_ofs;
 
   vec4 V = model_view_matrix * vec4(cam_pos0, 1.0);
-  gl_Position = drw_view.winmat * V;
-  vec4 center = drw_view.winmat * vec4(model_view_matrix[3].xyz, 1.0);
+  gl_Position = drw_view().winmat * V;
+  vec4 center = drw_view().winmat * vec4(model_view_matrix[3].xyz, 1.0);
 
   /* Offset away from the center to avoid overlap with solid shape. */
   vec2 ofs_dir = normalize(proj(gl_Position) - proj(center));

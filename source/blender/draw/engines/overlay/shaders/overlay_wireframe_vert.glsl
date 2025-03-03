@@ -119,8 +119,8 @@ void main()
     wnor = -normalize(to_float3x3(obmat) * nor);
   }
 
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
-  vec3 V = (is_persp) ? normalize(drw_view.viewinv[3].xyz - wpos) : drw_view.viewinv[2].xyz;
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  vec3 V = (is_persp) ? normalize(drw_view().viewinv[3].xyz - wpos) : drw_view().viewinv[2].xyz;
 
   bool no_attr = all(equal(nor, vec3(0)));
   float facing = no_attr ? no_nor_facing : dot(wnor, V);

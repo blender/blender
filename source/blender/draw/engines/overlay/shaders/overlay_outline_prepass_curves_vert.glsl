@@ -43,13 +43,13 @@ uint outline_colorid_get()
 
 void main()
 {
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
   float time, thickness;
   vec3 center_wpos, tangent, binor;
 
   hair_get_center_pos_tan_binor_time(is_persp,
-                                     drw_view.viewinv[3].xyz,
-                                     drw_view.viewinv[2].xyz,
+                                     drw_view().viewinv[3].xyz,
+                                     drw_view().viewinv[2].xyz,
                                      center_wpos,
                                      tangent,
                                      binor,
@@ -59,7 +59,7 @@ void main()
   if (hairThicknessRes > 1) {
     /* Calculate the thickness, thick-time, world-position taken into account the outline. */
     float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25 *
-                          globalsBlock.size_viewport.w * drw_view.wininv[1][1];
+                          globalsBlock.size_viewport.w * drw_view().wininv[1][1];
     thickness += outline_width;
     float thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
     thick_time = thickness * (thick_time * 2.0 - 1.0);

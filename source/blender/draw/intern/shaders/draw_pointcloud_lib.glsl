@@ -27,7 +27,7 @@ mat3 pointcloud_get_facing_matrix(vec3 p)
 {
   mat3 facing_mat;
   facing_mat[2] = drw_world_incident_vector(p);
-  facing_mat[1] = normalize(cross(drw_view.viewinv[0].xyz, facing_mat[2]));
+  facing_mat[1] = normalize(cross(drw_view().viewinv[0].xyz, facing_mat[2]));
   facing_mat[0] = cross(facing_mat[1], facing_mat[2]);
   return facing_mat;
 }

@@ -89,8 +89,8 @@ void main()
 
   /* Transform the ray into view-space. */
   Ray ray_view;
-  ray_view.origin = transform_point(drw_view.viewmat, ray.origin);
-  ray_view.direction = transform_direction(drw_view.viewmat, ray.direction);
+  ray_view.origin = transform_point(drw_view().viewmat, ray.origin);
+  ray_view.direction = transform_direction(drw_view().viewmat, ray.direction);
   /* Extend the ray to cover the whole view. */
   ray_view.max_time = 1000.0;
 
@@ -111,7 +111,7 @@ void main()
                           ray_view);
 
     if (hit.valid) {
-      vec3 hit_P = transform_point(drw_view.viewinv, hit.v_hit_P);
+      vec3 hit_P = transform_point(drw_view().viewinv, hit.v_hit_P);
       /* TODO(@fclem): Split matrix multiply for precision. */
       vec3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
       vec3 history_ss_hit_P = history_ndc_hit_P * 0.5 + 0.5;

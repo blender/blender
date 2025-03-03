@@ -80,7 +80,7 @@ CullingTile tile_culling_get(uvec2 tile_co)
 
   for (int i = 0; i < 8; i++) {
     /* Culling in view space for precision. */
-    corners[i] = project_point(drw_view.wininv, corners[i]);
+    corners[i] = project_point(drw_view().wininv, corners[i]);
   }
 
   bool is_persp = ProjectionMatrix[3][3] == 0.0;

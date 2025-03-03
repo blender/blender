@@ -84,7 +84,7 @@ float gpencil_stroke_thickness_modulate(float thickness, vec4 ndc_pos, vec4 view
   }
   else {
     /* World space point size. */
-    thickness *= gpThicknessWorldScale * drw_view.winmat[1][1] * viewport_size.y;
+    thickness *= gpThicknessWorldScale * drw_view().winmat[1][1] * viewport_size.y;
   }
   return thickness;
 }
@@ -218,7 +218,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     vec3 T;
     if (is_dot) {
       /* Shade as facing billboards. */
-      T = drw_view.viewinv[0].xyz;
+      T = drw_view().viewinv[0].xyz;
     }
     else if (use_curr && ma.x != -1) {
       T = wpos1 - wpos_adj;
@@ -228,7 +228,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     }
     T = safe_normalize(T);
 
-    vec3 B = cross(T, drw_view.viewinv[2].xyz);
+    vec3 B = cross(T, drw_view().viewinv[2].xyz);
     out_N = normalize(cross(B, T));
 
     vec4 ndc_adj = drw_point_world_to_homogenous(wpos_adj);

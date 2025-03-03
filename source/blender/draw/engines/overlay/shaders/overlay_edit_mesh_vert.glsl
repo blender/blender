@@ -94,7 +94,7 @@ void main()
   finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
 
   /* Bias Face-dot Z position in clip-space. */
-  gl_Position.z -= (drw_view.winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
+  gl_Position.z -= (drw_view().winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
   gl_PointSize = sizeFaceDot;
 
   bool occluded = test_occlusion();
@@ -106,7 +106,7 @@ void main()
 #if !defined(FACE)
   /* Facing based color blend */
   vec3 view_normal = normalize(drw_normal_object_to_view(vnor) + 1e-4);
-  vec3 view_vec = (drw_view.winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
+  vec3 view_vec = (drw_view().winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;
 
