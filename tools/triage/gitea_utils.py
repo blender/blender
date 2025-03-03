@@ -56,7 +56,8 @@ def url_json_get_all_pages(
             # XXX: In some cases, a bug prevents using the `page` and `limit` parameters if the page is 1
             result_page = url_json_get(url)
         else:
-            result_page = url_json_get(f"{url}&page={page}")
+            separator = '&' if urllib.parse.urlparse(url).query else '?'
+            result_page = url_json_get(f"{url}{separator}page={page}")
 
         if not result_page:
             break
