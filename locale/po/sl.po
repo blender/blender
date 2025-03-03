@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2025-02-21 22:18+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -725,10 +725,6 @@ msgstr "Prihrani prostor pri večjih scenah tako, da pomnilniške podatke porazd
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (poskusno)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT omogoča AMD-jevo strojno sledenje žarkom na arhitekturi RDNA 2 in novejših arhitekturah, na starejših karticah pa izvaja sledenje žarkom s senčilniki. Ta funkcionalnost je poskusna in lahko nekatere scene upodobi nepravilno"
 
 
 msgid "Embree on GPU"
@@ -20575,31 +20571,6 @@ msgid "Grids"
 msgstr "Regularne mreže"
 
 
-msgctxt "Sequence"
-msgid "Sequence Mode"
-msgstr "Sekvenčni način"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Izrezek"
-
-
-msgctxt "Sequence"
-msgid "Extend"
-msgstr "Razširi"
-
-
-msgctxt "Sequence"
-msgid "Repeat"
-msgstr "Ponavljaj"
-
-
-msgctxt "Sequence"
-msgid "Ping-Pong"
-msgstr "Pingpong"
-
-
 msgid "Velocity X Grid"
 msgstr "Mreža hitrosti po X"
 
@@ -23439,12 +23410,56 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Mirror"
-msgstr "Zrcali"
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
+
+
+msgid "Special Characters"
+msgstr "Posebni znaki"
+
+
+msgid "Kerning"
+msgstr "Spodsekavanje"
+
+
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Bone Roll"
+msgstr "Zasukaj kost"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
+
+
+msgid "Pivot Point"
+msgstr "Osišče"
 
 
 msgid "Snap"
 msgstr "Pritrdi"
+
+
+msgid "Mask Edit"
+msgstr "Urejanje maske"
+
+
+msgid "Automasking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Mirror"
+msgstr "Zrcali"
 
 
 msgid "UV Mapping"
@@ -23499,10 +23514,6 @@ msgid "Assign Material"
 msgstr "Dodeli material"
 
 
-msgid "Metaball"
-msgstr "Metažoga"
-
-
 msgid "Light"
 msgstr "Luč"
 
@@ -23533,14 +23544,6 @@ msgstr "Obriši"
 
 msgid "Quick Effects"
 msgstr "Učinki na hitro"
-
-
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
-
-
-msgid "Clean Up"
-msgstr "Počisti"
 
 
 msgid "Asset"
@@ -23587,10 +23590,6 @@ msgid "Bone Collections"
 msgstr "Zbirke kosti"
 
 
-msgid "Names"
-msgstr "Imena"
-
-
 msgid "Face Data"
 msgstr "Podatki lic"
 
@@ -23605,34 +23604,6 @@ msgstr "Nastavi moč lica"
 
 msgid "Merge"
 msgstr "Združi"
-
-
-msgid "Special Characters"
-msgstr "Posebni znaki"
-
-
-msgid "Kerning"
-msgstr "Spodsekavanje"
-
-
-msgid "Text"
-msgstr "Besedilo"
-
-
-msgid "Bone Roll"
-msgstr "Zasukaj kost"
-
-
-msgid "Pivot Point"
-msgstr "Osišče"
-
-
-msgid "Mask Edit"
-msgstr "Urejanje maske"
-
-
-msgid "Automasking"
-msgstr "Samodejno maskiranje"
 
 
 msgid "Animals"
@@ -36434,6 +36405,10 @@ msgid "Set Uniform Opacity"
 msgstr "Nastavi enakomerno neprosojnost"
 
 
+msgid "Fill Opacity"
+msgstr "Neprosojnost polnila"
+
+
 msgctxt "Operator"
 msgid "Set Uniform Thickness"
 msgstr "Nastavi enakomerno debelino"
@@ -43126,10 +43101,6 @@ msgid "Modified"
 msgstr "Spremenjeno"
 
 
-msgid "Fill Opacity"
-msgstr "Neprosojnost polnila"
-
-
 msgid "Length Average"
 msgstr "Povprečje dolžine"
 
@@ -45830,6 +45801,14 @@ msgid "Curves Edit Mode"
 msgstr "Urejevalni način za krivulje"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacije glTF"
+
+
 msgid "Snapping"
 msgstr "Pritrjevanje"
 
@@ -45872,14 +45851,6 @@ msgstr "Samodejno maskiranje"
 
 msgid "Viewport Debug"
 msgstr "Razhroščevanje 3D pogleda"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacije glTF"
 
 
 msgid "VR"
@@ -51390,6 +51361,11 @@ msgstr "Posnetek"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Izrezek"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Maska"
 
@@ -53695,10 +53671,6 @@ msgstr "in gonilnik NVIDIA različice %s ali novejšega"
 
 msgid "Requires AMD GPU with RDNA architecture"
 msgstr "Zahteva GPE znamke AMD z arhitekturo RDNA"
-
-
-msgid "and AMD Radeon Pro %s driver or newer"
-msgstr "in gonilnik AMD Radeon Pro %s ali novejši"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture"
@@ -63024,10 +62996,6 @@ msgid "OS"
 msgstr "OS"
 
 
-msgid "Home"
-msgstr "Domov"
-
-
 msgid "Esc"
 msgstr "Ubež."
 
@@ -64131,6 +64099,10 @@ msgstr "Naj izbrišem izbrane datoteke?"
 
 msgid "Date Modified"
 msgstr "Čas spremembe"
+
+
+msgid "Home"
+msgstr "Domov"
 
 
 msgid "Desktop"

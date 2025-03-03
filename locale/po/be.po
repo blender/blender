@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-02-23 23:56+0000\n"
 "Last-Translator: Aleh <zucchini.enjoyer@protonmail.com>\n"
 "Language-Team: Belarusian <https://translate.blender.org/projects/blender-ui/ui/be/>\n"
@@ -353,10 +353,6 @@ msgstr "Зрабіць больш месца для вялікіх сцэн, р�
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Эксперыментальна)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT забяспечвае апаратную трасіроўку прамянёў на картах з архітэктурай RDNA2 альбо вышэй і шэйдары для больш старых карт. Гэта функцыя эксперыментальная і некаторыя сцэны могуць рэндэрыцца некарэктна"
 
 
 msgid "Embree on GPU"

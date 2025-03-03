@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
-"PO-Revision-Date: 2025-02-21 01:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"PO-Revision-Date: 2025-03-02 21:18+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.9.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -109,6 +109,10 @@ msgstr "Para cada contenedor de una acción, una lista de los canales de animaci
 
 msgid "Action F-Curves"
 msgstr "Curvas-f de la acción"
+
+
+msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
+msgstr "Colección de curvas-f de la acción. Nótese que se trata de una API antigua que no tiene conocimiento de las nuevas acciones con contenedores y que sólo considerará a las curvas-f del primer contenedor de la acción"
 
 
 msgid "Action Group"
@@ -738,10 +742,6 @@ msgstr "Permite tener más espacio en donde colocar escenas grandes, distribuyen
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (experimental)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT habilita el trazado de rayos por hardware en RDNA2 y superior de AMD, con un sombreador alternativo para placas más antiguas. Esta característica es experimental y es posible que algunas escenas sean procesadas de forma incorrecta"
 
 
 msgid "Embree on GPU"
@@ -18107,6 +18107,10 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "El rango combinado de fotogramas de todas las curvas-f en esta acción"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curves for the action's first slot"
+msgstr "API antigua, para proporcionar compatibilidad hacia atrás con código que no sea capaz aún de tratar con acciones con contenedores. Esta colección contendrá las curvas-f del primer contenedor de la acción"
+
+
 msgid "The end frame of the manually set intended playback range"
 msgstr "El fotograma final del rango de fotogramas de reproducción deseado, fijado manualmente"
 
@@ -18127,9 +18131,17 @@ msgid "Groups"
 msgstr "Grupos"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curve groups for the action's first slot"
+msgstr "API antigua, para proporcionar compatibilidad hacia atrás con código que no sea capaz aún de tratar con acciones con contenedores. Esta colección contendrá los grupos de curvas-f del primer contenedor de la acción"
+
+
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipo de ID base"
+
+
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. Type of data-block that the action's first slot can be used on. Do not change unless you know what you are doing"
+msgstr "API antigua, para proporcionar compatibilidad hacia atrás con código que no sea capaz aún de tratar con acciones con contenedores. Tipo de bloque de datos en el que podrá ser usado el primer contenedor de la acción. No cambiar a menos que se esté seguro de lo que se está haciendo"
 
 
 msgid "Is Layered Action"
@@ -18142,6 +18154,10 @@ msgstr "Indica si esta es una acción con capas. Una acción vacía será consid
 
 msgid "Is Legacy Action"
 msgstr "Es acción antigua"
+
+
+msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
+msgstr "Indica si se trata de una acción antigua o no. Las acciones antiguas no contienen capas ni contenedores. Una acción vacía será considerada tanto una acción 'antigua' como una 'con capas'. A partir de Blender 4.4 las acciones serán actualizadas automáticamente a acciones con capas, por lo tanto esta salida sólo será verdadera cuando la acción se encuentre vacía"
 
 
 msgid "Is Empty"
@@ -29257,45 +29273,20 @@ msgid "Volume render settings for 3D viewport"
 msgstr "Opciones de procesamiento de volúmenes para la vista 3D"
 
 
-msgctxt "Sequence"
-msgid "Sequence Mode"
-msgstr "Modo de secuencia"
-
-
 msgid "Sequence playback mode"
 msgstr "Modo de reproducción de la secuencia"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Clip"
 
 
 msgid "Hide frames outside the specified frame range"
 msgstr "Ocultar fotogramas por fuera del rango de fotogramas seleccionado"
 
 
-msgctxt "Sequence"
-msgid "Extend"
-msgstr "Extender"
-
-
 msgid "Repeat the start frame before, and the end frame after the frame range"
 msgstr "Repetir el fotograma inicial antes, y el final después del rango de fotogramas"
 
 
-msgctxt "Sequence"
-msgid "Repeat"
-msgstr "Repetir"
-
-
 msgid "Cycle the frames in the sequence"
 msgstr "Repetir cíclicamente los fotogramas de la secuencia"
-
-
-msgctxt "Sequence"
-msgid "Ping-Pong"
-msgstr "Ping pong"
 
 
 msgid "Repeat the frames, reversing the playback direction every other cycle"
@@ -34302,12 +34293,68 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Mirror"
-msgstr "Simetrizar"
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Nombres"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
+
+
+msgid "Pivot Point"
+msgstr "Punto de pivote"
 
 
 msgid "Snap"
 msgstr "Adherir"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaimiento de edición proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edición de máscara"
+
+
+msgid "Automasking"
+msgstr "Autoenmascarar"
+
+
+msgid "Face Sets Edit"
+msgstr "Edición de conjuntos de caras"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueos de grupo de vértices"
+
+
+msgid "Mirror"
+msgstr "Simetrizar"
 
 
 msgid "UV Mapping"
@@ -34362,10 +34409,6 @@ msgid "Assign Material"
 msgstr "Asignar material"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Light"
 msgstr "Luz"
 
@@ -34398,14 +34441,6 @@ msgid "Quick Effects"
 msgstr "Efectos rápidos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpiar"
-
-
 msgid "Asset"
 msgstr "Recurso"
 
@@ -34424,10 +34459,6 @@ msgstr "Vincular / Transferir datos"
 
 msgid "Hooks"
 msgstr "Asignar gancho"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueos de grupo de vértices"
 
 
 msgid "Trim/Add"
@@ -34462,10 +34493,6 @@ msgid "Bone Collections"
 msgstr "Colecciones de huesos"
 
 
-msgid "Names"
-msgstr "Nombres"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opciones de huesos"
 
@@ -34496,42 +34523,6 @@ msgstr "Definir intensidad de caras"
 
 msgid "Merge"
 msgstr "Fusionar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Giro de huesos"
-
-
-msgid "Pivot Point"
-msgstr "Punto de pivote"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decaimiento de edición proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edición de máscara"
-
-
-msgid "Automasking"
-msgstr "Autoenmascarar"
-
-
-msgid "Face Sets Edit"
-msgstr "Edición de conjuntos de caras"
 
 
 msgid "Keyframe Insert Pie"
@@ -42681,7 +42672,7 @@ msgstr "Convertirá la película a una secuencia de imágenes, ignorando fotogra
 
 
 msgid "Scopes for statistical view of a movie clip"
-msgstr "Instrumentos para la visualiazación estadística de un clip de película"
+msgstr "Instrumentos para la visualización estadística de un clip de película"
 
 
 msgid "Movie Clip User"
@@ -66199,6 +66190,10 @@ msgid "Set all stroke points to same opacity"
 msgstr "Define que todos los puntos del trazo tengan la misma opacidad"
 
 
+msgid "Fill Opacity"
+msgstr "Opacidad de relleno"
+
+
 msgctxt "Operator"
 msgid "Set Uniform Thickness"
 msgstr "Definir grosor uniforme"
@@ -67256,7 +67251,7 @@ msgstr "Definir línea"
 
 
 msgid "Sample a line and show it in Scope panels"
-msgstr "Permite definir una línea para tomarle muestras"
+msgstr "Permite definir una línea para mostrarla en los instrumentos"
 
 
 msgctxt "Operator"
@@ -85274,10 +85269,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Exportar las UV de la malla modificada"
 
 
-msgid "Fill Opacity"
-msgstr "Opacidad de relleno"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Define la cantidad de opacidad para las UV exportadas"
 
@@ -89626,7 +89617,7 @@ msgstr "El tipo de operadores de transformación a escribir"
 
 
 msgid "Translate, Rotate, Scale"
-msgstr "Posición, Rotación, Escala"
+msgstr "Traslación, Rotación, Escala"
 
 
 msgid "Export with translate, rotate, and scale Xform operators"
@@ -89634,7 +89625,7 @@ msgstr "Exportar con operadores de traslación, rotación y escala"
 
 
 msgid "Translate, Orient, Scale"
-msgstr "Posición, Orientación, Escala"
+msgstr "Traslación, Orientación, Escala"
 
 
 msgid "Export with translate, orient quaternion, and scale Xform operators"
@@ -90877,6 +90868,14 @@ msgid "SSAO Settings"
 msgstr "Opciones OAEP"
 
 
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
 msgid "Render Pass"
 msgstr "Pasada de procesamiento"
 
@@ -90917,6 +90916,14 @@ msgid "Curves Edit Mode"
 msgstr "Modo edición de curvas"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
+
+
 msgid "Snapping"
 msgstr "Adherencia"
 
@@ -90953,14 +90960,6 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
 msgid "Auto-Masking"
 msgstr "Autoenmascarar"
 
@@ -90979,14 +90978,6 @@ msgstr "Escala expandir/contraer curvas"
 
 msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
 
 
 msgid "VR"
@@ -94827,11 +94818,11 @@ msgid ""
 msgstr ""
 "Define el formato específico de los argumentos mediante los cuales el editor de texto abre los archivos. Las expansiones soportadas son las siguientes:\n"
 "\n"
-"$filepath La ruta absoluta al archivo.\n"
-"$line La línea en la cual abrir el archivo (opcional).\n"
-"$column La columna en la cual abrir, desde el comienzo de la línea (opcional).\n"
-"$line0 & column0 comienza en cero.\n"
-"Ejemplo: -f $filepath -l $line -c $column"
+" $filepath La ruta absoluta al archivo.\n"
+" $line La línea en la cual abrir el archivo (opcional).\n"
+" $column La columna en la cual abrir, desde el comienzo de la línea (opcional).\n"
+" $line0 & column0 comienza en cero.\n"
+" Ejemplo: -f $filepath -l $line -c $column"
 
 
 msgid "The default directory to search for textures"
@@ -102474,7 +102465,7 @@ msgstr "Habilita o deshabilita la vista de procesamiento"
 
 
 msgid "Scopes for statistical view of an image"
-msgstr "Instrumentos para la visualiazación estadística de una imagen"
+msgstr "Instrumentos para la visualización estadística de una imagen"
 
 
 msgid "Proportion of original image source pixel lines to sample"
@@ -106761,6 +106752,11 @@ msgstr "Video"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Clip"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Máscara"
 
@@ -109102,7 +109098,7 @@ msgstr "Unir previs - Vértice"
 
 
 msgid "Scope Region Background"
-msgstr "Alcance de fondo de región"
+msgstr "Instrumento - Fondo"
 
 
 msgid "Texture Paint/Modifier UVs"
@@ -117493,10 +117489,6 @@ msgid "Requires AMD GPU with RDNA architecture"
 msgstr "Requiere una GPU de AMD con arquitectura RDNA"
 
 
-msgid "and AMD Radeon Pro %s driver or newer"
-msgstr "y una versión del controlador Radeon Pro de AMD %s o más nueva"
-
-
 msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Requiere una GPU de Intel con arquitectura Xe-HPG"
 
@@ -119128,10 +119120,6 @@ msgstr "¡Las opciones de aquí podrían tener un"
 
 msgid "performance impact!"
 msgstr "impacto significativo en el rendimiento!"
-
-
-msgid "Built without VR/OpenXR features"
-msgstr "Compilado sin características de RV (OpenXR)"
 
 
 msgid "Start VR Session"
@@ -126463,6 +126451,11 @@ msgstr "Proyectar desde la vista (hasta límites)"
 
 
 msgctxt "Operator"
+msgid "Frame Last Stroke"
+msgstr "Encuadrar último trazo"
+
+
+msgctxt "Operator"
 msgid "Viewport Render Animation"
 msgstr "Procesar animación"
 
@@ -127048,11 +127041,6 @@ msgstr "Forma de curva"
 msgctxt "View3D"
 msgid "Mix"
 msgstr "varios"
-
-
-msgctxt "Operator"
-msgid "Frame Last Stroke"
-msgstr "Encuadrar último trazo"
 
 
 msgctxt "Operator"
@@ -129189,6 +129177,10 @@ msgid "Error: Too many AOVs"
 msgstr "Error: Demasiadas AOV"
 
 
+msgid "Required render size ({}px) is larger than reported texture size limit ({}px)."
+msgstr "El tamaño de procesamiento requerido ({}px) es mayor que el límite reportado de tamaño de texturas ({}px)."
+
+
 msgid "Errors during render. See the System Console for more info."
 msgstr "Errores durante el procesamiento. Ver la Consola del sistema para más información."
 
@@ -130958,10 +130950,6 @@ msgid "OS"
 msgstr "S.O."
 
 
-msgid "Home"
-msgstr "Carpeta de usuario"
-
-
 msgid "Esc"
 msgstr "Esc"
 
@@ -132587,6 +132575,10 @@ msgid "Image objects can only be added in Object Mode"
 msgstr "Los objetos de tipo imagen sólo pueden ser agregados en modo Objeto"
 
 
+msgid "No editable objects to convert"
+msgstr "No existen objetos editables que convertir"
+
+
 msgid "Converting some non-editable object/object data, enforcing 'Keep Original' option to True"
 msgstr "Convirtiendo algunos objetos o datos de objetos no editables, forzando la activación de la opción \"Mantener originales\""
 
@@ -134135,6 +134127,10 @@ msgid "Unable to remove material slot in edit mode"
 msgstr "No es posible eliminar un contenedor de material en modo edición"
 
 
+msgid "Can't bake light probe while rendering"
+msgstr "No es posible capturar una sonda de luz mientras se está efectuando el procesamiento"
+
+
 msgid "No active lineset and associated line style to manipulate the modifier"
 msgstr "No hay un conjunto activo de líneas (y su estilo de línea asociado) para manipular el modificador"
 
@@ -135300,6 +135296,10 @@ msgid "Date Modified"
 msgstr "Fecha de modificación"
 
 
+msgid "Home"
+msgstr "Carpeta de usuario"
+
+
 msgid "Desktop"
 msgstr "Escritorio"
 
@@ -135738,7 +135738,7 @@ msgstr "No se ha cambiado ninguna imagen"
 
 
 msgid "Images cannot be copied while rendering"
-msgstr "No es posible copiar imágenes mientras se encuentra en curso el procesamiento"
+msgstr "No es posible copiar imágenes mientras se está efectuando el procesamiento"
 
 
 msgid "Image is not editable"
@@ -135794,7 +135794,7 @@ msgstr "No es posible guardar la imagen, no se especificó una ruta de archivo v
 
 
 msgid "can't save image while rendering"
-msgstr "no es posible guardar la imagen mientras se está procesando"
+msgstr "no es posible guardar una imagen mientras se está efectuando el procesamiento"
 
 
 msgid "No images available"
@@ -139175,6 +139175,10 @@ msgid "Timeline marker '%s' not found in action '%s'"
 msgstr "Marcador de línea de tiempo '%s' no encontrado en la acción '%s'"
 
 
+msgid "Assign action \"%s\" to \"%s\" before calling this function"
+msgstr "Asignar la acción \"%s\" a \"%s\" antes de invocar esta función"
+
+
 msgid "Action slot display names cannot be empty"
 msgstr "Los nombres públicos de contenedores de acción no pueden estar vacíos"
 
@@ -141127,7 +141131,7 @@ msgstr "Tipos de bordes"
 
 
 msgid "Light Reference"
-msgstr "Referencia de luz"
+msgstr "Luz de referencia"
 
 
 msgid "Geometry Processing"

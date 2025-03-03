@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
-"PO-Revision-Date: 2025-02-21 22:18+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"PO-Revision-Date: 2025-02-28 16:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.9.2\n"
+"X-Generator: Weblate 5.10.1\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL"
@@ -112,6 +112,10 @@ msgstr "Para cada compartimento de acções, uma lista de canais de animação d
 
 msgid "Action F-Curves"
 msgstr "Curvas-F da Acção"
+
+
+msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
+msgstr "Colecção de Curvas-F de acção. Atenção que esta é uma API de legado, não ciente de compartimentos de acção, e apenas considerará as Curvas-F para o primeiro compartimento desta acção."
 
 
 msgid "Action Group"
@@ -741,10 +745,6 @@ msgstr "Fazer mais espaço para acomodar cenas grandes distribuindo a memória p
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Experimental)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "O HIP RT possibilita o rastreamento de raios por hardware em RDNA2 e mais recentes, com sombreadores de reserva em placas anteriores. Esta funcionalidade é experimental e algumas cenas podem renderizar incorrectamente"
 
 
 msgid "Embree on GPU"
@@ -18110,6 +18110,10 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "O intervalo combinado de fotogramas de todas as curvas-f dentro desta acção"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curves for the action's first slot"
+msgstr "API de legado para retro-compatibilidade com código que não lida com acções compartimentadas. Esta colecção contém as Curvas-F para o primeiro compartimento da acção."
+
+
 msgid "The end frame of the manually set intended playback range"
 msgstr "O fotograma final do intervalo de reprodução pretendido definido manualmente"
 
@@ -18130,9 +18134,17 @@ msgid "Groups"
 msgstr "Grupos"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curve groups for the action's first slot"
+msgstr "API de legado para retro-compatibilidade com código que não lida com acções compartimentadas. Esta colecção contém os grupos de Curvas-F para o primeiro compartimento da acção."
+
+
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipo de identificador raiz"
+
+
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. Type of data-block that the action's first slot can be used on. Do not change unless you know what you are doing"
+msgstr "API de legado para retro-compatibilidade com código que não lida com acções compartimentadas. Tipo de bloco-de-dados no qual o primeiro compartimento da acção pode ser usado. Não alterar a não ser que saiba o que está a fazer."
 
 
 msgid "Is Layered Action"
@@ -18145,6 +18157,10 @@ msgstr "Informa se esta é uma acção com camadas. Uma acção vazia é conside
 
 msgid "Is Legacy Action"
 msgstr "É Acção de Legado"
+
+
+msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
+msgstr "Reportar se esta é uma Acção de legado. Acções de Legado não têm camadas ou compartimentos. Uma Acção vazia é considerada uma Acção de 'legado0 e 'em camadas'. Desde o Blender 4.4 acções são automaticamente actualizadas para ter camadas, e como tal reporta sempre Verdadeiro quando a acção está vazia."
 
 
 msgid "Is Empty"
@@ -29260,45 +29276,20 @@ msgid "Volume render settings for 3D viewport"
 msgstr "Definições de renderização de volumes para a janela de visualização 3D"
 
 
-msgctxt "Sequence"
-msgid "Sequence Mode"
-msgstr "Modo de Sequência"
-
-
 msgid "Sequence playback mode"
 msgstr "Modo de reprodução da sequência"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Clipe"
 
 
 msgid "Hide frames outside the specified frame range"
 msgstr "Esconder fotogramas fora do intervalo de fotogramas especificado"
 
 
-msgctxt "Sequence"
-msgid "Extend"
-msgstr "Estender"
-
-
 msgid "Repeat the start frame before, and the end frame after the frame range"
 msgstr "Repetir o fotograma inicial antes, e o fotograma final depois do intervalo de fotogramas especificado"
 
 
-msgctxt "Sequence"
-msgid "Repeat"
-msgstr "Repetir"
-
-
 msgid "Cycle the frames in the sequence"
 msgstr "Repetir os fotogramas na sequência"
-
-
-msgctxt "Sequence"
-msgid "Ping-Pong"
-msgstr "Ping-Pong"
 
 
 msgid "Repeat the frames, reversing the playback direction every other cycle"
@@ -34305,12 +34296,68 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
 msgid "Snap"
 msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edição de Máscara"
+
+
+msgid "Automasking"
+msgstr "Auto Máscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edições de Conjuntos de Faces"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueios de Grupos de Vértices"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -34365,10 +34412,6 @@ msgid "Assign Material"
 msgstr "Aplicar Material"
 
 
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
 msgid "Light"
 msgstr "Leve"
 
@@ -34401,14 +34444,6 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Asset"
 msgstr "Recurso"
 
@@ -34427,10 +34462,6 @@ msgstr "Vincular/Transferir Dados"
 
 msgid "Hooks"
 msgstr "Ganchos"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueios de Grupos de Vértices"
 
 
 msgid "Trim/Add"
@@ -34465,10 +34496,6 @@ msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
-msgid "Names"
-msgstr "Nomes"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -34499,42 +34526,6 @@ msgstr "Definir Força das Faces"
 
 msgid "Merge"
 msgstr "Fundir"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edição de Máscara"
-
-
-msgid "Automasking"
-msgstr "Auto Máscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edições de Conjuntos de Faces"
 
 
 msgid "Keyframe Insert Pie"
@@ -62841,6 +62832,11 @@ msgid "Enable or disable all tags"
 msgstr "Activar ou desactivar todas as etiquetas"
 
 
+msgctxt "Operator"
+msgid "Automatically Pack Resources"
+msgstr "Empacotar Recursos Automaticamente"
+
+
 msgid "Automatically pack all external files into the .blend file"
 msgstr "Empacota automaticamente todos os ficheiros externos dentro do ficheiro Blender."
 
@@ -62894,8 +62890,21 @@ msgstr "Fim da lista"
 
 
 msgctxt "Operator"
+msgid "Cancel File Operation"
+msgstr "Cancelar Operação de Ficheiro"
+
+
+msgid "Cancel file operation"
+msgstr "Cancelar operação de ficheiro"
+
+
+msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Apagar os ficheiros seleccionados"
+
+
+msgid "Move selected files to the trash or recycle bin"
+msgstr "Mover ficheiros seleccionadas para o lixo ou reciclagem"
 
 
 msgctxt "Operator"
@@ -62920,6 +62929,15 @@ msgstr "Abre um novo diretório"
 
 
 msgctxt "Operator"
+msgid "Edit Directory Path"
+msgstr "Editar Caminho do Directório"
+
+
+msgid "Start editing directory field"
+msgstr "Começar a editar o campo do directório"
+
+
+msgctxt "Operator"
 msgid "Execute File Window"
 msgstr "Janela de execução de ficheiros"
 
@@ -62928,12 +62946,121 @@ msgid "Execute selected file"
 msgstr "Executa o ficheiro seleccionado."
 
 
+msgctxt "Operator"
+msgid "External File Operation"
+msgstr "Operação de Ficheiro Externa"
+
+
+msgid "Perform external operation on a file or folder"
+msgstr "Executar operação externa em ficheiro ou pasta"
+
+
+msgid "File or folder path"
+msgstr "Caminho de ficheiro ou pasta"
+
+
+msgid "Operation to perform on the file or path"
+msgstr "Operação a executar no ficheiro ou caminho"
+
+
+msgid "Open the file"
+msgstr "Abrir o ficheiro"
+
+
+msgid "Open Folder"
+msgstr "Abrir Pasta"
+
+
+msgid "Open the folder"
+msgstr "Abrir a pasta"
+
+
+msgid "Edit the file"
+msgstr "Editar o ficheiro"
+
+
+msgid "Create a new file of this type"
+msgstr "Criar um novo ficheiro deste tipo"
+
+
+msgid "Find File"
+msgstr "Encontrar Ficheiro"
+
+
+msgid "Search for files of this type"
+msgstr "Procurar ficheiros deste tipo"
+
+
 msgid "Show"
 msgstr "Mostrar"
 
 
+msgid "Show this file"
+msgstr "Mostrar este ficheiro"
+
+
 msgid "Play"
 msgstr "Reproduzir"
+
+
+msgid "Play this file"
+msgstr "Reproduzir este ficheiro"
+
+
+msgid "Browse"
+msgstr "Navegar"
+
+
+msgid "Browse this file"
+msgstr "Navegar este ficheiro"
+
+
+msgid "Preview this file"
+msgstr "Pré visualizar este ficheiro"
+
+
+msgid "Print"
+msgstr "Imprimir"
+
+
+msgid "Print this file"
+msgstr "Imprimir este ficheiro"
+
+
+msgid "Install"
+msgstr "Instalar"
+
+
+msgid "Install this file"
+msgstr "Instalar este ficheiro"
+
+
+msgid "Run As User"
+msgstr "Correr como Utilizador"
+
+
+msgid "Run as specific user"
+msgstr "Correr como um utilizador específico"
+
+
+msgid "Show OS Properties for this item"
+msgstr "Mostrar propriedades do Sistema Operativo para este item"
+
+
+msgid "Find in Folder"
+msgstr "Encontrar na Pasta"
+
+
+msgid "Search for items in this folder"
+msgstr "Procurar por este item nesta pasta"
+
+
+msgid "Command Prompt Here"
+msgstr "Linha de Comandos Aqui"
+
+
+msgid "Open a command prompt here"
+msgstr "Abrir uma linha de comandos aqui"
 
 
 msgctxt "Operator"
@@ -62989,12 +63116,31 @@ msgid "Highlight selected file(s)"
 msgstr "Realça os ficheiros seleccionados"
 
 
+msgctxt "Operator"
+msgid "Make Paths Absolute"
+msgstr "Tornar Caminhos Absolutos"
+
+
 msgid "Make all paths to external files absolute"
 msgstr "Torna absolutos todos os caminhos para ficheiros externos."
 
 
+msgctxt "Operator"
+msgid "Make Paths Relative"
+msgstr "Tornar os caminhos relativos"
+
+
 msgid "Make all paths to external files relative to current .blend"
 msgstr "Torna todos os caminhos para ficheiros externos relativos ao caminho do ficheiro Blender actual."
+
+
+msgctxt "Operator"
+msgid "Execute File"
+msgstr "Executar Ficheiro"
+
+
+msgid "Perform the current execute action for the file under the cursor (e.g. open the file)"
+msgstr "Efectuar a actual acção de execução para o ficheiro sob o cursor (por exemplo abrir o ficheiro)"
 
 
 msgctxt "Operator"
@@ -63004,6 +63150,29 @@ msgstr "Próxima pasta"
 
 msgid "Move to next folder"
 msgstr "Navegação no próximo diretório (referenciado pela navegação prévia)."
+
+
+msgctxt "Operator"
+msgid "Pack Resources"
+msgstr "Empacotar Recursos"
+
+
+msgid "Pack all used external files into this .blend"
+msgstr "Empacotar todos os ficheiros externos usados dentro deste ficheiro .blend"
+
+
+msgctxt "Operator"
+msgid "Pack Linked Libraries"
+msgstr "Empacotar Bibliotecas Vinculadas"
+
+
+msgid "Store all data-blocks linked from other .blend files in the current .blend file. Library references are preserved so the linked data-blocks can be unpacked again"
+msgstr "Armazenar todos os blocos-de-dados de outros ficheiros .blend no ficheiro .blend actual. As referências a bibliotecas são preservadas, de modo a que blocos-de-dados vinculados possam ser desempacotados outra vez."
+
+
+msgctxt "Operator"
+msgid "Parent Directory"
+msgstr "Directório Ascendente"
 
 
 msgid "Move to parent directory"
@@ -63017,6 +63186,11 @@ msgstr "Pasta anterior"
 
 msgid "Move to previous folder"
 msgstr "Navegação no diretório anterior."
+
+
+msgctxt "Operator"
+msgid "Refresh File List"
+msgstr "Actualizar Lista de Ficheiros"
 
 
 msgid "Refresh the file list"
@@ -63046,12 +63220,41 @@ msgid "Reset Recent"
 msgstr "Redefinir recentes"
 
 
+msgid "Reset recent files"
+msgstr "Repor ficheiros recentes"
+
+
+msgid "Handle mouse clicks to select and activate items"
+msgstr "Lidar com cliques do rato para activar ou seleccionar itens"
+
+
+msgctxt "File browser"
+msgid "Fill"
+msgstr "Preencher"
+
+
 msgid "Select everything beginning with the last selection"
 msgstr "Seleciona qualquer coisa que comece com a última selecção."
 
 
+msgid "Only Activate if Selected"
+msgstr "Activar apenas se seleccionado"
+
+
+msgid "Do not change selection if the item under the cursor is already selected, only activate it"
+msgstr "Não alterar selecção se o item sob o cursor já estiver seleccionado, apenas activá-lo"
+
+
 msgid "Open a directory when selecting it"
 msgstr "Abre um diretório durante sua selecção."
+
+
+msgid "Pass Through"
+msgstr "Deixar Passar"
+
+
+msgid "Even on successful execution, pass the event on so other operators can execute on it as well"
+msgstr "Mesmo após execução com sucesso, passar o evento para que outros operadores também possam executar no mesmo"
 
 
 msgctxt "Operator"
@@ -63089,6 +63292,10 @@ msgid "Walk Direction"
 msgstr "Direcção do passageio"
 
 
+msgid "Select/Deselect element in this direction"
+msgstr "Seleccionar/Desselecionar elementos nesta direcção"
+
+
 msgid "Previous"
 msgstr "Anterior"
 
@@ -63104,6 +63311,20 @@ msgstr "Suavizar rolagem"
 
 msgid "Smooth scroll to make editable file visible"
 msgstr "Suaviza a rolagem para tornar o ficheiro editável visível."
+
+
+msgctxt "Operator"
+msgid "Sort from Column"
+msgstr "Ordenar da coluna"
+
+
+msgid "Change sorting to use column under cursor"
+msgstr "Alterar ordenamento para usar coluna sob o cursor"
+
+
+msgctxt "Operator"
+msgid "Unpack Resources"
+msgstr "Desempacotar Recursos"
 
 
 msgid "Unpack all files packed into this .blend to external ones"
@@ -63128,6 +63349,10 @@ msgstr "Usa os ficheiros na localização original (cria ficheiros quando necess
 
 msgid "Write files to original location (overwrite existing files)"
 msgstr "Escreve os ficheiros para a localização original (sobrescrevendo os ficheiros existentes)."
+
+
+msgid "Disable auto-pack, keep all packed files"
+msgstr "Desactivar empacotamento automático, manter todos os ficheiros empacotados"
 
 
 msgid "Remove Pack"
@@ -63168,6 +63393,136 @@ msgstr "Escreve o ficheiro para a localização original (sobrescrevendo os fich
 
 
 msgctxt "Operator"
+msgid "Unpack Linked Libraries"
+msgstr "Desempacotar Bibliotecas Vinculadas"
+
+
+msgid "Restore all packed linked data-blocks to their original locations"
+msgstr "Restaurar todos os blocos-de-dados vinculados para as suas localizações originais"
+
+
+msgid "Scroll the selected files into view"
+msgstr "Rolar até ficheiros seleccionados ficarem visíveis"
+
+
+msgctxt "Operator"
+msgid "Bake All"
+msgstr "Pré-Calcular Tudo"
+
+
+msgid "Bake Entire Fluid Simulation"
+msgstr "Pré Calcular Simulação de Fluidos Inteira"
+
+
+msgctxt "Operator"
+msgid "Bake Data"
+msgstr "Pré-Calcular Dados"
+
+
+msgid "Bake Fluid Data"
+msgstr "Pré-Calcular Dados de Fluidos"
+
+
+msgctxt "Operator"
+msgid "Bake Guides"
+msgstr "Pré-Calcular Guias"
+
+
+msgid "Bake Fluid Guiding"
+msgstr "Pré-Calcular Guias de Fluidos"
+
+
+msgctxt "Operator"
+msgid "Bake Mesh"
+msgstr "Pré-Calcular Malha"
+
+
+msgid "Bake Fluid Mesh"
+msgstr "Pré-Calcular Malha de Fluído"
+
+
+msgctxt "Operator"
+msgid "Bake Noise"
+msgstr "Pré-Calcular Ruído"
+
+
+msgid "Bake Fluid Noise"
+msgstr "Pré-Calcular Ruído de Fluído"
+
+
+msgctxt "Operator"
+msgid "Bake Particles"
+msgstr "Pré-Calcular Partículas"
+
+
+msgid "Bake Fluid Particles"
+msgstr "Pré-Calcular Partículas de Fluído"
+
+
+msgctxt "Operator"
+msgid "Free All"
+msgstr "Libertar Tudo"
+
+
+msgid "Free Entire Fluid Simulation"
+msgstr "Libertar Simulação de Fluido Inteira"
+
+
+msgctxt "Operator"
+msgid "Free Data"
+msgstr "Libertar Dados"
+
+
+msgid "Free Fluid Data"
+msgstr "Libertar Dados de Fluídos"
+
+
+msgctxt "Operator"
+msgid "Free Guides"
+msgstr "Libertar Guias"
+
+
+msgid "Free Fluid Guiding"
+msgstr "Libertar Guias de Fluídos"
+
+
+msgctxt "Operator"
+msgid "Free Mesh"
+msgstr "Libertar Malha"
+
+
+msgid "Free Fluid Mesh"
+msgstr "Libertar Malha de Fluídos"
+
+
+msgctxt "Operator"
+msgid "Free Noise"
+msgstr "Libertar Ruído"
+
+
+msgid "Free Fluid Noise"
+msgstr "Libertar Ruído de Fluído"
+
+
+msgctxt "Operator"
+msgid "Free Particles"
+msgstr "Libertar Partículas"
+
+
+msgid "Free Fluid Particles"
+msgstr "Libertar Partículas de Fluído"
+
+
+msgctxt "Operator"
+msgid "Pause Bake"
+msgstr "Pausar Pré-Cálculo"
+
+
+msgid "Pause Bake"
+msgstr "Pausar Pré-Cálculo"
+
+
+msgctxt "Operator"
 msgid "Set Case"
 msgstr "Definir capitalização"
 
@@ -63176,8 +63531,23 @@ msgid "Set font case"
 msgstr "Permite definir a capitalização da fonte."
 
 
+msgctxt "Text"
+msgid "Case"
+msgstr "Caixa da Letra"
+
+
 msgid "Lower or upper case"
 msgstr "Maiúscula ou minúscula."
+
+
+msgctxt "Text"
+msgid "Lower"
+msgstr "Caixa Baixa"
+
+
+msgctxt "Text"
+msgid "Upper"
+msgstr "Caixa Alta"
 
 
 msgctxt "Operator"
@@ -63240,6 +63610,14 @@ msgid "Move cursor to position type"
 msgstr "Move o cursor para a posição de digitação."
 
 
+msgid "Text Begin"
+msgstr "Início do Texto"
+
+
+msgid "Text End"
+msgstr "Fim do Texto"
+
+
 msgid "Previous Line"
 msgstr "Linha anterior"
 
@@ -63284,6 +63662,10 @@ msgstr "Seleciona todo o texto."
 
 msgid "Select word under cursor"
 msgstr "Seleciona a palavra abaixo do cursor."
+
+
+msgid "Set cursor selection"
+msgstr "Definir selecção do cursor"
 
 
 msgctxt "Operator"
@@ -63347,8 +63729,21 @@ msgid "Insert Text"
 msgstr "Inserir texto"
 
 
+msgid "Accent Mode"
+msgstr "Modo de Acentuação"
+
+
 msgid "Next typed character will strike through previous, for special character input"
 msgstr "O próximo caractere digitado irá ser sobreposto em seu antecessor. Use para entradas especiais de caracteres."
+
+
+msgctxt "Operator"
+msgid "Insert Unicode"
+msgstr "Inserir Unicode"
+
+
+msgid "Insert Unicode Character"
+msgstr "Inserir Caractere Unicode"
 
 
 msgctxt "Operator"
@@ -63365,8 +63760,22 @@ msgid "Paste contents from file"
 msgstr "Cola o conteúdo a partir de ficheiro."
 
 
+msgctxt "Operator"
+msgid "Add Text Box"
+msgstr "Adicionar Caixa de Texto"
+
+
 msgid "Add a new text box"
 msgstr "Adiciona uma nova caixa de texto."
+
+
+msgctxt "Operator"
+msgid "Remove Text Box"
+msgstr "Remover Caixa de Texto"
+
+
+msgid "Remove the text box"
+msgstr "Remover caixa de texto"
 
 
 msgid "The current text box"
@@ -63382,20 +63791,241 @@ msgid "Unlink active font data-block"
 msgstr "Desvincula o bloco de dados da fonte ativa."
 
 
+msgctxt "Operator"
+msgid "Add Attribute"
+msgstr "Adicionar Atributo"
+
+
+msgid "Add attribute to geometry"
+msgstr "Adicionar atributo a geometria"
+
+
+msgid "Type of element that attribute is stored on"
+msgstr "Tipo de elemento em que o atributo é armazenado"
+
+
+msgid "Name of new attribute"
+msgstr "Nome do novo atributo"
+
+
+msgctxt "Operator"
+msgid "Convert Attribute"
+msgstr "Converter Atributo"
+
+
+msgid "Change how the attribute is stored"
+msgstr "Alterar como o atributo é armazenado"
+
+
+msgid "Which geometry element to move the attribute to"
+msgstr "Para que elemento geométrico mover o atributo"
+
+
 msgid "Generic"
 msgstr "Genérico"
+
+
+msgctxt "Operator"
+msgid "Remove Attribute"
+msgstr "Remover Atributo"
+
+
+msgid "Remove attribute from geometry"
+msgstr "Remover atributo da geometria"
+
+
+msgctxt "Operator"
+msgid "Add Color Attribute"
+msgstr "Adicionar Atributo de Cor"
+
+
+msgid "Add color attribute to geometry"
+msgstr "Adicionar atributo de cor à geometria"
 
 
 msgid "Default fill color"
 msgstr "Cor de preenchimento padrão."
 
 
+msgid "RGBA color 32-bit floating-point values"
+msgstr "Valores de cor RGBA em ponto flutuante de 32Bits"
+
+
+msgid "Name of new color attribute"
+msgstr "Nome do novo atributo de cor"
+
+
+msgctxt "Operator"
+msgid "Convert Color Attribute"
+msgstr "Converter Atributo de Cor"
+
+
+msgid "Change how the color attribute is stored"
+msgstr "Alterar como o atributo de cor é armazenado"
+
+
+msgctxt "Operator"
+msgid "Duplicate Color Attribute"
+msgstr "Duplicar Atributo de Cor"
+
+
+msgid "Duplicate color attribute"
+msgstr "Duplicar Atributo de Cor"
+
+
+msgctxt "Operator"
+msgid "Remove Color Attribute"
+msgstr "Remover Atributo de Cor"
+
+
+msgid "Remove color attribute from geometry"
+msgstr "Remover atributo de cor da geometria"
+
+
+msgctxt "Operator"
+msgid "Set Render Color"
+msgstr "Definir cor de renderização"
+
+
+msgid "Set default color attribute used for rendering"
+msgstr "Definir atributo de cor pré-definido para renderização"
+
+
+msgid "Name of color attribute"
+msgstr "Nome do atributo de cor"
+
+
+msgctxt "Operator"
+msgid "Run Node Group"
+msgstr "Correr Grupos de Nós"
+
+
+msgid "Execute a node group on geometry"
+msgstr "Executar grupo de nós na geometria"
+
+
+msgid "3D Cursor Position"
+msgstr "Posição do Cursor 3D"
+
+
+msgid "3D Cursor Rotation"
+msgstr "Rotação do Cursor 3D"
+
+
+msgid "Mouse coordinates in region space"
+msgstr "Coordenadas do cursor no espaço da região"
+
+
+msgid "Name of the data-block to use by the operator"
+msgstr "Nome do bloco-de-dados a usar pelo operador"
+
+
+msgid "Region Size"
+msgstr "Tamanho da Região"
+
+
+msgid "Session UID of the data-block to use by the operator"
+msgstr "UID do bloco-de-dados da sessão a usar pelo operador"
+
+
+msgid "Viewport Is Perspective"
+msgstr "Janela de Visualização em Perspectiva"
+
+
+msgid "Viewport Projection Transform"
+msgstr "Transformação de Projecção da Janela de Visualização"
+
+
+msgid "Viewport View Transform"
+msgstr "Transformação de Visualização da Janela de Visualização"
+
+
+msgctxt "Operator"
+msgid "Set Geometry Randomization"
+msgstr "Definir Aleatorização de Geometria"
+
+
+msgid "Toggle geometry randomization for debugging purposes"
+msgstr "Alternar aleatorização de geometria para efeitos de depuramento de erros"
+
+
+msgid "Randomize the order of geometry elements (e.g. vertices or edges) after some operations where there are no guarantees about the order. This avoids accidentally depending on something that may change in the future"
+msgstr "Alternar a ordem de elementos geométricos (por exemplo vértices) após algumas operações onde não há garantia dessa ordem. Evita depender acidentalmente de algo que pode mudar no futuro"
+
+
+msgctxt "Operator"
+msgid "Gizmo Select"
+msgstr "Selecção de Manipulador"
+
+
+msgid "Select the currently highlighted gizmo"
+msgstr "Seleccionar o manipulador actualmente destacado"
+
+
+msgctxt "Operator"
+msgid "Gizmo Tweak"
+msgstr "Ajuste de Manipulador"
+
+
+msgid "Tweak the active gizmo"
+msgstr "Ajustar o manipulador activo"
+
+
+msgctxt "Operator"
+msgid "Annotation Draw"
+msgstr "Desenho de Anotação"
+
+
 msgid "Make annotations on the active data"
 msgstr "Permite fazer anotações dentro dos dados activos."
 
 
+msgid "End Arrow Style"
+msgstr "Estilo de Seta de Término"
+
+
+msgid "Stroke end style"
+msgstr "Estilo de traço de término"
+
+
+msgid "Don't use any arrow/style in corner"
+msgstr "Não usar nenhum estilo de seta/estilo na esquina"
+
+
 msgid "Arrow"
 msgstr "Seta"
+
+
+msgid "Use closed arrow style"
+msgstr "Usar estilo de seta fechada"
+
+
+msgid "Open Arrow"
+msgstr "Seta Aberta"
+
+
+msgid "Use open arrow style"
+msgstr "Usar estilo de seta aberta"
+
+
+msgid "Segment"
+msgstr "Segmento"
+
+
+msgid "Use perpendicular segment style"
+msgstr "Usar estilo de segmento perpendicular"
+
+
+msgid "Use square style"
+msgstr "Usar estilo quadrado"
+
+
+msgid "Start Arrow Style"
+msgstr "Estilo de Seta de Início"
+
+
+msgid "Stroke start style"
+msgstr "Estilo de Traço de Início"
 
 
 msgid "Way to interpret mouse movements"
@@ -63430,6 +64060,22 @@ msgid "Eraser"
 msgstr "Apagador"
 
 
+msgid "Erase Annotation strokes"
+msgstr "Apagar Traços de Anotação"
+
+
+msgid "Stabilizer Stroke Factor"
+msgstr "Factor de Estabilização de Traço"
+
+
+msgid "Stabilizer Stroke Radius"
+msgstr "Raio de Estabilização de Traço"
+
+
+msgid "Helper to draw smooth and clean lines. Press Shift for an invert effect (even if this option is not active)"
+msgstr "Auxiliador para desenhar traços suaves e regulares. Carregar em Shift para efeito invertido (mesmo se esta opção não estiver activa)"
+
+
 msgid "Wait for first click instead of painting immediately"
 msgstr "Esperar pelo primeiro clique ao invés de pintar imediatamente."
 
@@ -63437,6 +64083,165 @@ msgstr "Esperar pelo primeiro clique ao invés de pintar imediatamente."
 msgctxt "Operator"
 msgid "Delete Active Frame"
 msgstr "Apagar o fotograma activo"
+
+
+msgid "Delete the active frame for the active Annotation Layer"
+msgstr "Apaga o fotograma activo para a Camada de Anotação activa"
+
+
+msgctxt "Operator"
+msgid "Annotation Add New"
+msgstr "Adicionar Anotação Nova"
+
+
+msgid "Add new Annotation data-block"
+msgstr "Adicionar novo bloco-de-dados de Anotação"
+
+
+msgctxt "Operator"
+msgid "Annotation Unlink"
+msgstr "Desvincular Anotação"
+
+
+msgid "Unlink active Annotation data-block"
+msgstr "Desvincular bloco-de-dados de Anotação activo"
+
+
+msgctxt "Operator"
+msgid "Add New Annotation Layer"
+msgstr "Adicionar Nova Camada de Anotação"
+
+
+msgid "Add new Annotation layer or note for the active data-block"
+msgstr "Adicionar nova camada de anotação ou nota ao bloco-de-dados activo"
+
+
+msgctxt "Operator"
+msgid "Move Annotation Layer"
+msgstr "Mover Camada de Anotação"
+
+
+msgid "Move the active Annotation layer up/down in the list"
+msgstr "Move a camada de Anotação para acima/baixo na lista"
+
+
+msgctxt "Operator"
+msgid "Remove Annotation Layer"
+msgstr "Remover Camada de Anotação"
+
+
+msgid "Remove active Annotation layer"
+msgstr "Remover camada de Anotação activa"
+
+
+msgctxt "Operator"
+msgid "Blend Offset Keyframes"
+msgstr "Misturar Fotogramas Afastados"
+
+
+msgid "Shift selected keys to the value of the neighboring keys as a block"
+msgstr "Mover as chaves seleccionadas para o valor das chaves vizinhas como um bloco"
+
+
+msgid "Control which key to offset towards and how far"
+msgstr "Controlar que na direcção de que chaves afastar e que distância"
+
+
+msgctxt "Operator"
+msgid "Blend to Default Value"
+msgstr "Misturar com Valor Padrão"
+
+
+msgid "Blend selected keys to their default value from their current position"
+msgstr "Misturar chaves seleccionadas com o seu valor padrão a partir da sua posição actual"
+
+
+msgid "How much to blend to the default value"
+msgstr "Que quantidade misturar com valor padrão"
+
+
+msgctxt "Operator"
+msgid "Blend to Ease Keyframes"
+msgstr "Misturar com Fotogramas de Suavização"
+
+
+msgid "Blends keyframes from current state to an ease-in or ease-out curve"
+msgstr "Misturar fotogramas a partir do estado actual com uma curva de suavização de entrada ou saída"
+
+
+msgid "Favor either original data or ease curve"
+msgstr "Favorecer dados original ou curva de suavização"
+
+
+msgctxt "Operator"
+msgid "Blend to Neighbor"
+msgstr "Misturar com Vizinho"
+
+
+msgid "Blend selected keyframes to their left or right neighbor"
+msgstr "Misturar fotogramas seleccionados com o seu vizinho direito ou esquerdo"
+
+
+msgid "The blend factor with 0 being the current frame"
+msgstr "O factor de mistura com 0 sendo o fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Breakdown"
+msgstr "Pose de Transição"
+
+
+msgid "Move selected keyframes to an inbetween position relative to adjacent keys"
+msgstr "Mover os fotogramas seleccionados para uma posição intermédia relativa às chaves adjacentes"
+
+
+msgid "Favor either the left or the right key"
+msgstr "Favorecer a chave direita ou esquerda"
+
+
+msgctxt "Operator"
+msgid "Butterworth Smooth"
+msgstr "Suavizar Butterworth"
+
+
+msgid "Smooth an F-Curve while maintaining the general shape of the curve"
+msgstr "Suavizar uma Curva-F mantendo a forma geral da curva"
+
+
+msgid "How much to blend to the smoothed curve"
+msgstr "Quantidade de mistura da curva suavizada"
+
+
+msgid "Blend In/Out"
+msgstr "Mistura de Entrada/Saída"
+
+
+msgid "Linearly blend the smooth data to the border frames of the selection"
+msgstr "Misturar linearmente os dados suavizados com os fotogramas de fronteira da selecção"
+
+
+msgid "Frequency Cutoff (Hz)"
+msgstr "Limite de Frequência (Hz)"
+
+
+msgid "Lower values give a smoother curve"
+msgstr "Valores mais baixos dão uma curva mais suave"
+
+
+msgid "Filter Order"
+msgstr "Ordem de Filtragem"
+
+
+msgid "Higher values produce a harder frequency cutoff"
+msgstr "Valores mais altos produzem um limite de frequência mais acentuado"
+
+
+msgid "Samples per Frame"
+msgstr "Amostras por Fotograma"
+
+
+msgid "How many samples to calculate per frame, helps with subframe data"
+msgstr "Quantas amostras calcular por fotograma, ajuda com dados de sub-fotograma"
 
 
 msgctxt "Operator"
@@ -63474,8 +64279,58 @@ msgstr "Permite definir interativamente o fotograma actual e o valor do cursor."
 
 
 msgctxt "Operator"
+msgid "Decimate Keyframes"
+msgstr "Dizimar Fotogramas Chave"
+
+
+msgid "Decimate F-Curves by removing keyframes that influence the curve shape the least"
+msgstr "Simplificar as Curvas-F removendo fotogramas chave menos que influenciam a curva"
+
+
+msgid "The ratio of keyframes to remove"
+msgstr "O rácio de remoção de fotogramas"
+
+
+msgid "Which mode to use for decimation"
+msgstr "Que modo usar para dizimar"
+
+
+msgid "Use a percentage to specify how many keyframes you want to remove"
+msgstr "Usar uma percentagem para especificar que quantidade de fotogramas chave remover"
+
+
+msgid "Error Margin"
+msgstr "Margem de Erro"
+
+
+msgid "Use an error margin to specify how much the curve is allowed to deviate from the original path"
+msgstr "Usar uma margem de erro para especificar quanto se permite à curva desviar do caminho original"
+
+
+msgid "Max Error Margin"
+msgstr "Margem de Erro Máxima"
+
+
+msgid "How much the new decimated curve is allowed to deviate from the original"
+msgstr "Quanto se permite à curva dizimada desviar da original"
+
+
+msgctxt "Operator"
+msgid "Delete Invalid Drivers"
+msgstr "Apagar controladores Inválidos"
+
+
+msgid "Delete all visible drivers considered invalid"
+msgstr "Apagar todos os controladores considerados inválidos"
+
+
+msgctxt "Operator"
 msgid "Copy Driver Variables"
 msgstr "Copiar as variáveis dos controladores"
+
+
+msgid "Copy the driver variables of the active driver"
+msgstr "Copia as variáveis dos controladores da Curva-F activa"
 
 
 msgctxt "Operator"
@@ -63495,16 +64350,74 @@ msgid "Replace existing driver variables, instead of just appending to the end o
 msgstr "Substitui as variáveis de controlador existentes, ao invés de simplesmente anexá-las ao final da lista existente."
 
 
+msgctxt "Operator"
+msgid "Ease Keyframes"
+msgstr "Suavizar Fotogramas Chave"
+
+
+msgid "Align keyframes on a ease-in or ease-out curve"
+msgstr "Alinhar os fotogramas numa curva de suavização de entrada ou saída"
+
+
+msgid "Curve Bend"
+msgstr "Dobra da Curva"
+
+
+msgid "Defines if the keys should be aligned on an ease-in or ease-out curve"
+msgstr "Define se as chaves devem ser alinhadas com a curva de suavização de entrada ou saída"
+
+
+msgid "Higher values make the change more abrupt"
+msgstr "Valores mais altos tornam a mudança mais abrupta"
+
+
+msgctxt "Operator"
+msgid "Equalize Handles"
+msgstr "Equalizar Manípulos"
+
+
+msgid "Ensure selected keyframes' handles have equal length, optionally making them horizontal. Automatic, Automatic Clamped, or Vector handle types will be converted to Aligned"
+msgstr "Assegurar que os manípulos dos fotogramas seleccionados tem comprimento igual, opcionalmente tornando-os horizontais. Manípulos do tipo Automático, Automático Limitado, ou Vector serão convertidos em Alinhado."
+
+
 msgid "Flatten"
 msgstr "Achatar"
+
+
+msgid "Make the values of the selected keyframes' handles the same as their respective keyframes"
+msgstr "Tornar valores dos manípulos dos fotogramas seleccionados os memos dos fotogramas chave respectivos"
+
+
+msgid "Handle Length"
+msgstr "Comprimento do Manípulo"
+
+
+msgid "Length to make selected keyframes' Bézier handles"
+msgstr "Comprimento a atribuir aos manípulos Bézier dos fotogramas chave seleccionados"
 
 
 msgid "Side"
 msgstr "Lado"
 
 
+msgid "Side of the keyframes' Bézier handles to affect"
+msgstr "Lado dos manípulos Bézier dos fotogramas chave a afectar"
+
+
+msgid "Equalize selected keyframes' left handles"
+msgstr "Equalizar os manípulos esquerdos dos fotogramas chave seleccionados"
+
+
+msgid "Equalize selected keyframes' right handles"
+msgstr "Equalizar os manípulos direitos dos fotogramas chave seleccionados"
+
+
 msgid "Both"
 msgstr "Ambos"
+
+
+msgid "Equalize both of a keyframe's handles"
+msgstr "Equalizar ambos os manípulos dos fotogramas chave seleccionados"
 
 
 msgctxt "Operator"
@@ -63563,12 +64476,29 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Posiciona o cursor no ponto mediano dos fotogramas chave seleccionados."
 
 
+msgctxt "Operator"
+msgid "Gaussian Smooth"
+msgstr "Suavização Gaussiana"
+
+
+msgid "Smooth the curve using a Gaussian filter"
+msgstr "Suavizar a curva usando um filtro Gaussiano"
+
+
 msgid "Filter Width"
 msgstr "Largura do filtro"
 
 
+msgid "How far to each side the operator will average the key values"
+msgstr "A que distância de cada lado o operador vai medianizar os valores das chaves"
+
+
 msgid "Sigma"
 msgstr "Sigma"
+
+
+msgid "The shape of the gaussian distribution, lower values make it sharper"
+msgstr "A forma da distribuição gaussiana, valores mais baixos tornam a curva mais aguda"
 
 
 msgctxt "Operator"
@@ -63610,8 +64540,24 @@ msgid "Insert a keyframe on selected F-Curves using each curve's current value"
 msgstr "Insere fotogramas chave em todas as curvas-f seleccionadas e editáveis usando o valor actual de cada curva."
 
 
+msgid "Only Active F-Curve"
+msgstr "Apenas Curva-F Activa"
+
+
+msgid "Insert a keyframe on the active F-Curve using the curve's current value"
+msgstr "Inserir um fotograma chave na Curva-F activa usando o valor actual da curva"
+
+
+msgid "Active Channels at Cursor"
+msgstr "Canais Activos Sob o Cursor"
+
+
 msgid "Insert a keyframe for the active F-Curve at the cursor point"
 msgstr "Insere fotogramas chave para as curvas-f ativas no ponto de localização do cursor."
+
+
+msgid "Selected Channels at Cursor"
+msgstr "Canais Seleccionados Sob o Cursor"
 
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
@@ -63629,6 +64575,11 @@ msgstr "Salta para o fotograma chave anterior ou posterior."
 
 msgid "Next Keyframe"
 msgstr "Próximo fotograma chave"
+
+
+msgctxt "Operator"
+msgid "Keys to Samples"
+msgstr "Chaves a Amostrar"
 
 
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
@@ -63942,6 +64893,10 @@ msgstr "Através do material"
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Modo de selecção"
+
+
+msgid "Fill Opacity"
+msgstr "Preencher opacidade"
 
 
 msgctxt "Operator"
@@ -73882,10 +74837,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Exporta as UVs a partir da malha modificada."
 
 
-msgid "Fill Opacity"
-msgstr "Preencher opacidade"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Define a quantidade de opacidade para o esquema de UV exportado."
 
@@ -83301,6 +84252,11 @@ msgstr "Cena"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Filme"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Clipe"
 
 
 msgctxt "Sequence"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-11-09 15:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -493,10 +493,6 @@ msgstr "Giv mere plads til, at store scener kan passe ved at distribuere hukomme
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (eksperimentel)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT muliggør AMD hardware ray tracing på RDNA2 og derover, med shader fallback på ældre kort. Denne funktion er eksperimentel, og nogle scener kan gengives forkert"
 
 
 msgid "Embree on GPU"

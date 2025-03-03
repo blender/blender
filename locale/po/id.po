@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2025-01-31 04:04+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -652,10 +652,6 @@ msgstr "Buat spasi lebih banyak untuk adegan besar supaya cukup dengan mendistri
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Eksperimental)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT menggunakan pelacakan sinar oleh perangkat keras AMD di RDNA2 dan yang lebih baru, dengan fallback peneduh pada kartu lebih tua. Fitur ini bersifat eksperimental dan beberapa adegan mungkin salah render"
 
 
 msgid "Embree on GPU"
@@ -13291,11 +13287,6 @@ msgid "Wood Texture"
 msgstr "Tekstur"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Klip"
-
-
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "Manajer jendela data-blok mendefinisikan jendela terbuka dan data antarmuka pengguna lainnya"
 
@@ -15127,12 +15118,24 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Snap"
 msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Navigation"
@@ -15145,10 +15148,6 @@ msgstr "Seleksi yang Terhubung"
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Light"
@@ -15179,16 +15178,8 @@ msgid "Hooks"
 msgstr "Kait"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Merge"
 msgstr "Menggabungkan"
-
-
-msgid "Text"
-msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -20699,6 +20690,10 @@ msgid "Select Mode"
 msgstr "Seleksi"
 
 
+msgid "Fill Opacity"
+msgstr "Isi Opasitas"
+
+
 msgid "Assign the active material slot to the selected strokes"
 msgstr "Tugaskan slot bahan aktif ke sapuan terpilih"
 
@@ -24205,10 +24200,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Mengekspor UV dari jala yang dimodifikasi"
 
 
-msgid "Fill Opacity"
-msgstr "Isi Opasitas"
-
-
 msgid "Hide (un)selected UV vertices"
 msgstr "Menyembunyikan simpul UV yang (tidak) terpilih"
 
@@ -26708,6 +26699,11 @@ msgstr "Adegan"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Film"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Klip"
 
 
 msgctxt "Sequence"

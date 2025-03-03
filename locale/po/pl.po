@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2025-02-18 05:56+0000\n"
 "Last-Translator: Krzysztof Chorzempa <Krzysztof-Chorzempa@users.noreply.translate.blender.org>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -630,10 +630,6 @@ msgstr "Rozdziel pamięć między urządzeniami"
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Eksperymentalna funkcja)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT umożliwia sprzętowe śledzenie promieni AMD na kartach RDNA2 i nowszych, z rezerwowym modułem cieniującym na starszych kartach. Ta funkcja ma charakter eksperymentalny i niektóre sceny mogą być renderowane nieprawidłowo"
 
 
 msgid "Embree on GPU"
@@ -11580,12 +11576,32 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
 
 
 msgid "Snap"
 msgstr "Przyciągnij"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Local View"
@@ -11606,10 +11622,6 @@ msgstr "Zaznacz powiązane"
 
 msgid "Assign Material"
 msgstr "Przypisanie materiału"
-
-
-msgid "Metaball"
-msgstr "Metakula"
 
 
 msgid "Light"
@@ -11636,14 +11648,6 @@ msgid "Quick Effects"
 msgstr "Szybkie efekty"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
 msgid "Asset"
 msgstr "Prefabrykat"
 
@@ -11662,14 +11666,6 @@ msgstr "Dane ściany"
 
 msgid "Merge"
 msgstr "Scal"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
 
 
 msgid "Catalog"
@@ -23803,10 +23799,6 @@ msgid "Failed to find '%s'"
 msgstr "Nie można znaleść '%s'"
 
 
-msgid "Home"
-msgstr "Katalog domowy"
-
-
 msgctxt "UI_Events_KeyMaps"
 msgid "Space"
 msgstr "Spacja"
@@ -25898,6 +25890,10 @@ msgstr "Katalogi zasobów"
 
 msgid "Date Modified"
 msgstr "Data modyfikacji"
+
+
+msgid "Home"
+msgstr "Katalog domowy"
 
 
 msgid "Desktop"

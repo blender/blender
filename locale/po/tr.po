@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -580,10 +580,6 @@ msgstr "Belleği çoğaltmak yerine, birbirine bağlı aygıtlar arasında dağ�
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Deneysel)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT, RDNA2 ve üzeri üzerinde AMD donanım ışın izlemeyi etkinleştirir ve eski kartlarda gölgelendirici geri dönüşü sağlar. Bu özellik deneyseldir ve bazı sahneler yanlış işlenebilir"
 
 
 msgid "Embree on GPU"
@@ -24677,11 +24673,6 @@ msgid "Sequence playback mode"
 msgstr "Dizi oynatma modu"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Klip"
-
-
 msgid "Hide frames outside the specified frame range"
 msgstr "Belirtilen çerçeve aralığının dışındaki çerçeveleri gizle"
 
@@ -29218,12 +29209,68 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
 msgid "Snap"
 msgstr "Yakala"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "UV Mapping"
@@ -29278,10 +29325,6 @@ msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
-msgid "Metaball"
-msgstr "Metabol"
-
-
 msgid "Light"
 msgstr "Işık"
 
@@ -29314,14 +29357,6 @@ msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
 msgid "Asset"
 msgstr "Varlık"
 
@@ -29340,10 +29375,6 @@ msgstr "Veriyi Bağlantıla/Aktar"
 
 msgid "Hooks"
 msgstr "Kancalar"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
 
 
 msgid "Trim/Add"
@@ -29378,10 +29409,6 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Names"
-msgstr "Adlar"
-
-
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
 
@@ -29412,42 +29439,6 @@ msgstr "Yüz Gücünü Ayarla"
 
 msgid "Merge"
 msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
 
 
 msgid "Keyframe Insert Pie"
@@ -56952,6 +56943,10 @@ msgid "Set all stroke points to same opacity"
 msgstr "Tüm kontur noktalarını aynı opaklığa ayarlayın"
 
 
+msgid "Fill Opacity"
+msgstr "Dolgu Opaklığı"
+
+
 msgctxt "Operator"
 msgid "Set Uniform Thickness"
 msgstr "Tekdüze Kalınlık Ayarla"
@@ -74300,10 +74295,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Değiştirilmiş ağdan UV'leri dışa aktarır"
 
 
-msgid "Fill Opacity"
-msgstr "Dolgu Opaklığı"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Dışa aktarılan UV düzeni için opaklık miktarını ayarlayın"
 
@@ -79137,6 +79128,14 @@ msgid "SSAO Settings"
 msgstr "SSAO Ayarları"
 
 
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
+
+
 msgid "Render Pass"
 msgstr "Render Geçişi"
 
@@ -79203,14 +79202,6 @@ msgstr "Stereoskopi"
 
 msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
-
-
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
 
 
 msgid "Auto-Masking"
@@ -93054,6 +93045,11 @@ msgstr "Film"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Klip"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Maske"
 
@@ -102725,10 +102721,6 @@ msgid "and NVIDIA driver version %s or newer"
 msgstr "ve NVIDIA sürücü sürümü %s veya daha yenisi"
 
 
-msgid "and AMD Radeon Pro %s driver or newer"
-msgstr "ve AMD Radeon Pro %s sürücüsü veya daha yenisi"
-
-
 msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Xe-HPG mimarisine sahip Intel GPU gerektirir"
 
@@ -104159,10 +104151,6 @@ msgstr "Buradaki ayarlar önemli bir etkiye sahip olabilir"
 
 msgid "performance impact!"
 msgstr "performans etkisi!"
-
-
-msgid "Built without VR/OpenXR features"
-msgstr "VR/OpenXR özellikleri olmadan oluşturuldu"
 
 
 msgid "Start VR Session"
@@ -114657,10 +114645,6 @@ msgid "OS"
 msgstr "İşletim Sistemi"
 
 
-msgid "Home"
-msgstr "Ev"
-
-
 msgid "Esc"
 msgstr "Esc"
 
@@ -118446,6 +118430,10 @@ msgstr "Varlık Katalogları"
 
 msgid "Date Modified"
 msgstr "Değiştirilme Tarihi"
+
+
+msgid "Home"
+msgstr "Ev"
 
 
 msgid "Desktop"
