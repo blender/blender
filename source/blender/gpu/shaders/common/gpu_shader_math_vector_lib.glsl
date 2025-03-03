@@ -266,7 +266,6 @@ float average(vec4 a);
 /** \name Implementation
  * \{ */
 
-#  ifdef GPU_METAL /* Already defined in shader_defines.msl/glsl to move here. */
 bool is_zero(vec2 vec)
 {
   return all(equal(vec, vec2(0.0)));
@@ -279,7 +278,6 @@ bool is_zero(vec4 vec)
 {
   return all(equal(vec, vec4(0.0)));
 }
-#  endif /* GPU_METAL */
 
 bool is_any_zero(vec2 vec)
 {

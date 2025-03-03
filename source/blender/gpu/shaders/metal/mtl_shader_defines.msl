@@ -1076,11 +1076,6 @@ template<typename T> vec<T, 2> mix(vec<T, 2> a, vec<T, 2> b, bool2 mask) SELECT;
 
 #undef SELECT
 
-template<typename T, int Size> bool is_zero(vec<T, Size> a)
-{
-  return all(a == vec<T, Size>(0));
-}
-
 #define in
 #define out thread
 #define inout thread

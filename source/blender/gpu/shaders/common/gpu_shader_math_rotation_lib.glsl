@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* WORKAROUND: to guard against double include in EEVEE. */

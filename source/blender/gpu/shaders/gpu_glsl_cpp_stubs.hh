@@ -908,11 +908,6 @@ template<int C, int R> float determinant(MatBase<C, R>) RET;
 template<int C, int R> MatBase<C, R> inverse(MatBase<C, R>) RET;
 template<int C, int R> MatBase<R, C> transpose(MatBase<C, R>) RET;
 
-/* TODO(@fclem): Should be in a lib instead of being implemented by each backend. */
-bool is_zero(vec2) RET;
-bool is_zero(vec3) RET;
-bool is_zero(vec4) RET;
-
 #undef RET
 
 /** \} */
