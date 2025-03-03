@@ -589,8 +589,9 @@ static void cage2d_draw_rect_corner_handles(const rctf *r,
                                             bool solid)
 {
   /* Only draw corner handles when hovering over the corners. */
-  if (highlighted < ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y ||
-      highlighted > ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y)
+  if (!((highlighted == ED_GIZMO_CAGE2D_PART_ROTATE) ||
+        (highlighted >= ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y &&
+         highlighted <= ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y)))
   {
     return;
   }

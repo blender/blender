@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
-"PO-Revision-Date: 2025-02-19 21:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"PO-Revision-Date: 2025-03-01 20:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.9.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -109,6 +109,10 @@ msgstr "Per cada epígraf d'acció, una llista de canals d'animació fets per a 
 
 msgid "Action F-Curves"
 msgstr "Corbes-F d'acció"
+
+
+msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
+msgstr "Col·lecció de Corbes-F d'acció. Fixeu-vos en compte que aquesta és una API antiquada que desconeix els epígrafs d'acció i només tindrà en compte les Corbes-F per al primer epígraf d'aquesta acció"
 
 
 msgid "Action Group"
@@ -738,10 +742,6 @@ msgstr "Allibera capacitat per adaptar-se a grans escenes tot repartint memòria
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (experimental)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "L'HIP RT activa el radiotraçat de maquinari en RDNA2 i superior, i recorre a aspectors amb targes antiquades. Aquesta funcionalitat és experimental i pot revelar incorrectament algunes escenes"
 
 
 msgid "Embree on GPU"
@@ -16559,7 +16559,7 @@ msgstr "Límits de materials"
 
 
 msgid "Enable material boundaries"
-msgstr "Activa límits del materials"
+msgstr "Activa límits de materials"
 
 
 msgid "Ridges and Valleys"
@@ -16575,7 +16575,7 @@ msgstr "Suavitzat de cares"
 
 
 msgid "Take face smoothness into account in view map calculation"
-msgstr "[Face Smoothness]: Té en compte el suavitzat de cara en el càlcul del mapa de visió"
+msgstr "[Face Smoothness]: Té en compte el suavitzat de cara en el càlcul del mapa de visionat"
 
 
 msgid "Suggestive Contours"
@@ -16587,11 +16587,11 @@ msgstr "[Suggestive Contours]: Activa contorns suggestius"
 
 
 msgid "View Map Cache"
-msgstr "Caché de visionat de mapes"
+msgstr "Caché de mapa de visionat"
 
 
 msgid "Keep the computed view map and avoid recalculating it if mesh geometry is unchanged"
-msgstr "[View Map Cache]: Manté el mapa de visió calculat i evita de recalcular-lo si la geometria de la malla no ha canviat"
+msgstr "[View Map Cache]: Manté el mapa de visionat calculat i evita de recalcular-lo si la geometria de la malla no ha canviat"
 
 
 msgid "Annotation Frame"
@@ -18107,6 +18107,10 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "[Curve Frame Range]: L'interval combinat de fotogrames de totes les corbes-F dins d'aquesta acció"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curves for the action's first slot"
+msgstr "API antiquada per a compatibilitat retrospectiva amb el codi que encara no pot gestionar accions amb epígrafs. Aquesta col·lecció conté les corbes-F per al primer epígraf d'acció"
+
+
 msgid "The end frame of the manually set intended playback range"
 msgstr "El fotograma final de l'interval de reproducció desitjat que ha estat especificat manualment"
 
@@ -18127,9 +18131,17 @@ msgid "Groups"
 msgstr "Grups"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curve groups for the action's first slot"
+msgstr "API antiquada per a compatibilitat retrospectiva amb el codi que encara no pot gestionar accions amb epígrafs. Aquesta col·lecció conté els grups de corbes-F per al primer epígraf d'acció"
+
+
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipus d'ID arrel"
+
+
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. Type of data-block that the action's first slot can be used on. Do not change unless you know what you are doing"
+msgstr "API antiquada per a compatibilitat retrospectiva amb el codi que encara no pot gestionar accions amb epígrafs. Tipus de bloc de dades amb què es pot fer ús del primer epígraf d'acció. No el canvieu a menys que tingueu molt clar el que esteu tocant"
 
 
 msgid "Is Layered Action"
@@ -18142,6 +18154,10 @@ msgstr "Retorna si l'Acció és per capes. Una Acció buida es considera alhora 
 
 msgid "Is Legacy Action"
 msgstr "ÉS acció antiquada"
+
+
+msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
+msgstr "Retorna si aquesta és una Acció antiquada. Les Accions antiquades no tenen capes ni epígrafs. Una Acció buida considerada alhora 'antiquada' i com a Acció 'en capes'. Des de Blender 4.4. les accions s'actualitzen automàticament com a accions en capes, i per tant aquest element només retornarà VER quan l'acció estigui buida"
 
 
 msgid "Is Empty"
@@ -29257,45 +29273,20 @@ msgid "Volume render settings for 3D viewport"
 msgstr "Paràmetres de revelat del volum per al mirador 3D"
 
 
-msgctxt "Sequence"
-msgid "Sequence Mode"
-msgstr "Mode seqüència"
-
-
 msgid "Sequence playback mode"
 msgstr "Mode reproducció de seqüència"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Clip"
 
 
 msgid "Hide frames outside the specified frame range"
 msgstr "Amaga els fotogrames fora de l'interval especificat"
 
 
-msgctxt "Sequence"
-msgid "Extend"
-msgstr "Estendre"
-
-
 msgid "Repeat the start frame before, and the end frame after the frame range"
 msgstr "Repeteix el fotograma inicial abans i el fotograma final després de l'interval de fotogrames definit"
 
 
-msgctxt "Sequence"
-msgid "Repeat"
-msgstr "Repetició"
-
-
 msgid "Cycle the frames in the sequence"
 msgstr "Ciclitza els fotogrames de la seqüència"
-
-
-msgctxt "Sequence"
-msgid "Ping-Pong"
-msgstr "Ping-pong"
 
 
 msgid "Repeat the frames, reversing the playback direction every other cycle"
@@ -34302,12 +34293,68 @@ msgid "Editor menu containing buttons"
 msgstr "El menú d'edició que conté els botons"
 
 
-msgid "Mirror"
-msgstr "Emmirallar"
+msgid "Show/Hide"
+msgstr "Mostrar/amagar"
+
+
+msgid "Special Characters"
+msgstr "Caràcters especials"
+
+
+msgid "Kerning"
+msgstr "Interlletratge"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Bone Roll"
+msgstr "Girar os"
+
+
+msgid "Clean Up"
+msgstr "Netejar"
+
+
+msgid "Pivot Point"
+msgstr "Punt de pivot"
 
 
 msgid "Snap"
 msgstr "Acoblament"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaïment a l'edició proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edició de màscares"
+
+
+msgid "Automasking"
+msgstr "Automàscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edició de jocs de cares"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocatges de grup de vèrtexs"
+
+
+msgid "Mirror"
+msgstr "Emmirallar"
 
 
 msgid "UV Mapping"
@@ -34362,10 +34409,6 @@ msgid "Assign Material"
 msgstr "Assignar material"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Light"
 msgstr "Llum"
 
@@ -34398,14 +34441,6 @@ msgid "Quick Effects"
 msgstr "Efectes ràpids"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar/amagar"
-
-
-msgid "Clean Up"
-msgstr "Netejar"
-
-
 msgid "Asset"
 msgstr "Recurs"
 
@@ -34424,10 +34459,6 @@ msgstr "Enllaçar/transferir dades"
 
 msgid "Hooks"
 msgstr "Ganxos"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocatges de grup de vèrtexs"
 
 
 msgid "Trim/Add"
@@ -34462,10 +34493,6 @@ msgid "Bone Collections"
 msgstr "Col·leccions d'ossos"
 
 
-msgid "Names"
-msgstr "Noms"
-
-
 msgid "Toggle Bone Options"
 msgstr "Permutar opcions d'os"
 
@@ -34496,42 +34523,6 @@ msgstr "Definir força de cara"
 
 msgid "Merge"
 msgstr "Fusionar"
-
-
-msgid "Special Characters"
-msgstr "Caràcters especials"
-
-
-msgid "Kerning"
-msgstr "Interlletratge"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Girar os"
-
-
-msgid "Pivot Point"
-msgstr "Punt de pivot"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decaïment a l'edició proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edició de màscares"
-
-
-msgid "Automasking"
-msgstr "Automàscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edició de jocs de cares"
 
 
 msgid "Keyframe Insert Pie"
@@ -44384,7 +44375,7 @@ msgstr "Generar un difuminat tipus bokeh semblant a Desenfocat. A diferència de
 
 
 msgid "Max Blur"
-msgstr "Difuminat màxim"
+msgstr "Màx difuminat"
 
 
 msgid "Blur limit, maximum CoC radius"
@@ -66199,6 +66190,10 @@ msgid "Set all stroke points to same opacity"
 msgstr "Posar tots els punts de traç a la mateixa opacitat"
 
 
+msgid "Fill Opacity"
+msgstr "Opacitat d'emplenat"
+
+
 msgctxt "Operator"
 msgid "Set Uniform Thickness"
 msgstr "Determinar gruix com a uniforme"
@@ -85274,10 +85269,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Exporta UVs des de la malla modificada"
 
 
-msgid "Fill Opacity"
-msgstr "Opacitat d'emplenat"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Especificar la quantitat d'opacitat per a la disposició UV exportada"
 
@@ -90877,6 +90868,14 @@ msgid "SSAO Settings"
 msgstr "Paràmetres de SSAO"
 
 
+msgid "glTF Variants"
+msgstr "Variants glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variants de material gITF"
+
+
 msgid "Render Pass"
 msgstr "Passada de revelat"
 
@@ -90917,6 +90916,14 @@ msgid "Curves Edit Mode"
 msgstr "Mode edició de corbes"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacions glTF"
+
+
 msgid "Snapping"
 msgstr "Acoblament"
 
@@ -90953,14 +90960,6 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF Variants"
-msgstr "Variants glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variants de material gITF"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-màscara"
 
@@ -90979,14 +90978,6 @@ msgstr "Expandir/encongir escala de corbes"
 
 msgid "Viewport Debug"
 msgstr "Depuració de mirador"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacions glTF"
 
 
 msgid "VR"
@@ -100383,11 +100374,11 @@ msgstr "Precisió plena"
 
 
 msgid "Dither Intensity"
-msgstr "Intensitat de variació"
+msgstr "Intensitat de fluctuació"
 
 
 msgid "Amount of dithering noise added to the rendered image to break up banding"
-msgstr "Quantitat de soroll de variació afegit a la imatge revelada per trencar l'efecte faixa"
+msgstr "Quantitat de soroll de fluctuació afegit a la imatge revelada per trencar l'efecte faixa"
 
 
 msgid "Engine"
@@ -100694,7 +100685,7 @@ msgstr "Mostrar efectes d'aspector"
 
 
 msgid "Layers Tinting"
-msgstr "Capes de tenyit"
+msgstr "Tenyit de capes"
 
 
 msgid "Display layer tint"
@@ -106758,6 +106749,11 @@ msgstr "Escena"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Pel·lícula"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Clip"
 
 
 msgctxt "Sequence"
@@ -117493,10 +117489,6 @@ msgid "Requires AMD GPU with RDNA architecture"
 msgstr "Requereix GPU AMD amb arquitectura RDNA"
 
 
-msgid "and AMD Radeon Pro %s driver or newer"
-msgstr "i el controlador %s de l'AMD Radeon Pro o més recent"
-
-
 msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Requereix GPU d'Intel amb arquitectura Xe-HPG"
 
@@ -119128,10 +119120,6 @@ msgstr "Aquí els paràmetres poden tenir un impacte significatiu"
 
 msgid "performance impact!"
 msgstr "afectació en el rendiment!"
-
-
-msgid "Built without VR/OpenXR features"
-msgstr "Programat sense funcionalitats VR/OpenXR"
 
 
 msgid "Start VR Session"
@@ -126463,6 +126451,11 @@ msgstr "Projectar des de la vista (delimitat)"
 
 
 msgctxt "Operator"
+msgid "Frame Last Stroke"
+msgstr "Traç de fotograma final"
+
+
+msgctxt "Operator"
 msgid "Viewport Render Animation"
 msgstr "Mirador - revelar animació"
 
@@ -127048,11 +127041,6 @@ msgstr "Forma de corba"
 msgctxt "View3D"
 msgid "Mix"
 msgstr "Mesclar"
-
-
-msgctxt "Operator"
-msgid "Frame Last Stroke"
-msgstr "Traç de fotograma final"
 
 
 msgctxt "Operator"
@@ -129189,6 +129177,10 @@ msgid "Error: Too many AOVs"
 msgstr "Error: Massa VEAs"
 
 
+msgid "Required render size ({}px) is larger than reported texture size limit ({}px)."
+msgstr "La Mida de revelat requerida de ({}px) és més gran que el límit de mida de textura informat ({}px)."
+
+
 msgid "Errors during render. See the System Console for more info."
 msgstr "Erros en el revelat. Consulteu la Consola del sistema per a més info."
 
@@ -130958,10 +130950,6 @@ msgid "OS"
 msgstr "SO"
 
 
-msgid "Home"
-msgstr "Inici"
-
-
 msgid "Esc"
 msgstr "Esc"
 
@@ -132587,6 +132575,10 @@ msgid "Image objects can only be added in Object Mode"
 msgstr "Els objectes d'imatge només es poden afegir en Mode objecte"
 
 
+msgid "No editable objects to convert"
+msgstr "No hi ha objectes editables per convertir"
+
+
 msgid "Converting some non-editable object/object data, enforcing 'Keep Original' option to True"
 msgstr "S'estan convertint algunes dades d'objecte/objecte no editable, forçant el paràmetre «Mantenir original» com a ver"
 
@@ -134135,6 +134127,10 @@ msgid "Unable to remove material slot in edit mode"
 msgstr "No s'ha pogut suprimir l'epígraf de material en mode d'edició"
 
 
+msgid "Can't bake light probe while rendering"
+msgstr "No es pot precuinar la sonda de llum mentre s'està revelant"
+
+
 msgid "No active lineset and associated line style to manipulate the modifier"
 msgstr "No hi ha cap joc de línies actiu i lineament associat per manipular el modificador"
 
@@ -135298,6 +135294,10 @@ msgstr "Catàlegs de recursos"
 
 msgid "Date Modified"
 msgstr "Data de modificació"
+
+
+msgid "Home"
+msgstr "Inici"
 
 
 msgid "Desktop"
@@ -139173,6 +139173,10 @@ msgstr "No s'ha trobat el grup d'accions '%s' de la Corba F a l'acció '%s'"
 
 msgid "Timeline marker '%s' not found in action '%s'"
 msgstr "No s'ha trobat la marca de cronograma '%s' a l'acció '%s'"
+
+
+msgid "Assign action \"%s\" to \"%s\" before calling this function"
+msgstr "Assignar l'acció \"%s\" a \"%s\" abans d'invocar aquesta funció"
 
 
 msgid "Action slot display names cannot be empty"

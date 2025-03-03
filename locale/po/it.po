@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2025-02-22 22:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -664,10 +664,6 @@ msgstr "Libera più spazio per ospitare scene di grandi dimensioni distribuendo 
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Sperimentale)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT abilita il ray tracing hardware di AMD su RDNA2 e versioni successive, con fallback dello shader sulle schede più vecchie. Questa funzionalità è sperimentale e alcune scene potrebbero essere visualizzate in modo errato"
 
 
 msgid "Embree on GPU"
@@ -20931,11 +20927,6 @@ msgid "Offset the number of the frame to use in the animation"
 msgstr "Numero di fotogrammi di compensazione da utilizzare nell'animazione"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Filmato"
-
-
 msgid "Window Manager"
 msgstr "Gestore Finestra"
 
@@ -23769,12 +23760,48 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Mirror"
-msgstr "Specchia"
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
 
 
 msgid "Snap"
 msgstr "Aggancia"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mirror"
+msgstr "Specchia"
 
 
 msgid "UV Mapping"
@@ -23829,10 +23856,6 @@ msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Light"
 msgstr "Luce"
 
@@ -23861,14 +23884,6 @@ msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
 msgid "Make Single User"
 msgstr "Rendi Utilizzatore Singolo"
 
@@ -23887,10 +23902,6 @@ msgstr "Intermedio"
 
 msgid "Propagate"
 msgstr "Propaga"
-
-
-msgid "Names"
-msgstr "Nomi"
 
 
 msgid "Toggle Bone Options"
@@ -23915,26 +23926,6 @@ msgstr "Dati Faccia"
 
 msgid "Merge"
 msgstr "Unisci"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
 
 
 msgid "Basic"
@@ -36797,6 +36788,10 @@ msgid "Select Mode"
 msgstr "Modo Selezione"
 
 
+msgid "Fill Opacity"
+msgstr "Opacità Riempimento"
+
+
 msgctxt "Operator"
 msgid "Snap Cursor to Selected Points"
 msgstr "Aggancia Cursore ai Punti Selezionati"
@@ -45967,10 +45962,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Esporta le UV dalla mesh modificata"
 
 
-msgid "Fill Opacity"
-msgstr "Opacità Riempimento"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Imposta l'opacità dello schema UV esportato"
 
@@ -54598,6 +54589,11 @@ msgstr "Scena"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Video"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Filmato"
 
 
 msgctxt "Sequence"

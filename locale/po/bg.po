@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-11-08 04:56+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1140,6 +1140,10 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
+msgid "Text"
+msgstr "Текст"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
@@ -1170,10 +1174,6 @@ msgstr "Междинни Кадри"
 
 msgid "Merge"
 msgstr "Слей"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Languages..."

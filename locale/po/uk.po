@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -22703,11 +22703,6 @@ msgid "Sequence playback mode"
 msgstr "Режим програвання послідовності"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Кліп"
-
-
 msgid "Hide frames outside the specified frame range"
 msgstr "Сховати кадри поза вказаним діапазоном кадрів"
 
@@ -26632,12 +26627,68 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Names"
+msgstr "Назви"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Pivot Point"
+msgstr "Точка Опертя"
 
 
 msgid "Snap"
 msgstr "Підхоп"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "UV Mapping"
@@ -26692,10 +26743,6 @@ msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
-
-
 msgid "Light"
 msgstr "Слабко"
 
@@ -26728,14 +26775,6 @@ msgid "Quick Effects"
 msgstr "Швидкі ефекти"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
 msgid "Asset"
 msgstr "Актив"
 
@@ -26756,10 +26795,6 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Ліплення Задати Опертя"
 
@@ -26778,10 +26813,6 @@ msgstr "У проміжках"
 
 msgid "Propagate"
 msgstr "Поширити"
-
-
-msgid "Names"
-msgstr "Назви"
 
 
 msgid "Toggle Bone Options"
@@ -26814,42 +26845,6 @@ msgstr "Задати Силу Грані"
 
 msgid "Merge"
 msgstr "Об'єднання"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
-msgid "Pivot Point"
-msgstr "Точка Опертя"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
 
 
 msgid "Basic"
@@ -46039,6 +46034,10 @@ msgid "Select all stroke points between other strokes"
 msgstr "Вибрати усі точки штрихів між іншими штрихами"
 
 
+msgid "Fill Opacity"
+msgstr "Безпрозорість Заповнення"
+
+
 msgctxt "Operator"
 msgid "Snap Cursor to Selected Points"
 msgstr "Підхопити курсор до виділених точок"
@@ -60038,10 +60037,6 @@ msgstr "Експортувати UV-розстановку у растрове �
 
 msgid "Exports UVs from the modified mesh"
 msgstr "Експортувати UV зі зміненої сіті"
-
-
-msgid "Fill Opacity"
-msgstr "Безпрозорість Заповнення"
 
 
 msgid "Set amount of opacity for exported UV layout"
@@ -74245,6 +74240,11 @@ msgstr "Фільм"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Кліп"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Маска"
 
@@ -80101,10 +80101,6 @@ msgstr "Устави тут можуть мати означення"
 
 msgid "performance impact!"
 msgstr "вплив продуктивності!"
-
-
-msgid "Built without VR/OpenXR features"
-msgstr "Побудовано без функціональностей VR/OpenXR"
 
 
 msgid "API Defined"
@@ -87006,10 +87002,6 @@ msgid "OS"
 msgstr "ОС"
 
 
-msgid "Home"
-msgstr "Домівка"
-
-
 msgid "Esc"
 msgstr "Esc"
 
@@ -89580,6 +89572,10 @@ msgstr "Назва файлу"
 
 msgid "Date Modified"
 msgstr "Дату Модифіковано"
+
+
+msgid "Home"
+msgstr "Домівка"
 
 
 msgid "Desktop"

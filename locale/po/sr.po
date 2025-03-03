@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -7852,11 +7852,6 @@ msgid "Vector Font"
 msgstr "Векторски фонт"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Исечак"
-
-
 msgid "Window Manager"
 msgstr "Управљач прозорима"
 
@@ -8630,12 +8625,32 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Mirror"
-msgstr "Огледало"
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
 
 
 msgid "Snap"
 msgstr "Лепљење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
 
 
 msgid "UV Mapping"
@@ -8656,10 +8671,6 @@ msgstr "Поравнај поглед"
 
 msgid "Select Linked"
 msgstr "Изабери повезано"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
 
 
 msgid "Light"
@@ -8686,10 +8697,6 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
 msgid "Hooks"
 msgstr "Удице"
 
@@ -8704,10 +8711,6 @@ msgstr "У међувремену"
 
 msgid "Propagate"
 msgstr "Пренеси"
-
-
-msgid "Names"
-msgstr "Имена"
 
 
 msgid "Toggle Bone Options"
@@ -8728,14 +8731,6 @@ msgstr "Мод избора мреже"
 
 msgid "Merge"
 msgstr "Сједини"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
 
 
 msgid "Basic"
@@ -14593,6 +14588,10 @@ msgid "Select Mode"
 msgstr "Мод изабора"
 
 
+msgid "Fill Opacity"
+msgstr "Провидност испуне"
+
+
 msgctxt "Operator"
 msgid "Snap Selection to Cursor"
 msgstr "Изабор за курсор"
@@ -19004,10 +19003,6 @@ msgid "PNG Image (.png)"
 msgstr "PNG слика (.png)"
 
 
-msgid "Fill Opacity"
-msgstr "Провидност испуне"
-
-
 msgid "Edge Length Mode"
 msgstr "Режим дужине ивица"
 
@@ -22266,6 +22261,11 @@ msgstr "Сцена"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Филм"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Исечак"
 
 
 msgctxt "Sequence"

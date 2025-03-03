@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -377,10 +377,6 @@ msgstr "ﺪﯿﻨﮐ ﺩﺎﺠﯾﺍ ﮒﺭﺰﺑ ﯼﺎﻫ ﻪﻨﺤﺻ ﻥﺩ�
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (ﯽﺸﯾﺎﻣﺯﺁ)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT ﯼﺭﺍﺰﻓﺍ‌ﺖﺨﺳ ﻮﺗﺮﭘ ﯼﺮﯿﮕﻫﺭ AMD ﺭﺩ ﺍﺭ RDNA2 ﺪﻧﻮﺷ ﺭﺪﻧﺭ ﺖﺳﺭﺩﺎﻧ ﺎﻫ ﻪﻨﺤﺻ ﺯﺍ ﯽﺧﺮﺑ ﺖﺳﺍ ﻦﮑﻤﻣ ﻭ ﺖﺳﺍ ﯽﺸﯾﺎﻣﺯﺁ ﯽﮔﮋﯾﻭ ﻦﯾﺍ .ﺪﻨﮐ‌ﯽﻣ ﻝﺎﻌﻓ ،ﺮﺗ‌ﯽﻤﯾﺪﻗ ﯼﺎﻫ‌ﮏﯿﻓﺍﺮﮔ ‌ﺕﺭﺎﮐ ﺭﺩ ﯽﺘﺸﮔﺯﺎﺑ ﻥﺯ‌ﻪﯾﺎﺳ ﺎﺑ ،ﺮﺗﻻ﻿ﺎﺑ ﻭ"
 
 
 msgid "Embree on GPU"
@@ -2945,6 +2941,14 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
+
+
 msgid "Mirror"
 msgstr "ﻪﻨﯾﺁ"
 
@@ -2963,14 +2967,6 @@ msgstr "ﻝﺎﻤﻋﺍ"
 
 msgid "Convert"
 msgstr "ﻞﯾﺪﺒﺗ"
-
-
-msgid "Text"
-msgstr "ﻦﺘﻣ"
-
-
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
 msgid "Key"
@@ -4893,10 +4889,6 @@ msgid "Reset Single to Default Value"
 msgstr "ﺽﺮﻓ ﺶﯿﭘ ﺭﺍﺪﻘﻣ ﻪﺑ ﯽﮑﺗ ﺩﺪﺠﻣ ﻢﯿﻈﻨﺗ"
 
 
-msgid "Home"
-msgstr "Home"
-
-
 msgid "Esc"
 msgstr "Esc"
 
@@ -5128,6 +5120,10 @@ msgstr "ﺩﻮﺟﻮﻣ ﯽﺴﯾﻮﻧﺯﺎﺑ ٬ﻞﯾﺎﻓ ﻡﺎﻧ"
 
 msgid "File name"
 msgstr "ﻞﯾﺎﻓ ﻡﺎﻧ"
+
+
+msgid "Home"
+msgstr "Home"
 
 
 msgid "Update Dependencies"

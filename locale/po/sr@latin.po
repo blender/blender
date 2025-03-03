@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'63c460d93d55')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 09:56+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -7852,11 +7852,6 @@ msgid "Vector Font"
 msgstr "Vektorski font"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Isečak"
-
-
 msgid "Window Manager"
 msgstr "Upravljač prozorima"
 
@@ -8630,12 +8625,32 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Snap"
 msgstr "Lepljenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
 msgid "UV Mapping"
@@ -8656,10 +8671,6 @@ msgstr "Poravnaj pogled"
 
 msgid "Select Linked"
 msgstr "Izaberi povezano"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
 
 
 msgid "Light"
@@ -8686,10 +8697,6 @@ msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
 msgid "Hooks"
 msgstr "Udice"
 
@@ -8704,10 +8711,6 @@ msgstr "U međuvremenu"
 
 msgid "Propagate"
 msgstr "Prenesi"
-
-
-msgid "Names"
-msgstr "Imena"
 
 
 msgid "Toggle Bone Options"
@@ -8728,14 +8731,6 @@ msgstr "Mod izbora mreže"
 
 msgid "Merge"
 msgstr "Sjedini"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
 
 
 msgid "Basic"
@@ -14593,6 +14588,10 @@ msgid "Select Mode"
 msgstr "Mod izabora"
 
 
+msgid "Fill Opacity"
+msgstr "Providnost ispune"
+
+
 msgctxt "Operator"
 msgid "Snap Selection to Cursor"
 msgstr "Izabor za kursor"
@@ -19004,10 +19003,6 @@ msgid "PNG Image (.png)"
 msgstr "PNG slika (.png)"
 
 
-msgid "Fill Opacity"
-msgstr "Providnost ispune"
-
-
 msgid "Edge Length Mode"
 msgstr "Režim dužine ivica"
 
@@ -22266,6 +22261,11 @@ msgstr "Scena"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Film"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Isečak"
 
 
 msgctxt "Sequence"
