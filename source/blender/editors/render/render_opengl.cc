@@ -914,6 +914,9 @@ static void screen_opengl_render_end(OGLRender *oglrender)
     oglrender->scene->r.cfra = oglrender->cfrao;
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
+  else if (oglrender->win) {
+    WM_cursor_modal_restore(oglrender->win);
+  }
 
   WM_main_add_notifier(NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
   G.is_rendering = false;
@@ -1132,6 +1135,12 @@ static bool screen_opengl_render_anim_step(OGLRender *oglrender)
       ok = true;
       goto finally;
     }
+  }
+
+  if (!oglrender->wm_job && oglrender->win) {
+    /* When doing blocking animation render without a job from a Python script, show time cursor so
+     * Blender doesn't appear frozen. */
+    WM_cursor_time(oglrender->win, scene->r.cfra);
   }
 
   BKE_scene_graph_update_for_newframe(depsgraph);
