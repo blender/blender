@@ -10,7 +10,7 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "BKE_unit.hh"
 
@@ -28,17 +28,8 @@
 namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
-/** \name Transform (Skin) Element
+/** \name Transform (Skin)
  * \{ */
-
-/**
- * \note Small arrays / data-structures should be stored copied for faster memory access.
- */
-struct TransDataArgs_SkinResize {
-  const TransInfo *t;
-  const TransDataContainer *tc;
-  float mat_final[3][3];
-};
 
 static void transdata_elem_skin_resize(const TransInfo *t,
                                        const TransDataContainer * /*tc*/,
@@ -65,28 +56,9 @@ static void transdata_elem_skin_resize(const TransInfo *t,
   td->loc[1] = td->iloc[1] * (1 + (fsize[1] - 1) * td->factor);
 }
 
-static void transdata_elem_skin_resize_fn(void *__restrict iter_data_v,
-                                          const int iter,
-                                          const TaskParallelTLS *__restrict /*tls*/)
-{
-  TransDataArgs_SkinResize *data = static_cast<TransDataArgs_SkinResize *>(iter_data_v);
-  TransData *td = &data->tc->data[iter];
-  if (td->flag & TD_SKIP) {
-    return;
-  }
-  transdata_elem_skin_resize(data->t, data->tc, td, data->mat_final);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Transform (Skin)
- * \{ */
-
 static void applySkinResize(TransInfo *t)
 {
   float mat_final[3][3];
-  int i;
   char str[UI_MAX_DRAW_STR];
 
   if (t->flag & T_INPUT_IS_VALUES_FINAL) {
@@ -110,24 +82,15 @@ static void applySkinResize(TransInfo *t)
   headerResize(t, t->values_final, str, sizeof(str));
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
-      TransData *td = tc->data;
-      for (i = 0; i < tc->data_len; i++, td++) {
+    threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        TransData *td = &tc->data[i];
         if (td->flag & TD_SKIP) {
           continue;
         }
         transdata_elem_skin_resize(t, tc, td, mat_final);
       }
-    }
-    else {
-      TransDataArgs_SkinResize data{};
-      data.t = t;
-      data.tc = tc;
-      copy_m3_m3(data.mat_final, mat_final);
-      TaskParallelSettings settings;
-      BLI_parallel_range_settings_defaults(&settings);
-      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_skin_resize_fn, &settings);
-    }
+    });
   }
 
   recalc_data(t);

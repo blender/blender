@@ -15,7 +15,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "BKE_unit.hh"
 
@@ -60,23 +60,6 @@ struct BendCustomData {
 /* -------------------------------------------------------------------- */
 /** \name Transform (Bend) Element
  * \{ */
-
-/**
- * \note Small arrays / data-structures should be copied for faster memory access.
- */
-struct TransDataArgs_Bend {
-  const TransInfo *t;
-  const TransDataContainer *tc;
-
-  float angle;
-  BendCustomData bend_data;
-
-  float warp_sta_local[3];
-  float warp_end_local[3];
-  float warp_end_radius_local[3];
-  float pivot_local[3];
-  bool is_clamp;
-};
 
 static void transdata_elem_bend(const TransInfo *t,
                                 const TransDataContainer *tc,
@@ -144,27 +127,6 @@ static void transdata_elem_bend(const TransInfo *t,
   copy_v3_v3(td->loc, vec);
 }
 
-static void transdata_elem_bend_fn(void *__restrict iter_data_v,
-                                   const int iter,
-                                   const TaskParallelTLS *__restrict /*tls*/)
-{
-  TransDataArgs_Bend *data = static_cast<TransDataArgs_Bend *>(iter_data_v);
-  TransData *td = &data->tc->data[iter];
-  if (td->flag & TD_SKIP) {
-    return;
-  }
-  transdata_elem_bend(data->t,
-                      data->tc,
-                      td,
-                      data->angle,
-                      &data->bend_data,
-                      data->warp_sta_local,
-                      data->warp_end_local,
-                      data->warp_end_radius_local,
-                      data->pivot_local,
-                      data->is_clamp);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -186,7 +148,6 @@ static void Bend(TransInfo *t)
 {
   float pivot_global[3];
   float warp_end_radius_global[3];
-  int i;
   char str[UI_MAX_DRAW_STR];
   const BendCustomData *bend_data = static_cast<const BendCustomData *>(t->custom.mode.data);
   const bool is_clamp = (t->flag & T_ALT_TRANSFORM) == 0;
@@ -284,10 +245,9 @@ static void Bend(TransInfo *t)
       copy_v3_v3(pivot_local, pivot_global);
     }
 
-    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
-      TransData *td = tc->data;
-
-      for (i = 0; i < tc->data_len; i++, td++) {
+    threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        TransData *td = &tc->data[i];
         if (td->flag & TD_SKIP) {
           continue;
         }
@@ -302,22 +262,7 @@ static void Bend(TransInfo *t)
                             pivot_local,
                             is_clamp);
       }
-    }
-    else {
-      TransDataArgs_Bend data{};
-      data.t = t;
-      data.tc = tc;
-      data.angle = values.angle;
-      data.bend_data = *bend_data;
-      copy_v3_v3(data.warp_sta_local, warp_sta_local);
-      copy_v3_v3(data.warp_end_local, warp_end_local);
-      copy_v3_v3(data.warp_end_radius_local, warp_end_radius_local);
-      copy_v3_v3(data.pivot_local, pivot_local);
-      data.is_clamp = is_clamp;
-      TaskParallelSettings settings;
-      BLI_parallel_range_settings_defaults(&settings);
-      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_bend_fn, &settings);
-    }
+    });
   }
 
   recalc_data(t);

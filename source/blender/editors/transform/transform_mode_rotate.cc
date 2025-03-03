@@ -11,7 +11,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "BKE_context.hh"
 #include "BKE_report.hh"
@@ -70,22 +70,6 @@ static void rmat_cache_update(RotateMatrixCache *rmc, const float axis[3], const
 /** \name Transform (Rotation) Element
  * \{ */
 
-/**
- * \note Small arrays / data-structures should be stored copied for faster memory access.
- */
-struct TransDataArgs_Rotate {
-  const TransInfo *t;
-  const TransDataContainer *tc;
-  float axis[3];
-  float angle;
-  float angle_step;
-  bool is_large_rotation;
-};
-
-struct TransDataArgs_RotateTLS {
-  RotateMatrixCache rmc;
-};
-
 static void transdata_elem_rotate(const TransInfo *t,
                                   const TransDataContainer *tc,
                                   TransData *td,
@@ -139,27 +123,6 @@ static void transdata_elem_rotate(const TransInfo *t,
   rmat_cache_update(rmc, axis_final, angle_final);
 
   ElementRotation(t, tc, td, rmc->mat, t->around);
-}
-
-static void transdata_elem_rotate_fn(void *__restrict iter_data_v,
-                                     const int iter,
-                                     const TaskParallelTLS *__restrict tls)
-{
-  TransDataArgs_Rotate *data = static_cast<TransDataArgs_Rotate *>(iter_data_v);
-  TransDataArgs_RotateTLS *tls_data = static_cast<TransDataArgs_RotateTLS *>(tls->userdata_chunk);
-
-  TransData *td = &data->tc->data[iter];
-  if (td->flag & TD_SKIP) {
-    return;
-  }
-  transdata_elem_rotate(data->t,
-                        data->tc,
-                        td,
-                        data->axis,
-                        data->angle,
-                        data->angle_step,
-                        data->is_large_rotation,
-                        &tls_data->rmc);
 }
 
 /** \} */
@@ -241,36 +204,18 @@ static void applyRotationValue(TransInfo *t,
     angle = large_rotation_limit(angle);
   }
 
-  RotateMatrixCache rmc = {0};
-  rmat_cache_init(&rmc, angle, axis);
-
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
-      TransData *td = tc->data;
-      for (int i = 0; i < tc->data_len; i++, td++) {
+    threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
+      RotateMatrixCache rmc = {0};
+      rmat_cache_init(&rmc, angle, axis);
+      for (const int i : range) {
+        TransData *td = &tc->data[i];
         if (td->flag & TD_SKIP) {
           continue;
         }
         transdata_elem_rotate(t, tc, td, axis, angle, angle_step, is_large_rotation, &rmc);
       }
-    }
-    else {
-      TransDataArgs_Rotate data{};
-      data.t = t;
-      data.tc = tc;
-      copy_v3_v3(data.axis, axis);
-      data.angle = angle;
-      data.angle_step = angle_step;
-      data.is_large_rotation = is_large_rotation;
-      TransDataArgs_RotateTLS tls_data{};
-      tls_data.rmc = rmc;
-
-      TaskParallelSettings settings;
-      BLI_parallel_range_settings_defaults(&settings);
-      settings.userdata_chunk = &tls_data;
-      settings.userdata_chunk_size = sizeof(tls_data);
-      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_rotate_fn, &settings);
-    }
+    });
   }
 }
 

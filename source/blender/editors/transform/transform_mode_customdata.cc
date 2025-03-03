@@ -10,7 +10,7 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "BKE_unit.hh"
 
@@ -29,17 +29,8 @@
 namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
-/** \name Transform Element
+/** \name Transform Value
  * \{ */
-
-/**
- * \note Small arrays / data-structures should be stored copied for faster memory access.
- */
-struct TransDataArgs_Value {
-  const TransInfo *t;
-  const TransDataContainer *tc;
-  float value;
-};
 
 static void transdata_elem_value(const TransInfo * /*t*/,
                                  const TransDataContainer * /*tc*/,
@@ -54,28 +45,9 @@ static void transdata_elem_value(const TransInfo * /*t*/,
   CLAMP(*td->val, 0.0f, 1.0f);
 }
 
-static void transdata_elem_value_fn(void *__restrict iter_data_v,
-                                    const int iter,
-                                    const TaskParallelTLS *__restrict /*tls*/)
-{
-  TransDataArgs_Value *data = static_cast<TransDataArgs_Value *>(iter_data_v);
-  TransData *td = &data->tc->data[iter];
-  if (td->flag & TD_SKIP) {
-    return;
-  }
-  transdata_elem_value(data->t, data->tc, td, data->value);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Transform Value
- * \{ */
-
 static void apply_value_impl(TransInfo *t, const char *value_name)
 {
   float value;
-  int i;
   char str[UI_MAX_DRAW_STR];
 
   value = t->values[0] + t->values_modal_offset[0];
@@ -112,24 +84,15 @@ static void apply_value_impl(TransInfo *t, const char *value_name)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
-      TransData *td = tc->data;
-      for (i = 0; i < tc->data_len; i++, td++) {
+    threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        TransData *td = &tc->data[i];
         if (td->flag & TD_SKIP) {
           continue;
         }
         transdata_elem_value(t, tc, td, value);
       }
-    }
-    else {
-      TransDataArgs_Value data{};
-      data.t = t;
-      data.tc = tc;
-      data.value = value;
-      TaskParallelSettings settings;
-      BLI_parallel_range_settings_defaults(&settings);
-      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_value_fn, &settings);
-    }
+    });
   }
 
   recalc_data(t);

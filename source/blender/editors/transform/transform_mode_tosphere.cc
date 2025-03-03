@@ -11,7 +11,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -104,18 +104,6 @@ static void to_sphere_radius_update(TransInfo *t)
 /** \name Transform (ToSphere) Element
  * \{ */
 
-/**
- * \note Small arrays / data-structures should be stored copied for faster memory access.
- */
-struct TransDataArgs_ToSphere {
-  const TransInfo *t;
-  const TransDataContainer *tc;
-  float ratio;
-  ToSphereInfo to_sphere_info;
-  bool is_local_center;
-  bool is_data_space;
-};
-
 static void transdata_elem_to_sphere(const TransInfo * /*t*/,
                                      const TransDataContainer *tc,
                                      TransData *td,
@@ -148,24 +136,6 @@ static void transdata_elem_to_sphere(const TransInfo * /*t*/,
   copy_v3_v3(td->loc, vec);
 }
 
-static void transdata_elem_to_sphere_fn(void *__restrict iter_data_v,
-                                        const int iter,
-                                        const TaskParallelTLS *__restrict /*tls*/)
-{
-  TransDataArgs_ToSphere *data = static_cast<TransDataArgs_ToSphere *>(iter_data_v);
-  TransData *td = &data->tc->data[iter];
-  if (td->flag & TD_SKIP) {
-    return;
-  }
-  transdata_elem_to_sphere(data->t,
-                           data->tc,
-                           td,
-                           data->ratio,
-                           &data->to_sphere_info,
-                           data->is_local_center,
-                           data->is_data_space);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -178,7 +148,6 @@ static void applyToSphere(TransInfo *t)
   const bool is_data_space = (t->options & CTX_POSE_BONE) != 0;
 
   float ratio;
-  int i;
   char str[UI_MAX_DRAW_STR];
 
   ratio = t->values[0] + t->values_modal_offset[0];
@@ -210,28 +179,15 @@ static void applyToSphere(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
-      TransData *td = tc->data;
-      for (i = 0; i < tc->data_len; i++, td++) {
+    threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        TransData *td = &tc->data[i];
         if (td->flag & TD_SKIP) {
           continue;
         }
         transdata_elem_to_sphere(t, tc, td, ratio, to_sphere_info, is_local_center, is_data_space);
       }
-    }
-    else {
-      TransDataArgs_ToSphere data{};
-      data.t = t;
-      data.tc = tc;
-      data.ratio = ratio;
-      data.to_sphere_info = *to_sphere_info;
-      data.is_local_center = is_local_center;
-      data.is_data_space = is_data_space;
-
-      TaskParallelSettings settings;
-      BLI_parallel_range_settings_defaults(&settings);
-      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_to_sphere_fn, &settings);
-    }
+    });
   }
 
   recalc_data(t);
