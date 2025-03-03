@@ -2240,13 +2240,6 @@ void BKE_grease_pencil_eval_geometry(Depsgraph *depsgraph, GreasePencil *grease_
   grease_pencil->runtime->eval_frame = int(DEG_get_ctime(depsgraph));
   /* This will remove layers that aren't visible. */
   grease_pencil_evaluate_layers(*grease_pencil);
-  /* The layer adjustments for tinting and radii offsets are applied before modifier evaluation.
-   * This ensures that the evaluated geometry contains the modifications. In the future, it would
-   * be better to move these into modifiers. For now, these are hardcoded. */
-  const bke::AttributeAccessor layer_attributes = grease_pencil->attributes();
-  if (layer_attributes.contains("tint_color") || layer_attributes.contains("radius_offset")) {
-    grease_pencil_do_layer_adjustments(*grease_pencil);
-  }
 }
 
 void BKE_object_eval_grease_pencil(Depsgraph *depsgraph, Scene *scene, Object *object)
@@ -2259,6 +2252,13 @@ void BKE_object_eval_grease_pencil(Depsgraph *depsgraph, Scene *scene, Object *o
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
   GeometrySet geometry_set = GeometrySet::from_grease_pencil(grease_pencil,
                                                              GeometryOwnershipType::ReadOnly);
+  /* The layer adjustments for tinting and radii offsets are applied before modifier evaluation.
+   * This ensures that the evaluated geometry contains the modifications. In the future, it would
+   * be better to move these into modifiers. For now, these are hardcoded. */
+  const bke::AttributeAccessor layer_attributes = grease_pencil->attributes();
+  if (layer_attributes.contains("tint_color") || layer_attributes.contains("radius_offset")) {
+    grease_pencil_do_layer_adjustments(*geometry_set.get_grease_pencil_for_write());
+  }
   /* Only add the edit hint component in modes where users can potentially interact with deformed
    * drawings. */
   if (ELEM(object->mode,
