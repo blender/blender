@@ -1158,25 +1158,26 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache &cache,
                                                    SubdivShaderType::PATCH_EVALUATION);
   GPU_shader_bind(shader);
 
-  int binding_point = 0;
-  GPU_vertbuf_bind_as_ssbo(src_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_handles, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_quadtree, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.patch_coords, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.verts_orig_index, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_index_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_param_buffer, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(src_buffer, PATCH_EVALUATION_SOURCE_VERTEX_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_handles,
+                           PATCH_EVALUATION_INPUT_PATCH_HANDLES_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_quadtree,
+                           PATCH_EVALUATION_QUAD_NODES_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.patch_coords, PATCH_EVALUATION_PATCH_COORDS_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.verts_orig_index,
+                           PATCH_EVALUATION_INPUT_VERTEX_ORIG_INDEX_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, PATCH_EVALUATION_PATCH_ARRAY_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_index_buffer, PATCH_EVALUATION_PATCH_INDEX_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_param_buffer, PATCH_EVALUATION_PATCH_PARAM_BUFFER_BUF_SLOT);
   if (flags_buffer) {
-    GPU_vertbuf_bind_as_ssbo(flags_buffer, binding_point);
+    GPU_vertbuf_bind_as_ssbo(flags_buffer, PATCH_EVALUATION_FLAGS_BUFFER_BUF_SLOT);
   }
-  binding_point++;
-  GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(pos_nor, PATCH_EVALUATION_OUTPUT_VERTS_BUF_SLOT);
   if (orco) {
-    GPU_vertbuf_bind_as_ssbo(src_extra_buffer, binding_point++);
-    GPU_vertbuf_bind_as_ssbo(orco, binding_point++);
+    GPU_vertbuf_bind_as_ssbo(src_extra_buffer,
+                             PATCH_EVALUATION_SOURCE_EXTRA_VERTEX_BUFFER_BUF_SLOT);
+    GPU_vertbuf_bind_as_ssbo(orco, PATCH_EVALUATION_OUTPUT_ORCOS_BUF_SLOT);
   }
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_quads);
 
@@ -1237,17 +1238,18 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
   GPUShader *shader = DRW_shader_subdiv_get(SubdivShaderType::PATCH_EVALUATION_FVAR);
   GPU_shader_bind(shader);
 
-  int binding_point = 0;
-  GPU_vertbuf_bind_as_ssbo(src_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_handles, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_quadtree, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.corner_patch_coords, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.verts_orig_index, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_index_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_param_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(uvs, binding_point++);
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
+  GPU_vertbuf_bind_as_ssbo(src_buffer, PATCH_EVALUATION_SOURCE_VERTEX_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_handles,
+                           PATCH_EVALUATION_INPUT_PATCH_HANDLES_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_quadtree,
+                           PATCH_EVALUATION_QUAD_NODES_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.corner_patch_coords, PATCH_EVALUATION_PATCH_COORDS_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.verts_orig_index,
+                           PATCH_EVALUATION_INPUT_VERTEX_ORIG_INDEX_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, PATCH_EVALUATION_PATCH_ARRAY_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_index_buffer, PATCH_EVALUATION_PATCH_INDEX_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_param_buffer, PATCH_EVALUATION_PATCH_PARAM_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(uvs, PATCH_EVALUATION_OUTPUT_FVAR_BUF_SLOT);
 
   /* The buffer offset has the stride baked in (which is 2 as we have UVs) so remove the stride by
    * dividing by 2 */
@@ -1481,24 +1483,25 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
                   SubdivShaderType::PATCH_EVALUATION_FACE_DOTS);
   GPU_shader_bind(shader);
 
-  int binding_point = 0;
-  GPU_vertbuf_bind_as_ssbo(src_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_handles, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_quadtree, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.fdots_patch_coords, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.verts_orig_index, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_index_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(patch_param_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(fdots_pos, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(src_buffer, PATCH_EVALUATION_SOURCE_VERTEX_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_handles,
+                           PATCH_EVALUATION_INPUT_PATCH_HANDLES_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.gpu_patch_map.patch_map_quadtree,
+                           PATCH_EVALUATION_QUAD_NODES_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.fdots_patch_coords, PATCH_EVALUATION_PATCH_COORDS_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.verts_orig_index,
+                           PATCH_EVALUATION_INPUT_VERTEX_ORIG_INDEX_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, PATCH_EVALUATION_PATCH_ARRAY_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_index_buffer, PATCH_EVALUATION_PATCH_INDEX_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(patch_param_buffer, PATCH_EVALUATION_PATCH_PARAM_BUFFER_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(fdots_pos, PATCH_EVALUATION_OUTPUT_FDOTS_VERTEX_BUFFER_BUF_SLOT);
   /* F-dots normals may not be requested, still reserve the binding point. */
   if (fdots_nor) {
-    GPU_vertbuf_bind_as_ssbo(fdots_nor, binding_point);
+    GPU_vertbuf_bind_as_ssbo(fdots_nor, PATCH_EVALUATION_OUTPUT_NORMALS_BUF_SLOT);
   }
-  binding_point++;
-  GPU_indexbuf_bind_as_ssbo(fdots_indices, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data, binding_point++);
-  BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
+  GPU_indexbuf_bind_as_ssbo(fdots_indices, PATCH_EVALUATION_OUTPUT_INDICES_BUF_SLOT);
+  GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data,
+                           PATCH_EVALUATION_EXTRA_COARSE_FACE_DATA_BUF_SLOT);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_coarse_faces);
 
