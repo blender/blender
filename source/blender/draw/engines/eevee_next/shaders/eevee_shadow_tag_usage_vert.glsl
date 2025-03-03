@@ -44,9 +44,9 @@ void inflate_bounds(vec3 ls_center, inout vec3 P, inout vec3 lP)
 
 void main()
 {
-  DRW_RESOURCE_ID_VARYING_SET
+  drw_ResourceID_iface.resource_index = drw_resource_id();
 
-  ObjectBounds bounds = bounds_buf[resource_id];
+  ObjectBounds bounds = bounds_buf[drw_resource_id()];
   if (!drw_bounds_are_valid(bounds)) {
     /* Discard. */
     gl_Position = vec4(NAN_FLT);

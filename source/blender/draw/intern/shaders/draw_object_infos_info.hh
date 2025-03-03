@@ -14,12 +14,12 @@
 #  define HAIR_SHADER
 #  define DRW_GPENCIL_INFO
 
-#  define OrcoTexCoFactors (drw_infos[resource_id].orco_mul_bias)
-#  define ObjectInfo (drw_infos[resource_id].infos)
-#  define ObjectColor (drw_infos[resource_id].ob_color)
+#  define OrcoTexCoFactors (drw_infos[drw_resource_id()].orco_mul_bias)
+#  define ObjectInfo (drw_infos[drw_resource_id()].infos)
+#  define ObjectColor (drw_infos[drw_resource_id()].ob_color)
 
-#  define ObjectAttributeStart (drw_infos[resource_id].orco_mul_bias[0].w)
-#  define ObjectAttributeLen (drw_infos[resource_id].orco_mul_bias[1].w)
+#  define ObjectAttributeStart (drw_infos[drw_resource_id()].orco_mul_bias[0].w)
+#  define ObjectAttributeLen (drw_infos[drw_resource_id()].orco_mul_bias[1].w)
 #endif
 
 #include "draw_defines.hh"
@@ -49,17 +49,17 @@ GPU_SHADER_CREATE_INFO(draw_object_infos)
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 DEFINE("OBINFO_LIB")
 DEFINE("OBINFO_NEW")
-DEFINE_VALUE("OrcoTexCoFactors", "(drw_infos[resource_id].orco_mul_bias)")
-DEFINE_VALUE("ObjectInfo", "(drw_infos[resource_id].infos)")
-DEFINE_VALUE("ObjectColor", "(drw_infos[resource_id].ob_color)")
+DEFINE_VALUE("OrcoTexCoFactors", "(drw_infos[drw_resource_id()].orco_mul_bias)")
+DEFINE_VALUE("ObjectInfo", "(drw_infos[drw_resource_id()].infos)")
+DEFINE_VALUE("ObjectColor", "(drw_infos[drw_resource_id()].ob_color)")
 STORAGE_BUF(DRW_OBJ_INFOS_SLOT, READ, ObjectInfos, drw_infos[])
 GPU_SHADER_CREATE_END()
 
 /** \note Requires draw_object_infos. */
 GPU_SHADER_CREATE_INFO(draw_object_attributes)
 DEFINE("OBATTR_LIB")
-DEFINE_VALUE("ObjectAttributeStart", "(drw_infos[resource_id].orco_mul_bias[0].w)")
-DEFINE_VALUE("ObjectAttributeLen", "(drw_infos[resource_id].orco_mul_bias[1].w)")
+DEFINE_VALUE("ObjectAttributeStart", "(drw_infos[drw_resource_id()].orco_mul_bias[0].w)")
+DEFINE_VALUE("ObjectAttributeLen", "(drw_infos[drw_resource_id()].orco_mul_bias[1].w)")
 STORAGE_BUF(DRW_OBJ_ATTR_SLOT, READ, ObjectAttribute, drw_attrs[])
 ADDITIONAL_INFO(draw_object_infos)
 GPU_SHADER_CREATE_END()
@@ -109,7 +109,6 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_volume)
 ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_resource_handle_new)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_gpencil)

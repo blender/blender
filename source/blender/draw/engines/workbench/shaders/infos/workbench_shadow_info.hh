@@ -37,7 +37,6 @@ TYPEDEF_SOURCE("workbench_shader_shared.h")
 ADDITIONAL_INFO(gpu_index_buffer_load)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_resource_handle_new)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_common)

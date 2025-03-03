@@ -113,7 +113,7 @@ vec4 velocity_resolve(sampler2D vector_tx, ivec2 texel, float depth)
  */
 void velocity_local_pos_get(vec3 lP, int vert_id, out vec3 lP_prev, out vec3 lP_next)
 {
-  VelocityIndex vel = velocity_indirection_buf[resource_id];
+  VelocityIndex vel = velocity_indirection_buf[drw_resource_id()];
   lP_next = lP_prev = lP;
   if (vel.geo.do_deform) {
     if (vel.geo.ofs[STEP_PREVIOUS] != -1) {
@@ -133,7 +133,7 @@ void velocity_local_pos_get(vec3 lP, int vert_id, out vec3 lP_prev, out vec3 lP_
 void velocity_vertex(
     vec3 lP_prev, vec3 lP, vec3 lP_next, out vec3 motion_prev, out vec3 motion_next)
 {
-  VelocityIndex vel = velocity_indirection_buf[resource_id];
+  VelocityIndex vel = velocity_indirection_buf[drw_resource_id()];
   mat4 obmat_prev = velocity_obj_prev_buf[vel.obj.ofs[STEP_PREVIOUS]];
   mat4 obmat_next = velocity_obj_next_buf[vel.obj.ofs[STEP_NEXT]];
   vec3 P_prev = transform_point(obmat_prev, lP_prev);

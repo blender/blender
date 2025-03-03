@@ -34,7 +34,7 @@ vec4 color_from_id(float color_id)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
   mat4 model_mat = gridModelMatrix;
   model_mat[0][3] = model_mat[1][3] = model_mat[2][3] = 0.0;
   model_mat[3][3] = 1.0;

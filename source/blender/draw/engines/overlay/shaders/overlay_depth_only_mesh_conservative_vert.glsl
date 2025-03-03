@@ -99,7 +99,7 @@ void geometry_main(VertOut geom_in[3],
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 
   /* Triangle list primitive. */
   const uint input_primitive_vertex_count = 3u;

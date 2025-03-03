@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(draw_modelmat)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
   vec3 world_pos = drw_point_object_to_world(pos);
   if (isCameraBackground) {
     /* Model matrix converts to view position to avoid jittering (see #91398). */

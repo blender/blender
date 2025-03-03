@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_depth_pointcloud)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 
   vec3 world_pos, world_nor;
   float world_radius;

@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_mesh)
 uint outline_colorid_get()
 {
 #ifdef OBINFO_NEW
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
 #else
   int flag = int(abs(ObjectInfo.w));
@@ -52,7 +52,7 @@ void main()
   gl_Position.z -= 1e-3;
 
   /* ID 0 is nothing (background) */
-  interp.ob_id = uint(resource_handle + 1);
+  interp.ob_id = uint(drw_resource_id() + 1);
 
   /* Should be 2 bits only [0..3]. */
   uint outline_id = outline_colorid_get();

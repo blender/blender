@@ -10,6 +10,7 @@
 
 VERTEX_SHADER_CREATE_INFO(overlay_particle_shape)
 
+#include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
@@ -29,7 +30,7 @@ vec2 circle_position(float angle)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 
   int particle_id = gl_VertexID;
   int shape_vert_id = gl_VertexID;

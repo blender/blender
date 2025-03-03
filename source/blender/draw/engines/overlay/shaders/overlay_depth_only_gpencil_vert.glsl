@@ -36,5 +36,5 @@ void main()
 
   view_clipping_distances(world_pos);
 
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 }

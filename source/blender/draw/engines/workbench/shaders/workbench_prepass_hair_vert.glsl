@@ -80,7 +80,7 @@ void main()
 
   normal_interp = normalize(drw_normal_world_to_view(nor));
 
-  workbench_material_data_get(int(drw_CustomID),
+  workbench_material_data_get(int(drw_custom_id()),
                               hair_get_customdata_vec3(ac),
                               color_interp,
                               alpha_interp,
@@ -93,7 +93,7 @@ void main()
 
   workbench_hair_random_material(hair_rand, color_interp, _roughness, metallic);
 
-  object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
+  object_id = int(uint(drw_resource_id()) & 0xFFFFu) + 1;
 
   if (emitter_object_id != 0) {
     object_id = int(uint(emitter_object_id) & 0xFFFFu) + 1;

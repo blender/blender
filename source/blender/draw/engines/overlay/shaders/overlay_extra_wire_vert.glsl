@@ -20,7 +20,7 @@ vec2 screen_position(vec4 p)
 void main()
 {
 #ifdef OBJECT_WIRE
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 #else
   select_id_set(in_select_buf[gl_InstanceID]);
 #endif

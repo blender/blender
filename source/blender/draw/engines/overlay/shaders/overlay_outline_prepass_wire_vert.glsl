@@ -15,7 +15,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
 
 uint outline_colorid_get()
 {
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
 
   if (isTransform) {
@@ -67,7 +67,7 @@ VertOut vertex_main(VertIn v_in)
   vert_out.hs_P.z -= 1e-3;
 
   /* ID 0 is nothing (background) */
-  vert_out.ob_id = uint(resource_handle + 1);
+  vert_out.ob_id = uint(drw_resource_id() + 1);
 
   /* Should be 2 bits only [0..3]. */
   uint outline_id = outline_colorid_get();

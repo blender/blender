@@ -17,8 +17,8 @@
 #  define DRW_VIEW_CULLING_INFO
 #  define USE_WORLD_CLIP_PLANES
 
-#  define drw_ModelMatrix drw_matrix_buf[resource_id].model
-#  define drw_ModelMatrixInverse drw_matrix_buf[resource_id].model_inverse
+#  define drw_ModelMatrix drw_matrix_buf[drw_resource_id()].model
+#  define drw_ModelMatrixInverse drw_matrix_buf[drw_resource_id()].model_inverse
 #  define drw_view drw_view_[drw_view_id]
 #  define drw_view_culling drw_view_culling_[drw_view_id]
 #  define DRW_VIEW_LEN DRW_VIEW_MAX
@@ -39,7 +39,7 @@
  * IMPORTANT: Vertex shader need to write `drw_ResourceID_iface.resource_index` in main().
  */
 GPU_SHADER_NAMED_INTERFACE_INFO(draw_resource_id_iface, drw_ResourceID_iface)
-FLAT(INT, resource_index)
+FLAT(UINT, resource_index)
 GPU_SHADER_NAMED_INTERFACE_END(drw_ResourceID_iface)
 
 GPU_SHADER_CREATE_INFO(draw_resource_id_varying)
@@ -48,40 +48,26 @@ GEOMETRY_OUT(draw_resource_id_iface)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_resource_id)
-DEFINE("UNIFORM_RESOURCE_ID_NEW")
-/* TODO (Miguel Pozo): This is an int for compatibility.
- * It should become uint once the "Next" ports are complete. */
-STORAGE_BUF(DRW_RESOURCE_ID_SLOT, READ, int, resource_id_buf[])
-DEFINE_VALUE("drw_ResourceID", "resource_id_buf[gpu_BaseInstance + gl_InstanceID]")
+STORAGE_BUF(DRW_RESOURCE_ID_SLOT, READ, uint, resource_id_buf[])
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id)
-DEFINE("UNIFORM_RESOURCE_ID_NEW")
 DEFINE("WITH_CUSTOM_IDS")
-STORAGE_BUF(DRW_RESOURCE_ID_SLOT, READ, int2, resource_id_buf[])
-DEFINE_VALUE("drw_ResourceID", "resource_id_buf[gpu_BaseInstance + gl_InstanceID].x")
-DEFINE_VALUE("drw_CustomID", "resource_id_buf[gpu_BaseInstance + gl_InstanceID].y")
+STORAGE_BUF(DRW_RESOURCE_ID_SLOT, READ, uint2, resource_id_buf[])
 GPU_SHADER_CREATE_END()
 
 /**
  * Workaround the lack of gl_BaseInstance by binding the resource_id_buf as vertex buf.
  */
 GPU_SHADER_CREATE_INFO(draw_resource_id_fallback)
-DEFINE("UNIFORM_RESOURCE_ID_NEW")
-VERTEX_IN(15, INT, drw_ResourceID)
+DEFINE("RESOURCE_ID_FALLBACK")
+VERTEX_IN(15, UINT, in_resource_id)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id_fallback)
-DEFINE("UNIFORM_RESOURCE_ID_NEW")
+DEFINE("RESOURCE_ID_FALLBACK")
 DEFINE("WITH_CUSTOM_IDS")
-VERTEX_IN(15, IVEC2, vertex_in_drw_ResourceID)
-DEFINE_VALUE("drw_ResourceID", "vertex_in_drw_ResourceID.x")
-DEFINE_VALUE("drw_CustomID", "vertex_in_drw_ResourceID.y")
-GPU_SHADER_CREATE_END()
-
-/** TODO mask view id bits. */
-GPU_SHADER_CREATE_INFO(draw_resource_handle_new)
-DEFINE_VALUE("resource_handle", "drw_ResourceID")
+VERTEX_IN(15, UVEC2, in_resource_id)
 GPU_SHADER_CREATE_END()
 
 /** \} */
@@ -94,8 +80,8 @@ GPU_SHADER_CREATE_INFO(draw_modelmat_common)
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 STORAGE_BUF(DRW_OBJ_MAT_SLOT, READ, ObjectMatrices, drw_matrix_buf[])
 DEFINE("DRAW_MODELMAT_CREATE_INFO")
-DEFINE_VALUE("ModelMatrixInverse", "drw_matrix_buf[resource_id].model_inverse")
-DEFINE_VALUE("ModelMatrix", "drw_matrix_buf[resource_id].model")
+DEFINE_VALUE("ModelMatrixInverse", "drw_matrix_buf[drw_resource_id()].model_inverse")
+DEFINE_VALUE("ModelMatrix", "drw_matrix_buf[drw_resource_id()].model")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_modelmat)
@@ -204,7 +190,5 @@ GPU_SHADER_CREATE_END()
 /* Stub needs to be after all definitions to avoid conflict with legacy definitions. */
 #ifdef GPU_SHADER
 /* Make it work for both draw_resource_id and draw_resource_with_custom_id. */
-#  define drw_ResourceID vec2(resource_id_buf[gpu_BaseInstance + gl_InstanceID]).x
-#  define drw_CustomID drw_ResourceID
-#  define resource_handle drw_ResourceID
+#  define resource_id_buf vec2(0)
 #endif

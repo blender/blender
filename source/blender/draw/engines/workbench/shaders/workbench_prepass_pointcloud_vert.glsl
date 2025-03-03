@@ -32,7 +32,7 @@ void main()
   uv_interp = vec2(0.0);
 
   workbench_material_data_get(
-      int(drw_CustomID), vec3(1.0), color_interp, alpha_interp, _roughness, metallic);
+      int(drw_custom_id()), vec3(1.0), color_interp, alpha_interp, _roughness, metallic);
 
-  object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
+  object_id = int(uint(drw_resource_id()) & 0xFFFFu) + 1;
 }

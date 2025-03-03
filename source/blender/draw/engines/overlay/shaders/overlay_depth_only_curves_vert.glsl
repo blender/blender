@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_depth_curves)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
   float time, thick_time, thickness;

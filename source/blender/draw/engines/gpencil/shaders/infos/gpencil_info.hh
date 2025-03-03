@@ -78,7 +78,6 @@ FRAGMENT_SOURCE("gpencil_frag.glsl")
 DEPTH_WRITE(DepthWrite::ANY)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_resource_handle_new)
 ADDITIONAL_INFO(draw_gpencil)
 GPU_SHADER_CREATE_END()
 
