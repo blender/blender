@@ -278,14 +278,14 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
        * it actually makes sense to keep float buffer instead.
        */
       if (ibuf_result->float_buffer.data != nullptr) {
-        IMB_rect_from_float(ibuf_result);
-        imb_freerectfloatImBuf(ibuf_result);
+        IMB_byte_from_float(ibuf_result);
+        IMB_free_float_pixels(ibuf_result);
       }
       BLI_assert((sizex == ibuf->x) && (sizey == ibuf->y));
     }
     else if (gpd) {
       /* If there are no strips, Grease Pencil still needs a buffer to draw on */
-      ibuf_result = IMB_allocImBuf(sizex, sizey, 32, IB_rect);
+      ibuf_result = IMB_allocImBuf(sizex, sizey, 32, IB_byte_data);
     }
 
     if (gpd) {
@@ -341,7 +341,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
                                                  region,
                                                  sizex,
                                                  sizey,
-                                                 IB_rectfloat,
+                                                 IB_float_data,
                                                  alpha_mode,
                                                  viewname,
                                                  true,
@@ -362,7 +362,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
                                                         scene->camera,
                                                         sizex,
                                                         sizey,
-                                                        IB_rectfloat,
+                                                        IB_float_data,
                                                         V3D_OFSDRAW_SHOW_ANNOTATION,
                                                         alpha_mode,
                                                         viewname,

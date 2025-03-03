@@ -899,7 +899,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
       DEG_get_evaluated_object(depsgraph, scene->camera),
       preview_sized->sizex,
       preview_sized->sizey,
-      IB_rect,
+      IB_byte_data,
       V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS,
       R_ALPHAPREMUL,
       nullptr,
@@ -1045,7 +1045,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
                                                       camera_eval,
                                                       preview_sized->sizex,
                                                       preview_sized->sizey,
-                                                      IB_rect,
+                                                      IB_byte_data,
                                                       V3D_OFSDRAW_NONE,
                                                       R_ADDSKY,
                                                       nullptr,
@@ -1342,7 +1342,7 @@ static void shader_preview_free(void *customdata)
 static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 {
   if (!brush->icon_imbuf && (brush->flag & BRUSH_CUSTOM_ICON) && brush->icon_filepath[0]) {
-    const int flags = IB_rect | IB_multilayer | IB_metadata;
+    const int flags = IB_byte_data | IB_multilayer | IB_metadata;
 
     /* First use the path directly to try and load the file. */
     char filepath[FILE_MAX];
@@ -1397,7 +1397,7 @@ static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect)
 
   /* if needed, convert to 32 bits */
   if (ima->byte_buffer.data == nullptr) {
-    IMB_rect_from_float(ima);
+    IMB_byte_from_float(ima);
   }
 
   const uint *srect = reinterpret_cast<const uint *>(ima->byte_buffer.data);

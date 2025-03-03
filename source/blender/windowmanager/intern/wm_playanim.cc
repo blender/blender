@@ -849,7 +849,7 @@ static void build_pict_list_from_anim(ListBase &picsbase,
                                       const int frame_offset)
 {
   /* OCIO_TODO: support different input color space. */
-  MovieReader *anim = MOV_open_file(filepath_first, IB_rect, 0, nullptr);
+  MovieReader *anim = MOV_open_file(filepath_first, IB_byte_data, 0, nullptr);
   if (anim == nullptr) {
     CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
     return;
@@ -865,7 +865,7 @@ static void build_pict_list_from_anim(ListBase &picsbase,
     PlayAnimPict *picture = static_cast<PlayAnimPict *>(MEM_callocN(sizeof(PlayAnimPict), "Pict"));
     picture->anim = anim;
     picture->frame = pic + frame_offset;
-    picture->IB_flags = IB_rect;
+    picture->IB_flags = IB_byte_data;
     picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
     BLI_addtail(&picsbase, picture);
   }
@@ -933,7 +933,7 @@ static void build_pict_list_from_image_sequence(ListBase &picsbase,
     PlayAnimPict *picture = static_cast<PlayAnimPict *>(
         MEM_callocN(sizeof(PlayAnimPict), "picture"));
     picture->size = size;
-    picture->IB_flags = IB_rect;
+    picture->IB_flags = IB_byte_data;
     picture->mem = static_cast<uchar *>(mem);
     picture->filepath = BLI_strdup(filepath);
     picture->error_message = error_message;
@@ -1814,7 +1814,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   if (MOV_is_movie_file(filepath)) {
     /* OCIO_TODO: support different input color spaces. */
-    MovieReader *anim = MOV_open_file(filepath, IB_rect, 0, nullptr);
+    MovieReader *anim = MOV_open_file(filepath, IB_byte_data, 0, nullptr);
     if (anim) {
       ibuf = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
       MOV_close(anim);
@@ -1828,7 +1828,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   if (ibuf == nullptr) {
     /* OCIO_TODO: support different input color space. */
-    ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
+    ibuf = IMB_loadiffname(filepath, IB_byte_data, nullptr);
   }
 
   if (ibuf == nullptr) {

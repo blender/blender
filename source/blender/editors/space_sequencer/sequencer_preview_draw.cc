@@ -890,7 +890,7 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
 
   if (scope_image != nullptr) {
     if (scope_image->float_buffer.data && scope_image->byte_buffer.data == nullptr) {
-      IMB_rect_from_float(scope_image);
+      IMB_byte_from_float(scope_image);
     }
 
     eGPUTextureFormat format = GPU_RGBA8;

@@ -393,7 +393,7 @@ static void studiolight_load_equirect_image(StudioLight *sl)
       else {
         /* read file is an single layer openexr file or the read file isn't
          * an openexr file */
-        IMB_float_from_rect(ibuf);
+        IMB_float_from_byte(ibuf);
         diffuse_ibuf = ibuf;
         ibuf = nullptr;
       }

@@ -490,7 +490,7 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
   ImBuf *hbuf = ibuf;
   int curmap = 0;
 
-  imb_freemipmapImBuf(ibuf);
+  IMB_free_mipmaps(ibuf);
 
   /* no mipmap for non RGBA images */
   if (ibuf->float_buffer.data && ibuf->channels < 4) {

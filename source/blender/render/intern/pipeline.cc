@@ -1471,7 +1471,7 @@ static ImBuf *seq_process_render_image(ImBuf *src,
   if (seq_result_needs_float(im_format) && src->float_buffer.data == nullptr) {
     /* If render output needs >8-BPP input and we only have 8-BPP, convert to float. */
     dst = IMB_allocImBuf(src->x, src->y, src->planes, 0);
-    imb_addrectfloatImBuf(dst, src->channels, false);
+    IMB_alloc_float_pixels(dst, src->channels, false);
     /* Transform from sequencer space to scene linear. */
     const char *from_colorspace = IMB_colormanagement_get_rect_colorspace(src);
     const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
@@ -2738,7 +2738,7 @@ void RE_layer_load_from_file(
   }
 
   /* OCIO_TODO: assume layer was saved in default color space */
-  ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
+  ImBuf *ibuf = IMB_loadiffname(filepath, IB_byte_data, nullptr);
   RenderPass *rpass = nullptr;
 
   /* multi-view: since the API takes no 'view', we use the first combined pass found */
@@ -2759,7 +2759,7 @@ void RE_layer_load_from_file(
   if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
     if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {
       if (ibuf->float_buffer.data == nullptr) {
-        IMB_float_from_rect(ibuf);
+        IMB_float_from_byte(ibuf);
       }
 
       memcpy(rpass->ibuf->float_buffer.data,
@@ -2771,10 +2771,10 @@ void RE_layer_load_from_file(
         ImBuf *ibuf_clip;
 
         if (ibuf->float_buffer.data == nullptr) {
-          IMB_float_from_rect(ibuf);
+          IMB_float_from_byte(ibuf);
         }
 
-        ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat);
+        ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_float_data);
         if (ibuf_clip) {
           IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 

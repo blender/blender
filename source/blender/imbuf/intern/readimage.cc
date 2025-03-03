@@ -174,7 +174,7 @@ ImBuf *IMB_thumb_load_image(const char *filepath,
   }
 
   ImBuf *ibuf = nullptr;
-  int flags = IB_rect | IB_metadata;
+  int flags = IB_byte_data | IB_metadata;
   /* Size of the original image. */
   size_t width = 0;
   size_t height = 0;

@@ -494,7 +494,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
 
   /* TODO: make options. */
   const uchar planes = 4;
-  const uint flags = IB_rect;
+  const uint flags = IB_byte_data;
 
   ImBuf *ibuf = IMB_allocImBuf(UNPACK2(size), planes, flags);
   if (ibuf == nullptr) {
@@ -512,7 +512,7 @@ static PyObject *imbuf_load_impl(const char *filepath)
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_loadifffile(file, IB_rect, nullptr, filepath);
+  ImBuf *ibuf = IMB_loadifffile(file, IB_byte_data, nullptr, filepath);
 
   close(file);
 
@@ -563,7 +563,7 @@ static PyObject *M_imbuf_load(PyObject * /*self*/, PyObject *args, PyObject *kw)
 
 static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
 {
-  const bool ok = IMB_saveiff(ibuf, filepath, IB_rect);
+  const bool ok = IMB_saveiff(ibuf, filepath, IB_byte_data);
   if (ok == false) {
     PyErr_Format(
         PyExc_IOError, "write: Unable to write image file (%s) '%s'", strerror(errno), filepath);

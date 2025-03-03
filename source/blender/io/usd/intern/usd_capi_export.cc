@@ -370,11 +370,11 @@ std::string cache_image_color(const float color[4])
     return file_path;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(4, 4, 32, IB_rectfloat);
+  ImBuf *ibuf = IMB_allocImBuf(4, 4, 32, IB_float_data);
   IMB_rectfill(ibuf, color);
   ibuf->ftype = IMB_FTYPE_RADHDR;
 
-  if (IMB_saveiff(ibuf, file_path.c_str(), IB_rectfloat)) {
+  if (IMB_saveiff(ibuf, file_path.c_str(), IB_float_data)) {
     CLOG_INFO(&LOG, 1, "%s", file_path.c_str());
   }
   else {

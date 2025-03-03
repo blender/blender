@@ -1370,7 +1370,7 @@ static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
 
     ibuf = IMB_ibImageFromMemory(mem,
                                  size,
-                                 IB_rect | IB_multilayer | IB_alphamode_detect,
+                                 IB_byte_data | IB_multilayer | IB_alphamode_detect,
                                  data->clip->colorspace_settings.name,
                                  "proxy frame");
 

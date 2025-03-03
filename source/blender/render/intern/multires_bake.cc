@@ -1605,7 +1605,7 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
       if (ibuf->mipmap[0]) {
         ibuf->userflags |= IB_MIPMAP_INVALID;
-        imb_freemipmapImBuf(ibuf);
+        IMB_free_mipmaps(ibuf);
       }
 
       if (ibuf->userdata) {

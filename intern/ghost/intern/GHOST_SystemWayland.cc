@@ -8060,7 +8060,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
       if (data) {
         /* Generate the image buffer with the received data. */
         ibuf = IMB_ibImageFromMemory(
-            (const uint8_t *)data, data_len, IB_rect, nullptr, "<clipboard>");
+            (const uint8_t *)data, data_len, IB_byte_data, nullptr, "<clipboard>");
         free(data);
       }
     }
@@ -8075,7 +8075,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
         if (!uris.empty()) {
           const std::string_view &uri = uris.front();
           char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
-          ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
+          ibuf = IMB_loadiffname(filepath, IB_byte_data, nullptr);
           free(filepath);
         }
         free(data);
@@ -8114,7 +8114,7 @@ GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int
   ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  if (!IMB_saveiff(ibuf, "<memory>", IB_rect | IB_mem)) {
+  if (!IMB_saveiff(ibuf, "<memory>", IB_byte_data | IB_mem)) {
     IMB_freeImBuf(ibuf);
     return GHOST_kFailure;
   }

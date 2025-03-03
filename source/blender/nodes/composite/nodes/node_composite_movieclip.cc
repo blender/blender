@@ -234,7 +234,7 @@ class MovieClipOperation : public NodeOperation {
     }
 
     /* Create a float buffer from the byte buffer if it exists, if not, return nullptr. */
-    IMB_float_from_rect(movie_clip_buffer);
+    IMB_float_from_byte(movie_clip_buffer);
     if (!movie_clip_buffer->float_buffer.data) {
       return nullptr;
     }

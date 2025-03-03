@@ -182,7 +182,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
   }
 
   if (ibuf->byte_buffer.data) {
-    IMB_rect_from_float(ibuf);
+    IMB_byte_from_float(ibuf);
   }
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;

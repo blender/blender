@@ -1134,7 +1134,7 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
     const bool predivide = IMB_alpha_affects_rgb(ibuf);
 
     if (ibuf->byte_buffer.data) {
-      imb_freerectImBuf(ibuf);
+      IMB_free_byte_pixels(ibuf);
     }
 
     IMB_colormanagement_transform_float(ibuf->float_buffer.data,
@@ -2546,7 +2546,7 @@ static void colormanagement_imbuf_make_display_space(
     bool make_byte)
 {
   if (!ibuf->byte_buffer.data && make_byte) {
-    imb_addrectImBuf(ibuf);
+    IMB_alloc_byte_pixels(ibuf);
   }
 
   colormanage_display_buffer_process_ex(
@@ -2595,7 +2595,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
   if (ibuf->float_buffer.data && ibuf->byte_buffer.data &&
       (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0)
   {
-    IMB_rect_from_float(ibuf);
+    IMB_byte_from_float(ibuf);
     ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
   }
 
@@ -2676,7 +2676,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
       /* No conversion needed, but may still need to allocate byte buffer for output. */
       if (byte_output && !ibuf->byte_buffer.data) {
         ibuf->byte_buffer.colorspace = ibuf->float_buffer.colorspace;
-        IMB_rect_from_float(ibuf);
+        IMB_byte_from_float(ibuf);
       }
     }
     else {
@@ -2698,14 +2698,14 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
         }
         else {
           /* Float to byte. */
-          IMB_rect_from_float(colormanaged_ibuf);
+          IMB_byte_from_float(colormanaged_ibuf);
         }
       }
       else {
         if (!colormanaged_ibuf->float_buffer.data) {
           /* Byte to float. */
-          IMB_float_from_rect(colormanaged_ibuf);
-          imb_freerectImBuf(colormanaged_ibuf);
+          IMB_float_from_byte(colormanaged_ibuf);
+          IMB_free_byte_pixels(colormanaged_ibuf);
 
           /* This conversion always goes to scene linear. */
           from_colorspace = global_role_scene_linear;

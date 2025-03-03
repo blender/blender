@@ -2354,7 +2354,7 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion,
                                          resibuf->float_buffer.data);
     }
 
-    imb_freerectImBuf(ibuf);
+    IMB_free_byte_pixels(ibuf);
   }
   else {
     if (undistort) {
@@ -2646,8 +2646,10 @@ ImBuf *BKE_tracking_sample_pattern(const int frame_width,
     return nullptr;
   }
 
-  pattern_ibuf = IMB_allocImBuf(
-      num_samples_x, num_samples_y, 32, search_ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
+  pattern_ibuf = IMB_allocImBuf(num_samples_x,
+                                num_samples_y,
+                                32,
+                                search_ibuf->float_buffer.data ? IB_float_data : IB_byte_data);
 
   tracking_get_marker_coords_for_tracking(
       frame_width, frame_height, marker, src_pixel_x, src_pixel_y);
@@ -2786,7 +2788,7 @@ ImBuf *BKE_tracking_get_search_imbuf(const ImBuf *ibuf,
     return nullptr;
   }
 
-  searchibuf = IMB_allocImBuf(w, h, 32, ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
+  searchibuf = IMB_allocImBuf(w, h, 32, ibuf->float_buffer.data ? IB_float_data : IB_byte_data);
 
   IMB_rectcpy(searchibuf, ibuf, 0, 0, x, y, w, h);
 
@@ -2839,8 +2841,10 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
   const int num_samples_y = max_ii(left_side_len_px, right_side_len_px);
 
   /* Create new result image with the same type of content as the original. */
-  ImBuf *plane_ibuf = IMB_allocImBuf(
-      num_samples_x, num_samples_y, 32, frame_ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
+  ImBuf *plane_ibuf = IMB_allocImBuf(num_samples_x,
+                                     num_samples_y,
+                                     32,
+                                     frame_ibuf->float_buffer.data ? IB_float_data : IB_byte_data);
 
   /* Calculate corner coordinates in pixel space, as separate X/Y arrays. */
   const double src_pixel_x[4] = {corners[0][0] * frame_width,

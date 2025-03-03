@@ -12,12 +12,7 @@
 
 #define IM_MAX_SPACE 64
 
-/* WARNING: Keep explicit value assignments here,
- * this file is included in areas where not all format defines are set
- * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).
- * See #46524. */
-
-/** #ImBuf.ftype flag, main image types. */
+/** #ImBuf.ftype: main image types. */
 enum eImbFileType {
   IMB_FTYPE_NONE = 0,
   IMB_FTYPE_PNG = 1,

@@ -633,13 +633,13 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
   if (header.entry[entry_index].size_raw == size_char) {
     expected_size = size_char;
     ibuf = IMB_allocImBuf(
-        key->context.rectx, key->context.recty, 32, IB_rect | IB_uninitialized_pixels);
+        key->context.rectx, key->context.recty, 32, IB_byte_data | IB_uninitialized_pixels);
     IMB_colormanagement_assign_byte_colorspace(ibuf, header.entry[entry_index].colorspace_name);
   }
   else if (header.entry[entry_index].size_raw == size_float) {
     expected_size = size_float;
     ibuf = IMB_allocImBuf(
-        key->context.rectx, key->context.recty, 32, IB_rectfloat | IB_uninitialized_pixels);
+        key->context.rectx, key->context.recty, 32, IB_float_data | IB_uninitialized_pixels);
     IMB_colormanagement_assign_float_colorspace(ibuf, header.entry[entry_index].colorspace_name);
   }
   else {

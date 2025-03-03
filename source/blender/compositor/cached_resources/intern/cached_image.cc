@@ -184,7 +184,7 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
   if (!linear_image_buffer->float_buffer.data) {
     IMB_assign_byte_buffer(
         linear_image_buffer, image_buffer->byte_buffer, IB_DO_NOT_TAKE_OWNERSHIP);
-    IMB_float_from_rect(linear_image_buffer);
+    IMB_float_from_byte(linear_image_buffer);
   }
 
   /* If the image buffer contained compressed data, assign them as well, but only if the color

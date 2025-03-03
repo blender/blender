@@ -76,7 +76,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
     rotate_pixels<float>(degrees, size_x, size_y, src_pixels, dst_pixels, ibuf->channels);
     IMB_assign_float_buffer(ibuf, dst_pixels, IB_TAKE_OWNERSHIP);
     if (ibuf->byte_buffer.data) {
-      IMB_rect_from_float(ibuf);
+      IMB_byte_from_float(ibuf);
     }
   }
   else if (ibuf->byte_buffer.data) {

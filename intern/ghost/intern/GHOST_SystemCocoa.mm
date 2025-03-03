@@ -1247,7 +1247,7 @@ static NSSize getNSImagePixelSize(NSImage *image)
 static ImBuf *NSImageToImBuf(NSImage *image)
 {
   const NSSize imageSize = getNSImagePixelSize(image);
-  ImBuf *ibuf = IMB_allocImBuf(imageSize.width, imageSize.height, 32, IB_rect);
+  ImBuf *ibuf = IMB_allocImBuf(imageSize.width, imageSize.height, 32, IB_byte_data);
 
   if (!ibuf) {
     return nullptr;

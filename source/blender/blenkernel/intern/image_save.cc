@@ -286,8 +286,8 @@ static void image_save_post(ReportList *reports,
     /* workaround to ensure the render result buffer is no longer used
      * by this image, otherwise can crash when a new render result is
      * created. */
-    imb_freerectImBuf(ibuf);
-    imb_freerectfloatImBuf(ibuf);
+    IMB_free_byte_pixels(ibuf);
+    IMB_free_float_pixels(ibuf);
   }
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;

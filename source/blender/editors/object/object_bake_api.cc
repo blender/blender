@@ -333,7 +333,7 @@ static bool write_internal_bake_pixels(Image *image,
   /* force mipmap recalc */
   if (ibuf->mipmap[0]) {
     ibuf->userflags |= IB_MIPMAP_INVALID;
-    imb_freemipmapImBuf(ibuf);
+    IMB_free_mipmaps(ibuf);
   }
 
   BKE_image_release_ibuf(image, ibuf, nullptr);
@@ -380,7 +380,8 @@ static bool write_external_bake_pixels(const char *filepath,
   is_float = im_format->depth > 8;
 
   /* create a new ImBuf */
-  ibuf = IMB_allocImBuf(width, height, im_format->planes, (is_float ? IB_rectfloat : IB_rect));
+  ibuf = IMB_allocImBuf(
+      width, height, im_format->planes, (is_float ? IB_float_data : IB_byte_data));
 
   if (!ibuf) {
     return false;

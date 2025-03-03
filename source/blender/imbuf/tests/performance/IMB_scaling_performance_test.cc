@@ -23,7 +23,7 @@ static constexpr int DST_LARGER_Y = int(SRC_Y * 2.13f);
 
 static ImBuf *create_src_image(bool use_float)
 {
-  ImBuf *img = IMB_allocImBuf(SRC_X, SRC_Y, 32, use_float ? IB_rectfloat : IB_rect);
+  ImBuf *img = IMB_allocImBuf(SRC_X, SRC_Y, 32, use_float ? IB_float_data : IB_byte_data);
   if (use_float) {
     float *pix = img->float_buffer.data;
     for (int i = 0; i < img->x * img->y; i++) {

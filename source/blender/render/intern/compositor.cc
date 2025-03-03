@@ -491,11 +491,11 @@ class Context : public compositor::Context {
 
     const int2 size = viewer_output_result_.domain().size;
     if (image_buffer->x != size.x || image_buffer->y != size.y) {
-      imb_freerectImBuf(image_buffer);
-      imb_freerectfloatImBuf(image_buffer);
+      IMB_free_byte_pixels(image_buffer);
+      IMB_free_float_pixels(image_buffer);
       image_buffer->x = size.x;
       image_buffer->y = size.y;
-      imb_addrectfloatImBuf(image_buffer, 4);
+      IMB_alloc_float_pixels(image_buffer, 4);
       image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
     }
 

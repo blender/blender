@@ -2176,7 +2176,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspac
           size_t ystride = -xstride * width;
 
           /* No need to clear image memory, it will be fully written below. */
-          imb_addrectfloatImBuf(ibuf, 4, false);
+          IMB_alloc_float_pixels(ibuf, 4, false);
 
           /* Inverse correct first pixel for data-window
            * coordinates (- dw.min.y because of y flip). */
@@ -2226,7 +2226,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspac
            * Disabling this because the sequencer frees immediate. */
 #if 0
           if (flag & IM_rect) {
-            IMB_rect_from_float(ibuf);
+            IMB_byte_from_float(ibuf);
           }
 #endif
 
@@ -2349,7 +2349,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     int dest_w = std::max(int(source_w * scale_factor), 1);
     int dest_h = std::max(int(source_h * scale_factor), 1);
 
-    ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rectfloat);
+    ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_float_data);
 
     /* A single row of source pixels. */
     Imf::Array<Imf::Rgba> pixels(source_w);

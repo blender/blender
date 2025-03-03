@@ -11,7 +11,7 @@ namespace blender::imbuf::tests {
 
 static ImBuf *create_6x2_test_image()
 {
-  ImBuf *img = IMB_allocImBuf(6, 2, 32, IB_rect);
+  ImBuf *img = IMB_allocImBuf(6, 2, 32, IB_byte_data);
   uchar4 *col = reinterpret_cast<uchar4 *>(img->byte_buffer.data);
 
   /* Source pixels are spelled out in 2x2 blocks below:
@@ -37,7 +37,7 @@ static ImBuf *create_6x2_test_image()
 
 static ImBuf *create_6x2_test_image_fl(int channels)
 {
-  ImBuf *img = IMB_allocImBuf(6, 2, 32, IB_rectfloat);
+  ImBuf *img = IMB_allocImBuf(6, 2, 32, IB_float_data);
   img->channels = channels;
   float *col = img->float_buffer.data;
 

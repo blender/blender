@@ -847,7 +847,7 @@ static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
   while ((mem = prefetch_thread_next_frame(queue, clip, &size, &current_frame))) {
     ImBuf *ibuf;
     MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-    int flag = IB_rect | IB_multilayer | IB_alphamode_detect | IB_metadata;
+    int flag = IB_byte_data | IB_multilayer | IB_alphamode_detect | IB_metadata;
     int result;
     char *colorspace_name = nullptr;
     const bool use_proxy = (clip->flag & MCLIP_USE_PROXY) &&

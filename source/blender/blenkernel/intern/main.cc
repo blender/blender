@@ -816,7 +816,7 @@ BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
     const size_t data_size = BLEN_THUMB_MEMSIZE(img->x, img->y);
     data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
 
-    IMB_rect_from_float(img); /* Just in case... */
+    IMB_byte_from_float(img); /* Just in case... */
     data->width = img->x;
     data->height = img->y;
     memcpy(data->rect, img->byte_buffer.data, data_size - sizeof(*data));

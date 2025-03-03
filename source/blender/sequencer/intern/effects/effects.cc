@@ -38,14 +38,14 @@ ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
 
   if (!ibuf1 && !ibuf2) {
     /* Hmm, global float option? */
-    out = IMB_allocImBuf(x, y, 32, IB_rect | base_flags);
+    out = IMB_allocImBuf(x, y, 32, IB_byte_data | base_flags);
   }
   else if ((ibuf1 && ibuf1->float_buffer.data) || (ibuf2 && ibuf2->float_buffer.data)) {
     /* if any inputs are float, output is float too */
-    out = IMB_allocImBuf(x, y, 32, IB_rectfloat | base_flags);
+    out = IMB_allocImBuf(x, y, 32, IB_float_data | base_flags);
   }
   else {
-    out = IMB_allocImBuf(x, y, 32, IB_rect | base_flags);
+    out = IMB_allocImBuf(x, y, 32, IB_byte_data | base_flags);
   }
 
   if (out->float_buffer.data) {
@@ -61,11 +61,11 @@ ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
   }
   else {
     if (ibuf1 && !ibuf1->byte_buffer.data) {
-      IMB_rect_from_float(ibuf1);
+      IMB_byte_from_float(ibuf1);
     }
 
     if (ibuf2 && !ibuf2->byte_buffer.data) {
-      IMB_rect_from_float(ibuf2);
+      IMB_byte_from_float(ibuf2);
     }
   }
 

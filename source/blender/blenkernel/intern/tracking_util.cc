@@ -694,7 +694,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
     clamped_width = min_ii(clamped_width, orig_ibuf->x - clamped_origin_x);
     clamped_height = min_ii(clamped_height, orig_ibuf->y - clamped_origin_y);
 
-    final_ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat);
+    final_ibuf = IMB_allocImBuf(width, height, 32, IB_float_data);
 
     if (orig_ibuf->float_buffer.data != nullptr) {
       IMB_rectcpy(final_ibuf,
@@ -731,7 +731,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
      * frames) but on the other hand it bumps the memory usage up.
      */
     BLI_thread_lock(LOCK_MOVIECLIP);
-    IMB_float_from_rect(orig_ibuf);
+    IMB_float_from_byte(orig_ibuf);
     BLI_thread_unlock(LOCK_MOVIECLIP);
     final_ibuf = orig_ibuf;
   }

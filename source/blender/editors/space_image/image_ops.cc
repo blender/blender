@@ -2294,7 +2294,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 
     if (ibuf != nullptr && ibuf->userflags & IB_BITMAPDIRTY) {
-      if (0 == IMB_saveiff(ibuf, ibuf->filepath, IB_rect)) {
+      if (0 == IMB_saveiff(ibuf, ibuf->filepath, IB_byte_data)) {
         BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
         break;
       }
@@ -2812,7 +2812,7 @@ static int image_flip_exec(bContext *C, wmOperator *op)
     MEM_freeN(orig_float_pixels);
 
     if (ibuf->byte_buffer.data) {
-      IMB_rect_from_float(ibuf);
+      IMB_byte_from_float(ibuf);
     }
   }
   else if (ibuf->byte_buffer.data) {
@@ -3152,7 +3152,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
     }
 
     if (ibuf->byte_buffer.data) {
-      IMB_rect_from_float(ibuf);
+      IMB_byte_from_float(ibuf);
     }
   }
   else if (ibuf->byte_buffer.data) {

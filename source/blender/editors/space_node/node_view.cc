@@ -569,7 +569,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (!ibuf->byte_buffer.data) {
-    IMB_rect_from_float(ibuf);
+    IMB_byte_from_float(ibuf);
   }
 
   /* map the mouse coords to the backdrop image space */

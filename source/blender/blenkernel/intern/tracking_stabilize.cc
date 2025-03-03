@@ -1400,10 +1400,10 @@ ImBuf *BKE_tracking_stabilize_frame(
   /* Allocate frame for stabilization result, copy alpha mode and color-space. */
   ibuf_flags = 0;
   if (ibuf->byte_buffer.data) {
-    ibuf_flags |= IB_rect;
+    ibuf_flags |= IB_byte_data;
   }
   if (ibuf->float_buffer.data) {
-    ibuf_flags |= IB_rectfloat;
+    ibuf_flags |= IB_float_data;
   }
 
   tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ibuf_flags);

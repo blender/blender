@@ -89,7 +89,7 @@ void ED_image_paint_tile_lock_end()
 static ImBuf *imbuf_alloc_temp_tile()
 {
   return IMB_allocImBuf(
-      ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 32, IB_rectfloat | IB_rect);
+      ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 32, IB_float_data | IB_byte_data);
 }
 
 struct PaintTileKey {
@@ -536,7 +536,7 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
   /* We could have both float and rect buffers,
    * in this case free the float buffer if it's unused. */
   if ((ibuf->float_buffer.data != nullptr) && (ubuf->image_state.use_float == false)) {
-    imb_freerectfloatImBuf(ibuf);
+    IMB_free_float_pixels(ibuf);
   }
 
   if (ibuf->x == ubuf->image_dims[0] && ibuf->y == ubuf->image_dims[1] &&
@@ -546,14 +546,14 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
     return;
   }
 
-  imb_freerectImbuf_all(ibuf);
+  IMB_free_all_data(ibuf);
   IMB_rect_size_set(ibuf, ubuf->image_dims);
 
   if (ubuf->image_state.use_float) {
-    imb_addrectfloatImBuf(ibuf, 4);
+    IMB_alloc_float_pixels(ibuf, 4);
   }
   else {
-    imb_addrectImBuf(ibuf);
+    IMB_alloc_byte_pixels(ibuf);
   }
 }
 

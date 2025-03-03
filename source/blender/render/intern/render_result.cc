@@ -1116,7 +1116,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
         IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
       }
       else {
-        IMB_float_from_rect(ibuf);
+        IMB_float_from_byte(ibuf);
       }
     }
     else {
@@ -1160,7 +1160,7 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
 
     /* TSK! Since sequence render doesn't free the *rr render result, the old rect32
      * can hang around when sequence render has rendered a 32 bits one before */
-    imb_freerectImBuf(rv_ibuf);
+    IMB_free_byte_pixels(rv_ibuf);
   }
   else if (ibuf->byte_buffer.data) {
     rr->have_combined = true;
@@ -1174,7 +1174,7 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
     memcpy(rv_ibuf->byte_buffer.data, ibuf->byte_buffer.data, sizeof(int) * rr->rectx * rr->recty);
 
     /* Same things as above, old rectf can hang around from previous render. */
-    imb_freerectfloatImBuf(rv_ibuf);
+    IMB_free_float_pixels(rv_ibuf);
   }
 }
 

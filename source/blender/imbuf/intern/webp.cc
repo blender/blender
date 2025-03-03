@@ -61,7 +61,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM
 
   if ((flags & IB_test) == 0) {
     ibuf->ftype = IMB_FTYPE_WEBP;
-    imb_addrectImBuf(ibuf);
+    IMB_alloc_byte_pixels(ibuf);
     /* Flip the image during decoding to match Blender. */
     uchar *last_row = ibuf->byte_buffer.data + 4 * (ibuf->y - 1) * ibuf->x;
     if (WebPDecodeRGBAInto(mem, size, last_row, size_t(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
@@ -117,7 +117,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   const int dest_h = std::max(int(config.input.height * scale), 1);
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
-  ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rect);
+  ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_byte_data);
   if (ibuf == nullptr) {
     fprintf(stderr, "WebP: Failed to allocate image memory\n");
     imb_mmap_lock();

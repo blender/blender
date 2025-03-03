@@ -48,7 +48,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack ** /*in*/,
       if (!ibuf->float_buffer.data) {
         BLI_thread_lock(LOCK_IMAGE);
         if (!ibuf->float_buffer.data) {
-          IMB_float_from_rect(ibuf);
+          IMB_float_from_byte(ibuf);
         }
         BLI_thread_unlock(LOCK_IMAGE);
       }

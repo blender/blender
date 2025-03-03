@@ -4625,10 +4625,10 @@ static void project_paint_end(ProjPaintState *ps)
   }
 
   if (ps->reproject_ibuf_free_float) {
-    imb_freerectfloatImBuf(ps->reproject_ibuf);
+    IMB_free_float_pixels(ps->reproject_ibuf);
   }
   if (ps->reproject_ibuf_free_uchar) {
-    imb_freerectImBuf(ps->reproject_ibuf);
+    IMB_free_byte_pixels(ps->reproject_ibuf);
   }
   BKE_image_release_ibuf(ps->reproject_image, ps->reproject_ibuf, nullptr);
 
@@ -5644,11 +5644,11 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 
     /* Generate missing data if needed. */
     if (float_dest && ps->reproject_ibuf->float_buffer.data == nullptr) {
-      IMB_float_from_rect(ps->reproject_ibuf);
+      IMB_float_from_byte(ps->reproject_ibuf);
       ps->reproject_ibuf_free_float = true;
     }
     if (uchar_dest && ps->reproject_ibuf->byte_buffer.data == nullptr) {
-      IMB_rect_from_float(ps->reproject_ibuf);
+      IMB_byte_from_float(ps->reproject_ibuf);
       ps->reproject_ibuf_free_uchar = true;
     }
   }
@@ -6307,7 +6307,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
                                         region,
                                         w,
                                         h,
-                                        IB_rect,
+                                        IB_byte_data,
                                         R_ALPHAPREMUL,
                                         nullptr,
                                         false,

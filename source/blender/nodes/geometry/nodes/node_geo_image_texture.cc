@@ -82,7 +82,7 @@ class ImageFieldsFunction : public mf::MultiFunction {
     if (image_buffer_->float_buffer.data == nullptr) {
       BLI_thread_lock(LOCK_IMAGE);
       if (!image_buffer_->float_buffer.data) {
-        IMB_float_from_rect(image_buffer_);
+        IMB_float_from_byte(image_buffer_);
       }
       BLI_thread_unlock(LOCK_IMAGE);
     }
