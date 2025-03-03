@@ -361,7 +361,7 @@ class Empties : Overlay {
     PassMain::Sub &sub = parent.sub("Sub", z);
     if (depth_bias) {
       sub.shader_set(res.shaders.image_plane_depth_bias.get());
-      sub.push_constant("depth_bias_winmat", depth_bias_winmat_);
+      sub.push_constant("depth_bias_winmat", &depth_bias_winmat_);
     }
     else {
       sub.shader_set(res.shaders.image_plane.get());
