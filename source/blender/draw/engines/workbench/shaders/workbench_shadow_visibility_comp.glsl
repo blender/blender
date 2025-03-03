@@ -6,7 +6,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_dynamic_pass_type)
 
-#include "common_intersect_lib.glsl"
+#include "draw_intersect_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
 shared uint shared_result;

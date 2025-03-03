@@ -12,7 +12,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_view_visibility)
 
-#include "common_intersect_lib.glsl"
+#include "draw_intersect_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
