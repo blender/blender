@@ -216,6 +216,16 @@ struct StepData {
   } grids;
 
   struct {
+    /**
+     * The current log entry for the given BMLog step. Represents the most recent step at the time
+     * that this entry is added.
+     *
+     * There are two usages of this pointer:
+     * - If undoing or redoing a enter / exit from Dyntopo, this entry is used to rebuild the
+     *   BMLog from all of the relevant entries
+     * - When an undo step is no longer valid, this is used to free the data that it holds and
+     *   remove it from the underlying list.
+     */
     BMLogEntry *bm_entry;
 
     /* Geometry at the bmesh enter moment. */
