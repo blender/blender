@@ -5865,7 +5865,7 @@ class VIEW3D_MT_edit_curves(Menu):
 
         layout.operator("curves.duplicate_move")
         layout.operator("curves.extrude_move")
-        
+
         layout.separator()
 
         layout.operator("curves.attribute_set")
@@ -5874,9 +5874,10 @@ class VIEW3D_MT_edit_curves(Menu):
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
         layout.separator()
-        
+
         layout.operator("curves.separate")
         layout.operator("curves.delete")
+
 
 class VIEW3D_MT_edit_curves_control_points(Menu):
     bl_label = "Control Points"
@@ -5926,7 +5927,7 @@ class VIEW3D_MT_edit_curves_context_menu(Menu):
         layout.operator_menu_enum("curves.handle_type_set", "type")
         layout.operator("curves.cyclic_toggle")
         layout.operator("curves.switch_direction")
-        
+
         layout.separator()
 
         # Removal Operators
