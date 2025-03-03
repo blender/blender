@@ -149,7 +149,7 @@ static void GPENCIL_render_cache(void *vedata,
   if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
     return;
   }
-  if (!DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF) {
+  if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
     return;
   }
   GPENCIL_cache_populate(vedata, ob_ref);
