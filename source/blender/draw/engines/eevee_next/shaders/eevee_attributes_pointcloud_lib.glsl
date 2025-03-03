@@ -30,7 +30,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_pointcloud)
 vec3 attr_load_orco(vec4 orco)
 {
   vec3 P = pointcloud_get_pos();
-  vec3 lP = transform_point(ModelMatrixInverse, P);
+  vec3 lP = transform_point(drw_modelinv(), P);
   return OrcoTexCoFactors[0].xyz + lP * OrcoTexCoFactors[1].xyz;
 }
 #endif

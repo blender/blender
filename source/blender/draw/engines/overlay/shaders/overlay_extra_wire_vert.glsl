@@ -39,7 +39,8 @@ void main()
 
 #ifdef OBJECT_WIRE
   /* Extract data packed inside the unused mat4 members. */
-  finalColor = vec4(ModelMatrix[0][3], ModelMatrix[1][3], ModelMatrix[2][3], ModelMatrix[3][3]);
+  finalColor = vec4(
+      drw_modelmat()[0][3], drw_modelmat()[1][3], drw_modelmat()[2][3], drw_modelmat()[3][3]);
 #else
 
   if (colorid != 0) {

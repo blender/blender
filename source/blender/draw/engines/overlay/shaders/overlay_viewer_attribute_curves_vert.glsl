@@ -17,7 +17,7 @@ void main()
   float time, thick_time, thickness;
   vec3 world_pos, tangent, binor;
   hair_get_pos_tan_binor_time(is_persp,
-                              ModelMatrixInverse,
+                              drw_modelinv(),
                               ViewMatrixInverse[3].xyz,
                               ViewMatrixInverse[2].xyz,
                               world_pos,

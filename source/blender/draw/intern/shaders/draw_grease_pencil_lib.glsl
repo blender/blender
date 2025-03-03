@@ -211,9 +211,9 @@ vec4 gpencil_vertex(vec4 viewport_size,
 
     bool use_curr = is_dot || (x == -1.0);
 
-    vec3 wpos_adj = transform_point(ModelMatrix, (use_curr) ? pos.xyz : pos3.xyz);
-    vec3 wpos1 = transform_point(ModelMatrix, pos1.xyz);
-    vec3 wpos2 = transform_point(ModelMatrix, pos2.xyz);
+    vec3 wpos_adj = transform_point(drw_modelmat(), (use_curr) ? pos.xyz : pos3.xyz);
+    vec3 wpos1 = transform_point(drw_modelmat(), pos1.xyz);
+    vec3 wpos2 = transform_point(drw_modelmat(), pos2.xyz);
 
     vec3 T;
     if (is_dot) {
@@ -271,7 +271,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
         x_axis = vec2(1.0, 0.0);
       }
       else { /* GP_STROKE_ALIGNMENT_OBJECT */
-        vec4 ndc_x = drw_point_world_to_homogenous(wpos1 + ModelMatrix[0].xyz);
+        vec4 ndc_x = drw_point_world_to_homogenous(wpos1 + drw_modelmat()[0].xyz);
         vec2 ss_x = gpencil_project_to_screenspace(ndc_x, viewport_size);
         x_axis = safe_normalize(ss_x - ss1);
       }
@@ -340,7 +340,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     out_color = (use_curr) ? col1 : col2;
   }
   else {
-    out_P = transform_point(ModelMatrix, pos1.xyz);
+    out_P = transform_point(drw_modelmat(), pos1.xyz);
     out_ndc = drw_point_world_to_homogenous(out_P);
     out_uv = uv1.xy;
     out_thickness.x = 1e18;
@@ -350,7 +350,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     out_sspos = vec4(0.0);
 
     /* Flat normal following camera and object bounds. */
-    vec3 V = drw_world_incident_vector(ModelMatrix[3].xyz);
+    vec3 V = drw_world_incident_vector(drw_modelmat()[3].xyz);
     vec3 N = drw_normal_world_to_object(V);
     N *= OrcoTexCoFactors[1].xyz;
     N = drw_normal_world_to_object(N);

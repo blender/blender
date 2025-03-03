@@ -17,14 +17,10 @@
 #  define DRW_VIEW_CULLING_INFO
 #  define USE_WORLD_CLIP_PLANES
 
-#  define drw_ModelMatrix drw_matrix_buf[drw_resource_id()].model
-#  define drw_ModelMatrixInverse drw_matrix_buf[drw_resource_id()].model_inverse
 #  define drw_view drw_view_[drw_view_id]
 #  define drw_view_culling drw_view_culling_[drw_view_id]
 #  define DRW_VIEW_LEN DRW_VIEW_MAX
 #  define gpThicknessIsScreenSpace (gpThicknessWorldScale < 0.0)
-#  define ModelMatrix drw_ModelMatrix
-#  define ModelMatrixInverse drw_ModelMatrixInverse
 #endif
 
 #include "gpu_shader_create_info.hh"
@@ -80,8 +76,6 @@ GPU_SHADER_CREATE_INFO(draw_modelmat_common)
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 STORAGE_BUF(DRW_OBJ_MAT_SLOT, READ, ObjectMatrices, drw_matrix_buf[])
 DEFINE("DRAW_MODELMAT_CREATE_INFO")
-DEFINE_VALUE("ModelMatrixInverse", "drw_matrix_buf[drw_resource_id()].model_inverse")
-DEFINE_VALUE("ModelMatrix", "drw_matrix_buf[drw_resource_id()].model")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_modelmat)

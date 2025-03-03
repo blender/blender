@@ -25,7 +25,7 @@ void main()
 
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
   hair_get_pos_tan_binor_time(is_persp,
-                              ModelMatrixInverse,
+                              drw_modelinv(),
                               ViewMatrixInverse[3].xyz,
                               ViewMatrixInverse[2].xyz,
                               interp.P,

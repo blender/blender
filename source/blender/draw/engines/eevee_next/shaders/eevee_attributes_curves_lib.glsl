@@ -33,7 +33,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_hair)
 vec3 attr_load_orco(vec4 orco)
 {
   vec3 P = hair_get_strand_pos();
-  vec3 lP = transform_point(ModelMatrixInverse, P);
+  vec3 lP = transform_point(drw_modelinv(), P);
   return OrcoTexCoFactors[0].xyz + lP * OrcoTexCoFactors[1].xyz;
 }
 #  endif

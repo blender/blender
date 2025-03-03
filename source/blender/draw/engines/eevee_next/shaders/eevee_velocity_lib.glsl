@@ -138,7 +138,7 @@ void velocity_vertex(
   mat4 obmat_next = velocity_obj_next_buf[vel.obj.ofs[STEP_NEXT]];
   vec3 P_prev = transform_point(obmat_prev, lP_prev);
   vec3 P_next = transform_point(obmat_next, lP_next);
-  vec3 P = transform_point(ModelMatrix, lP);
+  vec3 P = transform_point(drw_modelmat(), lP);
   motion_prev = P_prev - P;
   motion_next = P_next - P;
 }

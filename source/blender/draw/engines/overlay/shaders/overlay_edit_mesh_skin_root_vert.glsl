@@ -16,7 +16,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root)
 
 void main()
 {
-  mat3 imat = to_float3x3(ModelMatrixInverse);
+  mat3 imat = to_float3x3(drw_modelinv());
   vec3 right = normalize(imat * ViewMatrixInverse[0].xyz);
   vec3 up = normalize(imat * ViewMatrixInverse[1].xyz);
 #ifdef VERTEX_PULL
@@ -37,7 +37,7 @@ void main()
   finalColor = ((gl_VertexID & 1) == 0) ? colorSkinRoot : vec4(0.0);
 #endif
   vec3 screen_pos = (right * circle_P.x + up * circle_P.z) * circle_size;
-  vec4 pos_4d = ModelMatrix * vec4(lP + screen_pos, 1.0);
+  vec4 pos_4d = drw_modelmat() * vec4(lP + screen_pos, 1.0);
   gl_Position = drw_view.winmat * (drw_view.viewmat * pos_4d);
 
   view_clipping_distances(pos_4d.xyz);
