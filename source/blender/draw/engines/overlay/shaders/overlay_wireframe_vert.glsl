@@ -5,6 +5,7 @@
 #include "common_view_clipping_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 #include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
@@ -106,7 +107,7 @@ void main()
 #elif defined(CURVES)
   float facing = no_nor_facing;
 #else
-  vec3 wnor = normalize(drw_normal_object_to_world(nor));
+  vec3 wnor = safe_normalize(drw_normal_object_to_world(nor));
 
   if (isHair) {
     mat4 obmat = hairDupliMatrix;
