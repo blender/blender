@@ -33,17 +33,17 @@
 
 /* Qualifier wrappers for different names on different devices */
 
-#define ccl_device
+#define ccl_device inline
 #define ccl_device_extern extern "C"
 #define ccl_global
 #define ccl_always_inline __attribute__((always_inline))
-#define ccl_device_inline inline
+#define ccl_device_inline __attribute__((always_inline))
 #define ccl_noinline __attribute__((noinline))
 #define ccl_inline_constant const constexpr
 #define ccl_device_constant static constexpr
 #define ccl_static_constexpr static constexpr
 #define ccl_device_forceinline __attribute__((always_inline))
-#define ccl_device_noinline ccl_device ccl_noinline
+#define ccl_device_noinline __attribute__((noinline))
 #define ccl_device_noinline_cpu ccl_device
 #define ccl_device_inline_method ccl_device
 #define ccl_device_template_spec template<> ccl_device_inline
