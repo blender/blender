@@ -163,9 +163,8 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
       BLI_assert_msg(rna_path,
                      "It should be possible to construct the RNA path of a grease pencil layer.");
 
-      const FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          grease_pencil_dst->adt, rna_path->c_str(), 0, nullptr, nullptr);
-      layer->runtime->is_visisbility_animated_ = fcurve != nullptr;
+      layer->runtime->is_visisbility_animated_ = bke::animdata::prop_is_animated(
+          grease_pencil_dst->adt, rna_path.value(), 0);
     }
   }
 }
