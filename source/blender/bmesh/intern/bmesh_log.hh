@@ -23,11 +23,11 @@ BMLog *BM_log_create(BMesh *bm);
 /**
  * Allocate and initialize a new #BMLog using existing #BMLogEntries
  *
- * The 'entry' should be the last entry in the #BMLog. Its `prev` pointer
- * will be followed back to find the first entry.
- *
  * The unused IDs field of the log will be initialized by taking all
- * keys from all GHashes in the log entry.
+ * keys from all Maps in the log entry.
+ *
+ * \param entry The last entry of the prior BMLog, its `prev` pointer will be followed back to
+ * reconstruct the log.
  */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
 
@@ -50,10 +50,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log);
  * If the log entry list is empty, or if the current log entry is the
  * last entry, the new entry is simply appended to the end.
  *
- * Otherwise, the new entry is added after the current entry and all
- * following entries are deleted.
- *
- * In either case, the new entry is set as the current log entry.
+ * Finally, the new entry is set as the current log entry.
  */
 BMLogEntry *BM_log_entry_add(BMLog *log);
 
@@ -66,8 +63,8 @@ void BM_log_cleanup_entry(BMLogEntry *entry);
  * Uses entry->log as the log. If the log is NULL, the entry will be
  * freed but not removed from any list, nor shall its IDs be released.
  *
- * This operation is only valid on the first and last entries in the
- * log. Deleting from the middle will assert.
+ * \warning This operation is only valid on the first and last entries in the log. Deleting from
+ * the middle will assert.
  */
 void BM_log_entry_drop(BMLogEntry *entry);
 
