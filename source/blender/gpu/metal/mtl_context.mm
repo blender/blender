@@ -291,8 +291,8 @@ MTLContext::~MTLContext()
   /* Wait for all GPU work to finish. */
   main_command_buffer.wait_until_active_command_buffers_complete();
 
-  /* Free framebuffers in base class. */
-  free_framebuffers();
+  /* Free textures and framebuffers in base class. */
+  free_resources();
 
   /* Release context textures. */
   if (default_fbo_gputexture_) {
