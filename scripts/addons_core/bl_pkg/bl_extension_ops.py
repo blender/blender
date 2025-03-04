@@ -2442,7 +2442,19 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         "repo_directory",
         "pkg_id_sequence"
     )
+
+    # Dropping a file-path stores values in the class instance, values used are as follows:
+    #
+    # - None: Unset (not dropping), this value is read from the class.
+    # - (pkg_id, pkg_type): Drop values have been extracted from the ZIP file.
+    #   Where the `pkg_id` is the ID in the extensions manifest and the `pkg_type`
+    #   is the type of extension see `rna_prop_enable_on_install_type_map` keys.
     _drop_variables = None
+    # Used when dropping legacy add-ons:
+    #
+    # - None: Unset, not dropping a legacy add-on.
+    # - True: Drop treats the `filepath` as a legacy add-on.
+    #   `_drop_variables` will be None.
     _legacy_drop = None
 
     filter_glob: StringProperty(default="*.zip;*.py", options={'HIDDEN'})
@@ -2895,6 +2907,17 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     bl_label = "Install Extension"
     __slots__ = _ExtCmdMixIn.cls_slots
 
+    # Dropping a URL stores values in the class instance, values used are as follows:
+    #
+    # - None: Unset (not-dropping), this value is read from the class.
+    # - A tuple containing values needed to execute the drop:
+    #   `(repo_index: int, repo_name: str, pkg_id: str, item_remote: PkgManifest_Normalized)`.
+    #
+    #   NOTE: these values aren't set immediately when dropping as they
+    #   require the local repository to sync first, so the up to date meta-data
+    #   from the URL can be used to ensure the dropped extension is known
+    #   and any errors are based on up to date information.
+    #
     _drop_variables = None
     # Optional draw & keyword-arguments, return True to terminate drawing.
     _draw_override = None

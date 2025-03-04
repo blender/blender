@@ -896,6 +896,28 @@ class CommandBatch_StatusFlag(NamedTuple):
 
 
 class CommandBatch:
+    """
+    This class manages running command-line programs as sub-processes, abstracting away process management,
+    performing non-blocking reads to access JSON output.
+
+    The sub-processes must conform to the following constraints:
+
+    - Only output JSON to the STDOUT.
+    - Exit gracefully when: SIGINT signal is sent
+      (``signal.CTRL_BREAK_EVENT`` on WIN32).
+    - Errors must be caught and forwarded as JSON error messages.
+      Unhandled exceptions are not expected and and will produce ugly
+      messages from the STDERR output.
+
+    The user of this class creates the class with all known jobs,
+    setting the limit for the number of jobs that run simultaneously.
+
+    The caller can then monitor the processes:
+    - By calling ``exec_blocking``.
+    - Or by periodically calling ``exec_non_blocking``.
+
+      Canceling is performed by calling ``exec_non_blocking`` with ``request_exit=True``.
+    """
     __slots__ = (
         "title",
 

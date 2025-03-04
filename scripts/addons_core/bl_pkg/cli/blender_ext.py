@@ -2446,6 +2446,24 @@ def repository_filter_skip(
         skip_message_fn: Callable[[str], None] | None,
         error_fn: Callable[[Exception], None],
 ) -> bool:
+    """
+    This function takes an ``item`` which represents un-validated extension meta-data.
+    Return True when the extension should be excluded.
+
+    The meta-data is a subset of the ``blender_manifest.toml`` which is extracted
+    into the ``index.json`` hosted by a remote server.
+
+    Filtering will exclude extensions when:
+
+    - They're incompatible with Blender, Python or the platform defined by the ``filter_*`` arguments.
+      ``skip_message_fn`` callback will run with the cause of the incompatibility.
+    - The meta-data is malformed, it doesn't confirm to ``blender_manifest.toml`` data-types.
+      ``error_fn`` callback will run with the cause of the error.
+
+    This is used so Blender's extensions listing only shows compatible extensions as well as
+    reporting errors if the user attempts to install an extension which isn't compatible with their system.
+    """
+
     if (platforms := item.get("platforms")) is not None:
         if not isinstance(platforms, list):
             # Possibly noisy, but this should *not* be happening on a regular basis.
