@@ -2178,7 +2178,16 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
       break;
     }
     case SOCK_IMAGE: {
-      uiItemPointerR(row, ctx.md_ptr, rna_path, ctx.bmain_ptr, "images", name, ICON_IMAGE);
+      uiTemplateID(row,
+                   &ctx.C,
+                   ctx.md_ptr,
+                   rna_path,
+                   "image.new",
+                   "image.open",
+                   nullptr,
+                   UI_TEMPLATE_ID_FILTER_ALL,
+                   false,
+                   name);
       break;
     }
     case SOCK_BOOLEAN: {
