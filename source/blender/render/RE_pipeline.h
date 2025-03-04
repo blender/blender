@@ -191,6 +191,11 @@ void RE_FreeViewRender(struct ViewRender *view_render);
 void RE_FreeAllRender(void);
 
 /**
+ * On file load, free all interactive compositor renders.
+ */
+void RE_FreeInteractiveCompositorRenders(void);
+
+/**
  * On file load, free render results.
  */
 void RE_FreeAllRenderResults(void);
