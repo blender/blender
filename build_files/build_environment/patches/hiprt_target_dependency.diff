@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 50eb25e..b13d2da 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -503,7 +503,7 @@ if ( BAKE_COMPILED_KERNEL )
+ 
+ 	# Create the 'bake_compiled_kernels' project
+ 	add_custom_target(bake_compiled_kernels ALL
+-		DEPENDS ${KERNEL_HIPRT_H} ${KERNEL_OROCHI_H}
++		DEPENDS ${KERNEL_HIPRT_H} ${KERNEL_OROCHI_H} precompile_kernels
+ 	)
+ 
+ 	add_dependencies(${HIPRT_NAME} precompile_kernels bake_compiled_kernels)
