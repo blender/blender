@@ -1023,10 +1023,9 @@ struct EraseOperationExecutor {
       /* Erase on all editable drawings. */
       const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
           ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
-      threading::parallel_for_each(
-          drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
-            execute_eraser_on_drawing(info.layer_index, info.frame_number, info.drawing);
-          });
+      for (const ed::greasepencil::MutableDrawingInfo &info : drawings) {
+        execute_eraser_on_drawing(info.layer_index, info.frame_number, info.drawing);
+      }
     }
 
     if (changed) {
