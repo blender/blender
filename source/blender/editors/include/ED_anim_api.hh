@@ -55,6 +55,11 @@ struct PropertyRNA;
 
 struct MPathTarget;
 
+namespace blender::animrig {
+class Action;
+class Slot;
+}  // namespace blender::animrig
+
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
 /* `anim_filter.cc` */
@@ -516,6 +521,33 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 /* -------------------------------------------------------------------- */
 /** \name Public API
  * \{ */
+
+/**
+ * Add the channel and sub-channels for an Action Slot to `anim_data`, filtered
+ * according to `filter_mode`.
+ *
+ * \param action: the action containing the slot to generate the channels for.
+ *
+ * \param slot: the slot to generate the channels for.
+ *
+ * \param filter_mode: the filters to use for deciding what channels get
+ * included.
+ *
+ * \param animated_id: the particular animated ID that the slot channels are
+ * being generated for. This is needed for filtering channels based on bone
+ * selection, and also for resolving the names of animated properties. This
+ * should never be null, but it's okay(ish) if it's an ID not actually animated
+ * by the slot, in which case it will act as a fallback in case an ID actually
+ * animated by the slot can't be found.
+ *
+ * \return The number of items added to `anim_data`.
+ */
+size_t ANIM_animfilter_action_slot(bAnimContext *ac,
+                                   ListBase * /* bAnimListElem */ anim_data,
+                                   blender::animrig::Action &action,
+                                   blender::animrig::Slot &slot,
+                                   eAnimFilter_Flags filter_mode,
+                                   ID *animated_id);
 
 /**
  * This function filters the active data source to leave only animation channels suitable for
