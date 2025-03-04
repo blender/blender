@@ -25,7 +25,7 @@ class GPULogParser;
 class Context;
 
 /* Set to 1 to log the full source of shaders that fail to compile. */
-#define DEBUG_LOG_SHADER_SRC_ON_ERROR 1
+#define DEBUG_LOG_SHADER_SRC_ON_ERROR 0
 
 /**
  * Compilation is done on a list of GLSL sources. This list contains placeholders that should be
