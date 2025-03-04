@@ -1913,6 +1913,9 @@ static void filelist_clear_main_files(FileList *filelist,
   if (!filelist || !(filelist->tags & FILELIST_TAGS_USES_MAIN_DATA)) {
     return;
   }
+  if (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET) {
+    return;
+  }
 
   filelist_tag_needs_filtering(filelist);
 
