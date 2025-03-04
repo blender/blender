@@ -731,6 +731,7 @@ if(WITH_BLENDER)
       preferences
       preset
       preset_new
+      preview_loading
       preview_range
       prev_keyframe
       properties

@@ -1266,12 +1266,6 @@ static void widget_draw_preview_icon(
   }
 
   if (icon < BIFICONID_LAST_STATIC) {
-    const bool is_loading_icon = icon == ICON_TEMP;
-    /* Special handling: Previews often want to show a loading icon while the preview is being
-     * loaded. Draw this with reduced opacity. */
-    if (is_loading_icon) {
-      alpha *= 0.5f;
-    }
     widget_draw_icon_centered(icon, aspect, alpha, rect, mono_color);
     return;
   }

@@ -263,7 +263,7 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) co
      * actual loading of previews is delayed, because that only happens when a preview icon-ID is
      * attached to a button. */
     if (!list::is_loaded(&asset_view.library_ref_)) {
-      return ICON_TEMP;
+      return ICON_PREVIEW_LOADING;
     }
     return asset_preview_or_icon(asset_);
   }();
