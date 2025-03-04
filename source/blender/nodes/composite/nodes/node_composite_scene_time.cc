@@ -32,6 +32,10 @@ class SceneTimeOperation : public NodeOperation {
   void execute_seconds()
   {
     Result &result = get_result("Seconds");
+    if (!result.should_compute()) {
+      return;
+    }
+
     result.allocate_single_value();
     result.set_single_value(context().get_time());
   }
@@ -39,6 +43,10 @@ class SceneTimeOperation : public NodeOperation {
   void execute_frame()
   {
     Result &result = get_result("Frame");
+    if (!result.should_compute()) {
+      return;
+    }
+
     result.allocate_single_value();
     result.set_single_value(float(context().get_frame_number()));
   }
