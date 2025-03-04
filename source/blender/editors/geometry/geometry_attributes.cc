@@ -10,12 +10,14 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
+#include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
@@ -457,15 +459,42 @@ static bool geometry_attribute_convert_poll(bContext *C)
   Object *ob = object::context_object(C);
   ID *data = static_cast<ID *>(ob->data);
   AttributeOwner owner = AttributeOwner::from_id(data);
-  if (GS(data->name) != ID_ME) {
-    return false;
-  }
-  if (CTX_data_edit_object(C) != nullptr) {
-    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
-    return false;
+  if (ob->type == OB_MESH) {
+    if (CTX_data_edit_object(C) != nullptr) {
+      CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+      return false;
+    }
   }
   if (BKE_attributes_active_get(owner) == nullptr) {
     return false;
+  }
+  return true;
+}
+
+static bool convert_generic_attribute(bke::MutableAttributeAccessor attributes,
+                                      const StringRef name,
+                                      const bke::AttrDomain dst_domain,
+                                      const eCustomDataType dst_type,
+                                      ReportList *reports)
+{
+  BLI_assert(attributes.contains(name));
+  if (ELEM(dst_type, CD_PROP_STRING)) {
+    if (reports) {
+      BKE_report(reports, RPT_ERROR, "Cannot convert to the selected type");
+    }
+    return false;
+  }
+
+  const std::string name_copy = name;
+  const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
+
+  const CPPType &cpp_type = varray.type();
+  void *new_data = MEM_mallocN_aligned(
+      varray.size() * cpp_type.size(), cpp_type.alignment(), __func__);
+  varray.materialize_to_uninitialized(new_data);
+  attributes.remove(name_copy);
+  if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
+    MEM_freeN(new_data);
   }
   return true;
 }
@@ -476,57 +505,83 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
   ID *ob_data = static_cast<ID *>(ob->data);
   AttributeOwner owner = AttributeOwner::from_id(ob_data);
   CustomDataLayer *layer = BKE_attributes_active_get(owner);
-  const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
-      RNA_enum_get(op->ptr, "mode"));
-  Mesh *mesh = reinterpret_cast<Mesh *>(ob_data);
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-
   const std::string name = layer->name;
 
-  /* General conversion steps are always the same:
-   * 1. Convert old data to right domain and data type.
-   * 2. Copy the data into a new array so that it does not depend on the old attribute anymore.
-   * 3. Delete the old attribute.
-   * 4. Create a new attribute based on the previously copied data. */
-  switch (mode) {
-    case ConvertAttributeMode::Generic: {
-      if (!ED_geometry_attribute_convert(mesh,
-                                         name.c_str(),
-                                         eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
-                                         bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                                         op->reports))
-      {
-        return OPERATOR_CANCELLED;
-      }
-      break;
-    }
-    case ConvertAttributeMode::VertexGroup: {
-      Array<float> src_weights(mesh->verts_num);
-      VArray<float> src_varray = *attributes.lookup_or_default<float>(
-          name, bke::AttrDomain::Point, 0.0f);
-      src_varray.materialize(src_weights);
-      attributes.remove(name);
+  if (ob->type == OB_MESH) {
+    const ConvertAttributeMode mode = ConvertAttributeMode(RNA_enum_get(op->ptr, "mode"));
 
-      bDeformGroup *defgroup = BKE_object_defgroup_new(ob, name.c_str());
-      const int defgroup_index = BLI_findindex(BKE_id_defgroup_list_get(&mesh->id), defgroup);
-      MDeformVert *dverts = BKE_object_defgroup_data_create(&mesh->id);
-      for (const int i : IndexRange(mesh->verts_num)) {
-        const float weight = src_weights[i];
-        if (weight > 0.0f) {
-          BKE_defvert_add_index_notest(dverts + i, defgroup_index, weight);
+    Mesh *mesh = reinterpret_cast<Mesh *>(ob_data);
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+
+    switch (mode) {
+      case ConvertAttributeMode::Generic: {
+        if (!convert_generic_attribute(attributes,
+                                       name,
+                                       bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
+                                       eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                                       op->reports))
+        {
+          return OPERATOR_CANCELLED;
         }
+        break;
       }
-      AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-      int *active_index = BKE_attributes_active_index_p(owner);
-      if (*active_index > 0) {
-        *active_index -= 1;
+      case ConvertAttributeMode::VertexGroup: {
+        Array<float> src_weights(mesh->verts_num);
+        VArray<float> src_varray = *attributes.lookup_or_default<float>(
+            name, bke::AttrDomain::Point, 0.0f);
+        src_varray.materialize(src_weights);
+        attributes.remove(name);
+
+        bDeformGroup *defgroup = BKE_object_defgroup_new(ob, name);
+        const int defgroup_index = BLI_findindex(BKE_id_defgroup_list_get(&mesh->id), defgroup);
+        MDeformVert *dverts = BKE_object_defgroup_data_create(&mesh->id);
+        for (const int i : IndexRange(mesh->verts_num)) {
+          const float weight = src_weights[i];
+          if (weight > 0.0f) {
+            BKE_defvert_add_index_notest(dverts + i, defgroup_index, weight);
+          }
+        }
+        AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+        int *active_index = BKE_attributes_active_index_p(owner);
+        if (*active_index > 0) {
+          *active_index -= 1;
+        }
+        break;
       }
-      break;
     }
+    DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
+  }
+  else if (ob->type == OB_CURVES) {
+    Curves *curves_id = static_cast<Curves *>(ob->data);
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    if (!convert_generic_attribute(curves.attributes_for_write(),
+                                   name,
+                                   bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
+                                   eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                                   op->reports))
+    {
+      return OPERATOR_CANCELLED;
+    }
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id->id);
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
+    if (!convert_generic_attribute(pointcloud.attributes_for_write(),
+                                   name,
+                                   bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
+                                   eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                                   op->reports))
+    {
+      return OPERATOR_CANCELLED;
+    }
+    DEG_id_tag_update(&pointcloud.id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &pointcloud.id);
   }
 
-  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
+  BKE_attributes_active_set(owner, name);
+
   return OPERATOR_FINISHED;
 }
 
@@ -744,10 +799,10 @@ static int geometry_attribute_convert_invoke(bContext *C,
                                              const wmEvent * /*event*/)
 {
   Object *ob = object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-
-  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
+  ID *id = static_cast<ID *>(ob->data);
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  const bke::AttributeAccessor accessor = *bke::AttributeAccessor::from_id(*id);
+  const bke::AttributeMetaData meta_data = *accessor.lookup_meta_data(
       BKE_attributes_active_get(owner)->name);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
@@ -763,21 +818,64 @@ static int geometry_attribute_convert_invoke(bContext *C,
       C, op, 300, IFACE_("Convert Attribute Domain"), IFACE_("Convert"));
 }
 
-static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
+static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  Object *ob = object::context_object(C);
+  if (ob->type == OB_MESH) {
+    uiItemR(layout, op->ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  }
 
-  const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
-      RNA_enum_get(op->ptr, "mode"));
+  const ConvertAttributeMode mode = ob->type == OB_MESH ?
+                                        ConvertAttributeMode(RNA_enum_get(op->ptr, "mode")) :
+                                        ConvertAttributeMode::Generic;
 
   if (mode == ConvertAttributeMode::Generic) {
-    uiItemR(layout, op->ptr, "domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    if (ob->type != OB_POINTCLOUD) {
+      uiItemR(layout, op->ptr, "domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    }
     uiItemR(layout, op->ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
+}
+
+static EnumPropertyItem convert_attribute_mode_items[] = {
+    {int(ConvertAttributeMode::Generic), "GENERIC", 0, "Generic", ""},
+    {int(ConvertAttributeMode::VertexGroup), "VERTEX_GROUP", 0, "Vertex Group", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem *geometry_attribute_convert_mode_itemf(bContext *C,
+                                                                     PointerRNA * /*ptr*/,
+                                                                     PropertyRNA * /*prop*/,
+                                                                     bool *r_free)
+{
+  if (C == nullptr) {
+    return rna_enum_dummy_NULL_items;
+  }
+
+  Object *ob = object::context_object(C);
+  if (ob == nullptr) {
+    return rna_enum_dummy_NULL_items;
+  }
+
+  if (ob->type == OB_MESH) {
+    *r_free = false;
+    return convert_attribute_mode_items;
+  }
+
+  EnumPropertyItem *items = nullptr;
+  int totitem = 0;
+  for (const EnumPropertyItem &item : convert_attribute_mode_items) {
+    if (item.value == int(ConvertAttributeMode::Generic)) {
+      RNA_enum_item_add(&items, &totitem, &item);
+    }
+  }
+  RNA_enum_item_end(&items, &totitem);
+  *r_free = true;
+  return items;
 }
 
 static bool geometry_color_attribute_convert_poll(bContext *C)
@@ -904,15 +1002,15 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  static EnumPropertyItem mode_items[] = {
-      {int(ConvertAttributeMode::Generic), "GENERIC", 0, "Generic", ""},
-      {int(ConvertAttributeMode::VertexGroup), "VERTEX_GROUP", 0, "Vertex Group", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   PropertyRNA *prop;
 
-  RNA_def_enum(ot->srna, "mode", mode_items, int(ConvertAttributeMode::Generic), "Mode", "");
+  prop = RNA_def_enum(ot->srna,
+                      "mode",
+                      convert_attribute_mode_items,
+                      int(ConvertAttributeMode::Generic),
+                      "Mode",
+                      "");
+  RNA_def_enum_funcs(prop, geometry_attribute_convert_mode_itemf);
 
   prop = RNA_def_enum(ot->srna,
                       "domain",
@@ -936,26 +1034,6 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
 {
   using namespace blender;
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  BLI_assert(mesh->attributes().contains(name));
   BLI_assert(mesh->runtime->edit_mesh == nullptr);
-  if (ELEM(dst_type, CD_PROP_STRING)) {
-    if (reports) {
-      BKE_report(reports, RPT_ERROR, "Cannot convert to the selected type");
-    }
-    return false;
-  }
-
-  const std::string name_copy = name;
-  const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
-
-  const CPPType &cpp_type = varray.type();
-  void *new_data = MEM_mallocN_aligned(
-      varray.size() * cpp_type.size(), cpp_type.alignment(), __func__);
-  varray.materialize_to_uninitialized(new_data);
-  attributes.remove(name_copy);
-  if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
-    MEM_freeN(new_data);
-  }
-
-  return true;
+  return ed::geometry::convert_generic_attribute(attributes, name, dst_domain, dst_type, reports);
 }
