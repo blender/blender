@@ -8,8 +8,10 @@ import bpy
 from mathutils import Vector
 
 
-class TestObjectApi(unittest.TestCase):
-    def test_closest_point_on_mesh_of_default_cube(self):
+class ClosestPointOnMeshTest(unittest.TestCase):
+    def test_function_finds_closest_point_successfully(self):
+        """Test that attempting to find the closest point succeeds and returns the correct location."""
+
         bpy.ops.wm.read_factory_settings(use_empty=True)
         bpy.ops.mesh.primitive_cube_add()
         ret_val = bpy.context.scene.objects[0].closest_point_on_mesh(Vector((0.0, 0.0, 2.0)))
