@@ -14,7 +14,6 @@
 #include "COM_input_descriptor.hh"
 #include "COM_operation.hh"
 #include "COM_realize_on_domain_operation.hh"
-#include "COM_reduce_to_single_value_operation.hh"
 #include "COM_result.hh"
 #include "COM_simple_operation.hh"
 
@@ -99,12 +98,6 @@ void Operation::add_and_evaluate_input_processors()
    * processors for all inputs. For instance, the realize on domain input processor considers the
    * value of all inputs, so previous input processors for all inputs needs to be added and
    * evaluated first. */
-
-  for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
-    SimpleOperation *single_value = ReduceToSingleValueOperation::construct_if_needed(
-        context(), get_input(identifier));
-    add_and_evaluate_input_processor(identifier, single_value);
-  }
 
   for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *conversion = ConversionOperation::construct_if_needed(

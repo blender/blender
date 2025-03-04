@@ -34,7 +34,6 @@ set(SRC
   COM_pixel_operation.hh
   COM_profiler.hh
   COM_realize_on_domain_operation.hh
-  COM_reduce_to_single_value_operation.hh
   COM_render_context.hh
   COM_result.hh
   COM_scheduler.hh
@@ -58,7 +57,6 @@ set(SRC
   intern/pixel_operation.cc
   intern/profiler.cc
   intern/realize_on_domain_operation.cc
-  intern/reduce_to_single_value_operation.cc
   intern/render_context.cc
   intern/result.cc
   intern/scheduler.cc
