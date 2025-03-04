@@ -145,8 +145,9 @@ void OSLManager::device_update_pre(Device *device, Scene *scene)
 
 void OSLManager::device_update_post(Device *device, Scene *scene, Progress &progress)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   {
     scoped_callback_timer timer([scene](double time) {
@@ -538,8 +539,9 @@ void OSLShaderManager::device_update_specific(Device *device,
                                               Scene *scene,
                                               Progress &progress)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -568,10 +570,10 @@ void OSLShaderManager::device_update_specific(Device *device,
   for (Shader *shader : scene->shaders) {
     assert(shader->graph);
 
-    auto compile = [this, scene, shader, background_shader](Device *sub_device, OSLGlobals *) {
+    auto compile = [scene, shader, background_shader](Device *sub_device, OSLGlobals *) {
       OSL::ShadingSystem *ss = scene->osl_manager->get_shading_system(sub_device);
 
-      OSLCompiler compiler(this, ss, scene);
+      OSLCompiler compiler(ss, scene);
       compiler.background = (shader == background_shader);
       compiler.compile(shader);
     };
@@ -818,11 +820,8 @@ void OSLShaderManager::osl_image_slots(Device *device,
 
 /* Graph Compiler */
 
-OSLCompiler::OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scene *scene)
-    : scene(scene),
-      manager(manager),
-      services(static_cast<OSLRenderServices *>(ss->renderer())),
-      ss(ss)
+OSLCompiler::OSLCompiler(OSL::ShadingSystem *ss, Scene *scene)
+    : scene(scene), services(static_cast<OSLRenderServices *>(ss->renderer())), ss(ss)
 {
   current_type = SHADER_TYPE_SURFACE;
   current_shader = nullptr;

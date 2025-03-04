@@ -19,7 +19,6 @@
 
 #include "subd/split.h"
 
-#include "util/log.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN

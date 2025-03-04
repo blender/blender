@@ -6,7 +6,6 @@
 
 #include "scene/background.h"
 #include "scene/camera.h"
-#include "scene/colorspace.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
 #include "scene/mesh.h"

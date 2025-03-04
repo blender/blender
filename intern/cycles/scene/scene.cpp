@@ -425,8 +425,7 @@ bool Scene::need_reset(const bool check_camera)
 void Scene::reset()
 {
   osl_manager->reset(this);
-  shader_manager->add_default(this);
-  ccl::ShaderManager::add_default(this);
+  ShaderManager::add_default(this);
 
   /* ensure all objects are updated */
   camera->tag_modified();
