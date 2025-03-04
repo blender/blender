@@ -21,6 +21,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::gpu
 )
 
 if(WITH_OPENSUBDIV)
@@ -105,5 +106,9 @@ if(WITH_GTESTS AND WITH_OPENSUBDIV)
   add_definitions(${GFLAGS_DEFINES})
   add_definitions(${GLOG_DEFINES})
 
-  blender_add_test_executable(opensubdiv_mesh_topology "internal/topology/mesh_topology_test.cc" "${INC}" "${INC_SYS}" "${LIB};bf_intern_opensubdiv")
+  set(TEST_SRC
+    internal/topology/mesh_topology_test.cc
+  )
+
+  blender_add_test_suite_lib(intern_opensubdiv "${TEST_SRC}" "${INC}" "${INC_SYS}" "${LIB};bf_intern_opensubdiv")
 endif()

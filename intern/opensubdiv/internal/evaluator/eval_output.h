@@ -76,35 +76,37 @@ class EvalOutputAPI::EvalOutput {
   // data structure. They need to be overridden in the specific instances of the EvalOutput derived
   // classes if needed, while the interfaces above are overridden through VolatileEvalOutput.
 
-  virtual void fillPatchArraysBuffer(OpenSubdiv_Buffer * /*patch_arrays_buffer*/) {}
+  virtual void fillPatchArraysBuffer(blender::gpu::VertBuf * /*patch_arrays_buffer*/) {}
 
-  virtual void wrapPatchIndexBuffer(OpenSubdiv_Buffer * /*patch_index_buffer*/) {}
+  virtual void wrapPatchIndexBuffer(blender::gpu::VertBuf * /*patch_index_buffer*/) {}
 
-  virtual void wrapPatchParamBuffer(OpenSubdiv_Buffer * /*patch_param_buffer*/) {}
+  virtual void wrapPatchParamBuffer(blender::gpu::VertBuf * /*patch_param_buffer*/) {}
 
-  virtual void wrapSrcBuffer(OpenSubdiv_Buffer * /*src_buffer*/) {}
+  virtual void wrapSrcBuffer(blender::gpu::VertBuf * /*src_buffer*/) {}
 
-  virtual void wrapSrcVertexDataBuffer(OpenSubdiv_Buffer * /*src_buffer*/) {}
+  virtual void wrapSrcVertexDataBuffer(blender::gpu::VertBuf * /*src_buffer*/) {}
 
   virtual void fillFVarPatchArraysBuffer(const int /*face_varying_channel*/,
-                                         OpenSubdiv_Buffer * /*patch_arrays_buffer*/)
+                                         blender::gpu::VertBuf * /*patch_arrays_buffer*/)
   {
   }
 
   virtual void wrapFVarPatchIndexBuffer(const int /*face_varying_channel*/,
-                                        OpenSubdiv_Buffer * /*patch_index_buffer*/)
+                                        blender::gpu::VertBuf * /*patch_index_buffer*/)
   {
   }
 
   virtual void wrapFVarPatchParamBuffer(const int /*face_varying_channel*/,
-                                        OpenSubdiv_Buffer * /*patch_param_buffer*/)
+                                        blender::gpu::VertBuf * /*patch_param_buffer*/)
   {
   }
 
   virtual void wrapFVarSrcBuffer(const int /*face_varying_channel*/,
-                                 OpenSubdiv_Buffer * /*src_buffer*/)
+                                 blender::gpu::VertBuf * /*src_buffer*/)
   {
   }
+
+  virtual int getFVarSrcBufferOffset(const int face_varying_channel) const = 0;
 
   virtual bool hasVertexData() const
   {
@@ -609,7 +611,7 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
     return face_varying_evaluators_[face_varying_channel]->getSrcBuffer();
   }
 
-  int getFVarSrcBufferOffset(const int face_varying_channel) const
+  int getFVarSrcBufferOffset(const int face_varying_channel) const override
   {
     return face_varying_evaluators_[face_varying_channel]->getFVarSrcBufferOffset();
   }
