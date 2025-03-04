@@ -24,6 +24,7 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "CLG_log.h"
