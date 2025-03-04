@@ -471,11 +471,11 @@ static bool geometry_attribute_convert_poll(bContext *C)
   return true;
 }
 
-static bool convert_generic_attribute(bke::MutableAttributeAccessor attributes,
-                                      const StringRef name,
-                                      const bke::AttrDomain dst_domain,
-                                      const eCustomDataType dst_type,
-                                      ReportList *reports)
+bool convert_attribute(bke::MutableAttributeAccessor attributes,
+                       const StringRef name,
+                       const bke::AttrDomain dst_domain,
+                       const eCustomDataType dst_type,
+                       ReportList *reports)
 {
   BLI_assert(attributes.contains(name));
   if (ELEM(dst_type, CD_PROP_STRING)) {
@@ -515,11 +515,11 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 
     switch (mode) {
       case ConvertAttributeMode::Generic: {
-        if (!convert_generic_attribute(attributes,
-                                       name,
-                                       bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                                       eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
-                                       op->reports))
+        if (!convert_attribute(attributes,
+                               name,
+                               bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
+                               eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                               op->reports))
         {
           return OPERATOR_CANCELLED;
         }
@@ -555,11 +555,11 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
   else if (ob->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(ob->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-    if (!convert_generic_attribute(curves.attributes_for_write(),
-                                   name,
-                                   bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                                   eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
-                                   op->reports))
+    if (!convert_attribute(curves.attributes_for_write(),
+                           name,
+                           bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
+                           eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                           op->reports))
     {
       return OPERATOR_CANCELLED;
     }
@@ -568,11 +568,11 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
   }
   else if (ob->type == OB_POINTCLOUD) {
     PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
-    if (!convert_generic_attribute(pointcloud.attributes_for_write(),
-                                   name,
-                                   bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                                   eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
-                                   op->reports))
+    if (!convert_attribute(pointcloud.attributes_for_write(),
+                           name,
+                           bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
+                           eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                           op->reports))
     {
       return OPERATOR_CANCELLED;
     }
@@ -914,12 +914,11 @@ static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const char *name = mesh->active_color_attribute;
-  ED_geometry_attribute_convert(mesh,
-                                name,
-                                eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
-                                bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                                op->reports);
+  convert_attribute(mesh->attributes_for_write(),
+                    mesh->active_color_attribute,
+                    bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
+                    eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                    op->reports);
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
   return OPERATOR_FINISHED;
@@ -1025,15 +1024,3 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 }
 
 }  // namespace blender::ed::geometry
-
-bool ED_geometry_attribute_convert(Mesh *mesh,
-                                   const char *name,
-                                   const eCustomDataType dst_type,
-                                   const blender::bke::AttrDomain dst_domain,
-                                   ReportList *reports)
-{
-  using namespace blender;
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  BLI_assert(mesh->runtime->edit_mesh == nullptr);
-  return ed::geometry::convert_generic_attribute(attributes, name, dst_domain, dst_type, reports);
-}
