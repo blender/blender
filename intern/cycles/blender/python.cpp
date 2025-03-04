@@ -26,9 +26,9 @@
 
 #include "GPU_state.hh"
 
-#ifdef WITH_OSL
-#  include "scene/osl.h"
+#include "scene/osl.h"
 
+#ifdef WITH_OSL
 #  include <OSL/oslconfig.h>
 #  include <OSL/oslquery.h>
 #endif
@@ -152,7 +152,8 @@ static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
   device_metal_exit();
 #endif
 
-  ShaderManager::free_memory();
+  ColorSpaceManager::free_memory();
+  OSLManager::free_memory();
   TaskScheduler::free_memory();
   Device::free_memory();
   Py_RETURN_NONE;
@@ -495,7 +496,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
   /* query from file path */
   OSL::OSLQuery query;
 
-  if (!OSLShaderManager::osl_query(query, filepath)) {
+  if (!OSLManager::osl_query(query, filepath)) {
     Py_RETURN_FALSE;
   }
 
@@ -722,7 +723,7 @@ static PyObject *osl_compile_func(PyObject * /*self*/, PyObject *args)
   }
 
   /* return */
-  if (!OSLShaderManager::osl_compile(inputfile, outputfile)) {
+  if (!OSLManager::osl_compile(inputfile, outputfile)) {
     Py_RETURN_FALSE;
   }
 

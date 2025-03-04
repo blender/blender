@@ -6,6 +6,8 @@
 
 #include <atomic>
 
+#include "device/device.h"
+
 #include "util/array.h"
 #include "util/set.h"
 #include "util/string.h"
@@ -50,16 +52,71 @@ struct OSLShaderInfo {
   bool has_surface_bssrdf = false;
 };
 
+#endif
+
+class OSLManager {
+ public:
+  OSLManager(Device *device);
+  ~OSLManager();
+
+  static void free_memory();
+
+  void reset(Scene *scene);
+
+  void device_update_pre(Device *device, Scene *scene);
+  void device_update_post(Device *device, Scene *scene, Progress &progress);
+  void device_free(Device *device, DeviceScene *dscene, Scene *scene);
+
+#ifdef WITH_OSL
+  /* osl compile and query */
+  static bool osl_compile(const string &inputfile, const string &outputfile);
+  static bool osl_query(OSL::OSLQuery &query, const string &filepath);
+
+  /* shader file loading, all functions return pointer to hash string if found */
+  const char *shader_test_loaded(const string &hash);
+  const char *shader_load_bytecode(const string &hash, const string &bytecode);
+  const char *shader_load_filepath(string filepath);
+  OSLShaderInfo *shader_loaded_info(const string &hash);
+
+  OSL::ShadingSystem *get_shading_system(Device *sub_device);
+  static void foreach_osl_device(Device *device,
+                                 const std::function<void(Device *, OSLGlobals *)> &callback);
+#endif
+
+  void tag_update();
+  bool need_update() const;
+
+ private:
+#ifdef WITH_OSL
+  void texture_system_init();
+  void texture_system_free();
+
+  void shading_system_init();
+  void shading_system_free();
+
+  void foreach_shading_system(const std::function<void(OSL::ShadingSystem *)> &callback);
+  void foreach_render_services(const std::function<void(OSLRenderServices *)> &callback);
+
+  OSL::TextureSystem *get_texture_system();
+
+  Device *device_;
+  map<string, OSLShaderInfo> loaded_shaders;
+
+  std::shared_ptr<OSL::TextureSystem> ts;
+  map<DeviceType, std::shared_ptr<OSL::ShadingSystem>> ss_map;
+
+  bool need_update_;
+#endif
+};
+
+#ifdef WITH_OSL
+
 /* Shader Manage */
 
 class OSLShaderManager : public ShaderManager {
  public:
-  OSLShaderManager(Device *device);
-  ~OSLShaderManager() override;
-
-  static void free_memory();
-
-  void reset(Scene *scene) override;
+  OSLShaderManager() = default;
+  ~OSLShaderManager() = default;
 
   bool use_osl() override
   {
@@ -75,49 +132,15 @@ class OSLShaderManager : public ShaderManager {
                               Progress &progress) override;
   void device_free(Device *device, DeviceScene *dscene, Scene *scene) override;
 
-  /* osl compile and query */
-  static bool osl_compile(const string &inputfile, const string &outputfile);
-  static bool osl_query(OSL::OSLQuery &query, const string &filepath);
-
-  /* shader file loading, all functions return pointer to hash string if found */
-  const char *shader_test_loaded(const string &hash);
-  const char *shader_load_bytecode(const string &hash, const string &bytecode);
-  const char *shader_load_filepath(string filepath);
-  OSLShaderInfo *shader_loaded_info(const string &hash);
-
   /* create OSL node using OSLQuery */
   static OSLNode *osl_node(ShaderGraph *graph,
-                           ShaderManager *manager,
+                           Scene *scene,
                            const std::string &filepath,
                            const std::string &bytecode_hash = "",
                            const std::string &bytecode = "");
 
   /* Get image slots used by OSL services on device. */
   static void osl_image_slots(Device *device, ImageManager *image_manager, set<int> &image_slots);
-
- private:
-  void texture_system_init();
-  void texture_system_free();
-
-  void shading_system_init();
-  void shading_system_free();
-
-  Device *device_;
-  map<string, OSLShaderInfo> loaded_shaders;
-
-#  if OIIO_VERSION_MAJOR >= 3
-  static std::shared_ptr<OSL::TextureSystem> ts_shared;
-#  else
-  static OSL::TextureSystem *ts_shared;
-#  endif
-  static thread_mutex ts_shared_mutex;
-  static int ts_shared_users;
-
-  static OSL::ErrorHandler errhandler;
-  static map<int, unique_ptr<OSL::ShadingSystem>> ss_shared;
-  static thread_mutex ss_shared_mutex;
-  static thread_mutex ss_mutex;
-  static int ss_shared_users;
 };
 
 #endif

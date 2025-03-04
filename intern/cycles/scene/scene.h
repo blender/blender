@@ -35,6 +35,7 @@ class Geometry;
 class GeometryManager;
 class Object;
 class ObjectManager;
+class OSLManager;
 class ParticleSystemManager;
 class ParticleSystem;
 class PointCloud;
@@ -143,6 +144,7 @@ class Scene : public NodeOwner {
   /* data managers */
   unique_ptr<ImageManager> image_manager;
   unique_ptr<LightManager> light_manager;
+  unique_ptr<OSLManager> osl_manager;
   unique_ptr<ShaderManager> shader_manager;
   unique_ptr<GeometryManager> geometry_manager;
   unique_ptr<ObjectManager> object_manager;

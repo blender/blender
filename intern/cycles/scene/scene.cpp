@@ -53,8 +53,9 @@ Scene ::Scene(const SceneParams &params_, Device *device)
 {
   memset((void *)&dscene.data, 0, sizeof(dscene.data));
 
-  shader_manager = ShaderManager::create(
-      device->info.has_osl ? params.shadingsystem : SHADINGSYSTEM_SVM, device);
+  osl_manager = make_unique<OSLManager>(device);
+  shader_manager = ShaderManager::create(device->info.has_osl ? params.shadingsystem :
+                                                                SHADINGSYSTEM_SVM);
 
   light_manager = make_unique<LightManager>();
   geometry_manager = make_unique<GeometryManager>();
@@ -132,6 +133,7 @@ void Scene::free_memory(bool final)
     object_manager->device_free(device, &dscene, true);
     geometry_manager->device_free(device, &dscene, true);
     shader_manager->device_free(device, &dscene, this);
+    osl_manager->device_free(device, &dscene, this);
     light_manager->device_free(device, &dscene);
 
     particle_system_manager->device_free(device, &dscene);
@@ -153,6 +155,7 @@ void Scene::free_memory(bool final)
     object_manager.reset();
     geometry_manager.reset();
     shader_manager.reset();
+    osl_manager.reset();
     light_manager.reset();
     particle_system_manager.reset();
     image_manager.reset();
@@ -205,7 +208,9 @@ void Scene::device_update(Device *device_, Progress &progress)
   }
 
   progress.set_status("Updating Shaders");
+  osl_manager->device_update_pre(device, this);
   shader_manager->device_update(device, &dscene, this, progress);
+  osl_manager->device_update_post(device, this, progress);
 
   if (progress.get_cancel() || device->have_error()) {
     return;
@@ -419,7 +424,8 @@ bool Scene::need_reset(const bool check_camera)
 
 void Scene::reset()
 {
-  shader_manager->reset(this);
+  osl_manager->reset(this);
+  shader_manager->add_default(this);
   ccl::ShaderManager::add_default(this);
 
   /* ensure all objects are updated */
