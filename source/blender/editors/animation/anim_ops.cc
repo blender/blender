@@ -426,8 +426,8 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
   ot->prop = RNA_def_float(
       ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
   prop = RNA_def_boolean(ot->srna, "snap", false, "Snap", "");
-  prop = RNA_def_boolean(ot->srna, "seq_solo_preview", false, "Strip Preview", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "seq_solo_preview", false, "Strip Preview", "");
 }
 
 /** \} */
