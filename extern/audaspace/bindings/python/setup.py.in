@@ -34,7 +34,7 @@ if sys.platform == 'win32':
     extra_args.append('/EHsc')
     extra_args.append('/DAUD_BUILD_SHARED_LIBRARY')
 else:
-    extra_args.append('-std=c++11')
+    extra_args.append('-std=c++17')
 
 audaspace = Extension(
                       'aud',
