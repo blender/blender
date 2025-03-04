@@ -57,6 +57,7 @@
 #include "WM_types.hh"
 
 using blender::Span;
+using blender::StringRef;
 using blender::Vector;
 
 /* -------------------------------------------------------------------- */
@@ -510,16 +511,16 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
 }
 
 LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
-                                                      const char *idname,
+                                                      const StringRef idname,
                                                       const bool default_closed)
 {
   LISTBASE_FOREACH (LayoutPanelState *, state, &panel->layout_panel_states) {
-    if (STREQ(state->idname, idname)) {
+    if (state->idname == idname) {
       return state;
     }
   }
   LayoutPanelState *state = MEM_cnew<LayoutPanelState>(__func__);
-  state->idname = BLI_strdup(idname);
+  state->idname = BLI_strdupn(idname.data(), idname.size());
   SET_FLAG_FROM_TEST(state->flag, !default_closed, LAYOUT_PANEL_STATE_FLAG_OPEN);
   BLI_addtail(&panel->layout_panel_states, state);
   return state;
