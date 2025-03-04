@@ -40,9 +40,20 @@ ExternalProject_Add(external_hiprt
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/hiprt
 
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/hiprt/src/external_hiprt <
-    ${PATCH_DIR}/hiprt.diff
+  # hiprt_target_dependency.diff:
+  #   https://github.com/GPUOpen-LibrariesAndSDKs/HIPRT/pull/31
+  # hiprt_install.diff:
+  #   https://github.com/GPUOpen-LibrariesAndSDKs/HIPRT/pull/30
+  PATCH_COMMAND
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/hiprt/src/external_hiprt <
+      ${PATCH_DIR}/hiprt_target_dependency.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/hiprt/src/external_hiprt <
+      ${PATCH_DIR}/hiprt_install.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/hiprt/src/external_hiprt <
+      ${PATCH_DIR}/hiprt_baked_bvh_array.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/hiprt
