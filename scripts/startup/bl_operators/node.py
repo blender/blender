@@ -314,7 +314,7 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
 
         active_item = interface.active
         # Panels have the extra option to add a toggle.
-        if active_item and active_item.item_type == 'PANEL' and tree.type in ('GEOMETRY', 'SHADER'):
+        if active_item and active_item.item_type == 'PANEL' and tree.type in {'GEOMETRY', 'SHADER'}:
             items.append(('PANEL_TOGGLE', "Panel Toggle", ""))
 
         return items
@@ -476,7 +476,7 @@ class NODE_OT_interface_item_make_panel_toggle(NodeInterfaceOperator, Operator):
         if not parent_panel:
             return {'CANCELLED'}
 
-        if not type(active_item) is bpy.types.NodeTreeInterfaceSocketBool:
+        if type(active_item) is not bpy.types.NodeTreeInterfaceSocketBool:
             return {'CANCELLED'}
 
         active_item.is_panel_toggle = True
@@ -527,7 +527,7 @@ class NODE_OT_interface_item_unlink_panel_toggle(NodeInterfaceOperator, Operator
             return {'CANCELLED'}
 
         first_item = active_item.interface_items[0]
-        if not type(first_item) is bpy.types.NodeTreeInterfaceSocketBool or not first_item.is_panel_toggle:
+        if type(first_item) is not bpy.types.NodeTreeInterfaceSocketBool or not first_item.is_panel_toggle:
             return {'CANCELLED'}
 
         first_item.is_panel_toggle = False
