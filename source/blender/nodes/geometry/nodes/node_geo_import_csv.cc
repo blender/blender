@@ -20,6 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .path_filter("*.csv")
       .hide_label()
       .description("Path to a CSV file");
+  b.add_input<decl::String>("Delimiter").default_value(",");
 
   b.add_output<decl::Geometry>("Point Cloud");
 }
@@ -33,8 +34,21 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
+  const std::string delimiter = params.extract_input<std::string>("Delimiter");
+  if (delimiter.size() != 1) {
+    params.error_message_add(NodeWarningType::Error, TIP_("Delimiter must be a single character"));
+    params.set_default_remaining_outputs();
+    return;
+  }
+  if (ELEM(delimiter[0], '\n', '\r', '"', '\\')) {
+    params.error_message_add(NodeWarningType::Error,
+                             TIP_("Delimiter must not be \\n, \\r, \" or \\"));
+    params.set_default_remaining_outputs();
+    return;
+  }
 
   blender::io::csv::CSVImportParams import_params{};
+  import_params.delimiter = delimiter[0];
   STRNCPY(import_params.filepath, path->c_str());
 
   ReportList reports;

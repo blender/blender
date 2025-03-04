@@ -18,6 +18,7 @@ namespace blender::io::csv {
 struct CSVImportParams {
   /** Full path to the source CSV file to import. */
   char filepath[FILE_MAX];
+  char delimiter = ',';
 
   ReportList *reports = nullptr;
 };

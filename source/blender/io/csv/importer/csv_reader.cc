@@ -281,6 +281,7 @@ PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params)
   LinearAllocator<> allocator;
   Array<ColumnInfo> columns_info;
   csv_parse::CsvParseOptions parse_options;
+  parse_options.delimiter = import_params.delimiter;
 
   const auto parse_header = [&](const csv_parse::CsvRecord &record) {
     columns_info.reinitialize(record.size());
