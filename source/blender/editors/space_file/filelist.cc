@@ -4235,7 +4235,9 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   flrj->filelist = filelist;
   flrj->current_main = bmain;
   STRNCPY(flrj->main_filepath, BKE_main_blendfile_path(bmain));
-  if ((filelist->flags & FL_FORCE_RESET_MAIN_FILES) && !(filelist->flags & FL_FORCE_RESET)) {
+  if ((filelist->flags & FL_FORCE_RESET_MAIN_FILES) && !(filelist->flags & FL_FORCE_RESET) &&
+      (filelist->filelist.entries_num != FILEDIR_NBR_ENTRIES_UNSET))
+  {
     flrj->only_main_data = true;
   }
 

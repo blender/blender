@@ -1432,9 +1432,22 @@ Slot *generic_slot_for_autoassign(const ID &animated_id,
 
   /* If there is only one slot, and it is not specific to any ID type, use that.
    *
-   * This should only trigger in some special cases, like legacy Actions that
-   * were converted to slotted Actions by the versioning code, where the legacy
-   * Action was never assigned to anything (and thus had idroot = 0). */
+   * This should only trigger in some special cases, like legacy Actions that were converted to
+   * slotted Actions by the versioning code, where the legacy Action was never assigned to anything
+   * (and thus had idroot = 0).
+   *
+   * This might seem overly specific, and for convenience of automatically auto-assigning a slot,
+   * it might be tempting to remove the "slot->has_idtype()" check. However, that would make the
+   * following workflow significantly more cumbersome:
+   *
+   * - Animate `Cube`. This creates `CubeAction` with a single slot `OBCube`.
+   * - Assign `CubeAction` to `Suzanne`, with the intent of animating both `Cube` and `Suzanne`
+   *   with the same Action.
+   * - This should **not** auto-assign the `OBCube` slot to `Suzanne`, as that will overwrite any
+   *   property of `Suzanne` with the animated values for the `OBCube` slot.
+   *
+   * Recovering from this will be hard, as an undo will revert both the overwriting of properties
+   * and the assignment of the Action. */
   if (action.slots().size() == 1) {
     Slot *slot = action.slot(0);
     if (!slot->has_idtype()) {
