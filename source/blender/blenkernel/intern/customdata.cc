@@ -3967,7 +3967,7 @@ BMCustomDataCopyMap CustomData_bmesh_copy_map_calc(const CustomData &src,
       }
       else {
         /* NOTE: A way to improve performance of copies (by reducing the number of `memcpy`
-         * calls) would be combining contiguous in the source and result format. */
+         * calls) would be combining contiguous chunks in the source and result format. */
         map.trivial_copies.append({type_info.size, src_offset, dst_offset});
       }
     }
