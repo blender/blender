@@ -111,8 +111,19 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
         break;
       }
       case ALE_ACTION_LAYERED: {
-        bAction *action = (bAction *)ale->key_data;
-        action_to_keylist(ale->adt, action, keylist, 0, range);
+        /* This is only called for action summaries in the Dopesheet, *not* the
+         * Action Editor. Therefore despite the name `ALE_ACTION_LAYERED`, this
+         * is only used to show a *single slot* of the action: the slot used by
+         * the ID the action is listed under.
+         *
+         * Thus we use the same function as the `ALE_ACTION_SLOT` case below
+         * because in practice the only distinction between these cases is where
+         * they get the slot from. In this case, we get it from `elem`'s ADT. */
+        animrig::Action *action = static_cast<animrig::Action *>(ale->key_data);
+        BLI_assert(action);
+        BLI_assert(ale->adt);
+        action_slot_summary_to_keylist(
+            ac, ale->id, *action, ale->adt->slot_handle, keylist, 0, range);
         break;
       }
       case ALE_ACTION_SLOT: {
@@ -120,10 +131,11 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
         animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
         BLI_assert(action);
         BLI_assert(slot);
-        action_slot_to_keylist(ale->adt, *action, slot->handle, keylist, 0, range);
+        action_slot_summary_to_keylist(ac, ale->id, *action, slot->handle, keylist, 0, range);
         break;
       }
       case ALE_ACT: {
+        /* Legacy action. */
         bAction *act = (bAction *)ale->key_data;
         action_to_keylist(ale->adt, act, keylist, 0, range);
         break;

@@ -578,6 +578,8 @@ source_archive_complete: .FORCE
 	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
 # This assumes CMake is still using a default `PACKAGE_DIR` variable:
 	@$(PYTHON) ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
+# We assume that the tests will not change for minor releases so only package them for major versions
+	@$(PYTHON) ./build_files/utils/make_source_archive.py --package-test-data
 
 icons_geom: .FORCE
 	@BLENDER_BIN=$(BLENDER_BIN) \
