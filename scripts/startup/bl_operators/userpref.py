@@ -496,11 +496,11 @@ class PREFERENCES_OT_addon_enable(Operator):
                 self.report(
                     {'WARNING'},
                     rpt_(
-                        "This script was written Blender "
+                        "This script was written for Blender "
                         "version {:d}.{:d}.{:d} and might not "
                         "function (correctly), "
                         "though it is enabled"
-                    ).format(info_ver)
+                    ).format(*info_ver)
                 )
             result = {'FINISHED'}
         else:
