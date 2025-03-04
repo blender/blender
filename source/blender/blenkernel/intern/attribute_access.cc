@@ -955,6 +955,14 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
                                       const IndexMask &selection,
                                       MutableAttributeAccessor dst_attributes)
 {
+  if (selection.size() == src_offsets.size()) {
+    if (src_attributes.domain_size(src_domain) == dst_attributes.domain_size(src_domain)) {
+      /* When all groups are selected and the domains are the same size, all values are copied,
+       * because corresponding groups are required to be the same size. */
+      copy_attributes(src_attributes, src_domain, dst_domain, attribute_filter, dst_attributes);
+      return;
+    }
+  }
   src_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (iter.domain != src_domain) {
       return;
