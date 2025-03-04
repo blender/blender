@@ -141,7 +141,7 @@ template<> struct AttributeConverter<math::Quaternion> {
   }
 };
 
-GPUVertFormat init_format_for_attribute(eCustomDataType data_type, StringRefNull vbo_name);
+GPUVertFormat init_format_for_attribute(eCustomDataType data_type, StringRef vbo_name);
 
 void vertbuf_data_extract_direct(GSpan attribute, gpu::VertBuf &vbo);
 
