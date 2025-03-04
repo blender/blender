@@ -382,8 +382,6 @@ class KeyingOperation : public NodeOperation {
 
   Result compute_tweaked_matte(Result &input_matte)
   {
-    Result &output_edges = get_result("Edges");
-
     const float black_level = node_storage(bnode()).clip_black;
     const float white_level = node_storage(bnode()).clip_white;
 
@@ -394,6 +392,7 @@ class KeyingOperation : public NodeOperation {
     /* The edges output is not needed and the matte is not tweaked, so return the original matte.
      * We also increment the reference count of the input because the caller will release it after
      * the call, and we want to extend its life since it is now returned as the output. */
+    Result &output_edges = get_result("Edges");
     if (!output_edges.should_compute() && (black_level == 0.0f && white_level == 1.0f) &&
         !core_matte_exists && !garbage_matte_exists)
     {
@@ -410,15 +409,13 @@ class KeyingOperation : public NodeOperation {
 
   Result compute_tweaked_matte_gpu(Result &input_matte)
   {
-    GPUShader *shader = context().get_shader("compositor_keying_tweak_matte");
+    GPUShader *shader = context().get_shader(this->get_tweak_matte_shader_name());
     GPU_shader_bind(shader);
 
-    Result &output_edges = get_result("Edges");
     const bool core_matte_exists = node().input_by_identifier("Core Matte")->is_logically_linked();
     const bool garbage_matte_exists =
         node().input_by_identifier("Garbage Matte")->is_logically_linked();
 
-    GPU_shader_uniform_1b(shader, "compute_edges", output_edges.should_compute());
     GPU_shader_uniform_1b(shader, "apply_core_matte", core_matte_exists);
     GPU_shader_uniform_1b(shader, "apply_garbage_matte", garbage_matte_exists);
     GPU_shader_uniform_1i(shader, "edge_search_radius", node_storage(bnode()).edge_kernel_radius);
@@ -438,8 +435,11 @@ class KeyingOperation : public NodeOperation {
     output_matte.allocate_texture(input_matte.domain());
     output_matte.bind_as_image(shader, "output_matte_img");
 
-    output_edges.allocate_texture(input_matte.domain());
-    output_edges.bind_as_image(shader, "output_edges_img");
+    Result &output_edges = get_result("Edges");
+    if (output_edges.should_compute()) {
+      output_edges.allocate_texture(input_matte.domain());
+      output_edges.bind_as_image(shader, "output_edges_img");
+    }
 
     compute_dispatch_threads_at_least(shader, input_matte.domain().size);
 
@@ -448,9 +448,18 @@ class KeyingOperation : public NodeOperation {
     garbage_matte.unbind_as_texture();
     core_matte.unbind_as_texture();
     output_matte.unbind_as_image();
-    output_edges.unbind_as_image();
+    if (output_edges.should_compute()) {
+      output_edges.unbind_as_image();
+    }
 
     return output_matte;
+  }
+
+  const char *get_tweak_matte_shader_name()
+  {
+    Result &output_edges = get_result("Edges");
+    return output_edges.should_compute() ? "compositor_keying_tweak_matte_with_edges" :
+                                           "compositor_keying_tweak_matte_without_edges";
   }
 
   Result compute_tweaked_matte_cpu(Result &input_matte)
@@ -473,7 +482,9 @@ class KeyingOperation : public NodeOperation {
 
     Result &output_edges = this->get_result("Edges");
     const bool compute_edges = output_edges.should_compute();
-    output_edges.allocate_texture(input_matte.domain());
+    if (compute_edges) {
+      output_edges.allocate_texture(input_matte.domain());
+    }
 
     parallel_for(input_matte.domain().size, [&](const int2 texel) {
       float matte = input_matte.load_pixel<float>(texel);

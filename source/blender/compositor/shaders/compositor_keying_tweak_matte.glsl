@@ -14,7 +14,11 @@ void main()
    * edges of the matte. This is needs to be computed only when we need to compute the edges output
    * or tweak the levels of the matte. */
   bool is_edge = false;
-  if (compute_edges || black_level != 0.0 || white_level != 1.0) {
+#if defined(COMPUTE_EDGES)
+  if (true) {
+#else
+  if (black_level != 0.0 || white_level != 1.0) {
+#endif
     /* Count the number of neighbors whose matte is sufficiently similar to the current matte,
      * as controlled by the edge_tolerance factor. */
     int count = 0;
@@ -54,5 +58,7 @@ void main()
   }
 
   imageStore(output_matte_img, texel, vec4(tweaked_matte));
+#if defined(COMPUTE_EDGES)
   imageStore(output_edges_img, texel, vec4(is_edge ? 1.0 : 0.0));
+#endif
 }
