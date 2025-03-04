@@ -138,10 +138,9 @@ struct LayerTypeInfo {
   cd_copy copy;
 
   /**
-   * a function to free any dynamically allocated components of this
-   * layer's data (note the data pointer itself should not be freed)
-   * size should be the size of one element of this layer's data (e.g.
-   * LayerTypeInfo.size)
+   * a function to destruct this layer's data.
+   *
+   * \note implementations should make sure that the data pointer itself is not freed.
    */
   cd_free free;
 
