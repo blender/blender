@@ -3897,6 +3897,8 @@ class VIEW3D_MT_mask(Menu):
         props.settings_source = 'OPERATOR'
         props.boundary_mode = 'FACE_SETS'
 
+        props = layout.operator("sculpt.mask_by_color", text="Mask by Color")
+
         layout.separator()
 
         layout.menu("VIEW3D_MT_random_mask", text="Random Mask")
