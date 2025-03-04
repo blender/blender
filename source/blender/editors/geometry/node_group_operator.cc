@@ -1395,6 +1395,7 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
 MenuType node_group_operator_assets_menu_unassigned()
 {
   MenuType type{};
+  STRNCPY(type.label, "Unassigned Node Tools");
   STRNCPY(type.idname, "GEO_MT_node_operator_unassigned");
   type.poll = asset_menu_poll;
   type.draw = catalog_assets_draw_unassigned;
