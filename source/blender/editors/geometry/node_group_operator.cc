@@ -36,6 +36,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_bvh.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -212,7 +213,8 @@ class MeshState {
  * we need to create evaluated copies of geometry before passing it to geometry nodes. Implicit
  * sharing lets us avoid copying attribute data though.
  */
-static bke::GeometrySet get_original_geometry_eval_copy(Object &object,
+static bke::GeometrySet get_original_geometry_eval_copy(Depsgraph &depsgraph,
+                                                        Object &object,
                                                         nodes::GeoNodesOperatorData &operator_data,
                                                         Vector<MeshState> &orig_mesh_states)
 {
@@ -237,6 +239,12 @@ static bke::GeometrySet get_original_geometry_eval_copy(Object &object,
         Mesh *final_copy = BKE_mesh_copy_for_eval(*mesh_copy);
         BKE_id_free(nullptr, mesh_copy);
         return bke::GeometrySet::from_mesh(final_copy);
+      }
+      if (bke::pbvh::Tree *pbvh = bke::object::pbvh_get(object)) {
+        /* Currently many sculpt mode operations do not tag normals dirty (see use of
+         * #Mesh::tag_positions_changed_no_normals()), so access within geometry nodes cannot
+         * know that normals are out of date and recalculate them. Update them here instead. */
+        bke::pbvh::update_normals(depsgraph, object, *pbvh);
       }
       Mesh *mesh_copy = BKE_mesh_copy_for_eval(*mesh);
       orig_mesh_states.append_as(*mesh_copy);
@@ -613,7 +621,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     }
 
     bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(
-        *object, operator_eval_data, orig_mesh_states);
+        *depsgraph_active, *object, operator_eval_data, orig_mesh_states);
 
     bke::GeometrySet new_geometry = nodes::execute_geometry_nodes_on_geometry(
         *node_tree, properties, compute_context, call_data, std::move(geometry_orig));
