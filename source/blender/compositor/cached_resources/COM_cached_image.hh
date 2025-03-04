@@ -69,15 +69,17 @@ class CachedImageContainer : CachedResourceContainer {
  private:
   Map<std::string, Map<CachedImageKey, std::unique_ptr<CachedImage>>> map_;
 
+  /* A map that stores the update counts of the images at the moment they were cached. */
+  Map<std::string, uint64_t> update_counts_;
+
  public:
   void reset() override;
 
-  /* Check if the given image ID has changed since the last time it was retrieved through its
-   * recalculate flag, and if so, invalidate its corresponding cached image and reset the
-   * recalculate flag to ready it to track the next change. Then, check if there is an available
-   * CachedImage cached resource with the given image user and pass_name in the container, if one
-   * exists, return it, otherwise, return a newly created one and add it to the container. In both
-   * cases, tag the cached resource as needed to keep it cached for the next evaluation. */
+  /* Check if the given image has changed since it was cached, and if so, invalidate its cache
+   * entry. Then, check if there is an available CachedImage cached resource with the given image
+   * user and pass_name in the container, if one exists, return it, otherwise, return a newly
+   * created one and add it to the container. In both cases, tag the cached resource as needed to
+   * keep it cached for the next evaluation. */
   Result get(Context &context, Image *image, const ImageUser *image_user, const char *pass_name);
 };
 

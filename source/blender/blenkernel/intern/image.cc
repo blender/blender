@@ -132,6 +132,7 @@ static void image_runtime_reset(Image *image)
   memset(&image->runtime, 0, sizeof(image->runtime));
   image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
   BLI_mutex_init(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
+  image->runtime.update_count = 0;
 }
 
 /** Reset runtime image fields when data-block is being copied. */

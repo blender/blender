@@ -386,6 +386,7 @@ void CachedImageContainer::reset()
     cached_images_for_id.remove_if([](auto item) { return !item.value->needed; });
   }
   map_.remove_if([](auto item) { return item.value.is_empty(); });
+  update_counts_.remove_if([&](auto item) { return !map_.contains(item.key); });
 
   /* Second, reset the needed status of the remaining cached images to false to ready them to
    * track their needed status for the next evaluation. */
@@ -415,14 +416,19 @@ Result CachedImageContainer::get(Context &context,
   const std::string id_key = std::string(image->id.name) + library_key;
   auto &cached_images_for_id = map_.lookup_or_add_default(id_key);
 
-  /* Invalidate the cache for that image ID if it was changed and reset the recalculate flag. */
-  if (context.query_id_recalc_flag(reinterpret_cast<ID *>(image)) & ID_RECALC_ALL) {
+  /* Invalidate the cache for that image if it was changed since it was cached. */
+  if (!cached_images_for_id.is_empty() &&
+      image->runtime.update_count != update_counts_.lookup(id_key))
+  {
     cached_images_for_id.clear();
   }
 
   auto &cached_image = *cached_images_for_id.lookup_or_add_cb(key, [&]() {
     return std::make_unique<CachedImage>(context, image, &image_user_for_frame, pass_name);
   });
+
+  /* Store the current update count to later compare to and check if the image changed. */
+  update_counts_.add_overwrite(id_key, image->runtime.update_count);
 
   cached_image.needed = true;
   return cached_image.result;
