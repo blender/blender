@@ -254,8 +254,10 @@ set(GLSL_SRC
   shaders/compositor_van_vliet_gaussian_blur_sum.glsl
   shaders/compositor_write_output.glsl
   shaders/compositor_z_combine_compute_mask.glsl
-  shaders/compositor_z_combine_from_mask.glsl
-  shaders/compositor_z_combine_simple.glsl
+  shaders/compositor_z_combine_from_mask_depth.glsl
+  shaders/compositor_z_combine_from_mask_image.glsl
+  shaders/compositor_z_combine_simple_depth.glsl
+  shaders/compositor_z_combine_simple_image.glsl
 
   shaders/library/gpu_shader_compositor_alpha_over.glsl
   shaders/library/gpu_shader_compositor_bright_contrast.glsl
