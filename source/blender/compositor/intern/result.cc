@@ -261,13 +261,8 @@ eGPUTextureFormat Result::get_gpu_texture_format() const
 
 void Result::allocate_texture(Domain domain, bool from_pool)
 {
-  /* The result is not actually needed, so allocate a dummy single value texture instead. See the
-   * method description for more information. */
-  if (!should_compute()) {
-    allocate_single_value();
-    increment_reference_count();
-    return;
-  }
+  /* Make sure we are not allocating a result that should not be computed. */
+  BLI_assert(this->should_compute());
 
   is_single_value_ = false;
   this->allocate_data(domain.size, from_pool);
@@ -276,6 +271,9 @@ void Result::allocate_texture(Domain domain, bool from_pool)
 
 void Result::allocate_single_value()
 {
+  /* Make sure we are not allocating a result that should not be computed. */
+  BLI_assert(this->should_compute());
+
   /* Single values are stored in 1x1 image as well as the single value members. Further, they
    * are always allocated from the pool. */
   is_single_value_ = true;

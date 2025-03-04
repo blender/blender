@@ -35,8 +35,6 @@ void Operation::evaluate()
 
   release_inputs();
 
-  release_unneeded_results();
-
   context().evaluate_operation_post();
 }
 
@@ -162,15 +160,6 @@ void Operation::declare_input_descriptor(StringRef identifier, InputDescriptor d
 InputDescriptor &Operation::get_input_descriptor(StringRef identifier)
 {
   return input_descriptors_.lookup(identifier);
-}
-
-void Operation::release_unneeded_results()
-{
-  for (Result &result : results_.values()) {
-    if (!result.should_compute() && result.is_allocated()) {
-      result.release();
-    }
-  }
 }
 
 Context &Operation::context() const
