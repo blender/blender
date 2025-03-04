@@ -1253,6 +1253,8 @@ static void widget_draw_icon_centered(const BIFIconID icon,
 }
 
 /**
+ * \param aspect: The inverse zoom factor (typically #uiBlock.aspect), with DPI applied (i.e. not
+ * multiplied by #UI_INV_SCALE_FAC).
  * \param mono_color: Only for drawing monochrome icons.
  */
 static void widget_draw_preview_icon(
@@ -1295,11 +1297,9 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 static void widget_draw_icon(
     const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const uchar mono_color[4])
 {
-  const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
-
   if (but->flag & UI_BUT_ICON_PREVIEW) {
     GPU_blend(GPU_BLEND_ALPHA);
-    widget_draw_preview_icon(icon, alpha, aspect, rect, mono_color);
+    widget_draw_preview_icon(icon, alpha, but->block->aspect, rect, mono_color);
     GPU_blend(GPU_BLEND_NONE);
     return;
   }
@@ -1309,6 +1309,7 @@ static void widget_draw_icon(
     return;
   }
 
+  const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
   const float height = ICON_DEFAULT_HEIGHT / aspect;
 
   /* calculate blend color */
@@ -2274,7 +2275,6 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
   /* Big previews with optional text label below */
   if (but->flag & UI_BUT_ICON_PREVIEW && ui_block_is_menu(but->block)) {
-    const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
     const BIFIconID icon = ui_but_icon(but);
     int icon_size = BLI_rcti_size_y(rect);
     int text_size = 0;
@@ -2289,7 +2289,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     /* draw icon in rect above the space reserved for the label */
     rect->ymin += text_size;
     GPU_blend(GPU_BLEND_ALPHA);
-    widget_draw_preview_icon(icon, alpha, aspect, rect, icon_color);
+    widget_draw_preview_icon(icon, alpha, but->block->aspect, rect, icon_color);
     GPU_blend(GPU_BLEND_NONE);
 
     /* offset rect to draw label in */
