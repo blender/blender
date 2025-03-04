@@ -48,11 +48,7 @@ bool attribute_set_poll(bContext &C, const ID &object_data);
 
 /** \} */
 
-}  // namespace blender::ed::geometry
-
-void ED_operatortypes_geometry();
-
-namespace blender::ed::geometry {
+void operatortypes_geometry();
 
 /**
  * Convert an attribute with the given name to a new type and domain.

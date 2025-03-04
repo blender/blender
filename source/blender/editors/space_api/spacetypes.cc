@@ -98,7 +98,7 @@ void ED_spacetypes_init()
   object::operatortypes_object();
   ED_operatortypes_lattice();
   ED_operatortypes_mesh();
-  ED_operatortypes_geometry();
+  geometry::operatortypes_geometry();
   sculpt_paint::operatortypes_sculpt();
   ED_operatortypes_sculpt_curves();
   ED_operatortypes_uvedit();
