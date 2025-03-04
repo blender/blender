@@ -2474,6 +2474,9 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
       if (use_only_selected && !(ob->base_flag & BASE_SELECTED)) {
         continue;
       }
+      if ((ob->base_flag & BASE_SELECTABLE) == 0) {
+        continue;
+      }
       blender::draw::ObjectRef ob_ref(data_, ob);
       dupli_handler.try_add(ob_ref);
       drw_engines_cache_populate(ob_ref);
