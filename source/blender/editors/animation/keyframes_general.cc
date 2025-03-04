@@ -1971,7 +1971,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu,
     BezTriple bezt_copy = *bezt;
 
     if (flip) {
-      do_curve_mirror_flippping(*fcu, bezt_copy);
+      do_curve_mirror_flippping(fcurve_in_copy_buffer, bezt_copy);
     }
 
     add_v2_v2(bezt_copy.vec[0], offset);

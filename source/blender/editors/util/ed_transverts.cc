@@ -514,7 +514,8 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   }
   else if (obedit->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(obedit->data);
-    blender::ed::curves::transverts_from_curves_positions_create(curves_id->geometry.wrap(), tvs);
+    blender::ed::curves::transverts_from_curves_positions_create(
+        curves_id->geometry.wrap(), tvs, ((mode & TM_SKIP_HANDLES) != 0));
   }
   else if (obedit->type == OB_POINTCLOUD) {
     PointCloud *pointcloud = static_cast<PointCloud *>(obedit->data);
