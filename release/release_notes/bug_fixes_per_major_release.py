@@ -185,9 +185,10 @@ NEEDS_MANUAL_SORTING = "MANUALLY SORT"
 FIXED_OLD_ISSUE = "FIXED OLD"
 FIXED_PR = "FIXED PR"
 REVERT = "REVERT"
+IGNORED = "IGNORED"
 
-SORTED_CLASSIFICATIONS = [FIXED_NEW_ISSUE, FIXED_OLD_ISSUE]
-VALID_CLASSIFICATIONS = [FIXED_NEW_ISSUE, NEEDS_MANUAL_SORTING, FIXED_OLD_ISSUE, FIXED_PR, REVERT]
+SORTED_CLASSIFICATIONS = [FIXED_NEW_ISSUE, FIXED_OLD_ISSUE, IGNORED]
+VALID_CLASSIFICATIONS = [FIXED_NEW_ISSUE, NEEDS_MANUAL_SORTING, FIXED_OLD_ISSUE, FIXED_PR, REVERT, IGNORED]
 
 OLDER_VERION = "OLDER"
 NEWER_VERION = "NEWER"
@@ -578,6 +579,8 @@ def classify_based_on_report(
         current_version: str,
         previous_version: str,
 ) -> str:
+    if "skip_for_bug_fix_release_notes" in report_body.lower():
+        return IGNORED
     # Get a list of broken and working versions of Blender according to the report that was fixed.
     broken_versions, working_versions = version_extraction(report_body)
 
@@ -772,6 +775,8 @@ def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
         "Commits that need a override (launch this script with -o) as they claim to fix a PR:",
         dict_of_sorted_commits[FIXED_PR])
 
+    print_list_of_commits("Ignored commits:", dict_of_sorted_commits[IGNORED])
+
     # Currently disabled as this information isn't particularly useful.
     # print_list_of_commits(dict_of_sorted_commits[FIXED_NEW_ISSUE])
 
@@ -782,6 +787,8 @@ def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
         - Add a module label if it's missing one.
       - Rerun this script.
     - Repeat the previous steps until there are no commits that need manual sorting.
+    - If it is too difficult to track down the broken or working field for a report, then you can add
+    `<!-- skip_for_bug_fix_release_notes -->` to the report body and the script will ignore it on subsequent runs.
     - This should be done by the triaging module through out the release cycle, so the list should be quite small.
 
     - Go through the "Revert commits" section and if needed,
@@ -817,7 +824,7 @@ def cached_commits_store(list_of_commits: list[CommitInfo]) -> None:
     # on commits that are already sorted (and they're not interested in).
     data_to_cache = {}
     for commit in list_of_commits:
-        if (commit.classification != NEEDS_MANUAL_SORTING) and not (commit.has_been_overwritten):
+        if (commit.classification not in (NEEDS_MANUAL_SORTING, IGNORED)) and not (commit.has_been_overwritten):
             commit_hash, data = commit.prepare_for_cache()
             data_to_cache[commit_hash] = data
 
