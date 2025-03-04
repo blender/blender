@@ -368,6 +368,10 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
   if (pbd->act == nullptr) {
     return false;
   }
+  if (pbd->act->wrap().slots().size() == 0) {
+    BKE_report(op->reports, RPT_ERROR, "This pose asset is empty, and thus has no pose");
+    return false;
+  }
 
   pbd->is_flipped = RNA_boolean_get(op->ptr, "flipped");
   pbd->blend_factor = RNA_float_get(op->ptr, "blend_factor");
