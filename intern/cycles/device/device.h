@@ -115,6 +115,7 @@ class DeviceInfo {
     has_gpu_queue = false;
     use_hardware_raytracing = false;
     use_metalrt_by_default = false;
+    kernel_optimization_level = KERNEL_OPTIMIZATION_LEVEL_FULL;
     denoisers = DENOISER_NONE;
   }
 
