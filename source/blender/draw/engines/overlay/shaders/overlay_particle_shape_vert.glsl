@@ -86,7 +86,7 @@ void main()
   vec3 world_pos = part.position;
   if (shape_type == PART_SHAPE_CIRCLE) {
     /* World sized, camera facing geometry. */
-    world_pos += transform_direction(ViewMatrixInverse, shape_pos);
+    world_pos += transform_direction(drw_view().viewinv, shape_pos);
   }
   else {
     world_pos += rotate(shape_pos, part.rotation);

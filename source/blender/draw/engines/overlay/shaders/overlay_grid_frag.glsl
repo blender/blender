@@ -104,9 +104,9 @@ void main()
   }
 
   if (flag_test(grid_flag, SHOW_GRID)) {
-    /* Using `max(dot(dFdxPos, ViewMatrixInverse[0]), dot(dFdyPos, ViewMatrixInverse[1]))`
+    /* Using `max(dot(dFdxPos, drw_view().viewinv[0]), dot(dFdyPos, drw_view().viewinv[1]))`
      * would be more accurate, but not really necessary. */
-    float grid_res = dot(dFdxPos, ViewMatrixInverse[0].xyz);
+    float grid_res = dot(dFdxPos, drw_view().viewinv[0].xyz);
 
     /* The grid begins to appear when it comprises 4 pixels. */
     grid_res *= 4;

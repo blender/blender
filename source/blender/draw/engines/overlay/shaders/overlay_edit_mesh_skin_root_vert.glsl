@@ -17,8 +17,8 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root)
 void main()
 {
   mat3 imat = to_float3x3(drw_modelinv());
-  vec3 right = normalize(imat * ViewMatrixInverse[0].xyz);
-  vec3 up = normalize(imat * ViewMatrixInverse[1].xyz);
+  vec3 right = normalize(imat * drw_view().viewinv[0].xyz);
+  vec3 up = normalize(imat * drw_view().viewinv[1].xyz);
 #ifdef VERTEX_PULL
   int instance_id = gl_VertexID / 64;
   int vert_id = gl_VertexID % 64;

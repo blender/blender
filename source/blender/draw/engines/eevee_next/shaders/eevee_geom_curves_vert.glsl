@@ -23,11 +23,11 @@ void main()
 
   init_interface();
 
-  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
   hair_get_pos_tan_binor_time(is_persp,
                               drw_modelinv(),
-                              ViewMatrixInverse[3].xyz,
-                              ViewMatrixInverse[2].xyz,
+                              drw_view().viewinv[3].xyz,
+                              drw_view().viewinv[2].xyz,
                               interp.P,
                               curve_interp.tangent,
                               curve_interp.binormal,

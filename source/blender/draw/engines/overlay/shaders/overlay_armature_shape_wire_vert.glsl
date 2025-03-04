@@ -60,7 +60,7 @@ VertOut vertex_main(VertIn v_in)
     /* Scale uniformly by axis length */
     vpos *= length(model_mat[axis].xyz);
     /* World sized, camera facing geometry. */
-    vec3 screen_pos = ViewMatrixInverse[0].xyz * vpos.x + ViewMatrixInverse[1].xyz * vpos.y;
+    vec3 screen_pos = drw_view().viewinv[0].xyz * vpos.x + drw_view().viewinv[1].xyz * vpos.y;
     v_out.world_pos = (model_mat * vec4(vofs, 1.0)).xyz + screen_pos;
   }
   else {

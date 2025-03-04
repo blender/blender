@@ -17,7 +17,7 @@ void main()
   finalColor = colorLight;
 
   /* Relative to DPI scaling. Have constant screen size. */
-  vec3 screen_pos = ViewMatrixInverse[0].xyz * pos.x + ViewMatrixInverse[1].xyz * pos.y;
+  vec3 screen_pos = drw_view().viewinv[0].xyz * pos.x + drw_view().viewinv[1].xyz * pos.y;
   vec3 inst_pos = data_buf[gl_InstanceID].xyz;
   vec3 p = inst_pos;
   p.z *= (pos.z == 0.0) ? 0.0 : 1.0;

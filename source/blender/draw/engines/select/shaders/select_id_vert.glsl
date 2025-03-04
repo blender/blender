@@ -20,7 +20,7 @@ void main()
 
   /* Offset Z position for retopology selection occlusion. */
   gl_Position.z += get_homogenous_z_offset(
-      ProjectionMatrix, view_pos.z, gl_Position.w, retopologyOffset);
+      drw_view().winmat, view_pos.z, gl_Position.w, retopologyOffset);
 
   view_clipping_distances(world_pos);
 }

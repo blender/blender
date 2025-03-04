@@ -83,7 +83,7 @@ CullingTile tile_culling_get(uvec2 tile_co)
     corners[i] = project_point(drw_view().wininv, corners[i]);
   }
 
-  bool is_persp = ProjectionMatrix[3][3] == 0.0;
+  bool is_persp = drw_view().winmat[3][3] == 0.0;
   CullingTile tile;
   tile.bounds = (is_persp) ? tile_bound_cone(corners[0], corners[4], corners[7], corners[3]) :
                              tile_bound_cylinder(corners[0], corners[4], corners[7], corners[3]);
@@ -103,7 +103,7 @@ bool intersect(CullingTile tile, Sphere sphere)
   bool isect = true;
   /* Test tile intersection using bounding cone or bounding cylinder.
    * This has less false positive cases when the sphere is large. */
-  if (ProjectionMatrix[3][3] == 0.0) {
+  if (drw_view().winmat[3][3] == 0.0) {
     isect = intersect(shape_cone(tile.bounds.xyz, tile.bounds.w), sphere);
   }
   else {

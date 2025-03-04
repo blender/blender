@@ -121,15 +121,6 @@ struct ViewMatrices {
 };
 BLI_STATIC_ASSERT_ALIGN(ViewMatrices, 16)
 
-/* Do not override old definitions if the shader uses this header but not shader info. */
-#ifdef USE_GPU_SHADER_CREATE_INFO
-/* TODO(@fclem): Mass rename. */
-#  define ViewMatrix drw_view().viewmat
-#  define ViewMatrixInverse drw_view().viewinv
-#  define ProjectionMatrix drw_view().winmat
-#  define ProjectionMatrixInverse drw_view().wininv
-#endif
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

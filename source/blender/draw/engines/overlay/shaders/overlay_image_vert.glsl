@@ -29,7 +29,7 @@ void main()
   }
   else {
 #ifdef DEPTH_BIAS
-    gl_Position = depth_bias_winmat * (ViewMatrix * vec4(world_pos, 1.0));
+    gl_Position = depth_bias_winmat * (drw_view().viewmat * vec4(world_pos, 1.0));
 #else
     gl_Position = drw_point_world_to_homogenous(world_pos);
 #endif

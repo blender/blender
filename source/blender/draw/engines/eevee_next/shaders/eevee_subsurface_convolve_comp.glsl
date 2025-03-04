@@ -105,8 +105,8 @@ void main()
   ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
   float max_radius = reduce_max(closure.sss_radius);
 
-  float homcoord = ProjectionMatrix[2][3] * vP.z + ProjectionMatrix[3][3];
-  vec2 sample_scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) *
+  float homcoord = drw_view().winmat[2][3] * vP.z + drw_view().winmat[3][3];
+  vec2 sample_scale = vec2(drw_view().winmat[0][0], drw_view().winmat[1][1]) *
                       (0.5 * max_radius / homcoord);
 
   float pixel_footprint = sample_scale.x * textureSize(depth_tx, 0).x;
