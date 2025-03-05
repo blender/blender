@@ -31,6 +31,9 @@
 
 #include "eigen_capi.h"
 
+/* Prevent naming collision. */
+namespace {
+
 struct LaplacianSystem {
   float *eweights = nullptr;      /* Length weights per Edge */
   float (*fweights)[3] = nullptr; /* Cotangent weights per face */
@@ -53,6 +56,8 @@ struct LaplacianSystem {
   float min_area = 0.0f;
   float vert_centroid[3] = {};
 };
+
+};  // namespace
 
 static void delete_laplacian_system(LaplacianSystem *sys)
 {
