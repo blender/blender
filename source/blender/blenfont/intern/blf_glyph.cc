@@ -1352,8 +1352,13 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode, uint8_t subpixel)
 {
   if (charcode < 32) {
-    /* Do not render C0 controls (U+0000 - U+001F) characters. #134972 */
-    return nullptr;
+    if (ELEM(charcode, 0x10, 0x13)) {
+      /* Do not render line feed or carriage return. #134972. */
+      return nullptr;
+    }
+    /* Other C0 controls (U+0000 - U+001F) can show as space. #135421. */
+    /* TODO: Return all but TAB as ".notdef" character when we have our own. */
+    return blf_glyph_cache_find_glyph(gc, ' ', 0);
   }
 
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode, subpixel);
