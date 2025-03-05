@@ -36,6 +36,9 @@ ShaderModule *ShaderModule::module_get()
 
 void ShaderModule::module_free()
 {
+  /* Release handles before the destructor to avoid a double lock. */
+  module_get()->prepare_for_delete();
+
   get_static_cache().release();
 }
 
@@ -70,7 +73,7 @@ ShaderModule::ShaderModule()
   }
 }
 
-ShaderModule::~ShaderModule()
+void ShaderModule::prepare_for_delete()
 {
   /* Finish compilation to avoid asserts on exit at GLShaderCompiler destructor. */
 

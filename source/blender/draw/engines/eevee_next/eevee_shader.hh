@@ -213,9 +213,10 @@ class ShaderModule {
     return static_cache;
   }
 
+  void prepare_for_delete();
+
  public:
   ShaderModule();
-  ~ShaderModule();
 
   bool static_shaders_are_ready(bool block_until_ready);
   bool request_specializations(bool block_until_ready,
