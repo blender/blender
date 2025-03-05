@@ -35,7 +35,6 @@ void DRW_engines_register();
 void DRW_engines_free();
 
 bool DRW_engine_render_support(DrawEngineType *draw_engine_type);
-void DRW_engine_register(DrawEngineType *draw_engine_type);
 
 void DRW_engine_external_free(RegionView3D *rv3d);
 

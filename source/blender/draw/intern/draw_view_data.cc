@@ -23,55 +23,39 @@
 #include "draw_manager_c.hh"
 #include "draw_view_data.hh"
 
+#include "engines/compositor/compositor_engine.h"
+#include "engines/eevee_next/eevee_engine.h"
+#include "engines/external/external_engine.h"
+#include "engines/gpencil/gpencil_engine.h"
+#include "engines/image/image_engine.h"
+#include "engines/overlay/overlay_engine.h"
+#include "engines/select/select_engine.hh"
+#include "engines/workbench/workbench_engine.h"
+
 using namespace blender;
 
-struct DRWViewData {
-  DefaultFramebufferList dfbl = {};
-  DefaultTextureList dtxl = {};
-  /** True indicates the textures inside dtxl are from the viewport and should not be freed. */
-  bool from_viewport = false;
-  /** Common size for texture in the engines texture list.
-   * We free all texture lists if it changes. */
-  int2 texture_list_size = {0, 0};
-
-  double cache_time = 0.0;
-
-  Vector<ViewportEngineData> engines;
-  Vector<ViewportEngineData *> enabled_engines;
-
-  /* Stores passes needed by the viewport compositor. Engines are expected to populate those in
-   * every redraw using calls to the DRW_viewport_pass_texture_get function. The compositor can
-   * then call the same function to retrieve the passes it needs, which are expected to be
-   * initialized. Those textures are release when view data is reset. */
-  Map<std::string, std::unique_ptr<draw::TextureFromPool>> viewport_compositor_passes;
-
-  /** New per view/viewport manager. Null if not supported by current hardware. */
-  draw::Manager *manager = nullptr;
-
-  DRWViewData()
-  {
-    manager = new draw::Manager();
-  };
-
-  ~DRWViewData()
-  {
-    delete manager;
-  };
+DRWViewData::DRWViewData()
+    : eevee(DRW_engine_viewport_eevee_next_type.draw_engine),
+      workbench(DRW_engine_viewport_workbench_type.draw_engine),
+      external(&draw_engine_external_type),
+      image(&draw_engine_image_type),
+      grease_pencil(&draw_engine_gpencil_type),
+      overlay(&draw_engine_overlay_next_type),
+      object_select(&draw_engine_select_next_type),
+      edit_select(&draw_engine_select_type),
+#ifdef WITH_DRAW_DEBUG
+      edit_select_debug(DRW_engine_viewport_select_type.draw_engine),
+#endif
+      compositor(&draw_engine_compositor_type)
+{
+  manager = new draw::Manager();
 };
 
-DRWViewData *DRW_view_data_create(ListBase *engine_types)
+DRWViewData::~DRWViewData()
 {
-  const int engine_types_len = BLI_listbase_count(engine_types);
-
-  DRWViewData *view_data = new DRWViewData();
-  view_data->engines.reserve(engine_types_len);
-  LISTBASE_FOREACH (DRWRegisteredDrawEngine *, type, engine_types) {
-    ViewportEngineData engine = {};
-    engine.engine_type = type;
-    view_data->engines.append(engine);
-  }
-  return view_data;
-}
+  this->clear(true);
+  delete manager;
+};
 
 draw::TextureFromPool &DRW_view_data_pass_texture_get(DRWViewData *view_data,
                                                       const char *pass_name)
@@ -121,7 +105,7 @@ void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewpo
 
 static void draw_viewport_engines_data_clear(ViewportEngineData *data, bool clear_instance_data)
 {
-  DrawEngineType *engine_type = data->engine_type->draw_engine;
+  DrawEngineType *engine_type = data->draw_engine;
 
   if (clear_instance_data && data->instance_data) {
     BLI_assert(engine_type->instance_free != nullptr);
@@ -135,61 +119,57 @@ static void draw_viewport_engines_data_clear(ViewportEngineData *data, bool clea
   }
 }
 
-static void draw_view_data_clear(DRWViewData *view_data, bool free_instance_data)
+void DRWViewData::clear(bool free_instance_data)
 {
-  GPU_FRAMEBUFFER_FREE_SAFE(view_data->dfbl.default_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(view_data->dfbl.overlay_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(view_data->dfbl.in_front_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(view_data->dfbl.color_only_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(view_data->dfbl.depth_only_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(view_data->dfbl.overlay_only_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(this->dfbl.default_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(this->dfbl.overlay_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(this->dfbl.in_front_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(this->dfbl.color_only_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(this->dfbl.depth_only_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(this->dfbl.overlay_only_fb);
 
-  if (!view_data->from_viewport) {
-    GPU_TEXTURE_FREE_SAFE(view_data->dtxl.color);
-    GPU_TEXTURE_FREE_SAFE(view_data->dtxl.color_overlay);
-    GPU_TEXTURE_FREE_SAFE(view_data->dtxl.depth);
+  if (!this->from_viewport) {
+    GPU_TEXTURE_FREE_SAFE(this->dtxl.color);
+    GPU_TEXTURE_FREE_SAFE(this->dtxl.color_overlay);
+    GPU_TEXTURE_FREE_SAFE(this->dtxl.depth);
   }
-  GPU_TEXTURE_FREE_SAFE(view_data->dtxl.depth_in_front);
+  GPU_TEXTURE_FREE_SAFE(this->dtxl.depth_in_front);
 
-  for (ViewportEngineData &engine : view_data->engines) {
-    draw_viewport_engines_data_clear(&engine, free_instance_data);
-  }
+  foreach_engine([&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
+    draw_viewport_engines_data_clear(data, free_instance_data);
+  });
 }
 
-void DRW_view_data_free(DRWViewData *view_data)
+void DRWViewData::texture_list_size_validate(const blender::int2 &size)
 {
-  draw_view_data_clear(view_data, true);
-  delete view_data;
-}
-
-void DRW_view_data_texture_list_size_validate(DRWViewData *view_data, const int size[2])
-{
-  if (view_data->texture_list_size != int2(size)) {
-    draw_view_data_clear(view_data, false);
-    copy_v2_v2_int(view_data->texture_list_size, size);
+  if (this->texture_list_size != size) {
+    this->clear(false);
+    copy_v2_v2_int(this->texture_list_size, size);
   }
 }
 
 ViewportEngineData *DRW_view_data_engine_data_get_ensure(DRWViewData *view_data,
                                                          DrawEngineType *engine_type)
 {
-  for (ViewportEngineData &engine : view_data->engines) {
-    if (engine.engine_type->draw_engine == engine_type) {
-      return &engine;
+  ViewportEngineData *result = nullptr;
+  view_data->foreach_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
+    if (engine_type == engine) {
+      result = data;
     }
-  }
-  return nullptr;
+  });
+  return result;
 }
 
 void DRW_view_data_use_engine(DRWViewData *view_data, DrawEngineType *engine_type)
 {
   ViewportEngineData *engine = DRW_view_data_engine_data_get_ensure(view_data, engine_type);
-  view_data->enabled_engines.append(engine);
+  engine->used = true;
 }
 
 void DRW_view_data_reset(DRWViewData *view_data)
 {
-  view_data->enabled_engines.clear();
+  view_data->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType * /*engine*/) { data->used = false; });
 
   for (std::unique_ptr<draw::TextureFromPool> &texture :
        view_data->viewport_compositor_passes.values())
@@ -201,26 +181,20 @@ void DRW_view_data_reset(DRWViewData *view_data)
 
 void DRW_view_data_free_unused(DRWViewData *view_data)
 {
-  for (ViewportEngineData &engine : view_data->engines) {
-    if (view_data->enabled_engines.first_index_of_try(&engine) == -1) {
-      draw_viewport_engines_data_clear(&engine, false);
+  view_data->foreach_engine([&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
+    if (data->used == false) {
+      draw_viewport_engines_data_clear(data, false);
     }
-  }
+  });
 }
 
 void DRW_view_data_engines_view_update(DRWViewData *view_data)
 {
-  for (ViewportEngineData &engine_data : view_data->engines) {
-    DrawEngineType *draw_engine = engine_data.engine_type->draw_engine;
-    if (draw_engine->view_update) {
-      draw_engine->view_update(&engine_data);
+  view_data->foreach_enabled_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
+    if (engine->view_update) {
+      engine->view_update(data);
     }
-  }
-}
-
-double *DRW_view_data_cache_time_get(DRWViewData *view_data)
-{
-  return &view_data->cache_time;
+  });
 }
 
 DefaultFramebufferList *DRW_view_data_default_framebuffer_list_get(DRWViewData *view_data)
@@ -231,22 +205,6 @@ DefaultFramebufferList *DRW_view_data_default_framebuffer_list_get(DRWViewData *
 DefaultTextureList *DRW_view_data_default_texture_list_get(DRWViewData *view_data)
 {
   return &view_data->dtxl;
-}
-
-void DRW_view_data_enabled_engine_iter_begin(DRWEngineIterator *iterator, DRWViewData *view_data)
-{
-  iterator->id = 0;
-  iterator->end = view_data->enabled_engines.size();
-  iterator->engines = view_data->enabled_engines.data();
-}
-
-ViewportEngineData *DRW_view_data_enabled_engine_iter_step(DRWEngineIterator *iterator)
-{
-  if (iterator->id >= iterator->end) {
-    return nullptr;
-  }
-  ViewportEngineData *engine = iterator->engines[iterator->id++];
-  return engine;
 }
 
 draw::Manager *DRW_manager_get()

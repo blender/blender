@@ -81,9 +81,6 @@ void RE_engines_exit()
 
 void RE_engines_register(RenderEngineType *render_type)
 {
-  if (render_type->draw_engine) {
-    DRW_engine_register(render_type->draw_engine);
-  }
   BLI_addtail(&R_engines, render_type);
 }
 

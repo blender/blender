@@ -87,6 +87,7 @@
 #include "draw_shader.hh"
 #include "draw_subdivision.hh"
 #include "draw_view_c.hh"
+#include "draw_view_data.hh"
 
 /* only for callbacks */
 #include "draw_cache_impl.hh"
@@ -170,11 +171,6 @@ void DRWContext::state_ensure_not_reused()
   BLI_assert(g_context == this);
   g_context = nullptr;
 }
-
-static struct {
-  ListBase /*DRWRegisteredDrawEngine*/ engines;
-  int len;
-} g_registered_engines = {{nullptr}};
 
 static bool drw_draw_show_annotation()
 {
@@ -363,7 +359,7 @@ DRWData *DRW_viewport_data_create()
   drw_data->default_view = new blender::draw::View("DrawDefaultView");
 
   for (int i = 0; i < 2; i++) {
-    drw_data->view_data[i] = DRW_view_data_create(&g_registered_engines.engines);
+    drw_data->view_data[i] = new DRWViewData();
   }
   return drw_data;
 }
@@ -390,7 +386,7 @@ static void drw_viewport_data_reset(DRWData * /*drw_data*/)
 void DRW_viewport_data_free(DRWData *drw_data)
 {
   for (int i = 0; i < 2; i++) {
-    DRW_view_data_free(drw_data->view_data[i]);
+    delete drw_data->view_data[i];
   }
   DRW_volume_module_free(drw_data->volume_module);
   DRW_pointcloud_module_free(drw_data->pointcloud_module);
@@ -472,8 +468,7 @@ static void drw_manager_init(DRWContext *dst, GPUViewport *viewport, const int s
   dst->inv_size[1] = 1.0f / dst->size[1];
 
   if (do_validation) {
-    DRW_view_data_texture_list_size_validate(dst->view_data_active,
-                                             blender::int2{int(dst->size[0]), int(dst->size[1])});
+    dst->view_data_active->texture_list_size_validate(int2(dst->size));
   }
 
   if (viewport) {
@@ -920,30 +915,34 @@ void DRW_cache_free_old_batches(Main *bmain)
 
 static void drw_engines_init()
 {
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (engine->engine_init) {
-      engine->engine_init(data);
-    }
-  }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType *engine) {
+        if (engine->engine_init) {
+          engine->engine_init(data);
+        }
+      });
 }
 
 static void drw_engines_cache_init()
 {
   DRW_manager_begin_sync();
 
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (data->text_draw_cache) {
-      DRW_text_cache_destroy(data->text_draw_cache);
-      data->text_draw_cache = nullptr;
-    }
-    if (drw_get().text_store_p == nullptr) {
-      drw_get().text_store_p = &data->text_draw_cache;
-    }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType *engine) {
+        if (data->text_draw_cache) {
+          DRW_text_cache_destroy(data->text_draw_cache);
+          data->text_draw_cache = nullptr;
+        }
+        if (drw_get().text_store_p == nullptr) {
+          drw_get().text_store_p = &data->text_draw_cache;
+        }
 
-    if (engine->cache_init) {
-      engine->cache_init(data);
-    }
-  }
+        if (engine->cache_init) {
+          engine->cache_init(data);
+        }
+      });
 }
 
 static void drw_engines_world_update(Scene *scene)
@@ -952,11 +951,13 @@ static void drw_engines_world_update(Scene *scene)
     return;
   }
 
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (engine->id_update) {
-      engine->id_update(data, &scene->world->id);
-    }
-  }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType *engine) {
+        if (engine->id_update) {
+          engine->id_update(data, &scene->world->id);
+        }
+      });
 }
 
 static void drw_engines_cache_populate(blender::draw::ObjectRef &ref)
@@ -972,11 +973,13 @@ static void drw_engines_cache_populate(blender::draw::ObjectRef &ref)
     drw_batch_cache_validate(ref.object);
   }
 
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (engine->cache_populate) {
-      engine->cache_populate(data, ref);
-    }
-  }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType *engine) {
+        if (engine->cache_populate) {
+          engine->cache_populate(data, ref);
+        }
+      });
 
   /* TODO: in the future it would be nice to generate once for all viewports.
    * But we need threaded DRW manager first. */
@@ -991,56 +994,63 @@ static void drw_engines_cache_populate(blender::draw::ObjectRef &ref)
 
 static void drw_engines_cache_finish()
 {
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (engine->cache_finish) {
-      engine->cache_finish(data);
-    }
-  }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType *engine) {
+        if (engine->cache_finish) {
+          engine->cache_finish(data);
+        }
+      });
 
   DRW_manager_end_sync();
 }
 
 static void drw_engines_draw_scene()
 {
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (engine->draw_scene) {
-      GPU_debug_group_begin(engine->idname);
-      engine->draw_scene(data);
-      /* Restore for next engine */
-      if (DRW_state_is_fbo()) {
-        GPU_framebuffer_bind(drw_get().default_framebuffer());
-      }
-      GPU_debug_group_end();
-    }
-  }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType *engine) {
+        if (engine->draw_scene) {
+          GPU_debug_group_begin(engine->idname);
+          engine->draw_scene(data);
+          /* Restore for next engine */
+          if (DRW_state_is_fbo()) {
+            GPU_framebuffer_bind(ctx.default_framebuffer());
+          }
+          GPU_debug_group_end();
+        }
+      });
   /* Reset state after drawing */
   blender::draw::command::StateSet::set();
 }
 
 static void drw_engines_draw_text()
 {
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (data->text_draw_cache) {
-      DRW_text_cache_draw(
-          data->text_draw_cache, drw_get().draw_ctx.region, drw_get().draw_ctx.v3d);
-    }
-  }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
+        if (data->text_draw_cache) {
+          DRW_text_cache_draw(data->text_draw_cache, ctx.draw_ctx.region, ctx.draw_ctx.v3d);
+        }
+      });
 }
 
 void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
 {
-  DRW_ENABLED_ENGINE_ITER (drw_get().view_data_active, engine, data) {
-    if (data->info[0] != '\0') {
-      const char *buf_step = IFACE_(data->info);
-      do {
-        const char *buf = buf_step;
-        buf_step = BLI_strchr_or_end(buf, '\n');
-        const int buf_len = buf_step - buf;
-        *yoffset -= line_height;
-        BLF_draw_default(xoffset, *yoffset, 0.0f, buf, buf_len);
-      } while (*buf_step ? ((void)buf_step++, true) : false);
-    }
-  }
+  DRWContext &ctx = drw_get();
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
+        if (data->info[0] != '\0') {
+          const char *buf_step = IFACE_(data->info);
+          do {
+            const char *buf = buf_step;
+            buf_step = BLI_strchr_or_end(buf, '\n');
+            const int buf_len = buf_step - buf;
+            *yoffset -= line_height;
+            BLF_draw_default(xoffset, *yoffset, 0.0f, buf, buf_len);
+          } while (*buf_step ? ((void)buf_step++, true) : false);
+        }
+      });
 }
 
 static void use_drw_engine(DrawEngineType *engine)
@@ -1708,6 +1718,7 @@ static void DRW_render_gpencil_to_image(RenderEngine *engine,
                                         const rcti *rect)
 {
   DrawEngineType *draw_engine = &draw_engine_gpencil_type;
+
   if (draw_engine->render_to_image) {
     ViewportEngineData *gpdata = DRW_view_data_engine_data_get_ensure(drw_get().view_data_active,
                                                                       draw_engine);
@@ -2785,36 +2796,12 @@ bool DRW_engine_render_support(DrawEngineType *draw_engine_type)
   return draw_engine_type->render_to_image;
 }
 
-void DRW_engine_register(DrawEngineType *draw_engine_type)
-{
-  DRWRegisteredDrawEngine *draw_engine = static_cast<DRWRegisteredDrawEngine *>(
-      MEM_mallocN(sizeof(DRWRegisteredDrawEngine), __func__));
-  draw_engine->draw_engine = draw_engine_type;
-  draw_engine->index = g_registered_engines.len;
-
-  BLI_addtail(&g_registered_engines.engines, draw_engine);
-  g_registered_engines.len = BLI_listbase_count(&g_registered_engines.engines);
-}
-
 void DRW_engines_register()
 {
   using namespace blender::draw;
   RE_engines_register(&DRW_engine_viewport_eevee_next_type);
 
   RE_engines_register(&DRW_engine_viewport_workbench_type);
-
-  DRW_engine_register(&draw_engine_gpencil_type);
-
-  DRW_engine_register(&draw_engine_overlay_next_type);
-  DRW_engine_register(&draw_engine_select_next_type);
-  DRW_engine_register(&draw_engine_select_type);
-  DRW_engine_register(&draw_engine_compositor_type);
-#ifdef WITH_DRAW_DEBUG
-  DRW_engine_register(&draw_engine_debug_select_type);
-#endif
-
-  DRW_engine_register(&draw_engine_image_type);
-  DRW_engine_register(DRW_engine_viewport_external_type.draw_engine);
 
   /* setup callbacks */
   {
@@ -2846,31 +2833,19 @@ void DRW_engines_register()
   }
 }
 
-static void drw_registered_engines_free()
-{
-  DRWRegisteredDrawEngine *next;
-  for (DRWRegisteredDrawEngine *type =
-           static_cast<DRWRegisteredDrawEngine *>(g_registered_engines.engines.first);
-       type;
-       type = next)
-  {
-    next = static_cast<DRWRegisteredDrawEngine *>(type->next);
-    BLI_remlink(&R_engines, type);
-
-    if (type->draw_engine->engine_free) {
-      type->draw_engine->engine_free();
-    }
-    MEM_freeN(type);
-  }
-
-  BLI_listbase_clear(&g_registered_engines.engines);
-  g_registered_engines.len = 0;
-}
-
 void DRW_engines_free()
 {
   using namespace blender::draw;
-  drw_registered_engines_free();
+
+  DRW_engine_viewport_eevee_next_type.draw_engine->engine_free();
+  DRW_engine_viewport_workbench_type.draw_engine->engine_free();
+  draw_engine_gpencil_type.engine_free();
+  draw_engine_image_type.engine_free();
+  draw_engine_overlay_next_type.engine_free();
+#ifdef WITH_DRAW_DEBUG
+  draw_engine_debug_select_type.engine_free();
+#endif
+  draw_engine_select_type.engine_free();
 
   if (system_gpu_context == nullptr) {
     /* Nothing has been setup. Nothing to clear.
