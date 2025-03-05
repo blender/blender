@@ -1448,7 +1448,9 @@ static void do_particle_interpolation(ParticleSystem *psys,
 
     while (pind->hkey[1]->time < real_t) {
       pind->hkey[1]++;
-      pind->vert_positions[1]++;
+      if (pind->mesh) {
+        pind->vert_positions[1]++;
+      }
     }
 
     pind->hkey[0] = pind->hkey[1] - 1;
