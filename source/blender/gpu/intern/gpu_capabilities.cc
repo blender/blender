@@ -167,6 +167,11 @@ bool GPU_stencil_clasify_buffer_workaround()
   return GCaps.stencil_clasify_buffer_workaround;
 }
 
+bool GPU_node_link_instancing_workaround()
+{
+  return GCaps.node_link_instancing_workaround;
+}
+
 bool GPU_vulkan_render_pass_workaround()
 {
   return GCaps.render_pass_workaround;

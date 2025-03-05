@@ -310,6 +310,7 @@ static void detect_workarounds()
     GCaps.depth_blitting_workaround = true;
     GCaps.mip_render_workaround = true;
     GCaps.stencil_clasify_buffer_workaround = true;
+    GCaps.node_link_instancing_workaround = true;
     GLContext::debug_layer_workaround = true;
     /* Turn off Blender features. */
     GCaps.hdr_viewport_support = false;
@@ -491,6 +492,14 @@ static void detect_workarounds()
    * `internal format of texture N is not supported`. */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
     GLContext::multi_bind_image_support = false;
+  }
+
+  /* #134509 Intel ARC GPU have a driver bug that break the display of batched nodelinks.
+   * Disabling batching fixes the issue. */
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    if (strstr(renderer, "Arc")) {
+      GCaps.node_link_instancing_workaround = true;
+    }
   }
 
   /* Multi viewport creates small triangle discard on RDNA2 GPUs with official drivers.
