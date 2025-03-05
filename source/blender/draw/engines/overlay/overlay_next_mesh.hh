@@ -121,7 +121,7 @@ class Meshes : Overlay {
 
     float backwire_opacity = (state.xray_flag_enabled) ? 0.5f : 1.0f;
     float face_alpha = (show_face_) ? 1.0f : 0.0f;
-    float retopology_offset = RETOPOLOGY_OFFSET(state.v3d);
+    float retopology_offset = state.is_depth_only_drawing ? 0.0f : RETOPOLOGY_OFFSET(state.v3d);
     /* Cull back-faces for retopology face pass. This makes it so back-faces are not drawn.
      * Doing so lets us distinguish back-faces from front-faces. */
     DRWState face_culling = (show_retopology_) ? DRW_STATE_CULL_BACK : DRWState(0);
