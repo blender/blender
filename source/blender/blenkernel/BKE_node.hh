@@ -1082,18 +1082,18 @@ void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool re
 /** \name Node Type Access
  * \{ */
 
-void nodeLabel(const bNodeTree &ntree, const bNode &node, char *label, int label_maxncpy);
+std::string node_label(const bNodeTree &ntree, const bNode &node);
 
 /**
  * Get node socket label if it is set.
  */
-StringRefNull nodeSocketLabel(const bNodeSocket &sock);
+StringRefNull node_socket_label(const bNodeSocket &sock);
 
 /**
  * Get node socket short label if it is set.
  * It is used when grouping sockets under panels, to avoid redundancy in the label.
  */
-std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket &sock);
+std::optional<StringRefNull> node_socket_short_label(const bNodeSocket &sock);
 
 /**
  * Initialize a new node type struct with default values and callbacks.

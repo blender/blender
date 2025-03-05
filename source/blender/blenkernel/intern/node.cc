@@ -4087,25 +4087,22 @@ void node_tree_update_all_users(Main *main, ID *id)
 
 /* ************* node type access ********** */
 
-void nodeLabel(const bNodeTree &ntree, const bNode &node, char *label, const int label_maxncpy)
+std::string node_label(const bNodeTree &ntree, const bNode &node)
 {
-  label[0] = '\0';
-
   if (node.label[0] != '\0') {
-    BLI_strncpy(label, node.label, label_maxncpy);
-  }
-  else if (node.typeinfo->labelfunc) {
-    node.typeinfo->labelfunc(&ntree, &node, label, label_maxncpy);
-  }
-  if (label[0] != '\0') {
-    /* The previous methods (labelfunc) could not provide an adequate label for the node. */
-    return;
+    return node.label;
   }
 
-  BLI_strncpy(label, IFACE_(node.typeinfo->ui_name.c_str()), label_maxncpy);
+  if (node.typeinfo->labelfunc) {
+    char label_buffer[MAX_NAME];
+    node.typeinfo->labelfunc(&ntree, &node, label_buffer, MAX_NAME);
+    return label_buffer;
+  }
+
+  return node.typeinfo->ui_name;
 }
 
-std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket &sock)
+std::optional<StringRefNull> node_socket_short_label(const bNodeSocket &sock)
 {
   if (sock.runtime->declaration != nullptr) {
     StringRefNull short_label = sock.runtime->declaration->short_label;
@@ -4116,7 +4113,7 @@ std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket &sock)
   return std::nullopt;
 }
 
-StringRefNull nodeSocketLabel(const bNodeSocket &sock)
+StringRefNull node_socket_label(const bNodeSocket &sock)
 {
   return (sock.label[0] != '\0') ? sock.label : sock.name;
 }

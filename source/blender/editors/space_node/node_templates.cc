@@ -429,16 +429,17 @@ static void ui_node_sock_name(const bNodeTree *ntree,
 {
   if (sock->link && sock->link->fromnode) {
     bNode *node = sock->link->fromnode;
-    char node_name[UI_MAX_NAME_STR];
-
-    bke::nodeLabel(*ntree, *node, node_name, sizeof(node_name));
+    const std::string node_name = bke::node_label(*ntree, *node);
 
     if (BLI_listbase_is_empty(&node->inputs) && node->outputs.first != node->outputs.last) {
-      BLI_snprintf(
-          name, UI_MAX_NAME_STR, "%s | %s", IFACE_(node_name), IFACE_(sock->link->fromsock->name));
+      BLI_snprintf(name,
+                   UI_MAX_NAME_STR,
+                   "%s | %s",
+                   IFACE_(node_name.c_str()),
+                   IFACE_(sock->link->fromsock->name));
     }
     else {
-      BLI_strncpy_utf8(name, IFACE_(node_name), UI_MAX_NAME_STR);
+      BLI_strncpy_utf8(name, IFACE_(node_name.c_str()), UI_MAX_NAME_STR);
     }
   }
   else if (sock->type == SOCK_SHADER) {

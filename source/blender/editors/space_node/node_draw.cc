@@ -445,14 +445,14 @@ const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_l
 {
   /* Get the short label if possible. This is used when grouping sockets under panels,
    * to avoid redundancy in the label. */
-  const std::optional<StringRefNull> socket_short_label = bke::nodeSocketShortLabel(*socket);
+  const std::optional<StringRefNull> socket_short_label = bke::node_socket_short_label(*socket);
   const char *socket_translation_context = node_socket_get_translation_context(*socket);
 
   if (socket_short_label.has_value()) {
     return CTX_IFACE_(socket_translation_context, socket_short_label->c_str());
   }
 
-  const StringRefNull socket_label = bke::nodeSocketLabel(*socket);
+  const StringRefNull socket_label = bke::node_socket_label(*socket);
   const char *translated_socket_label = CTX_IFACE_(socket_translation_context,
                                                    socket_label.c_str());
 
@@ -2128,15 +2128,13 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
     const bool is_extend = StringRef(socket.idname) == "NodeSocketVirtual";
     const bNode &node = socket.owner_node();
     if (node.is_reroute()) {
-      char reroute_name[MAX_NAME];
-      bke::nodeLabel(ntree, node, reroute_name, sizeof(reroute_name));
-      output << reroute_name;
+      output << bke::node_label(ntree, node);
     }
     else if (is_extend) {
       output << TIP_("Connect a link to create a new socket");
     }
     else {
-      output << bke::nodeSocketLabel(socket);
+      output << bke::node_socket_label(socket);
     }
 
     if (ntree.type == NTREE_GEOMETRY && !is_extend) {
@@ -3590,8 +3588,7 @@ static void node_draw_basis(const bContext &C,
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
 
-  char showname[128];
-  bke::nodeLabel(ntree, node, showname, sizeof(showname));
+  const std::string showname = bke::node_label(ntree, node);
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -3842,8 +3839,7 @@ static void node_draw_hidden(const bContext &C,
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
 
-  char showname[128];
-  bke::nodeLabel(ntree, node, showname, sizeof(showname));
+  const std::string showname = bke::node_label(ntree, node);
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -4141,8 +4137,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const NodeFrame *data = (const NodeFrame *)node.storage;
   const float font_size = data->label_size / aspect;
 
-  char label[MAX_NAME];
-  bke::nodeLabel(ntree, node, label, sizeof(label));
+  const std::string label = bke::node_label(ntree, node);
 
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
@@ -4155,7 +4150,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   BLF_color3ubv(fontid, color);
 
   const float margin = NODE_FRAME_MARGIN;
-  const float width = BLF_width(fontid, label, sizeof(label));
+  const float width = BLF_width(fontid, label.c_str(), label.size());
   const int label_height = frame_node_label_height(*data);
 
   const rctf &rct = node.runtime->draw_bounds;
@@ -4166,7 +4161,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const bool has_label = node.label[0] != '\0';
   if (has_label) {
     BLF_position(fontid, label_x, label_y, 0);
-    BLF_draw(fontid, label, sizeof(label));
+    BLF_draw(fontid, label.c_str(), label.size());
   }
 
   /* Draw text body. */
