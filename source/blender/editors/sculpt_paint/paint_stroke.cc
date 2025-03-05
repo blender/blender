@@ -1570,6 +1570,27 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     return OPERATOR_CANCELLED;
   }
 
+  /* Handles shift-key active smooth toggling during a grease pencil stroke. */
+  if (mode == PaintMode::GPencil) {
+    if (event->modifier & KM_SHIFT) {
+      stroke->stroke_mode = BRUSH_STROKE_SMOOTH;
+      if (!stroke->stroke_cursor) {
+        stroke->stroke_cursor = WM_paint_cursor_activate(SPACE_TYPE_ANY,
+                                                         RGN_TYPE_ANY,
+                                                         paint_brush_cursor_poll,
+                                                         paint_draw_smooth_cursor,
+                                                         stroke);
+      }
+    }
+    else {
+      stroke->stroke_mode = BRUSH_STROKE_NORMAL;
+      if (stroke->stroke_cursor != nullptr) {
+        WM_paint_cursor_end(static_cast<wmPaintCursor *>(stroke->stroke_cursor));
+        stroke->stroke_cursor = nullptr;
+      }
+    }
+  }
+
   float2 mouse;
   if (event->type == stroke->event_type && !first_modal) {
     if (event->val == KM_RELEASE) {

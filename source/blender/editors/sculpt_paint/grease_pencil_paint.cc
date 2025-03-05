@@ -258,159 +258,6 @@ struct PaintOperationExecutor {
     BLI_assert(drawing_ != nullptr);
   }
 
-  float randomize_radius(PaintOperation &self,
-                         const float distance,
-                         const float radius,
-                         const float pressure)
-  {
-    if (!use_settings_random_ || !(settings_->draw_random_press > 0.0f)) {
-      return radius;
-    }
-    float random_factor = 0.0f;
-    if ((settings_->flag2 & GP_BRUSH_USE_PRESS_AT_STROKE) == 0) {
-      /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
-      constexpr float noise_scale = 1 / 20.0f;
-      random_factor = noise::perlin_signed(
-          float2(distance * noise_scale, self.stroke_random_radius_factor_));
-    }
-    else {
-      random_factor = self.stroke_random_radius_factor_;
-    }
-
-    if ((settings_->flag2 & GP_BRUSH_USE_PRESSURE_RAND_PRESS) != 0) {
-      random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_pressure, 0, pressure);
-    }
-
-    const float randomized_radius = math::interpolate(
-        radius, radius * (1.0f + random_factor), settings_->draw_random_press);
-    return math::max(randomized_radius, 0.0f);
-  }
-
-  float randomize_opacity(PaintOperation &self,
-                          const float distance,
-                          const float opacity,
-                          const float pressure)
-  {
-    if (!use_settings_random_ || !(settings_->draw_random_strength > 0.0f)) {
-      return opacity;
-    }
-    float random_factor = 0.0f;
-    if ((settings_->flag2 & GP_BRUSH_USE_STRENGTH_AT_STROKE) == 0) {
-      /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
-      constexpr float noise_scale = 1 / 20.0f;
-      random_factor = noise::perlin_signed(
-          float2(distance * noise_scale, self.stroke_random_opacity_factor_));
-    }
-    else {
-      random_factor = self.stroke_random_opacity_factor_;
-    }
-
-    if ((settings_->flag2 & GP_BRUSH_USE_STRENGTH_RAND_PRESS) != 0) {
-      random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_strength, 0, pressure);
-    }
-
-    const float randomized_opacity = math::interpolate(
-        opacity, opacity + random_factor, settings_->draw_random_strength);
-    return math::clamp(randomized_opacity, 0.0f, 1.0f);
-  }
-
-  float randomize_rotation(PaintOperation &self, const float pressure)
-  {
-    if (!use_settings_random_ || !(settings_->uv_random > 0.0f)) {
-      return 0.0f;
-    }
-    float random_factor = 0.0f;
-    if ((settings_->flag2 & GP_BRUSH_USE_UV_AT_STROKE) == 0) {
-      random_factor = self.rng_.get_float() * 2.0f - 1.0f;
-    }
-    else {
-      random_factor = self.stroke_random_rotation_factor_;
-    }
-
-    if ((settings_->flag2 & GP_BRUSH_USE_UV_RAND_PRESS) != 0) {
-      random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_uv, 0, pressure);
-    }
-
-    const float random_rotation = random_factor * math::numbers::pi;
-    return math::interpolate(0.0f, random_rotation, settings_->uv_random);
-  }
-
-  ColorGeometry4f randomize_color(PaintOperation &self,
-                                  const float distance,
-                                  const ColorGeometry4f color,
-                                  const float pressure)
-  {
-    if (!use_settings_random_ ||
-        !(settings_->random_hue > 0.0f || settings_->random_saturation > 0.0f ||
-          settings_->random_value > 0.0f))
-    {
-      return color;
-    }
-    /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
-    constexpr float noise_scale = 1 / 20.0f;
-
-    float random_hue = 0.0f;
-    if ((settings_->flag2 & GP_BRUSH_USE_HUE_AT_STROKE) == 0) {
-      random_hue = noise::perlin_signed(
-          float2(distance * noise_scale, self.stroke_random_hue_factor_));
-    }
-    else {
-      random_hue = self.stroke_random_hue_factor_;
-    }
-
-    float random_saturation = 0.0f;
-    if ((settings_->flag2 & GP_BRUSH_USE_SAT_AT_STROKE) == 0) {
-      random_saturation = noise::perlin_signed(
-          float2(distance * noise_scale, self.stroke_random_sat_factor_));
-    }
-    else {
-      random_saturation = self.stroke_random_sat_factor_;
-    }
-
-    float random_value = 0.0f;
-    if ((settings_->flag2 & GP_BRUSH_USE_VAL_AT_STROKE) == 0) {
-      random_value = noise::perlin_signed(
-          float2(distance * noise_scale, self.stroke_random_val_factor_));
-    }
-    else {
-      random_value = self.stroke_random_val_factor_;
-    }
-
-    if ((settings_->flag2 & GP_BRUSH_USE_HUE_RAND_PRESS) != 0) {
-      random_hue *= BKE_curvemapping_evaluateF(settings_->curve_rand_hue, 0, pressure);
-    }
-    if ((settings_->flag2 & GP_BRUSH_USE_SAT_RAND_PRESS) != 0) {
-      random_saturation *= BKE_curvemapping_evaluateF(
-          settings_->curve_rand_saturation, 0, pressure);
-    }
-    if ((settings_->flag2 & GP_BRUSH_USE_VAL_RAND_PRESS) != 0) {
-      random_value *= BKE_curvemapping_evaluateF(settings_->curve_rand_value, 0, pressure);
-    }
-
-    float3 hsv;
-    rgb_to_hsv_v(color, hsv);
-
-    hsv += float3(random_hue * settings_->random_hue,
-                  random_saturation * settings_->random_saturation,
-                  random_value * settings_->random_value);
-
-    /* Wrap hue. */
-    if (hsv[0] > 1.0f) {
-      hsv[0] -= 1.0f;
-    }
-    else if (hsv[0] < 0.0f) {
-      hsv[0] += 1.0f;
-    }
-
-    hsv[1] = math::clamp(hsv[1], 0.0f, 1.0f);
-    hsv[2] = math::clamp(hsv[2], 0.0f, 1.0f);
-
-    ColorGeometry4f random_color;
-    hsv_to_rgb_v(hsv, random_color);
-    random_color.a = color.a;
-    return random_color;
-  }
-
   void process_start_sample(PaintOperation &self,
                             const bContext &C,
                             const InputSample &start_sample,
@@ -442,18 +289,30 @@ struct PaintOperationExecutor {
         start_location,
         self.placement_.to_world_space(),
         settings_);
-    start_radius = randomize_radius(self, 0.0f, start_radius, start_sample.pressure);
+    start_radius = ed::greasepencil::randomize_radius(
+        *settings_, self.stroke_random_radius_factor_, 0.0f, start_radius, start_sample.pressure);
 
     float start_opacity = ed::greasepencil::opacity_from_input_sample(
         start_sample.pressure, brush_, settings_);
-    start_opacity = randomize_opacity(self, 0.0f, start_opacity, start_sample.pressure);
+    start_opacity = ed::greasepencil::randomize_opacity(*settings_,
+                                                        self.stroke_random_opacity_factor_,
+                                                        0.0f,
+                                                        start_opacity,
+                                                        start_sample.pressure);
 
     /* Do not allow pressure opacity when drawing tool was invoked temporarily. */
     const float fill_opacity = (!self.temp_draw_) ? start_opacity : 1.0f;
 
-    const float start_rotation = randomize_rotation(self, start_sample.pressure);
+    const float start_rotation = ed::greasepencil::randomize_rotation(
+        *settings_, self.rng_, self.stroke_random_rotation_factor_, start_sample.pressure);
     if (use_vertex_color_) {
-      vertex_color_ = randomize_color(self, 0.0f, vertex_color_, start_sample.pressure);
+      vertex_color_ = ed::greasepencil::randomize_color(*settings_,
+                                                        self.stroke_random_hue_factor_,
+                                                        self.stroke_random_sat_factor_,
+                                                        self.stroke_random_val_factor_,
+                                                        0.0f,
+                                                        vertex_color_,
+                                                        start_sample.pressure);
     }
 
     Scene *scene = CTX_data_scene(&C);
@@ -825,11 +684,18 @@ struct PaintOperationExecutor {
         curves.positions_for_write()[last_active_point] = position;
       }
       if (use_settings_random_ && settings_->draw_random_press > 0.0f) {
-        radius = randomize_radius(self, self.accum_distance_, radius, extension_sample.pressure);
+        radius = ed::greasepencil::randomize_radius(*settings_,
+                                                    self.stroke_random_radius_factor_,
+                                                    self.accum_distance_,
+                                                    radius,
+                                                    extension_sample.pressure);
       }
       if (use_settings_random_ && settings_->draw_random_strength > 0.0f) {
-        opacity = randomize_opacity(
-            self, self.accum_distance_, opacity, extension_sample.pressure);
+        opacity = ed::greasepencil::randomize_opacity(*settings_,
+                                                      self.stroke_random_opacity_factor_,
+                                                      self.accum_distance_,
+                                                      opacity,
+                                                      extension_sample.pressure);
       }
       drawing_->radii_for_write()[last_active_point] = math::max(radius, prev_radius);
       drawing_->opacities_for_write()[last_active_point] = math::max(opacity, prev_opacity);
@@ -872,8 +738,12 @@ struct PaintOperationExecutor {
     /* Randomize radii. */
     if (use_settings_random_ && settings_->draw_random_press > 0.0f) {
       for (const int i : IndexRange(new_points_num)) {
-        new_radii[i] = randomize_radius(
-            self, self.accum_distance_ + max_spacing_px * i, radius, extension_sample.pressure);
+        new_radii[i] = ed::greasepencil::randomize_radius(*settings_,
+                                                          self.stroke_random_radius_factor_,
+                                                          self.accum_distance_ +
+                                                              max_spacing_px * i,
+                                                          radius,
+                                                          extension_sample.pressure);
       }
     }
     else {
@@ -883,8 +753,12 @@ struct PaintOperationExecutor {
     /* Randomize opacities. */
     if (use_settings_random_ && settings_->draw_random_strength > 0.0f) {
       for (const int i : IndexRange(new_points_num)) {
-        new_opacities[i] = randomize_opacity(
-            self, self.accum_distance_ + max_spacing_px * i, opacity, extension_sample.pressure);
+        new_opacities[i] = ed::greasepencil::randomize_opacity(*settings_,
+                                                               self.stroke_random_opacity_factor_,
+                                                               self.accum_distance_ +
+                                                                   max_spacing_px * i,
+                                                               opacity,
+                                                               extension_sample.pressure);
       }
     }
     else {
@@ -898,7 +772,11 @@ struct PaintOperationExecutor {
       {
         const MutableSpan<float> new_rotations = rotations.span.slice(new_points);
         for (const int i : IndexRange(new_points_num)) {
-          new_rotations[i] = randomize_rotation(self, extension_sample.pressure);
+          new_rotations[i] = ed::greasepencil::randomize_rotation(
+              *settings_,
+              self.rng_,
+              self.stroke_random_rotation_factor_,
+              extension_sample.pressure);
         }
         point_attributes_to_skip.add("rotation");
         rotations.finish();
@@ -911,10 +789,14 @@ struct PaintOperationExecutor {
           new_points);
       if (use_settings_random_ || attributes.contains("vertex_color")) {
         for (const int i : IndexRange(new_points_num)) {
-          new_vertex_colors[i] = randomize_color(self,
-                                                 self.accum_distance_ + max_spacing_px * i,
-                                                 vertex_color_,
-                                                 extension_sample.pressure);
+          new_vertex_colors[i] = ed::greasepencil::randomize_color(*settings_,
+                                                                   self.stroke_random_hue_factor_,
+                                                                   self.stroke_random_sat_factor_,
+                                                                   self.stroke_random_val_factor_,
+                                                                   self.accum_distance_ +
+                                                                       max_spacing_px * i,
+                                                                   vertex_color_,
+                                                                   extension_sample.pressure);
         }
       }
       else {

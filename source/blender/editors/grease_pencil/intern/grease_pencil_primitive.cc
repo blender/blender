@@ -40,6 +40,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_rand.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -143,6 +144,14 @@ struct PrimitiveToolOperation {
   float fill_opacity;
   float4x2 texture_space;
   float4x4 local_transform;
+
+  RandomNumberGenerator rng;
+  float stroke_random_radius_factor;
+  float stroke_random_opacity_factor;
+  float stroke_random_rotation_factor;
+  float stroke_random_hue_factor;
+  float stroke_random_sat_factor;
+  float stroke_random_val_factor;
 
   OperatorMode mode;
   float2 start_position_2d;
@@ -452,6 +461,7 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
 {
   const bool on_back = ptd.on_back;
   const int new_points_num = grease_pencil_primitive_curve_points_number(ptd);
+  const bool use_random = (ptd.settings->flag & GP_BRUSH_GROUP_RANDOM) != 0;
 
   bke::CurvesGeometry &curves = ptd.drawing->strokes_for_write();
   const int target_curve_index = on_back ? 0 : curves.curves_range().last();
@@ -469,9 +479,21 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
 
   MutableSpan<float> new_radii = ptd.drawing->radii_for_write().slice(curve_points);
   MutableSpan<float> new_opacities = ptd.drawing->opacities_for_write().slice(curve_points);
+  MutableSpan<ColorGeometry4f> new_vertex_colors = ptd.drawing->vertex_colors_for_write().slice(
+      curve_points);
+  bke::SpanAttributeWriter<float> rotations;
+  MutableSpan<float> new_rotations;
+  if (use_random && ptd.settings->uv_random > 0.0f) {
+    rotations = curves.attributes_for_write().lookup_or_add_for_write_span<float>(
+        "rotation", bke::AttrDomain::Point);
+    new_rotations = rotations.span.slice(curve_points);
+  }
 
   const ToolSettings *ts = ptd.vc.scene->toolsettings;
   const GP_Sculpt_Settings *gset = &ts->gp_sculpt;
+
+  /* Screen-space length along curve used as randomization parameter. */
+  Array<float> lengths(new_points_num);
 
   for (const int point : curve_points.index_range()) {
     float pressure = 1.0f;
@@ -491,14 +513,40 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
     const float opacity = ed::greasepencil::opacity_from_input_sample(
         pressure, ptd.brush, ptd.settings);
 
-    new_radii[point] = radius;
-    new_opacities[point] = opacity;
-  }
-  point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
+    if (point == 0) {
+      lengths[point] = 0.0f;
+    }
+    else {
+      const float distance_2d = math::distance(positions_2d[point - 1], positions_2d[point]);
+      lengths[point] = lengths[point - 1] + distance_2d;
+    }
 
+    new_radii[point] = ed::greasepencil::randomize_radius(
+        *ptd.settings, ptd.stroke_random_radius_factor, lengths[point], radius, pressure);
+    new_opacities[point] = ed::greasepencil::randomize_opacity(
+        *ptd.settings, ptd.stroke_random_opacity_factor, lengths[point], opacity, pressure);
+    if (ptd.vertex_color) {
+      new_vertex_colors[point] = ed::greasepencil::randomize_color(*ptd.settings,
+                                                                   ptd.stroke_random_hue_factor,
+                                                                   ptd.stroke_random_sat_factor,
+                                                                   ptd.stroke_random_val_factor,
+                                                                   lengths[point],
+                                                                   *ptd.vertex_color,
+                                                                   pressure);
+    }
+    if (rotations) {
+      new_rotations[point] = ed::greasepencil::randomize_rotation(
+          *ptd.settings, ptd.stroke_random_rotation_factor, lengths[point], pressure);
+    }
+  }
+
+  point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
   if (ptd.vertex_color) {
-    ptd.drawing->vertex_colors_for_write().slice(curve_points).fill(*ptd.vertex_color);
     point_attributes_to_skip.add("vertex_color");
+  }
+  if (rotations) {
+    point_attributes_to_skip.add("rotation");
+    rotations.finish();
   }
 
   /* Initialize the rest of the attributes with default values. */
@@ -763,6 +811,17 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
 
   ptd.texture_space = ed::greasepencil::calculate_texture_space(
       vc.scene, ptd.region, ptd.start_position_2d, ptd.placement);
+
+  const bool use_random = (ptd.settings->flag & GP_BRUSH_GROUP_RANDOM) != 0;
+  if (use_random) {
+    ptd.rng = RandomNumberGenerator::from_random_seed();
+    ptd.stroke_random_radius_factor = ptd.rng.get_float() * 2.0f - 1.0f;
+    ptd.stroke_random_opacity_factor = ptd.rng.get_float() * 2.0f - 1.0f;
+    ptd.stroke_random_rotation_factor = ptd.rng.get_float() * 2.0f - 1.0f;
+    ptd.stroke_random_hue_factor = ptd.rng.get_float() * 2.0f - 1.0f;
+    ptd.stroke_random_sat_factor = ptd.rng.get_float() * 2.0f - 1.0f;
+    ptd.stroke_random_val_factor = ptd.rng.get_float() * 2.0f - 1.0f;
+  }
 
   BLI_assert(grease_pencil->has_active_layer());
   ptd.local_transform = grease_pencil->get_active_layer()->local_transform();
