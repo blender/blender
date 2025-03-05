@@ -49,7 +49,7 @@ static void boxsample(ImBuf *ibuf,
 /* x and y have to be checked for image size */
 static void ibuf_get_color(float col[4], ImBuf *ibuf, int x, int y)
 {
-  int ofs = y * ibuf->x + x;
+  const int64_t ofs = int64_t(y) * ibuf->x + x;
 
   if (ibuf->float_buffer.data) {
     if (ibuf->channels == 4) {
@@ -698,7 +698,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
   }
 
   if (ibuf->float_buffer.data) {
-    const float *fp = ibuf->float_buffer.data + (x + y * ibuf->x) * ibuf->channels;
+    const float *fp = ibuf->float_buffer.data + (x + int64_t(y) * ibuf->x) * ibuf->channels;
     if (ibuf->channels == 1) {
       col[0] = col[1] = col[2] = col[3] = *fp;
     }
@@ -710,7 +710,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
     }
   }
   else {
-    const uchar *rect = ibuf->byte_buffer.data + 4 * (x + y * ibuf->x);
+    const uchar *rect = ibuf->byte_buffer.data + 4 * (x + int64_t(y) * ibuf->x);
     float inv_alpha_fac = (1.0f / 255.0f) * rect[3] * (1.0f / 255.0f);
     col[0] = rect[0] * inv_alpha_fac;
     col[1] = rect[1] * inv_alpha_fac;
