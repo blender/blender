@@ -164,9 +164,15 @@ class Wireframe : Overlay {
       case OB_MESH: {
         /* Force display in edit mode when overlay is off in wireframe mode (see #78484). */
         const bool wireframe_no_overlay = state.hide_overlays && state.is_wireframe_mode;
-        /* Display only if there is an edit cage. Otherwise we get Z fighting with edit wires. */
-        const bool has_edit_cage = Meshes::mesh_has_edit_cage(ob_ref.object);
-        const bool bypass_mode_check = wireframe_no_overlay || has_edit_cage;
+
+        /* In some cases the edit mode wireframe overlay is already drawn for the same edges.
+         * We want to avoid this redundant work and avoid Z-fighting, but detecting this case is
+         * relatively complicated. Whether edit mode draws edges on the evaluated mesh depends on
+         * whether there is a separate cage and whether there is a valid mapping between the
+         * evaluated and original edit mesh. */
+        const bool edit_wires_overlap_all = mesh_edit_wires_overlap(ob_ref, in_edit_mode);
+
+        const bool bypass_mode_check = wireframe_no_overlay || !edit_wires_overlap_all;
 
         if (show_surface_wire) {
           if (BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d)) {
@@ -280,6 +286,29 @@ class Wireframe : Overlay {
     threshold = sqrt(abs(threshold));
     /* The maximum value (255 in the VBO) is used to force hide the edge. */
     return math::interpolate(0.0f, 1.0f - (1.0f / 255.0f), threshold);
+  }
+
+  static bool mesh_edit_wires_overlap(const ObjectRef &ob_ref, const bool in_edit_mode)
+  {
+    if (!in_edit_mode) {
+      return false;
+    }
+    const Mesh &mesh = *static_cast<const Mesh *>(ob_ref.object->data);
+    const Mesh *orig_edit_mesh = BKE_object_get_pre_modified_mesh(ob_ref.object);
+    const bool edit_mapping_valid = BKE_editmesh_eval_orig_map_available(mesh, orig_edit_mesh);
+    if (!edit_mapping_valid) {
+      /* The mesh edit mode overlay doesn't include wireframe for the evaluated mesh when it
+       * doesn't correspond with the original edit mesh. So the main wireframe overlay should draw
+       * wires for the evaluated mesh instead. */
+      return false;
+    }
+    if (Meshes::mesh_has_edit_cage(ob_ref.object)) {
+      /* If a cage exists, the edit overlay might not display every edge. */
+      return false;
+    }
+    /* The edit mode overlay displays all of the edges of the evaluated mesh; drawing the edges
+     * again would be redundant. */
+    return true;
   }
 };
 

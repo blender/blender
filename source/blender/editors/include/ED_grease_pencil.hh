@@ -41,7 +41,7 @@ struct GreasePencilLineartModifierData;
 struct RV3DMatrixStore;
 
 namespace blender {
-struct RandomNumberGenerator;
+class RandomNumberGenerator;
 namespace bke {
 enum class AttrDomain : int8_t;
 class CurvesGeometry;
