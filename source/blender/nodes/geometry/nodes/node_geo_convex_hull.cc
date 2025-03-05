@@ -52,20 +52,15 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   /* Copy vertices. */
   MutableSpan<float3> dst_positions = result->vert_positions_for_write();
   for (const int i : IndexRange(verts_num)) {
+    float3 dummy_co;
     int original_index;
-    plConvexHullGetVertex(hull, i, dst_positions[i], &original_index);
-
-    if (original_index >= 0 && original_index < coords.size()) {
-#  if 0 /* Disabled because it only works for meshes, not predictable enough. */
-      /* Copy custom data on vertices, like vertex groups etc. */
-      if (mesh && original_index < mesh->verts_num) {
-        CustomData_copy_data(&mesh->vert_data, &result->vert_data, int(original_index), int(i), 1);
-      }
-#  endif
+    plConvexHullGetVertex(hull, i, dummy_co, &original_index);
+    if (UNLIKELY(!coords.index_range().contains(original_index))) {
+      BLI_assert_unreachable();
+      dst_positions[i] = float3(0);
+      continue;
     }
-    else {
-      BLI_assert_msg(0, "Unexpected new vertex in hull output");
-    }
+    dst_positions[i] = coords[original_index];
   }
 
   /* Copy edges and loops. */
