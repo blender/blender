@@ -36,6 +36,7 @@
 
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
@@ -2446,7 +2447,7 @@ static void node_draw_link_bezier_ex(const SpaceNode &snode,
     nodelink_batch_init();
   }
 
-  if (g_batch_link.enabled && !draw_config.highlighted) {
+  if (g_batch_link.enabled && !draw_config.highlighted && !GPU_node_link_instancing_workaround()) {
     /* Add link to batch. */
     nodelink_batch_add_link(snode, points, draw_config);
   }

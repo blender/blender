@@ -60,6 +60,7 @@ struct GPUCapabilities {
   bool broken_amd_driver = false;
   bool use_hq_normals_workaround = false;
   bool stencil_clasify_buffer_workaround = false;
+  bool node_link_instancing_workaround = false;
 
   /* Vulkan related workarounds. */
   bool render_pass_workaround = false;
