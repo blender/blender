@@ -22,7 +22,7 @@ set(SRC
   intern/selection.cc
   intern/separate.cc
   intern/undo.cc
-  )
+)
 
 set(LIB
   PRIVATE bf::blenkernel

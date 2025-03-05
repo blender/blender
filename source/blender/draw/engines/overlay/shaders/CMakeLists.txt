@@ -23,7 +23,7 @@ set(INC_GLSL
 
   ../../select
   ../../select/shaders
-  )
+)
 
 set(SRC_GLSL_VERT
   overlay_armature_dof_vert.glsl
