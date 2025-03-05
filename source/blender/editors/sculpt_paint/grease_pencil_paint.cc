@@ -139,6 +139,10 @@ static void morph_points_to_curve(Span<float2> src, Span<float2> target, Mutable
 
 class PaintOperation : public GreasePencilStrokeOperation {
  private:
+  bke::greasepencil::Drawing *drawing_;
+  int frame_number_;
+  Vector<ed::greasepencil::MutableDrawingInfo> multi_frame_drawings_;
+
   /* Screen space coordinates from input samples. */
   Vector<float2> screen_space_coords_orig_;
 
@@ -225,14 +229,9 @@ struct PaintOperationExecutor {
   bool use_vertex_color_;
   bool use_settings_random_;
 
-  bke::greasepencil::Drawing *drawing_;
-
   PaintOperationExecutor(const bContext &C)
   {
     scene_ = CTX_data_scene(&C);
-    Object *object = CTX_data_active_object(&C);
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
-
     Paint *paint = &scene_->toolsettings->gp_paint->paint;
     brush_ = BKE_paint_brush(paint);
     settings_ = brush_->gpencil_settings;
@@ -251,11 +250,6 @@ struct PaintOperationExecutor {
       }
     }
     softness_ = 1.0f - settings_->hardness;
-
-    BLI_assert(grease_pencil->has_active_layer());
-    drawing_ = grease_pencil->get_editable_drawing_at(*grease_pencil->get_active_layer(),
-                                                      scene_->r.cfra);
-    BLI_assert(drawing_ != nullptr);
   }
 
   void process_start_sample(PaintOperation &self,
@@ -325,7 +319,7 @@ struct PaintOperationExecutor {
     self.screen_space_final_coords_.append(start_coords);
 
     /* Resize the curves geometry so there is one more curve with a single point. */
-    bke::CurvesGeometry &curves = drawing_->strokes_for_write();
+    bke::CurvesGeometry &curves = self.drawing_->strokes_for_write();
     ed::greasepencil::add_single_curve(curves, on_back == false);
 
     const int active_curve = on_back ? curves.curves_range().first() :
@@ -337,15 +331,15 @@ struct PaintOperationExecutor {
     Set<std::string> curve_attributes_to_skip;
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     curves.positions_for_write()[last_active_point] = start_location;
-    drawing_->radii_for_write()[last_active_point] = start_radius;
-    drawing_->opacities_for_write()[last_active_point] = start_opacity;
+    self.drawing_->radii_for_write()[last_active_point] = start_radius;
+    self.drawing_->opacities_for_write()[last_active_point] = start_opacity;
     point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
     if (use_vertex_color_ || attributes.contains("vertex_color")) {
-      drawing_->vertex_colors_for_write()[last_active_point] = vertex_color_;
+      self.drawing_->vertex_colors_for_write()[last_active_point] = vertex_color_;
       point_attributes_to_skip.add("vertex_color");
     }
     if (use_fill || attributes.contains("fill_color")) {
-      drawing_->fill_colors_for_write()[active_curve] = fill_color_;
+      self.drawing_->fill_colors_for_write()[active_curve] = fill_color_;
       curve_attributes_to_skip.add("fill_color");
     }
     if (bke::SpanAttributeWriter<float> delta_times =
@@ -458,7 +452,7 @@ struct PaintOperationExecutor {
         bke::attribute_filter_from_skip_ref(curve_attributes_to_skip),
         IndexRange(active_curve, 1));
 
-    drawing_->tag_topology_changed();
+    self.drawing_->tag_topology_changed();
   }
 
   void active_smoothing(PaintOperation &self, const IndexRange smooth_window)
@@ -623,7 +617,7 @@ struct PaintOperationExecutor {
     const float brush_radius_px = brush_radius_to_pixel_radius(
         rv3d, brush_, math::transform_point(self.placement_.to_world_space(), position));
 
-    bke::CurvesGeometry &curves = drawing_->strokes_for_write();
+    bke::CurvesGeometry &curves = self.drawing_->strokes_for_write();
     OffsetIndices<int> points_by_curve = curves.points_by_curve();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
@@ -633,9 +627,9 @@ struct PaintOperationExecutor {
     const int last_active_point = curve_points.last();
 
     const float2 prev_coords = self.screen_space_coords_orig_.last();
-    float prev_radius = drawing_->radii()[last_active_point];
-    const float prev_opacity = drawing_->opacities()[last_active_point];
-    const ColorGeometry4f prev_vertex_color = drawing_->vertex_colors()[last_active_point];
+    float prev_radius = self.drawing_->radii()[last_active_point];
+    const float prev_opacity = self.drawing_->opacities()[last_active_point];
+    const ColorGeometry4f prev_vertex_color = self.drawing_->vertex_colors()[last_active_point];
 
     const bool is_first_sample = (curve_points.size() == 1);
 
@@ -697,15 +691,15 @@ struct PaintOperationExecutor {
                                                       opacity,
                                                       extension_sample.pressure);
       }
-      drawing_->radii_for_write()[last_active_point] = math::max(radius, prev_radius);
-      drawing_->opacities_for_write()[last_active_point] = math::max(opacity, prev_opacity);
+      self.drawing_->radii_for_write()[last_active_point] = math::max(radius, prev_radius);
+      self.drawing_->opacities_for_write()[last_active_point] = math::max(opacity, prev_opacity);
       return;
     }
 
     /* Adjust the first points radius based on the computed angle. */
     if (is_first_sample && settings_->draw_angle_factor > 0.0f) {
-      drawing_->radii_for_write()[last_active_point] *= radius_factor;
-      prev_radius = drawing_->radii()[last_active_point];
+      self.drawing_->radii_for_write()[last_active_point] *= radius_factor;
+      prev_radius = self.drawing_->radii()[last_active_point];
     }
 
     /* Clamp the number of points within a pixel in screen space. */
@@ -728,8 +722,8 @@ struct PaintOperationExecutor {
     Array<float2> new_screen_space_coords(new_points_num);
     MutableSpan<float3> positions = curves.positions_for_write();
     MutableSpan<float3> new_positions = positions.slice(new_points);
-    MutableSpan<float> new_radii = drawing_->radii_for_write().slice(new_points);
-    MutableSpan<float> new_opacities = drawing_->opacities_for_write().slice(new_points);
+    MutableSpan<float> new_radii = self.drawing_->radii_for_write().slice(new_points);
+    MutableSpan<float> new_opacities = self.drawing_->opacities_for_write().slice(new_points);
 
     /* Interpolate the screen space positions. */
     linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords, is_first_sample);
@@ -785,8 +779,8 @@ struct PaintOperationExecutor {
 
     /* Randomize vertex color. */
     if (use_vertex_color_ || attributes.contains("vertex_color")) {
-      MutableSpan<ColorGeometry4f> new_vertex_colors = drawing_->vertex_colors_for_write().slice(
-          new_points);
+      MutableSpan<ColorGeometry4f> new_vertex_colors =
+          self.drawing_->vertex_colors_for_write().slice(new_points);
       if (use_settings_random_ || attributes.contains("vertex_color")) {
         for (const int i : IndexRange(new_points_num)) {
           new_vertex_colors[i] = ed::greasepencil::randomize_color(*settings_,
@@ -916,7 +910,8 @@ struct PaintOperationExecutor {
         bke::attribute_filter_from_skip_ref(point_attributes_to_skip),
         curves.points_range().take_back(new_points_num));
 
-    drawing_->set_texture_matrices({self.texture_space_}, IndexRange::from_single(active_curve));
+    self.drawing_->set_texture_matrices({self.texture_space_},
+                                        IndexRange::from_single(active_curve));
   }
 
   void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)
@@ -926,10 +921,10 @@ struct PaintOperationExecutor {
 
     this->process_extension_sample(self, C, extension_sample);
 
-    const bke::CurvesGeometry &curves = drawing_->strokes();
+    const bke::CurvesGeometry &curves = self.drawing_->strokes();
     const int active_curve = on_back ? curves.curves_range().first() :
                                        curves.curves_range().last();
-    drawing_->tag_topology_changed(IndexRange::from_single(active_curve));
+    self.drawing_->tag_topology_changed(IndexRange::from_single(active_curve));
   }
 };
 
@@ -1021,16 +1016,11 @@ IndexRange PaintOperation::interpolate_stroke_depth(const bContext &C,
   using namespace blender::bke;
 
   Scene *scene = CTX_data_scene(&C);
-  Object *object = CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bool on_back = (scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
 
-  /* Grease Pencil should have an active layer. */
-  BLI_assert(grease_pencil.has_active_layer());
-  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
   /* Drawing should exist. */
-  bke::greasepencil::Drawing &drawing = *grease_pencil.get_editable_drawing_at(active_layer,
-                                                                               scene->r.cfra);
+  BLI_assert(drawing_);
+  bke::greasepencil::Drawing &drawing = *drawing_;
   const int active_curve = on_back ? drawing.strokes().curves_range().first() :
                                      drawing.strokes().curves_range().last();
   const offset_indices::OffsetIndices<int> points_by_curve = drawing.strokes().points_by_curve();
@@ -1095,6 +1085,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   BKE_curvemapping_init(settings->curve_rand_saturation);
   BKE_curvemapping_init(settings->curve_rand_value);
 
+  BLI_assert(grease_pencil->has_active_layer());
   const bke::greasepencil::Layer &layer = *grease_pencil->get_active_layer();
   /* Initialize helper class for projecting screen space coordinates. */
   placement_ = ed::greasepencil::DrawingPlacement(*scene, *region, *view3d, *eval_object, &layer);
@@ -1130,6 +1121,11 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
       CTX_data_main(&C), object, brush);
   const int material_index = BKE_object_material_index_get(object, material);
   const bool use_fill = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
+
+  frame_number_ = scene->r.cfra;
+  drawing_ = grease_pencil->get_editable_drawing_at(layer, frame_number_);
+  multi_frame_drawings_ = ed::greasepencil::retrieve_editable_drawings(*scene, *grease_pencil);
+  BLI_assert(drawing_ != nullptr);
 
   /* We're now starting to draw. */
   grease_pencil->runtime->is_drawing_stroke = true;
@@ -1580,8 +1576,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   BLI_assert(grease_pencil.has_active_layer());
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
   /* Drawing should exist. */
-  bke::greasepencil::Drawing &drawing = *grease_pencil.get_editable_drawing_at(active_layer,
-                                                                               scene->r.cfra);
+  bke::greasepencil::Drawing &drawing = *drawing_;
   const int active_curve = on_back ? drawing.strokes().curves_range().first() :
                                      drawing.strokes().curves_range().last();
   const offset_indices::OffsetIndices<int> points_by_curve = drawing.strokes().points_by_curve();
@@ -1652,11 +1647,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   if (use_multi_frame_editing) {
     append_stroke_to_multiframe_drawings(
-        drawing.strokes(),
-        active_curve,
-        scene->r.cfra,
-        on_back,
-        ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil));
+        drawing.strokes(), active_curve, frame_number_, on_back, multi_frame_drawings_);
   }
 
   /* Now we're done drawing. */

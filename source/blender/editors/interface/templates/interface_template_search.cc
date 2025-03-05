@@ -11,6 +11,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "BLT_translation.hh"
+
 #include "UI_interface.hh"
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
@@ -104,26 +106,48 @@ static void template_search_add_button_name(uiBlock *block,
   uiDefAutoButR(block, active_ptr, name_prop, 0, "", ICON_NONE, 0, 0, width, height);
 }
 
-static void template_search_add_button_operator(uiBlock *block,
-                                                const char *const operator_name,
-                                                const wmOperatorCallContext opcontext,
-                                                const int icon,
-                                                const bool editable)
+static void template_search_add_button_operator(
+    uiBlock *block,
+    const char *const operator_name,
+    const wmOperatorCallContext opcontext,
+    const int icon,
+    const bool editable,
+    const std::optional<StringRefNull> button_text = {})
 {
   if (!operator_name) {
     return;
   }
 
-  uiBut *but = uiDefIconButO(block,
-                             UI_BTYPE_BUT,
-                             operator_name,
-                             opcontext,
-                             icon,
-                             0,
-                             0,
-                             UI_UNIT_X,
-                             UI_UNIT_Y,
-                             std::nullopt);
+  uiBut *but;
+  if (button_text) {
+    const int button_width = std::max(
+        UI_fontstyle_string_width(UI_FSTYLE_WIDGET, button_text->c_str()) + int(UI_UNIT_X * 1.5f),
+        UI_UNIT_X * 5);
+
+    but = uiDefIconTextButO(block,
+                            UI_BTYPE_BUT,
+                            operator_name,
+                            opcontext,
+                            icon,
+                            *button_text,
+                            0,
+                            0,
+                            button_width,
+                            UI_UNIT_Y,
+                            std::nullopt);
+  }
+  else {
+    but = uiDefIconButO(block,
+                        UI_BTYPE_BUT,
+                        operator_name,
+                        opcontext,
+                        icon,
+                        0,
+                        0,
+                        UI_UNIT_X,
+                        UI_UNIT_Y,
+                        std::nullopt);
+  }
 
   if (!editable) {
     UI_but_drawflag_enable(but, UI_BUT_DISABLED);
@@ -161,9 +185,21 @@ static void template_search_buttons(const bContext *C,
 
   template_search_add_button_searchmenu(C, row, block, template_search, editable, false);
   template_search_add_button_name(block, &active_ptr, type);
-  template_search_add_button_operator(
-      block, newop, WM_OP_INVOKE_DEFAULT, ICON_DUPLICATE, editable);
-  template_search_add_button_operator(block, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, editable);
+
+  /* For Blender 4.4, the "New" button is only shown on Action Slot selectors.
+   * Blender 4.5 may have this enabled for all uses of this template, in which
+   * case this type-specific code will be removed. */
+  const bool may_show_new_button = (type == &RNA_ActionSlot);
+  if (may_show_new_button && !active_ptr.data) {
+    template_search_add_button_operator(
+        block, newop, WM_OP_INVOKE_DEFAULT, ICON_ADD, editable, IFACE_("New"));
+  }
+  else {
+    template_search_add_button_operator(
+        block, newop, WM_OP_INVOKE_DEFAULT, ICON_DUPLICATE, editable);
+    template_search_add_button_operator(
+        block, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, editable);
+  }
 
   UI_block_align_end(block);
 

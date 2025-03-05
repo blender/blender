@@ -1623,6 +1623,14 @@ void BKE_fcurve_bezt_resize(FCurve *fcu, const int new_totvert)
 
   fcu->bezt = static_cast<BezTriple *>(
       MEM_reallocN(fcu->bezt, new_totvert * sizeof(*(fcu->bezt))));
+
+  /* Zero out all the newly-allocated beztriples. This is necessary, as it is likely that only some
+   * of the fields will actually be updated by the caller. */
+  const int old_totvert = fcu->totvert;
+  if (new_totvert > old_totvert) {
+    memset(&fcu->bezt[old_totvert], 0, sizeof(fcu->bezt[0]) * (new_totvert - old_totvert));
+  }
+
   fcu->totvert = new_totvert;
 }
 

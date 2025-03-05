@@ -6970,6 +6970,7 @@ static int ui_do_but_HSVCUBE(
 
           ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, def_hsv, rgb);
           ui_but_v3_set(but, rgb);
+          ui_apply_but_func(C, but);
 
           RNA_property_update(C, &but->rnapoin, but->rnaprop);
           return WM_UI_HANDLER_BREAK;
@@ -7240,6 +7241,7 @@ static int ui_do_but_HSVCIRCLE(
 
         hsv_to_rgb_v(def_hsv, rgb);
         ui_but_v3_set(but, rgb);
+        ui_apply_but_func(C, but);
 
         RNA_property_update(C, &but->rnapoin, but->rnaprop);
 
