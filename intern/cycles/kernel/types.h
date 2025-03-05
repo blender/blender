@@ -1200,6 +1200,7 @@ struct ccl_align(16) ShaderData
   struct ShaderClosure closure[MAX_CLOSURE];
 };
 
+#ifdef __KERNEL_GPU__
 /* ShaderDataTinyStorage needs the same alignment as ShaderData, or else
  * the pointer cast in AS_SHADER_DATA invokes undefined behavior. */
 struct ccl_align(16) ShaderDataTinyStorage
@@ -1213,6 +1214,11 @@ struct ccl_align(16) ShaderDataCausticsStorage
 {
   char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * (MAX_CLOSURE - CAUSTICS_MAX_CLOSURE)];
 };
+#else
+/* On the CPU use full size, to avoid compiler and ASAN warnings. */
+using ShaderDataTinyStorage = ShaderData;
+using ShaderDataCausticsStorage = ShaderData;
+#endif
 
 #define AS_SHADER_DATA(shader_data_tiny_storage) \
   ((ccl_private ShaderData *)shader_data_tiny_storage)
