@@ -1364,7 +1364,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 
   /* Clamp to window bounds. */
   {
-    /* Ensure at least 5 px above screen bounds.
+    /* Ensure at least 5 pixels above screen bounds.
      * #UI_UNIT_Y is just a guess to be above the menu item. */
     if (init_rect_overlap != nullptr) {
       const int pad = max_ff(1.0f, U.pixelsize) * 5;

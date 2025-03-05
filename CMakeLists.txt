@@ -1424,7 +1424,7 @@ set(PLATFORM_CFLAGS)
 set(C_WARNINGS)
 set(CXX_WARNINGS)
 
-# NOTE: These flags are intended for situations where where it's impractical to
+# NOTE: These flags are intended for situations where it's impractical to
 # suppress warnings by modifying the code or for code which is maintained externally.
 # For GCC this typically means adding `-Wno-*` arguments to negate warnings
 # that are useful in the general case.
