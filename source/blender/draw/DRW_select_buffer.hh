@@ -26,7 +26,7 @@ struct View3D;
 struct rcti;
 
 /**
- * Indices inside the selection frame-buffer associated with the elements of a mesh. 
+ * Indices inside the selection frame-buffer associated with the elements of a mesh.
  */
 struct ElemIndexRanges {
   /** Range for each element type. */
