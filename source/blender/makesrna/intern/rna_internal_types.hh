@@ -11,6 +11,8 @@
 #include <optional>
 #include <string>
 
+#include "BLI_vector_set.hh"
+
 #include "DNA_listBase.h"
 
 #include "RNA_access.hh"
@@ -287,11 +289,15 @@ struct RNAPropertyOverrideApplyContext {
 };
 using RNAPropOverrideApply = bool (*)(Main *bmain, RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
+struct PropertyRNAIdentifierGetter {
+  blender::StringRef operator()(const PropertyRNA *prop) const;
+};
+
 /* Container - generic abstracted container of RNA properties */
 struct ContainerRNA {
   void *next, *prev;
 
-  struct GHash *prophash;
+  blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter> *prop_lookup_set;
   ListBase properties;
 };
 
@@ -384,6 +390,11 @@ struct PropertyRNA {
    * (in a pointer array at the moment, may later be a tuple) */
   void *py_data;
 };
+
+inline blender::StringRef PropertyRNAIdentifierGetter::operator()(const PropertyRNA *prop) const
+{
+  return prop->identifier;
+}
 
 /* internal flags WARNING! 16bits only! */
 enum PropertyFlagIntern {

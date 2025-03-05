@@ -87,12 +87,14 @@ void RNA_init()
   for (srna = static_cast<StructRNA *>(BLENDER_RNA.structs.first); srna;
        srna = static_cast<StructRNA *>(srna->cont.next))
   {
-    if (!srna->cont.prophash) {
-      srna->cont.prophash = BLI_ghash_str_new("RNA_init gh");
+    if (!srna->cont.prop_lookup_set) {
+      srna->cont.prop_lookup_set =
+          MEM_new<blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter>>(
+              __func__);
 
       LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
         if (!(prop->flag_internal & PROP_INTERN_BUILTIN)) {
-          BLI_ghash_insert(srna->cont.prophash, (void *)prop->identifier, prop);
+          srna->cont.prop_lookup_set->add(prop);
         }
       }
     }
@@ -124,10 +126,7 @@ void RNA_exit()
   for (srna = static_cast<StructRNA *>(BLENDER_RNA.structs.first); srna;
        srna = static_cast<StructRNA *>(srna->cont.next))
   {
-    if (srna->cont.prophash) {
-      BLI_ghash_free(srna->cont.prophash, nullptr, nullptr);
-      srna->cont.prophash = nullptr;
-    }
+    MEM_SAFE_DELETE(srna->cont.prop_lookup_set);
   }
 
   RNA_free(&BLENDER_RNA);

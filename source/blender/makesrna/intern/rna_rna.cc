@@ -563,9 +563,9 @@ bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Poin
   srna = ptr->type;
 
   do {
-    if (srna->cont.prophash) {
-      prop = static_cast<PropertyRNA *>(BLI_ghash_lookup(srna->cont.prophash, (void *)key));
-
+    if (srna->cont.prop_lookup_set) {
+      PropertyRNA *const *lookup_prop = srna->cont.prop_lookup_set->lookup_key_ptr_as(key);
+      prop = lookup_prop ? *lookup_prop : nullptr;
       if (prop) {
         *r_ptr = {nullptr, &RNA_Property, prop};
         return true;
