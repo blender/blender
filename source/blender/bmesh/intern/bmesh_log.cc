@@ -536,11 +536,6 @@ void BM_log_free(BMLog *log)
   MEM_delete(log);
 }
 
-int BM_log_length(const BMLog *log)
-{
-  return BLI_listbase_count(&log->entries);
-}
-
 void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 {
   BMIter bm_iter;
@@ -875,39 +870,6 @@ const float *BM_log_find_original_vert_mask(BMLog *log, BMVert *v)
     return &log_vert.value()->mask;
   }
   return nullptr;
-}
-
-const float *BM_log_original_vert_co(BMLog *log, BMVert *v)
-{
-  BMLogEntry *entry = log->current_entry;
-  BLI_assert(entry);
-
-  const uint v_id = bm_log_vert_id_get(log, v);
-
-  BLI_assert(entry->modified_verts.contains(v_id));
-  return entry->modified_verts.lookup(v_id)->position;
-}
-
-const float *BM_log_original_vert_no(BMLog *log, BMVert *v)
-{
-  BMLogEntry *entry = log->current_entry;
-  BLI_assert(entry);
-
-  const uint v_id = bm_log_vert_id_get(log, v);
-
-  BLI_assert(entry->modified_verts.contains(v_id));
-  return entry->modified_verts.lookup(v_id)->normal;
-}
-
-float BM_log_original_mask(BMLog *log, BMVert *v)
-{
-  BMLogEntry *entry = log->current_entry;
-  BLI_assert(entry);
-
-  const uint v_id = bm_log_vert_id_get(log, v);
-
-  BLI_assert(entry->modified_verts.contains(v_id));
-  return entry->modified_verts.lookup(v_id)->mask;
 }
 
 void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const float **r_no)
