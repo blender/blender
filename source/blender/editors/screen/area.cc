@@ -2719,9 +2719,11 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
     }
     st->space_subtype_set(area, area->butspacetype_subtype);
   }
-  else {
-    area->butspacetype_subtype = 0;
-  }
+
+  /* Whether setting a subtype or not we need to clear this value. Not just unneeded
+   * but can interfere with the next change. Operations can change the type without
+   * specifying a subtype (assumed zero) and we don't want to use the old subtype. */
+  area->butspacetype_subtype = 0;
 
   if (BLI_listbase_is_single(&CTX_wm_screen(C)->areabase)) {
     /* If there is only one area update the window title. */
