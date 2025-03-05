@@ -482,8 +482,8 @@ bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
  *
  * \param new_totvert: new number of elements in the FCurve's `bezt` array.
  *
- * \note When increasing the size of the array, newly added elements are not initialized. That is
- * left to the caller.
+ * \note When increasing the size of the array, newly added elements (that is, in the
+ * [old_totvert..new_totvert) interval) are zero-initialized.
  */
 void BKE_fcurve_bezt_resize(FCurve *fcu, int new_totvert);
 
