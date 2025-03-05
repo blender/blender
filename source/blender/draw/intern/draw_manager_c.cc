@@ -627,7 +627,6 @@ void DupliCacheManager::extract_all()
    * least the same lifetime. */
   blender::bke::ObjectRuntime tmp_runtime;
   Object tmp_object;
-  tmp_object.runtime = &tmp_runtime;
 
   using Iter = blender::Set<DupliKey>::Iterator;
   Iter begin = dupli_set_->begin();
@@ -640,6 +639,7 @@ void DupliCacheManager::extract_all()
       /* Copy both object data and runtime. */
       tmp_runtime = *ob->runtime;
       tmp_object = blender::dna::shallow_copy(*ob);
+      tmp_object.runtime = &tmp_runtime;
       /* Geometry instances shouldn't be rendered with edit mode overlays. */
       tmp_object.mode = OB_MODE_OBJECT;
       /* Do not modify the original bound-box. */
