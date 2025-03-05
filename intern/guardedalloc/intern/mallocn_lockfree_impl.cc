@@ -474,7 +474,7 @@ static void *mem_lockfree_malloc_arrayN_aligned(const size_t len,
     return nullptr;
   }
   if (alignment <= MEM_MIN_CPP_ALIGNMENT) {
-    return mem_callocN(r_bytes_num, str);
+    return mem_mallocN(r_bytes_num, str);
   }
   void *ptr = MEM_mallocN_aligned(r_bytes_num, alignment, str);
   return ptr;

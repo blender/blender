@@ -43,8 +43,10 @@ void *(*mem_guarded::internal::mem_callocN)(size_t len, const char *str) = MEM_l
 void *(*mem_guarded::internal::mem_calloc_arrayN)(size_t len,
                                                   size_t size,
                                                   const char *str) = MEM_lockfree_calloc_arrayN;
-void *(*MEM_mallocN)(size_t len, const char *str) = MEM_lockfree_mallocN;
-void *(*MEM_malloc_arrayN)(size_t len, size_t size, const char *str) = MEM_lockfree_malloc_arrayN;
+void *(*mem_guarded::internal::mem_mallocN)(size_t len, const char *str) = MEM_lockfree_mallocN;
+void *(*mem_guarded::internal::mem_malloc_arrayN)(size_t len,
+                                                  size_t size,
+                                                  const char *str) = MEM_lockfree_malloc_arrayN;
 void *(*mem_guarded::internal::mem_mallocN_aligned_ex)(size_t len,
                                                        size_t alignment,
                                                        const char *str,
@@ -123,6 +125,16 @@ void *MEM_calloc_arrayN(size_t len, size_t size, const char *str)
   return mem_calloc_arrayN(len, size, str);
 }
 
+void *MEM_mallocN(size_t len, const char *str)
+{
+  return mem_mallocN(len, str);
+}
+
+void *MEM_malloc_arrayN(size_t len, size_t size, const char *str)
+{
+  return mem_malloc_arrayN(len, size, str);
+}
+
 void *MEM_mallocN_aligned(size_t len, size_t alignment, const char *str)
 {
   return mem_mallocN_aligned_ex(len, alignment, str, AllocationType::ALLOC_FREE);
@@ -164,8 +176,8 @@ void MEM_use_lockfree_allocator()
   MEM_recallocN_id = MEM_lockfree_recallocN_id;
   mem_callocN = MEM_lockfree_callocN;
   mem_calloc_arrayN = MEM_lockfree_calloc_arrayN;
-  MEM_mallocN = MEM_lockfree_mallocN;
-  MEM_malloc_arrayN = MEM_lockfree_malloc_arrayN;
+  mem_mallocN = MEM_lockfree_mallocN;
+  mem_malloc_arrayN = MEM_lockfree_malloc_arrayN;
   mem_mallocN_aligned_ex = MEM_lockfree_mallocN_aligned;
   MEM_malloc_arrayN_aligned = MEM_lockfree_malloc_arrayN_aligned;
   MEM_calloc_arrayN_aligned = MEM_lockfree_calloc_arrayN_aligned;
@@ -200,8 +212,8 @@ void MEM_use_guarded_allocator()
   MEM_recallocN_id = MEM_guarded_recallocN_id;
   mem_callocN = MEM_guarded_callocN;
   mem_calloc_arrayN = MEM_guarded_calloc_arrayN;
-  MEM_mallocN = MEM_guarded_mallocN;
-  MEM_malloc_arrayN = MEM_guarded_malloc_arrayN;
+  mem_mallocN = MEM_guarded_mallocN;
+  mem_malloc_arrayN = MEM_guarded_malloc_arrayN;
   mem_mallocN_aligned_ex = MEM_guarded_mallocN_aligned;
   MEM_malloc_arrayN_aligned = MEM_guarded_malloc_arrayN_aligned;
   MEM_calloc_arrayN_aligned = MEM_guarded_calloc_arrayN_aligned;

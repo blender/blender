@@ -36,6 +36,22 @@ extern void *(*mem_calloc_arrayN)(size_t len,
                                   const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 
+/**
+ * Internal implementation of #MEM_mallocN, exposed because public #MEM_mallocN cannot be a
+ * function pointer, to allow its overload by C++ template version.
+ */
+extern void *(*mem_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+
+/**
+ * Internal implementation of #MEM_malloc_arrayN, exposed because public #MEM_malloc_arrayN cannot
+ * be a function pointer, to allow its overload by C++ template version.
+ */
+extern void *(*mem_malloc_arrayN)(size_t len,
+                                  size_t size,
+                                  const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
+
 /** Internal implementation of #MEM_mallocN_aligned, exposed because #MEM_new needs access to it.
  */
 extern void *(*mem_mallocN_aligned_ex)(size_t len,

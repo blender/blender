@@ -114,7 +114,7 @@ void *MEM_calloc_arrayN(size_t len,
  * Allocate a block of memory of size len, with tag name str. The
  * name must be a static, because only a pointer to it is stored!
  */
-extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+void *MEM_mallocN(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 /**
@@ -122,9 +122,9 @@ extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_
  * aborting in case of integer overflow to prevent vulnerabilities. The
  * name must be a static, because only a pointer to it is stored!
  */
-extern void *(*MEM_malloc_arrayN)(size_t len,
-                                  size_t size,
-                                  const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+void *MEM_malloc_arrayN(size_t len,
+                        size_t size,
+                        const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 
 /**
@@ -401,6 +401,55 @@ template<typename T> inline T *MEM_calloc_arrayN(const size_t length, const char
 #  endif
   return static_cast<T *>(
       MEM_calloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
+}
+
+/**
+ * Allocate uninitialized memory for an object of type #T. The constructor of #T is not called,
+ * therefore this must only be used with trivial types (like all C types).
+ *
+ * When allocating an enforced specific amount of bytes, the C version of this function should be
+ * used instead. While this should be avoided in C++ code, it is still required in some cases, e.g.
+ * for ID allocation based on #IDTypeInfo::struct_size.
+ *
+ * #MEM_freeN must be used to free a pointer returned by this call. Calling #MEM_delete on it is
+ * illegal.
+ */
+template<typename T> inline T *MEM_mallocN(const char *allocation_name)
+{
+#  ifdef _MSC_VER
+  /* MSVC considers C-style types using the DNA_DEFINE_CXX_METHODS as non-trivial (more
+   * specifically, non-trivially copyable, likely because the default copy constructors are
+   * deleted). GCC and clang (both on linux, OSX, and clang-cl on Windows on Arm) do not.
+   *
+   * So for now, use a more restricted check on MSVC, should still catch most of actual invalid
+   * cases. */
+  static_assert(std::is_trivially_constructible_v<T>,
+                "For non-trivial types, MEM_new must be used.");
+#  else
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
+#  endif
+  return static_cast<T *>(MEM_malloc_arrayN_aligned(1, sizeof(T), alignof(T), allocation_name));
+}
+
+/**
+ * Type-safe version of #MEM_malloc_arrayN/#MEM_malloc_array_alignedN.
+ */
+template<typename T> inline T *MEM_malloc_arrayN(const size_t length, const char *allocation_name)
+{
+#  ifdef _MSC_VER
+  /* MSVC considers C-style types using the DNA_DEFINE_CXX_METHODS as non-trivial (more
+   * specifically, non-trivially copyable, likely because the default copy constructors are
+   * deleted). GCC and clang (both on linux, OSX, and clang-cl on Windows on Arm) do not.
+   *
+   * So for now, use a more restricted check on MSVC, should still catch most of actual invalid
+   * cases. */
+  static_assert(std::is_trivially_constructible_v<T>,
+                "For non-trivial types, MEM_new must be used.");
+#  else
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
+#  endif
+  return static_cast<T *>(
+      MEM_malloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
 }
 
 /**
