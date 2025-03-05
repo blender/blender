@@ -629,8 +629,6 @@ class Compositor {
       }
     }
 
-    /* Always recreate the evaluator, as this only runs on compositing node changes and
-     * there is no reason to cache this. Unlike the viewport where it helps for navigation. */
     {
       compositor::Evaluator evaluator(*context_);
       evaluator.evaluate();

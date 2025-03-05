@@ -22,27 +22,15 @@ using namespace nodes::derived_node_tree_types;
 /* ------------------------------------------------------------------------------------------------
  * Evaluator
  *
- * The evaluator is the main class of the compositor and the entry point of its execution. The
- * evaluator compiles the compositor node tree and evaluates it to compute its output. It is
- * constructed from a compositor node tree and a compositor context. Upon calling the evaluate
- * method, the evaluator will check if the node tree is already compiled into an operations stream,
- * and if it is, it will go over it and evaluate the operations in order. It is then the
- * responsibility of the caller to call the reset method when the node tree changes to invalidate
- * the operations stream. A reset is also required if the resources used by the node tree change,
- * for instances, when the dimensions of an image used by the node tree changes. This is necessary
- * because the evaluator compiles the node tree into an operations stream that is specifically
- * optimized for the structure of the resources used by the node tree.
+ * The evaluator is the main class of the compositor and the entry point of its execution. It is
+ * constructed from a compositor node tree and a compositor context. It compiles the node tree into
+ * an operations stream, evaluating the operations in the process. It should be noted that
+ * operations are eagerly evaluated as soon as they are compiled, as opposed to compiling the whole
+ * operations stream and then evaluating it in a separate step. This is done because the evaluator
+ * uses the evaluated results of previously compiled operations to compile the operations that
+ * follow them in an optimized manner.
  *
- * Otherwise, if the node tree is not yet compiled, the evaluator will compile it into an
- * operations stream, evaluating the operations in the process. It should be noted that operations
- * are evaluated as soon as they are compiled, as opposed to compiling the whole operations stream
- * and then evaluating it in a separate step. This is important because, as mentioned before, the
- * operations stream is optimized specifically for the structure of the resources used by the node
- * tree, which is only known after the operations are evaluated. In other words, the evaluator uses
- * the evaluated results of previously compiled operations to compile the operations that follow
- * them in an optimized manner.
- *
- * Compilation starts by computing an optimized node execution schedule by calling the
+ * Evaluation starts by computing an optimized node execution schedule by calling the
  * compute_schedule function, see the discussion in COM_scheduler.hh for more details. For the node
  * tree shown below, the execution schedule is denoted by the node numbers. The compiler then goes
  * over the execution schedule in order and compiles each node into either a Node Operation or a
@@ -101,51 +89,30 @@ class Evaluator {
  private:
   /* A reference to the compositor context. */
   Context &context_;
-  /* A derived node tree representing the compositor node tree. This is constructed when the node
-   * tree is compiled and reset when the evaluator is reset, so it gets reconstructed every time
-   * the node tree changes. */
+  /* A derived node tree representing the compositor node tree. */
   std::unique_ptr<DerivedNodeTree> derived_node_tree_;
-  /* The compiled operations stream. This contains ordered pointers to the operations that were
-   * compiled. This is initialized when the node tree is compiled and freed when the evaluator
-   * resets. The is_compiled_ member indicates whether the operation stream can be used or needs to
-   * be compiled first. Note that the operations stream can be empty even when compiled, this can
-   * happen when the node tree is empty or invalid for instance. */
+  /* The compiled operations stream, which contains all compiled operations so far. */
   Vector<std::unique_ptr<Operation>> operations_stream_;
-  /* True if the node tree is already compiled into an operations stream that can be evaluated
-   * directly. False if the node tree is not compiled yet and needs to be compiled. */
-  bool is_compiled_ = false;
 
  public:
   /* Construct an evaluator from a context. */
   Evaluator(Context &context);
 
-  /* Evaluate the compositor node tree. If the node tree is already compiled into an operations
-   * stream, that stream will be evaluated directly. Otherwise, the node tree will be compiled and
-   * evaluated. */
+  /* Evaluates the compositor node tree by compiling it into an operations stream and evaluating
+   * it. */
   void evaluate();
 
-  /* Invalidate the operations stream that was compiled for the node tree. This should be called
-   * when the node tree changes or the structure of any of the resources used by it changes. By
-   * structure, we mean things like the dimensions of the used images, while changes to their
-   * contents do not necessitate a reset. */
-  void reset();
-
  private:
-  /* Check if the compositor node tree is valid by checking if it has:
-   * - Cyclic links.
-   * - Undefined nodes or sockets.
-   * - Unsupported nodes.
-   * If the node tree is valid, true is returned. Otherwise, false is returned, and an appropriate
-   * error message is set by calling the context's set_info_message method. */
+  /* Check if the compositor node tree is valid by checking if it has things like cyclic links and
+   * undefined nodes or sockets. If the node tree is valid, true is returned. Otherwise, false is
+   * returned, and an appropriate error message is set by calling the context's set_info_message
+   * method. */
   bool validate_node_tree();
-
-  /* Compile the node tree into an operations stream and evaluate it. */
-  void compile_and_evaluate();
 
   /* Compile the given node into a node operation, map each input to the result of the output
    * linked to it, update the compile state, add the newly created operation to the operations
    * stream, and evaluate the operation. */
-  void compile_and_evaluate_node(DNode node, CompileState &compile_state);
+  void evaluate_node(DNode node, CompileState &compile_state);
 
   /* Map each input of the node operation to the result of the output linked to it. Unlinked inputs
    * are mapped to the result of a newly created Input Single Value Operation, which is added to
@@ -160,7 +127,7 @@ class Evaluator {
    * the result of the output linked to it, update the compile state, add the newly created
    * operation to the operations stream, evaluate the operation, and finally reset the pixel
    * compile unit. */
-  void compile_and_evaluate_pixel_compile_unit(CompileState &compile_state);
+  void evaluate_pixel_compile_unit(CompileState &compile_state);
 
   /* Map each input of the pixel operation to the result of the output linked to it. This might
    * also correct the reference counts of the results, see the implementation for more details. */

@@ -209,51 +209,14 @@ class Context : public compositor::Context {
 class Engine {
  private:
   Context context_;
-  compositor::Evaluator evaluator_;
-  /* Stores the compositing region size at the time the last compositor evaluation happened. See
-   * the update_compositing_region_size method for more information. */
-  int2 last_compositing_region_size_;
 
  public:
-  Engine(char *info_message)
-      : context_(info_message),
-        evaluator_(context_),
-        last_compositing_region_size_(context_.get_compositing_region_size())
-  {
-  }
+  Engine(char *info_message) : context_(info_message) {}
 
-  /* Update the compositing region size and evaluate the compositor. */
   void draw()
   {
-    update_compositing_region_size();
-    /* We temporally disable caching of node tree compilation by always resting the evaluator for
-     * now. See pull request #134394 for more information. TODO: This should be cleaned up in the
-     * future. */
-    evaluator_.reset();
-    evaluator_.evaluate();
-  }
-
-  /* If the size of the compositing region changed from the last time the compositor was evaluated,
-   * update the last compositor region size and reset the evaluator. That's because the evaluator
-   * compiles the node tree in a manner that is specifically optimized for the size of the
-   * compositing region. This should be called before evaluating the compositor. */
-  void update_compositing_region_size()
-  {
-    if (last_compositing_region_size_ == context_.get_compositing_region_size()) {
-      return;
-    }
-
-    last_compositing_region_size_ = context_.get_compositing_region_size();
-
-    evaluator_.reset();
-  }
-
-  /* If the compositor node tree changed, reset the evaluator. */
-  void update(const Depsgraph *depsgraph)
-  {
-    if (DEG_id_type_updated(depsgraph, ID_NT)) {
-      evaluator_.reset();
-    }
+    compositor::Evaluator evaluator(context_);
+    evaluator.evaluate();
   }
 };
 
@@ -313,18 +276,6 @@ static void compositor_engine_draw(void *data)
 #endif
 }
 
-static void compositor_engine_update(void *data)
-{
-  COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
-
-  /* Clear any info message that was set in a previous update. */
-  compositor_data->info[0] = '\0';
-
-  if (compositor_data->instance_data) {
-    compositor_data->instance_data->update(DRW_context_state_get()->depsgraph);
-  }
-}
-
 DrawEngineType draw_engine_compositor_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
@@ -336,7 +287,7 @@ DrawEngineType draw_engine_compositor_type = {
     /*cache_populate*/ nullptr,
     /*cache_finish*/ nullptr,
     /*draw_scene*/ &compositor_engine_draw,
-    /*view_update*/ &compositor_engine_update,
+    /*view_update*/ nullptr,
     /*id_update*/ nullptr,
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
