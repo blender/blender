@@ -50,7 +50,7 @@
      xattr -rl bin/Blender.app/Contents/Plugins/blender-thumbnailer.appex
  * - Is it registered with lsregister and there isn't a conflict with another plugin taking
  *   precedence? lsregister -dump | grep blender-thumbnailer.appex
- * - For RBSLaunchRequest error: is the executable executable? chmod u+x
+ * - For RBSLaunchRequest error: is the executable flag set? chmod u+x
   bin/Blender.app/Contents/PlugIns/blender-thumbnailer.appex/Contents/MacOS/blender-thumbnailer
  * - Is it codesigned and sandboxed?
  *   codesign --display --verbose --entitlements - --xml \
